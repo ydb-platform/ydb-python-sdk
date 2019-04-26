@@ -252,13 +252,16 @@ class Connection(object):
                 raise issues.ConnectionLost("Couldn't start call")
             self.calls += 1
             self._call_states[call_state.request_id] = call_state
+        # Call successfully prepared and registered
         return call_state, timeout, metadata
 
     def _finish_call(self, call_state):
         with self.lock:
             self.calls -= 1
             self._call_states.pop(call_state.request_id, None)
+            # Call successfully finished
             if self.closing and self.calls == 0:
+                # Channel is closing and we have to destroy channel
                 self.destroy()
 
     def future(self, request, stub, rpc_name, wrap_result=None, settings=None, on_disconnected=None, wrap_args=()):
@@ -349,7 +352,11 @@ class Connection(object):
             for callback in self._cleanup_callbacks:
                 callback(self)
 
+            # potentially we should cancel in-flight calls here but currently
+            # it is not required since gRPC can successfully cancel these calls manually.
+
             if self.calls == 0:
+                # everything is cancelled/completed and channel can be destroyed
                 self.destroy()
 
     def destroy(self):
