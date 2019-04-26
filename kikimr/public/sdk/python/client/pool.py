@@ -155,15 +155,16 @@ class Discovery(threading.Thread):
         if self._driver_config.database is None:
             return self._handle_empty_database()
 
-        resolved_endpoints = self._resolver.resolve()
-        if resolved_endpoints is None:
+        resolved_endpoints_details = self._resolver.resolve()
+        resolved_endpoints = set(details.endpoint for details in resolved_endpoints_details)
+        if resolved_endpoints_details is None:
             return False
 
         for cached_endpoint in self._cache.values():
-            if cached_endpoint not in resolved_endpoints:
+            if cached_endpoint.endpoint not in resolved_endpoints:
                 self._cache.make_outdated(cached_endpoint)
 
-        for resolved_endpoint in resolved_endpoints:
+        for resolved_endpoint in resolved_endpoints_details:
             if self._cache.size >= self._max_size or self._cache.already_exists(resolved_endpoint.endpoint):
                 continue
 
@@ -265,7 +266,12 @@ class ConnectionPool(object):
         :param wrap_args: And arguments to be passed into wrap_result callable
         :return: A result of computation
         """
-        connection = self._store.get()
+        try:
+            connection = self._store.get()
+        except Exception:
+            self._discovery_thread.notify_disconnected()
+            raise
+
         return connection(
             request, stub, rpc_name, wrap_result, settings,
             lambda: self._on_disconnected(connection), wrap_args)
@@ -282,7 +288,12 @@ class ConnectionPool(object):
         :param wrap_args: And arguments to be passed into wrap_result callable
         :return: A future of computation
         """
-        connection = self._store.get()
+        try:
+            connection = self._store.get()
+        except Exception:
+            self._discovery_thread.notify_disconnected()
+            raise
+
         return connection.future(
             request, stub, rpc_name, wrap_result, settings,
             lambda: self._on_disconnected(connection), wrap_args)
