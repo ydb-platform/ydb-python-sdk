@@ -22,8 +22,10 @@ def get_jwt(service_account_id, access_key_id, private_key, jwt_expiration_timeo
 
 
 class ServiceAccountCredentials(credentials.Credentials):
-    def __init__(self, iam_endpoint, iam_channel_credentials, service_account_id, access_key_id, private_key):
+    def __init__(self, service_account_id, access_key_id, private_key, iam_endpoint=None, iam_channel_credentials=None):
         super(ServiceAccountCredentials, self).__init__()
+        iam_endpoint = 'iam.api.cloud.yandex.net:443' if iam_endpoint is None else iam_endpoint
+        iam_channel_credentials = {} if iam_channel_credentials is None else iam_channel_credentials
         self._channel = grpc.secure_channel(iam_endpoint, grpc.ssl_channel_credentials(**iam_channel_credentials))
         self._channel_stub = iam_token_service_pb2_grpc.IamTokenServiceStub(self._channel)
         self._service_account_id = service_account_id
