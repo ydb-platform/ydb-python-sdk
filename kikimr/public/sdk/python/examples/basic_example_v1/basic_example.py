@@ -242,17 +242,6 @@ def credentials_from_environ():
     if os.getenv('YDB_TOKEN') is not None:
         return ydb.AuthTokenCredentials(os.getenv('YDB_TOKEN'))
 
-    if os.getenv('TVM_CLIENT_ID') is not None:
-        from kikimr.public.sdk.python import tvm
-        return tvm.TvmCredentialsProvider(
-            self_client_id=int(os.getenv('TVM_CLIENT_ID')),
-            self_secret=os.getenv('TVM_SECRET'),
-            destination_alias='ydb',
-            dsts={
-                'ydb': int(os.getenv('TVM_SERVICE_ID')),
-            }
-        )
-
     if os.getenv('SA_ID') is not None:
         with open(os.getenv('SA_PRIVATE_KEY_FILE')) as private_key_file:
             from kikimr.public.sdk.python import iam

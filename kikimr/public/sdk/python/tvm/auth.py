@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import six
-
 from kikimr.public.sdk.python.client import credentials
 try:
     from ticket_parser2 import ticket_parser2_pymodule as tvm
@@ -9,10 +8,27 @@ except ImportError:
         from ticket_parser2_py3 import ticket_parser2_pymodule as tvm
 
     except ImportError:
-        raise RuntimeError("Failed to import ticket parser module!")
+        raise ImportError("Failed to import ticket parser module!")
 
 
 class TvmCredentialsProvider(credentials.Credentials):
+    """
+    TVM Auth Adapter
+
+    Usage example:
+
+    def tvm_credentials():
+        from kikimr.public.sdk.python import tvm
+        return tvm.TvmCredentialsProvider(
+            self_client_id=int(os.getenv('TVM_CLIENT_ID')),
+            self_secret=os.getenv('TVM_SECRET'),
+            destination_alias='ydb',
+            dsts={
+                'ydb': 2002490,
+            }
+        )
+
+    """
     def __init__(self, self_client_id, self_secret, dsts, destination_alias):
         self._settings = tvm.TvmApiClientSettings(
             self_client_id=self_client_id, self_secret=self_secret, dsts=dsts)
