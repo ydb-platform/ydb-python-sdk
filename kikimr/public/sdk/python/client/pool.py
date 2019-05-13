@@ -19,13 +19,17 @@ class ConnectionsCache(object):
         self.connections = collections.OrderedDict()
         self.outdated = collections.OrderedDict()
         self.subscriptions = set()
+        self.preferred = collections.OrderedDict()
+        self.logger = logging.getLogger(__name__)
 
-    def add(self, connection):
+    def add(self, connection, preferred=False):
         if connection is None:
             return False
 
         connection.add_cleanup_callback(self.remove)
         with self.lock:
+            if preferred:
+                self.preferred[connection.endpoint] = connection
             self.connections[connection.endpoint] = connection
             subscriptions = list(self.subscriptions)
             self.subscriptions.clear()
@@ -90,14 +94,20 @@ class ConnectionsCache(object):
     def get(self):
         with self.lock:
             try:
-                endpoint, connection = self.connections.popitem(last=False)
+                endpoint, connection = self.preferred.popitem(last=False)
+                self.preferred[endpoint] = connection
             except KeyError:
-                raise issues.ConnectionLost("Couldn't find valid connection")
-            self.connections[endpoint] = connection
+                try:
+                    endpoint, connection = self.connections.popitem(last=False)
+                    self.connections[endpoint] = connection
+                except KeyError:
+                    raise issues.ConnectionLost("Couldn't find valid connection")
+
             return connection
 
     def remove(self, connection):
         with self.lock:
+            self.preferred.pop(connection.endpoint, None)
             self.connections.pop(connection.endpoint, None)
             self.outdated.pop(connection.endpoint, None)
 
@@ -155,25 +165,23 @@ class Discovery(threading.Thread):
         if self._driver_config.database is None:
             return self._handle_empty_database()
 
-        resolved_endpoints_details = self._resolver.resolve()
-        if resolved_endpoints_details is None:
+        resolve_details = self._resolver.resolve()
+        if resolve_details is None:
             return False
 
-        resolved_endpoints = set(details.endpoint for details in resolved_endpoints_details)
+        resolved_endpoints = set(details.endpoint for details in resolve_details.endpoints)
         for cached_endpoint in self._cache.values():
             if cached_endpoint.endpoint not in resolved_endpoints:
                 self._cache.make_outdated(cached_endpoint)
 
-        for resolved_endpoint in resolved_endpoints_details:
+        for resolved_endpoint in resolve_details.endpoints:
             if self._cache.size >= self._max_size or self._cache.already_exists(resolved_endpoint.endpoint):
                 continue
-
-            self._cache.add(
-                connection_impl.Connection.ready_factory(
-                    resolved_endpoint.endpoint, self._driver_config,
-                    self._ready_timeout
-                )
-            )
+            endpoint = resolved_endpoint.endpoint
+            preferred = resolve_details.self_location == resolved_endpoint.location
+            ready_connection = connection_impl.Connection.ready_factory(
+                endpoint, self._driver_config, self._ready_timeout)
+            self._cache.add(ready_connection, preferred)
 
         self._cache.cleanup_outdated()
 
