@@ -20,6 +20,7 @@ from kikimr.public.sdk.python.client import settings
 from kikimr.public.api.grpc import ydb_table_v1_pb2_grpc as ydb_table_pb2_grpc
 from kikimr.public.sdk.python.client import scheme
 from kikimr.public.sdk.python.client import types
+from . import interceptor
 
 _CreateTable = 'CreateTable'
 _DropTable = 'DropTable'
@@ -35,6 +36,7 @@ _BeginTransaction = 'BeginTransaction'
 _CommitTransaction = 'CommitTransaction'
 _RollbackTransaction = 'RollbackTransaction'
 _KeepAlive = 'KeepAlive'
+_StreamReadTable = 'StreamReadTable'
 
 logger = logging.getLogger(__name__)
 
@@ -678,6 +680,42 @@ def _keep_alive_request_factory(session_state):
     return session_state.attach_request(request)
 
 
+def _read_table_request_factory(session_state, path, key_range=None, columns=None, ordered=False, row_limit=None):
+    request = ydb_table_pb2.ReadTableRequest()
+    request.path = path
+    request.ordered = ordered
+    if columns is not None:
+        for column in columns:
+            request.columns.append(column)
+    if row_limit:
+        request.row_limit = row_limit
+    return session_state.attach_request(request)
+
+
+class WrappedSyncResponseIterator(object):
+    def __init__(self, it, wrapper):
+        self.it = it
+        self.wrapper = wrapper
+
+    def cancel(self):
+        self.it.cancel()
+        return self
+
+    def __iter__(self):
+        return self
+
+    def next(self):
+        return self.wrapper(next(self.it))
+
+    def __next__(self):
+        return self.wrapper(next(self.it))
+
+
+def _wrap_read_table_response(response):
+    issues._process_response(response)
+    return convert.ResultSet.from_message(response.result.result_set)
+
+
 class Session(object):
     __slots__ = ('_state', '_driver', '__weakref__')
 
@@ -700,6 +738,38 @@ class Session(object):
 
     def reset(self):
         return self._state.reset()
+
+    def read_table(self, path, key_range=None, columns=(), ordered=False, row_limit=None):
+        """
+        Experimental api to read the table
+        :param path:
+        :param key_range:
+        :param columns:
+        :param ordered:
+        :param row_limit:
+        :return: WrappedSyncResponseIterator instance
+        """
+        request = _read_table_request_factory(self._state, path, key_range, columns, ordered, row_limit)
+        return WrappedSyncResponseIterator(
+            self._driver(request, ydb_table_pb2_grpc.TableServiceStub, _StreamReadTable),
+            _wrap_read_table_response,
+        )
+
+    def async_read_table(self, path, key_range=None, columns=None, ordered=False, row_limit=None):
+        """
+        Experimental api to read the table
+        :param path:
+        :param key_range:
+        :param columns:
+        :param ordered:
+        :param row_limit:
+        :return: async iterator instance
+        """
+        request = _read_table_request_factory(self._state, path, key_range, columns, ordered, row_limit)
+        return interceptor.patch_async_iterator(
+            self._driver(request, ydb_table_pb2_grpc.TableServiceStub, _StreamReadTable),
+            _wrap_read_table_response,
+        )
 
     def keep_alive(self, settings=None):
         return self._driver(

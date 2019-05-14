@@ -272,6 +272,19 @@ class _ResultSet(object):
         self.rows = rows
         self.truncated = truncated
 
+    @classmethod
+    def from_message(cls, message):
+        rows = []
+        for row_proto in message.rows:
+            row = _Row()
+            for column, value in six.moves.zip(message.columns, row_proto.items):
+                row[column.name] = _to_native_value(column.type, value)
+            rows.append(row)
+        return cls(rows, message.truncated)
+
+
+ResultSet = _ResultSet
+
 
 class _Row(_DotDict):
     pass
@@ -290,12 +303,10 @@ def to_native_value(typed_value):
 class ResultSets(list):
     def __init__(self, result_sets_pb):
         result_sets = []
-        for result in result_sets_pb:
-            rows = []
-            for row_proto in result.rows:
-                row = _Row()
-                for column, value in six.moves.zip(result.columns, row_proto.items):
-                    row[column.name] = _to_native_value(column.type, value)
-                rows.append(row)
-            result_sets.append(_ResultSet(rows, result.truncated))
+        for result_set in result_sets_pb:
+            result_sets.append(
+                _ResultSet.from_message(
+                    result_set
+                )
+            )
         super(ResultSets, self).__init__(result_sets)
