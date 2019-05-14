@@ -29,6 +29,11 @@ class ExperimentalServiceStub(object):
         request_serializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__experimental__pb2.GetShardLocationsRequest.SerializeToString,
         response_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__experimental__pb2.GetShardLocationsResponse.FromString,
         )
+    self.ExecuteStreamQuery = channel.unary_stream(
+        '/Ydb.Experimental.V1.ExperimentalService/ExecuteStreamQuery',
+        request_serializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__experimental__pb2.ExecuteStreamQueryRequest.SerializeToString,
+        response_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__experimental__pb2.ExecuteStreamQueryResponse.FromString,
+        )
 
 
 class ExperimentalServiceServicer(object):
@@ -56,6 +61,13 @@ class ExperimentalServiceServicer(object):
     context.set_details('Method not implemented!')
     raise NotImplementedError('Method not implemented!')
 
+  def ExecuteStreamQuery(self, request, context):
+    # missing associated documentation comment in .proto file
+    pass
+    context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+    context.set_details('Method not implemented!')
+    raise NotImplementedError('Method not implemented!')
+
 
 def add_ExperimentalServiceServicer_to_server(servicer, server):
   rpc_method_handlers = {
@@ -73,6 +85,11 @@ def add_ExperimentalServiceServicer_to_server(servicer, server):
           servicer.GetShardLocations,
           request_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__experimental__pb2.GetShardLocationsRequest.FromString,
           response_serializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__experimental__pb2.GetShardLocationsResponse.SerializeToString,
+      ),
+      'ExecuteStreamQuery': grpc.unary_stream_rpc_method_handler(
+          servicer.ExecuteStreamQuery,
+          request_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__experimental__pb2.ExecuteStreamQueryRequest.FromString,
+          response_serializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__experimental__pb2.ExecuteStreamQueryResponse.SerializeToString,
       ),
   }
   generic_handler = grpc.method_handlers_generic_handler(
