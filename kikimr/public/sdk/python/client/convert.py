@@ -252,6 +252,13 @@ def _from_native_value(type_pb, value):
         type_pb.WhichOneof('type'))(type_pb, value)
 
 
+def to_typed_value_from_native(type_pb, value):
+    typed_value = ydb_value_pb2.TypedValue()
+    typed_value.type.MergeFrom(type_pb)
+    typed_value.value.MergeFrom(from_native_value(type_pb, value))
+    return typed_value
+
+
 def parameters_to_pb(parameters_types, parameters_values):
     if parameters_values is None or not parameters_values:
         return {}
