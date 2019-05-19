@@ -19,7 +19,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='yql/public/issue/protos/issue_severity.proto',
   package='NYql',
   syntax='proto3',
-  serialized_pb=_b('\n,yql/public/issue/protos/issue_severity.proto\x12\x04NYql\"R\n\x0cTSeverityIds\"B\n\x0b\x45SeverityId\x12\x0b\n\x07S_FATAL\x10\x00\x12\x0b\n\x07S_ERROR\x10\x01\x12\r\n\tS_WARNING\x10\x02\x12\n\n\x06S_INFO\x10\x03\x42\x15\n\x13ru.yandex.yql.protob\x06proto3')
+  serialized_pb=_b('\n,yql/public/issue/protos/issue_severity.proto\x12\x04NYql\"R\n\x0cTSeverityIds\"B\n\x0b\x45SeverityId\x12\x0b\n\x07S_FATAL\x10\x00\x12\x0b\n\x07S_ERROR\x10\x01\x12\r\n\tS_WARNING\x10\x02\x12\n\n\x06S_INFO\x10\x03\x42\x16\n\x14\x63om.yandex.yql.protob\x06proto3')
 )
 
 
@@ -92,5 +92,5 @@ _sym_db.RegisterMessage(TSeverityIds)
 
 
 DESCRIPTOR.has_options = True
-DESCRIPTOR._options = _descriptor._ParseOptions(descriptor_pb2.FileOptions(), _b('\n\023ru.yandex.yql.proto'))
+DESCRIPTOR._options = _descriptor._ParseOptions(descriptor_pb2.FileOptions(), _b('\n\024com.yandex.yql.proto'))
 # @@protoc_insertion_point(module_scope)

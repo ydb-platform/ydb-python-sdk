@@ -20,7 +20,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='kikimr/public/api/grpc/ydb_coordination_v1.proto',
   package='Ydb.Coordination.V1',
   syntax='proto3',
-  serialized_pb=_b('\n0kikimr/public/api/grpc/ydb_coordination_v1.proto\x12\x13Ydb.Coordination.V1\x1a/kikimr/public/api/protos/ydb_coordination.proto2\xca\x03\n\x13\x43oordinationService\x12R\n\x07Session\x12 .Ydb.Coordination.SessionRequest\x1a!.Ydb.Coordination.SessionResponse(\x01\x30\x01\x12W\n\nCreateNode\x12#.Ydb.Coordination.CreateNodeRequest\x1a$.Ydb.Coordination.CreateNodeResponse\x12T\n\tAlterNode\x12\".Ydb.Coordination.AlterNodeRequest\x1a#.Ydb.Coordination.AlterNodeResponse\x12Q\n\x08\x44ropNode\x12!.Ydb.Coordination.DropNodeRequest\x1a\".Ydb.Coordination.DropNodeResponse\x12]\n\x0c\x44\x65scribeNode\x12%.Ydb.Coordination.DescribeNodeRequest\x1a&.Ydb.Coordination.DescribeNodeResponseB3\n\x1dru.yandex.ydb.coordination.v1B\x10\x43oordinationGrpcP\x01\x62\x06proto3')
+  serialized_pb=_b('\n0kikimr/public/api/grpc/ydb_coordination_v1.proto\x12\x13Ydb.Coordination.V1\x1a/kikimr/public/api/protos/ydb_coordination.proto2\xca\x03\n\x13\x43oordinationService\x12R\n\x07Session\x12 .Ydb.Coordination.SessionRequest\x1a!.Ydb.Coordination.SessionResponse(\x01\x30\x01\x12W\n\nCreateNode\x12#.Ydb.Coordination.CreateNodeRequest\x1a$.Ydb.Coordination.CreateNodeResponse\x12T\n\tAlterNode\x12\".Ydb.Coordination.AlterNodeRequest\x1a#.Ydb.Coordination.AlterNodeResponse\x12Q\n\x08\x44ropNode\x12!.Ydb.Coordination.DropNodeRequest\x1a\".Ydb.Coordination.DropNodeResponse\x12]\n\x0c\x44\x65scribeNode\x12%.Ydb.Coordination.DescribeNodeRequest\x1a&.Ydb.Coordination.DescribeNodeResponseB4\n\x1e\x63om.yandex.ydb.coordination.v1B\x10\x43oordinationGrpcP\x01\x62\x06proto3')
   ,
   dependencies=[kikimr_dot_public_dot_api_dot_protos_dot_ydb__coordination__pb2.DESCRIPTOR,])
 
@@ -30,7 +30,7 @@ _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
 
 DESCRIPTOR.has_options = True
-DESCRIPTOR._options = _descriptor._ParseOptions(descriptor_pb2.FileOptions(), _b('\n\035ru.yandex.ydb.coordination.v1B\020CoordinationGrpcP\001'))
+DESCRIPTOR._options = _descriptor._ParseOptions(descriptor_pb2.FileOptions(), _b('\n\036com.yandex.ydb.coordination.v1B\020CoordinationGrpcP\001'))
 
 _COORDINATIONSERVICE = _descriptor.ServiceDescriptor(
   name='CoordinationService',

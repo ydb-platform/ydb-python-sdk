@@ -20,7 +20,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='kikimr/public/api/grpc/draft/ydb_s3_internal_v1.proto',
   package='Ydb.S3Internal.V1',
   syntax='proto3',
-  serialized_pb=_b('\n5kikimr/public/api/grpc/draft/ydb_s3_internal_v1.proto\x12\x11Ydb.S3Internal.V1\x1a.kikimr/public/api/protos/ydb_s3_internal.proto2e\n\x11S3InternalService\x12P\n\tS3Listing\x12 .Ydb.S3Internal.S3ListingRequest\x1a!.Ydb.S3Internal.S3ListingResponseB\x1e\n\x1cru.yandex.ydb.s3_internal.v1b\x06proto3')
+  serialized_pb=_b('\n5kikimr/public/api/grpc/draft/ydb_s3_internal_v1.proto\x12\x11Ydb.S3Internal.V1\x1a.kikimr/public/api/protos/ydb_s3_internal.proto2e\n\x11S3InternalService\x12P\n\tS3Listing\x12 .Ydb.S3Internal.S3ListingRequest\x1a!.Ydb.S3Internal.S3ListingResponseB\x1f\n\x1d\x63om.yandex.ydb.s3_internal.v1b\x06proto3')
   ,
   dependencies=[kikimr_dot_public_dot_api_dot_protos_dot_ydb__s3__internal__pb2.DESCRIPTOR,])
 
@@ -30,7 +30,7 @@ _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
 
 DESCRIPTOR.has_options = True
-DESCRIPTOR._options = _descriptor._ParseOptions(descriptor_pb2.FileOptions(), _b('\n\034ru.yandex.ydb.s3_internal.v1'))
+DESCRIPTOR._options = _descriptor._ParseOptions(descriptor_pb2.FileOptions(), _b('\n\035com.yandex.ydb.s3_internal.v1'))
 
 _S3INTERNALSERVICE = _descriptor.ServiceDescriptor(
   name='S3InternalService',

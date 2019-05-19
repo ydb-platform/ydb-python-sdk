@@ -20,7 +20,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='kikimr/public/api/grpc/draft/ydb_experimental_v1.proto',
   package='Ydb.Experimental.V1',
   syntax='proto3',
-  serialized_pb=_b('\n6kikimr/public/api/grpc/draft/ydb_experimental_v1.proto\x12\x13Ydb.Experimental.V1\x1a/kikimr/public/api/protos/ydb_experimental.proto2\xab\x03\n\x13\x45xperimentalService\x12W\n\nUploadRows\x12#.Ydb.Experimental.UploadRowsRequest\x1a$.Ydb.Experimental.UploadRowsResponse\x12Z\n\x0bReadColumns\x12$.Ydb.Experimental.ReadColumnsRequest\x1a%.Ydb.Experimental.ReadColumnsResponse\x12l\n\x11GetShardLocations\x12*.Ydb.Experimental.GetShardLocationsRequest\x1a+.Ydb.Experimental.GetShardLocationsResponse\x12q\n\x12\x45xecuteStreamQuery\x12+.Ydb.Experimental.ExecuteStreamQueryRequest\x1a,.Ydb.Experimental.ExecuteStreamQueryResponse0\x01\x42\x1f\n\x1dru.yandex.ydb.experimental.v1b\x06proto3')
+  serialized_pb=_b('\n6kikimr/public/api/grpc/draft/ydb_experimental_v1.proto\x12\x13Ydb.Experimental.V1\x1a/kikimr/public/api/protos/ydb_experimental.proto2\xab\x03\n\x13\x45xperimentalService\x12W\n\nUploadRows\x12#.Ydb.Experimental.UploadRowsRequest\x1a$.Ydb.Experimental.UploadRowsResponse\x12Z\n\x0bReadColumns\x12$.Ydb.Experimental.ReadColumnsRequest\x1a%.Ydb.Experimental.ReadColumnsResponse\x12l\n\x11GetShardLocations\x12*.Ydb.Experimental.GetShardLocationsRequest\x1a+.Ydb.Experimental.GetShardLocationsResponse\x12q\n\x12\x45xecuteStreamQuery\x12+.Ydb.Experimental.ExecuteStreamQueryRequest\x1a,.Ydb.Experimental.ExecuteStreamQueryResponse0\x01\x42 \n\x1e\x63om.yandex.ydb.experimental.v1b\x06proto3')
   ,
   dependencies=[kikimr_dot_public_dot_api_dot_protos_dot_ydb__experimental__pb2.DESCRIPTOR,])
 
@@ -30,7 +30,7 @@ _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
 
 DESCRIPTOR.has_options = True
-DESCRIPTOR._options = _descriptor._ParseOptions(descriptor_pb2.FileOptions(), _b('\n\035ru.yandex.ydb.experimental.v1'))
+DESCRIPTOR._options = _descriptor._ParseOptions(descriptor_pb2.FileOptions(), _b('\n\036com.yandex.ydb.experimental.v1'))
 
 _EXPERIMENTALSERVICE = _descriptor.ServiceDescriptor(
   name='ExperimentalService',

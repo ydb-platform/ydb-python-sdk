@@ -19,7 +19,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='kikimr/public/api/protos/ydb_common.proto',
   package='Ydb',
   syntax='proto3',
-  serialized_pb=_b('\n)kikimr/public/api/protos/ydb_common.proto\x12\x03Ydb\"J\n\x0b\x46\x65\x61tureFlag\";\n\x06Status\x12\x16\n\x12STATUS_UNSPECIFIED\x10\x00\x12\x0b\n\x07\x45NABLED\x10\x01\x12\x0c\n\x08\x44ISABLED\x10\x02\x42\'\n\x14ru.yandex.ydb.commonB\x0c\x43ommonProtos\xf8\x01\x01\x62\x06proto3')
+  serialized_pb=_b('\n)kikimr/public/api/protos/ydb_common.proto\x12\x03Ydb\"J\n\x0b\x46\x65\x61tureFlag\";\n\x06Status\x12\x16\n\x12STATUS_UNSPECIFIED\x10\x00\x12\x0b\n\x07\x45NABLED\x10\x01\x12\x0c\n\x08\x44ISABLED\x10\x02\x42(\n\x15\x63om.yandex.ydb.commonB\x0c\x43ommonProtos\xf8\x01\x01\x62\x06proto3')
 )
 
 
@@ -88,5 +88,5 @@ _sym_db.RegisterMessage(FeatureFlag)
 
 
 DESCRIPTOR.has_options = True
-DESCRIPTOR._options = _descriptor._ParseOptions(descriptor_pb2.FileOptions(), _b('\n\024ru.yandex.ydb.commonB\014CommonProtos\370\001\001'))
+DESCRIPTOR._options = _descriptor._ParseOptions(descriptor_pb2.FileOptions(), _b('\n\025com.yandex.ydb.commonB\014CommonProtos\370\001\001'))
 # @@protoc_insertion_point(module_scope)

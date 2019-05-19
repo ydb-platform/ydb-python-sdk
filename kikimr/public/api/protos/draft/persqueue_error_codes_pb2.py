@@ -20,7 +20,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='kikimr/public/api/protos/draft/persqueue_error_codes.proto',
   package='NPersQueue.NErrorCode',
   syntax='proto3',
-  serialized_pb=_b('\n:kikimr/public/api/protos/draft/persqueue_error_codes.proto\x12\x15NPersQueue.NErrorCode*\xd9\x04\n\nEErrorCode\x12\x06\n\x02OK\x10\x00\x12\x10\n\x0cINITIALIZING\x10\x01\x12\x0c\n\x08OVERLOAD\x10\x02\x12\x0f\n\x0b\x42\x41\x44_REQUEST\x10\x03\x12\x10\n\x0cWRONG_COOKIE\x10\x04\x12!\n\x1dWRITE_ERROR_PARTITION_IS_FULL\x10\x05\x12\x1c\n\x18WRITE_ERROR_DISK_IS_FULL\x10\x0f\x12\x1a\n\x16WRITE_ERROR_BAD_OFFSET\x10\x13\x12!\n\x1d\x43REATE_SESSION_ALREADY_LOCKED\x10\x06\x12\x1d\n\x19\x44\x45LETE_SESSION_NO_SESSION\x10\x07\x12\x1a\n\x16READ_ERROR_IN_PROGRESS\x10\x08\x12\x19\n\x15READ_ERROR_NO_SESSION\x10\t\x12\x10\n\x0cREAD_TIMEOUT\x10\n\x12\x1f\n\x1bREAD_ERROR_TOO_SMALL_OFFSET\x10\x0b\x12\x1d\n\x19READ_ERROR_TOO_BIG_OFFSET\x10\x0c\x12%\n!SET_OFFSET_ERROR_COMMIT_TO_FUTURE\x10\r\x12\x15\n\x11TABLET_IS_DROPPED\x10\x0e\x12\x11\n\rREAD_NOT_DONE\x10\x10\x12\x11\n\rUNKNOWN_TOPIC\x10\x11\x12\x11\n\rACCESS_DENIED\x10\x12\x12\x14\n\x10\x43LUSTER_DISABLED\x10\x14\x12\x1a\n\x16WRONG_PARTITION_NUMBER\x10\x15\x12\x12\n\x0e\x43REATE_TIMEOUT\x10\x16\x12\x10\n\x0cIDLE_TIMEOUT\x10\x17\x12\t\n\x05\x45RROR\x10\x64\x42\x19\n\x17ru.yandex.ydb.persqueueb\x06proto3')
+  serialized_pb=_b('\n:kikimr/public/api/protos/draft/persqueue_error_codes.proto\x12\x15NPersQueue.NErrorCode*\xd9\x04\n\nEErrorCode\x12\x06\n\x02OK\x10\x00\x12\x10\n\x0cINITIALIZING\x10\x01\x12\x0c\n\x08OVERLOAD\x10\x02\x12\x0f\n\x0b\x42\x41\x44_REQUEST\x10\x03\x12\x10\n\x0cWRONG_COOKIE\x10\x04\x12!\n\x1dWRITE_ERROR_PARTITION_IS_FULL\x10\x05\x12\x1c\n\x18WRITE_ERROR_DISK_IS_FULL\x10\x0f\x12\x1a\n\x16WRITE_ERROR_BAD_OFFSET\x10\x13\x12!\n\x1d\x43REATE_SESSION_ALREADY_LOCKED\x10\x06\x12\x1d\n\x19\x44\x45LETE_SESSION_NO_SESSION\x10\x07\x12\x1a\n\x16READ_ERROR_IN_PROGRESS\x10\x08\x12\x19\n\x15READ_ERROR_NO_SESSION\x10\t\x12\x10\n\x0cREAD_TIMEOUT\x10\n\x12\x1f\n\x1bREAD_ERROR_TOO_SMALL_OFFSET\x10\x0b\x12\x1d\n\x19READ_ERROR_TOO_BIG_OFFSET\x10\x0c\x12%\n!SET_OFFSET_ERROR_COMMIT_TO_FUTURE\x10\r\x12\x15\n\x11TABLET_IS_DROPPED\x10\x0e\x12\x11\n\rREAD_NOT_DONE\x10\x10\x12\x11\n\rUNKNOWN_TOPIC\x10\x11\x12\x11\n\rACCESS_DENIED\x10\x12\x12\x14\n\x10\x43LUSTER_DISABLED\x10\x14\x12\x1a\n\x16WRONG_PARTITION_NUMBER\x10\x15\x12\x12\n\x0e\x43REATE_TIMEOUT\x10\x16\x12\x10\n\x0cIDLE_TIMEOUT\x10\x17\x12\t\n\x05\x45RROR\x10\x64\x42\x1a\n\x18\x63om.yandex.ydb.persqueueb\x06proto3')
 )
 
 _EERRORCODE = _descriptor.EnumDescriptor(
@@ -170,5 +170,5 @@ _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
 
 DESCRIPTOR.has_options = True
-DESCRIPTOR._options = _descriptor._ParseOptions(descriptor_pb2.FileOptions(), _b('\n\027ru.yandex.ydb.persqueue'))
+DESCRIPTOR._options = _descriptor._ParseOptions(descriptor_pb2.FileOptions(), _b('\n\030com.yandex.ydb.persqueue'))
 # @@protoc_insertion_point(module_scope)

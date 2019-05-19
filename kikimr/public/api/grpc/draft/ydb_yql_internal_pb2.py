@@ -20,7 +20,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='kikimr/public/api/grpc/draft/ydb_yql_internal.proto',
   package='Ydb.YqlInternal.V0',
   syntax='proto3',
-  serialized_pb=_b('\n3kikimr/public/api/grpc/draft/ydb_yql_internal.proto\x12\x12Ydb.YqlInternal.V0\x1a/kikimr/public/api/protos/ydb_yql_internal.proto2\xef\x01\n\x12YqlInternalService\x12g\n\x10\x45xecDataQueryAst\x12(.Ydb.YqlInternal.ExecDataQueryAstRequest\x1a).Ydb.YqlInternal.ExecDataQueryAstResponse\x12p\n\x13\x45xplainDataQueryAst\x12+.Ydb.YqlInternal.ExplainDataQueryAstRequest\x1a,.Ydb.YqlInternal.ExplainDataQueryAstResponseB\x1f\n\x1dru.yandex.ydb.yql_internal.v1b\x06proto3')
+  serialized_pb=_b('\n3kikimr/public/api/grpc/draft/ydb_yql_internal.proto\x12\x12Ydb.YqlInternal.V0\x1a/kikimr/public/api/protos/ydb_yql_internal.proto2\xef\x01\n\x12YqlInternalService\x12g\n\x10\x45xecDataQueryAst\x12(.Ydb.YqlInternal.ExecDataQueryAstRequest\x1a).Ydb.YqlInternal.ExecDataQueryAstResponse\x12p\n\x13\x45xplainDataQueryAst\x12+.Ydb.YqlInternal.ExplainDataQueryAstRequest\x1a,.Ydb.YqlInternal.ExplainDataQueryAstResponseB \n\x1e\x63om.yandex.ydb.yql_internal.v1b\x06proto3')
   ,
   dependencies=[kikimr_dot_public_dot_api_dot_protos_dot_ydb__yql__internal__pb2.DESCRIPTOR,])
 
@@ -30,7 +30,7 @@ _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
 
 DESCRIPTOR.has_options = True
-DESCRIPTOR._options = _descriptor._ParseOptions(descriptor_pb2.FileOptions(), _b('\n\035ru.yandex.ydb.yql_internal.v1'))
+DESCRIPTOR._options = _descriptor._ParseOptions(descriptor_pb2.FileOptions(), _b('\n\036com.yandex.ydb.yql_internal.v1'))
 
 _YQLINTERNALSERVICE = _descriptor.ServiceDescriptor(
   name='YqlInternalService',

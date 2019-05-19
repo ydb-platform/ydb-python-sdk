@@ -20,7 +20,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='kikimr/public/api/protos/ydb_discovery.proto',
   package='Ydb.Discovery',
   syntax='proto3',
-  serialized_pb=_b('\n,kikimr/public/api/protos/ydb_discovery.proto\x12\rYdb.Discovery\x1a,kikimr/public/api/protos/ydb_operation.proto\"9\n\x14ListEndpointsRequest\x12\x10\n\x08\x64\x61tabase\x18\x01 \x01(\t\x12\x0f\n\x07service\x18\x02 \x03(\t\"r\n\x0c\x45ndpointInfo\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x01(\t\x12\x0c\n\x04port\x18\x02 \x01(\r\x12\x13\n\x0bload_factor\x18\x03 \x01(\x02\x12\x0b\n\x03ssl\x18\x04 \x01(\x08\x12\x0f\n\x07service\x18\x05 \x03(\t\x12\x10\n\x08location\x18\x06 \x01(\t\"\\\n\x13ListEndpointsResult\x12.\n\tendpoints\x18\x01 \x03(\x0b\x32\x1b.Ydb.Discovery.EndpointInfo\x12\x15\n\rself_location\x18\x02 \x01(\t\"E\n\x15ListEndpointsResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.OperationB-\n\x17ru.yandex.ydb.discoveryB\x0f\x44iscoveryProtos\xf8\x01\x01\x62\x06proto3')
+  serialized_pb=_b('\n,kikimr/public/api/protos/ydb_discovery.proto\x12\rYdb.Discovery\x1a,kikimr/public/api/protos/ydb_operation.proto\"9\n\x14ListEndpointsRequest\x12\x10\n\x08\x64\x61tabase\x18\x01 \x01(\t\x12\x0f\n\x07service\x18\x02 \x03(\t\"r\n\x0c\x45ndpointInfo\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x01(\t\x12\x0c\n\x04port\x18\x02 \x01(\r\x12\x13\n\x0bload_factor\x18\x03 \x01(\x02\x12\x0b\n\x03ssl\x18\x04 \x01(\x08\x12\x0f\n\x07service\x18\x05 \x03(\t\x12\x10\n\x08location\x18\x06 \x01(\t\"\\\n\x13ListEndpointsResult\x12.\n\tendpoints\x18\x01 \x03(\x0b\x32\x1b.Ydb.Discovery.EndpointInfo\x12\x15\n\rself_location\x18\x02 \x01(\t\"E\n\x15ListEndpointsResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.OperationB.\n\x18\x63om.yandex.ydb.discoveryB\x0f\x44iscoveryProtos\xf8\x01\x01\x62\x06proto3')
   ,
   dependencies=[kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2.DESCRIPTOR,])
 
@@ -237,5 +237,5 @@ _sym_db.RegisterMessage(ListEndpointsResponse)
 
 
 DESCRIPTOR.has_options = True
-DESCRIPTOR._options = _descriptor._ParseOptions(descriptor_pb2.FileOptions(), _b('\n\027ru.yandex.ydb.discoveryB\017DiscoveryProtos\370\001\001'))
+DESCRIPTOR._options = _descriptor._ParseOptions(descriptor_pb2.FileOptions(), _b('\n\030com.yandex.ydb.discoveryB\017DiscoveryProtos\370\001\001'))
 # @@protoc_insertion_point(module_scope)

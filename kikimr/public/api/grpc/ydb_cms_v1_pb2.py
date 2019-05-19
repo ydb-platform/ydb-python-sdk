@@ -20,7 +20,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='kikimr/public/api/grpc/ydb_cms_v1.proto',
   package='Ydb.Cms.V1',
   syntax='proto3',
-  serialized_pb=_b('\n\'kikimr/public/api/grpc/ydb_cms_v1.proto\x12\nYdb.Cms.V1\x1a&kikimr/public/api/protos/ydb_cms.proto2\x9c\x04\n\nCmsService\x12Q\n\x0e\x43reateDatabase\x12\x1e.Ydb.Cms.CreateDatabaseRequest\x1a\x1f.Ydb.Cms.CreateDatabaseResponse\x12Z\n\x11GetDatabaseStatus\x12!.Ydb.Cms.GetDatabaseStatusRequest\x1a\".Ydb.Cms.GetDatabaseStatusResponse\x12N\n\rAlterDatabase\x12\x1d.Ydb.Cms.AlterDatabaseRequest\x1a\x1e.Ydb.Cms.AlterDatabaseResponse\x12N\n\rListDatabases\x12\x1d.Ydb.Cms.ListDatabasesRequest\x1a\x1e.Ydb.Cms.ListDatabasesResponse\x12Q\n\x0eRemoveDatabase\x12\x1e.Ydb.Cms.RemoveDatabaseRequest\x1a\x1f.Ydb.Cms.RemoveDatabaseResponse\x12l\n\x17\x44\x65scribeDatabaseOptions\x12\'.Ydb.Cms.DescribeDatabaseOptionsRequest\x1a(.Ydb.Cms.DescribeDatabaseOptionsResponseB\x16\n\x14ru.yandex.ydb.cms.v1b\x06proto3')
+  serialized_pb=_b('\n\'kikimr/public/api/grpc/ydb_cms_v1.proto\x12\nYdb.Cms.V1\x1a&kikimr/public/api/protos/ydb_cms.proto2\x9c\x04\n\nCmsService\x12Q\n\x0e\x43reateDatabase\x12\x1e.Ydb.Cms.CreateDatabaseRequest\x1a\x1f.Ydb.Cms.CreateDatabaseResponse\x12Z\n\x11GetDatabaseStatus\x12!.Ydb.Cms.GetDatabaseStatusRequest\x1a\".Ydb.Cms.GetDatabaseStatusResponse\x12N\n\rAlterDatabase\x12\x1d.Ydb.Cms.AlterDatabaseRequest\x1a\x1e.Ydb.Cms.AlterDatabaseResponse\x12N\n\rListDatabases\x12\x1d.Ydb.Cms.ListDatabasesRequest\x1a\x1e.Ydb.Cms.ListDatabasesResponse\x12Q\n\x0eRemoveDatabase\x12\x1e.Ydb.Cms.RemoveDatabaseRequest\x1a\x1f.Ydb.Cms.RemoveDatabaseResponse\x12l\n\x17\x44\x65scribeDatabaseOptions\x12\'.Ydb.Cms.DescribeDatabaseOptionsRequest\x1a(.Ydb.Cms.DescribeDatabaseOptionsResponseB\x17\n\x15\x63om.yandex.ydb.cms.v1b\x06proto3')
   ,
   dependencies=[kikimr_dot_public_dot_api_dot_protos_dot_ydb__cms__pb2.DESCRIPTOR,])
 
@@ -30,7 +30,7 @@ _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
 
 DESCRIPTOR.has_options = True
-DESCRIPTOR._options = _descriptor._ParseOptions(descriptor_pb2.FileOptions(), _b('\n\024ru.yandex.ydb.cms.v1'))
+DESCRIPTOR._options = _descriptor._ParseOptions(descriptor_pb2.FileOptions(), _b('\n\025com.yandex.ydb.cms.v1'))
 
 _CMSSERVICE = _descriptor.ServiceDescriptor(
   name='CmsService',
