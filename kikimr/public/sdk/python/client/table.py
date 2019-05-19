@@ -7,6 +7,7 @@ import hashlib
 import threading
 import time
 import collections
+import random
 
 import enum
 import six
@@ -491,6 +492,72 @@ class StaleReadOnly(AbstractTransactionModeBuilder):
     @property
     def name(self):
         return self._name
+
+
+def default_unknown_error_handler(e):
+    raise e
+
+
+class RetrySettings(object):
+    def __init__(
+            self, max_retries=10,
+            max_session_acquire_timeout=3,
+            on_ydb_error_callback=None, backoff_ceiling=6, backoff_slot_duration=1):
+        self.max_retries = max_retries
+        self.max_session_acquire_timeout = max_session_acquire_timeout
+        self.on_ydb_error_callback = lambda e: None if on_ydb_error_callback is None else on_ydb_error_callback
+        self.backoff_ceiling = backoff_ceiling
+        self.backoff_slot_duration = backoff_slot_duration
+        self.retry_not_found = True
+        self.retry_internal_error = True
+        self.unknown_error_handler = default_unknown_error_handler
+
+
+def calc_backoff_timeout(settings, retry_number):
+    slots_count = 1 << min(retry_number, settings.backoff_ceiling)
+    max_duration = slots_count * settings.backoff_slot_duration
+    return random.random() * max_duration
+
+
+def retry_operation_sync(callee, retry_settings=None, *args, **kwargs):
+
+    retry_settings = RetrySettings() if retry_settings is None else retry_settings
+    status = None
+
+    for attempt in six.moves.range(retry_settings.max_retries + 1):
+        try:
+            return callee(*args, **kwargs)
+        except (
+                issues.Unavailable, issues.Aborted, issues.BadSession,
+                issues.NotFound, issues.InternalError) as e:
+            status = e
+            retry_settings.on_ydb_error_callback(e)
+
+            if isinstance(e, issues.NotFound) and not retry_settings.retry_not_found:
+                raise e
+
+            if isinstance(e, issues.InternalError) and not retry_settings.retry_internal_error:
+                raise e
+
+        except (issues.Overloaded, SessionPoolEmpty, issues.ConnectionError) as e:
+            status = e
+            retry_settings.on_ydb_error_callback(e)
+            time.sleep(
+                calc_backoff_timeout(
+                    retry_settings,
+                    attempt
+                )
+            )
+
+        except issues.Error as e:
+            retry_settings.on_ydb_error_callback(e)
+            raise
+
+        except Exception as e:
+            # you should provide your own handler you want
+            retry_settings.unknown_error_handler(e)
+
+    raise status
 
 
 class TableClient(object):
