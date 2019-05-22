@@ -137,12 +137,16 @@ def _decimal_to_int128(value_type, value):
         int128_value += digit
         digits_count += 1
 
+    if value_type.decimal_type.scale + exponent < 0:
+        raise issues.GenericError(
+            "Couldn't parse decimal value, exponent is too large")
+
     for _ in range(value_type.decimal_type.scale + exponent):
         int128_value *= 10
         digits_count += 1
 
     if digits_count > value_type.decimal_type.precision + value_type.decimal_type.scale:
-        raise issues.InternalError(
+        raise issues.GenericError(
             "Couldn't parse decimal value, digits count > 35")
 
     if sign:
