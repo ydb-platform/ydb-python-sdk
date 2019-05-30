@@ -13,6 +13,7 @@ from google.protobuf import descriptor_pb2
 _sym_db = _symbol_database.Default()
 
 
+from google.protobuf import empty_pb2 as google_dot_protobuf_dot_empty__pb2
 from kikimr.public.api.protos import ydb_operation_pb2 as kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2
 
 
@@ -20,9 +21,9 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='kikimr/public/api/grpc/ydb_operation_v1.proto',
   package='Ydb.Operation.V1',
   syntax='proto3',
-  serialized_pb=_b('\n-kikimr/public/api/grpc/ydb_operation_v1.proto\x12\x10Ydb.Operation.V1\x1a,kikimr/public/api/protos/ydb_operation.proto2m\n\x10OperationService\x12Y\n\x0cGetOperation\x12#.Ydb.Operations.GetOperationRequest\x1a$.Ydb.Operations.GetOperationResponseB\x1d\n\x1b\x63om.yandex.ydb.operation.v1b\x06proto3')
+  serialized_pb=_b('\n-kikimr/public/api/grpc/ydb_operation_v1.proto\x12\x10Ydb.Operation.V1\x1a\x1bgoogle/protobuf/empty.proto\x1a,kikimr/public/api/protos/ydb_operation.proto2\x85\x03\n\x10OperationService\x12Y\n\x0cGetOperation\x12#.Ydb.Operations.GetOperationRequest\x1a$.Ydb.Operations.GetOperationResponse\x12Q\n\x0f\x43\x61ncelOperation\x12&.Ydb.Operations.CancelOperationRequest\x1a\x16.google.protobuf.Empty\x12\x62\n\x0f\x46orgetOperation\x12&.Ydb.Operations.ForgetOperationRequest\x1a\'.Ydb.Operations.ForgetOperationResponse\x12_\n\x0eListOperations\x12%.Ydb.Operations.ListOperationsRequest\x1a&.Ydb.Operations.ListOperationsResponseB\x1d\n\x1b\x63om.yandex.ydb.operation.v1b\x06proto3')
   ,
-  dependencies=[kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2.DESCRIPTOR,])
+  dependencies=[google_dot_protobuf_dot_empty__pb2.DESCRIPTOR,kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2.DESCRIPTOR,])
 
 
 
@@ -38,8 +39,8 @@ _OPERATIONSERVICE = _descriptor.ServiceDescriptor(
   file=DESCRIPTOR,
   index=0,
   options=None,
-  serialized_start=113,
-  serialized_end=222,
+  serialized_start=143,
+  serialized_end=532,
   methods=[
   _descriptor.MethodDescriptor(
     name='GetOperation',
@@ -48,6 +49,33 @@ _OPERATIONSERVICE = _descriptor.ServiceDescriptor(
     containing_service=None,
     input_type=kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2._GETOPERATIONREQUEST,
     output_type=kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2._GETOPERATIONRESPONSE,
+    options=None,
+  ),
+  _descriptor.MethodDescriptor(
+    name='CancelOperation',
+    full_name='Ydb.Operation.V1.OperationService.CancelOperation',
+    index=1,
+    containing_service=None,
+    input_type=kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2._CANCELOPERATIONREQUEST,
+    output_type=google_dot_protobuf_dot_empty__pb2._EMPTY,
+    options=None,
+  ),
+  _descriptor.MethodDescriptor(
+    name='ForgetOperation',
+    full_name='Ydb.Operation.V1.OperationService.ForgetOperation',
+    index=2,
+    containing_service=None,
+    input_type=kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2._FORGETOPERATIONREQUEST,
+    output_type=kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2._FORGETOPERATIONRESPONSE,
+    options=None,
+  ),
+  _descriptor.MethodDescriptor(
+    name='ListOperations',
+    full_name='Ydb.Operation.V1.OperationService.ListOperations',
+    index=3,
+    containing_service=None,
+    input_type=kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2._LISTOPERATIONSREQUEST,
+    output_type=kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2._LISTOPERATIONSRESPONSE,
     options=None,
   ),
 ])
