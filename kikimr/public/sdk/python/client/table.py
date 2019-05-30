@@ -507,7 +507,8 @@ class RetrySettings(object):
     def __init__(
             self, max_retries=10,
             max_session_acquire_timeout=3,
-            on_ydb_error_callback=None, backoff_ceiling=6, backoff_slot_duration=1):
+            on_ydb_error_callback=None, backoff_ceiling=6, backoff_slot_duration=1,
+            get_session_client_timeout=5):
         self.max_retries = max_retries
         self.max_session_acquire_timeout = max_session_acquire_timeout
         self.on_ydb_error_callback = lambda e: None if on_ydb_error_callback is None else on_ydb_error_callback
@@ -516,6 +517,7 @@ class RetrySettings(object):
         self.retry_not_found = True
         self.retry_internal_error = True
         self.unknown_error_handler = default_unknown_error_handler
+        self.get_session_client_timeout = get_session_client_timeout
 
 
 def calc_backoff_timeout(settings, retry_number):
@@ -1709,6 +1711,16 @@ class SessionPool(object):
         self._pool_thread.start()
         for _ in range(size):
             self._pool_state.release(driver.table_client.session())
+
+    def retry_operation_sync(self, callee, retry_settings=None, *args, **kwargs):
+
+        retry_settings = RetrySettings() if retry_settings is None else retry_settings
+
+        def wrapped_callee():
+            with self.checkout(blocking=False, timeout=retry_settings.get_session_client_timeout) as session:
+                return callee(session, *args, **kwargs)
+
+        return retry_operation_sync(wrapped_callee, retry_settings)
 
     def acquire(self, blocking=True, timeout=None):
         return self._pool_state.acquire(blocking, timeout)
