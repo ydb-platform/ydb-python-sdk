@@ -1,11 +1,9 @@
 # -*- coding: utf-8 -*-
 import logging
 
-from kikimr.public.sdk.python.client import connection as conn_impl
-from kikimr.public.sdk.python.client import issues
 from kikimr.public.api.protos import ydb_discovery_pb2
-from kikimr.public.sdk.python.client import settings as settings_impl
 from kikimr.public.api.grpc import ydb_discovery_v1_pb2_grpc as ydb_discovery_pb2_grpc
+from . import connection as conn_impl, issues, settings as settings_impl
 
 logger = logging.getLogger(__name__)
 

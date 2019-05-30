@@ -1,23 +1,11 @@
 # -*- coding: utf-8 -*-
 import abc
-import codecs
 
 import enum
 
 from yql.public.types import yql_types_pb2 as yql_types
 from kikimr.public.api.protos import ydb_value_pb2 as ydb_value
-
-
-def from_bytes(val):
-    """
-    Translates value into valid utf8 string
-    :param val: A value to translate
-    :return: A valid utf8 string
-    """
-    try:
-        return codecs.decode(val, 'utf8')
-    except (UnicodeEncodeError, TypeError):
-        return val
+from . import _utilities
 
 
 @enum.unique
@@ -39,10 +27,10 @@ class PrimitiveType(enum.Enum):
     Float = yql_types.Float, 'float_value'
 
     String = yql_types.String, 'bytes_value'
-    Utf8 = yql_types.Utf8, 'text_value', from_bytes
+    Utf8 = yql_types.Utf8, 'text_value', _utilities.from_bytes
 
     Yson = yql_types.Yson, 'bytes_value'
-    Json = yql_types.Json, 'text_value', from_bytes
+    Json = yql_types.Json, 'text_value', _utilities.from_bytes
 
     Date = yql_types.Date, 'uint32_value'
     Datetime = yql_types.Datetime, 'uint32_value'
@@ -94,7 +82,8 @@ DataType = PrimitiveType
 class AbstractTypeBuilder(object):
     __metaclass__ = abc.ABCMeta
 
-    @abc.abstractproperty
+    @property
+    @abc.abstractmethod
     def proto(self):
         """
         Returns protocol buffer representation of a type

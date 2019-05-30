@@ -5,9 +5,7 @@ from concurrent import futures
 import collections
 import random
 
-from kikimr.public.sdk.python.client import connection as connection_impl
-from kikimr.public.sdk.python.client import issues
-from kikimr.public.sdk.python.client import resolver
+from . import connection as connection_impl, issues, resolver
 
 
 logger = logging.getLogger(__name__)

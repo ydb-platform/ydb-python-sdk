@@ -1,8 +1,5 @@
 # -*- coding: utf-8 -*-
-from kikimr.public.sdk.python.client import credentials as creds_impl
-from kikimr.public.sdk.python.client import table
-from kikimr.public.sdk.python.client import scheme
-from kikimr.public.sdk.python.client import pool
+from . import credentials as credentials_impl, table, scheme, pool
 
 
 class DriverConfig(object):
@@ -23,7 +20,7 @@ class DriverConfig(object):
         self.ca_cert = ca_cert
         self.channel_options = channel_options
         if auth_token is not None:
-            credentials = creds_impl.AuthTokenCredentials(auth_token)
+            credentials = credentials_impl.AuthTokenCredentials(auth_token)
         self.credentials = credentials
 
     def set_database(self, database):

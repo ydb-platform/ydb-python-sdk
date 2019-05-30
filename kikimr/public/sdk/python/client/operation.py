@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from kikimr.public.sdk.python.client import issues
+from . import issues
 
 
 class Operation(object):

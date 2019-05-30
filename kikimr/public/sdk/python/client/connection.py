@@ -7,17 +7,14 @@ import threading
 
 from google.protobuf import text_format
 import grpc
-from kikimr.public.sdk.python.client import issues
-from kikimr.public.api.grpc import ydb_table_v1_pb2_grpc as ydb_table_pb2_grpc
-from kikimr.public.api.grpc import ydb_scheme_v1_pb2_grpc as ydb_scheme_pb2_grpc
-from kikimr.public.api.grpc import ydb_discovery_v1_pb2_grpc as ydb_discovery_pb2_grpc
-from kikimr.public.api.grpc import ydb_cms_v1_pb2_grpc as ydb_cms_pb2_grpc
+from kikimr.public.api.grpc import ydb_table_v1_pb2_grpc, ydb_scheme_v1_pb2_grpc, ydb_discovery_v1_pb2_grpc, ydb_cms_v1_pb2_grpc
+from . import issues
 
 _stubs_list = (
-    ydb_table_pb2_grpc.TableServiceStub,
-    ydb_scheme_pb2_grpc.SchemeServiceStub,
-    ydb_discovery_pb2_grpc.DiscoveryServiceStub,
-    ydb_cms_pb2_grpc.CmsServiceStub
+    ydb_table_v1_pb2_grpc.TableServiceStub,
+    ydb_scheme_v1_pb2_grpc.SchemeServiceStub,
+    ydb_discovery_v1_pb2_grpc.DiscoveryServiceStub,
+    ydb_cms_v1_pb2_grpc.CmsServiceStub
 )
 
 logger = logging.getLogger(__name__)
