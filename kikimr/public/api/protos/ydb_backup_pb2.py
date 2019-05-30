@@ -21,7 +21,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='kikimr/public/api/protos/ydb_backup.proto',
   package='Ydb.Backup',
   syntax='proto3',
-  serialized_pb=_b('\n)kikimr/public/api/protos/ydb_backup.proto\x12\nYdb.Backup\x1a,kikimr/public/api/protos/ydb_operation.proto\"\x8a\x02\n\x0e\x42\x61\x63kupSettings\x12\x32\n\x07targets\x18\x01 \x03(\x0b\x32!.Ydb.Backup.BackupSettings.Target\x12\x33\n\x07storage\x18\x02 \x01(\x0e\x32\".Ydb.Backup.BackupSettings.Storage\x12\r\n\x05token\x18\x03 \x01(\t\x12\x13\n\x0b\x64\x65scription\x18\x04 \x01(\t\x1a\x37\n\x06Target\x12\x13\n\x0bsource_path\x18\x01 \x01(\t\x12\x18\n\x10\x64\x65stination_path\x18\x02 \x01(\t\"2\n\x07Storage\x12\x17\n\x13STORAGE_UNSPECIFIED\x10\x00\x12\x0e\n\nSTORAGE_YT\x10\x01\"\x0e\n\x0c\x42\x61\x63kupResult\"l\n\x0e\x42\x61\x63kupMetadata\x12,\n\x08settings\x18\x01 \x01(\x0b\x32\x1a.Ydb.Backup.BackupSettings\x12,\n\x08progress\x18\x02 \x01(\x0e\x32\x1a.Ydb.Backup.BackupProgress\"~\n\x13\x43reateBackupRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12,\n\x08settings\x18\x02 \x01(\x0b\x32\x1a.Ydb.Backup.BackupSettings\"D\n\x14\x43reateBackupResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation*q\n\x0e\x42\x61\x63kupProgress\x12\x18\n\x14PROGRESS_UNSPECIFIED\x10\x00\x12\x16\n\x12PROGRESS_PREPARING\x10\x01\x12\x1a\n\x16PROGRESS_TRANSFER_DATA\x10\x02\x12\x11\n\rPROGRESS_DONE\x10\x03\x42\x1a\n\x15\x63om.yandex.ydb.backup\xf8\x01\x01\x62\x06proto3')
+  serialized_pb=_b('\n)kikimr/public/api/protos/ydb_backup.proto\x12\nYdb.Backup\x1a,kikimr/public/api/protos/ydb_operation.proto\"5\n\nYtSettings\x12\x18\n\x10\x64\x65stination_path\x18\x01 \x01(\t\x12\r\n\x05token\x18\x02 \x01(\t\"\xb6\x01\n\x0e\x42\x61\x63kupSettings\x12\x32\n\x07targets\x18\x01 \x03(\x0b\x32!.Ydb.Backup.BackupSettings.Target\x12\x13\n\x0b\x64\x65scription\x18\x02 \x01(\t\x1a[\n\x06Target\x12\x13\n\x0bsource_path\x18\x01 \x01(\t\x12$\n\x02yt\x18\x02 \x01(\x0b\x32\x16.Ydb.Backup.YtSettingsH\x00\x42\x16\n\x14\x64\x65stination_settings\"\x0e\n\x0c\x42\x61\x63kupResult\"l\n\x0e\x42\x61\x63kupMetadata\x12,\n\x08settings\x18\x01 \x01(\x0b\x32\x1a.Ydb.Backup.BackupSettings\x12,\n\x08progress\x18\x02 \x01(\x0e\x32\x1a.Ydb.Backup.BackupProgress\"~\n\x13\x43reateBackupRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12,\n\x08settings\x18\x02 \x01(\x0b\x32\x1a.Ydb.Backup.BackupSettings\"D\n\x14\x43reateBackupResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation*q\n\x0e\x42\x61\x63kupProgress\x12\x18\n\x14PROGRESS_UNSPECIFIED\x10\x00\x12\x16\n\x12PROGRESS_PREPARING\x10\x01\x12\x1a\n\x16PROGRESS_TRANSFER_DATA\x10\x02\x12\x11\n\rPROGRESS_DONE\x10\x03\x42\x1a\n\x15\x63om.yandex.ydb.backup\xf8\x01\x01\x62\x06proto3')
   ,
   dependencies=[kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2.DESCRIPTOR,])
 
@@ -50,8 +50,8 @@ _BACKUPPROGRESS = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=696,
-  serialized_end=809,
+  serialized_start=667,
+  serialized_end=780,
 )
 _sym_db.RegisterEnumDescriptor(_BACKUPPROGRESS)
 
@@ -62,45 +62,23 @@ PROGRESS_TRANSFER_DATA = 2
 PROGRESS_DONE = 3
 
 
-_BACKUPSETTINGS_STORAGE = _descriptor.EnumDescriptor(
-  name='Storage',
-  full_name='Ydb.Backup.BackupSettings.Storage',
-  filename=None,
-  file=DESCRIPTOR,
-  values=[
-    _descriptor.EnumValueDescriptor(
-      name='STORAGE_UNSPECIFIED', index=0, number=0,
-      options=None,
-      type=None),
-    _descriptor.EnumValueDescriptor(
-      name='STORAGE_YT', index=1, number=1,
-      options=None,
-      type=None),
-  ],
-  containing_type=None,
-  options=None,
-  serialized_start=320,
-  serialized_end=370,
-)
-_sym_db.RegisterEnumDescriptor(_BACKUPSETTINGS_STORAGE)
 
-
-_BACKUPSETTINGS_TARGET = _descriptor.Descriptor(
-  name='Target',
-  full_name='Ydb.Backup.BackupSettings.Target',
+_YTSETTINGS = _descriptor.Descriptor(
+  name='YtSettings',
+  full_name='Ydb.Backup.YtSettings',
   filename=None,
   file=DESCRIPTOR,
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='source_path', full_name='Ydb.Backup.BackupSettings.Target.source_path', index=0,
+      name='destination_path', full_name='Ydb.Backup.YtSettings.destination_path', index=0,
       number=1, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='destination_path', full_name='Ydb.Backup.BackupSettings.Target.destination_path', index=1,
+      name='token', full_name='Ydb.Backup.YtSettings.token', index=1,
       number=2, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
@@ -118,8 +96,49 @@ _BACKUPSETTINGS_TARGET = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=263,
-  serialized_end=318,
+  serialized_start=103,
+  serialized_end=156,
+)
+
+
+_BACKUPSETTINGS_TARGET = _descriptor.Descriptor(
+  name='Target',
+  full_name='Ydb.Backup.BackupSettings.Target',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='source_path', full_name='Ydb.Backup.BackupSettings.Target.source_path', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='yt', full_name='Ydb.Backup.BackupSettings.Target.yt', index=1,
+      number=2, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+    _descriptor.OneofDescriptor(
+      name='destination_settings', full_name='Ydb.Backup.BackupSettings.Target.destination_settings',
+      index=0, containing_type=None, fields=[]),
+  ],
+  serialized_start=250,
+  serialized_end=341,
 )
 
 _BACKUPSETTINGS = _descriptor.Descriptor(
@@ -137,22 +156,8 @@ _BACKUPSETTINGS = _descriptor.Descriptor(
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='storage', full_name='Ydb.Backup.BackupSettings.storage', index=1,
-      number=2, type=14, cpp_type=8, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='token', full_name='Ydb.Backup.BackupSettings.token', index=2,
-      number=3, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=_b("").decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='description', full_name='Ydb.Backup.BackupSettings.description', index=3,
-      number=4, type=9, cpp_type=9, label=1,
+      name='description', full_name='Ydb.Backup.BackupSettings.description', index=1,
+      number=2, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -162,7 +167,6 @@ _BACKUPSETTINGS = _descriptor.Descriptor(
   ],
   nested_types=[_BACKUPSETTINGS_TARGET, ],
   enum_types=[
-    _BACKUPSETTINGS_STORAGE,
   ],
   options=None,
   is_extendable=False,
@@ -170,8 +174,8 @@ _BACKUPSETTINGS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=104,
-  serialized_end=370,
+  serialized_start=159,
+  serialized_end=341,
 )
 
 
@@ -194,8 +198,8 @@ _BACKUPRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=372,
-  serialized_end=386,
+  serialized_start=343,
+  serialized_end=357,
 )
 
 
@@ -232,8 +236,8 @@ _BACKUPMETADATA = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=388,
-  serialized_end=496,
+  serialized_start=359,
+  serialized_end=467,
 )
 
 
@@ -270,8 +274,8 @@ _CREATEBACKUPREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=498,
-  serialized_end=624,
+  serialized_start=469,
+  serialized_end=595,
 )
 
 
@@ -301,19 +305,22 @@ _CREATEBACKUPRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=626,
-  serialized_end=694,
+  serialized_start=597,
+  serialized_end=665,
 )
 
+_BACKUPSETTINGS_TARGET.fields_by_name['yt'].message_type = _YTSETTINGS
 _BACKUPSETTINGS_TARGET.containing_type = _BACKUPSETTINGS
+_BACKUPSETTINGS_TARGET.oneofs_by_name['destination_settings'].fields.append(
+  _BACKUPSETTINGS_TARGET.fields_by_name['yt'])
+_BACKUPSETTINGS_TARGET.fields_by_name['yt'].containing_oneof = _BACKUPSETTINGS_TARGET.oneofs_by_name['destination_settings']
 _BACKUPSETTINGS.fields_by_name['targets'].message_type = _BACKUPSETTINGS_TARGET
-_BACKUPSETTINGS.fields_by_name['storage'].enum_type = _BACKUPSETTINGS_STORAGE
-_BACKUPSETTINGS_STORAGE.containing_type = _BACKUPSETTINGS
 _BACKUPMETADATA.fields_by_name['settings'].message_type = _BACKUPSETTINGS
 _BACKUPMETADATA.fields_by_name['progress'].enum_type = _BACKUPPROGRESS
 _CREATEBACKUPREQUEST.fields_by_name['operation_params'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2._OPERATIONPARAMS
 _CREATEBACKUPREQUEST.fields_by_name['settings'].message_type = _BACKUPSETTINGS
 _CREATEBACKUPRESPONSE.fields_by_name['operation'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2._OPERATION
+DESCRIPTOR.message_types_by_name['YtSettings'] = _YTSETTINGS
 DESCRIPTOR.message_types_by_name['BackupSettings'] = _BACKUPSETTINGS
 DESCRIPTOR.message_types_by_name['BackupResult'] = _BACKUPRESULT
 DESCRIPTOR.message_types_by_name['BackupMetadata'] = _BACKUPMETADATA
@@ -321,6 +328,13 @@ DESCRIPTOR.message_types_by_name['CreateBackupRequest'] = _CREATEBACKUPREQUEST
 DESCRIPTOR.message_types_by_name['CreateBackupResponse'] = _CREATEBACKUPRESPONSE
 DESCRIPTOR.enum_types_by_name['BackupProgress'] = _BACKUPPROGRESS
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
+
+YtSettings = _reflection.GeneratedProtocolMessageType('YtSettings', (_message.Message,), dict(
+  DESCRIPTOR = _YTSETTINGS,
+  __module__ = 'kikimr.public.api.protos.ydb_backup_pb2'
+  # @@protoc_insertion_point(class_scope:Ydb.Backup.YtSettings)
+  ))
+_sym_db.RegisterMessage(YtSettings)
 
 BackupSettings = _reflection.GeneratedProtocolMessageType('BackupSettings', (_message.Message,), dict(
 
