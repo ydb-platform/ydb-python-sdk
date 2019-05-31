@@ -1,16 +1,6 @@
 # -*- coding: utf-8 -*-
 import enum
-
-from kikimr.public.api.protos import ydb_scheme_pb2
-from kikimr.public.api.grpc import ydb_scheme_v1_pb2_grpc as ydb_scheme_pb2_grpc
-from kikimr.public.sdk.python.client import issues, operation, settings as settings_impl
-
-
-_MakeDirectory = 'MakeDirectory'
-_RemoveDirectory = 'RemoveDirectory'
-_ListDirectory = 'ListDirectory'
-_DescribePath = 'DescribePath'
-_ModifyPermissions = 'ModifyPermissions'
+from . import issues, operation, settings as settings_impl, _apis
 
 
 @enum.unique
@@ -137,25 +127,25 @@ class Directory(SchemeEntry):
 
 
 def _describe_path_request_factory(path):
-    request = ydb_scheme_pb2.DescribePathRequest()
+    request = _apis.ydb_scheme.DescribePathRequest()
     request.path = path
     return request
 
 
 def _list_directory_request_factory(path):
-    request = ydb_scheme_pb2.ListDirectoryRequest()
+    request = _apis.ydb_scheme.ListDirectoryRequest()
     request.path = path
     return request
 
 
 def _remove_directory_request_factory(path):
-    request = ydb_scheme_pb2.RemoveDirectoryRequest()
+    request = _apis.ydb_scheme.RemoveDirectoryRequest()
     request.path = path
     return request
 
 
 def _make_directory_request_factory(path):
-    request = ydb_scheme_pb2.MakeDirectoryRequest()
+    request = _apis.ydb_scheme.MakeDirectoryRequest()
     request.path = path
     return request
 
@@ -179,7 +169,7 @@ class DescribePathSettings(settings_impl.BaseRequestSettings):
 class ModifyPermissionsSettings(settings_impl.BaseRequestSettings):
     def __init__(self):
         super(ModifyPermissionsSettings, self).__init__()
-        self._pb = ydb_scheme_pb2.ModifyPermissionsRequest()
+        self._pb = _apis.ydb_scheme.ModifyPermissionsRequest()
 
     def grant_permissions(self, subject, permission_names):
         permission_action = self._pb.actions.add()
@@ -225,7 +215,7 @@ class Permissions(object):
         """
         :return: A protocol buffer representation of permissions
         """
-        pb = ydb_scheme_pb2.Permissions()
+        pb = _apis.ydb_scheme.Permissions()
         pb.subject = self.subject
         pb.permission_names.extend(self.permission_names)
         return pb
@@ -269,7 +259,7 @@ def _wrap_scheme_entry(entry_pb, scheme_entry_cls=None, *args, **kwargs):
     return scheme_entry_cls(
         entry_pb.name,
         entry_pb.owner,
-        getattr(SchemeEntryType, ydb_scheme_pb2.Entry.Type.Name(entry_pb.type)),
+        getattr(SchemeEntryType, _apis.ydb_scheme.Entry.Type.Name(entry_pb.type)),
         _wrap_permissions(entry_pb.effective_permissions),
         _wrap_permissions(entry_pb.permissions),
         *args,
@@ -284,12 +274,12 @@ def _wrap_list_directory_response(response):
     :return: A directory
     """
     issues._process_response(response)
-    message = ydb_scheme_pb2.ListDirectoryResult()
+    message = _apis.ydb_scheme.ListDirectoryResult()
     response.result.Unpack(message)
     return Directory(
         message.self.name,
         message.self.owner,
-        getattr(SchemeEntryType, ydb_scheme_pb2.Entry.Type.Name(message.self.type)),
+        getattr(SchemeEntryType, _apis.ydb_scheme.Entry.Type.Name(message.self.type)),
         _wrap_permissions(message.self.effective_permissions),
         _wrap_permissions(message.self.permissions),
         tuple(
@@ -301,7 +291,7 @@ def _wrap_list_directory_response(response):
 
 def _wrap_describe_path_response(response):
     issues._process_response(response)
-    message = ydb_scheme_pb2.DescribePathResult()
+    message = _apis.ydb_scheme.DescribePathResult()
     response.result.Unpack(message)
     return _wrap_scheme_entry(message.self)
 
@@ -315,8 +305,8 @@ class SchemeClient(object):
     def async_make_directory(self, path, settings=None):
         return self._driver.future(
             _make_directory_request_factory(path),
-            ydb_scheme_pb2_grpc.SchemeServiceStub,
-            _MakeDirectory,
+            _apis.SchemeService.Stub,
+            _apis.SchemeService.MakeDirectory,
             operation.Operation,
             settings,
         )
@@ -324,8 +314,8 @@ class SchemeClient(object):
     def make_directory(self, path, settings=None):
         return self._driver(
             _make_directory_request_factory(path),
-            ydb_scheme_pb2_grpc.SchemeServiceStub,
-            _MakeDirectory,
+            _apis.SchemeService.Stub,
+            _apis.SchemeService.MakeDirectory,
             operation.Operation,
             settings,
         )
@@ -333,8 +323,8 @@ class SchemeClient(object):
     def async_remove_directory(self, path, settings=None):
         return self._driver.future(
             _remove_directory_request_factory(path),
-            ydb_scheme_pb2_grpc.SchemeServiceStub,
-            _RemoveDirectory,
+            _apis.SchemeService.Stub,
+            _apis.SchemeService.RemoveDirectory,
             operation.Operation,
             settings,
         )
@@ -342,8 +332,8 @@ class SchemeClient(object):
     def remove_directory(self, path, settings=None):
         return self._driver(
             _remove_directory_request_factory(path),
-            ydb_scheme_pb2_grpc.SchemeServiceStub,
-            _RemoveDirectory,
+            _apis.SchemeService.Stub,
+            _apis.SchemeService.RemoveDirectory,
             operation.Operation,
             settings,
         )
@@ -351,8 +341,8 @@ class SchemeClient(object):
     def async_list_directory(self, path, settings=None):
         return self._driver.future(
             _list_directory_request_factory(path),
-            ydb_scheme_pb2_grpc.SchemeServiceStub,
-            _ListDirectory,
+            _apis.SchemeService.Stub,
+            _apis.SchemeService.ListDirectory,
             _wrap_list_directory_response,
             settings,
         )
@@ -360,8 +350,8 @@ class SchemeClient(object):
     def list_directory(self, path, settings=None):
         return self._driver(
             _list_directory_request_factory(path),
-            ydb_scheme_pb2_grpc.SchemeServiceStub,
-            _ListDirectory,
+            _apis.SchemeService.Stub,
+            _apis.SchemeService.ListDirectory,
             _wrap_list_directory_response,
             settings
         )
@@ -369,8 +359,8 @@ class SchemeClient(object):
     def async_describe_path(self, path, settings=None):
         return self._driver.future(
             _describe_path_request_factory(path),
-            ydb_scheme_pb2_grpc.SchemeServiceStub,
-            _DescribePath,
+            _apis.SchemeService.Stub,
+            _apis.SchemeService.DescribePath,
             _wrap_describe_path_response,
             settings
         )
@@ -378,8 +368,8 @@ class SchemeClient(object):
     def describe_path(self, path, settings=None):
         return self._driver(
             _describe_path_request_factory(path),
-            ydb_scheme_pb2_grpc.SchemeServiceStub,
-            _DescribePath,
+            _apis.SchemeService.Stub,
+            _apis.SchemeService.DescribePath,
             _wrap_describe_path_response,
             settings
         )
@@ -393,8 +383,8 @@ class SchemeClient(object):
         """
         return self._driver.future(
             _modify_permissions_request_factory(path, settings),
-            ydb_scheme_pb2_grpc.SchemeServiceStub,
-            _ModifyPermissions,
+            _apis.SchemeService.Stub,
+            _apis.SchemeService.ModifyPermissions,
             operation.Operation,
             settings,
         )
@@ -408,8 +398,8 @@ class SchemeClient(object):
         """
         return self._driver(
             _modify_permissions_request_factory(path, settings),
-            ydb_scheme_pb2_grpc.SchemeServiceStub,
-            _ModifyPermissions,
+            _apis.SchemeService.Stub,
+            _apis.SchemeService.ModifyPermissions,
             operation.Operation,
             settings,
         )

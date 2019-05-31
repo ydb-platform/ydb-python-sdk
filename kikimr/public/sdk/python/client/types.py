@@ -1,11 +1,7 @@
 # -*- coding: utf-8 -*-
 import abc
-
 import enum
-
-from yql.public.types import yql_types_pb2 as yql_types
-from kikimr.public.api.protos import ydb_value_pb2 as ydb_value
-from . import _utilities
+from . import _utilities, _apis
 
 
 @enum.unique
@@ -14,28 +10,28 @@ class PrimitiveType(enum.Enum):
     Enumerates all available primitive types that can be used
     in computations.
     """
-    Int32 = yql_types.Int32, 'int32_value'
-    Uint32 = yql_types.Uint32, 'uint32_value'
-    Int64 = yql_types.Int64, 'int64_value'
-    Uint64 = yql_types.Uint64, 'uint64_value'
-    Int8 = yql_types.Int8, 'int32_value'
-    Uint8 = yql_types.Uint8, 'uint32_value'
-    Int16 = yql_types.Int16, 'int32_value'
-    Uint16 = yql_types.Uint16, 'uint32_value'
-    Bool = yql_types.Bool, 'bool_value'
-    Double = yql_types.Double, 'double_value'
-    Float = yql_types.Float, 'float_value'
+    Int32 = _apis.yql_types.Int32, 'int32_value'
+    Uint32 = _apis.yql_types.Uint32, 'uint32_value'
+    Int64 = _apis.yql_types.Int64, 'int64_value'
+    Uint64 = _apis.yql_types.Uint64, 'uint64_value'
+    Int8 = _apis.yql_types.Int8, 'int32_value'
+    Uint8 = _apis.yql_types.Uint8, 'uint32_value'
+    Int16 = _apis.yql_types.Int16, 'int32_value'
+    Uint16 = _apis.yql_types.Uint16, 'uint32_value'
+    Bool = _apis.yql_types.Bool, 'bool_value'
+    Double = _apis.yql_types.Double, 'double_value'
+    Float = _apis.yql_types.Float, 'float_value'
 
-    String = yql_types.String, 'bytes_value'
-    Utf8 = yql_types.Utf8, 'text_value', _utilities.from_bytes
+    String = _apis.yql_types.String, 'bytes_value'
+    Utf8 = _apis.yql_types.Utf8, 'text_value', _utilities.from_bytes
 
-    Yson = yql_types.Yson, 'bytes_value'
-    Json = yql_types.Json, 'text_value', _utilities.from_bytes
+    Yson = _apis.yql_types.Yson, 'bytes_value'
+    Json = _apis.yql_types.Json, 'text_value', _utilities.from_bytes
 
-    Date = yql_types.Date, 'uint32_value'
-    Datetime = yql_types.Datetime, 'uint32_value'
-    Timestamp = yql_types.Timestamp, 'uint64_value'
-    Interval = yql_types.Interval, 'int64_value'
+    Date = _apis.yql_types.Date, 'uint32_value'
+    Datetime = _apis.yql_types.Datetime, 'uint32_value'
+    Timestamp = _apis.yql_types.Timestamp, 'uint64_value'
+    Interval = _apis.yql_types.Interval, 'int64_value'
 
     def __init__(self, idn, proto_field, to_obj=None):
         self._idn_ = idn
@@ -70,7 +66,7 @@ class PrimitiveType(enum.Enum):
         Returns protocol buffer representation of a primitive type
         :return: A protocol buffer representation
         """
-        return ydb_value.Type(type_id=self._idn_)
+        return _apis.ydb_value.Type(type_id=self._idn_)
 
 
 #######################
@@ -103,9 +99,9 @@ class DecimalType(AbstractTypeBuilder):
         """
         self._precision = precision
         self._scale = scale
-        self._proto = ydb_value.Type()
+        self._proto = _apis.ydb_value.Type()
         self._proto.decimal_type.MergeFrom(
-            ydb_value.DecimalType(precision=self._precision, scale=self._scale))
+            _apis.ydb_value.DecimalType(precision=self._precision, scale=self._scale))
 
     @property
     def precision(self):
@@ -140,10 +136,10 @@ class OptionalType(AbstractTypeBuilder):
         :param optional_type: An instance of an inner type
         """
         self._repr = "%s?" % str(optional_type)
-        self._proto = ydb_value.Type()
+        self._proto = _apis.ydb_value.Type()
         self._item = optional_type
         self._proto.optional_type.MergeFrom(
-            ydb_value.OptionalType(item=optional_type.proto))
+            _apis.ydb_value.OptionalType(item=optional_type.proto))
 
     @property
     def item(self):
@@ -169,8 +165,8 @@ class ListType(AbstractTypeBuilder):
         :param list_type: List item type builder
         """
         self._repr = "List<%s>" % str(list_type)
-        self._proto = ydb_value.Type(
-            list_type=ydb_value.ListType(
+        self._proto = _apis.ydb_value.Type(
+            list_type=_apis.ydb_value.ListType(
                 item=list_type.proto
             )
         )
@@ -196,8 +192,8 @@ class DictType(AbstractTypeBuilder):
         :param payload_type: Payload type builder
         """
         self._repr = "Dict<%s,%s>" % (str(key_type), str(payload_type))
-        self._proto = ydb_value.Type(
-            dict_type=ydb_value.DictType(
+        self._proto = _apis.ydb_value.Type(
+            dict_type=_apis.ydb_value.DictType(
                 key=key_type.proto,
                 payload=payload_type.proto,
             )
@@ -216,7 +212,7 @@ class TupleType(AbstractTypeBuilder):
 
     def __init__(self):
         self.__elements_repr = []
-        self.__proto = ydb_value.Type(tuple_type=ydb_value.TupleType())
+        self.__proto = _apis.ydb_value.Type(tuple_type=_apis.ydb_value.TupleType())
 
     def add_element(self, element_type):
         """
@@ -241,7 +237,7 @@ class StructType(AbstractTypeBuilder):
 
     def __init__(self):
         self.__members_repr = []
-        self.__proto = ydb_value.Type(struct_type=ydb_value.StructType())
+        self.__proto = _apis.ydb_value.Type(struct_type=_apis.ydb_value.StructType())
 
     def add_member(self, name, member_type):
         """

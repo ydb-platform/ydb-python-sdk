@@ -1,14 +1,8 @@
 # -*- coding: utf-8 -*-
 import logging
-
-from kikimr.public.api.protos import ydb_discovery_pb2
-from kikimr.public.api.grpc import ydb_discovery_v1_pb2_grpc as ydb_discovery_pb2_grpc
-from . import connection as conn_impl, issues, settings as settings_impl
+from . import connection as conn_impl, issues, settings as settings_impl, _apis
 
 logger = logging.getLogger(__name__)
-
-
-_ListEndpoints = 'ListEndpoints'
 
 
 class EndpointInfo(object):
@@ -36,7 +30,7 @@ class EndpointInfo(object):
 
 
 def _list_endpoints_request_factory(connection_params):
-    request = ydb_discovery_pb2.ListEndpointsRequest()
+    request = _apis.ydb_discovery.ListEndpointsRequest()
     request.database = connection_params.database
     return request
 
@@ -62,7 +56,7 @@ class DiscoveryResult(object):
     @classmethod
     def from_response(cls, response):
         issues._process_response(response)
-        message = ydb_discovery_pb2.ListEndpointsResult()
+        message = _apis.ydb_discovery.ListEndpointsResult()
         response.result.Unpack(message)
         return cls(
             message.self_location,
@@ -93,8 +87,8 @@ class DiscoveryEndpointsResolver(object):
         try:
             resolved = initial(
                 _list_endpoints_request_factory(self._driver_config),
-                ydb_discovery_pb2_grpc.DiscoveryServiceStub,
-                _ListEndpoints,
+                _apis.DiscoveryService.Stub,
+                _apis.DiscoveryService.ListEndpoints,
                 DiscoveryResult.from_response,
                 settings=settings_impl.BaseRequestSettings().with_timeout(
                     self._request_timeout
