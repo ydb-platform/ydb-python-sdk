@@ -8,7 +8,6 @@ class SchemeServiceStub(object):
   """Every YDB Database Instance has set of objects organized a tree.
   SchemeService provides some functionality to browse and modify
   this tree.
-
   SchemeService provides a generic tree functionality, to create specific
   objects like YDB Table or Persistent Queue use corresponding services.
 
@@ -51,7 +50,6 @@ class SchemeServiceServicer(object):
   """Every YDB Database Instance has set of objects organized a tree.
   SchemeService provides some functionality to browse and modify
   this tree.
-
   SchemeService provides a generic tree functionality, to create specific
   objects like YDB Table or Persistent Queue use corresponding services.
 
