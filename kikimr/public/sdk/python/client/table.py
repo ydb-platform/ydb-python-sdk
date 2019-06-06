@@ -959,6 +959,7 @@ class Session(object):
             )
         )
 
+    @_utilities.wrap_async_call_exceptions
     def async_keep_alive(self, settings=None):
         return self._driver(
             _keep_alive_request_factory(self._state),
@@ -972,6 +973,7 @@ class Session(object):
             )
         )
 
+    @_utilities.wrap_async_call_exceptions
     def async_create(self, settings=None):
         if self._state.session_id is not None:
             return _utilities.wrap_result_in_future(self)
@@ -1002,6 +1004,7 @@ class Session(object):
             )
         )
 
+    @_utilities.wrap_async_call_exceptions
     def async_delete(self, settings=None):
         return self._driver.future(
             self._state.attach_request(_apis.ydb_table.DeleteSessionRequest()),
@@ -1028,6 +1031,7 @@ class Session(object):
             )
         )
 
+    @_utilities.wrap_async_call_exceptions
     def async_execute_scheme(self, yql_text, settings=None):
         return self._driver.future(
             _execute_scheme_request_factory(self._state, yql_text),
@@ -1058,6 +1062,7 @@ class Session(object):
     def has_prepared(self, query):
         return query in self._state
 
+    @_utilities.wrap_async_call_exceptions
     def async_prepare(self, query, settings=None):
         data_query, _ = self._state.lookup(query)
         if data_query is not None:
@@ -1090,6 +1095,7 @@ class Session(object):
             )
         )
 
+    @_utilities.wrap_async_call_exceptions
     def async_create_table(self, path, table_description, settings=None):
         return self._driver.future(
             self._state.attach_request(_create_table_request_factory(path, table_description)),
@@ -1114,6 +1120,7 @@ class Session(object):
             )
         )
 
+    @_utilities.wrap_async_call_exceptions
     def async_drop_table(self, path, settings=None):
         return self._driver.future(
             self._state.attach_request(_apis.ydb_table.DropTableRequest(path=path)),
@@ -1145,6 +1152,7 @@ class Session(object):
         request.drop_columns.extend(list(drop_columns))
         return request
 
+    @_utilities.wrap_async_call_exceptions
     def async_alter_table(self, path, add_columns, drop_columns, settings=None):
         return self._driver.future(
             self._async_alter_table(path, add_columns, drop_columns),
@@ -1175,6 +1183,7 @@ class Session(object):
         request.destination_path = destination_path
         return request
 
+    @_utilities.wrap_async_call_exceptions
     def async_copy_table(self, source_path, destination_path, settings=None):
         return self._driver.future(
             self._copy_table_request_factory(source_path, destination_path),
@@ -1208,6 +1217,7 @@ class Session(object):
 
         return request
 
+    @_utilities.wrap_async_call_exceptions
     def async_describe_table(self, path, settings=None):
         return self._driver.future(
             self._describe_table_request_factory(path),
@@ -1451,6 +1461,7 @@ class TxContext(object):
         """
         return self._tx_state.tx_id
 
+    @_utilities.wrap_async_call_exceptions
     def async_execute(self, query, parameters=None, commit_tx=False, settings=None):
         """
         Sends a query (yql text or an instance of DataQuery) to be executed with parameters.
@@ -1499,6 +1510,7 @@ class TxContext(object):
             )
         )
 
+    @_utilities.wrap_async_call_exceptions
     def async_commit(self, settings=None):
         """
         Calls commit on a transaction if it is open otherwise is no-op. If transaction execution
@@ -1545,6 +1557,7 @@ class TxContext(object):
             )
         )
 
+    @_utilities.wrap_async_call_exceptions
     def async_rollback(self, settings=None):
         """
         Calls rollback on a transaction if it is open otherwise is no-op. If transaction execution
@@ -1591,6 +1604,7 @@ class TxContext(object):
             )
         )
 
+    @_utilities.wrap_async_call_exceptions
     def async_begin(self, settings=None):
         """
         Explicitly begins a transaction

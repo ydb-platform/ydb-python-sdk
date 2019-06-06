@@ -5,7 +5,7 @@ from concurrent import futures
 import collections
 import random
 
-from . import connection as connection_impl, issues, resolver
+from . import connection as connection_impl, issues, resolver, _utilities
 
 
 logger = logging.getLogger(__name__)
@@ -280,8 +280,12 @@ class ConnectionPool(object):
 
         return connection(
             request, stub, rpc_name, wrap_result, settings,
-            lambda: self._on_disconnected(connection), wrap_args)
+            wrap_args, lambda: self._on_disconnected(
+                connection
+            )
+        )
 
+    @_utilities.wrap_async_call_exceptions
     def future(self, request, stub, rpc_name, wrap_result=None, settings=None, wrap_args=()):
         """
         Sends request constructed by client
@@ -302,7 +306,10 @@ class ConnectionPool(object):
 
         return connection.future(
             request, stub, rpc_name, wrap_result, settings,
-            lambda: self._on_disconnected(connection), wrap_args)
+            wrap_args, lambda: self._on_disconnected(
+                connection
+            )
+        )
 
     def __enter__(self):
         """
