@@ -30,50 +30,48 @@ def _message_to_string(message):
     """
     try:
         return text_format.MessageToString(message, as_one_line=True)
-    except AttributeError:
+    except Exception:
         return str(message)
 
 
-def _log_response(request_id, rpc_name, response):
+def _log_response(rpc_state, response):
     """
     Writes a message with response into debug logs
-    :param request_id: An id of request
-    :param rpc_name: A name of RPC
+    :param rpc_state: A state of rpc
     :param response: A received response
     :return: None
     """
     if logger.isEnabledFor(logging.DEBUG):
         logger.debug(
-            "Request_id = %s, rpc name = %s, response = { %s }", request_id, rpc_name, _message_to_string(
+            "%s: response = { %s }", rpc_state, _message_to_string(
                 response
             )
         )
 
 
-def _log_request(request_id, rpc_name, request):
+def _log_request(rpc_state, request):
     """
     Writes a message with request into debug logs
-    :param request_id: An id of request
-    :param rpc_name: A name of RPC
+    :param rpc_state: An id of request
     :param request: A received response
     :return: None
     """
     if logger.isEnabledFor(logging.DEBUG):
         logger.debug(
-            "Request_id = %s, rpc name = %s, request = { %s }", request_id, rpc_name, _message_to_string(
+            "%s: request = { %s }", rpc_state, _message_to_string(
                 request
             )
         )
 
 
-def _rpc_error_handler(request_id, rpc_error, on_disconnected=None):
+def _rpc_error_handler(rpc_state, rpc_error, on_disconnected=None):
     """
     RPC call error handler, that translates gRPC error into YDB issue
-    :param request_id: An id of request
+    :param rpc_state: A state of rpc
     :param rpc_error: an underlying rpc error to handle
     :param on_disconnected: a handler to call on disconnected connection
     """
-    logger.info("Request_id = %s, RPC error, %s", request_id, str(rpc_error))
+    logger.info("%s: received error, %s", rpc_state, rpc_error)
     if isinstance(rpc_error, grpc.Call):
         if rpc_error.code() == grpc.StatusCode.UNAUTHENTICATED:
             return issues.Unauthenticated('User should be authenticated!')
@@ -82,7 +80,7 @@ def _rpc_error_handler(request_id, rpc_error, on_disconnected=None):
         elif rpc_error.code() == grpc.StatusCode.UNIMPLEMENTED:
             return issues.Unimplemented('Method or feature is not implemented on server!')
 
-    logger.debug("Request_id = %s, unhandled rpc error, disconnecting channel", request_id)
+    logger.debug("%s: unhandled rpc error, disconnecting channel", rpc_state)
     if on_disconnected is not None:
         on_disconnected()
 
@@ -93,42 +91,37 @@ def _rpc_error_handler(request_id, rpc_error, on_disconnected=None):
     )
 
 
-def _on_response_callback(
-        response_future, wrap_future, rpc_name, request_id, call_state_unref, wrap_result=None,
-        on_disconnected=None, wrap_args=()
-):
+def _on_response_callback(rpc_state, call_state_unref, wrap_result=None, on_disconnected=None, wrap_args=()):
     """
     Callback to be executed on received RPC response
-    :param response_future: A future of response
-    :param wrap_future: A future that wraps underlying response future
-    :param rpc_name: A name of RPC
+    :param rpc_state: A name of RPC
     :param wrap_result: A callable that wraps received response
     :param on_disconnected: A handler to executed on disconnected channel
     :param wrap_args: An arguments to be passed into wrap result callable
     :return: None
     """
     try:
-        logger.debug("Request_id = %s, on response callback started", request_id)
-        response = response_future.result()
-        _log_response(request_id, rpc_name, response)
+        logger.debug("%s: on response callback started", rpc_state)
+        response = rpc_state.response_future.result()
+        _log_response(rpc_state, response)
         response = response if wrap_result is None else wrap_result(response.operation, *wrap_args)
-        wrap_future.set_result(response)
-        logger.debug("Request_id = %s, on response callback success", request_id)
+        rpc_state.result_future.set_result(response)
+        logger.debug("%s: on response callback success", rpc_state)
     except grpc.FutureCancelledError as e:
-        logger.debug("Request_id = %s, request execution cancelled", request_id)
-        if not wrap_future.cancelled():
-            wrap_future.set_exception(e)
+        logger.debug("%s: request execution cancelled", rpc_state)
+        if not rpc_state.result_future.cancelled():
+            rpc_state.result_future.set_exception(e)
 
     except grpc.RpcError as rpc_call_error:
-        wrap_future.set_exception(
+        rpc_state.result_future.set_exception(
             _rpc_error_handler(
-                request_id, rpc_call_error, on_disconnected
+                rpc_state, rpc_call_error, on_disconnected
             )
         )
 
     except Exception as e:
-        logger.debug("Request_id = %s, received exception, %s", request_id, str(e))
-        wrap_future.set_exception(e)
+        logger.debug("%s: received exception, %s", rpc_state, str(e))
+        rpc_state.result_future.set_exception(e)
 
     call_state_unref()
 
@@ -183,29 +176,33 @@ def _construct_channel_options(driver_config):
 
 
 class _RpcState(object):
-    __slots__ = ('_rpc', 'request_id', '_future', '_rpc_future')
+    __slots__ = ('rpc', 'request_id', 'response_future', 'result_future', 'rpc_name')
 
-    def __init__(self, stub_instance, rpc_name, request_id):
+    def __init__(self, stub_instance, rpc_name):
         """Stores all RPC related data"""
-        self._rpc = getattr(stub_instance, rpc_name)
-        self.request_id = request_id
-        self._future = None
-        self._rpc_future = None
+        self.rpc_name = rpc_name
+        self.rpc = getattr(stub_instance, rpc_name)
+        self.request_id = uuid.uuid4()
+        self.response_future = None
+        self.result_future = None
+
+    def __str__(self):
+        return "RpcState(%s, %s)" % (self.rpc_name, self.request_id)
 
     def __call__(self, *args, **kwargs):
-        return self._rpc(*args, **kwargs)
+        return self.rpc(*args, **kwargs)
 
     def future(self, *args, **kwargs):
-        self._future = futures.Future()
-        self._rpc_future = self._rpc.future(*args, **kwargs)
+        self.response_future = self.rpc.future(*args, **kwargs)
+        self.result_future = futures.Future()
 
         def _cancel_callback(f):
             """forwards cancel to gPRC future"""
             if f.cancelled():
-                self._rpc_future.cancel()
+                self.response_future.cancel()
 
-        self._future.add_done_callback(_cancel_callback)
-        return self._rpc_future, self._future
+        self.response_future.add_done_callback(_cancel_callback)
+        return self.response_future, self.result_future
 
 
 class Connection(object):
@@ -238,18 +235,18 @@ class Connection(object):
     def add_cleanup_callback(self, callback):
         self._cleanup_callbacks.append(callback)
 
-    def _prepare_call(self, request_id, stub, rpc_name, settings):
-        timeout, metadata = _get_request_timeout(settings), _construct_metadata(
-            self._driver_config, settings)
-        call_state = _RpcState(self._stub_instances[stub], rpc_name, request_id)
-        logger.debug("Request_id = %s, creating call state", request_id)
+    def _prepare_call(self, stub, rpc_name, request, settings):
+        timeout, metadata = _get_request_timeout(settings), _construct_metadata(self._driver_config, settings)
+        rpc_state = _RpcState(self._stub_instances[stub], rpc_name)
+        logger.debug("%s: creating call state", rpc_state)
         with self.lock:
             if self.closing:
                 raise issues.ConnectionLost("Couldn't start call")
             self.calls += 1
-            self._call_states[call_state.request_id] = call_state
+            self._call_states[rpc_state.request_id] = rpc_state
         # Call successfully prepared and registered
-        return call_state, timeout, metadata
+        _log_request(rpc_state, request)
+        return rpc_state, timeout, metadata
 
     def _finish_call(self, call_state):
         with self.lock:
@@ -273,17 +270,15 @@ class Connection(object):
         :param wrap_args: And arguments to be passed into wrap_result callable
         :return: A future of computation
         """
-        request_id = uuid.uuid4()
-        _log_request(request_id, rpc_name, request)
-        call_state, timeout, metadata = self._prepare_call(request_id, stub, rpc_name, settings)
-        response_future, wrap_future = call_state.future(request, timeout, metadata)
+        rpc_state, timeout, metadata = self._prepare_call(stub, rpc_name, request, settings)
+        response_future, result_future = rpc_state.future(request, timeout, metadata)
         response_future.add_done_callback(
             lambda resp_future: _on_response_callback(
-                resp_future, wrap_future, rpc_name, request_id, lambda: self._finish_call(call_state),
+                rpc_state, lambda: self._finish_call(rpc_state),
                 wrap_result, on_disconnected, wrap_args,
             )
         )
-        return wrap_future
+        return result_future
 
     def __call__(self, request, stub, rpc_name, wrap_result=None, settings=None, wrap_args=(), on_disconnected=None):
         """
@@ -298,21 +293,15 @@ class Connection(object):
         :param wrap_args: And arguments to be passed into wrap_result callable
         :return: A result of computation
         """
-        request_id = uuid.uuid4()
-        _log_request(request_id, rpc_name, request)
-        call_state, timeout, metadata = self._prepare_call(request_id, stub, rpc_name, settings)
+        rpc_state, timeout, metadata = self._prepare_call(stub, rpc_name, request, settings)
         try:
-            response = call_state(request, timeout, metadata)
-            _log_response(request_id, rpc_name, response)
+            response = rpc_state(request, timeout, metadata)
+            _log_response(rpc_state, response)
             return response if wrap_result is None else wrap_result(response.operation, *wrap_args)
         except grpc.RpcError as rpc_error:
-            raise _rpc_error_handler(
-                request_id,
-                rpc_error,
-                on_disconnected
-            )
+            raise _rpc_error_handler(rpc_state, rpc_error, on_disconnected)
         finally:
-            self._finish_call(call_state)
+            self._finish_call(rpc_state)
 
     @classmethod
     def ready_factory(cls, endpoint, driver_config, ready_timeout=2):
