@@ -1286,11 +1286,15 @@ def _wrap_tx_factory_handler(func):
 def _execute_request_factory(session_state, tx_state, query, parameters, commit_tx):
     data_query, query_id = session_state.lookup(query)
     parameters_types = {}
+    keep_in_cache = False
     if query_id is not None:
         query_pb = _apis.ydb_table.Query(id=query_id)
         parameters_types = data_query.parameters_types
     else:
         if isinstance(query, DataQuery):
+            # that is an instance of a data query and we don't know query id for id.
+            # so let's prepare it to keep in cache
+            keep_in_cache = True
             yql_text = query.yql_text
             parameters_types = query.parameters_types
         else:
@@ -1298,6 +1302,8 @@ def _execute_request_factory(session_state, tx_state, query, parameters, commit_
         query_pb = _apis.ydb_table.Query(yql_text=yql_text)
     request = _apis.ydb_table.ExecuteDataQueryRequest(
         parameters=convert.parameters_to_pb(parameters_types, parameters))
+    if keep_in_cache:
+        request.query_cache_policy.keep_in_cache = True
     request.query.MergeFrom(query_pb)
     tx_control = _apis.ydb_table.TransactionControl()
     tx_control.commit_tx = commit_tx
@@ -1342,6 +1348,10 @@ def _wrap_result_and_tx_id(response_pb, session_state, tx_state, query):
     issues._process_response(response_pb)
     message = _apis.ydb_table.ExecuteQueryResult()
     response_pb.result.Unpack(message)
+    if message.query_meta.id:
+        session_state.keep(
+            query,
+            message.query_meta.id)
     tx_state.tx_id = None if not message.tx_meta.id else message.tx_meta.id
     return convert.ResultSets(message.result_sets)
 
