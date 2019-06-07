@@ -89,8 +89,11 @@ class ConnectionsCache(object):
             subscription.add_done_callback(self._on_done_callback)
             return subscription
 
-    def get(self):
+    def get(self, preferred_endpoint=None):
         with self.lock:
+            if preferred_endpoint is not None and preferred_endpoint in self.connections:
+                return self.connections[preferred_endpoint]
+
             try:
                 endpoint, connection = self.preferred.popitem(last=False)
                 self.preferred[endpoint] = connection
@@ -260,7 +263,7 @@ class ConnectionPool(object):
         connection.close()
         self._discovery_thread.notify_disconnected()
 
-    def __call__(self, request, stub, rpc_name, wrap_result=None, settings=None, wrap_args=()):
+    def __call__(self, request, stub, rpc_name, wrap_result=None, settings=None, wrap_args=(), preferred_endpoint=None):
         """
         Synchronously sends request constructed by client library
         :param request: A request constructed by client
@@ -273,7 +276,7 @@ class ConnectionPool(object):
         :return: A result of computation
         """
         try:
-            connection = self._store.get()
+            connection = self._store.get(preferred_endpoint)
         except Exception:
             self._discovery_thread.notify_disconnected()
             raise
@@ -286,7 +289,7 @@ class ConnectionPool(object):
         )
 
     @_utilities.wrap_async_call_exceptions
-    def future(self, request, stub, rpc_name, wrap_result=None, settings=None, wrap_args=()):
+    def future(self, request, stub, rpc_name, wrap_result=None, settings=None, wrap_args=(), preferred_endpoint=None):
         """
         Sends request constructed by client
         :param request: A request constructed by client
@@ -299,7 +302,7 @@ class ConnectionPool(object):
         :return: A future of computation
         """
         try:
-            connection = self._store.get()
+            connection = self._store.get(preferred_endpoint)
         except Exception:
             self._discovery_thread.notify_disconnected()
             raise

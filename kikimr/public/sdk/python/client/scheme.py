@@ -267,7 +267,7 @@ def _wrap_scheme_entry(entry_pb, scheme_entry_cls=None, *args, **kwargs):
     )
 
 
-def _wrap_list_directory_response(response):
+def _wrap_list_directory_response(rpc_state, response):
     """
     Wraps list directory response
     :param response: A list directory response
@@ -289,7 +289,7 @@ def _wrap_list_directory_response(response):
     )
 
 
-def _wrap_describe_path_response(response):
+def _wrap_describe_path_response(rpc_state, response):
     issues._process_response(response)
     message = _apis.ydb_scheme.DescribePathResult()
     response.result.Unpack(message)
