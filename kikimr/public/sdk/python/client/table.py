@@ -9,7 +9,7 @@ import random
 import enum
 import six
 from six.moves import queue
-from . import issues, convert, operation, settings, scheme, types, _utilities, _apis
+from . import issues, convert, operation, settings, scheme, types, _utilities, _apis, _table_impl
 
 try:
     from . import interceptor
@@ -969,7 +969,7 @@ class Session(object):
 
     @_utilities.wrap_async_call_exceptions
     def async_keep_alive(self, settings=None):
-        return self._driver(
+        return self._driver.future(
             _keep_alive_request_factory(self._state),
             _apis.TableService.Stub,
             _apis.TableService.KeepAlive,
@@ -1616,101 +1616,10 @@ class TxContext(object):
         )
 
 
-class SessionPoolEmpty(queue.Empty):
-    pass
-
-
-class _SessionPoolState(object):
-    def __init__(self):
-        self._active_queue = queue.PriorityQueue()
-        self._not_initialized = queue.Queue()
-
-    def pick(self):
-        try:
-            return self._not_initialized.get_nowait()
-        except queue.Empty:
-            pass
-
-        try:
-            priority, session = self._active_queue.get_nowait()
-        except queue.Empty:
-            return None
-
-        till_expire = priority - time.time()
-        if till_expire < 4 * 60:
-            if till_expire < 0:
-                session.reset()
-
-                return session
-
-            return session
-        self._active_queue.put((priority, session))
-        return None
-
-    def acquire(self, blocking=True, timeout=None):
-        try:
-            _, session = self._active_queue.get(blocking, timeout)
-            return session
-        except queue.Empty:
-            raise SessionPoolEmpty
-
-    def release(self, session):
-        if session.session_id is None:
-            self._not_initialized.put(session)
-        else:
-            priority = time.time() + 10 * 60
-            self._active_queue.put((priority, session))
-
-
-def _process_session(session, pool_state, initializer=None):
-    if not session.initialized():
-        try:
-            session.create(settings.BaseRequestSettings().with_timeout(3))
-            if initializer is not None:
-                initializer(session)
-        except Exception as e:
-            logger.debug("Failed to process session, %s", str(e))
-            session.reset()
-    else:
-        try:
-            session.keep_alive(settings.BaseRequestSettings().with_timeout(1))
-        except issues.Error:
-            session.reset()
-
-    pool_state.release(session)
-
-
-class _PoolThread(threading.Thread):
-    def __init__(self, exec_pool, pool_state, initializer=None):
-        super(_PoolThread, self).__init__()
-        self.daemon = True
-        self._exec_pool = exec_pool
-        self._pool_state = pool_state
-        self._condition = threading.Condition()
-        self._spin_timeout = 3
-        self._should_terminate = threading.Event()
-        self._initializer = initializer
-
-    def should_terminate(self):
-        self._should_terminate.set()
-
-    def run(self):
-        with self._condition:
-            while not self._should_terminate.is_set():
-                self._condition.wait(self._spin_timeout)
-
-                while not self._should_terminate.is_set():
-                    session = self._pool_state.pick()
-
-                    if session is None:
-                        break
-
-                    try:
-                        self._exec_pool.submit(
-                            _process_session, session, self._pool_state, self._initializer)
-                    except RuntimeError as e:
-                        logger.error("Failed to submit task, %s", str(e))
-                        break
+################################################################
+# A deprecated alias in case when direct import has been used  #
+################################################################
+SessionPoolEmpty = issues.SessionPoolEmpty
 
 
 class SessionPool(object):
@@ -1720,18 +1629,17 @@ class SessionPool(object):
         a pool of active sessions of specified size
         :param driver: A Driver instance
         :param size: A number of sessions to maintain in the pool
-        :param workers_threads_count: A number of threads in execution pool
-        :param initializer: A initializer callable that initializes created session
         """
-        assert size >= 10
+        if initializer is not None:
+            import warnings
+            if initializer is not None:
+                warnings.warn(
+                    "Using initializer API in YDB SessionPool is deprecated and "
+                    "will be removed in future releases! Please, don't use it in new code. "
+                    "To prepare statements in session use keep in cache feature."
+                )
 
-        self._driver = driver
-        self._pool_state = _SessionPoolState()
-        self._exec_pool = futures.ThreadPoolExecutor(workers_threads_count)
-        self._pool_thread = _PoolThread(self._exec_pool, self._pool_state, initializer)
-        self._pool_thread.start()
-        for _ in range(size):
-            self._pool_state.release(driver.table_client.session())
+        self._pool_impl = _table_impl.SessionPoolImpl(driver, size, workers_threads_count, initializer)
 
     def retry_operation_sync(self, callee, retry_settings=None, *args, **kwargs):
 
@@ -1743,26 +1651,32 @@ class SessionPool(object):
 
         return retry_operation_sync(wrapped_callee, retry_settings)
 
+    def subscribe(self):
+        return self._pool_impl.subscribe()
+
+    def unsubscribe(self, waiter):
+        return self._pool_impl.unsubscribe(waiter)
+
     def acquire(self, blocking=True, timeout=None):
-        return self._pool_state.acquire(blocking, timeout)
+        return self._pool_impl.acquire(blocking, timeout)
 
     def release(self, session):
-        self._pool_state.release(session)
+        return self._pool_impl.put(session)
 
     def checkout(self, blocking=True, timeout=None):
-        return _SessionCheckout(self, blocking, timeout)
+        return SessionCheckout(self, blocking, timeout)
 
     def stop(self, timeout=None):
-        """
-        Experimental method
-        :param timeout:
-        """
-        self._pool_thread.should_terminate()
-        self._pool_thread.join(timeout)
-        self._exec_pool.shutdown(wait=False)
+        self._pool_impl.stop(timeout)
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.stop()
 
 
-class _SessionCheckout(object):
+class SessionCheckout(object):
     __slots__ = ('_acquired', '_pool', '_blocking', '_timeout')
 
     def __init__(self, pool, blocking, timeout):

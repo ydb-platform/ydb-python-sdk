@@ -19,6 +19,10 @@ def wrap_exception_in_future(exc):
     return f
 
 
+def future():
+    return futures.Future()
+
+
 # Decorator that ensures no exceptions are leaked from decorated async call
 def wrap_async_call_exceptions(f):
     @functools.wraps(f)
