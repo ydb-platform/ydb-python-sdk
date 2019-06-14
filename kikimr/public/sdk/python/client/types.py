@@ -69,6 +69,15 @@ class PrimitiveType(enum.Enum):
         return _apis.ydb_value.Type(type_id=self._idn_)
 
 
+class DataQuery(object):
+    __slots__ = ('yql_text', 'parameters_types', 'name')
+
+    def __init__(self, query_id, parameters_types, name=None):
+        self.yql_text = query_id
+        self.parameters_types = parameters_types
+        self.name = _utilities.get_query_hash(self.yql_text) if name is None else name
+
+
 #######################
 # A deprecated alias  #
 #######################
