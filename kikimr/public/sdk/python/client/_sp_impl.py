@@ -16,7 +16,6 @@ class SessionPoolImpl(object):
         self._active_count = 0
         self._size = size
         self._req_settings = settings.BaseRequestSettings().with_timeout(3)
-        self._in_fly_keep_alive = collections.OrderedDict()
         self._tp = futures.ThreadPoolExecutor(workers_threads_count)
         self._initializer = initializer
         self._should_stop = threading.Event()
@@ -43,9 +42,10 @@ class SessionPoolImpl(object):
             return None
 
     def _create(self):
-        session = self._driver.table_client.session()
-        self._active_count += 1
-        return session
+        with self._lock:
+            session = self._driver.table_client.session()
+            self._active_count += 1
+            return session
 
     @property
     def active_size(self):
@@ -53,7 +53,8 @@ class SessionPoolImpl(object):
             return self._active_count
 
     def _destroy(self, session):
-        self._active_count -= 1
+        with self._lock:
+            self._active_count -= 1
 
     def put(self, session):
         with self._lock:
@@ -186,5 +187,5 @@ class _PoolThread(threading.Thread):
     def run(self):
         while not self._pool_impl.should_stop():
             while True:
-                if self._pool_impl.send_keep_alive():
-                    continue
+                if not self._pool_impl.send_keep_alive():
+                    break
