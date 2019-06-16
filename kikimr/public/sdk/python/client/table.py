@@ -1,12 +1,11 @@
 # -*- coding: utf-8 -*-
 import abc
-import functools
 import logging
 import time
 import random
 import enum
 import six
-from . import issues, convert, settings, scheme, types, _utilities, _apis, _sp_impl, _session_impl
+from . import issues, convert, settings, scheme, types, _utilities, _apis, _sp_impl, _session_impl, _tx_ctx_impl
 
 try:
     from . import interceptor
@@ -474,10 +473,6 @@ class StaleReadOnly(AbstractTransactionModeBuilder):
         return self._name
 
 
-def default_unknown_error_handler(e):
-    raise e
-
-
 class RetrySettings(object):
     def __init__(
             self, max_retries=10,
@@ -491,7 +486,7 @@ class RetrySettings(object):
         self.backoff_slot_duration = backoff_slot_duration
         self.retry_not_found = True
         self.retry_internal_error = True
-        self.unknown_error_handler = default_unknown_error_handler
+        self.unknown_error_handler = lambda e: None
         self.get_session_client_timeout = get_session_client_timeout
 
 
@@ -1003,160 +998,6 @@ class Session(object):
         )
 
 
-_DefaultTxMode = SerializableReadWrite()
-
-
-class _TxState(object):
-    __slots__ = ('tx_id', 'tx_mode', 'dead', 'initialized')
-
-    def __init__(self, tx_mode=None):
-        """
-        Holds transaction context manager info
-        :param tx_mode: A mode of transaction
-        """
-        self.tx_id = None
-        self.tx_mode = _DefaultTxMode if tx_mode is None else tx_mode
-        self.dead = False
-        self.initialized = False
-
-
-def _construct_tx_settings(tx_state):
-    tx_settings = _apis.ydb_table.TransactionSettings()
-    mode_property = getattr(tx_settings, tx_state.tx_mode.name)
-    mode_property.MergeFrom(tx_state.tx_mode.settings)
-    return tx_settings
-
-
-def _wrap_tx_factory_handler(func):
-    @functools.wraps(func)
-    def decorator(session_state, tx_state, *args, **kwargs):
-        if tx_state.dead:
-            raise issues.PreconditionFailed('Failed to perform action on broken transaction context!')
-        return func(session_state, tx_state, *args, **kwargs)
-    return decorator
-
-
-@_wrap_tx_factory_handler
-def _execute_request_factory(session_state, tx_state, query, parameters, commit_tx):
-    data_query, query_id = session_state.lookup(query)
-    parameters_types = {}
-    keep_in_cache = False
-    if query_id is not None:
-        query_pb = _apis.ydb_table.Query(id=query_id)
-        parameters_types = data_query.parameters_types
-    else:
-        if isinstance(query, DataQuery):
-            # that is an instance of a data query and we don't know query id for id.
-            # so let's prepare it to keep in cache
-            keep_in_cache = True
-            yql_text = query.yql_text
-            parameters_types = query.parameters_types
-        else:
-            yql_text = query
-        query_pb = _apis.ydb_table.Query(yql_text=yql_text)
-    request = _apis.ydb_table.ExecuteDataQueryRequest(
-        parameters=convert.parameters_to_pb(parameters_types, parameters))
-    if keep_in_cache:
-        request.query_cache_policy.keep_in_cache = True
-    request.query.MergeFrom(query_pb)
-    tx_control = _apis.ydb_table.TransactionControl()
-    tx_control.commit_tx = commit_tx
-    if tx_state.tx_id is not None:
-        tx_control.tx_id = tx_state.tx_id
-    else:
-        tx_control.begin_tx.MergeFrom(_construct_tx_settings(tx_state))
-    request.tx_control.MergeFrom(tx_control)
-    request = session_state.start_query().attach_request(request)
-    return request
-
-
-def _reset_tx_id_handler(func):
-    @functools.wraps(func)
-    def decorator(rpc_state, response_pb, session_state, tx_state, *args, **kwargs):
-        try:
-            return func(rpc_state, response_pb, session_state, tx_state, *args, **kwargs)
-        except issues.Error:
-            tx_state.tx_id = None
-            tx_state.dead = True
-            raise
-
-    return decorator
-
-
-def _not_found_handler(func):
-    @functools.wraps(func)
-    def decorator(rpc_state, response_pb, session_state, tx_state, query, *args, **kwargs):
-        try:
-            return func(rpc_state, response_pb, session_state, tx_state, query, *args, **kwargs)
-        except issues.NotFound:
-            session_state.erase(query)
-            raise
-    return decorator
-
-
-@_session_impl.bad_session_handler
-@_reset_tx_id_handler
-@_not_found_handler
-def _wrap_result_and_tx_id(rpc_state, response_pb, session_state, tx_state, query):
-    session_state.complete_query()
-    issues._process_response(response_pb)
-    message = _apis.ydb_table.ExecuteQueryResult()
-    response_pb.result.Unpack(message)
-    if message.query_meta.id:
-        session_state.keep(
-            query,
-            message.query_meta.id)
-    tx_state.tx_id = None if not message.tx_meta.id else message.tx_meta.id
-    return convert.ResultSets(message.result_sets)
-
-
-@_session_impl.bad_session_handler
-@_reset_tx_id_handler
-def _wrap_result_on_rollback_or_commit_tx(rpc_state, response_pb, session_state, tx_state, tx):
-    session_state.complete_query()
-    issues._process_response(response_pb)
-    # transaction successfully committed or rolled back
-    tx_state.tx_id = None
-    return tx
-
-
-@_session_impl.bad_session_handler
-def _wrap_tx_begin_response(rpc_state, response_pb, session_state, tx_state, tx):
-    session_state.complete_query()
-    issues._process_response(response_pb)
-    message = _apis.ydb_table.BeginTransactionResult()
-    response_pb.result.Unpack(message)
-    tx_state.tx_id = message.tx_meta.id
-    return tx
-
-
-@_wrap_tx_factory_handler
-def _begin_request_factory(session_state, tx_state):
-    request = _apis.ydb_table.BeginTransactionRequest()
-    request = session_state.start_query().attach_request(request)
-    request.tx_settings.MergeFrom(_construct_tx_settings(tx_state))
-    return request
-
-
-@_wrap_tx_factory_handler
-def _rollback_request_factory(session_state, tx_state):
-    request = _apis.ydb_table.RollbackTransactionRequest()
-    request.tx_id = tx_state.tx_id
-    request = session_state.start_query().attach_request(request)
-    return request
-
-
-@_wrap_tx_factory_handler
-def _commit_request_factory(session_state, tx_state):
-    """
-    Constructs commit request
-    """
-    request = _apis.ydb_table.CommitTransactionRequest()
-    request.tx_id = tx_state.tx_id
-    request = session_state.start_query().attach_request(request)
-    return request
-
-
 class TxContext(object):
     __slots__ = ('_tx_state', '_session_state', '_driver', 'session')
 
@@ -1179,7 +1020,8 @@ class TxContext(object):
          3) StaleReadOnly().
         """
         self._driver = driver
-        self._tx_state = _TxState(tx_mode)
+        tx_mode = SerializableReadWrite() if tx_mode is None else tx_mode
+        self._tx_state = _tx_ctx_impl.TxState(tx_mode)
         self._session_state = session_state
         self.session = session
 
@@ -1238,10 +1080,10 @@ class TxContext(object):
         :return: A future of query execution
         """
         return self._driver.future(
-            _execute_request_factory(self._session_state, self._tx_state, query, parameters, commit_tx),
+            _tx_ctx_impl.execute_request_factory(self._session_state, self._tx_state, query, parameters, commit_tx),
             _apis.TableService.Stub,
             _apis.TableService.ExecuteDataQuery,
-            _wrap_result_and_tx_id,
+            _tx_ctx_impl.wrap_result_and_tx_id,
             settings,
             (self._session_state, self._tx_state, query,),
             self._session_state.endpoint,
@@ -1259,12 +1101,23 @@ class TxContext(object):
         :return: A result sets or exception in case of execution errors
         """
         return self._driver(
-            _execute_request_factory(self._session_state, self._tx_state, query, parameters, commit_tx),
+            _tx_ctx_impl.execute_request_factory(self._session_state, self._tx_state, query, parameters, commit_tx),
             _apis.TableService.Stub,
             _apis.TableService.ExecuteDataQuery,
-            _wrap_result_and_tx_id,
+            _tx_ctx_impl.wrap_result_and_tx_id,
             settings,
             (self._session_state, self._tx_state, query),
+            self._session_state.endpoint,
+        )
+
+    def _explicit_tcl_call_future(self, request_factory, response_wrapper, stub_method):
+        return self._driver.future(
+            request_factory(self._session_state, self._tx_state),
+            _apis.TableService.Stub,
+            stub_method,
+            response_wrapper,
+            settings,
+            (self._session_state, self._tx_state, self),
             self._session_state.endpoint,
         )
 
@@ -1274,16 +1127,16 @@ class TxContext(object):
         Calls commit on a transaction if it is open otherwise is no-op. If transaction execution
         failed then this method raises PreconditionFailed.
 
-        :param settings: A request settings
+        :param settings: A request settings (an instance of BaseRequestSettings)
         :return: A future of commit call
         """
         if self._tx_state.tx_id is None and not self._tx_state.dead:
             return _utilities.wrap_result_in_future(self)
         return self._driver.future(
-            _commit_request_factory(self._session_state, self._tx_state),
+            _tx_ctx_impl.commit_request_factory(self._session_state, self._tx_state),
             _apis.TableService.Stub,
             _apis.TableService.CommitTransaction,
-            _wrap_result_on_rollback_or_commit_tx,
+            _tx_ctx_impl.wrap_result_on_rollback_or_commit_tx,
             settings,
             (self._session_state, self._tx_state, self),
             self._session_state.endpoint,
@@ -1300,10 +1153,10 @@ class TxContext(object):
         if self._tx_state.tx_id is None and not self._tx_state.dead:
             return self
         return self._driver(
-            _commit_request_factory(self._session_state, self._tx_state),
+            _tx_ctx_impl.commit_request_factory(self._session_state, self._tx_state),
             _apis.TableService.Stub,
             _apis.TableService.CommitTransaction,
-            _wrap_result_on_rollback_or_commit_tx,
+            _tx_ctx_impl.wrap_result_on_rollback_or_commit_tx,
             settings,
             (self._session_state, self._tx_state, self),
             self._session_state.endpoint,
@@ -1321,10 +1174,10 @@ class TxContext(object):
         if self._tx_state.tx_id is None and not self._tx_state.dead:
             return _utilities.wrap_result_in_future(self)
         return self._driver.future(
-            _rollback_request_factory(self._session_state, self._tx_state),
+            _tx_ctx_impl.rollback_request_factory(self._session_state, self._tx_state),
             _apis.TableService.Stub,
             _apis.TableService.RollbackTransaction,
-            _wrap_result_on_rollback_or_commit_tx,
+            _tx_ctx_impl.wrap_result_on_rollback_or_commit_tx,
             settings,
             (self._session_state, self._tx_state, self),
             self._session_state.endpoint,
@@ -1341,10 +1194,10 @@ class TxContext(object):
         if self._tx_state.tx_id is None and not self._tx_state.dead:
             return self
         return self._driver(
-            _rollback_request_factory(self._session_state, self._tx_state),
+            _tx_ctx_impl.rollback_request_factory(self._session_state, self._tx_state),
             _apis.TableService.Stub,
             _apis.TableService.RollbackTransaction,
-            _wrap_result_on_rollback_or_commit_tx,
+            _tx_ctx_impl.wrap_result_on_rollback_or_commit_tx,
             settings,
             (self._session_state, self._tx_state, self),
             self._session_state.endpoint
@@ -1360,10 +1213,10 @@ class TxContext(object):
         if self._tx_state.tx_id is not None:
             return _utilities.wrap_result_in_future(self)
         return self._driver.future(
-            _begin_request_factory(self._session_state, self._tx_state),
+            _tx_ctx_impl.begin_request_factory(self._session_state, self._tx_state),
             _apis.TableService.Stub,
             _apis.TableService.BeginTransaction,
-            _wrap_tx_begin_response,
+            _tx_ctx_impl.wrap_tx_begin_response,
             settings,
             (self._session_state, self._tx_state, self),
             self._session_state.endpoint,
@@ -1378,10 +1231,10 @@ class TxContext(object):
         if self._tx_state.tx_id is not None:
             return self
         return self._driver(
-            _begin_request_factory(self._session_state, self._tx_state),
+            _tx_ctx_impl.begin_request_factory(self._session_state, self._tx_state),
             _apis.TableService.Stub,
             _apis.TableService.BeginTransaction,
-            _wrap_tx_begin_response,
+            _tx_ctx_impl.wrap_tx_begin_response,
             settings,
             (self._session_state, self._tx_state, self),
             self._session_state.endpoint,
