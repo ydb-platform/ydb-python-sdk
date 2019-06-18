@@ -188,7 +188,7 @@ class _RpcState(object):
         self.endpoint = endpoint
 
     def __str__(self):
-        return "RpcState(%s, %s)" % (self.rpc_name, self.request_id)
+        return "RpcState(%s, %s, %s)" % (self.rpc_name, self.request_id, self.endpoint)
 
     def __call__(self, *args, **kwargs):
         return self.rpc(*args, **kwargs)
