@@ -273,9 +273,10 @@ def parameters_to_pb(parameters_types, parameters_values):
 
 
 class _ResultSet(object):
-    __slots__ = ('rows', 'truncated')
+    __slots__ = ('columns', 'rows', 'truncated')
 
-    def __init__(self, rows, truncated):
+    def __init__(self, columns, rows, truncated):
+        self.columns = columns
         self.rows = rows
         self.truncated = truncated
 
@@ -283,18 +284,26 @@ class _ResultSet(object):
     def from_message(cls, message):
         rows = []
         for row_proto in message.rows:
-            row = _Row()
+            row = _Row(message.columns)
             for column, value in six.moves.zip(message.columns, row_proto.items):
                 row[column.name] = _to_native_value(column.type, value)
             rows.append(row)
-        return cls(rows, message.truncated)
+        return cls(message.columns, rows, message.truncated)
 
 
 ResultSet = _ResultSet
 
 
 class _Row(_DotDict):
-    pass
+    def __init__(self, columns):
+        super(_Row, self).__init__()
+        self._columns = columns
+
+    def __getitem__(self, key):
+        if isinstance(key, int):
+            return self[self._columns[key].name]
+        else:
+            return super(_Row, self).__getitem__(key)
 
 
 def from_native_value(type_pb, value):
