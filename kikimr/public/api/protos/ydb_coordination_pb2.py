@@ -24,7 +24,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='kikimr/public/api/protos/ydb_coordination.proto',
   package='Ydb.Coordination',
   syntax='proto3',
-  serialized_pb=_b('\n/kikimr/public/api/protos/ydb_coordination.proto\x12\x10Ydb.Coordination\x1a,kikimr/public/api/protos/ydb_operation.proto\x1a/kikimr/public/api/protos/ydb_status_codes.proto\x1a\x30kikimr/public/api/protos/ydb_issue_message.proto\x1a)kikimr/public/api/protos/ydb_scheme.proto\"\xe3\x01\n\x06\x43onfig\x12\x0c\n\x04path\x18\x01 \x01(\t\x12 \n\x18self_check_period_millis\x18\x02 \x01(\r\x12#\n\x1bsession_grace_period_millis\x18\x03 \x01(\r\x12@\n\x15read_consistency_mode\x18\x04 \x01(\x0e\x32!.Ydb.Coordination.ConsistencyMode\x12\x42\n\x17\x61ttach_consistency_mode\x18\x05 \x01(\x0e\x32!.Ydb.Coordination.ConsistencyMode\"1\n\x08Resource\x12\x15\n\rresource_type\x18\x01 \x01(\t\x12\x0e\n\x06\x61mount\x18\x02 \x01(\x01\"{\n\x08TaskData\x12\x11\n\ttask_type\x18\x01 \x01(\t\x12\x0f\n\x07payload\x18\x02 \x01(\x0c\x12\r\n\x05group\x18\x03 \x01(\x0c\x12\r\n\x05\x63ount\x18\x04 \x01(\r\x12-\n\tresources\x18\x05 \x03(\x0b\x32\x1a.Ydb.Coordination.Resource\"g\n\x12SessionDescription\x12\x12\n\nsession_id\x18\x01 \x01(\x04\x12\x16\n\x0etimeout_millis\x18\x02 \x01(\x04\x12\x13\n\x0b\x64\x65scription\x18\x03 \x01(\t\x12\x10\n\x08\x61ttached\x18\x04 \x01(\x08\"m\n\x10SemaphoreSession\x12\x10\n\x08order_id\x18\x05 \x01(\x04\x12\x12\n\nsession_id\x18\x01 \x01(\x04\x12\x16\n\x0etimeout_millis\x18\x02 \x01(\x04\x12\r\n\x05\x63ount\x18\x03 \x01(\x04\x12\x0c\n\x04\x64\x61ta\x18\x04 \x01(\x0c\"\xcc\x01\n\x14SemaphoreDescription\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x0c\n\x04\x64\x61ta\x18\x02 \x01(\x0c\x12\r\n\x05\x63ount\x18\x07 \x01(\x04\x12\r\n\x05limit\x18\x03 \x01(\x04\x12\x11\n\tephemeral\x18\x04 \x01(\x08\x12\x32\n\x06owners\x18\x05 \x03(\x0b\x32\".Ydb.Coordination.SemaphoreSession\x12\x33\n\x07waiters\x18\x06 \x03(\x0b\x32\".Ydb.Coordination.SemaphoreSession\"\xfb\x11\n\x0eSessionRequest\x12\x39\n\x04ping\x18\x01 \x01(\x0b\x32).Ydb.Coordination.SessionRequest.PingPongH\x00\x12\x39\n\x04pong\x18\x02 \x01(\x0b\x32).Ydb.Coordination.SessionRequest.PingPongH\x00\x12\x46\n\rsession_start\x18\x03 \x01(\x0b\x32-.Ydb.Coordination.SessionRequest.SessionStartH\x00\x12\x44\n\x0csession_stop\x18\x04 \x01(\x0b\x32,.Ydb.Coordination.SessionRequest.SessionStopH\x00\x12\x44\n\x0c\x63lient_ready\x18\x05 \x01(\x0b\x32,.Ydb.Coordination.SessionRequest.ClientReadyH\x00\x12M\n\x11update_job_status\x18\x06 \x01(\x0b\x32\x30.Ydb.Coordination.SessionRequest.UpdateJobStatusH\x00\x12N\n\x11\x61\x63quire_semaphore\x18\x07 \x01(\x0b\x32\x31.Ydb.Coordination.SessionRequest.AcquireSemaphoreH\x00\x12N\n\x11release_semaphore\x18\x08 \x01(\x0b\x32\x31.Ydb.Coordination.SessionRequest.ReleaseSemaphoreH\x00\x12P\n\x12\x64\x65scribe_semaphore\x18\t \x01(\x0b\x32\x32.Ydb.Coordination.SessionRequest.DescribeSemaphoreH\x00\x12L\n\x10\x63reate_semaphore\x18\n \x01(\x0b\x32\x30.Ydb.Coordination.SessionRequest.CreateSemaphoreH\x00\x12L\n\x10update_semaphore\x18\x0b \x01(\x0b\x32\x30.Ydb.Coordination.SessionRequest.UpdateSemaphoreH\x00\x12L\n\x10\x64\x65lete_semaphore\x18\x0c \x01(\x0b\x32\x30.Ydb.Coordination.SessionRequest.DeleteSemaphoreH\x00\x12\x42\n\x0b\x63reate_task\x18\r \x01(\x0b\x32+.Ydb.Coordination.SessionRequest.CreateTaskH\x00\x12\x42\n\x0bupdate_task\x18\x0e \x01(\x0b\x32+.Ydb.Coordination.SessionRequest.UpdateTaskH\x00\x12\x42\n\x0b\x64\x65lete_task\x18\x0f \x01(\x0b\x32+.Ydb.Coordination.SessionRequest.DeleteTaskH\x00\x1a\x1a\n\x08PingPong\x12\x0e\n\x06opaque\x18\x01 \x01(\x04\x1a\x85\x01\n\x0cSessionStart\x12\x0c\n\x04path\x18\x01 \x01(\t\x12\x12\n\nsession_id\x18\x02 \x01(\x04\x12\x16\n\x0etimeout_millis\x18\x03 \x01(\x04\x12\x13\n\x0b\x64\x65scription\x18\x04 \x01(\t\x12\x0e\n\x06seq_no\x18\x05 \x01(\x04\x12\x16\n\x0eprotection_key\x18\x06 \x01(\x0c\x1a\r\n\x0bSessionStop\x1ap\n\x0b\x43lientReady\x12-\n\tresources\x18\x01 \x03(\x0b\x32\x1a.Ydb.Coordination.Resource\x12\x1c\n\x14supported_task_types\x18\x02 \x03(\t\x12\x14\n\x0crunning_jobs\x18\x03 \x03(\x04\x1a\x86\x01\n\x0fUpdateJobStatus\x12\x0e\n\x06job_id\x18\x01 \x01(\x04\x12/\n\njob_status\x18\x02 \x01(\x0e\x32\x1b.Ydb.Coordination.JobStatus\x12\x32\n\x0eused_resources\x18\x03 \x03(\x0b\x32\x1a.Ydb.Coordination.Resource\x1ax\n\x10\x41\x63quireSemaphore\x12\x0e\n\x06req_id\x18\x01 \x01(\x04\x12\x0c\n\x04name\x18\x02 \x01(\t\x12\x16\n\x0etimeout_millis\x18\x03 \x01(\x04\x12\r\n\x05\x63ount\x18\x04 \x01(\x04\x12\x0c\n\x04\x64\x61ta\x18\x05 \x01(\x0c\x12\x11\n\tephemeral\x18\x06 \x01(\x08\x1a\x30\n\x10ReleaseSemaphore\x12\x0e\n\x06req_id\x18\x01 \x01(\x04\x12\x0c\n\x04name\x18\x02 \x01(\t\x1a\x8c\x01\n\x11\x44\x65scribeSemaphore\x12\x0e\n\x06req_id\x18\x01 \x01(\x04\x12\x0c\n\x04name\x18\x02 \x01(\t\x12\x16\n\x0einclude_owners\x18\x03 \x01(\x08\x12\x17\n\x0finclude_waiters\x18\x04 \x01(\x08\x12\x12\n\nwatch_data\x18\x05 \x01(\x08\x12\x14\n\x0cwatch_owners\x18\x06 \x01(\x08\x1aL\n\x0f\x43reateSemaphore\x12\x0e\n\x06req_id\x18\x01 \x01(\x04\x12\x0c\n\x04name\x18\x02 \x01(\t\x12\r\n\x05limit\x18\x03 \x01(\x04\x12\x0c\n\x04\x64\x61ta\x18\x04 \x01(\x0c\x1a=\n\x0fUpdateSemaphore\x12\x0e\n\x06req_id\x18\x01 \x01(\x04\x12\x0c\n\x04name\x18\x02 \x01(\t\x12\x0c\n\x04\x64\x61ta\x18\x03 \x01(\x0c\x1a>\n\x0f\x44\x65leteSemaphore\x12\x0e\n\x06req_id\x18\x01 \x01(\x04\x12\x0c\n\x04name\x18\x02 \x01(\t\x12\r\n\x05\x66orce\x18\x03 \x01(\x08\x1aK\n\nCreateTask\x12\x0e\n\x06req_id\x18\x01 \x01(\x04\x12-\n\ttask_data\x18\x02 \x01(\x0b\x32\x1a.Ydb.Coordination.TaskData\x1ak\n\nUpdateTask\x12\x0e\n\x06req_id\x18\x01 \x01(\x04\x12\x0f\n\x07task_id\x18\x02 \x01(\x04\x12\r\n\x05\x63ount\x18\x03 \x01(\r\x12-\n\tresources\x18\x04 \x03(\x0b\x32\x1a.Ydb.Coordination.Resource\x1a-\n\nDeleteTask\x12\x0e\n\x06req_id\x18\x01 \x01(\x04\x12\x0f\n\x07task_id\x18\x02 \x01(\x04\x42\t\n\x07request\"\x9f\x19\n\x0fSessionResponse\x12:\n\x04ping\x18\x01 \x01(\x0b\x32*.Ydb.Coordination.SessionResponse.PingPongH\x00\x12:\n\x04pong\x18\x02 \x01(\x0b\x32*.Ydb.Coordination.SessionResponse.PingPongH\x00\x12<\n\x07\x66\x61ilure\x18\x03 \x01(\x0b\x32).Ydb.Coordination.SessionResponse.FailureH\x00\x12K\n\x0fsession_started\x18\x04 \x01(\x0b\x32\x30.Ydb.Coordination.SessionResponse.SessionStartedH\x00\x12K\n\x0fsession_stopped\x18\x05 \x01(\x0b\x32\x30.Ydb.Coordination.SessionResponse.SessionStoppedH\x00\x12?\n\tjob_start\x18\x06 \x01(\x0b\x32*.Ydb.Coordination.SessionResponse.JobStartH\x00\x12=\n\x08job_stop\x18\x07 \x01(\x0b\x32).Ydb.Coordination.SessionResponse.JobStopH\x00\x12^\n\x19\x61\x63quire_semaphore_pending\x18\x08 \x01(\x0b\x32\x39.Ydb.Coordination.SessionResponse.AcquireSemaphorePendingH\x00\x12\\\n\x18\x61\x63quire_semaphore_result\x18\t \x01(\x0b\x32\x38.Ydb.Coordination.SessionResponse.AcquireSemaphoreResultH\x00\x12\\\n\x18release_semaphore_result\x18\n \x01(\x0b\x32\x38.Ydb.Coordination.SessionResponse.ReleaseSemaphoreResultH\x00\x12^\n\x19\x64\x65scribe_semaphore_result\x18\x0b \x01(\x0b\x32\x39.Ydb.Coordination.SessionResponse.DescribeSemaphoreResultH\x00\x12`\n\x1a\x64\x65scribe_semaphore_changed\x18\x0c \x01(\x0b\x32:.Ydb.Coordination.SessionResponse.DescribeSemaphoreChangedH\x00\x12Z\n\x17\x63reate_semaphore_result\x18\r \x01(\x0b\x32\x37.Ydb.Coordination.SessionResponse.CreateSemaphoreResultH\x00\x12Z\n\x17update_semaphore_result\x18\x0e \x01(\x0b\x32\x37.Ydb.Coordination.SessionResponse.UpdateSemaphoreResultH\x00\x12Z\n\x17\x64\x65lete_semaphore_result\x18\x0f \x01(\x0b\x32\x37.Ydb.Coordination.SessionResponse.DeleteSemaphoreResultH\x00\x12P\n\x12\x63reate_task_result\x18\x10 \x01(\x0b\x32\x32.Ydb.Coordination.SessionResponse.CreateTaskResultH\x00\x12P\n\x12update_task_result\x18\x11 \x01(\x0b\x32\x32.Ydb.Coordination.SessionResponse.UpdateTaskResultH\x00\x12P\n\x12\x64\x65lete_task_result\x18\x12 \x01(\x0b\x32\x32.Ydb.Coordination.SessionResponse.DeleteTaskResultH\x00\x1a\x1a\n\x08PingPong\x12\x0e\n\x06opaque\x18\x01 \x01(\x04\x1a]\n\x07\x46\x61ilure\x12)\n\x06status\x18\x01 \x01(\x0e\x32\x19.Ydb.StatusIds.StatusCode\x12\'\n\x06issues\x18\x02 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessage\x1a<\n\x0eSessionStarted\x12\x12\n\nsession_id\x18\x01 \x01(\x04\x12\x16\n\x0etimeout_millis\x18\x02 \x01(\x04\x1a$\n\x0eSessionStopped\x12\x12\n\nsession_id\x18\x01 \x01(\x04\x1aZ\n\x08JobStart\x12\x0e\n\x06job_id\x18\x01 \x01(\x04\x12\x0f\n\x07task_id\x18\x02 \x01(\x04\x12-\n\ttask_data\x18\x03 \x01(\x0b\x32\x1a.Ydb.Coordination.TaskData\x1a\x19\n\x07JobStop\x12\x0e\n\x06job_id\x18\x01 \x01(\x04\x1a)\n\x17\x41\x63quireSemaphorePending\x12\x0e\n\x06req_id\x18\x01 \x01(\x04\x1a\x8e\x01\n\x16\x41\x63quireSemaphoreResult\x12\x0e\n\x06req_id\x18\x01 \x01(\x04\x12)\n\x06status\x18\x02 \x01(\x0e\x32\x19.Ydb.StatusIds.StatusCode\x12\'\n\x06issues\x18\x03 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessage\x12\x10\n\x08\x61\x63quired\x18\x04 \x01(\x08\x1a\x8e\x01\n\x16ReleaseSemaphoreResult\x12\x0e\n\x06req_id\x18\x01 \x01(\x04\x12)\n\x06status\x18\x02 \x01(\x0e\x32\x19.Ydb.StatusIds.StatusCode\x12\'\n\x06issues\x18\x03 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessage\x12\x10\n\x08released\x18\x04 \x01(\x08\x1a\xd9\x01\n\x17\x44\x65scribeSemaphoreResult\x12\x0e\n\x06req_id\x18\x01 \x01(\x04\x12)\n\x06status\x18\x02 \x01(\x0e\x32\x19.Ydb.StatusIds.StatusCode\x12\'\n\x06issues\x18\x03 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessage\x12\x45\n\x15semaphore_description\x18\x04 \x01(\x0b\x32&.Ydb.Coordination.SemaphoreDescription\x12\x13\n\x0bwatch_added\x18\x05 \x01(\x08\x1aX\n\x18\x44\x65scribeSemaphoreChanged\x12\x0e\n\x06req_id\x18\x01 \x01(\x04\x12\x14\n\x0c\x64\x61ta_changed\x18\x02 \x01(\x08\x12\x16\n\x0eowners_changed\x18\x03 \x01(\x08\x1a{\n\x15\x43reateSemaphoreResult\x12\x0e\n\x06req_id\x18\x01 \x01(\x04\x12)\n\x06status\x18\x02 \x01(\x0e\x32\x19.Ydb.StatusIds.StatusCode\x12\'\n\x06issues\x18\x03 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessage\x1a{\n\x15UpdateSemaphoreResult\x12\x0e\n\x06req_id\x18\x01 \x01(\x04\x12)\n\x06status\x18\x02 \x01(\x0e\x32\x19.Ydb.StatusIds.StatusCode\x12\'\n\x06issues\x18\x03 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessage\x1a{\n\x15\x44\x65leteSemaphoreResult\x12\x0e\n\x06req_id\x18\x01 \x01(\x04\x12)\n\x06status\x18\x02 \x01(\x0e\x32\x19.Ydb.StatusIds.StatusCode\x12\'\n\x06issues\x18\x03 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessage\x1a\x87\x01\n\x10\x43reateTaskResult\x12\x0e\n\x06req_id\x18\x01 \x01(\x04\x12)\n\x06status\x18\x02 \x01(\x0e\x32\x19.Ydb.StatusIds.StatusCode\x12\'\n\x06issues\x18\x03 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessage\x12\x0f\n\x07task_id\x18\x04 \x01(\x04\x1av\n\x10UpdateTaskResult\x12\x0e\n\x06req_id\x18\x01 \x01(\x04\x12)\n\x06status\x18\x02 \x01(\x0e\x32\x19.Ydb.StatusIds.StatusCode\x12\'\n\x06issues\x18\x03 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessage\x1av\n\x10\x44\x65leteTaskResult\x12\x0e\n\x06req_id\x18\x01 \x01(\x04\x12)\n\x06status\x18\x02 \x01(\x0e\x32\x19.Ydb.StatusIds.StatusCode\x12\'\n\x06issues\x18\x03 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessageB\n\n\x08response\"\x86\x01\n\x11\x43reateNodeRequest\x12\x0c\n\x04path\x18\x01 \x01(\t\x12(\n\x06\x63onfig\x18\x02 \x01(\x0b\x32\x18.Ydb.Coordination.Config\x12\x39\n\x10operation_params\x18\x03 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\"B\n\x12\x43reateNodeResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\x85\x01\n\x10\x41lterNodeRequest\x12\x0c\n\x04path\x18\x01 \x01(\t\x12(\n\x06\x63onfig\x18\x02 \x01(\x0b\x32\x18.Ydb.Coordination.Config\x12\x39\n\x10operation_params\x18\x03 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\"A\n\x11\x41lterNodeResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"Z\n\x0f\x44ropNodeRequest\x12\x0c\n\x04path\x18\x01 \x01(\t\x12\x39\n\x10operation_params\x18\x02 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\"@\n\x10\x44ropNodeResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"^\n\x13\x44\x65scribeNodeRequest\x12\x0c\n\x04path\x18\x01 \x01(\t\x12\x39\n\x10operation_params\x18\x02 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\"D\n\x14\x44\x65scribeNodeResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"_\n\x12\x44\x65scribeNodeResult\x12\x1f\n\x04self\x18\x01 \x01(\x0b\x32\x11.Ydb.Scheme.Entry\x12(\n\x06\x63onfig\x18\x02 \x01(\x0b\x32\x18.Ydb.Coordination.Config*h\n\x0f\x43onsistencyMode\x12\x1a\n\x16\x43ONSISTENCY_MODE_UNSET\x10\x00\x12\x1b\n\x17\x43ONSISTENCY_MODE_STRICT\x10\x01\x12\x1c\n\x18\x43ONSISTENCY_MODE_RELAXED\x10\x02*\x88\x01\n\tJobStatus\x12\x1a\n\x16JOB_STATUS_UNSPECIFIED\x10\x00\x12\x16\n\x12JOB_STATUS_STOPPED\x10\x01\x12\x16\n\x12JOB_STATUS_RUNNING\x10\x02\x12\x15\n\x11JOB_STATUS_FAILED\x10\x03\x12\x18\n\x14JOB_STATUS_SUCCEEDED\x10\x04\x42\x36\n\x1b\x63om.yandex.ydb.coordinationB\x12\x43oordinationProtosP\x01\xf8\x01\x01\x62\x06proto3')
+  serialized_pb=_b('\n/kikimr/public/api/protos/ydb_coordination.proto\x12\x10Ydb.Coordination\x1a,kikimr/public/api/protos/ydb_operation.proto\x1a/kikimr/public/api/protos/ydb_status_codes.proto\x1a\x30kikimr/public/api/protos/ydb_issue_message.proto\x1a)kikimr/public/api/protos/ydb_scheme.proto\"\r\n\x0bUnsupported\"\xe3\x01\n\x06\x43onfig\x12\x0c\n\x04path\x18\x01 \x01(\t\x12 \n\x18self_check_period_millis\x18\x02 \x01(\r\x12#\n\x1bsession_grace_period_millis\x18\x03 \x01(\r\x12@\n\x15read_consistency_mode\x18\x04 \x01(\x0e\x32!.Ydb.Coordination.ConsistencyMode\x12\x42\n\x17\x61ttach_consistency_mode\x18\x05 \x01(\x0e\x32!.Ydb.Coordination.ConsistencyMode\"g\n\x12SessionDescription\x12\x12\n\nsession_id\x18\x01 \x01(\x04\x12\x16\n\x0etimeout_millis\x18\x02 \x01(\x04\x12\x13\n\x0b\x64\x65scription\x18\x03 \x01(\t\x12\x10\n\x08\x61ttached\x18\x04 \x01(\x08\"m\n\x10SemaphoreSession\x12\x10\n\x08order_id\x18\x05 \x01(\x04\x12\x12\n\nsession_id\x18\x01 \x01(\x04\x12\x16\n\x0etimeout_millis\x18\x02 \x01(\x04\x12\r\n\x05\x63ount\x18\x03 \x01(\x04\x12\x0c\n\x04\x64\x61ta\x18\x04 \x01(\x0c\"\xcc\x01\n\x14SemaphoreDescription\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x0c\n\x04\x64\x61ta\x18\x02 \x01(\x0c\x12\r\n\x05\x63ount\x18\x07 \x01(\x04\x12\r\n\x05limit\x18\x03 \x01(\x04\x12\x11\n\tephemeral\x18\x04 \x01(\x08\x12\x32\n\x06owners\x18\x05 \x03(\x0b\x32\".Ydb.Coordination.SemaphoreSession\x12\x33\n\x07waiters\x18\x06 \x03(\x0b\x32\".Ydb.Coordination.SemaphoreSession\"\xd1\r\n\x0eSessionRequest\x12\x39\n\x04ping\x18\x01 \x01(\x0b\x32).Ydb.Coordination.SessionRequest.PingPongH\x00\x12\x39\n\x04pong\x18\x02 \x01(\x0b\x32).Ydb.Coordination.SessionRequest.PingPongH\x00\x12\x46\n\rsession_start\x18\x03 \x01(\x0b\x32-.Ydb.Coordination.SessionRequest.SessionStartH\x00\x12\x44\n\x0csession_stop\x18\x04 \x01(\x0b\x32,.Ydb.Coordination.SessionRequest.SessionStopH\x00\x12\x36\n\runsupported_5\x18\x05 \x01(\x0b\x32\x1d.Ydb.Coordination.UnsupportedH\x00\x12\x36\n\runsupported_6\x18\x06 \x01(\x0b\x32\x1d.Ydb.Coordination.UnsupportedH\x00\x12N\n\x11\x61\x63quire_semaphore\x18\x07 \x01(\x0b\x32\x31.Ydb.Coordination.SessionRequest.AcquireSemaphoreH\x00\x12N\n\x11release_semaphore\x18\x08 \x01(\x0b\x32\x31.Ydb.Coordination.SessionRequest.ReleaseSemaphoreH\x00\x12P\n\x12\x64\x65scribe_semaphore\x18\t \x01(\x0b\x32\x32.Ydb.Coordination.SessionRequest.DescribeSemaphoreH\x00\x12L\n\x10\x63reate_semaphore\x18\n \x01(\x0b\x32\x30.Ydb.Coordination.SessionRequest.CreateSemaphoreH\x00\x12L\n\x10update_semaphore\x18\x0b \x01(\x0b\x32\x30.Ydb.Coordination.SessionRequest.UpdateSemaphoreH\x00\x12L\n\x10\x64\x65lete_semaphore\x18\x0c \x01(\x0b\x32\x30.Ydb.Coordination.SessionRequest.DeleteSemaphoreH\x00\x12\x37\n\x0eunsupported_13\x18\r \x01(\x0b\x32\x1d.Ydb.Coordination.UnsupportedH\x00\x12\x37\n\x0eunsupported_14\x18\x0e \x01(\x0b\x32\x1d.Ydb.Coordination.UnsupportedH\x00\x12\x37\n\x0eunsupported_15\x18\x0f \x01(\x0b\x32\x1d.Ydb.Coordination.UnsupportedH\x00\x1a\x1a\n\x08PingPong\x12\x0e\n\x06opaque\x18\x01 \x01(\x04\x1a\x85\x01\n\x0cSessionStart\x12\x0c\n\x04path\x18\x01 \x01(\t\x12\x12\n\nsession_id\x18\x02 \x01(\x04\x12\x16\n\x0etimeout_millis\x18\x03 \x01(\x04\x12\x13\n\x0b\x64\x65scription\x18\x04 \x01(\t\x12\x0e\n\x06seq_no\x18\x05 \x01(\x04\x12\x16\n\x0eprotection_key\x18\x06 \x01(\x0c\x1a\r\n\x0bSessionStop\x1ax\n\x10\x41\x63quireSemaphore\x12\x0e\n\x06req_id\x18\x01 \x01(\x04\x12\x0c\n\x04name\x18\x02 \x01(\t\x12\x16\n\x0etimeout_millis\x18\x03 \x01(\x04\x12\r\n\x05\x63ount\x18\x04 \x01(\x04\x12\x0c\n\x04\x64\x61ta\x18\x05 \x01(\x0c\x12\x11\n\tephemeral\x18\x06 \x01(\x08\x1a\x30\n\x10ReleaseSemaphore\x12\x0e\n\x06req_id\x18\x01 \x01(\x04\x12\x0c\n\x04name\x18\x02 \x01(\t\x1a\x8c\x01\n\x11\x44\x65scribeSemaphore\x12\x0e\n\x06req_id\x18\x01 \x01(\x04\x12\x0c\n\x04name\x18\x02 \x01(\t\x12\x16\n\x0einclude_owners\x18\x03 \x01(\x08\x12\x17\n\x0finclude_waiters\x18\x04 \x01(\x08\x12\x12\n\nwatch_data\x18\x05 \x01(\x08\x12\x14\n\x0cwatch_owners\x18\x06 \x01(\x08\x1aL\n\x0f\x43reateSemaphore\x12\x0e\n\x06req_id\x18\x01 \x01(\x04\x12\x0c\n\x04name\x18\x02 \x01(\t\x12\r\n\x05limit\x18\x03 \x01(\x04\x12\x0c\n\x04\x64\x61ta\x18\x04 \x01(\x0c\x1a=\n\x0fUpdateSemaphore\x12\x0e\n\x06req_id\x18\x01 \x01(\x04\x12\x0c\n\x04name\x18\x02 \x01(\t\x12\x0c\n\x04\x64\x61ta\x18\x03 \x01(\x0c\x1a>\n\x0f\x44\x65leteSemaphore\x12\x0e\n\x06req_id\x18\x01 \x01(\x04\x12\x0c\n\x04name\x18\x02 \x01(\t\x12\r\n\x05\x66orce\x18\x03 \x01(\x08\x42\t\n\x07request\"\xd3\x14\n\x0fSessionResponse\x12:\n\x04ping\x18\x01 \x01(\x0b\x32*.Ydb.Coordination.SessionResponse.PingPongH\x00\x12:\n\x04pong\x18\x02 \x01(\x0b\x32*.Ydb.Coordination.SessionResponse.PingPongH\x00\x12<\n\x07\x66\x61ilure\x18\x03 \x01(\x0b\x32).Ydb.Coordination.SessionResponse.FailureH\x00\x12K\n\x0fsession_started\x18\x04 \x01(\x0b\x32\x30.Ydb.Coordination.SessionResponse.SessionStartedH\x00\x12K\n\x0fsession_stopped\x18\x05 \x01(\x0b\x32\x30.Ydb.Coordination.SessionResponse.SessionStoppedH\x00\x12\x36\n\runsupported_6\x18\x06 \x01(\x0b\x32\x1d.Ydb.Coordination.UnsupportedH\x00\x12\x36\n\runsupported_7\x18\x07 \x01(\x0b\x32\x1d.Ydb.Coordination.UnsupportedH\x00\x12^\n\x19\x61\x63quire_semaphore_pending\x18\x08 \x01(\x0b\x32\x39.Ydb.Coordination.SessionResponse.AcquireSemaphorePendingH\x00\x12\\\n\x18\x61\x63quire_semaphore_result\x18\t \x01(\x0b\x32\x38.Ydb.Coordination.SessionResponse.AcquireSemaphoreResultH\x00\x12\\\n\x18release_semaphore_result\x18\n \x01(\x0b\x32\x38.Ydb.Coordination.SessionResponse.ReleaseSemaphoreResultH\x00\x12^\n\x19\x64\x65scribe_semaphore_result\x18\x0b \x01(\x0b\x32\x39.Ydb.Coordination.SessionResponse.DescribeSemaphoreResultH\x00\x12`\n\x1a\x64\x65scribe_semaphore_changed\x18\x0c \x01(\x0b\x32:.Ydb.Coordination.SessionResponse.DescribeSemaphoreChangedH\x00\x12Z\n\x17\x63reate_semaphore_result\x18\r \x01(\x0b\x32\x37.Ydb.Coordination.SessionResponse.CreateSemaphoreResultH\x00\x12Z\n\x17update_semaphore_result\x18\x0e \x01(\x0b\x32\x37.Ydb.Coordination.SessionResponse.UpdateSemaphoreResultH\x00\x12Z\n\x17\x64\x65lete_semaphore_result\x18\x0f \x01(\x0b\x32\x37.Ydb.Coordination.SessionResponse.DeleteSemaphoreResultH\x00\x12\x37\n\x0eunsupported_16\x18\x10 \x01(\x0b\x32\x1d.Ydb.Coordination.UnsupportedH\x00\x12\x37\n\x0eunsupported_17\x18\x11 \x01(\x0b\x32\x1d.Ydb.Coordination.UnsupportedH\x00\x12\x37\n\x0eunsupported_18\x18\x12 \x01(\x0b\x32\x1d.Ydb.Coordination.UnsupportedH\x00\x1a\x1a\n\x08PingPong\x12\x0e\n\x06opaque\x18\x01 \x01(\x04\x1a]\n\x07\x46\x61ilure\x12)\n\x06status\x18\x01 \x01(\x0e\x32\x19.Ydb.StatusIds.StatusCode\x12\'\n\x06issues\x18\x02 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessage\x1a<\n\x0eSessionStarted\x12\x12\n\nsession_id\x18\x01 \x01(\x04\x12\x16\n\x0etimeout_millis\x18\x02 \x01(\x04\x1a$\n\x0eSessionStopped\x12\x12\n\nsession_id\x18\x01 \x01(\x04\x1a)\n\x17\x41\x63quireSemaphorePending\x12\x0e\n\x06req_id\x18\x01 \x01(\x04\x1a\x8e\x01\n\x16\x41\x63quireSemaphoreResult\x12\x0e\n\x06req_id\x18\x01 \x01(\x04\x12)\n\x06status\x18\x02 \x01(\x0e\x32\x19.Ydb.StatusIds.StatusCode\x12\'\n\x06issues\x18\x03 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessage\x12\x10\n\x08\x61\x63quired\x18\x04 \x01(\x08\x1a\x8e\x01\n\x16ReleaseSemaphoreResult\x12\x0e\n\x06req_id\x18\x01 \x01(\x04\x12)\n\x06status\x18\x02 \x01(\x0e\x32\x19.Ydb.StatusIds.StatusCode\x12\'\n\x06issues\x18\x03 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessage\x12\x10\n\x08released\x18\x04 \x01(\x08\x1a\xd9\x01\n\x17\x44\x65scribeSemaphoreResult\x12\x0e\n\x06req_id\x18\x01 \x01(\x04\x12)\n\x06status\x18\x02 \x01(\x0e\x32\x19.Ydb.StatusIds.StatusCode\x12\'\n\x06issues\x18\x03 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessage\x12\x45\n\x15semaphore_description\x18\x04 \x01(\x0b\x32&.Ydb.Coordination.SemaphoreDescription\x12\x13\n\x0bwatch_added\x18\x05 \x01(\x08\x1aX\n\x18\x44\x65scribeSemaphoreChanged\x12\x0e\n\x06req_id\x18\x01 \x01(\x04\x12\x14\n\x0c\x64\x61ta_changed\x18\x02 \x01(\x08\x12\x16\n\x0eowners_changed\x18\x03 \x01(\x08\x1a{\n\x15\x43reateSemaphoreResult\x12\x0e\n\x06req_id\x18\x01 \x01(\x04\x12)\n\x06status\x18\x02 \x01(\x0e\x32\x19.Ydb.StatusIds.StatusCode\x12\'\n\x06issues\x18\x03 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessage\x1a{\n\x15UpdateSemaphoreResult\x12\x0e\n\x06req_id\x18\x01 \x01(\x04\x12)\n\x06status\x18\x02 \x01(\x0e\x32\x19.Ydb.StatusIds.StatusCode\x12\'\n\x06issues\x18\x03 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessage\x1a{\n\x15\x44\x65leteSemaphoreResult\x12\x0e\n\x06req_id\x18\x01 \x01(\x04\x12)\n\x06status\x18\x02 \x01(\x0e\x32\x19.Ydb.StatusIds.StatusCode\x12\'\n\x06issues\x18\x03 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessageB\n\n\x08response\"\x86\x01\n\x11\x43reateNodeRequest\x12\x0c\n\x04path\x18\x01 \x01(\t\x12(\n\x06\x63onfig\x18\x02 \x01(\x0b\x32\x18.Ydb.Coordination.Config\x12\x39\n\x10operation_params\x18\x03 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\"B\n\x12\x43reateNodeResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\x85\x01\n\x10\x41lterNodeRequest\x12\x0c\n\x04path\x18\x01 \x01(\t\x12(\n\x06\x63onfig\x18\x02 \x01(\x0b\x32\x18.Ydb.Coordination.Config\x12\x39\n\x10operation_params\x18\x03 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\"A\n\x11\x41lterNodeResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"Z\n\x0f\x44ropNodeRequest\x12\x0c\n\x04path\x18\x01 \x01(\t\x12\x39\n\x10operation_params\x18\x02 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\"@\n\x10\x44ropNodeResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"^\n\x13\x44\x65scribeNodeRequest\x12\x0c\n\x04path\x18\x01 \x01(\t\x12\x39\n\x10operation_params\x18\x02 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\"D\n\x14\x44\x65scribeNodeResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"_\n\x12\x44\x65scribeNodeResult\x12\x1f\n\x04self\x18\x01 \x01(\x0b\x32\x11.Ydb.Scheme.Entry\x12(\n\x06\x63onfig\x18\x02 \x01(\x0b\x32\x18.Ydb.Coordination.Config*h\n\x0f\x43onsistencyMode\x12\x1a\n\x16\x43ONSISTENCY_MODE_UNSET\x10\x00\x12\x1b\n\x17\x43ONSISTENCY_MODE_STRICT\x10\x01\x12\x1c\n\x18\x43ONSISTENCY_MODE_RELAXED\x10\x02\x42\x36\n\x1b\x63om.yandex.ydb.coordinationB\x12\x43oordinationProtosP\x01\xf8\x01\x01\x62\x06proto3')
   ,
   dependencies=[kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2.DESCRIPTOR,kikimr_dot_public_dot_api_dot_protos_dot_ydb__status__codes__pb2.DESCRIPTOR,kikimr_dot_public_dot_api_dot_protos_dot_ydb__issue__message__pb2.DESCRIPTOR,kikimr_dot_public_dot_api_dot_protos_dot_ydb__scheme__pb2.DESCRIPTOR,])
 
@@ -49,56 +49,40 @@ _CONSISTENCYMODE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=7451,
-  serialized_end=7555,
+  serialized_start=6148,
+  serialized_end=6252,
 )
 _sym_db.RegisterEnumDescriptor(_CONSISTENCYMODE)
 
 ConsistencyMode = enum_type_wrapper.EnumTypeWrapper(_CONSISTENCYMODE)
-_JOBSTATUS = _descriptor.EnumDescriptor(
-  name='JobStatus',
-  full_name='Ydb.Coordination.JobStatus',
-  filename=None,
-  file=DESCRIPTOR,
-  values=[
-    _descriptor.EnumValueDescriptor(
-      name='JOB_STATUS_UNSPECIFIED', index=0, number=0,
-      options=None,
-      type=None),
-    _descriptor.EnumValueDescriptor(
-      name='JOB_STATUS_STOPPED', index=1, number=1,
-      options=None,
-      type=None),
-    _descriptor.EnumValueDescriptor(
-      name='JOB_STATUS_RUNNING', index=2, number=2,
-      options=None,
-      type=None),
-    _descriptor.EnumValueDescriptor(
-      name='JOB_STATUS_FAILED', index=3, number=3,
-      options=None,
-      type=None),
-    _descriptor.EnumValueDescriptor(
-      name='JOB_STATUS_SUCCEEDED', index=4, number=4,
-      options=None,
-      type=None),
-  ],
-  containing_type=None,
-  options=None,
-  serialized_start=7558,
-  serialized_end=7694,
-)
-_sym_db.RegisterEnumDescriptor(_JOBSTATUS)
-
-JobStatus = enum_type_wrapper.EnumTypeWrapper(_JOBSTATUS)
 CONSISTENCY_MODE_UNSET = 0
 CONSISTENCY_MODE_STRICT = 1
 CONSISTENCY_MODE_RELAXED = 2
-JOB_STATUS_UNSPECIFIED = 0
-JOB_STATUS_STOPPED = 1
-JOB_STATUS_RUNNING = 2
-JOB_STATUS_FAILED = 3
-JOB_STATUS_SUCCEEDED = 4
 
+
+
+_UNSUPPORTED = _descriptor.Descriptor(
+  name='Unsupported',
+  full_name='Ydb.Coordination.Unsupported',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=257,
+  serialized_end=270,
+)
 
 
 _CONFIG = _descriptor.Descriptor(
@@ -155,105 +139,8 @@ _CONFIG = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=258,
-  serialized_end=485,
-)
-
-
-_RESOURCE = _descriptor.Descriptor(
-  name='Resource',
-  full_name='Ydb.Coordination.Resource',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='resource_type', full_name='Ydb.Coordination.Resource.resource_type', index=0,
-      number=1, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=_b("").decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='amount', full_name='Ydb.Coordination.Resource.amount', index=1,
-      number=2, type=1, cpp_type=5, label=1,
-      has_default_value=False, default_value=float(0),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  options=None,
-  is_extendable=False,
-  syntax='proto3',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=487,
-  serialized_end=536,
-)
-
-
-_TASKDATA = _descriptor.Descriptor(
-  name='TaskData',
-  full_name='Ydb.Coordination.TaskData',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='task_type', full_name='Ydb.Coordination.TaskData.task_type', index=0,
-      number=1, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=_b("").decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='payload', full_name='Ydb.Coordination.TaskData.payload', index=1,
-      number=2, type=12, cpp_type=9, label=1,
-      has_default_value=False, default_value=_b(""),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='group', full_name='Ydb.Coordination.TaskData.group', index=2,
-      number=3, type=12, cpp_type=9, label=1,
-      has_default_value=False, default_value=_b(""),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='count', full_name='Ydb.Coordination.TaskData.count', index=3,
-      number=4, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='resources', full_name='Ydb.Coordination.TaskData.resources', index=4,
-      number=5, type=11, cpp_type=10, label=3,
-      has_default_value=False, default_value=[],
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  options=None,
-  is_extendable=False,
-  syntax='proto3',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=538,
-  serialized_end=661,
+  serialized_start=273,
+  serialized_end=500,
 )
 
 
@@ -304,8 +191,8 @@ _SESSIONDESCRIPTION = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=663,
-  serialized_end=766,
+  serialized_start=502,
+  serialized_end=605,
 )
 
 
@@ -363,8 +250,8 @@ _SEMAPHORESESSION = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=768,
-  serialized_end=877,
+  serialized_start=607,
+  serialized_end=716,
 )
 
 
@@ -436,8 +323,8 @@ _SEMAPHOREDESCRIPTION = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=880,
-  serialized_end=1084,
+  serialized_start=719,
+  serialized_end=923,
 )
 
 
@@ -467,8 +354,8 @@ _SESSIONREQUEST_PINGPONG = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2194,
-  serialized_end=2220,
+  serialized_start=1963,
+  serialized_end=1989,
 )
 
 _SESSIONREQUEST_SESSIONSTART = _descriptor.Descriptor(
@@ -532,8 +419,8 @@ _SESSIONREQUEST_SESSIONSTART = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2223,
-  serialized_end=2356,
+  serialized_start=1992,
+  serialized_end=2125,
 )
 
 _SESSIONREQUEST_SESSIONSTOP = _descriptor.Descriptor(
@@ -555,96 +442,8 @@ _SESSIONREQUEST_SESSIONSTOP = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2358,
-  serialized_end=2371,
-)
-
-_SESSIONREQUEST_CLIENTREADY = _descriptor.Descriptor(
-  name='ClientReady',
-  full_name='Ydb.Coordination.SessionRequest.ClientReady',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='resources', full_name='Ydb.Coordination.SessionRequest.ClientReady.resources', index=0,
-      number=1, type=11, cpp_type=10, label=3,
-      has_default_value=False, default_value=[],
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='supported_task_types', full_name='Ydb.Coordination.SessionRequest.ClientReady.supported_task_types', index=1,
-      number=2, type=9, cpp_type=9, label=3,
-      has_default_value=False, default_value=[],
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='running_jobs', full_name='Ydb.Coordination.SessionRequest.ClientReady.running_jobs', index=2,
-      number=3, type=4, cpp_type=4, label=3,
-      has_default_value=False, default_value=[],
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  options=None,
-  is_extendable=False,
-  syntax='proto3',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=2373,
-  serialized_end=2485,
-)
-
-_SESSIONREQUEST_UPDATEJOBSTATUS = _descriptor.Descriptor(
-  name='UpdateJobStatus',
-  full_name='Ydb.Coordination.SessionRequest.UpdateJobStatus',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='job_id', full_name='Ydb.Coordination.SessionRequest.UpdateJobStatus.job_id', index=0,
-      number=1, type=4, cpp_type=4, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='job_status', full_name='Ydb.Coordination.SessionRequest.UpdateJobStatus.job_status', index=1,
-      number=2, type=14, cpp_type=8, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='used_resources', full_name='Ydb.Coordination.SessionRequest.UpdateJobStatus.used_resources', index=2,
-      number=3, type=11, cpp_type=10, label=3,
-      has_default_value=False, default_value=[],
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  options=None,
-  is_extendable=False,
-  syntax='proto3',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=2488,
-  serialized_end=2622,
+  serialized_start=2127,
+  serialized_end=2140,
 )
 
 _SESSIONREQUEST_ACQUIRESEMAPHORE = _descriptor.Descriptor(
@@ -708,8 +507,8 @@ _SESSIONREQUEST_ACQUIRESEMAPHORE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2624,
-  serialized_end=2744,
+  serialized_start=2142,
+  serialized_end=2262,
 )
 
 _SESSIONREQUEST_RELEASESEMAPHORE = _descriptor.Descriptor(
@@ -745,8 +544,8 @@ _SESSIONREQUEST_RELEASESEMAPHORE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2746,
-  serialized_end=2794,
+  serialized_start=2264,
+  serialized_end=2312,
 )
 
 _SESSIONREQUEST_DESCRIBESEMAPHORE = _descriptor.Descriptor(
@@ -810,8 +609,8 @@ _SESSIONREQUEST_DESCRIBESEMAPHORE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2797,
-  serialized_end=2937,
+  serialized_start=2315,
+  serialized_end=2455,
 )
 
 _SESSIONREQUEST_CREATESEMAPHORE = _descriptor.Descriptor(
@@ -861,8 +660,8 @@ _SESSIONREQUEST_CREATESEMAPHORE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2939,
-  serialized_end=3015,
+  serialized_start=2457,
+  serialized_end=2533,
 )
 
 _SESSIONREQUEST_UPDATESEMAPHORE = _descriptor.Descriptor(
@@ -905,8 +704,8 @@ _SESSIONREQUEST_UPDATESEMAPHORE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3017,
-  serialized_end=3078,
+  serialized_start=2535,
+  serialized_end=2596,
 )
 
 _SESSIONREQUEST_DELETESEMAPHORE = _descriptor.Descriptor(
@@ -949,133 +748,8 @@ _SESSIONREQUEST_DELETESEMAPHORE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3080,
-  serialized_end=3142,
-)
-
-_SESSIONREQUEST_CREATETASK = _descriptor.Descriptor(
-  name='CreateTask',
-  full_name='Ydb.Coordination.SessionRequest.CreateTask',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='req_id', full_name='Ydb.Coordination.SessionRequest.CreateTask.req_id', index=0,
-      number=1, type=4, cpp_type=4, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='task_data', full_name='Ydb.Coordination.SessionRequest.CreateTask.task_data', index=1,
-      number=2, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  options=None,
-  is_extendable=False,
-  syntax='proto3',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=3144,
-  serialized_end=3219,
-)
-
-_SESSIONREQUEST_UPDATETASK = _descriptor.Descriptor(
-  name='UpdateTask',
-  full_name='Ydb.Coordination.SessionRequest.UpdateTask',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='req_id', full_name='Ydb.Coordination.SessionRequest.UpdateTask.req_id', index=0,
-      number=1, type=4, cpp_type=4, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='task_id', full_name='Ydb.Coordination.SessionRequest.UpdateTask.task_id', index=1,
-      number=2, type=4, cpp_type=4, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='count', full_name='Ydb.Coordination.SessionRequest.UpdateTask.count', index=2,
-      number=3, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='resources', full_name='Ydb.Coordination.SessionRequest.UpdateTask.resources', index=3,
-      number=4, type=11, cpp_type=10, label=3,
-      has_default_value=False, default_value=[],
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  options=None,
-  is_extendable=False,
-  syntax='proto3',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=3221,
-  serialized_end=3328,
-)
-
-_SESSIONREQUEST_DELETETASK = _descriptor.Descriptor(
-  name='DeleteTask',
-  full_name='Ydb.Coordination.SessionRequest.DeleteTask',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='req_id', full_name='Ydb.Coordination.SessionRequest.DeleteTask.req_id', index=0,
-      number=1, type=4, cpp_type=4, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='task_id', full_name='Ydb.Coordination.SessionRequest.DeleteTask.task_id', index=1,
-      number=2, type=4, cpp_type=4, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  options=None,
-  is_extendable=False,
-  syntax='proto3',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=3330,
-  serialized_end=3375,
+  serialized_start=2598,
+  serialized_end=2660,
 )
 
 _SESSIONREQUEST = _descriptor.Descriptor(
@@ -1114,14 +788,14 @@ _SESSIONREQUEST = _descriptor.Descriptor(
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='client_ready', full_name='Ydb.Coordination.SessionRequest.client_ready', index=4,
+      name='unsupported_5', full_name='Ydb.Coordination.SessionRequest.unsupported_5', index=4,
       number=5, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='update_job_status', full_name='Ydb.Coordination.SessionRequest.update_job_status', index=5,
+      name='unsupported_6', full_name='Ydb.Coordination.SessionRequest.unsupported_6', index=5,
       number=6, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
@@ -1170,21 +844,21 @@ _SESSIONREQUEST = _descriptor.Descriptor(
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='create_task', full_name='Ydb.Coordination.SessionRequest.create_task', index=12,
+      name='unsupported_13', full_name='Ydb.Coordination.SessionRequest.unsupported_13', index=12,
       number=13, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='update_task', full_name='Ydb.Coordination.SessionRequest.update_task', index=13,
+      name='unsupported_14', full_name='Ydb.Coordination.SessionRequest.unsupported_14', index=13,
       number=14, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='delete_task', full_name='Ydb.Coordination.SessionRequest.delete_task', index=14,
+      name='unsupported_15', full_name='Ydb.Coordination.SessionRequest.unsupported_15', index=14,
       number=15, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
@@ -1193,7 +867,7 @@ _SESSIONREQUEST = _descriptor.Descriptor(
   ],
   extensions=[
   ],
-  nested_types=[_SESSIONREQUEST_PINGPONG, _SESSIONREQUEST_SESSIONSTART, _SESSIONREQUEST_SESSIONSTOP, _SESSIONREQUEST_CLIENTREADY, _SESSIONREQUEST_UPDATEJOBSTATUS, _SESSIONREQUEST_ACQUIRESEMAPHORE, _SESSIONREQUEST_RELEASESEMAPHORE, _SESSIONREQUEST_DESCRIBESEMAPHORE, _SESSIONREQUEST_CREATESEMAPHORE, _SESSIONREQUEST_UPDATESEMAPHORE, _SESSIONREQUEST_DELETESEMAPHORE, _SESSIONREQUEST_CREATETASK, _SESSIONREQUEST_UPDATETASK, _SESSIONREQUEST_DELETETASK, ],
+  nested_types=[_SESSIONREQUEST_PINGPONG, _SESSIONREQUEST_SESSIONSTART, _SESSIONREQUEST_SESSIONSTOP, _SESSIONREQUEST_ACQUIRESEMAPHORE, _SESSIONREQUEST_RELEASESEMAPHORE, _SESSIONREQUEST_DESCRIBESEMAPHORE, _SESSIONREQUEST_CREATESEMAPHORE, _SESSIONREQUEST_UPDATESEMAPHORE, _SESSIONREQUEST_DELETESEMAPHORE, ],
   enum_types=[
   ],
   options=None,
@@ -1205,8 +879,8 @@ _SESSIONREQUEST = _descriptor.Descriptor(
       name='request', full_name='Ydb.Coordination.SessionRequest.request',
       index=0, containing_type=None, fields=[]),
   ],
-  serialized_start=1087,
-  serialized_end=3386,
+  serialized_start=926,
+  serialized_end=2671,
 )
 
 
@@ -1236,8 +910,8 @@ _SESSIONRESPONSE_PINGPONG = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2194,
-  serialized_end=2220,
+  serialized_start=1963,
+  serialized_end=1989,
 )
 
 _SESSIONRESPONSE_FAILURE = _descriptor.Descriptor(
@@ -1273,8 +947,8 @@ _SESSIONRESPONSE_FAILURE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=4900,
-  serialized_end=4993,
+  serialized_start=4094,
+  serialized_end=4187,
 )
 
 _SESSIONRESPONSE_SESSIONSTARTED = _descriptor.Descriptor(
@@ -1310,8 +984,8 @@ _SESSIONRESPONSE_SESSIONSTARTED = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=4995,
-  serialized_end=5055,
+  serialized_start=4189,
+  serialized_end=4249,
 )
 
 _SESSIONRESPONSE_SESSIONSTOPPED = _descriptor.Descriptor(
@@ -1340,82 +1014,8 @@ _SESSIONRESPONSE_SESSIONSTOPPED = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=5057,
-  serialized_end=5093,
-)
-
-_SESSIONRESPONSE_JOBSTART = _descriptor.Descriptor(
-  name='JobStart',
-  full_name='Ydb.Coordination.SessionResponse.JobStart',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='job_id', full_name='Ydb.Coordination.SessionResponse.JobStart.job_id', index=0,
-      number=1, type=4, cpp_type=4, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='task_id', full_name='Ydb.Coordination.SessionResponse.JobStart.task_id', index=1,
-      number=2, type=4, cpp_type=4, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='task_data', full_name='Ydb.Coordination.SessionResponse.JobStart.task_data', index=2,
-      number=3, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  options=None,
-  is_extendable=False,
-  syntax='proto3',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=5095,
-  serialized_end=5185,
-)
-
-_SESSIONRESPONSE_JOBSTOP = _descriptor.Descriptor(
-  name='JobStop',
-  full_name='Ydb.Coordination.SessionResponse.JobStop',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='job_id', full_name='Ydb.Coordination.SessionResponse.JobStop.job_id', index=0,
-      number=1, type=4, cpp_type=4, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  options=None,
-  is_extendable=False,
-  syntax='proto3',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=5187,
-  serialized_end=5212,
+  serialized_start=4251,
+  serialized_end=4287,
 )
 
 _SESSIONRESPONSE_ACQUIRESEMAPHOREPENDING = _descriptor.Descriptor(
@@ -1444,8 +1044,8 @@ _SESSIONRESPONSE_ACQUIRESEMAPHOREPENDING = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=5214,
-  serialized_end=5255,
+  serialized_start=4289,
+  serialized_end=4330,
 )
 
 _SESSIONRESPONSE_ACQUIRESEMAPHORERESULT = _descriptor.Descriptor(
@@ -1495,8 +1095,8 @@ _SESSIONRESPONSE_ACQUIRESEMAPHORERESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=5258,
-  serialized_end=5400,
+  serialized_start=4333,
+  serialized_end=4475,
 )
 
 _SESSIONRESPONSE_RELEASESEMAPHORERESULT = _descriptor.Descriptor(
@@ -1546,8 +1146,8 @@ _SESSIONRESPONSE_RELEASESEMAPHORERESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=5403,
-  serialized_end=5545,
+  serialized_start=4478,
+  serialized_end=4620,
 )
 
 _SESSIONRESPONSE_DESCRIBESEMAPHORERESULT = _descriptor.Descriptor(
@@ -1604,8 +1204,8 @@ _SESSIONRESPONSE_DESCRIBESEMAPHORERESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=5548,
-  serialized_end=5765,
+  serialized_start=4623,
+  serialized_end=4840,
 )
 
 _SESSIONRESPONSE_DESCRIBESEMAPHORECHANGED = _descriptor.Descriptor(
@@ -1648,8 +1248,8 @@ _SESSIONRESPONSE_DESCRIBESEMAPHORECHANGED = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=5767,
-  serialized_end=5855,
+  serialized_start=4842,
+  serialized_end=4930,
 )
 
 _SESSIONRESPONSE_CREATESEMAPHORERESULT = _descriptor.Descriptor(
@@ -1692,8 +1292,8 @@ _SESSIONRESPONSE_CREATESEMAPHORERESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=5857,
-  serialized_end=5980,
+  serialized_start=4932,
+  serialized_end=5055,
 )
 
 _SESSIONRESPONSE_UPDATESEMAPHORERESULT = _descriptor.Descriptor(
@@ -1736,8 +1336,8 @@ _SESSIONRESPONSE_UPDATESEMAPHORERESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=5982,
-  serialized_end=6105,
+  serialized_start=5057,
+  serialized_end=5180,
 )
 
 _SESSIONRESPONSE_DELETESEMAPHORERESULT = _descriptor.Descriptor(
@@ -1780,147 +1380,8 @@ _SESSIONRESPONSE_DELETESEMAPHORERESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=6107,
-  serialized_end=6230,
-)
-
-_SESSIONRESPONSE_CREATETASKRESULT = _descriptor.Descriptor(
-  name='CreateTaskResult',
-  full_name='Ydb.Coordination.SessionResponse.CreateTaskResult',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='req_id', full_name='Ydb.Coordination.SessionResponse.CreateTaskResult.req_id', index=0,
-      number=1, type=4, cpp_type=4, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='status', full_name='Ydb.Coordination.SessionResponse.CreateTaskResult.status', index=1,
-      number=2, type=14, cpp_type=8, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='issues', full_name='Ydb.Coordination.SessionResponse.CreateTaskResult.issues', index=2,
-      number=3, type=11, cpp_type=10, label=3,
-      has_default_value=False, default_value=[],
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='task_id', full_name='Ydb.Coordination.SessionResponse.CreateTaskResult.task_id', index=3,
-      number=4, type=4, cpp_type=4, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  options=None,
-  is_extendable=False,
-  syntax='proto3',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=6233,
-  serialized_end=6368,
-)
-
-_SESSIONRESPONSE_UPDATETASKRESULT = _descriptor.Descriptor(
-  name='UpdateTaskResult',
-  full_name='Ydb.Coordination.SessionResponse.UpdateTaskResult',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='req_id', full_name='Ydb.Coordination.SessionResponse.UpdateTaskResult.req_id', index=0,
-      number=1, type=4, cpp_type=4, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='status', full_name='Ydb.Coordination.SessionResponse.UpdateTaskResult.status', index=1,
-      number=2, type=14, cpp_type=8, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='issues', full_name='Ydb.Coordination.SessionResponse.UpdateTaskResult.issues', index=2,
-      number=3, type=11, cpp_type=10, label=3,
-      has_default_value=False, default_value=[],
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  options=None,
-  is_extendable=False,
-  syntax='proto3',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=6370,
-  serialized_end=6488,
-)
-
-_SESSIONRESPONSE_DELETETASKRESULT = _descriptor.Descriptor(
-  name='DeleteTaskResult',
-  full_name='Ydb.Coordination.SessionResponse.DeleteTaskResult',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='req_id', full_name='Ydb.Coordination.SessionResponse.DeleteTaskResult.req_id', index=0,
-      number=1, type=4, cpp_type=4, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='status', full_name='Ydb.Coordination.SessionResponse.DeleteTaskResult.status', index=1,
-      number=2, type=14, cpp_type=8, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='issues', full_name='Ydb.Coordination.SessionResponse.DeleteTaskResult.issues', index=2,
-      number=3, type=11, cpp_type=10, label=3,
-      has_default_value=False, default_value=[],
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  options=None,
-  is_extendable=False,
-  syntax='proto3',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=6490,
-  serialized_end=6608,
+  serialized_start=5182,
+  serialized_end=5305,
 )
 
 _SESSIONRESPONSE = _descriptor.Descriptor(
@@ -1966,14 +1427,14 @@ _SESSIONRESPONSE = _descriptor.Descriptor(
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='job_start', full_name='Ydb.Coordination.SessionResponse.job_start', index=5,
+      name='unsupported_6', full_name='Ydb.Coordination.SessionResponse.unsupported_6', index=5,
       number=6, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='job_stop', full_name='Ydb.Coordination.SessionResponse.job_stop', index=6,
+      name='unsupported_7', full_name='Ydb.Coordination.SessionResponse.unsupported_7', index=6,
       number=7, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
@@ -2036,21 +1497,21 @@ _SESSIONRESPONSE = _descriptor.Descriptor(
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='create_task_result', full_name='Ydb.Coordination.SessionResponse.create_task_result', index=15,
+      name='unsupported_16', full_name='Ydb.Coordination.SessionResponse.unsupported_16', index=15,
       number=16, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='update_task_result', full_name='Ydb.Coordination.SessionResponse.update_task_result', index=16,
+      name='unsupported_17', full_name='Ydb.Coordination.SessionResponse.unsupported_17', index=16,
       number=17, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='delete_task_result', full_name='Ydb.Coordination.SessionResponse.delete_task_result', index=17,
+      name='unsupported_18', full_name='Ydb.Coordination.SessionResponse.unsupported_18', index=17,
       number=18, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
@@ -2059,7 +1520,7 @@ _SESSIONRESPONSE = _descriptor.Descriptor(
   ],
   extensions=[
   ],
-  nested_types=[_SESSIONRESPONSE_PINGPONG, _SESSIONRESPONSE_FAILURE, _SESSIONRESPONSE_SESSIONSTARTED, _SESSIONRESPONSE_SESSIONSTOPPED, _SESSIONRESPONSE_JOBSTART, _SESSIONRESPONSE_JOBSTOP, _SESSIONRESPONSE_ACQUIRESEMAPHOREPENDING, _SESSIONRESPONSE_ACQUIRESEMAPHORERESULT, _SESSIONRESPONSE_RELEASESEMAPHORERESULT, _SESSIONRESPONSE_DESCRIBESEMAPHORERESULT, _SESSIONRESPONSE_DESCRIBESEMAPHORECHANGED, _SESSIONRESPONSE_CREATESEMAPHORERESULT, _SESSIONRESPONSE_UPDATESEMAPHORERESULT, _SESSIONRESPONSE_DELETESEMAPHORERESULT, _SESSIONRESPONSE_CREATETASKRESULT, _SESSIONRESPONSE_UPDATETASKRESULT, _SESSIONRESPONSE_DELETETASKRESULT, ],
+  nested_types=[_SESSIONRESPONSE_PINGPONG, _SESSIONRESPONSE_FAILURE, _SESSIONRESPONSE_SESSIONSTARTED, _SESSIONRESPONSE_SESSIONSTOPPED, _SESSIONRESPONSE_ACQUIRESEMAPHOREPENDING, _SESSIONRESPONSE_ACQUIRESEMAPHORERESULT, _SESSIONRESPONSE_RELEASESEMAPHORERESULT, _SESSIONRESPONSE_DESCRIBESEMAPHORERESULT, _SESSIONRESPONSE_DESCRIBESEMAPHORECHANGED, _SESSIONRESPONSE_CREATESEMAPHORERESULT, _SESSIONRESPONSE_UPDATESEMAPHORERESULT, _SESSIONRESPONSE_DELETESEMAPHORERESULT, ],
   enum_types=[
   ],
   options=None,
@@ -2071,8 +1532,8 @@ _SESSIONRESPONSE = _descriptor.Descriptor(
       name='response', full_name='Ydb.Coordination.SessionResponse.response',
       index=0, containing_type=None, fields=[]),
   ],
-  serialized_start=3389,
-  serialized_end=6620,
+  serialized_start=2674,
+  serialized_end=5317,
 )
 
 
@@ -2116,8 +1577,8 @@ _CREATENODEREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=6623,
-  serialized_end=6757,
+  serialized_start=5320,
+  serialized_end=5454,
 )
 
 
@@ -2147,8 +1608,8 @@ _CREATENODERESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=6759,
-  serialized_end=6825,
+  serialized_start=5456,
+  serialized_end=5522,
 )
 
 
@@ -2192,8 +1653,8 @@ _ALTERNODEREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=6828,
-  serialized_end=6961,
+  serialized_start=5525,
+  serialized_end=5658,
 )
 
 
@@ -2223,8 +1684,8 @@ _ALTERNODERESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=6963,
-  serialized_end=7028,
+  serialized_start=5660,
+  serialized_end=5725,
 )
 
 
@@ -2261,8 +1722,8 @@ _DROPNODEREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=7030,
-  serialized_end=7120,
+  serialized_start=5727,
+  serialized_end=5817,
 )
 
 
@@ -2292,8 +1753,8 @@ _DROPNODERESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=7122,
-  serialized_end=7186,
+  serialized_start=5819,
+  serialized_end=5883,
 )
 
 
@@ -2330,8 +1791,8 @@ _DESCRIBENODEREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=7188,
-  serialized_end=7282,
+  serialized_start=5885,
+  serialized_end=5979,
 )
 
 
@@ -2361,8 +1822,8 @@ _DESCRIBENODERESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=7284,
-  serialized_end=7352,
+  serialized_start=5981,
+  serialized_end=6049,
 )
 
 
@@ -2399,49 +1860,38 @@ _DESCRIBENODERESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=7354,
-  serialized_end=7449,
+  serialized_start=6051,
+  serialized_end=6146,
 )
 
 _CONFIG.fields_by_name['read_consistency_mode'].enum_type = _CONSISTENCYMODE
 _CONFIG.fields_by_name['attach_consistency_mode'].enum_type = _CONSISTENCYMODE
-_TASKDATA.fields_by_name['resources'].message_type = _RESOURCE
 _SEMAPHOREDESCRIPTION.fields_by_name['owners'].message_type = _SEMAPHORESESSION
 _SEMAPHOREDESCRIPTION.fields_by_name['waiters'].message_type = _SEMAPHORESESSION
 _SESSIONREQUEST_PINGPONG.containing_type = _SESSIONREQUEST
 _SESSIONREQUEST_SESSIONSTART.containing_type = _SESSIONREQUEST
 _SESSIONREQUEST_SESSIONSTOP.containing_type = _SESSIONREQUEST
-_SESSIONREQUEST_CLIENTREADY.fields_by_name['resources'].message_type = _RESOURCE
-_SESSIONREQUEST_CLIENTREADY.containing_type = _SESSIONREQUEST
-_SESSIONREQUEST_UPDATEJOBSTATUS.fields_by_name['job_status'].enum_type = _JOBSTATUS
-_SESSIONREQUEST_UPDATEJOBSTATUS.fields_by_name['used_resources'].message_type = _RESOURCE
-_SESSIONREQUEST_UPDATEJOBSTATUS.containing_type = _SESSIONREQUEST
 _SESSIONREQUEST_ACQUIRESEMAPHORE.containing_type = _SESSIONREQUEST
 _SESSIONREQUEST_RELEASESEMAPHORE.containing_type = _SESSIONREQUEST
 _SESSIONREQUEST_DESCRIBESEMAPHORE.containing_type = _SESSIONREQUEST
 _SESSIONREQUEST_CREATESEMAPHORE.containing_type = _SESSIONREQUEST
 _SESSIONREQUEST_UPDATESEMAPHORE.containing_type = _SESSIONREQUEST
 _SESSIONREQUEST_DELETESEMAPHORE.containing_type = _SESSIONREQUEST
-_SESSIONREQUEST_CREATETASK.fields_by_name['task_data'].message_type = _TASKDATA
-_SESSIONREQUEST_CREATETASK.containing_type = _SESSIONREQUEST
-_SESSIONREQUEST_UPDATETASK.fields_by_name['resources'].message_type = _RESOURCE
-_SESSIONREQUEST_UPDATETASK.containing_type = _SESSIONREQUEST
-_SESSIONREQUEST_DELETETASK.containing_type = _SESSIONREQUEST
 _SESSIONREQUEST.fields_by_name['ping'].message_type = _SESSIONREQUEST_PINGPONG
 _SESSIONREQUEST.fields_by_name['pong'].message_type = _SESSIONREQUEST_PINGPONG
 _SESSIONREQUEST.fields_by_name['session_start'].message_type = _SESSIONREQUEST_SESSIONSTART
 _SESSIONREQUEST.fields_by_name['session_stop'].message_type = _SESSIONREQUEST_SESSIONSTOP
-_SESSIONREQUEST.fields_by_name['client_ready'].message_type = _SESSIONREQUEST_CLIENTREADY
-_SESSIONREQUEST.fields_by_name['update_job_status'].message_type = _SESSIONREQUEST_UPDATEJOBSTATUS
+_SESSIONREQUEST.fields_by_name['unsupported_5'].message_type = _UNSUPPORTED
+_SESSIONREQUEST.fields_by_name['unsupported_6'].message_type = _UNSUPPORTED
 _SESSIONREQUEST.fields_by_name['acquire_semaphore'].message_type = _SESSIONREQUEST_ACQUIRESEMAPHORE
 _SESSIONREQUEST.fields_by_name['release_semaphore'].message_type = _SESSIONREQUEST_RELEASESEMAPHORE
 _SESSIONREQUEST.fields_by_name['describe_semaphore'].message_type = _SESSIONREQUEST_DESCRIBESEMAPHORE
 _SESSIONREQUEST.fields_by_name['create_semaphore'].message_type = _SESSIONREQUEST_CREATESEMAPHORE
 _SESSIONREQUEST.fields_by_name['update_semaphore'].message_type = _SESSIONREQUEST_UPDATESEMAPHORE
 _SESSIONREQUEST.fields_by_name['delete_semaphore'].message_type = _SESSIONREQUEST_DELETESEMAPHORE
-_SESSIONREQUEST.fields_by_name['create_task'].message_type = _SESSIONREQUEST_CREATETASK
-_SESSIONREQUEST.fields_by_name['update_task'].message_type = _SESSIONREQUEST_UPDATETASK
-_SESSIONREQUEST.fields_by_name['delete_task'].message_type = _SESSIONREQUEST_DELETETASK
+_SESSIONREQUEST.fields_by_name['unsupported_13'].message_type = _UNSUPPORTED
+_SESSIONREQUEST.fields_by_name['unsupported_14'].message_type = _UNSUPPORTED
+_SESSIONREQUEST.fields_by_name['unsupported_15'].message_type = _UNSUPPORTED
 _SESSIONREQUEST.oneofs_by_name['request'].fields.append(
   _SESSIONREQUEST.fields_by_name['ping'])
 _SESSIONREQUEST.fields_by_name['ping'].containing_oneof = _SESSIONREQUEST.oneofs_by_name['request']
@@ -2455,11 +1905,11 @@ _SESSIONREQUEST.oneofs_by_name['request'].fields.append(
   _SESSIONREQUEST.fields_by_name['session_stop'])
 _SESSIONREQUEST.fields_by_name['session_stop'].containing_oneof = _SESSIONREQUEST.oneofs_by_name['request']
 _SESSIONREQUEST.oneofs_by_name['request'].fields.append(
-  _SESSIONREQUEST.fields_by_name['client_ready'])
-_SESSIONREQUEST.fields_by_name['client_ready'].containing_oneof = _SESSIONREQUEST.oneofs_by_name['request']
+  _SESSIONREQUEST.fields_by_name['unsupported_5'])
+_SESSIONREQUEST.fields_by_name['unsupported_5'].containing_oneof = _SESSIONREQUEST.oneofs_by_name['request']
 _SESSIONREQUEST.oneofs_by_name['request'].fields.append(
-  _SESSIONREQUEST.fields_by_name['update_job_status'])
-_SESSIONREQUEST.fields_by_name['update_job_status'].containing_oneof = _SESSIONREQUEST.oneofs_by_name['request']
+  _SESSIONREQUEST.fields_by_name['unsupported_6'])
+_SESSIONREQUEST.fields_by_name['unsupported_6'].containing_oneof = _SESSIONREQUEST.oneofs_by_name['request']
 _SESSIONREQUEST.oneofs_by_name['request'].fields.append(
   _SESSIONREQUEST.fields_by_name['acquire_semaphore'])
 _SESSIONREQUEST.fields_by_name['acquire_semaphore'].containing_oneof = _SESSIONREQUEST.oneofs_by_name['request']
@@ -2479,23 +1929,20 @@ _SESSIONREQUEST.oneofs_by_name['request'].fields.append(
   _SESSIONREQUEST.fields_by_name['delete_semaphore'])
 _SESSIONREQUEST.fields_by_name['delete_semaphore'].containing_oneof = _SESSIONREQUEST.oneofs_by_name['request']
 _SESSIONREQUEST.oneofs_by_name['request'].fields.append(
-  _SESSIONREQUEST.fields_by_name['create_task'])
-_SESSIONREQUEST.fields_by_name['create_task'].containing_oneof = _SESSIONREQUEST.oneofs_by_name['request']
+  _SESSIONREQUEST.fields_by_name['unsupported_13'])
+_SESSIONREQUEST.fields_by_name['unsupported_13'].containing_oneof = _SESSIONREQUEST.oneofs_by_name['request']
 _SESSIONREQUEST.oneofs_by_name['request'].fields.append(
-  _SESSIONREQUEST.fields_by_name['update_task'])
-_SESSIONREQUEST.fields_by_name['update_task'].containing_oneof = _SESSIONREQUEST.oneofs_by_name['request']
+  _SESSIONREQUEST.fields_by_name['unsupported_14'])
+_SESSIONREQUEST.fields_by_name['unsupported_14'].containing_oneof = _SESSIONREQUEST.oneofs_by_name['request']
 _SESSIONREQUEST.oneofs_by_name['request'].fields.append(
-  _SESSIONREQUEST.fields_by_name['delete_task'])
-_SESSIONREQUEST.fields_by_name['delete_task'].containing_oneof = _SESSIONREQUEST.oneofs_by_name['request']
+  _SESSIONREQUEST.fields_by_name['unsupported_15'])
+_SESSIONREQUEST.fields_by_name['unsupported_15'].containing_oneof = _SESSIONREQUEST.oneofs_by_name['request']
 _SESSIONRESPONSE_PINGPONG.containing_type = _SESSIONRESPONSE
 _SESSIONRESPONSE_FAILURE.fields_by_name['status'].enum_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__status__codes__pb2._STATUSIDS_STATUSCODE
 _SESSIONRESPONSE_FAILURE.fields_by_name['issues'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__issue__message__pb2._ISSUEMESSAGE
 _SESSIONRESPONSE_FAILURE.containing_type = _SESSIONRESPONSE
 _SESSIONRESPONSE_SESSIONSTARTED.containing_type = _SESSIONRESPONSE
 _SESSIONRESPONSE_SESSIONSTOPPED.containing_type = _SESSIONRESPONSE
-_SESSIONRESPONSE_JOBSTART.fields_by_name['task_data'].message_type = _TASKDATA
-_SESSIONRESPONSE_JOBSTART.containing_type = _SESSIONRESPONSE
-_SESSIONRESPONSE_JOBSTOP.containing_type = _SESSIONRESPONSE
 _SESSIONRESPONSE_ACQUIRESEMAPHOREPENDING.containing_type = _SESSIONRESPONSE
 _SESSIONRESPONSE_ACQUIRESEMAPHORERESULT.fields_by_name['status'].enum_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__status__codes__pb2._STATUSIDS_STATUSCODE
 _SESSIONRESPONSE_ACQUIRESEMAPHORERESULT.fields_by_name['issues'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__issue__message__pb2._ISSUEMESSAGE
@@ -2517,22 +1964,13 @@ _SESSIONRESPONSE_UPDATESEMAPHORERESULT.containing_type = _SESSIONRESPONSE
 _SESSIONRESPONSE_DELETESEMAPHORERESULT.fields_by_name['status'].enum_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__status__codes__pb2._STATUSIDS_STATUSCODE
 _SESSIONRESPONSE_DELETESEMAPHORERESULT.fields_by_name['issues'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__issue__message__pb2._ISSUEMESSAGE
 _SESSIONRESPONSE_DELETESEMAPHORERESULT.containing_type = _SESSIONRESPONSE
-_SESSIONRESPONSE_CREATETASKRESULT.fields_by_name['status'].enum_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__status__codes__pb2._STATUSIDS_STATUSCODE
-_SESSIONRESPONSE_CREATETASKRESULT.fields_by_name['issues'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__issue__message__pb2._ISSUEMESSAGE
-_SESSIONRESPONSE_CREATETASKRESULT.containing_type = _SESSIONRESPONSE
-_SESSIONRESPONSE_UPDATETASKRESULT.fields_by_name['status'].enum_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__status__codes__pb2._STATUSIDS_STATUSCODE
-_SESSIONRESPONSE_UPDATETASKRESULT.fields_by_name['issues'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__issue__message__pb2._ISSUEMESSAGE
-_SESSIONRESPONSE_UPDATETASKRESULT.containing_type = _SESSIONRESPONSE
-_SESSIONRESPONSE_DELETETASKRESULT.fields_by_name['status'].enum_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__status__codes__pb2._STATUSIDS_STATUSCODE
-_SESSIONRESPONSE_DELETETASKRESULT.fields_by_name['issues'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__issue__message__pb2._ISSUEMESSAGE
-_SESSIONRESPONSE_DELETETASKRESULT.containing_type = _SESSIONRESPONSE
 _SESSIONRESPONSE.fields_by_name['ping'].message_type = _SESSIONRESPONSE_PINGPONG
 _SESSIONRESPONSE.fields_by_name['pong'].message_type = _SESSIONRESPONSE_PINGPONG
 _SESSIONRESPONSE.fields_by_name['failure'].message_type = _SESSIONRESPONSE_FAILURE
 _SESSIONRESPONSE.fields_by_name['session_started'].message_type = _SESSIONRESPONSE_SESSIONSTARTED
 _SESSIONRESPONSE.fields_by_name['session_stopped'].message_type = _SESSIONRESPONSE_SESSIONSTOPPED
-_SESSIONRESPONSE.fields_by_name['job_start'].message_type = _SESSIONRESPONSE_JOBSTART
-_SESSIONRESPONSE.fields_by_name['job_stop'].message_type = _SESSIONRESPONSE_JOBSTOP
+_SESSIONRESPONSE.fields_by_name['unsupported_6'].message_type = _UNSUPPORTED
+_SESSIONRESPONSE.fields_by_name['unsupported_7'].message_type = _UNSUPPORTED
 _SESSIONRESPONSE.fields_by_name['acquire_semaphore_pending'].message_type = _SESSIONRESPONSE_ACQUIRESEMAPHOREPENDING
 _SESSIONRESPONSE.fields_by_name['acquire_semaphore_result'].message_type = _SESSIONRESPONSE_ACQUIRESEMAPHORERESULT
 _SESSIONRESPONSE.fields_by_name['release_semaphore_result'].message_type = _SESSIONRESPONSE_RELEASESEMAPHORERESULT
@@ -2541,9 +1979,9 @@ _SESSIONRESPONSE.fields_by_name['describe_semaphore_changed'].message_type = _SE
 _SESSIONRESPONSE.fields_by_name['create_semaphore_result'].message_type = _SESSIONRESPONSE_CREATESEMAPHORERESULT
 _SESSIONRESPONSE.fields_by_name['update_semaphore_result'].message_type = _SESSIONRESPONSE_UPDATESEMAPHORERESULT
 _SESSIONRESPONSE.fields_by_name['delete_semaphore_result'].message_type = _SESSIONRESPONSE_DELETESEMAPHORERESULT
-_SESSIONRESPONSE.fields_by_name['create_task_result'].message_type = _SESSIONRESPONSE_CREATETASKRESULT
-_SESSIONRESPONSE.fields_by_name['update_task_result'].message_type = _SESSIONRESPONSE_UPDATETASKRESULT
-_SESSIONRESPONSE.fields_by_name['delete_task_result'].message_type = _SESSIONRESPONSE_DELETETASKRESULT
+_SESSIONRESPONSE.fields_by_name['unsupported_16'].message_type = _UNSUPPORTED
+_SESSIONRESPONSE.fields_by_name['unsupported_17'].message_type = _UNSUPPORTED
+_SESSIONRESPONSE.fields_by_name['unsupported_18'].message_type = _UNSUPPORTED
 _SESSIONRESPONSE.oneofs_by_name['response'].fields.append(
   _SESSIONRESPONSE.fields_by_name['ping'])
 _SESSIONRESPONSE.fields_by_name['ping'].containing_oneof = _SESSIONRESPONSE.oneofs_by_name['response']
@@ -2560,11 +1998,11 @@ _SESSIONRESPONSE.oneofs_by_name['response'].fields.append(
   _SESSIONRESPONSE.fields_by_name['session_stopped'])
 _SESSIONRESPONSE.fields_by_name['session_stopped'].containing_oneof = _SESSIONRESPONSE.oneofs_by_name['response']
 _SESSIONRESPONSE.oneofs_by_name['response'].fields.append(
-  _SESSIONRESPONSE.fields_by_name['job_start'])
-_SESSIONRESPONSE.fields_by_name['job_start'].containing_oneof = _SESSIONRESPONSE.oneofs_by_name['response']
+  _SESSIONRESPONSE.fields_by_name['unsupported_6'])
+_SESSIONRESPONSE.fields_by_name['unsupported_6'].containing_oneof = _SESSIONRESPONSE.oneofs_by_name['response']
 _SESSIONRESPONSE.oneofs_by_name['response'].fields.append(
-  _SESSIONRESPONSE.fields_by_name['job_stop'])
-_SESSIONRESPONSE.fields_by_name['job_stop'].containing_oneof = _SESSIONRESPONSE.oneofs_by_name['response']
+  _SESSIONRESPONSE.fields_by_name['unsupported_7'])
+_SESSIONRESPONSE.fields_by_name['unsupported_7'].containing_oneof = _SESSIONRESPONSE.oneofs_by_name['response']
 _SESSIONRESPONSE.oneofs_by_name['response'].fields.append(
   _SESSIONRESPONSE.fields_by_name['acquire_semaphore_pending'])
 _SESSIONRESPONSE.fields_by_name['acquire_semaphore_pending'].containing_oneof = _SESSIONRESPONSE.oneofs_by_name['response']
@@ -2590,14 +2028,14 @@ _SESSIONRESPONSE.oneofs_by_name['response'].fields.append(
   _SESSIONRESPONSE.fields_by_name['delete_semaphore_result'])
 _SESSIONRESPONSE.fields_by_name['delete_semaphore_result'].containing_oneof = _SESSIONRESPONSE.oneofs_by_name['response']
 _SESSIONRESPONSE.oneofs_by_name['response'].fields.append(
-  _SESSIONRESPONSE.fields_by_name['create_task_result'])
-_SESSIONRESPONSE.fields_by_name['create_task_result'].containing_oneof = _SESSIONRESPONSE.oneofs_by_name['response']
+  _SESSIONRESPONSE.fields_by_name['unsupported_16'])
+_SESSIONRESPONSE.fields_by_name['unsupported_16'].containing_oneof = _SESSIONRESPONSE.oneofs_by_name['response']
 _SESSIONRESPONSE.oneofs_by_name['response'].fields.append(
-  _SESSIONRESPONSE.fields_by_name['update_task_result'])
-_SESSIONRESPONSE.fields_by_name['update_task_result'].containing_oneof = _SESSIONRESPONSE.oneofs_by_name['response']
+  _SESSIONRESPONSE.fields_by_name['unsupported_17'])
+_SESSIONRESPONSE.fields_by_name['unsupported_17'].containing_oneof = _SESSIONRESPONSE.oneofs_by_name['response']
 _SESSIONRESPONSE.oneofs_by_name['response'].fields.append(
-  _SESSIONRESPONSE.fields_by_name['delete_task_result'])
-_SESSIONRESPONSE.fields_by_name['delete_task_result'].containing_oneof = _SESSIONRESPONSE.oneofs_by_name['response']
+  _SESSIONRESPONSE.fields_by_name['unsupported_18'])
+_SESSIONRESPONSE.fields_by_name['unsupported_18'].containing_oneof = _SESSIONRESPONSE.oneofs_by_name['response']
 _CREATENODEREQUEST.fields_by_name['config'].message_type = _CONFIG
 _CREATENODEREQUEST.fields_by_name['operation_params'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2._OPERATIONPARAMS
 _CREATENODERESPONSE.fields_by_name['operation'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2._OPERATION
@@ -2610,9 +2048,8 @@ _DESCRIBENODEREQUEST.fields_by_name['operation_params'].message_type = kikimr_do
 _DESCRIBENODERESPONSE.fields_by_name['operation'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2._OPERATION
 _DESCRIBENODERESULT.fields_by_name['self'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__scheme__pb2._ENTRY
 _DESCRIBENODERESULT.fields_by_name['config'].message_type = _CONFIG
+DESCRIPTOR.message_types_by_name['Unsupported'] = _UNSUPPORTED
 DESCRIPTOR.message_types_by_name['Config'] = _CONFIG
-DESCRIPTOR.message_types_by_name['Resource'] = _RESOURCE
-DESCRIPTOR.message_types_by_name['TaskData'] = _TASKDATA
 DESCRIPTOR.message_types_by_name['SessionDescription'] = _SESSIONDESCRIPTION
 DESCRIPTOR.message_types_by_name['SemaphoreSession'] = _SEMAPHORESESSION
 DESCRIPTOR.message_types_by_name['SemaphoreDescription'] = _SEMAPHOREDESCRIPTION
@@ -2628,8 +2065,14 @@ DESCRIPTOR.message_types_by_name['DescribeNodeRequest'] = _DESCRIBENODEREQUEST
 DESCRIPTOR.message_types_by_name['DescribeNodeResponse'] = _DESCRIBENODERESPONSE
 DESCRIPTOR.message_types_by_name['DescribeNodeResult'] = _DESCRIBENODERESULT
 DESCRIPTOR.enum_types_by_name['ConsistencyMode'] = _CONSISTENCYMODE
-DESCRIPTOR.enum_types_by_name['JobStatus'] = _JOBSTATUS
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
+
+Unsupported = _reflection.GeneratedProtocolMessageType('Unsupported', (_message.Message,), dict(
+  DESCRIPTOR = _UNSUPPORTED,
+  __module__ = 'kikimr.public.api.protos.ydb_coordination_pb2'
+  # @@protoc_insertion_point(class_scope:Ydb.Coordination.Unsupported)
+  ))
+_sym_db.RegisterMessage(Unsupported)
 
 Config = _reflection.GeneratedProtocolMessageType('Config', (_message.Message,), dict(
   DESCRIPTOR = _CONFIG,
@@ -2637,20 +2080,6 @@ Config = _reflection.GeneratedProtocolMessageType('Config', (_message.Message,),
   # @@protoc_insertion_point(class_scope:Ydb.Coordination.Config)
   ))
 _sym_db.RegisterMessage(Config)
-
-Resource = _reflection.GeneratedProtocolMessageType('Resource', (_message.Message,), dict(
-  DESCRIPTOR = _RESOURCE,
-  __module__ = 'kikimr.public.api.protos.ydb_coordination_pb2'
-  # @@protoc_insertion_point(class_scope:Ydb.Coordination.Resource)
-  ))
-_sym_db.RegisterMessage(Resource)
-
-TaskData = _reflection.GeneratedProtocolMessageType('TaskData', (_message.Message,), dict(
-  DESCRIPTOR = _TASKDATA,
-  __module__ = 'kikimr.public.api.protos.ydb_coordination_pb2'
-  # @@protoc_insertion_point(class_scope:Ydb.Coordination.TaskData)
-  ))
-_sym_db.RegisterMessage(TaskData)
 
 SessionDescription = _reflection.GeneratedProtocolMessageType('SessionDescription', (_message.Message,), dict(
   DESCRIPTOR = _SESSIONDESCRIPTION,
@@ -2696,20 +2125,6 @@ SessionRequest = _reflection.GeneratedProtocolMessageType('SessionRequest', (_me
     ))
   ,
 
-  ClientReady = _reflection.GeneratedProtocolMessageType('ClientReady', (_message.Message,), dict(
-    DESCRIPTOR = _SESSIONREQUEST_CLIENTREADY,
-    __module__ = 'kikimr.public.api.protos.ydb_coordination_pb2'
-    # @@protoc_insertion_point(class_scope:Ydb.Coordination.SessionRequest.ClientReady)
-    ))
-  ,
-
-  UpdateJobStatus = _reflection.GeneratedProtocolMessageType('UpdateJobStatus', (_message.Message,), dict(
-    DESCRIPTOR = _SESSIONREQUEST_UPDATEJOBSTATUS,
-    __module__ = 'kikimr.public.api.protos.ydb_coordination_pb2'
-    # @@protoc_insertion_point(class_scope:Ydb.Coordination.SessionRequest.UpdateJobStatus)
-    ))
-  ,
-
   AcquireSemaphore = _reflection.GeneratedProtocolMessageType('AcquireSemaphore', (_message.Message,), dict(
     DESCRIPTOR = _SESSIONREQUEST_ACQUIRESEMAPHORE,
     __module__ = 'kikimr.public.api.protos.ydb_coordination_pb2'
@@ -2751,27 +2166,6 @@ SessionRequest = _reflection.GeneratedProtocolMessageType('SessionRequest', (_me
     # @@protoc_insertion_point(class_scope:Ydb.Coordination.SessionRequest.DeleteSemaphore)
     ))
   ,
-
-  CreateTask = _reflection.GeneratedProtocolMessageType('CreateTask', (_message.Message,), dict(
-    DESCRIPTOR = _SESSIONREQUEST_CREATETASK,
-    __module__ = 'kikimr.public.api.protos.ydb_coordination_pb2'
-    # @@protoc_insertion_point(class_scope:Ydb.Coordination.SessionRequest.CreateTask)
-    ))
-  ,
-
-  UpdateTask = _reflection.GeneratedProtocolMessageType('UpdateTask', (_message.Message,), dict(
-    DESCRIPTOR = _SESSIONREQUEST_UPDATETASK,
-    __module__ = 'kikimr.public.api.protos.ydb_coordination_pb2'
-    # @@protoc_insertion_point(class_scope:Ydb.Coordination.SessionRequest.UpdateTask)
-    ))
-  ,
-
-  DeleteTask = _reflection.GeneratedProtocolMessageType('DeleteTask', (_message.Message,), dict(
-    DESCRIPTOR = _SESSIONREQUEST_DELETETASK,
-    __module__ = 'kikimr.public.api.protos.ydb_coordination_pb2'
-    # @@protoc_insertion_point(class_scope:Ydb.Coordination.SessionRequest.DeleteTask)
-    ))
-  ,
   DESCRIPTOR = _SESSIONREQUEST,
   __module__ = 'kikimr.public.api.protos.ydb_coordination_pb2'
   # @@protoc_insertion_point(class_scope:Ydb.Coordination.SessionRequest)
@@ -2780,17 +2174,12 @@ _sym_db.RegisterMessage(SessionRequest)
 _sym_db.RegisterMessage(SessionRequest.PingPong)
 _sym_db.RegisterMessage(SessionRequest.SessionStart)
 _sym_db.RegisterMessage(SessionRequest.SessionStop)
-_sym_db.RegisterMessage(SessionRequest.ClientReady)
-_sym_db.RegisterMessage(SessionRequest.UpdateJobStatus)
 _sym_db.RegisterMessage(SessionRequest.AcquireSemaphore)
 _sym_db.RegisterMessage(SessionRequest.ReleaseSemaphore)
 _sym_db.RegisterMessage(SessionRequest.DescribeSemaphore)
 _sym_db.RegisterMessage(SessionRequest.CreateSemaphore)
 _sym_db.RegisterMessage(SessionRequest.UpdateSemaphore)
 _sym_db.RegisterMessage(SessionRequest.DeleteSemaphore)
-_sym_db.RegisterMessage(SessionRequest.CreateTask)
-_sym_db.RegisterMessage(SessionRequest.UpdateTask)
-_sym_db.RegisterMessage(SessionRequest.DeleteTask)
 
 SessionResponse = _reflection.GeneratedProtocolMessageType('SessionResponse', (_message.Message,), dict(
 
@@ -2819,20 +2208,6 @@ SessionResponse = _reflection.GeneratedProtocolMessageType('SessionResponse', (_
     DESCRIPTOR = _SESSIONRESPONSE_SESSIONSTOPPED,
     __module__ = 'kikimr.public.api.protos.ydb_coordination_pb2'
     # @@protoc_insertion_point(class_scope:Ydb.Coordination.SessionResponse.SessionStopped)
-    ))
-  ,
-
-  JobStart = _reflection.GeneratedProtocolMessageType('JobStart', (_message.Message,), dict(
-    DESCRIPTOR = _SESSIONRESPONSE_JOBSTART,
-    __module__ = 'kikimr.public.api.protos.ydb_coordination_pb2'
-    # @@protoc_insertion_point(class_scope:Ydb.Coordination.SessionResponse.JobStart)
-    ))
-  ,
-
-  JobStop = _reflection.GeneratedProtocolMessageType('JobStop', (_message.Message,), dict(
-    DESCRIPTOR = _SESSIONRESPONSE_JOBSTOP,
-    __module__ = 'kikimr.public.api.protos.ydb_coordination_pb2'
-    # @@protoc_insertion_point(class_scope:Ydb.Coordination.SessionResponse.JobStop)
     ))
   ,
 
@@ -2891,27 +2266,6 @@ SessionResponse = _reflection.GeneratedProtocolMessageType('SessionResponse', (_
     # @@protoc_insertion_point(class_scope:Ydb.Coordination.SessionResponse.DeleteSemaphoreResult)
     ))
   ,
-
-  CreateTaskResult = _reflection.GeneratedProtocolMessageType('CreateTaskResult', (_message.Message,), dict(
-    DESCRIPTOR = _SESSIONRESPONSE_CREATETASKRESULT,
-    __module__ = 'kikimr.public.api.protos.ydb_coordination_pb2'
-    # @@protoc_insertion_point(class_scope:Ydb.Coordination.SessionResponse.CreateTaskResult)
-    ))
-  ,
-
-  UpdateTaskResult = _reflection.GeneratedProtocolMessageType('UpdateTaskResult', (_message.Message,), dict(
-    DESCRIPTOR = _SESSIONRESPONSE_UPDATETASKRESULT,
-    __module__ = 'kikimr.public.api.protos.ydb_coordination_pb2'
-    # @@protoc_insertion_point(class_scope:Ydb.Coordination.SessionResponse.UpdateTaskResult)
-    ))
-  ,
-
-  DeleteTaskResult = _reflection.GeneratedProtocolMessageType('DeleteTaskResult', (_message.Message,), dict(
-    DESCRIPTOR = _SESSIONRESPONSE_DELETETASKRESULT,
-    __module__ = 'kikimr.public.api.protos.ydb_coordination_pb2'
-    # @@protoc_insertion_point(class_scope:Ydb.Coordination.SessionResponse.DeleteTaskResult)
-    ))
-  ,
   DESCRIPTOR = _SESSIONRESPONSE,
   __module__ = 'kikimr.public.api.protos.ydb_coordination_pb2'
   # @@protoc_insertion_point(class_scope:Ydb.Coordination.SessionResponse)
@@ -2921,8 +2275,6 @@ _sym_db.RegisterMessage(SessionResponse.PingPong)
 _sym_db.RegisterMessage(SessionResponse.Failure)
 _sym_db.RegisterMessage(SessionResponse.SessionStarted)
 _sym_db.RegisterMessage(SessionResponse.SessionStopped)
-_sym_db.RegisterMessage(SessionResponse.JobStart)
-_sym_db.RegisterMessage(SessionResponse.JobStop)
 _sym_db.RegisterMessage(SessionResponse.AcquireSemaphorePending)
 _sym_db.RegisterMessage(SessionResponse.AcquireSemaphoreResult)
 _sym_db.RegisterMessage(SessionResponse.ReleaseSemaphoreResult)
@@ -2931,9 +2283,6 @@ _sym_db.RegisterMessage(SessionResponse.DescribeSemaphoreChanged)
 _sym_db.RegisterMessage(SessionResponse.CreateSemaphoreResult)
 _sym_db.RegisterMessage(SessionResponse.UpdateSemaphoreResult)
 _sym_db.RegisterMessage(SessionResponse.DeleteSemaphoreResult)
-_sym_db.RegisterMessage(SessionResponse.CreateTaskResult)
-_sym_db.RegisterMessage(SessionResponse.UpdateTaskResult)
-_sym_db.RegisterMessage(SessionResponse.DeleteTaskResult)
 
 CreateNodeRequest = _reflection.GeneratedProtocolMessageType('CreateNodeRequest', (_message.Message,), dict(
   DESCRIPTOR = _CREATENODEREQUEST,
