@@ -305,6 +305,10 @@ class _Row(_DotDict):
         else:
             return super(_Row, self).__getitem__(key)
 
+    def __iter__(self):
+        for column in self._columns:
+            yield self[column.name]
+
 
 def from_native_value(type_pb, value):
     return _from_native_value(
