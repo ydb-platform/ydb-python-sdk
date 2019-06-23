@@ -24,13 +24,17 @@ class SessionPoolImpl(object):
         self._should_stop = threading.Event()
         self._keep_alive_threshold = 4 * 60
         self._spin_timeout = 30
-        self._pool_thread = _PoolThread(self)
-        self._pool_thread.start()
+        self._event_queue = queue.Queue()
+        self._driver_await_timeout = 3
+        self._event_loop_thread = threading.Thread(target=self.events_loop)
+        self._event_loop_thread.daemon = True
+        self._event_loop_thread.start()
         self._logger = logger.getChild(self.__class__.__name__)
 
     def stop(self, timeout):
         with self._lock:
             self._logger.debug("Requested session pool stop.")
+            self._event_queue.put(self._terminate_event)
             self._should_stop.set()
 
             self._logger.debug("Session pool is under stop, cancelling all in flight waiters.")
@@ -53,7 +57,17 @@ class SessionPoolImpl(object):
                 except queue.Empty:
                     break
 
-        self._pool_thread.join(timeout)
+            self._logger.debug("Destroyed active sessions")
+
+        self._event_loop_thread.join(timeout)
+
+    def _terminate_event(self):
+        self._logger.debug("Terminated session pool.")
+        raise StopIteration()
+
+    def _delayed_prepare(self, session):
+        self._driver.wait(self._driver_await_timeout)
+        self._prepare(session)
 
     def pick(self):
         with self._lock:
@@ -117,8 +131,12 @@ class SessionPoolImpl(object):
                 if self._initializer is None:
                     return self.put(session)
             except issues.Error:
-                self._prepare(session)
-                return
+                self._logger.debug("Failed to create session. Put event to a delayed queue.")
+                return self._event_queue.put(
+                    lambda: self._delayed_prepare(
+                        session
+                    )
+                )
 
         init_f = self._tp.submit(self._initializer, session)
 
@@ -136,8 +154,14 @@ class SessionPoolImpl(object):
             self._destroy(session)
             return
 
-        f = session.async_create(self._req_settings)
-        f.add_done_callback(lambda _: self._on_session_create(session, _))
+        with self._lock:
+            if len(self._waiters) > 0:
+                f = session.async_create(self._req_settings)
+                f.add_done_callback(
+                    lambda _: self._on_session_create(
+                        session, _
+                    )
+                )
 
     def _waiter_cleanup(self, w):
         with self._lock:
@@ -209,9 +233,21 @@ class SessionPoolImpl(object):
                 self.unsubscribe(waiter)
                 raise issues.SessionPoolEmpty("Session pool is empty.")
 
-    def should_stop(self):
-        signaled = self._should_stop.wait(self._spin_timeout)
-        return signaled
+    def events_loop(self):
+        while True:
+            try:
+                if self._should_stop.is_set():
+                    break
+
+                event = self._event_queue.get(timeout=self._spin_timeout)
+                event()
+            except StopIteration:
+                break
+
+            except queue.Empty:
+                while True:
+                    if not self.send_keep_alive():
+                        break
 
     def send_keep_alive(self):
         session = self.pick()
@@ -225,16 +261,3 @@ class SessionPoolImpl(object):
         f = session.async_keep_alive(self._req_settings)
         f.add_done_callback(lambda q: self._on_keep_alive(session, q))
         return True
-
-
-class _PoolThread(threading.Thread):
-    def __init__(self, pool_impl):
-        super(_PoolThread, self).__init__()
-        self.daemon = True
-        self._pool_impl = pool_impl
-
-    def run(self):
-        while not self._pool_impl.should_stop():
-            while True:
-                if not self._pool_impl.send_keep_alive():
-                    break
