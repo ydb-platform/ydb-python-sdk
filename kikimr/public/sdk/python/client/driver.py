@@ -3,9 +3,11 @@ from . import credentials as credentials_impl, table, scheme, pool
 
 
 class DriverConfig(object):
-    __slots__ = ('endpoint', 'database', 'ca_cert', 'channel_options', 'credentials')
+    __slots__ = ('endpoint', 'database', 'ca_cert', 'channel_options', 'credentials', 'use_all_nodes')
 
-    def __init__(self, endpoint, database=None, ca_cert=None, auth_token=None, channel_options=None, credentials=None):
+    def __init__(
+            self, endpoint, database=None, ca_cert=None, auth_token=None,
+            channel_options=None, credentials=None, use_all_nodes=False):
         """
         A driver config to initialize a driver instance
         :param endpoint: A endpoint specified in pattern host:port to be used for initial
@@ -14,6 +16,7 @@ class DriverConfig(object):
         :param ca_cert: A CA certificate when SSL should be used
         :param auth_token: A authentication token
         :param credentials: An instance of AbstractCredentials
+        BVzz:param use_all_nodes: A balancing policy that forces to use all available nodes.
         """
         self.endpoint = endpoint
         self.database = database
@@ -22,6 +25,7 @@ class DriverConfig(object):
         if auth_token is not None:
             credentials = credentials_impl.AuthTokenCredentials(auth_token)
         self.credentials = credentials
+        self.use_all_nodes = use_all_nodes
 
     def set_database(self, database):
         self.database = database

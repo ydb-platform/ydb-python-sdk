@@ -12,13 +12,15 @@ logger = logging.getLogger(__name__)
 
 
 class ConnectionsCache(object):
-    def __init__(self):
+    def __init__(self, use_all_nodes=False):
         self.lock = threading.RLock()
         self.connections = collections.OrderedDict()
         self.outdated = collections.OrderedDict()
         self.subscriptions = set()
         self.preferred = collections.OrderedDict()
         self.logger = logging.getLogger(__name__)
+        self.use_all_nodes = use_all_nodes
+        self.conn_lst_order = (self.connections, ) if self.use_all_nodes else (self.preferred, self.connections)
 
     def add(self, connection, preferred=False):
         if connection is None:
@@ -94,17 +96,15 @@ class ConnectionsCache(object):
             if preferred_endpoint is not None and preferred_endpoint in self.connections:
                 return self.connections[preferred_endpoint]
 
-            try:
-                endpoint, connection = self.preferred.popitem(last=False)
-                self.preferred[endpoint] = connection
-            except KeyError:
+            for conn_lst in self.conn_lst_order:
                 try:
-                    endpoint, connection = self.connections.popitem(last=False)
-                    self.connections[endpoint] = connection
+                    endpoint, connection = conn_lst.popitem(last=False)
+                    conn_lst[endpoint] = connection
+                    return connection
                 except KeyError:
-                    raise issues.ConnectionLost("Couldn't find valid connection")
+                    continue
 
-            return connection
+            raise issues.ConnectionLost("Couldn't find valid connection")
 
     def remove(self, connection):
         with self.lock:
@@ -220,7 +220,7 @@ class ConnectionPool(object):
         :param driver_config: An instance of DriverConfig
         """
         self._driver_config = driver_config
-        self._store = ConnectionsCache()
+        self._store = ConnectionsCache(driver_config.use_all_nodes)
         self._grpc_init = connection_impl.Connection(self._driver_config.endpoint, self._driver_config)
         self._discovery_thread = Discovery(self._store, self._driver_config)
         self._discovery_thread.start()
