@@ -78,7 +78,7 @@ async def retry_operation(callee, retry_settings=None, *args, **kwargs):
         except (issues.Overloaded, SessionPoolEmpty, issues.ConnectionError) as e:
             status = e
             retry_settings.on_ydb_error_callback(e)
-            tornado.gen.sleep(
+            await tornado.gen.sleep(
                 calc_backoff_timeout(
                     retry_settings,
                     attempt
