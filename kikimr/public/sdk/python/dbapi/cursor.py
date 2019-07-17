@@ -26,15 +26,19 @@ class Cursor(object):
                         sql = sql.replace('?', 'NULL', 1)
                     else:
                         if isinstance(parameter, bytes):
-                            parameter = parameter.encode('utf-8')
+                            parameter = parameter.decode('utf-8')
                         sql = sql.replace('?', repr(parameter), 1)
             else:
                 raise DatabaseError(
                     'Unsupported parameters type: ' + str(type(parameters)))
 
-        self.logger.info('Executing: %s', sql)
-        self.last_result_sets = self.session.transaction(ydb.SerializableReadWrite()).execute(sql)
         self.current_index = 0
+        if 'create table' in sql.lower():
+            self.session.execute_scheme(sql)
+            self.last_result_sets = []
+        else:
+            self.last_result_sets = self.session.transaction(ydb.SerializableReadWrite()).execute(sql, commit_tx=True)
+
         if self.last_result_sets:
             self.description = [
                 (name.name, None, None, None, None, None, None,) for name in self.last_result_sets[0].columns]
