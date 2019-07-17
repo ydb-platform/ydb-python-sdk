@@ -9,13 +9,11 @@ class OperationServiceStub(object):
   """All rpc calls to YDB are allowed to be asynchronous. Response message
   of an rpc call contains Operation structure and OperationService
   is used for polling operation completion.
-
   Operation has a field 'ready' to notify client if operation has been
   completed or not. If result is ready a client has to handle 'result' field,
   otherwise it is expected that client continues polling result via
   GetOperation rpc of OperationService. Polling is made via unique
   operation id provided in 'id' field of Operation.
-
   Note: Currently some operations have synchronous implementation and their result
   is available when response is obtained. But a client must not make any
   assumptions about synchronous or asynchronous nature of any operation and
@@ -55,13 +53,11 @@ class OperationServiceServicer(object):
   """All rpc calls to YDB are allowed to be asynchronous. Response message
   of an rpc call contains Operation structure and OperationService
   is used for polling operation completion.
-
   Operation has a field 'ready' to notify client if operation has been
   completed or not. If result is ready a client has to handle 'result' field,
   otherwise it is expected that client continues polling result via
   GetOperation rpc of OperationService. Polling is made via unique
   operation id provided in 'id' field of Operation.
-
   Note: Currently some operations have synchronous implementation and their result
   is available when response is obtained. But a client must not make any
   assumptions about synchronous or asynchronous nature of any operation and
