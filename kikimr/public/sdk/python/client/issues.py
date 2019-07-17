@@ -2,7 +2,7 @@
 from google.protobuf import text_format
 import enum
 
-from kikimr.public.api.protos import ydb_status_codes_pb2
+from . import _apis
 
 
 _TRANSPORT_STATUSES_FIRST = 401000
@@ -11,22 +11,22 @@ _CLIENT_STATUSES_FIRST = 402000
 
 @enum.unique
 class StatusCode(enum.IntEnum):
-    STATUS_CODE_UNSPECIFIED = ydb_status_codes_pb2.StatusIds.STATUS_CODE_UNSPECIFIED
-    SUCCESS = ydb_status_codes_pb2.StatusIds.SUCCESS
-    BAD_REQUEST = ydb_status_codes_pb2.StatusIds.BAD_REQUEST
-    UNAUTHORIZED = ydb_status_codes_pb2.StatusIds.UNAUTHORIZED
-    INTERNAL_ERROR = ydb_status_codes_pb2.StatusIds.INTERNAL_ERROR
-    ABORTED = ydb_status_codes_pb2.StatusIds.ABORTED
-    UNAVAILABLE = ydb_status_codes_pb2.StatusIds.UNAVAILABLE
-    OVERLOADED = ydb_status_codes_pb2.StatusIds.OVERLOADED
-    SCHEME_ERROR = ydb_status_codes_pb2.StatusIds.SCHEME_ERROR
-    GENERIC_ERROR = ydb_status_codes_pb2.StatusIds.GENERIC_ERROR
-    TIMEOUT = ydb_status_codes_pb2.StatusIds.TIMEOUT
-    BAD_SESSION = ydb_status_codes_pb2.StatusIds.BAD_SESSION
-    PRECONDITION_FAILED = ydb_status_codes_pb2.StatusIds.PRECONDITION_FAILED
-    ALREADY_EXISTS = ydb_status_codes_pb2.StatusIds.ALREADY_EXISTS
-    NOT_FOUND = ydb_status_codes_pb2.StatusIds.NOT_FOUND
-    SESSION_EXPIRED = ydb_status_codes_pb2.StatusIds.SESSION_EXPIRED
+    STATUS_CODE_UNSPECIFIED = _apis.StatusIds.STATUS_CODE_UNSPECIFIED
+    SUCCESS = _apis.StatusIds.SUCCESS
+    BAD_REQUEST = _apis.StatusIds.BAD_REQUEST
+    UNAUTHORIZED = _apis.StatusIds.UNAUTHORIZED
+    INTERNAL_ERROR = _apis.StatusIds.INTERNAL_ERROR
+    ABORTED = _apis.StatusIds.ABORTED
+    UNAVAILABLE = _apis.StatusIds.UNAVAILABLE
+    OVERLOADED = _apis.StatusIds.OVERLOADED
+    SCHEME_ERROR = _apis.StatusIds.SCHEME_ERROR
+    GENERIC_ERROR = _apis.StatusIds.GENERIC_ERROR
+    TIMEOUT = _apis.StatusIds.TIMEOUT
+    BAD_SESSION = _apis.StatusIds.BAD_SESSION
+    PRECONDITION_FAILED = _apis.StatusIds.PRECONDITION_FAILED
+    ALREADY_EXISTS = _apis.StatusIds.ALREADY_EXISTS
+    NOT_FOUND = _apis.StatusIds.NOT_FOUND
+    SESSION_EXPIRED = _apis.StatusIds.SESSION_EXPIRED
 
     CONNECTION_LOST = _TRANSPORT_STATUSES_FIRST + 10
     CONNECTION_FAILURE = _TRANSPORT_STATUSES_FIRST + 20

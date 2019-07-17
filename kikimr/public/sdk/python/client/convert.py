@@ -1,12 +1,9 @@
 # -*- coding: utf-8 -*-
 import decimal
-
 from google.protobuf import struct_pb2
 import six
 
-from kikimr.public.api.protos import ydb_value_pb2
-from yql.public.types import yql_types_pb2 as yql_types
-from . import issues, types
+from . import issues, types, _apis
 
 
 _SHIFT_BIT_COUNT = 64
@@ -19,7 +16,7 @@ _primitive_type_by_id = {}
 
 
 def _initialize():
-    for key, value in yql_types.TypeIds.items():
+    for key, value in _apis.yql_types.TypeIds.items():
         try:
             _primitive_type_by_id[value] = types.PrimitiveType[key]
         except Exception:
@@ -155,7 +152,7 @@ def _decimal_to_int128(value_type, value):
 
 
 def _decimal_to_pb(value_type, value):
-    value_pb = ydb_value_pb2.Value()
+    value_pb = _apis.ydb_value.Value()
     int128_value = _decimal_to_int128(value_type, value)
     if int128_value < 0:
         value_pb.high_128 = (int128_value >> _SHIFT_BIT_COUNT) + (1 << _SHIFT_BIT_COUNT)
@@ -168,7 +165,7 @@ def _decimal_to_pb(value_type, value):
 
 
 def _primitive_to_pb(type_pb, value):
-    value_pb = ydb_value_pb2.Value()
+    value_pb = _apis.ydb_value.Value()
     data_type = _primitive_type_by_id.get(type_pb.type_id)
     data_type.set_value(value_pb, value)
     return value_pb
@@ -176,12 +173,12 @@ def _primitive_to_pb(type_pb, value):
 
 def _optional_to_pb(type_pb, value):
     if value is None:
-        return ydb_value_pb2.Value(null_flag_value=struct_pb2.NULL_VALUE)
+        return _apis.ydb_value.Value(null_flag_value=struct_pb2.NULL_VALUE)
     return _from_native_value(type_pb.optional_type.item, value)
 
 
 def _list_to_pb(type_pb, value):
-    value_pb = ydb_value_pb2.Value()
+    value_pb = _apis.ydb_value.Value()
     for element in value:
         value_item_proto = value_pb.items.add()
         value_item_proto.MergeFrom(_from_native_value(type_pb.list_type.item, element))
@@ -189,7 +186,7 @@ def _list_to_pb(type_pb, value):
 
 
 def _tuple_to_pb(type_pb, value):
-    value_pb = ydb_value_pb2.Value()
+    value_pb = _apis.ydb_value.Value()
     for element_type, element_value in six.moves.zip(type_pb.tuple_type.elements, value):
         value_item_proto = value_pb.items.add()
         value_item_proto.MergeFrom(_from_native_value(element_type, element_value))
@@ -197,7 +194,7 @@ def _tuple_to_pb(type_pb, value):
 
 
 def _dict_to_pb(type_pb, value):
-    value_pb = ydb_value_pb2.Value()
+    value_pb = _apis.ydb_value.Value()
     for key, payload in value.items():
         kv_pair = value_pb.pairs.add()
         kv_pair.key.MergeFrom(_from_native_value(type_pb.dict_type.key, key))
@@ -206,7 +203,7 @@ def _dict_to_pb(type_pb, value):
 
 
 def _struct_to_pb(type_pb, value):
-    value_pb = ydb_value_pb2.Value()
+    value_pb = _apis.ydb_value.Value()
     for member in type_pb.struct_type.members:
         value_item_proto = value_pb.items.add()
         value_item = value[member.name] if isinstance(value, dict) else getattr(value, member.name)
@@ -256,7 +253,7 @@ def _from_native_value(type_pb, value):
 
 
 def to_typed_value_from_native(type_pb, value):
-    typed_value = ydb_value_pb2.TypedValue()
+    typed_value = _apis.ydb_value.TypedValue()
     typed_value.type.MergeFrom(type_pb)
     typed_value.value.MergeFrom(from_native_value(type_pb, value))
     return typed_value
@@ -268,7 +265,7 @@ def parameters_to_pb(parameters_types, parameters_values):
 
     param_values_pb = {}
     for name, type_pb in six.iteritems(parameters_types):
-        result = ydb_value_pb2.TypedValue()
+        result = _apis.ydb_value.TypedValue()
         result.type.MergeFrom(type_pb)
         result.value.MergeFrom(_from_native_value(type_pb, parameters_values[name]))
         param_values_pb[name] = result

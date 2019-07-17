@@ -6,35 +6,16 @@ import logging
 import threading
 import time
 import random
-
 import enum
 import six
 from six.moves import queue
-
-from kikimr.public.api.protos import ydb_table_pb2
-from kikimr.public.api.grpc import ydb_table_v1_pb2_grpc
-from . import issues, convert, operation, settings, scheme, types, _utilities
+from . import issues, convert, operation, settings, scheme, types, _utilities, _apis
 
 try:
     from . import interceptor
 except ImportError:
     interceptor = None
 
-_CreateTable = 'CreateTable'
-_DropTable = 'DropTable'
-_AlterTable = 'AlterTable'
-_CopyTable = 'CopyTable'
-_DescribeTable = 'DescribeTable'
-_CreateSession = 'CreateSession'
-_DeleteSession = 'DeleteSession'
-_ExecuteSchemeQuery = 'ExecuteSchemeQuery'
-_PrepareDataQuery = 'PrepareDataQuery'
-_ExecuteDataQuery = 'ExecuteDataQuery'
-_BeginTransaction = 'BeginTransaction'
-_CommitTransaction = 'CommitTransaction'
-_RollbackTransaction = 'RollbackTransaction'
-_KeepAlive = 'KeepAlive'
-_StreamReadTable = 'StreamReadTable'
 
 logger = logging.getLogger(__name__)
 
@@ -137,7 +118,7 @@ class AutoPartitioningPolicy(enum.IntEnum):
 
 class CachingPolicy(object):
     def __init__(self):
-        self._pb = ydb_table_pb2.CachingPolicy()
+        self._pb = _apis.ydb_table.CachingPolicy()
         self.preset_name = None
 
     def with_preset_name(self, preset_name):
@@ -151,7 +132,7 @@ class CachingPolicy(object):
 
 class ExecutionPolicy(object):
     def __init__(self):
-        self._pb = ydb_table_pb2.ExecutionPolicy()
+        self._pb = _apis.ydb_table.ExecutionPolicy()
         self.preset_name = None
 
     def with_preset_name(self, preset_name):
@@ -165,7 +146,7 @@ class ExecutionPolicy(object):
 
 class CompactionPolicy(object):
     def __init__(self):
-        self._pb = ydb_table_pb2.CompactionPolicy()
+        self._pb = _apis.ydb_table.CompactionPolicy()
         self.preset_name = None
 
     def with_preset_name(self, preset_name):
@@ -184,7 +165,7 @@ class ExplicitPartitions(object):
 
 class PartitioningPolicy(object):
     def __init__(self):
-        self._pb = ydb_table_pb2.PartitioningPolicy()
+        self._pb = _apis.ydb_table.PartitioningPolicy()
         self.preset_name = None
         self.uniform_partitions = None
         self.auto_partitioning = None
@@ -233,7 +214,7 @@ class PartitioningPolicy(object):
 
 class ReplicationPolicy(object):
     def __init__(self):
-        self._pb = ydb_table_pb2.ReplicationPolicy()
+        self._pb = _apis.ydb_table.ReplicationPolicy()
         self.preset_name = None
         self.replicas_count = None
         self.allow_promotion = None
@@ -268,12 +249,12 @@ class StorageSettings(object):
         self.storage_kind = storage_kind
 
     def to_pb(self):
-        return ydb_table_pb2.StorageSettings(storage_kind=self.storage_kind)
+        return _apis.ydb_table.StorageSettings(storage_kind=self.storage_kind)
 
 
 class StoragePolicy(object):
     def __init__(self):
-        self._pb = ydb_table_pb2.StoragePolicy()
+        self._pb = _apis.ydb_table.StoragePolicy()
         self.preset_name = None
         self.syslog = None
         self.log = None
@@ -354,7 +335,7 @@ class TableProfile(object):
         return self
 
     def to_pb(self, table_description):
-        pb = ydb_table_pb2.TableProfile()
+        pb = _apis.ydb_table.TableProfile()
 
         if self.preset_name is not None:
             pb.preset_name = self.preset_name
@@ -416,7 +397,7 @@ class TableDescription(object):
 
 
 def _create_table_request_factory(path, table_description):
-    request = ydb_table_pb2.CreateTableRequest()
+    request = _apis.ydb_table.CreateTableRequest()
     request.path = path
     request.primary_key.extend(list(table_description.primary_key))
     for column in table_description.columns:
@@ -445,7 +426,7 @@ class SerializableReadWrite(AbstractTransactionModeBuilder):
 
     def __init__(self):
         self._name = 'serializable_read_write'
-        self._pb = ydb_table_pb2.SerializableModeSettings()
+        self._pb = _apis.ydb_table.SerializableModeSettings()
 
     @property
     def settings(self):
@@ -460,7 +441,7 @@ class OnlineReadOnly(AbstractTransactionModeBuilder):
     __slots__ = ('_pb', '_name')
 
     def __init__(self):
-        self._pb = ydb_table_pb2.OnlineModeSettings()
+        self._pb = _apis.ydb_table.OnlineModeSettings()
         self._pb.allow_inconsistent_reads = False
         self._name = 'online_read_only'
 
@@ -481,7 +462,7 @@ class StaleReadOnly(AbstractTransactionModeBuilder):
     __slots__ = ('_pb', '_name')
 
     def __init__(self):
-        self._pb = ydb_table_pb2.StaleModeSettings()
+        self._pb = _apis.ydb_table.StaleModeSettings()
         self._name = 'stale_read_only'
 
     @property
@@ -581,7 +562,7 @@ class DataQuery(object):
 @_bad_session_handler
 def _wrap_prepare_query_response(response_pb, session_state, yql_text):
     issues._process_response(response_pb)
-    message = ydb_table_pb2.PrepareQueryResult()
+    message = _apis.ydb_table.PrepareQueryResult()
     response_pb.result.Unpack(message)
     data_query = DataQuery(yql_text, message.parameters_types)
     session_state.keep(data_query, message.query_id)
@@ -634,7 +615,7 @@ class _SessionState(object):
 @_bad_session_handler
 def _wrap_execute_scheme_result(response_pb, session_state):
     issues._process_response(response_pb)
-    message = ydb_table_pb2.ExecuteQueryResult()
+    message = _apis.ydb_table.ExecuteQueryResult()
     response_pb.result.Unpack(message)
     return convert.ResultSets(message.result_sets)
 
@@ -682,7 +663,7 @@ class TableSchemeEntry(scheme.SchemeEntry):
 @_bad_session_handler
 def _wrap_describe_table_response(response_pb, sesssion_state):
     issues._process_response(response_pb)
-    message = ydb_table_pb2.DescribeTableResult()
+    message = _apis.ydb_table.DescribeTableResult()
     response_pb.result.Unpack(message)
     return scheme._wrap_scheme_entry(
         message.self,
@@ -703,7 +684,7 @@ def _cleanup_session(response_pb, session_state, session):
 @_bad_session_handler
 def _initialize_session(response_pb, session_state, session):
     issues._process_response(response_pb)
-    message = ydb_table_pb2.CreateSessionResult()
+    message = _apis.ydb_table.CreateSessionResult()
     response_pb.result.Unpack(message)
     session_state.set_id(message.session_id)
     return session
@@ -721,12 +702,12 @@ def _wrap_keep_alive_response(response_pb, session_state, session):
 
 
 def _keep_alive_request_factory(session_state):
-    request = ydb_table_pb2.KeepAliveRequest()
+    request = _apis.ydb_table.KeepAliveRequest()
     return session_state.attach_request(request)
 
 
 def _read_table_request_factory(session_state, path, key_range=None, columns=None, ordered=False, row_limit=None):
-    request = ydb_table_pb2.ReadTableRequest()
+    request = _apis.ydb_table.ReadTableRequest()
     request.path = path
     request.ordered = ordered
     if key_range is not None and key_range.from_bound is not None:
@@ -838,7 +819,7 @@ class Session(object):
         :return: WrappedSyncResponseIterator instance
         """
         request = _read_table_request_factory(self._state, path, key_range, columns, ordered, row_limit)
-        stream_it = self._driver(request, ydb_table_v1_pb2_grpc.TableServiceStub, _StreamReadTable)
+        stream_it = self._driver(request, _apis.TableService.Stub, _apis.TableService.StreamReadTable)
         return WrappedSyncResponseIterator(stream_it, _wrap_read_table_response)
 
     def async_read_table(self, path, key_range=None, columns=(), ordered=False, row_limit=None):
@@ -854,14 +835,14 @@ class Session(object):
         if interceptor is None:
             raise RuntimeError("Async read table is not available due to import issues")
         request = _read_table_request_factory(self._state, path, key_range, columns, ordered, row_limit)
-        stream_it = self._driver(request, ydb_table_v1_pb2_grpc.TableServiceStub, _StreamReadTable)
+        stream_it = self._driver(request, _apis.TableService.Stub, _apis.TableService.StreamReadTable)
         return AsyncWrappedAsyncResponseIterator(stream_it, _wrap_read_table_response)
 
     def keep_alive(self, settings=None):
         return self._driver(
             _keep_alive_request_factory(self._state),
-            ydb_table_v1_pb2_grpc.TableServiceStub,
-            _KeepAlive,
+            _apis.TableService.Stub,
+            _apis.TableService.KeepAlive,
             _wrap_keep_alive_response,
             settings,
             (
@@ -873,8 +854,8 @@ class Session(object):
     def async_keep_alive(self, settings=None):
         return self._driver(
             _keep_alive_request_factory(self._state),
-            ydb_table_v1_pb2_grpc.TableServiceStub,
-            _KeepAlive,
+            _apis.TableService.Stub,
+            _apis.TableService.KeepAlive,
             _wrap_keep_alive_response,
             settings,
             (
@@ -887,9 +868,9 @@ class Session(object):
         if self._state.session_id is not None:
             return _utilities.wrap_result_in_future(self)
         return self._driver.future(
-            ydb_table_pb2.CreateSessionRequest(),
-            ydb_table_v1_pb2_grpc.TableServiceStub,
-            _CreateSession,
+            _apis.ydb_table.CreateSessionRequest(),
+            _apis.TableService.Stub,
+            _apis.TableService.CreateSession,
             _initialize_session,
             settings,
             (
@@ -902,9 +883,9 @@ class Session(object):
         if self._state.session_id is not None:
             return self
         return self._driver(
-            ydb_table_pb2.CreateSessionRequest(),
-            ydb_table_v1_pb2_grpc.TableServiceStub,
-            _CreateSession,
+            _apis.ydb_table.CreateSessionRequest(),
+            _apis.TableService.Stub,
+            _apis.TableService.CreateSession,
             _initialize_session,
             settings,
             (
@@ -915,9 +896,9 @@ class Session(object):
 
     def async_delete(self, settings=None):
         return self._driver.future(
-            self._state.attach_request(ydb_table_pb2.DeleteSessionRequest()),
-            ydb_table_v1_pb2_grpc.TableServiceStub,
-            _DeleteSession,
+            self._state.attach_request(_apis.ydb_table.DeleteSessionRequest()),
+            _apis.TableService.Stub,
+            _apis.TableService.DeleteSession,
             _cleanup_session,
             settings,
             (
@@ -928,9 +909,9 @@ class Session(object):
 
     def delete(self, settings=None):
         return self._driver(
-            self._state.attach_request(ydb_table_pb2.DeleteSessionRequest()),
-            ydb_table_v1_pb2_grpc.TableServiceStub,
-            _DeleteSession,
+            self._state.attach_request(_apis.ydb_table.DeleteSessionRequest()),
+            _apis.TableService.Stub,
+            _apis.TableService.DeleteSession,
             _cleanup_session,
             settings,
             (
@@ -940,15 +921,15 @@ class Session(object):
         )
 
     def _execute_scheme_request_factory(self, yql_text):
-        request = self._state.attach_request(ydb_table_pb2.ExecuteSchemeQueryRequest())
+        request = self._state.attach_request(_apis.ydb_table.ExecuteSchemeQueryRequest())
         request.yql_text = yql_text
         return request
 
     def async_execute_scheme(self, yql_text, settings=None):
         return self._driver.future(
             self._execute_scheme_request_factory(yql_text),
-            ydb_table_v1_pb2_grpc.TableServiceStub,
-            _ExecuteSchemeQuery,
+            _apis.TableService.Stub,
+            _apis.TableService.ExecuteSchemeQuery,
             _wrap_execute_scheme_result,
             settings,
             (
@@ -959,8 +940,8 @@ class Session(object):
     def execute_scheme(self, yql_text, settings=None):
         return self._driver(
             self._execute_scheme_request_factory(yql_text),
-            ydb_table_v1_pb2_grpc.TableServiceStub,
-            _ExecuteSchemeQuery,
+            _apis.TableService.Stub,
+            _apis.TableService.ExecuteSchemeQuery,
             _wrap_execute_scheme_result,
             settings,
             (
@@ -972,7 +953,7 @@ class Session(object):
         return TxContext(self._driver, self._state, self, tx_mode)
 
     def _prepare_request_factory(self, yql_text):
-        request = self._state.attach_request(ydb_table_pb2.PrepareDataQueryRequest())
+        request = self._state.attach_request(_apis.ydb_table.PrepareDataQueryRequest())
         request.yql_text = yql_text
         return request
 
@@ -985,8 +966,8 @@ class Session(object):
             return _utilities.wrap_result_in_future(data_query)
         return self._driver.future(
             self._prepare_request_factory(query),
-            ydb_table_v1_pb2_grpc.TableServiceStub,
-            _PrepareDataQuery,
+            _apis.TableService.Stub,
+            _apis.TableService.PrepareDataQuery,
             _wrap_prepare_query_response,
             settings,
             (
@@ -1001,8 +982,8 @@ class Session(object):
             return data_query
         return self._driver(
             self._prepare_request_factory(query),
-            ydb_table_v1_pb2_grpc.TableServiceStub,
-            _PrepareDataQuery,
+            _apis.TableService.Stub,
+            _apis.TableService.PrepareDataQuery,
             _wrap_prepare_query_response,
             settings,
             (
@@ -1014,8 +995,8 @@ class Session(object):
     def async_create_table(self, path, table_description, settings=None):
         return self._driver.future(
             self._state.attach_request(_create_table_request_factory(path, table_description)),
-            ydb_table_v1_pb2_grpc.TableServiceStub,
-            _CreateTable,
+            _apis.TableService.Stub,
+            _apis.TableService.CreateTable,
             _wrap_operation,
             settings,
             (
@@ -1026,8 +1007,8 @@ class Session(object):
     def create_table(self, path, table_description, settings=None):
         return self._driver(
             self._state.attach_request(_create_table_request_factory(path, table_description)),
-            ydb_table_v1_pb2_grpc.TableServiceStub,
-            _CreateTable,
+            _apis.TableService.Stub,
+            _apis.TableService.CreateTable,
             _wrap_operation,
             settings,
             (
@@ -1037,9 +1018,9 @@ class Session(object):
 
     def async_drop_table(self, path, settings=None):
         return self._driver.future(
-            self._state.attach_request(ydb_table_pb2.DropTableRequest(path=path)),
-            ydb_table_v1_pb2_grpc.TableServiceStub,
-            _DropTable,
+            self._state.attach_request(_apis.ydb_table.DropTableRequest(path=path)),
+            _apis.TableService.Stub,
+            _apis.TableService.DropTable,
             _wrap_operation,
             settings,
             (
@@ -1049,9 +1030,9 @@ class Session(object):
 
     def drop_table(self, path, settings=None):
         return self._driver(
-            self._state.attach_request(ydb_table_pb2.DropTableRequest(path=path)),
-            ydb_table_v1_pb2_grpc.TableServiceStub,
-            _DropTable,
+            self._state.attach_request(_apis.ydb_table.DropTableRequest(path=path)),
+            _apis.TableService.Stub,
+            _apis.TableService.DropTable,
             _wrap_operation,
             settings,
             (
@@ -1060,7 +1041,7 @@ class Session(object):
         )
 
     def _async_alter_table(self, path, add_columns, drop_columns):
-        request = self._state.attach_request(ydb_table_pb2.AlterTableRequest(path=path))
+        request = self._state.attach_request(_apis.ydb_table.AlterTableRequest(path=path))
         for column in add_columns:
             request.add_columns.add(name=column.name, type=column.type_pb)
         request.drop_columns.extend(list(drop_columns))
@@ -1069,8 +1050,8 @@ class Session(object):
     def async_alter_table(self, path, add_columns, drop_columns, settings=None):
         return self._driver.future(
             self._async_alter_table(path, add_columns, drop_columns),
-            ydb_table_v1_pb2_grpc.TableServiceStub,
-            _AlterTable,
+            _apis.TableService.Stub,
+            _apis.TableService.AlterTable,
             _wrap_operation,
             settings,
             (
@@ -1081,8 +1062,8 @@ class Session(object):
     def alter_table(self, path, add_columns, drop_columns, settings=None):
         return self._driver(
             self._async_alter_table(path, add_columns, drop_columns),
-            ydb_table_v1_pb2_grpc.TableServiceStub,
-            _AlterTable,
+            _apis.TableService.Stub,
+            _apis.TableService.AlterTable,
             _wrap_operation,
             settings,
             (
@@ -1091,7 +1072,7 @@ class Session(object):
         )
 
     def _copy_table_request_factory(self, source_path, destination_path):
-        request = self._state.attach_request(ydb_table_pb2.CopyTableRequest())
+        request = self._state.attach_request(_apis.ydb_table.CopyTableRequest())
         request.source_path = source_path
         request.destination_path = destination_path
         return request
@@ -1099,8 +1080,8 @@ class Session(object):
     def async_copy_table(self, source_path, destination_path, settings=None):
         return self._driver.future(
             self._copy_table_request_factory(source_path, destination_path),
-            ydb_table_v1_pb2_grpc.TableServiceStub,
-            _CopyTable,
+            _apis.TableService.Stub,
+            _apis.TableService.CopyTable,
             _wrap_operation,
             settings,
             (
@@ -1111,8 +1092,8 @@ class Session(object):
     def copy_table(self, source_path, destination_path, settings=None):
         return self._driver(
             self._copy_table_request_factory(source_path, destination_path),
-            ydb_table_v1_pb2_grpc.TableServiceStub,
-            _CopyTable,
+            _apis.TableService.Stub,
+            _apis.TableService.CopyTable,
             _wrap_operation,
             settings,
             (
@@ -1121,7 +1102,7 @@ class Session(object):
         )
 
     def _describe_table_request_factory(self, path, settings=None):
-        request = self._state.attach_request(ydb_table_pb2.DescribeTableRequest())
+        request = self._state.attach_request(_apis.ydb_table.DescribeTableRequest())
         request.path = path
 
         if settings is not None and hasattr(settings, 'include_shard_key_bounds') and settings.include_shard_key_bounds:
@@ -1132,8 +1113,8 @@ class Session(object):
     def async_describe_table(self, path, settings=None):
         return self._driver.future(
             self._describe_table_request_factory(path),
-            ydb_table_v1_pb2_grpc.TableServiceStub,
-            _DescribeTable,
+            _apis.TableService.Stub,
+            _apis.TableService.DescribeTable,
             _wrap_describe_table_response,
             settings,
             (
@@ -1150,8 +1131,8 @@ class Session(object):
         """
         return self._driver(
             self._describe_table_request_factory(path, settings),
-            ydb_table_v1_pb2_grpc.TableServiceStub,
-            _DescribeTable,
+            _apis.TableService.Stub,
+            _apis.TableService.DescribeTable,
             _wrap_describe_table_response,
             settings,
             (
@@ -1178,7 +1159,7 @@ class _TxState(object):
 
 
 def _construct_tx_settings(tx_state):
-    tx_settings = ydb_table_pb2.TransactionSettings()
+    tx_settings = _apis.ydb_table.TransactionSettings()
     mode_property = getattr(tx_settings, tx_state.tx_mode.name)
     mode_property.MergeFrom(tx_state.tx_mode.settings)
     return tx_settings
@@ -1198,7 +1179,7 @@ def _execute_request_factory(session_state, tx_state, query, parameters, commit_
     data_query, query_id = session_state.lookup(query)
     parameters_types = {}
     if query_id is not None:
-        query_pb = ydb_table_pb2.Query(id=query_id)
+        query_pb = _apis.ydb_table.Query(id=query_id)
         parameters_types = data_query.parameters_types
     else:
         if isinstance(query, DataQuery):
@@ -1206,11 +1187,11 @@ def _execute_request_factory(session_state, tx_state, query, parameters, commit_
             parameters_types = query.parameters_types
         else:
             yql_text = query
-        query_pb = ydb_table_pb2.Query(yql_text=yql_text)
-    request = ydb_table_pb2.ExecuteDataQueryRequest(
+        query_pb = _apis.ydb_table.Query(yql_text=yql_text)
+    request = _apis.ydb_table.ExecuteDataQueryRequest(
         parameters=convert.parameters_to_pb(parameters_types, parameters))
     request.query.MergeFrom(query_pb)
-    tx_control = ydb_table_pb2.TransactionControl()
+    tx_control = _apis.ydb_table.TransactionControl()
     tx_control.commit_tx = commit_tx
     if tx_state.tx_id is not None:
         tx_control.tx_id = tx_state.tx_id
@@ -1251,7 +1232,7 @@ def _not_found_handler(func):
 @_not_found_handler
 def _wrap_result_and_tx_id(response_pb, session_state, tx_state, query):
     issues._process_response(response_pb)
-    message = ydb_table_pb2.ExecuteQueryResult()
+    message = _apis.ydb_table.ExecuteQueryResult()
     response_pb.result.Unpack(message)
     tx_state.tx_id = None if not message.tx_meta.id else message.tx_meta.id
     return convert.ResultSets(message.result_sets)
@@ -1269,7 +1250,7 @@ def _wrap_result_on_rollback_or_commit_tx(response_pb, session_state, tx_state, 
 @_bad_session_handler
 def _wrap_tx_begin_response(response_pb, session_state, tx_state, tx):
     issues._process_response(response_pb)
-    message = ydb_table_pb2.BeginTransactionResult()
+    message = _apis.ydb_table.BeginTransactionResult()
     response_pb.result.Unpack(message)
     tx_state.tx_id = message.tx_meta.id
     return tx
@@ -1277,7 +1258,7 @@ def _wrap_tx_begin_response(response_pb, session_state, tx_state, tx):
 
 @_wrap_tx_factory_handler
 def _begin_request_factory(session_state, tx_state):
-    request = ydb_table_pb2.BeginTransactionRequest()
+    request = _apis.ydb_table.BeginTransactionRequest()
     request = session_state.attach_request(request)
     request.tx_settings.MergeFrom(_construct_tx_settings(tx_state))
     return request
@@ -1285,7 +1266,7 @@ def _begin_request_factory(session_state, tx_state):
 
 @_wrap_tx_factory_handler
 def _rollback_request_factory(session_state, tx_state):
-    request = ydb_table_pb2.RollbackTransactionRequest()
+    request = _apis.ydb_table.RollbackTransactionRequest()
     request.tx_id = tx_state.tx_id
     request = session_state.attach_request(request)
     return request
@@ -1296,7 +1277,7 @@ def _commit_request_factory(session_state, tx_state):
     """
     Constructs commit request
     """
-    request = ydb_table_pb2.CommitTransactionRequest()
+    request = _apis.ydb_table.CommitTransactionRequest()
     request.tx_id = tx_state.tx_id
     request = session_state.attach_request(request)
     return request
@@ -1383,8 +1364,8 @@ class TxContext(object):
         """
         return self._driver.future(
             _execute_request_factory(self._session_state, self._tx_state, query, parameters, commit_tx),
-            ydb_table_v1_pb2_grpc.TableServiceStub,
-            _ExecuteDataQuery,
+            _apis.TableService.Stub,
+            _apis.TableService.ExecuteDataQuery,
             _wrap_result_and_tx_id,
             settings,
             (
@@ -1407,8 +1388,8 @@ class TxContext(object):
         """
         return self._driver(
             _execute_request_factory(self._session_state, self._tx_state, query, parameters, commit_tx),
-            ydb_table_v1_pb2_grpc.TableServiceStub,
-            _ExecuteDataQuery,
+            _apis.TableService.Stub,
+            _apis.TableService.ExecuteDataQuery,
             _wrap_result_and_tx_id,
             settings,
             (
@@ -1430,8 +1411,8 @@ class TxContext(object):
             return _utilities.wrap_result_in_future(self)
         return self._driver.future(
             _commit_request_factory(self._session_state, self._tx_state),
-            ydb_table_v1_pb2_grpc.TableServiceStub,
-            _CommitTransaction,
+            _apis.TableService.Stub,
+            _apis.TableService.CommitTransaction,
             _wrap_result_on_rollback_or_commit_tx,
             settings,
             (
@@ -1453,8 +1434,8 @@ class TxContext(object):
             return self
         return self._driver(
             _commit_request_factory(self._session_state, self._tx_state),
-            ydb_table_v1_pb2_grpc.TableServiceStub,
-            _CommitTransaction,
+            _apis.TableService.Stub,
+            _apis.TableService.CommitTransaction,
             _wrap_result_on_rollback_or_commit_tx,
             settings,
             (
@@ -1476,8 +1457,8 @@ class TxContext(object):
             return _utilities.wrap_result_in_future(self)
         return self._driver.future(
             _rollback_request_factory(self._session_state, self._tx_state),
-            ydb_table_v1_pb2_grpc.TableServiceStub,
-            _RollbackTransaction,
+            _apis.TableService.Stub,
+            _apis.TableService.RollbackTransaction,
             _wrap_result_on_rollback_or_commit_tx,
             settings,
             (
@@ -1499,8 +1480,8 @@ class TxContext(object):
             return self
         return self._driver(
             _rollback_request_factory(self._session_state, self._tx_state),
-            ydb_table_v1_pb2_grpc.TableServiceStub,
-            _RollbackTransaction,
+            _apis.TableService.Stub,
+            _apis.TableService.RollbackTransaction,
             _wrap_result_on_rollback_or_commit_tx,
             settings,
             (
@@ -1520,8 +1501,8 @@ class TxContext(object):
             return _utilities.wrap_result_in_future(self)
         return self._driver.future(
             _begin_request_factory(self._session_state, self._tx_state),
-            ydb_table_v1_pb2_grpc.TableServiceStub,
-            _BeginTransaction,
+            _apis.TableService.Stub,
+            _apis.TableService.BeginTransaction,
             _wrap_tx_begin_response,
             settings,
             (
@@ -1541,8 +1522,8 @@ class TxContext(object):
             return self
         return self._driver(
             _begin_request_factory(self._session_state, self._tx_state),
-            ydb_table_v1_pb2_grpc.TableServiceStub,
-            _BeginTransaction,
+            _apis.TableService.Stub,
+            _apis.TableService.BeginTransaction,
             _wrap_tx_begin_response,
             settings,
             (
