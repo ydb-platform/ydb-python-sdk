@@ -7,3 +7,7 @@ from .types import *  # noqa
 from .scheme import *  # noqa
 from .settings import *  # noqa
 from .resolver import *  # noqa
+try:
+    from .frameworks import *  # noqa
+except ImportError:
+    pass
