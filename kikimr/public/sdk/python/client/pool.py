@@ -57,7 +57,7 @@ class ConnectionsCache(object):
 
     def values(self):
         with self.lock:
-            return self.connections.values()
+            return list(self.connections.values())
 
     def make_outdated(self, connection):
         with self.lock:
@@ -66,14 +66,14 @@ class ConnectionsCache(object):
 
     def cleanup_outdated(self):
         with self.lock:
-            outdated_connections = self.outdated.values()
+            outdated_connections = list(self.outdated.values())
             for outdated_connection in outdated_connections:
                 outdated_connection.close()
         return self
 
     def cleanup(self):
         with self.lock:
-            actual_connections = self.connections.values()
+            actual_connections = list(self.connections.values())
             for connection in actual_connections:
                 connection.close()
 
