@@ -7,32 +7,32 @@ import basic_example_data
 
 FillDataQuery = """PRAGMA TablePathPrefix("{}");
 
-DECLARE $seriesData AS "List<Struct<
+DECLARE $seriesData AS List<Struct<
     series_id: Uint64,
     title: Utf8,
     series_info: Utf8,
-    release_date: Date>>";
+    release_date: Date>>;
 
-DECLARE $seasonsData AS "List<Struct<
+DECLARE $seasonsData AS List<Struct<
     series_id: Uint64,
     season_id: Uint64,
     title: Utf8,
     first_aired: Date,
-    last_aired: Date>>";
+    last_aired: Date>>;
 
-DECLARE $episodesData AS "List<Struct<
+DECLARE $episodesData AS List<Struct<
     series_id: Uint64,
     season_id: Uint64,
     episode_id: Uint64,
     title: Utf8,
-    air_date: Date>>";
+    air_date: Date>>;
 
 REPLACE INTO series
 SELECT
     series_id,
     title,
     series_info,
-    DateTime::ToDays(release_date) AS release_date
+    CAST(release_date AS Uint64) AS release_date
 FROM AS_TABLE($seriesData);
 
 REPLACE INTO seasons
@@ -40,8 +40,8 @@ SELECT
     series_id,
     season_id,
     title,
-    DateTime::ToDays(first_aired) AS first_aired,
-    DateTime::ToDays(last_aired) AS last_aired
+    CAST(first_aired AS Uint64) AS first_aired,
+    CAST(last_aired AS Uint64) AS last_aired
 FROM AS_TABLE($seasonsData);
 
 REPLACE INTO episodes
@@ -50,7 +50,7 @@ SELECT
     season_id,
     episode_id,
     title,
-    DateTime::ToDays(air_date) AS air_date
+    CAST(air_date AS Uint64) AS air_date
 FROM AS_TABLE($episodesData);
 """
 
@@ -76,7 +76,10 @@ def select_simple(session, path):
     result_sets = session.transaction(ydb.SerializableReadWrite()).execute(
         """
         PRAGMA TablePathPrefix("{}");
-        SELECT series_id, title, DateTime::ToDate(DateTime::FromDays(release_date)) AS release_date
+        $format = DateTime::Format("%Y-%m-%d");
+        SELECT series_id,
+               title,
+               $format(DateTime::FromSeconds(CAST(DateTime::ToSeconds(DateTime::IntervalFromDays(CAST(release_date AS Int16))) AS Uint32))) AS release_date
         FROM series
         WHERE series_id = 1;
         """.format(path),
@@ -107,8 +110,10 @@ def select_prepared(session, path, series_id, season_id, episode_id):
     DECLARE $seriesId AS Uint64;
     DECLARE $seasonId AS Uint64;
     DECLARE $episodeId AS Uint64;
+    $format = DateTime::Format("%Y-%m-%d");
 
-    SELECT title, DateTime::ToDate(DateTime::FromDays(air_date)) as air_date
+    SELECT title,
+           $format(DateTime::FromSeconds(CAST(DateTime::ToSeconds(DateTime::IntervalFromDays(CAST(air_date AS Int16))) AS Uint32))) AS air_date
     FROM episodes
     WHERE series_id = $seriesId AND season_id = $seasonId AND episode_id = $episodeId;
     """.format(path)
@@ -142,7 +147,7 @@ def explicit_tcl(session, path, series_id, season_id, episode_id):
     DECLARE $episodeId AS Uint64;
 
     UPDATE episodes
-    SET air_date = DateTime::ToDays(DateTime::TimestampFromString("2018-09-11T15:15:59.373006Z"))
+    SET air_date = CAST(CurrentUtcDate() AS Uint64)
     WHERE series_id = $seriesId AND season_id = $seasonId AND episode_id = $episodeId;
     """.format(path)
     prepared_query = session.prepare(query)
