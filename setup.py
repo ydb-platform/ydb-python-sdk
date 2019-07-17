@@ -4,7 +4,7 @@ import setuptools
 
 setuptools.setup(
     name='ydb',
-    version='0.0.27',
+    version='0.0.28',
     description='YDB Python library',
     author='Yandex LLC',
     author_email='ydb@yandex-team.ru',
