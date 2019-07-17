@@ -1,12 +1,7 @@
 # -*- coding: utf-8 -*-
-try:
-    from . import ydb_cms_v1_pb2_grpc, ydb_discovery_v1_pb2_grpc, ydb_scheme_v1_pb2_grpc, ydb_table_v1_pb2_grpc
-    from . import ydb_status_codes_pb2, ydb_discovery_pb2, ydb_scheme_pb2, ydb_table_pb2, ydb_value_pb2
-    from . import yql_types_pb2
-except ImportError:
-    from kikimr.public.api.grpc import ydb_cms_v1_pb2_grpc, ydb_discovery_v1_pb2_grpc, ydb_scheme_v1_pb2_grpc, ydb_table_v1_pb2_grpc
-    from kikimr.public.api.protos import ydb_status_codes_pb2, ydb_discovery_pb2, ydb_scheme_pb2, ydb_table_pb2, ydb_value_pb2
-    from yql.public.types import yql_types_pb2
+from kikimr.public.api.grpc import ydb_cms_v1_pb2_grpc, ydb_discovery_v1_pb2_grpc, ydb_scheme_v1_pb2_grpc, ydb_table_v1_pb2_grpc
+from kikimr.public.api.protos import ydb_status_codes_pb2, ydb_discovery_pb2, ydb_scheme_pb2, ydb_table_pb2, ydb_value_pb2
+from yql.public.types import yql_types_pb2
 
 
 StatusIds = ydb_status_codes_pb2.StatusIds
