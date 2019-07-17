@@ -104,7 +104,7 @@ def _on_response_callback(rpc_state, call_state_unref, wrap_result=None, on_disc
         logger.debug("%s: on response callback started", rpc_state)
         response = rpc_state.response_future.result()
         _log_response(rpc_state, response)
-        response = response if wrap_result is None else wrap_result(response.operation, *wrap_args)
+        response = response if wrap_result is None else wrap_result(rpc_state, response.operation, *wrap_args)
         rpc_state.result_future.set_result(response)
         logger.debug("%s: on response callback success", rpc_state)
     except grpc.FutureCancelledError as e:
@@ -176,15 +176,16 @@ def _construct_channel_options(driver_config):
 
 
 class _RpcState(object):
-    __slots__ = ('rpc', 'request_id', 'response_future', 'result_future', 'rpc_name')
+    __slots__ = ('rpc', 'request_id', 'response_future', 'result_future', 'rpc_name', 'endpoint')
 
-    def __init__(self, stub_instance, rpc_name):
+    def __init__(self, stub_instance, rpc_name, endpoint):
         """Stores all RPC related data"""
         self.rpc_name = rpc_name
         self.rpc = getattr(stub_instance, rpc_name)
         self.request_id = uuid.uuid4()
         self.response_future = None
         self.result_future = None
+        self.endpoint = endpoint
 
     def __str__(self):
         return "RpcState(%s, %s)" % (self.rpc_name, self.request_id)
@@ -237,7 +238,7 @@ class Connection(object):
 
     def _prepare_call(self, stub, rpc_name, request, settings):
         timeout, metadata = _get_request_timeout(settings), _construct_metadata(self._driver_config, settings)
-        rpc_state = _RpcState(self._stub_instances[stub], rpc_name)
+        rpc_state = _RpcState(self._stub_instances[stub], rpc_name, self.endpoint)
         logger.debug("%s: creating call state", rpc_state)
         with self.lock:
             if self.closing:
@@ -297,7 +298,7 @@ class Connection(object):
         try:
             response = rpc_state(request, timeout, metadata)
             _log_response(rpc_state, response)
-            return response if wrap_result is None else wrap_result(response.operation, *wrap_args)
+            return response if wrap_result is None else wrap_result(rpc_state, response.operation, *wrap_args)
         except grpc.RpcError as rpc_error:
             raise _rpc_error_handler(rpc_state, rpc_error, on_disconnected)
         finally:

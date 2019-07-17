@@ -54,7 +54,7 @@ class DiscoveryResult(object):
         return self.__str__()
 
     @classmethod
-    def from_response(cls, response):
+    def from_response(cls, rpc_state, response):
         issues._process_response(response)
         message = _apis.ydb_discovery.ListEndpointsResult()
         response.result.Unpack(message)

@@ -111,9 +111,9 @@ class Column(object):
 
 def _bad_session_handler(func):
     @functools.wraps(func)
-    def decorator(response_pb, session_state, *args, **kwargs):
+    def decorator(rpc_state, response_pb, session_state, *args, **kwargs):
         try:
-            return func(response_pb, session_state, *args, **kwargs)
+            return func(rpc_state, response_pb, session_state, *args, **kwargs)
         except (issues.BadSession, issues.SessionExpired):
             session_state.reset()
             raise
@@ -584,7 +584,7 @@ def _prepare_request_factory(session_state, yql_text):
 
 
 @_bad_session_handler
-def _wrap_prepare_query_response(response_pb, session_state, yql_text):
+def _wrap_prepare_query_response(rpc_state, response_pb, session_state, yql_text):
     session_state.complete_query()
     issues._process_response(response_pb)
     message = _apis.ydb_table.PrepareQueryResult()
@@ -600,6 +600,7 @@ class _SessionState(object):
         self._query_cache = _utilities.LRUCache(1000)
         self._default = (None, None)
         self._pending_query = False
+        self._endpoint = None
 
     def __contains__(self, query):
         return self.lookup(query) != self._default
@@ -608,6 +609,15 @@ class _SessionState(object):
         self._query_cache = _utilities.LRUCache(1000)
         self._session_id = None
         self._pending_query = False
+        self._endpoint = None
+
+    def attach_endpoint(self, endpoint):
+        self._endpoint = endpoint
+        return self
+
+    @property
+    def endpoint(self):
+        return self._endpoint
 
     @property
     def session_id(self):
@@ -658,7 +668,7 @@ def _execute_scheme_request_factory(session_state, yql_text):
 
 
 @_bad_session_handler
-def _wrap_execute_scheme_result(response_pb, session_state):
+def _wrap_execute_scheme_result(rpc_state, response_pb, session_state):
     session_state.complete_query()
     issues._process_response(response_pb)
     message = _apis.ydb_table.ExecuteQueryResult()
@@ -707,7 +717,7 @@ class TableSchemeEntry(scheme.SchemeEntry):
 
 
 @_bad_session_handler
-def _wrap_describe_table_response(response_pb, sesssion_state):
+def _wrap_describe_table_response(rpc_state, response_pb, sesssion_state):
     issues._process_response(response_pb)
     message = _apis.ydb_table.DescribeTableResult()
     response_pb.result.Unpack(message)
@@ -721,28 +731,28 @@ def _wrap_describe_table_response(response_pb, sesssion_state):
 
 
 @_bad_session_handler
-def _cleanup_session(response_pb, session_state, session):
+def _cleanup_session(rpc_state, response_pb, session_state, session):
     issues._process_response(response_pb)
     session_state.reset()
     return session
 
 
 @_bad_session_handler
-def _initialize_session(response_pb, session_state, session):
+def _initialize_session(rpc_state, response_pb, session_state, session):
     issues._process_response(response_pb)
     message = _apis.ydb_table.CreateSessionResult()
     response_pb.result.Unpack(message)
-    session_state.set_id(message.session_id)
+    session_state.set_id(message.session_id).attach_endpoint(rpc_state.endpoint)
     return session
 
 
 @_bad_session_handler
-def _wrap_operation(response_pb, session_state):
-    return operation.Operation(response_pb)
+def _wrap_operation(rpc_state, response_pb, session_state):
+    return operation.Operation(rpc_state, response_pb)
 
 
 @_bad_session_handler
-def _wrap_keep_alive_response(response_pb, session_state, session):
+def _wrap_keep_alive_response(rpc_state, response_pb, session_state, session):
     issues._process_response(response_pb)
     return session
 
@@ -953,10 +963,8 @@ class Session(object):
             _apis.TableService.KeepAlive,
             _wrap_keep_alive_response,
             settings,
-            (
-                self._state,
-                self
-            )
+            (self._state, self),
+            self._state.endpoint,
         )
 
     @_utilities.wrap_async_call_exceptions
@@ -967,10 +975,8 @@ class Session(object):
             _apis.TableService.KeepAlive,
             _wrap_keep_alive_response,
             settings,
-            (
-                self._state,
-                self
-            )
+            (self._state, self),
+            self._state.endpoint,
         )
 
     @_utilities.wrap_async_call_exceptions
@@ -983,10 +989,8 @@ class Session(object):
             _apis.TableService.CreateSession,
             _initialize_session,
             settings,
-            (
-                self._state,
-                self
-            )
+            (self._state, self),
+            self._state.endpoint,
         )
 
     def create(self, settings=None):
@@ -998,10 +1002,8 @@ class Session(object):
             _apis.TableService.CreateSession,
             _initialize_session,
             settings,
-            (
-                self._state,
-                self
-            )
+            (self._state, self),
+            self._state.endpoint,
         )
 
     @_utilities.wrap_async_call_exceptions
@@ -1012,10 +1014,8 @@ class Session(object):
             _apis.TableService.DeleteSession,
             _cleanup_session,
             settings,
-            (
-                self._state,
-                self
-            )
+            (self._state, self),
+            self._state.endpoint,
         )
 
     def delete(self, settings=None):
@@ -1025,10 +1025,8 @@ class Session(object):
             _apis.TableService.DeleteSession,
             _cleanup_session,
             settings,
-            (
-                self._state,
-                self
-            )
+            (self._state, self),
+            self._state.endpoint,
         )
 
     @_utilities.wrap_async_call_exceptions
@@ -1039,9 +1037,8 @@ class Session(object):
             _apis.TableService.ExecuteSchemeQuery,
             _wrap_execute_scheme_result,
             settings,
-            (
-                self._state,
-            )
+            (self._state,),
+            self._state.endpoint,
         )
 
     def execute_scheme(self, yql_text, settings=None):
@@ -1051,9 +1048,8 @@ class Session(object):
             _apis.TableService.ExecuteSchemeQuery,
             _wrap_execute_scheme_result,
             settings,
-            (
-                self._state,
-            )
+            (self._state,),
+            self._state.endpoint,
         )
 
     def transaction(self, tx_mode=None):
@@ -1073,10 +1069,8 @@ class Session(object):
             _apis.TableService.PrepareDataQuery,
             _wrap_prepare_query_response,
             settings,
-            (
-                self._state,
-                query,
-            )
+            (self._state, query,),
+            self._state.endpoint,
         )
 
     def prepare(self, query, settings=None):
@@ -1089,10 +1083,8 @@ class Session(object):
             _apis.TableService.PrepareDataQuery,
             _wrap_prepare_query_response,
             settings,
-            (
-                self._state,
-                query,
-            )
+            (self._state, query),
+            self._state.endpoint,
         )
 
     @_utilities.wrap_async_call_exceptions
@@ -1103,9 +1095,8 @@ class Session(object):
             _apis.TableService.CreateTable,
             _wrap_operation,
             settings,
-            (
-                self._driver,
-            )
+            (self._driver, ),
+            self._state.endpoint,
         )
 
     def create_table(self, path, table_description, settings=None):
@@ -1115,9 +1106,8 @@ class Session(object):
             _apis.TableService.CreateTable,
             _wrap_operation,
             settings,
-            (
-                self._driver,
-            )
+            (self._driver,),
+            self._state.endpoint,
         )
 
     @_utilities.wrap_async_call_exceptions
@@ -1128,9 +1118,8 @@ class Session(object):
             _apis.TableService.DropTable,
             _wrap_operation,
             settings,
-            (
-                self._state,
-            )
+            (self._state,),
+            self._state.endpoint,
         )
 
     def drop_table(self, path, settings=None):
@@ -1140,9 +1129,8 @@ class Session(object):
             _apis.TableService.DropTable,
             _wrap_operation,
             settings,
-            (
-                self._state,
-            )
+            (self._state,),
+            self._state.endpoint,
         )
 
     def _async_alter_table(self, path, add_columns, drop_columns):
@@ -1160,9 +1148,8 @@ class Session(object):
             _apis.TableService.AlterTable,
             _wrap_operation,
             settings,
-            (
-                self._state,
-            )
+            (self._state,),
+            self._state.endpoint,
         )
 
     def alter_table(self, path, add_columns, drop_columns, settings=None):
@@ -1172,9 +1159,8 @@ class Session(object):
             _apis.TableService.AlterTable,
             _wrap_operation,
             settings,
-            (
-                self._state,
-            )
+            (self._state,),
+            self._state.endpoint,
         )
 
     def _copy_table_request_factory(self, source_path, destination_path):
@@ -1191,9 +1177,8 @@ class Session(object):
             _apis.TableService.CopyTable,
             _wrap_operation,
             settings,
-            (
-                self._state,
-            )
+            (self._state,),
+            self._state.endpoint,
         )
 
     def copy_table(self, source_path, destination_path, settings=None):
@@ -1203,9 +1188,8 @@ class Session(object):
             _apis.TableService.CopyTable,
             _wrap_operation,
             settings,
-            (
-                self._state,
-            )
+            (self._state,),
+            self._state.endpoint,
         )
 
     def _describe_table_request_factory(self, path, settings=None):
@@ -1225,9 +1209,8 @@ class Session(object):
             _apis.TableService.DescribeTable,
             _wrap_describe_table_response,
             settings,
-            (
-                self._state,
-            )
+            (self._state,),
+            self._state.endpoint,
         )
 
     def describe_table(self, path, settings=None):
@@ -1243,9 +1226,8 @@ class Session(object):
             _apis.TableService.DescribeTable,
             _wrap_describe_table_response,
             settings,
-            (
-                self._state,
-            )
+            (self._state,),
+            self._state.endpoint,
         )
 
 
@@ -1318,9 +1300,9 @@ def _execute_request_factory(session_state, tx_state, query, parameters, commit_
 
 def _reset_tx_id_handler(func):
     @functools.wraps(func)
-    def decorator(response_pb, session_state, tx_state, *args, **kwargs):
+    def decorator(rpc_state, response_pb, session_state, tx_state, *args, **kwargs):
         try:
-            return func(response_pb, session_state, tx_state, *args, **kwargs)
+            return func(rpc_state, response_pb, session_state, tx_state, *args, **kwargs)
         except issues.Error:
             tx_state.tx_id = None
             tx_state.dead = True
@@ -1331,9 +1313,9 @@ def _reset_tx_id_handler(func):
 
 def _not_found_handler(func):
     @functools.wraps(func)
-    def decorator(response_pb, session_state, tx_state, query, *args, **kwargs):
+    def decorator(rpc_state, response_pb, session_state, tx_state, query, *args, **kwargs):
         try:
-            return func(response_pb, session_state, tx_state, query, *args, **kwargs)
+            return func(rpc_state, response_pb, session_state, tx_state, query, *args, **kwargs)
         except issues.NotFound:
             session_state.erase(query)
             raise
@@ -1343,7 +1325,7 @@ def _not_found_handler(func):
 @_bad_session_handler
 @_reset_tx_id_handler
 @_not_found_handler
-def _wrap_result_and_tx_id(response_pb, session_state, tx_state, query):
+def _wrap_result_and_tx_id(rpc_state, response_pb, session_state, tx_state, query):
     session_state.complete_query()
     issues._process_response(response_pb)
     message = _apis.ydb_table.ExecuteQueryResult()
@@ -1358,7 +1340,7 @@ def _wrap_result_and_tx_id(response_pb, session_state, tx_state, query):
 
 @_bad_session_handler
 @_reset_tx_id_handler
-def _wrap_result_on_rollback_or_commit_tx(response_pb, session_state, tx_state, tx):
+def _wrap_result_on_rollback_or_commit_tx(rpc_state, response_pb, session_state, tx_state, tx):
     session_state.complete_query()
     issues._process_response(response_pb)
     # transaction successfully committed or rolled back
@@ -1367,7 +1349,7 @@ def _wrap_result_on_rollback_or_commit_tx(response_pb, session_state, tx_state, 
 
 
 @_bad_session_handler
-def _wrap_tx_begin_response(response_pb, session_state, tx_state, tx):
+def _wrap_tx_begin_response(rpc_state, response_pb, session_state, tx_state, tx):
     session_state.complete_query()
     issues._process_response(response_pb)
     message = _apis.ydb_table.BeginTransactionResult()
@@ -1489,11 +1471,8 @@ class TxContext(object):
             _apis.TableService.ExecuteDataQuery,
             _wrap_result_and_tx_id,
             settings,
-            (
-                self._session_state,
-                self._tx_state,
-                query,
-            )
+            (self._session_state, self._tx_state, query,),
+            self._session_state.endpoint,
         )
 
     def execute(self, query, parameters=None, commit_tx=False, settings=None):
@@ -1513,11 +1492,8 @@ class TxContext(object):
             _apis.TableService.ExecuteDataQuery,
             _wrap_result_and_tx_id,
             settings,
-            (
-                self._session_state,
-                self._tx_state,
-                query,
-            )
+            (self._session_state, self._tx_state, query),
+            self._session_state.endpoint,
         )
 
     @_utilities.wrap_async_call_exceptions
@@ -1537,11 +1513,8 @@ class TxContext(object):
             _apis.TableService.CommitTransaction,
             _wrap_result_on_rollback_or_commit_tx,
             settings,
-            (
-                self._session_state,
-                self._tx_state,
-                self
-            )
+            (self._session_state, self._tx_state, self),
+            self._session_state.endpoint,
         )
 
     def commit(self, settings=None):
@@ -1560,11 +1533,8 @@ class TxContext(object):
             _apis.TableService.CommitTransaction,
             _wrap_result_on_rollback_or_commit_tx,
             settings,
-            (
-                self._session_state,
-                self._tx_state,
-                self
-            )
+            (self._session_state, self._tx_state, self),
+            self._session_state.endpoint,
         )
 
     @_utilities.wrap_async_call_exceptions
@@ -1584,11 +1554,8 @@ class TxContext(object):
             _apis.TableService.RollbackTransaction,
             _wrap_result_on_rollback_or_commit_tx,
             settings,
-            (
-                self._session_state,
-                self._tx_state,
-                self
-            )
+            (self._session_state, self._tx_state, self),
+            self._session_state.endpoint,
         )
 
     def rollback(self, settings=None):
@@ -1607,11 +1574,8 @@ class TxContext(object):
             _apis.TableService.RollbackTransaction,
             _wrap_result_on_rollback_or_commit_tx,
             settings,
-            (
-                self._session_state,
-                self._tx_state,
-                self
-            )
+            (self._session_state, self._tx_state, self),
+            self._session_state.endpoint
         )
 
     @_utilities.wrap_async_call_exceptions
@@ -1629,11 +1593,8 @@ class TxContext(object):
             _apis.TableService.BeginTransaction,
             _wrap_tx_begin_response,
             settings,
-            (
-                self._session_state,
-                self._tx_state,
-                self
-            )
+            (self._session_state, self._tx_state, self),
+            self._session_state.endpoint,
         )
 
     def begin(self, settings=None):
@@ -1650,11 +1611,8 @@ class TxContext(object):
             _apis.TableService.BeginTransaction,
             _wrap_tx_begin_response,
             settings,
-            (
-                self._session_state,
-                self._tx_state,
-                self
-            )
+            (self._session_state, self._tx_state, self),
+            self._session_state.endpoint,
         )
 
 
