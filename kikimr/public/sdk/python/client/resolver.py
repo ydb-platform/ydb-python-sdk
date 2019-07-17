@@ -2,6 +2,7 @@
 import logging
 import threading
 import time
+import random
 from . import connection as conn_impl, issues, settings as settings_impl, _apis
 
 logger = logging.getLogger(__name__)
@@ -40,12 +41,12 @@ def _list_endpoints_request_factory(connection_params):
 class DiscoveryResult(object):
     def __init__(self, self_location, endpoints):
         self.self_location = self_location
+        endpoints = list(set(endpoints))
+        random.shuffle(endpoints)
         self.endpoints = list(
-            reversed(
-                sorted(
-                    endpoints,
-                    key=lambda x: self.self_location == x.location
-                )
+            sorted(
+                endpoints,
+                key=lambda x: self.self_location != x.location
             )
         )
 
@@ -61,12 +62,9 @@ class DiscoveryResult(object):
         message = _apis.ydb_discovery.ListEndpointsResult()
         response.result.Unpack(message)
         return cls(
-            message.self_location,
-            list(
-                set(
-                    EndpointInfo(info)
-                    for info in message.endpoints
-                )
+            message.self_location, list(
+                EndpointInfo(info)
+                for info in message.endpoints
             )
         )
 
