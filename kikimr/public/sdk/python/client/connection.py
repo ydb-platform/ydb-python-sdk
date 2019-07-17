@@ -3,6 +3,7 @@ import logging
 import copy
 from concurrent import futures
 import uuid
+import threading
 
 from google.protobuf import text_format
 import grpc
@@ -186,26 +187,35 @@ def _construct_channel_options(driver_config):
 
 
 class _RpcState(object):
-    __slots__ = ('_rpc', 'request_id', '_future')
+    __slots__ = ('_rpc', 'request_id', '_future', '_rpc_future')
 
     def __init__(self, stub_instance, rpc_name, request_id):
         """Stores all RPC related data"""
         self._rpc = getattr(stub_instance, rpc_name)
         self.request_id = request_id
         self._future = None
+        self._rpc_future = None
 
     def __call__(self, *args, **kwargs):
         return self._rpc(*args, **kwargs)
 
     def future(self, *args, **kwargs):
-        self._future = self._rpc.future(*args, **kwargs)
-        return self._future
+        self._future = futures.Future()
+        self._rpc_future = self._rpc.future(*args, **kwargs)
+
+        def _cancel_callback(f):
+            """forwards cancel to gPRC future"""
+            if f.cancelled():
+                self._rpc_future.cancel()
+
+        self._future.add_done_callback(_cancel_callback)
+        return self._rpc_future, self._future
 
 
 class Connection(object):
     __slots__ = (
         'endpoint', '_channel', '_call_states', '_stub_instances', '_driver_config', '_cleanup_callbacks',
-        '__weakref__'
+        '__weakref__', 'lock', 'calls', 'closing',
     )
 
     def __init__(self, endpoint, driver_config=None):
@@ -225,22 +235,31 @@ class Connection(object):
         # pre-initialize stubs
         for stub in _stubs_list:
             self._stub_instances[stub] = stub(self._channel)
+        self.lock = threading.RLock()
+        self.calls = 0
+        self.closing = False
 
     def add_cleanup_callback(self, callback):
         self._cleanup_callbacks.append(callback)
 
-    def _call_state(self, request_id, stub, rpc_name, settings, keep_ref=True):
+    def _prepare_call(self, request_id, stub, rpc_name, settings):
         timeout, metadata = _get_request_timeout(settings), _construct_metadata(
             self._driver_config, settings)
         call_state = _RpcState(self._stub_instances[stub], rpc_name, request_id)
         logger.debug("Request_id = %s, creating call state", request_id)
-        if keep_ref:
+        with self.lock:
+            if self.closing:
+                raise issues.ConnectionLost("Couldn't start call")
+            self.calls += 1
             self._call_states[call_state.request_id] = call_state
         return call_state, timeout, metadata
 
-    def _unref_call_state(self, call_state):
-        logger.debug("Request_id = %s, unref call state", call_state.request_id)
-        self._call_states.pop(call_state.request_id)
+    def _finish_call(self, call_state):
+        with self.lock:
+            self.calls -= 1
+            self._call_states.pop(call_state.request_id, None)
+            if self.closing and self.calls == 0:
+                self.destroy()
 
     def future(self, request, stub, rpc_name, wrap_result=None, settings=None, on_disconnected=None, wrap_args=()):
         """
@@ -257,19 +276,11 @@ class Connection(object):
         """
         request_id = uuid.uuid4()
         _log_request(request_id, rpc_name, request)
-        call_state, timeout, metadata = self._call_state(request_id, stub, rpc_name, settings)
-        wrap_future = futures.Future()
-        response_future = call_state.future(request, timeout, metadata)
-
-        def _cancel_callback(f):
-            """forwards cancel to gPRC future"""
-            if f.cancelled():
-                response_future.cancel()
-
-        wrap_future.add_done_callback(_cancel_callback)
+        call_state, timeout, metadata = self._prepare_call(request_id, stub, rpc_name, settings)
+        response_future, wrap_future = call_state.future(request, timeout, metadata)
         response_future.add_done_callback(
             lambda resp_future: _on_response_callback(
-                resp_future, wrap_future, rpc_name, request_id, lambda: self._unref_call_state(call_state),
+                resp_future, wrap_future, rpc_name, request_id, lambda: self._finish_call(call_state),
                 wrap_result, on_disconnected, wrap_args,
             )
         )
@@ -289,9 +300,9 @@ class Connection(object):
         :return: A result of computation
         """
         request_id = uuid.uuid4()
+        _log_request(request_id, rpc_name, request)
+        call_state, timeout, metadata = self._prepare_call(request_id, stub, rpc_name, settings)
         try:
-            _log_request(request_id, rpc_name, request)
-            call_state, timeout, metadata = self._call_state(request_id, stub, rpc_name, settings, keep_ref=False)
             response = call_state(request, timeout, metadata)
             _log_response(request_id, rpc_name, response)
             return response if wrap_result is None else wrap_result(response.operation, *wrap_args)
@@ -301,6 +312,8 @@ class Connection(object):
                 rpc_error,
                 on_disconnected
             )
+        finally:
+            self._finish_call(call_state)
 
     @classmethod
     def ready_factory(cls, endpoint, driver_config, ready_timeout=2):
@@ -330,11 +343,18 @@ class Connection(object):
         :return: None
         """
         logger.info("Closing channel for endpoint %s", self.endpoint)
+        with self.lock:
+            self.closing = True
+
+            for callback in self._cleanup_callbacks:
+                callback(self)
+
+            if self.calls == 0:
+                self.destroy()
+
+    def destroy(self):
         if hasattr(self, '_channel') and hasattr(self._channel, 'close'):
             self._channel.close()
-
-        for callback in self._cleanup_callbacks:
-            callback(self)
 
     def ready_future(self):
         """
