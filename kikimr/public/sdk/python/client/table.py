@@ -1683,7 +1683,7 @@ class _SessionPoolState(object):
 def _process_session(session, pool_state, initializer=None):
     if not session.initialized():
         try:
-            session.create()
+            session.create(settings.BaseRequestSettings().with_timeout(3))
             if initializer is not None:
                 initializer(session)
         except Exception as e:
@@ -1744,8 +1744,6 @@ class SessionPool(object):
         assert size >= 10
 
         self._driver = driver
-        self._stop_guard = threading.Lock()
-        self._stopped = False
         self._pool_state = _SessionPoolState()
         self._exec_pool = futures.ThreadPoolExecutor(workers_threads_count)
         self._pool_thread = _PoolThread(self._exec_pool, self._pool_state, initializer)
@@ -1777,19 +1775,9 @@ class SessionPool(object):
         Experimental method
         :param timeout:
         """
-        with self._stop_guard:
-            if self._stopped:
-                return
-
-            self._stopped = True
-
         self._pool_thread.should_terminate()
         self._pool_thread.join(timeout)
         self._exec_pool.shutdown(wait=False)
-
-    def __del__(self):
-
-        self.stop()
 
 
 class _SessionCheckout(object):
