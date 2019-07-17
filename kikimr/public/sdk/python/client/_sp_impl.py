@@ -55,6 +55,12 @@ class SessionPoolImpl(object):
     def _destroy(self, session):
         with self._lock:
             self._active_count -= 1
+            if len(self._waiters) > 0:
+                # we have a waiter that should be replied, so we have to prepare replacement
+                self._prepare(self._create())
+
+        if session.initialized():
+            session.async_delete(self._req_settings)
 
     def put(self, session):
         with self._lock:
