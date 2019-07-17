@@ -66,7 +66,11 @@ class SessionPoolImpl(object):
         raise StopIteration()
 
     def _delayed_prepare(self, session):
-        self._driver.wait(self._driver_await_timeout)
+        try:
+            self._driver.wait(self._driver_await_timeout)
+        except futures.TimeoutError:
+            pass
+
         self._prepare(session)
 
     def pick(self):
