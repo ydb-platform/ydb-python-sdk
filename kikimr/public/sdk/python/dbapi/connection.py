@@ -18,9 +18,11 @@ class Connection(object):
     def __init__(self, endpoint=None, host=None, port=None, db=None, database=None):
         self.endpoint = endpoint or self._create_endpoint(host, port)
         self.database = database or db
+        if not self.database.startswith('/'):
+            self.database = '/' + self.database
 
         self.driver = self._create_driver(self.endpoint, self.database)
-        self.session = self.driver.table_client.session().create()
+        self.session = ydb.retry_operation_sync(lambda: self.driver.table_client.session().create())
 
     def cursor(self):
         return Cursor(self)
