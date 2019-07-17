@@ -2,6 +2,7 @@
 import six
 import codecs
 from concurrent import futures
+import functools
 import hashlib
 import collections
 
@@ -10,6 +11,23 @@ def wrap_result_in_future(result):
     f = futures.Future()
     f.set_result(result)
     return f
+
+
+def wrap_exception_in_future(exc):
+    f = futures.Future()
+    f.set_exception(exc)
+    return f
+
+
+# Decorator that ensures no exceptions are leaked from decorated async call
+def wrap_async_call_exceptions(f):
+    @functools.wraps(f)
+    def decorator(*args, **kwargs):
+        try:
+            return f(*args, **kwargs)
+        except Exception as e:
+            return wrap_exception_in_future(e)
+    return decorator
 
 
 def reply_with_result(f, result):

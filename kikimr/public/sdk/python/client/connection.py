@@ -260,7 +260,7 @@ class Connection(object):
                 # Channel is closing and we have to destroy channel
                 self.destroy()
 
-    def future(self, request, stub, rpc_name, wrap_result=None, settings=None, on_disconnected=None, wrap_args=()):
+    def future(self, request, stub, rpc_name, wrap_result=None, settings=None, wrap_args=(), on_disconnected=None):
         """
         Sends request constructed by client
         :param request: A request constructed by client
@@ -285,7 +285,7 @@ class Connection(object):
         )
         return wrap_future
 
-    def __call__(self, request, stub, rpc_name, wrap_result=None, settings=None, on_disconnected=None, wrap_args=()):
+    def __call__(self, request, stub, rpc_name, wrap_result=None, settings=None, wrap_args=(), on_disconnected=None):
         """
         Synchronously sends request constructed by client library
         :param request: A request constructed by client
