@@ -226,9 +226,8 @@ def delete_expired(session_pool, path, timestamp):
         )
 
 
-def _run(driver, database, path):
+def _run(driver, session_pool, database, path):
     path = ensure_path_exists(driver, database, path)
-    session_pool = ydb.SessionPool(driver, size=10)
     create_tables(session_pool, path)
 
     add_document(
@@ -277,12 +276,14 @@ def run(endpoint, database, path, auth_token):
     try:
         driver = ydb.Driver(driver_config)
         driver.wait(timeout=5)
+        session_pool = ydb.SessionPool(driver, size=10)
     except TimeoutError:
         raise RuntimeError("Connect failed to YDB")
 
     try:
 
-        _run(driver, database, path)
+        _run(driver, session_pool, database, path)
     finally:
 
+        session_pool.stop()
         driver.stop()
