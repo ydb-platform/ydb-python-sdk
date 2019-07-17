@@ -21,7 +21,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='kikimr/public/api/protos/ydb_scripting.proto',
   package='Ydb.Scripting',
   syntax='proto3',
-  serialized_pb=_b('\n,kikimr/public/api/protos/ydb_scripting.proto\x12\rYdb.Scripting\x1a,kikimr/public/api/protos/ydb_operation.proto\x1a(kikimr/public/api/protos/ydb_value.proto\"\xe8\x01\n\x11\x45xecuteYqlRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x0e\n\x06script\x18\x02 \x01(\t\x12\x44\n\nparameters\x18\x03 \x03(\x0b\x32\x30.Ydb.Scripting.ExecuteYqlRequest.ParametersEntry\x1a\x42\n\x0fParametersEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\x1e\n\x05value\x18\x02 \x01(\x0b\x32\x0f.Ydb.TypedValue:\x02\x38\x01\"B\n\x12\x45xecuteYqlResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"7\n\x10\x45xecuteYqlResult\x12#\n\x0bresult_sets\x18\x01 \x03(\x0b\x32\x0e.Ydb.ResultSetB-\n\x17ru.yandex.ydb.scriptingB\x0fScriptingProtos\xf8\x01\x01\x62\x06proto3')
+  serialized_pb=_b('\n,kikimr/public/api/protos/ydb_scripting.proto\x12\rYdb.Scripting\x1a,kikimr/public/api/protos/ydb_operation.proto\x1a(kikimr/public/api/protos/ydb_value.proto\"\xe8\x01\n\x11\x45xecuteYqlRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x0e\n\x06script\x18\x02 \x01(\t\x12\x44\n\nparameters\x18\x03 \x03(\x0b\x32\x30.Ydb.Scripting.ExecuteYqlRequest.ParametersEntry\x1a\x42\n\x0fParametersEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\x1e\n\x05value\x18\x02 \x01(\x0b\x32\x0f.Ydb.TypedValue:\x02\x38\x01\"B\n\x12\x45xecuteYqlResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"7\n\x10\x45xecuteYqlResult\x12#\n\x0bresult_sets\x18\x01 \x03(\x0b\x32\x0e.Ydb.ResultSetB.\n\x18\x63om.yandex.ydb.scriptingB\x0fScriptingProtos\xf8\x01\x01\x62\x06proto3')
   ,
   dependencies=[kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2.DESCRIPTOR,kikimr_dot_public_dot_api_dot_protos_dot_ydb__value__pb2.DESCRIPTOR,])
 
@@ -213,7 +213,7 @@ _sym_db.RegisterMessage(ExecuteYqlResult)
 
 
 DESCRIPTOR.has_options = True
-DESCRIPTOR._options = _descriptor._ParseOptions(descriptor_pb2.FileOptions(), _b('\n\027ru.yandex.ydb.scriptingB\017ScriptingProtos\370\001\001'))
+DESCRIPTOR._options = _descriptor._ParseOptions(descriptor_pb2.FileOptions(), _b('\n\030com.yandex.ydb.scriptingB\017ScriptingProtos\370\001\001'))
 _EXECUTEYQLREQUEST_PARAMETERSENTRY.has_options = True
 _EXECUTEYQLREQUEST_PARAMETERSENTRY._options = _descriptor._ParseOptions(descriptor_pb2.MessageOptions(), _b('8\001'))
 # @@protoc_insertion_point(module_scope)

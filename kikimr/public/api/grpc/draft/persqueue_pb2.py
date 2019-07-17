@@ -20,7 +20,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='kikimr/public/api/grpc/draft/persqueue.proto',
   package='NPersQueue',
   syntax='proto3',
-  serialized_pb=_b('\n,kikimr/public/api/grpc/draft/persqueue.proto\x12\nNPersQueue\x1a.kikimr/public/api/protos/draft/persqueue.proto2\xa1\x01\n\x10PersQueueService\x12G\n\x0cWriteSession\x12\x18.NPersQueue.WriteRequest\x1a\x19.NPersQueue.WriteResponse(\x01\x30\x01\x12\x44\n\x0bReadSession\x12\x17.NPersQueue.ReadRequest\x1a\x18.NPersQueue.ReadResponse(\x01\x30\x01\x42$\n\x13ru.yandex.persqueueB\rPersqueueGrpcb\x06proto3')
+  serialized_pb=_b('\n,kikimr/public/api/grpc/draft/persqueue.proto\x12\nNPersQueue\x1a.kikimr/public/api/protos/draft/persqueue.proto2\xa1\x01\n\x10PersQueueService\x12G\n\x0cWriteSession\x12\x18.NPersQueue.WriteRequest\x1a\x19.NPersQueue.WriteResponse(\x01\x30\x01\x12\x44\n\x0bReadSession\x12\x17.NPersQueue.ReadRequest\x1a\x18.NPersQueue.ReadResponse(\x01\x30\x01\x42%\n\x14\x63om.yandex.persqueueB\rPersqueueGrpcb\x06proto3')
   ,
   dependencies=[kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_persqueue__pb2.DESCRIPTOR,])
 
@@ -30,7 +30,7 @@ _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
 
 DESCRIPTOR.has_options = True
-DESCRIPTOR._options = _descriptor._ParseOptions(descriptor_pb2.FileOptions(), _b('\n\023ru.yandex.persqueueB\rPersqueueGrpc'))
+DESCRIPTOR._options = _descriptor._ParseOptions(descriptor_pb2.FileOptions(), _b('\n\024com.yandex.persqueueB\rPersqueueGrpc'))
 
 _PERSQUEUESERVICE = _descriptor.ServiceDescriptor(
   name='PersQueueService',

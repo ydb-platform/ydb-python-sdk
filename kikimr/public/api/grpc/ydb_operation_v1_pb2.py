@@ -20,7 +20,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='kikimr/public/api/grpc/ydb_operation_v1.proto',
   package='Ydb.Operation.V1',
   syntax='proto3',
-  serialized_pb=_b('\n-kikimr/public/api/grpc/ydb_operation_v1.proto\x12\x10Ydb.Operation.V1\x1a,kikimr/public/api/protos/ydb_operation.proto2m\n\x10OperationService\x12Y\n\x0cGetOperation\x12#.Ydb.Operations.GetOperationRequest\x1a$.Ydb.Operations.GetOperationResponseB\x1c\n\x1aru.yandex.ydb.operation.v1b\x06proto3')
+  serialized_pb=_b('\n-kikimr/public/api/grpc/ydb_operation_v1.proto\x12\x10Ydb.Operation.V1\x1a,kikimr/public/api/protos/ydb_operation.proto2m\n\x10OperationService\x12Y\n\x0cGetOperation\x12#.Ydb.Operations.GetOperationRequest\x1a$.Ydb.Operations.GetOperationResponseB\x1d\n\x1b\x63om.yandex.ydb.operation.v1b\x06proto3')
   ,
   dependencies=[kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2.DESCRIPTOR,])
 
@@ -30,7 +30,7 @@ _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
 
 DESCRIPTOR.has_options = True
-DESCRIPTOR._options = _descriptor._ParseOptions(descriptor_pb2.FileOptions(), _b('\n\032ru.yandex.ydb.operation.v1'))
+DESCRIPTOR._options = _descriptor._ParseOptions(descriptor_pb2.FileOptions(), _b('\n\033com.yandex.ydb.operation.v1'))
 
 _OPERATIONSERVICE = _descriptor.ServiceDescriptor(
   name='OperationService',

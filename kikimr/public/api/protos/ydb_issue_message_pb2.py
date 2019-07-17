@@ -19,7 +19,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='kikimr/public/api/protos/ydb_issue_message.proto',
   package='Ydb.Issue',
   syntax='proto2',
-  serialized_pb=_b('\n0kikimr/public/api/protos/ydb_issue_message.proto\x12\tYdb.Issue\"\x91\x02\n\x0cIssueMessage\x12\x32\n\x08position\x18\x01 \x01(\x0b\x32 .Ydb.Issue.IssueMessage.Position\x12\x0f\n\x07message\x18\x02 \x01(\t\x12\x36\n\x0c\x65nd_position\x18\x03 \x01(\x0b\x32 .Ydb.Issue.IssueMessage.Position\x12\x12\n\nissue_code\x18\x04 \x01(\r\x12\x10\n\x08severity\x18\x05 \x01(\r\x12\'\n\x06issues\x18\x06 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessage\x1a\x35\n\x08Position\x12\x0b\n\x03row\x18\x01 \x01(\r\x12\x0e\n\x06\x63olumn\x18\x02 \x01(\r\x12\x0c\n\x04\x66ile\x18\x03 \x01(\tB\x0f\n\rru.yandex.ydb')
+  serialized_pb=_b('\n0kikimr/public/api/protos/ydb_issue_message.proto\x12\tYdb.Issue\"\x91\x02\n\x0cIssueMessage\x12\x32\n\x08position\x18\x01 \x01(\x0b\x32 .Ydb.Issue.IssueMessage.Position\x12\x0f\n\x07message\x18\x02 \x01(\t\x12\x36\n\x0c\x65nd_position\x18\x03 \x01(\x0b\x32 .Ydb.Issue.IssueMessage.Position\x12\x12\n\nissue_code\x18\x04 \x01(\r\x12\x10\n\x08severity\x18\x05 \x01(\r\x12\'\n\x06issues\x18\x06 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessage\x1a\x35\n\x08Position\x12\x0b\n\x03row\x18\x01 \x01(\r\x12\x0e\n\x06\x63olumn\x18\x02 \x01(\r\x12\x0c\n\x04\x66ile\x18\x03 \x01(\tB\x10\n\x0e\x63om.yandex.ydb')
 )
 
 
@@ -158,5 +158,5 @@ _sym_db.RegisterMessage(IssueMessage.Position)
 
 
 DESCRIPTOR.has_options = True
-DESCRIPTOR._options = _descriptor._ParseOptions(descriptor_pb2.FileOptions(), _b('\n\rru.yandex.ydb'))
+DESCRIPTOR._options = _descriptor._ParseOptions(descriptor_pb2.FileOptions(), _b('\n\016com.yandex.ydb'))
 # @@protoc_insertion_point(module_scope)

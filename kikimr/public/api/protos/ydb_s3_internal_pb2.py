@@ -21,7 +21,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='kikimr/public/api/protos/ydb_s3_internal.proto',
   package='Ydb.S3Internal',
   syntax='proto3',
-  serialized_pb=_b('\n.kikimr/public/api/protos/ydb_s3_internal.proto\x12\x0eYdb.S3Internal\x1a,kikimr/public/api/protos/ydb_operation.proto\x1a(kikimr/public/api/protos/ydb_value.proto\"\x9f\x02\n\x10S3ListingRequest\x12\x12\n\ntable_name\x18\x01 \x01(\t\x12#\n\nkey_prefix\x18\x02 \x01(\x0b\x32\x0f.Ydb.TypedValue\x12\x1a\n\x12path_column_prefix\x18\x03 \x01(\t\x12\x1d\n\x15path_column_delimiter\x18\x04 \x01(\t\x12/\n\x16start_after_key_suffix\x18\x05 \x01(\x0b\x32\x0f.Ydb.TypedValue\x12\x10\n\x08max_keys\x18\x06 \x01(\r\x12\x19\n\x11\x63olumns_to_return\x18\x07 \x03(\t\x12\x39\n\x10operation_params\x18\x08 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\"A\n\x11S3ListingResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"u\n\x0fS3ListingResult\x12\'\n\x0f\x63ommon_prefixes\x18\x01 \x01(\x0b\x32\x0e.Ydb.ResultSet\x12 \n\x08\x63ontents\x18\x02 \x01(\x0b\x32\x0e.Ydb.ResultSet\x12\x17\n\x0fkey_suffix_size\x18\x03 \x01(\rB0\n\x19ru.yandex.ydb.s3_internalB\x10S3InternalProtos\xf8\x01\x01\x62\x06proto3')
+  serialized_pb=_b('\n.kikimr/public/api/protos/ydb_s3_internal.proto\x12\x0eYdb.S3Internal\x1a,kikimr/public/api/protos/ydb_operation.proto\x1a(kikimr/public/api/protos/ydb_value.proto\"\x9f\x02\n\x10S3ListingRequest\x12\x12\n\ntable_name\x18\x01 \x01(\t\x12#\n\nkey_prefix\x18\x02 \x01(\x0b\x32\x0f.Ydb.TypedValue\x12\x1a\n\x12path_column_prefix\x18\x03 \x01(\t\x12\x1d\n\x15path_column_delimiter\x18\x04 \x01(\t\x12/\n\x16start_after_key_suffix\x18\x05 \x01(\x0b\x32\x0f.Ydb.TypedValue\x12\x10\n\x08max_keys\x18\x06 \x01(\r\x12\x19\n\x11\x63olumns_to_return\x18\x07 \x03(\t\x12\x39\n\x10operation_params\x18\x08 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\"A\n\x11S3ListingResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"u\n\x0fS3ListingResult\x12\'\n\x0f\x63ommon_prefixes\x18\x01 \x01(\x0b\x32\x0e.Ydb.ResultSet\x12 \n\x08\x63ontents\x18\x02 \x01(\x0b\x32\x0e.Ydb.ResultSet\x12\x17\n\x0fkey_suffix_size\x18\x03 \x01(\rB1\n\x1a\x63om.yandex.ydb.s3_internalB\x10S3InternalProtos\xf8\x01\x01\x62\x06proto3')
   ,
   dependencies=[kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2.DESCRIPTOR,kikimr_dot_public_dot_api_dot_protos_dot_ydb__value__pb2.DESCRIPTOR,])
 
@@ -217,5 +217,5 @@ _sym_db.RegisterMessage(S3ListingResult)
 
 
 DESCRIPTOR.has_options = True
-DESCRIPTOR._options = _descriptor._ParseOptions(descriptor_pb2.FileOptions(), _b('\n\031ru.yandex.ydb.s3_internalB\020S3InternalProtos\370\001\001'))
+DESCRIPTOR._options = _descriptor._ParseOptions(descriptor_pb2.FileOptions(), _b('\n\032com.yandex.ydb.s3_internalB\020S3InternalProtos\370\001\001'))
 # @@protoc_insertion_point(module_scope)

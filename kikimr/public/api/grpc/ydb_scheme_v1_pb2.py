@@ -20,7 +20,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='kikimr/public/api/grpc/ydb_scheme_v1.proto',
   package='Ydb.Scheme.V1',
   syntax='proto3',
-  serialized_pb=_b('\n*kikimr/public/api/grpc/ydb_scheme_v1.proto\x12\rYdb.Scheme.V1\x1a)kikimr/public/api/protos/ydb_scheme.proto2\xcc\x03\n\rSchemeService\x12T\n\rMakeDirectory\x12 .Ydb.Scheme.MakeDirectoryRequest\x1a!.Ydb.Scheme.MakeDirectoryResponse\x12Z\n\x0fRemoveDirectory\x12\".Ydb.Scheme.RemoveDirectoryRequest\x1a#.Ydb.Scheme.RemoveDirectoryResponse\x12T\n\rListDirectory\x12 .Ydb.Scheme.ListDirectoryRequest\x1a!.Ydb.Scheme.ListDirectoryResponse\x12Q\n\x0c\x44\x65scribePath\x12\x1f.Ydb.Scheme.DescribePathRequest\x1a .Ydb.Scheme.DescribePathResponse\x12`\n\x11ModifyPermissions\x12$.Ydb.Scheme.ModifyPermissionsRequest\x1a%.Ydb.Scheme.ModifyPermissionsResponseB\x19\n\x17ru.yandex.ydb.scheme.v1b\x06proto3')
+  serialized_pb=_b('\n*kikimr/public/api/grpc/ydb_scheme_v1.proto\x12\rYdb.Scheme.V1\x1a)kikimr/public/api/protos/ydb_scheme.proto2\xcc\x03\n\rSchemeService\x12T\n\rMakeDirectory\x12 .Ydb.Scheme.MakeDirectoryRequest\x1a!.Ydb.Scheme.MakeDirectoryResponse\x12Z\n\x0fRemoveDirectory\x12\".Ydb.Scheme.RemoveDirectoryRequest\x1a#.Ydb.Scheme.RemoveDirectoryResponse\x12T\n\rListDirectory\x12 .Ydb.Scheme.ListDirectoryRequest\x1a!.Ydb.Scheme.ListDirectoryResponse\x12Q\n\x0c\x44\x65scribePath\x12\x1f.Ydb.Scheme.DescribePathRequest\x1a .Ydb.Scheme.DescribePathResponse\x12`\n\x11ModifyPermissions\x12$.Ydb.Scheme.ModifyPermissionsRequest\x1a%.Ydb.Scheme.ModifyPermissionsResponseB\x1a\n\x18\x63om.yandex.ydb.scheme.v1b\x06proto3')
   ,
   dependencies=[kikimr_dot_public_dot_api_dot_protos_dot_ydb__scheme__pb2.DESCRIPTOR,])
 
@@ -30,7 +30,7 @@ _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
 
 DESCRIPTOR.has_options = True
-DESCRIPTOR._options = _descriptor._ParseOptions(descriptor_pb2.FileOptions(), _b('\n\027ru.yandex.ydb.scheme.v1'))
+DESCRIPTOR._options = _descriptor._ParseOptions(descriptor_pb2.FileOptions(), _b('\n\030com.yandex.ydb.scheme.v1'))
 
 _SCHEMESERVICE = _descriptor.ServiceDescriptor(
   name='SchemeService',

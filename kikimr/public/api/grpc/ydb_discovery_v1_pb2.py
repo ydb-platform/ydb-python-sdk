@@ -20,7 +20,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='kikimr/public/api/grpc/ydb_discovery_v1.proto',
   package='Ydb.Discovery.V1',
   syntax='proto3',
-  serialized_pb=_b('\n-kikimr/public/api/grpc/ydb_discovery_v1.proto\x12\x10Ydb.Discovery.V1\x1a,kikimr/public/api/protos/ydb_discovery.proto2n\n\x10\x44iscoveryService\x12Z\n\rListEndpoints\x12#.Ydb.Discovery.ListEndpointsRequest\x1a$.Ydb.Discovery.ListEndpointsResponseB\x1c\n\x1aru.yandex.ydb.discovery.v1b\x06proto3')
+  serialized_pb=_b('\n-kikimr/public/api/grpc/ydb_discovery_v1.proto\x12\x10Ydb.Discovery.V1\x1a,kikimr/public/api/protos/ydb_discovery.proto2n\n\x10\x44iscoveryService\x12Z\n\rListEndpoints\x12#.Ydb.Discovery.ListEndpointsRequest\x1a$.Ydb.Discovery.ListEndpointsResponseB\x1d\n\x1b\x63om.yandex.ydb.discovery.v1b\x06proto3')
   ,
   dependencies=[kikimr_dot_public_dot_api_dot_protos_dot_ydb__discovery__pb2.DESCRIPTOR,])
 
@@ -30,7 +30,7 @@ _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
 
 DESCRIPTOR.has_options = True
-DESCRIPTOR._options = _descriptor._ParseOptions(descriptor_pb2.FileOptions(), _b('\n\032ru.yandex.ydb.discovery.v1'))
+DESCRIPTOR._options = _descriptor._ParseOptions(descriptor_pb2.FileOptions(), _b('\n\033com.yandex.ydb.discovery.v1'))
 
 _DISCOVERYSERVICE = _descriptor.ServiceDescriptor(
   name='DiscoveryService',

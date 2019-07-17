@@ -23,7 +23,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='kikimr/public/api/protos/ydb_operation.proto',
   package='Ydb.Operations',
   syntax='proto3',
-  serialized_pb=_b('\n,kikimr/public/api/protos/ydb_operation.proto\x12\x0eYdb.Operations\x1a\x19google/protobuf/any.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x30kikimr/public/api/protos/ydb_issue_message.proto\x1a/kikimr/public/api/protos/ydb_status_codes.proto\"\xfa\x01\n\x0fOperationParams\x12\x45\n\x0eoperation_mode\x18\x01 \x01(\x0e\x32-.Ydb.Operations.OperationParams.OperationMode\x12\x34\n\x11operation_timeout\x18\x02 \x01(\x0b\x32\x19.google.protobuf.Duration\x12/\n\x0c\x63\x61ncel_after\x18\x03 \x01(\x0b\x32\x19.google.protobuf.Duration\"9\n\rOperationMode\x12\x1e\n\x1aOPERATION_MODE_UNSPECIFIED\x10\x00\x12\x08\n\x04SYNC\x10\x01\"!\n\x13GetOperationRequest\x12\n\n\x02id\x18\x01 \x01(\t\"D\n\x14GetOperationResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\xa0\x01\n\tOperation\x12\n\n\x02id\x18\x01 \x01(\t\x12\r\n\x05ready\x18\x02 \x01(\x08\x12)\n\x06status\x18\x03 \x01(\x0e\x32\x19.Ydb.StatusIds.StatusCode\x12\'\n\x06issues\x18\x04 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessage\x12$\n\x06result\x18\x05 \x01(\x0b\x32\x14.google.protobuf.AnyB#\n\rru.yandex.ydbB\x0fOperationProtos\xf8\x01\x01\x62\x06proto3')
+  serialized_pb=_b('\n,kikimr/public/api/protos/ydb_operation.proto\x12\x0eYdb.Operations\x1a\x19google/protobuf/any.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x30kikimr/public/api/protos/ydb_issue_message.proto\x1a/kikimr/public/api/protos/ydb_status_codes.proto\"\xfa\x01\n\x0fOperationParams\x12\x45\n\x0eoperation_mode\x18\x01 \x01(\x0e\x32-.Ydb.Operations.OperationParams.OperationMode\x12\x34\n\x11operation_timeout\x18\x02 \x01(\x0b\x32\x19.google.protobuf.Duration\x12/\n\x0c\x63\x61ncel_after\x18\x03 \x01(\x0b\x32\x19.google.protobuf.Duration\"9\n\rOperationMode\x12\x1e\n\x1aOPERATION_MODE_UNSPECIFIED\x10\x00\x12\x08\n\x04SYNC\x10\x01\"!\n\x13GetOperationRequest\x12\n\n\x02id\x18\x01 \x01(\t\"D\n\x14GetOperationResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\xa0\x01\n\tOperation\x12\n\n\x02id\x18\x01 \x01(\t\x12\r\n\x05ready\x18\x02 \x01(\x08\x12)\n\x06status\x18\x03 \x01(\x0e\x32\x19.Ydb.StatusIds.StatusCode\x12\'\n\x06issues\x18\x04 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessage\x12$\n\x06result\x18\x05 \x01(\x0b\x32\x14.google.protobuf.AnyB$\n\x0e\x63om.yandex.ydbB\x0fOperationProtos\xf8\x01\x01\x62\x06proto3')
   ,
   dependencies=[google_dot_protobuf_dot_any__pb2.DESCRIPTOR,google_dot_protobuf_dot_duration__pb2.DESCRIPTOR,kikimr_dot_public_dot_api_dot_protos_dot_ydb__issue__message__pb2.DESCRIPTOR,kikimr_dot_public_dot_api_dot_protos_dot_ydb__status__codes__pb2.DESCRIPTOR,])
 
@@ -262,5 +262,5 @@ _sym_db.RegisterMessage(Operation)
 
 
 DESCRIPTOR.has_options = True
-DESCRIPTOR._options = _descriptor._ParseOptions(descriptor_pb2.FileOptions(), _b('\n\rru.yandex.ydbB\017OperationProtos\370\001\001'))
+DESCRIPTOR._options = _descriptor._ParseOptions(descriptor_pb2.FileOptions(), _b('\n\016com.yandex.ydbB\017OperationProtos\370\001\001'))
 # @@protoc_insertion_point(module_scope)

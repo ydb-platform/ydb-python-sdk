@@ -19,7 +19,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='kikimr/public/api/protos/ydb_query_stats.proto',
   package='Ydb.TableStats',
   syntax='proto3',
-  serialized_pb=_b('\n.kikimr/public/api/protos/ydb_query_stats.proto\x12\x0eYdb.TableStats\"-\n\x0eOperationStats\x12\x0c\n\x04rows\x18\x01 \x01(\x04\x12\r\n\x05\x62ytes\x18\x02 \x01(\x04\"\xb7\x01\n\x10TableAccessStats\x12\x0c\n\x04name\x18\x01 \x01(\t\x12-\n\x05reads\x18\x03 \x01(\x0b\x32\x1e.Ydb.TableStats.OperationStats\x12/\n\x07updates\x18\x04 \x01(\x0b\x32\x1e.Ydb.TableStats.OperationStats\x12/\n\x07\x64\x65letes\x18\x05 \x01(\x0b\x32\x1e.Ydb.TableStats.OperationStatsJ\x04\x08\x02\x10\x03\"^\n\x0fQueryPhaseStats\x12\x13\n\x0b\x64uration_us\x18\x01 \x01(\x04\x12\x36\n\x0ctable_access\x18\x02 \x03(\x0b\x32 .Ydb.TableStats.TableAccessStats\"C\n\nQueryStats\x12\x35\n\x0cquery_phases\x18\x01 \x03(\x0b\x32\x1f.Ydb.TableStats.QueryPhaseStatsB\x12\n\rru.yandex.ydb\xf8\x01\x01\x62\x06proto3')
+  serialized_pb=_b('\n.kikimr/public/api/protos/ydb_query_stats.proto\x12\x0eYdb.TableStats\"-\n\x0eOperationStats\x12\x0c\n\x04rows\x18\x01 \x01(\x04\x12\r\n\x05\x62ytes\x18\x02 \x01(\x04\"\xb7\x01\n\x10TableAccessStats\x12\x0c\n\x04name\x18\x01 \x01(\t\x12-\n\x05reads\x18\x03 \x01(\x0b\x32\x1e.Ydb.TableStats.OperationStats\x12/\n\x07updates\x18\x04 \x01(\x0b\x32\x1e.Ydb.TableStats.OperationStats\x12/\n\x07\x64\x65letes\x18\x05 \x01(\x0b\x32\x1e.Ydb.TableStats.OperationStatsJ\x04\x08\x02\x10\x03\"^\n\x0fQueryPhaseStats\x12\x13\n\x0b\x64uration_us\x18\x01 \x01(\x04\x12\x36\n\x0ctable_access\x18\x02 \x03(\x0b\x32 .Ydb.TableStats.TableAccessStats\"C\n\nQueryStats\x12\x35\n\x0cquery_phases\x18\x01 \x03(\x0b\x32\x1f.Ydb.TableStats.QueryPhaseStatsB\x13\n\x0e\x63om.yandex.ydb\xf8\x01\x01\x62\x06proto3')
 )
 
 
@@ -224,5 +224,5 @@ _sym_db.RegisterMessage(QueryStats)
 
 
 DESCRIPTOR.has_options = True
-DESCRIPTOR._options = _descriptor._ParseOptions(descriptor_pb2.FileOptions(), _b('\n\rru.yandex.ydb\370\001\001'))
+DESCRIPTOR._options = _descriptor._ParseOptions(descriptor_pb2.FileOptions(), _b('\n\016com.yandex.ydb\370\001\001'))
 # @@protoc_insertion_point(module_scope)
