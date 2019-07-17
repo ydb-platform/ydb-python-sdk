@@ -43,6 +43,7 @@ class Error(Exception):
     def __init__(self, message, issues=None):
         super(Error, self).__init__(message)
         self.issues = issues
+        self.message = message
 
 
 class ConnectionError(Error):
