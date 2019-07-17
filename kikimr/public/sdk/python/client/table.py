@@ -435,11 +435,13 @@ def _create_table_request_factory(path, table_description):
 @six.add_metaclass(abc.ABCMeta)
 class AbstractTransactionModeBuilder(object):
 
-    @abc.abstractproperty
+    @property
+    @abc.abstractmethod
     def name(self):
         pass
 
-    @abc.abstractproperty
+    @property
+    @abc.abstractmethod
     def settings(self):
         pass
 
