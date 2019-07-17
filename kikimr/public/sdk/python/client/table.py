@@ -840,6 +840,9 @@ class Session(object):
         Perform an read table request.
 
         from kikimr.public.sdk.python import client as ydb
+
+        .... initialize driver and session ....
+
         key_prefix_type = ydb.TupleType().add_element(
             ydb.OptionalType(ydb.PrimitiveType.Uint64).add_element(
             ydb.OptionalType(ydb.PrimitiveType.Utf8))
@@ -877,6 +880,9 @@ class Session(object):
         Perform an read table request.
 
         from kikimr.public.sdk.python import client as ydb
+
+        .... initialize driver and session ....
+
         key_prefix_type = ydb.TupleType().add_element(
             ydb.OptionalType(ydb.PrimitiveType.Uint64).add_element(
             ydb.OptionalType(ydb.PrimitiveType.Utf8))
