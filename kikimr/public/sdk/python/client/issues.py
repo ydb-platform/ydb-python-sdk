@@ -28,6 +28,9 @@ class StatusCode(enum.IntEnum):
     ALREADY_EXISTS = _apis.StatusIds.ALREADY_EXISTS
     NOT_FOUND = _apis.StatusIds.NOT_FOUND
     SESSION_EXPIRED = _apis.StatusIds.SESSION_EXPIRED
+    CANCELLED = _apis.StatusIds.CANCELLED
+    UNDETERMINED = _apis.StatusIds.UNDETERMINED
+    UNSUPPORTED = _apis.StatusIds.UNSUPPORTED
 
     CONNECTION_LOST = _TRANSPORT_STATUSES_FIRST + 10
     CONNECTION_FAILURE = _TRANSPORT_STATUSES_FIRST + 20
@@ -128,6 +131,18 @@ class SessionExpired(Error):
     status = StatusCode.SESSION_EXPIRED
 
 
+class Cancelled(Error):
+    status = StatusCode.CANCELLED
+
+
+class Undetermined(Error):
+    status = StatusCode.UNDETERMINED
+
+
+class Unsupported(Error):
+    status = StatusCode.UNSUPPORTED
+
+
 class SessionPoolEmpty(Error, queue.Empty):
     status = StatusCode.SESSION_POOL_EMPTY
 
@@ -156,6 +171,9 @@ _server_side_error_map = {
     StatusCode.ALREADY_EXISTS: AlreadyExists,
     StatusCode.NOT_FOUND: NotFound,
     StatusCode.SESSION_EXPIRED: SessionExpired,
+    StatusCode.CANCELLED: Cancelled,
+    StatusCode.UNDETERMINED: Undetermined,
+    StatusCode.UNSUPPORTED: Unsupported,
 }
 
 
