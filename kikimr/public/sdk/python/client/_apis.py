@@ -48,5 +48,3 @@ class TableService(object):
     RollbackTransaction = 'RollbackTransaction'
     KeepAlive = 'KeepAlive'
     StreamReadTable = 'StreamReadTable'
-
-
