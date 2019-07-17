@@ -577,8 +577,15 @@ class DataQuery(object):
         self.name = _utilities.get_query_hash(self.yql_text) if name is None else name
 
 
+def _prepare_request_factory(session_state, yql_text):
+    request = session_state.start_query().attach_request(_apis.ydb_table.PrepareDataQueryRequest())
+    request.yql_text = yql_text
+    return request
+
+
 @_bad_session_handler
 def _wrap_prepare_query_response(response_pb, session_state, yql_text):
+    session_state.complete_query()
     issues._process_response(response_pb)
     message = _apis.ydb_table.PrepareQueryResult()
     response_pb.result.Unpack(message)
@@ -592,6 +599,7 @@ class _SessionState(object):
         self._session_id = None
         self._query_cache = _utilities.LRUCache(1000)
         self._default = (None, None)
+        self._pending_query = False
 
     def __contains__(self, query):
         return self.lookup(query) != self._default
@@ -599,6 +607,7 @@ class _SessionState(object):
     def reset(self):
         self._query_cache = _utilities.LRUCache(1000)
         self._session_id = None
+        self._pending_query = False
 
     @property
     def session_id(self):
@@ -623,6 +632,18 @@ class _SessionState(object):
         query, query_id = self.lookup(query)
         self._query_cache.erase(query.name)
 
+    def complete_query(self):
+        self._pending_query = False
+        return self
+
+    def start_query(self):
+        if self._pending_query:
+            # don't invalidate session at this point
+            self.reset()
+            raise issues.BadSession("Pending previous query completion!")
+        self._pending_query = True
+        return self
+
     def attach_request(self, request):
         if self._session_id is None:
             raise issues.BadSession("Empty session_id")
@@ -630,8 +651,15 @@ class _SessionState(object):
         return request
 
 
+def _execute_scheme_request_factory(session_state, yql_text):
+    request = session_state.start_query().attach_request(_apis.ydb_table.ExecuteSchemeQueryRequest())
+    request.yql_text = yql_text
+    return request
+
+
 @_bad_session_handler
 def _wrap_execute_scheme_result(response_pb, session_state):
+    session_state.complete_query()
     issues._process_response(response_pb)
     message = _apis.ydb_table.ExecuteQueryResult()
     response_pb.result.Unpack(message)
@@ -1000,14 +1028,9 @@ class Session(object):
             )
         )
 
-    def _execute_scheme_request_factory(self, yql_text):
-        request = self._state.attach_request(_apis.ydb_table.ExecuteSchemeQueryRequest())
-        request.yql_text = yql_text
-        return request
-
     def async_execute_scheme(self, yql_text, settings=None):
         return self._driver.future(
-            self._execute_scheme_request_factory(yql_text),
+            _execute_scheme_request_factory(self._state, yql_text),
             _apis.TableService.Stub,
             _apis.TableService.ExecuteSchemeQuery,
             _wrap_execute_scheme_result,
@@ -1019,7 +1042,7 @@ class Session(object):
 
     def execute_scheme(self, yql_text, settings=None):
         return self._driver(
-            self._execute_scheme_request_factory(yql_text),
+            _execute_scheme_request_factory(self._state, yql_text),
             _apis.TableService.Stub,
             _apis.TableService.ExecuteSchemeQuery,
             _wrap_execute_scheme_result,
@@ -1032,11 +1055,6 @@ class Session(object):
     def transaction(self, tx_mode=None):
         return TxContext(self._driver, self._state, self, tx_mode)
 
-    def _prepare_request_factory(self, yql_text):
-        request = self._state.attach_request(_apis.ydb_table.PrepareDataQueryRequest())
-        request.yql_text = yql_text
-        return request
-
     def has_prepared(self, query):
         return query in self._state
 
@@ -1045,7 +1063,7 @@ class Session(object):
         if data_query is not None:
             return _utilities.wrap_result_in_future(data_query)
         return self._driver.future(
-            self._prepare_request_factory(query),
+            _prepare_request_factory(self._state, query),
             _apis.TableService.Stub,
             _apis.TableService.PrepareDataQuery,
             _wrap_prepare_query_response,
@@ -1061,7 +1079,7 @@ class Session(object):
         if data_query is not None:
             return data_query
         return self._driver(
-            self._prepare_request_factory(query),
+            _prepare_request_factory(self._state, query),
             _apis.TableService.Stub,
             _apis.TableService.PrepareDataQuery,
             _wrap_prepare_query_response,
@@ -1278,7 +1296,7 @@ def _execute_request_factory(session_state, tx_state, query, parameters, commit_
     else:
         tx_control.begin_tx.MergeFrom(_construct_tx_settings(tx_state))
     request.tx_control.MergeFrom(tx_control)
-    request = session_state.attach_request(request)
+    request = session_state.start_query().attach_request(request)
     return request
 
 
@@ -1287,12 +1305,11 @@ def _reset_tx_id_handler(func):
     def decorator(response_pb, session_state, tx_state, *args, **kwargs):
         try:
             return func(response_pb, session_state, tx_state, *args, **kwargs)
-        except issues.ConnectionError:
-            raise
         except issues.Error:
             tx_state.tx_id = None
             tx_state.dead = True
             raise
+
     return decorator
 
 
@@ -1311,6 +1328,7 @@ def _not_found_handler(func):
 @_reset_tx_id_handler
 @_not_found_handler
 def _wrap_result_and_tx_id(response_pb, session_state, tx_state, query):
+    session_state.complete_query()
     issues._process_response(response_pb)
     message = _apis.ydb_table.ExecuteQueryResult()
     response_pb.result.Unpack(message)
@@ -1321,6 +1339,7 @@ def _wrap_result_and_tx_id(response_pb, session_state, tx_state, query):
 @_bad_session_handler
 @_reset_tx_id_handler
 def _wrap_result_on_rollback_or_commit_tx(response_pb, session_state, tx_state, tx):
+    session_state.complete_query()
     issues._process_response(response_pb)
     # transaction successfully committed or rolled back
     tx_state.tx_id = None
@@ -1329,6 +1348,7 @@ def _wrap_result_on_rollback_or_commit_tx(response_pb, session_state, tx_state, 
 
 @_bad_session_handler
 def _wrap_tx_begin_response(response_pb, session_state, tx_state, tx):
+    session_state.complete_query()
     issues._process_response(response_pb)
     message = _apis.ydb_table.BeginTransactionResult()
     response_pb.result.Unpack(message)
@@ -1339,7 +1359,7 @@ def _wrap_tx_begin_response(response_pb, session_state, tx_state, tx):
 @_wrap_tx_factory_handler
 def _begin_request_factory(session_state, tx_state):
     request = _apis.ydb_table.BeginTransactionRequest()
-    request = session_state.attach_request(request)
+    request = session_state.start_query().attach_request(request)
     request.tx_settings.MergeFrom(_construct_tx_settings(tx_state))
     return request
 
@@ -1348,7 +1368,7 @@ def _begin_request_factory(session_state, tx_state):
 def _rollback_request_factory(session_state, tx_state):
     request = _apis.ydb_table.RollbackTransactionRequest()
     request.tx_id = tx_state.tx_id
-    request = session_state.attach_request(request)
+    request = session_state.start_query().attach_request(request)
     return request
 
 
@@ -1359,7 +1379,7 @@ def _commit_request_factory(session_state, tx_state):
     """
     request = _apis.ydb_table.CommitTransactionRequest()
     request.tx_id = tx_state.tx_id
-    request = session_state.attach_request(request)
+    request = session_state.start_query().attach_request(request)
     return request
 
 
