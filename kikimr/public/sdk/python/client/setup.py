@@ -93,7 +93,7 @@ class BuildPackageProtos(setuptools.Command):
 
 setuptools.setup(
     name='ydb',
-    version='0.0.22',
+    version='0.0.23',
     description='Yandex DB Python library',
     author='ydb@',
     author_email='ydb@yandex-team.ru',
