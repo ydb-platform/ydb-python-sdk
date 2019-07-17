@@ -32,7 +32,7 @@ SELECT
     series_id,
     title,
     series_info,
-    DateTime::ToDays(release_date) AS release_date
+    CAST(release_date AS Uint16) AS release_date
 FROM AS_TABLE($seriesData);
 
 REPLACE INTO seasons
@@ -40,8 +40,8 @@ SELECT
     series_id,
     season_id,
     title,
-    DateTime::ToDays(first_aired) AS first_aired,
-    DateTime::ToDays(last_aired) AS last_aired
+    CAST(first_aired AS Uint16) AS first_aired,
+    CAST(last_aired AS Uint16) AS last_aired
 FROM AS_TABLE($seasonsData);
 
 REPLACE INTO episodes
@@ -50,7 +50,7 @@ SELECT
     season_id,
     episode_id,
     title,
-    DateTime::ToDays(air_date) AS air_date
+    CAST(air_date AS Uint16) AS air_date
 FROM AS_TABLE($episodesData);
 """
 
@@ -81,7 +81,7 @@ def select_simple(session_pool, path):
         result_sets = session.transaction(ydb.SerializableReadWrite()).execute(
             """
             PRAGMA TablePathPrefix("{}");
-            SELECT series_id, title, DateTime::ToDate(DateTime::FromDays(release_date)) AS release_date
+            SELECT series_id, title, CAST(release_date AS Date) AS release_date
             FROM series
             WHERE series_id = 1;
             """.format(path),
@@ -116,7 +116,7 @@ def select_prepared(session_pool, path, series_id, season_id, episode_id):
     DECLARE $seasonId AS Uint64;
     DECLARE $episodeId AS Uint64;
 
-    SELECT title, DateTime::ToDate(DateTime::FromDays(air_date)) as air_date
+    SELECT title, CAST(air_date AS Date) as air_date
     FROM episodes
     WHERE series_id = $seriesId AND season_id = $seasonId AND episode_id = $episodeId;
     """.format(path)
@@ -153,7 +153,7 @@ def explicit_tcl(session_pool, path, series_id, season_id, episode_id):
     DECLARE $episodeId AS Uint64;
 
     UPDATE episodes
-    SET air_date = DateTime::ToDays(DateTime::TimestampFromString("2018-09-11T15:15:59.373006Z"))
+    SET air_date = CAST(CAST(CAST("2018-09-11T15:15:59.373006Z" AS Timestamp) AS Date) AS Uint16)
     WHERE series_id = $seriesId AND season_id = $seasonId AND episode_id = $episodeId;
     """.format(path)
 
