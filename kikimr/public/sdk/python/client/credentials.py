@@ -14,10 +14,6 @@ class AbstractCredentials(object):
 
 @six.add_metaclass(abc.ABCMeta)
 class Credentials(object):
-    @abc.abstractproperty
-    def expired(self):
-        pass
-
     @abc.abstractmethod
     def auth_metadata(self):
         """
@@ -29,10 +25,6 @@ class Credentials(object):
 class AuthTokenCredentials(Credentials):
     def __init__(self, token):
         self._token = token
-
-    @property
-    def expired(self):
-        return False
 
     def auth_metadata(self):
         return [

@@ -3,9 +3,7 @@ import enum
 
 from kikimr.public.api.protos import ydb_scheme_pb2
 from kikimr.public.api.grpc import ydb_scheme_v1_pb2_grpc as ydb_scheme_pb2_grpc
-from kikimr.public.sdk.python.client import issues
-from kikimr.public.sdk.python.client import operation
-from kikimr.public.sdk.python.client import settings as settings_impl
+from kikimr.public.sdk.python.client import issues, operation, settings as settings_impl
 
 
 _MakeDirectory = 'MakeDirectory'

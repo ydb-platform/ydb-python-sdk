@@ -5,9 +5,8 @@ from google.protobuf import struct_pb2
 import six
 
 from kikimr.public.api.protos import ydb_value_pb2
-from kikimr.public.sdk.python.client import issues
-from kikimr.public.sdk.python.client import types
 from yql.public.types import yql_types_pb2 as yql_types
+from . import issues, types
 
 
 _SHIFT_BIT_COUNT = 64
