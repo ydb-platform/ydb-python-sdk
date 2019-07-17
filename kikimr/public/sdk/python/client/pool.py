@@ -156,10 +156,10 @@ class Discovery(threading.Thread):
             return self._handle_empty_database()
 
         resolved_endpoints_details = self._resolver.resolve()
-        resolved_endpoints = set(details.endpoint for details in resolved_endpoints_details)
         if resolved_endpoints_details is None:
             return False
 
+        resolved_endpoints = set(details.endpoint for details in resolved_endpoints_details)
         for cached_endpoint in self._cache.values():
             if cached_endpoint.endpoint not in resolved_endpoints:
                 self._cache.make_outdated(cached_endpoint)
