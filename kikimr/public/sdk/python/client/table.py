@@ -202,15 +202,22 @@ class PartitioningPolicy(object):
 
     def to_pb(self, table_description):
         if self.explicit_partitions is not None:
-            split_point_type = types.TupleType()
+            column_types = {}
+            pk = set(table_description.primary_key)
             for column in table_description.columns:
-                if column.name not in table_description.primary_key:
-                    continue
+                if column.name in pk:
+                    column_types[column.name] = column.type
 
-                split_point_type.add_element(
-                    column.type)
             for split_point in self.explicit_partitions.split_points:
                 typed_value = self._pb.explicit_partitions.split_points.add()
+                split_point_type = types.TupleType()
+                prefix_size = len(split_point.value)
+                for pl_el_id, pk_name in enumerate(table_description.primary_key):
+                    if pl_el_id >= prefix_size:
+                        break
+
+                    split_point_type.add_element(column_types[pk_name])
+
                 typed_value.type.MergeFrom(split_point_type.proto)
                 typed_value.value.MergeFrom(
                     convert.from_native_value(
@@ -889,6 +896,46 @@ class Session(object):
         )
 
     def create_table(self, path, table_description, settings=None):
+        """
+        Create a YDB table.
+
+        from kikimr.public.sdk.python import client as ydb
+
+        ... create an instance of Driver ...
+
+        description = (
+            ydb.TableDescription()
+            .with_primary_keys('key1', 'key2')
+            .with_columns(
+                ydb.Column('key1', ydb.OptionalType(ydb.PrimitiveType.Uint64)),
+                ydb.Column('key2', ydb.OptionalType(ydb.PrimitiveType.Uint64)),
+                ydb.Column('value', ydb.OptionalType(ydb.PrimitiveType.Utf8))
+            )
+            .with_profile(
+                ydb.TableProfile()
+                .with_partitioning_policy(
+                    ydb.PartitioningPolicy()
+                    .with_explicit_partitions(
+                        ydb.ExplicitPartitions(
+                            (
+                                ydb.KeyBound((100, )),
+                                ydb.KeyBound((300, 100)),
+                                ydb.KeyBound((400, )),
+                            )
+                        )
+                    )
+                )
+            )
+        )
+
+        session = driver.table_client.session().create()
+        session.create_table('/my/table/', description)
+
+        :param path: A table path
+        :param table_description: A description of table to create. An instance TableDescription
+        :param settings: An instance of BaseRequestSettings that describes how rpc should invoked.
+        :return: A description of created scheme entry or error otherwise.
+        """
         return self._driver(
             _session_impl.create_table_request_factory(self._state, path, table_description),
             _apis.TableService.Stub,
