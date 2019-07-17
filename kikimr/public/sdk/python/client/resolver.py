@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 import logging
+import threading
+import time
 from . import connection as conn_impl, issues, settings as settings_impl, _apis
 
 logger = logging.getLogger(__name__)
@@ -75,12 +77,30 @@ class DiscoveryEndpointsResolver(object):
         self._driver_config = driver_config
         self._request_timeout = 3
         self._ready_timeout = 2
+        self._lock = threading.Lock()
+        self._debug_details_history_size = 20
+        self._debug_details_items = []
+
+    def _add_debug_details(self, message, *args):
+        self.logger.info(message, *args)
+        message = message % args
+        with self._lock:
+            self._debug_details_items.append("timestamp %d: %s" % (int(time.time()), message))
+            if len(self._debug_details_items) > self._debug_details_history_size:
+                self._debug_details_items.pop()
+
+    def debug_details(self):
+        """
+        Returns last resolver errors as a debug string.
+        """
+        with self._lock:
+            return "\n".join(self._debug_details_items)
 
     def resolve(self):
         self.logger.debug("Preparing initial endpoint to resolve endpoints")
         initial = conn_impl.Connection.ready_factory(self._driver_config.endpoint, self._driver_config)
         if initial is None:
-            self.logger.info("Failed to prepare initial endpoint to resolve endpoints")
+            self._add_debug_details("Failed to prepare initial endpoint to resolve endpoints")
             return None
 
         self.logger.debug("Resolving endpoints for database %s", self._driver_config.database)
@@ -95,11 +115,13 @@ class DiscoveryEndpointsResolver(object):
                 )
             )
 
-            self.logger.debug("Resolved endpoints for database %s: %s", self._driver_config.database, resolved)
+            self._add_debug_details(
+                "Resolved endpoints for database %s: %s", self._driver_config.database, resolved)
+
             return resolved
         except Exception as e:
 
-            self.logger.info(
+            self._add_debug_details(
                 "Failed to resolve endpoints for database %s, details: %s", self._driver_config.database, e)
 
         finally:

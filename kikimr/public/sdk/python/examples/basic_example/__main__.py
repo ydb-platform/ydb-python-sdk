@@ -3,6 +3,10 @@ import argparse
 import basic_example
 import logging
 
+INTERESTING_TARGETS = [
+    'kikimr.public.sdk.python.client.resolver.DiscoveryEndpointsResolver',
+    'kikimr.public.sdk.python.client.connection',
+]
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
@@ -16,9 +20,10 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     if args.verbose:
-        logger = logging.getLogger('kikimr.public.sdk.python.client.pool.Discovery')
-        logger.setLevel(logging.INFO)
-        logger.addHandler(logging.StreamHandler())
+        for target in INTERESTING_TARGETS:
+            logger = logging.getLogger(target)
+            logger.setLevel(logging.DEBUG)
+            logger.addHandler(logging.StreamHandler())
 
     basic_example.run(
         args.endpoint,

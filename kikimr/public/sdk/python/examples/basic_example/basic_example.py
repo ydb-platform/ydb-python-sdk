@@ -278,33 +278,30 @@ def run(endpoint, database, path):
     driver_config = ydb.DriverConfig(
         endpoint, database=database, credentials=credentials_from_environ())
 
-    try:
-        driver = ydb.Driver(driver_config)
-        driver.wait(timeout=5)
-        session_pool = ydb.SessionPool(driver, size=10)
-    except TimeoutError:
-        raise RuntimeError("Connect failed to YDB")
+    with ydb.Driver(driver_config) as driver:
+        try:
+            driver.wait(timeout=5)
+        except TimeoutError:
+            print("Connect failed to YDB")
+            print("Last reported errors by discovery:")
+            print(driver.discovery_debug_details())
+            exit(1)
 
-    try:
-        ensure_path_exists(driver, database, path)
+        with ydb.SessionPool(driver, size=10) as session_pool:
+            ensure_path_exists(driver, database, path)
 
-        create_tables(session_pool, database)
+            create_tables(session_pool, database)
 
-        describe_table(session_pool, database, "series")
+            describe_table(session_pool, database, "series")
 
-        fill_tables_with_data(session_pool, database)
+            fill_tables_with_data(session_pool, database)
 
-        select_simple(session_pool, database)
+            select_simple(session_pool, database)
 
-        upsert_simple(session_pool, database)
+            upsert_simple(session_pool, database)
 
-        select_prepared(session_pool, database, 2, 3, 7)
-        select_prepared(session_pool, database, 2, 3, 8)
+            select_prepared(session_pool, database, 2, 3, 7)
+            select_prepared(session_pool, database, 2, 3, 8)
 
-        explicit_tcl(session_pool, database, 2, 6, 1)
-        select_prepared(session_pool, database, 2, 6, 1)
-
-    finally:
-
-        session_pool.stop()
-        driver.stop()
+            explicit_tcl(session_pool, database, 2, 6, 1)
+            select_prepared(session_pool, database, 2, 6, 1)

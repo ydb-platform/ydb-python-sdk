@@ -134,6 +134,9 @@ class Discovery(threading.Thread):
         self._max_size = 9
         self._base_emergency_retry_interval = 1
 
+    def discovery_debug_details(self):
+        return self._resolver.debug_details()
+
     def _emergency_retry_interval(self):
         return (1 + random.random()) * self._base_emergency_retry_interval
 
@@ -262,6 +265,9 @@ class ConnectionPool(object):
         """
         connection.close()
         self._discovery_thread.notify_disconnected()
+
+    def discovery_debug_details(self):
+        return self._discovery_thread.discovery_debug_details()
 
     def __call__(self, request, stub, rpc_name, wrap_result=None, settings=None, wrap_args=(), preferred_endpoint=None):
         """
