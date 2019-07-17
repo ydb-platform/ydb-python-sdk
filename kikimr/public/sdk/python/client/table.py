@@ -52,11 +52,15 @@ class DescribeTableSettings(settings.BaseRequestSettings):
 
 
 class KeyBound(object):
-    __slots__ = ('_equal', 'value')
+    __slots__ = ('_equal', 'value', 'type')
 
-    def __init__(self, value, inclusive=False):
+    def __init__(self, value, inclusive=False, type=None):
         self._equal = inclusive
         self.value = value
+        self.type = type
+
+    def is_inclusive(self):
+        return self._equal
 
     def __str__(self):
         if self._equal:
@@ -64,12 +68,12 @@ class KeyBound(object):
         return 'ExclusiveKeyBound(Tuple%s)' % str(self.value)
 
     @classmethod
-    def inclusive(cls, value):
-        return cls(value, True)
+    def inclusive(cls, value, key_type):
+        return cls(value, True, key_type)
 
     @classmethod
-    def exclusive(cls, value):
-        return cls(value, False)
+    def exclusive(cls, value, key_type):
+        return cls(value, False, key_type)
 
 
 class KeyRange(object):
@@ -610,11 +614,12 @@ class TableSchemeEntry(scheme.SchemeEntry):
         left_key_bound = None
         for shard_key_bound in shard_key_bounds:
             # for next key range
+            key_bound_type = shard_key_bound.type
             current_bound = convert.to_native_value(shard_key_bound)
             self.shard_key_ranges.append(
                 KeyRange(
-                    None if left_key_bound is None else KeyBound.inclusive(left_key_bound),
-                    KeyBound.exclusive(current_bound)
+                    None if left_key_bound is None else KeyBound.inclusive(left_key_bound, key_bound_type),
+                    KeyBound.exclusive(current_bound, key_bound_type)
                 )
             )
             left_key_bound = current_bound
@@ -624,7 +629,7 @@ class TableSchemeEntry(scheme.SchemeEntry):
         if len(shard_key_bounds) > 0:
             self.shard_key_ranges.append(
                 KeyRange(
-                    KeyBound.inclusive(left_key_bound),
+                    KeyBound.inclusive(left_key_bound, shard_key_bounds[-1].type),
                     None,
                 )
             )
@@ -684,6 +689,24 @@ def _read_table_request_factory(session_state, path, key_range=None, columns=Non
     request = ydb_table_pb2.ReadTableRequest()
     request.path = path
     request.ordered = ordered
+    if key_range is not None and key_range.from_bound is not None:
+        target_attribute = 'greater_or_equal' if key_range.from_bound.is_inclusive() else 'greater'
+        getattr(request.key_range, target_attribute).MergeFrom(
+            convert.to_typed_value_from_native(
+                key_range.from_bound.type,
+                key_range.from_bound.value
+            )
+        )
+
+    if key_range is not None and key_range.to_bound is not None:
+        target_attribute = 'less_or_equal' if key_range.to_bound.is_inclusive() else 'less'
+        getattr(request.key_range, target_attribute).MergeFrom(
+            convert.to_typed_value_from_native(
+                key_range.to_bound.type,
+                key_range.to_bound.value
+            )
+        )
+
     if columns is not None:
         for column in columns:
             request.columns.append(column)
@@ -750,10 +773,8 @@ class Session(object):
         :return: WrappedSyncResponseIterator instance
         """
         request = _read_table_request_factory(self._state, path, key_range, columns, ordered, row_limit)
-        return WrappedSyncResponseIterator(
-            self._driver(request, ydb_table_pb2_grpc.TableServiceStub, _StreamReadTable),
-            _wrap_read_table_response,
-        )
+        stream_it = self._driver(request, ydb_table_pb2_grpc.TableServiceStub, _StreamReadTable)
+        return WrappedSyncResponseIterator(stream_it, _wrap_read_table_response)
 
     def async_read_table(self, path, key_range=None, columns=None, ordered=False, row_limit=None):
         """
@@ -766,10 +787,8 @@ class Session(object):
         :return: async iterator instance
         """
         request = _read_table_request_factory(self._state, path, key_range, columns, ordered, row_limit)
-        return interceptor.patch_async_iterator(
-            self._driver(request, ydb_table_pb2_grpc.TableServiceStub, _StreamReadTable),
-            _wrap_read_table_response,
-        )
+        stream_it = self._driver(request, ydb_table_pb2_grpc.TableServiceStub, _StreamReadTable)
+        return interceptor.patch_async_iterator(stream_it, _wrap_read_table_response)
 
     def keep_alive(self, settings=None):
         return self._driver(
