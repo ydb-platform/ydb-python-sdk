@@ -2,9 +2,12 @@
 import collections
 from concurrent import futures
 from six.moves import queue
+import logging
 import time
 import threading
 from . import settings, issues, _utilities
+
+logger = logging.getLogger(__name__)
 
 
 class SessionPoolImpl(object):
@@ -23,9 +26,33 @@ class SessionPoolImpl(object):
         self._spin_timeout = 30
         self._pool_thread = _PoolThread(self)
         self._pool_thread.start()
+        self._logger = logger.getChild(self.__class__.__name__)
 
     def stop(self, timeout):
-        self._should_stop.set()
+        with self._lock:
+            self._logger.debug("Requested session pool stop.")
+            self._should_stop.set()
+
+            self._logger.debug("Session pool is under stop, cancelling all in flight waiters.")
+            while True:
+                try:
+                    _, waiter = self._waiters.popitem(last=False)
+                    session = self._create()
+                    waiter.set_result(session)
+                    self._logger.debug(
+                        "Waiter %s has been replied with empty session info. Session details: %s.", waiter, session)
+                except KeyError:
+                    break
+
+            self._logger.debug("Destroying sessions in active queue")
+            while True:
+                try:
+                    _, session = self._active_queue.get(block=False)
+                    self._destroy(session)
+
+                except queue.Empty:
+                    break
+
         self._pool_thread.join(timeout)
 
     def pick(self):
@@ -53,18 +80,24 @@ class SessionPoolImpl(object):
             return self._active_count
 
     def _destroy(self, session):
+        self._logger.debug("Requested session destroy: %s.", session)
         with self._lock:
             self._active_count -= 1
-            if len(self._waiters) > 0:
+            self._logger.debug("Session %s is no longer active. Current active count %d.", session, self._active_count)
+            cnt_waiters = len(self._waiters)
+            if cnt_waiters > 0:
+                self._logger.debug(
+                    "In flight waiters: %d, preparing session %s replacement.", cnt_waiters, session)
                 # we have a waiter that should be replied, so we have to prepare replacement
                 self._prepare(self._create())
 
         if session.initialized():
             session.async_delete(self._req_settings)
+            self._logger.debug("Sent delete on session %s", session)
 
     def put(self, session):
         with self._lock:
-            if not session.initialized():
+            if not session.initialized() or self._should_stop.is_set():
                 self._destroy(session)
                 # we should probably prepare replacement session here
                 return False
@@ -119,10 +152,20 @@ class SessionPoolImpl(object):
                 _, session = self._active_queue.get(block=False)
                 return _utilities.wrap_result_in_future(session)
             except queue.Empty:
+                self._logger.debug("Active session queue is empty, subscribe waiter for a session")
                 waiter = _utilities.future()
+                if self._should_stop.is_set():
+                    session = self._create()
+                    self._logger.debug("Session pool is under stop, replying with empty session, %s", session)
+                    waiter.set_result(session)
+                    return waiter
+
                 waiter.add_done_callback(self._waiter_cleanup)
                 self._waiters[waiter] = waiter
                 if self._active_count < self._size:
+                    self._logger.debug(
+                        "Session pool is not large enough (active_count < size: %d < %d). "
+                        "will create a new session.", self._active_count, self._size)
                     session = self._create()
                     self._prepare(session)
                 return waiter
