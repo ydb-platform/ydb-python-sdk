@@ -21,7 +21,10 @@ from kikimr.public.sdk.python.client import settings
 from kikimr.public.api.grpc import ydb_table_v1_pb2_grpc as ydb_table_pb2_grpc
 from kikimr.public.sdk.python.client import scheme
 from kikimr.public.sdk.python.client import types
-from . import interceptor
+try:
+    from . import interceptor
+except ImportError:
+    interceptor = None
 
 _CreateTable = 'CreateTable'
 _DropTable = 'DropTable'
@@ -794,11 +797,36 @@ class WrappedSyncResponseIterator(object):
     def __iter__(self):
         return self
 
-    def next(self):
+    def _next(self):
         return self.wrapper(next(self.it))
 
+    def next(self):
+        return self._next()
+
     def __next__(self):
-        return self.wrapper(next(self.it))
+        return self._next()
+
+
+class AsyncWrappedAsyncResponseIterator(object):
+    def __init__(self, it, wrapper):
+        self.it = it
+        self.wrapper = wrapper
+
+    def cancel(self):
+        self.it.cancel()
+        return self
+
+    def __iter__(self):
+        return self
+
+    def _next(self):
+        return interceptor.operate_async_stream_call(self.it, self.wrapper)
+
+    def next(self):
+        return self._next()
+
+    def __next__(self):
+        return self._next()
 
 
 def _wrap_read_table_response(response):
@@ -843,7 +871,7 @@ class Session(object):
         stream_it = self._driver(request, ydb_table_pb2_grpc.TableServiceStub, _StreamReadTable)
         return WrappedSyncResponseIterator(stream_it, _wrap_read_table_response)
 
-    def async_read_table(self, path, key_range=None, columns=None, ordered=False, row_limit=None):
+    def async_read_table(self, path, key_range=None, columns=(), ordered=False, row_limit=None):
         """
         Experimental api to read the table
         :param path:
@@ -853,9 +881,11 @@ class Session(object):
         :param row_limit:
         :return: async iterator instance
         """
+        if interceptor is None:
+            raise RuntimeError("Async read table is not available due to import issues")
         request = _read_table_request_factory(self._state, path, key_range, columns, ordered, row_limit)
         stream_it = self._driver(request, ydb_table_pb2_grpc.TableServiceStub, _StreamReadTable)
-        return interceptor.patch_async_iterator(stream_it, _wrap_read_table_response)
+        return AsyncWrappedAsyncResponseIterator(stream_it, _wrap_read_table_response)
 
     def keep_alive(self, settings=None):
         return self._driver(

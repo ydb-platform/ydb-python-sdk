@@ -12,7 +12,6 @@ from kikimr.public.api.grpc import ydb_table_v1_pb2_grpc as ydb_table_pb2_grpc
 from kikimr.public.api.grpc import ydb_scheme_v1_pb2_grpc as ydb_scheme_pb2_grpc
 from kikimr.public.api.grpc import ydb_discovery_v1_pb2_grpc as ydb_discovery_pb2_grpc
 from kikimr.public.api.grpc import ydb_cms_v1_pb2_grpc as ydb_cms_pb2_grpc
-from . import interceptor
 
 _stubs_list = (
     ydb_table_pb2_grpc.TableServiceStub,
@@ -228,13 +227,7 @@ class Connection(object):
         """
         global _stubs_list
         self.endpoint = endpoint
-        self._channel = interceptor.patch_unary_stream_on_channel(
-            grpc.insecure_channel(
-                self.endpoint, _construct_channel_options(
-                    driver_config
-                )
-            )
-        )
+        self._channel = grpc.insecure_channel(self.endpoint, _construct_channel_options(driver_config))
         self._driver_config = driver_config
         self._call_states = {}
         self._stub_instances = {}
