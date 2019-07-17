@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from google.protobuf import text_format
 import enum
+from six.moves import queue
 
 from . import _apis
 
@@ -35,6 +36,7 @@ class StatusCode(enum.IntEnum):
     UNIMPLEMENTED = _TRANSPORT_STATUSES_FIRST + 50
 
     UNAUTHENTICATED = _CLIENT_STATUSES_FIRST + 30
+    SESSION_POOL_EMPTY = _CLIENT_STATUSES_FIRST + 40
 
 
 class Error(Exception):
@@ -124,6 +126,10 @@ class AlreadyExists(Error):
 
 class SessionExpired(Error):
     status = StatusCode.SESSION_EXPIRED
+
+
+class SessionPoolEmpty(Error, queue.Empty):
+    status = StatusCode.SESSION_POOL_EMPTY
 
 
 def _format_issues(issues):
