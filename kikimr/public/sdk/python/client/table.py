@@ -33,13 +33,31 @@ class DescribeTableSettings(settings.BaseRequestSettings):
 class KeyBound(object):
     __slots__ = ('_equal', 'value', 'type')
 
-    def __init__(self, value, inclusive=False, type=None):
+    def __init__(self, key_value, key_type=None, inclusive=False):
+        """
+        Represents key bound.
+        :param key_value: An iterable with key values
+        :param key_type: A type of key
+        :param inclusive: A flag that indicates bound includes key provided in the value.
+        """
+
+        try:
+            iter(key_value)
+        except TypeError:
+            assert False, "value must be iterable!"
+
+        if isinstance(key_type, types.TupleType):
+            key_type = key_type.proto
+
         self._equal = inclusive
-        self.value = value
-        self.type = type
+        self.value = key_value
+        self.type = key_type
 
     def is_inclusive(self):
         return self._equal
+
+    def is_exclusive(self):
+        return not self._equal
 
     def __str__(self):
         if self._equal:
@@ -47,12 +65,12 @@ class KeyBound(object):
         return 'ExclusiveKeyBound(Tuple%s)' % str(self.value)
 
     @classmethod
-    def inclusive(cls, value, key_type):
-        return cls(value, True, key_type)
+    def inclusive(cls, key_value, key_type):
+        return cls(key_value, key_type, True)
 
     @classmethod
-    def exclusive(cls, value, key_type):
-        return cls(value, False, key_type)
+    def exclusive(cls, key_value, key_type):
+        return cls(key_value, key_type, False)
 
 
 class KeyRange(object):
@@ -736,7 +754,7 @@ def _read_table_request_factory(session_state, path, key_range=None, columns=Non
     return session_state.attach_request(request)
 
 
-class WrappedSyncResponseIterator(object):
+class SyncResponseIterator(object):
     def __init__(self, it, wrapper):
         self.it = it
         self.wrapper = wrapper
@@ -758,7 +776,7 @@ class WrappedSyncResponseIterator(object):
         return self._next()
 
 
-class AsyncWrappedAsyncResponseIterator(object):
+class AsyncResponseIterator(object):
     def __init__(self, it, wrapper):
         self.it = it
         self.wrapper = wrapper
@@ -800,43 +818,99 @@ class Session(object):
 
     @property
     def session_id(self):
+        """
+        Return session_id.
+        """
         return self._state.session_id
 
     def initialized(self):
+        """
+        Return True if session is successfully initialized with a session_id and False otherwise.
+        """
         return self._state.session_id is not None
 
     def reset(self):
+        """
+        Perform session state reset (that includes cleanup of the session_id, query cache, and etc.)
+        """
         return self._state.reset()
 
     def read_table(self, path, key_range=None, columns=(), ordered=False, row_limit=None):
         """
-        Experimental api to read the table
-        :param path:
-        :param key_range:
-        :param columns:
-        :param ordered:
-        :param row_limit:
-        :return: WrappedSyncResponseIterator instance
+        Perform an read table request.
+
+        from kikimr.public.sdk.python import client as ydb
+        key_prefix_type = ydb.TupleType().add_element(
+            ydb.OptionalType(ydb.PrimitiveType.Uint64).add_element(
+            ydb.OptionalType(ydb.PrimitiveType.Utf8))
+        table_iterator = session.read_table(
+            '/my/table',
+            columns=('KeyColumn0', 'KeyColumn1', 'ValueColumn'),
+            ydb.KeyRange(
+                ydb.KeyBound((100, 'hundred'), key_prefix_type)
+                ydb.KeyBound((200, 'two-hundreds'), key_prefix_type)
+            )
+        )
+
+        while True:
+            try:
+                chunk = next(table_iterator)
+                ... additional data processing ...
+            except StopIteration:
+                break
+
+        :param path: A path to the table
+        :param key_range: (optional) A KeyRange instance that describes a range to read. The KeyRange instance
+        should include from_bound and/or to_bound. Each of the bounds (if provided) should specify a value of the
+        key bound, and type of the key prefix. See an example above.
+        :param columns: (optional) An iterable with table columns to read.
+        :param ordered: (optional) A flag that indicates that result should be ordered.
+        :param row_limit: (optional) A number of rows to read.
+        :return: SyncResponseIterator instance
         """
         request = _read_table_request_factory(self._state, path, key_range, columns, ordered, row_limit)
         stream_it = self._driver(request, _apis.TableService.Stub, _apis.TableService.StreamReadTable)
-        return WrappedSyncResponseIterator(stream_it, _wrap_read_table_response)
+        return SyncResponseIterator(stream_it, _wrap_read_table_response)
 
     def async_read_table(self, path, key_range=None, columns=(), ordered=False, row_limit=None):
         """
-        Experimental api to read the table
-        :param path:
-        :param key_range:
-        :param columns:
-        :param ordered:
-        :param row_limit:
-        :return: async iterator instance
+        Perform an read table request.
+
+        from kikimr.public.sdk.python import client as ydb
+        key_prefix_type = ydb.TupleType().add_element(
+            ydb.OptionalType(ydb.PrimitiveType.Uint64).add_element(
+            ydb.OptionalType(ydb.PrimitiveType.Utf8))
+        async_table_iterator = session.read_table(
+            '/my/table',
+            columns=('KeyColumn0', 'KeyColumn1', 'ValueColumn'),
+            ydb.KeyRange(
+                ydb.KeyBound((100, 'hundred'), key_prefix_type)
+                ydb.KeyBound((200, 'two-hundreds'), key_prefix_type)
+            )
+        )
+
+        while True:
+            try:
+                chunk_future = next(table_iterator)
+                chunk = chunk_future.result()  # or any other way to await
+                ... additional data processing ...
+            except StopIteration:
+                break
+
+        :param path: A path to the table
+        :param key_range: (optional) A KeyRange instance that describes a range to read. The KeyRange instance
+        should include from_bound and/or to_bound. Each of the bounds (if provided) should specify a value of the
+        key bound, and type of the key prefix. See an example above.
+        :param columns: (optional) An iterable with table columns to read.
+        :param ordered: (optional) A flag that indicates that result should be ordered.
+        :param row_limit: (optional) A number of rows to read.
+        :return: AsyncResponseIterator instance
         """
         if interceptor is None:
             raise RuntimeError("Async read table is not available due to import issues")
         request = _read_table_request_factory(self._state, path, key_range, columns, ordered, row_limit)
         stream_it = self._driver(request, _apis.TableService.Stub, _apis.TableService.StreamReadTable)
-        return AsyncWrappedAsyncResponseIterator(stream_it, _wrap_read_table_response)
+        return AsyncResponseIterator(stream_it, _wrap_read_table_response)
 
     def keep_alive(self, settings=None):
         return self._driver(
