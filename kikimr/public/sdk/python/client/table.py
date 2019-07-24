@@ -895,6 +895,24 @@ class Session(object):
             self._state.endpoint,
         )
 
+    def explain(self, yql_text, settings=None):
+        """
+        Expiremental API.
+
+        :param yql_text:
+        :param settings:
+        :return:
+        """
+        return self._driver(
+            _session_impl.explain_data_query_request_factory(self._state, yql_text),
+            _apis.TableService.Stub,
+            _apis.TableService.ExplainDataQuery,
+            _session_impl.wrap_explain_response,
+            settings,
+            (self._state, ),
+            self._state.endpoint,
+        )
+
     def create_table(self, path, table_description, settings=None):
         """
         Create a YDB table.

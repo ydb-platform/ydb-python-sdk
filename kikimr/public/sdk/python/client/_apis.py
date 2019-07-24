@@ -33,6 +33,7 @@ class SchemeService(object):
 class TableService(object):
     Stub = ydb_table_v1_pb2_grpc.TableServiceStub
 
+    ExplainDataQuery = 'ExplainDataQuery'
     CreateTable = 'CreateTable'
     DropTable = 'DropTable'
     AlterTable = 'AlterTable'
