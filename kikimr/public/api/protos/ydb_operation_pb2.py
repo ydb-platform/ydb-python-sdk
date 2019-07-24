@@ -23,7 +23,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='kikimr/public/api/protos/ydb_operation.proto',
   package='Ydb.Operations',
   syntax='proto3',
-  serialized_pb=_b('\n,kikimr/public/api/protos/ydb_operation.proto\x12\x0eYdb.Operations\x1a\x19google/protobuf/any.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x30kikimr/public/api/protos/ydb_issue_message.proto\x1a/kikimr/public/api/protos/ydb_status_codes.proto\"\xf1\x02\n\x0fOperationParams\x12\x45\n\x0eoperation_mode\x18\x01 \x01(\x0e\x32-.Ydb.Operations.OperationParams.OperationMode\x12\x34\n\x11operation_timeout\x18\x02 \x01(\x0b\x32\x19.google.protobuf.Duration\x12/\n\x0c\x63\x61ncel_after\x18\x03 \x01(\x0b\x32\x19.google.protobuf.Duration\x12;\n\x06labels\x18\x04 \x03(\x0b\x32+.Ydb.Operations.OperationParams.LabelsEntry\x1a-\n\x0bLabelsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\"D\n\rOperationMode\x12\x1e\n\x1aOPERATION_MODE_UNSPECIFIED\x10\x00\x12\x08\n\x04SYNC\x10\x01\x12\t\n\x05\x41SYNC\x10\x02\"!\n\x13GetOperationRequest\x12\n\n\x02id\x18\x01 \x01(\t\"D\n\x14GetOperationResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"$\n\x16\x43\x61ncelOperationRequest\x12\n\n\x02id\x18\x01 \x01(\t\"m\n\x17\x43\x61ncelOperationResponse\x12)\n\x06status\x18\x01 \x01(\x0e\x32\x19.Ydb.StatusIds.StatusCode\x12\'\n\x06issues\x18\x02 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessage\"$\n\x16\x46orgetOperationRequest\x12\n\n\x02id\x18\x01 \x01(\t\"m\n\x17\x46orgetOperationResponse\x12)\n\x06status\x18\x01 \x01(\x0e\x32\x19.Ydb.StatusIds.StatusCode\x12\'\n\x06issues\x18\x02 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessage\"/\n\x10OperationsFilter\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t\"q\n\x15ListOperationsRequest\x12\x31\n\x07\x66ilters\x18\x01 \x03(\x0b\x32 .Ydb.Operations.OperationsFilter\x12\x11\n\tpage_size\x18\x02 \x01(\x04\x12\x12\n\npage_token\x18\x03 \x01(\t\"`\n\x16ListOperationsResponse\x12-\n\noperations\x18\x01 \x03(\x0b\x32\x19.Ydb.Operations.Operation\x12\x17\n\x0fnext_page_token\x18\x02 \x01(\t\"\xc8\x01\n\tOperation\x12\n\n\x02id\x18\x01 \x01(\t\x12\r\n\x05ready\x18\x02 \x01(\x08\x12)\n\x06status\x18\x03 \x01(\x0e\x32\x19.Ydb.StatusIds.StatusCode\x12\'\n\x06issues\x18\x04 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessage\x12$\n\x06result\x18\x05 \x01(\x0b\x32\x14.google.protobuf.Any\x12&\n\x08metadata\x18\x06 \x01(\x0b\x32\x14.google.protobuf.AnyB$\n\x0e\x63om.yandex.ydbB\x0fOperationProtos\xf8\x01\x01\x62\x06proto3')
+  serialized_pb=_b('\n,kikimr/public/api/protos/ydb_operation.proto\x12\x0eYdb.Operations\x1a\x19google/protobuf/any.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x30kikimr/public/api/protos/ydb_issue_message.proto\x1a/kikimr/public/api/protos/ydb_status_codes.proto\"\xf1\x02\n\x0fOperationParams\x12\x45\n\x0eoperation_mode\x18\x01 \x01(\x0e\x32-.Ydb.Operations.OperationParams.OperationMode\x12\x34\n\x11operation_timeout\x18\x02 \x01(\x0b\x32\x19.google.protobuf.Duration\x12/\n\x0c\x63\x61ncel_after\x18\x03 \x01(\x0b\x32\x19.google.protobuf.Duration\x12;\n\x06labels\x18\x04 \x03(\x0b\x32+.Ydb.Operations.OperationParams.LabelsEntry\x1a-\n\x0bLabelsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\"D\n\rOperationMode\x12\x1e\n\x1aOPERATION_MODE_UNSPECIFIED\x10\x00\x12\x08\n\x04SYNC\x10\x01\x12\t\n\x05\x41SYNC\x10\x02\"!\n\x13GetOperationRequest\x12\n\n\x02id\x18\x01 \x01(\t\"D\n\x14GetOperationResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"$\n\x16\x43\x61ncelOperationRequest\x12\n\n\x02id\x18\x01 \x01(\t\"m\n\x17\x43\x61ncelOperationResponse\x12)\n\x06status\x18\x01 \x01(\x0e\x32\x19.Ydb.StatusIds.StatusCode\x12\'\n\x06issues\x18\x02 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessage\"$\n\x16\x46orgetOperationRequest\x12\n\n\x02id\x18\x01 \x01(\t\"m\n\x17\x46orgetOperationResponse\x12)\n\x06status\x18\x01 \x01(\x0e\x32\x19.Ydb.StatusIds.StatusCode\x12\'\n\x06issues\x18\x02 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessage\"L\n\x15ListOperationsRequest\x12\x0c\n\x04kind\x18\x01 \x01(\t\x12\x11\n\tpage_size\x18\x02 \x01(\x04\x12\x12\n\npage_token\x18\x03 \x01(\t\"`\n\x16ListOperationsResponse\x12-\n\noperations\x18\x01 \x03(\x0b\x32\x19.Ydb.Operations.Operation\x12\x17\n\x0fnext_page_token\x18\x02 \x01(\t\"\xc8\x01\n\tOperation\x12\n\n\x02id\x18\x01 \x01(\t\x12\r\n\x05ready\x18\x02 \x01(\x08\x12)\n\x06status\x18\x03 \x01(\x0e\x32\x19.Ydb.StatusIds.StatusCode\x12\'\n\x06issues\x18\x04 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessage\x12$\n\x06result\x18\x05 \x01(\x0b\x32\x14.google.protobuf.Any\x12&\n\x08metadata\x18\x06 \x01(\x0b\x32\x14.google.protobuf.AnyB$\n\x0e\x63om.yandex.ydbB\x0fOperationProtos\xf8\x01\x01\x62\x06proto3')
   ,
   dependencies=[google_dot_protobuf_dot_any__pb2.DESCRIPTOR,google_dot_protobuf_dot_duration__pb2.DESCRIPTOR,kikimr_dot_public_dot_api_dot_protos_dot_ydb__issue__message__pb2.DESCRIPTOR,kikimr_dot_public_dot_api_dot_protos_dot_ydb__status__codes__pb2.DESCRIPTOR,])
 
@@ -346,44 +346,6 @@ _FORGETOPERATIONRESPONSE = _descriptor.Descriptor(
 )
 
 
-_OPERATIONSFILTER = _descriptor.Descriptor(
-  name='OperationsFilter',
-  full_name='Ydb.Operations.OperationsFilter',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='name', full_name='Ydb.Operations.OperationsFilter.name', index=0,
-      number=1, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=_b("").decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='value', full_name='Ydb.Operations.OperationsFilter.value', index=1,
-      number=2, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=_b("").decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  options=None,
-  is_extendable=False,
-  syntax='proto3',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=997,
-  serialized_end=1044,
-)
-
-
 _LISTOPERATIONSREQUEST = _descriptor.Descriptor(
   name='ListOperationsRequest',
   full_name='Ydb.Operations.ListOperationsRequest',
@@ -392,9 +354,9 @@ _LISTOPERATIONSREQUEST = _descriptor.Descriptor(
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='filters', full_name='Ydb.Operations.ListOperationsRequest.filters', index=0,
-      number=1, type=11, cpp_type=10, label=3,
-      has_default_value=False, default_value=[],
+      name='kind', full_name='Ydb.Operations.ListOperationsRequest.kind', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
@@ -424,8 +386,8 @@ _LISTOPERATIONSREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1046,
-  serialized_end=1159,
+  serialized_start=997,
+  serialized_end=1073,
 )
 
 
@@ -462,8 +424,8 @@ _LISTOPERATIONSRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1161,
-  serialized_end=1257,
+  serialized_start=1075,
+  serialized_end=1171,
 )
 
 
@@ -528,8 +490,8 @@ _OPERATION = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1260,
-  serialized_end=1460,
+  serialized_start=1174,
+  serialized_end=1374,
 )
 
 _OPERATIONPARAMS_LABELSENTRY.containing_type = _OPERATIONPARAMS
@@ -543,7 +505,6 @@ _CANCELOPERATIONRESPONSE.fields_by_name['status'].enum_type = kikimr_dot_public_
 _CANCELOPERATIONRESPONSE.fields_by_name['issues'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__issue__message__pb2._ISSUEMESSAGE
 _FORGETOPERATIONRESPONSE.fields_by_name['status'].enum_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__status__codes__pb2._STATUSIDS_STATUSCODE
 _FORGETOPERATIONRESPONSE.fields_by_name['issues'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__issue__message__pb2._ISSUEMESSAGE
-_LISTOPERATIONSREQUEST.fields_by_name['filters'].message_type = _OPERATIONSFILTER
 _LISTOPERATIONSRESPONSE.fields_by_name['operations'].message_type = _OPERATION
 _OPERATION.fields_by_name['status'].enum_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__status__codes__pb2._STATUSIDS_STATUSCODE
 _OPERATION.fields_by_name['issues'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__issue__message__pb2._ISSUEMESSAGE
@@ -556,7 +517,6 @@ DESCRIPTOR.message_types_by_name['CancelOperationRequest'] = _CANCELOPERATIONREQ
 DESCRIPTOR.message_types_by_name['CancelOperationResponse'] = _CANCELOPERATIONRESPONSE
 DESCRIPTOR.message_types_by_name['ForgetOperationRequest'] = _FORGETOPERATIONREQUEST
 DESCRIPTOR.message_types_by_name['ForgetOperationResponse'] = _FORGETOPERATIONRESPONSE
-DESCRIPTOR.message_types_by_name['OperationsFilter'] = _OPERATIONSFILTER
 DESCRIPTOR.message_types_by_name['ListOperationsRequest'] = _LISTOPERATIONSREQUEST
 DESCRIPTOR.message_types_by_name['ListOperationsResponse'] = _LISTOPERATIONSRESPONSE
 DESCRIPTOR.message_types_by_name['Operation'] = _OPERATION
@@ -618,13 +578,6 @@ ForgetOperationResponse = _reflection.GeneratedProtocolMessageType('ForgetOperat
   # @@protoc_insertion_point(class_scope:Ydb.Operations.ForgetOperationResponse)
   ))
 _sym_db.RegisterMessage(ForgetOperationResponse)
-
-OperationsFilter = _reflection.GeneratedProtocolMessageType('OperationsFilter', (_message.Message,), dict(
-  DESCRIPTOR = _OPERATIONSFILTER,
-  __module__ = 'kikimr.public.api.protos.ydb_operation_pb2'
-  # @@protoc_insertion_point(class_scope:Ydb.Operations.OperationsFilter)
-  ))
-_sym_db.RegisterMessage(OperationsFilter)
 
 ListOperationsRequest = _reflection.GeneratedProtocolMessageType('ListOperationsRequest', (_message.Message,), dict(
   DESCRIPTOR = _LISTOPERATIONSREQUEST,
