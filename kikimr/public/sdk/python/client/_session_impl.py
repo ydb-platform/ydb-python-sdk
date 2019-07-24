@@ -37,6 +37,26 @@ def copy_table_request_factory(session_state, source_path, destination_path):
     return request
 
 
+def explain_data_query_request_factory(session_state, yql_text):
+    request = session_state.start_query().attach_request(_apis.ydb_table.ExplainDataQueryRequest())
+    request.yql_text = yql_text
+    return request
+
+
+class _ExplainResponse(object):
+    def __init__(self, ast, plan):
+        self.query_ast = ast
+        self.query_plan = plan
+
+
+def wrap_explain_response(rpc_state, response_pb, session_state):
+    session_state.complete_query()
+    issues._process_response(response_pb)
+    message = _apis.ydb_table.ExplainQueryResult()
+    response_pb.result.Unpack(message)
+    return _ExplainResponse(message.query_ast, message.query_plan)
+
+
 @bad_session_handler
 def wrap_execute_scheme_result(rpc_state, response_pb, session_state):
     session_state.complete_query()
