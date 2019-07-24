@@ -21,7 +21,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='kikimr/public/api/protos/ydb_backup.proto',
   package='Ydb.Backup',
   syntax='proto3',
-  serialized_pb=_b('\n)kikimr/public/api/protos/ydb_backup.proto\x12\nYdb.Backup\x1a,kikimr/public/api/protos/ydb_operation.proto\"Q\n\nYtSettings\x12\x0c\n\x04host\x18\x01 \x01(\t\x12\x0c\n\x04port\x18\x02 \x01(\r\x12\x18\n\x10\x64\x65stination_path\x18\x03 \x01(\t\x12\r\n\x05token\x18\x04 \x01(\t\"\xb6\x01\n\x0e\x42\x61\x63kupSettings\x12\x32\n\x07targets\x18\x01 \x03(\x0b\x32!.Ydb.Backup.BackupSettings.Target\x12\x13\n\x0b\x64\x65scription\x18\x02 \x01(\t\x1a[\n\x06Target\x12\x13\n\x0bsource_path\x18\x01 \x01(\t\x12$\n\x02yt\x18\x02 \x01(\x0b\x32\x16.Ydb.Backup.YtSettingsH\x00\x42\x16\n\x14\x64\x65stination_settings\"\x0e\n\x0c\x42\x61\x63kupResult\"l\n\x0e\x42\x61\x63kupMetadata\x12,\n\x08settings\x18\x01 \x01(\x0b\x32\x1a.Ydb.Backup.BackupSettings\x12,\n\x08progress\x18\x02 \x01(\x0e\x32\x1a.Ydb.Backup.BackupProgress\"~\n\x13\x43reateBackupRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12,\n\x08settings\x18\x02 \x01(\x0b\x32\x1a.Ydb.Backup.BackupSettings\"D\n\x14\x43reateBackupResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation*q\n\x0e\x42\x61\x63kupProgress\x12\x18\n\x14PROGRESS_UNSPECIFIED\x10\x00\x12\x16\n\x12PROGRESS_PREPARING\x10\x01\x12\x1a\n\x16PROGRESS_TRANSFER_DATA\x10\x02\x12\x11\n\rPROGRESS_DONE\x10\x03\x42\x1a\n\x15\x63om.yandex.ydb.backup\xf8\x01\x01\x62\x06proto3')
+  serialized_pb=_b('\n)kikimr/public/api/protos/ydb_backup.proto\x12\nYdb.Backup\x1a,kikimr/public/api/protos/ydb_operation.proto\"Q\n\nYtSettings\x12\x0c\n\x04host\x18\x01 \x01(\t\x12\x0c\n\x04port\x18\x02 \x01(\r\x12\x18\n\x10\x64\x65stination_path\x18\x03 \x01(\t\x12\r\n\x05token\x18\x04 \x01(\t\"\xb6\x01\n\x0e\x42\x61\x63kupSettings\x12\x32\n\x07targets\x18\x01 \x03(\x0b\x32!.Ydb.Backup.BackupSettings.Target\x12\x13\n\x0b\x64\x65scription\x18\x02 \x01(\t\x1a[\n\x06Target\x12\x13\n\x0bsource_path\x18\x01 \x01(\t\x12$\n\x02yt\x18\x02 \x01(\x0b\x32\x16.Ydb.Backup.YtSettingsH\x00\x42\x16\n\x14\x64\x65stination_settings\"\x0e\n\x0c\x42\x61\x63kupResult\"l\n\x0e\x42\x61\x63kupMetadata\x12,\n\x08settings\x18\x01 \x01(\x0b\x32\x1a.Ydb.Backup.BackupSettings\x12,\n\x08progress\x18\x02 \x01(\x0e\x32\x1a.Ydb.Backup.BackupProgress\"~\n\x13\x43reateBackupRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12,\n\x08settings\x18\x02 \x01(\x0b\x32\x1a.Ydb.Backup.BackupSettings\"D\n\x14\x43reateBackupResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation*\xa4\x01\n\x0e\x42\x61\x63kupProgress\x12\x18\n\x14PROGRESS_UNSPECIFIED\x10\x00\x12\x16\n\x12PROGRESS_PREPARING\x10\x01\x12\x1a\n\x16PROGRESS_TRANSFER_DATA\x10\x02\x12\x11\n\rPROGRESS_DONE\x10\x03\x12\x19\n\x15PROGRESS_CANCELLATION\x10\x04\x12\x16\n\x12PROGRESS_CANCELLED\x10\x05\x42\x1a\n\x15\x63om.yandex.ydb.backup\xf8\x01\x01\x62\x06proto3')
   ,
   dependencies=[kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2.DESCRIPTOR,])
 
@@ -47,11 +47,19 @@ _BACKUPPROGRESS = _descriptor.EnumDescriptor(
       name='PROGRESS_DONE', index=3, number=3,
       options=None,
       type=None),
+    _descriptor.EnumValueDescriptor(
+      name='PROGRESS_CANCELLATION', index=4, number=4,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='PROGRESS_CANCELLED', index=5, number=5,
+      options=None,
+      type=None),
   ],
   containing_type=None,
   options=None,
-  serialized_start=695,
-  serialized_end=808,
+  serialized_start=696,
+  serialized_end=860,
 )
 _sym_db.RegisterEnumDescriptor(_BACKUPPROGRESS)
 
@@ -60,6 +68,8 @@ PROGRESS_UNSPECIFIED = 0
 PROGRESS_PREPARING = 1
 PROGRESS_TRANSFER_DATA = 2
 PROGRESS_DONE = 3
+PROGRESS_CANCELLATION = 4
+PROGRESS_CANCELLED = 5
 
 
 
