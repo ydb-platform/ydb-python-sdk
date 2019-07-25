@@ -3,7 +3,6 @@ from __future__ import unicode_literals
 
 import logging
 
-from kikimr.public.sdk.python import client as ydb
 from kikimr.public.dbapi.errors import DatabaseError
 
 
@@ -13,7 +12,6 @@ class Cursor(object):
 
     def __init__(self, connection):
         self.connection = connection
-        self.session = connection.session
         self.description = []
         self.arraysize = 1
         self.logger = logging.getLogger(__name__)
@@ -34,10 +32,10 @@ class Cursor(object):
 
         self.current_index = 0
         if 'create table' in sql.lower():
-            self.session.execute_scheme(sql)
+            self.connection.session.execute_scheme(sql)
             self.last_result_sets = []
         else:
-            self.last_result_sets = self.session.transaction(ydb.SerializableReadWrite()).execute(sql, commit_tx=True)
+            self.last_result_sets = self.connection.tx.execute(sql, commit_tx=self.connection.autocommit)
 
         if self.last_result_sets:
             self.description = [

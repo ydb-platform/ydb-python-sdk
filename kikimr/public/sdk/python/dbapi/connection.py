@@ -12,10 +12,10 @@ _DRIVERS = {}
 
 
 class Connection(object):
-    isolation_level = None
+    isolation_level = ydb.SerializableReadWrite()
     driver = None
 
-    def __init__(self, endpoint=None, host=None, port=None, db=None, database=None):
+    def __init__(self, endpoint=None, host=None, port=None, db=None, database=None, autocommit=False):
         self.endpoint = endpoint or self._create_endpoint(host, port)
         self.database = database or db
         if not self.database.startswith('/'):
@@ -23,6 +23,8 @@ class Connection(object):
 
         self.driver = self._create_driver(self.endpoint, self.database)
         self.session = ydb.retry_operation_sync(lambda: self.driver.table_client.session().create())
+        self.tx = self.session.transaction(ydb.SerializableReadWrite())
+        self.autocommit = autocommit
 
     def cursor(self):
         return Cursor(self)
@@ -34,10 +36,14 @@ class Connection(object):
         return self.cursor().executemany(sql, parameters)
 
     def commit(self):
-        pass
+        if self.tx.tx_id:
+            self.tx.commit()
+        self.tx = self.session.transaction(self.isolation_level)
 
     def rollback(self):
-        pass
+        if self.tx.tx_id:
+            self.tx.rollback()
+        self.tx = self.session.transaction(self.isolation_level)
 
     def close(self):
         pass
