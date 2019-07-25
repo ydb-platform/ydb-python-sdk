@@ -96,6 +96,9 @@ class Column(object):
         self._name = name
         self._type = type
 
+    def __eq__(self, other):
+        return self.name == other.name and self._type.item == other.type.item
+
     @property
     def name(self):
         return self._name
