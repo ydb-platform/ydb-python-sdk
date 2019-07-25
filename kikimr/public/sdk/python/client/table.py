@@ -1330,7 +1330,7 @@ class SessionPool(object):
         retry_settings = RetrySettings() if retry_settings is None else retry_settings
 
         def wrapped_callee():
-            with self.checkout(blocking=False, timeout=retry_settings.get_session_client_timeout) as session:
+            with self.checkout(timeout=retry_settings.get_session_client_timeout) as session:
                 return callee(session, *args, **kwargs)
 
         return retry_operation_sync(wrapped_callee, retry_settings)
