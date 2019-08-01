@@ -206,6 +206,27 @@ class _RpcState(object):
         return self.response_future, self.result_future
 
 
+_nanos_in_second = 10**9
+
+
+def _set_duration(duration_value, seconds_float):
+    duration_value.seconds = int(seconds_float)
+    duration_value.nanos = int((seconds_float - int(seconds_float)) * _nanos_in_second)
+    return duration_value
+
+
+def _set_server_timeouts(request, settings, default_value):
+    if not hasattr(request, 'operation_params'):
+        return
+
+    operation_timeout = getattr(settings, 'operation_timeout', default_value)
+    operation_timeout = default_value if operation_timeout is None else operation_timeout
+    cancel_after = getattr(settings, 'cancel_after', default_value)
+    cancel_after = default_value if cancel_after is None else cancel_after
+    _set_duration(request.operation_params.operation_timeout, operation_timeout)
+    _set_duration(request.operation_params.cancel_after, cancel_after)
+
+
 class Connection(object):
     __slots__ = (
         'endpoint', '_channel', '_call_states', '_stub_instances', '_driver_config', '_cleanup_callbacks',
@@ -238,6 +259,7 @@ class Connection(object):
 
     def _prepare_call(self, stub, rpc_name, request, settings):
         timeout, metadata = _get_request_timeout(settings), _construct_metadata(self._driver_config, settings)
+        _set_server_timeouts(request, settings, timeout)
         rpc_state = _RpcState(self._stub_instances[stub], rpc_name, self.endpoint)
         logger.debug("%s: creating call state", rpc_state)
         with self.lock:
