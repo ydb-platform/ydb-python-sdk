@@ -83,6 +83,7 @@ def wrap_describe_table_response(rpc_state, response_pb, sesssion_state, scheme_
         message.columns,
         message.primary_key,
         message.shard_key_bounds,
+        message.indexes,
     )
 
 
@@ -92,8 +93,18 @@ def create_table_request_factory(session_state, path, table_description):
     request.primary_key.extend(list(table_description.primary_key))
     for column in table_description.columns:
         request.columns.add(name=column.name, type=column.type_pb)
+
     if table_description.profile is not None:
-        request.profile.MergeFrom(table_description.profile.to_pb(table_description))
+        request.profile.MergeFrom(
+            table_description.profile.to_pb(
+                table_description
+            )
+        )
+
+    for index in table_description.indexes:
+        request.indexes.add().MergeFrom(
+            index.to_pb())
+
     return session_state.attach_request(request)
 
 

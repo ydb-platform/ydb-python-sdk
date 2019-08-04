@@ -232,6 +232,23 @@ class PartitioningPolicy(object):
         return self._pb
 
 
+class TableIndex(object):
+    def __init__(self, name):
+        self._pb = _apis.ydb_table.TableIndex()
+        self._pb.name = name
+        self.name = name
+        self.index_columns = []
+
+    def with_index_columns(self, *columns):
+        for column in columns:
+            self._pb.index_columns.append(column)
+            self.index_columns.append(column)
+        return self
+
+    def to_pb(self):
+        return self._pb
+
+
 class ReplicationPolicy(object):
     def __init__(self):
         self._pb = _apis.ydb_table.ReplicationPolicy()
@@ -392,6 +409,7 @@ class TableDescription(object):
         self.columns = []
         self.primary_key = []
         self.profile = None
+        self.indexes = []
 
     def with_column(self, column):
         self.columns.append(column)
@@ -409,6 +427,15 @@ class TableDescription(object):
     def with_primary_keys(self, *keys):
         for pk in keys:
             self.with_primary_key(pk)
+        return self
+
+    def with_indexes(self, *indexes):
+        for index in indexes:
+            self.with_index(index)
+        return self
+
+    def with_index(self, index):
+        self.indexes.append(index)
         return self
 
     def with_profile(self, profile):
@@ -559,14 +586,14 @@ class TableClient(object):
 class TableSchemeEntry(scheme.SchemeEntry):
     def __init__(
             self, name, owner, type, effective_permissions, permissions, columns, primary_key, shard_key_bounds,
-            *args, **kwargs):
+            indexes, *args, **kwargs):
 
         super(TableSchemeEntry, self).__init__(name, owner, type, effective_permissions, permissions, *args, **kwargs)
         self.primary_key = [pk for pk in primary_key]
-        self.columns = [
-            Column(column.name, convert.type_to_native(column.type))
-            for column in columns
-        ]
+        self.columns = [Column(column.name, convert.type_to_native(column.type)) for column in columns]
+        self.indexes = [
+            TableIndex(index.name).with_index_columns(*tuple(col for col in index.index_columns))
+            for index in indexes]
         self.shard_key_ranges = []
         left_key_bound = None
         for shard_key_bound in shard_key_bounds:
