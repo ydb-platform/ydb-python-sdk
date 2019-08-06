@@ -518,7 +518,7 @@ class RetrySettings(object):
             get_session_client_timeout=5):
         self.max_retries = max_retries
         self.max_session_acquire_timeout = max_session_acquire_timeout
-        self.on_ydb_error_callback = lambda e: None if on_ydb_error_callback is None else on_ydb_error_callback
+        self.on_ydb_error_callback = (lambda e: None) if on_ydb_error_callback is None else on_ydb_error_callback
         self.backoff_ceiling = backoff_ceiling
         self.backoff_slot_duration = backoff_slot_duration
         self.retry_not_found = True
