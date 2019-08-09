@@ -1,6 +1,7 @@
 import iso8601
 import os
 from kikimr.public.sdk.python import client as ydb
+from concurrent.futures import TimeoutError
 
 
 FILL_DATA_QUERY = """
