@@ -20,7 +20,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='kikimr/public/api/protos/ydb_persqueue_cluster_discovery.proto',
   package='Ydb.PersQueue.ClusterDiscovery',
   syntax='proto3',
-  serialized_pb=_b('\n>kikimr/public/api/protos/ydb_persqueue_cluster_discovery.proto\x12\x1eYdb.PersQueue.ClusterDiscovery\x1a,kikimr/public/api/protos/ydb_operation.proto\"O\n\x12WriteSessionParams\x12\r\n\x05topic\x18\x01 \x01(\t\x12\x11\n\tsource_id\x18\x02 \x01(\x0c\x12\x17\n\x0fpartition_group\x18\x03 \x01(\r\"2\n\x0b\x43lusterInfo\x12\x10\n\x08\x65ndpoint\x18\x01 \x01(\t\x12\x11\n\tavailable\x18\x02 \x01(\x08\"\r\n\x0b\x41llOriginal\"\x91\x01\n\x11ReadSessionParams\x12\r\n\x05topic\x18\x01 \x01(\t\x12\x1b\n\x11mirroring_cluster\x18\x02 \x01(\tH\x00\x12\x43\n\x0c\x61ll_original\x18\x03 \x01(\x0b\x32+.Ydb.PersQueue.ClusterDiscovery.AllOriginalH\x00\x42\x0b\n\tread_mode\"n\n\rWriteSessions\x12\x42\n\x06params\x18\x01 \x03(\x0b\x32\x32.Ydb.PersQueue.ClusterDiscovery.WriteSessionParams\x12\x19\n\x11preferred_cluster\x18\x02 \x01(\t\"c\n\x0cReadSessions\x12\x41\n\x06params\x18\x01 \x03(\x0b\x32\x31.Ydb.PersQueue.ClusterDiscovery.ReadSessionParams\x12\x10\n\x08\x63onsumer\x18\x02 \x01(\t\"P\n\x0fSessionClusters\x12=\n\x08\x63lusters\x18\x01 \x03(\x0b\x32+.Ydb.PersQueue.ClusterDiscovery.ClusterInfo\"\x8e\x02\n\x17\x44iscoverClustersRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12G\n\x0ewrite_sessions\x18\x02 \x01(\x0b\x32-.Ydb.PersQueue.ClusterDiscovery.WriteSessionsH\x00\x12\x45\n\rread_sessions\x18\x03 \x01(\x0b\x32,.Ydb.PersQueue.ClusterDiscovery.ReadSessionsH\x00\x12\x17\n\x0fminimal_version\x18\x04 \x01(\x04\x42\x0f\n\rsessions_type\"H\n\x18\x44iscoverClustersResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"u\n\x16\x44iscoverClustersResult\x12J\n\x11sessions_clusters\x18\x01 \x03(\x0b\x32/.Ydb.PersQueue.ClusterDiscovery.SessionClusters\x12\x0f\n\x07version\x18\x02 \x01(\x04\x42/\n*com.yandex.ydb.persqueue.cluster_discovery\xf8\x01\x01\x62\x06proto3')
+  serialized_pb=_b('\n>kikimr/public/api/protos/ydb_persqueue_cluster_discovery.proto\x12\x1eYdb.PersQueue.ClusterDiscovery\x1a,kikimr/public/api/protos/ydb_operation.proto\"O\n\x12WriteSessionParams\x12\r\n\x05topic\x18\x01 \x01(\t\x12\x11\n\tsource_id\x18\x02 \x01(\x0c\x12\x17\n\x0fpartition_group\x18\x03 \x01(\r\"2\n\x0b\x43lusterInfo\x12\x10\n\x08\x65ndpoint\x18\x01 \x01(\t\x12\x11\n\tavailable\x18\x02 \x01(\x08\"\r\n\x0b\x41llOriginal\"\x91\x01\n\x11ReadSessionParams\x12\r\n\x05topic\x18\x01 \x01(\t\x12\x1b\n\x11mirroring_cluster\x18\x02 \x01(\tH\x00\x12\x43\n\x0c\x61ll_original\x18\x03 \x01(\x0b\x32+.Ydb.PersQueue.ClusterDiscovery.AllOriginalH\x00\x42\x0b\n\tread_mode\"n\n\rWriteSessions\x12\x42\n\x06params\x18\x01 \x03(\x0b\x32\x32.Ydb.PersQueue.ClusterDiscovery.WriteSessionParams\x12\x19\n\x11preferred_cluster\x18\x02 \x01(\t\"c\n\x0cReadSessions\x12\x41\n\x06params\x18\x01 \x03(\x0b\x32\x31.Ydb.PersQueue.ClusterDiscovery.ReadSessionParams\x12\x10\n\x08\x63onsumer\x18\x02 \x01(\t\"P\n\x0fSessionClusters\x12=\n\x08\x63lusters\x18\x01 \x03(\x0b\x32+.Ydb.PersQueue.ClusterDiscovery.ClusterInfo\"\x8e\x02\n\x17\x44iscoverClustersRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12G\n\x0ewrite_sessions\x18\x02 \x01(\x0b\x32-.Ydb.PersQueue.ClusterDiscovery.WriteSessionsH\x00\x12\x45\n\rread_sessions\x18\x03 \x01(\x0b\x32,.Ydb.PersQueue.ClusterDiscovery.ReadSessionsH\x00\x12\x17\n\x0fminimal_version\x18\x04 \x01(\x03\x42\x0f\n\rsessions_type\"H\n\x18\x44iscoverClustersResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"u\n\x16\x44iscoverClustersResult\x12J\n\x11sessions_clusters\x18\x01 \x03(\x0b\x32/.Ydb.PersQueue.ClusterDiscovery.SessionClusters\x12\x0f\n\x07version\x18\x02 \x01(\x03\x42/\n*com.yandex.ydb.persqueue.cluster_discovery\xf8\x01\x01\x62\x06proto3')
   ,
   dependencies=[kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2.DESCRIPTOR,])
 
@@ -319,7 +319,7 @@ _DISCOVERCLUSTERSREQUEST = _descriptor.Descriptor(
       options=None),
     _descriptor.FieldDescriptor(
       name='minimal_version', full_name='Ydb.PersQueue.ClusterDiscovery.DiscoverClustersRequest.minimal_version', index=3,
-      number=4, type=4, cpp_type=4, label=1,
+      number=4, type=3, cpp_type=2, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -391,7 +391,7 @@ _DISCOVERCLUSTERSRESULT = _descriptor.Descriptor(
       options=None),
     _descriptor.FieldDescriptor(
       name='version', full_name='Ydb.PersQueue.ClusterDiscovery.DiscoverClustersResult.version', index=1,
-      number=2, type=4, cpp_type=4, label=1,
+      number=2, type=3, cpp_type=2, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
