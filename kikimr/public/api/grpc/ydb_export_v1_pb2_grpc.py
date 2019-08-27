@@ -14,10 +14,10 @@ class ExportServiceStub(object):
     Args:
       channel: A grpc.Channel.
     """
-    self.CreateExport = channel.unary_unary(
-        '/Ydb.Export.V1.ExportService/CreateExport',
-        request_serializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__export__pb2.CreateExportRequest.SerializeToString,
-        response_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__export__pb2.CreateExportResponse.FromString,
+    self.ExportToYt = channel.unary_unary(
+        '/Ydb.Export.V1.ExportService/ExportToYt',
+        request_serializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__export__pb2.ExportToYtRequest.SerializeToString,
+        response_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__export__pb2.ExportToYtResponse.FromString,
         )
 
 
@@ -25,8 +25,8 @@ class ExportServiceServicer(object):
   # missing associated documentation comment in .proto file
   pass
 
-  def CreateExport(self, request, context):
-    """Creates export.
+  def ExportToYt(self, request, context):
+    """Exports data to YT.
     Method starts an asynchronous operation that can be cancelled while it is in progress.
     """
     context.set_code(grpc.StatusCode.UNIMPLEMENTED)
@@ -36,10 +36,10 @@ class ExportServiceServicer(object):
 
 def add_ExportServiceServicer_to_server(servicer, server):
   rpc_method_handlers = {
-      'CreateExport': grpc.unary_unary_rpc_method_handler(
-          servicer.CreateExport,
-          request_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__export__pb2.CreateExportRequest.FromString,
-          response_serializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__export__pb2.CreateExportResponse.SerializeToString,
+      'ExportToYt': grpc.unary_unary_rpc_method_handler(
+          servicer.ExportToYt,
+          request_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__export__pb2.ExportToYtRequest.FromString,
+          response_serializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__export__pb2.ExportToYtResponse.SerializeToString,
       ),
   }
   generic_handler = grpc.method_handlers_generic_handler(

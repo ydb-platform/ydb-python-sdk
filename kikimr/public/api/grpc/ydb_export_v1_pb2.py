@@ -20,7 +20,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='kikimr/public/api/grpc/ydb_export_v1.proto',
   package='Ydb.Export.V1',
   syntax='proto3',
-  serialized_pb=_b('\n*kikimr/public/api/grpc/ydb_export_v1.proto\x12\rYdb.Export.V1\x1a)kikimr/public/api/protos/ydb_export.proto2b\n\rExportService\x12Q\n\x0c\x43reateExport\x12\x1f.Ydb.Export.CreateExportRequest\x1a .Ydb.Export.CreateExportResponseB\x1a\n\x18\x63om.yandex.ydb.export.v1b\x06proto3')
+  serialized_pb=_b('\n*kikimr/public/api/grpc/ydb_export_v1.proto\x12\rYdb.Export.V1\x1a)kikimr/public/api/protos/ydb_export.proto2\\\n\rExportService\x12K\n\nExportToYt\x12\x1d.Ydb.Export.ExportToYtRequest\x1a\x1e.Ydb.Export.ExportToYtResponseB\x1a\n\x18\x63om.yandex.ydb.export.v1b\x06proto3')
   ,
   dependencies=[kikimr_dot_public_dot_api_dot_protos_dot_ydb__export__pb2.DESCRIPTOR,])
 
@@ -39,15 +39,15 @@ _EXPORTSERVICE = _descriptor.ServiceDescriptor(
   index=0,
   options=None,
   serialized_start=104,
-  serialized_end=202,
+  serialized_end=196,
   methods=[
   _descriptor.MethodDescriptor(
-    name='CreateExport',
-    full_name='Ydb.Export.V1.ExportService.CreateExport',
+    name='ExportToYt',
+    full_name='Ydb.Export.V1.ExportService.ExportToYt',
     index=0,
     containing_service=None,
-    input_type=kikimr_dot_public_dot_api_dot_protos_dot_ydb__export__pb2._CREATEEXPORTREQUEST,
-    output_type=kikimr_dot_public_dot_api_dot_protos_dot_ydb__export__pb2._CREATEEXPORTRESPONSE,
+    input_type=kikimr_dot_public_dot_api_dot_protos_dot_ydb__export__pb2._EXPORTTOYTREQUEST,
+    output_type=kikimr_dot_public_dot_api_dot_protos_dot_ydb__export__pb2._EXPORTTOYTRESPONSE,
     options=None,
   ),
 ])

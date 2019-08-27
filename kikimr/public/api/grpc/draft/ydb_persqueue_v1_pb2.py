@@ -21,7 +21,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='kikimr/public/api/grpc/draft/ydb_persqueue_v1.proto',
   package='Ydb.PersQueue.V1',
   syntax='proto3',
-  serialized_pb=_b('\n3kikimr/public/api/grpc/draft/ydb_persqueue_v1.proto\x12\x10Ydb.PersQueue.V1\x1a>kikimr/public/api/protos/ydb_persqueue_cluster_discovery.proto\x1a/kikimr/public/api/protos/ydb_persqueue_v1.proto2\xad\x02\n\x10PersQueueService\x12\x61\n\x12\x43reateWriteSession\x12\".Ydb.PersQueue.WriteSessionRequest\x1a#.Ydb.PersQueue.WriteSessionResponse(\x01\x30\x01\x12^\n\x11\x43reateReadSession\x12!.Ydb.PersQueue.ReadSessionRequest\x1a\".Ydb.PersQueue.ReadSessionResponse(\x01\x30\x01\x12V\n\x13GetReadSessionsInfo\x12\x1e.Ydb.PersQueue.ReadInfoRequest\x1a\x1f.Ydb.PersQueue.ReadInfoResponse2\xaa\x01\n PersQueueClusterDiscoveryService\x12\x85\x01\n\x10\x44iscoverClusters\x12\x37.Ydb.PersQueue.ClusterDiscovery.DiscoverClustersRequest\x1a\x38.Ydb.PersQueue.ClusterDiscovery.DiscoverClustersResponseB \n\x1b\x63om.yandex.ydb.persqueue.v1\xf8\x01\x01\x62\x06proto3')
+  serialized_pb=_b('\n3kikimr/public/api/grpc/draft/ydb_persqueue_v1.proto\x12\x10Ydb.PersQueue.V1\x1a>kikimr/public/api/protos/ydb_persqueue_cluster_discovery.proto\x1a/kikimr/public/api/protos/ydb_persqueue_v1.proto2\xad\x02\n\x10PersQueueService\x12\x61\n\x12\x43reateWriteSession\x12\".Ydb.PersQueue.WriteSessionRequest\x1a#.Ydb.PersQueue.WriteSessionResponse(\x01\x30\x01\x12^\n\x11\x43reateReadSession\x12!.Ydb.PersQueue.ReadSessionRequest\x1a\".Ydb.PersQueue.ReadSessionResponse(\x01\x30\x01\x12V\n\x13GetReadSessionsInfo\x12\x1e.Ydb.PersQueue.ReadInfoRequest\x1a\x1f.Ydb.PersQueue.ReadInfoResponse2\xa1\x01\n\x17\x43lusterDiscoveryService\x12\x85\x01\n\x10\x44iscoverClusters\x12\x37.Ydb.PersQueue.ClusterDiscovery.DiscoverClustersRequest\x1a\x38.Ydb.PersQueue.ClusterDiscovery.DiscoverClustersResponseB \n\x1b\x63om.yandex.ydb.persqueue.v1\xf8\x01\x01\x62\x06proto3')
   ,
   dependencies=[kikimr_dot_public_dot_api_dot_protos_dot_ydb__persqueue__cluster__discovery__pb2.DESCRIPTOR,kikimr_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.DESCRIPTOR,])
 
@@ -75,18 +75,18 @@ _sym_db.RegisterServiceDescriptor(_PERSQUEUESERVICE)
 DESCRIPTOR.services_by_name['PersQueueService'] = _PERSQUEUESERVICE
 
 
-_PERSQUEUECLUSTERDISCOVERYSERVICE = _descriptor.ServiceDescriptor(
-  name='PersQueueClusterDiscoveryService',
-  full_name='Ydb.PersQueue.V1.PersQueueClusterDiscoveryService',
+_CLUSTERDISCOVERYSERVICE = _descriptor.ServiceDescriptor(
+  name='ClusterDiscoveryService',
+  full_name='Ydb.PersQueue.V1.ClusterDiscoveryService',
   file=DESCRIPTOR,
   index=1,
   options=None,
   serialized_start=491,
-  serialized_end=661,
+  serialized_end=652,
   methods=[
   _descriptor.MethodDescriptor(
     name='DiscoverClusters',
-    full_name='Ydb.PersQueue.V1.PersQueueClusterDiscoveryService.DiscoverClusters',
+    full_name='Ydb.PersQueue.V1.ClusterDiscoveryService.DiscoverClusters',
     index=0,
     containing_service=None,
     input_type=kikimr_dot_public_dot_api_dot_protos_dot_ydb__persqueue__cluster__discovery__pb2._DISCOVERCLUSTERSREQUEST,
@@ -94,8 +94,8 @@ _PERSQUEUECLUSTERDISCOVERYSERVICE = _descriptor.ServiceDescriptor(
     options=None,
   ),
 ])
-_sym_db.RegisterServiceDescriptor(_PERSQUEUECLUSTERDISCOVERYSERVICE)
+_sym_db.RegisterServiceDescriptor(_CLUSTERDISCOVERYSERVICE)
 
-DESCRIPTOR.services_by_name['PersQueueClusterDiscoveryService'] = _PERSQUEUECLUSTERDISCOVERYSERVICE
+DESCRIPTOR.services_by_name['ClusterDiscoveryService'] = _CLUSTERDISCOVERYSERVICE
 
 # @@protoc_insertion_point(module_scope)
