@@ -6,6 +6,12 @@ from datetime import datetime
 import grpc
 import time
 import jwt
+import json
+
+try:
+    import requests
+except ImportError:
+    requests = None
 
 
 def get_jwt(service_account_id, access_key_id, private_key, jwt_expiration_timeout):
@@ -70,3 +76,34 @@ class ServiceAccountCredentials(credentials.Credentials):
             self._update_token()
         return [
             (credentials.YDB_AUTH_TICKET_HEADER, self._token)]
+
+
+class MetadataUrlCredentials(credentials.AbstractCredentials):
+    def __init__(self, metadata_url=None):
+        if metadata_url is None:
+            metadata_url = 'http://169.254.169.254/computeMetadata/v1/instance/service-accounts/default/token'
+        self._metadata_url = metadata_url
+        self._hour = 60 * 60
+        self._expires_in = 0
+        self._iam_token = None
+        if requests is None:
+            raise RuntimeError(
+                "Install requests library to use metadata credentials provider")
+
+    def _auth_metadata(self):
+        response = requests.get(self._metadata_url, headers={'Metadata-Flavor': 'Google'}, timeout=3)
+        response.raise_for_status()
+        return json.loads(response.text)
+
+    @property
+    def iam_token(self):
+        if time.time() > self._expires_in:
+            auth_metadata = self._auth_metadata()
+            self._iam_token = auth_metadata['access_token']
+            self._expires_in = time.time() + min(self._hour, auth_metadata['expires_in'] / 2)
+        return self._iam_token
+
+    def auth_metadata(self):
+        return [
+            (credentials.YDB_AUTH_TICKET_HEADER, self.iam_token)
+        ]
