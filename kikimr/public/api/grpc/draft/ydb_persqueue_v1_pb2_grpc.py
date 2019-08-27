@@ -133,7 +133,7 @@ def add_PersQueueServiceServicer_to_server(servicer, server):
   server.add_generic_rpc_handlers((generic_handler,))
 
 
-class PersQueueClusterDiscoveryServiceStub(object):
+class ClusterDiscoveryServiceStub(object):
   # missing associated documentation comment in .proto file
   pass
 
@@ -144,13 +144,13 @@ class PersQueueClusterDiscoveryServiceStub(object):
       channel: A grpc.Channel.
     """
     self.DiscoverClusters = channel.unary_unary(
-        '/Ydb.PersQueue.V1.PersQueueClusterDiscoveryService/DiscoverClusters',
+        '/Ydb.PersQueue.V1.ClusterDiscoveryService/DiscoverClusters',
         request_serializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__persqueue__cluster__discovery__pb2.DiscoverClustersRequest.SerializeToString,
         response_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__persqueue__cluster__discovery__pb2.DiscoverClustersResponse.FromString,
         )
 
 
-class PersQueueClusterDiscoveryServiceServicer(object):
+class ClusterDiscoveryServiceServicer(object):
   # missing associated documentation comment in .proto file
   pass
 
@@ -162,7 +162,7 @@ class PersQueueClusterDiscoveryServiceServicer(object):
     raise NotImplementedError('Method not implemented!')
 
 
-def add_PersQueueClusterDiscoveryServiceServicer_to_server(servicer, server):
+def add_ClusterDiscoveryServiceServicer_to_server(servicer, server):
   rpc_method_handlers = {
       'DiscoverClusters': grpc.unary_unary_rpc_method_handler(
           servicer.DiscoverClusters,
@@ -171,5 +171,5 @@ def add_PersQueueClusterDiscoveryServiceServicer_to_server(servicer, server):
       ),
   }
   generic_handler = grpc.method_handlers_generic_handler(
-      'Ydb.PersQueue.V1.PersQueueClusterDiscoveryService', rpc_method_handlers)
+      'Ydb.PersQueue.V1.ClusterDiscoveryService', rpc_method_handlers)
   server.add_generic_rpc_handlers((generic_handler,))

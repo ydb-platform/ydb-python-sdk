@@ -3,7 +3,6 @@
 
 import sys
 _b=sys.version_info[0]<3 and (lambda x:x) or (lambda x:x.encode('latin1'))
-from google.protobuf.internal import enum_type_wrapper
 from google.protobuf import descriptor as _descriptor
 from google.protobuf import message as _message
 from google.protobuf import reflection as _reflection
@@ -21,13 +20,15 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='kikimr/public/api/protos/ydb_export.proto',
   package='Ydb.Export',
   syntax='proto3',
-  serialized_pb=_b('\n)kikimr/public/api/protos/ydb_export.proto\x12\nYdb.Export\x1a,kikimr/public/api/protos/ydb_operation.proto\"Q\n\nYtSettings\x12\x0c\n\x04host\x18\x01 \x01(\t\x12\x0c\n\x04port\x18\x02 \x01(\r\x12\x18\n\x10\x64\x65stination_path\x18\x03 \x01(\t\x12\r\n\x05token\x18\x04 \x01(\t\"\xb6\x01\n\x0e\x45xportSettings\x12\x32\n\x07targets\x18\x01 \x03(\x0b\x32!.Ydb.Export.ExportSettings.Target\x12\x13\n\x0b\x64\x65scription\x18\x02 \x01(\t\x1a[\n\x06Target\x12\x13\n\x0bsource_path\x18\x01 \x01(\t\x12$\n\x02yt\x18\x02 \x01(\x0b\x32\x16.Ydb.Export.YtSettingsH\x00\x42\x16\n\x14\x64\x65stination_settings\"\x0e\n\x0c\x45xportResult\"l\n\x0e\x45xportMetadata\x12,\n\x08settings\x18\x01 \x01(\x0b\x32\x1a.Ydb.Export.ExportSettings\x12,\n\x08progress\x18\x02 \x01(\x0e\x32\x1a.Ydb.Export.ExportProgress\"~\n\x13\x43reateExportRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12,\n\x08settings\x18\x02 \x01(\x0b\x32\x1a.Ydb.Export.ExportSettings\"D\n\x14\x43reateExportResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation*\xa4\x01\n\x0e\x45xportProgress\x12\x18\n\x14PROGRESS_UNSPECIFIED\x10\x00\x12\x16\n\x12PROGRESS_PREPARING\x10\x01\x12\x1a\n\x16PROGRESS_TRANSFER_DATA\x10\x02\x12\x11\n\rPROGRESS_DONE\x10\x03\x12\x19\n\x15PROGRESS_CANCELLATION\x10\x04\x12\x16\n\x12PROGRESS_CANCELLED\x10\x05\x42\x1a\n\x15\x63om.yandex.ydb.export\xf8\x01\x01\x62\x06proto3')
+  serialized_pb=_b('\n)kikimr/public/api/protos/ydb_export.proto\x12\nYdb.Export\x1a,kikimr/public/api/protos/ydb_operation.proto\"\xb1\x01\n\x0e\x45xportProgress\"\x9e\x01\n\x08Progress\x12\x18\n\x14PROGRESS_UNSPECIFIED\x10\x00\x12\x16\n\x12PROGRESS_PREPARING\x10\x01\x12\x1a\n\x16PROGRESS_TRANSFER_DATA\x10\x02\x12\x11\n\rPROGRESS_DONE\x10\x03\x12\x19\n\x15PROGRESS_CANCELLATION\x10\x04\x12\x16\n\x12PROGRESS_CANCELLED\x10\x05\"\xbf\x01\n\x12\x45xportToYtSettings\x12\x0c\n\x04host\x18\x01 \x01(\t\x12\x0c\n\x04port\x18\x02 \x01(\r\x12\r\n\x05token\x18\x03 \x01(\t\x12\x32\n\x05items\x18\x04 \x03(\x0b\x32#.Ydb.Export.ExportToYtSettings.Item\x12\x13\n\x0b\x64\x65scription\x18\x05 \x01(\t\x1a\x35\n\x04Item\x12\x13\n\x0bsource_path\x18\x01 \x01(\t\x12\x18\n\x10\x64\x65stination_path\x18\x02 \x01(\t\"\x12\n\x10\x45xportToYtResult\"}\n\x12\x45xportToYtMetadata\x12\x30\n\x08settings\x18\x01 \x01(\x0b\x32\x1e.Ydb.Export.ExportToYtSettings\x12\x35\n\x08progress\x18\x02 \x01(\x0e\x32#.Ydb.Export.ExportProgress.Progress\"\x80\x01\n\x11\x45xportToYtRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x30\n\x08settings\x18\x02 \x01(\x0b\x32\x1e.Ydb.Export.ExportToYtSettings\"B\n\x12\x45xportToYtResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.OperationB\x1a\n\x15\x63om.yandex.ydb.export\xf8\x01\x01\x62\x06proto3')
   ,
   dependencies=[kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2.DESCRIPTOR,])
 
-_EXPORTPROGRESS = _descriptor.EnumDescriptor(
-  name='ExportProgress',
-  full_name='Ydb.Export.ExportProgress',
+
+
+_EXPORTPROGRESS_PROGRESS = _descriptor.EnumDescriptor(
+  name='Progress',
+  full_name='Ydb.Export.ExportProgress.Progress',
   filename=None,
   file=DESCRIPTOR,
   values=[
@@ -58,61 +59,25 @@ _EXPORTPROGRESS = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=696,
-  serialized_end=860,
+  serialized_start=123,
+  serialized_end=281,
 )
-_sym_db.RegisterEnumDescriptor(_EXPORTPROGRESS)
-
-ExportProgress = enum_type_wrapper.EnumTypeWrapper(_EXPORTPROGRESS)
-PROGRESS_UNSPECIFIED = 0
-PROGRESS_PREPARING = 1
-PROGRESS_TRANSFER_DATA = 2
-PROGRESS_DONE = 3
-PROGRESS_CANCELLATION = 4
-PROGRESS_CANCELLED = 5
+_sym_db.RegisterEnumDescriptor(_EXPORTPROGRESS_PROGRESS)
 
 
-
-_YTSETTINGS = _descriptor.Descriptor(
-  name='YtSettings',
-  full_name='Ydb.Export.YtSettings',
+_EXPORTPROGRESS = _descriptor.Descriptor(
+  name='ExportProgress',
+  full_name='Ydb.Export.ExportProgress',
   filename=None,
   file=DESCRIPTOR,
   containing_type=None,
   fields=[
-    _descriptor.FieldDescriptor(
-      name='host', full_name='Ydb.Export.YtSettings.host', index=0,
-      number=1, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=_b("").decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='port', full_name='Ydb.Export.YtSettings.port', index=1,
-      number=2, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='destination_path', full_name='Ydb.Export.YtSettings.destination_path', index=2,
-      number=3, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=_b("").decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='token', full_name='Ydb.Export.YtSettings.token', index=3,
-      number=4, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=_b("").decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
+    _EXPORTPROGRESS_PROGRESS,
   ],
   options=None,
   is_extendable=False,
@@ -120,67 +85,27 @@ _YTSETTINGS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=103,
-  serialized_end=184,
+  serialized_start=104,
+  serialized_end=281,
 )
 
 
-_EXPORTSETTINGS_TARGET = _descriptor.Descriptor(
-  name='Target',
-  full_name='Ydb.Export.ExportSettings.Target',
+_EXPORTTOYTSETTINGS_ITEM = _descriptor.Descriptor(
+  name='Item',
+  full_name='Ydb.Export.ExportToYtSettings.Item',
   filename=None,
   file=DESCRIPTOR,
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='source_path', full_name='Ydb.Export.ExportSettings.Target.source_path', index=0,
+      name='source_path', full_name='Ydb.Export.ExportToYtSettings.Item.source_path', index=0,
       number=1, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='yt', full_name='Ydb.Export.ExportSettings.Target.yt', index=1,
-      number=2, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  options=None,
-  is_extendable=False,
-  syntax='proto3',
-  extension_ranges=[],
-  oneofs=[
-    _descriptor.OneofDescriptor(
-      name='destination_settings', full_name='Ydb.Export.ExportSettings.Target.destination_settings',
-      index=0, containing_type=None, fields=[]),
-  ],
-  serialized_start=278,
-  serialized_end=369,
-)
-
-_EXPORTSETTINGS = _descriptor.Descriptor(
-  name='ExportSettings',
-  full_name='Ydb.Export.ExportSettings',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='targets', full_name='Ydb.Export.ExportSettings.targets', index=0,
-      number=1, type=11, cpp_type=10, label=3,
-      has_default_value=False, default_value=[],
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='description', full_name='Ydb.Export.ExportSettings.description', index=1,
+      name='destination_path', full_name='Ydb.Export.ExportToYtSettings.Item.destination_path', index=1,
       number=2, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
@@ -189,7 +114,7 @@ _EXPORTSETTINGS = _descriptor.Descriptor(
   ],
   extensions=[
   ],
-  nested_types=[_EXPORTSETTINGS_TARGET, ],
+  nested_types=[],
   enum_types=[
   ],
   options=None,
@@ -198,14 +123,72 @@ _EXPORTSETTINGS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=187,
-  serialized_end=369,
+  serialized_start=422,
+  serialized_end=475,
+)
+
+_EXPORTTOYTSETTINGS = _descriptor.Descriptor(
+  name='ExportToYtSettings',
+  full_name='Ydb.Export.ExportToYtSettings',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='host', full_name='Ydb.Export.ExportToYtSettings.host', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='port', full_name='Ydb.Export.ExportToYtSettings.port', index=1,
+      number=2, type=13, cpp_type=3, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='token', full_name='Ydb.Export.ExportToYtSettings.token', index=2,
+      number=3, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='items', full_name='Ydb.Export.ExportToYtSettings.items', index=3,
+      number=4, type=11, cpp_type=10, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='description', full_name='Ydb.Export.ExportToYtSettings.description', index=4,
+      number=5, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[_EXPORTTOYTSETTINGS_ITEM, ],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=284,
+  serialized_end=475,
 )
 
 
-_EXPORTRESULT = _descriptor.Descriptor(
-  name='ExportResult',
-  full_name='Ydb.Export.ExportResult',
+_EXPORTTOYTRESULT = _descriptor.Descriptor(
+  name='ExportToYtResult',
+  full_name='Ydb.Export.ExportToYtResult',
   filename=None,
   file=DESCRIPTOR,
   containing_type=None,
@@ -222,27 +205,27 @@ _EXPORTRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=371,
-  serialized_end=385,
+  serialized_start=477,
+  serialized_end=495,
 )
 
 
-_EXPORTMETADATA = _descriptor.Descriptor(
-  name='ExportMetadata',
-  full_name='Ydb.Export.ExportMetadata',
+_EXPORTTOYTMETADATA = _descriptor.Descriptor(
+  name='ExportToYtMetadata',
+  full_name='Ydb.Export.ExportToYtMetadata',
   filename=None,
   file=DESCRIPTOR,
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='settings', full_name='Ydb.Export.ExportMetadata.settings', index=0,
+      name='settings', full_name='Ydb.Export.ExportToYtMetadata.settings', index=0,
       number=1, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='progress', full_name='Ydb.Export.ExportMetadata.progress', index=1,
+      name='progress', full_name='Ydb.Export.ExportToYtMetadata.progress', index=1,
       number=2, type=14, cpp_type=8, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
@@ -260,27 +243,27 @@ _EXPORTMETADATA = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=387,
-  serialized_end=495,
+  serialized_start=497,
+  serialized_end=622,
 )
 
 
-_CREATEEXPORTREQUEST = _descriptor.Descriptor(
-  name='CreateExportRequest',
-  full_name='Ydb.Export.CreateExportRequest',
+_EXPORTTOYTREQUEST = _descriptor.Descriptor(
+  name='ExportToYtRequest',
+  full_name='Ydb.Export.ExportToYtRequest',
   filename=None,
   file=DESCRIPTOR,
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='operation_params', full_name='Ydb.Export.CreateExportRequest.operation_params', index=0,
+      name='operation_params', full_name='Ydb.Export.ExportToYtRequest.operation_params', index=0,
       number=1, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='settings', full_name='Ydb.Export.CreateExportRequest.settings', index=1,
+      name='settings', full_name='Ydb.Export.ExportToYtRequest.settings', index=1,
       number=2, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
@@ -298,20 +281,20 @@ _CREATEEXPORTREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=497,
-  serialized_end=623,
+  serialized_start=625,
+  serialized_end=753,
 )
 
 
-_CREATEEXPORTRESPONSE = _descriptor.Descriptor(
-  name='CreateExportResponse',
-  full_name='Ydb.Export.CreateExportResponse',
+_EXPORTTOYTRESPONSE = _descriptor.Descriptor(
+  name='ExportToYtResponse',
+  full_name='Ydb.Export.ExportToYtResponse',
   filename=None,
   file=DESCRIPTOR,
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='operation', full_name='Ydb.Export.CreateExportResponse.operation', index=0,
+      name='operation', full_name='Ydb.Export.ExportToYtResponse.operation', index=0,
       number=1, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
@@ -329,79 +312,75 @@ _CREATEEXPORTRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=625,
-  serialized_end=693,
+  serialized_start=755,
+  serialized_end=821,
 )
 
-_EXPORTSETTINGS_TARGET.fields_by_name['yt'].message_type = _YTSETTINGS
-_EXPORTSETTINGS_TARGET.containing_type = _EXPORTSETTINGS
-_EXPORTSETTINGS_TARGET.oneofs_by_name['destination_settings'].fields.append(
-  _EXPORTSETTINGS_TARGET.fields_by_name['yt'])
-_EXPORTSETTINGS_TARGET.fields_by_name['yt'].containing_oneof = _EXPORTSETTINGS_TARGET.oneofs_by_name['destination_settings']
-_EXPORTSETTINGS.fields_by_name['targets'].message_type = _EXPORTSETTINGS_TARGET
-_EXPORTMETADATA.fields_by_name['settings'].message_type = _EXPORTSETTINGS
-_EXPORTMETADATA.fields_by_name['progress'].enum_type = _EXPORTPROGRESS
-_CREATEEXPORTREQUEST.fields_by_name['operation_params'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2._OPERATIONPARAMS
-_CREATEEXPORTREQUEST.fields_by_name['settings'].message_type = _EXPORTSETTINGS
-_CREATEEXPORTRESPONSE.fields_by_name['operation'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2._OPERATION
-DESCRIPTOR.message_types_by_name['YtSettings'] = _YTSETTINGS
-DESCRIPTOR.message_types_by_name['ExportSettings'] = _EXPORTSETTINGS
-DESCRIPTOR.message_types_by_name['ExportResult'] = _EXPORTRESULT
-DESCRIPTOR.message_types_by_name['ExportMetadata'] = _EXPORTMETADATA
-DESCRIPTOR.message_types_by_name['CreateExportRequest'] = _CREATEEXPORTREQUEST
-DESCRIPTOR.message_types_by_name['CreateExportResponse'] = _CREATEEXPORTRESPONSE
-DESCRIPTOR.enum_types_by_name['ExportProgress'] = _EXPORTPROGRESS
+_EXPORTPROGRESS_PROGRESS.containing_type = _EXPORTPROGRESS
+_EXPORTTOYTSETTINGS_ITEM.containing_type = _EXPORTTOYTSETTINGS
+_EXPORTTOYTSETTINGS.fields_by_name['items'].message_type = _EXPORTTOYTSETTINGS_ITEM
+_EXPORTTOYTMETADATA.fields_by_name['settings'].message_type = _EXPORTTOYTSETTINGS
+_EXPORTTOYTMETADATA.fields_by_name['progress'].enum_type = _EXPORTPROGRESS_PROGRESS
+_EXPORTTOYTREQUEST.fields_by_name['operation_params'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2._OPERATIONPARAMS
+_EXPORTTOYTREQUEST.fields_by_name['settings'].message_type = _EXPORTTOYTSETTINGS
+_EXPORTTOYTRESPONSE.fields_by_name['operation'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2._OPERATION
+DESCRIPTOR.message_types_by_name['ExportProgress'] = _EXPORTPROGRESS
+DESCRIPTOR.message_types_by_name['ExportToYtSettings'] = _EXPORTTOYTSETTINGS
+DESCRIPTOR.message_types_by_name['ExportToYtResult'] = _EXPORTTOYTRESULT
+DESCRIPTOR.message_types_by_name['ExportToYtMetadata'] = _EXPORTTOYTMETADATA
+DESCRIPTOR.message_types_by_name['ExportToYtRequest'] = _EXPORTTOYTREQUEST
+DESCRIPTOR.message_types_by_name['ExportToYtResponse'] = _EXPORTTOYTRESPONSE
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
-YtSettings = _reflection.GeneratedProtocolMessageType('YtSettings', (_message.Message,), dict(
-  DESCRIPTOR = _YTSETTINGS,
+ExportProgress = _reflection.GeneratedProtocolMessageType('ExportProgress', (_message.Message,), dict(
+  DESCRIPTOR = _EXPORTPROGRESS,
   __module__ = 'kikimr.public.api.protos.ydb_export_pb2'
-  # @@protoc_insertion_point(class_scope:Ydb.Export.YtSettings)
+  # @@protoc_insertion_point(class_scope:Ydb.Export.ExportProgress)
   ))
-_sym_db.RegisterMessage(YtSettings)
+_sym_db.RegisterMessage(ExportProgress)
 
-ExportSettings = _reflection.GeneratedProtocolMessageType('ExportSettings', (_message.Message,), dict(
+ExportToYtSettings = _reflection.GeneratedProtocolMessageType('ExportToYtSettings', (_message.Message,), dict(
 
-  Target = _reflection.GeneratedProtocolMessageType('Target', (_message.Message,), dict(
-    DESCRIPTOR = _EXPORTSETTINGS_TARGET,
+  Item = _reflection.GeneratedProtocolMessageType('Item', (_message.Message,), dict(
+    DESCRIPTOR = _EXPORTTOYTSETTINGS_ITEM,
     __module__ = 'kikimr.public.api.protos.ydb_export_pb2'
-    # @@protoc_insertion_point(class_scope:Ydb.Export.ExportSettings.Target)
+    # @@protoc_insertion_point(class_scope:Ydb.Export.ExportToYtSettings.Item)
     ))
   ,
-  DESCRIPTOR = _EXPORTSETTINGS,
+  DESCRIPTOR = _EXPORTTOYTSETTINGS,
   __module__ = 'kikimr.public.api.protos.ydb_export_pb2'
-  # @@protoc_insertion_point(class_scope:Ydb.Export.ExportSettings)
+  # @@protoc_insertion_point(class_scope:Ydb.Export.ExportToYtSettings)
   ))
-_sym_db.RegisterMessage(ExportSettings)
-_sym_db.RegisterMessage(ExportSettings.Target)
+_sym_db.RegisterMessage(ExportToYtSettings)
+_sym_db.RegisterMessage(ExportToYtSettings.Item)
 
-ExportResult = _reflection.GeneratedProtocolMessageType('ExportResult', (_message.Message,), dict(
-  DESCRIPTOR = _EXPORTRESULT,
+ExportToYtResult = _reflection.GeneratedProtocolMessageType('ExportToYtResult', (_message.Message,), dict(
+  DESCRIPTOR = _EXPORTTOYTRESULT,
   __module__ = 'kikimr.public.api.protos.ydb_export_pb2'
-  # @@protoc_insertion_point(class_scope:Ydb.Export.ExportResult)
+  # @@protoc_insertion_point(class_scope:Ydb.Export.ExportToYtResult)
   ))
-_sym_db.RegisterMessage(ExportResult)
+_sym_db.RegisterMessage(ExportToYtResult)
 
-ExportMetadata = _reflection.GeneratedProtocolMessageType('ExportMetadata', (_message.Message,), dict(
-  DESCRIPTOR = _EXPORTMETADATA,
+ExportToYtMetadata = _reflection.GeneratedProtocolMessageType('ExportToYtMetadata', (_message.Message,), dict(
+  DESCRIPTOR = _EXPORTTOYTMETADATA,
   __module__ = 'kikimr.public.api.protos.ydb_export_pb2'
-  # @@protoc_insertion_point(class_scope:Ydb.Export.ExportMetadata)
+  # @@protoc_insertion_point(class_scope:Ydb.Export.ExportToYtMetadata)
   ))
-_sym_db.RegisterMessage(ExportMetadata)
+_sym_db.RegisterMessage(ExportToYtMetadata)
 
-CreateExportRequest = _reflection.GeneratedProtocolMessageType('CreateExportRequest', (_message.Message,), dict(
-  DESCRIPTOR = _CREATEEXPORTREQUEST,
+ExportToYtRequest = _reflection.GeneratedProtocolMessageType('ExportToYtRequest', (_message.Message,), dict(
+  DESCRIPTOR = _EXPORTTOYTREQUEST,
   __module__ = 'kikimr.public.api.protos.ydb_export_pb2'
-  # @@protoc_insertion_point(class_scope:Ydb.Export.CreateExportRequest)
+  # @@protoc_insertion_point(class_scope:Ydb.Export.ExportToYtRequest)
   ))
-_sym_db.RegisterMessage(CreateExportRequest)
+_sym_db.RegisterMessage(ExportToYtRequest)
 
-CreateExportResponse = _reflection.GeneratedProtocolMessageType('CreateExportResponse', (_message.Message,), dict(
-  DESCRIPTOR = _CREATEEXPORTRESPONSE,
+ExportToYtResponse = _reflection.GeneratedProtocolMessageType('ExportToYtResponse', (_message.Message,), dict(
+  DESCRIPTOR = _EXPORTTOYTRESPONSE,
   __module__ = 'kikimr.public.api.protos.ydb_export_pb2'
-  # @@protoc_insertion_point(class_scope:Ydb.Export.CreateExportResponse)
+  # @@protoc_insertion_point(class_scope:Ydb.Export.ExportToYtResponse)
   ))
-_sym_db.RegisterMessage(CreateExportResponse)
+_sym_db.RegisterMessage(ExportToYtResponse)
 
 
 DESCRIPTOR.has_options = True
