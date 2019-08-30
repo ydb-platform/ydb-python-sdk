@@ -104,7 +104,7 @@ def _construct_tx_settings(tx_state):
 
 
 @wrap_tx_factory_handler
-def execute_request_factory(session_state, tx_state, query, parameters, commit_tx):
+def execute_request_factory(session_state, tx_state, query, parameters, commit_tx, settings):
     data_query, query_id = session_state.lookup(query)
     parameters_types = {}
     keep_in_cache = False
@@ -113,9 +113,12 @@ def execute_request_factory(session_state, tx_state, query, parameters, commit_t
         parameters_types = data_query.parameters_types
     else:
         if isinstance(query, types.DataQuery):
-            # that is an instance of a data query and we don't know query id for id.
-            # so let's prepare it to keep in cache
-            keep_in_cache = True
+            if settings is not None and hasattr(settings, 'keep_in_cache'):
+                keep_in_cache = settings.keep_in_cache
+            else:
+                # that is an instance of a data query and we don't know query id for id.
+                # so let's prepare it to keep in cache
+                keep_in_cache = True
             yql_text = query.yql_text
             parameters_types = query.parameters_types
         else:
