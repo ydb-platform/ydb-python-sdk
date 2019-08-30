@@ -33,6 +33,16 @@ class DescribeTableSettings(settings.BaseRequestSettings):
         return self
 
 
+class ExecDataQuerySettings(settings.BaseRequestSettings):
+    def __init__(self):
+        super(ExecDataQuerySettings, self).__init__()
+        self.keep_in_cache = True
+
+    def with_keep_in_cache(self, value):
+        self.keep_in_cache = value
+        return self
+
+
 class KeyBound(object):
     __slots__ = ('_equal', 'value', 'type')
 
@@ -1171,11 +1181,12 @@ class TxContext(object):
         :param query: A query: YQL text or DataQuery instance. E
         :param parameters: A dictionary with parameters values.
         :param commit_tx: A special flag that allows transaction commit
-        :param settings: An additional request settings
+        :param settings: A request settings (an instance of ExecDataQuerySettings)
         :return: A future of query execution
         """
         return self._driver.future(
-            _tx_ctx_impl.execute_request_factory(self._session_state, self._tx_state, query, parameters, commit_tx),
+            _tx_ctx_impl.execute_request_factory(
+                self._session_state, self._tx_state, query, parameters, commit_tx, settings),
             _apis.TableService.Stub,
             _apis.TableService.ExecuteDataQuery,
             _tx_ctx_impl.wrap_result_and_tx_id,
@@ -1196,7 +1207,8 @@ class TxContext(object):
         :return: A result sets or exception in case of execution errors
         """
         return self._driver(
-            _tx_ctx_impl.execute_request_factory(self._session_state, self._tx_state, query, parameters, commit_tx),
+            _tx_ctx_impl.execute_request_factory(
+                self._session_state, self._tx_state, query, parameters, commit_tx, settings),
             _apis.TableService.Stub,
             _apis.TableService.ExecuteDataQuery,
             _tx_ctx_impl.wrap_result_and_tx_id,
