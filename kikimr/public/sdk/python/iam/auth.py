@@ -1,12 +1,18 @@
 # -*- coding: utf-8 -*-
 from kikimr.public.sdk.python.client import credentials
-from yandex.cloud.iam.v1 import iam_token_service_pb2_grpc
-from yandex.cloud.iam.v1 import iam_token_service_pb2
-from datetime import datetime
 import grpc
 import time
-import jwt
+from datetime import datetime
 import json
+
+try:
+    from yandex.cloud.iam.v1 import iam_token_service_pb2_grpc
+    from yandex.cloud.iam.v1 import iam_token_service_pb2
+    import jwt
+except ImportError:
+    jwt = None
+    iam_token_service_pb2_grpc = None
+    iam_token_service_pb2 = None
 
 try:
     import requests
@@ -30,6 +36,9 @@ def get_jwt(service_account_id, access_key_id, private_key, jwt_expiration_timeo
 class ServiceAccountCredentials(credentials.Credentials):
     def __init__(self, service_account_id, access_key_id, private_key, iam_endpoint=None, iam_channel_credentials=None):
         super(ServiceAccountCredentials, self).__init__()
+        if iam_token_service_pb2_grpc is None or jwt is None or iam_token_service_pb2 is None:
+            raise RuntimeError(
+                "Install jwt & yandex python cloud library to use service account credentials provider")
         iam_endpoint = 'iam.api.cloud.yandex.net:443' if iam_endpoint is None else iam_endpoint
         iam_channel_credentials = {} if iam_channel_credentials is None else iam_channel_credentials
         self._channel = grpc.secure_channel(iam_endpoint, grpc.ssl_channel_credentials(**iam_channel_credentials))
