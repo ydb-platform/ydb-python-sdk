@@ -31,6 +31,7 @@ class StatusCode(enum.IntEnum):
     CANCELLED = _apis.StatusIds.CANCELLED
     UNDETERMINED = _apis.StatusIds.UNDETERMINED
     UNSUPPORTED = _apis.StatusIds.UNSUPPORTED
+    SESSION_BUSY = _apis.StatusIds.SESSION_BUSY
 
     CONNECTION_LOST = _TRANSPORT_STATUSES_FIRST + 10
     CONNECTION_FAILURE = _TRANSPORT_STATUSES_FIRST + 20
@@ -143,6 +144,10 @@ class Unsupported(Error):
     status = StatusCode.UNSUPPORTED
 
 
+class SessionBusy(Error):
+    status = StatusCode.SESSION_BUSY
+
+
 class SessionPoolEmpty(Error, queue.Empty):
     status = StatusCode.SESSION_POOL_EMPTY
 
@@ -174,6 +179,7 @@ _server_side_error_map = {
     StatusCode.CANCELLED: Cancelled,
     StatusCode.UNDETERMINED: Undetermined,
     StatusCode.UNSUPPORTED: Unsupported,
+    StatusCode.SESSION_BUSY: SessionBusy,
 }
 
 
