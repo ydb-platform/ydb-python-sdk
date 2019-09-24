@@ -20,7 +20,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='kikimr/public/api/grpc/ydb_discovery_v1.proto',
   package='Ydb.Discovery.V1',
   syntax='proto3',
-  serialized_pb=_b('\n-kikimr/public/api/grpc/ydb_discovery_v1.proto\x12\x10Ydb.Discovery.V1\x1a,kikimr/public/api/protos/ydb_discovery.proto2n\n\x10\x44iscoveryService\x12Z\n\rListEndpoints\x12#.Ydb.Discovery.ListEndpointsRequest\x1a$.Ydb.Discovery.ListEndpointsResponseB\x1d\n\x1b\x63om.yandex.ydb.discovery.v1b\x06proto3')
+  serialized_pb=_b('\n-kikimr/public/api/grpc/ydb_discovery_v1.proto\x12\x10Ydb.Discovery.V1\x1a,kikimr/public/api/protos/ydb_discovery.proto2\xb5\x01\n\x10\x44iscoveryService\x12Z\n\rListEndpoints\x12#.Ydb.Discovery.ListEndpointsRequest\x1a$.Ydb.Discovery.ListEndpointsResponse\x12\x45\n\x06WhoAmI\x12\x1c.Ydb.Discovery.WhoAmIRequest\x1a\x1d.Ydb.Discovery.WhoAmIResponseB\x1d\n\x1b\x63om.yandex.ydb.discovery.v1b\x06proto3')
   ,
   dependencies=[kikimr_dot_public_dot_api_dot_protos_dot_ydb__discovery__pb2.DESCRIPTOR,])
 
@@ -38,8 +38,8 @@ _DISCOVERYSERVICE = _descriptor.ServiceDescriptor(
   file=DESCRIPTOR,
   index=0,
   options=None,
-  serialized_start=113,
-  serialized_end=223,
+  serialized_start=114,
+  serialized_end=295,
   methods=[
   _descriptor.MethodDescriptor(
     name='ListEndpoints',
@@ -48,6 +48,15 @@ _DISCOVERYSERVICE = _descriptor.ServiceDescriptor(
     containing_service=None,
     input_type=kikimr_dot_public_dot_api_dot_protos_dot_ydb__discovery__pb2._LISTENDPOINTSREQUEST,
     output_type=kikimr_dot_public_dot_api_dot_protos_dot_ydb__discovery__pb2._LISTENDPOINTSRESPONSE,
+    options=None,
+  ),
+  _descriptor.MethodDescriptor(
+    name='WhoAmI',
+    full_name='Ydb.Discovery.V1.DiscoveryService.WhoAmI',
+    index=1,
+    containing_service=None,
+    input_type=kikimr_dot_public_dot_api_dot_protos_dot_ydb__discovery__pb2._WHOAMIREQUEST,
+    output_type=kikimr_dot_public_dot_api_dot_protos_dot_ydb__discovery__pb2._WHOAMIRESPONSE,
     options=None,
   ),
 ])

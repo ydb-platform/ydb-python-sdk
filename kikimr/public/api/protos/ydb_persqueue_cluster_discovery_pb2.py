@@ -21,7 +21,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='kikimr/public/api/protos/ydb_persqueue_cluster_discovery.proto',
   package='Ydb.PersQueue.ClusterDiscovery',
   syntax='proto3',
-  serialized_pb=_b('\n>kikimr/public/api/protos/ydb_persqueue_cluster_discovery.proto\x12\x1eYdb.PersQueue.ClusterDiscovery\x1a\x1bgoogle/protobuf/empty.proto\x1a,kikimr/public/api/protos/ydb_operation.proto\"o\n\x12WriteSessionParams\x12\r\n\x05topic\x18\x01 \x01(\t\x12\x11\n\tsource_id\x18\x02 \x01(\x0c\x12\x17\n\x0fpartition_group\x18\x03 \x01(\r\x12\x1e\n\x16preferred_cluster_name\x18\x04 \x01(\t\"@\n\x0b\x43lusterInfo\x12\x10\n\x08\x65ndpoint\x18\x01 \x01(\t\x12\x0c\n\x04name\x18\x02 \x01(\t\x12\x11\n\tavailable\x18\x03 \x01(\x08\"\x81\x01\n\x11ReadSessionParams\x12\r\n\x05topic\x18\x01 \x01(\t\x12 \n\x16mirroring_cluster_name\x18\x02 \x01(\tH\x00\x12.\n\x0c\x61ll_original\x18\x03 \x01(\x0b\x32\x16.google.protobuf.EmptyH\x00\x42\x0b\n\tread_mode\"U\n\x14WriteSessionClusters\x12=\n\x08\x63lusters\x18\x01 \x03(\x0b\x32+.Ydb.PersQueue.ClusterDiscovery.ClusterInfo\"T\n\x13ReadSessionClusters\x12=\n\x08\x63lusters\x18\x01 \x03(\x0b\x32+.Ydb.PersQueue.ClusterDiscovery.ClusterInfo\"\x83\x02\n\x17\x44iscoverClustersRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12J\n\x0ewrite_sessions\x18\x02 \x03(\x0b\x32\x32.Ydb.PersQueue.ClusterDiscovery.WriteSessionParams\x12H\n\rread_sessions\x18\x03 \x03(\x0b\x32\x31.Ydb.PersQueue.ClusterDiscovery.ReadSessionParams\x12\x17\n\x0fminimal_version\x18\x04 \x01(\x03\"H\n\x18\x44iscoverClustersResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\xd5\x01\n\x16\x44iscoverClustersResult\x12U\n\x17write_sessions_clusters\x18\x01 \x03(\x0b\x32\x34.Ydb.PersQueue.ClusterDiscovery.WriteSessionClusters\x12S\n\x16read_sessions_clusters\x18\x02 \x03(\x0b\x32\x33.Ydb.PersQueue.ClusterDiscovery.ReadSessionClusters\x12\x0f\n\x07version\x18\x03 \x01(\x03\x42/\n*com.yandex.ydb.persqueue.cluster_discovery\xf8\x01\x01\x62\x06proto3')
+  serialized_pb=_b('\n>kikimr/public/api/protos/ydb_persqueue_cluster_discovery.proto\x12\x1eYdb.PersQueue.ClusterDiscovery\x1a\x1bgoogle/protobuf/empty.proto\x1a,kikimr/public/api/protos/ydb_operation.proto\"o\n\x12WriteSessionParams\x12\r\n\x05topic\x18\x01 \x01(\t\x12\x11\n\tsource_id\x18\x02 \x01(\x0c\x12\x17\n\x0fpartition_group\x18\x03 \x01(\r\x12\x1e\n\x16preferred_cluster_name\x18\x04 \x01(\t\"@\n\x0b\x43lusterInfo\x12\x10\n\x08\x65ndpoint\x18\x01 \x01(\t\x12\x0c\n\x04name\x18\x02 \x01(\t\x12\x11\n\tavailable\x18\x03 \x01(\x08\"|\n\x11ReadSessionParams\x12\r\n\x05topic\x18\x01 \x01(\t\x12\x1b\n\x11mirror_to_cluster\x18\x02 \x01(\tH\x00\x12.\n\x0c\x61ll_original\x18\x03 \x01(\x0b\x32\x16.google.protobuf.EmptyH\x00\x42\x0b\n\tread_rule\"U\n\x14WriteSessionClusters\x12=\n\x08\x63lusters\x18\x01 \x03(\x0b\x32+.Ydb.PersQueue.ClusterDiscovery.ClusterInfo\"T\n\x13ReadSessionClusters\x12=\n\x08\x63lusters\x18\x01 \x03(\x0b\x32+.Ydb.PersQueue.ClusterDiscovery.ClusterInfo\"\x83\x02\n\x17\x44iscoverClustersRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12J\n\x0ewrite_sessions\x18\x02 \x03(\x0b\x32\x32.Ydb.PersQueue.ClusterDiscovery.WriteSessionParams\x12H\n\rread_sessions\x18\x03 \x03(\x0b\x32\x31.Ydb.PersQueue.ClusterDiscovery.ReadSessionParams\x12\x17\n\x0fminimal_version\x18\x04 \x01(\x03\"H\n\x18\x44iscoverClustersResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\xd5\x01\n\x16\x44iscoverClustersResult\x12U\n\x17write_sessions_clusters\x18\x01 \x03(\x0b\x32\x34.Ydb.PersQueue.ClusterDiscovery.WriteSessionClusters\x12S\n\x16read_sessions_clusters\x18\x02 \x03(\x0b\x32\x33.Ydb.PersQueue.ClusterDiscovery.ReadSessionClusters\x12\x0f\n\x07version\x18\x03 \x01(\x03\x42/\n*com.yandex.ydb.persqueue.cluster_discovery\xf8\x01\x01\x62\x06proto3')
   ,
   dependencies=[google_dot_protobuf_dot_empty__pb2.DESCRIPTOR,kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2.DESCRIPTOR,])
 
@@ -140,7 +140,7 @@ _READSESSIONPARAMS = _descriptor.Descriptor(
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='mirroring_cluster_name', full_name='Ydb.PersQueue.ClusterDiscovery.ReadSessionParams.mirroring_cluster_name', index=1,
+      name='mirror_to_cluster', full_name='Ydb.PersQueue.ClusterDiscovery.ReadSessionParams.mirror_to_cluster', index=1,
       number=2, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
@@ -165,11 +165,11 @@ _READSESSIONPARAMS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
     _descriptor.OneofDescriptor(
-      name='read_mode', full_name='Ydb.PersQueue.ClusterDiscovery.ReadSessionParams.read_mode',
+      name='read_rule', full_name='Ydb.PersQueue.ClusterDiscovery.ReadSessionParams.read_rule',
       index=0, containing_type=None, fields=[]),
   ],
-  serialized_start=353,
-  serialized_end=482,
+  serialized_start=352,
+  serialized_end=476,
 )
 
 
@@ -199,8 +199,8 @@ _WRITESESSIONCLUSTERS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=484,
-  serialized_end=569,
+  serialized_start=478,
+  serialized_end=563,
 )
 
 
@@ -230,8 +230,8 @@ _READSESSIONCLUSTERS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=571,
-  serialized_end=655,
+  serialized_start=565,
+  serialized_end=649,
 )
 
 
@@ -282,8 +282,8 @@ _DISCOVERCLUSTERSREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=658,
-  serialized_end=917,
+  serialized_start=652,
+  serialized_end=911,
 )
 
 
@@ -313,8 +313,8 @@ _DISCOVERCLUSTERSRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=919,
-  serialized_end=991,
+  serialized_start=913,
+  serialized_end=985,
 )
 
 
@@ -358,17 +358,17 @@ _DISCOVERCLUSTERSRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=994,
-  serialized_end=1207,
+  serialized_start=988,
+  serialized_end=1201,
 )
 
 _READSESSIONPARAMS.fields_by_name['all_original'].message_type = google_dot_protobuf_dot_empty__pb2._EMPTY
-_READSESSIONPARAMS.oneofs_by_name['read_mode'].fields.append(
-  _READSESSIONPARAMS.fields_by_name['mirroring_cluster_name'])
-_READSESSIONPARAMS.fields_by_name['mirroring_cluster_name'].containing_oneof = _READSESSIONPARAMS.oneofs_by_name['read_mode']
-_READSESSIONPARAMS.oneofs_by_name['read_mode'].fields.append(
+_READSESSIONPARAMS.oneofs_by_name['read_rule'].fields.append(
+  _READSESSIONPARAMS.fields_by_name['mirror_to_cluster'])
+_READSESSIONPARAMS.fields_by_name['mirror_to_cluster'].containing_oneof = _READSESSIONPARAMS.oneofs_by_name['read_rule']
+_READSESSIONPARAMS.oneofs_by_name['read_rule'].fields.append(
   _READSESSIONPARAMS.fields_by_name['all_original'])
-_READSESSIONPARAMS.fields_by_name['all_original'].containing_oneof = _READSESSIONPARAMS.oneofs_by_name['read_mode']
+_READSESSIONPARAMS.fields_by_name['all_original'].containing_oneof = _READSESSIONPARAMS.oneofs_by_name['read_rule']
 _WRITESESSIONCLUSTERS.fields_by_name['clusters'].message_type = _CLUSTERINFO
 _READSESSIONCLUSTERS.fields_by_name['clusters'].message_type = _CLUSTERINFO
 _DISCOVERCLUSTERSREQUEST.fields_by_name['operation_params'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2._OPERATIONPARAMS

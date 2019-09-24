@@ -104,6 +104,11 @@ class TableServiceStub(object):
         request_serializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__table__pb2.ReadTableRequest.SerializeToString,
         response_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__table__pb2.ReadTableResponse.FromString,
         )
+    self.BulkUpsert = channel.unary_unary(
+        '/Ydb.Table.V1.TableService/BulkUpsert',
+        request_serializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__table__pb2.BulkUpsertRequest.SerializeToString,
+        response_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__table__pb2.BulkUpsertResponse.FromString,
+        )
 
 
 class TableServiceServicer(object):
@@ -246,6 +251,15 @@ class TableServiceServicer(object):
     context.set_details('Method not implemented!')
     raise NotImplementedError('Method not implemented!')
 
+  def BulkUpsert(self, request, context):
+    """Upserts a batch of rows non-transactionally.
+    Returns success only when all rows were successfully upserted. In case of an error some rows might
+    be upserted and some might not.
+    """
+    context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+    context.set_details('Method not implemented!')
+    raise NotImplementedError('Method not implemented!')
+
 
 def add_TableServiceServicer_to_server(servicer, server):
   rpc_method_handlers = {
@@ -338,6 +352,11 @@ def add_TableServiceServicer_to_server(servicer, server):
           servicer.StreamReadTable,
           request_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__table__pb2.ReadTableRequest.FromString,
           response_serializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__table__pb2.ReadTableResponse.SerializeToString,
+      ),
+      'BulkUpsert': grpc.unary_unary_rpc_method_handler(
+          servicer.BulkUpsert,
+          request_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__table__pb2.BulkUpsertRequest.FromString,
+          response_serializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__table__pb2.BulkUpsertResponse.SerializeToString,
       ),
   }
   generic_handler = grpc.method_handlers_generic_handler(

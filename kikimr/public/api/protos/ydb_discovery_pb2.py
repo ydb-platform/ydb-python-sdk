@@ -20,7 +20,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='kikimr/public/api/protos/ydb_discovery.proto',
   package='Ydb.Discovery',
   syntax='proto3',
-  serialized_pb=_b('\n,kikimr/public/api/protos/ydb_discovery.proto\x12\rYdb.Discovery\x1a,kikimr/public/api/protos/ydb_operation.proto\"9\n\x14ListEndpointsRequest\x12\x10\n\x08\x64\x61tabase\x18\x01 \x01(\t\x12\x0f\n\x07service\x18\x02 \x03(\t\"r\n\x0c\x45ndpointInfo\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x01(\t\x12\x0c\n\x04port\x18\x02 \x01(\r\x12\x13\n\x0bload_factor\x18\x03 \x01(\x02\x12\x0b\n\x03ssl\x18\x04 \x01(\x08\x12\x0f\n\x07service\x18\x05 \x03(\t\x12\x10\n\x08location\x18\x06 \x01(\t\"\\\n\x13ListEndpointsResult\x12.\n\tendpoints\x18\x01 \x03(\x0b\x32\x1b.Ydb.Discovery.EndpointInfo\x12\x15\n\rself_location\x18\x02 \x01(\t\"E\n\x15ListEndpointsResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.OperationB.\n\x18\x63om.yandex.ydb.discoveryB\x0f\x44iscoveryProtos\xf8\x01\x01\x62\x06proto3')
+  serialized_pb=_b('\n,kikimr/public/api/protos/ydb_discovery.proto\x12\rYdb.Discovery\x1a,kikimr/public/api/protos/ydb_operation.proto\"9\n\x14ListEndpointsRequest\x12\x10\n\x08\x64\x61tabase\x18\x01 \x01(\t\x12\x0f\n\x07service\x18\x02 \x03(\t\"r\n\x0c\x45ndpointInfo\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x01(\t\x12\x0c\n\x04port\x18\x02 \x01(\r\x12\x13\n\x0bload_factor\x18\x03 \x01(\x02\x12\x0b\n\x03ssl\x18\x04 \x01(\x08\x12\x0f\n\x07service\x18\x05 \x03(\t\x12\x10\n\x08location\x18\x06 \x01(\t\"\\\n\x13ListEndpointsResult\x12.\n\tendpoints\x18\x01 \x03(\x0b\x32\x1b.Ydb.Discovery.EndpointInfo\x12\x15\n\rself_location\x18\x02 \x01(\t\"E\n\x15ListEndpointsResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\'\n\rWhoAmIRequest\x12\x16\n\x0einclude_groups\x18\x01 \x01(\x08\",\n\x0cWhoAmIResult\x12\x0c\n\x04user\x18\x01 \x01(\t\x12\x0e\n\x06groups\x18\x02 \x03(\t\">\n\x0eWhoAmIResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.OperationB.\n\x18\x63om.yandex.ydb.discoveryB\x0f\x44iscoveryProtos\xf8\x01\x01\x62\x06proto3')
   ,
   dependencies=[kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2.DESCRIPTOR,])
 
@@ -199,12 +199,116 @@ _LISTENDPOINTSRESPONSE = _descriptor.Descriptor(
   serialized_end=447,
 )
 
+
+_WHOAMIREQUEST = _descriptor.Descriptor(
+  name='WhoAmIRequest',
+  full_name='Ydb.Discovery.WhoAmIRequest',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='include_groups', full_name='Ydb.Discovery.WhoAmIRequest.include_groups', index=0,
+      number=1, type=8, cpp_type=7, label=1,
+      has_default_value=False, default_value=False,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=449,
+  serialized_end=488,
+)
+
+
+_WHOAMIRESULT = _descriptor.Descriptor(
+  name='WhoAmIResult',
+  full_name='Ydb.Discovery.WhoAmIResult',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='user', full_name='Ydb.Discovery.WhoAmIResult.user', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='groups', full_name='Ydb.Discovery.WhoAmIResult.groups', index=1,
+      number=2, type=9, cpp_type=9, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=490,
+  serialized_end=534,
+)
+
+
+_WHOAMIRESPONSE = _descriptor.Descriptor(
+  name='WhoAmIResponse',
+  full_name='Ydb.Discovery.WhoAmIResponse',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='operation', full_name='Ydb.Discovery.WhoAmIResponse.operation', index=0,
+      number=1, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=536,
+  serialized_end=598,
+)
+
 _LISTENDPOINTSRESULT.fields_by_name['endpoints'].message_type = _ENDPOINTINFO
 _LISTENDPOINTSRESPONSE.fields_by_name['operation'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2._OPERATION
+_WHOAMIRESPONSE.fields_by_name['operation'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2._OPERATION
 DESCRIPTOR.message_types_by_name['ListEndpointsRequest'] = _LISTENDPOINTSREQUEST
 DESCRIPTOR.message_types_by_name['EndpointInfo'] = _ENDPOINTINFO
 DESCRIPTOR.message_types_by_name['ListEndpointsResult'] = _LISTENDPOINTSRESULT
 DESCRIPTOR.message_types_by_name['ListEndpointsResponse'] = _LISTENDPOINTSRESPONSE
+DESCRIPTOR.message_types_by_name['WhoAmIRequest'] = _WHOAMIREQUEST
+DESCRIPTOR.message_types_by_name['WhoAmIResult'] = _WHOAMIRESULT
+DESCRIPTOR.message_types_by_name['WhoAmIResponse'] = _WHOAMIRESPONSE
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
 ListEndpointsRequest = _reflection.GeneratedProtocolMessageType('ListEndpointsRequest', (_message.Message,), dict(
@@ -234,6 +338,27 @@ ListEndpointsResponse = _reflection.GeneratedProtocolMessageType('ListEndpointsR
   # @@protoc_insertion_point(class_scope:Ydb.Discovery.ListEndpointsResponse)
   ))
 _sym_db.RegisterMessage(ListEndpointsResponse)
+
+WhoAmIRequest = _reflection.GeneratedProtocolMessageType('WhoAmIRequest', (_message.Message,), dict(
+  DESCRIPTOR = _WHOAMIREQUEST,
+  __module__ = 'kikimr.public.api.protos.ydb_discovery_pb2'
+  # @@protoc_insertion_point(class_scope:Ydb.Discovery.WhoAmIRequest)
+  ))
+_sym_db.RegisterMessage(WhoAmIRequest)
+
+WhoAmIResult = _reflection.GeneratedProtocolMessageType('WhoAmIResult', (_message.Message,), dict(
+  DESCRIPTOR = _WHOAMIRESULT,
+  __module__ = 'kikimr.public.api.protos.ydb_discovery_pb2'
+  # @@protoc_insertion_point(class_scope:Ydb.Discovery.WhoAmIResult)
+  ))
+_sym_db.RegisterMessage(WhoAmIResult)
+
+WhoAmIResponse = _reflection.GeneratedProtocolMessageType('WhoAmIResponse', (_message.Message,), dict(
+  DESCRIPTOR = _WHOAMIRESPONSE,
+  __module__ = 'kikimr.public.api.protos.ydb_discovery_pb2'
+  # @@protoc_insertion_point(class_scope:Ydb.Discovery.WhoAmIResponse)
+  ))
+_sym_db.RegisterMessage(WhoAmIResponse)
 
 
 DESCRIPTOR.has_options = True
