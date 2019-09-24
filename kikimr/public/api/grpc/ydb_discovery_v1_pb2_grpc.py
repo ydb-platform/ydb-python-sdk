@@ -19,6 +19,11 @@ class DiscoveryServiceStub(object):
         request_serializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__discovery__pb2.ListEndpointsRequest.SerializeToString,
         response_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__discovery__pb2.ListEndpointsResponse.FromString,
         )
+    self.WhoAmI = channel.unary_unary(
+        '/Ydb.Discovery.V1.DiscoveryService/WhoAmI',
+        request_serializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__discovery__pb2.WhoAmIRequest.SerializeToString,
+        response_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__discovery__pb2.WhoAmIResponse.FromString,
+        )
 
 
 class DiscoveryServiceServicer(object):
@@ -32,6 +37,13 @@ class DiscoveryServiceServicer(object):
     context.set_details('Method not implemented!')
     raise NotImplementedError('Method not implemented!')
 
+  def WhoAmI(self, request, context):
+    # missing associated documentation comment in .proto file
+    pass
+    context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+    context.set_details('Method not implemented!')
+    raise NotImplementedError('Method not implemented!')
+
 
 def add_DiscoveryServiceServicer_to_server(servicer, server):
   rpc_method_handlers = {
@@ -39,6 +51,11 @@ def add_DiscoveryServiceServicer_to_server(servicer, server):
           servicer.ListEndpoints,
           request_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__discovery__pb2.ListEndpointsRequest.FromString,
           response_serializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__discovery__pb2.ListEndpointsResponse.SerializeToString,
+      ),
+      'WhoAmI': grpc.unary_unary_rpc_method_handler(
+          servicer.WhoAmI,
+          request_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__discovery__pb2.WhoAmIRequest.FromString,
+          response_serializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__discovery__pb2.WhoAmIResponse.SerializeToString,
       ),
   }
   generic_handler = grpc.method_handlers_generic_handler(

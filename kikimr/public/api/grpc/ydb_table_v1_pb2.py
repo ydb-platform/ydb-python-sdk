@@ -20,7 +20,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='kikimr/public/api/grpc/ydb_table_v1.proto',
   package='Ydb.Table.V1',
   syntax='proto3',
-  serialized_pb=_b('\n)kikimr/public/api/grpc/ydb_table_v1.proto\x12\x0cYdb.Table.V1\x1a(kikimr/public/api/protos/ydb_table.proto2\x9c\x0c\n\x0cTableService\x12R\n\rCreateSession\x12\x1f.Ydb.Table.CreateSessionRequest\x1a .Ydb.Table.CreateSessionResponse\x12R\n\rDeleteSession\x12\x1f.Ydb.Table.DeleteSessionRequest\x1a .Ydb.Table.DeleteSessionResponse\x12\x46\n\tKeepAlive\x12\x1b.Ydb.Table.KeepAliveRequest\x1a\x1c.Ydb.Table.KeepAliveResponse\x12L\n\x0b\x43reateTable\x12\x1d.Ydb.Table.CreateTableRequest\x1a\x1e.Ydb.Table.CreateTableResponse\x12\x46\n\tDropTable\x12\x1b.Ydb.Table.DropTableRequest\x1a\x1c.Ydb.Table.DropTableResponse\x12I\n\nAlterTable\x12\x1c.Ydb.Table.AlterTableRequest\x1a\x1d.Ydb.Table.AlterTableResponse\x12\x46\n\tCopyTable\x12\x1b.Ydb.Table.CopyTableRequest\x1a\x1c.Ydb.Table.CopyTableResponse\x12I\n\nCopyTables\x12\x1c.Ydb.Table.CopyTablesRequest\x1a\x1d.Ydb.Table.CopyTablesResponse\x12R\n\rDescribeTable\x12\x1f.Ydb.Table.DescribeTableRequest\x1a .Ydb.Table.DescribeTableResponse\x12[\n\x10\x45xplainDataQuery\x12\".Ydb.Table.ExplainDataQueryRequest\x1a#.Ydb.Table.ExplainDataQueryResponse\x12[\n\x10PrepareDataQuery\x12\".Ydb.Table.PrepareDataQueryRequest\x1a#.Ydb.Table.PrepareDataQueryResponse\x12[\n\x10\x45xecuteDataQuery\x12\".Ydb.Table.ExecuteDataQueryRequest\x1a#.Ydb.Table.ExecuteDataQueryResponse\x12\x61\n\x12\x45xecuteSchemeQuery\x12$.Ydb.Table.ExecuteSchemeQueryRequest\x1a%.Ydb.Table.ExecuteSchemeQueryResponse\x12[\n\x10\x42\x65ginTransaction\x12\".Ydb.Table.BeginTransactionRequest\x1a#.Ydb.Table.BeginTransactionResponse\x12^\n\x11\x43ommitTransaction\x12#.Ydb.Table.CommitTransactionRequest\x1a$.Ydb.Table.CommitTransactionResponse\x12\x64\n\x13RollbackTransaction\x12%.Ydb.Table.RollbackTransactionRequest\x1a&.Ydb.Table.RollbackTransactionResponse\x12g\n\x14\x44\x65scribeTableOptions\x12&.Ydb.Table.DescribeTableOptionsRequest\x1a\'.Ydb.Table.DescribeTableOptionsResponse\x12N\n\x0fStreamReadTable\x12\x1b.Ydb.Table.ReadTableRequest\x1a\x1c.Ydb.Table.ReadTableResponse0\x01\x42\x19\n\x17\x63om.yandex.ydb.table.v1b\x06proto3')
+  serialized_pb=_b('\n)kikimr/public/api/grpc/ydb_table_v1.proto\x12\x0cYdb.Table.V1\x1a(kikimr/public/api/protos/ydb_table.proto2\xe7\x0c\n\x0cTableService\x12R\n\rCreateSession\x12\x1f.Ydb.Table.CreateSessionRequest\x1a .Ydb.Table.CreateSessionResponse\x12R\n\rDeleteSession\x12\x1f.Ydb.Table.DeleteSessionRequest\x1a .Ydb.Table.DeleteSessionResponse\x12\x46\n\tKeepAlive\x12\x1b.Ydb.Table.KeepAliveRequest\x1a\x1c.Ydb.Table.KeepAliveResponse\x12L\n\x0b\x43reateTable\x12\x1d.Ydb.Table.CreateTableRequest\x1a\x1e.Ydb.Table.CreateTableResponse\x12\x46\n\tDropTable\x12\x1b.Ydb.Table.DropTableRequest\x1a\x1c.Ydb.Table.DropTableResponse\x12I\n\nAlterTable\x12\x1c.Ydb.Table.AlterTableRequest\x1a\x1d.Ydb.Table.AlterTableResponse\x12\x46\n\tCopyTable\x12\x1b.Ydb.Table.CopyTableRequest\x1a\x1c.Ydb.Table.CopyTableResponse\x12I\n\nCopyTables\x12\x1c.Ydb.Table.CopyTablesRequest\x1a\x1d.Ydb.Table.CopyTablesResponse\x12R\n\rDescribeTable\x12\x1f.Ydb.Table.DescribeTableRequest\x1a .Ydb.Table.DescribeTableResponse\x12[\n\x10\x45xplainDataQuery\x12\".Ydb.Table.ExplainDataQueryRequest\x1a#.Ydb.Table.ExplainDataQueryResponse\x12[\n\x10PrepareDataQuery\x12\".Ydb.Table.PrepareDataQueryRequest\x1a#.Ydb.Table.PrepareDataQueryResponse\x12[\n\x10\x45xecuteDataQuery\x12\".Ydb.Table.ExecuteDataQueryRequest\x1a#.Ydb.Table.ExecuteDataQueryResponse\x12\x61\n\x12\x45xecuteSchemeQuery\x12$.Ydb.Table.ExecuteSchemeQueryRequest\x1a%.Ydb.Table.ExecuteSchemeQueryResponse\x12[\n\x10\x42\x65ginTransaction\x12\".Ydb.Table.BeginTransactionRequest\x1a#.Ydb.Table.BeginTransactionResponse\x12^\n\x11\x43ommitTransaction\x12#.Ydb.Table.CommitTransactionRequest\x1a$.Ydb.Table.CommitTransactionResponse\x12\x64\n\x13RollbackTransaction\x12%.Ydb.Table.RollbackTransactionRequest\x1a&.Ydb.Table.RollbackTransactionResponse\x12g\n\x14\x44\x65scribeTableOptions\x12&.Ydb.Table.DescribeTableOptionsRequest\x1a\'.Ydb.Table.DescribeTableOptionsResponse\x12N\n\x0fStreamReadTable\x12\x1b.Ydb.Table.ReadTableRequest\x1a\x1c.Ydb.Table.ReadTableResponse0\x01\x12I\n\nBulkUpsert\x12\x1c.Ydb.Table.BulkUpsertRequest\x1a\x1d.Ydb.Table.BulkUpsertResponseB\x19\n\x17\x63om.yandex.ydb.table.v1b\x06proto3')
   ,
   dependencies=[kikimr_dot_public_dot_api_dot_protos_dot_ydb__table__pb2.DESCRIPTOR,])
 
@@ -39,7 +39,7 @@ _TABLESERVICE = _descriptor.ServiceDescriptor(
   index=0,
   options=None,
   serialized_start=102,
-  serialized_end=1666,
+  serialized_end=1741,
   methods=[
   _descriptor.MethodDescriptor(
     name='CreateSession',
@@ -201,6 +201,15 @@ _TABLESERVICE = _descriptor.ServiceDescriptor(
     containing_service=None,
     input_type=kikimr_dot_public_dot_api_dot_protos_dot_ydb__table__pb2._READTABLEREQUEST,
     output_type=kikimr_dot_public_dot_api_dot_protos_dot_ydb__table__pb2._READTABLERESPONSE,
+    options=None,
+  ),
+  _descriptor.MethodDescriptor(
+    name='BulkUpsert',
+    full_name='Ydb.Table.V1.TableService.BulkUpsert',
+    index=18,
+    containing_service=None,
+    input_type=kikimr_dot_public_dot_api_dot_protos_dot_ydb__table__pb2._BULKUPSERTREQUEST,
+    output_type=kikimr_dot_public_dot_api_dot_protos_dot_ydb__table__pb2._BULKUPSERTRESPONSE,
     options=None,
   ),
 ])
