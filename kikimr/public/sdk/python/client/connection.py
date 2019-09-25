@@ -227,6 +227,15 @@ def _set_server_timeouts(request, settings, default_value):
     _set_duration(request.operation_params.cancel_after, cancel_after)
 
 
+def channel_factory(endpoint, driver_config):
+    options = _construct_channel_options(driver_config)
+    if driver_config.root_certificates is None:
+        return grpc.insecure_channel(endpoint, options)
+    credentials = grpc.ssl_channel_credentials(
+        driver_config.root_certificates, driver_config.private_key, driver_config.certificate_chain)
+    return grpc.secure_channel(endpoint, credentials, options)
+
+
 class Connection(object):
     __slots__ = (
         'endpoint', '_channel', '_call_states', '_stub_instances', '_driver_config', '_cleanup_callbacks',
@@ -242,7 +251,7 @@ class Connection(object):
         """
         global _stubs_list
         self.endpoint = endpoint
-        self._channel = grpc.insecure_channel(self.endpoint, _construct_channel_options(driver_config))
+        self._channel = channel_factory(self.endpoint, driver_config)
         self._driver_config = driver_config
         self._call_states = {}
         self._stub_instances = {}
