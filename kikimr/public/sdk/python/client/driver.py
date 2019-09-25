@@ -3,11 +3,13 @@ from . import credentials as credentials_impl, table, scheme, pool
 
 
 class DriverConfig(object):
-    __slots__ = ('endpoint', 'database', 'ca_cert', 'channel_options', 'credentials', 'use_all_nodes')
+    __slots__ = ('endpoint', 'database', 'ca_cert', 'channel_options', 'credentials', 'use_all_nodes',
+                 'root_certificates', 'certificate_chain', 'private_key')
 
     def __init__(
             self, endpoint, database=None, ca_cert=None, auth_token=None,
-            channel_options=None, credentials=None, use_all_nodes=False):
+            channel_options=None, credentials=None, use_all_nodes=False,
+            root_certificates=None, certificate_chain=None, private_key=None):
         """
         A driver config to initialize a driver instance
         :param endpoint: A endpoint specified in pattern host:port to be used for initial
@@ -26,6 +28,9 @@ class DriverConfig(object):
             credentials = credentials_impl.AuthTokenCredentials(auth_token)
         self.credentials = credentials
         self.use_all_nodes = use_all_nodes
+        self.root_certificates = root_certificates
+        self.certificate_chain = certificate_chain
+        self.private_key = private_key
 
     def set_database(self, database):
         self.database = database
