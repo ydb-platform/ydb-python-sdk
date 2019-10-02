@@ -3,7 +3,7 @@ import tornado.concurrent
 import tornado.ioloop
 import tornado.gen
 from tornado.concurrent import TracebackFuture
-from kikimr.public.sdk.python.client.table import RetrySettings, calc_backoff_timeout, SessionPoolEmpty
+from kikimr.public.sdk.python.client.table import RetrySettings, SessionPoolEmpty
 from kikimr.public.sdk.python.client import issues
 import six.moves
 
@@ -64,7 +64,7 @@ async def retry_operation(callee, retry_settings=None, *args, **kwargs):
         try:
             return await callee(*args, **kwargs)
         except (
-                issues.Unavailable, issues.Aborted, issues.BadSession,
+                issues.Aborted, issues.BadSession,
                 issues.NotFound, issues.InternalError) as e:
             status = e
             retry_settings.on_ydb_error_callback(e)
@@ -79,8 +79,16 @@ async def retry_operation(callee, retry_settings=None, *args, **kwargs):
             status = e
             retry_settings.on_ydb_error_callback(e)
             await tornado.gen.sleep(
-                calc_backoff_timeout(
-                    retry_settings,
+                retry_settings.slow_backoff.calc_timeout(
+                    attempt
+                )
+            )
+
+        except (issues.Overloaded, SessionPoolEmpty, issues.ConnectionError) as e:
+            status = e
+            retry_settings.on_ydb_error_callback(e)
+            await tornado.gen.sleep(
+                retry_settings.fast_backoff.calc_timeout(
                     attempt
                 )
             )
