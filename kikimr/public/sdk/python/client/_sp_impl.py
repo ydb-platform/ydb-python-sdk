@@ -159,6 +159,9 @@ class SessionPoolImpl(object):
             return
 
         with self._lock:
+            if len(self._waiters) < 1:
+                self._logger.info("No pending waiters, will destroy session")
+
             if len(self._waiters) > 0:
                 f = session.async_create(self._req_settings)
                 f.add_done_callback(
