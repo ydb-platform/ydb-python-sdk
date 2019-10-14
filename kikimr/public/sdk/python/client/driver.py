@@ -18,7 +18,12 @@ class DriverConfig(object):
         :param ca_cert: A CA certificate when SSL should be used
         :param auth_token: A authentication token
         :param credentials: An instance of AbstractCredentials
-        BVzz:param use_all_nodes: A balancing policy that forces to use all available nodes.
+        :param use_all_nodes: A balancing policy that forces to use all available nodes.
+        :param root_certificates: The PEM-encoded root certificates as a byte string.
+        :param private_key: The PEM-encoded private key as a byte string, or None if no
+        private key should be used.
+        :param certificate_chain: The PEM-encoded certificate chain as a byte string
+        to use or or None if no certificate chain should be used.
         """
         self.endpoint = endpoint
         self.database = database
