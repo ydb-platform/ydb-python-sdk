@@ -19,16 +19,6 @@ class ExperimentalServiceStub(object):
         request_serializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__experimental__pb2.UploadRowsRequest.SerializeToString,
         response_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__experimental__pb2.UploadRowsResponse.FromString,
         )
-    self.ReadColumns = channel.unary_unary(
-        '/Ydb.Experimental.V1.ExperimentalService/ReadColumns',
-        request_serializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__experimental__pb2.ReadColumnsRequest.SerializeToString,
-        response_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__experimental__pb2.ReadColumnsResponse.FromString,
-        )
-    self.GetShardLocations = channel.unary_unary(
-        '/Ydb.Experimental.V1.ExperimentalService/GetShardLocations',
-        request_serializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__experimental__pb2.GetShardLocationsRequest.SerializeToString,
-        response_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__experimental__pb2.GetShardLocationsResponse.FromString,
-        )
     self.ExecuteStreamQuery = channel.unary_stream(
         '/Ydb.Experimental.V1.ExperimentalService/ExecuteStreamQuery',
         request_serializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__experimental__pb2.ExecuteStreamQueryRequest.SerializeToString,
@@ -47,20 +37,6 @@ class ExperimentalServiceServicer(object):
     context.set_details('Method not implemented!')
     raise NotImplementedError('Method not implemented!')
 
-  def ReadColumns(self, request, context):
-    # missing associated documentation comment in .proto file
-    pass
-    context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-    context.set_details('Method not implemented!')
-    raise NotImplementedError('Method not implemented!')
-
-  def GetShardLocations(self, request, context):
-    # missing associated documentation comment in .proto file
-    pass
-    context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-    context.set_details('Method not implemented!')
-    raise NotImplementedError('Method not implemented!')
-
   def ExecuteStreamQuery(self, request, context):
     # missing associated documentation comment in .proto file
     pass
@@ -75,16 +51,6 @@ def add_ExperimentalServiceServicer_to_server(servicer, server):
           servicer.UploadRows,
           request_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__experimental__pb2.UploadRowsRequest.FromString,
           response_serializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__experimental__pb2.UploadRowsResponse.SerializeToString,
-      ),
-      'ReadColumns': grpc.unary_unary_rpc_method_handler(
-          servicer.ReadColumns,
-          request_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__experimental__pb2.ReadColumnsRequest.FromString,
-          response_serializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__experimental__pb2.ReadColumnsResponse.SerializeToString,
-      ),
-      'GetShardLocations': grpc.unary_unary_rpc_method_handler(
-          servicer.GetShardLocations,
-          request_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__experimental__pb2.GetShardLocationsRequest.FromString,
-          response_serializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__experimental__pb2.GetShardLocationsResponse.SerializeToString,
       ),
       'ExecuteStreamQuery': grpc.unary_stream_rpc_method_handler(
           servicer.ExecuteStreamQuery,
