@@ -263,12 +263,17 @@ class Connection(object):
         self.calls = 0
         self.closing = False
 
+    def _prepare_stub_instance(self, stub):
+        if stub not in self._stub_instances:
+            self._stub_instances[stub] = stub(self._channel)
+
     def add_cleanup_callback(self, callback):
         self._cleanup_callbacks.append(callback)
 
     def _prepare_call(self, stub, rpc_name, request, settings):
         timeout, metadata = _get_request_timeout(settings), _construct_metadata(self._driver_config, settings)
         _set_server_timeouts(request, settings, timeout)
+        self._prepare_stub_instance(stub)
         rpc_state = _RpcState(self._stub_instances[stub], rpc_name, self.endpoint)
         logger.debug("%s: creating call state", rpc_state)
         with self.lock:
