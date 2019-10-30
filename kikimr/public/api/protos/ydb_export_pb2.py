@@ -20,7 +20,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='kikimr/public/api/protos/ydb_export.proto',
   package='Ydb.Export',
   syntax='proto3',
-  serialized_pb=_b('\n)kikimr/public/api/protos/ydb_export.proto\x12\nYdb.Export\x1a,kikimr/public/api/protos/ydb_operation.proto\"\xb1\x01\n\x0e\x45xportProgress\"\x9e\x01\n\x08Progress\x12\x18\n\x14PROGRESS_UNSPECIFIED\x10\x00\x12\x16\n\x12PROGRESS_PREPARING\x10\x01\x12\x1a\n\x16PROGRESS_TRANSFER_DATA\x10\x02\x12\x11\n\rPROGRESS_DONE\x10\x03\x12\x19\n\x15PROGRESS_CANCELLATION\x10\x04\x12\x16\n\x12PROGRESS_CANCELLED\x10\x05\"\xbf\x01\n\x12\x45xportToYtSettings\x12\x0c\n\x04host\x18\x01 \x01(\t\x12\x0c\n\x04port\x18\x02 \x01(\r\x12\r\n\x05token\x18\x03 \x01(\t\x12\x32\n\x05items\x18\x04 \x03(\x0b\x32#.Ydb.Export.ExportToYtSettings.Item\x12\x13\n\x0b\x64\x65scription\x18\x05 \x01(\t\x1a\x35\n\x04Item\x12\x13\n\x0bsource_path\x18\x01 \x01(\t\x12\x18\n\x10\x64\x65stination_path\x18\x02 \x01(\t\"\x12\n\x10\x45xportToYtResult\"}\n\x12\x45xportToYtMetadata\x12\x30\n\x08settings\x18\x01 \x01(\x0b\x32\x1e.Ydb.Export.ExportToYtSettings\x12\x35\n\x08progress\x18\x02 \x01(\x0e\x32#.Ydb.Export.ExportProgress.Progress\"\x80\x01\n\x11\x45xportToYtRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x30\n\x08settings\x18\x02 \x01(\x0b\x32\x1e.Ydb.Export.ExportToYtSettings\"B\n\x12\x45xportToYtResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.OperationB\x1a\n\x15\x63om.yandex.ydb.export\xf8\x01\x01\x62\x06proto3')
+  serialized_pb=_b('\n)kikimr/public/api/protos/ydb_export.proto\x12\nYdb.Export\x1a,kikimr/public/api/protos/ydb_operation.proto\"\xb1\x01\n\x0e\x45xportProgress\"\x9e\x01\n\x08Progress\x12\x18\n\x14PROGRESS_UNSPECIFIED\x10\x00\x12\x16\n\x12PROGRESS_PREPARING\x10\x01\x12\x1a\n\x16PROGRESS_TRANSFER_DATA\x10\x02\x12\x11\n\rPROGRESS_DONE\x10\x03\x12\x19\n\x15PROGRESS_CANCELLATION\x10\x04\x12\x16\n\x12PROGRESS_CANCELLED\x10\x05\"\xda\x01\n\x12\x45xportToYtSettings\x12\x0c\n\x04host\x18\x01 \x01(\t\x12\x0c\n\x04port\x18\x02 \x01(\r\x12\r\n\x05token\x18\x03 \x01(\t\x12\x32\n\x05items\x18\x04 \x03(\x0b\x32#.Ydb.Export.ExportToYtSettings.Item\x12\x13\n\x0b\x64\x65scription\x18\x05 \x01(\t\x12\x19\n\x11number_of_retries\x18\x06 \x01(\r\x1a\x35\n\x04Item\x12\x13\n\x0bsource_path\x18\x01 \x01(\t\x12\x18\n\x10\x64\x65stination_path\x18\x02 \x01(\t\"\x12\n\x10\x45xportToYtResult\"}\n\x12\x45xportToYtMetadata\x12\x30\n\x08settings\x18\x01 \x01(\x0b\x32\x1e.Ydb.Export.ExportToYtSettings\x12\x35\n\x08progress\x18\x02 \x01(\x0e\x32#.Ydb.Export.ExportProgress.Progress\"\x80\x01\n\x11\x45xportToYtRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x30\n\x08settings\x18\x02 \x01(\x0b\x32\x1e.Ydb.Export.ExportToYtSettings\"B\n\x12\x45xportToYtResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.OperationB\x1a\n\x15\x63om.yandex.ydb.export\xf8\x01\x01\x62\x06proto3')
   ,
   dependencies=[kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2.DESCRIPTOR,])
 
@@ -123,8 +123,8 @@ _EXPORTTOYTSETTINGS_ITEM = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=422,
-  serialized_end=475,
+  serialized_start=449,
+  serialized_end=502,
 )
 
 _EXPORTTOYTSETTINGS = _descriptor.Descriptor(
@@ -169,6 +169,13 @@ _EXPORTTOYTSETTINGS = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
+    _descriptor.FieldDescriptor(
+      name='number_of_retries', full_name='Ydb.Export.ExportToYtSettings.number_of_retries', index=5,
+      number=6, type=13, cpp_type=3, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
   ],
   extensions=[
   ],
@@ -182,7 +189,7 @@ _EXPORTTOYTSETTINGS = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=284,
-  serialized_end=475,
+  serialized_end=502,
 )
 
 
@@ -205,8 +212,8 @@ _EXPORTTOYTRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=477,
-  serialized_end=495,
+  serialized_start=504,
+  serialized_end=522,
 )
 
 
@@ -243,8 +250,8 @@ _EXPORTTOYTMETADATA = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=497,
-  serialized_end=622,
+  serialized_start=524,
+  serialized_end=649,
 )
 
 
@@ -281,8 +288,8 @@ _EXPORTTOYTREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=625,
-  serialized_end=753,
+  serialized_start=652,
+  serialized_end=780,
 )
 
 
@@ -312,8 +319,8 @@ _EXPORTTOYTRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=755,
-  serialized_end=821,
+  serialized_start=782,
+  serialized_end=848,
 )
 
 _EXPORTPROGRESS_PROGRESS.containing_type = _EXPORTPROGRESS
