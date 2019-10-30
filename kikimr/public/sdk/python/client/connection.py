@@ -168,6 +168,13 @@ def _construct_channel_options(driver_config):
         ('grpc.max_send_message_length', _max_message_size),
         ('grpc.primary_user_agent', 'python-library'),
     ]
+    if driver_config.grpc_keep_alive_timeout is not None:
+        _default_connect_options.extend([
+            ('grpc.keepalive_time_ms', driver_config.grpc_keep_alive_timeout >> 3),
+            ('grpc.keepalive_timeout_ms', driver_config.grpc_keep_alive_timeout),
+            ('grpc.http2.max_pings_without_data', 0),
+            ('grpc.keepalive_permit_without_calls', 0),
+        ])
     if driver_config.channel_options is None:
         return _default_connect_options
     channel_options = copy.deepcopy(driver_config.channel_options)
