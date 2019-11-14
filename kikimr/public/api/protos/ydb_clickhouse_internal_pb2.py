@@ -14,15 +14,16 @@ _sym_db = _symbol_database.Default()
 
 
 from kikimr.public.api.protos import ydb_operation_pb2 as kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2
+from kikimr.public.api.protos import ydb_table_pb2 as kikimr_dot_public_dot_api_dot_protos_dot_ydb__table__pb2
 
 
 DESCRIPTOR = _descriptor.FileDescriptor(
   name='kikimr/public/api/protos/ydb_clickhouse_internal.proto',
   package='Ydb.ClickhouseInternal',
   syntax='proto3',
-  serialized_pb=_b('\n6kikimr/public/api/protos/ydb_clickhouse_internal.proto\x12\x16Ydb.ClickhouseInternal\x1a,kikimr/public/api/protos/ydb_operation.proto\"\xe5\x01\n\x0bScanRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\r\n\x05table\x18\x02 \x01(\t\x12\x0f\n\x07\x63olumns\x18\x03 \x03(\t\x12\x10\n\x08\x66rom_key\x18\x04 \x01(\x0c\x12\x1a\n\x12\x66rom_key_inclusive\x18\x05 \x01(\x08\x12\x0e\n\x06to_key\x18\x06 \x01(\x0c\x12\x18\n\x10to_key_inclusive\x18\x07 \x01(\x08\x12\x10\n\x08max_rows\x18\x08 \x01(\x04\x12\x11\n\tmax_bytes\x18\t \x01(\x04\"<\n\x0cScanResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"W\n\nScanResult\x12\x0e\n\x06\x62locks\x18\x01 \x03(\x0c\x12\x0b\n\x03\x65os\x18\x02 \x01(\x08\x12\x10\n\x08last_key\x18\x03 \x01(\x0c\x12\x1a\n\x12last_key_inclusive\x18\x04 \x01(\x08\"i\n\x18GetShardLocationsRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x12\n\ntablet_ids\x18\x02 \x03(\x04\"I\n\x19GetShardLocationsResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"-\n\nTabletInfo\x12\x11\n\ttablet_id\x18\x01 \x01(\x04\x12\x0c\n\x04host\x18\x02 \x01(\t\"N\n\x17GetShardLocationsResult\x12\x33\n\x07tablets\x18\x01 \x03(\x0b\x32\".Ydb.ClickhouseInternal.TabletInfoB8\n\x19\x63om.yandex.ydb.clickhouseB\x18\x43lickhouseInternalProtos\xf8\x01\x01\x62\x06proto3')
+  serialized_pb=_b('\n6kikimr/public/api/protos/ydb_clickhouse_internal.proto\x12\x16Ydb.ClickhouseInternal\x1a,kikimr/public/api/protos/ydb_operation.proto\x1a(kikimr/public/api/protos/ydb_table.proto\"\xe5\x01\n\x0bScanRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\r\n\x05table\x18\x02 \x01(\t\x12\x0f\n\x07\x63olumns\x18\x03 \x03(\t\x12\x10\n\x08\x66rom_key\x18\x04 \x01(\x0c\x12\x1a\n\x12\x66rom_key_inclusive\x18\x05 \x01(\x08\x12\x0e\n\x06to_key\x18\x06 \x01(\x0c\x12\x18\n\x10to_key_inclusive\x18\x07 \x01(\x08\x12\x10\n\x08max_rows\x18\x08 \x01(\x04\x12\x11\n\tmax_bytes\x18\t \x01(\x04\"<\n\x0cScanResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"W\n\nScanResult\x12\x0e\n\x06\x62locks\x18\x01 \x03(\x0c\x12\x0b\n\x03\x65os\x18\x02 \x01(\x08\x12\x10\n\x08last_key\x18\x03 \x01(\x0c\x12\x1a\n\x12last_key_inclusive\x18\x04 \x01(\x08\"i\n\x18GetShardLocationsRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x12\n\ntablet_ids\x18\x02 \x03(\x04\"I\n\x19GetShardLocationsResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"-\n\nTabletInfo\x12\x11\n\ttablet_id\x18\x01 \x01(\x04\x12\x0c\n\x04host\x18\x02 \x01(\t\"N\n\x17GetShardLocationsResult\x12\x33\n\x07tablets\x18\x01 \x03(\x0b\x32\".Ydb.ClickhouseInternal.TabletInfo\"\x80\x01\n\x14\x44\x65scribeTableRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x0c\n\x04path\x18\x02 \x01(\t\x12\x1f\n\x17include_partitions_info\x18\x03 \x01(\x08\"N\n\rPartitionInfo\x12\x11\n\ttablet_id\x18\x01 \x01(\x04\x12\x0f\n\x07\x65nd_key\x18\x02 \x01(\x0c\x12\x19\n\x11\x65nd_key_inclusive\x18\x03 \x01(\x08\"\xa1\x01\n\x13\x44\x65scribeTableResult\x12&\n\x07\x63olumns\x18\x02 \x03(\x0b\x32\x15.Ydb.Table.ColumnMeta\x12\x13\n\x0bprimary_key\x18\x03 \x03(\t\x12\x39\n\npartitions\x18\x04 \x03(\x0b\x32%.Ydb.ClickhouseInternal.PartitionInfo\x12\x12\n\nis_virtual\x18\x05 \x01(\x08\"E\n\x15\x44\x65scribeTableResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.OperationB8\n\x19\x63om.yandex.ydb.clickhouseB\x18\x43lickhouseInternalProtos\xf8\x01\x01\x62\x06proto3')
   ,
-  dependencies=[kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2.DESCRIPTOR,])
+  dependencies=[kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2.DESCRIPTOR,kikimr_dot_public_dot_api_dot_protos_dot_ydb__table__pb2.DESCRIPTOR,])
 
 
 
@@ -109,8 +110,8 @@ _SCANREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=129,
-  serialized_end=358,
+  serialized_start=171,
+  serialized_end=400,
 )
 
 
@@ -140,8 +141,8 @@ _SCANRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=360,
-  serialized_end=420,
+  serialized_start=402,
+  serialized_end=462,
 )
 
 
@@ -192,8 +193,8 @@ _SCANRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=422,
-  serialized_end=509,
+  serialized_start=464,
+  serialized_end=551,
 )
 
 
@@ -230,8 +231,8 @@ _GETSHARDLOCATIONSREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=511,
-  serialized_end=616,
+  serialized_start=553,
+  serialized_end=658,
 )
 
 
@@ -261,8 +262,8 @@ _GETSHARDLOCATIONSRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=618,
-  serialized_end=691,
+  serialized_start=660,
+  serialized_end=733,
 )
 
 
@@ -299,8 +300,8 @@ _TABLETINFO = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=693,
-  serialized_end=738,
+  serialized_start=735,
+  serialized_end=780,
 )
 
 
@@ -330,8 +331,181 @@ _GETSHARDLOCATIONSRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=740,
-  serialized_end=818,
+  serialized_start=782,
+  serialized_end=860,
+)
+
+
+_DESCRIBETABLEREQUEST = _descriptor.Descriptor(
+  name='DescribeTableRequest',
+  full_name='Ydb.ClickhouseInternal.DescribeTableRequest',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='operation_params', full_name='Ydb.ClickhouseInternal.DescribeTableRequest.operation_params', index=0,
+      number=1, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='path', full_name='Ydb.ClickhouseInternal.DescribeTableRequest.path', index=1,
+      number=2, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='include_partitions_info', full_name='Ydb.ClickhouseInternal.DescribeTableRequest.include_partitions_info', index=2,
+      number=3, type=8, cpp_type=7, label=1,
+      has_default_value=False, default_value=False,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=863,
+  serialized_end=991,
+)
+
+
+_PARTITIONINFO = _descriptor.Descriptor(
+  name='PartitionInfo',
+  full_name='Ydb.ClickhouseInternal.PartitionInfo',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='tablet_id', full_name='Ydb.ClickhouseInternal.PartitionInfo.tablet_id', index=0,
+      number=1, type=4, cpp_type=4, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='end_key', full_name='Ydb.ClickhouseInternal.PartitionInfo.end_key', index=1,
+      number=2, type=12, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b(""),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='end_key_inclusive', full_name='Ydb.ClickhouseInternal.PartitionInfo.end_key_inclusive', index=2,
+      number=3, type=8, cpp_type=7, label=1,
+      has_default_value=False, default_value=False,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=993,
+  serialized_end=1071,
+)
+
+
+_DESCRIBETABLERESULT = _descriptor.Descriptor(
+  name='DescribeTableResult',
+  full_name='Ydb.ClickhouseInternal.DescribeTableResult',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='columns', full_name='Ydb.ClickhouseInternal.DescribeTableResult.columns', index=0,
+      number=2, type=11, cpp_type=10, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='primary_key', full_name='Ydb.ClickhouseInternal.DescribeTableResult.primary_key', index=1,
+      number=3, type=9, cpp_type=9, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='partitions', full_name='Ydb.ClickhouseInternal.DescribeTableResult.partitions', index=2,
+      number=4, type=11, cpp_type=10, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='is_virtual', full_name='Ydb.ClickhouseInternal.DescribeTableResult.is_virtual', index=3,
+      number=5, type=8, cpp_type=7, label=1,
+      has_default_value=False, default_value=False,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=1074,
+  serialized_end=1235,
+)
+
+
+_DESCRIBETABLERESPONSE = _descriptor.Descriptor(
+  name='DescribeTableResponse',
+  full_name='Ydb.ClickhouseInternal.DescribeTableResponse',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='operation', full_name='Ydb.ClickhouseInternal.DescribeTableResponse.operation', index=0,
+      number=1, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=1237,
+  serialized_end=1306,
 )
 
 _SCANREQUEST.fields_by_name['operation_params'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2._OPERATIONPARAMS
@@ -339,6 +513,10 @@ _SCANRESPONSE.fields_by_name['operation'].message_type = kikimr_dot_public_dot_a
 _GETSHARDLOCATIONSREQUEST.fields_by_name['operation_params'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2._OPERATIONPARAMS
 _GETSHARDLOCATIONSRESPONSE.fields_by_name['operation'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2._OPERATION
 _GETSHARDLOCATIONSRESULT.fields_by_name['tablets'].message_type = _TABLETINFO
+_DESCRIBETABLEREQUEST.fields_by_name['operation_params'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2._OPERATIONPARAMS
+_DESCRIBETABLERESULT.fields_by_name['columns'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__table__pb2._COLUMNMETA
+_DESCRIBETABLERESULT.fields_by_name['partitions'].message_type = _PARTITIONINFO
+_DESCRIBETABLERESPONSE.fields_by_name['operation'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2._OPERATION
 DESCRIPTOR.message_types_by_name['ScanRequest'] = _SCANREQUEST
 DESCRIPTOR.message_types_by_name['ScanResponse'] = _SCANRESPONSE
 DESCRIPTOR.message_types_by_name['ScanResult'] = _SCANRESULT
@@ -346,6 +524,10 @@ DESCRIPTOR.message_types_by_name['GetShardLocationsRequest'] = _GETSHARDLOCATION
 DESCRIPTOR.message_types_by_name['GetShardLocationsResponse'] = _GETSHARDLOCATIONSRESPONSE
 DESCRIPTOR.message_types_by_name['TabletInfo'] = _TABLETINFO
 DESCRIPTOR.message_types_by_name['GetShardLocationsResult'] = _GETSHARDLOCATIONSRESULT
+DESCRIPTOR.message_types_by_name['DescribeTableRequest'] = _DESCRIBETABLEREQUEST
+DESCRIPTOR.message_types_by_name['PartitionInfo'] = _PARTITIONINFO
+DESCRIPTOR.message_types_by_name['DescribeTableResult'] = _DESCRIBETABLERESULT
+DESCRIPTOR.message_types_by_name['DescribeTableResponse'] = _DESCRIBETABLERESPONSE
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
 ScanRequest = _reflection.GeneratedProtocolMessageType('ScanRequest', (_message.Message,), dict(
@@ -396,6 +578,34 @@ GetShardLocationsResult = _reflection.GeneratedProtocolMessageType('GetShardLoca
   # @@protoc_insertion_point(class_scope:Ydb.ClickhouseInternal.GetShardLocationsResult)
   ))
 _sym_db.RegisterMessage(GetShardLocationsResult)
+
+DescribeTableRequest = _reflection.GeneratedProtocolMessageType('DescribeTableRequest', (_message.Message,), dict(
+  DESCRIPTOR = _DESCRIBETABLEREQUEST,
+  __module__ = 'kikimr.public.api.protos.ydb_clickhouse_internal_pb2'
+  # @@protoc_insertion_point(class_scope:Ydb.ClickhouseInternal.DescribeTableRequest)
+  ))
+_sym_db.RegisterMessage(DescribeTableRequest)
+
+PartitionInfo = _reflection.GeneratedProtocolMessageType('PartitionInfo', (_message.Message,), dict(
+  DESCRIPTOR = _PARTITIONINFO,
+  __module__ = 'kikimr.public.api.protos.ydb_clickhouse_internal_pb2'
+  # @@protoc_insertion_point(class_scope:Ydb.ClickhouseInternal.PartitionInfo)
+  ))
+_sym_db.RegisterMessage(PartitionInfo)
+
+DescribeTableResult = _reflection.GeneratedProtocolMessageType('DescribeTableResult', (_message.Message,), dict(
+  DESCRIPTOR = _DESCRIBETABLERESULT,
+  __module__ = 'kikimr.public.api.protos.ydb_clickhouse_internal_pb2'
+  # @@protoc_insertion_point(class_scope:Ydb.ClickhouseInternal.DescribeTableResult)
+  ))
+_sym_db.RegisterMessage(DescribeTableResult)
+
+DescribeTableResponse = _reflection.GeneratedProtocolMessageType('DescribeTableResponse', (_message.Message,), dict(
+  DESCRIPTOR = _DESCRIBETABLERESPONSE,
+  __module__ = 'kikimr.public.api.protos.ydb_clickhouse_internal_pb2'
+  # @@protoc_insertion_point(class_scope:Ydb.ClickhouseInternal.DescribeTableResponse)
+  ))
+_sym_db.RegisterMessage(DescribeTableResponse)
 
 
 DESCRIPTOR.has_options = True

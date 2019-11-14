@@ -24,6 +24,11 @@ class ClickhouseInternalServiceStub(object):
         request_serializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__clickhouse__internal__pb2.GetShardLocationsRequest.SerializeToString,
         response_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__clickhouse__internal__pb2.GetShardLocationsResponse.FromString,
         )
+    self.DescribeTable = channel.unary_unary(
+        '/Ydb.ClickhouseInternal.V1.ClickhouseInternalService/DescribeTable',
+        request_serializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__clickhouse__internal__pb2.DescribeTableRequest.SerializeToString,
+        response_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__clickhouse__internal__pb2.DescribeTableResponse.FromString,
+        )
 
 
 class ClickhouseInternalServiceServicer(object):
@@ -44,6 +49,13 @@ class ClickhouseInternalServiceServicer(object):
     context.set_details('Method not implemented!')
     raise NotImplementedError('Method not implemented!')
 
+  def DescribeTable(self, request, context):
+    # missing associated documentation comment in .proto file
+    pass
+    context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+    context.set_details('Method not implemented!')
+    raise NotImplementedError('Method not implemented!')
+
 
 def add_ClickhouseInternalServiceServicer_to_server(servicer, server):
   rpc_method_handlers = {
@@ -56,6 +68,11 @@ def add_ClickhouseInternalServiceServicer_to_server(servicer, server):
           servicer.GetShardLocations,
           request_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__clickhouse__internal__pb2.GetShardLocationsRequest.FromString,
           response_serializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__clickhouse__internal__pb2.GetShardLocationsResponse.SerializeToString,
+      ),
+      'DescribeTable': grpc.unary_unary_rpc_method_handler(
+          servicer.DescribeTable,
+          request_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__clickhouse__internal__pb2.DescribeTableRequest.FromString,
+          response_serializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__clickhouse__internal__pb2.DescribeTableResponse.SerializeToString,
       ),
   }
   generic_handler = grpc.method_handlers_generic_handler(
