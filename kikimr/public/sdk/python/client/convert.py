@@ -302,6 +302,8 @@ class _Row(_DotDict):
     def __getitem__(self, key):
         if isinstance(key, int):
             return self[self._columns[key].name]
+        elif isinstance(key, slice):
+            return list(map(lambda x: self[x.name], self._columns[key]))
         else:
             return super(_Row, self).__getitem__(key)
 
