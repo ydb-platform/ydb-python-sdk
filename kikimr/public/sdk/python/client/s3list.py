@@ -26,7 +26,7 @@ def _s3_listing_request_factory(
         table_name, key_prefix, path_column_prefix, path_column_delimiter, max_keys, columns_to_return=None,
         start_after_key_suffix=None):
     columns_to_return = [] if columns_to_return is None else columns_to_return
-    # start_after_key_suffix = [] if start_after_key_suffix is None else []
+    start_after_key_suffix = [] if start_after_key_suffix is None else start_after_key_suffix
     return ydb_s3_internal_pb2.S3ListingRequest(
         table_name=table_name,
         key_prefix=_prepare_tuple_typed_value(key_prefix),
@@ -59,7 +59,7 @@ def _wrap_s3_listing_response(rpc_state, response, path_column_delimiter, max_ke
     key_suffix_size = max(1, message.key_suffix_size)
 
     continue_after = None
-    is_truncated = True
+    is_truncated = False
     if len(contents) + len(common_prefixes) > max_keys:
         is_truncated = True
 
