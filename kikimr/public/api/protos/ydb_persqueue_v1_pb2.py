@@ -22,7 +22,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='kikimr/public/api/protos/ydb_persqueue_v1.proto',
   package='Ydb.PersQueue',
   syntax='proto3',
-  serialized_pb=_b('\n/kikimr/public/api/protos/ydb_persqueue_v1.proto\x12\rYdb.PersQueue\x1a,kikimr/public/api/protos/ydb_operation.proto\x1a/kikimr/public/api/protos/ydb_status_codes.proto\x1a\x30kikimr/public/api/protos/ydb_issue_message.proto\"\x14\n\x04Path\x12\x0c\n\x04path\x18\x01 \x01(\t\"&\n\x08KeyValue\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t\"\xca\x03\n\x13WriteSessionRequest\x12\x37\n\x04init\x18\x01 \x01(\x0b\x32\'.Ydb.PersQueue.WriteSessionRequest.InitH\x00\x12\x42\n\ndata_batch\x18\x02 \x01(\x0b\x32,.Ydb.PersQueue.WriteSessionRequest.DataBatchH\x00\x12\r\n\x05token\x18\x14 \x01(\x0c\x1a\x85\x01\n\x04Init\x12\"\n\x05topic\x18\x01 \x01(\x0b\x32\x13.Ydb.PersQueue.Path\x12\x11\n\tsource_id\x18\x02 \x01(\x0c\x12-\n\x0c\x65xtra_fields\x18\x03 \x03(\x0b\x32\x17.Ydb.PersQueue.KeyValue\x12\x17\n\x0fpartition_group\x18\x04 \x01(\r\x1aP\n\x04\x44\x61ta\x12\x0e\n\x06seq_no\x18\x01 \x01(\x04\x12\x0c\n\x04\x64\x61ta\x18\x02 \x01(\x0c\x12\x1b\n\x13\x63reate_timestamp_ms\x18\x03 \x01(\x04\x12\r\n\x05\x63odec\x18\x04 \x01(\t\x1a\x42\n\tDataBatch\x12\x35\n\x04\x64\x61ta\x18\x01 \x03(\x0b\x32\'.Ydb.PersQueue.WriteSessionRequest.DataB\t\n\x07request\"\xd9\x05\n\x14WriteSessionResponse\x12)\n\x06status\x18\x01 \x01(\x0e\x32\x19.Ydb.StatusIds.StatusCode\x12\'\n\x06issues\x18\x02 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessage\x12<\n\x06inited\x18\x03 \x01(\x0b\x32*.Ydb.PersQueue.WriteSessionResponse.InitedH\x00\x12\x41\n\tack_batch\x18\x04 \x01(\x0b\x32,.Ydb.PersQueue.WriteSessionResponse.AckBatchH\x00\x1a\x93\x01\n\x06Inited\x12\x13\n\x0blast_seq_no\x18\x01 \x01(\x04\x12\x12\n\nsession_id\x18\x02 \x01(\t\x12\"\n\x05topic\x18\x03 \x01(\x0b\x32\x13.Ydb.PersQueue.Path\x12\x0f\n\x07\x63luster\x18\x04 \x01(\t\x12\x11\n\tpartition\x18\x05 \x01(\x04\x12\x18\n\x10supported_codecs\x18\x06 \x03(\t\x1ai\n\x04Stat\x12\x15\n\rwrite_time_ms\x18\x01 \x01(\r\x12(\n total_time_in_partition_queue_ms\x18\x02 \x01(\r\x12 \n\x18partition_quoted_time_ms\x18\x03 \x01(\r\x1aQ\n\x03\x41\x63k\x12\x0e\n\x06seq_no\x18\x01 \x01(\x04\x12\x0e\n\x06offset\x18\x02 \x01(\x04\x12\x17\n\x0f\x61lready_written\x18\x03 \x01(\x08\x12\x11\n\tpartition\x18\x04 \x01(\x04\x1a\x8b\x01\n\x08\x41\x63kBatch\x12\x34\n\x03\x61\x63k\x18\x01 \x03(\x0b\x32\'.Ydb.PersQueue.WriteSessionResponse.Ack\x12\x36\n\x04stat\x18\x02 \x01(\x0b\x32(.Ydb.PersQueue.WriteSessionResponse.Stat\x12\x11\n\tpartition\x18\x03 \x01(\x04\x42\n\n\x08response\"x\n\nReadParams\x12\x1f\n\x17max_read_messages_count\x18\x01 \x01(\r\x12\x15\n\rmax_read_size\x18\x02 \x01(\r\x12\x17\n\x0fmax_time_lag_ms\x18\x03 \x01(\r\x12\x19\n\x11read_timestamp_ms\x18\x04 \x01(\x04\";\n\x0c\x43ommitCookie\x12\x11\n\tassign_id\x18\x01 \x01(\x04\x12\x18\n\x10partition_cookie\x18\x02 \x01(\x04\"\xca\x08\n\x12ReadSessionRequest\x12\x36\n\x04init\x18\x01 \x01(\x0b\x32&.Ydb.PersQueue.ReadSessionRequest.InitH\x00\x12\x36\n\x04read\x18\x02 \x01(\x0b\x32&.Ydb.PersQueue.ReadSessionRequest.ReadH\x00\x12\x41\n\nstart_read\x18\x03 \x01(\x0b\x32+.Ydb.PersQueue.ReadSessionRequest.StartReadH\x00\x12:\n\x06\x63ommit\x18\x04 \x01(\x0b\x32(.Ydb.PersQueue.ReadSessionRequest.CommitH\x00\x12>\n\x08released\x18\x05 \x01(\x0b\x32*.Ydb.PersQueue.ReadSessionRequest.ReleasedH\x00\x12\r\n\x05token\x18\x14 \x01(\x0c\x1a\x92\x03\n\x04Init\x12<\n\x06topics\x18\x01 \x03(\x0b\x32,.Ydb.PersQueue.ReadSessionRequest.Init.Topic\x12\x1a\n\x12read_only_original\x18\x02 \x01(\x08\x12%\n\x08\x63onsumer\x18\x03 \x01(\x0b\x32\x13.Ydb.PersQueue.Path\x12\"\n\x1amanual_partition_assigning\x18\x04 \x01(\x08\x12\x18\n\x10\x66orceful_balance\x18\x05 \x01(\x08\x12.\n\x0bread_params\x18\x06 \x01(\x0b\x32\x19.Ydb.PersQueue.ReadParams\x12!\n\x19max_read_partitions_count\x18\x07 \x01(\r\x12\x17\n\x0f\x64isable_commits\x18\x08 \x01(\x08\x1a_\n\x05Topic\x12!\n\x04path\x18\x01 \x01(\x0b\x32\x13.Ydb.PersQueue.Path\x12\x18\n\x10partition_groups\x18\x02 \x03(\r\x12\x19\n\x11read_timestamp_ms\x18\x03 \x01(\x04\x1a\x06\n\x04Read\x1a\xae\x01\n\tStartRead\x12\"\n\x05topic\x18\x01 \x01(\x0b\x32\x13.Ydb.PersQueue.Path\x12\x0f\n\x07\x63luster\x18\x02 \x01(\t\x12\x11\n\tpartition\x18\x03 \x01(\x04\x12\x11\n\tassign_id\x18\x05 \x01(\x04\x12\x13\n\x0bread_offset\x18\x06 \x01(\x04\x12\x15\n\rcommit_offset\x18\x07 \x01(\x04\x12\x1a\n\x12verify_read_offset\x18\x08 \x01(\x08\x1a\x65\n\x08Released\x12\"\n\x05topic\x18\x01 \x01(\x0b\x32\x13.Ydb.PersQueue.Path\x12\x0f\n\x07\x63luster\x18\x02 \x01(\t\x12\x11\n\tpartition\x18\x03 \x01(\x04\x12\x11\n\tassign_id\x18\x05 \x01(\x04\x1a\x36\n\x06\x43ommit\x12,\n\x07\x63ookies\x18\x01 \x03(\x0b\x32\x1b.Ydb.PersQueue.CommitCookieB\t\n\x07request\"\xb0\x0b\n\x13ReadSessionResponse\x12)\n\x06status\x18\x01 \x01(\x0e\x32\x19.Ydb.StatusIds.StatusCode\x12\'\n\x06issues\x18\x02 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessage\x12;\n\x06inited\x18\x03 \x01(\x0b\x32).Ydb.PersQueue.ReadSessionResponse.InitedH\x00\x12\x42\n\ndata_batch\x18\x04 \x01(\x0b\x32,.Ydb.PersQueue.ReadSessionResponse.DataBatchH\x00\x12?\n\x08\x61ssigned\x18\x05 \x01(\x0b\x32+.Ydb.PersQueue.ReadSessionResponse.AssignedH\x00\x12=\n\x07release\x18\x06 \x01(\x0b\x32*.Ydb.PersQueue.ReadSessionResponse.ReleaseH\x00\x12\x41\n\tcommitted\x18\x07 \x01(\x0b\x32,.Ydb.PersQueue.ReadSessionResponse.CommittedH\x00\x1a\x1c\n\x06Inited\x12\x12\n\nsession_id\x18\x02 \x01(\t\x1a\x8e\x01\n\x08\x41ssigned\x12\"\n\x05topic\x18\x01 \x01(\x0b\x32\x13.Ydb.PersQueue.Path\x12\x0f\n\x07\x63luster\x18\x02 \x01(\t\x12\x11\n\tpartition\x18\x03 \x01(\x04\x12\x11\n\tassign_id\x18\x05 \x01(\x04\x12\x13\n\x0bread_offset\x18\x06 \x01(\x04\x12\x12\n\nend_offset\x18\x07 \x01(\x04\x1a\x95\x01\n\x07Release\x12\"\n\x05topic\x18\x01 \x01(\x0b\x32\x13.Ydb.PersQueue.Path\x12\x0f\n\x07\x63luster\x18\x02 \x01(\t\x12\x11\n\tpartition\x18\x03 \x01(\x04\x12\x11\n\tassign_id\x18\x05 \x01(\x04\x12\x18\n\x10\x66orceful_release\x18\x06 \x01(\x08\x12\x15\n\rcommit_offset\x18\x07 \x01(\x04\x1a\x39\n\tCommitted\x12,\n\x07\x63ookies\x18\x01 \x03(\x0b\x32\x1b.Ydb.PersQueue.CommitCookie\x1a\xf2\x04\n\tDataBatch\x12R\n\x0epartition_data\x18\x01 \x03(\x0b\x32:.Ydb.PersQueue.ReadSessionResponse.DataBatch.PartitionData\x1ag\n\x0bMessageData\x12\x0e\n\x06offset\x18\x01 \x01(\x04\x12\x0e\n\x06seq_no\x18\x02 \x01(\x04\x12\x1b\n\x13\x63reate_timestamp_ms\x18\x03 \x01(\x04\x12\r\n\x05\x63odec\x18\x04 \x01(\t\x12\x0c\n\x04\x64\x61ta\x18\x05 \x01(\x0c\x1a\xc1\x01\n\x05\x42\x61tch\x12\x11\n\tsource_id\x18\x02 \x01(\x0c\x12-\n\x0c\x65xtra_fields\x18\x03 \x03(\x0b\x32\x17.Ydb.PersQueue.KeyValue\x12\x1a\n\x12write_timestamp_ms\x18\x04 \x01(\x04\x12\n\n\x02ip\x18\x05 \x01(\t\x12N\n\x0cmessage_data\x18\x01 \x03(\x0b\x32\x38.Ydb.PersQueue.ReadSessionResponse.DataBatch.MessageData\x1a\xe3\x01\n\rPartitionData\x12\"\n\x05topic\x18\x01 \x01(\x0b\x32\x13.Ydb.PersQueue.Path\x12\x0f\n\x07\x63luster\x18\x02 \x01(\t\x12\x11\n\tpartition\x18\x03 \x01(\x04\x12\x43\n\x07\x62\x61tches\x18\x04 \x03(\x0b\x32\x32.Ydb.PersQueue.ReadSessionResponse.DataBatch.Batch\x12+\n\x06\x63ookie\x18\x05 \x01(\x0b\x32\x1b.Ydb.PersQueue.CommitCookie\x12\x18\n\x10\x64\x65precated_topic\x18\n \x01(\tB\n\n\x08response\"\xb3\x01\n\x0fReadInfoRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12#\n\x06topics\x18\x02 \x03(\x0b\x32\x13.Ydb.PersQueue.Path\x12\x19\n\x11get_only_original\x18\x03 \x01(\x08\x12%\n\x08\x63onsumer\x18\x04 \x01(\x0b\x32\x13.Ydb.PersQueue.Path\"@\n\x10ReadInfoResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\x98\x06\n\x0eReadInfoResult\x12\x37\n\x06topics\x18\x01 \x03(\x0b\x32\'.Ydb.PersQueue.ReadInfoResult.TopicInfo\x1a\xcc\x05\n\tTopicInfo\x12\"\n\x05topic\x18\x01 \x01(\x0b\x32\x13.Ydb.PersQueue.Path\x12\x0f\n\x07\x63luster\x18\x02 \x01(\t\x12)\n\x06status\x18\x03 \x01(\x0e\x32\x19.Ydb.StatusIds.StatusCode\x12\'\n\x06issues\x18\x04 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessage\x12I\n\npartitions\x18\x05 \x03(\x0b\x32\x35.Ydb.PersQueue.ReadInfoResult.TopicInfo.PartitionInfo\x1a\xea\x03\n\rPartitionInfo\x12\x11\n\tpartition\x18\x01 \x01(\x04\x12)\n\x06status\x18\x02 \x01(\x0e\x32\x19.Ydb.StatusIds.StatusCode\x12\'\n\x06issues\x18\x03 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessage\x12\x14\n\x0cstart_offset\x18\x04 \x01(\x04\x12\x12\n\nend_offset\x18\x05 \x01(\x04\x12\x15\n\rcommit_offset\x18\x06 \x01(\x04\x12\x1a\n\x12\x63ommit_time_lag_ms\x18\x07 \x01(\x04\x12\x13\n\x0bread_offset\x18\x08 \x01(\x04\x12\x18\n\x10read_time_lag_ms\x18\t \x01(\x04\x12\x12\n\nsession_id\x18\n \x01(\t\x12\x13\n\x0b\x63lient_node\x18\x0b \x01(\t\x12\x12\n\nproxy_node\x18\x0c \x01(\t\x12\x13\n\x0btablet_node\x18\r \x01(\t\x12\x11\n\tassign_id\x18\x0e \x01(\x04\x12\x1b\n\x13\x61ssign_timestamp_ms\x18\x0f \x01(\x04\x12\x18\n\x10last_read_cookie\x18\x10 \x01(\x04\x12\x1d\n\x15\x63ommitted_read_cookie\x18\x11 \x01(\x04\x12+\n#out_of_order_read_cookies_to_commit\x18\x12 \x03(\x04\x42\x1d\n\x18\x63om.yandex.ydb.persqueue\xf8\x01\x01\x62\x06proto3')
+  serialized_pb=_b('\n/kikimr/public/api/protos/ydb_persqueue_v1.proto\x12\rYdb.PersQueue\x1a,kikimr/public/api/protos/ydb_operation.proto\x1a/kikimr/public/api/protos/ydb_status_codes.proto\x1a\x30kikimr/public/api/protos/ydb_issue_message.proto\"\x14\n\x04Path\x12\x0c\n\x04path\x18\x01 \x01(\t\"&\n\x08KeyValue\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t\"\xca\x03\n\x13WriteSessionRequest\x12\x37\n\x04init\x18\x01 \x01(\x0b\x32\'.Ydb.PersQueue.WriteSessionRequest.InitH\x00\x12\x42\n\ndata_batch\x18\x02 \x01(\x0b\x32,.Ydb.PersQueue.WriteSessionRequest.DataBatchH\x00\x12\r\n\x05token\x18\x14 \x01(\x0c\x1a\x85\x01\n\x04Init\x12\"\n\x05topic\x18\x01 \x01(\x0b\x32\x13.Ydb.PersQueue.Path\x12\x11\n\tsource_id\x18\x02 \x01(\x0c\x12-\n\x0c\x65xtra_fields\x18\x03 \x03(\x0b\x32\x17.Ydb.PersQueue.KeyValue\x12\x17\n\x0fpartition_group\x18\x04 \x01(\r\x1aP\n\x04\x44\x61ta\x12\x0e\n\x06seq_no\x18\x01 \x01(\x04\x12\x0c\n\x04\x64\x61ta\x18\x02 \x01(\x0c\x12\x1b\n\x13\x63reate_timestamp_ms\x18\x03 \x01(\x04\x12\r\n\x05\x63odec\x18\x04 \x01(\t\x1a\x42\n\tDataBatch\x12\x35\n\x04\x64\x61ta\x18\x01 \x03(\x0b\x32\'.Ydb.PersQueue.WriteSessionRequest.DataB\t\n\x07request\"\xd9\x05\n\x14WriteSessionResponse\x12)\n\x06status\x18\x01 \x01(\x0e\x32\x19.Ydb.StatusIds.StatusCode\x12\'\n\x06issues\x18\x02 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessage\x12<\n\x06inited\x18\x03 \x01(\x0b\x32*.Ydb.PersQueue.WriteSessionResponse.InitedH\x00\x12\x41\n\tack_batch\x18\x04 \x01(\x0b\x32,.Ydb.PersQueue.WriteSessionResponse.AckBatchH\x00\x1a\x93\x01\n\x06Inited\x12\x13\n\x0blast_seq_no\x18\x01 \x01(\x04\x12\x12\n\nsession_id\x18\x02 \x01(\t\x12\"\n\x05topic\x18\x03 \x01(\x0b\x32\x13.Ydb.PersQueue.Path\x12\x0f\n\x07\x63luster\x18\x04 \x01(\t\x12\x11\n\tpartition\x18\x05 \x01(\x04\x12\x18\n\x10supported_codecs\x18\x06 \x03(\t\x1ai\n\x04Stat\x12\x15\n\rwrite_time_ms\x18\x01 \x01(\r\x12(\n total_time_in_partition_queue_ms\x18\x02 \x01(\r\x12 \n\x18partition_quoted_time_ms\x18\x03 \x01(\r\x1aQ\n\x03\x41\x63k\x12\x0e\n\x06seq_no\x18\x01 \x01(\x04\x12\x0e\n\x06offset\x18\x02 \x01(\x04\x12\x17\n\x0f\x61lready_written\x18\x03 \x01(\x08\x12\x11\n\tpartition\x18\x04 \x01(\x04\x1a\x8b\x01\n\x08\x41\x63kBatch\x12\x34\n\x03\x61\x63k\x18\x01 \x03(\x0b\x32\'.Ydb.PersQueue.WriteSessionResponse.Ack\x12\x36\n\x04stat\x18\x02 \x01(\x0b\x32(.Ydb.PersQueue.WriteSessionResponse.Stat\x12\x11\n\tpartition\x18\x03 \x01(\x04\x42\n\n\x08response\"x\n\nReadParams\x12\x1f\n\x17max_read_messages_count\x18\x01 \x01(\r\x12\x15\n\rmax_read_size\x18\x02 \x01(\r\x12\x17\n\x0fmax_time_lag_ms\x18\x03 \x01(\r\x12\x19\n\x11read_timestamp_ms\x18\x04 \x01(\x04\";\n\x0c\x43ommitCookie\x12\x11\n\tassign_id\x18\x01 \x01(\x04\x12\x18\n\x10partition_cookie\x18\x02 \x01(\x04\"\xeb\t\n\x12ReadSessionRequest\x12\x36\n\x04init\x18\x01 \x01(\x0b\x32&.Ydb.PersQueue.ReadSessionRequest.InitH\x00\x12\x36\n\x04read\x18\x02 \x01(\x0b\x32&.Ydb.PersQueue.ReadSessionRequest.ReadH\x00\x12\x41\n\nstart_read\x18\x03 \x01(\x0b\x32+.Ydb.PersQueue.ReadSessionRequest.StartReadH\x00\x12:\n\x06\x63ommit\x18\x04 \x01(\x0b\x32(.Ydb.PersQueue.ReadSessionRequest.CommitH\x00\x12>\n\x08released\x18\x05 \x01(\x0b\x32*.Ydb.PersQueue.ReadSessionRequest.ReleasedH\x00\x12:\n\x06status\x18\x06 \x01(\x0b\x32(.Ydb.PersQueue.ReadSessionRequest.StatusH\x00\x12\r\n\x05token\x18\x14 \x01(\x0c\x1a\x92\x03\n\x04Init\x12<\n\x06topics\x18\x01 \x03(\x0b\x32,.Ydb.PersQueue.ReadSessionRequest.Init.Topic\x12\x1a\n\x12read_only_original\x18\x02 \x01(\x08\x12%\n\x08\x63onsumer\x18\x03 \x01(\x0b\x32\x13.Ydb.PersQueue.Path\x12\"\n\x1amanual_partition_assigning\x18\x04 \x01(\x08\x12\x18\n\x10\x66orceful_balance\x18\x05 \x01(\x08\x12.\n\x0bread_params\x18\x06 \x01(\x0b\x32\x19.Ydb.PersQueue.ReadParams\x12!\n\x19max_read_partitions_count\x18\x07 \x01(\r\x12\x17\n\x0f\x64isable_commits\x18\x08 \x01(\x08\x1a_\n\x05Topic\x12!\n\x04path\x18\x01 \x01(\x0b\x32\x13.Ydb.PersQueue.Path\x12\x18\n\x10partition_groups\x18\x02 \x03(\r\x12\x19\n\x11read_timestamp_ms\x18\x03 \x01(\x04\x1a\x06\n\x04Read\x1a\xae\x01\n\tStartRead\x12\"\n\x05topic\x18\x01 \x01(\x0b\x32\x13.Ydb.PersQueue.Path\x12\x0f\n\x07\x63luster\x18\x02 \x01(\t\x12\x11\n\tpartition\x18\x03 \x01(\x04\x12\x11\n\tassign_id\x18\x05 \x01(\x04\x12\x13\n\x0bread_offset\x18\x06 \x01(\x04\x12\x15\n\rcommit_offset\x18\x07 \x01(\x04\x12\x1a\n\x12verify_read_offset\x18\x08 \x01(\x08\x1a\x65\n\x08Released\x12\"\n\x05topic\x18\x01 \x01(\x0b\x32\x13.Ydb.PersQueue.Path\x12\x0f\n\x07\x63luster\x18\x02 \x01(\t\x12\x11\n\tpartition\x18\x03 \x01(\x04\x12\x11\n\tassign_id\x18\x05 \x01(\x04\x1a\x36\n\x06\x43ommit\x12,\n\x07\x63ookies\x18\x01 \x03(\x0b\x32\x1b.Ydb.PersQueue.CommitCookie\x1a\x63\n\x06Status\x12\"\n\x05topic\x18\x01 \x01(\x0b\x32\x13.Ydb.PersQueue.Path\x12\x0f\n\x07\x63luster\x18\x02 \x01(\t\x12\x11\n\tpartition\x18\x03 \x01(\x04\x12\x11\n\tassign_id\x18\x05 \x01(\x04\x42\t\n\x07request\"\xb9\r\n\x13ReadSessionResponse\x12)\n\x06status\x18\x01 \x01(\x0e\x32\x19.Ydb.StatusIds.StatusCode\x12\'\n\x06issues\x18\x02 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessage\x12;\n\x06inited\x18\x03 \x01(\x0b\x32).Ydb.PersQueue.ReadSessionResponse.InitedH\x00\x12\x42\n\ndata_batch\x18\x04 \x01(\x0b\x32,.Ydb.PersQueue.ReadSessionResponse.DataBatchH\x00\x12?\n\x08\x61ssigned\x18\x05 \x01(\x0b\x32+.Ydb.PersQueue.ReadSessionResponse.AssignedH\x00\x12=\n\x07release\x18\x06 \x01(\x0b\x32*.Ydb.PersQueue.ReadSessionResponse.ReleaseH\x00\x12\x41\n\tcommitted\x18\x07 \x01(\x0b\x32,.Ydb.PersQueue.ReadSessionResponse.CommittedH\x00\x12N\n\x10partition_status\x18\x08 \x01(\x0b\x32\x32.Ydb.PersQueue.ReadSessionResponse.PartitionStatusH\x00\x1a\x1c\n\x06Inited\x12\x12\n\nsession_id\x18\x02 \x01(\t\x1a\x8e\x01\n\x08\x41ssigned\x12\"\n\x05topic\x18\x01 \x01(\x0b\x32\x13.Ydb.PersQueue.Path\x12\x0f\n\x07\x63luster\x18\x02 \x01(\t\x12\x11\n\tpartition\x18\x03 \x01(\x04\x12\x11\n\tassign_id\x18\x05 \x01(\x04\x12\x13\n\x0bread_offset\x18\x06 \x01(\x04\x12\x12\n\nend_offset\x18\x07 \x01(\x04\x1a\x95\x01\n\x07Release\x12\"\n\x05topic\x18\x01 \x01(\x0b\x32\x13.Ydb.PersQueue.Path\x12\x0f\n\x07\x63luster\x18\x02 \x01(\t\x12\x11\n\tpartition\x18\x03 \x01(\x04\x12\x11\n\tassign_id\x18\x05 \x01(\x04\x12\x18\n\x10\x66orceful_release\x18\x06 \x01(\x08\x12\x15\n\rcommit_offset\x18\x07 \x01(\x04\x1a\x39\n\tCommitted\x12,\n\x07\x63ookies\x18\x01 \x03(\x0b\x32\x1b.Ydb.PersQueue.CommitCookie\x1a\xf2\x04\n\tDataBatch\x12R\n\x0epartition_data\x18\x01 \x03(\x0b\x32:.Ydb.PersQueue.ReadSessionResponse.DataBatch.PartitionData\x1ag\n\x0bMessageData\x12\x0e\n\x06offset\x18\x01 \x01(\x04\x12\x0e\n\x06seq_no\x18\x02 \x01(\x04\x12\x1b\n\x13\x63reate_timestamp_ms\x18\x03 \x01(\x04\x12\r\n\x05\x63odec\x18\x04 \x01(\t\x12\x0c\n\x04\x64\x61ta\x18\x05 \x01(\x0c\x1a\xc1\x01\n\x05\x42\x61tch\x12\x11\n\tsource_id\x18\x02 \x01(\x0c\x12-\n\x0c\x65xtra_fields\x18\x03 \x03(\x0b\x32\x17.Ydb.PersQueue.KeyValue\x12\x1a\n\x12write_timestamp_ms\x18\x04 \x01(\x04\x12\n\n\x02ip\x18\x05 \x01(\t\x12N\n\x0cmessage_data\x18\x01 \x03(\x0b\x32\x38.Ydb.PersQueue.ReadSessionResponse.DataBatch.MessageData\x1a\xe3\x01\n\rPartitionData\x12\"\n\x05topic\x18\x01 \x01(\x0b\x32\x13.Ydb.PersQueue.Path\x12\x0f\n\x07\x63luster\x18\x02 \x01(\t\x12\x11\n\tpartition\x18\x03 \x01(\x04\x12\x43\n\x07\x62\x61tches\x18\x04 \x03(\x0b\x32\x32.Ydb.PersQueue.ReadSessionResponse.DataBatch.Batch\x12+\n\x06\x63ookie\x18\x05 \x01(\x0b\x32\x1b.Ydb.PersQueue.CommitCookie\x12\x18\n\x10\x64\x65precated_topic\x18\n \x01(\t\x1a\xb6\x01\n\x0fPartitionStatus\x12\"\n\x05topic\x18\x01 \x01(\x0b\x32\x13.Ydb.PersQueue.Path\x12\x0f\n\x07\x63luster\x18\x02 \x01(\t\x12\x11\n\tpartition\x18\x03 \x01(\x04\x12\x11\n\tassign_id\x18\x05 \x01(\x04\x12\x18\n\x10\x63ommitted_offset\x18\x06 \x01(\x04\x12\x12\n\nend_offset\x18\x07 \x01(\x04\x12\x1a\n\x12write_watermark_ms\x18\x08 \x01(\x04\x42\n\n\x08response\"\xb3\x01\n\x0fReadInfoRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12#\n\x06topics\x18\x02 \x03(\x0b\x32\x13.Ydb.PersQueue.Path\x12\x19\n\x11get_only_original\x18\x03 \x01(\x08\x12%\n\x08\x63onsumer\x18\x04 \x01(\x0b\x32\x13.Ydb.PersQueue.Path\"@\n\x10ReadInfoResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\x98\x06\n\x0eReadInfoResult\x12\x37\n\x06topics\x18\x01 \x03(\x0b\x32\'.Ydb.PersQueue.ReadInfoResult.TopicInfo\x1a\xcc\x05\n\tTopicInfo\x12\"\n\x05topic\x18\x01 \x01(\x0b\x32\x13.Ydb.PersQueue.Path\x12\x0f\n\x07\x63luster\x18\x02 \x01(\t\x12)\n\x06status\x18\x03 \x01(\x0e\x32\x19.Ydb.StatusIds.StatusCode\x12\'\n\x06issues\x18\x04 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessage\x12I\n\npartitions\x18\x05 \x03(\x0b\x32\x35.Ydb.PersQueue.ReadInfoResult.TopicInfo.PartitionInfo\x1a\xea\x03\n\rPartitionInfo\x12\x11\n\tpartition\x18\x01 \x01(\x04\x12)\n\x06status\x18\x02 \x01(\x0e\x32\x19.Ydb.StatusIds.StatusCode\x12\'\n\x06issues\x18\x03 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessage\x12\x14\n\x0cstart_offset\x18\x04 \x01(\x04\x12\x12\n\nend_offset\x18\x05 \x01(\x04\x12\x15\n\rcommit_offset\x18\x06 \x01(\x04\x12\x1a\n\x12\x63ommit_time_lag_ms\x18\x07 \x01(\x04\x12\x13\n\x0bread_offset\x18\x08 \x01(\x04\x12\x18\n\x10read_time_lag_ms\x18\t \x01(\x04\x12\x12\n\nsession_id\x18\n \x01(\t\x12\x13\n\x0b\x63lient_node\x18\x0b \x01(\t\x12\x12\n\nproxy_node\x18\x0c \x01(\t\x12\x13\n\x0btablet_node\x18\r \x01(\t\x12\x11\n\tassign_id\x18\x0e \x01(\x04\x12\x1b\n\x13\x61ssign_timestamp_ms\x18\x0f \x01(\x04\x12\x18\n\x10last_read_cookie\x18\x10 \x01(\x04\x12\x1d\n\x15\x63ommitted_read_cookie\x18\x11 \x01(\x04\x12+\n#out_of_order_read_cookies_to_commit\x18\x12 \x03(\x04\x42\x1d\n\x18\x63om.yandex.ydb.persqueue\xf8\x01\x01\x62\x06proto3')
   ,
   dependencies=[kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2.DESCRIPTOR,kikimr_dot_public_dot_api_dot_protos_dot_ydb__status__codes__pb2.DESCRIPTOR,kikimr_dot_public_dot_api_dot_protos_dot_ydb__issue__message__pb2.DESCRIPTOR,])
 
@@ -667,8 +667,8 @@ _READSESSIONREQUEST_INIT_TOPIC = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2298,
-  serialized_end=2393,
+  serialized_start=2358,
+  serialized_end=2453,
 )
 
 _READSESSIONREQUEST_INIT = _descriptor.Descriptor(
@@ -746,8 +746,8 @@ _READSESSIONREQUEST_INIT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1991,
-  serialized_end=2393,
+  serialized_start=2051,
+  serialized_end=2453,
 )
 
 _READSESSIONREQUEST_READ = _descriptor.Descriptor(
@@ -769,8 +769,8 @@ _READSESSIONREQUEST_READ = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2395,
-  serialized_end=2401,
+  serialized_start=2455,
+  serialized_end=2461,
 )
 
 _READSESSIONREQUEST_STARTREAD = _descriptor.Descriptor(
@@ -841,8 +841,8 @@ _READSESSIONREQUEST_STARTREAD = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2404,
-  serialized_end=2578,
+  serialized_start=2464,
+  serialized_end=2638,
 )
 
 _READSESSIONREQUEST_RELEASED = _descriptor.Descriptor(
@@ -892,8 +892,8 @@ _READSESSIONREQUEST_RELEASED = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2580,
-  serialized_end=2681,
+  serialized_start=2640,
+  serialized_end=2741,
 )
 
 _READSESSIONREQUEST_COMMIT = _descriptor.Descriptor(
@@ -922,8 +922,59 @@ _READSESSIONREQUEST_COMMIT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2683,
-  serialized_end=2737,
+  serialized_start=2743,
+  serialized_end=2797,
+)
+
+_READSESSIONREQUEST_STATUS = _descriptor.Descriptor(
+  name='Status',
+  full_name='Ydb.PersQueue.ReadSessionRequest.Status',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='topic', full_name='Ydb.PersQueue.ReadSessionRequest.Status.topic', index=0,
+      number=1, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='cluster', full_name='Ydb.PersQueue.ReadSessionRequest.Status.cluster', index=1,
+      number=2, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='partition', full_name='Ydb.PersQueue.ReadSessionRequest.Status.partition', index=2,
+      number=3, type=4, cpp_type=4, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='assign_id', full_name='Ydb.PersQueue.ReadSessionRequest.Status.assign_id', index=3,
+      number=5, type=4, cpp_type=4, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=2799,
+  serialized_end=2898,
 )
 
 _READSESSIONREQUEST = _descriptor.Descriptor(
@@ -969,7 +1020,14 @@ _READSESSIONREQUEST = _descriptor.Descriptor(
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='token', full_name='Ydb.PersQueue.ReadSessionRequest.token', index=5,
+      name='status', full_name='Ydb.PersQueue.ReadSessionRequest.status', index=5,
+      number=6, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='token', full_name='Ydb.PersQueue.ReadSessionRequest.token', index=6,
       number=20, type=12, cpp_type=9, label=1,
       has_default_value=False, default_value=_b(""),
       message_type=None, enum_type=None, containing_type=None,
@@ -978,7 +1036,7 @@ _READSESSIONREQUEST = _descriptor.Descriptor(
   ],
   extensions=[
   ],
-  nested_types=[_READSESSIONREQUEST_INIT, _READSESSIONREQUEST_READ, _READSESSIONREQUEST_STARTREAD, _READSESSIONREQUEST_RELEASED, _READSESSIONREQUEST_COMMIT, ],
+  nested_types=[_READSESSIONREQUEST_INIT, _READSESSIONREQUEST_READ, _READSESSIONREQUEST_STARTREAD, _READSESSIONREQUEST_RELEASED, _READSESSIONREQUEST_COMMIT, _READSESSIONREQUEST_STATUS, ],
   enum_types=[
   ],
   options=None,
@@ -991,7 +1049,7 @@ _READSESSIONREQUEST = _descriptor.Descriptor(
       index=0, containing_type=None, fields=[]),
   ],
   serialized_start=1650,
-  serialized_end=2748,
+  serialized_end=2909,
 )
 
 
@@ -1021,8 +1079,8 @@ _READSESSIONRESPONSE_INITED = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3182,
-  serialized_end=3210,
+  serialized_start=3423,
+  serialized_end=3451,
 )
 
 _READSESSIONRESPONSE_ASSIGNED = _descriptor.Descriptor(
@@ -1086,8 +1144,8 @@ _READSESSIONRESPONSE_ASSIGNED = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3213,
-  serialized_end=3355,
+  serialized_start=3454,
+  serialized_end=3596,
 )
 
 _READSESSIONRESPONSE_RELEASE = _descriptor.Descriptor(
@@ -1151,8 +1209,8 @@ _READSESSIONRESPONSE_RELEASE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3358,
-  serialized_end=3507,
+  serialized_start=3599,
+  serialized_end=3748,
 )
 
 _READSESSIONRESPONSE_COMMITTED = _descriptor.Descriptor(
@@ -1181,8 +1239,8 @@ _READSESSIONRESPONSE_COMMITTED = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3509,
-  serialized_end=3566,
+  serialized_start=3750,
+  serialized_end=3807,
 )
 
 _READSESSIONRESPONSE_DATABATCH_MESSAGEDATA = _descriptor.Descriptor(
@@ -1239,8 +1297,8 @@ _READSESSIONRESPONSE_DATABATCH_MESSAGEDATA = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3666,
-  serialized_end=3769,
+  serialized_start=3907,
+  serialized_end=4010,
 )
 
 _READSESSIONRESPONSE_DATABATCH_BATCH = _descriptor.Descriptor(
@@ -1297,8 +1355,8 @@ _READSESSIONRESPONSE_DATABATCH_BATCH = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3772,
-  serialized_end=3965,
+  serialized_start=4013,
+  serialized_end=4206,
 )
 
 _READSESSIONRESPONSE_DATABATCH_PARTITIONDATA = _descriptor.Descriptor(
@@ -1362,8 +1420,8 @@ _READSESSIONRESPONSE_DATABATCH_PARTITIONDATA = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3968,
-  serialized_end=4195,
+  serialized_start=4209,
+  serialized_end=4436,
 )
 
 _READSESSIONRESPONSE_DATABATCH = _descriptor.Descriptor(
@@ -1392,8 +1450,80 @@ _READSESSIONRESPONSE_DATABATCH = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3569,
-  serialized_end=4195,
+  serialized_start=3810,
+  serialized_end=4436,
+)
+
+_READSESSIONRESPONSE_PARTITIONSTATUS = _descriptor.Descriptor(
+  name='PartitionStatus',
+  full_name='Ydb.PersQueue.ReadSessionResponse.PartitionStatus',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='topic', full_name='Ydb.PersQueue.ReadSessionResponse.PartitionStatus.topic', index=0,
+      number=1, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='cluster', full_name='Ydb.PersQueue.ReadSessionResponse.PartitionStatus.cluster', index=1,
+      number=2, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='partition', full_name='Ydb.PersQueue.ReadSessionResponse.PartitionStatus.partition', index=2,
+      number=3, type=4, cpp_type=4, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='assign_id', full_name='Ydb.PersQueue.ReadSessionResponse.PartitionStatus.assign_id', index=3,
+      number=5, type=4, cpp_type=4, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='committed_offset', full_name='Ydb.PersQueue.ReadSessionResponse.PartitionStatus.committed_offset', index=4,
+      number=6, type=4, cpp_type=4, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='end_offset', full_name='Ydb.PersQueue.ReadSessionResponse.PartitionStatus.end_offset', index=5,
+      number=7, type=4, cpp_type=4, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='write_watermark_ms', full_name='Ydb.PersQueue.ReadSessionResponse.PartitionStatus.write_watermark_ms', index=6,
+      number=8, type=4, cpp_type=4, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=4439,
+  serialized_end=4621,
 )
 
 _READSESSIONRESPONSE = _descriptor.Descriptor(
@@ -1452,10 +1582,17 @@ _READSESSIONRESPONSE = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
+    _descriptor.FieldDescriptor(
+      name='partition_status', full_name='Ydb.PersQueue.ReadSessionResponse.partition_status', index=7,
+      number=8, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
   ],
   extensions=[
   ],
-  nested_types=[_READSESSIONRESPONSE_INITED, _READSESSIONRESPONSE_ASSIGNED, _READSESSIONRESPONSE_RELEASE, _READSESSIONRESPONSE_COMMITTED, _READSESSIONRESPONSE_DATABATCH, ],
+  nested_types=[_READSESSIONRESPONSE_INITED, _READSESSIONRESPONSE_ASSIGNED, _READSESSIONRESPONSE_RELEASE, _READSESSIONRESPONSE_COMMITTED, _READSESSIONRESPONSE_DATABATCH, _READSESSIONRESPONSE_PARTITIONSTATUS, ],
   enum_types=[
   ],
   options=None,
@@ -1467,8 +1604,8 @@ _READSESSIONRESPONSE = _descriptor.Descriptor(
       name='response', full_name='Ydb.PersQueue.ReadSessionResponse.response',
       index=0, containing_type=None, fields=[]),
   ],
-  serialized_start=2751,
-  serialized_end=4207,
+  serialized_start=2912,
+  serialized_end=4633,
 )
 
 
@@ -1519,8 +1656,8 @@ _READINFOREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=4210,
-  serialized_end=4389,
+  serialized_start=4636,
+  serialized_end=4815,
 )
 
 
@@ -1550,8 +1687,8 @@ _READINFORESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=4391,
-  serialized_end=4455,
+  serialized_start=4817,
+  serialized_end=4881,
 )
 
 
@@ -1700,8 +1837,8 @@ _READINFORESULT_TOPICINFO_PARTITIONINFO = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=4760,
-  serialized_end=5250,
+  serialized_start=5186,
+  serialized_end=5676,
 )
 
 _READINFORESULT_TOPICINFO = _descriptor.Descriptor(
@@ -1758,8 +1895,8 @@ _READINFORESULT_TOPICINFO = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=4534,
-  serialized_end=5250,
+  serialized_start=4960,
+  serialized_end=5676,
 )
 
 _READINFORESULT = _descriptor.Descriptor(
@@ -1788,8 +1925,8 @@ _READINFORESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=4458,
-  serialized_end=5250,
+  serialized_start=4884,
+  serialized_end=5676,
 )
 
 _WRITESESSIONREQUEST_INIT.fields_by_name['topic'].message_type = _PATH
@@ -1836,11 +1973,14 @@ _READSESSIONREQUEST_RELEASED.fields_by_name['topic'].message_type = _PATH
 _READSESSIONREQUEST_RELEASED.containing_type = _READSESSIONREQUEST
 _READSESSIONREQUEST_COMMIT.fields_by_name['cookies'].message_type = _COMMITCOOKIE
 _READSESSIONREQUEST_COMMIT.containing_type = _READSESSIONREQUEST
+_READSESSIONREQUEST_STATUS.fields_by_name['topic'].message_type = _PATH
+_READSESSIONREQUEST_STATUS.containing_type = _READSESSIONREQUEST
 _READSESSIONREQUEST.fields_by_name['init'].message_type = _READSESSIONREQUEST_INIT
 _READSESSIONREQUEST.fields_by_name['read'].message_type = _READSESSIONREQUEST_READ
 _READSESSIONREQUEST.fields_by_name['start_read'].message_type = _READSESSIONREQUEST_STARTREAD
 _READSESSIONREQUEST.fields_by_name['commit'].message_type = _READSESSIONREQUEST_COMMIT
 _READSESSIONREQUEST.fields_by_name['released'].message_type = _READSESSIONREQUEST_RELEASED
+_READSESSIONREQUEST.fields_by_name['status'].message_type = _READSESSIONREQUEST_STATUS
 _READSESSIONREQUEST.oneofs_by_name['request'].fields.append(
   _READSESSIONREQUEST.fields_by_name['init'])
 _READSESSIONREQUEST.fields_by_name['init'].containing_oneof = _READSESSIONREQUEST.oneofs_by_name['request']
@@ -1856,6 +1996,9 @@ _READSESSIONREQUEST.fields_by_name['commit'].containing_oneof = _READSESSIONREQU
 _READSESSIONREQUEST.oneofs_by_name['request'].fields.append(
   _READSESSIONREQUEST.fields_by_name['released'])
 _READSESSIONREQUEST.fields_by_name['released'].containing_oneof = _READSESSIONREQUEST.oneofs_by_name['request']
+_READSESSIONREQUEST.oneofs_by_name['request'].fields.append(
+  _READSESSIONREQUEST.fields_by_name['status'])
+_READSESSIONREQUEST.fields_by_name['status'].containing_oneof = _READSESSIONREQUEST.oneofs_by_name['request']
 _READSESSIONRESPONSE_INITED.containing_type = _READSESSIONRESPONSE
 _READSESSIONRESPONSE_ASSIGNED.fields_by_name['topic'].message_type = _PATH
 _READSESSIONRESPONSE_ASSIGNED.containing_type = _READSESSIONRESPONSE
@@ -1873,6 +2016,8 @@ _READSESSIONRESPONSE_DATABATCH_PARTITIONDATA.fields_by_name['cookie'].message_ty
 _READSESSIONRESPONSE_DATABATCH_PARTITIONDATA.containing_type = _READSESSIONRESPONSE_DATABATCH
 _READSESSIONRESPONSE_DATABATCH.fields_by_name['partition_data'].message_type = _READSESSIONRESPONSE_DATABATCH_PARTITIONDATA
 _READSESSIONRESPONSE_DATABATCH.containing_type = _READSESSIONRESPONSE
+_READSESSIONRESPONSE_PARTITIONSTATUS.fields_by_name['topic'].message_type = _PATH
+_READSESSIONRESPONSE_PARTITIONSTATUS.containing_type = _READSESSIONRESPONSE
 _READSESSIONRESPONSE.fields_by_name['status'].enum_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__status__codes__pb2._STATUSIDS_STATUSCODE
 _READSESSIONRESPONSE.fields_by_name['issues'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__issue__message__pb2._ISSUEMESSAGE
 _READSESSIONRESPONSE.fields_by_name['inited'].message_type = _READSESSIONRESPONSE_INITED
@@ -1880,6 +2025,7 @@ _READSESSIONRESPONSE.fields_by_name['data_batch'].message_type = _READSESSIONRES
 _READSESSIONRESPONSE.fields_by_name['assigned'].message_type = _READSESSIONRESPONSE_ASSIGNED
 _READSESSIONRESPONSE.fields_by_name['release'].message_type = _READSESSIONRESPONSE_RELEASE
 _READSESSIONRESPONSE.fields_by_name['committed'].message_type = _READSESSIONRESPONSE_COMMITTED
+_READSESSIONRESPONSE.fields_by_name['partition_status'].message_type = _READSESSIONRESPONSE_PARTITIONSTATUS
 _READSESSIONRESPONSE.oneofs_by_name['response'].fields.append(
   _READSESSIONRESPONSE.fields_by_name['inited'])
 _READSESSIONRESPONSE.fields_by_name['inited'].containing_oneof = _READSESSIONRESPONSE.oneofs_by_name['response']
@@ -1895,6 +2041,9 @@ _READSESSIONRESPONSE.fields_by_name['release'].containing_oneof = _READSESSIONRE
 _READSESSIONRESPONSE.oneofs_by_name['response'].fields.append(
   _READSESSIONRESPONSE.fields_by_name['committed'])
 _READSESSIONRESPONSE.fields_by_name['committed'].containing_oneof = _READSESSIONRESPONSE.oneofs_by_name['response']
+_READSESSIONRESPONSE.oneofs_by_name['response'].fields.append(
+  _READSESSIONRESPONSE.fields_by_name['partition_status'])
+_READSESSIONRESPONSE.fields_by_name['partition_status'].containing_oneof = _READSESSIONRESPONSE.oneofs_by_name['response']
 _READINFOREQUEST.fields_by_name['operation_params'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2._OPERATIONPARAMS
 _READINFOREQUEST.fields_by_name['topics'].message_type = _PATH
 _READINFOREQUEST.fields_by_name['consumer'].message_type = _PATH
@@ -2062,6 +2211,13 @@ ReadSessionRequest = _reflection.GeneratedProtocolMessageType('ReadSessionReques
     # @@protoc_insertion_point(class_scope:Ydb.PersQueue.ReadSessionRequest.Commit)
     ))
   ,
+
+  Status = _reflection.GeneratedProtocolMessageType('Status', (_message.Message,), dict(
+    DESCRIPTOR = _READSESSIONREQUEST_STATUS,
+    __module__ = 'kikimr.public.api.protos.ydb_persqueue_v1_pb2'
+    # @@protoc_insertion_point(class_scope:Ydb.PersQueue.ReadSessionRequest.Status)
+    ))
+  ,
   DESCRIPTOR = _READSESSIONREQUEST,
   __module__ = 'kikimr.public.api.protos.ydb_persqueue_v1_pb2'
   # @@protoc_insertion_point(class_scope:Ydb.PersQueue.ReadSessionRequest)
@@ -2073,6 +2229,7 @@ _sym_db.RegisterMessage(ReadSessionRequest.Read)
 _sym_db.RegisterMessage(ReadSessionRequest.StartRead)
 _sym_db.RegisterMessage(ReadSessionRequest.Released)
 _sym_db.RegisterMessage(ReadSessionRequest.Commit)
+_sym_db.RegisterMessage(ReadSessionRequest.Status)
 
 ReadSessionResponse = _reflection.GeneratedProtocolMessageType('ReadSessionResponse', (_message.Message,), dict(
 
@@ -2131,6 +2288,13 @@ ReadSessionResponse = _reflection.GeneratedProtocolMessageType('ReadSessionRespo
     # @@protoc_insertion_point(class_scope:Ydb.PersQueue.ReadSessionResponse.DataBatch)
     ))
   ,
+
+  PartitionStatus = _reflection.GeneratedProtocolMessageType('PartitionStatus', (_message.Message,), dict(
+    DESCRIPTOR = _READSESSIONRESPONSE_PARTITIONSTATUS,
+    __module__ = 'kikimr.public.api.protos.ydb_persqueue_v1_pb2'
+    # @@protoc_insertion_point(class_scope:Ydb.PersQueue.ReadSessionResponse.PartitionStatus)
+    ))
+  ,
   DESCRIPTOR = _READSESSIONRESPONSE,
   __module__ = 'kikimr.public.api.protos.ydb_persqueue_v1_pb2'
   # @@protoc_insertion_point(class_scope:Ydb.PersQueue.ReadSessionResponse)
@@ -2144,6 +2308,7 @@ _sym_db.RegisterMessage(ReadSessionResponse.DataBatch)
 _sym_db.RegisterMessage(ReadSessionResponse.DataBatch.MessageData)
 _sym_db.RegisterMessage(ReadSessionResponse.DataBatch.Batch)
 _sym_db.RegisterMessage(ReadSessionResponse.DataBatch.PartitionData)
+_sym_db.RegisterMessage(ReadSessionResponse.PartitionStatus)
 
 ReadInfoRequest = _reflection.GeneratedProtocolMessageType('ReadInfoRequest', (_message.Message,), dict(
   DESCRIPTOR = _READINFOREQUEST,
