@@ -9,9 +9,10 @@ logger = logging.getLogger(__name__)
 
 
 class EndpointInfo(object):
-    __slots__ = ('endpoint', 'location', 'port')
+    __slots__ = ('address', 'endpoint', 'location', 'port')
 
     def __init__(self, endpoint_info):
+        self.address = endpoint_info.address
         self.endpoint = "%s:%s" % (endpoint_info.address, endpoint_info.port)
         self.location = endpoint_info.location
         self.port = endpoint_info.port
