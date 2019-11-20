@@ -23,11 +23,37 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='kikimr/public/api/protos/ydb_experimental.proto',
   package='Ydb.Experimental',
   syntax='proto3',
-  serialized_pb=_b('\n/kikimr/public/api/protos/ydb_experimental.proto\x12\x10Ydb.Experimental\x1a\x30kikimr/public/api/protos/ydb_issue_message.proto\x1a,kikimr/public/api/protos/ydb_operation.proto\x1a/kikimr/public/api/protos/ydb_status_codes.proto\x1a(kikimr/public/api/protos/ydb_value.proto\"|\n\x11UploadRowsRequest\x12\r\n\x05table\x18\x01 \x01(\t\x12\x1d\n\x04rows\x18\x02 \x01(\x0b\x32\x0f.Ydb.TypedValue\x12\x39\n\x10operation_params\x18\x03 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\"B\n\x12UploadRowsResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\x12\n\x10UploadRowsResult\"\xc2\x01\n\x19\x45xecuteStreamQueryRequest\x12\x10\n\x08yql_text\x18\x01 \x01(\t\x12O\n\nparameters\x18\x02 \x03(\x0b\x32;.Ydb.Experimental.ExecuteStreamQueryRequest.ParametersEntry\x1a\x42\n\x0fParametersEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\x1e\n\x05value\x18\x02 \x01(\x0b\x32\x0f.Ydb.TypedValue:\x02\x38\x01\"\xac\x01\n\x1a\x45xecuteStreamQueryResponse\x12)\n\x06status\x18\x01 \x01(\x0e\x32\x19.Ydb.StatusIds.StatusCode\x12\'\n\x06issues\x18\x02 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessage\x12:\n\x06result\x18\x03 \x01(\x0b\x32*.Ydb.Experimental.ExecuteStreamQueryResult\">\n\x18\x45xecuteStreamQueryResult\x12\"\n\nresult_set\x18\x01 \x01(\x0b\x32\x0e.Ydb.ResultSetB4\n\x1b\x63om.yandex.ydb.experimentalB\x12\x45xperimentalProtos\xf8\x01\x01\x62\x06proto3')
+  serialized_pb=_b('\n/kikimr/public/api/protos/ydb_experimental.proto\x12\x10Ydb.Experimental\x1a\x30kikimr/public/api/protos/ydb_issue_message.proto\x1a,kikimr/public/api/protos/ydb_operation.proto\x1a/kikimr/public/api/protos/ydb_status_codes.proto\x1a(kikimr/public/api/protos/ydb_value.proto\"|\n\x11UploadRowsRequest\x12\r\n\x05table\x18\x01 \x01(\t\x12\x1d\n\x04rows\x18\x02 \x01(\x0b\x32\x0f.Ydb.TypedValue\x12\x39\n\x10operation_params\x18\x03 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\"B\n\x12UploadRowsResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\x12\n\x10UploadRowsResult\"\xd3\x02\n\x19\x45xecuteStreamQueryRequest\x12\x10\n\x08yql_text\x18\x01 \x01(\t\x12O\n\nparameters\x18\x02 \x03(\x0b\x32;.Ydb.Experimental.ExecuteStreamQueryRequest.ParametersEntry\x12M\n\x0cprofile_mode\x18\x03 \x01(\x0e\x32\x37.Ydb.Experimental.ExecuteStreamQueryRequest.ProfileMode\x1a\x42\n\x0fParametersEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\x1e\n\x05value\x18\x02 \x01(\x0b\x32\x0f.Ydb.TypedValue:\x02\x38\x01\"@\n\x0bProfileMode\x12\x1c\n\x18PROFILE_MODE_UNSPECIFIED\x10\x00\x12\x08\n\x04NONE\x10\x01\x12\t\n\x05\x42\x41SIC\x10\x02\"\xac\x01\n\x1a\x45xecuteStreamQueryResponse\x12)\n\x06status\x18\x01 \x01(\x0e\x32\x19.Ydb.StatusIds.StatusCode\x12\'\n\x06issues\x18\x02 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessage\x12:\n\x06result\x18\x03 \x01(\x0b\x32*.Ydb.Experimental.ExecuteStreamQueryResult\"]\n\x18\x45xecuteStreamQueryResult\x12$\n\nresult_set\x18\x01 \x01(\x0b\x32\x0e.Ydb.ResultSetH\x00\x12\x11\n\x07profile\x18\x02 \x01(\tH\x00\x42\x08\n\x06resultB4\n\x1b\x63om.yandex.ydb.experimentalB\x12\x45xperimentalProtos\xf8\x01\x01\x62\x06proto3')
   ,
   dependencies=[kikimr_dot_public_dot_api_dot_protos_dot_ydb__issue__message__pb2.DESCRIPTOR,kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2.DESCRIPTOR,kikimr_dot_public_dot_api_dot_protos_dot_ydb__status__codes__pb2.DESCRIPTOR,kikimr_dot_public_dot_api_dot_protos_dot_ydb__value__pb2.DESCRIPTOR,])
 
 
+
+_EXECUTESTREAMQUERYREQUEST_PROFILEMODE = _descriptor.EnumDescriptor(
+  name='ProfileMode',
+  full_name='Ydb.Experimental.ExecuteStreamQueryRequest.ProfileMode',
+  filename=None,
+  file=DESCRIPTOR,
+  values=[
+    _descriptor.EnumValueDescriptor(
+      name='PROFILE_MODE_UNSPECIFIED', index=0, number=0,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='NONE', index=1, number=1,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='BASIC', index=2, number=2,
+      options=None,
+      type=None),
+  ],
+  containing_type=None,
+  options=None,
+  serialized_start=746,
+  serialized_end=810,
+)
+_sym_db.RegisterEnumDescriptor(_EXECUTESTREAMQUERYREQUEST_PROFILEMODE)
 
 
 _UPLOADROWSREQUEST = _descriptor.Descriptor(
@@ -163,8 +189,8 @@ _EXECUTESTREAMQUERYREQUEST_PARAMETERSENTRY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=599,
-  serialized_end=665,
+  serialized_start=678,
+  serialized_end=744,
 )
 
 _EXECUTESTREAMQUERYREQUEST = _descriptor.Descriptor(
@@ -188,11 +214,19 @@ _EXECUTESTREAMQUERYREQUEST = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
+    _descriptor.FieldDescriptor(
+      name='profile_mode', full_name='Ydb.Experimental.ExecuteStreamQueryRequest.profile_mode', index=2,
+      number=3, type=14, cpp_type=8, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
   ],
   extensions=[
   ],
   nested_types=[_EXECUTESTREAMQUERYREQUEST_PARAMETERSENTRY, ],
   enum_types=[
+    _EXECUTESTREAMQUERYREQUEST_PROFILEMODE,
   ],
   options=None,
   is_extendable=False,
@@ -201,7 +235,7 @@ _EXECUTESTREAMQUERYREQUEST = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=471,
-  serialized_end=665,
+  serialized_end=810,
 )
 
 
@@ -245,8 +279,8 @@ _EXECUTESTREAMQUERYRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=668,
-  serialized_end=840,
+  serialized_start=813,
+  serialized_end=985,
 )
 
 
@@ -264,6 +298,13 @@ _EXECUTESTREAMQUERYRESULT = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
+    _descriptor.FieldDescriptor(
+      name='profile', full_name='Ydb.Experimental.ExecuteStreamQueryResult.profile', index=1,
+      number=2, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
   ],
   extensions=[
   ],
@@ -275,9 +316,12 @@ _EXECUTESTREAMQUERYRESULT = _descriptor.Descriptor(
   syntax='proto3',
   extension_ranges=[],
   oneofs=[
+    _descriptor.OneofDescriptor(
+      name='result', full_name='Ydb.Experimental.ExecuteStreamQueryResult.result',
+      index=0, containing_type=None, fields=[]),
   ],
-  serialized_start=842,
-  serialized_end=904,
+  serialized_start=987,
+  serialized_end=1080,
 )
 
 _UPLOADROWSREQUEST.fields_by_name['rows'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__value__pb2._TYPEDVALUE
@@ -286,10 +330,18 @@ _UPLOADROWSRESPONSE.fields_by_name['operation'].message_type = kikimr_dot_public
 _EXECUTESTREAMQUERYREQUEST_PARAMETERSENTRY.fields_by_name['value'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__value__pb2._TYPEDVALUE
 _EXECUTESTREAMQUERYREQUEST_PARAMETERSENTRY.containing_type = _EXECUTESTREAMQUERYREQUEST
 _EXECUTESTREAMQUERYREQUEST.fields_by_name['parameters'].message_type = _EXECUTESTREAMQUERYREQUEST_PARAMETERSENTRY
+_EXECUTESTREAMQUERYREQUEST.fields_by_name['profile_mode'].enum_type = _EXECUTESTREAMQUERYREQUEST_PROFILEMODE
+_EXECUTESTREAMQUERYREQUEST_PROFILEMODE.containing_type = _EXECUTESTREAMQUERYREQUEST
 _EXECUTESTREAMQUERYRESPONSE.fields_by_name['status'].enum_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__status__codes__pb2._STATUSIDS_STATUSCODE
 _EXECUTESTREAMQUERYRESPONSE.fields_by_name['issues'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__issue__message__pb2._ISSUEMESSAGE
 _EXECUTESTREAMQUERYRESPONSE.fields_by_name['result'].message_type = _EXECUTESTREAMQUERYRESULT
 _EXECUTESTREAMQUERYRESULT.fields_by_name['result_set'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__value__pb2._RESULTSET
+_EXECUTESTREAMQUERYRESULT.oneofs_by_name['result'].fields.append(
+  _EXECUTESTREAMQUERYRESULT.fields_by_name['result_set'])
+_EXECUTESTREAMQUERYRESULT.fields_by_name['result_set'].containing_oneof = _EXECUTESTREAMQUERYRESULT.oneofs_by_name['result']
+_EXECUTESTREAMQUERYRESULT.oneofs_by_name['result'].fields.append(
+  _EXECUTESTREAMQUERYRESULT.fields_by_name['profile'])
+_EXECUTESTREAMQUERYRESULT.fields_by_name['profile'].containing_oneof = _EXECUTESTREAMQUERYRESULT.oneofs_by_name['result']
 DESCRIPTOR.message_types_by_name['UploadRowsRequest'] = _UPLOADROWSREQUEST
 DESCRIPTOR.message_types_by_name['UploadRowsResponse'] = _UPLOADROWSRESPONSE
 DESCRIPTOR.message_types_by_name['UploadRowsResult'] = _UPLOADROWSRESULT
