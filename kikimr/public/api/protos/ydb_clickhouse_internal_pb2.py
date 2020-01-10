@@ -21,7 +21,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='kikimr/public/api/protos/ydb_clickhouse_internal.proto',
   package='Ydb.ClickhouseInternal',
   syntax='proto3',
-  serialized_pb=_b('\n6kikimr/public/api/protos/ydb_clickhouse_internal.proto\x12\x16Ydb.ClickhouseInternal\x1a,kikimr/public/api/protos/ydb_operation.proto\x1a(kikimr/public/api/protos/ydb_table.proto\"\xe5\x01\n\x0bScanRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\r\n\x05table\x18\x02 \x01(\t\x12\x0f\n\x07\x63olumns\x18\x03 \x03(\t\x12\x10\n\x08\x66rom_key\x18\x04 \x01(\x0c\x12\x1a\n\x12\x66rom_key_inclusive\x18\x05 \x01(\x08\x12\x0e\n\x06to_key\x18\x06 \x01(\x0c\x12\x18\n\x10to_key_inclusive\x18\x07 \x01(\x08\x12\x10\n\x08max_rows\x18\x08 \x01(\x04\x12\x11\n\tmax_bytes\x18\t \x01(\x04\"<\n\x0cScanResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"W\n\nScanResult\x12\x0e\n\x06\x62locks\x18\x01 \x03(\x0c\x12\x0b\n\x03\x65os\x18\x02 \x01(\x08\x12\x10\n\x08last_key\x18\x03 \x01(\x0c\x12\x1a\n\x12last_key_inclusive\x18\x04 \x01(\x08\"i\n\x18GetShardLocationsRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x12\n\ntablet_ids\x18\x02 \x03(\x04\"I\n\x19GetShardLocationsResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"-\n\nTabletInfo\x12\x11\n\ttablet_id\x18\x01 \x01(\x04\x12\x0c\n\x04host\x18\x02 \x01(\t\"N\n\x17GetShardLocationsResult\x12\x33\n\x07tablets\x18\x01 \x03(\x0b\x32\".Ydb.ClickhouseInternal.TabletInfo\"\x80\x01\n\x14\x44\x65scribeTableRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x0c\n\x04path\x18\x02 \x01(\t\x12\x1f\n\x17include_partitions_info\x18\x03 \x01(\x08\"N\n\rPartitionInfo\x12\x11\n\ttablet_id\x18\x01 \x01(\x04\x12\x0f\n\x07\x65nd_key\x18\x02 \x01(\x0c\x12\x19\n\x11\x65nd_key_inclusive\x18\x03 \x01(\x08\"\xa1\x01\n\x13\x44\x65scribeTableResult\x12&\n\x07\x63olumns\x18\x02 \x03(\x0b\x32\x15.Ydb.Table.ColumnMeta\x12\x13\n\x0bprimary_key\x18\x03 \x03(\t\x12\x39\n\npartitions\x18\x04 \x03(\x0b\x32%.Ydb.ClickhouseInternal.PartitionInfo\x12\x12\n\nis_virtual\x18\x05 \x01(\x08\"E\n\x15\x44\x65scribeTableResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.OperationB8\n\x19\x63om.yandex.ydb.clickhouseB\x18\x43lickhouseInternalProtos\xf8\x01\x01\x62\x06proto3')
+  serialized_pb=_b('\n6kikimr/public/api/protos/ydb_clickhouse_internal.proto\x12\x16Ydb.ClickhouseInternal\x1a,kikimr/public/api/protos/ydb_operation.proto\x1a(kikimr/public/api/protos/ydb_table.proto\"\xe5\x01\n\x0bScanRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\r\n\x05table\x18\x02 \x01(\t\x12\x0f\n\x07\x63olumns\x18\x03 \x03(\t\x12\x10\n\x08\x66rom_key\x18\x04 \x01(\x0c\x12\x1a\n\x12\x66rom_key_inclusive\x18\x05 \x01(\x08\x12\x0e\n\x06to_key\x18\x06 \x01(\x0c\x12\x18\n\x10to_key_inclusive\x18\x07 \x01(\x08\x12\x10\n\x08max_rows\x18\x08 \x01(\x04\x12\x11\n\tmax_bytes\x18\t \x01(\x04\"<\n\x0cScanResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"W\n\nScanResult\x12\x0e\n\x06\x62locks\x18\x01 \x03(\x0c\x12\x0b\n\x03\x65os\x18\x02 \x01(\x08\x12\x10\n\x08last_key\x18\x03 \x01(\x0c\x12\x1a\n\x12last_key_inclusive\x18\x04 \x01(\x08\"i\n\x18GetShardLocationsRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x12\n\ntablet_ids\x18\x02 \x03(\x04\"I\n\x19GetShardLocationsResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\";\n\nTabletInfo\x12\x11\n\ttablet_id\x18\x01 \x01(\x04\x12\x0c\n\x04host\x18\x02 \x01(\t\x12\x0c\n\x04port\x18\x03 \x01(\r\"N\n\x17GetShardLocationsResult\x12\x33\n\x07tablets\x18\x01 \x03(\x0b\x32\".Ydb.ClickhouseInternal.TabletInfo\"\x80\x01\n\x14\x44\x65scribeTableRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x0c\n\x04path\x18\x02 \x01(\t\x12\x1f\n\x17include_partitions_info\x18\x03 \x01(\x08\"N\n\rPartitionInfo\x12\x11\n\ttablet_id\x18\x01 \x01(\x04\x12\x0f\n\x07\x65nd_key\x18\x02 \x01(\x0c\x12\x19\n\x11\x65nd_key_inclusive\x18\x03 \x01(\x08\"\xa1\x01\n\x13\x44\x65scribeTableResult\x12&\n\x07\x63olumns\x18\x02 \x03(\x0b\x32\x15.Ydb.Table.ColumnMeta\x12\x13\n\x0bprimary_key\x18\x03 \x03(\t\x12\x39\n\npartitions\x18\x04 \x03(\x0b\x32%.Ydb.ClickhouseInternal.PartitionInfo\x12\x12\n\nis_virtual\x18\x05 \x01(\x08\"E\n\x15\x44\x65scribeTableResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.OperationB8\n\x19\x63om.yandex.ydb.clickhouseB\x18\x43lickhouseInternalProtos\xf8\x01\x01\x62\x06proto3')
   ,
   dependencies=[kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2.DESCRIPTOR,kikimr_dot_public_dot_api_dot_protos_dot_ydb__table__pb2.DESCRIPTOR,])
 
@@ -288,6 +288,13 @@ _TABLETINFO = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
+    _descriptor.FieldDescriptor(
+      name='port', full_name='Ydb.ClickhouseInternal.TabletInfo.port', index=2,
+      number=3, type=13, cpp_type=3, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
   ],
   extensions=[
   ],
@@ -301,7 +308,7 @@ _TABLETINFO = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=735,
-  serialized_end=780,
+  serialized_end=794,
 )
 
 
@@ -331,8 +338,8 @@ _GETSHARDLOCATIONSRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=782,
-  serialized_end=860,
+  serialized_start=796,
+  serialized_end=874,
 )
 
 
@@ -376,8 +383,8 @@ _DESCRIBETABLEREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=863,
-  serialized_end=991,
+  serialized_start=877,
+  serialized_end=1005,
 )
 
 
@@ -421,8 +428,8 @@ _PARTITIONINFO = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=993,
-  serialized_end=1071,
+  serialized_start=1007,
+  serialized_end=1085,
 )
 
 
@@ -473,8 +480,8 @@ _DESCRIBETABLERESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1074,
-  serialized_end=1235,
+  serialized_start=1088,
+  serialized_end=1249,
 )
 
 
@@ -504,8 +511,8 @@ _DESCRIBETABLERESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1237,
-  serialized_end=1306,
+  serialized_start=1251,
+  serialized_end=1320,
 )
 
 _SCANREQUEST.fields_by_name['operation_params'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2._OPERATIONPARAMS
