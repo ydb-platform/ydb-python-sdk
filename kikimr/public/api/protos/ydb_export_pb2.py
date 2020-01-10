@@ -13,6 +13,7 @@ from google.protobuf import descriptor_pb2
 _sym_db = _symbol_database.Default()
 
 
+from kikimr.public.api.protos.validation import validation_pb2 as kikimr_dot_public_dot_api_dot_protos_dot_validation_dot_validation__pb2
 from kikimr.public.api.protos import ydb_operation_pb2 as kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2
 
 
@@ -20,9 +21,9 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='kikimr/public/api/protos/ydb_export.proto',
   package='Ydb.Export',
   syntax='proto3',
-  serialized_pb=_b('\n)kikimr/public/api/protos/ydb_export.proto\x12\nYdb.Export\x1a,kikimr/public/api/protos/ydb_operation.proto\"\xb1\x01\n\x0e\x45xportProgress\"\x9e\x01\n\x08Progress\x12\x18\n\x14PROGRESS_UNSPECIFIED\x10\x00\x12\x16\n\x12PROGRESS_PREPARING\x10\x01\x12\x1a\n\x16PROGRESS_TRANSFER_DATA\x10\x02\x12\x11\n\rPROGRESS_DONE\x10\x03\x12\x19\n\x15PROGRESS_CANCELLATION\x10\x04\x12\x16\n\x12PROGRESS_CANCELLED\x10\x05\"\xda\x01\n\x12\x45xportToYtSettings\x12\x0c\n\x04host\x18\x01 \x01(\t\x12\x0c\n\x04port\x18\x02 \x01(\r\x12\r\n\x05token\x18\x03 \x01(\t\x12\x32\n\x05items\x18\x04 \x03(\x0b\x32#.Ydb.Export.ExportToYtSettings.Item\x12\x13\n\x0b\x64\x65scription\x18\x05 \x01(\t\x12\x19\n\x11number_of_retries\x18\x06 \x01(\r\x1a\x35\n\x04Item\x12\x13\n\x0bsource_path\x18\x01 \x01(\t\x12\x18\n\x10\x64\x65stination_path\x18\x02 \x01(\t\"\x12\n\x10\x45xportToYtResult\"}\n\x12\x45xportToYtMetadata\x12\x30\n\x08settings\x18\x01 \x01(\x0b\x32\x1e.Ydb.Export.ExportToYtSettings\x12\x35\n\x08progress\x18\x02 \x01(\x0e\x32#.Ydb.Export.ExportProgress.Progress\"\x80\x01\n\x11\x45xportToYtRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x30\n\x08settings\x18\x02 \x01(\x0b\x32\x1e.Ydb.Export.ExportToYtSettings\"B\n\x12\x45xportToYtResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.OperationB\x1a\n\x15\x63om.yandex.ydb.export\xf8\x01\x01\x62\x06proto3')
+  serialized_pb=_b('\n)kikimr/public/api/protos/ydb_export.proto\x12\nYdb.Export\x1a\x34kikimr/public/api/protos/validation/validation.proto\x1a,kikimr/public/api/protos/ydb_operation.proto\"\xb1\x01\n\x0e\x45xportProgress\"\x9e\x01\n\x08Progress\x12\x18\n\x14PROGRESS_UNSPECIFIED\x10\x00\x12\x16\n\x12PROGRESS_PREPARING\x10\x01\x12\x1a\n\x16PROGRESS_TRANSFER_DATA\x10\x02\x12\x11\n\rPROGRESS_DONE\x10\x03\x12\x19\n\x15PROGRESS_CANCELLATION\x10\x04\x12\x16\n\x12PROGRESS_CANCELLED\x10\x05\"\x83\x02\n\x12\x45xportToYtSettings\x12\x12\n\x04host\x18\x01 \x01(\tB\x04\x90\xe6*\x01\x12\x0c\n\x04port\x18\x02 \x01(\r\x12\x13\n\x05token\x18\x03 \x01(\tB\x04\x90\xe6*\x01\x12:\n\x05items\x18\x04 \x03(\x0b\x32#.Ydb.Export.ExportToYtSettings.ItemB\x06\x9a\xe6*\x02(\x01\x12\x1c\n\x0b\x64\x65scription\x18\x05 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x01\x12\x19\n\x11number_of_retries\x18\x06 \x01(\r\x1a\x41\n\x04Item\x12\x19\n\x0bsource_path\x18\x01 \x01(\tB\x04\x90\xe6*\x01\x12\x1e\n\x10\x64\x65stination_path\x18\x02 \x01(\tB\x04\x90\xe6*\x01\"\x12\n\x10\x45xportToYtResult\"}\n\x12\x45xportToYtMetadata\x12\x30\n\x08settings\x18\x01 \x01(\x0b\x32\x1e.Ydb.Export.ExportToYtSettings\x12\x35\n\x08progress\x18\x02 \x01(\x0e\x32#.Ydb.Export.ExportProgress.Progress\"\x86\x01\n\x11\x45xportToYtRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x36\n\x08settings\x18\x02 \x01(\x0b\x32\x1e.Ydb.Export.ExportToYtSettingsB\x04\x90\xe6*\x01\"B\n\x12\x45xportToYtResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.OperationB\x1a\n\x15\x63om.yandex.ydb.export\xf8\x01\x01\x62\x06proto3')
   ,
-  dependencies=[kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2.DESCRIPTOR,])
+  dependencies=[kikimr_dot_public_dot_api_dot_protos_dot_validation_dot_validation__pb2.DESCRIPTOR,kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2.DESCRIPTOR,])
 
 
 
@@ -59,8 +60,8 @@ _EXPORTPROGRESS_PROGRESS = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=123,
-  serialized_end=281,
+  serialized_start=177,
+  serialized_end=335,
 )
 _sym_db.RegisterEnumDescriptor(_EXPORTPROGRESS_PROGRESS)
 
@@ -85,8 +86,8 @@ _EXPORTPROGRESS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=104,
-  serialized_end=281,
+  serialized_start=158,
+  serialized_end=335,
 )
 
 
@@ -103,14 +104,14 @@ _EXPORTTOYTSETTINGS_ITEM = _descriptor.Descriptor(
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=_descriptor._ParseOptions(descriptor_pb2.FieldOptions(), _b('\220\346*\001'))),
     _descriptor.FieldDescriptor(
       name='destination_path', full_name='Ydb.Export.ExportToYtSettings.Item.destination_path', index=1,
       number=2, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=_descriptor._ParseOptions(descriptor_pb2.FieldOptions(), _b('\220\346*\001'))),
   ],
   extensions=[
   ],
@@ -123,8 +124,8 @@ _EXPORTTOYTSETTINGS_ITEM = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=449,
-  serialized_end=502,
+  serialized_start=532,
+  serialized_end=597,
 )
 
 _EXPORTTOYTSETTINGS = _descriptor.Descriptor(
@@ -140,7 +141,7 @@ _EXPORTTOYTSETTINGS = _descriptor.Descriptor(
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=_descriptor._ParseOptions(descriptor_pb2.FieldOptions(), _b('\220\346*\001'))),
     _descriptor.FieldDescriptor(
       name='port', full_name='Ydb.Export.ExportToYtSettings.port', index=1,
       number=2, type=13, cpp_type=3, label=1,
@@ -154,21 +155,21 @@ _EXPORTTOYTSETTINGS = _descriptor.Descriptor(
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=_descriptor._ParseOptions(descriptor_pb2.FieldOptions(), _b('\220\346*\001'))),
     _descriptor.FieldDescriptor(
       name='items', full_name='Ydb.Export.ExportToYtSettings.items', index=3,
       number=4, type=11, cpp_type=10, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=_descriptor._ParseOptions(descriptor_pb2.FieldOptions(), _b('\232\346*\002(\001'))),
     _descriptor.FieldDescriptor(
       name='description', full_name='Ydb.Export.ExportToYtSettings.description', index=4,
       number=5, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=_descriptor._ParseOptions(descriptor_pb2.FieldOptions(), _b('\242\346*\003\030\200\001'))),
     _descriptor.FieldDescriptor(
       name='number_of_retries', full_name='Ydb.Export.ExportToYtSettings.number_of_retries', index=5,
       number=6, type=13, cpp_type=3, label=1,
@@ -188,8 +189,8 @@ _EXPORTTOYTSETTINGS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=284,
-  serialized_end=502,
+  serialized_start=338,
+  serialized_end=597,
 )
 
 
@@ -212,8 +213,8 @@ _EXPORTTOYTRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=504,
-  serialized_end=522,
+  serialized_start=599,
+  serialized_end=617,
 )
 
 
@@ -250,8 +251,8 @@ _EXPORTTOYTMETADATA = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=524,
-  serialized_end=649,
+  serialized_start=619,
+  serialized_end=744,
 )
 
 
@@ -275,7 +276,7 @@ _EXPORTTOYTREQUEST = _descriptor.Descriptor(
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=_descriptor._ParseOptions(descriptor_pb2.FieldOptions(), _b('\220\346*\001'))),
   ],
   extensions=[
   ],
@@ -288,8 +289,8 @@ _EXPORTTOYTREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=652,
-  serialized_end=780,
+  serialized_start=747,
+  serialized_end=881,
 )
 
 
@@ -319,8 +320,8 @@ _EXPORTTOYTRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=782,
-  serialized_end=848,
+  serialized_start=883,
+  serialized_end=949,
 )
 
 _EXPORTPROGRESS_PROGRESS.containing_type = _EXPORTPROGRESS
@@ -392,4 +393,18 @@ _sym_db.RegisterMessage(ExportToYtResponse)
 
 DESCRIPTOR.has_options = True
 DESCRIPTOR._options = _descriptor._ParseOptions(descriptor_pb2.FileOptions(), _b('\n\025com.yandex.ydb.export\370\001\001'))
+_EXPORTTOYTSETTINGS_ITEM.fields_by_name['source_path'].has_options = True
+_EXPORTTOYTSETTINGS_ITEM.fields_by_name['source_path']._options = _descriptor._ParseOptions(descriptor_pb2.FieldOptions(), _b('\220\346*\001'))
+_EXPORTTOYTSETTINGS_ITEM.fields_by_name['destination_path'].has_options = True
+_EXPORTTOYTSETTINGS_ITEM.fields_by_name['destination_path']._options = _descriptor._ParseOptions(descriptor_pb2.FieldOptions(), _b('\220\346*\001'))
+_EXPORTTOYTSETTINGS.fields_by_name['host'].has_options = True
+_EXPORTTOYTSETTINGS.fields_by_name['host']._options = _descriptor._ParseOptions(descriptor_pb2.FieldOptions(), _b('\220\346*\001'))
+_EXPORTTOYTSETTINGS.fields_by_name['token'].has_options = True
+_EXPORTTOYTSETTINGS.fields_by_name['token']._options = _descriptor._ParseOptions(descriptor_pb2.FieldOptions(), _b('\220\346*\001'))
+_EXPORTTOYTSETTINGS.fields_by_name['items'].has_options = True
+_EXPORTTOYTSETTINGS.fields_by_name['items']._options = _descriptor._ParseOptions(descriptor_pb2.FieldOptions(), _b('\232\346*\002(\001'))
+_EXPORTTOYTSETTINGS.fields_by_name['description'].has_options = True
+_EXPORTTOYTSETTINGS.fields_by_name['description']._options = _descriptor._ParseOptions(descriptor_pb2.FieldOptions(), _b('\242\346*\003\030\200\001'))
+_EXPORTTOYTREQUEST.fields_by_name['settings'].has_options = True
+_EXPORTTOYTREQUEST.fields_by_name['settings']._options = _descriptor._ParseOptions(descriptor_pb2.FieldOptions(), _b('\220\346*\001'))
 # @@protoc_insertion_point(module_scope)

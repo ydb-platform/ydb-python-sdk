@@ -24,7 +24,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='kikimr/public/api/protos/ydb_coordination.proto',
   package='Ydb.Coordination',
   syntax='proto3',
-  serialized_pb=_b('\n/kikimr/public/api/protos/ydb_coordination.proto\x12\x10Ydb.Coordination\x1a,kikimr/public/api/protos/ydb_operation.proto\x1a/kikimr/public/api/protos/ydb_status_codes.proto\x1a\x30kikimr/public/api/protos/ydb_issue_message.proto\x1a)kikimr/public/api/protos/ydb_scheme.proto\"\r\n\x0bUnsupported\"\xe3\x01\n\x06\x43onfig\x12\x0c\n\x04path\x18\x01 \x01(\t\x12 \n\x18self_check_period_millis\x18\x02 \x01(\r\x12#\n\x1bsession_grace_period_millis\x18\x03 \x01(\r\x12@\n\x15read_consistency_mode\x18\x04 \x01(\x0e\x32!.Ydb.Coordination.ConsistencyMode\x12\x42\n\x17\x61ttach_consistency_mode\x18\x05 \x01(\x0e\x32!.Ydb.Coordination.ConsistencyMode\"g\n\x12SessionDescription\x12\x12\n\nsession_id\x18\x01 \x01(\x04\x12\x16\n\x0etimeout_millis\x18\x02 \x01(\x04\x12\x13\n\x0b\x64\x65scription\x18\x03 \x01(\t\x12\x10\n\x08\x61ttached\x18\x04 \x01(\x08\"m\n\x10SemaphoreSession\x12\x10\n\x08order_id\x18\x05 \x01(\x04\x12\x12\n\nsession_id\x18\x01 \x01(\x04\x12\x16\n\x0etimeout_millis\x18\x02 \x01(\x04\x12\r\n\x05\x63ount\x18\x03 \x01(\x04\x12\x0c\n\x04\x64\x61ta\x18\x04 \x01(\x0c\"\xcc\x01\n\x14SemaphoreDescription\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x0c\n\x04\x64\x61ta\x18\x02 \x01(\x0c\x12\r\n\x05\x63ount\x18\x07 \x01(\x04\x12\r\n\x05limit\x18\x03 \x01(\x04\x12\x11\n\tephemeral\x18\x04 \x01(\x08\x12\x32\n\x06owners\x18\x05 \x03(\x0b\x32\".Ydb.Coordination.SemaphoreSession\x12\x33\n\x07waiters\x18\x06 \x03(\x0b\x32\".Ydb.Coordination.SemaphoreSession\"\xd1\r\n\x0eSessionRequest\x12\x39\n\x04ping\x18\x01 \x01(\x0b\x32).Ydb.Coordination.SessionRequest.PingPongH\x00\x12\x39\n\x04pong\x18\x02 \x01(\x0b\x32).Ydb.Coordination.SessionRequest.PingPongH\x00\x12\x46\n\rsession_start\x18\x03 \x01(\x0b\x32-.Ydb.Coordination.SessionRequest.SessionStartH\x00\x12\x44\n\x0csession_stop\x18\x04 \x01(\x0b\x32,.Ydb.Coordination.SessionRequest.SessionStopH\x00\x12\x36\n\runsupported_5\x18\x05 \x01(\x0b\x32\x1d.Ydb.Coordination.UnsupportedH\x00\x12\x36\n\runsupported_6\x18\x06 \x01(\x0b\x32\x1d.Ydb.Coordination.UnsupportedH\x00\x12N\n\x11\x61\x63quire_semaphore\x18\x07 \x01(\x0b\x32\x31.Ydb.Coordination.SessionRequest.AcquireSemaphoreH\x00\x12N\n\x11release_semaphore\x18\x08 \x01(\x0b\x32\x31.Ydb.Coordination.SessionRequest.ReleaseSemaphoreH\x00\x12P\n\x12\x64\x65scribe_semaphore\x18\t \x01(\x0b\x32\x32.Ydb.Coordination.SessionRequest.DescribeSemaphoreH\x00\x12L\n\x10\x63reate_semaphore\x18\n \x01(\x0b\x32\x30.Ydb.Coordination.SessionRequest.CreateSemaphoreH\x00\x12L\n\x10update_semaphore\x18\x0b \x01(\x0b\x32\x30.Ydb.Coordination.SessionRequest.UpdateSemaphoreH\x00\x12L\n\x10\x64\x65lete_semaphore\x18\x0c \x01(\x0b\x32\x30.Ydb.Coordination.SessionRequest.DeleteSemaphoreH\x00\x12\x37\n\x0eunsupported_13\x18\r \x01(\x0b\x32\x1d.Ydb.Coordination.UnsupportedH\x00\x12\x37\n\x0eunsupported_14\x18\x0e \x01(\x0b\x32\x1d.Ydb.Coordination.UnsupportedH\x00\x12\x37\n\x0eunsupported_15\x18\x0f \x01(\x0b\x32\x1d.Ydb.Coordination.UnsupportedH\x00\x1a\x1a\n\x08PingPong\x12\x0e\n\x06opaque\x18\x01 \x01(\x04\x1a\x85\x01\n\x0cSessionStart\x12\x0c\n\x04path\x18\x01 \x01(\t\x12\x12\n\nsession_id\x18\x02 \x01(\x04\x12\x16\n\x0etimeout_millis\x18\x03 \x01(\x04\x12\x13\n\x0b\x64\x65scription\x18\x04 \x01(\t\x12\x0e\n\x06seq_no\x18\x05 \x01(\x04\x12\x16\n\x0eprotection_key\x18\x06 \x01(\x0c\x1a\r\n\x0bSessionStop\x1ax\n\x10\x41\x63quireSemaphore\x12\x0e\n\x06req_id\x18\x01 \x01(\x04\x12\x0c\n\x04name\x18\x02 \x01(\t\x12\x16\n\x0etimeout_millis\x18\x03 \x01(\x04\x12\r\n\x05\x63ount\x18\x04 \x01(\x04\x12\x0c\n\x04\x64\x61ta\x18\x05 \x01(\x0c\x12\x11\n\tephemeral\x18\x06 \x01(\x08\x1a\x30\n\x10ReleaseSemaphore\x12\x0e\n\x06req_id\x18\x01 \x01(\x04\x12\x0c\n\x04name\x18\x02 \x01(\t\x1a\x8c\x01\n\x11\x44\x65scribeSemaphore\x12\x0e\n\x06req_id\x18\x01 \x01(\x04\x12\x0c\n\x04name\x18\x02 \x01(\t\x12\x16\n\x0einclude_owners\x18\x03 \x01(\x08\x12\x17\n\x0finclude_waiters\x18\x04 \x01(\x08\x12\x12\n\nwatch_data\x18\x05 \x01(\x08\x12\x14\n\x0cwatch_owners\x18\x06 \x01(\x08\x1aL\n\x0f\x43reateSemaphore\x12\x0e\n\x06req_id\x18\x01 \x01(\x04\x12\x0c\n\x04name\x18\x02 \x01(\t\x12\r\n\x05limit\x18\x03 \x01(\x04\x12\x0c\n\x04\x64\x61ta\x18\x04 \x01(\x0c\x1a=\n\x0fUpdateSemaphore\x12\x0e\n\x06req_id\x18\x01 \x01(\x04\x12\x0c\n\x04name\x18\x02 \x01(\t\x12\x0c\n\x04\x64\x61ta\x18\x03 \x01(\x0c\x1a>\n\x0f\x44\x65leteSemaphore\x12\x0e\n\x06req_id\x18\x01 \x01(\x04\x12\x0c\n\x04name\x18\x02 \x01(\t\x12\r\n\x05\x66orce\x18\x03 \x01(\x08\x42\t\n\x07request\"\xd3\x14\n\x0fSessionResponse\x12:\n\x04ping\x18\x01 \x01(\x0b\x32*.Ydb.Coordination.SessionResponse.PingPongH\x00\x12:\n\x04pong\x18\x02 \x01(\x0b\x32*.Ydb.Coordination.SessionResponse.PingPongH\x00\x12<\n\x07\x66\x61ilure\x18\x03 \x01(\x0b\x32).Ydb.Coordination.SessionResponse.FailureH\x00\x12K\n\x0fsession_started\x18\x04 \x01(\x0b\x32\x30.Ydb.Coordination.SessionResponse.SessionStartedH\x00\x12K\n\x0fsession_stopped\x18\x05 \x01(\x0b\x32\x30.Ydb.Coordination.SessionResponse.SessionStoppedH\x00\x12\x36\n\runsupported_6\x18\x06 \x01(\x0b\x32\x1d.Ydb.Coordination.UnsupportedH\x00\x12\x36\n\runsupported_7\x18\x07 \x01(\x0b\x32\x1d.Ydb.Coordination.UnsupportedH\x00\x12^\n\x19\x61\x63quire_semaphore_pending\x18\x08 \x01(\x0b\x32\x39.Ydb.Coordination.SessionResponse.AcquireSemaphorePendingH\x00\x12\\\n\x18\x61\x63quire_semaphore_result\x18\t \x01(\x0b\x32\x38.Ydb.Coordination.SessionResponse.AcquireSemaphoreResultH\x00\x12\\\n\x18release_semaphore_result\x18\n \x01(\x0b\x32\x38.Ydb.Coordination.SessionResponse.ReleaseSemaphoreResultH\x00\x12^\n\x19\x64\x65scribe_semaphore_result\x18\x0b \x01(\x0b\x32\x39.Ydb.Coordination.SessionResponse.DescribeSemaphoreResultH\x00\x12`\n\x1a\x64\x65scribe_semaphore_changed\x18\x0c \x01(\x0b\x32:.Ydb.Coordination.SessionResponse.DescribeSemaphoreChangedH\x00\x12Z\n\x17\x63reate_semaphore_result\x18\r \x01(\x0b\x32\x37.Ydb.Coordination.SessionResponse.CreateSemaphoreResultH\x00\x12Z\n\x17update_semaphore_result\x18\x0e \x01(\x0b\x32\x37.Ydb.Coordination.SessionResponse.UpdateSemaphoreResultH\x00\x12Z\n\x17\x64\x65lete_semaphore_result\x18\x0f \x01(\x0b\x32\x37.Ydb.Coordination.SessionResponse.DeleteSemaphoreResultH\x00\x12\x37\n\x0eunsupported_16\x18\x10 \x01(\x0b\x32\x1d.Ydb.Coordination.UnsupportedH\x00\x12\x37\n\x0eunsupported_17\x18\x11 \x01(\x0b\x32\x1d.Ydb.Coordination.UnsupportedH\x00\x12\x37\n\x0eunsupported_18\x18\x12 \x01(\x0b\x32\x1d.Ydb.Coordination.UnsupportedH\x00\x1a\x1a\n\x08PingPong\x12\x0e\n\x06opaque\x18\x01 \x01(\x04\x1a]\n\x07\x46\x61ilure\x12)\n\x06status\x18\x01 \x01(\x0e\x32\x19.Ydb.StatusIds.StatusCode\x12\'\n\x06issues\x18\x02 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessage\x1a<\n\x0eSessionStarted\x12\x12\n\nsession_id\x18\x01 \x01(\x04\x12\x16\n\x0etimeout_millis\x18\x02 \x01(\x04\x1a$\n\x0eSessionStopped\x12\x12\n\nsession_id\x18\x01 \x01(\x04\x1a)\n\x17\x41\x63quireSemaphorePending\x12\x0e\n\x06req_id\x18\x01 \x01(\x04\x1a\x8e\x01\n\x16\x41\x63quireSemaphoreResult\x12\x0e\n\x06req_id\x18\x01 \x01(\x04\x12)\n\x06status\x18\x02 \x01(\x0e\x32\x19.Ydb.StatusIds.StatusCode\x12\'\n\x06issues\x18\x03 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessage\x12\x10\n\x08\x61\x63quired\x18\x04 \x01(\x08\x1a\x8e\x01\n\x16ReleaseSemaphoreResult\x12\x0e\n\x06req_id\x18\x01 \x01(\x04\x12)\n\x06status\x18\x02 \x01(\x0e\x32\x19.Ydb.StatusIds.StatusCode\x12\'\n\x06issues\x18\x03 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessage\x12\x10\n\x08released\x18\x04 \x01(\x08\x1a\xd9\x01\n\x17\x44\x65scribeSemaphoreResult\x12\x0e\n\x06req_id\x18\x01 \x01(\x04\x12)\n\x06status\x18\x02 \x01(\x0e\x32\x19.Ydb.StatusIds.StatusCode\x12\'\n\x06issues\x18\x03 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessage\x12\x45\n\x15semaphore_description\x18\x04 \x01(\x0b\x32&.Ydb.Coordination.SemaphoreDescription\x12\x13\n\x0bwatch_added\x18\x05 \x01(\x08\x1aX\n\x18\x44\x65scribeSemaphoreChanged\x12\x0e\n\x06req_id\x18\x01 \x01(\x04\x12\x14\n\x0c\x64\x61ta_changed\x18\x02 \x01(\x08\x12\x16\n\x0eowners_changed\x18\x03 \x01(\x08\x1a{\n\x15\x43reateSemaphoreResult\x12\x0e\n\x06req_id\x18\x01 \x01(\x04\x12)\n\x06status\x18\x02 \x01(\x0e\x32\x19.Ydb.StatusIds.StatusCode\x12\'\n\x06issues\x18\x03 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessage\x1a{\n\x15UpdateSemaphoreResult\x12\x0e\n\x06req_id\x18\x01 \x01(\x04\x12)\n\x06status\x18\x02 \x01(\x0e\x32\x19.Ydb.StatusIds.StatusCode\x12\'\n\x06issues\x18\x03 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessage\x1a{\n\x15\x44\x65leteSemaphoreResult\x12\x0e\n\x06req_id\x18\x01 \x01(\x04\x12)\n\x06status\x18\x02 \x01(\x0e\x32\x19.Ydb.StatusIds.StatusCode\x12\'\n\x06issues\x18\x03 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessageB\n\n\x08response\"\x86\x01\n\x11\x43reateNodeRequest\x12\x0c\n\x04path\x18\x01 \x01(\t\x12(\n\x06\x63onfig\x18\x02 \x01(\x0b\x32\x18.Ydb.Coordination.Config\x12\x39\n\x10operation_params\x18\x03 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\"B\n\x12\x43reateNodeResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\x85\x01\n\x10\x41lterNodeRequest\x12\x0c\n\x04path\x18\x01 \x01(\t\x12(\n\x06\x63onfig\x18\x02 \x01(\x0b\x32\x18.Ydb.Coordination.Config\x12\x39\n\x10operation_params\x18\x03 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\"A\n\x11\x41lterNodeResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"Z\n\x0f\x44ropNodeRequest\x12\x0c\n\x04path\x18\x01 \x01(\t\x12\x39\n\x10operation_params\x18\x02 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\"@\n\x10\x44ropNodeResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"^\n\x13\x44\x65scribeNodeRequest\x12\x0c\n\x04path\x18\x01 \x01(\t\x12\x39\n\x10operation_params\x18\x02 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\"D\n\x14\x44\x65scribeNodeResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"_\n\x12\x44\x65scribeNodeResult\x12\x1f\n\x04self\x18\x01 \x01(\x0b\x32\x11.Ydb.Scheme.Entry\x12(\n\x06\x63onfig\x18\x02 \x01(\x0b\x32\x18.Ydb.Coordination.Config*h\n\x0f\x43onsistencyMode\x12\x1a\n\x16\x43ONSISTENCY_MODE_UNSET\x10\x00\x12\x1b\n\x17\x43ONSISTENCY_MODE_STRICT\x10\x01\x12\x1c\n\x18\x43ONSISTENCY_MODE_RELAXED\x10\x02\x42\x36\n\x1b\x63om.yandex.ydb.coordinationB\x12\x43oordinationProtosP\x01\xf8\x01\x01\x62\x06proto3')
+  serialized_pb=_b('\n/kikimr/public/api/protos/ydb_coordination.proto\x12\x10Ydb.Coordination\x1a,kikimr/public/api/protos/ydb_operation.proto\x1a/kikimr/public/api/protos/ydb_status_codes.proto\x1a\x30kikimr/public/api/protos/ydb_issue_message.proto\x1a)kikimr/public/api/protos/ydb_scheme.proto\"\r\n\x0bUnsupported\"\xb2\x02\n\x06\x43onfig\x12\x0c\n\x04path\x18\x01 \x01(\t\x12 \n\x18self_check_period_millis\x18\x02 \x01(\r\x12#\n\x1bsession_grace_period_millis\x18\x03 \x01(\r\x12@\n\x15read_consistency_mode\x18\x04 \x01(\x0e\x32!.Ydb.Coordination.ConsistencyMode\x12\x42\n\x17\x61ttach_consistency_mode\x18\x05 \x01(\x0e\x32!.Ydb.Coordination.ConsistencyMode\x12M\n\x1arate_limiter_counters_mode\x18\x06 \x01(\x0e\x32).Ydb.Coordination.RateLimiterCountersMode\"g\n\x12SessionDescription\x12\x12\n\nsession_id\x18\x01 \x01(\x04\x12\x16\n\x0etimeout_millis\x18\x02 \x01(\x04\x12\x13\n\x0b\x64\x65scription\x18\x03 \x01(\t\x12\x10\n\x08\x61ttached\x18\x04 \x01(\x08\"m\n\x10SemaphoreSession\x12\x10\n\x08order_id\x18\x05 \x01(\x04\x12\x12\n\nsession_id\x18\x01 \x01(\x04\x12\x16\n\x0etimeout_millis\x18\x02 \x01(\x04\x12\r\n\x05\x63ount\x18\x03 \x01(\x04\x12\x0c\n\x04\x64\x61ta\x18\x04 \x01(\x0c\"\xcc\x01\n\x14SemaphoreDescription\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x0c\n\x04\x64\x61ta\x18\x02 \x01(\x0c\x12\r\n\x05\x63ount\x18\x07 \x01(\x04\x12\r\n\x05limit\x18\x03 \x01(\x04\x12\x11\n\tephemeral\x18\x04 \x01(\x08\x12\x32\n\x06owners\x18\x05 \x03(\x0b\x32\".Ydb.Coordination.SemaphoreSession\x12\x33\n\x07waiters\x18\x06 \x03(\x0b\x32\".Ydb.Coordination.SemaphoreSession\"\xd1\r\n\x0eSessionRequest\x12\x39\n\x04ping\x18\x01 \x01(\x0b\x32).Ydb.Coordination.SessionRequest.PingPongH\x00\x12\x39\n\x04pong\x18\x02 \x01(\x0b\x32).Ydb.Coordination.SessionRequest.PingPongH\x00\x12\x46\n\rsession_start\x18\x03 \x01(\x0b\x32-.Ydb.Coordination.SessionRequest.SessionStartH\x00\x12\x44\n\x0csession_stop\x18\x04 \x01(\x0b\x32,.Ydb.Coordination.SessionRequest.SessionStopH\x00\x12\x36\n\runsupported_5\x18\x05 \x01(\x0b\x32\x1d.Ydb.Coordination.UnsupportedH\x00\x12\x36\n\runsupported_6\x18\x06 \x01(\x0b\x32\x1d.Ydb.Coordination.UnsupportedH\x00\x12N\n\x11\x61\x63quire_semaphore\x18\x07 \x01(\x0b\x32\x31.Ydb.Coordination.SessionRequest.AcquireSemaphoreH\x00\x12N\n\x11release_semaphore\x18\x08 \x01(\x0b\x32\x31.Ydb.Coordination.SessionRequest.ReleaseSemaphoreH\x00\x12P\n\x12\x64\x65scribe_semaphore\x18\t \x01(\x0b\x32\x32.Ydb.Coordination.SessionRequest.DescribeSemaphoreH\x00\x12L\n\x10\x63reate_semaphore\x18\n \x01(\x0b\x32\x30.Ydb.Coordination.SessionRequest.CreateSemaphoreH\x00\x12L\n\x10update_semaphore\x18\x0b \x01(\x0b\x32\x30.Ydb.Coordination.SessionRequest.UpdateSemaphoreH\x00\x12L\n\x10\x64\x65lete_semaphore\x18\x0c \x01(\x0b\x32\x30.Ydb.Coordination.SessionRequest.DeleteSemaphoreH\x00\x12\x37\n\x0eunsupported_13\x18\r \x01(\x0b\x32\x1d.Ydb.Coordination.UnsupportedH\x00\x12\x37\n\x0eunsupported_14\x18\x0e \x01(\x0b\x32\x1d.Ydb.Coordination.UnsupportedH\x00\x12\x37\n\x0eunsupported_15\x18\x0f \x01(\x0b\x32\x1d.Ydb.Coordination.UnsupportedH\x00\x1a\x1a\n\x08PingPong\x12\x0e\n\x06opaque\x18\x01 \x01(\x04\x1a\x85\x01\n\x0cSessionStart\x12\x0c\n\x04path\x18\x01 \x01(\t\x12\x12\n\nsession_id\x18\x02 \x01(\x04\x12\x16\n\x0etimeout_millis\x18\x03 \x01(\x04\x12\x13\n\x0b\x64\x65scription\x18\x04 \x01(\t\x12\x0e\n\x06seq_no\x18\x05 \x01(\x04\x12\x16\n\x0eprotection_key\x18\x06 \x01(\x0c\x1a\r\n\x0bSessionStop\x1ax\n\x10\x41\x63quireSemaphore\x12\x0e\n\x06req_id\x18\x01 \x01(\x04\x12\x0c\n\x04name\x18\x02 \x01(\t\x12\x16\n\x0etimeout_millis\x18\x03 \x01(\x04\x12\r\n\x05\x63ount\x18\x04 \x01(\x04\x12\x0c\n\x04\x64\x61ta\x18\x05 \x01(\x0c\x12\x11\n\tephemeral\x18\x06 \x01(\x08\x1a\x30\n\x10ReleaseSemaphore\x12\x0e\n\x06req_id\x18\x01 \x01(\x04\x12\x0c\n\x04name\x18\x02 \x01(\t\x1a\x8c\x01\n\x11\x44\x65scribeSemaphore\x12\x0e\n\x06req_id\x18\x01 \x01(\x04\x12\x0c\n\x04name\x18\x02 \x01(\t\x12\x16\n\x0einclude_owners\x18\x03 \x01(\x08\x12\x17\n\x0finclude_waiters\x18\x04 \x01(\x08\x12\x12\n\nwatch_data\x18\x05 \x01(\x08\x12\x14\n\x0cwatch_owners\x18\x06 \x01(\x08\x1aL\n\x0f\x43reateSemaphore\x12\x0e\n\x06req_id\x18\x01 \x01(\x04\x12\x0c\n\x04name\x18\x02 \x01(\t\x12\r\n\x05limit\x18\x03 \x01(\x04\x12\x0c\n\x04\x64\x61ta\x18\x04 \x01(\x0c\x1a=\n\x0fUpdateSemaphore\x12\x0e\n\x06req_id\x18\x01 \x01(\x04\x12\x0c\n\x04name\x18\x02 \x01(\t\x12\x0c\n\x04\x64\x61ta\x18\x03 \x01(\x0c\x1a>\n\x0f\x44\x65leteSemaphore\x12\x0e\n\x06req_id\x18\x01 \x01(\x04\x12\x0c\n\x04name\x18\x02 \x01(\t\x12\r\n\x05\x66orce\x18\x03 \x01(\x08\x42\t\n\x07request\"\xd3\x14\n\x0fSessionResponse\x12:\n\x04ping\x18\x01 \x01(\x0b\x32*.Ydb.Coordination.SessionResponse.PingPongH\x00\x12:\n\x04pong\x18\x02 \x01(\x0b\x32*.Ydb.Coordination.SessionResponse.PingPongH\x00\x12<\n\x07\x66\x61ilure\x18\x03 \x01(\x0b\x32).Ydb.Coordination.SessionResponse.FailureH\x00\x12K\n\x0fsession_started\x18\x04 \x01(\x0b\x32\x30.Ydb.Coordination.SessionResponse.SessionStartedH\x00\x12K\n\x0fsession_stopped\x18\x05 \x01(\x0b\x32\x30.Ydb.Coordination.SessionResponse.SessionStoppedH\x00\x12\x36\n\runsupported_6\x18\x06 \x01(\x0b\x32\x1d.Ydb.Coordination.UnsupportedH\x00\x12\x36\n\runsupported_7\x18\x07 \x01(\x0b\x32\x1d.Ydb.Coordination.UnsupportedH\x00\x12^\n\x19\x61\x63quire_semaphore_pending\x18\x08 \x01(\x0b\x32\x39.Ydb.Coordination.SessionResponse.AcquireSemaphorePendingH\x00\x12\\\n\x18\x61\x63quire_semaphore_result\x18\t \x01(\x0b\x32\x38.Ydb.Coordination.SessionResponse.AcquireSemaphoreResultH\x00\x12\\\n\x18release_semaphore_result\x18\n \x01(\x0b\x32\x38.Ydb.Coordination.SessionResponse.ReleaseSemaphoreResultH\x00\x12^\n\x19\x64\x65scribe_semaphore_result\x18\x0b \x01(\x0b\x32\x39.Ydb.Coordination.SessionResponse.DescribeSemaphoreResultH\x00\x12`\n\x1a\x64\x65scribe_semaphore_changed\x18\x0c \x01(\x0b\x32:.Ydb.Coordination.SessionResponse.DescribeSemaphoreChangedH\x00\x12Z\n\x17\x63reate_semaphore_result\x18\r \x01(\x0b\x32\x37.Ydb.Coordination.SessionResponse.CreateSemaphoreResultH\x00\x12Z\n\x17update_semaphore_result\x18\x0e \x01(\x0b\x32\x37.Ydb.Coordination.SessionResponse.UpdateSemaphoreResultH\x00\x12Z\n\x17\x64\x65lete_semaphore_result\x18\x0f \x01(\x0b\x32\x37.Ydb.Coordination.SessionResponse.DeleteSemaphoreResultH\x00\x12\x37\n\x0eunsupported_16\x18\x10 \x01(\x0b\x32\x1d.Ydb.Coordination.UnsupportedH\x00\x12\x37\n\x0eunsupported_17\x18\x11 \x01(\x0b\x32\x1d.Ydb.Coordination.UnsupportedH\x00\x12\x37\n\x0eunsupported_18\x18\x12 \x01(\x0b\x32\x1d.Ydb.Coordination.UnsupportedH\x00\x1a\x1a\n\x08PingPong\x12\x0e\n\x06opaque\x18\x01 \x01(\x04\x1a]\n\x07\x46\x61ilure\x12)\n\x06status\x18\x01 \x01(\x0e\x32\x19.Ydb.StatusIds.StatusCode\x12\'\n\x06issues\x18\x02 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessage\x1a<\n\x0eSessionStarted\x12\x12\n\nsession_id\x18\x01 \x01(\x04\x12\x16\n\x0etimeout_millis\x18\x02 \x01(\x04\x1a$\n\x0eSessionStopped\x12\x12\n\nsession_id\x18\x01 \x01(\x04\x1a)\n\x17\x41\x63quireSemaphorePending\x12\x0e\n\x06req_id\x18\x01 \x01(\x04\x1a\x8e\x01\n\x16\x41\x63quireSemaphoreResult\x12\x0e\n\x06req_id\x18\x01 \x01(\x04\x12)\n\x06status\x18\x02 \x01(\x0e\x32\x19.Ydb.StatusIds.StatusCode\x12\'\n\x06issues\x18\x03 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessage\x12\x10\n\x08\x61\x63quired\x18\x04 \x01(\x08\x1a\x8e\x01\n\x16ReleaseSemaphoreResult\x12\x0e\n\x06req_id\x18\x01 \x01(\x04\x12)\n\x06status\x18\x02 \x01(\x0e\x32\x19.Ydb.StatusIds.StatusCode\x12\'\n\x06issues\x18\x03 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessage\x12\x10\n\x08released\x18\x04 \x01(\x08\x1a\xd9\x01\n\x17\x44\x65scribeSemaphoreResult\x12\x0e\n\x06req_id\x18\x01 \x01(\x04\x12)\n\x06status\x18\x02 \x01(\x0e\x32\x19.Ydb.StatusIds.StatusCode\x12\'\n\x06issues\x18\x03 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessage\x12\x45\n\x15semaphore_description\x18\x04 \x01(\x0b\x32&.Ydb.Coordination.SemaphoreDescription\x12\x13\n\x0bwatch_added\x18\x05 \x01(\x08\x1aX\n\x18\x44\x65scribeSemaphoreChanged\x12\x0e\n\x06req_id\x18\x01 \x01(\x04\x12\x14\n\x0c\x64\x61ta_changed\x18\x02 \x01(\x08\x12\x16\n\x0eowners_changed\x18\x03 \x01(\x08\x1a{\n\x15\x43reateSemaphoreResult\x12\x0e\n\x06req_id\x18\x01 \x01(\x04\x12)\n\x06status\x18\x02 \x01(\x0e\x32\x19.Ydb.StatusIds.StatusCode\x12\'\n\x06issues\x18\x03 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessage\x1a{\n\x15UpdateSemaphoreResult\x12\x0e\n\x06req_id\x18\x01 \x01(\x04\x12)\n\x06status\x18\x02 \x01(\x0e\x32\x19.Ydb.StatusIds.StatusCode\x12\'\n\x06issues\x18\x03 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessage\x1a{\n\x15\x44\x65leteSemaphoreResult\x12\x0e\n\x06req_id\x18\x01 \x01(\x04\x12)\n\x06status\x18\x02 \x01(\x0e\x32\x19.Ydb.StatusIds.StatusCode\x12\'\n\x06issues\x18\x03 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessageB\n\n\x08response\"\x86\x01\n\x11\x43reateNodeRequest\x12\x0c\n\x04path\x18\x01 \x01(\t\x12(\n\x06\x63onfig\x18\x02 \x01(\x0b\x32\x18.Ydb.Coordination.Config\x12\x39\n\x10operation_params\x18\x03 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\"B\n\x12\x43reateNodeResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\x85\x01\n\x10\x41lterNodeRequest\x12\x0c\n\x04path\x18\x01 \x01(\t\x12(\n\x06\x63onfig\x18\x02 \x01(\x0b\x32\x18.Ydb.Coordination.Config\x12\x39\n\x10operation_params\x18\x03 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\"A\n\x11\x41lterNodeResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"Z\n\x0f\x44ropNodeRequest\x12\x0c\n\x04path\x18\x01 \x01(\t\x12\x39\n\x10operation_params\x18\x02 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\"@\n\x10\x44ropNodeResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"^\n\x13\x44\x65scribeNodeRequest\x12\x0c\n\x04path\x18\x01 \x01(\t\x12\x39\n\x10operation_params\x18\x02 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\"D\n\x14\x44\x65scribeNodeResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"_\n\x12\x44\x65scribeNodeResult\x12\x1f\n\x04self\x18\x01 \x01(\x0b\x32\x11.Ydb.Scheme.Entry\x12(\n\x06\x63onfig\x18\x02 \x01(\x0b\x32\x18.Ydb.Coordination.Config*h\n\x0f\x43onsistencyMode\x12\x1a\n\x16\x43ONSISTENCY_MODE_UNSET\x10\x00\x12\x1b\n\x17\x43ONSISTENCY_MODE_STRICT\x10\x01\x12\x1c\n\x18\x43ONSISTENCY_MODE_RELAXED\x10\x02*\x93\x01\n\x17RateLimiterCountersMode\x12$\n RATE_LIMITER_COUNTERS_MODE_UNSET\x10\x00\x12)\n%RATE_LIMITER_COUNTERS_MODE_AGGREGATED\x10\x01\x12\'\n#RATE_LIMITER_COUNTERS_MODE_DETAILED\x10\x02\x42\x36\n\x1b\x63om.yandex.ydb.coordinationB\x12\x43oordinationProtosP\x01\xf8\x01\x01\x62\x06proto3')
   ,
   dependencies=[kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2.DESCRIPTOR,kikimr_dot_public_dot_api_dot_protos_dot_ydb__status__codes__pb2.DESCRIPTOR,kikimr_dot_public_dot_api_dot_protos_dot_ydb__issue__message__pb2.DESCRIPTOR,kikimr_dot_public_dot_api_dot_protos_dot_ydb__scheme__pb2.DESCRIPTOR,])
 
@@ -49,15 +49,45 @@ _CONSISTENCYMODE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=6148,
-  serialized_end=6252,
+  serialized_start=6227,
+  serialized_end=6331,
 )
 _sym_db.RegisterEnumDescriptor(_CONSISTENCYMODE)
 
 ConsistencyMode = enum_type_wrapper.EnumTypeWrapper(_CONSISTENCYMODE)
+_RATELIMITERCOUNTERSMODE = _descriptor.EnumDescriptor(
+  name='RateLimiterCountersMode',
+  full_name='Ydb.Coordination.RateLimiterCountersMode',
+  filename=None,
+  file=DESCRIPTOR,
+  values=[
+    _descriptor.EnumValueDescriptor(
+      name='RATE_LIMITER_COUNTERS_MODE_UNSET', index=0, number=0,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='RATE_LIMITER_COUNTERS_MODE_AGGREGATED', index=1, number=1,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='RATE_LIMITER_COUNTERS_MODE_DETAILED', index=2, number=2,
+      options=None,
+      type=None),
+  ],
+  containing_type=None,
+  options=None,
+  serialized_start=6334,
+  serialized_end=6481,
+)
+_sym_db.RegisterEnumDescriptor(_RATELIMITERCOUNTERSMODE)
+
+RateLimiterCountersMode = enum_type_wrapper.EnumTypeWrapper(_RATELIMITERCOUNTERSMODE)
 CONSISTENCY_MODE_UNSET = 0
 CONSISTENCY_MODE_STRICT = 1
 CONSISTENCY_MODE_RELAXED = 2
+RATE_LIMITER_COUNTERS_MODE_UNSET = 0
+RATE_LIMITER_COUNTERS_MODE_AGGREGATED = 1
+RATE_LIMITER_COUNTERS_MODE_DETAILED = 2
 
 
 
@@ -127,6 +157,13 @@ _CONFIG = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
+    _descriptor.FieldDescriptor(
+      name='rate_limiter_counters_mode', full_name='Ydb.Coordination.Config.rate_limiter_counters_mode', index=5,
+      number=6, type=14, cpp_type=8, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
   ],
   extensions=[
   ],
@@ -140,7 +177,7 @@ _CONFIG = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=273,
-  serialized_end=500,
+  serialized_end=579,
 )
 
 
@@ -191,8 +228,8 @@ _SESSIONDESCRIPTION = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=502,
-  serialized_end=605,
+  serialized_start=581,
+  serialized_end=684,
 )
 
 
@@ -250,8 +287,8 @@ _SEMAPHORESESSION = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=607,
-  serialized_end=716,
+  serialized_start=686,
+  serialized_end=795,
 )
 
 
@@ -323,8 +360,8 @@ _SEMAPHOREDESCRIPTION = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=719,
-  serialized_end=923,
+  serialized_start=798,
+  serialized_end=1002,
 )
 
 
@@ -354,8 +391,8 @@ _SESSIONREQUEST_PINGPONG = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1963,
-  serialized_end=1989,
+  serialized_start=2042,
+  serialized_end=2068,
 )
 
 _SESSIONREQUEST_SESSIONSTART = _descriptor.Descriptor(
@@ -419,8 +456,8 @@ _SESSIONREQUEST_SESSIONSTART = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1992,
-  serialized_end=2125,
+  serialized_start=2071,
+  serialized_end=2204,
 )
 
 _SESSIONREQUEST_SESSIONSTOP = _descriptor.Descriptor(
@@ -442,8 +479,8 @@ _SESSIONREQUEST_SESSIONSTOP = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2127,
-  serialized_end=2140,
+  serialized_start=2206,
+  serialized_end=2219,
 )
 
 _SESSIONREQUEST_ACQUIRESEMAPHORE = _descriptor.Descriptor(
@@ -507,8 +544,8 @@ _SESSIONREQUEST_ACQUIRESEMAPHORE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2142,
-  serialized_end=2262,
+  serialized_start=2221,
+  serialized_end=2341,
 )
 
 _SESSIONREQUEST_RELEASESEMAPHORE = _descriptor.Descriptor(
@@ -544,8 +581,8 @@ _SESSIONREQUEST_RELEASESEMAPHORE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2264,
-  serialized_end=2312,
+  serialized_start=2343,
+  serialized_end=2391,
 )
 
 _SESSIONREQUEST_DESCRIBESEMAPHORE = _descriptor.Descriptor(
@@ -609,8 +646,8 @@ _SESSIONREQUEST_DESCRIBESEMAPHORE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2315,
-  serialized_end=2455,
+  serialized_start=2394,
+  serialized_end=2534,
 )
 
 _SESSIONREQUEST_CREATESEMAPHORE = _descriptor.Descriptor(
@@ -660,8 +697,8 @@ _SESSIONREQUEST_CREATESEMAPHORE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2457,
-  serialized_end=2533,
+  serialized_start=2536,
+  serialized_end=2612,
 )
 
 _SESSIONREQUEST_UPDATESEMAPHORE = _descriptor.Descriptor(
@@ -704,8 +741,8 @@ _SESSIONREQUEST_UPDATESEMAPHORE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2535,
-  serialized_end=2596,
+  serialized_start=2614,
+  serialized_end=2675,
 )
 
 _SESSIONREQUEST_DELETESEMAPHORE = _descriptor.Descriptor(
@@ -748,8 +785,8 @@ _SESSIONREQUEST_DELETESEMAPHORE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2598,
-  serialized_end=2660,
+  serialized_start=2677,
+  serialized_end=2739,
 )
 
 _SESSIONREQUEST = _descriptor.Descriptor(
@@ -879,8 +916,8 @@ _SESSIONREQUEST = _descriptor.Descriptor(
       name='request', full_name='Ydb.Coordination.SessionRequest.request',
       index=0, containing_type=None, fields=[]),
   ],
-  serialized_start=926,
-  serialized_end=2671,
+  serialized_start=1005,
+  serialized_end=2750,
 )
 
 
@@ -910,8 +947,8 @@ _SESSIONRESPONSE_PINGPONG = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1963,
-  serialized_end=1989,
+  serialized_start=2042,
+  serialized_end=2068,
 )
 
 _SESSIONRESPONSE_FAILURE = _descriptor.Descriptor(
@@ -947,8 +984,8 @@ _SESSIONRESPONSE_FAILURE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=4094,
-  serialized_end=4187,
+  serialized_start=4173,
+  serialized_end=4266,
 )
 
 _SESSIONRESPONSE_SESSIONSTARTED = _descriptor.Descriptor(
@@ -984,8 +1021,8 @@ _SESSIONRESPONSE_SESSIONSTARTED = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=4189,
-  serialized_end=4249,
+  serialized_start=4268,
+  serialized_end=4328,
 )
 
 _SESSIONRESPONSE_SESSIONSTOPPED = _descriptor.Descriptor(
@@ -1014,8 +1051,8 @@ _SESSIONRESPONSE_SESSIONSTOPPED = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=4251,
-  serialized_end=4287,
+  serialized_start=4330,
+  serialized_end=4366,
 )
 
 _SESSIONRESPONSE_ACQUIRESEMAPHOREPENDING = _descriptor.Descriptor(
@@ -1044,8 +1081,8 @@ _SESSIONRESPONSE_ACQUIRESEMAPHOREPENDING = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=4289,
-  serialized_end=4330,
+  serialized_start=4368,
+  serialized_end=4409,
 )
 
 _SESSIONRESPONSE_ACQUIRESEMAPHORERESULT = _descriptor.Descriptor(
@@ -1095,8 +1132,8 @@ _SESSIONRESPONSE_ACQUIRESEMAPHORERESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=4333,
-  serialized_end=4475,
+  serialized_start=4412,
+  serialized_end=4554,
 )
 
 _SESSIONRESPONSE_RELEASESEMAPHORERESULT = _descriptor.Descriptor(
@@ -1146,8 +1183,8 @@ _SESSIONRESPONSE_RELEASESEMAPHORERESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=4478,
-  serialized_end=4620,
+  serialized_start=4557,
+  serialized_end=4699,
 )
 
 _SESSIONRESPONSE_DESCRIBESEMAPHORERESULT = _descriptor.Descriptor(
@@ -1204,8 +1241,8 @@ _SESSIONRESPONSE_DESCRIBESEMAPHORERESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=4623,
-  serialized_end=4840,
+  serialized_start=4702,
+  serialized_end=4919,
 )
 
 _SESSIONRESPONSE_DESCRIBESEMAPHORECHANGED = _descriptor.Descriptor(
@@ -1248,8 +1285,8 @@ _SESSIONRESPONSE_DESCRIBESEMAPHORECHANGED = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=4842,
-  serialized_end=4930,
+  serialized_start=4921,
+  serialized_end=5009,
 )
 
 _SESSIONRESPONSE_CREATESEMAPHORERESULT = _descriptor.Descriptor(
@@ -1292,8 +1329,8 @@ _SESSIONRESPONSE_CREATESEMAPHORERESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=4932,
-  serialized_end=5055,
+  serialized_start=5011,
+  serialized_end=5134,
 )
 
 _SESSIONRESPONSE_UPDATESEMAPHORERESULT = _descriptor.Descriptor(
@@ -1336,8 +1373,8 @@ _SESSIONRESPONSE_UPDATESEMAPHORERESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=5057,
-  serialized_end=5180,
+  serialized_start=5136,
+  serialized_end=5259,
 )
 
 _SESSIONRESPONSE_DELETESEMAPHORERESULT = _descriptor.Descriptor(
@@ -1380,8 +1417,8 @@ _SESSIONRESPONSE_DELETESEMAPHORERESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=5182,
-  serialized_end=5305,
+  serialized_start=5261,
+  serialized_end=5384,
 )
 
 _SESSIONRESPONSE = _descriptor.Descriptor(
@@ -1532,8 +1569,8 @@ _SESSIONRESPONSE = _descriptor.Descriptor(
       name='response', full_name='Ydb.Coordination.SessionResponse.response',
       index=0, containing_type=None, fields=[]),
   ],
-  serialized_start=2674,
-  serialized_end=5317,
+  serialized_start=2753,
+  serialized_end=5396,
 )
 
 
@@ -1577,8 +1614,8 @@ _CREATENODEREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=5320,
-  serialized_end=5454,
+  serialized_start=5399,
+  serialized_end=5533,
 )
 
 
@@ -1608,8 +1645,8 @@ _CREATENODERESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=5456,
-  serialized_end=5522,
+  serialized_start=5535,
+  serialized_end=5601,
 )
 
 
@@ -1653,8 +1690,8 @@ _ALTERNODEREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=5525,
-  serialized_end=5658,
+  serialized_start=5604,
+  serialized_end=5737,
 )
 
 
@@ -1684,8 +1721,8 @@ _ALTERNODERESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=5660,
-  serialized_end=5725,
+  serialized_start=5739,
+  serialized_end=5804,
 )
 
 
@@ -1722,8 +1759,8 @@ _DROPNODEREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=5727,
-  serialized_end=5817,
+  serialized_start=5806,
+  serialized_end=5896,
 )
 
 
@@ -1753,8 +1790,8 @@ _DROPNODERESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=5819,
-  serialized_end=5883,
+  serialized_start=5898,
+  serialized_end=5962,
 )
 
 
@@ -1791,8 +1828,8 @@ _DESCRIBENODEREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=5885,
-  serialized_end=5979,
+  serialized_start=5964,
+  serialized_end=6058,
 )
 
 
@@ -1822,8 +1859,8 @@ _DESCRIBENODERESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=5981,
-  serialized_end=6049,
+  serialized_start=6060,
+  serialized_end=6128,
 )
 
 
@@ -1860,12 +1897,13 @@ _DESCRIBENODERESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=6051,
-  serialized_end=6146,
+  serialized_start=6130,
+  serialized_end=6225,
 )
 
 _CONFIG.fields_by_name['read_consistency_mode'].enum_type = _CONSISTENCYMODE
 _CONFIG.fields_by_name['attach_consistency_mode'].enum_type = _CONSISTENCYMODE
+_CONFIG.fields_by_name['rate_limiter_counters_mode'].enum_type = _RATELIMITERCOUNTERSMODE
 _SEMAPHOREDESCRIPTION.fields_by_name['owners'].message_type = _SEMAPHORESESSION
 _SEMAPHOREDESCRIPTION.fields_by_name['waiters'].message_type = _SEMAPHORESESSION
 _SESSIONREQUEST_PINGPONG.containing_type = _SESSIONREQUEST
@@ -2065,6 +2103,7 @@ DESCRIPTOR.message_types_by_name['DescribeNodeRequest'] = _DESCRIBENODEREQUEST
 DESCRIPTOR.message_types_by_name['DescribeNodeResponse'] = _DESCRIBENODERESPONSE
 DESCRIPTOR.message_types_by_name['DescribeNodeResult'] = _DESCRIBENODERESULT
 DESCRIPTOR.enum_types_by_name['ConsistencyMode'] = _CONSISTENCYMODE
+DESCRIPTOR.enum_types_by_name['RateLimiterCountersMode'] = _RATELIMITERCOUNTERSMODE
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
 Unsupported = _reflection.GeneratedProtocolMessageType('Unsupported', (_message.Message,), dict(
