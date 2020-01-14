@@ -1406,6 +1406,10 @@ class SessionPool(object):
 
         return retry_operation_sync(wrapped_callee, retry_settings)
 
+    @property
+    def active_size(self):
+        return self._pool_impl.active_size
+
     def subscribe(self):
         return self._pool_impl.subscribe()
 
