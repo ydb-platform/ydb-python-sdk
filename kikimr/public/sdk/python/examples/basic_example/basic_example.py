@@ -55,11 +55,11 @@ FROM AS_TABLE($episodesData);
 """
 
 
-def fill_tables_with_data(session_pool, path):
+def fill_tables_with_data(session_pool, full_path):
     def callee(session):
         global FillDataQuery
 
-        prepared_query = session.prepare(FillDataQuery.format(path))
+        prepared_query = session.prepare(FillDataQuery.format(full_path))
         session.transaction(ydb.SerializableReadWrite()).execute(
             prepared_query,
             commit_tx=True,
@@ -73,7 +73,7 @@ def fill_tables_with_data(session_pool, path):
     return session_pool.retry_operation_sync(callee)
 
 
-def select_simple(session_pool, path):
+def select_simple(session_pool, full_path):
     def callee(session):
         # new transaction in serializable read write mode
         # if query successfully completed you will get result sets.
@@ -84,7 +84,7 @@ def select_simple(session_pool, path):
             SELECT series_id, title, CAST(release_date AS Date) AS release_date
             FROM series
             WHERE series_id = 1;
-            """.format(path),
+            """.format(full_path),
             commit_tx=True,
         )
         print("\n> select_simple_transaction:")
@@ -95,20 +95,20 @@ def select_simple(session_pool, path):
     return session_pool.retry_operation_sync(callee)
 
 
-def upsert_simple(session_pool, path):
+def upsert_simple(session_pool, full_path):
     def callee(session):
         session.transaction().execute(
             """
             PRAGMA TablePathPrefix("{}");
             UPSERT INTO episodes (series_id, season_id, episode_id, title) VALUES
                 (2, 6, 1, "TBD");
-            """.format(path),
+            """.format(full_path),
             commit_tx=True,
         )
     return session_pool.retry_operation_sync(callee)
 
 
-def select_prepared(session_pool, path, series_id, season_id, episode_id):
+def select_prepared(session_pool, full_path, series_id, season_id, episode_id):
     query = """
     PRAGMA TablePathPrefix("{}");
 
@@ -119,7 +119,7 @@ def select_prepared(session_pool, path, series_id, season_id, episode_id):
     SELECT title, CAST(air_date AS Date) as air_date
     FROM episodes
     WHERE series_id = $seriesId AND season_id = $seasonId AND episode_id = $episodeId;
-    """.format(path)
+    """.format(full_path)
 
     def callee(session):
         prepared_query = session.prepare(query)
@@ -144,7 +144,7 @@ def select_prepared(session_pool, path, series_id, season_id, episode_id):
 # In most cases it's better to use transaction control settings in session.transaction
 # calls instead to avoid additional hops to YDB cluster and allow more efficient
 # execution of queries.
-def explicit_tcl(session_pool, path, series_id, season_id, episode_id):
+def explicit_tcl(session_pool, full_path, series_id, season_id, episode_id):
     query = """
     PRAGMA TablePathPrefix("{}");
 
@@ -155,7 +155,7 @@ def explicit_tcl(session_pool, path, series_id, season_id, episode_id):
     UPDATE episodes
     SET air_date = CAST(CAST(CAST("2018-09-11T15:15:59.373006Z" AS Timestamp) AS Date) AS Uint16)
     WHERE series_id = $seriesId AND season_id = $seasonId AND episode_id = $episodeId;
-    """.format(path)
+    """.format(full_path)
 
     def callee(session):
         prepared_query = session.prepare(query)
@@ -180,11 +180,11 @@ def explicit_tcl(session_pool, path, series_id, season_id, episode_id):
     return session_pool.retry_operation_sync(callee)
 
 
-def create_tables(session_pool, path):
+def create_tables(session_pool, full_path):
     def callee(session):
         # Creating Series table
         session.create_table(
-            os.path.join(path, 'series'),
+            os.path.join(full_path, 'series'),
             ydb.TableDescription()
             .with_column(ydb.Column('series_id', ydb.OptionalType(ydb.PrimitiveType.Uint64)))
             .with_column(ydb.Column('title', ydb.OptionalType(ydb.PrimitiveType.Utf8)))
@@ -195,7 +195,7 @@ def create_tables(session_pool, path):
 
         # Creating Seasons table
         session.create_table(
-            os.path.join(path, 'seasons'),
+            os.path.join(full_path, 'seasons'),
             ydb.TableDescription()
             .with_column(ydb.Column('series_id', ydb.OptionalType(ydb.PrimitiveType.Uint64)))
             .with_column(ydb.Column('season_id', ydb.OptionalType(ydb.PrimitiveType.Uint64)))
@@ -207,7 +207,7 @@ def create_tables(session_pool, path):
 
         # Creating Episodes table
         session.create_table(
-            os.path.join(path, 'episodes'),
+            os.path.join(full_path, 'episodes'),
             ydb.TableDescription()
             .with_column(ydb.Column('series_id', ydb.OptionalType(ydb.PrimitiveType.Uint64)))
             .with_column(ydb.Column('season_id', ydb.OptionalType(ydb.PrimitiveType.Uint64)))
@@ -219,18 +219,18 @@ def create_tables(session_pool, path):
     return session_pool.retry_operation_sync(callee)
 
 
-def describe_table(session_pool, path, name):
+def describe_table(session_pool, full_path, name):
     def callee(session):
-        result = session.describe_table(os.path.join(path, name))
+        result = session.describe_table(os.path.join(full_path, name))
         print("\n> describe table: series")
         for column in result.columns:
             print("column, name:", column.name, ",", str(column.type.item).strip())
     return session_pool.retry_operation_sync(callee)
 
 
-def is_directory_exists(driver, path):
+def is_directory_exists(driver, full_path):
     try:
-        return driver.scheme_client.describe_path(path).is_directory()
+        return driver.scheme_client.describe_path(full_path).is_directory()
     except ydb.SchemeError:
         return False
 
@@ -301,18 +301,20 @@ def run(endpoint, database, path):
         with ydb.SessionPool(driver, size=10) as session_pool:
             ensure_path_exists(driver, database, path)
 
-            create_tables(session_pool, database)
+            full_path = os.path.join(database, path)
 
-            describe_table(session_pool, database, "series")
+            create_tables(session_pool, full_path)
 
-            fill_tables_with_data(session_pool, database)
+            describe_table(session_pool, full_path, "series")
 
-            select_simple(session_pool, database)
+            fill_tables_with_data(session_pool, full_path)
 
-            upsert_simple(session_pool, database)
+            select_simple(session_pool, full_path)
 
-            select_prepared(session_pool, database, 2, 3, 7)
-            select_prepared(session_pool, database, 2, 3, 8)
+            upsert_simple(session_pool, full_path)
 
-            explicit_tcl(session_pool, database, 2, 6, 1)
-            select_prepared(session_pool, database, 2, 6, 1)
+            select_prepared(session_pool, full_path, 2, 3, 7)
+            select_prepared(session_pool, full_path, 2, 3, 8)
+
+            explicit_tcl(session_pool, full_path, 2, 6, 1)
+            select_prepared(session_pool, full_path, 2, 6, 1)
