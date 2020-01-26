@@ -89,6 +89,7 @@ class SessionPoolImpl(object):
     def _create(self):
         with self._lock:
             session = self._driver.table_client.session()
+            self._logger.debug("Created session %s", session)
             self._active_count += 1
             return session
 
@@ -115,6 +116,7 @@ class SessionPoolImpl(object):
 
     def put(self, session):
         with self._lock:
+            self._logger.debug("Put on session %s", session)
             if not session.initialized() or self._should_stop.is_set():
                 self._destroy(session)
                 # we should probably prepare replacement session here
@@ -123,6 +125,7 @@ class SessionPoolImpl(object):
             try:
                 _, waiter = self._waiters.popitem(last=False)
                 waiter.set_result(session)
+                self._logger.debug("Replying to waiter with a session %s", session)
             except KeyError:
                 priority = time.time() + 10 * 60
                 self._active_queue.put(
@@ -159,6 +162,8 @@ class SessionPoolImpl(object):
             return
 
         with self._lock:
+
+            self._logger.debug("Preparing session %s", session)
             if len(self._waiters) < 1:
                 self._logger.info("No pending waiters, will destroy session")
                 return self._destroy(session)
@@ -186,6 +191,7 @@ class SessionPoolImpl(object):
             except queue.Empty:
                 self._logger.debug("Active session queue is empty, subscribe waiter for a session")
                 waiter = _utilities.future()
+                self._logger.debug("Subscribe waiter %s", waiter)
                 if self._should_stop.is_set():
                     session = self._create()
                     self._logger.debug("Session pool is under stop, replying with empty session, %s", session)
@@ -207,6 +213,7 @@ class SessionPoolImpl(object):
             try:
                 # at first we remove waiter from list of the waiters to ensure
                 # we will not signal it right now
+                self._logger.debug("Unsubscribe on waiter %s", waiter)
                 self._waiters.pop(waiter)
             except KeyError:
                 try:
