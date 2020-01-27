@@ -1410,6 +1410,22 @@ class SessionPool(object):
     def active_size(self):
         return self._pool_impl.active_size
 
+    @property
+    def free_size(self):
+        return self._pool_impl.free_size
+
+    @property
+    def busy_size(self):
+        return self._pool_impl.busy_size
+
+    @property
+    def max_size(self):
+        return self._pool_impl.max_size
+
+    @property
+    def waiters_count(self):
+        return self._pool_impl.waiters_count
+
     def subscribe(self):
         return self._pool_impl.subscribe()
 
