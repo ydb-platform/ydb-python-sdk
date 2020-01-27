@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 
 class SessionPoolImpl(object):
-    def __init__(self, driver, size, workers_threads_count=4, initializer=None):
+    def __init__(self, driver, size, workers_threads_count=4, initializer=None, min_pool_size=0):
         self._lock = threading.RLock()
         self._waiters = collections.OrderedDict()
         self._driver = driver
@@ -30,12 +30,19 @@ class SessionPoolImpl(object):
         self._event_loop_thread.daemon = True
         self._event_loop_thread.start()
         self._logger = logger.getChild(self.__class__.__name__)
+        self._min_pool_size = min_pool_size
+        self._terminating = False
+        if self._min_pool_size > self._size:
+            raise ValueError("Invalid min pool size value!")
+        for _ in range(self._min_pool_size):
+            self._prepare(self._create())
 
     def stop(self, timeout):
         with self._lock:
             self._logger.debug("Requested session pool stop.")
             self._event_queue.put(self._terminate_event)
             self._should_stop.set()
+            self._terminating = True
 
             self._logger.debug("Session pool is under stop, cancelling all in flight waiters.")
             while True:
@@ -98,6 +105,11 @@ class SessionPoolImpl(object):
         with self._lock:
             return self._active_count
 
+    def _is_min_pool_size_satisfied(self, delta=0):
+        if self._terminating:
+            return True
+        return self._active_count + delta >= self._min_pool_size
+
     def _destroy(self, session):
         self._logger.debug("Requested session destroy: %s.", session)
         with self._lock:
@@ -108,6 +120,9 @@ class SessionPoolImpl(object):
                 self._logger.debug(
                     "In flight waiters: %d, preparing session %s replacement.", cnt_waiters, session)
                 # we have a waiter that should be replied, so we have to prepare replacement
+                self._prepare(self._create())
+            elif not self._is_min_pool_size_satisfied():
+                self._logger.debug("Current session pool size is less than %s, actual size %s", self._min_pool_size, self._active_count)
                 self._prepare(self._create())
 
         if session.initialized():
@@ -162,19 +177,17 @@ class SessionPoolImpl(object):
             return
 
         with self._lock:
-
             self._logger.debug("Preparing session %s", session)
-            if len(self._waiters) < 1:
+            if len(self._waiters) < 1 and self._is_min_pool_size_satisfied(delta=-1):
                 self._logger.info("No pending waiters, will destroy session")
                 return self._destroy(session)
 
-            if len(self._waiters) > 0:
-                f = session.async_create(self._req_settings)
-                f.add_done_callback(
-                    lambda _: self._on_session_create(
-                        session, _
-                    )
+            f = session.async_create(self._req_settings)
+            f.add_done_callback(
+                lambda _: self._on_session_create(
+                    session, _
                 )
+            )
 
     def _waiter_cleanup(self, w):
         with self._lock:
