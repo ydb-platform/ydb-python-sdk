@@ -105,6 +105,25 @@ class SessionPoolImpl(object):
         with self._lock:
             return self._active_count
 
+    @property
+    def free_size(self):
+        with self._lock:
+            return len(self._active_queue)
+
+    @property
+    def busy_size(self):
+        with self._lock:
+            return self._active_count - len(self._active_queue)
+
+    @property
+    def max_size(self):
+        return self._size
+
+    @property
+    def waiters_count(self):
+        with self._lock:
+            return len(self._waiters)
+
     def _is_min_pool_size_satisfied(self, delta=0):
         if self._terminating:
             return True
