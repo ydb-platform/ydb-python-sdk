@@ -7,7 +7,7 @@ import threading
 
 from google.protobuf import text_format
 import grpc
-from . import issues, _apis
+from . import issues, _apis, _utilities
 
 _stubs_list = (
     _apis.TableService.Stub,
@@ -142,6 +142,7 @@ def _construct_metadata(driver_config, settings):
 
     if settings is not None and settings.trace_id is not None:
         metadata.append((YDB_TRACE_ID_HEADER, settings.trace_id))
+    metadata.append(_utilities.x_ydb_sdk_build_info_header())
     return metadata
 
 

@@ -23,6 +23,10 @@ def future():
     return futures.Future()
 
 
+def x_ydb_sdk_build_info_header():
+    return ("x-ydb-sdk-build-info", "python_sdk_revision: 0.0.37.1")
+
+
 # Decorator that ensures no exceptions are leaked from decorated async call
 def wrap_async_call_exceptions(f):
     @functools.wraps(f)
