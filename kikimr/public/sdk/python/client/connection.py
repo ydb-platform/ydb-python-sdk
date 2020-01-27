@@ -119,9 +119,13 @@ def _on_response_callback(rpc_state, call_state_unref, wrap_result=None, on_disc
             )
         )
 
-    except Exception as e:
+    except issues.Error as e:
         logger.debug("%s: received exception, %s", rpc_state, str(e))
         rpc_state.result_future.set_exception(e)
+
+    except Exception as e:
+        logger.debug("%s: received exception, %s", rpc_state, str(e))
+        rpc_state.result_future.set_exception(issues.ConnectionLost(str(e)))
 
     call_state_unref()
 
