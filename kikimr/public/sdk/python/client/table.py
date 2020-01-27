@@ -1378,7 +1378,7 @@ class TxContext(object):
 
 
 class SessionPool(object):
-    def __init__(self, driver, size=100, workers_threads_count=4, initializer=None):
+    def __init__(self, driver, size=100, workers_threads_count=4, initializer=None, min_pool_size=0):
         """
         An object that encapsulates session creation, deletion and etc. and maintains
         a pool of active sessions of specified size
@@ -1394,7 +1394,7 @@ class SessionPool(object):
                     "To prepare statements in session use keep in cache feature."
                 )
 
-        self._pool_impl = _sp_impl.SessionPoolImpl(driver, size, workers_threads_count, initializer)
+        self._pool_impl = _sp_impl.SessionPoolImpl(driver, size, workers_threads_count, initializer, min_pool_size)
 
     def retry_operation_sync(self, callee, retry_settings=None, *args, **kwargs):
 
