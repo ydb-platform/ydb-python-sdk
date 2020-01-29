@@ -181,6 +181,15 @@ class CompactionPolicy(object):
         return self._pb
 
 
+class SplitPoint(object):
+    def __init__(self, *args):
+        self._value = tuple(args)
+
+    @property
+    def value(self):
+        return self._value
+
+
 class ExplicitPartitions(object):
     def __init__(self, split_points):
         self.split_points = split_points
