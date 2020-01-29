@@ -222,6 +222,9 @@ class SessionState(object):
     def session_id(self):
         return self._session_id
 
+    def pending_query(self):
+        return self._pending_query
+
     def set_id(self, session_id):
         self._session_id = session_id
         return self

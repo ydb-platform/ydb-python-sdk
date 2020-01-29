@@ -741,6 +741,9 @@ class Session(object):
         """
         return self._state.session_id is not None
 
+    def pending_query(self):
+        return self._state.pending_query()
+
     def reset(self):
         """
         Perform session state reset (that includes cleanup of the session_id, query cache, and etc.)
