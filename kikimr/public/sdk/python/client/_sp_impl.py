@@ -151,6 +151,10 @@ class SessionPoolImpl(object):
     def put(self, session):
         with self._lock:
             self._logger.debug("Put on session %s", session)
+            if session.pending_query():
+                self._destroy(session)
+                return False
+
             if not session.initialized() or self._should_stop.is_set():
                 self._destroy(session)
                 # we should probably prepare replacement session here
