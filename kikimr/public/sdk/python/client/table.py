@@ -1450,6 +1450,17 @@ class SessionPool(object):
     def release(self, session):
         return self._pool_impl.put(session)
 
+    def async_checkout(self):
+        """
+        Returns a context manager that asynchronously checkouts a session from the pool.
+
+        with my_pool.async_checkout() as async_session:
+            session = await async_session
+            results = await session.transaction().async_execute(....)
+
+        """
+        return AsyncSessionCheckout(self)
+
     def checkout(self, blocking=True, timeout=None):
         return SessionCheckout(self, blocking, timeout)
 
@@ -1461,6 +1472,26 @@ class SessionPool(object):
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.stop()
+
+
+class AsyncSessionCheckout(object):
+    __slots__ = ('subscription', 'pool')
+
+    def __init__(self, pool):
+        """
+        A context manager that asynchronously checkouts a session for the specified pool
+        and returns it on manager exit.
+        :param pool: A SessionPool instance.
+        """
+        self.pool = pool
+        self.subscription = None
+
+    def __enter__(self):
+        self.subscription = self.pool.subscribe()
+        return self.subscription
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.pool.unsubscribe(self.subscription)
 
 
 class SessionCheckout(object):
