@@ -21,7 +21,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='kikimr/public/api/protos/ydb_clickhouse_internal.proto',
   package='Ydb.ClickhouseInternal',
   syntax='proto3',
-  serialized_pb=_b('\n6kikimr/public/api/protos/ydb_clickhouse_internal.proto\x12\x16Ydb.ClickhouseInternal\x1a,kikimr/public/api/protos/ydb_operation.proto\x1a(kikimr/public/api/protos/ydb_table.proto\"\xe5\x01\n\x0bScanRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\r\n\x05table\x18\x02 \x01(\t\x12\x0f\n\x07\x63olumns\x18\x03 \x03(\t\x12\x10\n\x08\x66rom_key\x18\x04 \x01(\x0c\x12\x1a\n\x12\x66rom_key_inclusive\x18\x05 \x01(\x08\x12\x0e\n\x06to_key\x18\x06 \x01(\x0c\x12\x18\n\x10to_key_inclusive\x18\x07 \x01(\x08\x12\x10\n\x08max_rows\x18\x08 \x01(\x04\x12\x11\n\tmax_bytes\x18\t \x01(\x04\"<\n\x0cScanResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"W\n\nScanResult\x12\x0e\n\x06\x62locks\x18\x01 \x03(\x0c\x12\x0b\n\x03\x65os\x18\x02 \x01(\x08\x12\x10\n\x08last_key\x18\x03 \x01(\x0c\x12\x1a\n\x12last_key_inclusive\x18\x04 \x01(\x08\"i\n\x18GetShardLocationsRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x12\n\ntablet_ids\x18\x02 \x03(\x04\"I\n\x19GetShardLocationsResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\";\n\nTabletInfo\x12\x11\n\ttablet_id\x18\x01 \x01(\x04\x12\x0c\n\x04host\x18\x02 \x01(\t\x12\x0c\n\x04port\x18\x03 \x01(\r\"N\n\x17GetShardLocationsResult\x12\x33\n\x07tablets\x18\x01 \x03(\x0b\x32\".Ydb.ClickhouseInternal.TabletInfo\"\x80\x01\n\x14\x44\x65scribeTableRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x0c\n\x04path\x18\x02 \x01(\t\x12\x1f\n\x17include_partitions_info\x18\x03 \x01(\x08\"N\n\rPartitionInfo\x12\x11\n\ttablet_id\x18\x01 \x01(\x04\x12\x0f\n\x07\x65nd_key\x18\x02 \x01(\x0c\x12\x19\n\x11\x65nd_key_inclusive\x18\x03 \x01(\x08\"\xa1\x01\n\x13\x44\x65scribeTableResult\x12&\n\x07\x63olumns\x18\x02 \x03(\x0b\x32\x15.Ydb.Table.ColumnMeta\x12\x13\n\x0bprimary_key\x18\x03 \x03(\t\x12\x39\n\npartitions\x18\x04 \x03(\x0b\x32%.Ydb.ClickhouseInternal.PartitionInfo\x12\x12\n\nis_virtual\x18\x05 \x01(\x08\"E\n\x15\x44\x65scribeTableResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.OperationB8\n\x19\x63om.yandex.ydb.clickhouseB\x18\x43lickhouseInternalProtos\xf8\x01\x01\x62\x06proto3')
+  serialized_pb=_b('\n6kikimr/public/api/protos/ydb_clickhouse_internal.proto\x12\x16Ydb.ClickhouseInternal\x1a,kikimr/public/api/protos/ydb_operation.proto\x1a(kikimr/public/api/protos/ydb_table.proto\"\xfa\x01\n\x0bScanRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\r\n\x05table\x18\x02 \x01(\t\x12\x0f\n\x07\x63olumns\x18\x03 \x03(\t\x12\x10\n\x08\x66rom_key\x18\x04 \x01(\x0c\x12\x1a\n\x12\x66rom_key_inclusive\x18\x05 \x01(\x08\x12\x0e\n\x06to_key\x18\x06 \x01(\x0c\x12\x18\n\x10to_key_inclusive\x18\x07 \x01(\x08\x12\x10\n\x08max_rows\x18\x08 \x01(\x04\x12\x11\n\tmax_bytes\x18\t \x01(\x04\x12\x13\n\x0bsnapshot_id\x18\n \x01(\t\"<\n\x0cScanResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"W\n\nScanResult\x12\x0e\n\x06\x62locks\x18\x01 \x03(\x0c\x12\x0b\n\x03\x65os\x18\x02 \x01(\x08\x12\x10\n\x08last_key\x18\x03 \x01(\x0c\x12\x1a\n\x12last_key_inclusive\x18\x04 \x01(\x08\"i\n\x18GetShardLocationsRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x12\n\ntablet_ids\x18\x02 \x03(\x04\"I\n\x19GetShardLocationsResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\";\n\nTabletInfo\x12\x11\n\ttablet_id\x18\x01 \x01(\x04\x12\x0c\n\x04host\x18\x02 \x01(\t\x12\x0c\n\x04port\x18\x03 \x01(\r\"N\n\x17GetShardLocationsResult\x12\x33\n\x07tablets\x18\x01 \x03(\x0b\x32\".Ydb.ClickhouseInternal.TabletInfo\"\x80\x01\n\x14\x44\x65scribeTableRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x0c\n\x04path\x18\x02 \x01(\t\x12\x1f\n\x17include_partitions_info\x18\x03 \x01(\x08\"N\n\rPartitionInfo\x12\x11\n\ttablet_id\x18\x01 \x01(\x04\x12\x0f\n\x07\x65nd_key\x18\x02 \x01(\x0c\x12\x19\n\x11\x65nd_key_inclusive\x18\x03 \x01(\x08\"\xa1\x01\n\x13\x44\x65scribeTableResult\x12&\n\x07\x63olumns\x18\x02 \x03(\x0b\x32\x15.Ydb.Table.ColumnMeta\x12\x13\n\x0bprimary_key\x18\x03 \x03(\t\x12\x39\n\npartitions\x18\x04 \x03(\x0b\x32%.Ydb.ClickhouseInternal.PartitionInfo\x12\x12\n\nis_virtual\x18\x05 \x01(\x08\"E\n\x15\x44\x65scribeTableResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"`\n\x15\x43reateSnapshotRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x0c\n\x04path\x18\x02 \x03(\t\"?\n\x14\x43reateSnapshotResult\x12\x13\n\x0bsnapshot_id\x18\x01 \x01(\t\x12\x12\n\ntimeout_ms\x18\x02 \x01(\x04\"F\n\x16\x43reateSnapshotResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"v\n\x16RefreshSnapshotRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x0c\n\x04path\x18\x02 \x03(\t\x12\x13\n\x0bsnapshot_id\x18\x03 \x01(\t\",\n\x15RefreshSnapshotResult\x12\x13\n\x0bsnapshot_id\x18\x01 \x01(\t\"G\n\x17RefreshSnapshotResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"v\n\x16\x44iscardSnapshotRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x0c\n\x04path\x18\x02 \x03(\t\x12\x13\n\x0bsnapshot_id\x18\x03 \x01(\t\",\n\x15\x44iscardSnapshotResult\x12\x13\n\x0bsnapshot_id\x18\x01 \x01(\t\"G\n\x17\x44iscardSnapshotResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.OperationB8\n\x19\x63om.yandex.ydb.clickhouseB\x18\x43lickhouseInternalProtos\xf8\x01\x01\x62\x06proto3')
   ,
   dependencies=[kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2.DESCRIPTOR,kikimr_dot_public_dot_api_dot_protos_dot_ydb__table__pb2.DESCRIPTOR,])
 
@@ -98,6 +98,13 @@ _SCANREQUEST = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
+    _descriptor.FieldDescriptor(
+      name='snapshot_id', full_name='Ydb.ClickhouseInternal.ScanRequest.snapshot_id', index=9,
+      number=10, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
   ],
   extensions=[
   ],
@@ -111,7 +118,7 @@ _SCANREQUEST = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=171,
-  serialized_end=400,
+  serialized_end=421,
 )
 
 
@@ -141,8 +148,8 @@ _SCANRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=402,
-  serialized_end=462,
+  serialized_start=423,
+  serialized_end=483,
 )
 
 
@@ -193,8 +200,8 @@ _SCANRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=464,
-  serialized_end=551,
+  serialized_start=485,
+  serialized_end=572,
 )
 
 
@@ -231,8 +238,8 @@ _GETSHARDLOCATIONSREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=553,
-  serialized_end=658,
+  serialized_start=574,
+  serialized_end=679,
 )
 
 
@@ -262,8 +269,8 @@ _GETSHARDLOCATIONSRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=660,
-  serialized_end=733,
+  serialized_start=681,
+  serialized_end=754,
 )
 
 
@@ -307,8 +314,8 @@ _TABLETINFO = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=735,
-  serialized_end=794,
+  serialized_start=756,
+  serialized_end=815,
 )
 
 
@@ -338,8 +345,8 @@ _GETSHARDLOCATIONSRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=796,
-  serialized_end=874,
+  serialized_start=817,
+  serialized_end=895,
 )
 
 
@@ -383,8 +390,8 @@ _DESCRIBETABLEREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=877,
-  serialized_end=1005,
+  serialized_start=898,
+  serialized_end=1026,
 )
 
 
@@ -428,8 +435,8 @@ _PARTITIONINFO = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1007,
-  serialized_end=1085,
+  serialized_start=1028,
+  serialized_end=1106,
 )
 
 
@@ -480,8 +487,8 @@ _DESCRIBETABLERESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1088,
-  serialized_end=1249,
+  serialized_start=1109,
+  serialized_end=1270,
 )
 
 
@@ -511,8 +518,329 @@ _DESCRIBETABLERESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1251,
-  serialized_end=1320,
+  serialized_start=1272,
+  serialized_end=1341,
+)
+
+
+_CREATESNAPSHOTREQUEST = _descriptor.Descriptor(
+  name='CreateSnapshotRequest',
+  full_name='Ydb.ClickhouseInternal.CreateSnapshotRequest',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='operation_params', full_name='Ydb.ClickhouseInternal.CreateSnapshotRequest.operation_params', index=0,
+      number=1, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='path', full_name='Ydb.ClickhouseInternal.CreateSnapshotRequest.path', index=1,
+      number=2, type=9, cpp_type=9, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=1343,
+  serialized_end=1439,
+)
+
+
+_CREATESNAPSHOTRESULT = _descriptor.Descriptor(
+  name='CreateSnapshotResult',
+  full_name='Ydb.ClickhouseInternal.CreateSnapshotResult',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='snapshot_id', full_name='Ydb.ClickhouseInternal.CreateSnapshotResult.snapshot_id', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='timeout_ms', full_name='Ydb.ClickhouseInternal.CreateSnapshotResult.timeout_ms', index=1,
+      number=2, type=4, cpp_type=4, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=1441,
+  serialized_end=1504,
+)
+
+
+_CREATESNAPSHOTRESPONSE = _descriptor.Descriptor(
+  name='CreateSnapshotResponse',
+  full_name='Ydb.ClickhouseInternal.CreateSnapshotResponse',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='operation', full_name='Ydb.ClickhouseInternal.CreateSnapshotResponse.operation', index=0,
+      number=1, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=1506,
+  serialized_end=1576,
+)
+
+
+_REFRESHSNAPSHOTREQUEST = _descriptor.Descriptor(
+  name='RefreshSnapshotRequest',
+  full_name='Ydb.ClickhouseInternal.RefreshSnapshotRequest',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='operation_params', full_name='Ydb.ClickhouseInternal.RefreshSnapshotRequest.operation_params', index=0,
+      number=1, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='path', full_name='Ydb.ClickhouseInternal.RefreshSnapshotRequest.path', index=1,
+      number=2, type=9, cpp_type=9, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='snapshot_id', full_name='Ydb.ClickhouseInternal.RefreshSnapshotRequest.snapshot_id', index=2,
+      number=3, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=1578,
+  serialized_end=1696,
+)
+
+
+_REFRESHSNAPSHOTRESULT = _descriptor.Descriptor(
+  name='RefreshSnapshotResult',
+  full_name='Ydb.ClickhouseInternal.RefreshSnapshotResult',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='snapshot_id', full_name='Ydb.ClickhouseInternal.RefreshSnapshotResult.snapshot_id', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=1698,
+  serialized_end=1742,
+)
+
+
+_REFRESHSNAPSHOTRESPONSE = _descriptor.Descriptor(
+  name='RefreshSnapshotResponse',
+  full_name='Ydb.ClickhouseInternal.RefreshSnapshotResponse',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='operation', full_name='Ydb.ClickhouseInternal.RefreshSnapshotResponse.operation', index=0,
+      number=1, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=1744,
+  serialized_end=1815,
+)
+
+
+_DISCARDSNAPSHOTREQUEST = _descriptor.Descriptor(
+  name='DiscardSnapshotRequest',
+  full_name='Ydb.ClickhouseInternal.DiscardSnapshotRequest',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='operation_params', full_name='Ydb.ClickhouseInternal.DiscardSnapshotRequest.operation_params', index=0,
+      number=1, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='path', full_name='Ydb.ClickhouseInternal.DiscardSnapshotRequest.path', index=1,
+      number=2, type=9, cpp_type=9, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='snapshot_id', full_name='Ydb.ClickhouseInternal.DiscardSnapshotRequest.snapshot_id', index=2,
+      number=3, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=1817,
+  serialized_end=1935,
+)
+
+
+_DISCARDSNAPSHOTRESULT = _descriptor.Descriptor(
+  name='DiscardSnapshotResult',
+  full_name='Ydb.ClickhouseInternal.DiscardSnapshotResult',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='snapshot_id', full_name='Ydb.ClickhouseInternal.DiscardSnapshotResult.snapshot_id', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=1937,
+  serialized_end=1981,
+)
+
+
+_DISCARDSNAPSHOTRESPONSE = _descriptor.Descriptor(
+  name='DiscardSnapshotResponse',
+  full_name='Ydb.ClickhouseInternal.DiscardSnapshotResponse',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='operation', full_name='Ydb.ClickhouseInternal.DiscardSnapshotResponse.operation', index=0,
+      number=1, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=1983,
+  serialized_end=2054,
 )
 
 _SCANREQUEST.fields_by_name['operation_params'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2._OPERATIONPARAMS
@@ -524,6 +852,12 @@ _DESCRIBETABLEREQUEST.fields_by_name['operation_params'].message_type = kikimr_d
 _DESCRIBETABLERESULT.fields_by_name['columns'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__table__pb2._COLUMNMETA
 _DESCRIBETABLERESULT.fields_by_name['partitions'].message_type = _PARTITIONINFO
 _DESCRIBETABLERESPONSE.fields_by_name['operation'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2._OPERATION
+_CREATESNAPSHOTREQUEST.fields_by_name['operation_params'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2._OPERATIONPARAMS
+_CREATESNAPSHOTRESPONSE.fields_by_name['operation'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2._OPERATION
+_REFRESHSNAPSHOTREQUEST.fields_by_name['operation_params'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2._OPERATIONPARAMS
+_REFRESHSNAPSHOTRESPONSE.fields_by_name['operation'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2._OPERATION
+_DISCARDSNAPSHOTREQUEST.fields_by_name['operation_params'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2._OPERATIONPARAMS
+_DISCARDSNAPSHOTRESPONSE.fields_by_name['operation'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2._OPERATION
 DESCRIPTOR.message_types_by_name['ScanRequest'] = _SCANREQUEST
 DESCRIPTOR.message_types_by_name['ScanResponse'] = _SCANRESPONSE
 DESCRIPTOR.message_types_by_name['ScanResult'] = _SCANRESULT
@@ -535,6 +869,15 @@ DESCRIPTOR.message_types_by_name['DescribeTableRequest'] = _DESCRIBETABLEREQUEST
 DESCRIPTOR.message_types_by_name['PartitionInfo'] = _PARTITIONINFO
 DESCRIPTOR.message_types_by_name['DescribeTableResult'] = _DESCRIBETABLERESULT
 DESCRIPTOR.message_types_by_name['DescribeTableResponse'] = _DESCRIBETABLERESPONSE
+DESCRIPTOR.message_types_by_name['CreateSnapshotRequest'] = _CREATESNAPSHOTREQUEST
+DESCRIPTOR.message_types_by_name['CreateSnapshotResult'] = _CREATESNAPSHOTRESULT
+DESCRIPTOR.message_types_by_name['CreateSnapshotResponse'] = _CREATESNAPSHOTRESPONSE
+DESCRIPTOR.message_types_by_name['RefreshSnapshotRequest'] = _REFRESHSNAPSHOTREQUEST
+DESCRIPTOR.message_types_by_name['RefreshSnapshotResult'] = _REFRESHSNAPSHOTRESULT
+DESCRIPTOR.message_types_by_name['RefreshSnapshotResponse'] = _REFRESHSNAPSHOTRESPONSE
+DESCRIPTOR.message_types_by_name['DiscardSnapshotRequest'] = _DISCARDSNAPSHOTREQUEST
+DESCRIPTOR.message_types_by_name['DiscardSnapshotResult'] = _DISCARDSNAPSHOTRESULT
+DESCRIPTOR.message_types_by_name['DiscardSnapshotResponse'] = _DISCARDSNAPSHOTRESPONSE
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
 ScanRequest = _reflection.GeneratedProtocolMessageType('ScanRequest', (_message.Message,), dict(
@@ -613,6 +956,69 @@ DescribeTableResponse = _reflection.GeneratedProtocolMessageType('DescribeTableR
   # @@protoc_insertion_point(class_scope:Ydb.ClickhouseInternal.DescribeTableResponse)
   ))
 _sym_db.RegisterMessage(DescribeTableResponse)
+
+CreateSnapshotRequest = _reflection.GeneratedProtocolMessageType('CreateSnapshotRequest', (_message.Message,), dict(
+  DESCRIPTOR = _CREATESNAPSHOTREQUEST,
+  __module__ = 'kikimr.public.api.protos.ydb_clickhouse_internal_pb2'
+  # @@protoc_insertion_point(class_scope:Ydb.ClickhouseInternal.CreateSnapshotRequest)
+  ))
+_sym_db.RegisterMessage(CreateSnapshotRequest)
+
+CreateSnapshotResult = _reflection.GeneratedProtocolMessageType('CreateSnapshotResult', (_message.Message,), dict(
+  DESCRIPTOR = _CREATESNAPSHOTRESULT,
+  __module__ = 'kikimr.public.api.protos.ydb_clickhouse_internal_pb2'
+  # @@protoc_insertion_point(class_scope:Ydb.ClickhouseInternal.CreateSnapshotResult)
+  ))
+_sym_db.RegisterMessage(CreateSnapshotResult)
+
+CreateSnapshotResponse = _reflection.GeneratedProtocolMessageType('CreateSnapshotResponse', (_message.Message,), dict(
+  DESCRIPTOR = _CREATESNAPSHOTRESPONSE,
+  __module__ = 'kikimr.public.api.protos.ydb_clickhouse_internal_pb2'
+  # @@protoc_insertion_point(class_scope:Ydb.ClickhouseInternal.CreateSnapshotResponse)
+  ))
+_sym_db.RegisterMessage(CreateSnapshotResponse)
+
+RefreshSnapshotRequest = _reflection.GeneratedProtocolMessageType('RefreshSnapshotRequest', (_message.Message,), dict(
+  DESCRIPTOR = _REFRESHSNAPSHOTREQUEST,
+  __module__ = 'kikimr.public.api.protos.ydb_clickhouse_internal_pb2'
+  # @@protoc_insertion_point(class_scope:Ydb.ClickhouseInternal.RefreshSnapshotRequest)
+  ))
+_sym_db.RegisterMessage(RefreshSnapshotRequest)
+
+RefreshSnapshotResult = _reflection.GeneratedProtocolMessageType('RefreshSnapshotResult', (_message.Message,), dict(
+  DESCRIPTOR = _REFRESHSNAPSHOTRESULT,
+  __module__ = 'kikimr.public.api.protos.ydb_clickhouse_internal_pb2'
+  # @@protoc_insertion_point(class_scope:Ydb.ClickhouseInternal.RefreshSnapshotResult)
+  ))
+_sym_db.RegisterMessage(RefreshSnapshotResult)
+
+RefreshSnapshotResponse = _reflection.GeneratedProtocolMessageType('RefreshSnapshotResponse', (_message.Message,), dict(
+  DESCRIPTOR = _REFRESHSNAPSHOTRESPONSE,
+  __module__ = 'kikimr.public.api.protos.ydb_clickhouse_internal_pb2'
+  # @@protoc_insertion_point(class_scope:Ydb.ClickhouseInternal.RefreshSnapshotResponse)
+  ))
+_sym_db.RegisterMessage(RefreshSnapshotResponse)
+
+DiscardSnapshotRequest = _reflection.GeneratedProtocolMessageType('DiscardSnapshotRequest', (_message.Message,), dict(
+  DESCRIPTOR = _DISCARDSNAPSHOTREQUEST,
+  __module__ = 'kikimr.public.api.protos.ydb_clickhouse_internal_pb2'
+  # @@protoc_insertion_point(class_scope:Ydb.ClickhouseInternal.DiscardSnapshotRequest)
+  ))
+_sym_db.RegisterMessage(DiscardSnapshotRequest)
+
+DiscardSnapshotResult = _reflection.GeneratedProtocolMessageType('DiscardSnapshotResult', (_message.Message,), dict(
+  DESCRIPTOR = _DISCARDSNAPSHOTRESULT,
+  __module__ = 'kikimr.public.api.protos.ydb_clickhouse_internal_pb2'
+  # @@protoc_insertion_point(class_scope:Ydb.ClickhouseInternal.DiscardSnapshotResult)
+  ))
+_sym_db.RegisterMessage(DiscardSnapshotResult)
+
+DiscardSnapshotResponse = _reflection.GeneratedProtocolMessageType('DiscardSnapshotResponse', (_message.Message,), dict(
+  DESCRIPTOR = _DISCARDSNAPSHOTRESPONSE,
+  __module__ = 'kikimr.public.api.protos.ydb_clickhouse_internal_pb2'
+  # @@protoc_insertion_point(class_scope:Ydb.ClickhouseInternal.DiscardSnapshotResponse)
+  ))
+_sym_db.RegisterMessage(DiscardSnapshotResponse)
 
 
 DESCRIPTOR.has_options = True
