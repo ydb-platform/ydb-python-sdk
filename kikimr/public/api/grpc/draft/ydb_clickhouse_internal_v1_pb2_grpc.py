@@ -29,6 +29,21 @@ class ClickhouseInternalServiceStub(object):
         request_serializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__clickhouse__internal__pb2.DescribeTableRequest.SerializeToString,
         response_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__clickhouse__internal__pb2.DescribeTableResponse.FromString,
         )
+    self.CreateSnapshot = channel.unary_unary(
+        '/Ydb.ClickhouseInternal.V1.ClickhouseInternalService/CreateSnapshot',
+        request_serializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__clickhouse__internal__pb2.CreateSnapshotRequest.SerializeToString,
+        response_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__clickhouse__internal__pb2.CreateSnapshotResponse.FromString,
+        )
+    self.RefreshSnapshot = channel.unary_unary(
+        '/Ydb.ClickhouseInternal.V1.ClickhouseInternalService/RefreshSnapshot',
+        request_serializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__clickhouse__internal__pb2.RefreshSnapshotRequest.SerializeToString,
+        response_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__clickhouse__internal__pb2.RefreshSnapshotResponse.FromString,
+        )
+    self.DiscardSnapshot = channel.unary_unary(
+        '/Ydb.ClickhouseInternal.V1.ClickhouseInternalService/DiscardSnapshot',
+        request_serializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__clickhouse__internal__pb2.DiscardSnapshotRequest.SerializeToString,
+        response_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__clickhouse__internal__pb2.DiscardSnapshotResponse.FromString,
+        )
 
 
 class ClickhouseInternalServiceServicer(object):
@@ -56,6 +71,35 @@ class ClickhouseInternalServiceServicer(object):
     context.set_details('Method not implemented!')
     raise NotImplementedError('Method not implemented!')
 
+  def CreateSnapshot(self, request, context):
+    """*
+    CreateSnapshot creates a temporary consistent snapshot of one or more
+    tables, which may later be used in requests. Created snapshot will have
+    an opaque id and a server defined timeout, after which it may become
+    expired. For prolonged use it must be refreshed before it expires.
+    """
+    context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+    context.set_details('Method not implemented!')
+    raise NotImplementedError('Method not implemented!')
+
+  def RefreshSnapshot(self, request, context):
+    """*
+    RefreshSnapshot will attempt to refresh a previously created snapshot,
+    extending expiration time in specified tables.
+    """
+    context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+    context.set_details('Method not implemented!')
+    raise NotImplementedError('Method not implemented!')
+
+  def DiscardSnapshot(self, request, context):
+    """*
+    DiscardSnapshot will attempt to discard a previously created snapshot,
+    so resources may be freed earlier than its expiration time.
+    """
+    context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+    context.set_details('Method not implemented!')
+    raise NotImplementedError('Method not implemented!')
+
 
 def add_ClickhouseInternalServiceServicer_to_server(servicer, server):
   rpc_method_handlers = {
@@ -73,6 +117,21 @@ def add_ClickhouseInternalServiceServicer_to_server(servicer, server):
           servicer.DescribeTable,
           request_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__clickhouse__internal__pb2.DescribeTableRequest.FromString,
           response_serializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__clickhouse__internal__pb2.DescribeTableResponse.SerializeToString,
+      ),
+      'CreateSnapshot': grpc.unary_unary_rpc_method_handler(
+          servicer.CreateSnapshot,
+          request_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__clickhouse__internal__pb2.CreateSnapshotRequest.FromString,
+          response_serializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__clickhouse__internal__pb2.CreateSnapshotResponse.SerializeToString,
+      ),
+      'RefreshSnapshot': grpc.unary_unary_rpc_method_handler(
+          servicer.RefreshSnapshot,
+          request_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__clickhouse__internal__pb2.RefreshSnapshotRequest.FromString,
+          response_serializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__clickhouse__internal__pb2.RefreshSnapshotResponse.SerializeToString,
+      ),
+      'DiscardSnapshot': grpc.unary_unary_rpc_method_handler(
+          servicer.DiscardSnapshot,
+          request_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__clickhouse__internal__pb2.DiscardSnapshotRequest.FromString,
+          response_serializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__clickhouse__internal__pb2.DiscardSnapshotResponse.SerializeToString,
       ),
   }
   generic_handler = grpc.method_handlers_generic_handler(
