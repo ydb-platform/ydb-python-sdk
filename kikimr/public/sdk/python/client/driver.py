@@ -2,9 +2,23 @@
 from . import credentials as credentials_impl, table, scheme, pool
 
 
+_grpcs_protocol = 'grpcs://'
+_grpc_protocol = 'grpc://'
+
+
+def is_secure_protocol(endpoint):
+    return endpoint.startswith('grpcs://')
+
+
+def wrap_endpoint(endpoint):
+    if endpoint.startswith(_grpcs_protocol):
+        return endpoint[len(_grpcs_protocol):]
+    return endpoint
+
+
 class DriverConfig(object):
     __slots__ = ('endpoint', 'database', 'ca_cert', 'channel_options', 'credentials', 'use_all_nodes',
-                 'root_certificates', 'certificate_chain', 'private_key', 'grpc_keep_alive_timeout')
+                 'root_certificates', 'certificate_chain', 'private_key', 'grpc_keep_alive_timeout', 'secure_channel')
 
     def __init__(
             self, endpoint, database=None, ca_cert=None, auth_token=None,
@@ -31,6 +45,8 @@ class DriverConfig(object):
         self.database = database
         self.ca_cert = ca_cert
         self.channel_options = channel_options
+        self.secure_channel = is_secure_protocol(endpoint)
+        self.endpoint = wrap_endpoint(self.endpoint)
         if auth_token is not None:
             credentials = credentials_impl.AuthTokenCredentials(auth_token)
         self.credentials = credentials

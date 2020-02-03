@@ -241,7 +241,7 @@ def _set_server_timeouts(request, settings, default_value):
 
 def channel_factory(endpoint, driver_config):
     options = _construct_channel_options(driver_config)
-    if driver_config.root_certificates is None:
+    if driver_config.root_certificates is None and not driver_config.secure_channel:
         return grpc.insecure_channel(endpoint, options)
     credentials = grpc.ssl_channel_credentials(
         driver_config.root_certificates, driver_config.private_key, driver_config.certificate_chain)

@@ -237,58 +237,18 @@ def ensure_path_exists(driver, database, path):
         driver.scheme_client.make_directory(full_path)
 
 
-def read_bytes(file_name):
-    with open(file_name, 'rb') as fr:
-        return fr.read()
-
-
-def credentials_from_environ():
-    # dynamically import required authentication libraries
-    if os.getenv('YDB_TOKEN') is not None:
-        return ydb.AuthTokenCredentials(os.getenv('YDB_TOKEN'))
-
-    if os.getenv('SA_ID') is not None:
-        with open(os.getenv('SA_PRIVATE_KEY_FILE')) as private_key_file:
-            from kikimr.public.sdk.python import iam
-            root_certificates_file = os.getenv('SSL_ROOT_CERTIFICATES_FILE',  None)
-            iam_channel_credentials = {}
-            if root_certificates_file is not None:
-                iam_channel_credentials = {'root_certificates': read_bytes(root_certificates_file)}
-            return iam.ServiceAccountCredentials(
-                iam_endpoint=os.getenv('IAM_ENDPOINT', 'iam.api.cloud.yandex.net:443'),
-                iam_channel_credentials=iam_channel_credentials,
-                access_key_id=os.getenv('SA_ACCESS_KEY_ID'),
-                service_account_id=os.getenv('SA_ID'),
-                private_key=private_key_file.read()
-            )
-    return None
-
-
 def run(endpoint, database, path):
-    ydb_ssl_root_certificates = None
-    ydb_ssl_root_certificates_file = os.getenv('YDB_SSL_ROOT_CERTIFICATES_FILE',  None)
-    if ydb_ssl_root_certificates_file is not None:
-        ydb_ssl_root_certificates = read_bytes(ydb_ssl_root_certificates_file)
+    driver_config = ydb.DriverConfig(endpoint, database, credentials=ydb.construct_credentials_from_environ())
+    with ydb.Driver(driver_config) as driver:
+        try:
+            driver.wait(timeout=5)
+        except TimeoutError:
+            print("Connect failed to YDB")
+            print("Last reported errors by discovery:")
+            print(driver.discovery_debug_details())
+            exit(1)
 
-    driver_config = ydb.DriverConfig(
-        endpoint, database=database,
-        root_certificates=ydb_ssl_root_certificates,
-        credentials=credentials_from_environ()
-    )
-
-    driver = ydb.Driver(driver_config)
-
-    try:
-        driver.wait(timeout=5)
-    except TimeoutError:
-        print("Connect failed to YDB")
-        print("Last reported errors by discovery:")
-        print(driver.discovery_debug_details())
-        exit(1)
-
-    try:
         session = driver.table_client.session().create()
-
         ensure_path_exists(driver, database, path)
 
         create_tables(session, database)
@@ -306,6 +266,3 @@ def run(endpoint, database, path):
 
         explicit_tcl(session, database, 2, 6, 1)
         select_prepared(session, database, 2, 6, 1)
-    finally:
-
-        driver.stop()

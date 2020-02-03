@@ -212,34 +212,8 @@ def select_by_username(session_pool, path, username):
     return session_pool.retry_operation_sync(callee)
 
 
-def credentials_from_environ():
-    # dynamically import required authentication libraries
-    if os.getenv('YDB_TOKEN') is not None:
-        return ydb.AuthTokenCredentials(os.getenv('YDB_TOKEN'))
-
-    if os.getenv('SA_ID') is not None:
-        with open(os.getenv('SA_PRIVATE_KEY_FILE')) as private_key_file:
-            from kikimr.public.sdk.python import iam
-            root_certificates_file = os.getenv('SSL_ROOT_CERTIFICATES_FILE',  None)
-            iam_channel_credentials = {}
-            if root_certificates_file is not None:
-                with open(root_certificates_file, 'rb') as root_certificates_file:
-                    root_certificates = root_certificates_file.read()
-                iam_channel_credentials = {'root_certificates': root_certificates}
-            return iam.ServiceAccountCredentials(
-                iam_endpoint=os.getenv('IAM_ENDPOINT', 'iam.api.cloud.yandex.net:443'),
-                iam_channel_credentials=iam_channel_credentials,
-                access_key_id=os.getenv('SA_ACCESS_KEY_ID'),
-                service_account_id=os.getenv('SA_ID'),
-                private_key=private_key_file.read()
-            )
-    return None
-
-
 def run(endpoint, database, path):
-    driver_config = ydb.DriverConfig(
-        endpoint, database=database, credentials=credentials_from_environ())
-
+    driver_config = ydb.DriverConfig(endpoint, database, credentials=ydb.construct_credentials_from_environ())
     with ydb.Driver(driver_config) as driver:
         try:
             driver.wait(timeout=5)
