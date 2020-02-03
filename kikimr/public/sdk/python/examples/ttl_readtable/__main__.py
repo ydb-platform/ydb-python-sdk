@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import argparse
-import os
 
 import ttl
 
@@ -14,9 +13,4 @@ if __name__ == '__main__':
     parser.add_argument("-p", "--path", default='')
 
     args = parser.parse_args()
-    ttl.run(
-        args.endpoint,
-        args.database,
-        args.path,
-        os.environ.get("YDB_TOKEN")
-    )
+    ttl.run(args.endpoint, args.database, args.path)

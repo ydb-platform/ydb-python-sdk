@@ -80,6 +80,18 @@ class ServiceAccountCredentials(credentials.Credentials):
     def _update_token(self):
         self._send_request().result()
 
+    @classmethod
+    def from_file(cls, key_file, iam_endpoint=None, iam_channel_credentials=None):
+        with open(key_file, 'r') as r:
+            output = json.loads(r.read())
+        return cls(
+            output['service_account_id'],
+            output['id'],
+            output['private_key'],
+            iam_endpoint=iam_endpoint,
+            iam_channel_credentials=iam_channel_credentials
+        )
+
     def auth_metadata(self):
         if self.expired:
             self._update_token()

@@ -9,3 +9,4 @@ from .settings import *  # noqa
 from .resolver import *  # noqa
 from .export import *  # noqa
 from .s3list import *  # noqa
+from .auth_helpers import *  # noqa

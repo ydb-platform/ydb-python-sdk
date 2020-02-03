@@ -4,7 +4,6 @@ import os
 from concurrent.futures import TimeoutError
 
 from kikimr.public.sdk.python import client as ydb
-import random
 
 
 DOC_TABLE_PARTITION_COUNT = 4
@@ -271,19 +270,16 @@ def _run(driver, session_pool, database, path):
     read_document(session_pool, path, "https://ya.ru/")
 
 
-def run(endpoint, database, path, auth_token):
-    driver_config = ydb.DriverConfig(endpoint, database=database, auth_token=auth_token)
-    try:
-        driver = ydb.Driver(driver_config)
-        driver.wait(timeout=5)
-        session_pool = ydb.SessionPool(driver, size=10)
-    except TimeoutError:
-        raise RuntimeError("Connect failed to YDB")
+def run(endpoint, database, path):
+    driver_config = ydb.DriverConfig(endpoint, database, credentials=ydb.construct_credentials_from_environ())
+    with ydb.Driver(driver_config) as driver:
+        try:
+            driver.wait(timeout=5)
+        except TimeoutError:
+            raise RuntimeError("Connect failed to YDB")
 
-    try:
-
-        _run(driver, session_pool, database, path)
-    finally:
-
-        session_pool.stop()
-        driver.stop()
+        with ydb.SessionPool(driver, size=10) as session_pool:
+            _run(
+                driver,
+                session_pool,
+                database, path)

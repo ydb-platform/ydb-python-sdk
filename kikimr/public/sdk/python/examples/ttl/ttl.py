@@ -224,46 +224,47 @@ def delete_expired(session, path, expiration_queue, timestamp):
 
 def _run(driver, database, path):
     ensure_path_exists(driver, database, path)
-    create_tables(driver.table_client, path)
+    full_path = os.path.join(database, path)
 
+    create_tables(driver.table_client, full_path)
     session = driver.table_client.session().create()
 
     add_document(
-        session, path,
+        session, full_path,
         "https://yandex.ru/",
         "<html><body><h1>Yandex</h1></body></html>",
         1,
     )
 
     add_document(
-        session, path,
+        session, full_path,
         "https://ya.ru/",
         "<html><body><h1>Yandex</h1></body></html>",
         2
     )
 
-    read_document(session, path, "https://yandex.ru/")
-    read_document(session, path, "https://ya.ru/")
+    read_document(session, full_path, "https://yandex.ru/")
+    read_document(session, full_path, "https://ya.ru/")
 
     for expiration_queue in range(EXPIRATION_QUEUE_COUNT):
         delete_expired(
             session,
-            path,
+            full_path,
             expiration_queue,
             1
         )
 
-    read_document(session, path, "https://ya.ru/")
+    read_document(session, full_path, "https://ya.ru/")
 
     add_document(
-        session, path,
+        session, full_path,
         "https://yandex.ru/",
         "<html><body><h1>Yandex</h1></body></html>",
         2
     )
 
     add_document(
-        session, path,
+        session, full_path,
         "https://yandex.ru/",
         "<html><body><h1>Yandex</h1></body></html>",
         3
@@ -271,26 +272,21 @@ def _run(driver, database, path):
 
     for expiration_queue in range(EXPIRATION_QUEUE_COUNT):
         delete_expired(
-            session, path,
+            session, full_path,
             expiration_queue,
             2
         )
 
-    read_document(session, path, "https://yandex.ru/")
-    read_document(session, path, "https://ya.ru/")
+    read_document(session, full_path, "https://yandex.ru/")
+    read_document(session, full_path, "https://ya.ru/")
 
 
-def run(endpoint, database, path, auth_token):
-    driver_config = ydb.DriverConfig(endpoint, database=database, auth_token=auth_token)
-    try:
-        driver = ydb.Driver(driver_config)
-        driver.wait(timeout=5)
-    except TimeoutError:
-        raise RuntimeError("Connect failed to YDB")
-
-    try:
+def run(endpoint, database, path):
+    driver_config = ydb.DriverConfig(endpoint, database, credentials=ydb.construct_credentials_from_environ())
+    with ydb.Driver(driver_config) as driver:
+        try:
+            driver.wait(timeout=5)
+        except TimeoutError:
+            raise RuntimeError("Connect failed to YDB")
 
         _run(driver, database, path)
-    finally:
-
-        driver.stop()
