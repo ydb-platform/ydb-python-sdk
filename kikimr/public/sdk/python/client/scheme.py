@@ -273,9 +273,9 @@ def _wrap_list_directory_response(rpc_state, response):
     :param response: A list directory response
     :return: A directory
     """
-    issues._process_response(response)
+    issues._process_response(response.operation)
     message = _apis.ydb_scheme.ListDirectoryResult()
-    response.result.Unpack(message)
+    response.operation.result.Unpack(message)
     return Directory(
         message.self.name,
         message.self.owner,
@@ -290,9 +290,9 @@ def _wrap_list_directory_response(rpc_state, response):
 
 
 def _wrap_describe_path_response(rpc_state, response):
-    issues._process_response(response)
+    issues._process_response(response.operation)
     message = _apis.ydb_scheme.DescribePathResult()
-    response.result.Unpack(message)
+    response.operation.result.Unpack(message)
     return _wrap_scheme_entry(message.self)
 
 

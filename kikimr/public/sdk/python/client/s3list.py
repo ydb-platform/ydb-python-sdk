@@ -50,9 +50,9 @@ class S3ListingResult(object):
 
 
 def _wrap_s3_listing_response(rpc_state, response, path_column_delimiter, max_keys):
-    issues._process_response(response)
+    issues._process_response(response.operation)
     message = ydb_s3_internal_pb2.S3ListingResult()
-    response.result.Unpack(message)
+    response.operation.result.Unpack(message)
     common_prefixes_rs = convert.ResultSet.from_message(message.common_prefixes)
     common_prefixes = [row[0] for row in common_prefixes_rs.rows]
     contents = convert.ResultSet.from_message(message.contents).rows
