@@ -19,6 +19,11 @@ class ExportServiceStub(object):
         request_serializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__export__pb2.ExportToYtRequest.SerializeToString,
         response_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__export__pb2.ExportToYtResponse.FromString,
         )
+    self.ExportToS3 = channel.unary_unary(
+        '/Ydb.Export.V1.ExportService/ExportToS3',
+        request_serializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__export__pb2.ExportToS3Request.SerializeToString,
+        response_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__export__pb2.ExportToS3Response.FromString,
+        )
 
 
 class ExportServiceServicer(object):
@@ -33,6 +38,14 @@ class ExportServiceServicer(object):
     context.set_details('Method not implemented!')
     raise NotImplementedError('Method not implemented!')
 
+  def ExportToS3(self, request, context):
+    """Exports data to S3.
+    Method starts an asynchronous operation that can be cancelled while it is in progress.
+    """
+    context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+    context.set_details('Method not implemented!')
+    raise NotImplementedError('Method not implemented!')
+
 
 def add_ExportServiceServicer_to_server(servicer, server):
   rpc_method_handlers = {
@@ -40,6 +53,11 @@ def add_ExportServiceServicer_to_server(servicer, server):
           servicer.ExportToYt,
           request_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__export__pb2.ExportToYtRequest.FromString,
           response_serializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__export__pb2.ExportToYtResponse.SerializeToString,
+      ),
+      'ExportToS3': grpc.unary_unary_rpc_method_handler(
+          servicer.ExportToS3,
+          request_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__export__pb2.ExportToS3Request.FromString,
+          response_serializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__export__pb2.ExportToS3Response.SerializeToString,
       ),
   }
   generic_handler = grpc.method_handlers_generic_handler(
