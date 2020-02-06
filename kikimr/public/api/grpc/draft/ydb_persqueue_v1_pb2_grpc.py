@@ -15,10 +15,10 @@ class PersQueueServiceStub(object):
     Args:
       channel: A grpc.Channel.
     """
-    self.CreateWriteSession = channel.stream_stream(
-        '/Ydb.PersQueue.V1.PersQueueService/CreateWriteSession',
-        request_serializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.WriteSessionRequest.SerializeToString,
-        response_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.WriteSessionResponse.FromString,
+    self.StreamingWrite = channel.stream_stream(
+        '/Ydb.PersQueue.V1.PersQueueService/StreamingWrite',
+        request_serializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.StreamingWriteClientMessage.SerializeToString,
+        response_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.StreamingWriteServerMessage.FromString,
         )
     self.CreateReadSession = channel.stream_stream(
         '/Ydb.PersQueue.V1.PersQueueService/CreateReadSession',
@@ -36,7 +36,7 @@ class PersQueueServiceServicer(object):
   # missing associated documentation comment in .proto file
   pass
 
-  def CreateWriteSession(self, request_iterator, context):
+  def StreamingWrite(self, request_iterator, context):
     """*
     Creates Write Session
     Pipeline:
@@ -96,7 +96,6 @@ class PersQueueServiceServicer(object):
     <----------------
     issue(description, ...)
     <----------------
-
     """
     context.set_code(grpc.StatusCode.UNIMPLEMENTED)
     context.set_details('Method not implemented!')
@@ -112,10 +111,10 @@ class PersQueueServiceServicer(object):
 
 def add_PersQueueServiceServicer_to_server(servicer, server):
   rpc_method_handlers = {
-      'CreateWriteSession': grpc.stream_stream_rpc_method_handler(
-          servicer.CreateWriteSession,
-          request_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.WriteSessionRequest.FromString,
-          response_serializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.WriteSessionResponse.SerializeToString,
+      'StreamingWrite': grpc.stream_stream_rpc_method_handler(
+          servicer.StreamingWrite,
+          request_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.StreamingWriteClientMessage.FromString,
+          response_serializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.StreamingWriteServerMessage.SerializeToString,
       ),
       'CreateReadSession': grpc.stream_stream_rpc_method_handler(
           servicer.CreateReadSession,
