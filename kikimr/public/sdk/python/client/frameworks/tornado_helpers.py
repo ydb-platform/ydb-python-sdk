@@ -14,7 +14,7 @@ def as_tornado_future(foreign_future, timeout=None):
     Cancel execution original future after given timeout
     """
     result_future = tornado.concurrent.Future()
-    timeout_timer = None
+    timeout_timer = []
     if timeout:
 
         def on_timeout():
