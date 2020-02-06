@@ -16,9 +16,9 @@ def bad_session_handler(func):
 @bad_session_handler
 def wrap_prepare_query_response(rpc_state, response_pb, session_state, yql_text):
     session_state.complete_query()
-    issues._process_response(response_pb)
+    issues._process_response(response_pb.operation)
     message = _apis.ydb_table.PrepareQueryResult()
-    response_pb.result.Unpack(message)
+    response_pb.operation.result.Unpack(message)
     data_query = types.DataQuery(yql_text, message.parameters_types)
     session_state.keep(data_query, message.query_id)
     return data_query
@@ -51,18 +51,18 @@ class _ExplainResponse(object):
 
 def wrap_explain_response(rpc_state, response_pb, session_state):
     session_state.complete_query()
-    issues._process_response(response_pb)
+    issues._process_response(response_pb.operation)
     message = _apis.ydb_table.ExplainQueryResult()
-    response_pb.result.Unpack(message)
+    response_pb.operation.result.Unpack(message)
     return _ExplainResponse(message.query_ast, message.query_plan)
 
 
 @bad_session_handler
 def wrap_execute_scheme_result(rpc_state, response_pb, session_state):
     session_state.complete_query()
-    issues._process_response(response_pb)
+    issues._process_response(response_pb.operation)
     message = _apis.ydb_table.ExecuteQueryResult()
-    response_pb.result.Unpack(message)
+    response_pb.operation.result.Unpack(message)
     return convert.ResultSets(message.result_sets)
 
 
@@ -74,9 +74,9 @@ def execute_scheme_request_factory(session_state, yql_text):
 
 @bad_session_handler
 def wrap_describe_table_response(rpc_state, response_pb, sesssion_state, scheme_entry_cls):
-    issues._process_response(response_pb)
+    issues._process_response(response_pb.operation)
     message = _apis.ydb_table.DescribeTableResult()
-    response_pb.result.Unpack(message)
+    response_pb.operation.result.Unpack(message)
     return scheme._wrap_scheme_entry(
         message.self,
         scheme_entry_cls,
@@ -115,16 +115,16 @@ def keep_alive_request_factory(session_state):
 
 @bad_session_handler
 def cleanup_session(rpc_state, response_pb, session_state, session):
-    issues._process_response(response_pb)
+    issues._process_response(response_pb.operation)
     session_state.reset()
     return session
 
 
 @bad_session_handler
 def initialize_session(rpc_state, response_pb, session_state, session):
-    issues._process_response(response_pb)
+    issues._process_response(response_pb.operation)
     message = _apis.ydb_table.CreateSessionResult()
-    response_pb.result.Unpack(message)
+    response_pb.operation.result.Unpack(message)
     session_state.set_id(message.session_id).attach_endpoint(rpc_state.endpoint)
     return session
 
@@ -136,7 +136,7 @@ def wrap_operation(rpc_state, response_pb, session_state):
 
 @bad_session_handler
 def wrap_keep_alive_response(rpc_state, response_pb, session_state, session):
-    issues._process_response(response_pb)
+    issues._process_response(response_pb.operation)
     return session
 
 

@@ -39,7 +39,7 @@ def wrap_tx_factory_handler(func):
 @reset_tx_id_handler
 def wrap_result_on_rollback_or_commit_tx(rpc_state, response_pb, session_state, tx_state, tx):
     session_state.complete_query()
-    issues._process_response(response_pb)
+    issues._process_response(response_pb.operation)
     # transaction successfully committed or rolled back
     tx_state.tx_id = None
     return tx
@@ -48,9 +48,9 @@ def wrap_result_on_rollback_or_commit_tx(rpc_state, response_pb, session_state, 
 @_session_impl.bad_session_handler
 def wrap_tx_begin_response(rpc_state, response_pb, session_state, tx_state, tx):
     session_state.complete_query()
-    issues._process_response(response_pb)
+    issues._process_response(response_pb.operation)
     message = _apis.ydb_table.BeginTransactionResult()
-    response_pb.result.Unpack(message)
+    response_pb.operation.result.Unpack(message)
     tx_state.tx_id = message.tx_meta.id
     return tx
 
@@ -145,9 +145,9 @@ def execute_request_factory(session_state, tx_state, query, parameters, commit_t
 @not_found_handler
 def wrap_result_and_tx_id(rpc_state, response_pb, session_state, tx_state, query):
     session_state.complete_query()
-    issues._process_response(response_pb)
+    issues._process_response(response_pb.operation)
     message = _apis.ydb_table.ExecuteQueryResult()
-    response_pb.result.Unpack(message)
+    response_pb.operation.result.Unpack(message)
     if message.query_meta.id:
         session_state.keep(
             query,

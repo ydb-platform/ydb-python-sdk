@@ -104,7 +104,7 @@ def _on_response_callback(rpc_state, call_state_unref, wrap_result=None, on_disc
         logger.debug("%s: on response callback started", rpc_state)
         response = rpc_state.response_future.result()
         _log_response(rpc_state, response)
-        response = response if wrap_result is None else wrap_result(rpc_state, response.operation, *wrap_args)
+        response = response if wrap_result is None else wrap_result(rpc_state, response, *wrap_args)
         rpc_state.result_future.set_result(response)
         logger.debug("%s: on response callback success", rpc_state)
     except grpc.FutureCancelledError as e:
@@ -346,7 +346,7 @@ class Connection(object):
         try:
             response = rpc_state(request, timeout, metadata)
             _log_response(rpc_state, response)
-            return response if wrap_result is None else wrap_result(rpc_state, response.operation, *wrap_args)
+            return response if wrap_result is None else wrap_result(rpc_state, response, *wrap_args)
         except grpc.RpcError as rpc_error:
             raise _rpc_error_handler(rpc_state, rpc_error, on_disconnected)
         finally:
