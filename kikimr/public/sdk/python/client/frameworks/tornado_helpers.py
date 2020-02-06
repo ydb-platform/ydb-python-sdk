@@ -14,26 +14,25 @@ def as_tornado_future(foreign_future, timeout=None):
     Cancel execution original future after given timeout
     """
     result_future = tornado.concurrent.Future()
-    timeout_timer = []
+    timeout_timer = set()
     if timeout:
 
         def on_timeout():
             timeout_timer.clear()
             foreign_future.cancel()
 
-        timeout_timer.append(
+        timeout_timer.add(
             tornado.ioloop.IOLoop.current().call_later(
                 timeout, on_timeout
             )
         )
 
     def copy_to_result_future(foreign_future):
-        if timeout_timer is not None:
-            tornado.ioloop.IOLoop.current().remove_timeout(
-                timeout_timer.pop(
-                    0
-                )
-            )
+        try:
+            to_remove = timeout_timer.pop()
+            tornado.ioloop.IOLoop.current().remove_timeout(to_remove)
+        except KeyError:
+            pass
 
         if result_future.done():
             return
