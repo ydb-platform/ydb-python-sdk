@@ -38,11 +38,6 @@ def wrap_async_call_exceptions(f):
     return decorator
 
 
-def reply_with_result(f, result):
-    if not f.done():
-        f.set_result(result)
-
-
 def get_query_hash(yql_text):
     try:
         return hashlib.sha256(six.text_type(yql_text, 'utf-8').encode('utf-8')).hexdigest()
