@@ -21,7 +21,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='kikimr/public/api/protos/ydb_export.proto',
   package='Ydb.Export',
   syntax='proto3',
-  serialized_pb=_b('\n)kikimr/public/api/protos/ydb_export.proto\x12\nYdb.Export\x1a\x34kikimr/public/api/protos/validation/validation.proto\x1a,kikimr/public/api/protos/ydb_operation.proto\"\xb1\x01\n\x0e\x45xportProgress\"\x9e\x01\n\x08Progress\x12\x18\n\x14PROGRESS_UNSPECIFIED\x10\x00\x12\x16\n\x12PROGRESS_PREPARING\x10\x01\x12\x1a\n\x16PROGRESS_TRANSFER_DATA\x10\x02\x12\x11\n\rPROGRESS_DONE\x10\x03\x12\x19\n\x15PROGRESS_CANCELLATION\x10\x04\x12\x16\n\x12PROGRESS_CANCELLED\x10\x05\"\x83\x02\n\x12\x45xportToYtSettings\x12\x12\n\x04host\x18\x01 \x01(\tB\x04\x90\xe6*\x01\x12\x0c\n\x04port\x18\x02 \x01(\r\x12\x13\n\x05token\x18\x03 \x01(\tB\x04\x90\xe6*\x01\x12:\n\x05items\x18\x04 \x03(\x0b\x32#.Ydb.Export.ExportToYtSettings.ItemB\x06\x9a\xe6*\x02(\x01\x12\x1c\n\x0b\x64\x65scription\x18\x05 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x01\x12\x19\n\x11number_of_retries\x18\x06 \x01(\r\x1a\x41\n\x04Item\x12\x19\n\x0bsource_path\x18\x01 \x01(\tB\x04\x90\xe6*\x01\x12\x1e\n\x10\x64\x65stination_path\x18\x02 \x01(\tB\x04\x90\xe6*\x01\"\x12\n\x10\x45xportToYtResult\"}\n\x12\x45xportToYtMetadata\x12\x30\n\x08settings\x18\x01 \x01(\x0b\x32\x1e.Ydb.Export.ExportToYtSettings\x12\x35\n\x08progress\x18\x02 \x01(\x0e\x32#.Ydb.Export.ExportProgress.Progress\"\x86\x01\n\x11\x45xportToYtRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x36\n\x08settings\x18\x02 \x01(\x0b\x32\x1e.Ydb.Export.ExportToYtSettingsB\x04\x90\xe6*\x01\"B\n\x12\x45xportToYtResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\xfc\x02\n\x12\x45xportToS3Settings\x12\x16\n\x08\x65ndpoint\x18\x01 \x01(\tB\x04\x90\xe6*\x01\x12\x35\n\x06scheme\x18\x02 \x01(\x0e\x32%.Ydb.Export.ExportToS3Settings.Scheme\x12\x14\n\x06\x62ucket\x18\x03 \x01(\tB\x04\x90\xe6*\x01\x12\x18\n\naccess_key\x18\x04 \x01(\tB\x04\x90\xe6*\x01\x12\x18\n\nsecret_key\x18\x05 \x01(\tB\x04\x90\xe6*\x01\x12:\n\x05items\x18\x06 \x03(\x0b\x32#.Ydb.Export.ExportToS3Settings.ItemB\x06\x9a\xe6*\x02(\x01\x12\x1c\n\x0b\x64\x65scription\x18\x07 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x01\x1a\x43\n\x04Item\x12\x19\n\x0bsource_path\x18\x01 \x01(\tB\x04\x90\xe6*\x01\x12 \n\x12\x64\x65stination_prefix\x18\x02 \x01(\tB\x04\x90\xe6*\x01\".\n\x06Scheme\x12\x0f\n\x0bUNSPECIFIED\x10\x00\x12\x08\n\x04HTTP\x10\x01\x12\t\n\x05HTTPS\x10\x02\"\x12\n\x10\x45xportToS3Result\"}\n\x12\x45xportToS3Metadata\x12\x30\n\x08settings\x18\x01 \x01(\x0b\x32\x1e.Ydb.Export.ExportToS3Settings\x12\x35\n\x08progress\x18\x02 \x01(\x0e\x32#.Ydb.Export.ExportProgress.Progress\"\x86\x01\n\x11\x45xportToS3Request\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x36\n\x08settings\x18\x02 \x01(\x0b\x32\x1e.Ydb.Export.ExportToS3SettingsB\x04\x90\xe6*\x01\"B\n\x12\x45xportToS3Response\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.OperationB\x1a\n\x15\x63om.yandex.ydb.export\xf8\x01\x01\x62\x06proto3')
+  serialized_pb=_b('\n)kikimr/public/api/protos/ydb_export.proto\x12\nYdb.Export\x1a\x34kikimr/public/api/protos/validation/validation.proto\x1a,kikimr/public/api/protos/ydb_operation.proto\"\xb1\x01\n\x0e\x45xportProgress\"\x9e\x01\n\x08Progress\x12\x18\n\x14PROGRESS_UNSPECIFIED\x10\x00\x12\x16\n\x12PROGRESS_PREPARING\x10\x01\x12\x1a\n\x16PROGRESS_TRANSFER_DATA\x10\x02\x12\x11\n\rPROGRESS_DONE\x10\x03\x12\x19\n\x15PROGRESS_CANCELLATION\x10\x04\x12\x16\n\x12PROGRESS_CANCELLED\x10\x05\"\x83\x02\n\x12\x45xportToYtSettings\x12\x12\n\x04host\x18\x01 \x01(\tB\x04\x90\xe6*\x01\x12\x0c\n\x04port\x18\x02 \x01(\r\x12\x13\n\x05token\x18\x03 \x01(\tB\x04\x90\xe6*\x01\x12:\n\x05items\x18\x04 \x03(\x0b\x32#.Ydb.Export.ExportToYtSettings.ItemB\x06\x9a\xe6*\x02(\x01\x12\x1c\n\x0b\x64\x65scription\x18\x05 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x01\x12\x19\n\x11number_of_retries\x18\x06 \x01(\r\x1a\x41\n\x04Item\x12\x19\n\x0bsource_path\x18\x01 \x01(\tB\x04\x90\xe6*\x01\x12\x1e\n\x10\x64\x65stination_path\x18\x02 \x01(\tB\x04\x90\xe6*\x01\"\x12\n\x10\x45xportToYtResult\"}\n\x12\x45xportToYtMetadata\x12\x30\n\x08settings\x18\x01 \x01(\x0b\x32\x1e.Ydb.Export.ExportToYtSettings\x12\x35\n\x08progress\x18\x02 \x01(\x0e\x32#.Ydb.Export.ExportProgress.Progress\"\x86\x01\n\x11\x45xportToYtRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x36\n\x08settings\x18\x02 \x01(\x0b\x32\x1e.Ydb.Export.ExportToYtSettingsB\x04\x90\xe6*\x01\"B\n\x12\x45xportToYtResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\x97\x03\n\x12\x45xportToS3Settings\x12\x16\n\x08\x65ndpoint\x18\x01 \x01(\tB\x04\x90\xe6*\x01\x12\x35\n\x06scheme\x18\x02 \x01(\x0e\x32%.Ydb.Export.ExportToS3Settings.Scheme\x12\x14\n\x06\x62ucket\x18\x03 \x01(\tB\x04\x90\xe6*\x01\x12\x18\n\naccess_key\x18\x04 \x01(\tB\x04\x90\xe6*\x01\x12\x18\n\nsecret_key\x18\x05 \x01(\tB\x04\x90\xe6*\x01\x12:\n\x05items\x18\x06 \x03(\x0b\x32#.Ydb.Export.ExportToS3Settings.ItemB\x06\x9a\xe6*\x02(\x01\x12\x1c\n\x0b\x64\x65scription\x18\x07 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x01\x12\x19\n\x11number_of_retries\x18\x08 \x01(\r\x1a\x43\n\x04Item\x12\x19\n\x0bsource_path\x18\x01 \x01(\tB\x04\x90\xe6*\x01\x12 \n\x12\x64\x65stination_prefix\x18\x02 \x01(\tB\x04\x90\xe6*\x01\".\n\x06Scheme\x12\x0f\n\x0bUNSPECIFIED\x10\x00\x12\x08\n\x04HTTP\x10\x01\x12\t\n\x05HTTPS\x10\x02\"\x12\n\x10\x45xportToS3Result\"}\n\x12\x45xportToS3Metadata\x12\x30\n\x08settings\x18\x01 \x01(\x0b\x32\x1e.Ydb.Export.ExportToS3Settings\x12\x35\n\x08progress\x18\x02 \x01(\x0e\x32#.Ydb.Export.ExportProgress.Progress\"\x86\x01\n\x11\x45xportToS3Request\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x36\n\x08settings\x18\x02 \x01(\x0b\x32\x1e.Ydb.Export.ExportToS3SettingsB\x04\x90\xe6*\x01\"B\n\x12\x45xportToS3Response\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.OperationB\x1a\n\x15\x63om.yandex.ydb.export\xf8\x01\x01\x62\x06proto3')
   ,
   dependencies=[kikimr_dot_public_dot_api_dot_protos_dot_validation_dot_validation__pb2.DESCRIPTOR,kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2.DESCRIPTOR,])
 
@@ -86,8 +86,8 @@ _EXPORTTOS3SETTINGS_SCHEME = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=1286,
-  serialized_end=1332,
+  serialized_start=1313,
+  serialized_end=1359,
 )
 _sym_db.RegisterEnumDescriptor(_EXPORTTOS3SETTINGS_SCHEME)
 
@@ -384,8 +384,8 @@ _EXPORTTOS3SETTINGS_ITEM = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1217,
-  serialized_end=1284,
+  serialized_start=1244,
+  serialized_end=1311,
 )
 
 _EXPORTTOS3SETTINGS = _descriptor.Descriptor(
@@ -444,6 +444,13 @@ _EXPORTTOS3SETTINGS = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=_descriptor._ParseOptions(descriptor_pb2.FieldOptions(), _b('\242\346*\003\030\200\001'))),
+    _descriptor.FieldDescriptor(
+      name='number_of_retries', full_name='Ydb.Export.ExportToS3Settings.number_of_retries', index=7,
+      number=8, type=13, cpp_type=3, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
   ],
   extensions=[
   ],
@@ -458,7 +465,7 @@ _EXPORTTOS3SETTINGS = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=952,
-  serialized_end=1332,
+  serialized_end=1359,
 )
 
 
@@ -481,8 +488,8 @@ _EXPORTTOS3RESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1334,
-  serialized_end=1352,
+  serialized_start=1361,
+  serialized_end=1379,
 )
 
 
@@ -519,8 +526,8 @@ _EXPORTTOS3METADATA = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1354,
-  serialized_end=1479,
+  serialized_start=1381,
+  serialized_end=1506,
 )
 
 
@@ -557,8 +564,8 @@ _EXPORTTOS3REQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1482,
-  serialized_end=1616,
+  serialized_start=1509,
+  serialized_end=1643,
 )
 
 
@@ -588,8 +595,8 @@ _EXPORTTOS3RESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1618,
-  serialized_end=1684,
+  serialized_start=1645,
+  serialized_end=1711,
 )
 
 _EXPORTPROGRESS_PROGRESS.containing_type = _EXPORTPROGRESS
