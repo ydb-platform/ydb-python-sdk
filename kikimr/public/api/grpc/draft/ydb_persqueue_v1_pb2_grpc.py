@@ -20,10 +20,10 @@ class PersQueueServiceStub(object):
         request_serializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.StreamingWriteClientMessage.SerializeToString,
         response_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.StreamingWriteServerMessage.FromString,
         )
-    self.CreateReadSession = channel.stream_stream(
-        '/Ydb.PersQueue.V1.PersQueueService/CreateReadSession',
-        request_serializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.ReadSessionRequest.SerializeToString,
-        response_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.ReadSessionResponse.FromString,
+    self.StreamingRead = channel.stream_stream(
+        '/Ydb.PersQueue.V1.PersQueueService/StreamingRead',
+        request_serializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.StreamingReadClientMessage.SerializeToString,
+        response_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.StreamingReadServerMessage.FromString,
         )
     self.GetReadSessionsInfo = channel.unary_unary(
         '/Ydb.PersQueue.V1.PersQueueService/GetReadSessionsInfo',
@@ -63,7 +63,7 @@ class PersQueueServiceServicer(object):
     context.set_details('Method not implemented!')
     raise NotImplementedError('Method not implemented!')
 
-  def CreateReadSession(self, request_iterator, context):
+  def StreamingRead(self, request_iterator, context):
     """*
     Creates Read Session
     Pipeline:
@@ -116,10 +116,10 @@ def add_PersQueueServiceServicer_to_server(servicer, server):
           request_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.StreamingWriteClientMessage.FromString,
           response_serializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.StreamingWriteServerMessage.SerializeToString,
       ),
-      'CreateReadSession': grpc.stream_stream_rpc_method_handler(
-          servicer.CreateReadSession,
-          request_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.ReadSessionRequest.FromString,
-          response_serializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.ReadSessionResponse.SerializeToString,
+      'StreamingRead': grpc.stream_stream_rpc_method_handler(
+          servicer.StreamingRead,
+          request_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.StreamingReadClientMessage.FromString,
+          response_serializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.StreamingReadServerMessage.SerializeToString,
       ),
       'GetReadSessionsInfo': grpc.unary_unary_rpc_method_handler(
           servicer.GetReadSessionsInfo,

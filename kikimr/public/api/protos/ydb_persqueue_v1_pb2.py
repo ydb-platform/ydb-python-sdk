@@ -22,11 +22,79 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='kikimr/public/api/protos/ydb_persqueue_v1.proto',
   package='Ydb.PersQueue.V1',
   syntax='proto3',
-  serialized_pb=_b('\n/kikimr/public/api/protos/ydb_persqueue_v1.proto\x12\x10Ydb.PersQueue.V1\x1a,kikimr/public/api/protos/ydb_operation.proto\x1a/kikimr/public/api/protos/ydb_status_codes.proto\x1a\x30kikimr/public/api/protos/ydb_issue_message.proto\"~\n\x10SessionMetaValue\x12<\n\x05value\x18\x01 \x03(\x0b\x32-.Ydb.PersQueue.V1.SessionMetaValue.ValueEntry\x1a,\n\nValueEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\"8\n\x0cOffsetsRange\x12\x14\n\x0cstart_offset\x18\x01 \x01(\x03\x12\x12\n\nend_offset\x18\x02 \x01(\x03\"\xd9\x06\n\x1bStreamingWriteClientMessage\x12Q\n\x0cinit_request\x18\x01 \x01(\x0b\x32\x39.Ydb.PersQueue.V1.StreamingWriteClientMessage.InitRequestH\x00\x12S\n\rwrite_request\x18\x02 \x01(\x0b\x32:.Ydb.PersQueue.V1.StreamingWriteClientMessage.WriteRequestH\x00\x12\r\n\x05token\x18\x14 \x01(\t\x1a\xf7\x02\n\x0bInitRequest\x12\r\n\x05topic\x18\x01 \x01(\t\x12\x18\n\x10message_group_id\x18\x02 \x01(\t\x12`\n\x0csession_meta\x18\x03 \x03(\x0b\x32J.Ydb.PersQueue.V1.StreamingWriteClientMessage.InitRequest.SessionMetaEntry\x12\x1a\n\x12partition_group_id\x18\x04 \x01(\x03\x12*\n\"max_supported_block_format_version\x18\x05 \x01(\x03\x12\x12\n\nsession_id\x18\x64 \x01(\t\x12\x1a\n\x12\x63onnection_attempt\x18\x65 \x01(\x03\x12\x17\n\x0f\x63onnection_meta\x18\x66 \x01(\x0c\x12\x18\n\x0fidle_timeout_ms\x18\xc8\x01 \x01(\x03\x1a\x32\n\x10SessionMetaEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\x1a\xf6\x01\n\x0cWriteRequest\x12\x18\n\x10sequence_numbers\x18\x02 \x03(\x03\x12\x15\n\rcreated_at_ms\x18\x03 \x03(\x03\x12\x12\n\nsent_at_ms\x18\x04 \x03(\x03\x12\x15\n\rmessage_sizes\x18\x05 \x03(\x03\x12\x16\n\x0e\x62locks_offsets\x18\x06 \x03(\x03\x12\x1b\n\x13\x62locks_part_numbers\x18\x07 \x03(\x03\x12\x1d\n\x15\x62locks_message_counts\x18\x0f \x03(\x03\x12!\n\x19\x62locks_uncompressed_sizes\x18\t \x03(\x03\x12\x13\n\x0b\x62locks_data\x18\n \x03(\x0c\x42\x10\n\x0e\x63lient_message\"\x99\x07\n\x1bStreamingWriteServerMessage\x12S\n\rinit_response\x18\x03 \x01(\x0b\x32:.Ydb.PersQueue.V1.StreamingWriteServerMessage.InitResponseH\x00\x12`\n\x14\x62\x61tch_write_response\x18\x04 \x01(\x0b\x32@.Ydb.PersQueue.V1.StreamingWriteServerMessage.BatchWriteResponseH\x00\x12)\n\x06status\x18\x01 \x01(\x0e\x32\x19.Ydb.StatusIds.StatusCode\x12\'\n\x06issues\x18\x02 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessage\x1a\xe4\x01\n\x0cInitResponse\x12\x1c\n\x14last_sequence_number\x18\x01 \x01(\x03\x12\x12\n\nsession_id\x18\x02 \x01(\t\x12\r\n\x05topic\x18\x03 \x01(\t\x12\x0f\n\x07\x63luster\x18\x04 \x01(\t\x12\x14\n\x0cpartition_id\x18\x05 \x01(\x03\x12\x1c\n\x14\x62lock_format_version\x18\x06 \x01(\x03\x12\x1d\n\x15max_flush_window_size\x18\x07 \x01(\x03\x12\x16\n\x0emax_block_size\x18\x08 \x01(\x03\x12\x17\n\x0f\x63onnection_meta\x18\t \x01(\x0c\x1a\xc7\x01\n\x12\x42\x61tchWriteResponse\x12\x18\n\x10sequence_numbers\x18\x01 \x03(\x03\x12\x0f\n\x07offsets\x18\x02 \x03(\x03\x12\x17\n\x0f\x61lready_written\x18\x03 \x03(\x08\x12\x14\n\x0cpartition_id\x18\x04 \x01(\x03\x12W\n\x10write_statistics\x18\x05 \x01(\x0b\x32=.Ydb.PersQueue.V1.StreamingWriteServerMessage.WriteStatistics\x1a\xab\x01\n\x0fWriteStatistics\x12\x1b\n\x13persist_duration_ms\x18\x01 \x01(\x03\x12\'\n\x1fqueued_in_partition_duration_ms\x18\x02 \x01(\x03\x12*\n\"throttled_on_partition_duration_ms\x18\x03 \x01(\x03\x12&\n\x1ethrottled_on_topic_duration_ms\x18\x04 \x01(\x03\x42\x10\n\x0eserver_message\"\x14\n\x04Path\x12\x0c\n\x04path\x18\x01 \x01(\t\"&\n\x08KeyValue\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t\"x\n\nReadParams\x12\x1f\n\x17max_read_messages_count\x18\x01 \x01(\r\x12\x15\n\rmax_read_size\x18\x02 \x01(\r\x12\x17\n\x0fmax_time_lag_ms\x18\x03 \x01(\r\x12\x19\n\x11read_timestamp_ms\x18\x04 \x01(\x04\";\n\x0c\x43ommitCookie\x12\x11\n\tassign_id\x18\x01 \x01(\x04\x12\x18\n\x10partition_cookie\x18\x02 \x01(\x04\"\x95\n\n\x12ReadSessionRequest\x12\x39\n\x04init\x18\x01 \x01(\x0b\x32).Ydb.PersQueue.V1.ReadSessionRequest.InitH\x00\x12\x39\n\x04read\x18\x02 \x01(\x0b\x32).Ydb.PersQueue.V1.ReadSessionRequest.ReadH\x00\x12\x44\n\nstart_read\x18\x03 \x01(\x0b\x32..Ydb.PersQueue.V1.ReadSessionRequest.StartReadH\x00\x12=\n\x06\x63ommit\x18\x04 \x01(\x0b\x32+.Ydb.PersQueue.V1.ReadSessionRequest.CommitH\x00\x12\x41\n\x08released\x18\x05 \x01(\x0b\x32-.Ydb.PersQueue.V1.ReadSessionRequest.ReleasedH\x00\x12=\n\x06status\x18\x06 \x01(\x0b\x32+.Ydb.PersQueue.V1.ReadSessionRequest.StatusH\x00\x12\r\n\x05token\x18\x14 \x01(\x0c\x1a\x9e\x03\n\x04Init\x12?\n\x06topics\x18\x01 \x03(\x0b\x32/.Ydb.PersQueue.V1.ReadSessionRequest.Init.Topic\x12\x1a\n\x12read_only_original\x18\x02 \x01(\x08\x12(\n\x08\x63onsumer\x18\x03 \x01(\x0b\x32\x16.Ydb.PersQueue.V1.Path\x12\"\n\x1amanual_partition_assigning\x18\x04 \x01(\x08\x12\x18\n\x10\x66orceful_balance\x18\x05 \x01(\x08\x12\x31\n\x0bread_params\x18\x06 \x01(\x0b\x32\x1c.Ydb.PersQueue.V1.ReadParams\x12!\n\x19max_read_partitions_count\x18\x07 \x01(\r\x12\x17\n\x0f\x64isable_commits\x18\x08 \x01(\x08\x1a\x62\n\x05Topic\x12$\n\x04path\x18\x01 \x01(\x0b\x32\x16.Ydb.PersQueue.V1.Path\x12\x18\n\x10partition_groups\x18\x02 \x03(\r\x12\x19\n\x11read_timestamp_ms\x18\x03 \x01(\x04\x1a\x06\n\x04Read\x1a\xb1\x01\n\tStartRead\x12%\n\x05topic\x18\x01 \x01(\x0b\x32\x16.Ydb.PersQueue.V1.Path\x12\x0f\n\x07\x63luster\x18\x02 \x01(\t\x12\x11\n\tpartition\x18\x03 \x01(\x04\x12\x11\n\tassign_id\x18\x05 \x01(\x04\x12\x13\n\x0bread_offset\x18\x06 \x01(\x04\x12\x15\n\rcommit_offset\x18\x07 \x01(\x04\x12\x1a\n\x12verify_read_offset\x18\x08 \x01(\x08\x1ah\n\x08Released\x12%\n\x05topic\x18\x01 \x01(\x0b\x32\x16.Ydb.PersQueue.V1.Path\x12\x0f\n\x07\x63luster\x18\x02 \x01(\t\x12\x11\n\tpartition\x18\x03 \x01(\x04\x12\x11\n\tassign_id\x18\x05 \x01(\x04\x1a\x39\n\x06\x43ommit\x12/\n\x07\x63ookies\x18\x01 \x03(\x0b\x32\x1e.Ydb.PersQueue.V1.CommitCookie\x1a\x66\n\x06Status\x12%\n\x05topic\x18\x01 \x01(\x0b\x32\x16.Ydb.PersQueue.V1.Path\x12\x0f\n\x07\x63luster\x18\x02 \x01(\t\x12\x11\n\tpartition\x18\x03 \x01(\x04\x12\x11\n\tassign_id\x18\x05 \x01(\x04\x42\t\n\x07request\"\xe9\r\n\x13ReadSessionResponse\x12)\n\x06status\x18\x01 \x01(\x0e\x32\x19.Ydb.StatusIds.StatusCode\x12\'\n\x06issues\x18\x02 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessage\x12>\n\x06inited\x18\x03 \x01(\x0b\x32,.Ydb.PersQueue.V1.ReadSessionResponse.InitedH\x00\x12\x45\n\ndata_batch\x18\x04 \x01(\x0b\x32/.Ydb.PersQueue.V1.ReadSessionResponse.DataBatchH\x00\x12\x42\n\x08\x61ssigned\x18\x05 \x01(\x0b\x32..Ydb.PersQueue.V1.ReadSessionResponse.AssignedH\x00\x12@\n\x07release\x18\x06 \x01(\x0b\x32-.Ydb.PersQueue.V1.ReadSessionResponse.ReleaseH\x00\x12\x44\n\tcommitted\x18\x07 \x01(\x0b\x32/.Ydb.PersQueue.V1.ReadSessionResponse.CommittedH\x00\x12Q\n\x10partition_status\x18\x08 \x01(\x0b\x32\x35.Ydb.PersQueue.V1.ReadSessionResponse.PartitionStatusH\x00\x1a\x1c\n\x06Inited\x12\x12\n\nsession_id\x18\x02 \x01(\t\x1a\x91\x01\n\x08\x41ssigned\x12%\n\x05topic\x18\x01 \x01(\x0b\x32\x16.Ydb.PersQueue.V1.Path\x12\x0f\n\x07\x63luster\x18\x02 \x01(\t\x12\x11\n\tpartition\x18\x03 \x01(\x04\x12\x11\n\tassign_id\x18\x05 \x01(\x04\x12\x13\n\x0bread_offset\x18\x06 \x01(\x04\x12\x12\n\nend_offset\x18\x07 \x01(\x04\x1a\x98\x01\n\x07Release\x12%\n\x05topic\x18\x01 \x01(\x0b\x32\x16.Ydb.PersQueue.V1.Path\x12\x0f\n\x07\x63luster\x18\x02 \x01(\t\x12\x11\n\tpartition\x18\x03 \x01(\x04\x12\x11\n\tassign_id\x18\x05 \x01(\x04\x12\x18\n\x10\x66orceful_release\x18\x06 \x01(\x08\x12\x15\n\rcommit_offset\x18\x07 \x01(\x04\x1a<\n\tCommitted\x12/\n\x07\x63ookies\x18\x01 \x03(\x0b\x32\x1e.Ydb.PersQueue.V1.CommitCookie\x1a\x84\x05\n\tDataBatch\x12U\n\x0epartition_data\x18\x01 \x03(\x0b\x32=.Ydb.PersQueue.V1.ReadSessionResponse.DataBatch.PartitionData\x1ag\n\x0bMessageData\x12\x0e\n\x06offset\x18\x01 \x01(\x04\x12\x0e\n\x06seq_no\x18\x02 \x01(\x04\x12\x1b\n\x13\x63reate_timestamp_ms\x18\x03 \x01(\x04\x12\r\n\x05\x63odec\x18\x04 \x01(\t\x12\x0c\n\x04\x64\x61ta\x18\x05 \x01(\x0c\x1a\xc7\x01\n\x05\x42\x61tch\x12\x11\n\tsource_id\x18\x02 \x01(\x0c\x12\x30\n\x0c\x65xtra_fields\x18\x03 \x03(\x0b\x32\x1a.Ydb.PersQueue.V1.KeyValue\x12\x1a\n\x12write_timestamp_ms\x18\x04 \x01(\x04\x12\n\n\x02ip\x18\x05 \x01(\t\x12Q\n\x0cmessage_data\x18\x01 \x03(\x0b\x32;.Ydb.PersQueue.V1.ReadSessionResponse.DataBatch.MessageData\x1a\xec\x01\n\rPartitionData\x12%\n\x05topic\x18\x01 \x01(\x0b\x32\x16.Ydb.PersQueue.V1.Path\x12\x0f\n\x07\x63luster\x18\x02 \x01(\t\x12\x11\n\tpartition\x18\x03 \x01(\x04\x12\x46\n\x07\x62\x61tches\x18\x04 \x03(\x0b\x32\x35.Ydb.PersQueue.V1.ReadSessionResponse.DataBatch.Batch\x12.\n\x06\x63ookie\x18\x05 \x01(\x0b\x32\x1e.Ydb.PersQueue.V1.CommitCookie\x12\x18\n\x10\x64\x65precated_topic\x18\n \x01(\t\x1a\xb9\x01\n\x0fPartitionStatus\x12%\n\x05topic\x18\x01 \x01(\x0b\x32\x16.Ydb.PersQueue.V1.Path\x12\x0f\n\x07\x63luster\x18\x02 \x01(\t\x12\x11\n\tpartition\x18\x03 \x01(\x04\x12\x11\n\tassign_id\x18\x05 \x01(\x04\x12\x18\n\x10\x63ommitted_offset\x18\x06 \x01(\x04\x12\x12\n\nend_offset\x18\x07 \x01(\x04\x12\x1a\n\x12write_watermark_ms\x18\x08 \x01(\x04\x42\n\n\x08response\"\xb9\x01\n\x0fReadInfoRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12&\n\x06topics\x18\x02 \x03(\x0b\x32\x16.Ydb.PersQueue.V1.Path\x12\x19\n\x11get_only_original\x18\x03 \x01(\x08\x12(\n\x08\x63onsumer\x18\x04 \x01(\x0b\x32\x16.Ydb.PersQueue.V1.Path\"@\n\x10ReadInfoResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\xa1\x06\n\x0eReadInfoResult\x12:\n\x06topics\x18\x01 \x03(\x0b\x32*.Ydb.PersQueue.V1.ReadInfoResult.TopicInfo\x1a\xd2\x05\n\tTopicInfo\x12%\n\x05topic\x18\x01 \x01(\x0b\x32\x16.Ydb.PersQueue.V1.Path\x12\x0f\n\x07\x63luster\x18\x02 \x01(\t\x12)\n\x06status\x18\x03 \x01(\x0e\x32\x19.Ydb.StatusIds.StatusCode\x12\'\n\x06issues\x18\x04 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessage\x12L\n\npartitions\x18\x05 \x03(\x0b\x32\x38.Ydb.PersQueue.V1.ReadInfoResult.TopicInfo.PartitionInfo\x1a\xea\x03\n\rPartitionInfo\x12\x11\n\tpartition\x18\x01 \x01(\x04\x12)\n\x06status\x18\x02 \x01(\x0e\x32\x19.Ydb.StatusIds.StatusCode\x12\'\n\x06issues\x18\x03 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessage\x12\x14\n\x0cstart_offset\x18\x04 \x01(\x04\x12\x12\n\nend_offset\x18\x05 \x01(\x04\x12\x15\n\rcommit_offset\x18\x06 \x01(\x04\x12\x1a\n\x12\x63ommit_time_lag_ms\x18\x07 \x01(\x04\x12\x13\n\x0bread_offset\x18\x08 \x01(\x04\x12\x18\n\x10read_time_lag_ms\x18\t \x01(\x04\x12\x12\n\nsession_id\x18\n \x01(\t\x12\x13\n\x0b\x63lient_node\x18\x0b \x01(\t\x12\x12\n\nproxy_node\x18\x0c \x01(\t\x12\x13\n\x0btablet_node\x18\r \x01(\t\x12\x11\n\tassign_id\x18\x0e \x01(\x04\x12\x1b\n\x13\x61ssign_timestamp_ms\x18\x0f \x01(\x04\x12\x18\n\x10last_read_cookie\x18\x10 \x01(\x04\x12\x1d\n\x15\x63ommitted_read_cookie\x18\x11 \x01(\x04\x12+\n#out_of_order_read_cookies_to_commit\x18\x12 \x03(\x04\x42\x1d\n\x18\x63om.yandex.ydb.persqueue\xf8\x01\x01\x62\x06proto3')
+  serialized_pb=_b('\n/kikimr/public/api/protos/ydb_persqueue_v1.proto\x12\x10Ydb.PersQueue.V1\x1a,kikimr/public/api/protos/ydb_operation.proto\x1a/kikimr/public/api/protos/ydb_status_codes.proto\x1a\x30kikimr/public/api/protos/ydb_issue_message.proto\"~\n\x10SessionMetaValue\x12<\n\x05value\x18\x01 \x03(\x0b\x32-.Ydb.PersQueue.V1.SessionMetaValue.ValueEntry\x1a,\n\nValueEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\"8\n\x0cOffsetsRange\x12\x14\n\x0cstart_offset\x18\x01 \x01(\x03\x12\x12\n\nend_offset\x18\x02 \x01(\x03\"\xd9\x06\n\x1bStreamingWriteClientMessage\x12Q\n\x0cinit_request\x18\x01 \x01(\x0b\x32\x39.Ydb.PersQueue.V1.StreamingWriteClientMessage.InitRequestH\x00\x12S\n\rwrite_request\x18\x02 \x01(\x0b\x32:.Ydb.PersQueue.V1.StreamingWriteClientMessage.WriteRequestH\x00\x12\r\n\x05token\x18\x14 \x01(\t\x1a\xf7\x02\n\x0bInitRequest\x12\r\n\x05topic\x18\x01 \x01(\t\x12\x18\n\x10message_group_id\x18\x02 \x01(\t\x12`\n\x0csession_meta\x18\x03 \x03(\x0b\x32J.Ydb.PersQueue.V1.StreamingWriteClientMessage.InitRequest.SessionMetaEntry\x12\x1a\n\x12partition_group_id\x18\x04 \x01(\x03\x12*\n\"max_supported_block_format_version\x18\x05 \x01(\x03\x12\x12\n\nsession_id\x18\x64 \x01(\t\x12\x1a\n\x12\x63onnection_attempt\x18\x65 \x01(\x03\x12\x17\n\x0f\x63onnection_meta\x18\x66 \x01(\x0c\x12\x18\n\x0fidle_timeout_ms\x18\xc8\x01 \x01(\x03\x1a\x32\n\x10SessionMetaEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\x1a\xf6\x01\n\x0cWriteRequest\x12\x18\n\x10sequence_numbers\x18\x02 \x03(\x03\x12\x15\n\rcreated_at_ms\x18\x03 \x03(\x03\x12\x12\n\nsent_at_ms\x18\x04 \x03(\x03\x12\x15\n\rmessage_sizes\x18\x05 \x03(\x03\x12\x16\n\x0e\x62locks_offsets\x18\x06 \x03(\x03\x12\x1b\n\x13\x62locks_part_numbers\x18\x07 \x03(\x03\x12\x1d\n\x15\x62locks_message_counts\x18\x0f \x03(\x03\x12!\n\x19\x62locks_uncompressed_sizes\x18\t \x03(\x03\x12\x13\n\x0b\x62locks_data\x18\n \x03(\x0c\x42\x10\n\x0e\x63lient_message\"\x99\x07\n\x1bStreamingWriteServerMessage\x12S\n\rinit_response\x18\x03 \x01(\x0b\x32:.Ydb.PersQueue.V1.StreamingWriteServerMessage.InitResponseH\x00\x12`\n\x14\x62\x61tch_write_response\x18\x04 \x01(\x0b\x32@.Ydb.PersQueue.V1.StreamingWriteServerMessage.BatchWriteResponseH\x00\x12)\n\x06status\x18\x01 \x01(\x0e\x32\x19.Ydb.StatusIds.StatusCode\x12\'\n\x06issues\x18\x02 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessage\x1a\xe4\x01\n\x0cInitResponse\x12\x1c\n\x14last_sequence_number\x18\x01 \x01(\x03\x12\x12\n\nsession_id\x18\x02 \x01(\t\x12\r\n\x05topic\x18\x03 \x01(\t\x12\x0f\n\x07\x63luster\x18\x04 \x01(\t\x12\x14\n\x0cpartition_id\x18\x05 \x01(\x03\x12\x1c\n\x14\x62lock_format_version\x18\x06 \x01(\x03\x12\x1d\n\x15max_flush_window_size\x18\x07 \x01(\x03\x12\x16\n\x0emax_block_size\x18\x08 \x01(\x03\x12\x17\n\x0f\x63onnection_meta\x18\t \x01(\x0c\x1a\xc7\x01\n\x12\x42\x61tchWriteResponse\x12\x18\n\x10sequence_numbers\x18\x01 \x03(\x03\x12\x0f\n\x07offsets\x18\x02 \x03(\x03\x12\x17\n\x0f\x61lready_written\x18\x03 \x03(\x08\x12\x14\n\x0cpartition_id\x18\x04 \x01(\x03\x12W\n\x10write_statistics\x18\x05 \x01(\x0b\x32=.Ydb.PersQueue.V1.StreamingWriteServerMessage.WriteStatistics\x1a\xab\x01\n\x0fWriteStatistics\x12\x1b\n\x13persist_duration_ms\x18\x01 \x01(\x03\x12\'\n\x1fqueued_in_partition_duration_ms\x18\x02 \x01(\x03\x12*\n\"throttled_on_partition_duration_ms\x18\x03 \x01(\x03\x12&\n\x1ethrottled_on_topic_duration_ms\x18\x04 \x01(\x03\x42\x10\n\x0eserver_message\"\x14\n\x04Path\x12\x0c\n\x04path\x18\x01 \x01(\t\"&\n\x08KeyValue\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t\"D\n\nReadParams\x12\x1f\n\x17max_read_messages_count\x18\x01 \x01(\r\x12\x15\n\rmax_read_size\x18\x02 \x01(\r\";\n\x0c\x43ommitCookie\x12\x11\n\tassign_id\x18\x01 \x01(\x04\x12\x18\n\x10partition_cookie\x18\x02 \x01(\x04\"\x84\x16\n\x1dStreamingReadClientMessageNew\x12S\n\x0cinit_request\x18\x01 \x01(\x0b\x32;.Ydb.PersQueue.V1.StreamingReadClientMessageNew.InitRequestH\x00\x12S\n\x0cread_request\x18\x02 \x01(\x0b\x32;.Ydb.PersQueue.V1.StreamingReadClientMessageNew.ReadRequestH\x00\x12o\n\x1b\x63reate_read_stream_response\x18\x03 \x01(\x0b\x32H.Ydb.PersQueue.V1.StreamingReadClientMessageNew.CreateReadStreamResponseH\x00\x12W\n\x0e\x63ommit_request\x18\x04 \x01(\x0b\x32=.Ydb.PersQueue.V1.StreamingReadClientMessageNew.CommitRequestH\x00\x12q\n\x1c\x64\x65stroy_read_stream_response\x18\x05 \x01(\x0b\x32I.Ydb.PersQueue.V1.StreamingReadClientMessageNew.DestroyReadStreamResponseH\x00\x12\\\n\x11stop_read_request\x18\x06 \x01(\x0b\x32?.Ydb.PersQueue.V1.StreamingReadClientMessageNew.StopReadRequestH\x00\x12`\n\x13resume_read_request\x18\x07 \x01(\x0b\x32\x41.Ydb.PersQueue.V1.StreamingReadClientMessageNew.ResumeReadRequestH\x00\x12m\n\x1aread_stream_status_request\x18\x08 \x01(\x0b\x32G.Ydb.PersQueue.V1.StreamingReadClientMessageNew.ReadStreamStatusRequestH\x00\x12\\\n\x11\x61\x64\x64_topic_request\x18\t \x01(\x0b\x32?.Ydb.PersQueue.V1.StreamingReadClientMessageNew.AddTopicRequestH\x00\x12\x62\n\x14remove_topic_request\x18\n \x01(\x0b\x32\x42.Ydb.PersQueue.V1.StreamingReadClientMessageNew.RemoveTopicRequestH\x00\x12\r\n\x05token\x18\x14 \x01(\t\x1a\x91\x07\n\x0bInitRequest\x12_\n\x14topics_read_settings\x18\x01 \x03(\x0b\x32\x41.Ydb.PersQueue.V1.StreamingReadClientMessageNew.TopicReadSettings\x12\x1a\n\x12read_only_original\x18\x02 \x01(\x08\x12\x10\n\x08\x63onsumer\x18\x03 \x01(\t\x12\x1b\n\x13max_lag_duration_ms\x18\x04 \x01(\x03\x12 \n\x18start_from_written_at_ms\x18\x05 \x01(\x03\x12*\n\"max_supported_block_format_version\x18\x06 \x01(\x03\x12\x1b\n\x13max_meta_cache_size\x18\n \x01(\x03\x12\x12\n\nsession_id\x18\x64 \x01(\t\x12\x1a\n\x12\x63onnection_attempt\x18\x65 \x01(\x03\x12P\n\x05state\x18\x66 \x01(\x0b\x32\x41.Ydb.PersQueue.V1.StreamingReadClientMessageNew.InitRequest.State\x12\x18\n\x0fidle_timeout_ms\x18\xc8\x01 \x01(\x03\x1a\xce\x03\n\x05State\x12n\n\x13read_streams_states\x18\x01 \x03(\x0b\x32Q.Ydb.PersQueue.V1.StreamingReadClientMessageNew.InitRequest.State.ReadStreamState\x1a\xd4\x02\n\x0fReadStreamState\x12\x31\n\x0bread_stream\x18\x01 \x01(\x0b\x32\x1c.Ydb.PersQueue.V1.ReadStream\x12\x13\n\x0bread_offset\x18\x02 \x01(\x03\x12\x35\n\roffset_ranges\x18\x03 \x03(\x0b\x32\x1e.Ydb.PersQueue.V1.OffsetsRange\x12h\n\x06status\x18\x04 \x01(\x0e\x32X.Ydb.PersQueue.V1.StreamingReadClientMessageNew.InitRequest.State.ReadStreamState.Status\"X\n\x06Status\x12\x16\n\x12STATUS_UNSPECIFIED\x10\x00\x12\x0c\n\x08\x43REATING\x10\x01\x12\x0e\n\nDESTROYING\x10\x02\x12\x0b\n\x07READING\x10\x03\x12\x0b\n\x07STOPPED\x10\x04\x1a\x30\n\x0bReadRequest\x12!\n\x19request_uncompressed_size\x18\x01 \x01(\x03\x1az\n\x18\x43reateReadStreamResponse\x12\x16\n\x0eread_stream_id\x18\x01 \x01(\x03\x12\x13\n\x0bread_offset\x18\x02 \x01(\x03\x12\x15\n\rcommit_offset\x18\x03 \x01(\x03\x12\x1a\n\x12verify_read_offset\x18\x04 \x01(\x08\x1a\x33\n\x19\x44\x65stroyReadStreamResponse\x12\x16\n\x0eread_stream_id\x18\x01 \x01(\x03\x1a*\n\x0fStopReadRequest\x12\x17\n\x0fread_stream_ids\x18\x01 \x03(\x03\x1aZ\n\x11ResumeReadRequest\x12\x17\n\x0fread_stream_ids\x18\x01 \x03(\x03\x12\x14\n\x0cread_offsets\x18\x02 \x03(\x03\x12\x16\n\x0eresume_cookies\x18\x03 \x03(\x03\x1a\x61\n\rCommitRequest\x12P\n\x07\x63ommits\x18\x01 \x03(\x0b\x32?.Ydb.PersQueue.V1.StreamingReadClientMessageNew.PartitionCommit\x1a\x31\n\x17ReadStreamStatusRequest\x12\x16\n\x0eread_stream_id\x18\x01 \x01(\x03\x1aq\n\x0f\x41\x64\x64TopicRequest\x12^\n\x13topic_read_settings\x18\x01 \x01(\x0b\x32\x41.Ydb.PersQueue.V1.StreamingReadClientMessageNew.TopicReadSettings\x1a#\n\x12RemoveTopicRequest\x12\r\n\x05topic\x18\x01 \x01(\t\x1a\x61\n\x11TopicReadSettings\x12\r\n\x05topic\x18\x01 \x01(\t\x12\x1b\n\x13partition_group_ids\x18\x02 \x03(\x03\x12 \n\x18start_from_written_at_ms\x18\x03 \x01(\x03\x1aZ\n\x0fPartitionCommit\x12\x16\n\x0eread_stream_id\x18\x01 \x01(\x03\x12/\n\x07offsets\x18\x02 \x03(\x0b\x32\x1e.Ydb.PersQueue.V1.OffsetsRangeB\x10\n\x0e\x63lient_message\"\x8f\x19\n\x1dStreamingReadServerMessageNew\x12U\n\rinit_response\x18\x03 \x01(\x0b\x32<.Ydb.PersQueue.V1.StreamingReadServerMessageNew.InitResponseH\x00\x12`\n\x13\x62\x61tch_read_response\x18\x04 \x01(\x0b\x32\x41.Ydb.PersQueue.V1.StreamingReadServerMessageNew.BatchReadResponseH\x00\x12m\n\x1a\x63reate_read_stream_request\x18\x05 \x01(\x0b\x32G.Ydb.PersQueue.V1.StreamingReadServerMessageNew.CreateReadStreamRequestH\x00\x12o\n\x1b\x64\x65stroy_read_stream_request\x18\x06 \x01(\x0b\x32H.Ydb.PersQueue.V1.StreamingReadServerMessageNew.DestroyReadStreamRequestH\x00\x12Y\n\x0f\x63ommit_response\x18\x07 \x01(\x0b\x32>.Ydb.PersQueue.V1.StreamingReadServerMessageNew.CommitResponseH\x00\x12o\n\x1bread_stream_status_response\x18\x08 \x01(\x0b\x32H.Ydb.PersQueue.V1.StreamingReadServerMessageNew.ReadStreamStatusResponseH\x00\x12^\n\x12stop_read_response\x18\t \x01(\x0b\x32@.Ydb.PersQueue.V1.StreamingReadServerMessageNew.StopReadResponseH\x00\x12\x62\n\x14resume_read_response\x18\n \x01(\x0b\x32\x42.Ydb.PersQueue.V1.StreamingReadServerMessageNew.ResumeReadResponseH\x00\x12^\n\x12\x61\x64\x64_topic_response\x18\x0b \x01(\x0b\x32@.Ydb.PersQueue.V1.StreamingReadServerMessageNew.AddTopicResponseH\x00\x12\x64\n\x15remove_topic_response\x18\x0c \x01(\x0b\x32\x43.Ydb.PersQueue.V1.StreamingReadServerMessageNew.RemoveTopicResponseH\x00\x12)\n\x06status\x18\x01 \x01(\x0e\x32\x19.Ydb.StatusIds.StatusCode\x12\'\n\x06issues\x18\x02 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessage\x1a\x86\x02\n\x0cInitResponse\x12\x12\n\nsession_id\x18\x01 \x01(\t\x12\x82\x01\n\x1d\x62lock_format_version_by_topic\x18\x02 \x03(\x0b\x32[.Ydb.PersQueue.V1.StreamingReadServerMessageNew.InitResponse.BlockFormatVersionByTopicEntry\x12\x1b\n\x13max_meta_cache_size\x18\n \x01(\x03\x1a@\n\x1e\x42lockFormatVersionByTopicEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\x03:\x02\x38\x01\x1az\n\x17\x43reateReadStreamRequest\x12\x31\n\x0bread_stream\x18\x01 \x01(\x0b\x32\x1c.Ydb.PersQueue.V1.ReadStream\x12\x18\n\x10\x63ommitted_offset\x18\x02 \x01(\x03\x12\x12\n\nend_offset\x18\x03 \x01(\x03\x1a^\n\x18\x44\x65stroyReadStreamRequest\x12\x16\n\x0eread_stream_id\x18\x01 \x01(\x03\x12\x10\n\x08graceful\x18\x02 \x01(\x08\x12\x18\n\x10\x63ommitted_offset\x18\x03 \x01(\x03\x1a\xdd\x01\n\x0e\x43ommitResponse\x12}\n\x1cpartitions_committed_offsets\x18\x01 \x03(\x0b\x32W.Ydb.PersQueue.V1.StreamingReadServerMessageNew.CommitResponse.PartitionCommittedOffset\x1aL\n\x18PartitionCommittedOffset\x12\x16\n\x0eread_stream_id\x18\x01 \x01(\x03\x12\x18\n\x10\x63ommitted_offset\x18\x02 \x01(\x03\x1a\xdc\x08\n\x11\x42\x61tchReadResponse\x12_\n\nskip_range\x18\x01 \x03(\x0b\x32K.Ydb.PersQueue.V1.StreamingReadServerMessageNew.BatchReadResponse.SkipRange\x12\x63\n\npartitions\x18\x02 \x03(\x0b\x32O.Ydb.PersQueue.V1.StreamingReadServerMessageNew.BatchReadResponse.PartitionData\x1a\xa7\x06\n\rPartitionData\x12\x16\n\x0eread_stream_id\x18\x01 \x01(\x03\x12\x0f\n\x07offsets\x18\x02 \x03(\x03\x12\x18\n\x10sequence_numbers\x18\x03 \x03(\x03\x12\x15\n\rcreated_at_ms\x18\x04 \x03(\x03\x12\x15\n\rwritten_at_ms\x18\x05 \x03(\x03\x12\x19\n\x11message_group_ids\x18\x06 \x03(\t\x12 \n\x18message_group_id_indexes\x18\x07 \x03(\x12\x12\x0b\n\x03ips\x18\x08 \x03(\t\x12\x12\n\nip_indexes\x18\t \x03(\x12\x12@\n\x14message_session_meta\x18\n \x03(\x0b\x32\".Ydb.PersQueue.V1.SessionMetaValue\x12$\n\x1cmessage_session_meta_indexes\x18\x0b \x03(\x12\x12\x15\n\rmessage_sizes\x18\x0c \x03(\x03\x12\x16\n\x0e\x62locks_offsets\x18\r \x03(\x03\x12\x1b\n\x13\x62locks_part_numbers\x18\x0e \x03(\x03\x12\x1d\n\x15\x62locks_message_counts\x18\x0f \x03(\x03\x12!\n\x19\x62locks_uncompressed_sizes\x18\x10 \x03(\x03\x12\x13\n\x0b\x62locks_data\x18\x11 \x03(\x0c\x12\x15\n\rresume_cookie\x18\x32 \x01(\x03\x12w\n\x0fread_statistics\x18\x64 \x01(\x0b\x32^.Ydb.PersQueue.V1.StreamingReadServerMessageNew.BatchReadResponse.PartitionData.ReadStatistics\x1a\xab\x01\n\x0eReadStatistics\x12\x18\n\x10\x62lobs_from_cache\x18\x01 \x01(\x03\x12\x17\n\x0f\x62lobs_from_disk\x18\x02 \x01(\x03\x12\x17\n\x0f\x62ytes_from_head\x18\x03 \x01(\x03\x12\x18\n\x10\x62ytes_from_cache\x18\x04 \x01(\x03\x12\x17\n\x0f\x62ytes_from_disk\x18\x05 \x01(\x03\x12\x1a\n\x12repack_duration_ms\x18\x06 \x01(\x03\x1aW\n\tSkipRange\x12\x16\n\x0eread_stream_id\x18\x01 \x01(\x03\x12\x32\n\nskip_range\x18\x02 \x01(\x0b\x32\x1e.Ydb.PersQueue.V1.OffsetsRange\x1a\x81\x01\n\x18ReadStreamStatusResponse\x12\x16\n\x0eread_stream_id\x18\x01 \x01(\x03\x12\x18\n\x10\x63ommitted_offset\x18\x02 \x01(\x03\x12\x12\n\nend_offset\x18\x03 \x01(\x03\x12\x1f\n\x17written_at_watermark_ms\x18\x04 \x01(\x03\x1a\x12\n\x10StopReadResponse\x1a\x14\n\x12ResumeReadResponse\x1a\x30\n\x10\x41\x64\x64TopicResponse\x12\x1c\n\x14\x62lock_format_version\x18\x01 \x01(\x03\x1a\x15\n\x13RemoveTopicResponseB\x10\n\x0eserver_message\"\x8f\x01\n\nReadStream\x12\r\n\x05topic\x18\x01 \x01(\t\x12\x0f\n\x07\x63luster\x18\x02 \x01(\t\x12\x14\n\x0cpartition_id\x18\x03 \x01(\x03\x12\x1a\n\x12partition_group_id\x18\x04 \x01(\x03\x12\x16\n\x0eread_stream_id\x18\x06 \x01(\x03\x12\x17\n\x0f\x63onnection_meta\x18\x07 \x01(\x0c\"\xd9\x0f\n\x1aStreamingReadClientMessage\x12P\n\x0cinit_request\x18\x01 \x01(\x0b\x32\x38.Ydb.PersQueue.V1.StreamingReadClientMessage.InitRequestH\x00\x12\x41\n\x04read\x18\x02 \x01(\x0b\x32\x31.Ydb.PersQueue.V1.StreamingReadClientMessage.ReadH\x00\x12L\n\nstart_read\x18\x03 \x01(\x0b\x32\x36.Ydb.PersQueue.V1.StreamingReadClientMessage.StartReadH\x00\x12\x45\n\x06\x63ommit\x18\x04 \x01(\x0b\x32\x33.Ydb.PersQueue.V1.StreamingReadClientMessage.CommitH\x00\x12I\n\x08released\x18\x05 \x01(\x0b\x32\x35.Ydb.PersQueue.V1.StreamingReadClientMessage.ReleasedH\x00\x12\x45\n\x06status\x18\x06 \x01(\x0b\x32\x33.Ydb.PersQueue.V1.StreamingReadClientMessage.StatusH\x00\x12\r\n\x05token\x18\x14 \x01(\x0c\x1a\x61\n\x11TopicReadSettings\x12\r\n\x05topic\x18\x01 \x01(\t\x12\x1b\n\x13partition_group_ids\x18\x02 \x03(\x03\x12 \n\x18start_from_written_at_ms\x18\x03 \x01(\x03\x1a\xb8\x07\n\x0bInitRequest\x12\\\n\x14topics_read_settings\x18\x01 \x03(\x0b\x32>.Ydb.PersQueue.V1.StreamingReadClientMessage.TopicReadSettings\x12\x1a\n\x12read_only_original\x18\x02 \x01(\x08\x12\x10\n\x08\x63onsumer\x18\x03 \x01(\t\x12\x1b\n\x13max_lag_duration_ms\x18\x04 \x01(\x03\x12 \n\x18start_from_written_at_ms\x18\x05 \x01(\x03\x12*\n\"max_supported_block_format_version\x18\x06 \x01(\x03\x12\x1b\n\x13max_meta_cache_size\x18\n \x01(\x03\x12\x12\n\nsession_id\x18\x64 \x01(\t\x12\x1a\n\x12\x63onnection_attempt\x18\x65 \x01(\x03\x12M\n\x05state\x18\x66 \x01(\x0b\x32>.Ydb.PersQueue.V1.StreamingReadClientMessage.InitRequest.State\x12\x18\n\x0fidle_timeout_ms\x18\xc8\x01 \x01(\x03\x12\x31\n\x0bread_params\x18* \x01(\x0b\x32\x1c.Ydb.PersQueue.V1.ReadParams\x1a\xc8\x03\n\x05State\x12k\n\x13read_streams_states\x18\x01 \x03(\x0b\x32N.Ydb.PersQueue.V1.StreamingReadClientMessage.InitRequest.State.ReadStreamState\x1a\xd1\x02\n\x0fReadStreamState\x12\x31\n\x0bread_stream\x18\x01 \x01(\x0b\x32\x1c.Ydb.PersQueue.V1.ReadStream\x12\x13\n\x0bread_offset\x18\x02 \x01(\x03\x12\x35\n\roffset_ranges\x18\x03 \x03(\x0b\x32\x1e.Ydb.PersQueue.V1.OffsetsRange\x12\x65\n\x06status\x18\x04 \x01(\x0e\x32U.Ydb.PersQueue.V1.StreamingReadClientMessage.InitRequest.State.ReadStreamState.Status\"X\n\x06Status\x12\x16\n\x12STATUS_UNSPECIFIED\x10\x00\x12\x0c\n\x08\x43REATING\x10\x01\x12\x0e\n\nDESTROYING\x10\x02\x12\x0b\n\x07READING\x10\x03\x12\x0b\n\x07STOPPED\x10\x04\x1a\x06\n\x04Read\x1a\xb1\x01\n\tStartRead\x12%\n\x05topic\x18\x01 \x01(\x0b\x32\x16.Ydb.PersQueue.V1.Path\x12\x0f\n\x07\x63luster\x18\x02 \x01(\t\x12\x11\n\tpartition\x18\x03 \x01(\x04\x12\x11\n\tassign_id\x18\x05 \x01(\x04\x12\x13\n\x0bread_offset\x18\x06 \x01(\x04\x12\x15\n\rcommit_offset\x18\x07 \x01(\x04\x12\x1a\n\x12verify_read_offset\x18\x08 \x01(\x08\x1ah\n\x08Released\x12%\n\x05topic\x18\x01 \x01(\x0b\x32\x16.Ydb.PersQueue.V1.Path\x12\x0f\n\x07\x63luster\x18\x02 \x01(\t\x12\x11\n\tpartition\x18\x03 \x01(\x04\x12\x11\n\tassign_id\x18\x05 \x01(\x04\x1a\x39\n\x06\x43ommit\x12/\n\x07\x63ookies\x18\x01 \x03(\x0b\x32\x1e.Ydb.PersQueue.V1.CommitCookie\x1a\x66\n\x06Status\x12%\n\x05topic\x18\x01 \x01(\x0b\x32\x16.Ydb.PersQueue.V1.Path\x12\x0f\n\x07\x63luster\x18\x02 \x01(\t\x12\x11\n\tpartition\x18\x03 \x01(\x04\x12\x11\n\tassign_id\x18\x05 \x01(\x04\x42\t\n\x07request\"\xa3\x10\n\x1aStreamingReadServerMessage\x12)\n\x06status\x18\x01 \x01(\x0e\x32\x19.Ydb.StatusIds.StatusCode\x12\'\n\x06issues\x18\x02 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessage\x12R\n\rinit_response\x18\x03 \x01(\x0b\x32\x39.Ydb.PersQueue.V1.StreamingReadServerMessage.InitResponseH\x00\x12L\n\ndata_batch\x18\x04 \x01(\x0b\x32\x36.Ydb.PersQueue.V1.StreamingReadServerMessage.DataBatchH\x00\x12I\n\x08\x61ssigned\x18\x05 \x01(\x0b\x32\x35.Ydb.PersQueue.V1.StreamingReadServerMessage.AssignedH\x00\x12G\n\x07release\x18\x06 \x01(\x0b\x32\x34.Ydb.PersQueue.V1.StreamingReadServerMessage.ReleaseH\x00\x12K\n\tcommitted\x18\x07 \x01(\x0b\x32\x36.Ydb.PersQueue.V1.StreamingReadServerMessage.CommittedH\x00\x12X\n\x10partition_status\x18\x08 \x01(\x0b\x32<.Ydb.PersQueue.V1.StreamingReadServerMessage.PartitionStatusH\x00\x1a\x82\x02\n\x0cInitResponse\x12\x12\n\nsession_id\x18\x01 \x01(\t\x12\x7f\n\x1d\x62lock_format_version_by_topic\x18\x02 \x03(\x0b\x32X.Ydb.PersQueue.V1.StreamingReadServerMessage.InitResponse.BlockFormatVersionByTopicEntry\x12\x1b\n\x13max_meta_cache_size\x18\n \x01(\x03\x1a@\n\x1e\x42lockFormatVersionByTopicEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\x03:\x02\x38\x01\x1a\x91\x01\n\x08\x41ssigned\x12%\n\x05topic\x18\x01 \x01(\x0b\x32\x16.Ydb.PersQueue.V1.Path\x12\x0f\n\x07\x63luster\x18\x02 \x01(\t\x12\x11\n\tpartition\x18\x03 \x01(\x04\x12\x11\n\tassign_id\x18\x05 \x01(\x04\x12\x13\n\x0bread_offset\x18\x06 \x01(\x04\x12\x12\n\nend_offset\x18\x07 \x01(\x04\x1a\x98\x01\n\x07Release\x12%\n\x05topic\x18\x01 \x01(\x0b\x32\x16.Ydb.PersQueue.V1.Path\x12\x0f\n\x07\x63luster\x18\x02 \x01(\t\x12\x11\n\tpartition\x18\x03 \x01(\x04\x12\x11\n\tassign_id\x18\x05 \x01(\x04\x12\x18\n\x10\x66orceful_release\x18\x06 \x01(\x08\x12\x15\n\rcommit_offset\x18\x07 \x01(\x04\x1a<\n\tCommitted\x12/\n\x07\x63ookies\x18\x01 \x03(\x0b\x32\x1e.Ydb.PersQueue.V1.CommitCookie\x1a\x99\x05\n\tDataBatch\x12\\\n\x0epartition_data\x18\x01 \x03(\x0b\x32\x44.Ydb.PersQueue.V1.StreamingReadServerMessage.DataBatch.PartitionData\x1ag\n\x0bMessageData\x12\x0e\n\x06offset\x18\x01 \x01(\x04\x12\x0e\n\x06seq_no\x18\x02 \x01(\x04\x12\x1b\n\x13\x63reate_timestamp_ms\x18\x03 \x01(\x04\x12\r\n\x05\x63odec\x18\x04 \x01(\t\x12\x0c\n\x04\x64\x61ta\x18\x05 \x01(\x0c\x1a\xce\x01\n\x05\x42\x61tch\x12\x11\n\tsource_id\x18\x02 \x01(\x0c\x12\x30\n\x0c\x65xtra_fields\x18\x03 \x03(\x0b\x32\x1a.Ydb.PersQueue.V1.KeyValue\x12\x1a\n\x12write_timestamp_ms\x18\x04 \x01(\x04\x12\n\n\x02ip\x18\x05 \x01(\t\x12X\n\x0cmessage_data\x18\x01 \x03(\x0b\x32\x42.Ydb.PersQueue.V1.StreamingReadServerMessage.DataBatch.MessageData\x1a\xf3\x01\n\rPartitionData\x12%\n\x05topic\x18\x01 \x01(\x0b\x32\x16.Ydb.PersQueue.V1.Path\x12\x0f\n\x07\x63luster\x18\x02 \x01(\t\x12\x11\n\tpartition\x18\x03 \x01(\x04\x12M\n\x07\x62\x61tches\x18\x04 \x03(\x0b\x32<.Ydb.PersQueue.V1.StreamingReadServerMessage.DataBatch.Batch\x12.\n\x06\x63ookie\x18\x05 \x01(\x0b\x32\x1e.Ydb.PersQueue.V1.CommitCookie\x12\x18\n\x10\x64\x65precated_topic\x18\n \x01(\t\x1a\xb9\x01\n\x0fPartitionStatus\x12%\n\x05topic\x18\x01 \x01(\x0b\x32\x16.Ydb.PersQueue.V1.Path\x12\x0f\n\x07\x63luster\x18\x02 \x01(\t\x12\x11\n\tpartition\x18\x03 \x01(\x04\x12\x11\n\tassign_id\x18\x05 \x01(\x04\x12\x18\n\x10\x63ommitted_offset\x18\x06 \x01(\x04\x12\x12\n\nend_offset\x18\x07 \x01(\x04\x12\x1a\n\x12write_watermark_ms\x18\x08 \x01(\x04\x42\n\n\x08response\"\xb9\x01\n\x0fReadInfoRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12&\n\x06topics\x18\x02 \x03(\x0b\x32\x16.Ydb.PersQueue.V1.Path\x12\x19\n\x11get_only_original\x18\x03 \x01(\x08\x12(\n\x08\x63onsumer\x18\x04 \x01(\x0b\x32\x16.Ydb.PersQueue.V1.Path\"@\n\x10ReadInfoResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\xa1\x06\n\x0eReadInfoResult\x12:\n\x06topics\x18\x01 \x03(\x0b\x32*.Ydb.PersQueue.V1.ReadInfoResult.TopicInfo\x1a\xd2\x05\n\tTopicInfo\x12%\n\x05topic\x18\x01 \x01(\x0b\x32\x16.Ydb.PersQueue.V1.Path\x12\x0f\n\x07\x63luster\x18\x02 \x01(\t\x12)\n\x06status\x18\x03 \x01(\x0e\x32\x19.Ydb.StatusIds.StatusCode\x12\'\n\x06issues\x18\x04 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessage\x12L\n\npartitions\x18\x05 \x03(\x0b\x32\x38.Ydb.PersQueue.V1.ReadInfoResult.TopicInfo.PartitionInfo\x1a\xea\x03\n\rPartitionInfo\x12\x11\n\tpartition\x18\x01 \x01(\x04\x12)\n\x06status\x18\x02 \x01(\x0e\x32\x19.Ydb.StatusIds.StatusCode\x12\'\n\x06issues\x18\x03 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessage\x12\x14\n\x0cstart_offset\x18\x04 \x01(\x04\x12\x12\n\nend_offset\x18\x05 \x01(\x04\x12\x15\n\rcommit_offset\x18\x06 \x01(\x04\x12\x1a\n\x12\x63ommit_time_lag_ms\x18\x07 \x01(\x04\x12\x13\n\x0bread_offset\x18\x08 \x01(\x04\x12\x18\n\x10read_time_lag_ms\x18\t \x01(\x04\x12\x12\n\nsession_id\x18\n \x01(\t\x12\x13\n\x0b\x63lient_node\x18\x0b \x01(\t\x12\x12\n\nproxy_node\x18\x0c \x01(\t\x12\x13\n\x0btablet_node\x18\r \x01(\t\x12\x11\n\tassign_id\x18\x0e \x01(\x04\x12\x1b\n\x13\x61ssign_timestamp_ms\x18\x0f \x01(\x04\x12\x18\n\x10last_read_cookie\x18\x10 \x01(\x04\x12\x1d\n\x15\x63ommitted_read_cookie\x18\x11 \x01(\x04\x12+\n#out_of_order_read_cookies_to_commit\x18\x12 \x03(\x04\x42\x1d\n\x18\x63om.yandex.ydb.persqueue\xf8\x01\x01\x62\x06proto3')
   ,
   dependencies=[kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2.DESCRIPTOR,kikimr_dot_public_dot_api_dot_protos_dot_ydb__status__codes__pb2.DESCRIPTOR,kikimr_dot_public_dot_api_dot_protos_dot_ydb__issue__message__pb2.DESCRIPTOR,])
 
 
+
+_STREAMINGREADCLIENTMESSAGENEW_INITREQUEST_STATE_READSTREAMSTATE_STATUS = _descriptor.EnumDescriptor(
+  name='Status',
+  full_name='Ydb.PersQueue.V1.StreamingReadClientMessageNew.InitRequest.State.ReadStreamState.Status',
+  filename=None,
+  file=DESCRIPTOR,
+  values=[
+    _descriptor.EnumValueDescriptor(
+      name='STATUS_UNSPECIFIED', index=0, number=0,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='CREATING', index=1, number=1,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='DESTROYING', index=2, number=2,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='READING', index=3, number=3,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='STOPPED', index=4, number=4,
+      options=None,
+      type=None),
+  ],
+  containing_type=None,
+  options=None,
+  serialized_start=4236,
+  serialized_end=4324,
+)
+_sym_db.RegisterEnumDescriptor(_STREAMINGREADCLIENTMESSAGENEW_INITREQUEST_STATE_READSTREAMSTATE_STATUS)
+
+_STREAMINGREADCLIENTMESSAGE_INITREQUEST_STATE_READSTREAMSTATE_STATUS = _descriptor.EnumDescriptor(
+  name='Status',
+  full_name='Ydb.PersQueue.V1.StreamingReadClientMessage.InitRequest.State.ReadStreamState.Status',
+  filename=None,
+  file=DESCRIPTOR,
+  values=[
+    _descriptor.EnumValueDescriptor(
+      name='STATUS_UNSPECIFIED', index=0, number=0,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='CREATING', index=1, number=1,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='DESTROYING', index=2, number=2,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='READING', index=3, number=3,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='STOPPED', index=4, number=4,
+      options=None,
+      type=None),
+  ],
+  containing_type=None,
+  options=None,
+  serialized_start=4236,
+  serialized_end=4324,
+)
+_sym_db.RegisterEnumDescriptor(_STREAMINGREADCLIENTMESSAGE_INITREQUEST_STATE_READSTREAMSTATE_STATUS)
 
 
 _SESSIONMETAVALUE_VALUEENTRY = _descriptor.Descriptor(
@@ -732,20 +800,6 @@ _READPARAMS = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
-    _descriptor.FieldDescriptor(
-      name='max_time_lag_ms', full_name='Ydb.PersQueue.V1.ReadParams.max_time_lag_ms', index=2,
-      number=3, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='read_timestamp_ms', full_name='Ydb.PersQueue.V1.ReadParams.read_timestamp_ms', index=3,
-      number=4, type=4, cpp_type=4, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
   ],
   extensions=[
   ],
@@ -759,7 +813,7 @@ _READPARAMS = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=2246,
-  serialized_end=2366,
+  serialized_end=2314,
 )
 
 
@@ -796,35 +850,42 @@ _COMMITCOOKIE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2368,
-  serialized_end=2427,
+  serialized_start=2316,
+  serialized_end=2375,
 )
 
 
-_READSESSIONREQUEST_INIT_TOPIC = _descriptor.Descriptor(
-  name='Topic',
-  full_name='Ydb.PersQueue.V1.ReadSessionRequest.Init.Topic',
+_STREAMINGREADCLIENTMESSAGENEW_INITREQUEST_STATE_READSTREAMSTATE = _descriptor.Descriptor(
+  name='ReadStreamState',
+  full_name='Ydb.PersQueue.V1.StreamingReadClientMessageNew.InitRequest.State.ReadStreamState',
   filename=None,
   file=DESCRIPTOR,
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='path', full_name='Ydb.PersQueue.V1.ReadSessionRequest.Init.Topic.path', index=0,
+      name='read_stream', full_name='Ydb.PersQueue.V1.StreamingReadClientMessageNew.InitRequest.State.ReadStreamState.read_stream', index=0,
       number=1, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='partition_groups', full_name='Ydb.PersQueue.V1.ReadSessionRequest.Init.Topic.partition_groups', index=1,
-      number=2, type=13, cpp_type=3, label=3,
+      name='read_offset', full_name='Ydb.PersQueue.V1.StreamingReadClientMessageNew.InitRequest.State.ReadStreamState.read_offset', index=1,
+      number=2, type=3, cpp_type=2, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='offset_ranges', full_name='Ydb.PersQueue.V1.StreamingReadClientMessageNew.InitRequest.State.ReadStreamState.offset_ranges', index=2,
+      number=3, type=11, cpp_type=10, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='read_timestamp_ms', full_name='Ydb.PersQueue.V1.ReadSessionRequest.Init.Topic.read_timestamp_ms', index=2,
-      number=3, type=4, cpp_type=4, label=1,
+      name='status', full_name='Ydb.PersQueue.V1.StreamingReadClientMessageNew.InitRequest.State.ReadStreamState.status', index=3,
+      number=4, type=14, cpp_type=8, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -834,6 +895,7 @@ _READSESSIONREQUEST_INIT_TOPIC = _descriptor.Descriptor(
   ],
   nested_types=[],
   enum_types=[
+    _STREAMINGREADCLIENTMESSAGENEW_INITREQUEST_STATE_READSTREAMSTATE_STATUS,
   ],
   options=None,
   is_extendable=False,
@@ -841,96 +903,205 @@ _READSESSIONREQUEST_INIT_TOPIC = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3165,
-  serialized_end=3263,
+  serialized_start=3984,
+  serialized_end=4324,
 )
 
-_READSESSIONREQUEST_INIT = _descriptor.Descriptor(
-  name='Init',
-  full_name='Ydb.PersQueue.V1.ReadSessionRequest.Init',
+_STREAMINGREADCLIENTMESSAGENEW_INITREQUEST_STATE = _descriptor.Descriptor(
+  name='State',
+  full_name='Ydb.PersQueue.V1.StreamingReadClientMessageNew.InitRequest.State',
   filename=None,
   file=DESCRIPTOR,
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='topics', full_name='Ydb.PersQueue.V1.ReadSessionRequest.Init.topics', index=0,
+      name='read_streams_states', full_name='Ydb.PersQueue.V1.StreamingReadClientMessageNew.InitRequest.State.read_streams_states', index=0,
+      number=1, type=11, cpp_type=10, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[_STREAMINGREADCLIENTMESSAGENEW_INITREQUEST_STATE_READSTREAMSTATE, ],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=3862,
+  serialized_end=4324,
+)
+
+_STREAMINGREADCLIENTMESSAGENEW_INITREQUEST = _descriptor.Descriptor(
+  name='InitRequest',
+  full_name='Ydb.PersQueue.V1.StreamingReadClientMessageNew.InitRequest',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='topics_read_settings', full_name='Ydb.PersQueue.V1.StreamingReadClientMessageNew.InitRequest.topics_read_settings', index=0,
       number=1, type=11, cpp_type=10, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='read_only_original', full_name='Ydb.PersQueue.V1.ReadSessionRequest.Init.read_only_original', index=1,
+      name='read_only_original', full_name='Ydb.PersQueue.V1.StreamingReadClientMessageNew.InitRequest.read_only_original', index=1,
       number=2, type=8, cpp_type=7, label=1,
       has_default_value=False, default_value=False,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='consumer', full_name='Ydb.PersQueue.V1.ReadSessionRequest.Init.consumer', index=2,
-      number=3, type=11, cpp_type=10, label=1,
+      name='consumer', full_name='Ydb.PersQueue.V1.StreamingReadClientMessageNew.InitRequest.consumer', index=2,
+      number=3, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='max_lag_duration_ms', full_name='Ydb.PersQueue.V1.StreamingReadClientMessageNew.InitRequest.max_lag_duration_ms', index=3,
+      number=4, type=3, cpp_type=2, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='start_from_written_at_ms', full_name='Ydb.PersQueue.V1.StreamingReadClientMessageNew.InitRequest.start_from_written_at_ms', index=4,
+      number=5, type=3, cpp_type=2, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='max_supported_block_format_version', full_name='Ydb.PersQueue.V1.StreamingReadClientMessageNew.InitRequest.max_supported_block_format_version', index=5,
+      number=6, type=3, cpp_type=2, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='max_meta_cache_size', full_name='Ydb.PersQueue.V1.StreamingReadClientMessageNew.InitRequest.max_meta_cache_size', index=6,
+      number=10, type=3, cpp_type=2, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='session_id', full_name='Ydb.PersQueue.V1.StreamingReadClientMessageNew.InitRequest.session_id', index=7,
+      number=100, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='connection_attempt', full_name='Ydb.PersQueue.V1.StreamingReadClientMessageNew.InitRequest.connection_attempt', index=8,
+      number=101, type=3, cpp_type=2, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='state', full_name='Ydb.PersQueue.V1.StreamingReadClientMessageNew.InitRequest.state', index=9,
+      number=102, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='manual_partition_assigning', full_name='Ydb.PersQueue.V1.ReadSessionRequest.Init.manual_partition_assigning', index=3,
+      name='idle_timeout_ms', full_name='Ydb.PersQueue.V1.StreamingReadClientMessageNew.InitRequest.idle_timeout_ms', index=10,
+      number=200, type=3, cpp_type=2, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[_STREAMINGREADCLIENTMESSAGENEW_INITREQUEST_STATE, ],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=3411,
+  serialized_end=4324,
+)
+
+_STREAMINGREADCLIENTMESSAGENEW_READREQUEST = _descriptor.Descriptor(
+  name='ReadRequest',
+  full_name='Ydb.PersQueue.V1.StreamingReadClientMessageNew.ReadRequest',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='request_uncompressed_size', full_name='Ydb.PersQueue.V1.StreamingReadClientMessageNew.ReadRequest.request_uncompressed_size', index=0,
+      number=1, type=3, cpp_type=2, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=4326,
+  serialized_end=4374,
+)
+
+_STREAMINGREADCLIENTMESSAGENEW_CREATEREADSTREAMRESPONSE = _descriptor.Descriptor(
+  name='CreateReadStreamResponse',
+  full_name='Ydb.PersQueue.V1.StreamingReadClientMessageNew.CreateReadStreamResponse',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='read_stream_id', full_name='Ydb.PersQueue.V1.StreamingReadClientMessageNew.CreateReadStreamResponse.read_stream_id', index=0,
+      number=1, type=3, cpp_type=2, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='read_offset', full_name='Ydb.PersQueue.V1.StreamingReadClientMessageNew.CreateReadStreamResponse.read_offset', index=1,
+      number=2, type=3, cpp_type=2, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='commit_offset', full_name='Ydb.PersQueue.V1.StreamingReadClientMessageNew.CreateReadStreamResponse.commit_offset', index=2,
+      number=3, type=3, cpp_type=2, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='verify_read_offset', full_name='Ydb.PersQueue.V1.StreamingReadClientMessageNew.CreateReadStreamResponse.verify_read_offset', index=3,
       number=4, type=8, cpp_type=7, label=1,
       has_default_value=False, default_value=False,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
-    _descriptor.FieldDescriptor(
-      name='forceful_balance', full_name='Ydb.PersQueue.V1.ReadSessionRequest.Init.forceful_balance', index=4,
-      number=5, type=8, cpp_type=7, label=1,
-      has_default_value=False, default_value=False,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='read_params', full_name='Ydb.PersQueue.V1.ReadSessionRequest.Init.read_params', index=5,
-      number=6, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='max_read_partitions_count', full_name='Ydb.PersQueue.V1.ReadSessionRequest.Init.max_read_partitions_count', index=6,
-      number=7, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='disable_commits', full_name='Ydb.PersQueue.V1.ReadSessionRequest.Init.disable_commits', index=7,
-      number=8, type=8, cpp_type=7, label=1,
-      has_default_value=False, default_value=False,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-  ],
-  extensions=[
-  ],
-  nested_types=[_READSESSIONREQUEST_INIT_TOPIC, ],
-  enum_types=[
-  ],
-  options=None,
-  is_extendable=False,
-  syntax='proto3',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=2849,
-  serialized_end=3263,
-)
-
-_READSESSIONREQUEST_READ = _descriptor.Descriptor(
-  name='Read',
-  full_name='Ydb.PersQueue.V1.ReadSessionRequest.Read',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  fields=[
   ],
   extensions=[
   ],
@@ -943,113 +1114,20 @@ _READSESSIONREQUEST_READ = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3265,
-  serialized_end=3271,
+  serialized_start=4376,
+  serialized_end=4498,
 )
 
-_READSESSIONREQUEST_STARTREAD = _descriptor.Descriptor(
-  name='StartRead',
-  full_name='Ydb.PersQueue.V1.ReadSessionRequest.StartRead',
+_STREAMINGREADCLIENTMESSAGENEW_DESTROYREADSTREAMRESPONSE = _descriptor.Descriptor(
+  name='DestroyReadStreamResponse',
+  full_name='Ydb.PersQueue.V1.StreamingReadClientMessageNew.DestroyReadStreamResponse',
   filename=None,
   file=DESCRIPTOR,
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='topic', full_name='Ydb.PersQueue.V1.ReadSessionRequest.StartRead.topic', index=0,
-      number=1, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='cluster', full_name='Ydb.PersQueue.V1.ReadSessionRequest.StartRead.cluster', index=1,
-      number=2, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=_b("").decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='partition', full_name='Ydb.PersQueue.V1.ReadSessionRequest.StartRead.partition', index=2,
-      number=3, type=4, cpp_type=4, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='assign_id', full_name='Ydb.PersQueue.V1.ReadSessionRequest.StartRead.assign_id', index=3,
-      number=5, type=4, cpp_type=4, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='read_offset', full_name='Ydb.PersQueue.V1.ReadSessionRequest.StartRead.read_offset', index=4,
-      number=6, type=4, cpp_type=4, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='commit_offset', full_name='Ydb.PersQueue.V1.ReadSessionRequest.StartRead.commit_offset', index=5,
-      number=7, type=4, cpp_type=4, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='verify_read_offset', full_name='Ydb.PersQueue.V1.ReadSessionRequest.StartRead.verify_read_offset', index=6,
-      number=8, type=8, cpp_type=7, label=1,
-      has_default_value=False, default_value=False,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  options=None,
-  is_extendable=False,
-  syntax='proto3',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=3274,
-  serialized_end=3451,
-)
-
-_READSESSIONREQUEST_RELEASED = _descriptor.Descriptor(
-  name='Released',
-  full_name='Ydb.PersQueue.V1.ReadSessionRequest.Released',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='topic', full_name='Ydb.PersQueue.V1.ReadSessionRequest.Released.topic', index=0,
-      number=1, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='cluster', full_name='Ydb.PersQueue.V1.ReadSessionRequest.Released.cluster', index=1,
-      number=2, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=_b("").decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='partition', full_name='Ydb.PersQueue.V1.ReadSessionRequest.Released.partition', index=2,
-      number=3, type=4, cpp_type=4, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='assign_id', full_name='Ydb.PersQueue.V1.ReadSessionRequest.Released.assign_id', index=3,
-      number=5, type=4, cpp_type=4, label=1,
+      name='read_stream_id', full_name='Ydb.PersQueue.V1.StreamingReadClientMessageNew.DestroyReadStreamResponse.read_stream_id', index=0,
+      number=1, type=3, cpp_type=2, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -1066,19 +1144,93 @@ _READSESSIONREQUEST_RELEASED = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3453,
-  serialized_end=3557,
+  serialized_start=4500,
+  serialized_end=4551,
 )
 
-_READSESSIONREQUEST_COMMIT = _descriptor.Descriptor(
-  name='Commit',
-  full_name='Ydb.PersQueue.V1.ReadSessionRequest.Commit',
+_STREAMINGREADCLIENTMESSAGENEW_STOPREADREQUEST = _descriptor.Descriptor(
+  name='StopReadRequest',
+  full_name='Ydb.PersQueue.V1.StreamingReadClientMessageNew.StopReadRequest',
   filename=None,
   file=DESCRIPTOR,
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='cookies', full_name='Ydb.PersQueue.V1.ReadSessionRequest.Commit.cookies', index=0,
+      name='read_stream_ids', full_name='Ydb.PersQueue.V1.StreamingReadClientMessageNew.StopReadRequest.read_stream_ids', index=0,
+      number=1, type=3, cpp_type=2, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=4553,
+  serialized_end=4595,
+)
+
+_STREAMINGREADCLIENTMESSAGENEW_RESUMEREADREQUEST = _descriptor.Descriptor(
+  name='ResumeReadRequest',
+  full_name='Ydb.PersQueue.V1.StreamingReadClientMessageNew.ResumeReadRequest',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='read_stream_ids', full_name='Ydb.PersQueue.V1.StreamingReadClientMessageNew.ResumeReadRequest.read_stream_ids', index=0,
+      number=1, type=3, cpp_type=2, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='read_offsets', full_name='Ydb.PersQueue.V1.StreamingReadClientMessageNew.ResumeReadRequest.read_offsets', index=1,
+      number=2, type=3, cpp_type=2, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='resume_cookies', full_name='Ydb.PersQueue.V1.StreamingReadClientMessageNew.ResumeReadRequest.resume_cookies', index=2,
+      number=3, type=3, cpp_type=2, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=4597,
+  serialized_end=4687,
+)
+
+_STREAMINGREADCLIENTMESSAGENEW_COMMITREQUEST = _descriptor.Descriptor(
+  name='CommitRequest',
+  full_name='Ydb.PersQueue.V1.StreamingReadClientMessageNew.CommitRequest',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='commits', full_name='Ydb.PersQueue.V1.StreamingReadClientMessageNew.CommitRequest.commits', index=0,
       number=1, type=11, cpp_type=10, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
@@ -1096,41 +1248,20 @@ _READSESSIONREQUEST_COMMIT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3559,
-  serialized_end=3616,
+  serialized_start=4689,
+  serialized_end=4786,
 )
 
-_READSESSIONREQUEST_STATUS = _descriptor.Descriptor(
-  name='Status',
-  full_name='Ydb.PersQueue.V1.ReadSessionRequest.Status',
+_STREAMINGREADCLIENTMESSAGENEW_READSTREAMSTATUSREQUEST = _descriptor.Descriptor(
+  name='ReadStreamStatusRequest',
+  full_name='Ydb.PersQueue.V1.StreamingReadClientMessageNew.ReadStreamStatusRequest',
   filename=None,
   file=DESCRIPTOR,
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='topic', full_name='Ydb.PersQueue.V1.ReadSessionRequest.Status.topic', index=0,
-      number=1, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='cluster', full_name='Ydb.PersQueue.V1.ReadSessionRequest.Status.cluster', index=1,
-      number=2, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=_b("").decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='partition', full_name='Ydb.PersQueue.V1.ReadSessionRequest.Status.partition', index=2,
-      number=3, type=4, cpp_type=4, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='assign_id', full_name='Ydb.PersQueue.V1.ReadSessionRequest.Status.assign_id', index=3,
-      number=5, type=4, cpp_type=4, label=1,
+      name='read_stream_id', full_name='Ydb.PersQueue.V1.StreamingReadClientMessageNew.ReadStreamStatusRequest.read_stream_id', index=0,
+      number=1, type=3, cpp_type=2, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -1147,70 +1278,239 @@ _READSESSIONREQUEST_STATUS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3618,
-  serialized_end=3720,
+  serialized_start=4788,
+  serialized_end=4837,
 )
 
-_READSESSIONREQUEST = _descriptor.Descriptor(
-  name='ReadSessionRequest',
-  full_name='Ydb.PersQueue.V1.ReadSessionRequest',
+_STREAMINGREADCLIENTMESSAGENEW_ADDTOPICREQUEST = _descriptor.Descriptor(
+  name='AddTopicRequest',
+  full_name='Ydb.PersQueue.V1.StreamingReadClientMessageNew.AddTopicRequest',
   filename=None,
   file=DESCRIPTOR,
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='init', full_name='Ydb.PersQueue.V1.ReadSessionRequest.init', index=0,
+      name='topic_read_settings', full_name='Ydb.PersQueue.V1.StreamingReadClientMessageNew.AddTopicRequest.topic_read_settings', index=0,
       number=1, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='read', full_name='Ydb.PersQueue.V1.ReadSessionRequest.read', index=1,
-      number=2, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='start_read', full_name='Ydb.PersQueue.V1.ReadSessionRequest.start_read', index=2,
-      number=3, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='commit', full_name='Ydb.PersQueue.V1.ReadSessionRequest.commit', index=3,
-      number=4, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='released', full_name='Ydb.PersQueue.V1.ReadSessionRequest.released', index=4,
-      number=5, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='status', full_name='Ydb.PersQueue.V1.ReadSessionRequest.status', index=5,
-      number=6, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='token', full_name='Ydb.PersQueue.V1.ReadSessionRequest.token', index=6,
-      number=20, type=12, cpp_type=9, label=1,
-      has_default_value=False, default_value=_b(""),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
   ],
   extensions=[
   ],
-  nested_types=[_READSESSIONREQUEST_INIT, _READSESSIONREQUEST_READ, _READSESSIONREQUEST_STARTREAD, _READSESSIONREQUEST_RELEASED, _READSESSIONREQUEST_COMMIT, _READSESSIONREQUEST_STATUS, ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=4839,
+  serialized_end=4952,
+)
+
+_STREAMINGREADCLIENTMESSAGENEW_REMOVETOPICREQUEST = _descriptor.Descriptor(
+  name='RemoveTopicRequest',
+  full_name='Ydb.PersQueue.V1.StreamingReadClientMessageNew.RemoveTopicRequest',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='topic', full_name='Ydb.PersQueue.V1.StreamingReadClientMessageNew.RemoveTopicRequest.topic', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=4954,
+  serialized_end=4989,
+)
+
+_STREAMINGREADCLIENTMESSAGENEW_TOPICREADSETTINGS = _descriptor.Descriptor(
+  name='TopicReadSettings',
+  full_name='Ydb.PersQueue.V1.StreamingReadClientMessageNew.TopicReadSettings',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='topic', full_name='Ydb.PersQueue.V1.StreamingReadClientMessageNew.TopicReadSettings.topic', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='partition_group_ids', full_name='Ydb.PersQueue.V1.StreamingReadClientMessageNew.TopicReadSettings.partition_group_ids', index=1,
+      number=2, type=3, cpp_type=2, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='start_from_written_at_ms', full_name='Ydb.PersQueue.V1.StreamingReadClientMessageNew.TopicReadSettings.start_from_written_at_ms', index=2,
+      number=3, type=3, cpp_type=2, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=4991,
+  serialized_end=5088,
+)
+
+_STREAMINGREADCLIENTMESSAGENEW_PARTITIONCOMMIT = _descriptor.Descriptor(
+  name='PartitionCommit',
+  full_name='Ydb.PersQueue.V1.StreamingReadClientMessageNew.PartitionCommit',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='read_stream_id', full_name='Ydb.PersQueue.V1.StreamingReadClientMessageNew.PartitionCommit.read_stream_id', index=0,
+      number=1, type=3, cpp_type=2, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='offsets', full_name='Ydb.PersQueue.V1.StreamingReadClientMessageNew.PartitionCommit.offsets', index=1,
+      number=2, type=11, cpp_type=10, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=5090,
+  serialized_end=5180,
+)
+
+_STREAMINGREADCLIENTMESSAGENEW = _descriptor.Descriptor(
+  name='StreamingReadClientMessageNew',
+  full_name='Ydb.PersQueue.V1.StreamingReadClientMessageNew',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='init_request', full_name='Ydb.PersQueue.V1.StreamingReadClientMessageNew.init_request', index=0,
+      number=1, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='read_request', full_name='Ydb.PersQueue.V1.StreamingReadClientMessageNew.read_request', index=1,
+      number=2, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='create_read_stream_response', full_name='Ydb.PersQueue.V1.StreamingReadClientMessageNew.create_read_stream_response', index=2,
+      number=3, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='commit_request', full_name='Ydb.PersQueue.V1.StreamingReadClientMessageNew.commit_request', index=3,
+      number=4, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='destroy_read_stream_response', full_name='Ydb.PersQueue.V1.StreamingReadClientMessageNew.destroy_read_stream_response', index=4,
+      number=5, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='stop_read_request', full_name='Ydb.PersQueue.V1.StreamingReadClientMessageNew.stop_read_request', index=5,
+      number=6, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='resume_read_request', full_name='Ydb.PersQueue.V1.StreamingReadClientMessageNew.resume_read_request', index=6,
+      number=7, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='read_stream_status_request', full_name='Ydb.PersQueue.V1.StreamingReadClientMessageNew.read_stream_status_request', index=7,
+      number=8, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='add_topic_request', full_name='Ydb.PersQueue.V1.StreamingReadClientMessageNew.add_topic_request', index=8,
+      number=9, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='remove_topic_request', full_name='Ydb.PersQueue.V1.StreamingReadClientMessageNew.remove_topic_request', index=9,
+      number=10, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='token', full_name='Ydb.PersQueue.V1.StreamingReadClientMessageNew.token', index=10,
+      number=20, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[_STREAMINGREADCLIENTMESSAGENEW_INITREQUEST, _STREAMINGREADCLIENTMESSAGENEW_READREQUEST, _STREAMINGREADCLIENTMESSAGENEW_CREATEREADSTREAMRESPONSE, _STREAMINGREADCLIENTMESSAGENEW_DESTROYREADSTREAMRESPONSE, _STREAMINGREADCLIENTMESSAGENEW_STOPREADREQUEST, _STREAMINGREADCLIENTMESSAGENEW_RESUMEREADREQUEST, _STREAMINGREADCLIENTMESSAGENEW_COMMITREQUEST, _STREAMINGREADCLIENTMESSAGENEW_READSTREAMSTATUSREQUEST, _STREAMINGREADCLIENTMESSAGENEW_ADDTOPICREQUEST, _STREAMINGREADCLIENTMESSAGENEW_REMOVETOPICREQUEST, _STREAMINGREADCLIENTMESSAGENEW_TOPICREADSETTINGS, _STREAMINGREADCLIENTMESSAGENEW_PARTITIONCOMMIT, ],
   enum_types=[
   ],
   options=None,
@@ -1219,25 +1519,120 @@ _READSESSIONREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
     _descriptor.OneofDescriptor(
-      name='request', full_name='Ydb.PersQueue.V1.ReadSessionRequest.request',
+      name='client_message', full_name='Ydb.PersQueue.V1.StreamingReadClientMessageNew.client_message',
       index=0, containing_type=None, fields=[]),
   ],
-  serialized_start=2430,
-  serialized_end=3731,
+  serialized_start=2378,
+  serialized_end=5198,
 )
 
 
-_READSESSIONRESPONSE_INITED = _descriptor.Descriptor(
-  name='Inited',
-  full_name='Ydb.PersQueue.V1.ReadSessionResponse.Inited',
+_STREAMINGREADSERVERMESSAGENEW_INITRESPONSE_BLOCKFORMATVERSIONBYTOPICENTRY = _descriptor.Descriptor(
+  name='BlockFormatVersionByTopicEntry',
+  full_name='Ydb.PersQueue.V1.StreamingReadServerMessageNew.InitResponse.BlockFormatVersionByTopicEntry',
   filename=None,
   file=DESCRIPTOR,
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='session_id', full_name='Ydb.PersQueue.V1.ReadSessionResponse.Inited.session_id', index=0,
-      number=2, type=9, cpp_type=9, label=1,
+      name='key', full_name='Ydb.PersQueue.V1.StreamingReadServerMessageNew.InitResponse.BlockFormatVersionByTopicEntry.key', index=0,
+      number=1, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='value', full_name='Ydb.PersQueue.V1.StreamingReadServerMessageNew.InitResponse.BlockFormatVersionByTopicEntry.value', index=1,
+      number=2, type=3, cpp_type=2, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=_descriptor._ParseOptions(descriptor_pb2.MessageOptions(), _b('8\001')),
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=6524,
+  serialized_end=6588,
+)
+
+_STREAMINGREADSERVERMESSAGENEW_INITRESPONSE = _descriptor.Descriptor(
+  name='InitResponse',
+  full_name='Ydb.PersQueue.V1.StreamingReadServerMessageNew.InitResponse',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='session_id', full_name='Ydb.PersQueue.V1.StreamingReadServerMessageNew.InitResponse.session_id', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='block_format_version_by_topic', full_name='Ydb.PersQueue.V1.StreamingReadServerMessageNew.InitResponse.block_format_version_by_topic', index=1,
+      number=2, type=11, cpp_type=10, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='max_meta_cache_size', full_name='Ydb.PersQueue.V1.StreamingReadServerMessageNew.InitResponse.max_meta_cache_size', index=2,
+      number=10, type=3, cpp_type=2, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[_STREAMINGREADSERVERMESSAGENEW_INITRESPONSE_BLOCKFORMATVERSIONBYTOPICENTRY, ],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=6326,
+  serialized_end=6588,
+)
+
+_STREAMINGREADSERVERMESSAGENEW_CREATEREADSTREAMREQUEST = _descriptor.Descriptor(
+  name='CreateReadStreamRequest',
+  full_name='Ydb.PersQueue.V1.StreamingReadServerMessageNew.CreateReadStreamRequest',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='read_stream', full_name='Ydb.PersQueue.V1.StreamingReadServerMessageNew.CreateReadStreamRequest.read_stream', index=0,
+      number=1, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='committed_offset', full_name='Ydb.PersQueue.V1.StreamingReadServerMessageNew.CreateReadStreamRequest.committed_offset', index=1,
+      number=2, type=3, cpp_type=2, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='end_offset', full_name='Ydb.PersQueue.V1.StreamingReadServerMessageNew.CreateReadStreamRequest.end_offset', index=2,
+      number=3, type=3, cpp_type=2, label=1,
+      has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
@@ -1253,56 +1648,1052 @@ _READSESSIONRESPONSE_INITED = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=4263,
-  serialized_end=4291,
+  serialized_start=6590,
+  serialized_end=6712,
 )
 
-_READSESSIONRESPONSE_ASSIGNED = _descriptor.Descriptor(
-  name='Assigned',
-  full_name='Ydb.PersQueue.V1.ReadSessionResponse.Assigned',
+_STREAMINGREADSERVERMESSAGENEW_DESTROYREADSTREAMREQUEST = _descriptor.Descriptor(
+  name='DestroyReadStreamRequest',
+  full_name='Ydb.PersQueue.V1.StreamingReadServerMessageNew.DestroyReadStreamRequest',
   filename=None,
   file=DESCRIPTOR,
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='topic', full_name='Ydb.PersQueue.V1.ReadSessionResponse.Assigned.topic', index=0,
-      number=1, type=11, cpp_type=10, label=1,
+      name='read_stream_id', full_name='Ydb.PersQueue.V1.StreamingReadServerMessageNew.DestroyReadStreamRequest.read_stream_id', index=0,
+      number=1, type=3, cpp_type=2, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='graceful', full_name='Ydb.PersQueue.V1.StreamingReadServerMessageNew.DestroyReadStreamRequest.graceful', index=1,
+      number=2, type=8, cpp_type=7, label=1,
+      has_default_value=False, default_value=False,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='committed_offset', full_name='Ydb.PersQueue.V1.StreamingReadServerMessageNew.DestroyReadStreamRequest.committed_offset', index=2,
+      number=3, type=3, cpp_type=2, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=6714,
+  serialized_end=6808,
+)
+
+_STREAMINGREADSERVERMESSAGENEW_COMMITRESPONSE_PARTITIONCOMMITTEDOFFSET = _descriptor.Descriptor(
+  name='PartitionCommittedOffset',
+  full_name='Ydb.PersQueue.V1.StreamingReadServerMessageNew.CommitResponse.PartitionCommittedOffset',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='read_stream_id', full_name='Ydb.PersQueue.V1.StreamingReadServerMessageNew.CommitResponse.PartitionCommittedOffset.read_stream_id', index=0,
+      number=1, type=3, cpp_type=2, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='committed_offset', full_name='Ydb.PersQueue.V1.StreamingReadServerMessageNew.CommitResponse.PartitionCommittedOffset.committed_offset', index=1,
+      number=2, type=3, cpp_type=2, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=6956,
+  serialized_end=7032,
+)
+
+_STREAMINGREADSERVERMESSAGENEW_COMMITRESPONSE = _descriptor.Descriptor(
+  name='CommitResponse',
+  full_name='Ydb.PersQueue.V1.StreamingReadServerMessageNew.CommitResponse',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='partitions_committed_offsets', full_name='Ydb.PersQueue.V1.StreamingReadServerMessageNew.CommitResponse.partitions_committed_offsets', index=0,
+      number=1, type=11, cpp_type=10, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[_STREAMINGREADSERVERMESSAGENEW_COMMITRESPONSE_PARTITIONCOMMITTEDOFFSET, ],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=6811,
+  serialized_end=7032,
+)
+
+_STREAMINGREADSERVERMESSAGENEW_BATCHREADRESPONSE_PARTITIONDATA_READSTATISTICS = _descriptor.Descriptor(
+  name='ReadStatistics',
+  full_name='Ydb.PersQueue.V1.StreamingReadServerMessageNew.BatchReadResponse.PartitionData.ReadStatistics',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='blobs_from_cache', full_name='Ydb.PersQueue.V1.StreamingReadServerMessageNew.BatchReadResponse.PartitionData.ReadStatistics.blobs_from_cache', index=0,
+      number=1, type=3, cpp_type=2, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='blobs_from_disk', full_name='Ydb.PersQueue.V1.StreamingReadServerMessageNew.BatchReadResponse.PartitionData.ReadStatistics.blobs_from_disk', index=1,
+      number=2, type=3, cpp_type=2, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='bytes_from_head', full_name='Ydb.PersQueue.V1.StreamingReadServerMessageNew.BatchReadResponse.PartitionData.ReadStatistics.bytes_from_head', index=2,
+      number=3, type=3, cpp_type=2, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='bytes_from_cache', full_name='Ydb.PersQueue.V1.StreamingReadServerMessageNew.BatchReadResponse.PartitionData.ReadStatistics.bytes_from_cache', index=3,
+      number=4, type=3, cpp_type=2, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='bytes_from_disk', full_name='Ydb.PersQueue.V1.StreamingReadServerMessageNew.BatchReadResponse.PartitionData.ReadStatistics.bytes_from_disk', index=4,
+      number=5, type=3, cpp_type=2, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='repack_duration_ms', full_name='Ydb.PersQueue.V1.StreamingReadServerMessageNew.BatchReadResponse.PartitionData.ReadStatistics.repack_duration_ms', index=5,
+      number=6, type=3, cpp_type=2, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=7891,
+  serialized_end=8062,
+)
+
+_STREAMINGREADSERVERMESSAGENEW_BATCHREADRESPONSE_PARTITIONDATA = _descriptor.Descriptor(
+  name='PartitionData',
+  full_name='Ydb.PersQueue.V1.StreamingReadServerMessageNew.BatchReadResponse.PartitionData',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='read_stream_id', full_name='Ydb.PersQueue.V1.StreamingReadServerMessageNew.BatchReadResponse.PartitionData.read_stream_id', index=0,
+      number=1, type=3, cpp_type=2, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='offsets', full_name='Ydb.PersQueue.V1.StreamingReadServerMessageNew.BatchReadResponse.PartitionData.offsets', index=1,
+      number=2, type=3, cpp_type=2, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='sequence_numbers', full_name='Ydb.PersQueue.V1.StreamingReadServerMessageNew.BatchReadResponse.PartitionData.sequence_numbers', index=2,
+      number=3, type=3, cpp_type=2, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='created_at_ms', full_name='Ydb.PersQueue.V1.StreamingReadServerMessageNew.BatchReadResponse.PartitionData.created_at_ms', index=3,
+      number=4, type=3, cpp_type=2, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='written_at_ms', full_name='Ydb.PersQueue.V1.StreamingReadServerMessageNew.BatchReadResponse.PartitionData.written_at_ms', index=4,
+      number=5, type=3, cpp_type=2, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='message_group_ids', full_name='Ydb.PersQueue.V1.StreamingReadServerMessageNew.BatchReadResponse.PartitionData.message_group_ids', index=5,
+      number=6, type=9, cpp_type=9, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='message_group_id_indexes', full_name='Ydb.PersQueue.V1.StreamingReadServerMessageNew.BatchReadResponse.PartitionData.message_group_id_indexes', index=6,
+      number=7, type=18, cpp_type=2, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='ips', full_name='Ydb.PersQueue.V1.StreamingReadServerMessageNew.BatchReadResponse.PartitionData.ips', index=7,
+      number=8, type=9, cpp_type=9, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='ip_indexes', full_name='Ydb.PersQueue.V1.StreamingReadServerMessageNew.BatchReadResponse.PartitionData.ip_indexes', index=8,
+      number=9, type=18, cpp_type=2, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='message_session_meta', full_name='Ydb.PersQueue.V1.StreamingReadServerMessageNew.BatchReadResponse.PartitionData.message_session_meta', index=9,
+      number=10, type=11, cpp_type=10, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='message_session_meta_indexes', full_name='Ydb.PersQueue.V1.StreamingReadServerMessageNew.BatchReadResponse.PartitionData.message_session_meta_indexes', index=10,
+      number=11, type=18, cpp_type=2, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='message_sizes', full_name='Ydb.PersQueue.V1.StreamingReadServerMessageNew.BatchReadResponse.PartitionData.message_sizes', index=11,
+      number=12, type=3, cpp_type=2, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='blocks_offsets', full_name='Ydb.PersQueue.V1.StreamingReadServerMessageNew.BatchReadResponse.PartitionData.blocks_offsets', index=12,
+      number=13, type=3, cpp_type=2, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='blocks_part_numbers', full_name='Ydb.PersQueue.V1.StreamingReadServerMessageNew.BatchReadResponse.PartitionData.blocks_part_numbers', index=13,
+      number=14, type=3, cpp_type=2, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='blocks_message_counts', full_name='Ydb.PersQueue.V1.StreamingReadServerMessageNew.BatchReadResponse.PartitionData.blocks_message_counts', index=14,
+      number=15, type=3, cpp_type=2, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='blocks_uncompressed_sizes', full_name='Ydb.PersQueue.V1.StreamingReadServerMessageNew.BatchReadResponse.PartitionData.blocks_uncompressed_sizes', index=15,
+      number=16, type=3, cpp_type=2, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='blocks_data', full_name='Ydb.PersQueue.V1.StreamingReadServerMessageNew.BatchReadResponse.PartitionData.blocks_data', index=16,
+      number=17, type=12, cpp_type=9, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='resume_cookie', full_name='Ydb.PersQueue.V1.StreamingReadServerMessageNew.BatchReadResponse.PartitionData.resume_cookie', index=17,
+      number=50, type=3, cpp_type=2, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='read_statistics', full_name='Ydb.PersQueue.V1.StreamingReadServerMessageNew.BatchReadResponse.PartitionData.read_statistics', index=18,
+      number=100, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[_STREAMINGREADSERVERMESSAGENEW_BATCHREADRESPONSE_PARTITIONDATA_READSTATISTICS, ],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=7255,
+  serialized_end=8062,
+)
+
+_STREAMINGREADSERVERMESSAGENEW_BATCHREADRESPONSE_SKIPRANGE = _descriptor.Descriptor(
+  name='SkipRange',
+  full_name='Ydb.PersQueue.V1.StreamingReadServerMessageNew.BatchReadResponse.SkipRange',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='read_stream_id', full_name='Ydb.PersQueue.V1.StreamingReadServerMessageNew.BatchReadResponse.SkipRange.read_stream_id', index=0,
+      number=1, type=3, cpp_type=2, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='skip_range', full_name='Ydb.PersQueue.V1.StreamingReadServerMessageNew.BatchReadResponse.SkipRange.skip_range', index=1,
+      number=2, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=8064,
+  serialized_end=8151,
+)
+
+_STREAMINGREADSERVERMESSAGENEW_BATCHREADRESPONSE = _descriptor.Descriptor(
+  name='BatchReadResponse',
+  full_name='Ydb.PersQueue.V1.StreamingReadServerMessageNew.BatchReadResponse',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='skip_range', full_name='Ydb.PersQueue.V1.StreamingReadServerMessageNew.BatchReadResponse.skip_range', index=0,
+      number=1, type=11, cpp_type=10, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='partitions', full_name='Ydb.PersQueue.V1.StreamingReadServerMessageNew.BatchReadResponse.partitions', index=1,
+      number=2, type=11, cpp_type=10, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[_STREAMINGREADSERVERMESSAGENEW_BATCHREADRESPONSE_PARTITIONDATA, _STREAMINGREADSERVERMESSAGENEW_BATCHREADRESPONSE_SKIPRANGE, ],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=7035,
+  serialized_end=8151,
+)
+
+_STREAMINGREADSERVERMESSAGENEW_READSTREAMSTATUSRESPONSE = _descriptor.Descriptor(
+  name='ReadStreamStatusResponse',
+  full_name='Ydb.PersQueue.V1.StreamingReadServerMessageNew.ReadStreamStatusResponse',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='read_stream_id', full_name='Ydb.PersQueue.V1.StreamingReadServerMessageNew.ReadStreamStatusResponse.read_stream_id', index=0,
+      number=1, type=3, cpp_type=2, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='committed_offset', full_name='Ydb.PersQueue.V1.StreamingReadServerMessageNew.ReadStreamStatusResponse.committed_offset', index=1,
+      number=2, type=3, cpp_type=2, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='end_offset', full_name='Ydb.PersQueue.V1.StreamingReadServerMessageNew.ReadStreamStatusResponse.end_offset', index=2,
+      number=3, type=3, cpp_type=2, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='written_at_watermark_ms', full_name='Ydb.PersQueue.V1.StreamingReadServerMessageNew.ReadStreamStatusResponse.written_at_watermark_ms', index=3,
+      number=4, type=3, cpp_type=2, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=8154,
+  serialized_end=8283,
+)
+
+_STREAMINGREADSERVERMESSAGENEW_STOPREADRESPONSE = _descriptor.Descriptor(
+  name='StopReadResponse',
+  full_name='Ydb.PersQueue.V1.StreamingReadServerMessageNew.StopReadResponse',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=8285,
+  serialized_end=8303,
+)
+
+_STREAMINGREADSERVERMESSAGENEW_RESUMEREADRESPONSE = _descriptor.Descriptor(
+  name='ResumeReadResponse',
+  full_name='Ydb.PersQueue.V1.StreamingReadServerMessageNew.ResumeReadResponse',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=8305,
+  serialized_end=8325,
+)
+
+_STREAMINGREADSERVERMESSAGENEW_ADDTOPICRESPONSE = _descriptor.Descriptor(
+  name='AddTopicResponse',
+  full_name='Ydb.PersQueue.V1.StreamingReadServerMessageNew.AddTopicResponse',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='block_format_version', full_name='Ydb.PersQueue.V1.StreamingReadServerMessageNew.AddTopicResponse.block_format_version', index=0,
+      number=1, type=3, cpp_type=2, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=8327,
+  serialized_end=8375,
+)
+
+_STREAMINGREADSERVERMESSAGENEW_REMOVETOPICRESPONSE = _descriptor.Descriptor(
+  name='RemoveTopicResponse',
+  full_name='Ydb.PersQueue.V1.StreamingReadServerMessageNew.RemoveTopicResponse',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=8377,
+  serialized_end=8398,
+)
+
+_STREAMINGREADSERVERMESSAGENEW = _descriptor.Descriptor(
+  name='StreamingReadServerMessageNew',
+  full_name='Ydb.PersQueue.V1.StreamingReadServerMessageNew',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='init_response', full_name='Ydb.PersQueue.V1.StreamingReadServerMessageNew.init_response', index=0,
+      number=3, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='cluster', full_name='Ydb.PersQueue.V1.ReadSessionResponse.Assigned.cluster', index=1,
+      name='batch_read_response', full_name='Ydb.PersQueue.V1.StreamingReadServerMessageNew.batch_read_response', index=1,
+      number=4, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='create_read_stream_request', full_name='Ydb.PersQueue.V1.StreamingReadServerMessageNew.create_read_stream_request', index=2,
+      number=5, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='destroy_read_stream_request', full_name='Ydb.PersQueue.V1.StreamingReadServerMessageNew.destroy_read_stream_request', index=3,
+      number=6, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='commit_response', full_name='Ydb.PersQueue.V1.StreamingReadServerMessageNew.commit_response', index=4,
+      number=7, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='read_stream_status_response', full_name='Ydb.PersQueue.V1.StreamingReadServerMessageNew.read_stream_status_response', index=5,
+      number=8, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='stop_read_response', full_name='Ydb.PersQueue.V1.StreamingReadServerMessageNew.stop_read_response', index=6,
+      number=9, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='resume_read_response', full_name='Ydb.PersQueue.V1.StreamingReadServerMessageNew.resume_read_response', index=7,
+      number=10, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='add_topic_response', full_name='Ydb.PersQueue.V1.StreamingReadServerMessageNew.add_topic_response', index=8,
+      number=11, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='remove_topic_response', full_name='Ydb.PersQueue.V1.StreamingReadServerMessageNew.remove_topic_response', index=9,
+      number=12, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='status', full_name='Ydb.PersQueue.V1.StreamingReadServerMessageNew.status', index=10,
+      number=1, type=14, cpp_type=8, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='issues', full_name='Ydb.PersQueue.V1.StreamingReadServerMessageNew.issues', index=11,
+      number=2, type=11, cpp_type=10, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[_STREAMINGREADSERVERMESSAGENEW_INITRESPONSE, _STREAMINGREADSERVERMESSAGENEW_CREATEREADSTREAMREQUEST, _STREAMINGREADSERVERMESSAGENEW_DESTROYREADSTREAMREQUEST, _STREAMINGREADSERVERMESSAGENEW_COMMITRESPONSE, _STREAMINGREADSERVERMESSAGENEW_BATCHREADRESPONSE, _STREAMINGREADSERVERMESSAGENEW_READSTREAMSTATUSRESPONSE, _STREAMINGREADSERVERMESSAGENEW_STOPREADRESPONSE, _STREAMINGREADSERVERMESSAGENEW_RESUMEREADRESPONSE, _STREAMINGREADSERVERMESSAGENEW_ADDTOPICRESPONSE, _STREAMINGREADSERVERMESSAGENEW_REMOVETOPICRESPONSE, ],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+    _descriptor.OneofDescriptor(
+      name='server_message', full_name='Ydb.PersQueue.V1.StreamingReadServerMessageNew.server_message',
+      index=0, containing_type=None, fields=[]),
+  ],
+  serialized_start=5201,
+  serialized_end=8416,
+)
+
+
+_READSTREAM = _descriptor.Descriptor(
+  name='ReadStream',
+  full_name='Ydb.PersQueue.V1.ReadStream',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='topic', full_name='Ydb.PersQueue.V1.ReadStream.topic', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='cluster', full_name='Ydb.PersQueue.V1.ReadStream.cluster', index=1,
       number=2, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='partition', full_name='Ydb.PersQueue.V1.ReadSessionResponse.Assigned.partition', index=2,
+      name='partition_id', full_name='Ydb.PersQueue.V1.ReadStream.partition_id', index=2,
+      number=3, type=3, cpp_type=2, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='partition_group_id', full_name='Ydb.PersQueue.V1.ReadStream.partition_group_id', index=3,
+      number=4, type=3, cpp_type=2, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='read_stream_id', full_name='Ydb.PersQueue.V1.ReadStream.read_stream_id', index=4,
+      number=6, type=3, cpp_type=2, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='connection_meta', full_name='Ydb.PersQueue.V1.ReadStream.connection_meta', index=5,
+      number=7, type=12, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b(""),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=8419,
+  serialized_end=8562,
+)
+
+
+_STREAMINGREADCLIENTMESSAGE_TOPICREADSETTINGS = _descriptor.Descriptor(
+  name='TopicReadSettings',
+  full_name='Ydb.PersQueue.V1.StreamingReadClientMessage.TopicReadSettings',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='topic', full_name='Ydb.PersQueue.V1.StreamingReadClientMessage.TopicReadSettings.topic', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='partition_group_ids', full_name='Ydb.PersQueue.V1.StreamingReadClientMessage.TopicReadSettings.partition_group_ids', index=1,
+      number=2, type=3, cpp_type=2, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='start_from_written_at_ms', full_name='Ydb.PersQueue.V1.StreamingReadClientMessage.TopicReadSettings.start_from_written_at_ms', index=2,
+      number=3, type=3, cpp_type=2, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=4991,
+  serialized_end=5088,
+)
+
+_STREAMINGREADCLIENTMESSAGE_INITREQUEST_STATE_READSTREAMSTATE = _descriptor.Descriptor(
+  name='ReadStreamState',
+  full_name='Ydb.PersQueue.V1.StreamingReadClientMessage.InitRequest.State.ReadStreamState',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='read_stream', full_name='Ydb.PersQueue.V1.StreamingReadClientMessage.InitRequest.State.ReadStreamState.read_stream', index=0,
+      number=1, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='read_offset', full_name='Ydb.PersQueue.V1.StreamingReadClientMessage.InitRequest.State.ReadStreamState.read_offset', index=1,
+      number=2, type=3, cpp_type=2, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='offset_ranges', full_name='Ydb.PersQueue.V1.StreamingReadClientMessage.InitRequest.State.ReadStreamState.offset_ranges', index=2,
+      number=3, type=11, cpp_type=10, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='status', full_name='Ydb.PersQueue.V1.StreamingReadClientMessage.InitRequest.State.ReadStreamState.status', index=3,
+      number=4, type=14, cpp_type=8, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+    _STREAMINGREADCLIENTMESSAGE_INITREQUEST_STATE_READSTREAMSTATE_STATUS,
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=9769,
+  serialized_end=10106,
+)
+
+_STREAMINGREADCLIENTMESSAGE_INITREQUEST_STATE = _descriptor.Descriptor(
+  name='State',
+  full_name='Ydb.PersQueue.V1.StreamingReadClientMessage.InitRequest.State',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='read_streams_states', full_name='Ydb.PersQueue.V1.StreamingReadClientMessage.InitRequest.State.read_streams_states', index=0,
+      number=1, type=11, cpp_type=10, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[_STREAMINGREADCLIENTMESSAGE_INITREQUEST_STATE_READSTREAMSTATE, ],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=9650,
+  serialized_end=10106,
+)
+
+_STREAMINGREADCLIENTMESSAGE_INITREQUEST = _descriptor.Descriptor(
+  name='InitRequest',
+  full_name='Ydb.PersQueue.V1.StreamingReadClientMessage.InitRequest',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='topics_read_settings', full_name='Ydb.PersQueue.V1.StreamingReadClientMessage.InitRequest.topics_read_settings', index=0,
+      number=1, type=11, cpp_type=10, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='read_only_original', full_name='Ydb.PersQueue.V1.StreamingReadClientMessage.InitRequest.read_only_original', index=1,
+      number=2, type=8, cpp_type=7, label=1,
+      has_default_value=False, default_value=False,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='consumer', full_name='Ydb.PersQueue.V1.StreamingReadClientMessage.InitRequest.consumer', index=2,
+      number=3, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='max_lag_duration_ms', full_name='Ydb.PersQueue.V1.StreamingReadClientMessage.InitRequest.max_lag_duration_ms', index=3,
+      number=4, type=3, cpp_type=2, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='start_from_written_at_ms', full_name='Ydb.PersQueue.V1.StreamingReadClientMessage.InitRequest.start_from_written_at_ms', index=4,
+      number=5, type=3, cpp_type=2, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='max_supported_block_format_version', full_name='Ydb.PersQueue.V1.StreamingReadClientMessage.InitRequest.max_supported_block_format_version', index=5,
+      number=6, type=3, cpp_type=2, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='max_meta_cache_size', full_name='Ydb.PersQueue.V1.StreamingReadClientMessage.InitRequest.max_meta_cache_size', index=6,
+      number=10, type=3, cpp_type=2, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='session_id', full_name='Ydb.PersQueue.V1.StreamingReadClientMessage.InitRequest.session_id', index=7,
+      number=100, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='connection_attempt', full_name='Ydb.PersQueue.V1.StreamingReadClientMessage.InitRequest.connection_attempt', index=8,
+      number=101, type=3, cpp_type=2, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='state', full_name='Ydb.PersQueue.V1.StreamingReadClientMessage.InitRequest.state', index=9,
+      number=102, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='idle_timeout_ms', full_name='Ydb.PersQueue.V1.StreamingReadClientMessage.InitRequest.idle_timeout_ms', index=10,
+      number=200, type=3, cpp_type=2, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='read_params', full_name='Ydb.PersQueue.V1.StreamingReadClientMessage.InitRequest.read_params', index=11,
+      number=42, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[_STREAMINGREADCLIENTMESSAGE_INITREQUEST_STATE, ],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=9154,
+  serialized_end=10106,
+)
+
+_STREAMINGREADCLIENTMESSAGE_READ = _descriptor.Descriptor(
+  name='Read',
+  full_name='Ydb.PersQueue.V1.StreamingReadClientMessage.Read',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=10108,
+  serialized_end=10114,
+)
+
+_STREAMINGREADCLIENTMESSAGE_STARTREAD = _descriptor.Descriptor(
+  name='StartRead',
+  full_name='Ydb.PersQueue.V1.StreamingReadClientMessage.StartRead',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='topic', full_name='Ydb.PersQueue.V1.StreamingReadClientMessage.StartRead.topic', index=0,
+      number=1, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='cluster', full_name='Ydb.PersQueue.V1.StreamingReadClientMessage.StartRead.cluster', index=1,
+      number=2, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='partition', full_name='Ydb.PersQueue.V1.StreamingReadClientMessage.StartRead.partition', index=2,
       number=3, type=4, cpp_type=4, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='assign_id', full_name='Ydb.PersQueue.V1.ReadSessionResponse.Assigned.assign_id', index=3,
+      name='assign_id', full_name='Ydb.PersQueue.V1.StreamingReadClientMessage.StartRead.assign_id', index=3,
       number=5, type=4, cpp_type=4, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='read_offset', full_name='Ydb.PersQueue.V1.ReadSessionResponse.Assigned.read_offset', index=4,
+      name='read_offset', full_name='Ydb.PersQueue.V1.StreamingReadClientMessage.StartRead.read_offset', index=4,
       number=6, type=4, cpp_type=4, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='end_offset', full_name='Ydb.PersQueue.V1.ReadSessionResponse.Assigned.end_offset', index=5,
+      name='commit_offset', full_name='Ydb.PersQueue.V1.StreamingReadClientMessage.StartRead.commit_offset', index=5,
       number=7, type=4, cpp_type=4, label=1,
       has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='verify_read_offset', full_name='Ydb.PersQueue.V1.StreamingReadClientMessage.StartRead.verify_read_offset', index=6,
+      number=8, type=8, cpp_type=7, label=1,
+      has_default_value=False, default_value=False,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
@@ -1318,55 +2709,41 @@ _READSESSIONRESPONSE_ASSIGNED = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=4294,
-  serialized_end=4439,
+  serialized_start=10117,
+  serialized_end=10294,
 )
 
-_READSESSIONRESPONSE_RELEASE = _descriptor.Descriptor(
-  name='Release',
-  full_name='Ydb.PersQueue.V1.ReadSessionResponse.Release',
+_STREAMINGREADCLIENTMESSAGE_RELEASED = _descriptor.Descriptor(
+  name='Released',
+  full_name='Ydb.PersQueue.V1.StreamingReadClientMessage.Released',
   filename=None,
   file=DESCRIPTOR,
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='topic', full_name='Ydb.PersQueue.V1.ReadSessionResponse.Release.topic', index=0,
+      name='topic', full_name='Ydb.PersQueue.V1.StreamingReadClientMessage.Released.topic', index=0,
       number=1, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='cluster', full_name='Ydb.PersQueue.V1.ReadSessionResponse.Release.cluster', index=1,
+      name='cluster', full_name='Ydb.PersQueue.V1.StreamingReadClientMessage.Released.cluster', index=1,
       number=2, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='partition', full_name='Ydb.PersQueue.V1.ReadSessionResponse.Release.partition', index=2,
+      name='partition', full_name='Ydb.PersQueue.V1.StreamingReadClientMessage.Released.partition', index=2,
       number=3, type=4, cpp_type=4, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='assign_id', full_name='Ydb.PersQueue.V1.ReadSessionResponse.Release.assign_id', index=3,
+      name='assign_id', full_name='Ydb.PersQueue.V1.StreamingReadClientMessage.Released.assign_id', index=3,
       number=5, type=4, cpp_type=4, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='forceful_release', full_name='Ydb.PersQueue.V1.ReadSessionResponse.Release.forceful_release', index=4,
-      number=6, type=8, cpp_type=7, label=1,
-      has_default_value=False, default_value=False,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='commit_offset', full_name='Ydb.PersQueue.V1.ReadSessionResponse.Release.commit_offset', index=5,
-      number=7, type=4, cpp_type=4, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -1383,19 +2760,19 @@ _READSESSIONRESPONSE_RELEASE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=4442,
-  serialized_end=4594,
+  serialized_start=10296,
+  serialized_end=10400,
 )
 
-_READSESSIONRESPONSE_COMMITTED = _descriptor.Descriptor(
-  name='Committed',
-  full_name='Ydb.PersQueue.V1.ReadSessionResponse.Committed',
+_STREAMINGREADCLIENTMESSAGE_COMMIT = _descriptor.Descriptor(
+  name='Commit',
+  full_name='Ydb.PersQueue.V1.StreamingReadClientMessage.Commit',
   filename=None,
   file=DESCRIPTOR,
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='cookies', full_name='Ydb.PersQueue.V1.ReadSessionResponse.Committed.cookies', index=0,
+      name='cookies', full_name='Ydb.PersQueue.V1.StreamingReadClientMessage.Commit.cookies', index=0,
       number=1, type=11, cpp_type=10, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
@@ -1413,47 +2790,415 @@ _READSESSIONRESPONSE_COMMITTED = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=4596,
-  serialized_end=4656,
+  serialized_start=10402,
+  serialized_end=10459,
 )
 
-_READSESSIONRESPONSE_DATABATCH_MESSAGEDATA = _descriptor.Descriptor(
-  name='MessageData',
-  full_name='Ydb.PersQueue.V1.ReadSessionResponse.DataBatch.MessageData',
+_STREAMINGREADCLIENTMESSAGE_STATUS = _descriptor.Descriptor(
+  name='Status',
+  full_name='Ydb.PersQueue.V1.StreamingReadClientMessage.Status',
   filename=None,
   file=DESCRIPTOR,
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='offset', full_name='Ydb.PersQueue.V1.ReadSessionResponse.DataBatch.MessageData.offset', index=0,
-      number=1, type=4, cpp_type=4, label=1,
-      has_default_value=False, default_value=0,
+      name='topic', full_name='Ydb.PersQueue.V1.StreamingReadClientMessage.Status.topic', index=0,
+      number=1, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='seq_no', full_name='Ydb.PersQueue.V1.ReadSessionResponse.DataBatch.MessageData.seq_no', index=1,
-      number=2, type=4, cpp_type=4, label=1,
-      has_default_value=False, default_value=0,
+      name='cluster', full_name='Ydb.PersQueue.V1.StreamingReadClientMessage.Status.cluster', index=1,
+      number=2, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='create_timestamp_ms', full_name='Ydb.PersQueue.V1.ReadSessionResponse.DataBatch.MessageData.create_timestamp_ms', index=2,
+      name='partition', full_name='Ydb.PersQueue.V1.StreamingReadClientMessage.Status.partition', index=2,
       number=3, type=4, cpp_type=4, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='codec', full_name='Ydb.PersQueue.V1.ReadSessionResponse.DataBatch.MessageData.codec', index=3,
+      name='assign_id', full_name='Ydb.PersQueue.V1.StreamingReadClientMessage.Status.assign_id', index=3,
+      number=5, type=4, cpp_type=4, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=10461,
+  serialized_end=10563,
+)
+
+_STREAMINGREADCLIENTMESSAGE = _descriptor.Descriptor(
+  name='StreamingReadClientMessage',
+  full_name='Ydb.PersQueue.V1.StreamingReadClientMessage',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='init_request', full_name='Ydb.PersQueue.V1.StreamingReadClientMessage.init_request', index=0,
+      number=1, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='read', full_name='Ydb.PersQueue.V1.StreamingReadClientMessage.read', index=1,
+      number=2, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='start_read', full_name='Ydb.PersQueue.V1.StreamingReadClientMessage.start_read', index=2,
+      number=3, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='commit', full_name='Ydb.PersQueue.V1.StreamingReadClientMessage.commit', index=3,
+      number=4, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='released', full_name='Ydb.PersQueue.V1.StreamingReadClientMessage.released', index=4,
+      number=5, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='status', full_name='Ydb.PersQueue.V1.StreamingReadClientMessage.status', index=5,
+      number=6, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='token', full_name='Ydb.PersQueue.V1.StreamingReadClientMessage.token', index=6,
+      number=20, type=12, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b(""),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[_STREAMINGREADCLIENTMESSAGE_TOPICREADSETTINGS, _STREAMINGREADCLIENTMESSAGE_INITREQUEST, _STREAMINGREADCLIENTMESSAGE_READ, _STREAMINGREADCLIENTMESSAGE_STARTREAD, _STREAMINGREADCLIENTMESSAGE_RELEASED, _STREAMINGREADCLIENTMESSAGE_COMMIT, _STREAMINGREADCLIENTMESSAGE_STATUS, ],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+    _descriptor.OneofDescriptor(
+      name='request', full_name='Ydb.PersQueue.V1.StreamingReadClientMessage.request',
+      index=0, containing_type=None, fields=[]),
+  ],
+  serialized_start=8565,
+  serialized_end=10574,
+)
+
+
+_STREAMINGREADSERVERMESSAGE_INITRESPONSE_BLOCKFORMATVERSIONBYTOPICENTRY = _descriptor.Descriptor(
+  name='BlockFormatVersionByTopicEntry',
+  full_name='Ydb.PersQueue.V1.StreamingReadServerMessage.InitResponse.BlockFormatVersionByTopicEntry',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='key', full_name='Ydb.PersQueue.V1.StreamingReadServerMessage.InitResponse.BlockFormatVersionByTopicEntry.key', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='value', full_name='Ydb.PersQueue.V1.StreamingReadServerMessage.InitResponse.BlockFormatVersionByTopicEntry.value', index=1,
+      number=2, type=3, cpp_type=2, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=_descriptor._ParseOptions(descriptor_pb2.MessageOptions(), _b('8\001')),
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=6524,
+  serialized_end=6588,
+)
+
+_STREAMINGREADSERVERMESSAGE_INITRESPONSE = _descriptor.Descriptor(
+  name='InitResponse',
+  full_name='Ydb.PersQueue.V1.StreamingReadServerMessage.InitResponse',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='session_id', full_name='Ydb.PersQueue.V1.StreamingReadServerMessage.InitResponse.session_id', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='block_format_version_by_topic', full_name='Ydb.PersQueue.V1.StreamingReadServerMessage.InitResponse.block_format_version_by_topic', index=1,
+      number=2, type=11, cpp_type=10, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='max_meta_cache_size', full_name='Ydb.PersQueue.V1.StreamingReadServerMessage.InitResponse.max_meta_cache_size', index=2,
+      number=10, type=3, cpp_type=2, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[_STREAMINGREADSERVERMESSAGE_INITRESPONSE_BLOCKFORMATVERSIONBYTOPICENTRY, ],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=11169,
+  serialized_end=11427,
+)
+
+_STREAMINGREADSERVERMESSAGE_ASSIGNED = _descriptor.Descriptor(
+  name='Assigned',
+  full_name='Ydb.PersQueue.V1.StreamingReadServerMessage.Assigned',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='topic', full_name='Ydb.PersQueue.V1.StreamingReadServerMessage.Assigned.topic', index=0,
+      number=1, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='cluster', full_name='Ydb.PersQueue.V1.StreamingReadServerMessage.Assigned.cluster', index=1,
+      number=2, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='partition', full_name='Ydb.PersQueue.V1.StreamingReadServerMessage.Assigned.partition', index=2,
+      number=3, type=4, cpp_type=4, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='assign_id', full_name='Ydb.PersQueue.V1.StreamingReadServerMessage.Assigned.assign_id', index=3,
+      number=5, type=4, cpp_type=4, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='read_offset', full_name='Ydb.PersQueue.V1.StreamingReadServerMessage.Assigned.read_offset', index=4,
+      number=6, type=4, cpp_type=4, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='end_offset', full_name='Ydb.PersQueue.V1.StreamingReadServerMessage.Assigned.end_offset', index=5,
+      number=7, type=4, cpp_type=4, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=11430,
+  serialized_end=11575,
+)
+
+_STREAMINGREADSERVERMESSAGE_RELEASE = _descriptor.Descriptor(
+  name='Release',
+  full_name='Ydb.PersQueue.V1.StreamingReadServerMessage.Release',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='topic', full_name='Ydb.PersQueue.V1.StreamingReadServerMessage.Release.topic', index=0,
+      number=1, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='cluster', full_name='Ydb.PersQueue.V1.StreamingReadServerMessage.Release.cluster', index=1,
+      number=2, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='partition', full_name='Ydb.PersQueue.V1.StreamingReadServerMessage.Release.partition', index=2,
+      number=3, type=4, cpp_type=4, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='assign_id', full_name='Ydb.PersQueue.V1.StreamingReadServerMessage.Release.assign_id', index=3,
+      number=5, type=4, cpp_type=4, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='forceful_release', full_name='Ydb.PersQueue.V1.StreamingReadServerMessage.Release.forceful_release', index=4,
+      number=6, type=8, cpp_type=7, label=1,
+      has_default_value=False, default_value=False,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='commit_offset', full_name='Ydb.PersQueue.V1.StreamingReadServerMessage.Release.commit_offset', index=5,
+      number=7, type=4, cpp_type=4, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=11578,
+  serialized_end=11730,
+)
+
+_STREAMINGREADSERVERMESSAGE_COMMITTED = _descriptor.Descriptor(
+  name='Committed',
+  full_name='Ydb.PersQueue.V1.StreamingReadServerMessage.Committed',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='cookies', full_name='Ydb.PersQueue.V1.StreamingReadServerMessage.Committed.cookies', index=0,
+      number=1, type=11, cpp_type=10, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=11732,
+  serialized_end=11792,
+)
+
+_STREAMINGREADSERVERMESSAGE_DATABATCH_MESSAGEDATA = _descriptor.Descriptor(
+  name='MessageData',
+  full_name='Ydb.PersQueue.V1.StreamingReadServerMessage.DataBatch.MessageData',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='offset', full_name='Ydb.PersQueue.V1.StreamingReadServerMessage.DataBatch.MessageData.offset', index=0,
+      number=1, type=4, cpp_type=4, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='seq_no', full_name='Ydb.PersQueue.V1.StreamingReadServerMessage.DataBatch.MessageData.seq_no', index=1,
+      number=2, type=4, cpp_type=4, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='create_timestamp_ms', full_name='Ydb.PersQueue.V1.StreamingReadServerMessage.DataBatch.MessageData.create_timestamp_ms', index=2,
+      number=3, type=4, cpp_type=4, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='codec', full_name='Ydb.PersQueue.V1.StreamingReadServerMessage.DataBatch.MessageData.codec', index=3,
       number=4, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='data', full_name='Ydb.PersQueue.V1.ReadSessionResponse.DataBatch.MessageData.data', index=4,
+      name='data', full_name='Ydb.PersQueue.V1.StreamingReadServerMessage.DataBatch.MessageData.data', index=4,
       number=5, type=12, cpp_type=9, label=1,
       has_default_value=False, default_value=_b(""),
       message_type=None, enum_type=None, containing_type=None,
@@ -1471,47 +3216,47 @@ _READSESSIONRESPONSE_DATABATCH_MESSAGEDATA = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=4759,
-  serialized_end=4862,
+  serialized_start=11902,
+  serialized_end=12005,
 )
 
-_READSESSIONRESPONSE_DATABATCH_BATCH = _descriptor.Descriptor(
+_STREAMINGREADSERVERMESSAGE_DATABATCH_BATCH = _descriptor.Descriptor(
   name='Batch',
-  full_name='Ydb.PersQueue.V1.ReadSessionResponse.DataBatch.Batch',
+  full_name='Ydb.PersQueue.V1.StreamingReadServerMessage.DataBatch.Batch',
   filename=None,
   file=DESCRIPTOR,
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='source_id', full_name='Ydb.PersQueue.V1.ReadSessionResponse.DataBatch.Batch.source_id', index=0,
+      name='source_id', full_name='Ydb.PersQueue.V1.StreamingReadServerMessage.DataBatch.Batch.source_id', index=0,
       number=2, type=12, cpp_type=9, label=1,
       has_default_value=False, default_value=_b(""),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='extra_fields', full_name='Ydb.PersQueue.V1.ReadSessionResponse.DataBatch.Batch.extra_fields', index=1,
+      name='extra_fields', full_name='Ydb.PersQueue.V1.StreamingReadServerMessage.DataBatch.Batch.extra_fields', index=1,
       number=3, type=11, cpp_type=10, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='write_timestamp_ms', full_name='Ydb.PersQueue.V1.ReadSessionResponse.DataBatch.Batch.write_timestamp_ms', index=2,
+      name='write_timestamp_ms', full_name='Ydb.PersQueue.V1.StreamingReadServerMessage.DataBatch.Batch.write_timestamp_ms', index=2,
       number=4, type=4, cpp_type=4, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='ip', full_name='Ydb.PersQueue.V1.ReadSessionResponse.DataBatch.Batch.ip', index=3,
+      name='ip', full_name='Ydb.PersQueue.V1.StreamingReadServerMessage.DataBatch.Batch.ip', index=3,
       number=5, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='message_data', full_name='Ydb.PersQueue.V1.ReadSessionResponse.DataBatch.Batch.message_data', index=4,
+      name='message_data', full_name='Ydb.PersQueue.V1.StreamingReadServerMessage.DataBatch.Batch.message_data', index=4,
       number=1, type=11, cpp_type=10, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
@@ -1529,54 +3274,54 @@ _READSESSIONRESPONSE_DATABATCH_BATCH = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=4865,
-  serialized_end=5064,
+  serialized_start=12008,
+  serialized_end=12214,
 )
 
-_READSESSIONRESPONSE_DATABATCH_PARTITIONDATA = _descriptor.Descriptor(
+_STREAMINGREADSERVERMESSAGE_DATABATCH_PARTITIONDATA = _descriptor.Descriptor(
   name='PartitionData',
-  full_name='Ydb.PersQueue.V1.ReadSessionResponse.DataBatch.PartitionData',
+  full_name='Ydb.PersQueue.V1.StreamingReadServerMessage.DataBatch.PartitionData',
   filename=None,
   file=DESCRIPTOR,
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='topic', full_name='Ydb.PersQueue.V1.ReadSessionResponse.DataBatch.PartitionData.topic', index=0,
+      name='topic', full_name='Ydb.PersQueue.V1.StreamingReadServerMessage.DataBatch.PartitionData.topic', index=0,
       number=1, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='cluster', full_name='Ydb.PersQueue.V1.ReadSessionResponse.DataBatch.PartitionData.cluster', index=1,
+      name='cluster', full_name='Ydb.PersQueue.V1.StreamingReadServerMessage.DataBatch.PartitionData.cluster', index=1,
       number=2, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='partition', full_name='Ydb.PersQueue.V1.ReadSessionResponse.DataBatch.PartitionData.partition', index=2,
+      name='partition', full_name='Ydb.PersQueue.V1.StreamingReadServerMessage.DataBatch.PartitionData.partition', index=2,
       number=3, type=4, cpp_type=4, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='batches', full_name='Ydb.PersQueue.V1.ReadSessionResponse.DataBatch.PartitionData.batches', index=3,
+      name='batches', full_name='Ydb.PersQueue.V1.StreamingReadServerMessage.DataBatch.PartitionData.batches', index=3,
       number=4, type=11, cpp_type=10, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='cookie', full_name='Ydb.PersQueue.V1.ReadSessionResponse.DataBatch.PartitionData.cookie', index=4,
+      name='cookie', full_name='Ydb.PersQueue.V1.StreamingReadServerMessage.DataBatch.PartitionData.cookie', index=4,
       number=5, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='deprecated_topic', full_name='Ydb.PersQueue.V1.ReadSessionResponse.DataBatch.PartitionData.deprecated_topic', index=5,
+      name='deprecated_topic', full_name='Ydb.PersQueue.V1.StreamingReadServerMessage.DataBatch.PartitionData.deprecated_topic', index=5,
       number=10, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
@@ -1594,19 +3339,19 @@ _READSESSIONRESPONSE_DATABATCH_PARTITIONDATA = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=5067,
-  serialized_end=5303,
+  serialized_start=12217,
+  serialized_end=12460,
 )
 
-_READSESSIONRESPONSE_DATABATCH = _descriptor.Descriptor(
+_STREAMINGREADSERVERMESSAGE_DATABATCH = _descriptor.Descriptor(
   name='DataBatch',
-  full_name='Ydb.PersQueue.V1.ReadSessionResponse.DataBatch',
+  full_name='Ydb.PersQueue.V1.StreamingReadServerMessage.DataBatch',
   filename=None,
   file=DESCRIPTOR,
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='partition_data', full_name='Ydb.PersQueue.V1.ReadSessionResponse.DataBatch.partition_data', index=0,
+      name='partition_data', full_name='Ydb.PersQueue.V1.StreamingReadServerMessage.DataBatch.partition_data', index=0,
       number=1, type=11, cpp_type=10, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
@@ -1615,7 +3360,7 @@ _READSESSIONRESPONSE_DATABATCH = _descriptor.Descriptor(
   ],
   extensions=[
   ],
-  nested_types=[_READSESSIONRESPONSE_DATABATCH_MESSAGEDATA, _READSESSIONRESPONSE_DATABATCH_BATCH, _READSESSIONRESPONSE_DATABATCH_PARTITIONDATA, ],
+  nested_types=[_STREAMINGREADSERVERMESSAGE_DATABATCH_MESSAGEDATA, _STREAMINGREADSERVERMESSAGE_DATABATCH_BATCH, _STREAMINGREADSERVERMESSAGE_DATABATCH_PARTITIONDATA, ],
   enum_types=[
   ],
   options=None,
@@ -1624,61 +3369,61 @@ _READSESSIONRESPONSE_DATABATCH = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=4659,
-  serialized_end=5303,
+  serialized_start=11795,
+  serialized_end=12460,
 )
 
-_READSESSIONRESPONSE_PARTITIONSTATUS = _descriptor.Descriptor(
+_STREAMINGREADSERVERMESSAGE_PARTITIONSTATUS = _descriptor.Descriptor(
   name='PartitionStatus',
-  full_name='Ydb.PersQueue.V1.ReadSessionResponse.PartitionStatus',
+  full_name='Ydb.PersQueue.V1.StreamingReadServerMessage.PartitionStatus',
   filename=None,
   file=DESCRIPTOR,
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='topic', full_name='Ydb.PersQueue.V1.ReadSessionResponse.PartitionStatus.topic', index=0,
+      name='topic', full_name='Ydb.PersQueue.V1.StreamingReadServerMessage.PartitionStatus.topic', index=0,
       number=1, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='cluster', full_name='Ydb.PersQueue.V1.ReadSessionResponse.PartitionStatus.cluster', index=1,
+      name='cluster', full_name='Ydb.PersQueue.V1.StreamingReadServerMessage.PartitionStatus.cluster', index=1,
       number=2, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='partition', full_name='Ydb.PersQueue.V1.ReadSessionResponse.PartitionStatus.partition', index=2,
+      name='partition', full_name='Ydb.PersQueue.V1.StreamingReadServerMessage.PartitionStatus.partition', index=2,
       number=3, type=4, cpp_type=4, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='assign_id', full_name='Ydb.PersQueue.V1.ReadSessionResponse.PartitionStatus.assign_id', index=3,
+      name='assign_id', full_name='Ydb.PersQueue.V1.StreamingReadServerMessage.PartitionStatus.assign_id', index=3,
       number=5, type=4, cpp_type=4, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='committed_offset', full_name='Ydb.PersQueue.V1.ReadSessionResponse.PartitionStatus.committed_offset', index=4,
+      name='committed_offset', full_name='Ydb.PersQueue.V1.StreamingReadServerMessage.PartitionStatus.committed_offset', index=4,
       number=6, type=4, cpp_type=4, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='end_offset', full_name='Ydb.PersQueue.V1.ReadSessionResponse.PartitionStatus.end_offset', index=5,
+      name='end_offset', full_name='Ydb.PersQueue.V1.StreamingReadServerMessage.PartitionStatus.end_offset', index=5,
       number=7, type=4, cpp_type=4, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='write_watermark_ms', full_name='Ydb.PersQueue.V1.ReadSessionResponse.PartitionStatus.write_watermark_ms', index=6,
+      name='write_watermark_ms', full_name='Ydb.PersQueue.V1.StreamingReadServerMessage.PartitionStatus.write_watermark_ms', index=6,
       number=8, type=4, cpp_type=4, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
@@ -1696,68 +3441,68 @@ _READSESSIONRESPONSE_PARTITIONSTATUS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=5306,
-  serialized_end=5491,
+  serialized_start=12463,
+  serialized_end=12648,
 )
 
-_READSESSIONRESPONSE = _descriptor.Descriptor(
-  name='ReadSessionResponse',
-  full_name='Ydb.PersQueue.V1.ReadSessionResponse',
+_STREAMINGREADSERVERMESSAGE = _descriptor.Descriptor(
+  name='StreamingReadServerMessage',
+  full_name='Ydb.PersQueue.V1.StreamingReadServerMessage',
   filename=None,
   file=DESCRIPTOR,
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='status', full_name='Ydb.PersQueue.V1.ReadSessionResponse.status', index=0,
+      name='status', full_name='Ydb.PersQueue.V1.StreamingReadServerMessage.status', index=0,
       number=1, type=14, cpp_type=8, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='issues', full_name='Ydb.PersQueue.V1.ReadSessionResponse.issues', index=1,
+      name='issues', full_name='Ydb.PersQueue.V1.StreamingReadServerMessage.issues', index=1,
       number=2, type=11, cpp_type=10, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='inited', full_name='Ydb.PersQueue.V1.ReadSessionResponse.inited', index=2,
+      name='init_response', full_name='Ydb.PersQueue.V1.StreamingReadServerMessage.init_response', index=2,
       number=3, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='data_batch', full_name='Ydb.PersQueue.V1.ReadSessionResponse.data_batch', index=3,
+      name='data_batch', full_name='Ydb.PersQueue.V1.StreamingReadServerMessage.data_batch', index=3,
       number=4, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='assigned', full_name='Ydb.PersQueue.V1.ReadSessionResponse.assigned', index=4,
+      name='assigned', full_name='Ydb.PersQueue.V1.StreamingReadServerMessage.assigned', index=4,
       number=5, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='release', full_name='Ydb.PersQueue.V1.ReadSessionResponse.release', index=5,
+      name='release', full_name='Ydb.PersQueue.V1.StreamingReadServerMessage.release', index=5,
       number=6, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='committed', full_name='Ydb.PersQueue.V1.ReadSessionResponse.committed', index=6,
+      name='committed', full_name='Ydb.PersQueue.V1.StreamingReadServerMessage.committed', index=6,
       number=7, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='partition_status', full_name='Ydb.PersQueue.V1.ReadSessionResponse.partition_status', index=7,
+      name='partition_status', full_name='Ydb.PersQueue.V1.StreamingReadServerMessage.partition_status', index=7,
       number=8, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
@@ -1766,7 +3511,7 @@ _READSESSIONRESPONSE = _descriptor.Descriptor(
   ],
   extensions=[
   ],
-  nested_types=[_READSESSIONRESPONSE_INITED, _READSESSIONRESPONSE_ASSIGNED, _READSESSIONRESPONSE_RELEASE, _READSESSIONRESPONSE_COMMITTED, _READSESSIONRESPONSE_DATABATCH, _READSESSIONRESPONSE_PARTITIONSTATUS, ],
+  nested_types=[_STREAMINGREADSERVERMESSAGE_INITRESPONSE, _STREAMINGREADSERVERMESSAGE_ASSIGNED, _STREAMINGREADSERVERMESSAGE_RELEASE, _STREAMINGREADSERVERMESSAGE_COMMITTED, _STREAMINGREADSERVERMESSAGE_DATABATCH, _STREAMINGREADSERVERMESSAGE_PARTITIONSTATUS, ],
   enum_types=[
   ],
   options=None,
@@ -1775,11 +3520,11 @@ _READSESSIONRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
     _descriptor.OneofDescriptor(
-      name='response', full_name='Ydb.PersQueue.V1.ReadSessionResponse.response',
+      name='response', full_name='Ydb.PersQueue.V1.StreamingReadServerMessage.response',
       index=0, containing_type=None, fields=[]),
   ],
-  serialized_start=3734,
-  serialized_end=5503,
+  serialized_start=10577,
+  serialized_end=12660,
 )
 
 
@@ -1830,8 +3575,8 @@ _READINFOREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=5506,
-  serialized_end=5691,
+  serialized_start=12663,
+  serialized_end=12848,
 )
 
 
@@ -1861,8 +3606,8 @@ _READINFORESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=5693,
-  serialized_end=5757,
+  serialized_start=12850,
+  serialized_end=12914,
 )
 
 
@@ -2011,8 +3756,8 @@ _READINFORESULT_TOPICINFO_PARTITIONINFO = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=6071,
-  serialized_end=6561,
+  serialized_start=13228,
+  serialized_end=13718,
 )
 
 _READINFORESULT_TOPICINFO = _descriptor.Descriptor(
@@ -2069,8 +3814,8 @@ _READINFORESULT_TOPICINFO = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=5839,
-  serialized_end=6561,
+  serialized_start=12996,
+  serialized_end=13718,
 )
 
 _READINFORESULT = _descriptor.Descriptor(
@@ -2099,8 +3844,8 @@ _READINFORESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=5760,
-  serialized_end=6561,
+  serialized_start=12917,
+  serialized_end=13718,
 )
 
 _SESSIONMETAVALUE_VALUEENTRY.containing_type = _SESSIONMETAVALUE
@@ -2131,90 +3876,227 @@ _STREAMINGWRITESERVERMESSAGE.fields_by_name['init_response'].containing_oneof = 
 _STREAMINGWRITESERVERMESSAGE.oneofs_by_name['server_message'].fields.append(
   _STREAMINGWRITESERVERMESSAGE.fields_by_name['batch_write_response'])
 _STREAMINGWRITESERVERMESSAGE.fields_by_name['batch_write_response'].containing_oneof = _STREAMINGWRITESERVERMESSAGE.oneofs_by_name['server_message']
-_READSESSIONREQUEST_INIT_TOPIC.fields_by_name['path'].message_type = _PATH
-_READSESSIONREQUEST_INIT_TOPIC.containing_type = _READSESSIONREQUEST_INIT
-_READSESSIONREQUEST_INIT.fields_by_name['topics'].message_type = _READSESSIONREQUEST_INIT_TOPIC
-_READSESSIONREQUEST_INIT.fields_by_name['consumer'].message_type = _PATH
-_READSESSIONREQUEST_INIT.fields_by_name['read_params'].message_type = _READPARAMS
-_READSESSIONREQUEST_INIT.containing_type = _READSESSIONREQUEST
-_READSESSIONREQUEST_READ.containing_type = _READSESSIONREQUEST
-_READSESSIONREQUEST_STARTREAD.fields_by_name['topic'].message_type = _PATH
-_READSESSIONREQUEST_STARTREAD.containing_type = _READSESSIONREQUEST
-_READSESSIONREQUEST_RELEASED.fields_by_name['topic'].message_type = _PATH
-_READSESSIONREQUEST_RELEASED.containing_type = _READSESSIONREQUEST
-_READSESSIONREQUEST_COMMIT.fields_by_name['cookies'].message_type = _COMMITCOOKIE
-_READSESSIONREQUEST_COMMIT.containing_type = _READSESSIONREQUEST
-_READSESSIONREQUEST_STATUS.fields_by_name['topic'].message_type = _PATH
-_READSESSIONREQUEST_STATUS.containing_type = _READSESSIONREQUEST
-_READSESSIONREQUEST.fields_by_name['init'].message_type = _READSESSIONREQUEST_INIT
-_READSESSIONREQUEST.fields_by_name['read'].message_type = _READSESSIONREQUEST_READ
-_READSESSIONREQUEST.fields_by_name['start_read'].message_type = _READSESSIONREQUEST_STARTREAD
-_READSESSIONREQUEST.fields_by_name['commit'].message_type = _READSESSIONREQUEST_COMMIT
-_READSESSIONREQUEST.fields_by_name['released'].message_type = _READSESSIONREQUEST_RELEASED
-_READSESSIONREQUEST.fields_by_name['status'].message_type = _READSESSIONREQUEST_STATUS
-_READSESSIONREQUEST.oneofs_by_name['request'].fields.append(
-  _READSESSIONREQUEST.fields_by_name['init'])
-_READSESSIONREQUEST.fields_by_name['init'].containing_oneof = _READSESSIONREQUEST.oneofs_by_name['request']
-_READSESSIONREQUEST.oneofs_by_name['request'].fields.append(
-  _READSESSIONREQUEST.fields_by_name['read'])
-_READSESSIONREQUEST.fields_by_name['read'].containing_oneof = _READSESSIONREQUEST.oneofs_by_name['request']
-_READSESSIONREQUEST.oneofs_by_name['request'].fields.append(
-  _READSESSIONREQUEST.fields_by_name['start_read'])
-_READSESSIONREQUEST.fields_by_name['start_read'].containing_oneof = _READSESSIONREQUEST.oneofs_by_name['request']
-_READSESSIONREQUEST.oneofs_by_name['request'].fields.append(
-  _READSESSIONREQUEST.fields_by_name['commit'])
-_READSESSIONREQUEST.fields_by_name['commit'].containing_oneof = _READSESSIONREQUEST.oneofs_by_name['request']
-_READSESSIONREQUEST.oneofs_by_name['request'].fields.append(
-  _READSESSIONREQUEST.fields_by_name['released'])
-_READSESSIONREQUEST.fields_by_name['released'].containing_oneof = _READSESSIONREQUEST.oneofs_by_name['request']
-_READSESSIONREQUEST.oneofs_by_name['request'].fields.append(
-  _READSESSIONREQUEST.fields_by_name['status'])
-_READSESSIONREQUEST.fields_by_name['status'].containing_oneof = _READSESSIONREQUEST.oneofs_by_name['request']
-_READSESSIONRESPONSE_INITED.containing_type = _READSESSIONRESPONSE
-_READSESSIONRESPONSE_ASSIGNED.fields_by_name['topic'].message_type = _PATH
-_READSESSIONRESPONSE_ASSIGNED.containing_type = _READSESSIONRESPONSE
-_READSESSIONRESPONSE_RELEASE.fields_by_name['topic'].message_type = _PATH
-_READSESSIONRESPONSE_RELEASE.containing_type = _READSESSIONRESPONSE
-_READSESSIONRESPONSE_COMMITTED.fields_by_name['cookies'].message_type = _COMMITCOOKIE
-_READSESSIONRESPONSE_COMMITTED.containing_type = _READSESSIONRESPONSE
-_READSESSIONRESPONSE_DATABATCH_MESSAGEDATA.containing_type = _READSESSIONRESPONSE_DATABATCH
-_READSESSIONRESPONSE_DATABATCH_BATCH.fields_by_name['extra_fields'].message_type = _KEYVALUE
-_READSESSIONRESPONSE_DATABATCH_BATCH.fields_by_name['message_data'].message_type = _READSESSIONRESPONSE_DATABATCH_MESSAGEDATA
-_READSESSIONRESPONSE_DATABATCH_BATCH.containing_type = _READSESSIONRESPONSE_DATABATCH
-_READSESSIONRESPONSE_DATABATCH_PARTITIONDATA.fields_by_name['topic'].message_type = _PATH
-_READSESSIONRESPONSE_DATABATCH_PARTITIONDATA.fields_by_name['batches'].message_type = _READSESSIONRESPONSE_DATABATCH_BATCH
-_READSESSIONRESPONSE_DATABATCH_PARTITIONDATA.fields_by_name['cookie'].message_type = _COMMITCOOKIE
-_READSESSIONRESPONSE_DATABATCH_PARTITIONDATA.containing_type = _READSESSIONRESPONSE_DATABATCH
-_READSESSIONRESPONSE_DATABATCH.fields_by_name['partition_data'].message_type = _READSESSIONRESPONSE_DATABATCH_PARTITIONDATA
-_READSESSIONRESPONSE_DATABATCH.containing_type = _READSESSIONRESPONSE
-_READSESSIONRESPONSE_PARTITIONSTATUS.fields_by_name['topic'].message_type = _PATH
-_READSESSIONRESPONSE_PARTITIONSTATUS.containing_type = _READSESSIONRESPONSE
-_READSESSIONRESPONSE.fields_by_name['status'].enum_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__status__codes__pb2._STATUSIDS_STATUSCODE
-_READSESSIONRESPONSE.fields_by_name['issues'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__issue__message__pb2._ISSUEMESSAGE
-_READSESSIONRESPONSE.fields_by_name['inited'].message_type = _READSESSIONRESPONSE_INITED
-_READSESSIONRESPONSE.fields_by_name['data_batch'].message_type = _READSESSIONRESPONSE_DATABATCH
-_READSESSIONRESPONSE.fields_by_name['assigned'].message_type = _READSESSIONRESPONSE_ASSIGNED
-_READSESSIONRESPONSE.fields_by_name['release'].message_type = _READSESSIONRESPONSE_RELEASE
-_READSESSIONRESPONSE.fields_by_name['committed'].message_type = _READSESSIONRESPONSE_COMMITTED
-_READSESSIONRESPONSE.fields_by_name['partition_status'].message_type = _READSESSIONRESPONSE_PARTITIONSTATUS
-_READSESSIONRESPONSE.oneofs_by_name['response'].fields.append(
-  _READSESSIONRESPONSE.fields_by_name['inited'])
-_READSESSIONRESPONSE.fields_by_name['inited'].containing_oneof = _READSESSIONRESPONSE.oneofs_by_name['response']
-_READSESSIONRESPONSE.oneofs_by_name['response'].fields.append(
-  _READSESSIONRESPONSE.fields_by_name['data_batch'])
-_READSESSIONRESPONSE.fields_by_name['data_batch'].containing_oneof = _READSESSIONRESPONSE.oneofs_by_name['response']
-_READSESSIONRESPONSE.oneofs_by_name['response'].fields.append(
-  _READSESSIONRESPONSE.fields_by_name['assigned'])
-_READSESSIONRESPONSE.fields_by_name['assigned'].containing_oneof = _READSESSIONRESPONSE.oneofs_by_name['response']
-_READSESSIONRESPONSE.oneofs_by_name['response'].fields.append(
-  _READSESSIONRESPONSE.fields_by_name['release'])
-_READSESSIONRESPONSE.fields_by_name['release'].containing_oneof = _READSESSIONRESPONSE.oneofs_by_name['response']
-_READSESSIONRESPONSE.oneofs_by_name['response'].fields.append(
-  _READSESSIONRESPONSE.fields_by_name['committed'])
-_READSESSIONRESPONSE.fields_by_name['committed'].containing_oneof = _READSESSIONRESPONSE.oneofs_by_name['response']
-_READSESSIONRESPONSE.oneofs_by_name['response'].fields.append(
-  _READSESSIONRESPONSE.fields_by_name['partition_status'])
-_READSESSIONRESPONSE.fields_by_name['partition_status'].containing_oneof = _READSESSIONRESPONSE.oneofs_by_name['response']
+_STREAMINGREADCLIENTMESSAGENEW_INITREQUEST_STATE_READSTREAMSTATE.fields_by_name['read_stream'].message_type = _READSTREAM
+_STREAMINGREADCLIENTMESSAGENEW_INITREQUEST_STATE_READSTREAMSTATE.fields_by_name['offset_ranges'].message_type = _OFFSETSRANGE
+_STREAMINGREADCLIENTMESSAGENEW_INITREQUEST_STATE_READSTREAMSTATE.fields_by_name['status'].enum_type = _STREAMINGREADCLIENTMESSAGENEW_INITREQUEST_STATE_READSTREAMSTATE_STATUS
+_STREAMINGREADCLIENTMESSAGENEW_INITREQUEST_STATE_READSTREAMSTATE.containing_type = _STREAMINGREADCLIENTMESSAGENEW_INITREQUEST_STATE
+_STREAMINGREADCLIENTMESSAGENEW_INITREQUEST_STATE_READSTREAMSTATE_STATUS.containing_type = _STREAMINGREADCLIENTMESSAGENEW_INITREQUEST_STATE_READSTREAMSTATE
+_STREAMINGREADCLIENTMESSAGENEW_INITREQUEST_STATE.fields_by_name['read_streams_states'].message_type = _STREAMINGREADCLIENTMESSAGENEW_INITREQUEST_STATE_READSTREAMSTATE
+_STREAMINGREADCLIENTMESSAGENEW_INITREQUEST_STATE.containing_type = _STREAMINGREADCLIENTMESSAGENEW_INITREQUEST
+_STREAMINGREADCLIENTMESSAGENEW_INITREQUEST.fields_by_name['topics_read_settings'].message_type = _STREAMINGREADCLIENTMESSAGENEW_TOPICREADSETTINGS
+_STREAMINGREADCLIENTMESSAGENEW_INITREQUEST.fields_by_name['state'].message_type = _STREAMINGREADCLIENTMESSAGENEW_INITREQUEST_STATE
+_STREAMINGREADCLIENTMESSAGENEW_INITREQUEST.containing_type = _STREAMINGREADCLIENTMESSAGENEW
+_STREAMINGREADCLIENTMESSAGENEW_READREQUEST.containing_type = _STREAMINGREADCLIENTMESSAGENEW
+_STREAMINGREADCLIENTMESSAGENEW_CREATEREADSTREAMRESPONSE.containing_type = _STREAMINGREADCLIENTMESSAGENEW
+_STREAMINGREADCLIENTMESSAGENEW_DESTROYREADSTREAMRESPONSE.containing_type = _STREAMINGREADCLIENTMESSAGENEW
+_STREAMINGREADCLIENTMESSAGENEW_STOPREADREQUEST.containing_type = _STREAMINGREADCLIENTMESSAGENEW
+_STREAMINGREADCLIENTMESSAGENEW_RESUMEREADREQUEST.containing_type = _STREAMINGREADCLIENTMESSAGENEW
+_STREAMINGREADCLIENTMESSAGENEW_COMMITREQUEST.fields_by_name['commits'].message_type = _STREAMINGREADCLIENTMESSAGENEW_PARTITIONCOMMIT
+_STREAMINGREADCLIENTMESSAGENEW_COMMITREQUEST.containing_type = _STREAMINGREADCLIENTMESSAGENEW
+_STREAMINGREADCLIENTMESSAGENEW_READSTREAMSTATUSREQUEST.containing_type = _STREAMINGREADCLIENTMESSAGENEW
+_STREAMINGREADCLIENTMESSAGENEW_ADDTOPICREQUEST.fields_by_name['topic_read_settings'].message_type = _STREAMINGREADCLIENTMESSAGENEW_TOPICREADSETTINGS
+_STREAMINGREADCLIENTMESSAGENEW_ADDTOPICREQUEST.containing_type = _STREAMINGREADCLIENTMESSAGENEW
+_STREAMINGREADCLIENTMESSAGENEW_REMOVETOPICREQUEST.containing_type = _STREAMINGREADCLIENTMESSAGENEW
+_STREAMINGREADCLIENTMESSAGENEW_TOPICREADSETTINGS.containing_type = _STREAMINGREADCLIENTMESSAGENEW
+_STREAMINGREADCLIENTMESSAGENEW_PARTITIONCOMMIT.fields_by_name['offsets'].message_type = _OFFSETSRANGE
+_STREAMINGREADCLIENTMESSAGENEW_PARTITIONCOMMIT.containing_type = _STREAMINGREADCLIENTMESSAGENEW
+_STREAMINGREADCLIENTMESSAGENEW.fields_by_name['init_request'].message_type = _STREAMINGREADCLIENTMESSAGENEW_INITREQUEST
+_STREAMINGREADCLIENTMESSAGENEW.fields_by_name['read_request'].message_type = _STREAMINGREADCLIENTMESSAGENEW_READREQUEST
+_STREAMINGREADCLIENTMESSAGENEW.fields_by_name['create_read_stream_response'].message_type = _STREAMINGREADCLIENTMESSAGENEW_CREATEREADSTREAMRESPONSE
+_STREAMINGREADCLIENTMESSAGENEW.fields_by_name['commit_request'].message_type = _STREAMINGREADCLIENTMESSAGENEW_COMMITREQUEST
+_STREAMINGREADCLIENTMESSAGENEW.fields_by_name['destroy_read_stream_response'].message_type = _STREAMINGREADCLIENTMESSAGENEW_DESTROYREADSTREAMRESPONSE
+_STREAMINGREADCLIENTMESSAGENEW.fields_by_name['stop_read_request'].message_type = _STREAMINGREADCLIENTMESSAGENEW_STOPREADREQUEST
+_STREAMINGREADCLIENTMESSAGENEW.fields_by_name['resume_read_request'].message_type = _STREAMINGREADCLIENTMESSAGENEW_RESUMEREADREQUEST
+_STREAMINGREADCLIENTMESSAGENEW.fields_by_name['read_stream_status_request'].message_type = _STREAMINGREADCLIENTMESSAGENEW_READSTREAMSTATUSREQUEST
+_STREAMINGREADCLIENTMESSAGENEW.fields_by_name['add_topic_request'].message_type = _STREAMINGREADCLIENTMESSAGENEW_ADDTOPICREQUEST
+_STREAMINGREADCLIENTMESSAGENEW.fields_by_name['remove_topic_request'].message_type = _STREAMINGREADCLIENTMESSAGENEW_REMOVETOPICREQUEST
+_STREAMINGREADCLIENTMESSAGENEW.oneofs_by_name['client_message'].fields.append(
+  _STREAMINGREADCLIENTMESSAGENEW.fields_by_name['init_request'])
+_STREAMINGREADCLIENTMESSAGENEW.fields_by_name['init_request'].containing_oneof = _STREAMINGREADCLIENTMESSAGENEW.oneofs_by_name['client_message']
+_STREAMINGREADCLIENTMESSAGENEW.oneofs_by_name['client_message'].fields.append(
+  _STREAMINGREADCLIENTMESSAGENEW.fields_by_name['read_request'])
+_STREAMINGREADCLIENTMESSAGENEW.fields_by_name['read_request'].containing_oneof = _STREAMINGREADCLIENTMESSAGENEW.oneofs_by_name['client_message']
+_STREAMINGREADCLIENTMESSAGENEW.oneofs_by_name['client_message'].fields.append(
+  _STREAMINGREADCLIENTMESSAGENEW.fields_by_name['create_read_stream_response'])
+_STREAMINGREADCLIENTMESSAGENEW.fields_by_name['create_read_stream_response'].containing_oneof = _STREAMINGREADCLIENTMESSAGENEW.oneofs_by_name['client_message']
+_STREAMINGREADCLIENTMESSAGENEW.oneofs_by_name['client_message'].fields.append(
+  _STREAMINGREADCLIENTMESSAGENEW.fields_by_name['commit_request'])
+_STREAMINGREADCLIENTMESSAGENEW.fields_by_name['commit_request'].containing_oneof = _STREAMINGREADCLIENTMESSAGENEW.oneofs_by_name['client_message']
+_STREAMINGREADCLIENTMESSAGENEW.oneofs_by_name['client_message'].fields.append(
+  _STREAMINGREADCLIENTMESSAGENEW.fields_by_name['destroy_read_stream_response'])
+_STREAMINGREADCLIENTMESSAGENEW.fields_by_name['destroy_read_stream_response'].containing_oneof = _STREAMINGREADCLIENTMESSAGENEW.oneofs_by_name['client_message']
+_STREAMINGREADCLIENTMESSAGENEW.oneofs_by_name['client_message'].fields.append(
+  _STREAMINGREADCLIENTMESSAGENEW.fields_by_name['stop_read_request'])
+_STREAMINGREADCLIENTMESSAGENEW.fields_by_name['stop_read_request'].containing_oneof = _STREAMINGREADCLIENTMESSAGENEW.oneofs_by_name['client_message']
+_STREAMINGREADCLIENTMESSAGENEW.oneofs_by_name['client_message'].fields.append(
+  _STREAMINGREADCLIENTMESSAGENEW.fields_by_name['resume_read_request'])
+_STREAMINGREADCLIENTMESSAGENEW.fields_by_name['resume_read_request'].containing_oneof = _STREAMINGREADCLIENTMESSAGENEW.oneofs_by_name['client_message']
+_STREAMINGREADCLIENTMESSAGENEW.oneofs_by_name['client_message'].fields.append(
+  _STREAMINGREADCLIENTMESSAGENEW.fields_by_name['read_stream_status_request'])
+_STREAMINGREADCLIENTMESSAGENEW.fields_by_name['read_stream_status_request'].containing_oneof = _STREAMINGREADCLIENTMESSAGENEW.oneofs_by_name['client_message']
+_STREAMINGREADCLIENTMESSAGENEW.oneofs_by_name['client_message'].fields.append(
+  _STREAMINGREADCLIENTMESSAGENEW.fields_by_name['add_topic_request'])
+_STREAMINGREADCLIENTMESSAGENEW.fields_by_name['add_topic_request'].containing_oneof = _STREAMINGREADCLIENTMESSAGENEW.oneofs_by_name['client_message']
+_STREAMINGREADCLIENTMESSAGENEW.oneofs_by_name['client_message'].fields.append(
+  _STREAMINGREADCLIENTMESSAGENEW.fields_by_name['remove_topic_request'])
+_STREAMINGREADCLIENTMESSAGENEW.fields_by_name['remove_topic_request'].containing_oneof = _STREAMINGREADCLIENTMESSAGENEW.oneofs_by_name['client_message']
+_STREAMINGREADSERVERMESSAGENEW_INITRESPONSE_BLOCKFORMATVERSIONBYTOPICENTRY.containing_type = _STREAMINGREADSERVERMESSAGENEW_INITRESPONSE
+_STREAMINGREADSERVERMESSAGENEW_INITRESPONSE.fields_by_name['block_format_version_by_topic'].message_type = _STREAMINGREADSERVERMESSAGENEW_INITRESPONSE_BLOCKFORMATVERSIONBYTOPICENTRY
+_STREAMINGREADSERVERMESSAGENEW_INITRESPONSE.containing_type = _STREAMINGREADSERVERMESSAGENEW
+_STREAMINGREADSERVERMESSAGENEW_CREATEREADSTREAMREQUEST.fields_by_name['read_stream'].message_type = _READSTREAM
+_STREAMINGREADSERVERMESSAGENEW_CREATEREADSTREAMREQUEST.containing_type = _STREAMINGREADSERVERMESSAGENEW
+_STREAMINGREADSERVERMESSAGENEW_DESTROYREADSTREAMREQUEST.containing_type = _STREAMINGREADSERVERMESSAGENEW
+_STREAMINGREADSERVERMESSAGENEW_COMMITRESPONSE_PARTITIONCOMMITTEDOFFSET.containing_type = _STREAMINGREADSERVERMESSAGENEW_COMMITRESPONSE
+_STREAMINGREADSERVERMESSAGENEW_COMMITRESPONSE.fields_by_name['partitions_committed_offsets'].message_type = _STREAMINGREADSERVERMESSAGENEW_COMMITRESPONSE_PARTITIONCOMMITTEDOFFSET
+_STREAMINGREADSERVERMESSAGENEW_COMMITRESPONSE.containing_type = _STREAMINGREADSERVERMESSAGENEW
+_STREAMINGREADSERVERMESSAGENEW_BATCHREADRESPONSE_PARTITIONDATA_READSTATISTICS.containing_type = _STREAMINGREADSERVERMESSAGENEW_BATCHREADRESPONSE_PARTITIONDATA
+_STREAMINGREADSERVERMESSAGENEW_BATCHREADRESPONSE_PARTITIONDATA.fields_by_name['message_session_meta'].message_type = _SESSIONMETAVALUE
+_STREAMINGREADSERVERMESSAGENEW_BATCHREADRESPONSE_PARTITIONDATA.fields_by_name['read_statistics'].message_type = _STREAMINGREADSERVERMESSAGENEW_BATCHREADRESPONSE_PARTITIONDATA_READSTATISTICS
+_STREAMINGREADSERVERMESSAGENEW_BATCHREADRESPONSE_PARTITIONDATA.containing_type = _STREAMINGREADSERVERMESSAGENEW_BATCHREADRESPONSE
+_STREAMINGREADSERVERMESSAGENEW_BATCHREADRESPONSE_SKIPRANGE.fields_by_name['skip_range'].message_type = _OFFSETSRANGE
+_STREAMINGREADSERVERMESSAGENEW_BATCHREADRESPONSE_SKIPRANGE.containing_type = _STREAMINGREADSERVERMESSAGENEW_BATCHREADRESPONSE
+_STREAMINGREADSERVERMESSAGENEW_BATCHREADRESPONSE.fields_by_name['skip_range'].message_type = _STREAMINGREADSERVERMESSAGENEW_BATCHREADRESPONSE_SKIPRANGE
+_STREAMINGREADSERVERMESSAGENEW_BATCHREADRESPONSE.fields_by_name['partitions'].message_type = _STREAMINGREADSERVERMESSAGENEW_BATCHREADRESPONSE_PARTITIONDATA
+_STREAMINGREADSERVERMESSAGENEW_BATCHREADRESPONSE.containing_type = _STREAMINGREADSERVERMESSAGENEW
+_STREAMINGREADSERVERMESSAGENEW_READSTREAMSTATUSRESPONSE.containing_type = _STREAMINGREADSERVERMESSAGENEW
+_STREAMINGREADSERVERMESSAGENEW_STOPREADRESPONSE.containing_type = _STREAMINGREADSERVERMESSAGENEW
+_STREAMINGREADSERVERMESSAGENEW_RESUMEREADRESPONSE.containing_type = _STREAMINGREADSERVERMESSAGENEW
+_STREAMINGREADSERVERMESSAGENEW_ADDTOPICRESPONSE.containing_type = _STREAMINGREADSERVERMESSAGENEW
+_STREAMINGREADSERVERMESSAGENEW_REMOVETOPICRESPONSE.containing_type = _STREAMINGREADSERVERMESSAGENEW
+_STREAMINGREADSERVERMESSAGENEW.fields_by_name['init_response'].message_type = _STREAMINGREADSERVERMESSAGENEW_INITRESPONSE
+_STREAMINGREADSERVERMESSAGENEW.fields_by_name['batch_read_response'].message_type = _STREAMINGREADSERVERMESSAGENEW_BATCHREADRESPONSE
+_STREAMINGREADSERVERMESSAGENEW.fields_by_name['create_read_stream_request'].message_type = _STREAMINGREADSERVERMESSAGENEW_CREATEREADSTREAMREQUEST
+_STREAMINGREADSERVERMESSAGENEW.fields_by_name['destroy_read_stream_request'].message_type = _STREAMINGREADSERVERMESSAGENEW_DESTROYREADSTREAMREQUEST
+_STREAMINGREADSERVERMESSAGENEW.fields_by_name['commit_response'].message_type = _STREAMINGREADSERVERMESSAGENEW_COMMITRESPONSE
+_STREAMINGREADSERVERMESSAGENEW.fields_by_name['read_stream_status_response'].message_type = _STREAMINGREADSERVERMESSAGENEW_READSTREAMSTATUSRESPONSE
+_STREAMINGREADSERVERMESSAGENEW.fields_by_name['stop_read_response'].message_type = _STREAMINGREADSERVERMESSAGENEW_STOPREADRESPONSE
+_STREAMINGREADSERVERMESSAGENEW.fields_by_name['resume_read_response'].message_type = _STREAMINGREADSERVERMESSAGENEW_RESUMEREADRESPONSE
+_STREAMINGREADSERVERMESSAGENEW.fields_by_name['add_topic_response'].message_type = _STREAMINGREADSERVERMESSAGENEW_ADDTOPICRESPONSE
+_STREAMINGREADSERVERMESSAGENEW.fields_by_name['remove_topic_response'].message_type = _STREAMINGREADSERVERMESSAGENEW_REMOVETOPICRESPONSE
+_STREAMINGREADSERVERMESSAGENEW.fields_by_name['status'].enum_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__status__codes__pb2._STATUSIDS_STATUSCODE
+_STREAMINGREADSERVERMESSAGENEW.fields_by_name['issues'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__issue__message__pb2._ISSUEMESSAGE
+_STREAMINGREADSERVERMESSAGENEW.oneofs_by_name['server_message'].fields.append(
+  _STREAMINGREADSERVERMESSAGENEW.fields_by_name['init_response'])
+_STREAMINGREADSERVERMESSAGENEW.fields_by_name['init_response'].containing_oneof = _STREAMINGREADSERVERMESSAGENEW.oneofs_by_name['server_message']
+_STREAMINGREADSERVERMESSAGENEW.oneofs_by_name['server_message'].fields.append(
+  _STREAMINGREADSERVERMESSAGENEW.fields_by_name['batch_read_response'])
+_STREAMINGREADSERVERMESSAGENEW.fields_by_name['batch_read_response'].containing_oneof = _STREAMINGREADSERVERMESSAGENEW.oneofs_by_name['server_message']
+_STREAMINGREADSERVERMESSAGENEW.oneofs_by_name['server_message'].fields.append(
+  _STREAMINGREADSERVERMESSAGENEW.fields_by_name['create_read_stream_request'])
+_STREAMINGREADSERVERMESSAGENEW.fields_by_name['create_read_stream_request'].containing_oneof = _STREAMINGREADSERVERMESSAGENEW.oneofs_by_name['server_message']
+_STREAMINGREADSERVERMESSAGENEW.oneofs_by_name['server_message'].fields.append(
+  _STREAMINGREADSERVERMESSAGENEW.fields_by_name['destroy_read_stream_request'])
+_STREAMINGREADSERVERMESSAGENEW.fields_by_name['destroy_read_stream_request'].containing_oneof = _STREAMINGREADSERVERMESSAGENEW.oneofs_by_name['server_message']
+_STREAMINGREADSERVERMESSAGENEW.oneofs_by_name['server_message'].fields.append(
+  _STREAMINGREADSERVERMESSAGENEW.fields_by_name['commit_response'])
+_STREAMINGREADSERVERMESSAGENEW.fields_by_name['commit_response'].containing_oneof = _STREAMINGREADSERVERMESSAGENEW.oneofs_by_name['server_message']
+_STREAMINGREADSERVERMESSAGENEW.oneofs_by_name['server_message'].fields.append(
+  _STREAMINGREADSERVERMESSAGENEW.fields_by_name['read_stream_status_response'])
+_STREAMINGREADSERVERMESSAGENEW.fields_by_name['read_stream_status_response'].containing_oneof = _STREAMINGREADSERVERMESSAGENEW.oneofs_by_name['server_message']
+_STREAMINGREADSERVERMESSAGENEW.oneofs_by_name['server_message'].fields.append(
+  _STREAMINGREADSERVERMESSAGENEW.fields_by_name['stop_read_response'])
+_STREAMINGREADSERVERMESSAGENEW.fields_by_name['stop_read_response'].containing_oneof = _STREAMINGREADSERVERMESSAGENEW.oneofs_by_name['server_message']
+_STREAMINGREADSERVERMESSAGENEW.oneofs_by_name['server_message'].fields.append(
+  _STREAMINGREADSERVERMESSAGENEW.fields_by_name['resume_read_response'])
+_STREAMINGREADSERVERMESSAGENEW.fields_by_name['resume_read_response'].containing_oneof = _STREAMINGREADSERVERMESSAGENEW.oneofs_by_name['server_message']
+_STREAMINGREADSERVERMESSAGENEW.oneofs_by_name['server_message'].fields.append(
+  _STREAMINGREADSERVERMESSAGENEW.fields_by_name['add_topic_response'])
+_STREAMINGREADSERVERMESSAGENEW.fields_by_name['add_topic_response'].containing_oneof = _STREAMINGREADSERVERMESSAGENEW.oneofs_by_name['server_message']
+_STREAMINGREADSERVERMESSAGENEW.oneofs_by_name['server_message'].fields.append(
+  _STREAMINGREADSERVERMESSAGENEW.fields_by_name['remove_topic_response'])
+_STREAMINGREADSERVERMESSAGENEW.fields_by_name['remove_topic_response'].containing_oneof = _STREAMINGREADSERVERMESSAGENEW.oneofs_by_name['server_message']
+_STREAMINGREADCLIENTMESSAGE_TOPICREADSETTINGS.containing_type = _STREAMINGREADCLIENTMESSAGE
+_STREAMINGREADCLIENTMESSAGE_INITREQUEST_STATE_READSTREAMSTATE.fields_by_name['read_stream'].message_type = _READSTREAM
+_STREAMINGREADCLIENTMESSAGE_INITREQUEST_STATE_READSTREAMSTATE.fields_by_name['offset_ranges'].message_type = _OFFSETSRANGE
+_STREAMINGREADCLIENTMESSAGE_INITREQUEST_STATE_READSTREAMSTATE.fields_by_name['status'].enum_type = _STREAMINGREADCLIENTMESSAGE_INITREQUEST_STATE_READSTREAMSTATE_STATUS
+_STREAMINGREADCLIENTMESSAGE_INITREQUEST_STATE_READSTREAMSTATE.containing_type = _STREAMINGREADCLIENTMESSAGE_INITREQUEST_STATE
+_STREAMINGREADCLIENTMESSAGE_INITREQUEST_STATE_READSTREAMSTATE_STATUS.containing_type = _STREAMINGREADCLIENTMESSAGE_INITREQUEST_STATE_READSTREAMSTATE
+_STREAMINGREADCLIENTMESSAGE_INITREQUEST_STATE.fields_by_name['read_streams_states'].message_type = _STREAMINGREADCLIENTMESSAGE_INITREQUEST_STATE_READSTREAMSTATE
+_STREAMINGREADCLIENTMESSAGE_INITREQUEST_STATE.containing_type = _STREAMINGREADCLIENTMESSAGE_INITREQUEST
+_STREAMINGREADCLIENTMESSAGE_INITREQUEST.fields_by_name['topics_read_settings'].message_type = _STREAMINGREADCLIENTMESSAGE_TOPICREADSETTINGS
+_STREAMINGREADCLIENTMESSAGE_INITREQUEST.fields_by_name['state'].message_type = _STREAMINGREADCLIENTMESSAGE_INITREQUEST_STATE
+_STREAMINGREADCLIENTMESSAGE_INITREQUEST.fields_by_name['read_params'].message_type = _READPARAMS
+_STREAMINGREADCLIENTMESSAGE_INITREQUEST.containing_type = _STREAMINGREADCLIENTMESSAGE
+_STREAMINGREADCLIENTMESSAGE_READ.containing_type = _STREAMINGREADCLIENTMESSAGE
+_STREAMINGREADCLIENTMESSAGE_STARTREAD.fields_by_name['topic'].message_type = _PATH
+_STREAMINGREADCLIENTMESSAGE_STARTREAD.containing_type = _STREAMINGREADCLIENTMESSAGE
+_STREAMINGREADCLIENTMESSAGE_RELEASED.fields_by_name['topic'].message_type = _PATH
+_STREAMINGREADCLIENTMESSAGE_RELEASED.containing_type = _STREAMINGREADCLIENTMESSAGE
+_STREAMINGREADCLIENTMESSAGE_COMMIT.fields_by_name['cookies'].message_type = _COMMITCOOKIE
+_STREAMINGREADCLIENTMESSAGE_COMMIT.containing_type = _STREAMINGREADCLIENTMESSAGE
+_STREAMINGREADCLIENTMESSAGE_STATUS.fields_by_name['topic'].message_type = _PATH
+_STREAMINGREADCLIENTMESSAGE_STATUS.containing_type = _STREAMINGREADCLIENTMESSAGE
+_STREAMINGREADCLIENTMESSAGE.fields_by_name['init_request'].message_type = _STREAMINGREADCLIENTMESSAGE_INITREQUEST
+_STREAMINGREADCLIENTMESSAGE.fields_by_name['read'].message_type = _STREAMINGREADCLIENTMESSAGE_READ
+_STREAMINGREADCLIENTMESSAGE.fields_by_name['start_read'].message_type = _STREAMINGREADCLIENTMESSAGE_STARTREAD
+_STREAMINGREADCLIENTMESSAGE.fields_by_name['commit'].message_type = _STREAMINGREADCLIENTMESSAGE_COMMIT
+_STREAMINGREADCLIENTMESSAGE.fields_by_name['released'].message_type = _STREAMINGREADCLIENTMESSAGE_RELEASED
+_STREAMINGREADCLIENTMESSAGE.fields_by_name['status'].message_type = _STREAMINGREADCLIENTMESSAGE_STATUS
+_STREAMINGREADCLIENTMESSAGE.oneofs_by_name['request'].fields.append(
+  _STREAMINGREADCLIENTMESSAGE.fields_by_name['init_request'])
+_STREAMINGREADCLIENTMESSAGE.fields_by_name['init_request'].containing_oneof = _STREAMINGREADCLIENTMESSAGE.oneofs_by_name['request']
+_STREAMINGREADCLIENTMESSAGE.oneofs_by_name['request'].fields.append(
+  _STREAMINGREADCLIENTMESSAGE.fields_by_name['read'])
+_STREAMINGREADCLIENTMESSAGE.fields_by_name['read'].containing_oneof = _STREAMINGREADCLIENTMESSAGE.oneofs_by_name['request']
+_STREAMINGREADCLIENTMESSAGE.oneofs_by_name['request'].fields.append(
+  _STREAMINGREADCLIENTMESSAGE.fields_by_name['start_read'])
+_STREAMINGREADCLIENTMESSAGE.fields_by_name['start_read'].containing_oneof = _STREAMINGREADCLIENTMESSAGE.oneofs_by_name['request']
+_STREAMINGREADCLIENTMESSAGE.oneofs_by_name['request'].fields.append(
+  _STREAMINGREADCLIENTMESSAGE.fields_by_name['commit'])
+_STREAMINGREADCLIENTMESSAGE.fields_by_name['commit'].containing_oneof = _STREAMINGREADCLIENTMESSAGE.oneofs_by_name['request']
+_STREAMINGREADCLIENTMESSAGE.oneofs_by_name['request'].fields.append(
+  _STREAMINGREADCLIENTMESSAGE.fields_by_name['released'])
+_STREAMINGREADCLIENTMESSAGE.fields_by_name['released'].containing_oneof = _STREAMINGREADCLIENTMESSAGE.oneofs_by_name['request']
+_STREAMINGREADCLIENTMESSAGE.oneofs_by_name['request'].fields.append(
+  _STREAMINGREADCLIENTMESSAGE.fields_by_name['status'])
+_STREAMINGREADCLIENTMESSAGE.fields_by_name['status'].containing_oneof = _STREAMINGREADCLIENTMESSAGE.oneofs_by_name['request']
+_STREAMINGREADSERVERMESSAGE_INITRESPONSE_BLOCKFORMATVERSIONBYTOPICENTRY.containing_type = _STREAMINGREADSERVERMESSAGE_INITRESPONSE
+_STREAMINGREADSERVERMESSAGE_INITRESPONSE.fields_by_name['block_format_version_by_topic'].message_type = _STREAMINGREADSERVERMESSAGE_INITRESPONSE_BLOCKFORMATVERSIONBYTOPICENTRY
+_STREAMINGREADSERVERMESSAGE_INITRESPONSE.containing_type = _STREAMINGREADSERVERMESSAGE
+_STREAMINGREADSERVERMESSAGE_ASSIGNED.fields_by_name['topic'].message_type = _PATH
+_STREAMINGREADSERVERMESSAGE_ASSIGNED.containing_type = _STREAMINGREADSERVERMESSAGE
+_STREAMINGREADSERVERMESSAGE_RELEASE.fields_by_name['topic'].message_type = _PATH
+_STREAMINGREADSERVERMESSAGE_RELEASE.containing_type = _STREAMINGREADSERVERMESSAGE
+_STREAMINGREADSERVERMESSAGE_COMMITTED.fields_by_name['cookies'].message_type = _COMMITCOOKIE
+_STREAMINGREADSERVERMESSAGE_COMMITTED.containing_type = _STREAMINGREADSERVERMESSAGE
+_STREAMINGREADSERVERMESSAGE_DATABATCH_MESSAGEDATA.containing_type = _STREAMINGREADSERVERMESSAGE_DATABATCH
+_STREAMINGREADSERVERMESSAGE_DATABATCH_BATCH.fields_by_name['extra_fields'].message_type = _KEYVALUE
+_STREAMINGREADSERVERMESSAGE_DATABATCH_BATCH.fields_by_name['message_data'].message_type = _STREAMINGREADSERVERMESSAGE_DATABATCH_MESSAGEDATA
+_STREAMINGREADSERVERMESSAGE_DATABATCH_BATCH.containing_type = _STREAMINGREADSERVERMESSAGE_DATABATCH
+_STREAMINGREADSERVERMESSAGE_DATABATCH_PARTITIONDATA.fields_by_name['topic'].message_type = _PATH
+_STREAMINGREADSERVERMESSAGE_DATABATCH_PARTITIONDATA.fields_by_name['batches'].message_type = _STREAMINGREADSERVERMESSAGE_DATABATCH_BATCH
+_STREAMINGREADSERVERMESSAGE_DATABATCH_PARTITIONDATA.fields_by_name['cookie'].message_type = _COMMITCOOKIE
+_STREAMINGREADSERVERMESSAGE_DATABATCH_PARTITIONDATA.containing_type = _STREAMINGREADSERVERMESSAGE_DATABATCH
+_STREAMINGREADSERVERMESSAGE_DATABATCH.fields_by_name['partition_data'].message_type = _STREAMINGREADSERVERMESSAGE_DATABATCH_PARTITIONDATA
+_STREAMINGREADSERVERMESSAGE_DATABATCH.containing_type = _STREAMINGREADSERVERMESSAGE
+_STREAMINGREADSERVERMESSAGE_PARTITIONSTATUS.fields_by_name['topic'].message_type = _PATH
+_STREAMINGREADSERVERMESSAGE_PARTITIONSTATUS.containing_type = _STREAMINGREADSERVERMESSAGE
+_STREAMINGREADSERVERMESSAGE.fields_by_name['status'].enum_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__status__codes__pb2._STATUSIDS_STATUSCODE
+_STREAMINGREADSERVERMESSAGE.fields_by_name['issues'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__issue__message__pb2._ISSUEMESSAGE
+_STREAMINGREADSERVERMESSAGE.fields_by_name['init_response'].message_type = _STREAMINGREADSERVERMESSAGE_INITRESPONSE
+_STREAMINGREADSERVERMESSAGE.fields_by_name['data_batch'].message_type = _STREAMINGREADSERVERMESSAGE_DATABATCH
+_STREAMINGREADSERVERMESSAGE.fields_by_name['assigned'].message_type = _STREAMINGREADSERVERMESSAGE_ASSIGNED
+_STREAMINGREADSERVERMESSAGE.fields_by_name['release'].message_type = _STREAMINGREADSERVERMESSAGE_RELEASE
+_STREAMINGREADSERVERMESSAGE.fields_by_name['committed'].message_type = _STREAMINGREADSERVERMESSAGE_COMMITTED
+_STREAMINGREADSERVERMESSAGE.fields_by_name['partition_status'].message_type = _STREAMINGREADSERVERMESSAGE_PARTITIONSTATUS
+_STREAMINGREADSERVERMESSAGE.oneofs_by_name['response'].fields.append(
+  _STREAMINGREADSERVERMESSAGE.fields_by_name['init_response'])
+_STREAMINGREADSERVERMESSAGE.fields_by_name['init_response'].containing_oneof = _STREAMINGREADSERVERMESSAGE.oneofs_by_name['response']
+_STREAMINGREADSERVERMESSAGE.oneofs_by_name['response'].fields.append(
+  _STREAMINGREADSERVERMESSAGE.fields_by_name['data_batch'])
+_STREAMINGREADSERVERMESSAGE.fields_by_name['data_batch'].containing_oneof = _STREAMINGREADSERVERMESSAGE.oneofs_by_name['response']
+_STREAMINGREADSERVERMESSAGE.oneofs_by_name['response'].fields.append(
+  _STREAMINGREADSERVERMESSAGE.fields_by_name['assigned'])
+_STREAMINGREADSERVERMESSAGE.fields_by_name['assigned'].containing_oneof = _STREAMINGREADSERVERMESSAGE.oneofs_by_name['response']
+_STREAMINGREADSERVERMESSAGE.oneofs_by_name['response'].fields.append(
+  _STREAMINGREADSERVERMESSAGE.fields_by_name['release'])
+_STREAMINGREADSERVERMESSAGE.fields_by_name['release'].containing_oneof = _STREAMINGREADSERVERMESSAGE.oneofs_by_name['response']
+_STREAMINGREADSERVERMESSAGE.oneofs_by_name['response'].fields.append(
+  _STREAMINGREADSERVERMESSAGE.fields_by_name['committed'])
+_STREAMINGREADSERVERMESSAGE.fields_by_name['committed'].containing_oneof = _STREAMINGREADSERVERMESSAGE.oneofs_by_name['response']
+_STREAMINGREADSERVERMESSAGE.oneofs_by_name['response'].fields.append(
+  _STREAMINGREADSERVERMESSAGE.fields_by_name['partition_status'])
+_STREAMINGREADSERVERMESSAGE.fields_by_name['partition_status'].containing_oneof = _STREAMINGREADSERVERMESSAGE.oneofs_by_name['response']
 _READINFOREQUEST.fields_by_name['operation_params'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2._OPERATIONPARAMS
 _READINFOREQUEST.fields_by_name['topics'].message_type = _PATH
 _READINFOREQUEST.fields_by_name['consumer'].message_type = _PATH
@@ -2236,8 +4118,11 @@ DESCRIPTOR.message_types_by_name['Path'] = _PATH
 DESCRIPTOR.message_types_by_name['KeyValue'] = _KEYVALUE
 DESCRIPTOR.message_types_by_name['ReadParams'] = _READPARAMS
 DESCRIPTOR.message_types_by_name['CommitCookie'] = _COMMITCOOKIE
-DESCRIPTOR.message_types_by_name['ReadSessionRequest'] = _READSESSIONREQUEST
-DESCRIPTOR.message_types_by_name['ReadSessionResponse'] = _READSESSIONRESPONSE
+DESCRIPTOR.message_types_by_name['StreamingReadClientMessageNew'] = _STREAMINGREADCLIENTMESSAGENEW
+DESCRIPTOR.message_types_by_name['StreamingReadServerMessageNew'] = _STREAMINGREADSERVERMESSAGENEW
+DESCRIPTOR.message_types_by_name['ReadStream'] = _READSTREAM
+DESCRIPTOR.message_types_by_name['StreamingReadClientMessage'] = _STREAMINGREADCLIENTMESSAGE
+DESCRIPTOR.message_types_by_name['StreamingReadServerMessage'] = _STREAMINGREADSERVERMESSAGE
 DESCRIPTOR.message_types_by_name['ReadInfoRequest'] = _READINFOREQUEST
 DESCRIPTOR.message_types_by_name['ReadInfoResponse'] = _READINFORESPONSE
 DESCRIPTOR.message_types_by_name['ReadInfoResult'] = _READINFORESULT
@@ -2355,147 +4240,424 @@ CommitCookie = _reflection.GeneratedProtocolMessageType('CommitCookie', (_messag
   ))
 _sym_db.RegisterMessage(CommitCookie)
 
-ReadSessionRequest = _reflection.GeneratedProtocolMessageType('ReadSessionRequest', (_message.Message,), dict(
+StreamingReadClientMessageNew = _reflection.GeneratedProtocolMessageType('StreamingReadClientMessageNew', (_message.Message,), dict(
 
-  Init = _reflection.GeneratedProtocolMessageType('Init', (_message.Message,), dict(
+  InitRequest = _reflection.GeneratedProtocolMessageType('InitRequest', (_message.Message,), dict(
 
-    Topic = _reflection.GeneratedProtocolMessageType('Topic', (_message.Message,), dict(
-      DESCRIPTOR = _READSESSIONREQUEST_INIT_TOPIC,
+    State = _reflection.GeneratedProtocolMessageType('State', (_message.Message,), dict(
+
+      ReadStreamState = _reflection.GeneratedProtocolMessageType('ReadStreamState', (_message.Message,), dict(
+        DESCRIPTOR = _STREAMINGREADCLIENTMESSAGENEW_INITREQUEST_STATE_READSTREAMSTATE,
+        __module__ = 'kikimr.public.api.protos.ydb_persqueue_v1_pb2'
+        # @@protoc_insertion_point(class_scope:Ydb.PersQueue.V1.StreamingReadClientMessageNew.InitRequest.State.ReadStreamState)
+        ))
+      ,
+      DESCRIPTOR = _STREAMINGREADCLIENTMESSAGENEW_INITREQUEST_STATE,
       __module__ = 'kikimr.public.api.protos.ydb_persqueue_v1_pb2'
-      # @@protoc_insertion_point(class_scope:Ydb.PersQueue.V1.ReadSessionRequest.Init.Topic)
+      # @@protoc_insertion_point(class_scope:Ydb.PersQueue.V1.StreamingReadClientMessageNew.InitRequest.State)
       ))
     ,
-    DESCRIPTOR = _READSESSIONREQUEST_INIT,
+    DESCRIPTOR = _STREAMINGREADCLIENTMESSAGENEW_INITREQUEST,
     __module__ = 'kikimr.public.api.protos.ydb_persqueue_v1_pb2'
-    # @@protoc_insertion_point(class_scope:Ydb.PersQueue.V1.ReadSessionRequest.Init)
+    # @@protoc_insertion_point(class_scope:Ydb.PersQueue.V1.StreamingReadClientMessageNew.InitRequest)
+    ))
+  ,
+
+  ReadRequest = _reflection.GeneratedProtocolMessageType('ReadRequest', (_message.Message,), dict(
+    DESCRIPTOR = _STREAMINGREADCLIENTMESSAGENEW_READREQUEST,
+    __module__ = 'kikimr.public.api.protos.ydb_persqueue_v1_pb2'
+    # @@protoc_insertion_point(class_scope:Ydb.PersQueue.V1.StreamingReadClientMessageNew.ReadRequest)
+    ))
+  ,
+
+  CreateReadStreamResponse = _reflection.GeneratedProtocolMessageType('CreateReadStreamResponse', (_message.Message,), dict(
+    DESCRIPTOR = _STREAMINGREADCLIENTMESSAGENEW_CREATEREADSTREAMRESPONSE,
+    __module__ = 'kikimr.public.api.protos.ydb_persqueue_v1_pb2'
+    # @@protoc_insertion_point(class_scope:Ydb.PersQueue.V1.StreamingReadClientMessageNew.CreateReadStreamResponse)
+    ))
+  ,
+
+  DestroyReadStreamResponse = _reflection.GeneratedProtocolMessageType('DestroyReadStreamResponse', (_message.Message,), dict(
+    DESCRIPTOR = _STREAMINGREADCLIENTMESSAGENEW_DESTROYREADSTREAMRESPONSE,
+    __module__ = 'kikimr.public.api.protos.ydb_persqueue_v1_pb2'
+    # @@protoc_insertion_point(class_scope:Ydb.PersQueue.V1.StreamingReadClientMessageNew.DestroyReadStreamResponse)
+    ))
+  ,
+
+  StopReadRequest = _reflection.GeneratedProtocolMessageType('StopReadRequest', (_message.Message,), dict(
+    DESCRIPTOR = _STREAMINGREADCLIENTMESSAGENEW_STOPREADREQUEST,
+    __module__ = 'kikimr.public.api.protos.ydb_persqueue_v1_pb2'
+    # @@protoc_insertion_point(class_scope:Ydb.PersQueue.V1.StreamingReadClientMessageNew.StopReadRequest)
+    ))
+  ,
+
+  ResumeReadRequest = _reflection.GeneratedProtocolMessageType('ResumeReadRequest', (_message.Message,), dict(
+    DESCRIPTOR = _STREAMINGREADCLIENTMESSAGENEW_RESUMEREADREQUEST,
+    __module__ = 'kikimr.public.api.protos.ydb_persqueue_v1_pb2'
+    # @@protoc_insertion_point(class_scope:Ydb.PersQueue.V1.StreamingReadClientMessageNew.ResumeReadRequest)
+    ))
+  ,
+
+  CommitRequest = _reflection.GeneratedProtocolMessageType('CommitRequest', (_message.Message,), dict(
+    DESCRIPTOR = _STREAMINGREADCLIENTMESSAGENEW_COMMITREQUEST,
+    __module__ = 'kikimr.public.api.protos.ydb_persqueue_v1_pb2'
+    # @@protoc_insertion_point(class_scope:Ydb.PersQueue.V1.StreamingReadClientMessageNew.CommitRequest)
+    ))
+  ,
+
+  ReadStreamStatusRequest = _reflection.GeneratedProtocolMessageType('ReadStreamStatusRequest', (_message.Message,), dict(
+    DESCRIPTOR = _STREAMINGREADCLIENTMESSAGENEW_READSTREAMSTATUSREQUEST,
+    __module__ = 'kikimr.public.api.protos.ydb_persqueue_v1_pb2'
+    # @@protoc_insertion_point(class_scope:Ydb.PersQueue.V1.StreamingReadClientMessageNew.ReadStreamStatusRequest)
+    ))
+  ,
+
+  AddTopicRequest = _reflection.GeneratedProtocolMessageType('AddTopicRequest', (_message.Message,), dict(
+    DESCRIPTOR = _STREAMINGREADCLIENTMESSAGENEW_ADDTOPICREQUEST,
+    __module__ = 'kikimr.public.api.protos.ydb_persqueue_v1_pb2'
+    # @@protoc_insertion_point(class_scope:Ydb.PersQueue.V1.StreamingReadClientMessageNew.AddTopicRequest)
+    ))
+  ,
+
+  RemoveTopicRequest = _reflection.GeneratedProtocolMessageType('RemoveTopicRequest', (_message.Message,), dict(
+    DESCRIPTOR = _STREAMINGREADCLIENTMESSAGENEW_REMOVETOPICREQUEST,
+    __module__ = 'kikimr.public.api.protos.ydb_persqueue_v1_pb2'
+    # @@protoc_insertion_point(class_scope:Ydb.PersQueue.V1.StreamingReadClientMessageNew.RemoveTopicRequest)
+    ))
+  ,
+
+  TopicReadSettings = _reflection.GeneratedProtocolMessageType('TopicReadSettings', (_message.Message,), dict(
+    DESCRIPTOR = _STREAMINGREADCLIENTMESSAGENEW_TOPICREADSETTINGS,
+    __module__ = 'kikimr.public.api.protos.ydb_persqueue_v1_pb2'
+    # @@protoc_insertion_point(class_scope:Ydb.PersQueue.V1.StreamingReadClientMessageNew.TopicReadSettings)
+    ))
+  ,
+
+  PartitionCommit = _reflection.GeneratedProtocolMessageType('PartitionCommit', (_message.Message,), dict(
+    DESCRIPTOR = _STREAMINGREADCLIENTMESSAGENEW_PARTITIONCOMMIT,
+    __module__ = 'kikimr.public.api.protos.ydb_persqueue_v1_pb2'
+    # @@protoc_insertion_point(class_scope:Ydb.PersQueue.V1.StreamingReadClientMessageNew.PartitionCommit)
+    ))
+  ,
+  DESCRIPTOR = _STREAMINGREADCLIENTMESSAGENEW,
+  __module__ = 'kikimr.public.api.protos.ydb_persqueue_v1_pb2'
+  # @@protoc_insertion_point(class_scope:Ydb.PersQueue.V1.StreamingReadClientMessageNew)
+  ))
+_sym_db.RegisterMessage(StreamingReadClientMessageNew)
+_sym_db.RegisterMessage(StreamingReadClientMessageNew.InitRequest)
+_sym_db.RegisterMessage(StreamingReadClientMessageNew.InitRequest.State)
+_sym_db.RegisterMessage(StreamingReadClientMessageNew.InitRequest.State.ReadStreamState)
+_sym_db.RegisterMessage(StreamingReadClientMessageNew.ReadRequest)
+_sym_db.RegisterMessage(StreamingReadClientMessageNew.CreateReadStreamResponse)
+_sym_db.RegisterMessage(StreamingReadClientMessageNew.DestroyReadStreamResponse)
+_sym_db.RegisterMessage(StreamingReadClientMessageNew.StopReadRequest)
+_sym_db.RegisterMessage(StreamingReadClientMessageNew.ResumeReadRequest)
+_sym_db.RegisterMessage(StreamingReadClientMessageNew.CommitRequest)
+_sym_db.RegisterMessage(StreamingReadClientMessageNew.ReadStreamStatusRequest)
+_sym_db.RegisterMessage(StreamingReadClientMessageNew.AddTopicRequest)
+_sym_db.RegisterMessage(StreamingReadClientMessageNew.RemoveTopicRequest)
+_sym_db.RegisterMessage(StreamingReadClientMessageNew.TopicReadSettings)
+_sym_db.RegisterMessage(StreamingReadClientMessageNew.PartitionCommit)
+
+StreamingReadServerMessageNew = _reflection.GeneratedProtocolMessageType('StreamingReadServerMessageNew', (_message.Message,), dict(
+
+  InitResponse = _reflection.GeneratedProtocolMessageType('InitResponse', (_message.Message,), dict(
+
+    BlockFormatVersionByTopicEntry = _reflection.GeneratedProtocolMessageType('BlockFormatVersionByTopicEntry', (_message.Message,), dict(
+      DESCRIPTOR = _STREAMINGREADSERVERMESSAGENEW_INITRESPONSE_BLOCKFORMATVERSIONBYTOPICENTRY,
+      __module__ = 'kikimr.public.api.protos.ydb_persqueue_v1_pb2'
+      # @@protoc_insertion_point(class_scope:Ydb.PersQueue.V1.StreamingReadServerMessageNew.InitResponse.BlockFormatVersionByTopicEntry)
+      ))
+    ,
+    DESCRIPTOR = _STREAMINGREADSERVERMESSAGENEW_INITRESPONSE,
+    __module__ = 'kikimr.public.api.protos.ydb_persqueue_v1_pb2'
+    # @@protoc_insertion_point(class_scope:Ydb.PersQueue.V1.StreamingReadServerMessageNew.InitResponse)
+    ))
+  ,
+
+  CreateReadStreamRequest = _reflection.GeneratedProtocolMessageType('CreateReadStreamRequest', (_message.Message,), dict(
+    DESCRIPTOR = _STREAMINGREADSERVERMESSAGENEW_CREATEREADSTREAMREQUEST,
+    __module__ = 'kikimr.public.api.protos.ydb_persqueue_v1_pb2'
+    # @@protoc_insertion_point(class_scope:Ydb.PersQueue.V1.StreamingReadServerMessageNew.CreateReadStreamRequest)
+    ))
+  ,
+
+  DestroyReadStreamRequest = _reflection.GeneratedProtocolMessageType('DestroyReadStreamRequest', (_message.Message,), dict(
+    DESCRIPTOR = _STREAMINGREADSERVERMESSAGENEW_DESTROYREADSTREAMREQUEST,
+    __module__ = 'kikimr.public.api.protos.ydb_persqueue_v1_pb2'
+    # @@protoc_insertion_point(class_scope:Ydb.PersQueue.V1.StreamingReadServerMessageNew.DestroyReadStreamRequest)
+    ))
+  ,
+
+  CommitResponse = _reflection.GeneratedProtocolMessageType('CommitResponse', (_message.Message,), dict(
+
+    PartitionCommittedOffset = _reflection.GeneratedProtocolMessageType('PartitionCommittedOffset', (_message.Message,), dict(
+      DESCRIPTOR = _STREAMINGREADSERVERMESSAGENEW_COMMITRESPONSE_PARTITIONCOMMITTEDOFFSET,
+      __module__ = 'kikimr.public.api.protos.ydb_persqueue_v1_pb2'
+      # @@protoc_insertion_point(class_scope:Ydb.PersQueue.V1.StreamingReadServerMessageNew.CommitResponse.PartitionCommittedOffset)
+      ))
+    ,
+    DESCRIPTOR = _STREAMINGREADSERVERMESSAGENEW_COMMITRESPONSE,
+    __module__ = 'kikimr.public.api.protos.ydb_persqueue_v1_pb2'
+    # @@protoc_insertion_point(class_scope:Ydb.PersQueue.V1.StreamingReadServerMessageNew.CommitResponse)
+    ))
+  ,
+
+  BatchReadResponse = _reflection.GeneratedProtocolMessageType('BatchReadResponse', (_message.Message,), dict(
+
+    PartitionData = _reflection.GeneratedProtocolMessageType('PartitionData', (_message.Message,), dict(
+
+      ReadStatistics = _reflection.GeneratedProtocolMessageType('ReadStatistics', (_message.Message,), dict(
+        DESCRIPTOR = _STREAMINGREADSERVERMESSAGENEW_BATCHREADRESPONSE_PARTITIONDATA_READSTATISTICS,
+        __module__ = 'kikimr.public.api.protos.ydb_persqueue_v1_pb2'
+        # @@protoc_insertion_point(class_scope:Ydb.PersQueue.V1.StreamingReadServerMessageNew.BatchReadResponse.PartitionData.ReadStatistics)
+        ))
+      ,
+      DESCRIPTOR = _STREAMINGREADSERVERMESSAGENEW_BATCHREADRESPONSE_PARTITIONDATA,
+      __module__ = 'kikimr.public.api.protos.ydb_persqueue_v1_pb2'
+      # @@protoc_insertion_point(class_scope:Ydb.PersQueue.V1.StreamingReadServerMessageNew.BatchReadResponse.PartitionData)
+      ))
+    ,
+
+    SkipRange = _reflection.GeneratedProtocolMessageType('SkipRange', (_message.Message,), dict(
+      DESCRIPTOR = _STREAMINGREADSERVERMESSAGENEW_BATCHREADRESPONSE_SKIPRANGE,
+      __module__ = 'kikimr.public.api.protos.ydb_persqueue_v1_pb2'
+      # @@protoc_insertion_point(class_scope:Ydb.PersQueue.V1.StreamingReadServerMessageNew.BatchReadResponse.SkipRange)
+      ))
+    ,
+    DESCRIPTOR = _STREAMINGREADSERVERMESSAGENEW_BATCHREADRESPONSE,
+    __module__ = 'kikimr.public.api.protos.ydb_persqueue_v1_pb2'
+    # @@protoc_insertion_point(class_scope:Ydb.PersQueue.V1.StreamingReadServerMessageNew.BatchReadResponse)
+    ))
+  ,
+
+  ReadStreamStatusResponse = _reflection.GeneratedProtocolMessageType('ReadStreamStatusResponse', (_message.Message,), dict(
+    DESCRIPTOR = _STREAMINGREADSERVERMESSAGENEW_READSTREAMSTATUSRESPONSE,
+    __module__ = 'kikimr.public.api.protos.ydb_persqueue_v1_pb2'
+    # @@protoc_insertion_point(class_scope:Ydb.PersQueue.V1.StreamingReadServerMessageNew.ReadStreamStatusResponse)
+    ))
+  ,
+
+  StopReadResponse = _reflection.GeneratedProtocolMessageType('StopReadResponse', (_message.Message,), dict(
+    DESCRIPTOR = _STREAMINGREADSERVERMESSAGENEW_STOPREADRESPONSE,
+    __module__ = 'kikimr.public.api.protos.ydb_persqueue_v1_pb2'
+    # @@protoc_insertion_point(class_scope:Ydb.PersQueue.V1.StreamingReadServerMessageNew.StopReadResponse)
+    ))
+  ,
+
+  ResumeReadResponse = _reflection.GeneratedProtocolMessageType('ResumeReadResponse', (_message.Message,), dict(
+    DESCRIPTOR = _STREAMINGREADSERVERMESSAGENEW_RESUMEREADRESPONSE,
+    __module__ = 'kikimr.public.api.protos.ydb_persqueue_v1_pb2'
+    # @@protoc_insertion_point(class_scope:Ydb.PersQueue.V1.StreamingReadServerMessageNew.ResumeReadResponse)
+    ))
+  ,
+
+  AddTopicResponse = _reflection.GeneratedProtocolMessageType('AddTopicResponse', (_message.Message,), dict(
+    DESCRIPTOR = _STREAMINGREADSERVERMESSAGENEW_ADDTOPICRESPONSE,
+    __module__ = 'kikimr.public.api.protos.ydb_persqueue_v1_pb2'
+    # @@protoc_insertion_point(class_scope:Ydb.PersQueue.V1.StreamingReadServerMessageNew.AddTopicResponse)
+    ))
+  ,
+
+  RemoveTopicResponse = _reflection.GeneratedProtocolMessageType('RemoveTopicResponse', (_message.Message,), dict(
+    DESCRIPTOR = _STREAMINGREADSERVERMESSAGENEW_REMOVETOPICRESPONSE,
+    __module__ = 'kikimr.public.api.protos.ydb_persqueue_v1_pb2'
+    # @@protoc_insertion_point(class_scope:Ydb.PersQueue.V1.StreamingReadServerMessageNew.RemoveTopicResponse)
+    ))
+  ,
+  DESCRIPTOR = _STREAMINGREADSERVERMESSAGENEW,
+  __module__ = 'kikimr.public.api.protos.ydb_persqueue_v1_pb2'
+  # @@protoc_insertion_point(class_scope:Ydb.PersQueue.V1.StreamingReadServerMessageNew)
+  ))
+_sym_db.RegisterMessage(StreamingReadServerMessageNew)
+_sym_db.RegisterMessage(StreamingReadServerMessageNew.InitResponse)
+_sym_db.RegisterMessage(StreamingReadServerMessageNew.InitResponse.BlockFormatVersionByTopicEntry)
+_sym_db.RegisterMessage(StreamingReadServerMessageNew.CreateReadStreamRequest)
+_sym_db.RegisterMessage(StreamingReadServerMessageNew.DestroyReadStreamRequest)
+_sym_db.RegisterMessage(StreamingReadServerMessageNew.CommitResponse)
+_sym_db.RegisterMessage(StreamingReadServerMessageNew.CommitResponse.PartitionCommittedOffset)
+_sym_db.RegisterMessage(StreamingReadServerMessageNew.BatchReadResponse)
+_sym_db.RegisterMessage(StreamingReadServerMessageNew.BatchReadResponse.PartitionData)
+_sym_db.RegisterMessage(StreamingReadServerMessageNew.BatchReadResponse.PartitionData.ReadStatistics)
+_sym_db.RegisterMessage(StreamingReadServerMessageNew.BatchReadResponse.SkipRange)
+_sym_db.RegisterMessage(StreamingReadServerMessageNew.ReadStreamStatusResponse)
+_sym_db.RegisterMessage(StreamingReadServerMessageNew.StopReadResponse)
+_sym_db.RegisterMessage(StreamingReadServerMessageNew.ResumeReadResponse)
+_sym_db.RegisterMessage(StreamingReadServerMessageNew.AddTopicResponse)
+_sym_db.RegisterMessage(StreamingReadServerMessageNew.RemoveTopicResponse)
+
+ReadStream = _reflection.GeneratedProtocolMessageType('ReadStream', (_message.Message,), dict(
+  DESCRIPTOR = _READSTREAM,
+  __module__ = 'kikimr.public.api.protos.ydb_persqueue_v1_pb2'
+  # @@protoc_insertion_point(class_scope:Ydb.PersQueue.V1.ReadStream)
+  ))
+_sym_db.RegisterMessage(ReadStream)
+
+StreamingReadClientMessage = _reflection.GeneratedProtocolMessageType('StreamingReadClientMessage', (_message.Message,), dict(
+
+  TopicReadSettings = _reflection.GeneratedProtocolMessageType('TopicReadSettings', (_message.Message,), dict(
+    DESCRIPTOR = _STREAMINGREADCLIENTMESSAGE_TOPICREADSETTINGS,
+    __module__ = 'kikimr.public.api.protos.ydb_persqueue_v1_pb2'
+    # @@protoc_insertion_point(class_scope:Ydb.PersQueue.V1.StreamingReadClientMessage.TopicReadSettings)
+    ))
+  ,
+
+  InitRequest = _reflection.GeneratedProtocolMessageType('InitRequest', (_message.Message,), dict(
+
+    State = _reflection.GeneratedProtocolMessageType('State', (_message.Message,), dict(
+
+      ReadStreamState = _reflection.GeneratedProtocolMessageType('ReadStreamState', (_message.Message,), dict(
+        DESCRIPTOR = _STREAMINGREADCLIENTMESSAGE_INITREQUEST_STATE_READSTREAMSTATE,
+        __module__ = 'kikimr.public.api.protos.ydb_persqueue_v1_pb2'
+        # @@protoc_insertion_point(class_scope:Ydb.PersQueue.V1.StreamingReadClientMessage.InitRequest.State.ReadStreamState)
+        ))
+      ,
+      DESCRIPTOR = _STREAMINGREADCLIENTMESSAGE_INITREQUEST_STATE,
+      __module__ = 'kikimr.public.api.protos.ydb_persqueue_v1_pb2'
+      # @@protoc_insertion_point(class_scope:Ydb.PersQueue.V1.StreamingReadClientMessage.InitRequest.State)
+      ))
+    ,
+    DESCRIPTOR = _STREAMINGREADCLIENTMESSAGE_INITREQUEST,
+    __module__ = 'kikimr.public.api.protos.ydb_persqueue_v1_pb2'
+    # @@protoc_insertion_point(class_scope:Ydb.PersQueue.V1.StreamingReadClientMessage.InitRequest)
     ))
   ,
 
   Read = _reflection.GeneratedProtocolMessageType('Read', (_message.Message,), dict(
-    DESCRIPTOR = _READSESSIONREQUEST_READ,
+    DESCRIPTOR = _STREAMINGREADCLIENTMESSAGE_READ,
     __module__ = 'kikimr.public.api.protos.ydb_persqueue_v1_pb2'
-    # @@protoc_insertion_point(class_scope:Ydb.PersQueue.V1.ReadSessionRequest.Read)
+    # @@protoc_insertion_point(class_scope:Ydb.PersQueue.V1.StreamingReadClientMessage.Read)
     ))
   ,
 
   StartRead = _reflection.GeneratedProtocolMessageType('StartRead', (_message.Message,), dict(
-    DESCRIPTOR = _READSESSIONREQUEST_STARTREAD,
+    DESCRIPTOR = _STREAMINGREADCLIENTMESSAGE_STARTREAD,
     __module__ = 'kikimr.public.api.protos.ydb_persqueue_v1_pb2'
-    # @@protoc_insertion_point(class_scope:Ydb.PersQueue.V1.ReadSessionRequest.StartRead)
+    # @@protoc_insertion_point(class_scope:Ydb.PersQueue.V1.StreamingReadClientMessage.StartRead)
     ))
   ,
 
   Released = _reflection.GeneratedProtocolMessageType('Released', (_message.Message,), dict(
-    DESCRIPTOR = _READSESSIONREQUEST_RELEASED,
+    DESCRIPTOR = _STREAMINGREADCLIENTMESSAGE_RELEASED,
     __module__ = 'kikimr.public.api.protos.ydb_persqueue_v1_pb2'
-    # @@protoc_insertion_point(class_scope:Ydb.PersQueue.V1.ReadSessionRequest.Released)
+    # @@protoc_insertion_point(class_scope:Ydb.PersQueue.V1.StreamingReadClientMessage.Released)
     ))
   ,
 
   Commit = _reflection.GeneratedProtocolMessageType('Commit', (_message.Message,), dict(
-    DESCRIPTOR = _READSESSIONREQUEST_COMMIT,
+    DESCRIPTOR = _STREAMINGREADCLIENTMESSAGE_COMMIT,
     __module__ = 'kikimr.public.api.protos.ydb_persqueue_v1_pb2'
-    # @@protoc_insertion_point(class_scope:Ydb.PersQueue.V1.ReadSessionRequest.Commit)
+    # @@protoc_insertion_point(class_scope:Ydb.PersQueue.V1.StreamingReadClientMessage.Commit)
     ))
   ,
 
   Status = _reflection.GeneratedProtocolMessageType('Status', (_message.Message,), dict(
-    DESCRIPTOR = _READSESSIONREQUEST_STATUS,
+    DESCRIPTOR = _STREAMINGREADCLIENTMESSAGE_STATUS,
     __module__ = 'kikimr.public.api.protos.ydb_persqueue_v1_pb2'
-    # @@protoc_insertion_point(class_scope:Ydb.PersQueue.V1.ReadSessionRequest.Status)
+    # @@protoc_insertion_point(class_scope:Ydb.PersQueue.V1.StreamingReadClientMessage.Status)
     ))
   ,
-  DESCRIPTOR = _READSESSIONREQUEST,
+  DESCRIPTOR = _STREAMINGREADCLIENTMESSAGE,
   __module__ = 'kikimr.public.api.protos.ydb_persqueue_v1_pb2'
-  # @@protoc_insertion_point(class_scope:Ydb.PersQueue.V1.ReadSessionRequest)
+  # @@protoc_insertion_point(class_scope:Ydb.PersQueue.V1.StreamingReadClientMessage)
   ))
-_sym_db.RegisterMessage(ReadSessionRequest)
-_sym_db.RegisterMessage(ReadSessionRequest.Init)
-_sym_db.RegisterMessage(ReadSessionRequest.Init.Topic)
-_sym_db.RegisterMessage(ReadSessionRequest.Read)
-_sym_db.RegisterMessage(ReadSessionRequest.StartRead)
-_sym_db.RegisterMessage(ReadSessionRequest.Released)
-_sym_db.RegisterMessage(ReadSessionRequest.Commit)
-_sym_db.RegisterMessage(ReadSessionRequest.Status)
+_sym_db.RegisterMessage(StreamingReadClientMessage)
+_sym_db.RegisterMessage(StreamingReadClientMessage.TopicReadSettings)
+_sym_db.RegisterMessage(StreamingReadClientMessage.InitRequest)
+_sym_db.RegisterMessage(StreamingReadClientMessage.InitRequest.State)
+_sym_db.RegisterMessage(StreamingReadClientMessage.InitRequest.State.ReadStreamState)
+_sym_db.RegisterMessage(StreamingReadClientMessage.Read)
+_sym_db.RegisterMessage(StreamingReadClientMessage.StartRead)
+_sym_db.RegisterMessage(StreamingReadClientMessage.Released)
+_sym_db.RegisterMessage(StreamingReadClientMessage.Commit)
+_sym_db.RegisterMessage(StreamingReadClientMessage.Status)
 
-ReadSessionResponse = _reflection.GeneratedProtocolMessageType('ReadSessionResponse', (_message.Message,), dict(
+StreamingReadServerMessage = _reflection.GeneratedProtocolMessageType('StreamingReadServerMessage', (_message.Message,), dict(
 
-  Inited = _reflection.GeneratedProtocolMessageType('Inited', (_message.Message,), dict(
-    DESCRIPTOR = _READSESSIONRESPONSE_INITED,
+  InitResponse = _reflection.GeneratedProtocolMessageType('InitResponse', (_message.Message,), dict(
+
+    BlockFormatVersionByTopicEntry = _reflection.GeneratedProtocolMessageType('BlockFormatVersionByTopicEntry', (_message.Message,), dict(
+      DESCRIPTOR = _STREAMINGREADSERVERMESSAGE_INITRESPONSE_BLOCKFORMATVERSIONBYTOPICENTRY,
+      __module__ = 'kikimr.public.api.protos.ydb_persqueue_v1_pb2'
+      # @@protoc_insertion_point(class_scope:Ydb.PersQueue.V1.StreamingReadServerMessage.InitResponse.BlockFormatVersionByTopicEntry)
+      ))
+    ,
+    DESCRIPTOR = _STREAMINGREADSERVERMESSAGE_INITRESPONSE,
     __module__ = 'kikimr.public.api.protos.ydb_persqueue_v1_pb2'
-    # @@protoc_insertion_point(class_scope:Ydb.PersQueue.V1.ReadSessionResponse.Inited)
+    # @@protoc_insertion_point(class_scope:Ydb.PersQueue.V1.StreamingReadServerMessage.InitResponse)
     ))
   ,
 
   Assigned = _reflection.GeneratedProtocolMessageType('Assigned', (_message.Message,), dict(
-    DESCRIPTOR = _READSESSIONRESPONSE_ASSIGNED,
+    DESCRIPTOR = _STREAMINGREADSERVERMESSAGE_ASSIGNED,
     __module__ = 'kikimr.public.api.protos.ydb_persqueue_v1_pb2'
-    # @@protoc_insertion_point(class_scope:Ydb.PersQueue.V1.ReadSessionResponse.Assigned)
+    # @@protoc_insertion_point(class_scope:Ydb.PersQueue.V1.StreamingReadServerMessage.Assigned)
     ))
   ,
 
   Release = _reflection.GeneratedProtocolMessageType('Release', (_message.Message,), dict(
-    DESCRIPTOR = _READSESSIONRESPONSE_RELEASE,
+    DESCRIPTOR = _STREAMINGREADSERVERMESSAGE_RELEASE,
     __module__ = 'kikimr.public.api.protos.ydb_persqueue_v1_pb2'
-    # @@protoc_insertion_point(class_scope:Ydb.PersQueue.V1.ReadSessionResponse.Release)
+    # @@protoc_insertion_point(class_scope:Ydb.PersQueue.V1.StreamingReadServerMessage.Release)
     ))
   ,
 
   Committed = _reflection.GeneratedProtocolMessageType('Committed', (_message.Message,), dict(
-    DESCRIPTOR = _READSESSIONRESPONSE_COMMITTED,
+    DESCRIPTOR = _STREAMINGREADSERVERMESSAGE_COMMITTED,
     __module__ = 'kikimr.public.api.protos.ydb_persqueue_v1_pb2'
-    # @@protoc_insertion_point(class_scope:Ydb.PersQueue.V1.ReadSessionResponse.Committed)
+    # @@protoc_insertion_point(class_scope:Ydb.PersQueue.V1.StreamingReadServerMessage.Committed)
     ))
   ,
 
   DataBatch = _reflection.GeneratedProtocolMessageType('DataBatch', (_message.Message,), dict(
 
     MessageData = _reflection.GeneratedProtocolMessageType('MessageData', (_message.Message,), dict(
-      DESCRIPTOR = _READSESSIONRESPONSE_DATABATCH_MESSAGEDATA,
+      DESCRIPTOR = _STREAMINGREADSERVERMESSAGE_DATABATCH_MESSAGEDATA,
       __module__ = 'kikimr.public.api.protos.ydb_persqueue_v1_pb2'
-      # @@protoc_insertion_point(class_scope:Ydb.PersQueue.V1.ReadSessionResponse.DataBatch.MessageData)
+      # @@protoc_insertion_point(class_scope:Ydb.PersQueue.V1.StreamingReadServerMessage.DataBatch.MessageData)
       ))
     ,
 
     Batch = _reflection.GeneratedProtocolMessageType('Batch', (_message.Message,), dict(
-      DESCRIPTOR = _READSESSIONRESPONSE_DATABATCH_BATCH,
+      DESCRIPTOR = _STREAMINGREADSERVERMESSAGE_DATABATCH_BATCH,
       __module__ = 'kikimr.public.api.protos.ydb_persqueue_v1_pb2'
-      # @@protoc_insertion_point(class_scope:Ydb.PersQueue.V1.ReadSessionResponse.DataBatch.Batch)
+      # @@protoc_insertion_point(class_scope:Ydb.PersQueue.V1.StreamingReadServerMessage.DataBatch.Batch)
       ))
     ,
 
     PartitionData = _reflection.GeneratedProtocolMessageType('PartitionData', (_message.Message,), dict(
-      DESCRIPTOR = _READSESSIONRESPONSE_DATABATCH_PARTITIONDATA,
+      DESCRIPTOR = _STREAMINGREADSERVERMESSAGE_DATABATCH_PARTITIONDATA,
       __module__ = 'kikimr.public.api.protos.ydb_persqueue_v1_pb2'
-      # @@protoc_insertion_point(class_scope:Ydb.PersQueue.V1.ReadSessionResponse.DataBatch.PartitionData)
+      # @@protoc_insertion_point(class_scope:Ydb.PersQueue.V1.StreamingReadServerMessage.DataBatch.PartitionData)
       ))
     ,
-    DESCRIPTOR = _READSESSIONRESPONSE_DATABATCH,
+    DESCRIPTOR = _STREAMINGREADSERVERMESSAGE_DATABATCH,
     __module__ = 'kikimr.public.api.protos.ydb_persqueue_v1_pb2'
-    # @@protoc_insertion_point(class_scope:Ydb.PersQueue.V1.ReadSessionResponse.DataBatch)
+    # @@protoc_insertion_point(class_scope:Ydb.PersQueue.V1.StreamingReadServerMessage.DataBatch)
     ))
   ,
 
   PartitionStatus = _reflection.GeneratedProtocolMessageType('PartitionStatus', (_message.Message,), dict(
-    DESCRIPTOR = _READSESSIONRESPONSE_PARTITIONSTATUS,
+    DESCRIPTOR = _STREAMINGREADSERVERMESSAGE_PARTITIONSTATUS,
     __module__ = 'kikimr.public.api.protos.ydb_persqueue_v1_pb2'
-    # @@protoc_insertion_point(class_scope:Ydb.PersQueue.V1.ReadSessionResponse.PartitionStatus)
+    # @@protoc_insertion_point(class_scope:Ydb.PersQueue.V1.StreamingReadServerMessage.PartitionStatus)
     ))
   ,
-  DESCRIPTOR = _READSESSIONRESPONSE,
+  DESCRIPTOR = _STREAMINGREADSERVERMESSAGE,
   __module__ = 'kikimr.public.api.protos.ydb_persqueue_v1_pb2'
-  # @@protoc_insertion_point(class_scope:Ydb.PersQueue.V1.ReadSessionResponse)
+  # @@protoc_insertion_point(class_scope:Ydb.PersQueue.V1.StreamingReadServerMessage)
   ))
-_sym_db.RegisterMessage(ReadSessionResponse)
-_sym_db.RegisterMessage(ReadSessionResponse.Inited)
-_sym_db.RegisterMessage(ReadSessionResponse.Assigned)
-_sym_db.RegisterMessage(ReadSessionResponse.Release)
-_sym_db.RegisterMessage(ReadSessionResponse.Committed)
-_sym_db.RegisterMessage(ReadSessionResponse.DataBatch)
-_sym_db.RegisterMessage(ReadSessionResponse.DataBatch.MessageData)
-_sym_db.RegisterMessage(ReadSessionResponse.DataBatch.Batch)
-_sym_db.RegisterMessage(ReadSessionResponse.DataBatch.PartitionData)
-_sym_db.RegisterMessage(ReadSessionResponse.PartitionStatus)
+_sym_db.RegisterMessage(StreamingReadServerMessage)
+_sym_db.RegisterMessage(StreamingReadServerMessage.InitResponse)
+_sym_db.RegisterMessage(StreamingReadServerMessage.InitResponse.BlockFormatVersionByTopicEntry)
+_sym_db.RegisterMessage(StreamingReadServerMessage.Assigned)
+_sym_db.RegisterMessage(StreamingReadServerMessage.Release)
+_sym_db.RegisterMessage(StreamingReadServerMessage.Committed)
+_sym_db.RegisterMessage(StreamingReadServerMessage.DataBatch)
+_sym_db.RegisterMessage(StreamingReadServerMessage.DataBatch.MessageData)
+_sym_db.RegisterMessage(StreamingReadServerMessage.DataBatch.Batch)
+_sym_db.RegisterMessage(StreamingReadServerMessage.DataBatch.PartitionData)
+_sym_db.RegisterMessage(StreamingReadServerMessage.PartitionStatus)
 
 ReadInfoRequest = _reflection.GeneratedProtocolMessageType('ReadInfoRequest', (_message.Message,), dict(
   DESCRIPTOR = _READINFOREQUEST,
@@ -2541,4 +4703,8 @@ _SESSIONMETAVALUE_VALUEENTRY.has_options = True
 _SESSIONMETAVALUE_VALUEENTRY._options = _descriptor._ParseOptions(descriptor_pb2.MessageOptions(), _b('8\001'))
 _STREAMINGWRITECLIENTMESSAGE_INITREQUEST_SESSIONMETAENTRY.has_options = True
 _STREAMINGWRITECLIENTMESSAGE_INITREQUEST_SESSIONMETAENTRY._options = _descriptor._ParseOptions(descriptor_pb2.MessageOptions(), _b('8\001'))
+_STREAMINGREADSERVERMESSAGENEW_INITRESPONSE_BLOCKFORMATVERSIONBYTOPICENTRY.has_options = True
+_STREAMINGREADSERVERMESSAGENEW_INITRESPONSE_BLOCKFORMATVERSIONBYTOPICENTRY._options = _descriptor._ParseOptions(descriptor_pb2.MessageOptions(), _b('8\001'))
+_STREAMINGREADSERVERMESSAGE_INITRESPONSE_BLOCKFORMATVERSIONBYTOPICENTRY.has_options = True
+_STREAMINGREADSERVERMESSAGE_INITRESPONSE_BLOCKFORMATVERSIONBYTOPICENTRY._options = _descriptor._ParseOptions(descriptor_pb2.MessageOptions(), _b('8\001'))
 # @@protoc_insertion_point(module_scope)
