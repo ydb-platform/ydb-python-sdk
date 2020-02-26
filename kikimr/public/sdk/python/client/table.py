@@ -671,28 +671,6 @@ class TableSchemeEntry(scheme.SchemeEntry):
                 KeyRange(None, None))
 
 
-class SyncResponseIterator(object):
-    def __init__(self, it, wrapper):
-        self.it = it
-        self.wrapper = wrapper
-
-    def cancel(self):
-        self.it.cancel()
-        return self
-
-    def __iter__(self):
-        return self
-
-    def _next(self):
-        return self.wrapper(next(self.it))
-
-    def next(self):
-        return self._next()
-
-    def __next__(self):
-        return self._next()
-
-
 class AsyncResponseIterator(object):
     def __init__(self, it, wrapper):
         self.it = it
@@ -788,7 +766,7 @@ class Session(object):
         """
         request = _session_impl.read_table_request_factory(self._state, path, key_range, columns, ordered, row_limit)
         stream_it = self._driver(request, _apis.TableService.Stub, _apis.TableService.StreamReadTable, settings=settings)
-        return SyncResponseIterator(stream_it, _session_impl.wrap_read_table_response)
+        return _utilities.SyncResponseIterator(stream_it, _session_impl.wrap_read_table_response)
 
     def async_read_table(self, path, key_range=None, columns=(), ordered=False, row_limit=None, settings=None):
         """
