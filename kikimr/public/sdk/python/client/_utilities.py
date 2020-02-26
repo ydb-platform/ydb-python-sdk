@@ -76,3 +76,25 @@ def from_bytes(val):
         return codecs.decode(val, 'utf8')
     except (UnicodeEncodeError, TypeError):
         return val
+
+
+class SyncResponseIterator(object):
+    def __init__(self, it, wrapper):
+        self.it = it
+        self.wrapper = wrapper
+
+    def cancel(self):
+        self.it.cancel()
+        return self
+
+    def __iter__(self):
+        return self
+
+    def _next(self):
+        return self.wrapper(next(self.it))
+
+    def next(self):
+        return self._next()
+
+    def __next__(self):
+        return self._next()
