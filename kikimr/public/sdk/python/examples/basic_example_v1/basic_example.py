@@ -238,7 +238,10 @@ def ensure_path_exists(driver, database, path):
 
 
 def run(endpoint, database, path):
-    driver_config = ydb.DriverConfig(endpoint, database, credentials=ydb.construct_credentials_from_environ())
+    driver_config = ydb.DriverConfig(
+        endpoint, database, credentials=ydb.construct_credentials_from_environ(),
+        root_certificates=ydb.load_ydb_root_certificate(),
+    )
     with ydb.Driver(driver_config) as driver:
         try:
             driver.wait(timeout=5)
