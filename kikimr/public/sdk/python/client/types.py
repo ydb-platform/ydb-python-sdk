@@ -128,6 +128,9 @@ class DecimalType(AbstractTypeBuilder):
         """
         return self._proto
 
+    def __eq__(self, other):
+        return self._precision == other.precision and self._scale == other.scale
+
     def __str__(self):
         """
         Returns string representation of a type
@@ -161,6 +164,9 @@ class OptionalType(AbstractTypeBuilder):
         :return: A protocol buffer representation
         """
         return self._proto
+
+    def __eq__(self, other):
+        return self._item == other.item
 
     def __str__(self):
         return self._repr
