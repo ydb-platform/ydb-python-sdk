@@ -20,7 +20,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='kikimr/public/api/protos/persqueue_error_codes_v1.proto',
   package='Ydb.PersQueue.ErrorCode',
   syntax='proto3',
-  serialized_pb=_b('\n7kikimr/public/api/protos/persqueue_error_codes_v1.proto\x12\x17Ydb.PersQueue.ErrorCode*\xca\x04\n\tErrorCode\x12\x06\n\x02OK\x10\x00\x12\x12\n\x0cINITIALIZING\x10\xa1\xc2\x1e\x12\x0e\n\x08OVERLOAD\x10\xa2\xc2\x1e\x12\x11\n\x0b\x42\x41\x44_REQUEST\x10\xa3\xc2\x1e\x12\x12\n\x0cWRONG_COOKIE\x10\xa4\xc2\x1e\x12#\n\x1dWRITE_ERROR_PARTITION_IS_FULL\x10\xa5\xc2\x1e\x12\x1e\n\x18WRITE_ERROR_DISK_IS_FULL\x10\xaf\xc2\x1e\x12\x1c\n\x16WRITE_ERROR_BAD_OFFSET\x10\xb3\xc2\x1e\x12#\n\x1d\x43REATE_SESSION_ALREADY_LOCKED\x10\xa6\xc2\x1e\x12\x1f\n\x19\x44\x45LETE_SESSION_NO_SESSION\x10\xa7\xc2\x1e\x12\x1c\n\x16READ_ERROR_IN_PROGRESS\x10\xa8\xc2\x1e\x12\x1b\n\x15READ_ERROR_NO_SESSION\x10\xa9\xc2\x1e\x12!\n\x1bREAD_ERROR_TOO_SMALL_OFFSET\x10\xab\xc2\x1e\x12\x1f\n\x19READ_ERROR_TOO_BIG_OFFSET\x10\xac\xc2\x1e\x12\'\n!SET_OFFSET_ERROR_COMMIT_TO_FUTURE\x10\xad\xc2\x1e\x12\x17\n\x11TABLET_IS_DROPPED\x10\xae\xc2\x1e\x12\x13\n\rREAD_NOT_DONE\x10\xb0\xc2\x1e\x12\x13\n\rUNKNOWN_TOPIC\x10\xb1\xc2\x1e\x12\x13\n\rACCESS_DENIED\x10\xb2\xc2\x1e\x12\x16\n\x10\x43LUSTER_DISABLED\x10\xb4\xc2\x1e\x12\x1c\n\x16WRONG_PARTITION_NUMBER\x10\xb5\xc2\x1e\x12\x0b\n\x05\x45RROR\x10\x84\xc3\x1e\x42$\n\"com.yandex.ydb.persqueue.errorcodeb\x06proto3')
+  serialized_pb=_b('\n7kikimr/public/api/protos/persqueue_error_codes_v1.proto\x12\x17Ydb.PersQueue.ErrorCode*\xee\x04\n\tErrorCode\x12\x06\n\x02OK\x10\x00\x12\x12\n\x0cINITIALIZING\x10\xa1\xc2\x1e\x12\x0e\n\x08OVERLOAD\x10\xa2\xc2\x1e\x12\x11\n\x0b\x42\x41\x44_REQUEST\x10\xa3\xc2\x1e\x12\x12\n\x0cWRONG_COOKIE\x10\xa4\xc2\x1e\x12#\n\x1dWRITE_ERROR_PARTITION_IS_FULL\x10\xa5\xc2\x1e\x12\x1e\n\x18WRITE_ERROR_DISK_IS_FULL\x10\xaf\xc2\x1e\x12\x1c\n\x16WRITE_ERROR_BAD_OFFSET\x10\xb3\xc2\x1e\x12#\n\x1d\x43REATE_SESSION_ALREADY_LOCKED\x10\xa6\xc2\x1e\x12\x1f\n\x19\x44\x45LETE_SESSION_NO_SESSION\x10\xa7\xc2\x1e\x12\x1c\n\x16READ_ERROR_IN_PROGRESS\x10\xa8\xc2\x1e\x12\x1b\n\x15READ_ERROR_NO_SESSION\x10\xa9\xc2\x1e\x12!\n\x1bREAD_ERROR_TOO_SMALL_OFFSET\x10\xab\xc2\x1e\x12\x1f\n\x19READ_ERROR_TOO_BIG_OFFSET\x10\xac\xc2\x1e\x12\'\n!SET_OFFSET_ERROR_COMMIT_TO_FUTURE\x10\xad\xc2\x1e\x12\x17\n\x11TABLET_IS_DROPPED\x10\xae\xc2\x1e\x12\x13\n\rREAD_NOT_DONE\x10\xb0\xc2\x1e\x12\x13\n\rUNKNOWN_TOPIC\x10\xb1\xc2\x1e\x12\x13\n\rACCESS_DENIED\x10\xb2\xc2\x1e\x12\x16\n\x10\x43LUSTER_DISABLED\x10\xb4\xc2\x1e\x12\x1c\n\x16WRONG_PARTITION_NUMBER\x10\xb5\xc2\x1e\x12\"\n\x1cPREFERRED_CLUSTER_MISMATCHED\x10\xb6\xc2\x1e\x12\x0b\n\x05\x45RROR\x10\x84\xc3\x1e\x42$\n\"com.yandex.ydb.persqueue.errorcodeb\x06proto3')
 )
 
 _ERRORCODE = _descriptor.EnumDescriptor(
@@ -114,14 +114,18 @@ _ERRORCODE = _descriptor.EnumDescriptor(
       options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='ERROR', index=21, number=500100,
+      name='PREFERRED_CLUSTER_MISMATCHED', index=21, number=500022,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='ERROR', index=22, number=500100,
       options=None,
       type=None),
   ],
   containing_type=None,
   options=None,
   serialized_start=85,
-  serialized_end=671,
+  serialized_end=707,
 )
 _sym_db.RegisterEnumDescriptor(_ERRORCODE)
 
@@ -147,6 +151,7 @@ UNKNOWN_TOPIC = 500017
 ACCESS_DENIED = 500018
 CLUSTER_DISABLED = 500020
 WRONG_PARTITION_NUMBER = 500021
+PREFERRED_CLUSTER_MISMATCHED = 500022
 ERROR = 500100
 
 
