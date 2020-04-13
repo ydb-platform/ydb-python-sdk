@@ -108,12 +108,12 @@ class SessionPoolImpl(object):
     @property
     def free_size(self):
         with self._lock:
-            return len(self._active_queue)
+            return self._active_queue.qsize()
 
     @property
     def busy_size(self):
         with self._lock:
-            return self._active_count - len(self._active_queue)
+            return self._active_count - self._active_queue.qsize()
 
     @property
     def max_size(self):
