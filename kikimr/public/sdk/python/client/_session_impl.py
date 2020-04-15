@@ -88,6 +88,9 @@ def wrap_describe_table_response(rpc_state, response_pb, sesssion_state, scheme_
 
 
 def create_table_request_factory(session_state, path, table_description):
+    if isinstance(table_description, _apis.ydb_table.CreateTableRequest):
+        request = session_state.attach_request(table_description)
+        return request
     request = _apis.ydb_table.CreateTableRequest()
     request.path = path
     request.primary_key.extend(list(table_description.primary_key))
