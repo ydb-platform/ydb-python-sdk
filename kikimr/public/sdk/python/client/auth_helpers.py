@@ -18,6 +18,10 @@ def load_ydb_root_certificate():
 
 def construct_credentials_from_environ():
     # dynamically import required authentication libraries
+    if os.getenv('USE_METADATA_CREDENTIALS') is not None and int(os.getenv('USE_METADATA_CREDENTIALS')) == 1:
+        from kikimr.public.sdk.python import iam
+        return iam.MetadataUrlCredentials()
+
     if os.getenv('YDB_TOKEN') is not None:
         return credentials.AuthTokenCredentials(
             os.getenv(
