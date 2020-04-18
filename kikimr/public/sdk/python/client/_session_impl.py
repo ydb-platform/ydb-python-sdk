@@ -108,6 +108,11 @@ def create_table_request_factory(session_state, path, table_description):
         request.indexes.add().MergeFrom(
             index.to_pb())
 
+    if table_description.ttl_settings is not None:
+        request.ttl_settings.MergeFrom(
+            table_description.ttl_settings.to_pb()
+        )
+
     return session_state.attach_request(request)
 
 

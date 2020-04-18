@@ -423,12 +423,28 @@ class TableProfile(object):
         return pb
 
 
+class TtlSettings(object):
+    def __init__(self):
+        self._pb = _apis.ydb_table.TtlSettings()
+
+    def with_date_type_column(self, column_name, expire_after_seconds=0):
+        date_type_column = _apis.ydb_table.DateTypeColumnModeSettings()
+        date_type_column.column_name = column_name
+        date_type_column.expire_after_seconds = expire_after_seconds
+        self._pb.date_type_column.MergeFrom(date_type_column)
+        return self
+
+    def to_pb(self):
+        return self._pb
+
+
 class TableDescription(object):
     def __init__(self):
         self.columns = []
         self.primary_key = []
         self.profile = None
         self.indexes = []
+        self.ttl_settings = None
 
     def with_column(self, column):
         self.columns.append(column)
@@ -459,6 +475,10 @@ class TableDescription(object):
 
     def with_profile(self, profile):
         self.profile = profile
+        return self
+
+    def with_ttl(self, ttl_settings):
+        self.ttl_settings = ttl_settings
         return self
 
 
