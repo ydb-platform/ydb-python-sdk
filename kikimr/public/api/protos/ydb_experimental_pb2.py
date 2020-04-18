@@ -23,7 +23,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='kikimr/public/api/protos/ydb_experimental.proto',
   package='Ydb.Experimental',
   syntax='proto3',
-  serialized_pb=_b('\n/kikimr/public/api/protos/ydb_experimental.proto\x12\x10Ydb.Experimental\x1a\x30kikimr/public/api/protos/ydb_issue_message.proto\x1a,kikimr/public/api/protos/ydb_operation.proto\x1a/kikimr/public/api/protos/ydb_status_codes.proto\x1a(kikimr/public/api/protos/ydb_value.proto\"|\n\x11UploadRowsRequest\x12\r\n\x05table\x18\x01 \x01(\t\x12\x1d\n\x04rows\x18\x02 \x01(\x0b\x32\x0f.Ydb.TypedValue\x12\x39\n\x10operation_params\x18\x03 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\"B\n\x12UploadRowsResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\x12\n\x10UploadRowsResult\"\xd3\x02\n\x19\x45xecuteStreamQueryRequest\x12\x10\n\x08yql_text\x18\x01 \x01(\t\x12O\n\nparameters\x18\x02 \x03(\x0b\x32;.Ydb.Experimental.ExecuteStreamQueryRequest.ParametersEntry\x12M\n\x0cprofile_mode\x18\x03 \x01(\x0e\x32\x37.Ydb.Experimental.ExecuteStreamQueryRequest.ProfileMode\x1a\x42\n\x0fParametersEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\x1e\n\x05value\x18\x02 \x01(\x0b\x32\x0f.Ydb.TypedValue:\x02\x38\x01\"@\n\x0bProfileMode\x12\x1c\n\x18PROFILE_MODE_UNSPECIFIED\x10\x00\x12\x08\n\x04NONE\x10\x01\x12\t\n\x05\x42\x41SIC\x10\x02\"\xac\x01\n\x1a\x45xecuteStreamQueryResponse\x12)\n\x06status\x18\x01 \x01(\x0e\x32\x19.Ydb.StatusIds.StatusCode\x12\'\n\x06issues\x18\x02 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessage\x12:\n\x06result\x18\x03 \x01(\x0b\x32*.Ydb.Experimental.ExecuteStreamQueryResult\"\x11\n\x0fStreamQueryPing\"P\n\x13StreamQueryProgress\x12\x31\n\x04ping\x18\x01 \x01(\x0b\x32!.Ydb.Experimental.StreamQueryPingH\x00\x42\x06\n\x04kind\"\x98\x01\n\x18\x45xecuteStreamQueryResult\x12$\n\nresult_set\x18\x01 \x01(\x0b\x32\x0e.Ydb.ResultSetH\x00\x12\x11\n\x07profile\x18\x02 \x01(\tH\x00\x12\x39\n\x08progress\x18\x03 \x01(\x0b\x32%.Ydb.Experimental.StreamQueryProgressH\x00\x42\x08\n\x06resultB4\n\x1b\x63om.yandex.ydb.experimentalB\x12\x45xperimentalProtos\xf8\x01\x01\x62\x06proto3')
+  serialized_pb=_b('\n/kikimr/public/api/protos/ydb_experimental.proto\x12\x10Ydb.Experimental\x1a\x30kikimr/public/api/protos/ydb_issue_message.proto\x1a,kikimr/public/api/protos/ydb_operation.proto\x1a/kikimr/public/api/protos/ydb_status_codes.proto\x1a(kikimr/public/api/protos/ydb_value.proto\"|\n\x11UploadRowsRequest\x12\r\n\x05table\x18\x01 \x01(\t\x12\x1d\n\x04rows\x18\x02 \x01(\x0b\x32\x0f.Ydb.TypedValue\x12\x39\n\x10operation_params\x18\x03 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\"B\n\x12UploadRowsResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\x12\n\x10UploadRowsResult\"\xd3\x02\n\x19\x45xecuteStreamQueryRequest\x12\x10\n\x08yql_text\x18\x01 \x01(\t\x12O\n\nparameters\x18\x02 \x03(\x0b\x32;.Ydb.Experimental.ExecuteStreamQueryRequest.ParametersEntry\x12M\n\x0cprofile_mode\x18\x03 \x01(\x0e\x32\x37.Ydb.Experimental.ExecuteStreamQueryRequest.ProfileMode\x1a\x42\n\x0fParametersEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\x1e\n\x05value\x18\x02 \x01(\x0b\x32\x0f.Ydb.TypedValue:\x02\x38\x01\"@\n\x0bProfileMode\x12\x1c\n\x18PROFILE_MODE_UNSPECIFIED\x10\x00\x12\x08\n\x04NONE\x10\x01\x12\t\n\x05\x42\x41SIC\x10\x02\"\xac\x01\n\x1a\x45xecuteStreamQueryResponse\x12)\n\x06status\x18\x01 \x01(\x0e\x32\x19.Ydb.StatusIds.StatusCode\x12\'\n\x06issues\x18\x02 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessage\x12:\n\x06result\x18\x03 \x01(\x0b\x32*.Ydb.Experimental.ExecuteStreamQueryResult\"\x15\n\x13StreamQueryProgress\"\x98\x01\n\x18\x45xecuteStreamQueryResult\x12$\n\nresult_set\x18\x01 \x01(\x0b\x32\x0e.Ydb.ResultSetH\x00\x12\x11\n\x07profile\x18\x02 \x01(\tH\x00\x12\x39\n\x08progress\x18\x03 \x01(\x0b\x32%.Ydb.Experimental.StreamQueryProgressH\x00\x42\x08\n\x06resultB4\n\x1b\x63om.yandex.ydb.experimentalB\x12\x45xperimentalProtos\xf8\x01\x01\x62\x06proto3')
   ,
   dependencies=[kikimr_dot_public_dot_api_dot_protos_dot_ydb__issue__message__pb2.DESCRIPTOR,kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2.DESCRIPTOR,kikimr_dot_public_dot_api_dot_protos_dot_ydb__status__codes__pb2.DESCRIPTOR,kikimr_dot_public_dot_api_dot_protos_dot_ydb__value__pb2.DESCRIPTOR,])
 
@@ -284,9 +284,9 @@ _EXECUTESTREAMQUERYRESPONSE = _descriptor.Descriptor(
 )
 
 
-_STREAMQUERYPING = _descriptor.Descriptor(
-  name='StreamQueryPing',
-  full_name='Ydb.Experimental.StreamQueryPing',
+_STREAMQUERYPROGRESS = _descriptor.Descriptor(
+  name='StreamQueryProgress',
+  full_name='Ydb.Experimental.StreamQueryProgress',
   filename=None,
   file=DESCRIPTOR,
   containing_type=None,
@@ -304,41 +304,7 @@ _STREAMQUERYPING = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=987,
-  serialized_end=1004,
-)
-
-
-_STREAMQUERYPROGRESS = _descriptor.Descriptor(
-  name='StreamQueryProgress',
-  full_name='Ydb.Experimental.StreamQueryProgress',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='ping', full_name='Ydb.Experimental.StreamQueryProgress.ping', index=0,
-      number=1, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  options=None,
-  is_extendable=False,
-  syntax='proto3',
-  extension_ranges=[],
-  oneofs=[
-    _descriptor.OneofDescriptor(
-      name='kind', full_name='Ydb.Experimental.StreamQueryProgress.kind',
-      index=0, containing_type=None, fields=[]),
-  ],
-  serialized_start=1006,
-  serialized_end=1086,
+  serialized_end=1008,
 )
 
 
@@ -385,8 +351,8 @@ _EXECUTESTREAMQUERYRESULT = _descriptor.Descriptor(
       name='result', full_name='Ydb.Experimental.ExecuteStreamQueryResult.result',
       index=0, containing_type=None, fields=[]),
   ],
-  serialized_start=1089,
-  serialized_end=1241,
+  serialized_start=1011,
+  serialized_end=1163,
 )
 
 _UPLOADROWSREQUEST.fields_by_name['rows'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__value__pb2._TYPEDVALUE
@@ -400,10 +366,6 @@ _EXECUTESTREAMQUERYREQUEST_PROFILEMODE.containing_type = _EXECUTESTREAMQUERYREQU
 _EXECUTESTREAMQUERYRESPONSE.fields_by_name['status'].enum_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__status__codes__pb2._STATUSIDS_STATUSCODE
 _EXECUTESTREAMQUERYRESPONSE.fields_by_name['issues'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__issue__message__pb2._ISSUEMESSAGE
 _EXECUTESTREAMQUERYRESPONSE.fields_by_name['result'].message_type = _EXECUTESTREAMQUERYRESULT
-_STREAMQUERYPROGRESS.fields_by_name['ping'].message_type = _STREAMQUERYPING
-_STREAMQUERYPROGRESS.oneofs_by_name['kind'].fields.append(
-  _STREAMQUERYPROGRESS.fields_by_name['ping'])
-_STREAMQUERYPROGRESS.fields_by_name['ping'].containing_oneof = _STREAMQUERYPROGRESS.oneofs_by_name['kind']
 _EXECUTESTREAMQUERYRESULT.fields_by_name['result_set'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__value__pb2._RESULTSET
 _EXECUTESTREAMQUERYRESULT.fields_by_name['progress'].message_type = _STREAMQUERYPROGRESS
 _EXECUTESTREAMQUERYRESULT.oneofs_by_name['result'].fields.append(
@@ -420,7 +382,6 @@ DESCRIPTOR.message_types_by_name['UploadRowsResponse'] = _UPLOADROWSRESPONSE
 DESCRIPTOR.message_types_by_name['UploadRowsResult'] = _UPLOADROWSRESULT
 DESCRIPTOR.message_types_by_name['ExecuteStreamQueryRequest'] = _EXECUTESTREAMQUERYREQUEST
 DESCRIPTOR.message_types_by_name['ExecuteStreamQueryResponse'] = _EXECUTESTREAMQUERYRESPONSE
-DESCRIPTOR.message_types_by_name['StreamQueryPing'] = _STREAMQUERYPING
 DESCRIPTOR.message_types_by_name['StreamQueryProgress'] = _STREAMQUERYPROGRESS
 DESCRIPTOR.message_types_by_name['ExecuteStreamQueryResult'] = _EXECUTESTREAMQUERYRESULT
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
@@ -467,13 +428,6 @@ ExecuteStreamQueryResponse = _reflection.GeneratedProtocolMessageType('ExecuteSt
   # @@protoc_insertion_point(class_scope:Ydb.Experimental.ExecuteStreamQueryResponse)
   ))
 _sym_db.RegisterMessage(ExecuteStreamQueryResponse)
-
-StreamQueryPing = _reflection.GeneratedProtocolMessageType('StreamQueryPing', (_message.Message,), dict(
-  DESCRIPTOR = _STREAMQUERYPING,
-  __module__ = 'kikimr.public.api.protos.ydb_experimental_pb2'
-  # @@protoc_insertion_point(class_scope:Ydb.Experimental.StreamQueryPing)
-  ))
-_sym_db.RegisterMessage(StreamQueryPing)
 
 StreamQueryProgress = _reflection.GeneratedProtocolMessageType('StreamQueryProgress', (_message.Message,), dict(
   DESCRIPTOR = _STREAMQUERYPROGRESS,
