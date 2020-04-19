@@ -423,19 +423,37 @@ class TableProfile(object):
         return pb
 
 
+class DateTypeColumnModeSettings(object):
+    def __init__(self, column_name, expire_after_seconds=0):
+        self.column_name = column_name
+        self.expire_after_seconds = expire_after_seconds
+
+    def to_pb(self):
+        pb = _apis.ydb_table.DateTypeColumnModeSettings()
+
+        pb.column_name = self.column_name
+        pb.expire_after_seconds = self.expire_after_seconds
+
+        return pb
+
+
 class TtlSettings(object):
     def __init__(self):
-        self._pb = _apis.ydb_table.TtlSettings()
+        self.date_type_column = None
 
     def with_date_type_column(self, column_name, expire_after_seconds=0):
-        date_type_column = _apis.ydb_table.DateTypeColumnModeSettings()
-        date_type_column.column_name = column_name
-        date_type_column.expire_after_seconds = expire_after_seconds
-        self._pb.date_type_column.MergeFrom(date_type_column)
+        self.date_type_column = DateTypeColumnModeSettings(column_name, expire_after_seconds)
         return self
 
     def to_pb(self):
-        return self._pb
+        pb = _apis.ydb_table.TtlSettings()
+
+        if self.date_type_column is not None:
+            pb.date_type_column.MergeFrom(self.date_type_column.to_pb())
+        else:
+            raise RuntimeError("Unspecified ttl settings mode")
+
+        return pb
 
 
 class TableDescription(object):
@@ -654,7 +672,7 @@ class TableClient(object):
 class TableSchemeEntry(scheme.SchemeEntry):
     def __init__(
             self, name, owner, type, effective_permissions, permissions, columns, primary_key, shard_key_bounds,
-            indexes, *args, **kwargs):
+            indexes, ttl_settings, *args, **kwargs):
 
         super(TableSchemeEntry, self).__init__(name, owner, type, effective_permissions, permissions, *args, **kwargs)
         self.primary_key = [pk for pk in primary_key]
@@ -689,6 +707,14 @@ class TableSchemeEntry(scheme.SchemeEntry):
         else:
             self.shard_key_ranges.append(
                 KeyRange(None, None))
+
+        self.ttl_settings = None
+        if ttl_settings is not None:
+            if ttl_settings.HasField('date_type_column'):
+                self.ttl_settings = TtlSettings().with_date_type_column(
+                    ttl_settings.date_type_column.column_name,
+                    ttl_settings.date_type_column.expire_after_seconds
+                )
 
 
 class AsyncResponseIterator(object):
