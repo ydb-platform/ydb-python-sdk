@@ -84,6 +84,7 @@ def wrap_describe_table_response(rpc_state, response_pb, sesssion_state, scheme_
         message.primary_key,
         message.shard_key_bounds,
         message.indexes,
+        message.ttl_settings if message.HasField('ttl_settings') else None
     )
 
 
