@@ -133,6 +133,9 @@ class Discovery(threading.Thread):
         self._should_stop = threading.Event()
         self._max_size = 9
         self._base_emergency_retry_interval = 1
+        self._ssl_required = False
+        if driver_config.root_certificates is not None or driver_config.secure_channel:
+            self._ssl_required = True
 
     def discovery_debug_details(self):
         return self._resolver.debug_details()
@@ -181,6 +184,13 @@ class Discovery(threading.Thread):
         for resolved_endpoint in resolve_details.endpoints:
             if self._cache.size >= self._max_size or self._cache.already_exists(resolved_endpoint.endpoint):
                 continue
+
+            if self._ssl_required and not resolved_endpoint.ssl:
+                continue
+
+            if not self._ssl_required and resolved_endpoint.ssl:
+                continue
+
             endpoint = resolved_endpoint.endpoint
             preferred = resolve_details.self_location == resolved_endpoint.location
             ready_connection = connection_impl.Connection.ready_factory(

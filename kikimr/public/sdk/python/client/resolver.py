@@ -9,16 +9,17 @@ logger = logging.getLogger(__name__)
 
 
 class EndpointInfo(object):
-    __slots__ = ('address', 'endpoint', 'location', 'port')
+    __slots__ = ('address', 'endpoint', 'location', 'port', 'ssl')
 
     def __init__(self, endpoint_info):
         self.address = endpoint_info.address
         self.endpoint = "%s:%s" % (endpoint_info.address, endpoint_info.port)
         self.location = endpoint_info.location
         self.port = endpoint_info.port
+        self.ssl = endpoint_info.ssl
 
     def __str__(self):
-        return "<Endpoint %s, location %s>" % (self.endpoint, self.location)
+        return "<Endpoint %s, location %s, ssl: %s>" % (self.endpoint, self.location, self.ssl)
 
     def __repr__(self):
         return self.__str__()
