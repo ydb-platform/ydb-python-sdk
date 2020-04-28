@@ -167,7 +167,7 @@ def alter_table_request_factory(session_state, path, add_columns, drop_columns):
     return request
 
 
-def read_table_request_factory(session_state, path, key_range=None, columns=None, ordered=False, row_limit=None):
+def read_table_request_factory(session_state, path, key_range=None, columns=None, ordered=False, row_limit=None, use_snapshot=None):
     request = _apis.ydb_table.ReadTableRequest()
     request.path = path
     request.ordered = ordered
@@ -194,6 +194,14 @@ def read_table_request_factory(session_state, path, key_range=None, columns=None
             request.columns.append(column)
     if row_limit:
         request.row_limit = row_limit
+    if use_snapshot is not None:
+        if isinstance(use_snapshot, bool):
+            if use_snapshot:
+                request.use_snapshot = _apis.FeatureFlag.ENABLED
+            else:
+                request.use_snapshot = _apis.FeatureFlag.DISABLED
+        else:
+            request.use_snapshot = use_snapshot
     return session_state.attach_request(request)
 
 
