@@ -774,7 +774,7 @@ class Session(object):
         """
         return self._state.reset()
 
-    def read_table(self, path, key_range=None, columns=(), ordered=False, row_limit=None, settings=None):
+    def read_table(self, path, key_range=None, columns=(), ordered=False, row_limit=None, settings=None, use_snapshot=None):
         """
         Perform an read table request.
 
@@ -810,11 +810,11 @@ class Session(object):
         :param row_limit: (optional) A number of rows to read.
         :return: SyncResponseIterator instance
         """
-        request = _session_impl.read_table_request_factory(self._state, path, key_range, columns, ordered, row_limit)
+        request = _session_impl.read_table_request_factory(self._state, path, key_range, columns, ordered, row_limit, use_snapshot=use_snapshot)
         stream_it = self._driver(request, _apis.TableService.Stub, _apis.TableService.StreamReadTable, settings=settings)
         return _utilities.SyncResponseIterator(stream_it, _session_impl.wrap_read_table_response)
 
-    def async_read_table(self, path, key_range=None, columns=(), ordered=False, row_limit=None, settings=None):
+    def async_read_table(self, path, key_range=None, columns=(), ordered=False, row_limit=None, settings=None, use_snapshot=None):
         """
         Perform an read table request.
 
@@ -853,7 +853,7 @@ class Session(object):
         """
         if interceptor is None:
             raise RuntimeError("Async read table is not available due to import issues")
-        request = _session_impl.read_table_request_factory(self._state, path, key_range, columns, ordered, row_limit)
+        request = _session_impl.read_table_request_factory(self._state, path, key_range, columns, ordered, row_limit, use_snapshot=use_snapshot)
         stream_it = self._driver(request, _apis.TableService.Stub, _apis.TableService.StreamReadTable, settings=settings)
         return AsyncResponseIterator(stream_it, _session_impl.wrap_read_table_response)
 
