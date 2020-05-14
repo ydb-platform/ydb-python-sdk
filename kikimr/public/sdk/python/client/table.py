@@ -717,28 +717,6 @@ class TableSchemeEntry(scheme.SchemeEntry):
                 )
 
 
-class AsyncResponseIterator(object):
-    def __init__(self, it, wrapper):
-        self.it = it
-        self.wrapper = wrapper
-
-    def cancel(self):
-        self.it.cancel()
-        return self
-
-    def __iter__(self):
-        return self
-
-    def _next(self):
-        return interceptor.operate_async_stream_call(self.it, self.wrapper)
-
-    def next(self):
-        return self._next()
-
-    def __next__(self):
-        return self._next()
-
-
 class Session(object):
     __slots__ = ('_state', '_driver', '__weakref__')
 
@@ -855,7 +833,7 @@ class Session(object):
             raise RuntimeError("Async read table is not available due to import issues")
         request = _session_impl.read_table_request_factory(self._state, path, key_range, columns, ordered, row_limit, use_snapshot=use_snapshot)
         stream_it = self._driver(request, _apis.TableService.Stub, _apis.TableService.StreamReadTable, settings=settings)
-        return AsyncResponseIterator(stream_it, _session_impl.wrap_read_table_response)
+        return _utilities.AsyncResponseIterator(stream_it, _session_impl.wrap_read_table_response)
 
     def keep_alive(self, settings=None):
         return self._driver(

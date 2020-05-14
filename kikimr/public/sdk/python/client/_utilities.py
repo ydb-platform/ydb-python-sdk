@@ -6,6 +6,11 @@ import functools
 import hashlib
 import collections
 
+try:
+    from . import interceptor
+except ImportError:
+    interceptor = None
+
 
 def wrap_result_in_future(result):
     f = futures.Future()
@@ -76,6 +81,28 @@ def from_bytes(val):
         return codecs.decode(val, 'utf8')
     except (UnicodeEncodeError, TypeError):
         return val
+
+
+class AsyncResponseIterator(object):
+    def __init__(self, it, wrapper):
+        self.it = it
+        self.wrapper = wrapper
+
+    def cancel(self):
+        self.it.cancel()
+        return self
+
+    def __iter__(self):
+        return self
+
+    def _next(self):
+        return interceptor.operate_async_stream_call(self.it, self.wrapper)
+
+    def next(self):
+        return self._next()
+
+    def __next__(self):
+        return self._next()
 
 
 class SyncResponseIterator(object):
