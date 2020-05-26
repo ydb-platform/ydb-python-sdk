@@ -19,7 +19,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='kikimr/public/api/protos/ydb_query_stats.proto',
   package='Ydb.TableStats',
   syntax='proto3',
-  serialized_pb=_b('\n.kikimr/public/api/protos/ydb_query_stats.proto\x12\x0eYdb.TableStats\"-\n\x0eOperationStats\x12\x0c\n\x04rows\x18\x01 \x01(\x04\x12\r\n\x05\x62ytes\x18\x02 \x01(\x04\"\xb7\x01\n\x10TableAccessStats\x12\x0c\n\x04name\x18\x01 \x01(\t\x12-\n\x05reads\x18\x03 \x01(\x0b\x32\x1e.Ydb.TableStats.OperationStats\x12/\n\x07updates\x18\x04 \x01(\x0b\x32\x1e.Ydb.TableStats.OperationStats\x12/\n\x07\x64\x65letes\x18\x05 \x01(\x0b\x32\x1e.Ydb.TableStats.OperationStatsJ\x04\x08\x02\x10\x03\"^\n\x0fQueryPhaseStats\x12\x13\n\x0b\x64uration_us\x18\x01 \x01(\x04\x12\x36\n\x0ctable_access\x18\x02 \x03(\x0b\x32 .Ydb.TableStats.TableAccessStats\"C\n\nQueryStats\x12\x35\n\x0cquery_phases\x18\x01 \x03(\x0b\x32\x1f.Ydb.TableStats.QueryPhaseStatsB\x13\n\x0e\x63om.yandex.ydb\xf8\x01\x01\x62\x06proto3')
+  serialized_pb=_b('\n.kikimr/public/api/protos/ydb_query_stats.proto\x12\x0eYdb.TableStats\"-\n\x0eOperationStats\x12\x0c\n\x04rows\x18\x01 \x01(\x04\x12\r\n\x05\x62ytes\x18\x02 \x01(\x04\"\xb7\x01\n\x10TableAccessStats\x12\x0c\n\x04name\x18\x01 \x01(\t\x12-\n\x05reads\x18\x03 \x01(\x0b\x32\x1e.Ydb.TableStats.OperationStats\x12/\n\x07updates\x18\x04 \x01(\x0b\x32\x1e.Ydb.TableStats.OperationStats\x12/\n\x07\x64\x65letes\x18\x05 \x01(\x0b\x32\x1e.Ydb.TableStats.OperationStatsJ\x04\x08\x02\x10\x03\"s\n\x0fQueryPhaseStats\x12\x13\n\x0b\x64uration_us\x18\x01 \x01(\x04\x12\x36\n\x0ctable_access\x18\x02 \x03(\x0b\x32 .Ydb.TableStats.TableAccessStats\x12\x13\n\x0b\x63pu_time_us\x18\x03 \x01(\x04\"P\n\x10\x43ompilationStats\x12\x12\n\nfrom_cache\x18\x01 \x01(\x08\x12\x13\n\x0b\x64uration_us\x18\x02 \x01(\x04\x12\x13\n\x0b\x63pu_time_us\x18\x03 \x01(\x04\"\x97\x01\n\nQueryStats\x12\x35\n\x0cquery_phases\x18\x01 \x03(\x0b\x32\x1f.Ydb.TableStats.QueryPhaseStats\x12\x35\n\x0b\x63ompilation\x18\x02 \x01(\x0b\x32 .Ydb.TableStats.CompilationStats\x12\x1b\n\x13process_cpu_time_us\x18\x03 \x01(\x04\x42\x13\n\x0e\x63om.yandex.ydb\xf8\x01\x01\x62\x06proto3')
 )
 
 
@@ -136,6 +136,13 @@ _QUERYPHASESTATS = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
+    _descriptor.FieldDescriptor(
+      name='cpu_time_us', full_name='Ydb.TableStats.QueryPhaseStats.cpu_time_us', index=2,
+      number=3, type=4, cpp_type=4, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
   ],
   extensions=[
   ],
@@ -149,7 +156,52 @@ _QUERYPHASESTATS = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=299,
-  serialized_end=393,
+  serialized_end=414,
+)
+
+
+_COMPILATIONSTATS = _descriptor.Descriptor(
+  name='CompilationStats',
+  full_name='Ydb.TableStats.CompilationStats',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='from_cache', full_name='Ydb.TableStats.CompilationStats.from_cache', index=0,
+      number=1, type=8, cpp_type=7, label=1,
+      has_default_value=False, default_value=False,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='duration_us', full_name='Ydb.TableStats.CompilationStats.duration_us', index=1,
+      number=2, type=4, cpp_type=4, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='cpu_time_us', full_name='Ydb.TableStats.CompilationStats.cpu_time_us', index=2,
+      number=3, type=4, cpp_type=4, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=416,
+  serialized_end=496,
 )
 
 
@@ -167,6 +219,20 @@ _QUERYSTATS = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
+    _descriptor.FieldDescriptor(
+      name='compilation', full_name='Ydb.TableStats.QueryStats.compilation', index=1,
+      number=2, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='process_cpu_time_us', full_name='Ydb.TableStats.QueryStats.process_cpu_time_us', index=2,
+      number=3, type=4, cpp_type=4, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
   ],
   extensions=[
   ],
@@ -179,8 +245,8 @@ _QUERYSTATS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=395,
-  serialized_end=462,
+  serialized_start=499,
+  serialized_end=650,
 )
 
 _TABLEACCESSSTATS.fields_by_name['reads'].message_type = _OPERATIONSTATS
@@ -188,9 +254,11 @@ _TABLEACCESSSTATS.fields_by_name['updates'].message_type = _OPERATIONSTATS
 _TABLEACCESSSTATS.fields_by_name['deletes'].message_type = _OPERATIONSTATS
 _QUERYPHASESTATS.fields_by_name['table_access'].message_type = _TABLEACCESSSTATS
 _QUERYSTATS.fields_by_name['query_phases'].message_type = _QUERYPHASESTATS
+_QUERYSTATS.fields_by_name['compilation'].message_type = _COMPILATIONSTATS
 DESCRIPTOR.message_types_by_name['OperationStats'] = _OPERATIONSTATS
 DESCRIPTOR.message_types_by_name['TableAccessStats'] = _TABLEACCESSSTATS
 DESCRIPTOR.message_types_by_name['QueryPhaseStats'] = _QUERYPHASESTATS
+DESCRIPTOR.message_types_by_name['CompilationStats'] = _COMPILATIONSTATS
 DESCRIPTOR.message_types_by_name['QueryStats'] = _QUERYSTATS
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
@@ -214,6 +282,13 @@ QueryPhaseStats = _reflection.GeneratedProtocolMessageType('QueryPhaseStats', (_
   # @@protoc_insertion_point(class_scope:Ydb.TableStats.QueryPhaseStats)
   ))
 _sym_db.RegisterMessage(QueryPhaseStats)
+
+CompilationStats = _reflection.GeneratedProtocolMessageType('CompilationStats', (_message.Message,), dict(
+  DESCRIPTOR = _COMPILATIONSTATS,
+  __module__ = 'kikimr.public.api.protos.ydb_query_stats_pb2'
+  # @@protoc_insertion_point(class_scope:Ydb.TableStats.CompilationStats)
+  ))
+_sym_db.RegisterMessage(CompilationStats)
 
 QueryStats = _reflection.GeneratedProtocolMessageType('QueryStats', (_message.Message,), dict(
   DESCRIPTOR = _QUERYSTATS,
