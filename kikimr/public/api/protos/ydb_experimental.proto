@@ -38,6 +38,7 @@ message ExecuteStreamQueryRequest {
     }
 
     ProfileMode profile_mode = 3;
+    bool explain = 4;
 }
 
 message ExecuteStreamQueryResponse {
@@ -54,5 +55,28 @@ message ExecuteStreamQueryResult {
         Ydb.ResultSet result_set = 1;
         string profile = 2;
         StreamQueryProgress progress = 3;
+        string query_plan = 4;
     }
+}
+
+////////////////////////////////////////////////////////////
+
+message GetDiskSpaceUsageRequest {
+    Ydb.Operations.OperationParams operation_params = 1;
+    string database = 2;
+}
+
+message GetDiskSpaceUsageResponse {
+    Ydb.Operations.Operation operation = 1;
+}
+
+message GetDiskSpaceUsageResult {
+    string cloud_id = 1;
+    string folder_id = 2;
+    string database_id = 3;
+
+    // in bytes
+    uint64 total_size = 4;
+    uint64 data_size = 5;
+    uint64 index_size = 6;
 }

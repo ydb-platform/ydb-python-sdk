@@ -81,7 +81,9 @@ def select_simple(session_pool, full_path):
         result_sets = session.transaction(ydb.SerializableReadWrite()).execute(
             """
             PRAGMA TablePathPrefix("{}");
-            SELECT series_id, title, CAST(release_date AS Date) AS release_date
+            SELECT  series_id,
+                    title,
+                    DateTime::ToDate(DateTime::TimestampFromDays(release_date)) AS release_date
             FROM series
             WHERE series_id = 1;
             """.format(full_path),
@@ -116,7 +118,8 @@ def select_prepared(session_pool, full_path, series_id, season_id, episode_id):
     DECLARE $seasonId AS Uint64;
     DECLARE $episodeId AS Uint64;
 
-    SELECT title, CAST(air_date AS Date) as air_date
+    SELECT  title,
+            DateTime::ToDate(DateTime::TimestampFromDays(air_date)) as air_date
     FROM episodes
     WHERE series_id = $seriesId AND season_id = $seasonId AND episode_id = $episodeId;
     """.format(full_path)

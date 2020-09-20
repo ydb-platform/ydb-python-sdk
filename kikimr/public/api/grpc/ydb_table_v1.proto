@@ -76,6 +76,6 @@ service TableService {
     // be upserted and some might not.
     rpc BulkUpsert(Table.BulkUpsertRequest) returns (Table.BulkUpsertResponse);
 
-    // Executes stream query.
-    rpc ExecuteStreamQuery(Table.ExecuteStreamQueryRequest) returns (stream Table.ExecuteStreamQueryResponse);
+    // Executes scan query with streaming result.
+    rpc StreamExecuteScanQuery(Table.ExecuteScanQueryRequest) returns (stream Table.ExecuteScanQueryPartialResponse);
 }

@@ -7,25 +7,25 @@ import basic_example_data
 
 FillDataQuery = """PRAGMA TablePathPrefix("{}");
 
-DECLARE $seriesData AS List<Struct<
+DECLARE $seriesData AS "List<Struct<
     series_id: Uint64,
     title: Utf8,
     series_info: Utf8,
-    release_date: Date>>;
+    release_date: Date>>";
 
-DECLARE $seasonsData AS List<Struct<
+DECLARE $seasonsData AS "List<Struct<
     series_id: Uint64,
     season_id: Uint64,
     title: Utf8,
     first_aired: Date,
-    last_aired: Date>>;
+    last_aired: Date>>";
 
-DECLARE $episodesData AS List<Struct<
+DECLARE $episodesData AS "List<Struct<
     series_id: Uint64,
     season_id: Uint64,
     episode_id: Uint64,
     title: Utf8,
-    air_date: Date>>;
+    air_date: Date>>";
 
 REPLACE INTO series
 SELECT
@@ -76,10 +76,9 @@ def select_simple(session, path):
     result_sets = session.transaction(ydb.SerializableReadWrite()).execute(
         """
         PRAGMA TablePathPrefix("{}");
-        $format = DateTime::Format("%Y-%m-%d");
         SELECT series_id,
                title,
-               $format(DateTime::FromSeconds(CAST(DateTime::ToSeconds(DateTime::IntervalFromDays(CAST(release_date AS Int16))) AS Uint32))) AS release_date
+               DateTime::ToDate(DateTime::TimestampFromDays(release_date)) AS release_date
         FROM series
         WHERE series_id = 1;
         """.format(path),
@@ -110,10 +109,9 @@ def select_prepared(session, path, series_id, season_id, episode_id):
     DECLARE $seriesId AS Uint64;
     DECLARE $seasonId AS Uint64;
     DECLARE $episodeId AS Uint64;
-    $format = DateTime::Format("%Y-%m-%d");
 
     SELECT title,
-           $format(DateTime::FromSeconds(CAST(DateTime::ToSeconds(DateTime::IntervalFromDays(CAST(air_date AS Int16))) AS Uint32))) AS air_date
+           DateTime::ToDate(DateTime::TimestampFromDays(air_date)) AS air_date
     FROM episodes
     WHERE series_id = $seriesId AND season_id = $seasonId AND episode_id = $episodeId;
     """.format(path)
@@ -215,6 +213,18 @@ def describe_table(session, path, name):
         print("column, name:", column.name, ",", str(column.type.item).strip())
 
 
+def bulk_upsert(table_client, path):
+    print("\n> bulk upsert: episodes")
+    column_types = ydb.BulkUpsertColumns() \
+        .add_column('series_id', ydb.OptionalType(ydb.PrimitiveType.Uint64)) \
+        .add_column('season_id', ydb.OptionalType(ydb.PrimitiveType.Uint64)) \
+        .add_column('episode_id', ydb.OptionalType(ydb.PrimitiveType.Uint64)) \
+        .add_column('title', ydb.OptionalType(ydb.PrimitiveType.Utf8)) \
+        .add_column('air_date', ydb.OptionalType(ydb.PrimitiveType.Uint64))
+    rows = basic_example_data.get_episodes_data_for_bulk_upsert()
+    table_client.bulk_upsert(os.path.join(path, "episodes"), rows, column_types)
+
+
 def is_directory_exists(driver, path):
     try:
         return driver.scheme_client.describe_path(path).is_directory()
@@ -254,18 +264,22 @@ def run(endpoint, database, path):
         session = driver.table_client.session().create()
         ensure_path_exists(driver, database, path)
 
-        create_tables(session, database)
+        full_path = os.path.join(database, path)
 
-        describe_table(session, database, "series")
+        create_tables(session, full_path)
 
-        fill_tables_with_data(session, database)
+        describe_table(session, full_path, "series")
 
-        select_simple(session, database)
+        fill_tables_with_data(session, full_path)
 
-        upsert_simple(session, database)
+        select_simple(session, full_path)
 
-        select_prepared(session, database, 2, 3, 7)
-        select_prepared(session, database, 2, 3, 8)
+        upsert_simple(session, full_path)
 
-        explicit_tcl(session, database, 2, 6, 1)
-        select_prepared(session, database, 2, 6, 1)
+        bulk_upsert(driver.table_client, full_path)
+
+        select_prepared(session, full_path, 2, 3, 7)
+        select_prepared(session, full_path, 2, 3, 8)
+
+        explicit_tcl(session, full_path, 2, 6, 1)
+        select_prepared(session, full_path, 2, 6, 1)

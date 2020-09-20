@@ -266,6 +266,7 @@ message ReadResponse {
             bytes data = 2;
             //unique value for clientside deduplication - Topic:Partition:Offset
             uint64 offset = 3;
+            bytes broken_packed_data = 4; // TODO: move to pqlib
         }
 
         message MessageBatch {

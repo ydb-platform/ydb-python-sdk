@@ -20,7 +20,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='yql/public/types/yql_types.proto',
   package='NYql.NProto',
   syntax='proto3',
-  serialized_pb=_b('\n yql/public/types/yql_types.proto\x12\x0bNYql.NProto*\xb9\x02\n\x07TypeIds\x12\n\n\x06UNUSED\x10\x00\x12\x08\n\x04\x42ool\x10\x06\x12\x08\n\x04Int8\x10\x07\x12\t\n\x05Uint8\x10\x05\x12\t\n\x05Int16\x10\x08\x12\n\n\x06Uint16\x10\t\x12\t\n\x05Int32\x10\x01\x12\n\n\x06Uint32\x10\x02\x12\t\n\x05Int64\x10\x03\x12\n\n\x06Uint64\x10\x04\x12\t\n\x05\x46loat\x10!\x12\n\n\x06\x44ouble\x10 \x12\x0b\n\x06String\x10\x81 \x12\t\n\x04Utf8\x10\x80$\x12\t\n\x04Yson\x10\x81$\x12\t\n\x04Json\x10\x82$\x12\t\n\x04Uuid\x10\x83$\x12\x08\n\x04\x44\x61te\x10\x30\x12\x0c\n\x08\x44\x61tetime\x10\x31\x12\r\n\tTimestamp\x10\x32\x12\x0c\n\x08Interval\x10\x33\x12\n\n\x06TzDate\x10\x34\x12\x0e\n\nTzDatetime\x10\x35\x12\x0f\n\x0bTzTimestamp\x10\x36\x12\x0c\n\x07\x44\x65\x63imal\x10\x81&B\x15\n\x13ru.yandex.yql.protob\x06proto3')
+  serialized_pb=_b('\n yql/public/types/yql_types.proto\x12\x0bNYql.NProto*\xdb\x02\n\x07TypeIds\x12\n\n\x06UNUSED\x10\x00\x12\x08\n\x04\x42ool\x10\x06\x12\x08\n\x04Int8\x10\x07\x12\t\n\x05Uint8\x10\x05\x12\t\n\x05Int16\x10\x08\x12\n\n\x06Uint16\x10\t\x12\t\n\x05Int32\x10\x01\x12\n\n\x06Uint32\x10\x02\x12\t\n\x05Int64\x10\x03\x12\n\n\x06Uint64\x10\x04\x12\t\n\x05\x46loat\x10!\x12\n\n\x06\x44ouble\x10 \x12\x0b\n\x06String\x10\x81 \x12\t\n\x04Utf8\x10\x80$\x12\t\n\x04Yson\x10\x81$\x12\t\n\x04Json\x10\x82$\x12\t\n\x04Uuid\x10\x83$\x12\x11\n\x0cJsonDocument\x10\x84$\x12\x08\n\x04\x44\x61te\x10\x30\x12\x0c\n\x08\x44\x61tetime\x10\x31\x12\r\n\tTimestamp\x10\x32\x12\x0c\n\x08Interval\x10\x33\x12\n\n\x06TzDate\x10\x34\x12\x0e\n\nTzDatetime\x10\x35\x12\x0f\n\x0bTzTimestamp\x10\x36\x12\x0c\n\x07\x44\x65\x63imal\x10\x81&\x12\r\n\x08\x44yNumber\x10\x82&B\x15\n\x13ru.yandex.yql.protob\x06proto3')
 )
 
 _TYPEIDS = _descriptor.EnumDescriptor(
@@ -98,42 +98,50 @@ _TYPEIDS = _descriptor.EnumDescriptor(
       options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='Date', index=17, number=48,
+      name='JsonDocument', index=17, number=4612,
       options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='Datetime', index=18, number=49,
+      name='Date', index=18, number=48,
       options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='Timestamp', index=19, number=50,
+      name='Datetime', index=19, number=49,
       options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='Interval', index=20, number=51,
+      name='Timestamp', index=20, number=50,
       options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='TzDate', index=21, number=52,
+      name='Interval', index=21, number=51,
       options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='TzDatetime', index=22, number=53,
+      name='TzDate', index=22, number=52,
       options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='TzTimestamp', index=23, number=54,
+      name='TzDatetime', index=23, number=53,
       options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='Decimal', index=24, number=4865,
+      name='TzTimestamp', index=24, number=54,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='Decimal', index=25, number=4865,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='DyNumber', index=26, number=4866,
       options=None,
       type=None),
   ],
   containing_type=None,
   options=None,
   serialized_start=50,
-  serialized_end=363,
+  serialized_end=397,
 )
 _sym_db.RegisterEnumDescriptor(_TYPEIDS)
 
@@ -155,6 +163,7 @@ Utf8 = 4608
 Yson = 4609
 Json = 4610
 Uuid = 4611
+JsonDocument = 4612
 Date = 48
 Datetime = 49
 Timestamp = 50
@@ -163,6 +172,7 @@ TzDate = 52
 TzDatetime = 53
 TzTimestamp = 54
 Decimal = 4865
+DyNumber = 4866
 
 
 DESCRIPTOR.enum_types_by_name['TypeIds'] = _TYPEIDS

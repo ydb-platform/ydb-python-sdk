@@ -20,7 +20,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='kikimr/public/api/grpc/draft/ydb_experimental_v1.proto',
   package='Ydb.Experimental.V1',
   syntax='proto3',
-  serialized_pb=_b('\n6kikimr/public/api/grpc/draft/ydb_experimental_v1.proto\x12\x13Ydb.Experimental.V1\x1a/kikimr/public/api/protos/ydb_experimental.proto2\xe1\x01\n\x13\x45xperimentalService\x12W\n\nUploadRows\x12#.Ydb.Experimental.UploadRowsRequest\x1a$.Ydb.Experimental.UploadRowsResponse\x12q\n\x12\x45xecuteStreamQuery\x12+.Ydb.Experimental.ExecuteStreamQueryRequest\x1a,.Ydb.Experimental.ExecuteStreamQueryResponse0\x01\x42 \n\x1e\x63om.yandex.ydb.experimental.v1b\x06proto3')
+  serialized_pb=_b('\n6kikimr/public/api/grpc/draft/ydb_experimental_v1.proto\x12\x13Ydb.Experimental.V1\x1a/kikimr/public/api/protos/ydb_experimental.proto2\xcf\x02\n\x13\x45xperimentalService\x12W\n\nUploadRows\x12#.Ydb.Experimental.UploadRowsRequest\x1a$.Ydb.Experimental.UploadRowsResponse\x12q\n\x12\x45xecuteStreamQuery\x12+.Ydb.Experimental.ExecuteStreamQueryRequest\x1a,.Ydb.Experimental.ExecuteStreamQueryResponse0\x01\x12l\n\x11GetDiskSpaceUsage\x12*.Ydb.Experimental.GetDiskSpaceUsageRequest\x1a+.Ydb.Experimental.GetDiskSpaceUsageResponseB \n\x1e\x63om.yandex.ydb.experimental.v1b\x06proto3')
   ,
   dependencies=[kikimr_dot_public_dot_api_dot_protos_dot_ydb__experimental__pb2.DESCRIPTOR,])
 
@@ -39,7 +39,7 @@ _EXPERIMENTALSERVICE = _descriptor.ServiceDescriptor(
   index=0,
   options=None,
   serialized_start=129,
-  serialized_end=354,
+  serialized_end=464,
   methods=[
   _descriptor.MethodDescriptor(
     name='UploadRows',
@@ -57,6 +57,15 @@ _EXPERIMENTALSERVICE = _descriptor.ServiceDescriptor(
     containing_service=None,
     input_type=kikimr_dot_public_dot_api_dot_protos_dot_ydb__experimental__pb2._EXECUTESTREAMQUERYREQUEST,
     output_type=kikimr_dot_public_dot_api_dot_protos_dot_ydb__experimental__pb2._EXECUTESTREAMQUERYRESPONSE,
+    options=None,
+  ),
+  _descriptor.MethodDescriptor(
+    name='GetDiskSpaceUsage',
+    full_name='Ydb.Experimental.V1.ExperimentalService.GetDiskSpaceUsage',
+    index=2,
+    containing_service=None,
+    input_type=kikimr_dot_public_dot_api_dot_protos_dot_ydb__experimental__pb2._GETDISKSPACEUSAGEREQUEST,
+    output_type=kikimr_dot_public_dot_api_dot_protos_dot_ydb__experimental__pb2._GETDISKSPACEUSAGERESPONSE,
     options=None,
   ),
 ])

@@ -20,15 +20,35 @@ class PersQueueServiceStub(object):
         request_serializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.StreamingWriteClientMessage.SerializeToString,
         response_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.StreamingWriteServerMessage.FromString,
         )
-    self.StreamingRead = channel.stream_stream(
-        '/Ydb.PersQueue.V1.PersQueueService/StreamingRead',
-        request_serializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.StreamingReadClientMessage.SerializeToString,
-        response_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.StreamingReadServerMessage.FromString,
+    self.MigrationStreamingRead = channel.stream_stream(
+        '/Ydb.PersQueue.V1.PersQueueService/MigrationStreamingRead',
+        request_serializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.MigrationStreamingReadClientMessage.SerializeToString,
+        response_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.MigrationStreamingReadServerMessage.FromString,
         )
     self.GetReadSessionsInfo = channel.unary_unary(
         '/Ydb.PersQueue.V1.PersQueueService/GetReadSessionsInfo',
         request_serializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.ReadInfoRequest.SerializeToString,
         response_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.ReadInfoResponse.FromString,
+        )
+    self.DescribeTopic = channel.unary_unary(
+        '/Ydb.PersQueue.V1.PersQueueService/DescribeTopic',
+        request_serializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.DescribeTopicRequest.SerializeToString,
+        response_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.DescribeTopicResponse.FromString,
+        )
+    self.DropTopic = channel.unary_unary(
+        '/Ydb.PersQueue.V1.PersQueueService/DropTopic',
+        request_serializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.DropTopicRequest.SerializeToString,
+        response_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.DropTopicResponse.FromString,
+        )
+    self.CreateTopic = channel.unary_unary(
+        '/Ydb.PersQueue.V1.PersQueueService/CreateTopic',
+        request_serializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.CreateTopicRequest.SerializeToString,
+        response_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.CreateTopicResponse.FromString,
+        )
+    self.AlterTopic = channel.unary_unary(
+        '/Ydb.PersQueue.V1.PersQueueService/AlterTopic',
+        request_serializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.AlterTopicRequest.SerializeToString,
+        response_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.AlterTopicResponse.FromString,
         )
 
 
@@ -63,7 +83,7 @@ class PersQueueServiceServicer(object):
     context.set_details('Method not implemented!')
     raise NotImplementedError('Method not implemented!')
 
-  def StreamingRead(self, request_iterator, context):
+  def MigrationStreamingRead(self, request_iterator, context):
     """*
     Creates Read Session
     Pipeline:
@@ -108,6 +128,34 @@ class PersQueueServiceServicer(object):
     context.set_details('Method not implemented!')
     raise NotImplementedError('Method not implemented!')
 
+  def DescribeTopic(self, request, context):
+    """Describe topic command.
+    """
+    context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+    context.set_details('Method not implemented!')
+    raise NotImplementedError('Method not implemented!')
+
+  def DropTopic(self, request, context):
+    """Drop topic command.
+    """
+    context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+    context.set_details('Method not implemented!')
+    raise NotImplementedError('Method not implemented!')
+
+  def CreateTopic(self, request, context):
+    """Create topic command.
+    """
+    context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+    context.set_details('Method not implemented!')
+    raise NotImplementedError('Method not implemented!')
+
+  def AlterTopic(self, request, context):
+    """Alter topic command.
+    """
+    context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+    context.set_details('Method not implemented!')
+    raise NotImplementedError('Method not implemented!')
+
 
 def add_PersQueueServiceServicer_to_server(servicer, server):
   rpc_method_handlers = {
@@ -116,15 +164,35 @@ def add_PersQueueServiceServicer_to_server(servicer, server):
           request_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.StreamingWriteClientMessage.FromString,
           response_serializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.StreamingWriteServerMessage.SerializeToString,
       ),
-      'StreamingRead': grpc.stream_stream_rpc_method_handler(
-          servicer.StreamingRead,
-          request_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.StreamingReadClientMessage.FromString,
-          response_serializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.StreamingReadServerMessage.SerializeToString,
+      'MigrationStreamingRead': grpc.stream_stream_rpc_method_handler(
+          servicer.MigrationStreamingRead,
+          request_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.MigrationStreamingReadClientMessage.FromString,
+          response_serializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.MigrationStreamingReadServerMessage.SerializeToString,
       ),
       'GetReadSessionsInfo': grpc.unary_unary_rpc_method_handler(
           servicer.GetReadSessionsInfo,
           request_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.ReadInfoRequest.FromString,
           response_serializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.ReadInfoResponse.SerializeToString,
+      ),
+      'DescribeTopic': grpc.unary_unary_rpc_method_handler(
+          servicer.DescribeTopic,
+          request_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.DescribeTopicRequest.FromString,
+          response_serializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.DescribeTopicResponse.SerializeToString,
+      ),
+      'DropTopic': grpc.unary_unary_rpc_method_handler(
+          servicer.DropTopic,
+          request_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.DropTopicRequest.FromString,
+          response_serializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.DropTopicResponse.SerializeToString,
+      ),
+      'CreateTopic': grpc.unary_unary_rpc_method_handler(
+          servicer.CreateTopic,
+          request_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.CreateTopicRequest.FromString,
+          response_serializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.CreateTopicResponse.SerializeToString,
+      ),
+      'AlterTopic': grpc.unary_unary_rpc_method_handler(
+          servicer.AlterTopic,
+          request_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.AlterTopicRequest.FromString,
+          response_serializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.AlterTopicResponse.SerializeToString,
       ),
   }
   generic_handler = grpc.method_handlers_generic_handler(

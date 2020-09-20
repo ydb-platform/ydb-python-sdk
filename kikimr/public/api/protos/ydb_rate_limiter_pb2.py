@@ -20,7 +20,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='kikimr/public/api/protos/ydb_rate_limiter.proto',
   package='Ydb.RateLimiter',
   syntax='proto3',
-  serialized_pb=_b('\n/kikimr/public/api/protos/ydb_rate_limiter.proto\x12\x0fYdb.RateLimiter\x1a,kikimr/public/api/protos/ydb_operation.proto\"[\n\x17HierarchicalDrrSettings\x12\x1c\n\x14max_units_per_second\x18\x01 \x01(\x01\x12\"\n\x1amax_burst_size_coefficient\x18\x02 \x01(\x01\"o\n\x08Resource\x12\x15\n\rresource_path\x18\x01 \x01(\t\x12\x44\n\x10hierarchical_drr\x18\x02 \x01(\x0b\x32(.Ydb.RateLimiter.HierarchicalDrrSettingsH\x00\x42\x06\n\x04type\"\x9f\x01\n\x15\x43reateResourceRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x1e\n\x16\x63oordination_node_path\x18\x02 \x01(\t\x12+\n\x08resource\x18\x03 \x01(\x0b\x32\x19.Ydb.RateLimiter.Resource\"F\n\x16\x43reateResourceResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\x16\n\x14\x43reateResourceResult\"\x9e\x01\n\x14\x41lterResourceRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x1e\n\x16\x63oordination_node_path\x18\x02 \x01(\t\x12+\n\x08resource\x18\x03 \x01(\x0b\x32\x19.Ydb.RateLimiter.Resource\"E\n\x15\x41lterResourceResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\x15\n\x13\x41lterResourceResult\"\x87\x01\n\x13\x44ropResourceRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x1e\n\x16\x63oordination_node_path\x18\x02 \x01(\t\x12\x15\n\rresource_path\x18\x03 \x01(\t\"D\n\x14\x44ropResourceResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\x14\n\x12\x44ropResourceResult\"\x9b\x01\n\x14ListResourcesRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x1e\n\x16\x63oordination_node_path\x18\x02 \x01(\t\x12\x15\n\rresource_path\x18\x03 \x01(\t\x12\x11\n\trecursive\x18\x04 \x01(\x08\"E\n\x15ListResourcesResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"-\n\x13ListResourcesResult\x12\x16\n\x0eresource_paths\x18\x01 \x03(\t\"\x8b\x01\n\x17\x44\x65scribeResourceRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x1e\n\x16\x63oordination_node_path\x18\x02 \x01(\t\x12\x15\n\rresource_path\x18\x03 \x01(\t\"H\n\x18\x44\x65scribeResourceResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"E\n\x16\x44\x65scribeResourceResult\x12+\n\x08resource\x18\x01 \x01(\x0b\x32\x19.Ydb.RateLimiter.ResourceB5\n\x1b\x63om.yandex.ydb.rate_limiterB\x11RateLimiterProtosP\x01\xf8\x01\x01\x62\x06proto3')
+  serialized_pb=_b('\n/kikimr/public/api/protos/ydb_rate_limiter.proto\x12\x0fYdb.RateLimiter\x1a,kikimr/public/api/protos/ydb_operation.proto\"[\n\x17HierarchicalDrrSettings\x12\x1c\n\x14max_units_per_second\x18\x01 \x01(\x01\x12\"\n\x1amax_burst_size_coefficient\x18\x02 \x01(\x01\"o\n\x08Resource\x12\x15\n\rresource_path\x18\x01 \x01(\t\x12\x44\n\x10hierarchical_drr\x18\x02 \x01(\x0b\x32(.Ydb.RateLimiter.HierarchicalDrrSettingsH\x00\x42\x06\n\x04type\"\x9f\x01\n\x15\x43reateResourceRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x1e\n\x16\x63oordination_node_path\x18\x02 \x01(\t\x12+\n\x08resource\x18\x03 \x01(\x0b\x32\x19.Ydb.RateLimiter.Resource\"F\n\x16\x43reateResourceResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\x16\n\x14\x43reateResourceResult\"\x9e\x01\n\x14\x41lterResourceRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x1e\n\x16\x63oordination_node_path\x18\x02 \x01(\t\x12+\n\x08resource\x18\x03 \x01(\x0b\x32\x19.Ydb.RateLimiter.Resource\"E\n\x15\x41lterResourceResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\x15\n\x13\x41lterResourceResult\"\x87\x01\n\x13\x44ropResourceRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x1e\n\x16\x63oordination_node_path\x18\x02 \x01(\t\x12\x15\n\rresource_path\x18\x03 \x01(\t\"D\n\x14\x44ropResourceResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\x14\n\x12\x44ropResourceResult\"\x9b\x01\n\x14ListResourcesRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x1e\n\x16\x63oordination_node_path\x18\x02 \x01(\t\x12\x15\n\rresource_path\x18\x03 \x01(\t\x12\x11\n\trecursive\x18\x04 \x01(\x08\"E\n\x15ListResourcesResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"-\n\x13ListResourcesResult\x12\x16\n\x0eresource_paths\x18\x01 \x03(\t\"\x8b\x01\n\x17\x44\x65scribeResourceRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x1e\n\x16\x63oordination_node_path\x18\x02 \x01(\t\x12\x15\n\rresource_path\x18\x03 \x01(\t\"H\n\x18\x44\x65scribeResourceResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"E\n\x16\x44\x65scribeResourceResult\x12+\n\x08resource\x18\x01 \x01(\x0b\x32\x19.Ydb.RateLimiter.Resource\"\xb7\x01\n\x16\x41\x63quireResourceRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x1e\n\x16\x63oordination_node_path\x18\x02 \x01(\t\x12\x15\n\rresource_path\x18\x03 \x01(\t\x12\x12\n\x08required\x18\x04 \x01(\x04H\x00\x12\x0e\n\x04used\x18\x05 \x01(\x04H\x00\x42\x07\n\x05units\"G\n\x17\x41\x63quireResourceResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\x17\n\x15\x41\x63quireResourceResultB5\n\x1b\x63om.yandex.ydb.rate_limiterB\x11RateLimiterProtosP\x01\xf8\x01\x01\x62\x06proto3')
   ,
   dependencies=[kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2.DESCRIPTOR,])
 
@@ -626,6 +626,123 @@ _DESCRIBERESOURCERESULT = _descriptor.Descriptor(
   serialized_end=1624,
 )
 
+
+_ACQUIRERESOURCEREQUEST = _descriptor.Descriptor(
+  name='AcquireResourceRequest',
+  full_name='Ydb.RateLimiter.AcquireResourceRequest',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='operation_params', full_name='Ydb.RateLimiter.AcquireResourceRequest.operation_params', index=0,
+      number=1, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='coordination_node_path', full_name='Ydb.RateLimiter.AcquireResourceRequest.coordination_node_path', index=1,
+      number=2, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='resource_path', full_name='Ydb.RateLimiter.AcquireResourceRequest.resource_path', index=2,
+      number=3, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='required', full_name='Ydb.RateLimiter.AcquireResourceRequest.required', index=3,
+      number=4, type=4, cpp_type=4, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='used', full_name='Ydb.RateLimiter.AcquireResourceRequest.used', index=4,
+      number=5, type=4, cpp_type=4, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+    _descriptor.OneofDescriptor(
+      name='units', full_name='Ydb.RateLimiter.AcquireResourceRequest.units',
+      index=0, containing_type=None, fields=[]),
+  ],
+  serialized_start=1627,
+  serialized_end=1810,
+)
+
+
+_ACQUIRERESOURCERESPONSE = _descriptor.Descriptor(
+  name='AcquireResourceResponse',
+  full_name='Ydb.RateLimiter.AcquireResourceResponse',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='operation', full_name='Ydb.RateLimiter.AcquireResourceResponse.operation', index=0,
+      number=1, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=1812,
+  serialized_end=1883,
+)
+
+
+_ACQUIRERESOURCERESULT = _descriptor.Descriptor(
+  name='AcquireResourceResult',
+  full_name='Ydb.RateLimiter.AcquireResourceResult',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=1885,
+  serialized_end=1908,
+)
+
 _RESOURCE.fields_by_name['hierarchical_drr'].message_type = _HIERARCHICALDRRSETTINGS
 _RESOURCE.oneofs_by_name['type'].fields.append(
   _RESOURCE.fields_by_name['hierarchical_drr'])
@@ -643,6 +760,14 @@ _LISTRESOURCESRESPONSE.fields_by_name['operation'].message_type = kikimr_dot_pub
 _DESCRIBERESOURCEREQUEST.fields_by_name['operation_params'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2._OPERATIONPARAMS
 _DESCRIBERESOURCERESPONSE.fields_by_name['operation'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2._OPERATION
 _DESCRIBERESOURCERESULT.fields_by_name['resource'].message_type = _RESOURCE
+_ACQUIRERESOURCEREQUEST.fields_by_name['operation_params'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2._OPERATIONPARAMS
+_ACQUIRERESOURCEREQUEST.oneofs_by_name['units'].fields.append(
+  _ACQUIRERESOURCEREQUEST.fields_by_name['required'])
+_ACQUIRERESOURCEREQUEST.fields_by_name['required'].containing_oneof = _ACQUIRERESOURCEREQUEST.oneofs_by_name['units']
+_ACQUIRERESOURCEREQUEST.oneofs_by_name['units'].fields.append(
+  _ACQUIRERESOURCEREQUEST.fields_by_name['used'])
+_ACQUIRERESOURCEREQUEST.fields_by_name['used'].containing_oneof = _ACQUIRERESOURCEREQUEST.oneofs_by_name['units']
+_ACQUIRERESOURCERESPONSE.fields_by_name['operation'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2._OPERATION
 DESCRIPTOR.message_types_by_name['HierarchicalDrrSettings'] = _HIERARCHICALDRRSETTINGS
 DESCRIPTOR.message_types_by_name['Resource'] = _RESOURCE
 DESCRIPTOR.message_types_by_name['CreateResourceRequest'] = _CREATERESOURCEREQUEST
@@ -660,6 +785,9 @@ DESCRIPTOR.message_types_by_name['ListResourcesResult'] = _LISTRESOURCESRESULT
 DESCRIPTOR.message_types_by_name['DescribeResourceRequest'] = _DESCRIBERESOURCEREQUEST
 DESCRIPTOR.message_types_by_name['DescribeResourceResponse'] = _DESCRIBERESOURCERESPONSE
 DESCRIPTOR.message_types_by_name['DescribeResourceResult'] = _DESCRIBERESOURCERESULT
+DESCRIPTOR.message_types_by_name['AcquireResourceRequest'] = _ACQUIRERESOURCEREQUEST
+DESCRIPTOR.message_types_by_name['AcquireResourceResponse'] = _ACQUIRERESOURCERESPONSE
+DESCRIPTOR.message_types_by_name['AcquireResourceResult'] = _ACQUIRERESOURCERESULT
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
 HierarchicalDrrSettings = _reflection.GeneratedProtocolMessageType('HierarchicalDrrSettings', (_message.Message,), dict(
@@ -780,6 +908,27 @@ DescribeResourceResult = _reflection.GeneratedProtocolMessageType('DescribeResou
   # @@protoc_insertion_point(class_scope:Ydb.RateLimiter.DescribeResourceResult)
   ))
 _sym_db.RegisterMessage(DescribeResourceResult)
+
+AcquireResourceRequest = _reflection.GeneratedProtocolMessageType('AcquireResourceRequest', (_message.Message,), dict(
+  DESCRIPTOR = _ACQUIRERESOURCEREQUEST,
+  __module__ = 'kikimr.public.api.protos.ydb_rate_limiter_pb2'
+  # @@protoc_insertion_point(class_scope:Ydb.RateLimiter.AcquireResourceRequest)
+  ))
+_sym_db.RegisterMessage(AcquireResourceRequest)
+
+AcquireResourceResponse = _reflection.GeneratedProtocolMessageType('AcquireResourceResponse', (_message.Message,), dict(
+  DESCRIPTOR = _ACQUIRERESOURCERESPONSE,
+  __module__ = 'kikimr.public.api.protos.ydb_rate_limiter_pb2'
+  # @@protoc_insertion_point(class_scope:Ydb.RateLimiter.AcquireResourceResponse)
+  ))
+_sym_db.RegisterMessage(AcquireResourceResponse)
+
+AcquireResourceResult = _reflection.GeneratedProtocolMessageType('AcquireResourceResult', (_message.Message,), dict(
+  DESCRIPTOR = _ACQUIRERESOURCERESULT,
+  __module__ = 'kikimr.public.api.protos.ydb_rate_limiter_pb2'
+  # @@protoc_insertion_point(class_scope:Ydb.RateLimiter.AcquireResourceResult)
+  ))
+_sym_db.RegisterMessage(AcquireResourceResult)
 
 
 DESCRIPTOR.has_options = True
