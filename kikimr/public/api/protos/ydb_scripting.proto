@@ -1,0 +1,23 @@
+syntax = "proto3";
+option cc_enable_arenas = true;
+
+package Ydb.Scripting;
+option java_package = "com.yandex.ydb.scripting";
+option java_outer_classname = "ScriptingProtos";
+
+import "kikimr/public/api/protos/ydb_operation.proto";
+import "kikimr/public/api/protos/ydb_value.proto";
+
+message ExecuteYqlRequest {
+    Ydb.Operations.OperationParams operation_params = 1;
+    string script = 2;
+    map<string, TypedValue> parameters = 3;
+}
+
+message ExecuteYqlResponse {
+    Ydb.Operations.Operation operation = 1;
+}
+
+message ExecuteYqlResult {
+    repeated Ydb.ResultSet result_sets = 1;
+}
