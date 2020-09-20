@@ -176,7 +176,15 @@ class SessionPoolImpl(object):
                 if self._initializer is None:
                     return self.put(session)
             except issues.Error:
-                self._logger.debug("Failed to create session. Put event to a delayed queue.")
+                self._logger.error("Failed to create session. Put event to a delayed queue.")
+                return self._event_queue.put(
+                    lambda: self._delayed_prepare(
+                        session
+                    )
+                )
+
+            except Exception:
+                self._logger.exception("Failed to create session. Put event to a delayed queue.")
                 return self._event_queue.put(
                     lambda: self._delayed_prepare(
                         session
@@ -265,6 +273,10 @@ class SessionPoolImpl(object):
             # additional logic should be added to check
             # current status of the session
         except issues.Error:
+            self._destroy(
+                session)
+        except Exception:
+
             self._destroy(
                 session)
 

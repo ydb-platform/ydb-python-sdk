@@ -67,10 +67,32 @@ service PersQueueService {
      *         issue(description, ...)
      *        <----------------
      */
-    rpc StreamingRead(stream StreamingReadClientMessage) returns (stream StreamingReadServerMessage);
+    rpc MigrationStreamingRead(stream MigrationStreamingReadClientMessage) returns (stream MigrationStreamingReadServerMessage);
 
     // Get information about reading
     rpc GetReadSessionsInfo(ReadInfoRequest) returns (ReadInfoResponse);
+
+
+    /*
+     * Describe topic command.
+     */
+    rpc DescribeTopic(DescribeTopicRequest) returns (DescribeTopicResponse);
+
+
+    /*
+     * Drop topic command.
+     */
+    rpc DropTopic(DropTopicRequest) returns (DropTopicResponse);
+
+    /*
+     * Create topic command.
+     */
+    rpc CreateTopic(CreateTopicRequest) returns (CreateTopicResponse);
+
+    /*
+     * Alter topic command.
+     */
+    rpc AlterTopic(AlterTopicRequest) returns (AlterTopicResponse);
 }
 
 service ClusterDiscoveryService {

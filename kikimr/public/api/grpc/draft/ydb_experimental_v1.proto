@@ -10,5 +10,8 @@ service ExperimentalService {
     rpc UploadRows(Experimental.UploadRowsRequest) returns (Experimental.UploadRowsResponse);
 
     rpc ExecuteStreamQuery(Experimental.ExecuteStreamQueryRequest) returns (stream Experimental.ExecuteStreamQueryResponse);
+
+    // Returns disk space usage by database
+    rpc GetDiskSpaceUsage(Experimental.GetDiskSpaceUsageRequest) returns (Experimental.GetDiskSpaceUsageResponse);
 }
 

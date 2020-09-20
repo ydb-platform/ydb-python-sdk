@@ -15,15 +15,17 @@ _sym_db = _symbol_database.Default()
 
 from kikimr.public.api.protos import ydb_operation_pb2 as kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2
 from kikimr.public.api.protos import ydb_value_pb2 as kikimr_dot_public_dot_api_dot_protos_dot_ydb__value__pb2
+from kikimr.public.api.protos import ydb_table_pb2 as kikimr_dot_public_dot_api_dot_protos_dot_ydb__table__pb2
+from kikimr.public.api.protos import ydb_query_stats_pb2 as kikimr_dot_public_dot_api_dot_protos_dot_ydb__query__stats__pb2
 
 
 DESCRIPTOR = _descriptor.FileDescriptor(
   name='kikimr/public/api/protos/ydb_scripting.proto',
   package='Ydb.Scripting',
   syntax='proto3',
-  serialized_pb=_b('\n,kikimr/public/api/protos/ydb_scripting.proto\x12\rYdb.Scripting\x1a,kikimr/public/api/protos/ydb_operation.proto\x1a(kikimr/public/api/protos/ydb_value.proto\"\xe8\x01\n\x11\x45xecuteYqlRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x0e\n\x06script\x18\x02 \x01(\t\x12\x44\n\nparameters\x18\x03 \x03(\x0b\x32\x30.Ydb.Scripting.ExecuteYqlRequest.ParametersEntry\x1a\x42\n\x0fParametersEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\x1e\n\x05value\x18\x02 \x01(\x0b\x32\x0f.Ydb.TypedValue:\x02\x38\x01\"B\n\x12\x45xecuteYqlResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"7\n\x10\x45xecuteYqlResult\x12#\n\x0bresult_sets\x18\x01 \x03(\x0b\x32\x0e.Ydb.ResultSetB.\n\x18\x63om.yandex.ydb.scriptingB\x0fScriptingProtos\xf8\x01\x01\x62\x06proto3')
+  serialized_pb=_b('\n,kikimr/public/api/protos/ydb_scripting.proto\x12\rYdb.Scripting\x1a,kikimr/public/api/protos/ydb_operation.proto\x1a(kikimr/public/api/protos/ydb_value.proto\x1a(kikimr/public/api/protos/ydb_table.proto\x1a.kikimr/public/api/protos/ydb_query_stats.proto\"\xa5\x02\n\x11\x45xecuteYqlRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x0e\n\x06script\x18\x02 \x01(\t\x12\x44\n\nparameters\x18\x03 \x03(\x0b\x32\x30.Ydb.Scripting.ExecuteYqlRequest.ParametersEntry\x12;\n\rcollect_stats\x18\x04 \x01(\x0e\x32$.Ydb.Table.QueryStatsCollection.Mode\x1a\x42\n\x0fParametersEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\x1e\n\x05value\x18\x02 \x01(\x0b\x32\x0f.Ydb.TypedValue:\x02\x38\x01\"B\n\x12\x45xecuteYqlResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"h\n\x10\x45xecuteYqlResult\x12#\n\x0bresult_sets\x18\x01 \x03(\x0b\x32\x0e.Ydb.ResultSet\x12/\n\x0bquery_stats\x18\x02 \x01(\x0b\x32\x1a.Ydb.TableStats.QueryStatsB.\n\x18\x63om.yandex.ydb.scriptingB\x0fScriptingProtos\xf8\x01\x01\x62\x06proto3')
   ,
-  dependencies=[kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2.DESCRIPTOR,kikimr_dot_public_dot_api_dot_protos_dot_ydb__value__pb2.DESCRIPTOR,])
+  dependencies=[kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2.DESCRIPTOR,kikimr_dot_public_dot_api_dot_protos_dot_ydb__value__pb2.DESCRIPTOR,kikimr_dot_public_dot_api_dot_protos_dot_ydb__table__pb2.DESCRIPTOR,kikimr_dot_public_dot_api_dot_protos_dot_ydb__query__stats__pb2.DESCRIPTOR,])
 
 
 
@@ -61,8 +63,8 @@ _EXECUTEYQLREQUEST_PARAMETERSENTRY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=318,
-  serialized_end=384,
+  serialized_start=469,
+  serialized_end=535,
 )
 
 _EXECUTEYQLREQUEST = _descriptor.Descriptor(
@@ -93,6 +95,13 @@ _EXECUTEYQLREQUEST = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
+    _descriptor.FieldDescriptor(
+      name='collect_stats', full_name='Ydb.Scripting.ExecuteYqlRequest.collect_stats', index=3,
+      number=4, type=14, cpp_type=8, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
   ],
   extensions=[
   ],
@@ -105,8 +114,8 @@ _EXECUTEYQLREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=152,
-  serialized_end=384,
+  serialized_start=242,
+  serialized_end=535,
 )
 
 
@@ -136,8 +145,8 @@ _EXECUTEYQLRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=386,
-  serialized_end=452,
+  serialized_start=537,
+  serialized_end=603,
 )
 
 
@@ -155,6 +164,13 @@ _EXECUTEYQLRESULT = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
+    _descriptor.FieldDescriptor(
+      name='query_stats', full_name='Ydb.Scripting.ExecuteYqlResult.query_stats', index=1,
+      number=2, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
   ],
   extensions=[
   ],
@@ -167,16 +183,18 @@ _EXECUTEYQLRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=454,
-  serialized_end=509,
+  serialized_start=605,
+  serialized_end=709,
 )
 
 _EXECUTEYQLREQUEST_PARAMETERSENTRY.fields_by_name['value'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__value__pb2._TYPEDVALUE
 _EXECUTEYQLREQUEST_PARAMETERSENTRY.containing_type = _EXECUTEYQLREQUEST
 _EXECUTEYQLREQUEST.fields_by_name['operation_params'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2._OPERATIONPARAMS
 _EXECUTEYQLREQUEST.fields_by_name['parameters'].message_type = _EXECUTEYQLREQUEST_PARAMETERSENTRY
+_EXECUTEYQLREQUEST.fields_by_name['collect_stats'].enum_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__table__pb2._QUERYSTATSCOLLECTION_MODE
 _EXECUTEYQLRESPONSE.fields_by_name['operation'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2._OPERATION
 _EXECUTEYQLRESULT.fields_by_name['result_sets'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__value__pb2._RESULTSET
+_EXECUTEYQLRESULT.fields_by_name['query_stats'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__query__stats__pb2._QUERYSTATS
 DESCRIPTOR.message_types_by_name['ExecuteYqlRequest'] = _EXECUTEYQLREQUEST
 DESCRIPTOR.message_types_by_name['ExecuteYqlResponse'] = _EXECUTEYQLRESPONSE
 DESCRIPTOR.message_types_by_name['ExecuteYqlResult'] = _EXECUTEYQLRESULT

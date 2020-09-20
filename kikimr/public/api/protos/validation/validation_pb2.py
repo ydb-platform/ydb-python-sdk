@@ -20,7 +20,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='kikimr/public/api/protos/validation/validation.proto',
   package='Ydb',
   syntax='proto3',
-  serialized_pb=_b('\n4kikimr/public/api/protos/validation/validation.proto\x12\x03Ydb\x1a google/protobuf/descriptor.proto\"\x9b\x01\n\x05Limit\x12!\n\x05range\x18\x01 \x01(\x0b\x32\x10.Ydb.Limit.RangeH\x00\x12\x0c\n\x02lt\x18\x02 \x01(\rH\x00\x12\x0c\n\x02le\x18\x03 \x01(\rH\x00\x12\x0c\n\x02\x65q\x18\x04 \x01(\rH\x00\x12\x0c\n\x02ge\x18\x05 \x01(\rH\x00\x12\x0c\n\x02gt\x18\x06 \x01(\rH\x00\x1a!\n\x05Range\x12\x0b\n\x03min\x18\x01 \x01(\r\x12\x0b\n\x03max\x18\x02 \x01(\rB\x06\n\x04kind\"$\n\x06MapKey\x12\x1a\n\x06length\x18\x01 \x01(\x0b\x32\n.Ydb.Limit:1\n\x08required\x12\x1d.google.protobuf.FieldOptions\x18\xe2\xac\x05 \x01(\x08:9\n\x04size\x12\x1d.google.protobuf.FieldOptions\x18\xe3\xac\x05 \x01(\x0b\x32\n.Ydb.Limit:;\n\x06length\x12\x1d.google.protobuf.FieldOptions\x18\xe4\xac\x05 \x01(\x0b\x32\n.Ydb.Limit:=\n\x07map_key\x12\x1d.google.protobuf.FieldOptions\x18\xe5\xac\x05 \x01(\x0b\x32\x0b.Ydb.MapKeyB\x13\n\x0e\x63om.yandex.ydb\xf8\x01\x01\x62\x06proto3')
+  serialized_pb=_b('\n4kikimr/public/api/protos/validation/validation.proto\x12\x03Ydb\x1a google/protobuf/descriptor.proto\"\x9b\x01\n\x05Limit\x12!\n\x05range\x18\x01 \x01(\x0b\x32\x10.Ydb.Limit.RangeH\x00\x12\x0c\n\x02lt\x18\x02 \x01(\rH\x00\x12\x0c\n\x02le\x18\x03 \x01(\rH\x00\x12\x0c\n\x02\x65q\x18\x04 \x01(\rH\x00\x12\x0c\n\x02ge\x18\x05 \x01(\rH\x00\x12\x0c\n\x02gt\x18\x06 \x01(\rH\x00\x1a!\n\x05Range\x12\x0b\n\x03min\x18\x01 \x01(\r\x12\x0b\n\x03max\x18\x02 \x01(\rB\x06\n\x04kind\"3\n\x06MapKey\x12\x1a\n\x06length\x18\x01 \x01(\x0b\x32\n.Ydb.Limit\x12\r\n\x05value\x18\x02 \x01(\t:1\n\x08required\x12\x1d.google.protobuf.FieldOptions\x18\xe2\xac\x05 \x01(\x08:9\n\x04size\x12\x1d.google.protobuf.FieldOptions\x18\xe3\xac\x05 \x01(\x0b\x32\n.Ydb.Limit:;\n\x06length\x12\x1d.google.protobuf.FieldOptions\x18\xe4\xac\x05 \x01(\x0b\x32\n.Ydb.Limit:=\n\x07map_key\x12\x1d.google.protobuf.FieldOptions\x18\xe5\xac\x05 \x01(\x0b\x32\x0b.Ydb.MapKey:.\n\x05value\x12\x1d.google.protobuf.FieldOptions\x18\xe6\xac\x05 \x01(\tB\x13\n\x0e\x63om.yandex.ydb\xf8\x01\x01\x62\x06proto3')
   ,
   dependencies=[google_dot_protobuf_dot_descriptor__pb2.DESCRIPTOR,])
 
@@ -54,6 +54,14 @@ map_key = _descriptor.FieldDescriptor(
   name='map_key', full_name='Ydb.map_key', index=3,
   number=87653, type=11, cpp_type=10, label=1,
   has_default_value=False, default_value=None,
+  message_type=None, enum_type=None, containing_type=None,
+  is_extension=True, extension_scope=None,
+  options=None)
+VALUE_FIELD_NUMBER = 87654
+value = _descriptor.FieldDescriptor(
+  name='value', full_name='Ydb.value', index=4,
+  number=87654, type=9, cpp_type=9, label=1,
+  has_default_value=False, default_value=_b("").decode('utf-8'),
   message_type=None, enum_type=None, containing_type=None,
   is_extension=True, extension_scope=None,
   options=None)
@@ -179,6 +187,13 @@ _MAPKEY = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
+    _descriptor.FieldDescriptor(
+      name='value', full_name='Ydb.MapKey.value', index=1,
+      number=2, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
   ],
   extensions=[
   ],
@@ -192,7 +207,7 @@ _MAPKEY = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=253,
-  serialized_end=289,
+  serialized_end=304,
 )
 
 _LIMIT_RANGE.containing_type = _LIMIT
@@ -222,6 +237,7 @@ DESCRIPTOR.extensions_by_name['required'] = required
 DESCRIPTOR.extensions_by_name['size'] = size
 DESCRIPTOR.extensions_by_name['length'] = length
 DESCRIPTOR.extensions_by_name['map_key'] = map_key
+DESCRIPTOR.extensions_by_name['value'] = value
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
 Limit = _reflection.GeneratedProtocolMessageType('Limit', (_message.Message,), dict(
@@ -253,6 +269,7 @@ length.message_type = _LIMIT
 google_dot_protobuf_dot_descriptor__pb2.FieldOptions.RegisterExtension(length)
 map_key.message_type = _MAPKEY
 google_dot_protobuf_dot_descriptor__pb2.FieldOptions.RegisterExtension(map_key)
+google_dot_protobuf_dot_descriptor__pb2.FieldOptions.RegisterExtension(value)
 
 DESCRIPTOR.has_options = True
 DESCRIPTOR._options = _descriptor._ParseOptions(descriptor_pb2.FileOptions(), _b('\n\016com.yandex.ydb\370\001\001'))

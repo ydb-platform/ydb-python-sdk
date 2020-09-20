@@ -24,6 +24,7 @@ message Limit {
 
 message MapKey {
     Limit length = 1;
+    string value = 2;
 }
 
 extend google.protobuf.FieldOptions {
@@ -31,4 +32,5 @@ extend google.protobuf.FieldOptions {
     Limit size = 87651;
     Limit length = 87652;
     MapKey map_key = 87653;
+    string value = 87654;
 }

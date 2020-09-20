@@ -20,6 +20,7 @@ logger = logging.getLogger(__name__)
 DEFAULT_TIMEOUT = 600
 YDB_DATABASE_HEADER = "x-ydb-database"
 YDB_TRACE_ID_HEADER = "x-ydb-trace-id"
+YDB_REQUEST_TYPE_HEADER = "x-ydb-request-type"
 
 
 def _message_to_string(message):
@@ -144,8 +145,12 @@ def _construct_metadata(driver_config, settings):
     if driver_config.credentials is not None:
         metadata.extend(driver_config.credentials.auth_metadata())
 
-    if settings is not None and settings.trace_id is not None:
-        metadata.append((YDB_TRACE_ID_HEADER, settings.trace_id))
+    if settings is not None:
+        if settings.trace_id is not None:
+            metadata.append((YDB_TRACE_ID_HEADER, settings.trace_id))
+        if settings.request_type is not None:
+            metadata.append((YDB_REQUEST_TYPE_HEADER, settings.request_type))
+
     metadata.append(_utilities.x_ydb_sdk_build_info_header())
     return metadata
 
@@ -183,7 +188,9 @@ def _construct_channel_options(driver_config):
     if driver_config.channel_options is None:
         return _default_connect_options
     channel_options = copy.deepcopy(driver_config.channel_options)
-    channel_options.extend(_default_connect_options)
+    custom_options_keys = set(i[0] for i in driver_config.channel_options)
+    for item in filter(lambda x: x[0] not in custom_options_keys, _default_connect_options):
+        channel_options.append(item)
     return channel_options
 
 
@@ -241,6 +248,8 @@ def _set_server_timeouts(request, settings, default_value):
 
 def channel_factory(endpoint, driver_config):
     options = _construct_channel_options(driver_config)
+    logger.debug("Channel options: {}".format(options))
+
     if driver_config.root_certificates is None and not driver_config.secure_channel:
         return grpc.insecure_channel(endpoint, options)
     credentials = grpc.ssl_channel_credentials(

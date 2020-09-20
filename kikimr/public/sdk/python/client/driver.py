@@ -13,18 +13,21 @@ def is_secure_protocol(endpoint):
 def wrap_endpoint(endpoint):
     if endpoint.startswith(_grpcs_protocol):
         return endpoint[len(_grpcs_protocol):]
+    if endpoint.startswith(_grpc_protocol):
+        return endpoint[len(_grpc_protocol):]
     return endpoint
 
 
 class DriverConfig(object):
     __slots__ = ('endpoint', 'database', 'ca_cert', 'channel_options', 'credentials', 'use_all_nodes',
-                 'root_certificates', 'certificate_chain', 'private_key', 'grpc_keep_alive_timeout', 'secure_channel')
+                 'root_certificates', 'certificate_chain', 'private_key', 'grpc_keep_alive_timeout', 'secure_channel',
+                 'table_client_settings')
 
     def __init__(
             self, endpoint, database=None, ca_cert=None, auth_token=None,
             channel_options=None, credentials=None, use_all_nodes=False,
             root_certificates=None, certificate_chain=None, private_key=None,
-            grpc_keep_alive_timeout=None):
+            grpc_keep_alive_timeout=None, table_client_settings=None):
         """
         A driver config to initialize a driver instance
         :param endpoint: A endpoint specified in pattern host:port to be used for initial
@@ -55,6 +58,7 @@ class DriverConfig(object):
         self.certificate_chain = certificate_chain
         self.private_key = private_key
         self.grpc_keep_alive_timeout = grpc_keep_alive_timeout
+        self.table_client_settings = table_client_settings
 
     def set_database(self, database):
         self.database = database
@@ -81,4 +85,4 @@ class Driver(pool.ConnectionPool):
         """
         super(Driver, self).__init__(driver_config)
         self.scheme_client = scheme.SchemeClient(self)
-        self.table_client = table.TableClient(self)
+        self.table_client = table.TableClient(self, driver_config.table_client_settings)

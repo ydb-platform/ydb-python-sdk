@@ -23,7 +23,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='kikimr/public/api/protos/ydb_experimental.proto',
   package='Ydb.Experimental',
   syntax='proto3',
-  serialized_pb=_b('\n/kikimr/public/api/protos/ydb_experimental.proto\x12\x10Ydb.Experimental\x1a\x30kikimr/public/api/protos/ydb_issue_message.proto\x1a,kikimr/public/api/protos/ydb_operation.proto\x1a/kikimr/public/api/protos/ydb_status_codes.proto\x1a(kikimr/public/api/protos/ydb_value.proto\"|\n\x11UploadRowsRequest\x12\r\n\x05table\x18\x01 \x01(\t\x12\x1d\n\x04rows\x18\x02 \x01(\x0b\x32\x0f.Ydb.TypedValue\x12\x39\n\x10operation_params\x18\x03 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\"B\n\x12UploadRowsResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\x12\n\x10UploadRowsResult\"\xdd\x02\n\x19\x45xecuteStreamQueryRequest\x12\x10\n\x08yql_text\x18\x01 \x01(\t\x12O\n\nparameters\x18\x02 \x03(\x0b\x32;.Ydb.Experimental.ExecuteStreamQueryRequest.ParametersEntry\x12M\n\x0cprofile_mode\x18\x03 \x01(\x0e\x32\x37.Ydb.Experimental.ExecuteStreamQueryRequest.ProfileMode\x1a\x42\n\x0fParametersEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\x1e\n\x05value\x18\x02 \x01(\x0b\x32\x0f.Ydb.TypedValue:\x02\x38\x01\"J\n\x0bProfileMode\x12\x1c\n\x18PROFILE_MODE_UNSPECIFIED\x10\x00\x12\x08\n\x04NONE\x10\x01\x12\t\n\x05\x42\x41SIC\x10\x02\x12\x08\n\x04\x46ULL\x10\x03\"\xac\x01\n\x1a\x45xecuteStreamQueryResponse\x12)\n\x06status\x18\x01 \x01(\x0e\x32\x19.Ydb.StatusIds.StatusCode\x12\'\n\x06issues\x18\x02 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessage\x12:\n\x06result\x18\x03 \x01(\x0b\x32*.Ydb.Experimental.ExecuteStreamQueryResult\"\x15\n\x13StreamQueryProgress\"\x98\x01\n\x18\x45xecuteStreamQueryResult\x12$\n\nresult_set\x18\x01 \x01(\x0b\x32\x0e.Ydb.ResultSetH\x00\x12\x11\n\x07profile\x18\x02 \x01(\tH\x00\x12\x39\n\x08progress\x18\x03 \x01(\x0b\x32%.Ydb.Experimental.StreamQueryProgressH\x00\x42\x08\n\x06resultB4\n\x1b\x63om.yandex.ydb.experimentalB\x12\x45xperimentalProtos\xf8\x01\x01\x62\x06proto3')
+  serialized_pb=_b('\n/kikimr/public/api/protos/ydb_experimental.proto\x12\x10Ydb.Experimental\x1a\x30kikimr/public/api/protos/ydb_issue_message.proto\x1a,kikimr/public/api/protos/ydb_operation.proto\x1a/kikimr/public/api/protos/ydb_status_codes.proto\x1a(kikimr/public/api/protos/ydb_value.proto\"|\n\x11UploadRowsRequest\x12\r\n\x05table\x18\x01 \x01(\t\x12\x1d\n\x04rows\x18\x02 \x01(\x0b\x32\x0f.Ydb.TypedValue\x12\x39\n\x10operation_params\x18\x03 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\"B\n\x12UploadRowsResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\x12\n\x10UploadRowsResult\"\xee\x02\n\x19\x45xecuteStreamQueryRequest\x12\x10\n\x08yql_text\x18\x01 \x01(\t\x12O\n\nparameters\x18\x02 \x03(\x0b\x32;.Ydb.Experimental.ExecuteStreamQueryRequest.ParametersEntry\x12M\n\x0cprofile_mode\x18\x03 \x01(\x0e\x32\x37.Ydb.Experimental.ExecuteStreamQueryRequest.ProfileMode\x12\x0f\n\x07\x65xplain\x18\x04 \x01(\x08\x1a\x42\n\x0fParametersEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\x1e\n\x05value\x18\x02 \x01(\x0b\x32\x0f.Ydb.TypedValue:\x02\x38\x01\"J\n\x0bProfileMode\x12\x1c\n\x18PROFILE_MODE_UNSPECIFIED\x10\x00\x12\x08\n\x04NONE\x10\x01\x12\t\n\x05\x42\x41SIC\x10\x02\x12\x08\n\x04\x46ULL\x10\x03\"\xac\x01\n\x1a\x45xecuteStreamQueryResponse\x12)\n\x06status\x18\x01 \x01(\x0e\x32\x19.Ydb.StatusIds.StatusCode\x12\'\n\x06issues\x18\x02 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessage\x12:\n\x06result\x18\x03 \x01(\x0b\x32*.Ydb.Experimental.ExecuteStreamQueryResult\"\x15\n\x13StreamQueryProgress\"\xae\x01\n\x18\x45xecuteStreamQueryResult\x12$\n\nresult_set\x18\x01 \x01(\x0b\x32\x0e.Ydb.ResultSetH\x00\x12\x11\n\x07profile\x18\x02 \x01(\tH\x00\x12\x39\n\x08progress\x18\x03 \x01(\x0b\x32%.Ydb.Experimental.StreamQueryProgressH\x00\x12\x14\n\nquery_plan\x18\x04 \x01(\tH\x00\x42\x08\n\x06result\"g\n\x18GetDiskSpaceUsageRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x10\n\x08\x64\x61tabase\x18\x02 \x01(\t\"I\n\x19GetDiskSpaceUsageResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\x8e\x01\n\x17GetDiskSpaceUsageResult\x12\x10\n\x08\x63loud_id\x18\x01 \x01(\t\x12\x11\n\tfolder_id\x18\x02 \x01(\t\x12\x13\n\x0b\x64\x61tabase_id\x18\x03 \x01(\t\x12\x12\n\ntotal_size\x18\x04 \x01(\x04\x12\x11\n\tdata_size\x18\x05 \x01(\x04\x12\x12\n\nindex_size\x18\x06 \x01(\x04\x42\x34\n\x1b\x63om.yandex.ydb.experimentalB\x12\x45xperimentalProtos\xf8\x01\x01\x62\x06proto3')
   ,
   dependencies=[kikimr_dot_public_dot_api_dot_protos_dot_ydb__issue__message__pb2.DESCRIPTOR,kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2.DESCRIPTOR,kikimr_dot_public_dot_api_dot_protos_dot_ydb__status__codes__pb2.DESCRIPTOR,kikimr_dot_public_dot_api_dot_protos_dot_ydb__value__pb2.DESCRIPTOR,])
 
@@ -54,8 +54,8 @@ _EXECUTESTREAMQUERYREQUEST_PROFILEMODE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=746,
-  serialized_end=820,
+  serialized_start=763,
+  serialized_end=837,
 )
 _sym_db.RegisterEnumDescriptor(_EXECUTESTREAMQUERYREQUEST_PROFILEMODE)
 
@@ -193,8 +193,8 @@ _EXECUTESTREAMQUERYREQUEST_PARAMETERSENTRY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=678,
-  serialized_end=744,
+  serialized_start=695,
+  serialized_end=761,
 )
 
 _EXECUTESTREAMQUERYREQUEST = _descriptor.Descriptor(
@@ -225,6 +225,13 @@ _EXECUTESTREAMQUERYREQUEST = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
+    _descriptor.FieldDescriptor(
+      name='explain', full_name='Ydb.Experimental.ExecuteStreamQueryRequest.explain', index=3,
+      number=4, type=8, cpp_type=7, label=1,
+      has_default_value=False, default_value=False,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
   ],
   extensions=[
   ],
@@ -239,7 +246,7 @@ _EXECUTESTREAMQUERYREQUEST = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=471,
-  serialized_end=820,
+  serialized_end=837,
 )
 
 
@@ -283,8 +290,8 @@ _EXECUTESTREAMQUERYRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=823,
-  serialized_end=995,
+  serialized_start=840,
+  serialized_end=1012,
 )
 
 
@@ -307,8 +314,8 @@ _STREAMQUERYPROGRESS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=997,
-  serialized_end=1018,
+  serialized_start=1014,
+  serialized_end=1035,
 )
 
 
@@ -340,6 +347,13 @@ _EXECUTESTREAMQUERYRESULT = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
+    _descriptor.FieldDescriptor(
+      name='query_plan', full_name='Ydb.Experimental.ExecuteStreamQueryResult.query_plan', index=3,
+      number=4, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
   ],
   extensions=[
   ],
@@ -355,8 +369,143 @@ _EXECUTESTREAMQUERYRESULT = _descriptor.Descriptor(
       name='result', full_name='Ydb.Experimental.ExecuteStreamQueryResult.result',
       index=0, containing_type=None, fields=[]),
   ],
-  serialized_start=1021,
-  serialized_end=1173,
+  serialized_start=1038,
+  serialized_end=1212,
+)
+
+
+_GETDISKSPACEUSAGEREQUEST = _descriptor.Descriptor(
+  name='GetDiskSpaceUsageRequest',
+  full_name='Ydb.Experimental.GetDiskSpaceUsageRequest',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='operation_params', full_name='Ydb.Experimental.GetDiskSpaceUsageRequest.operation_params', index=0,
+      number=1, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='database', full_name='Ydb.Experimental.GetDiskSpaceUsageRequest.database', index=1,
+      number=2, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=1214,
+  serialized_end=1317,
+)
+
+
+_GETDISKSPACEUSAGERESPONSE = _descriptor.Descriptor(
+  name='GetDiskSpaceUsageResponse',
+  full_name='Ydb.Experimental.GetDiskSpaceUsageResponse',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='operation', full_name='Ydb.Experimental.GetDiskSpaceUsageResponse.operation', index=0,
+      number=1, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=1319,
+  serialized_end=1392,
+)
+
+
+_GETDISKSPACEUSAGERESULT = _descriptor.Descriptor(
+  name='GetDiskSpaceUsageResult',
+  full_name='Ydb.Experimental.GetDiskSpaceUsageResult',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='cloud_id', full_name='Ydb.Experimental.GetDiskSpaceUsageResult.cloud_id', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='folder_id', full_name='Ydb.Experimental.GetDiskSpaceUsageResult.folder_id', index=1,
+      number=2, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='database_id', full_name='Ydb.Experimental.GetDiskSpaceUsageResult.database_id', index=2,
+      number=3, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='total_size', full_name='Ydb.Experimental.GetDiskSpaceUsageResult.total_size', index=3,
+      number=4, type=4, cpp_type=4, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='data_size', full_name='Ydb.Experimental.GetDiskSpaceUsageResult.data_size', index=4,
+      number=5, type=4, cpp_type=4, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='index_size', full_name='Ydb.Experimental.GetDiskSpaceUsageResult.index_size', index=5,
+      number=6, type=4, cpp_type=4, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=1395,
+  serialized_end=1537,
 )
 
 _UPLOADROWSREQUEST.fields_by_name['rows'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__value__pb2._TYPEDVALUE
@@ -381,6 +530,11 @@ _EXECUTESTREAMQUERYRESULT.fields_by_name['profile'].containing_oneof = _EXECUTES
 _EXECUTESTREAMQUERYRESULT.oneofs_by_name['result'].fields.append(
   _EXECUTESTREAMQUERYRESULT.fields_by_name['progress'])
 _EXECUTESTREAMQUERYRESULT.fields_by_name['progress'].containing_oneof = _EXECUTESTREAMQUERYRESULT.oneofs_by_name['result']
+_EXECUTESTREAMQUERYRESULT.oneofs_by_name['result'].fields.append(
+  _EXECUTESTREAMQUERYRESULT.fields_by_name['query_plan'])
+_EXECUTESTREAMQUERYRESULT.fields_by_name['query_plan'].containing_oneof = _EXECUTESTREAMQUERYRESULT.oneofs_by_name['result']
+_GETDISKSPACEUSAGEREQUEST.fields_by_name['operation_params'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2._OPERATIONPARAMS
+_GETDISKSPACEUSAGERESPONSE.fields_by_name['operation'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2._OPERATION
 DESCRIPTOR.message_types_by_name['UploadRowsRequest'] = _UPLOADROWSREQUEST
 DESCRIPTOR.message_types_by_name['UploadRowsResponse'] = _UPLOADROWSRESPONSE
 DESCRIPTOR.message_types_by_name['UploadRowsResult'] = _UPLOADROWSRESULT
@@ -388,6 +542,9 @@ DESCRIPTOR.message_types_by_name['ExecuteStreamQueryRequest'] = _EXECUTESTREAMQU
 DESCRIPTOR.message_types_by_name['ExecuteStreamQueryResponse'] = _EXECUTESTREAMQUERYRESPONSE
 DESCRIPTOR.message_types_by_name['StreamQueryProgress'] = _STREAMQUERYPROGRESS
 DESCRIPTOR.message_types_by_name['ExecuteStreamQueryResult'] = _EXECUTESTREAMQUERYRESULT
+DESCRIPTOR.message_types_by_name['GetDiskSpaceUsageRequest'] = _GETDISKSPACEUSAGEREQUEST
+DESCRIPTOR.message_types_by_name['GetDiskSpaceUsageResponse'] = _GETDISKSPACEUSAGERESPONSE
+DESCRIPTOR.message_types_by_name['GetDiskSpaceUsageResult'] = _GETDISKSPACEUSAGERESULT
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
 UploadRowsRequest = _reflection.GeneratedProtocolMessageType('UploadRowsRequest', (_message.Message,), dict(
@@ -446,6 +603,27 @@ ExecuteStreamQueryResult = _reflection.GeneratedProtocolMessageType('ExecuteStre
   # @@protoc_insertion_point(class_scope:Ydb.Experimental.ExecuteStreamQueryResult)
   ))
 _sym_db.RegisterMessage(ExecuteStreamQueryResult)
+
+GetDiskSpaceUsageRequest = _reflection.GeneratedProtocolMessageType('GetDiskSpaceUsageRequest', (_message.Message,), dict(
+  DESCRIPTOR = _GETDISKSPACEUSAGEREQUEST,
+  __module__ = 'kikimr.public.api.protos.ydb_experimental_pb2'
+  # @@protoc_insertion_point(class_scope:Ydb.Experimental.GetDiskSpaceUsageRequest)
+  ))
+_sym_db.RegisterMessage(GetDiskSpaceUsageRequest)
+
+GetDiskSpaceUsageResponse = _reflection.GeneratedProtocolMessageType('GetDiskSpaceUsageResponse', (_message.Message,), dict(
+  DESCRIPTOR = _GETDISKSPACEUSAGERESPONSE,
+  __module__ = 'kikimr.public.api.protos.ydb_experimental_pb2'
+  # @@protoc_insertion_point(class_scope:Ydb.Experimental.GetDiskSpaceUsageResponse)
+  ))
+_sym_db.RegisterMessage(GetDiskSpaceUsageResponse)
+
+GetDiskSpaceUsageResult = _reflection.GeneratedProtocolMessageType('GetDiskSpaceUsageResult', (_message.Message,), dict(
+  DESCRIPTOR = _GETDISKSPACEUSAGERESULT,
+  __module__ = 'kikimr.public.api.protos.ydb_experimental_pb2'
+  # @@protoc_insertion_point(class_scope:Ydb.Experimental.GetDiskSpaceUsageResult)
+  ))
+_sym_db.RegisterMessage(GetDiskSpaceUsageResult)
 
 
 DESCRIPTOR.has_options = True

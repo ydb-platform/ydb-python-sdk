@@ -1,4 +1,5 @@
 import functools
+from google.protobuf.empty_pb2 import Empty
 from . import issues, types, _apis, convert, scheme, operation, _utilities
 
 
@@ -30,10 +31,18 @@ def prepare_request_factory(session_state, yql_text):
     return request
 
 
-def copy_table_request_factory(session_state, source_path, destination_path):
-    request = session_state.attach_request(_apis.ydb_table.CopyTableRequest())
-    request.source_path = source_path
-    request.destination_path = destination_path
+class AlterTableOperation(operation.Operation):
+    def __init__(self, rpc_state, response_pb, driver):
+        super(AlterTableOperation, self).__init__(rpc_state, response_pb, driver)
+        self.ready = response_pb.operation.ready
+
+
+def copy_tables_request_factory(session_state, source_destination_pairs):
+    request = session_state.attach_request(_apis.ydb_table.CopyTablesRequest())
+    for source_path, destination_path in source_destination_pairs:
+        table_item = request.tables.add()
+        table_item.source_path = source_path
+        table_item.destination_path = destination_path
     return request
 
 
@@ -84,7 +93,9 @@ def wrap_describe_table_response(rpc_state, response_pb, sesssion_state, scheme_
         message.primary_key,
         message.shard_key_bounds,
         message.indexes,
-        message.ttl_settings if message.HasField('ttl_settings') else None
+        message.table_stats if message.HasField('table_stats') else None,
+        message.ttl_settings if message.HasField('ttl_settings') else None,
+        message.attributes
     )
 
 
@@ -114,6 +125,8 @@ def create_table_request_factory(session_state, path, table_description):
             table_description.ttl_settings.to_pb()
         )
 
+    request.attributes.update(table_description.attributes)
+
     return session_state.attach_request(request)
 
 
@@ -139,8 +152,12 @@ def initialize_session(rpc_state, response_pb, session_state, session):
 
 
 @bad_session_handler
-def wrap_operation(rpc_state, response_pb, session_state):
-    return operation.Operation(rpc_state, response_pb)
+def wrap_operation(rpc_state, response_pb, session_state, driver=None):
+    return operation.Operation(rpc_state, response_pb, driver)
+
+
+def wrap_operation_bulk_upsert(rpc_state, response_pb, driver=None):
+    return operation.Operation(rpc_state, response_pb, driver)
 
 
 @bad_session_handler
@@ -156,14 +173,44 @@ def describe_table_request_factory(session_state, path, settings=None):
     if settings is not None and hasattr(settings, 'include_shard_key_bounds') and settings.include_shard_key_bounds:
         request.include_shard_key_bounds = settings.include_shard_key_bounds
 
+    if settings is not None and hasattr(settings, 'include_table_stats') and settings.include_table_stats:
+        request.include_table_stats = settings.include_table_stats
+
     return request
 
 
-def alter_table_request_factory(session_state, path, add_columns, drop_columns):
+def alter_table_request_factory(
+        session_state, path,
+        add_columns, drop_columns,
+        alter_attributes,
+        add_indexes, drop_indexes,
+        set_ttl_settings, drop_ttl_settings):
     request = session_state.attach_request(_apis.ydb_table.AlterTableRequest(path=path))
-    for column in add_columns:
-        request.add_columns.add(name=column.name, type=column.type_pb)
-    request.drop_columns.extend(list(drop_columns))
+    if add_columns is not None:
+        for column in add_columns:
+            request.add_columns.add(
+                name=column.name, type=column.type_pb
+            )
+
+    if drop_columns is not None:
+        request.drop_columns.extend(list(drop_columns))
+
+    if drop_indexes is not None:
+        request.drop_indexes.extend(list(drop_indexes))
+
+    if add_indexes is not None:
+        for index in add_indexes:
+            request.add_indexes.add().MergeFrom(index.to_pb())
+
+    if alter_attributes is not None:
+        request.alter_attributes.update(alter_attributes)
+
+    if set_ttl_settings is not None:
+        request.set_ttl_settings.MergeFrom(set_ttl_settings.to_pb())
+
+    if drop_ttl_settings is not None and drop_ttl_settings:
+        request.drop_ttl_settings.MergeFrom(Empty())
+
     return request
 
 
@@ -205,18 +252,29 @@ def read_table_request_factory(session_state, path, key_range=None, columns=None
     return session_state.attach_request(request)
 
 
+def bulk_upsert_request_factory(table, rows, column_types):
+    request = _apis.ydb_table.BulkUpsertRequest()
+    request.table = table
+    request.rows.MergeFrom(convert.to_typed_value_from_native(
+        types.ListType(column_types).proto,
+        rows
+    ))
+    return request
+
+
 def wrap_read_table_response(response):
     issues._process_response(response)
     return convert.ResultSet.from_message(response.result.result_set)
 
 
 class SessionState(object):
-    def __init__(self):
+    def __init__(self, client_cache_enabled):
         self._session_id = None
         self._query_cache = _utilities.LRUCache(1000)
         self._default = (None, None)
         self._pending_query = False
         self._endpoint = None
+        self._client_cache_enabled = client_cache_enabled
 
     def __contains__(self, query):
         return self.lookup(query) != self._default
@@ -247,7 +305,10 @@ class SessionState(object):
         return self
 
     def keep(self, query, query_id):
-        self._query_cache.put(query.name, (query, query_id))
+        if self._client_cache_enabled:
+            self._query_cache.put(
+                query.name,
+                (query, query_id))
         return self
 
     @staticmethod

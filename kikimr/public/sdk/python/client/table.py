@@ -27,9 +27,14 @@ class DescribeTableSettings(settings.BaseRequestSettings):
     def __init__(self):
         super(DescribeTableSettings, self).__init__()
         self.include_shard_key_bounds = False
+        self.include_table_stats = False
 
     def with_include_shard_key_bounds(self, value):
         self.include_shard_key_bounds = value
+        return self
+
+    def with_include_table_stats(self, value):
+        self.include_table_stats = value
         return self
 
 
@@ -258,6 +263,10 @@ class TableIndex(object):
         self.name = name
         self.index_columns = []
 
+    def with_global_index(self):
+        self._pb.global_index.SetInParent()
+        return self
+
     def with_index_columns(self, *columns):
         for column in columns:
             self._pb.index_columns.append(column)
@@ -300,12 +309,12 @@ class ReplicationPolicy(object):
         return self._pb
 
 
-class StorageSettings(object):
-    def __init__(self, storage_kind):
-        self.storage_kind = storage_kind
+class StoragePool(object):
+    def __init__(self, media):
+        self.media = media
 
     def to_pb(self):
-        return _apis.ydb_table.StorageSettings(storage_kind=self.storage_kind)
+        return _apis.ydb_table.StoragePool(media=self.media)
 
 
 class StoragePolicy(object):
@@ -456,6 +465,15 @@ class TtlSettings(object):
         return pb
 
 
+class TableStats(object):
+    def __init__(self):
+        self.partitions = None
+
+    def with_partitions(self, partitions):
+        self.partitions = partitions
+        return self
+
+
 class TableDescription(object):
     def __init__(self):
         self.columns = []
@@ -463,6 +481,7 @@ class TableDescription(object):
         self.profile = None
         self.indexes = []
         self.ttl_settings = None
+        self.attributes = {}
 
     def with_column(self, column):
         self.columns.append(column)
@@ -497,6 +516,10 @@ class TableDescription(object):
 
     def with_ttl(self, ttl_settings):
         self.ttl_settings = ttl_settings
+        return self
+
+    def with_attributes(self, attributes):
+        self.attributes = attributes
         return self
 
 
@@ -661,18 +684,55 @@ def retry_operation_sync(callee, retry_settings=None, *args, **kwargs):
     raise status
 
 
+class TableClientSettings(object):
+    def __init__(self):
+        self._client_query_cache_enabled = True
+
+    def with_client_query_cache(self, enabled):
+        self._client_query_cache_enabled = enabled
+        return self
+
+
 class TableClient(object):
-    def __init__(self, driver):
+    def __init__(self, driver, table_client_settings=None):
         self._driver = driver
+        self._table_client_settings = TableClientSettings() if table_client_settings is None else table_client_settings
 
     def session(self):
-        return Session(self._driver)
+        return Session(self._driver, self._table_client_settings._client_query_cache_enabled)
+
+    @_utilities.wrap_async_call_exceptions
+    def async_bulk_upsert(self, table_path, rows, column_types, settings=None):
+        return self._driver.future(
+            _session_impl.bulk_upsert_request_factory(table_path, rows, column_types),
+            _apis.TableService.Stub,
+            _apis.TableService.BulkUpsert,
+            _session_impl.wrap_operation_bulk_upsert,
+            settings,
+            (),
+        )
+
+    def bulk_upsert(self, table_path, rows, column_types, settings=None):
+        """
+        Bulk upsert data
+        :param table_path: A table path.
+        :param rows: A list of structures.
+        :param column_types: Bulk upsert column types.
+        """
+        return self._driver(
+            _session_impl.bulk_upsert_request_factory(table_path, rows, column_types),
+            _apis.TableService.Stub,
+            _apis.TableService.BulkUpsert,
+            _session_impl.wrap_operation_bulk_upsert,
+            settings,
+            (),
+        )
 
 
 class TableSchemeEntry(scheme.SchemeEntry):
     def __init__(
             self, name, owner, type, effective_permissions, permissions, columns, primary_key, shard_key_bounds,
-            indexes, ttl_settings, *args, **kwargs):
+            indexes, table_stats, ttl_settings, attributes, *args, **kwargs):
 
         super(TableSchemeEntry, self).__init__(name, owner, type, effective_permissions, permissions, *args, **kwargs)
         self.primary_key = [pk for pk in primary_key]
@@ -716,13 +776,23 @@ class TableSchemeEntry(scheme.SchemeEntry):
                     ttl_settings.date_type_column.expire_after_seconds
                 )
 
+        self.table_stats = None
+        if table_stats is not None:
+            self.table_stats = TableStats()
+            if table_stats.partitions != 0:
+                self.table_stats = self.table_stats.with_partitions(
+                    table_stats.partitions
+                )
+
+        self.attributes = attributes
+
 
 class Session(object):
     __slots__ = ('_state', '_driver', '__weakref__')
 
-    def __init__(self, driver):
+    def __init__(self, driver, client_query_cache_enabled):
         self._driver = driver
-        self._state = _session_impl.SessionState()
+        self._state = _session_impl.SessionState(client_query_cache_enabled)
 
     def __lt__(self, other):
         return self.session_id < other.session_id
@@ -1071,45 +1141,75 @@ class Session(object):
         )
 
     @_utilities.wrap_async_call_exceptions
-    def async_alter_table(self, path, add_columns, drop_columns, settings=None):
+    def async_alter_table(
+            self, path,
+            add_columns=None, drop_columns=None,
+            settings=None,
+            alter_attributes=None,
+            add_indexes=None, drop_indexes=None,
+            set_ttl_settings=None, drop_ttl_settings=None):
         return self._driver.future(
-            _session_impl.alter_table_request_factory(self._state, path, add_columns, drop_columns),
+            _session_impl.alter_table_request_factory(
+                self._state, path,
+                add_columns, drop_columns,
+                alter_attributes,
+                add_indexes, drop_indexes,
+                set_ttl_settings, drop_ttl_settings
+            ),
             _apis.TableService.Stub,
             _apis.TableService.AlterTable,
-            _session_impl.wrap_operation,
+            _session_impl.AlterTableOperation,
             settings,
-            (self._state,),
+            (self._driver, ),
             self._state.endpoint,
         )
 
-    def alter_table(self, path, add_columns, drop_columns, settings=None):
+    def alter_table(
+            self, path,
+            add_columns=None, drop_columns=None,
+            settings=None,
+            alter_attributes=None,
+            add_indexes=None, drop_indexes=None,
+            set_ttl_settings=None, drop_ttl_settings=None):
         return self._driver(
-            _session_impl.alter_table_request_factory(self._state, path, add_columns, drop_columns),
+            _session_impl.alter_table_request_factory(
+                self._state, path,
+                add_columns, drop_columns,
+                alter_attributes,
+                add_indexes, drop_indexes,
+                set_ttl_settings, drop_ttl_settings
+            ),
             _apis.TableService.Stub,
             _apis.TableService.AlterTable,
-            _session_impl.wrap_operation,
+            _session_impl.AlterTableOperation,
             settings,
-            (self._state,),
+            (self._driver, ),
             self._state.endpoint,
         )
 
-    @_utilities.wrap_async_call_exceptions
     def async_copy_table(self, source_path, destination_path, settings=None):
-        return self._driver.future(
-            _session_impl.copy_table_request_factory(self._state, source_path, destination_path),
-            _apis.TableService.Stub,
-            _apis.TableService.CopyTable,
-            _session_impl.wrap_operation,
-            settings,
-            (self._state,),
-            self._state.endpoint,
-        )
+        return self.async_copy_tables([(source_path, destination_path)], settings=settings)
 
     def copy_table(self, source_path, destination_path, settings=None):
-        return self._driver(
-            _session_impl.copy_table_request_factory(self._state, source_path, destination_path),
+        return self.copy_tables([(source_path, destination_path)], settings=settings)
+
+    @_utilities.wrap_async_call_exceptions
+    def async_copy_tables(self, source_destination_pairs, settings=None):
+        return self._driver.future(
+            _session_impl.copy_tables_request_factory(self._state, source_destination_pairs),
             _apis.TableService.Stub,
-            _apis.TableService.CopyTable,
+            _apis.TableService.CopyTables,
+            _session_impl.wrap_operation,
+            settings,
+            (self._state,),
+            self._state.endpoint,
+        )
+
+    def copy_tables(self, source_destination_pairs, settings=None):
+        return self._driver(
+            _session_impl.copy_tables_request_factory(self._state, source_destination_pairs),
+            _apis.TableService.Stub,
+            _apis.TableService.CopyTables,
             _session_impl.wrap_operation,
             settings,
             (self._state,),

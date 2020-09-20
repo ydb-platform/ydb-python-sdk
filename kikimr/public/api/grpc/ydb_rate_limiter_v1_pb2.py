@@ -20,7 +20,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='kikimr/public/api/grpc/ydb_rate_limiter_v1.proto',
   package='Ydb.RateLimiter.V1',
   syntax='proto3',
-  serialized_pb=_b('\n0kikimr/public/api/grpc/ydb_rate_limiter_v1.proto\x12\x12Ydb.RateLimiter.V1\x1a/kikimr/public/api/protos/ydb_rate_limiter.proto2\xfd\x03\n\x12RateLimiterService\x12\x61\n\x0e\x43reateResource\x12&.Ydb.RateLimiter.CreateResourceRequest\x1a\'.Ydb.RateLimiter.CreateResourceResponse\x12^\n\rAlterResource\x12%.Ydb.RateLimiter.AlterResourceRequest\x1a&.Ydb.RateLimiter.AlterResourceResponse\x12[\n\x0c\x44ropResource\x12$.Ydb.RateLimiter.DropResourceRequest\x1a%.Ydb.RateLimiter.DropResourceResponse\x12^\n\rListResources\x12%.Ydb.RateLimiter.ListResourcesRequest\x1a&.Ydb.RateLimiter.ListResourcesResponse\x12g\n\x10\x44\x65scribeResource\x12(.Ydb.RateLimiter.DescribeResourceRequest\x1a).Ydb.RateLimiter.DescribeResourceResponseB3\n\x1e\x63om.yandex.ydb.rate_limiter.v1B\x0fRateLimiterGrpcP\x01\x62\x06proto3')
+  serialized_pb=_b('\n0kikimr/public/api/grpc/ydb_rate_limiter_v1.proto\x12\x12Ydb.RateLimiter.V1\x1a/kikimr/public/api/protos/ydb_rate_limiter.proto2\xe3\x04\n\x12RateLimiterService\x12\x61\n\x0e\x43reateResource\x12&.Ydb.RateLimiter.CreateResourceRequest\x1a\'.Ydb.RateLimiter.CreateResourceResponse\x12^\n\rAlterResource\x12%.Ydb.RateLimiter.AlterResourceRequest\x1a&.Ydb.RateLimiter.AlterResourceResponse\x12[\n\x0c\x44ropResource\x12$.Ydb.RateLimiter.DropResourceRequest\x1a%.Ydb.RateLimiter.DropResourceResponse\x12^\n\rListResources\x12%.Ydb.RateLimiter.ListResourcesRequest\x1a&.Ydb.RateLimiter.ListResourcesResponse\x12g\n\x10\x44\x65scribeResource\x12(.Ydb.RateLimiter.DescribeResourceRequest\x1a).Ydb.RateLimiter.DescribeResourceResponse\x12\x64\n\x0f\x41\x63quireResource\x12\'.Ydb.RateLimiter.AcquireResourceRequest\x1a(.Ydb.RateLimiter.AcquireResourceResponseB3\n\x1e\x63om.yandex.ydb.rate_limiter.v1B\x0fRateLimiterGrpcP\x01\x62\x06proto3')
   ,
   dependencies=[kikimr_dot_public_dot_api_dot_protos_dot_ydb__rate__limiter__pb2.DESCRIPTOR,])
 
@@ -39,7 +39,7 @@ _RATELIMITERSERVICE = _descriptor.ServiceDescriptor(
   index=0,
   options=None,
   serialized_start=122,
-  serialized_end=631,
+  serialized_end=733,
   methods=[
   _descriptor.MethodDescriptor(
     name='CreateResource',
@@ -84,6 +84,15 @@ _RATELIMITERSERVICE = _descriptor.ServiceDescriptor(
     containing_service=None,
     input_type=kikimr_dot_public_dot_api_dot_protos_dot_ydb__rate__limiter__pb2._DESCRIBERESOURCEREQUEST,
     output_type=kikimr_dot_public_dot_api_dot_protos_dot_ydb__rate__limiter__pb2._DESCRIBERESOURCERESPONSE,
+    options=None,
+  ),
+  _descriptor.MethodDescriptor(
+    name='AcquireResource',
+    full_name='Ydb.RateLimiter.V1.RateLimiterService.AcquireResource',
+    index=5,
+    containing_service=None,
+    input_type=kikimr_dot_public_dot_api_dot_protos_dot_ydb__rate__limiter__pb2._ACQUIRERESOURCEREQUEST,
+    output_type=kikimr_dot_public_dot_api_dot_protos_dot_ydb__rate__limiter__pb2._ACQUIRERESOURCERESPONSE,
     options=None,
   ),
 ])

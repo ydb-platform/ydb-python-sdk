@@ -49,7 +49,7 @@ class TableService(object):
     CreateTable = 'CreateTable'
     DropTable = 'DropTable'
     AlterTable = 'AlterTable'
-    CopyTable = 'CopyTable'
+    CopyTables = 'CopyTables'
     DescribeTable = 'DescribeTable'
     CreateSession = 'CreateSession'
     DeleteSession = 'DeleteSession'
@@ -61,3 +61,4 @@ class TableService(object):
     RollbackTransaction = 'RollbackTransaction'
     KeepAlive = 'KeepAlive'
     StreamReadTable = 'StreamReadTable'
+    BulkUpsert = 'BulkUpsert'

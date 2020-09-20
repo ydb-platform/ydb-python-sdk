@@ -24,6 +24,11 @@ class ExperimentalServiceStub(object):
         request_serializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__experimental__pb2.ExecuteStreamQueryRequest.SerializeToString,
         response_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__experimental__pb2.ExecuteStreamQueryResponse.FromString,
         )
+    self.GetDiskSpaceUsage = channel.unary_unary(
+        '/Ydb.Experimental.V1.ExperimentalService/GetDiskSpaceUsage',
+        request_serializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__experimental__pb2.GetDiskSpaceUsageRequest.SerializeToString,
+        response_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__experimental__pb2.GetDiskSpaceUsageResponse.FromString,
+        )
 
 
 class ExperimentalServiceServicer(object):
@@ -44,6 +49,13 @@ class ExperimentalServiceServicer(object):
     context.set_details('Method not implemented!')
     raise NotImplementedError('Method not implemented!')
 
+  def GetDiskSpaceUsage(self, request, context):
+    """Returns disk space usage by database
+    """
+    context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+    context.set_details('Method not implemented!')
+    raise NotImplementedError('Method not implemented!')
+
 
 def add_ExperimentalServiceServicer_to_server(servicer, server):
   rpc_method_handlers = {
@@ -56,6 +68,11 @@ def add_ExperimentalServiceServicer_to_server(servicer, server):
           servicer.ExecuteStreamQuery,
           request_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__experimental__pb2.ExecuteStreamQueryRequest.FromString,
           response_serializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__experimental__pb2.ExecuteStreamQueryResponse.SerializeToString,
+      ),
+      'GetDiskSpaceUsage': grpc.unary_unary_rpc_method_handler(
+          servicer.GetDiskSpaceUsage,
+          request_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__experimental__pb2.GetDiskSpaceUsageRequest.FromString,
+          response_serializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__experimental__pb2.GetDiskSpaceUsageResponse.SerializeToString,
       ),
   }
   generic_handler = grpc.method_handlers_generic_handler(

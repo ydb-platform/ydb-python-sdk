@@ -27,11 +27,14 @@ class PrimitiveType(enum.Enum):
 
     Yson = _apis.yql_types.Yson, 'bytes_value'
     Json = _apis.yql_types.Json, 'text_value', _utilities.from_bytes
+    JsonDocument = _apis.yql_types.JsonDocument, 'text_value', _utilities.from_bytes
 
     Date = _apis.yql_types.Date, 'uint32_value'
     Datetime = _apis.yql_types.Datetime, 'uint32_value'
     Timestamp = _apis.yql_types.Timestamp, 'uint64_value'
     Interval = _apis.yql_types.Interval, 'int64_value'
+
+    DyNumber = _apis.yql_types.DyNumber, 'text_value', _utilities.from_bytes
 
     def __init__(self, idn, proto_field, to_obj=None):
         self._idn_ = idn
@@ -272,3 +275,29 @@ class StructType(AbstractTypeBuilder):
 
     def __str__(self):
         return "Struct<%s>" % ",".join(self.__members_repr)
+
+
+class BulkUpsertColumns(AbstractTypeBuilder):
+    __slots__ = ('__columns_repr', '__proto')
+
+    def __init__(self):
+        self.__columns_repr = []
+        self.__proto = _apis.ydb_value.Type(struct_type=_apis.ydb_value.StructType())
+
+    def add_column(self, name, column_type):
+        """
+        :param name: A column name
+        :param column_type: A column type
+        """
+        self.__columns_repr.append("%s:%s" % (name, column_type))
+        column = self.__proto.struct_type.members.add()
+        column.name = name
+        column.type.MergeFrom(column_type.proto)
+        return self
+
+    @property
+    def proto(self):
+        return self.__proto
+
+    def __str__(self):
+        return "BulkUpsertColumns<%s>" % ",".join(self.__columns_repr)

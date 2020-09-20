@@ -42,6 +42,11 @@ class RateLimiterServiceStub(object):
         request_serializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__rate__limiter__pb2.DescribeResourceRequest.SerializeToString,
         response_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__rate__limiter__pb2.DescribeResourceResponse.FromString,
         )
+    self.AcquireResource = channel.unary_unary(
+        '/Ydb.RateLimiter.V1.RateLimiterService/AcquireResource',
+        request_serializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__rate__limiter__pb2.AcquireResourceRequest.SerializeToString,
+        response_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__rate__limiter__pb2.AcquireResourceResponse.FromString,
+        )
 
 
 class RateLimiterServiceServicer(object):
@@ -86,6 +91,13 @@ class RateLimiterServiceServicer(object):
     context.set_details('Method not implemented!')
     raise NotImplementedError('Method not implemented!')
 
+  def AcquireResource(self, request, context):
+    """Take units for usage of a resource in coordination node.
+    """
+    context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+    context.set_details('Method not implemented!')
+    raise NotImplementedError('Method not implemented!')
+
 
 def add_RateLimiterServiceServicer_to_server(servicer, server):
   rpc_method_handlers = {
@@ -113,6 +125,11 @@ def add_RateLimiterServiceServicer_to_server(servicer, server):
           servicer.DescribeResource,
           request_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__rate__limiter__pb2.DescribeResourceRequest.FromString,
           response_serializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__rate__limiter__pb2.DescribeResourceResponse.SerializeToString,
+      ),
+      'AcquireResource': grpc.unary_unary_rpc_method_handler(
+          servicer.AcquireResource,
+          request_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__rate__limiter__pb2.AcquireResourceRequest.FromString,
+          response_serializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__rate__limiter__pb2.AcquireResourceResponse.SerializeToString,
       ),
   }
   generic_handler = grpc.method_handlers_generic_handler(
