@@ -145,6 +145,8 @@ message GetDatabaseStatusResult {
     // Current database generation. Incremented at each successful
     // alter request.
     uint64 generation = 6;
+    // Current quotas for schema operations
+    SchemaOperationQuotas schema_operation_quotas = 9;
 }
 
 // Change resources allocated for database.
