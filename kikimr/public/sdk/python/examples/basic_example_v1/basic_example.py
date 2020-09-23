@@ -7,25 +7,25 @@ import basic_example_data
 
 FillDataQuery = """PRAGMA TablePathPrefix("{}");
 
-DECLARE $seriesData AS "List<Struct<
+DECLARE $seriesData AS List<Struct<
     series_id: Uint64,
     title: Utf8,
     series_info: Utf8,
-    release_date: Date>>";
+    release_date: Date>>;
 
-DECLARE $seasonsData AS "List<Struct<
+DECLARE $seasonsData AS List<Struct<
     series_id: Uint64,
     season_id: Uint64,
     title: Utf8,
     first_aired: Date,
-    last_aired: Date>>";
+    last_aired: Date>>;
 
-DECLARE $episodesData AS "List<Struct<
+DECLARE $episodesData AS List<Struct<
     series_id: Uint64,
     season_id: Uint64,
     episode_id: Uint64,
     title: Utf8,
-    air_date: Date>>";
+    air_date: Date>>;
 
 REPLACE INTO series
 SELECT
@@ -76,9 +76,11 @@ def select_simple(session, path):
     result_sets = session.transaction(ydb.SerializableReadWrite()).execute(
         """
         PRAGMA TablePathPrefix("{}");
-        SELECT series_id,
-               title,
-               DateTime::ToDate(DateTime::TimestampFromDays(release_date)) AS release_date
+        $format = DateTime::Format("%Y-%m-%d");
+        SELECT
+            series_id,
+            title,
+            $format(DateTime::FromSeconds(CAST(DateTime::ToSeconds(DateTime::IntervalFromDays(CAST(release_date AS Int16))) AS Uint32))) AS release_date
         FROM series
         WHERE series_id = 1;
         """.format(path),
@@ -110,8 +112,10 @@ def select_prepared(session, path, series_id, season_id, episode_id):
     DECLARE $seasonId AS Uint64;
     DECLARE $episodeId AS Uint64;
 
-    SELECT title,
-           DateTime::ToDate(DateTime::TimestampFromDays(air_date)) AS air_date
+    $format = DateTime::Format("%Y-%m-%d");
+    SELECT
+        title,
+        $format(DateTime::FromSeconds(CAST(DateTime::ToSeconds(DateTime::IntervalFromDays(CAST(air_date AS Int16))) AS Uint32))) AS air_date
     FROM episodes
     WHERE series_id = $seriesId AND season_id = $seasonId AND episode_id = $episodeId;
     """.format(path)
