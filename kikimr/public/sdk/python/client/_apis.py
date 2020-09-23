@@ -4,12 +4,11 @@ from kikimr.public.api.protos import ydb_status_codes_pb2, ydb_discovery_pb2, yd
 from kikimr.public.api.protos import ydb_operation_pb2
 from kikimr.public.api.protos import ydb_common_pb2
 from kikimr.public.api.grpc import ydb_operation_v1_pb2_grpc
-from yql.public.types import yql_types_pb2
 
 
 StatusIds = ydb_status_codes_pb2.StatusIds
 FeatureFlag = ydb_common_pb2.FeatureFlag
-yql_types = yql_types_pb2
+primitive_types = ydb_value_pb2.Type.PrimitiveTypeId
 ydb_value = ydb_value_pb2
 ydb_scheme = ydb_scheme_pb2
 ydb_table = ydb_table_pb2

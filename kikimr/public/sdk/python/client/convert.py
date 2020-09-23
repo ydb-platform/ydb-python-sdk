@@ -16,11 +16,8 @@ _primitive_type_by_id = {}
 
 
 def _initialize():
-    for key, value in _apis.yql_types.TypeIds.items():
-        try:
-            _primitive_type_by_id[value] = types.PrimitiveType[key]
-        except Exception:
-            continue
+    for pt in types.PrimitiveType:
+        _primitive_type_by_id[pt._idn_] = pt
 
 
 _initialize()

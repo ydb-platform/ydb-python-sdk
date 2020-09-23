@@ -10,31 +10,31 @@ class PrimitiveType(enum.Enum):
     Enumerates all available primitive types that can be used
     in computations.
     """
-    Int32 = _apis.yql_types.Int32, 'int32_value'
-    Uint32 = _apis.yql_types.Uint32, 'uint32_value'
-    Int64 = _apis.yql_types.Int64, 'int64_value'
-    Uint64 = _apis.yql_types.Uint64, 'uint64_value'
-    Int8 = _apis.yql_types.Int8, 'int32_value'
-    Uint8 = _apis.yql_types.Uint8, 'uint32_value'
-    Int16 = _apis.yql_types.Int16, 'int32_value'
-    Uint16 = _apis.yql_types.Uint16, 'uint32_value'
-    Bool = _apis.yql_types.Bool, 'bool_value'
-    Double = _apis.yql_types.Double, 'double_value'
-    Float = _apis.yql_types.Float, 'float_value'
+    Int32 = _apis.primitive_types.INT32, 'int32_value'
+    Uint32 = _apis.primitive_types.UINT32, 'uint32_value'
+    Int64 = _apis.primitive_types.INT64, 'int64_value'
+    Uint64 = _apis.primitive_types.UINT64, 'uint64_value'
+    Int8 = _apis.primitive_types.INT8, 'int32_value'
+    Uint8 = _apis.primitive_types.UINT8, 'uint32_value'
+    Int16 = _apis.primitive_types.INT16, 'int32_value'
+    Uint16 = _apis.primitive_types.UINT16, 'uint32_value'
+    Bool = _apis.primitive_types.BOOL, 'bool_value'
+    Double = _apis.primitive_types.DOUBLE, 'double_value'
+    Float = _apis.primitive_types.FLOAT, 'float_value'
 
-    String = _apis.yql_types.String, 'bytes_value'
-    Utf8 = _apis.yql_types.Utf8, 'text_value', _utilities.from_bytes
+    String = _apis.primitive_types.STRING, 'bytes_value'
+    Utf8 = _apis.primitive_types.UTF8, 'text_value', _utilities.from_bytes
 
-    Yson = _apis.yql_types.Yson, 'bytes_value'
-    Json = _apis.yql_types.Json, 'text_value', _utilities.from_bytes
-    JsonDocument = _apis.yql_types.JsonDocument, 'text_value', _utilities.from_bytes
+    Yson = _apis.primitive_types.YSON, 'bytes_value'
+    Json = _apis.primitive_types.JSON, 'text_value', _utilities.from_bytes
+    JsonDocument = _apis.primitive_types.JSON_DOCUMENT, 'text_value', _utilities.from_bytes
 
-    Date = _apis.yql_types.Date, 'uint32_value'
-    Datetime = _apis.yql_types.Datetime, 'uint32_value'
-    Timestamp = _apis.yql_types.Timestamp, 'uint64_value'
-    Interval = _apis.yql_types.Interval, 'int64_value'
+    Date = _apis.primitive_types.DATE, 'uint32_value'
+    Datetime = _apis.primitive_types.DATETIME, 'uint32_value'
+    Timestamp = _apis.primitive_types.TIMESTAMP, 'uint64_value'
+    Interval = _apis.primitive_types.INTERVAL, 'int64_value'
 
-    DyNumber = _apis.yql_types.DyNumber, 'text_value', _utilities.from_bytes
+    DyNumber = _apis.primitive_types.DYNUMBER, 'text_value', _utilities.from_bytes
 
     def __init__(self, idn, proto_field, to_obj=None):
         self._idn_ = idn
