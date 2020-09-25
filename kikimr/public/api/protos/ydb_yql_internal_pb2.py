@@ -23,7 +23,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='kikimr/public/api/protos/ydb_yql_internal.proto',
   package='Ydb.YqlInternal',
   syntax='proto3',
-  serialized_pb=_b('\n/kikimr/public/api/protos/ydb_yql_internal.proto\x12\x0fYdb.YqlInternal\x1a)kikimr/public/api/protos/ydb_common.proto\x1a,kikimr/public/api/protos/ydb_operation.proto\x1a(kikimr/public/api/protos/ydb_table.proto\x1a(kikimr/public/api/protos/ydb_value.proto\"\x89\x01\n\x11\x45xecQuerySettings\x12+\n\nstrict_dml\x18\x01 \x01(\x0e\x32\x17.Ydb.FeatureFlag.Status\x12/\n\x0euse_new_engine\x18\x02 \x01(\x0e\x32\x17.Ydb.FeatureFlag.Status\x12\x16\n\x0eget_query_plan\x18\x03 \x01(\x08\"\xfa\x02\n\x17\x45xecDataQueryAstRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x14\n\x0c\x63luster_name\x18\x02 \x01(\t\x12\x11\n\tquery_ast\x18\x03 \x01(\t\x12L\n\nparameters\x18\x04 \x03(\x0b\x32\x38.Ydb.YqlInternal.ExecDataQueryAstRequest.ParametersEntry\x12\x33\n\x0btx_settings\x18\x05 \x01(\x0b\x32\x1e.Ydb.Table.TransactionSettings\x12\x34\n\x08settings\x18\x06 \x01(\x0b\x32\".Ydb.YqlInternal.ExecQuerySettings\x1a\x42\n\x0fParametersEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\x1e\n\x05value\x18\x02 \x01(\x0b\x32\x0f.Ydb.TypedValue:\x02\x38\x01\"H\n\x18\x45xecDataQueryAstResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"d\n\x16\x45xecDataQueryAstResult\x12#\n\x0bresult_sets\x18\x01 \x03(\x0b\x32\x0e.Ydb.ResultSet\x12\x11\n\tquery_ast\x18\x02 \x01(\t\x12\x12\n\nquery_plan\x18\x03 \x01(\t\"\x80\x01\n\x1a\x45xplainDataQueryAstRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x14\n\x0c\x63luster_name\x18\x02 \x01(\t\x12\x11\n\tquery_ast\x18\x03 \x01(\t\"K\n\x1b\x45xplainDataQueryAstResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"B\n\x19\x45xplainDataQueryAstResult\x12\x11\n\tquery_ast\x18\x02 \x01(\t\x12\x12\n\nquery_plan\x18\x03 \x01(\tB3\n\x1b\x63om.yandex.ydb.yql_internalB\x11YqlInternalProtos\xf8\x01\x01\x62\x06proto3')
+  serialized_pb=_b('\n/kikimr/public/api/protos/ydb_yql_internal.proto\x12\x0fYdb.YqlInternal\x1a)kikimr/public/api/protos/ydb_common.proto\x1a,kikimr/public/api/protos/ydb_operation.proto\x1a(kikimr/public/api/protos/ydb_table.proto\x1a(kikimr/public/api/protos/ydb_value.proto\"w\n\x11\x45xecQuerySettings\x12+\n\nstrict_dml\x18\x01 \x01(\x0e\x32\x17.Ydb.FeatureFlag.Status\x12/\n\x0euse_new_engine\x18\x02 \x01(\x0e\x32\x17.Ydb.FeatureFlag.StatusJ\x04\x08\x03\x10\x04\"\xfa\x02\n\x17\x45xecDataQueryAstRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x14\n\x0c\x63luster_name\x18\x02 \x01(\t\x12\x11\n\tquery_ast\x18\x03 \x01(\t\x12L\n\nparameters\x18\x04 \x03(\x0b\x32\x38.Ydb.YqlInternal.ExecDataQueryAstRequest.ParametersEntry\x12\x33\n\x0btx_settings\x18\x05 \x01(\x0b\x32\x1e.Ydb.Table.TransactionSettings\x12\x34\n\x08settings\x18\x06 \x01(\x0b\x32\".Ydb.YqlInternal.ExecQuerySettings\x1a\x42\n\x0fParametersEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\x1e\n\x05value\x18\x02 \x01(\x0b\x32\x0f.Ydb.TypedValue:\x02\x38\x01\"H\n\x18\x45xecDataQueryAstResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"d\n\x16\x45xecDataQueryAstResult\x12#\n\x0bresult_sets\x18\x01 \x03(\x0b\x32\x0e.Ydb.ResultSet\x12\x11\n\tquery_ast\x18\x02 \x01(\t\x12\x12\n\nquery_plan\x18\x03 \x01(\t\"\x80\x01\n\x1a\x45xplainDataQueryAstRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x14\n\x0c\x63luster_name\x18\x02 \x01(\t\x12\x11\n\tquery_ast\x18\x03 \x01(\t\"K\n\x1b\x45xplainDataQueryAstResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"B\n\x19\x45xplainDataQueryAstResult\x12\x11\n\tquery_ast\x18\x02 \x01(\t\x12\x12\n\nquery_plan\x18\x03 \x01(\tB3\n\x1b\x63om.yandex.ydb.yql_internalB\x11YqlInternalProtos\xf8\x01\x01\x62\x06proto3')
   ,
   dependencies=[kikimr_dot_public_dot_api_dot_protos_dot_ydb__common__pb2.DESCRIPTOR,kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2.DESCRIPTOR,kikimr_dot_public_dot_api_dot_protos_dot_ydb__table__pb2.DESCRIPTOR,kikimr_dot_public_dot_api_dot_protos_dot_ydb__value__pb2.DESCRIPTOR,])
 
@@ -51,13 +51,6 @@ _EXECQUERYSETTINGS = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
-    _descriptor.FieldDescriptor(
-      name='get_query_plan', full_name='Ydb.YqlInternal.ExecQuerySettings.get_query_plan', index=2,
-      number=3, type=8, cpp_type=7, label=1,
-      has_default_value=False, default_value=False,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
   ],
   extensions=[
   ],
@@ -70,8 +63,8 @@ _EXECQUERYSETTINGS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=242,
-  serialized_end=379,
+  serialized_start=241,
+  serialized_end=360,
 )
 
 
@@ -108,8 +101,8 @@ _EXECDATAQUERYASTREQUEST_PARAMETERSENTRY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=694,
-  serialized_end=760,
+  serialized_start=675,
+  serialized_end=741,
 )
 
 _EXECDATAQUERYASTREQUEST = _descriptor.Descriptor(
@@ -173,8 +166,8 @@ _EXECDATAQUERYASTREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=382,
-  serialized_end=760,
+  serialized_start=363,
+  serialized_end=741,
 )
 
 
@@ -204,8 +197,8 @@ _EXECDATAQUERYASTRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=762,
-  serialized_end=834,
+  serialized_start=743,
+  serialized_end=815,
 )
 
 
@@ -249,8 +242,8 @@ _EXECDATAQUERYASTRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=836,
-  serialized_end=936,
+  serialized_start=817,
+  serialized_end=917,
 )
 
 
@@ -294,8 +287,8 @@ _EXPLAINDATAQUERYASTREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=939,
-  serialized_end=1067,
+  serialized_start=920,
+  serialized_end=1048,
 )
 
 
@@ -325,8 +318,8 @@ _EXPLAINDATAQUERYASTRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1069,
-  serialized_end=1144,
+  serialized_start=1050,
+  serialized_end=1125,
 )
 
 
@@ -363,8 +356,8 @@ _EXPLAINDATAQUERYASTRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1146,
-  serialized_end=1212,
+  serialized_start=1127,
+  serialized_end=1193,
 )
 
 _EXECQUERYSETTINGS.fields_by_name['strict_dml'].enum_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__common__pb2._FEATUREFLAG_STATUS
