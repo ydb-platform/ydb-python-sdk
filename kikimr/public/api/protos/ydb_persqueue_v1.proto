@@ -16,6 +16,14 @@ option cc_enable_arenas = true;
 // packed encoding ('message' types can't be packed encoded). In non-repeated fields we use 'ms' for consistency.
 // * Any message with non-empty 'issues' property leads to streaming RPC termination.
 
+enum Codec {
+    CODEC_UNSPECIFIED = 0;
+    CODEC_RAW = 1;
+    CODEC_GZIP = 2;
+    CODEC_LZOP = 3;
+    CODEC_ZSTD = 4;
+}
+
 message SessionMetaValue {
     map<string, string> value = 1;
 }
@@ -87,7 +95,7 @@ message StreamingWriteClientMessage {
         // If message is bigger than max_block_size - it will be transferred as SIZE/max_block_size blocks. All of
         // this blocks will be with block_count = 0 but not the last one - last one's block_count will be greater than 0;
         // Blocks can be reordered upto max_flush_window_size of uncompressed data.
-        // Each block contains concatenated client messages, compressed by choosed codec.
+        // Each block contains concatenated client messages, compressed by chosen codec.
         // If there is not full client message inside block, then all block contains only this part of message.
         // blocks:      A A A B B B BCDE
         // offset:      1 1 1 2 2 2 2
@@ -144,8 +152,8 @@ message StreamingWriteServerMessage {
 
         // Block (see StreamingWriteClientMessage.WriteRequest.blocks_data) format version supported by server or configured for a topic. Client must write data only with them.
         int64 block_format_version = 6;
-        // Client can only use compression codecs from this set to write messages to topic, session will be close with BAD_REQUEST otherwise.
-        repeated string supported_codecs = 10;
+        // Client can only use compression codecs from this set to write messages to topic, session will be closed with BAD_REQUEST otherwise.
+        repeated Codec supported_codecs = 10;
 
         // Maximal flush window size choosed by server. Size of uncompressed data not sended to server must not be bigger than flush window size.
         // In other words, this is maximal size of gap inside uncompressed data, which is not sended to server yet.
@@ -884,7 +892,7 @@ message MigrationStreamingReadServerMessage {
             // Timestamp of creation of message provided on write from client.
             uint64 create_timestamp_ms = 3;
             // Codec that is used for data compressing.
-            string codec = 4;
+            Codec codec = 4;
             // Compressed client message body.
             bytes data = 5;
         }
@@ -1105,14 +1113,6 @@ message TopicSettings {
     enum Format {
         FORMAT_UNSPECIFIED = 0;
         FORMAT_BASE = 1;
-    }
-
-    enum Codec {
-        CODEC_UNSPECIFIED = 0;
-        CODEC_RAW = 1;
-        CODEC_GZIP = 2;
-        CODEC_LZOP = 3;
-        CODEC_ZSTD = 4;
     }
 
     // How many partitions in topic. Must less than database limit. Default limit - 10.
