@@ -3,6 +3,7 @@
 
 import sys
 _b=sys.version_info[0]<3 and (lambda x:x) or (lambda x:x.encode('latin1'))
+from google.protobuf.internal import enum_type_wrapper
 from google.protobuf import descriptor as _descriptor
 from google.protobuf import message as _message
 from google.protobuf import reflection as _reflection
@@ -24,10 +25,50 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='kikimr/public/api/protos/ydb_persqueue_v1.proto',
   package='Ydb.PersQueue.V1',
   syntax='proto3',
-  serialized_pb=_b('\n/kikimr/public/api/protos/ydb_persqueue_v1.proto\x12\x10Ydb.PersQueue.V1\x1a,kikimr/public/api/protos/ydb_operation.proto\x1a)kikimr/public/api/protos/ydb_scheme.proto\x1a/kikimr/public/api/protos/ydb_status_codes.proto\x1a\x30kikimr/public/api/protos/ydb_issue_message.proto\x1a\x34kikimr/public/api/protos/validation/validation.proto\"~\n\x10SessionMetaValue\x12<\n\x05value\x18\x01 \x03(\x0b\x32-.Ydb.PersQueue.V1.SessionMetaValue.ValueEntry\x1a,\n\nValueEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\"8\n\x0cOffsetsRange\x12\x14\n\x0cstart_offset\x18\x01 \x01(\x03\x12\x12\n\nend_offset\x18\x02 \x01(\x03\"\x84\x08\n\x1bStreamingWriteClientMessage\x12Q\n\x0cinit_request\x18\x01 \x01(\x0b\x32\x39.Ydb.PersQueue.V1.StreamingWriteClientMessage.InitRequestH\x00\x12S\n\rwrite_request\x18\x02 \x01(\x0b\x32:.Ydb.PersQueue.V1.StreamingWriteClientMessage.WriteRequestH\x00\x12`\n\x14update_token_request\x18\x03 \x01(\x0b\x32@.Ydb.PersQueue.V1.StreamingWriteClientMessage.UpdateTokenRequestH\x00\x1a\x92\x03\n\x0bInitRequest\x12\r\n\x05topic\x18\x01 \x01(\t\x12\x18\n\x10message_group_id\x18\x02 \x01(\t\x12`\n\x0csession_meta\x18\x03 \x03(\x0b\x32J.Ydb.PersQueue.V1.StreamingWriteClientMessage.InitRequest.SessionMetaEntry\x12\x1a\n\x12partition_group_id\x18\x04 \x01(\x03\x12*\n\"max_supported_block_format_version\x18\x05 \x01(\x03\x12\x12\n\nsession_id\x18\x64 \x01(\t\x12\x1a\n\x12\x63onnection_attempt\x18\x65 \x01(\x03\x12\x17\n\x0f\x63onnection_meta\x18\x66 \x01(\x0c\x12\x19\n\x11preferred_cluster\x18g \x01(\t\x12\x18\n\x0fidle_timeout_ms\x18\xc8\x01 \x01(\x03\x1a\x32\n\x10SessionMetaEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\x1a\x8e\x02\n\x0cWriteRequest\x12\x18\n\x10sequence_numbers\x18\x02 \x03(\x03\x12\x15\n\rcreated_at_ms\x18\x03 \x03(\x03\x12\x12\n\nsent_at_ms\x18\x04 \x03(\x03\x12\x15\n\rmessage_sizes\x18\x05 \x03(\x03\x12\x16\n\x0e\x62locks_offsets\x18\x06 \x03(\x03\x12\x1b\n\x13\x62locks_part_numbers\x18\x07 \x03(\x03\x12\x1d\n\x15\x62locks_message_counts\x18\x08 \x03(\x03\x12!\n\x19\x62locks_uncompressed_sizes\x18\t \x03(\x03\x12\x16\n\x0e\x62locks_headers\x18\n \x03(\x0c\x12\x13\n\x0b\x62locks_data\x18\x0b \x03(\x0c\x1a#\n\x12UpdateTokenRequest\x12\r\n\x05token\x18\x01 \x01(\tB\x10\n\x0e\x63lient_message\"\xae\x08\n\x1bStreamingWriteServerMessage\x12S\n\rinit_response\x18\x03 \x01(\x0b\x32:.Ydb.PersQueue.V1.StreamingWriteServerMessage.InitResponseH\x00\x12`\n\x14\x62\x61tch_write_response\x18\x04 \x01(\x0b\x32@.Ydb.PersQueue.V1.StreamingWriteServerMessage.BatchWriteResponseH\x00\x12\x62\n\x15update_token_response\x18\x05 \x01(\x0b\x32\x41.Ydb.PersQueue.V1.StreamingWriteServerMessage.UpdateTokenResponseH\x00\x12)\n\x06status\x18\x01 \x01(\x0e\x32\x19.Ydb.StatusIds.StatusCode\x12\'\n\x06issues\x18\x02 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessage\x1a\xfe\x01\n\x0cInitResponse\x12\x1c\n\x14last_sequence_number\x18\x01 \x01(\x03\x12\x12\n\nsession_id\x18\x02 \x01(\t\x12\r\n\x05topic\x18\x03 \x01(\t\x12\x0f\n\x07\x63luster\x18\x04 \x01(\t\x12\x14\n\x0cpartition_id\x18\x05 \x01(\x03\x12\x1c\n\x14\x62lock_format_version\x18\x06 \x01(\x03\x12\x18\n\x10supported_codecs\x18\n \x03(\t\x12\x1d\n\x15max_flush_window_size\x18\x07 \x01(\x03\x12\x16\n\x0emax_block_size\x18\x08 \x01(\x03\x12\x17\n\x0f\x63onnection_meta\x18\t \x01(\x0c\x1a\xc7\x01\n\x12\x42\x61tchWriteResponse\x12\x18\n\x10sequence_numbers\x18\x01 \x03(\x03\x12\x0f\n\x07offsets\x18\x02 \x03(\x03\x12\x17\n\x0f\x61lready_written\x18\x03 \x03(\x08\x12\x14\n\x0cpartition_id\x18\x04 \x01(\x03\x12W\n\x10write_statistics\x18\x05 \x01(\x0b\x32=.Ydb.PersQueue.V1.StreamingWriteServerMessage.WriteStatistics\x1a\x15\n\x13UpdateTokenResponse\x1a\xab\x01\n\x0fWriteStatistics\x12\x1b\n\x13persist_duration_ms\x18\x01 \x01(\x03\x12\'\n\x1fqueued_in_partition_duration_ms\x18\x02 \x01(\x03\x12*\n\"throttled_on_partition_duration_ms\x18\x03 \x01(\x03\x12&\n\x1ethrottled_on_topic_duration_ms\x18\x04 \x01(\x03\x42\x10\n\x0eserver_message\"\x14\n\x04Path\x12\x0c\n\x04path\x18\x01 \x01(\t\"&\n\x08KeyValue\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t\"D\n\nReadParams\x12\x1f\n\x17max_read_messages_count\x18\x01 \x01(\r\x12\x15\n\rmax_read_size\x18\x02 \x01(\r\";\n\x0c\x43ommitCookie\x12\x11\n\tassign_id\x18\x01 \x01(\x04\x12\x18\n\x10partition_cookie\x18\x02 \x01(\x04\"\x84\x16\n\x1dStreamingReadClientMessageNew\x12S\n\x0cinit_request\x18\x01 \x01(\x0b\x32;.Ydb.PersQueue.V1.StreamingReadClientMessageNew.InitRequestH\x00\x12S\n\x0cread_request\x18\x02 \x01(\x0b\x32;.Ydb.PersQueue.V1.StreamingReadClientMessageNew.ReadRequestH\x00\x12o\n\x1b\x63reate_read_stream_response\x18\x03 \x01(\x0b\x32H.Ydb.PersQueue.V1.StreamingReadClientMessageNew.CreateReadStreamResponseH\x00\x12W\n\x0e\x63ommit_request\x18\x04 \x01(\x0b\x32=.Ydb.PersQueue.V1.StreamingReadClientMessageNew.CommitRequestH\x00\x12q\n\x1c\x64\x65stroy_read_stream_response\x18\x05 \x01(\x0b\x32I.Ydb.PersQueue.V1.StreamingReadClientMessageNew.DestroyReadStreamResponseH\x00\x12\\\n\x11stop_read_request\x18\x06 \x01(\x0b\x32?.Ydb.PersQueue.V1.StreamingReadClientMessageNew.StopReadRequestH\x00\x12`\n\x13resume_read_request\x18\x07 \x01(\x0b\x32\x41.Ydb.PersQueue.V1.StreamingReadClientMessageNew.ResumeReadRequestH\x00\x12m\n\x1aread_stream_status_request\x18\x08 \x01(\x0b\x32G.Ydb.PersQueue.V1.StreamingReadClientMessageNew.ReadStreamStatusRequestH\x00\x12\\\n\x11\x61\x64\x64_topic_request\x18\t \x01(\x0b\x32?.Ydb.PersQueue.V1.StreamingReadClientMessageNew.AddTopicRequestH\x00\x12\x62\n\x14remove_topic_request\x18\n \x01(\x0b\x32\x42.Ydb.PersQueue.V1.StreamingReadClientMessageNew.RemoveTopicRequestH\x00\x12\r\n\x05token\x18\x14 \x01(\t\x1a\x91\x07\n\x0bInitRequest\x12_\n\x14topics_read_settings\x18\x01 \x03(\x0b\x32\x41.Ydb.PersQueue.V1.StreamingReadClientMessageNew.TopicReadSettings\x12\x1a\n\x12read_only_original\x18\x02 \x01(\x08\x12\x10\n\x08\x63onsumer\x18\x03 \x01(\t\x12\x1b\n\x13max_lag_duration_ms\x18\x04 \x01(\x03\x12 \n\x18start_from_written_at_ms\x18\x05 \x01(\x03\x12*\n\"max_supported_block_format_version\x18\x06 \x01(\x03\x12\x1b\n\x13max_meta_cache_size\x18\n \x01(\x03\x12\x12\n\nsession_id\x18\x64 \x01(\t\x12\x1a\n\x12\x63onnection_attempt\x18\x65 \x01(\x03\x12P\n\x05state\x18\x66 \x01(\x0b\x32\x41.Ydb.PersQueue.V1.StreamingReadClientMessageNew.InitRequest.State\x12\x18\n\x0fidle_timeout_ms\x18\xc8\x01 \x01(\x03\x1a\xce\x03\n\x05State\x12n\n\x13read_streams_states\x18\x01 \x03(\x0b\x32Q.Ydb.PersQueue.V1.StreamingReadClientMessageNew.InitRequest.State.ReadStreamState\x1a\xd4\x02\n\x0fReadStreamState\x12\x31\n\x0bread_stream\x18\x01 \x01(\x0b\x32\x1c.Ydb.PersQueue.V1.ReadStream\x12\x13\n\x0bread_offset\x18\x02 \x01(\x03\x12\x35\n\roffset_ranges\x18\x03 \x03(\x0b\x32\x1e.Ydb.PersQueue.V1.OffsetsRange\x12h\n\x06status\x18\x04 \x01(\x0e\x32X.Ydb.PersQueue.V1.StreamingReadClientMessageNew.InitRequest.State.ReadStreamState.Status\"X\n\x06Status\x12\x16\n\x12STATUS_UNSPECIFIED\x10\x00\x12\x0c\n\x08\x43REATING\x10\x01\x12\x0e\n\nDESTROYING\x10\x02\x12\x0b\n\x07READING\x10\x03\x12\x0b\n\x07STOPPED\x10\x04\x1a\x30\n\x0bReadRequest\x12!\n\x19request_uncompressed_size\x18\x01 \x01(\x03\x1az\n\x18\x43reateReadStreamResponse\x12\x16\n\x0eread_stream_id\x18\x01 \x01(\x03\x12\x13\n\x0bread_offset\x18\x02 \x01(\x03\x12\x15\n\rcommit_offset\x18\x03 \x01(\x03\x12\x1a\n\x12verify_read_offset\x18\x04 \x01(\x08\x1a\x33\n\x19\x44\x65stroyReadStreamResponse\x12\x16\n\x0eread_stream_id\x18\x01 \x01(\x03\x1a*\n\x0fStopReadRequest\x12\x17\n\x0fread_stream_ids\x18\x01 \x03(\x03\x1aZ\n\x11ResumeReadRequest\x12\x17\n\x0fread_stream_ids\x18\x01 \x03(\x03\x12\x14\n\x0cread_offsets\x18\x02 \x03(\x03\x12\x16\n\x0eresume_cookies\x18\x03 \x03(\x03\x1a\x61\n\rCommitRequest\x12P\n\x07\x63ommits\x18\x01 \x03(\x0b\x32?.Ydb.PersQueue.V1.StreamingReadClientMessageNew.PartitionCommit\x1a\x31\n\x17ReadStreamStatusRequest\x12\x16\n\x0eread_stream_id\x18\x01 \x01(\x03\x1aq\n\x0f\x41\x64\x64TopicRequest\x12^\n\x13topic_read_settings\x18\x01 \x01(\x0b\x32\x41.Ydb.PersQueue.V1.StreamingReadClientMessageNew.TopicReadSettings\x1a#\n\x12RemoveTopicRequest\x12\r\n\x05topic\x18\x01 \x01(\t\x1a\x61\n\x11TopicReadSettings\x12\r\n\x05topic\x18\x01 \x01(\t\x12\x1b\n\x13partition_group_ids\x18\x02 \x03(\x03\x12 \n\x18start_from_written_at_ms\x18\x03 \x01(\x03\x1aZ\n\x0fPartitionCommit\x12\x16\n\x0eread_stream_id\x18\x01 \x01(\x03\x12/\n\x07offsets\x18\x02 \x03(\x0b\x32\x1e.Ydb.PersQueue.V1.OffsetsRangeB\x10\n\x0e\x63lient_message\"\xa7\x19\n\x1dStreamingReadServerMessageNew\x12U\n\rinit_response\x18\x03 \x01(\x0b\x32<.Ydb.PersQueue.V1.StreamingReadServerMessageNew.InitResponseH\x00\x12`\n\x13\x62\x61tch_read_response\x18\x04 \x01(\x0b\x32\x41.Ydb.PersQueue.V1.StreamingReadServerMessageNew.BatchReadResponseH\x00\x12m\n\x1a\x63reate_read_stream_request\x18\x05 \x01(\x0b\x32G.Ydb.PersQueue.V1.StreamingReadServerMessageNew.CreateReadStreamRequestH\x00\x12o\n\x1b\x64\x65stroy_read_stream_request\x18\x06 \x01(\x0b\x32H.Ydb.PersQueue.V1.StreamingReadServerMessageNew.DestroyReadStreamRequestH\x00\x12Y\n\x0f\x63ommit_response\x18\x07 \x01(\x0b\x32>.Ydb.PersQueue.V1.StreamingReadServerMessageNew.CommitResponseH\x00\x12o\n\x1bread_stream_status_response\x18\x08 \x01(\x0b\x32H.Ydb.PersQueue.V1.StreamingReadServerMessageNew.ReadStreamStatusResponseH\x00\x12^\n\x12stop_read_response\x18\t \x01(\x0b\x32@.Ydb.PersQueue.V1.StreamingReadServerMessageNew.StopReadResponseH\x00\x12\x62\n\x14resume_read_response\x18\n \x01(\x0b\x32\x42.Ydb.PersQueue.V1.StreamingReadServerMessageNew.ResumeReadResponseH\x00\x12^\n\x12\x61\x64\x64_topic_response\x18\x0b \x01(\x0b\x32@.Ydb.PersQueue.V1.StreamingReadServerMessageNew.AddTopicResponseH\x00\x12\x64\n\x15remove_topic_response\x18\x0c \x01(\x0b\x32\x43.Ydb.PersQueue.V1.StreamingReadServerMessageNew.RemoveTopicResponseH\x00\x12)\n\x06status\x18\x01 \x01(\x0e\x32\x19.Ydb.StatusIds.StatusCode\x12\'\n\x06issues\x18\x02 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessage\x1a\x86\x02\n\x0cInitResponse\x12\x12\n\nsession_id\x18\x01 \x01(\t\x12\x82\x01\n\x1d\x62lock_format_version_by_topic\x18\x02 \x03(\x0b\x32[.Ydb.PersQueue.V1.StreamingReadServerMessageNew.InitResponse.BlockFormatVersionByTopicEntry\x12\x1b\n\x13max_meta_cache_size\x18\n \x01(\x03\x1a@\n\x1e\x42lockFormatVersionByTopicEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\x03:\x02\x38\x01\x1az\n\x17\x43reateReadStreamRequest\x12\x31\n\x0bread_stream\x18\x01 \x01(\x0b\x32\x1c.Ydb.PersQueue.V1.ReadStream\x12\x18\n\x10\x63ommitted_offset\x18\x02 \x01(\x03\x12\x12\n\nend_offset\x18\x03 \x01(\x03\x1a^\n\x18\x44\x65stroyReadStreamRequest\x12\x16\n\x0eread_stream_id\x18\x01 \x01(\x03\x12\x10\n\x08graceful\x18\x02 \x01(\x08\x12\x18\n\x10\x63ommitted_offset\x18\x03 \x01(\x03\x1a\xdd\x01\n\x0e\x43ommitResponse\x12}\n\x1cpartitions_committed_offsets\x18\x01 \x03(\x0b\x32W.Ydb.PersQueue.V1.StreamingReadServerMessageNew.CommitResponse.PartitionCommittedOffset\x1aL\n\x18PartitionCommittedOffset\x12\x16\n\x0eread_stream_id\x18\x01 \x01(\x03\x12\x18\n\x10\x63ommitted_offset\x18\x02 \x01(\x03\x1a\xf4\x08\n\x11\x42\x61tchReadResponse\x12_\n\nskip_range\x18\x01 \x03(\x0b\x32K.Ydb.PersQueue.V1.StreamingReadServerMessageNew.BatchReadResponse.SkipRange\x12\x63\n\npartitions\x18\x02 \x03(\x0b\x32O.Ydb.PersQueue.V1.StreamingReadServerMessageNew.BatchReadResponse.PartitionData\x1a\xbf\x06\n\rPartitionData\x12\x16\n\x0eread_stream_id\x18\x01 \x01(\x03\x12\x0f\n\x07offsets\x18\x02 \x03(\x03\x12\x18\n\x10sequence_numbers\x18\x03 \x03(\x03\x12\x15\n\rcreated_at_ms\x18\x04 \x03(\x03\x12\x15\n\rwritten_at_ms\x18\x05 \x03(\x03\x12\x19\n\x11message_group_ids\x18\x06 \x03(\t\x12 \n\x18message_group_id_indexes\x18\x07 \x03(\x12\x12\x0b\n\x03ips\x18\x08 \x03(\t\x12\x12\n\nip_indexes\x18\t \x03(\x12\x12@\n\x14message_session_meta\x18\n \x03(\x0b\x32\".Ydb.PersQueue.V1.SessionMetaValue\x12$\n\x1cmessage_session_meta_indexes\x18\x0b \x03(\x12\x12\x15\n\rmessage_sizes\x18\x0c \x03(\x03\x12\x16\n\x0e\x62locks_offsets\x18\r \x03(\x03\x12\x1b\n\x13\x62locks_part_numbers\x18\x0e \x03(\x03\x12\x1d\n\x15\x62locks_message_counts\x18\x0f \x03(\x03\x12!\n\x19\x62locks_uncompressed_sizes\x18\x10 \x03(\x03\x12\x16\n\x0e\x62locks_headers\x18\x11 \x03(\x0c\x12\x13\n\x0b\x62locks_data\x18\x12 \x03(\x0c\x12\x15\n\rresume_cookie\x18\x32 \x01(\x03\x12w\n\x0fread_statistics\x18\x64 \x01(\x0b\x32^.Ydb.PersQueue.V1.StreamingReadServerMessageNew.BatchReadResponse.PartitionData.ReadStatistics\x1a\xab\x01\n\x0eReadStatistics\x12\x18\n\x10\x62lobs_from_cache\x18\x01 \x01(\x03\x12\x17\n\x0f\x62lobs_from_disk\x18\x02 \x01(\x03\x12\x17\n\x0f\x62ytes_from_head\x18\x03 \x01(\x03\x12\x18\n\x10\x62ytes_from_cache\x18\x04 \x01(\x03\x12\x17\n\x0f\x62ytes_from_disk\x18\x05 \x01(\x03\x12\x1a\n\x12repack_duration_ms\x18\x06 \x01(\x03\x1aW\n\tSkipRange\x12\x16\n\x0eread_stream_id\x18\x01 \x01(\x03\x12\x32\n\nskip_range\x18\x02 \x01(\x0b\x32\x1e.Ydb.PersQueue.V1.OffsetsRange\x1a\x81\x01\n\x18ReadStreamStatusResponse\x12\x16\n\x0eread_stream_id\x18\x01 \x01(\x03\x12\x18\n\x10\x63ommitted_offset\x18\x02 \x01(\x03\x12\x12\n\nend_offset\x18\x03 \x01(\x03\x12\x1f\n\x17written_at_watermark_ms\x18\x04 \x01(\x03\x1a\x12\n\x10StopReadResponse\x1a\x14\n\x12ResumeReadResponse\x1a\x30\n\x10\x41\x64\x64TopicResponse\x12\x1c\n\x14\x62lock_format_version\x18\x01 \x01(\x03\x1a\x15\n\x13RemoveTopicResponseB\x10\n\x0eserver_message\"\x8f\x01\n\nReadStream\x12\r\n\x05topic\x18\x01 \x01(\t\x12\x0f\n\x07\x63luster\x18\x02 \x01(\t\x12\x14\n\x0cpartition_id\x18\x03 \x01(\x03\x12\x1a\n\x12partition_group_id\x18\x04 \x01(\x03\x12\x16\n\x0eread_stream_id\x18\x06 \x01(\x03\x12\x17\n\x0f\x63onnection_meta\x18\x07 \x01(\x0c\"\xbc\x10\n#MigrationStreamingReadClientMessage\x12Y\n\x0cinit_request\x18\x01 \x01(\x0b\x32\x41.Ydb.PersQueue.V1.MigrationStreamingReadClientMessage.InitRequestH\x00\x12J\n\x04read\x18\x02 \x01(\x0b\x32:.Ydb.PersQueue.V1.MigrationStreamingReadClientMessage.ReadH\x00\x12U\n\nstart_read\x18\x03 \x01(\x0b\x32?.Ydb.PersQueue.V1.MigrationStreamingReadClientMessage.StartReadH\x00\x12N\n\x06\x63ommit\x18\x04 \x01(\x0b\x32<.Ydb.PersQueue.V1.MigrationStreamingReadClientMessage.CommitH\x00\x12R\n\x08released\x18\x05 \x01(\x0b\x32>.Ydb.PersQueue.V1.MigrationStreamingReadClientMessage.ReleasedH\x00\x12N\n\x06status\x18\x06 \x01(\x0b\x32<.Ydb.PersQueue.V1.MigrationStreamingReadClientMessage.StatusH\x00\x12\r\n\x05token\x18\x14 \x01(\x0c\x1a\x61\n\x11TopicReadSettings\x12\r\n\x05topic\x18\x01 \x01(\t\x12\x1b\n\x13partition_group_ids\x18\x02 \x03(\x03\x12 \n\x18start_from_written_at_ms\x18\x03 \x01(\x03\x1a\xdc\x07\n\x0bInitRequest\x12\x65\n\x14topics_read_settings\x18\x01 \x03(\x0b\x32G.Ydb.PersQueue.V1.MigrationStreamingReadClientMessage.TopicReadSettings\x12\x1a\n\x12read_only_original\x18\x02 \x01(\x08\x12\x10\n\x08\x63onsumer\x18\x03 \x01(\t\x12\x1b\n\x13max_lag_duration_ms\x18\x04 \x01(\x03\x12 \n\x18start_from_written_at_ms\x18\x05 \x01(\x03\x12*\n\"max_supported_block_format_version\x18\x06 \x01(\x03\x12\x1b\n\x13max_meta_cache_size\x18\n \x01(\x03\x12\x12\n\nsession_id\x18\x64 \x01(\t\x12\x1a\n\x12\x63onnection_attempt\x18\x65 \x01(\x03\x12V\n\x05state\x18\x66 \x01(\x0b\x32G.Ydb.PersQueue.V1.MigrationStreamingReadClientMessage.InitRequest.State\x12\x18\n\x0fidle_timeout_ms\x18\xc8\x01 \x01(\x03\x12\x31\n\x0bread_params\x18* \x01(\x0b\x32\x1c.Ydb.PersQueue.V1.ReadParams\x1a\xda\x03\n\x05State\x12t\n\x13read_streams_states\x18\x01 \x03(\x0b\x32W.Ydb.PersQueue.V1.MigrationStreamingReadClientMessage.InitRequest.State.ReadStreamState\x1a\xda\x02\n\x0fReadStreamState\x12\x31\n\x0bread_stream\x18\x01 \x01(\x0b\x32\x1c.Ydb.PersQueue.V1.ReadStream\x12\x13\n\x0bread_offset\x18\x02 \x01(\x03\x12\x35\n\roffset_ranges\x18\x03 \x03(\x0b\x32\x1e.Ydb.PersQueue.V1.OffsetsRange\x12n\n\x06status\x18\x04 \x01(\x0e\x32^.Ydb.PersQueue.V1.MigrationStreamingReadClientMessage.InitRequest.State.ReadStreamState.Status\"X\n\x06Status\x12\x16\n\x12STATUS_UNSPECIFIED\x10\x00\x12\x0c\n\x08\x43REATING\x10\x01\x12\x0e\n\nDESTROYING\x10\x02\x12\x0b\n\x07READING\x10\x03\x12\x0b\n\x07STOPPED\x10\x04\x1a\x06\n\x04Read\x1a\xb1\x01\n\tStartRead\x12%\n\x05topic\x18\x01 \x01(\x0b\x32\x16.Ydb.PersQueue.V1.Path\x12\x0f\n\x07\x63luster\x18\x02 \x01(\t\x12\x11\n\tpartition\x18\x03 \x01(\x04\x12\x11\n\tassign_id\x18\x05 \x01(\x04\x12\x13\n\x0bread_offset\x18\x06 \x01(\x04\x12\x15\n\rcommit_offset\x18\x07 \x01(\x04\x12\x1a\n\x12verify_read_offset\x18\x08 \x01(\x08\x1ah\n\x08Released\x12%\n\x05topic\x18\x01 \x01(\x0b\x32\x16.Ydb.PersQueue.V1.Path\x12\x0f\n\x07\x63luster\x18\x02 \x01(\t\x12\x11\n\tpartition\x18\x03 \x01(\x04\x12\x11\n\tassign_id\x18\x05 \x01(\x04\x1a\x39\n\x06\x43ommit\x12/\n\x07\x63ookies\x18\x01 \x03(\x0b\x32\x1e.Ydb.PersQueue.V1.CommitCookie\x1a\x66\n\x06Status\x12%\n\x05topic\x18\x01 \x01(\x0b\x32\x16.Ydb.PersQueue.V1.Path\x12\x0f\n\x07\x63luster\x18\x02 \x01(\t\x12\x11\n\tpartition\x18\x03 \x01(\x04\x12\x11\n\tassign_id\x18\x05 \x01(\x04\x42\t\n\x07request\"\x87\x11\n#MigrationStreamingReadServerMessage\x12)\n\x06status\x18\x01 \x01(\x0e\x32\x19.Ydb.StatusIds.StatusCode\x12\'\n\x06issues\x18\x02 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessage\x12[\n\rinit_response\x18\x03 \x01(\x0b\x32\x42.Ydb.PersQueue.V1.MigrationStreamingReadServerMessage.InitResponseH\x00\x12U\n\ndata_batch\x18\x04 \x01(\x0b\x32?.Ydb.PersQueue.V1.MigrationStreamingReadServerMessage.DataBatchH\x00\x12R\n\x08\x61ssigned\x18\x05 \x01(\x0b\x32>.Ydb.PersQueue.V1.MigrationStreamingReadServerMessage.AssignedH\x00\x12P\n\x07release\x18\x06 \x01(\x0b\x32=.Ydb.PersQueue.V1.MigrationStreamingReadServerMessage.ReleaseH\x00\x12T\n\tcommitted\x18\x07 \x01(\x0b\x32?.Ydb.PersQueue.V1.MigrationStreamingReadServerMessage.CommittedH\x00\x12\x61\n\x10partition_status\x18\x08 \x01(\x0b\x32\x45.Ydb.PersQueue.V1.MigrationStreamingReadServerMessage.PartitionStatusH\x00\x1a\x8c\x02\n\x0cInitResponse\x12\x12\n\nsession_id\x18\x01 \x01(\t\x12\x88\x01\n\x1d\x62lock_format_version_by_topic\x18\x02 \x03(\x0b\x32\x61.Ydb.PersQueue.V1.MigrationStreamingReadServerMessage.InitResponse.BlockFormatVersionByTopicEntry\x12\x1b\n\x13max_meta_cache_size\x18\n \x01(\x03\x1a@\n\x1e\x42lockFormatVersionByTopicEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\x03:\x02\x38\x01\x1a\x91\x01\n\x08\x41ssigned\x12%\n\x05topic\x18\x01 \x01(\x0b\x32\x16.Ydb.PersQueue.V1.Path\x12\x0f\n\x07\x63luster\x18\x02 \x01(\t\x12\x11\n\tpartition\x18\x03 \x01(\x04\x12\x11\n\tassign_id\x18\x05 \x01(\x04\x12\x13\n\x0bread_offset\x18\x06 \x01(\x04\x12\x12\n\nend_offset\x18\x07 \x01(\x04\x1a\x98\x01\n\x07Release\x12%\n\x05topic\x18\x01 \x01(\x0b\x32\x16.Ydb.PersQueue.V1.Path\x12\x0f\n\x07\x63luster\x18\x02 \x01(\t\x12\x11\n\tpartition\x18\x03 \x01(\x04\x12\x11\n\tassign_id\x18\x05 \x01(\x04\x12\x18\n\x10\x66orceful_release\x18\x06 \x01(\x08\x12\x15\n\rcommit_offset\x18\x07 \x01(\x04\x1a<\n\tCommitted\x12/\n\x07\x63ookies\x18\x01 \x03(\x0b\x32\x1e.Ydb.PersQueue.V1.CommitCookie\x1a\xb4\x05\n\tDataBatch\x12\x65\n\x0epartition_data\x18\x01 \x03(\x0b\x32M.Ydb.PersQueue.V1.MigrationStreamingReadServerMessage.DataBatch.PartitionData\x1ag\n\x0bMessageData\x12\x0e\n\x06offset\x18\x01 \x01(\x04\x12\x0e\n\x06seq_no\x18\x02 \x01(\x04\x12\x1b\n\x13\x63reate_timestamp_ms\x18\x03 \x01(\x04\x12\r\n\x05\x63odec\x18\x04 \x01(\t\x12\x0c\n\x04\x64\x61ta\x18\x05 \x01(\x0c\x1a\xd7\x01\n\x05\x42\x61tch\x12\x11\n\tsource_id\x18\x02 \x01(\x0c\x12\x30\n\x0c\x65xtra_fields\x18\x03 \x03(\x0b\x32\x1a.Ydb.PersQueue.V1.KeyValue\x12\x1a\n\x12write_timestamp_ms\x18\x04 \x01(\x04\x12\n\n\x02ip\x18\x05 \x01(\t\x12\x61\n\x0cmessage_data\x18\x01 \x03(\x0b\x32K.Ydb.PersQueue.V1.MigrationStreamingReadServerMessage.DataBatch.MessageData\x1a\xfc\x01\n\rPartitionData\x12%\n\x05topic\x18\x01 \x01(\x0b\x32\x16.Ydb.PersQueue.V1.Path\x12\x0f\n\x07\x63luster\x18\x02 \x01(\t\x12\x11\n\tpartition\x18\x03 \x01(\x04\x12V\n\x07\x62\x61tches\x18\x04 \x03(\x0b\x32\x45.Ydb.PersQueue.V1.MigrationStreamingReadServerMessage.DataBatch.Batch\x12.\n\x06\x63ookie\x18\x05 \x01(\x0b\x32\x1e.Ydb.PersQueue.V1.CommitCookie\x12\x18\n\x10\x64\x65precated_topic\x18\n \x01(\t\x1a\xb9\x01\n\x0fPartitionStatus\x12%\n\x05topic\x18\x01 \x01(\x0b\x32\x16.Ydb.PersQueue.V1.Path\x12\x0f\n\x07\x63luster\x18\x02 \x01(\t\x12\x11\n\tpartition\x18\x03 \x01(\x04\x12\x11\n\tassign_id\x18\x05 \x01(\x04\x12\x18\n\x10\x63ommitted_offset\x18\x06 \x01(\x04\x12\x12\n\nend_offset\x18\x07 \x01(\x04\x12\x1a\n\x12write_watermark_ms\x18\x08 \x01(\x04\x42\n\n\x08response\"\xb9\x01\n\x0fReadInfoRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12&\n\x06topics\x18\x02 \x03(\x0b\x32\x16.Ydb.PersQueue.V1.Path\x12\x19\n\x11get_only_original\x18\x03 \x01(\x08\x12(\n\x08\x63onsumer\x18\x04 \x01(\x0b\x32\x16.Ydb.PersQueue.V1.Path\"@\n\x10ReadInfoResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\xa1\x06\n\x0eReadInfoResult\x12:\n\x06topics\x18\x01 \x03(\x0b\x32*.Ydb.PersQueue.V1.ReadInfoResult.TopicInfo\x1a\xd2\x05\n\tTopicInfo\x12%\n\x05topic\x18\x01 \x01(\x0b\x32\x16.Ydb.PersQueue.V1.Path\x12\x0f\n\x07\x63luster\x18\x02 \x01(\t\x12)\n\x06status\x18\x03 \x01(\x0e\x32\x19.Ydb.StatusIds.StatusCode\x12\'\n\x06issues\x18\x04 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessage\x12L\n\npartitions\x18\x05 \x03(\x0b\x32\x38.Ydb.PersQueue.V1.ReadInfoResult.TopicInfo.PartitionInfo\x1a\xea\x03\n\rPartitionInfo\x12\x11\n\tpartition\x18\x01 \x01(\x04\x12)\n\x06status\x18\x02 \x01(\x0e\x32\x19.Ydb.StatusIds.StatusCode\x12\'\n\x06issues\x18\x03 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessage\x12\x14\n\x0cstart_offset\x18\x04 \x01(\x04\x12\x12\n\nend_offset\x18\x05 \x01(\x04\x12\x15\n\rcommit_offset\x18\x06 \x01(\x04\x12\x1a\n\x12\x63ommit_time_lag_ms\x18\x07 \x01(\x04\x12\x13\n\x0bread_offset\x18\x08 \x01(\x04\x12\x18\n\x10read_time_lag_ms\x18\t \x01(\x04\x12\x12\n\nsession_id\x18\n \x01(\t\x12\x13\n\x0b\x63lient_node\x18\x0b \x01(\t\x12\x12\n\nproxy_node\x18\x0c \x01(\t\x12\x13\n\x0btablet_node\x18\r \x01(\t\x12\x11\n\tassign_id\x18\x0e \x01(\x04\x12\x1b\n\x13\x61ssign_timestamp_ms\x18\x0f \x01(\x04\x12\x18\n\x10last_read_cookie\x18\x10 \x01(\x04\x12\x1d\n\x15\x63ommitted_read_cookie\x18\x11 \x01(\x04\x12+\n#out_of_order_read_cookies_to_commit\x18\x12 \x03(\x04\"[\n\x10\x44ropTopicRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x0c\n\x04path\x18\x02 \x01(\t\"A\n\x11\x44ropTopicResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\x11\n\x0f\x44ropTopicResult\"\xb1\x01\n\x0b\x43redentials\x12\x15\n\x0boauth_token\x18\x01 \x01(\tH\x00\x12\x14\n\njwt_params\x18\x02 \x01(\tH\x00\x12\x30\n\x03iam\x18\x03 \x01(\x0b\x32!.Ydb.PersQueue.V1.Credentials.IamH\x00\x1a\x34\n\x03Iam\x12\x10\n\x08\x65ndpoint\x18\x01 \x01(\t\x12\x1b\n\x13service_account_key\x18\x02 \x01(\tB\r\n\x0b\x63redentials\"\x86\n\n\rTopicSettings\x12!\n\x10partitions_count\x18\x01 \x01(\x05\x42\x07\xb2\xe6*\x03> 0\x12$\n\x13retention_period_ms\x18\x02 \x01(\x03\x42\x07\xb2\xe6*\x03> 0\x12@\n\x10supported_format\x18\x03 \x01(\x0e\x32&.Ydb.PersQueue.V1.TopicSettings.Format\x12G\n\x10supported_codecs\x18\x04 \x03(\x0e\x32%.Ydb.PersQueue.V1.TopicSettings.CodecB\x06\x9a\xe6*\x02\x18\x64\x12,\n\x1amax_partition_storage_size\x18\x05 \x01(\x03\x42\x08\xb2\xe6*\x04>= 0\x12+\n\x19max_partition_write_speed\x18\x06 \x01(\x03\x42\x08\xb2\xe6*\x04>= 0\x12+\n\x19max_partition_write_burst\x18\x07 \x01(\x03\x42\x08\xb2\xe6*\x04>= 0\x12\x1d\n\x15\x63lient_write_disabled\x18\x08 \x01(\x08\x12\x45\n\nread_rules\x18\t \x03(\x0b\x32(.Ydb.PersQueue.V1.TopicSettings.ReadRuleB\x07\x9a\xe6*\x03\x18\xb8\x17\x12\x43\n\nattributes\x18\n \x03(\x0b\x32/.Ydb.PersQueue.V1.TopicSettings.AttributesEntry\x12L\n\x12remote_mirror_rule\x18\x0b \x01(\x0b\x32\x30.Ydb.PersQueue.V1.TopicSettings.RemoteMirrorRule\x1a\x91\x02\n\x08ReadRule\x12\x1b\n\rconsumer_name\x18\x01 \x01(\tB\x04\x90\xe6*\x01\x12\x11\n\timportant\x18\x02 \x01(\x08\x12/\n\x1dstarting_message_timestamp_ms\x18\x03 \x01(\x03\x42\x08\xb2\xe6*\x04>= 0\x12@\n\x10supported_format\x18\x04 \x01(\x0e\x32&.Ydb.PersQueue.V1.TopicSettings.Format\x12G\n\x10supported_codecs\x18\x05 \x03(\x0e\x32%.Ydb.PersQueue.V1.TopicSettings.CodecB\x06\x9a\xe6*\x02\x18\x64\x12\x19\n\x07version\x18\x06 \x01(\x03\x42\x08\xb2\xe6*\x04>= 0\x1a\x31\n\x0f\x41ttributesEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\x1a\xc6\x01\n\x10RemoteMirrorRule\x12\x10\n\x08\x65ndpoint\x18\x01 \x01(\t\x12\x12\n\ntopic_path\x18\x02 \x01(\t\x12\x15\n\rconsumer_name\x18\x03 \x01(\t\x12\x32\n\x0b\x63redentials\x18\x04 \x01(\x0b\x32\x1d.Ydb.PersQueue.V1.Credentials\x12/\n\x1dstarting_message_timestamp_ms\x18\x05 \x01(\x03\x42\x08\xb2\xe6*\x04>= 0\x12\x10\n\x08\x64\x61tabase\x18\x06 \x01(\t\"1\n\x06\x46ormat\x12\x16\n\x12\x46ORMAT_UNSPECIFIED\x10\x00\x12\x0f\n\x0b\x46ORMAT_BASE\x10\x01\"]\n\x05\x43odec\x12\x15\n\x11\x43ODEC_UNSPECIFIED\x10\x00\x12\r\n\tCODEC_RAW\x10\x01\x12\x0e\n\nCODEC_GZIP\x10\x02\x12\x0e\n\nCODEC_LZOP\x10\x03\x12\x0e\n\nCODEC_ZSTD\x10\x04\"\x96\x01\n\x12\x43reateTopicRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x12\n\x04path\x18\x02 \x01(\tB\x04\x90\xe6*\x01\x12\x31\n\x08settings\x18\x04 \x01(\x0b\x32\x1f.Ydb.PersQueue.V1.TopicSettings\"C\n\x13\x43reateTopicResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\x13\n\x11\x43reateTopicResult\"\x95\x01\n\x11\x41lterTopicRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x12\n\x04path\x18\x02 \x01(\tB\x04\x90\xe6*\x01\x12\x31\n\x08settings\x18\x04 \x01(\x0b\x32\x1f.Ydb.PersQueue.V1.TopicSettings\"B\n\x12\x41lterTopicResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\x12\n\x10\x41lterTopicResult\"e\n\x14\x44\x65scribeTopicRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x12\n\x04path\x18\x02 \x01(\tB\x04\x90\xe6*\x01\"E\n\x15\x44\x65scribeTopicResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"i\n\x13\x44\x65scribeTopicResult\x12\x1f\n\x04self\x18\x01 \x01(\x0b\x32\x11.Ydb.Scheme.Entry\x12\x31\n\x08settings\x18\x02 \x01(\x0b\x32\x1f.Ydb.PersQueue.V1.TopicSettingsB\x1d\n\x18\x63om.yandex.ydb.persqueue\xf8\x01\x01\x62\x06proto3')
+  serialized_pb=_b('\n/kikimr/public/api/protos/ydb_persqueue_v1.proto\x12\x10Ydb.PersQueue.V1\x1a,kikimr/public/api/protos/ydb_operation.proto\x1a)kikimr/public/api/protos/ydb_scheme.proto\x1a/kikimr/public/api/protos/ydb_status_codes.proto\x1a\x30kikimr/public/api/protos/ydb_issue_message.proto\x1a\x34kikimr/public/api/protos/validation/validation.proto\"~\n\x10SessionMetaValue\x12<\n\x05value\x18\x01 \x03(\x0b\x32-.Ydb.PersQueue.V1.SessionMetaValue.ValueEntry\x1a,\n\nValueEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\"8\n\x0cOffsetsRange\x12\x14\n\x0cstart_offset\x18\x01 \x01(\x03\x12\x12\n\nend_offset\x18\x02 \x01(\x03\"\x84\x08\n\x1bStreamingWriteClientMessage\x12Q\n\x0cinit_request\x18\x01 \x01(\x0b\x32\x39.Ydb.PersQueue.V1.StreamingWriteClientMessage.InitRequestH\x00\x12S\n\rwrite_request\x18\x02 \x01(\x0b\x32:.Ydb.PersQueue.V1.StreamingWriteClientMessage.WriteRequestH\x00\x12`\n\x14update_token_request\x18\x03 \x01(\x0b\x32@.Ydb.PersQueue.V1.StreamingWriteClientMessage.UpdateTokenRequestH\x00\x1a\x92\x03\n\x0bInitRequest\x12\r\n\x05topic\x18\x01 \x01(\t\x12\x18\n\x10message_group_id\x18\x02 \x01(\t\x12`\n\x0csession_meta\x18\x03 \x03(\x0b\x32J.Ydb.PersQueue.V1.StreamingWriteClientMessage.InitRequest.SessionMetaEntry\x12\x1a\n\x12partition_group_id\x18\x04 \x01(\x03\x12*\n\"max_supported_block_format_version\x18\x05 \x01(\x03\x12\x12\n\nsession_id\x18\x64 \x01(\t\x12\x1a\n\x12\x63onnection_attempt\x18\x65 \x01(\x03\x12\x17\n\x0f\x63onnection_meta\x18\x66 \x01(\x0c\x12\x19\n\x11preferred_cluster\x18g \x01(\t\x12\x18\n\x0fidle_timeout_ms\x18\xc8\x01 \x01(\x03\x1a\x32\n\x10SessionMetaEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\x1a\x8e\x02\n\x0cWriteRequest\x12\x18\n\x10sequence_numbers\x18\x02 \x03(\x03\x12\x15\n\rcreated_at_ms\x18\x03 \x03(\x03\x12\x12\n\nsent_at_ms\x18\x04 \x03(\x03\x12\x15\n\rmessage_sizes\x18\x05 \x03(\x03\x12\x16\n\x0e\x62locks_offsets\x18\x06 \x03(\x03\x12\x1b\n\x13\x62locks_part_numbers\x18\x07 \x03(\x03\x12\x1d\n\x15\x62locks_message_counts\x18\x08 \x03(\x03\x12!\n\x19\x62locks_uncompressed_sizes\x18\t \x03(\x03\x12\x16\n\x0e\x62locks_headers\x18\n \x03(\x0c\x12\x13\n\x0b\x62locks_data\x18\x0b \x03(\x0c\x1a#\n\x12UpdateTokenRequest\x12\r\n\x05token\x18\x01 \x01(\tB\x10\n\x0e\x63lient_message\"\xc7\x08\n\x1bStreamingWriteServerMessage\x12S\n\rinit_response\x18\x03 \x01(\x0b\x32:.Ydb.PersQueue.V1.StreamingWriteServerMessage.InitResponseH\x00\x12`\n\x14\x62\x61tch_write_response\x18\x04 \x01(\x0b\x32@.Ydb.PersQueue.V1.StreamingWriteServerMessage.BatchWriteResponseH\x00\x12\x62\n\x15update_token_response\x18\x05 \x01(\x0b\x32\x41.Ydb.PersQueue.V1.StreamingWriteServerMessage.UpdateTokenResponseH\x00\x12)\n\x06status\x18\x01 \x01(\x0e\x32\x19.Ydb.StatusIds.StatusCode\x12\'\n\x06issues\x18\x02 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessage\x1a\x97\x02\n\x0cInitResponse\x12\x1c\n\x14last_sequence_number\x18\x01 \x01(\x03\x12\x12\n\nsession_id\x18\x02 \x01(\t\x12\r\n\x05topic\x18\x03 \x01(\t\x12\x0f\n\x07\x63luster\x18\x04 \x01(\t\x12\x14\n\x0cpartition_id\x18\x05 \x01(\x03\x12\x1c\n\x14\x62lock_format_version\x18\x06 \x01(\x03\x12\x31\n\x10supported_codecs\x18\n \x03(\x0e\x32\x17.Ydb.PersQueue.V1.Codec\x12\x1d\n\x15max_flush_window_size\x18\x07 \x01(\x03\x12\x16\n\x0emax_block_size\x18\x08 \x01(\x03\x12\x17\n\x0f\x63onnection_meta\x18\t \x01(\x0c\x1a\xc7\x01\n\x12\x42\x61tchWriteResponse\x12\x18\n\x10sequence_numbers\x18\x01 \x03(\x03\x12\x0f\n\x07offsets\x18\x02 \x03(\x03\x12\x17\n\x0f\x61lready_written\x18\x03 \x03(\x08\x12\x14\n\x0cpartition_id\x18\x04 \x01(\x03\x12W\n\x10write_statistics\x18\x05 \x01(\x0b\x32=.Ydb.PersQueue.V1.StreamingWriteServerMessage.WriteStatistics\x1a\x15\n\x13UpdateTokenResponse\x1a\xab\x01\n\x0fWriteStatistics\x12\x1b\n\x13persist_duration_ms\x18\x01 \x01(\x03\x12\'\n\x1fqueued_in_partition_duration_ms\x18\x02 \x01(\x03\x12*\n\"throttled_on_partition_duration_ms\x18\x03 \x01(\x03\x12&\n\x1ethrottled_on_topic_duration_ms\x18\x04 \x01(\x03\x42\x10\n\x0eserver_message\"\x14\n\x04Path\x12\x0c\n\x04path\x18\x01 \x01(\t\"&\n\x08KeyValue\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t\"D\n\nReadParams\x12\x1f\n\x17max_read_messages_count\x18\x01 \x01(\r\x12\x15\n\rmax_read_size\x18\x02 \x01(\r\";\n\x0c\x43ommitCookie\x12\x11\n\tassign_id\x18\x01 \x01(\x04\x12\x18\n\x10partition_cookie\x18\x02 \x01(\x04\"\x84\x16\n\x1dStreamingReadClientMessageNew\x12S\n\x0cinit_request\x18\x01 \x01(\x0b\x32;.Ydb.PersQueue.V1.StreamingReadClientMessageNew.InitRequestH\x00\x12S\n\x0cread_request\x18\x02 \x01(\x0b\x32;.Ydb.PersQueue.V1.StreamingReadClientMessageNew.ReadRequestH\x00\x12o\n\x1b\x63reate_read_stream_response\x18\x03 \x01(\x0b\x32H.Ydb.PersQueue.V1.StreamingReadClientMessageNew.CreateReadStreamResponseH\x00\x12W\n\x0e\x63ommit_request\x18\x04 \x01(\x0b\x32=.Ydb.PersQueue.V1.StreamingReadClientMessageNew.CommitRequestH\x00\x12q\n\x1c\x64\x65stroy_read_stream_response\x18\x05 \x01(\x0b\x32I.Ydb.PersQueue.V1.StreamingReadClientMessageNew.DestroyReadStreamResponseH\x00\x12\\\n\x11stop_read_request\x18\x06 \x01(\x0b\x32?.Ydb.PersQueue.V1.StreamingReadClientMessageNew.StopReadRequestH\x00\x12`\n\x13resume_read_request\x18\x07 \x01(\x0b\x32\x41.Ydb.PersQueue.V1.StreamingReadClientMessageNew.ResumeReadRequestH\x00\x12m\n\x1aread_stream_status_request\x18\x08 \x01(\x0b\x32G.Ydb.PersQueue.V1.StreamingReadClientMessageNew.ReadStreamStatusRequestH\x00\x12\\\n\x11\x61\x64\x64_topic_request\x18\t \x01(\x0b\x32?.Ydb.PersQueue.V1.StreamingReadClientMessageNew.AddTopicRequestH\x00\x12\x62\n\x14remove_topic_request\x18\n \x01(\x0b\x32\x42.Ydb.PersQueue.V1.StreamingReadClientMessageNew.RemoveTopicRequestH\x00\x12\r\n\x05token\x18\x14 \x01(\t\x1a\x91\x07\n\x0bInitRequest\x12_\n\x14topics_read_settings\x18\x01 \x03(\x0b\x32\x41.Ydb.PersQueue.V1.StreamingReadClientMessageNew.TopicReadSettings\x12\x1a\n\x12read_only_original\x18\x02 \x01(\x08\x12\x10\n\x08\x63onsumer\x18\x03 \x01(\t\x12\x1b\n\x13max_lag_duration_ms\x18\x04 \x01(\x03\x12 \n\x18start_from_written_at_ms\x18\x05 \x01(\x03\x12*\n\"max_supported_block_format_version\x18\x06 \x01(\x03\x12\x1b\n\x13max_meta_cache_size\x18\n \x01(\x03\x12\x12\n\nsession_id\x18\x64 \x01(\t\x12\x1a\n\x12\x63onnection_attempt\x18\x65 \x01(\x03\x12P\n\x05state\x18\x66 \x01(\x0b\x32\x41.Ydb.PersQueue.V1.StreamingReadClientMessageNew.InitRequest.State\x12\x18\n\x0fidle_timeout_ms\x18\xc8\x01 \x01(\x03\x1a\xce\x03\n\x05State\x12n\n\x13read_streams_states\x18\x01 \x03(\x0b\x32Q.Ydb.PersQueue.V1.StreamingReadClientMessageNew.InitRequest.State.ReadStreamState\x1a\xd4\x02\n\x0fReadStreamState\x12\x31\n\x0bread_stream\x18\x01 \x01(\x0b\x32\x1c.Ydb.PersQueue.V1.ReadStream\x12\x13\n\x0bread_offset\x18\x02 \x01(\x03\x12\x35\n\roffset_ranges\x18\x03 \x03(\x0b\x32\x1e.Ydb.PersQueue.V1.OffsetsRange\x12h\n\x06status\x18\x04 \x01(\x0e\x32X.Ydb.PersQueue.V1.StreamingReadClientMessageNew.InitRequest.State.ReadStreamState.Status\"X\n\x06Status\x12\x16\n\x12STATUS_UNSPECIFIED\x10\x00\x12\x0c\n\x08\x43REATING\x10\x01\x12\x0e\n\nDESTROYING\x10\x02\x12\x0b\n\x07READING\x10\x03\x12\x0b\n\x07STOPPED\x10\x04\x1a\x30\n\x0bReadRequest\x12!\n\x19request_uncompressed_size\x18\x01 \x01(\x03\x1az\n\x18\x43reateReadStreamResponse\x12\x16\n\x0eread_stream_id\x18\x01 \x01(\x03\x12\x13\n\x0bread_offset\x18\x02 \x01(\x03\x12\x15\n\rcommit_offset\x18\x03 \x01(\x03\x12\x1a\n\x12verify_read_offset\x18\x04 \x01(\x08\x1a\x33\n\x19\x44\x65stroyReadStreamResponse\x12\x16\n\x0eread_stream_id\x18\x01 \x01(\x03\x1a*\n\x0fStopReadRequest\x12\x17\n\x0fread_stream_ids\x18\x01 \x03(\x03\x1aZ\n\x11ResumeReadRequest\x12\x17\n\x0fread_stream_ids\x18\x01 \x03(\x03\x12\x14\n\x0cread_offsets\x18\x02 \x03(\x03\x12\x16\n\x0eresume_cookies\x18\x03 \x03(\x03\x1a\x61\n\rCommitRequest\x12P\n\x07\x63ommits\x18\x01 \x03(\x0b\x32?.Ydb.PersQueue.V1.StreamingReadClientMessageNew.PartitionCommit\x1a\x31\n\x17ReadStreamStatusRequest\x12\x16\n\x0eread_stream_id\x18\x01 \x01(\x03\x1aq\n\x0f\x41\x64\x64TopicRequest\x12^\n\x13topic_read_settings\x18\x01 \x01(\x0b\x32\x41.Ydb.PersQueue.V1.StreamingReadClientMessageNew.TopicReadSettings\x1a#\n\x12RemoveTopicRequest\x12\r\n\x05topic\x18\x01 \x01(\t\x1a\x61\n\x11TopicReadSettings\x12\r\n\x05topic\x18\x01 \x01(\t\x12\x1b\n\x13partition_group_ids\x18\x02 \x03(\x03\x12 \n\x18start_from_written_at_ms\x18\x03 \x01(\x03\x1aZ\n\x0fPartitionCommit\x12\x16\n\x0eread_stream_id\x18\x01 \x01(\x03\x12/\n\x07offsets\x18\x02 \x03(\x0b\x32\x1e.Ydb.PersQueue.V1.OffsetsRangeB\x10\n\x0e\x63lient_message\"\xa7\x19\n\x1dStreamingReadServerMessageNew\x12U\n\rinit_response\x18\x03 \x01(\x0b\x32<.Ydb.PersQueue.V1.StreamingReadServerMessageNew.InitResponseH\x00\x12`\n\x13\x62\x61tch_read_response\x18\x04 \x01(\x0b\x32\x41.Ydb.PersQueue.V1.StreamingReadServerMessageNew.BatchReadResponseH\x00\x12m\n\x1a\x63reate_read_stream_request\x18\x05 \x01(\x0b\x32G.Ydb.PersQueue.V1.StreamingReadServerMessageNew.CreateReadStreamRequestH\x00\x12o\n\x1b\x64\x65stroy_read_stream_request\x18\x06 \x01(\x0b\x32H.Ydb.PersQueue.V1.StreamingReadServerMessageNew.DestroyReadStreamRequestH\x00\x12Y\n\x0f\x63ommit_response\x18\x07 \x01(\x0b\x32>.Ydb.PersQueue.V1.StreamingReadServerMessageNew.CommitResponseH\x00\x12o\n\x1bread_stream_status_response\x18\x08 \x01(\x0b\x32H.Ydb.PersQueue.V1.StreamingReadServerMessageNew.ReadStreamStatusResponseH\x00\x12^\n\x12stop_read_response\x18\t \x01(\x0b\x32@.Ydb.PersQueue.V1.StreamingReadServerMessageNew.StopReadResponseH\x00\x12\x62\n\x14resume_read_response\x18\n \x01(\x0b\x32\x42.Ydb.PersQueue.V1.StreamingReadServerMessageNew.ResumeReadResponseH\x00\x12^\n\x12\x61\x64\x64_topic_response\x18\x0b \x01(\x0b\x32@.Ydb.PersQueue.V1.StreamingReadServerMessageNew.AddTopicResponseH\x00\x12\x64\n\x15remove_topic_response\x18\x0c \x01(\x0b\x32\x43.Ydb.PersQueue.V1.StreamingReadServerMessageNew.RemoveTopicResponseH\x00\x12)\n\x06status\x18\x01 \x01(\x0e\x32\x19.Ydb.StatusIds.StatusCode\x12\'\n\x06issues\x18\x02 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessage\x1a\x86\x02\n\x0cInitResponse\x12\x12\n\nsession_id\x18\x01 \x01(\t\x12\x82\x01\n\x1d\x62lock_format_version_by_topic\x18\x02 \x03(\x0b\x32[.Ydb.PersQueue.V1.StreamingReadServerMessageNew.InitResponse.BlockFormatVersionByTopicEntry\x12\x1b\n\x13max_meta_cache_size\x18\n \x01(\x03\x1a@\n\x1e\x42lockFormatVersionByTopicEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\x03:\x02\x38\x01\x1az\n\x17\x43reateReadStreamRequest\x12\x31\n\x0bread_stream\x18\x01 \x01(\x0b\x32\x1c.Ydb.PersQueue.V1.ReadStream\x12\x18\n\x10\x63ommitted_offset\x18\x02 \x01(\x03\x12\x12\n\nend_offset\x18\x03 \x01(\x03\x1a^\n\x18\x44\x65stroyReadStreamRequest\x12\x16\n\x0eread_stream_id\x18\x01 \x01(\x03\x12\x10\n\x08graceful\x18\x02 \x01(\x08\x12\x18\n\x10\x63ommitted_offset\x18\x03 \x01(\x03\x1a\xdd\x01\n\x0e\x43ommitResponse\x12}\n\x1cpartitions_committed_offsets\x18\x01 \x03(\x0b\x32W.Ydb.PersQueue.V1.StreamingReadServerMessageNew.CommitResponse.PartitionCommittedOffset\x1aL\n\x18PartitionCommittedOffset\x12\x16\n\x0eread_stream_id\x18\x01 \x01(\x03\x12\x18\n\x10\x63ommitted_offset\x18\x02 \x01(\x03\x1a\xf4\x08\n\x11\x42\x61tchReadResponse\x12_\n\nskip_range\x18\x01 \x03(\x0b\x32K.Ydb.PersQueue.V1.StreamingReadServerMessageNew.BatchReadResponse.SkipRange\x12\x63\n\npartitions\x18\x02 \x03(\x0b\x32O.Ydb.PersQueue.V1.StreamingReadServerMessageNew.BatchReadResponse.PartitionData\x1a\xbf\x06\n\rPartitionData\x12\x16\n\x0eread_stream_id\x18\x01 \x01(\x03\x12\x0f\n\x07offsets\x18\x02 \x03(\x03\x12\x18\n\x10sequence_numbers\x18\x03 \x03(\x03\x12\x15\n\rcreated_at_ms\x18\x04 \x03(\x03\x12\x15\n\rwritten_at_ms\x18\x05 \x03(\x03\x12\x19\n\x11message_group_ids\x18\x06 \x03(\t\x12 \n\x18message_group_id_indexes\x18\x07 \x03(\x12\x12\x0b\n\x03ips\x18\x08 \x03(\t\x12\x12\n\nip_indexes\x18\t \x03(\x12\x12@\n\x14message_session_meta\x18\n \x03(\x0b\x32\".Ydb.PersQueue.V1.SessionMetaValue\x12$\n\x1cmessage_session_meta_indexes\x18\x0b \x03(\x12\x12\x15\n\rmessage_sizes\x18\x0c \x03(\x03\x12\x16\n\x0e\x62locks_offsets\x18\r \x03(\x03\x12\x1b\n\x13\x62locks_part_numbers\x18\x0e \x03(\x03\x12\x1d\n\x15\x62locks_message_counts\x18\x0f \x03(\x03\x12!\n\x19\x62locks_uncompressed_sizes\x18\x10 \x03(\x03\x12\x16\n\x0e\x62locks_headers\x18\x11 \x03(\x0c\x12\x13\n\x0b\x62locks_data\x18\x12 \x03(\x0c\x12\x15\n\rresume_cookie\x18\x32 \x01(\x03\x12w\n\x0fread_statistics\x18\x64 \x01(\x0b\x32^.Ydb.PersQueue.V1.StreamingReadServerMessageNew.BatchReadResponse.PartitionData.ReadStatistics\x1a\xab\x01\n\x0eReadStatistics\x12\x18\n\x10\x62lobs_from_cache\x18\x01 \x01(\x03\x12\x17\n\x0f\x62lobs_from_disk\x18\x02 \x01(\x03\x12\x17\n\x0f\x62ytes_from_head\x18\x03 \x01(\x03\x12\x18\n\x10\x62ytes_from_cache\x18\x04 \x01(\x03\x12\x17\n\x0f\x62ytes_from_disk\x18\x05 \x01(\x03\x12\x1a\n\x12repack_duration_ms\x18\x06 \x01(\x03\x1aW\n\tSkipRange\x12\x16\n\x0eread_stream_id\x18\x01 \x01(\x03\x12\x32\n\nskip_range\x18\x02 \x01(\x0b\x32\x1e.Ydb.PersQueue.V1.OffsetsRange\x1a\x81\x01\n\x18ReadStreamStatusResponse\x12\x16\n\x0eread_stream_id\x18\x01 \x01(\x03\x12\x18\n\x10\x63ommitted_offset\x18\x02 \x01(\x03\x12\x12\n\nend_offset\x18\x03 \x01(\x03\x12\x1f\n\x17written_at_watermark_ms\x18\x04 \x01(\x03\x1a\x12\n\x10StopReadResponse\x1a\x14\n\x12ResumeReadResponse\x1a\x30\n\x10\x41\x64\x64TopicResponse\x12\x1c\n\x14\x62lock_format_version\x18\x01 \x01(\x03\x1a\x15\n\x13RemoveTopicResponseB\x10\n\x0eserver_message\"\x8f\x01\n\nReadStream\x12\r\n\x05topic\x18\x01 \x01(\t\x12\x0f\n\x07\x63luster\x18\x02 \x01(\t\x12\x14\n\x0cpartition_id\x18\x03 \x01(\x03\x12\x1a\n\x12partition_group_id\x18\x04 \x01(\x03\x12\x16\n\x0eread_stream_id\x18\x06 \x01(\x03\x12\x17\n\x0f\x63onnection_meta\x18\x07 \x01(\x0c\"\xbc\x10\n#MigrationStreamingReadClientMessage\x12Y\n\x0cinit_request\x18\x01 \x01(\x0b\x32\x41.Ydb.PersQueue.V1.MigrationStreamingReadClientMessage.InitRequestH\x00\x12J\n\x04read\x18\x02 \x01(\x0b\x32:.Ydb.PersQueue.V1.MigrationStreamingReadClientMessage.ReadH\x00\x12U\n\nstart_read\x18\x03 \x01(\x0b\x32?.Ydb.PersQueue.V1.MigrationStreamingReadClientMessage.StartReadH\x00\x12N\n\x06\x63ommit\x18\x04 \x01(\x0b\x32<.Ydb.PersQueue.V1.MigrationStreamingReadClientMessage.CommitH\x00\x12R\n\x08released\x18\x05 \x01(\x0b\x32>.Ydb.PersQueue.V1.MigrationStreamingReadClientMessage.ReleasedH\x00\x12N\n\x06status\x18\x06 \x01(\x0b\x32<.Ydb.PersQueue.V1.MigrationStreamingReadClientMessage.StatusH\x00\x12\r\n\x05token\x18\x14 \x01(\x0c\x1a\x61\n\x11TopicReadSettings\x12\r\n\x05topic\x18\x01 \x01(\t\x12\x1b\n\x13partition_group_ids\x18\x02 \x03(\x03\x12 \n\x18start_from_written_at_ms\x18\x03 \x01(\x03\x1a\xdc\x07\n\x0bInitRequest\x12\x65\n\x14topics_read_settings\x18\x01 \x03(\x0b\x32G.Ydb.PersQueue.V1.MigrationStreamingReadClientMessage.TopicReadSettings\x12\x1a\n\x12read_only_original\x18\x02 \x01(\x08\x12\x10\n\x08\x63onsumer\x18\x03 \x01(\t\x12\x1b\n\x13max_lag_duration_ms\x18\x04 \x01(\x03\x12 \n\x18start_from_written_at_ms\x18\x05 \x01(\x03\x12*\n\"max_supported_block_format_version\x18\x06 \x01(\x03\x12\x1b\n\x13max_meta_cache_size\x18\n \x01(\x03\x12\x12\n\nsession_id\x18\x64 \x01(\t\x12\x1a\n\x12\x63onnection_attempt\x18\x65 \x01(\x03\x12V\n\x05state\x18\x66 \x01(\x0b\x32G.Ydb.PersQueue.V1.MigrationStreamingReadClientMessage.InitRequest.State\x12\x18\n\x0fidle_timeout_ms\x18\xc8\x01 \x01(\x03\x12\x31\n\x0bread_params\x18* \x01(\x0b\x32\x1c.Ydb.PersQueue.V1.ReadParams\x1a\xda\x03\n\x05State\x12t\n\x13read_streams_states\x18\x01 \x03(\x0b\x32W.Ydb.PersQueue.V1.MigrationStreamingReadClientMessage.InitRequest.State.ReadStreamState\x1a\xda\x02\n\x0fReadStreamState\x12\x31\n\x0bread_stream\x18\x01 \x01(\x0b\x32\x1c.Ydb.PersQueue.V1.ReadStream\x12\x13\n\x0bread_offset\x18\x02 \x01(\x03\x12\x35\n\roffset_ranges\x18\x03 \x03(\x0b\x32\x1e.Ydb.PersQueue.V1.OffsetsRange\x12n\n\x06status\x18\x04 \x01(\x0e\x32^.Ydb.PersQueue.V1.MigrationStreamingReadClientMessage.InitRequest.State.ReadStreamState.Status\"X\n\x06Status\x12\x16\n\x12STATUS_UNSPECIFIED\x10\x00\x12\x0c\n\x08\x43REATING\x10\x01\x12\x0e\n\nDESTROYING\x10\x02\x12\x0b\n\x07READING\x10\x03\x12\x0b\n\x07STOPPED\x10\x04\x1a\x06\n\x04Read\x1a\xb1\x01\n\tStartRead\x12%\n\x05topic\x18\x01 \x01(\x0b\x32\x16.Ydb.PersQueue.V1.Path\x12\x0f\n\x07\x63luster\x18\x02 \x01(\t\x12\x11\n\tpartition\x18\x03 \x01(\x04\x12\x11\n\tassign_id\x18\x05 \x01(\x04\x12\x13\n\x0bread_offset\x18\x06 \x01(\x04\x12\x15\n\rcommit_offset\x18\x07 \x01(\x04\x12\x1a\n\x12verify_read_offset\x18\x08 \x01(\x08\x1ah\n\x08Released\x12%\n\x05topic\x18\x01 \x01(\x0b\x32\x16.Ydb.PersQueue.V1.Path\x12\x0f\n\x07\x63luster\x18\x02 \x01(\t\x12\x11\n\tpartition\x18\x03 \x01(\x04\x12\x11\n\tassign_id\x18\x05 \x01(\x04\x1a\x39\n\x06\x43ommit\x12/\n\x07\x63ookies\x18\x01 \x03(\x0b\x32\x1e.Ydb.PersQueue.V1.CommitCookie\x1a\x66\n\x06Status\x12%\n\x05topic\x18\x01 \x01(\x0b\x32\x16.Ydb.PersQueue.V1.Path\x12\x0f\n\x07\x63luster\x18\x02 \x01(\t\x12\x11\n\tpartition\x18\x03 \x01(\x04\x12\x11\n\tassign_id\x18\x05 \x01(\x04\x42\t\n\x07request\"\xa1\x11\n#MigrationStreamingReadServerMessage\x12)\n\x06status\x18\x01 \x01(\x0e\x32\x19.Ydb.StatusIds.StatusCode\x12\'\n\x06issues\x18\x02 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessage\x12[\n\rinit_response\x18\x03 \x01(\x0b\x32\x42.Ydb.PersQueue.V1.MigrationStreamingReadServerMessage.InitResponseH\x00\x12U\n\ndata_batch\x18\x04 \x01(\x0b\x32?.Ydb.PersQueue.V1.MigrationStreamingReadServerMessage.DataBatchH\x00\x12R\n\x08\x61ssigned\x18\x05 \x01(\x0b\x32>.Ydb.PersQueue.V1.MigrationStreamingReadServerMessage.AssignedH\x00\x12P\n\x07release\x18\x06 \x01(\x0b\x32=.Ydb.PersQueue.V1.MigrationStreamingReadServerMessage.ReleaseH\x00\x12T\n\tcommitted\x18\x07 \x01(\x0b\x32?.Ydb.PersQueue.V1.MigrationStreamingReadServerMessage.CommittedH\x00\x12\x61\n\x10partition_status\x18\x08 \x01(\x0b\x32\x45.Ydb.PersQueue.V1.MigrationStreamingReadServerMessage.PartitionStatusH\x00\x1a\x8c\x02\n\x0cInitResponse\x12\x12\n\nsession_id\x18\x01 \x01(\t\x12\x88\x01\n\x1d\x62lock_format_version_by_topic\x18\x02 \x03(\x0b\x32\x61.Ydb.PersQueue.V1.MigrationStreamingReadServerMessage.InitResponse.BlockFormatVersionByTopicEntry\x12\x1b\n\x13max_meta_cache_size\x18\n \x01(\x03\x1a@\n\x1e\x42lockFormatVersionByTopicEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\x03:\x02\x38\x01\x1a\x91\x01\n\x08\x41ssigned\x12%\n\x05topic\x18\x01 \x01(\x0b\x32\x16.Ydb.PersQueue.V1.Path\x12\x0f\n\x07\x63luster\x18\x02 \x01(\t\x12\x11\n\tpartition\x18\x03 \x01(\x04\x12\x11\n\tassign_id\x18\x05 \x01(\x04\x12\x13\n\x0bread_offset\x18\x06 \x01(\x04\x12\x12\n\nend_offset\x18\x07 \x01(\x04\x1a\x98\x01\n\x07Release\x12%\n\x05topic\x18\x01 \x01(\x0b\x32\x16.Ydb.PersQueue.V1.Path\x12\x0f\n\x07\x63luster\x18\x02 \x01(\t\x12\x11\n\tpartition\x18\x03 \x01(\x04\x12\x11\n\tassign_id\x18\x05 \x01(\x04\x12\x18\n\x10\x66orceful_release\x18\x06 \x01(\x08\x12\x15\n\rcommit_offset\x18\x07 \x01(\x04\x1a<\n\tCommitted\x12/\n\x07\x63ookies\x18\x01 \x03(\x0b\x32\x1e.Ydb.PersQueue.V1.CommitCookie\x1a\xce\x05\n\tDataBatch\x12\x65\n\x0epartition_data\x18\x01 \x03(\x0b\x32M.Ydb.PersQueue.V1.MigrationStreamingReadServerMessage.DataBatch.PartitionData\x1a\x80\x01\n\x0bMessageData\x12\x0e\n\x06offset\x18\x01 \x01(\x04\x12\x0e\n\x06seq_no\x18\x02 \x01(\x04\x12\x1b\n\x13\x63reate_timestamp_ms\x18\x03 \x01(\x04\x12&\n\x05\x63odec\x18\x04 \x01(\x0e\x32\x17.Ydb.PersQueue.V1.Codec\x12\x0c\n\x04\x64\x61ta\x18\x05 \x01(\x0c\x1a\xd7\x01\n\x05\x42\x61tch\x12\x11\n\tsource_id\x18\x02 \x01(\x0c\x12\x30\n\x0c\x65xtra_fields\x18\x03 \x03(\x0b\x32\x1a.Ydb.PersQueue.V1.KeyValue\x12\x1a\n\x12write_timestamp_ms\x18\x04 \x01(\x04\x12\n\n\x02ip\x18\x05 \x01(\t\x12\x61\n\x0cmessage_data\x18\x01 \x03(\x0b\x32K.Ydb.PersQueue.V1.MigrationStreamingReadServerMessage.DataBatch.MessageData\x1a\xfc\x01\n\rPartitionData\x12%\n\x05topic\x18\x01 \x01(\x0b\x32\x16.Ydb.PersQueue.V1.Path\x12\x0f\n\x07\x63luster\x18\x02 \x01(\t\x12\x11\n\tpartition\x18\x03 \x01(\x04\x12V\n\x07\x62\x61tches\x18\x04 \x03(\x0b\x32\x45.Ydb.PersQueue.V1.MigrationStreamingReadServerMessage.DataBatch.Batch\x12.\n\x06\x63ookie\x18\x05 \x01(\x0b\x32\x1e.Ydb.PersQueue.V1.CommitCookie\x12\x18\n\x10\x64\x65precated_topic\x18\n \x01(\t\x1a\xb9\x01\n\x0fPartitionStatus\x12%\n\x05topic\x18\x01 \x01(\x0b\x32\x16.Ydb.PersQueue.V1.Path\x12\x0f\n\x07\x63luster\x18\x02 \x01(\t\x12\x11\n\tpartition\x18\x03 \x01(\x04\x12\x11\n\tassign_id\x18\x05 \x01(\x04\x12\x18\n\x10\x63ommitted_offset\x18\x06 \x01(\x04\x12\x12\n\nend_offset\x18\x07 \x01(\x04\x12\x1a\n\x12write_watermark_ms\x18\x08 \x01(\x04\x42\n\n\x08response\"\xb9\x01\n\x0fReadInfoRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12&\n\x06topics\x18\x02 \x03(\x0b\x32\x16.Ydb.PersQueue.V1.Path\x12\x19\n\x11get_only_original\x18\x03 \x01(\x08\x12(\n\x08\x63onsumer\x18\x04 \x01(\x0b\x32\x16.Ydb.PersQueue.V1.Path\"@\n\x10ReadInfoResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\xa1\x06\n\x0eReadInfoResult\x12:\n\x06topics\x18\x01 \x03(\x0b\x32*.Ydb.PersQueue.V1.ReadInfoResult.TopicInfo\x1a\xd2\x05\n\tTopicInfo\x12%\n\x05topic\x18\x01 \x01(\x0b\x32\x16.Ydb.PersQueue.V1.Path\x12\x0f\n\x07\x63luster\x18\x02 \x01(\t\x12)\n\x06status\x18\x03 \x01(\x0e\x32\x19.Ydb.StatusIds.StatusCode\x12\'\n\x06issues\x18\x04 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessage\x12L\n\npartitions\x18\x05 \x03(\x0b\x32\x38.Ydb.PersQueue.V1.ReadInfoResult.TopicInfo.PartitionInfo\x1a\xea\x03\n\rPartitionInfo\x12\x11\n\tpartition\x18\x01 \x01(\x04\x12)\n\x06status\x18\x02 \x01(\x0e\x32\x19.Ydb.StatusIds.StatusCode\x12\'\n\x06issues\x18\x03 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessage\x12\x14\n\x0cstart_offset\x18\x04 \x01(\x04\x12\x12\n\nend_offset\x18\x05 \x01(\x04\x12\x15\n\rcommit_offset\x18\x06 \x01(\x04\x12\x1a\n\x12\x63ommit_time_lag_ms\x18\x07 \x01(\x04\x12\x13\n\x0bread_offset\x18\x08 \x01(\x04\x12\x18\n\x10read_time_lag_ms\x18\t \x01(\x04\x12\x12\n\nsession_id\x18\n \x01(\t\x12\x13\n\x0b\x63lient_node\x18\x0b \x01(\t\x12\x12\n\nproxy_node\x18\x0c \x01(\t\x12\x13\n\x0btablet_node\x18\r \x01(\t\x12\x11\n\tassign_id\x18\x0e \x01(\x04\x12\x1b\n\x13\x61ssign_timestamp_ms\x18\x0f \x01(\x04\x12\x18\n\x10last_read_cookie\x18\x10 \x01(\x04\x12\x1d\n\x15\x63ommitted_read_cookie\x18\x11 \x01(\x04\x12+\n#out_of_order_read_cookies_to_commit\x18\x12 \x03(\x04\"[\n\x10\x44ropTopicRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x0c\n\x04path\x18\x02 \x01(\t\"A\n\x11\x44ropTopicResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\x11\n\x0f\x44ropTopicResult\"\xb1\x01\n\x0b\x43redentials\x12\x15\n\x0boauth_token\x18\x01 \x01(\tH\x00\x12\x14\n\njwt_params\x18\x02 \x01(\tH\x00\x12\x30\n\x03iam\x18\x03 \x01(\x0b\x32!.Ydb.PersQueue.V1.Credentials.IamH\x00\x1a\x34\n\x03Iam\x12\x10\n\x08\x65ndpoint\x18\x01 \x01(\t\x12\x1b\n\x13service_account_key\x18\x02 \x01(\tB\r\n\x0b\x63redentials\"\x8b\t\n\rTopicSettings\x12!\n\x10partitions_count\x18\x01 \x01(\x05\x42\x07\xb2\xe6*\x03> 0\x12$\n\x13retention_period_ms\x18\x02 \x01(\x03\x42\x07\xb2\xe6*\x03> 0\x12@\n\x10supported_format\x18\x03 \x01(\x0e\x32&.Ydb.PersQueue.V1.TopicSettings.Format\x12\x39\n\x10supported_codecs\x18\x04 \x03(\x0e\x32\x17.Ydb.PersQueue.V1.CodecB\x06\x9a\xe6*\x02\x18\x64\x12,\n\x1amax_partition_storage_size\x18\x05 \x01(\x03\x42\x08\xb2\xe6*\x04>= 0\x12+\n\x19max_partition_write_speed\x18\x06 \x01(\x03\x42\x08\xb2\xe6*\x04>= 0\x12+\n\x19max_partition_write_burst\x18\x07 \x01(\x03\x42\x08\xb2\xe6*\x04>= 0\x12\x1d\n\x15\x63lient_write_disabled\x18\x08 \x01(\x08\x12\x45\n\nread_rules\x18\t \x03(\x0b\x32(.Ydb.PersQueue.V1.TopicSettings.ReadRuleB\x07\x9a\xe6*\x03\x18\xb8\x17\x12\x43\n\nattributes\x18\n \x03(\x0b\x32/.Ydb.PersQueue.V1.TopicSettings.AttributesEntry\x12L\n\x12remote_mirror_rule\x18\x0b \x01(\x0b\x32\x30.Ydb.PersQueue.V1.TopicSettings.RemoteMirrorRule\x1a\x83\x02\n\x08ReadRule\x12\x1b\n\rconsumer_name\x18\x01 \x01(\tB\x04\x90\xe6*\x01\x12\x11\n\timportant\x18\x02 \x01(\x08\x12/\n\x1dstarting_message_timestamp_ms\x18\x03 \x01(\x03\x42\x08\xb2\xe6*\x04>= 0\x12@\n\x10supported_format\x18\x04 \x01(\x0e\x32&.Ydb.PersQueue.V1.TopicSettings.Format\x12\x39\n\x10supported_codecs\x18\x05 \x03(\x0e\x32\x17.Ydb.PersQueue.V1.CodecB\x06\x9a\xe6*\x02\x18\x64\x12\x19\n\x07version\x18\x06 \x01(\x03\x42\x08\xb2\xe6*\x04>= 0\x1a\x31\n\x0f\x41ttributesEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\x1a\xc6\x01\n\x10RemoteMirrorRule\x12\x10\n\x08\x65ndpoint\x18\x01 \x01(\t\x12\x12\n\ntopic_path\x18\x02 \x01(\t\x12\x15\n\rconsumer_name\x18\x03 \x01(\t\x12\x32\n\x0b\x63redentials\x18\x04 \x01(\x0b\x32\x1d.Ydb.PersQueue.V1.Credentials\x12/\n\x1dstarting_message_timestamp_ms\x18\x05 \x01(\x03\x42\x08\xb2\xe6*\x04>= 0\x12\x10\n\x08\x64\x61tabase\x18\x06 \x01(\t\"1\n\x06\x46ormat\x12\x16\n\x12\x46ORMAT_UNSPECIFIED\x10\x00\x12\x0f\n\x0b\x46ORMAT_BASE\x10\x01\"\x96\x01\n\x12\x43reateTopicRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x12\n\x04path\x18\x02 \x01(\tB\x04\x90\xe6*\x01\x12\x31\n\x08settings\x18\x04 \x01(\x0b\x32\x1f.Ydb.PersQueue.V1.TopicSettings\"C\n\x13\x43reateTopicResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\x13\n\x11\x43reateTopicResult\"\x95\x01\n\x11\x41lterTopicRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x12\n\x04path\x18\x02 \x01(\tB\x04\x90\xe6*\x01\x12\x31\n\x08settings\x18\x04 \x01(\x0b\x32\x1f.Ydb.PersQueue.V1.TopicSettings\"B\n\x12\x41lterTopicResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\x12\n\x10\x41lterTopicResult\"e\n\x14\x44\x65scribeTopicRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x12\n\x04path\x18\x02 \x01(\tB\x04\x90\xe6*\x01\"E\n\x15\x44\x65scribeTopicResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"i\n\x13\x44\x65scribeTopicResult\x12\x1f\n\x04self\x18\x01 \x01(\x0b\x32\x11.Ydb.Scheme.Entry\x12\x31\n\x08settings\x18\x02 \x01(\x0b\x32\x1f.Ydb.PersQueue.V1.TopicSettings*]\n\x05\x43odec\x12\x15\n\x11\x43ODEC_UNSPECIFIED\x10\x00\x12\r\n\tCODEC_RAW\x10\x01\x12\x0e\n\nCODEC_GZIP\x10\x02\x12\x0e\n\nCODEC_LZOP\x10\x03\x12\x0e\n\nCODEC_ZSTD\x10\x04\x42\x1d\n\x18\x63om.yandex.ydb.persqueue\xf8\x01\x01\x62\x06proto3')
   ,
   dependencies=[kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2.DESCRIPTOR,kikimr_dot_public_dot_api_dot_protos_dot_ydb__scheme__pb2.DESCRIPTOR,kikimr_dot_public_dot_api_dot_protos_dot_ydb__status__codes__pb2.DESCRIPTOR,kikimr_dot_public_dot_api_dot_protos_dot_ydb__issue__message__pb2.DESCRIPTOR,kikimr_dot_public_dot_api_dot_protos_dot_validation_dot_validation__pb2.DESCRIPTOR,])
 
+_CODEC = _descriptor.EnumDescriptor(
+  name='Codec',
+  full_name='Ydb.PersQueue.V1.Codec',
+  filename=None,
+  file=DESCRIPTOR,
+  values=[
+    _descriptor.EnumValueDescriptor(
+      name='CODEC_UNSPECIFIED', index=0, number=0,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='CODEC_RAW', index=1, number=1,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='CODEC_GZIP', index=2, number=2,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='CODEC_LZOP', index=3, number=3,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='CODEC_ZSTD', index=4, number=4,
+      options=None,
+      type=None),
+  ],
+  containing_type=None,
+  options=None,
+  serialized_start=16700,
+  serialized_end=16793,
+)
+_sym_db.RegisterEnumDescriptor(_CODEC)
+
+Codec = enum_type_wrapper.EnumTypeWrapper(_CODEC)
+CODEC_UNSPECIFIED = 0
+CODEC_RAW = 1
+CODEC_GZIP = 2
+CODEC_LZOP = 3
+CODEC_ZSTD = 4
 
 
 _STREAMINGREADCLIENTMESSAGENEW_INITREQUEST_STATE_READSTREAMSTATE_STATUS = _descriptor.EnumDescriptor(
@@ -59,8 +100,8 @@ _STREAMINGREADCLIENTMESSAGENEW_INITREQUEST_STATE_READSTREAMSTATE_STATUS = _descr
   ],
   containing_type=None,
   options=None,
-  serialized_start=4653,
-  serialized_end=4741,
+  serialized_start=4678,
+  serialized_end=4766,
 )
 _sym_db.RegisterEnumDescriptor(_STREAMINGREADCLIENTMESSAGENEW_INITREQUEST_STATE_READSTREAMSTATE_STATUS)
 
@@ -93,8 +134,8 @@ _MIGRATIONSTREAMINGREADCLIENTMESSAGE_INITREQUEST_STATE_READSTREAMSTATE_STATUS = 
   ],
   containing_type=None,
   options=None,
-  serialized_start=4653,
-  serialized_end=4741,
+  serialized_start=4678,
+  serialized_end=4766,
 )
 _sym_db.RegisterEnumDescriptor(_MIGRATIONSTREAMINGREADCLIENTMESSAGE_INITREQUEST_STATE_READSTREAMSTATE_STATUS)
 
@@ -115,44 +156,10 @@ _TOPICSETTINGS_FORMAT = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=15862,
-  serialized_end=15911,
+  serialized_start=15885,
+  serialized_end=15934,
 )
 _sym_db.RegisterEnumDescriptor(_TOPICSETTINGS_FORMAT)
-
-_TOPICSETTINGS_CODEC = _descriptor.EnumDescriptor(
-  name='Codec',
-  full_name='Ydb.PersQueue.V1.TopicSettings.Codec',
-  filename=None,
-  file=DESCRIPTOR,
-  values=[
-    _descriptor.EnumValueDescriptor(
-      name='CODEC_UNSPECIFIED', index=0, number=0,
-      options=None,
-      type=None),
-    _descriptor.EnumValueDescriptor(
-      name='CODEC_RAW', index=1, number=1,
-      options=None,
-      type=None),
-    _descriptor.EnumValueDescriptor(
-      name='CODEC_GZIP', index=2, number=2,
-      options=None,
-      type=None),
-    _descriptor.EnumValueDescriptor(
-      name='CODEC_LZOP', index=3, number=3,
-      options=None,
-      type=None),
-    _descriptor.EnumValueDescriptor(
-      name='CODEC_ZSTD', index=4, number=4,
-      options=None,
-      type=None),
-  ],
-  containing_type=None,
-  options=None,
-  serialized_start=15913,
-  serialized_end=16006,
-)
-_sym_db.RegisterEnumDescriptor(_TOPICSETTINGS_CODEC)
 
 
 _SESSIONMETAVALUE_VALUEENTRY = _descriptor.Descriptor(
@@ -613,7 +620,7 @@ _STREAMINGWRITESERVERMESSAGE_INITRESPONSE = _descriptor.Descriptor(
       options=None),
     _descriptor.FieldDescriptor(
       name='supported_codecs', full_name='Ydb.PersQueue.V1.StreamingWriteServerMessage.InitResponse.supported_codecs', index=6,
-      number=10, type=9, cpp_type=9, label=3,
+      number=10, type=14, cpp_type=8, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -652,7 +659,7 @@ _STREAMINGWRITESERVERMESSAGE_INITRESPONSE = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=1928,
-  serialized_end=2182,
+  serialized_end=2207,
 )
 
 _STREAMINGWRITESERVERMESSAGE_BATCHWRITERESPONSE = _descriptor.Descriptor(
@@ -709,8 +716,8 @@ _STREAMINGWRITESERVERMESSAGE_BATCHWRITERESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2185,
-  serialized_end=2384,
+  serialized_start=2210,
+  serialized_end=2409,
 )
 
 _STREAMINGWRITESERVERMESSAGE_UPDATETOKENRESPONSE = _descriptor.Descriptor(
@@ -732,8 +739,8 @@ _STREAMINGWRITESERVERMESSAGE_UPDATETOKENRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2386,
-  serialized_end=2407,
+  serialized_start=2411,
+  serialized_end=2432,
 )
 
 _STREAMINGWRITESERVERMESSAGE_WRITESTATISTICS = _descriptor.Descriptor(
@@ -783,8 +790,8 @@ _STREAMINGWRITESERVERMESSAGE_WRITESTATISTICS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2410,
-  serialized_end=2581,
+  serialized_start=2435,
+  serialized_end=2606,
 )
 
 _STREAMINGWRITESERVERMESSAGE = _descriptor.Descriptor(
@@ -845,7 +852,7 @@ _STREAMINGWRITESERVERMESSAGE = _descriptor.Descriptor(
       index=0, containing_type=None, fields=[]),
   ],
   serialized_start=1529,
-  serialized_end=2599,
+  serialized_end=2624,
 )
 
 
@@ -875,8 +882,8 @@ _PATH = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2601,
-  serialized_end=2621,
+  serialized_start=2626,
+  serialized_end=2646,
 )
 
 
@@ -913,8 +920,8 @@ _KEYVALUE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2623,
-  serialized_end=2661,
+  serialized_start=2648,
+  serialized_end=2686,
 )
 
 
@@ -951,8 +958,8 @@ _READPARAMS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2663,
-  serialized_end=2731,
+  serialized_start=2688,
+  serialized_end=2756,
 )
 
 
@@ -989,8 +996,8 @@ _COMMITCOOKIE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2733,
-  serialized_end=2792,
+  serialized_start=2758,
+  serialized_end=2817,
 )
 
 
@@ -1042,8 +1049,8 @@ _STREAMINGREADCLIENTMESSAGENEW_INITREQUEST_STATE_READSTREAMSTATE = _descriptor.D
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=4401,
-  serialized_end=4741,
+  serialized_start=4426,
+  serialized_end=4766,
 )
 
 _STREAMINGREADCLIENTMESSAGENEW_INITREQUEST_STATE = _descriptor.Descriptor(
@@ -1072,8 +1079,8 @@ _STREAMINGREADCLIENTMESSAGENEW_INITREQUEST_STATE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=4279,
-  serialized_end=4741,
+  serialized_start=4304,
+  serialized_end=4766,
 )
 
 _STREAMINGREADCLIENTMESSAGENEW_INITREQUEST = _descriptor.Descriptor(
@@ -1172,8 +1179,8 @@ _STREAMINGREADCLIENTMESSAGENEW_INITREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3828,
-  serialized_end=4741,
+  serialized_start=3853,
+  serialized_end=4766,
 )
 
 _STREAMINGREADCLIENTMESSAGENEW_READREQUEST = _descriptor.Descriptor(
@@ -1202,8 +1209,8 @@ _STREAMINGREADCLIENTMESSAGENEW_READREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=4743,
-  serialized_end=4791,
+  serialized_start=4768,
+  serialized_end=4816,
 )
 
 _STREAMINGREADCLIENTMESSAGENEW_CREATEREADSTREAMRESPONSE = _descriptor.Descriptor(
@@ -1253,8 +1260,8 @@ _STREAMINGREADCLIENTMESSAGENEW_CREATEREADSTREAMRESPONSE = _descriptor.Descriptor
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=4793,
-  serialized_end=4915,
+  serialized_start=4818,
+  serialized_end=4940,
 )
 
 _STREAMINGREADCLIENTMESSAGENEW_DESTROYREADSTREAMRESPONSE = _descriptor.Descriptor(
@@ -1283,8 +1290,8 @@ _STREAMINGREADCLIENTMESSAGENEW_DESTROYREADSTREAMRESPONSE = _descriptor.Descripto
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=4917,
-  serialized_end=4968,
+  serialized_start=4942,
+  serialized_end=4993,
 )
 
 _STREAMINGREADCLIENTMESSAGENEW_STOPREADREQUEST = _descriptor.Descriptor(
@@ -1313,8 +1320,8 @@ _STREAMINGREADCLIENTMESSAGENEW_STOPREADREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=4970,
-  serialized_end=5012,
+  serialized_start=4995,
+  serialized_end=5037,
 )
 
 _STREAMINGREADCLIENTMESSAGENEW_RESUMEREADREQUEST = _descriptor.Descriptor(
@@ -1357,8 +1364,8 @@ _STREAMINGREADCLIENTMESSAGENEW_RESUMEREADREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=5014,
-  serialized_end=5104,
+  serialized_start=5039,
+  serialized_end=5129,
 )
 
 _STREAMINGREADCLIENTMESSAGENEW_COMMITREQUEST = _descriptor.Descriptor(
@@ -1387,8 +1394,8 @@ _STREAMINGREADCLIENTMESSAGENEW_COMMITREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=5106,
-  serialized_end=5203,
+  serialized_start=5131,
+  serialized_end=5228,
 )
 
 _STREAMINGREADCLIENTMESSAGENEW_READSTREAMSTATUSREQUEST = _descriptor.Descriptor(
@@ -1417,8 +1424,8 @@ _STREAMINGREADCLIENTMESSAGENEW_READSTREAMSTATUSREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=5205,
-  serialized_end=5254,
+  serialized_start=5230,
+  serialized_end=5279,
 )
 
 _STREAMINGREADCLIENTMESSAGENEW_ADDTOPICREQUEST = _descriptor.Descriptor(
@@ -1447,8 +1454,8 @@ _STREAMINGREADCLIENTMESSAGENEW_ADDTOPICREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=5256,
-  serialized_end=5369,
+  serialized_start=5281,
+  serialized_end=5394,
 )
 
 _STREAMINGREADCLIENTMESSAGENEW_REMOVETOPICREQUEST = _descriptor.Descriptor(
@@ -1477,8 +1484,8 @@ _STREAMINGREADCLIENTMESSAGENEW_REMOVETOPICREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=5371,
-  serialized_end=5406,
+  serialized_start=5396,
+  serialized_end=5431,
 )
 
 _STREAMINGREADCLIENTMESSAGENEW_TOPICREADSETTINGS = _descriptor.Descriptor(
@@ -1521,8 +1528,8 @@ _STREAMINGREADCLIENTMESSAGENEW_TOPICREADSETTINGS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=5408,
-  serialized_end=5505,
+  serialized_start=5433,
+  serialized_end=5530,
 )
 
 _STREAMINGREADCLIENTMESSAGENEW_PARTITIONCOMMIT = _descriptor.Descriptor(
@@ -1558,8 +1565,8 @@ _STREAMINGREADCLIENTMESSAGENEW_PARTITIONCOMMIT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=5507,
-  serialized_end=5597,
+  serialized_start=5532,
+  serialized_end=5622,
 )
 
 _STREAMINGREADCLIENTMESSAGENEW = _descriptor.Descriptor(
@@ -1661,8 +1668,8 @@ _STREAMINGREADCLIENTMESSAGENEW = _descriptor.Descriptor(
       name='client_message', full_name='Ydb.PersQueue.V1.StreamingReadClientMessageNew.client_message',
       index=0, containing_type=None, fields=[]),
   ],
-  serialized_start=2795,
-  serialized_end=5615,
+  serialized_start=2820,
+  serialized_end=5640,
 )
 
 
@@ -1699,8 +1706,8 @@ _STREAMINGREADSERVERMESSAGENEW_INITRESPONSE_BLOCKFORMATVERSIONBYTOPICENTRY = _de
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=6941,
-  serialized_end=7005,
+  serialized_start=6966,
+  serialized_end=7030,
 )
 
 _STREAMINGREADSERVERMESSAGENEW_INITRESPONSE = _descriptor.Descriptor(
@@ -1743,8 +1750,8 @@ _STREAMINGREADSERVERMESSAGENEW_INITRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=6743,
-  serialized_end=7005,
+  serialized_start=6768,
+  serialized_end=7030,
 )
 
 _STREAMINGREADSERVERMESSAGENEW_CREATEREADSTREAMREQUEST = _descriptor.Descriptor(
@@ -1787,8 +1794,8 @@ _STREAMINGREADSERVERMESSAGENEW_CREATEREADSTREAMREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=7007,
-  serialized_end=7129,
+  serialized_start=7032,
+  serialized_end=7154,
 )
 
 _STREAMINGREADSERVERMESSAGENEW_DESTROYREADSTREAMREQUEST = _descriptor.Descriptor(
@@ -1831,8 +1838,8 @@ _STREAMINGREADSERVERMESSAGENEW_DESTROYREADSTREAMREQUEST = _descriptor.Descriptor
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=7131,
-  serialized_end=7225,
+  serialized_start=7156,
+  serialized_end=7250,
 )
 
 _STREAMINGREADSERVERMESSAGENEW_COMMITRESPONSE_PARTITIONCOMMITTEDOFFSET = _descriptor.Descriptor(
@@ -1868,8 +1875,8 @@ _STREAMINGREADSERVERMESSAGENEW_COMMITRESPONSE_PARTITIONCOMMITTEDOFFSET = _descri
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=7373,
-  serialized_end=7449,
+  serialized_start=7398,
+  serialized_end=7474,
 )
 
 _STREAMINGREADSERVERMESSAGENEW_COMMITRESPONSE = _descriptor.Descriptor(
@@ -1898,8 +1905,8 @@ _STREAMINGREADSERVERMESSAGENEW_COMMITRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=7228,
-  serialized_end=7449,
+  serialized_start=7253,
+  serialized_end=7474,
 )
 
 _STREAMINGREADSERVERMESSAGENEW_BATCHREADRESPONSE_PARTITIONDATA_READSTATISTICS = _descriptor.Descriptor(
@@ -1963,8 +1970,8 @@ _STREAMINGREADSERVERMESSAGENEW_BATCHREADRESPONSE_PARTITIONDATA_READSTATISTICS = 
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=8332,
-  serialized_end=8503,
+  serialized_start=8357,
+  serialized_end=8528,
 )
 
 _STREAMINGREADSERVERMESSAGENEW_BATCHREADRESPONSE_PARTITIONDATA = _descriptor.Descriptor(
@@ -2126,8 +2133,8 @@ _STREAMINGREADSERVERMESSAGENEW_BATCHREADRESPONSE_PARTITIONDATA = _descriptor.Des
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=7672,
-  serialized_end=8503,
+  serialized_start=7697,
+  serialized_end=8528,
 )
 
 _STREAMINGREADSERVERMESSAGENEW_BATCHREADRESPONSE_SKIPRANGE = _descriptor.Descriptor(
@@ -2163,8 +2170,8 @@ _STREAMINGREADSERVERMESSAGENEW_BATCHREADRESPONSE_SKIPRANGE = _descriptor.Descrip
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=8505,
-  serialized_end=8592,
+  serialized_start=8530,
+  serialized_end=8617,
 )
 
 _STREAMINGREADSERVERMESSAGENEW_BATCHREADRESPONSE = _descriptor.Descriptor(
@@ -2200,8 +2207,8 @@ _STREAMINGREADSERVERMESSAGENEW_BATCHREADRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=7452,
-  serialized_end=8592,
+  serialized_start=7477,
+  serialized_end=8617,
 )
 
 _STREAMINGREADSERVERMESSAGENEW_READSTREAMSTATUSRESPONSE = _descriptor.Descriptor(
@@ -2251,8 +2258,8 @@ _STREAMINGREADSERVERMESSAGENEW_READSTREAMSTATUSRESPONSE = _descriptor.Descriptor
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=8595,
-  serialized_end=8724,
+  serialized_start=8620,
+  serialized_end=8749,
 )
 
 _STREAMINGREADSERVERMESSAGENEW_STOPREADRESPONSE = _descriptor.Descriptor(
@@ -2274,8 +2281,8 @@ _STREAMINGREADSERVERMESSAGENEW_STOPREADRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=8726,
-  serialized_end=8744,
+  serialized_start=8751,
+  serialized_end=8769,
 )
 
 _STREAMINGREADSERVERMESSAGENEW_RESUMEREADRESPONSE = _descriptor.Descriptor(
@@ -2297,8 +2304,8 @@ _STREAMINGREADSERVERMESSAGENEW_RESUMEREADRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=8746,
-  serialized_end=8766,
+  serialized_start=8771,
+  serialized_end=8791,
 )
 
 _STREAMINGREADSERVERMESSAGENEW_ADDTOPICRESPONSE = _descriptor.Descriptor(
@@ -2327,8 +2334,8 @@ _STREAMINGREADSERVERMESSAGENEW_ADDTOPICRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=8768,
-  serialized_end=8816,
+  serialized_start=8793,
+  serialized_end=8841,
 )
 
 _STREAMINGREADSERVERMESSAGENEW_REMOVETOPICRESPONSE = _descriptor.Descriptor(
@@ -2350,8 +2357,8 @@ _STREAMINGREADSERVERMESSAGENEW_REMOVETOPICRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=8818,
-  serialized_end=8839,
+  serialized_start=8843,
+  serialized_end=8864,
 )
 
 _STREAMINGREADSERVERMESSAGENEW = _descriptor.Descriptor(
@@ -2460,8 +2467,8 @@ _STREAMINGREADSERVERMESSAGENEW = _descriptor.Descriptor(
       name='server_message', full_name='Ydb.PersQueue.V1.StreamingReadServerMessageNew.server_message',
       index=0, containing_type=None, fields=[]),
   ],
-  serialized_start=5618,
-  serialized_end=8857,
+  serialized_start=5643,
+  serialized_end=8882,
 )
 
 
@@ -2526,8 +2533,8 @@ _READSTREAM = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=8860,
-  serialized_end=9003,
+  serialized_start=8885,
+  serialized_end=9028,
 )
 
 
@@ -2571,8 +2578,8 @@ _MIGRATIONSTREAMINGREADCLIENTMESSAGE_TOPICREADSETTINGS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=5408,
-  serialized_end=5505,
+  serialized_start=5433,
+  serialized_end=5530,
 )
 
 _MIGRATIONSTREAMINGREADCLIENTMESSAGE_INITREQUEST_STATE_READSTREAMSTATE = _descriptor.Descriptor(
@@ -2623,8 +2630,8 @@ _MIGRATIONSTREAMINGREADCLIENTMESSAGE_INITREQUEST_STATE_READSTREAMSTATE = _descri
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=10300,
-  serialized_end=10646,
+  serialized_start=10325,
+  serialized_end=10671,
 )
 
 _MIGRATIONSTREAMINGREADCLIENTMESSAGE_INITREQUEST_STATE = _descriptor.Descriptor(
@@ -2653,8 +2660,8 @@ _MIGRATIONSTREAMINGREADCLIENTMESSAGE_INITREQUEST_STATE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=10172,
-  serialized_end=10646,
+  serialized_start=10197,
+  serialized_end=10671,
 )
 
 _MIGRATIONSTREAMINGREADCLIENTMESSAGE_INITREQUEST = _descriptor.Descriptor(
@@ -2760,8 +2767,8 @@ _MIGRATIONSTREAMINGREADCLIENTMESSAGE_INITREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=9658,
-  serialized_end=10646,
+  serialized_start=9683,
+  serialized_end=10671,
 )
 
 _MIGRATIONSTREAMINGREADCLIENTMESSAGE_READ = _descriptor.Descriptor(
@@ -2783,8 +2790,8 @@ _MIGRATIONSTREAMINGREADCLIENTMESSAGE_READ = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=10648,
-  serialized_end=10654,
+  serialized_start=10673,
+  serialized_end=10679,
 )
 
 _MIGRATIONSTREAMINGREADCLIENTMESSAGE_STARTREAD = _descriptor.Descriptor(
@@ -2855,8 +2862,8 @@ _MIGRATIONSTREAMINGREADCLIENTMESSAGE_STARTREAD = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=10657,
-  serialized_end=10834,
+  serialized_start=10682,
+  serialized_end=10859,
 )
 
 _MIGRATIONSTREAMINGREADCLIENTMESSAGE_RELEASED = _descriptor.Descriptor(
@@ -2906,8 +2913,8 @@ _MIGRATIONSTREAMINGREADCLIENTMESSAGE_RELEASED = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=10836,
-  serialized_end=10940,
+  serialized_start=10861,
+  serialized_end=10965,
 )
 
 _MIGRATIONSTREAMINGREADCLIENTMESSAGE_COMMIT = _descriptor.Descriptor(
@@ -2936,8 +2943,8 @@ _MIGRATIONSTREAMINGREADCLIENTMESSAGE_COMMIT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=10942,
-  serialized_end=10999,
+  serialized_start=10967,
+  serialized_end=11024,
 )
 
 _MIGRATIONSTREAMINGREADCLIENTMESSAGE_STATUS = _descriptor.Descriptor(
@@ -2987,8 +2994,8 @@ _MIGRATIONSTREAMINGREADCLIENTMESSAGE_STATUS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=11001,
-  serialized_end=11103,
+  serialized_start=11026,
+  serialized_end=11128,
 )
 
 _MIGRATIONSTREAMINGREADCLIENTMESSAGE = _descriptor.Descriptor(
@@ -3062,8 +3069,8 @@ _MIGRATIONSTREAMINGREADCLIENTMESSAGE = _descriptor.Descriptor(
       name='request', full_name='Ydb.PersQueue.V1.MigrationStreamingReadClientMessage.request',
       index=0, containing_type=None, fields=[]),
   ],
-  serialized_start=9006,
-  serialized_end=11114,
+  serialized_start=9031,
+  serialized_end=11139,
 )
 
 
@@ -3100,8 +3107,8 @@ _MIGRATIONSTREAMINGREADSERVERMESSAGE_INITRESPONSE_BLOCKFORMATVERSIONBYTOPICENTRY
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=6941,
-  serialized_end=7005,
+  serialized_start=6966,
+  serialized_end=7030,
 )
 
 _MIGRATIONSTREAMINGREADSERVERMESSAGE_INITRESPONSE = _descriptor.Descriptor(
@@ -3144,8 +3151,8 @@ _MIGRATIONSTREAMINGREADSERVERMESSAGE_INITRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=11772,
-  serialized_end=12040,
+  serialized_start=11797,
+  serialized_end=12065,
 )
 
 _MIGRATIONSTREAMINGREADSERVERMESSAGE_ASSIGNED = _descriptor.Descriptor(
@@ -3209,8 +3216,8 @@ _MIGRATIONSTREAMINGREADSERVERMESSAGE_ASSIGNED = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=12043,
-  serialized_end=12188,
+  serialized_start=12068,
+  serialized_end=12213,
 )
 
 _MIGRATIONSTREAMINGREADSERVERMESSAGE_RELEASE = _descriptor.Descriptor(
@@ -3274,8 +3281,8 @@ _MIGRATIONSTREAMINGREADSERVERMESSAGE_RELEASE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=12191,
-  serialized_end=12343,
+  serialized_start=12216,
+  serialized_end=12368,
 )
 
 _MIGRATIONSTREAMINGREADSERVERMESSAGE_COMMITTED = _descriptor.Descriptor(
@@ -3304,8 +3311,8 @@ _MIGRATIONSTREAMINGREADSERVERMESSAGE_COMMITTED = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=12345,
-  serialized_end=12405,
+  serialized_start=12370,
+  serialized_end=12430,
 )
 
 _MIGRATIONSTREAMINGREADSERVERMESSAGE_DATABATCH_MESSAGEDATA = _descriptor.Descriptor(
@@ -3338,8 +3345,8 @@ _MIGRATIONSTREAMINGREADSERVERMESSAGE_DATABATCH_MESSAGEDATA = _descriptor.Descrip
       options=None),
     _descriptor.FieldDescriptor(
       name='codec', full_name='Ydb.PersQueue.V1.MigrationStreamingReadServerMessage.DataBatch.MessageData.codec', index=3,
-      number=4, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=_b("").decode('utf-8'),
+      number=4, type=14, cpp_type=8, label=1,
+      has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
@@ -3362,8 +3369,8 @@ _MIGRATIONSTREAMINGREADSERVERMESSAGE_DATABATCH_MESSAGEDATA = _descriptor.Descrip
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=12524,
-  serialized_end=12627,
+  serialized_start=12550,
+  serialized_end=12678,
 )
 
 _MIGRATIONSTREAMINGREADSERVERMESSAGE_DATABATCH_BATCH = _descriptor.Descriptor(
@@ -3420,8 +3427,8 @@ _MIGRATIONSTREAMINGREADSERVERMESSAGE_DATABATCH_BATCH = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=12630,
-  serialized_end=12845,
+  serialized_start=12681,
+  serialized_end=12896,
 )
 
 _MIGRATIONSTREAMINGREADSERVERMESSAGE_DATABATCH_PARTITIONDATA = _descriptor.Descriptor(
@@ -3485,8 +3492,8 @@ _MIGRATIONSTREAMINGREADSERVERMESSAGE_DATABATCH_PARTITIONDATA = _descriptor.Descr
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=12848,
-  serialized_end=13100,
+  serialized_start=12899,
+  serialized_end=13151,
 )
 
 _MIGRATIONSTREAMINGREADSERVERMESSAGE_DATABATCH = _descriptor.Descriptor(
@@ -3515,8 +3522,8 @@ _MIGRATIONSTREAMINGREADSERVERMESSAGE_DATABATCH = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=12408,
-  serialized_end=13100,
+  serialized_start=12433,
+  serialized_end=13151,
 )
 
 _MIGRATIONSTREAMINGREADSERVERMESSAGE_PARTITIONSTATUS = _descriptor.Descriptor(
@@ -3587,8 +3594,8 @@ _MIGRATIONSTREAMINGREADSERVERMESSAGE_PARTITIONSTATUS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=13103,
-  serialized_end=13288,
+  serialized_start=13154,
+  serialized_end=13339,
 )
 
 _MIGRATIONSTREAMINGREADSERVERMESSAGE = _descriptor.Descriptor(
@@ -3669,8 +3676,8 @@ _MIGRATIONSTREAMINGREADSERVERMESSAGE = _descriptor.Descriptor(
       name='response', full_name='Ydb.PersQueue.V1.MigrationStreamingReadServerMessage.response',
       index=0, containing_type=None, fields=[]),
   ],
-  serialized_start=11117,
-  serialized_end=13300,
+  serialized_start=11142,
+  serialized_end=13351,
 )
 
 
@@ -3721,8 +3728,8 @@ _READINFOREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=13303,
-  serialized_end=13488,
+  serialized_start=13354,
+  serialized_end=13539,
 )
 
 
@@ -3752,8 +3759,8 @@ _READINFORESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=13490,
-  serialized_end=13554,
+  serialized_start=13541,
+  serialized_end=13605,
 )
 
 
@@ -3902,8 +3909,8 @@ _READINFORESULT_TOPICINFO_PARTITIONINFO = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=13868,
-  serialized_end=14358,
+  serialized_start=13919,
+  serialized_end=14409,
 )
 
 _READINFORESULT_TOPICINFO = _descriptor.Descriptor(
@@ -3960,8 +3967,8 @@ _READINFORESULT_TOPICINFO = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=13636,
-  serialized_end=14358,
+  serialized_start=13687,
+  serialized_end=14409,
 )
 
 _READINFORESULT = _descriptor.Descriptor(
@@ -3990,8 +3997,8 @@ _READINFORESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=13557,
-  serialized_end=14358,
+  serialized_start=13608,
+  serialized_end=14409,
 )
 
 
@@ -4028,8 +4035,8 @@ _DROPTOPICREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=14360,
-  serialized_end=14451,
+  serialized_start=14411,
+  serialized_end=14502,
 )
 
 
@@ -4059,8 +4066,8 @@ _DROPTOPICRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=14453,
-  serialized_end=14518,
+  serialized_start=14504,
+  serialized_end=14569,
 )
 
 
@@ -4083,8 +4090,8 @@ _DROPTOPICRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=14520,
-  serialized_end=14537,
+  serialized_start=14571,
+  serialized_end=14588,
 )
 
 
@@ -4121,8 +4128,8 @@ _CREDENTIALS_IAM = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=14650,
-  serialized_end=14702,
+  serialized_start=14701,
+  serialized_end=14753,
 )
 
 _CREDENTIALS = _descriptor.Descriptor(
@@ -4168,8 +4175,8 @@ _CREDENTIALS = _descriptor.Descriptor(
       name='credentials', full_name='Ydb.PersQueue.V1.Credentials.credentials',
       index=0, containing_type=None, fields=[]),
   ],
-  serialized_start=14540,
-  serialized_end=14717,
+  serialized_start=14591,
+  serialized_end=14768,
 )
 
 
@@ -4234,8 +4241,8 @@ _TOPICSETTINGS_READRULE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=15335,
-  serialized_end=15608,
+  serialized_start=15372,
+  serialized_end=15631,
 )
 
 _TOPICSETTINGS_ATTRIBUTESENTRY = _descriptor.Descriptor(
@@ -4271,8 +4278,8 @@ _TOPICSETTINGS_ATTRIBUTESENTRY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=15610,
-  serialized_end=15659,
+  serialized_start=15633,
+  serialized_end=15682,
 )
 
 _TOPICSETTINGS_REMOTEMIRRORRULE = _descriptor.Descriptor(
@@ -4336,8 +4343,8 @@ _TOPICSETTINGS_REMOTEMIRRORRULE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=15662,
-  serialized_end=15860,
+  serialized_start=15685,
+  serialized_end=15883,
 )
 
 _TOPICSETTINGS = _descriptor.Descriptor(
@@ -4430,7 +4437,6 @@ _TOPICSETTINGS = _descriptor.Descriptor(
   nested_types=[_TOPICSETTINGS_READRULE, _TOPICSETTINGS_ATTRIBUTESENTRY, _TOPICSETTINGS_REMOTEMIRRORRULE, ],
   enum_types=[
     _TOPICSETTINGS_FORMAT,
-    _TOPICSETTINGS_CODEC,
   ],
   options=None,
   is_extendable=False,
@@ -4438,8 +4444,8 @@ _TOPICSETTINGS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=14720,
-  serialized_end=16006,
+  serialized_start=14771,
+  serialized_end=15934,
 )
 
 
@@ -4483,8 +4489,8 @@ _CREATETOPICREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=16009,
-  serialized_end=16159,
+  serialized_start=15937,
+  serialized_end=16087,
 )
 
 
@@ -4514,8 +4520,8 @@ _CREATETOPICRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=16161,
-  serialized_end=16228,
+  serialized_start=16089,
+  serialized_end=16156,
 )
 
 
@@ -4538,8 +4544,8 @@ _CREATETOPICRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=16230,
-  serialized_end=16249,
+  serialized_start=16158,
+  serialized_end=16177,
 )
 
 
@@ -4583,8 +4589,8 @@ _ALTERTOPICREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=16252,
-  serialized_end=16401,
+  serialized_start=16180,
+  serialized_end=16329,
 )
 
 
@@ -4614,8 +4620,8 @@ _ALTERTOPICRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=16403,
-  serialized_end=16469,
+  serialized_start=16331,
+  serialized_end=16397,
 )
 
 
@@ -4638,8 +4644,8 @@ _ALTERTOPICRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=16471,
-  serialized_end=16489,
+  serialized_start=16399,
+  serialized_end=16417,
 )
 
 
@@ -4676,8 +4682,8 @@ _DESCRIBETOPICREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=16491,
-  serialized_end=16592,
+  serialized_start=16419,
+  serialized_end=16520,
 )
 
 
@@ -4707,8 +4713,8 @@ _DESCRIBETOPICRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=16594,
-  serialized_end=16663,
+  serialized_start=16522,
+  serialized_end=16591,
 )
 
 
@@ -4745,8 +4751,8 @@ _DESCRIBETOPICRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=16665,
-  serialized_end=16770,
+  serialized_start=16593,
+  serialized_end=16698,
 )
 
 _SESSIONMETAVALUE_VALUEENTRY.containing_type = _SESSIONMETAVALUE
@@ -4768,6 +4774,7 @@ _STREAMINGWRITECLIENTMESSAGE.fields_by_name['write_request'].containing_oneof = 
 _STREAMINGWRITECLIENTMESSAGE.oneofs_by_name['client_message'].fields.append(
   _STREAMINGWRITECLIENTMESSAGE.fields_by_name['update_token_request'])
 _STREAMINGWRITECLIENTMESSAGE.fields_by_name['update_token_request'].containing_oneof = _STREAMINGWRITECLIENTMESSAGE.oneofs_by_name['client_message']
+_STREAMINGWRITESERVERMESSAGE_INITRESPONSE.fields_by_name['supported_codecs'].enum_type = _CODEC
 _STREAMINGWRITESERVERMESSAGE_INITRESPONSE.containing_type = _STREAMINGWRITESERVERMESSAGE
 _STREAMINGWRITESERVERMESSAGE_BATCHWRITERESPONSE.fields_by_name['write_statistics'].message_type = _STREAMINGWRITESERVERMESSAGE_WRITESTATISTICS
 _STREAMINGWRITESERVERMESSAGE_BATCHWRITERESPONSE.containing_type = _STREAMINGWRITESERVERMESSAGE
@@ -4970,6 +4977,7 @@ _MIGRATIONSTREAMINGREADSERVERMESSAGE_RELEASE.fields_by_name['topic'].message_typ
 _MIGRATIONSTREAMINGREADSERVERMESSAGE_RELEASE.containing_type = _MIGRATIONSTREAMINGREADSERVERMESSAGE
 _MIGRATIONSTREAMINGREADSERVERMESSAGE_COMMITTED.fields_by_name['cookies'].message_type = _COMMITCOOKIE
 _MIGRATIONSTREAMINGREADSERVERMESSAGE_COMMITTED.containing_type = _MIGRATIONSTREAMINGREADSERVERMESSAGE
+_MIGRATIONSTREAMINGREADSERVERMESSAGE_DATABATCH_MESSAGEDATA.fields_by_name['codec'].enum_type = _CODEC
 _MIGRATIONSTREAMINGREADSERVERMESSAGE_DATABATCH_MESSAGEDATA.containing_type = _MIGRATIONSTREAMINGREADSERVERMESSAGE_DATABATCH
 _MIGRATIONSTREAMINGREADSERVERMESSAGE_DATABATCH_BATCH.fields_by_name['extra_fields'].message_type = _KEYVALUE
 _MIGRATIONSTREAMINGREADSERVERMESSAGE_DATABATCH_BATCH.fields_by_name['message_data'].message_type = _MIGRATIONSTREAMINGREADSERVERMESSAGE_DATABATCH_MESSAGEDATA
@@ -5035,18 +5043,17 @@ _CREDENTIALS.oneofs_by_name['credentials'].fields.append(
   _CREDENTIALS.fields_by_name['iam'])
 _CREDENTIALS.fields_by_name['iam'].containing_oneof = _CREDENTIALS.oneofs_by_name['credentials']
 _TOPICSETTINGS_READRULE.fields_by_name['supported_format'].enum_type = _TOPICSETTINGS_FORMAT
-_TOPICSETTINGS_READRULE.fields_by_name['supported_codecs'].enum_type = _TOPICSETTINGS_CODEC
+_TOPICSETTINGS_READRULE.fields_by_name['supported_codecs'].enum_type = _CODEC
 _TOPICSETTINGS_READRULE.containing_type = _TOPICSETTINGS
 _TOPICSETTINGS_ATTRIBUTESENTRY.containing_type = _TOPICSETTINGS
 _TOPICSETTINGS_REMOTEMIRRORRULE.fields_by_name['credentials'].message_type = _CREDENTIALS
 _TOPICSETTINGS_REMOTEMIRRORRULE.containing_type = _TOPICSETTINGS
 _TOPICSETTINGS.fields_by_name['supported_format'].enum_type = _TOPICSETTINGS_FORMAT
-_TOPICSETTINGS.fields_by_name['supported_codecs'].enum_type = _TOPICSETTINGS_CODEC
+_TOPICSETTINGS.fields_by_name['supported_codecs'].enum_type = _CODEC
 _TOPICSETTINGS.fields_by_name['read_rules'].message_type = _TOPICSETTINGS_READRULE
 _TOPICSETTINGS.fields_by_name['attributes'].message_type = _TOPICSETTINGS_ATTRIBUTESENTRY
 _TOPICSETTINGS.fields_by_name['remote_mirror_rule'].message_type = _TOPICSETTINGS_REMOTEMIRRORRULE
 _TOPICSETTINGS_FORMAT.containing_type = _TOPICSETTINGS
-_TOPICSETTINGS_CODEC.containing_type = _TOPICSETTINGS
 _CREATETOPICREQUEST.fields_by_name['operation_params'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2._OPERATIONPARAMS
 _CREATETOPICREQUEST.fields_by_name['settings'].message_type = _TOPICSETTINGS
 _CREATETOPICRESPONSE.fields_by_name['operation'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2._OPERATION
@@ -5087,6 +5094,7 @@ DESCRIPTOR.message_types_by_name['AlterTopicResult'] = _ALTERTOPICRESULT
 DESCRIPTOR.message_types_by_name['DescribeTopicRequest'] = _DESCRIBETOPICREQUEST
 DESCRIPTOR.message_types_by_name['DescribeTopicResponse'] = _DESCRIBETOPICRESPONSE
 DESCRIPTOR.message_types_by_name['DescribeTopicResult'] = _DESCRIBETOPICRESULT
+DESCRIPTOR.enum_types_by_name['Codec'] = _CODEC
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
 SessionMetaValue = _reflection.GeneratedProtocolMessageType('SessionMetaValue', (_message.Message,), dict(
