@@ -144,6 +144,13 @@ class AutoPartitioningPolicy(enum.IntEnum):
     AUTO_SPLIT_MERGE = 3
 
 
+@enum.unique
+class IndexStatus(enum.IntEnum):
+    INDEX_STATUS_UNSPECIFIED = 0
+    READY = 1
+    BUILDING = 2
+
+
 class CachingPolicy(object):
     def __init__(self):
         self._pb = _apis.ydb_table.CachingPolicy()
@@ -262,6 +269,8 @@ class TableIndex(object):
         self._pb.name = name
         self.name = name
         self.index_columns = []
+        # output only.
+        self.status = None
 
     def with_global_index(self):
         self._pb.global_index.SetInParent()
@@ -729,6 +738,12 @@ class TableClient(object):
         )
 
 
+def _make_index_description(index):
+    result = TableIndex(index.name).with_index_columns(*tuple(col for col in index.index_columns))
+    result.status = IndexStatus(index.status)
+    return result
+
+
 class TableSchemeEntry(scheme.SchemeEntry):
     def __init__(
             self, name, owner, type, effective_permissions, permissions, columns, primary_key, shard_key_bounds,
@@ -737,9 +752,7 @@ class TableSchemeEntry(scheme.SchemeEntry):
         super(TableSchemeEntry, self).__init__(name, owner, type, effective_permissions, permissions, *args, **kwargs)
         self.primary_key = [pk for pk in primary_key]
         self.columns = [Column(column.name, convert.type_to_native(column.type)) for column in columns]
-        self.indexes = [
-            TableIndex(index.name).with_index_columns(*tuple(col for col in index.index_columns))
-            for index in indexes]
+        self.indexes = [_make_index_description(index) for index in indexes]
         self.shard_key_ranges = []
         left_key_bound = None
         for shard_key_bound in shard_key_bounds:
