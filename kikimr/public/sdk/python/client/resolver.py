@@ -3,6 +3,7 @@ import logging
 import threading
 import time
 import random
+import itertools
 from . import connection as conn_impl, issues, settings as settings_impl, _apis
 
 logger = logging.getLogger(__name__)
@@ -80,6 +81,11 @@ class DiscoveryEndpointsResolver(object):
         self._lock = threading.Lock()
         self._debug_details_history_size = 20
         self._debug_details_items = []
+        self._endpoints = []
+        self._endpoints.append(driver_config.endpoint)
+        self._endpoints.extend(driver_config.endpoints)
+        random.shuffle(self._endpoints)
+        self._endpoints_iter = itertools.cycle(self._endpoints)
 
     def _add_debug_details(self, message, *args):
         self.logger.info(message, *args)
@@ -98,7 +104,8 @@ class DiscoveryEndpointsResolver(object):
 
     def resolve(self):
         self.logger.debug("Preparing initial endpoint to resolve endpoints")
-        initial = conn_impl.Connection.ready_factory(self._driver_config.endpoint, self._driver_config)
+        endpoint = next(self._endpoints_iter)
+        initial = conn_impl.Connection.ready_factory(endpoint, self._driver_config)
         if initial is None:
             self._add_debug_details("Failed to prepare initial endpoint to resolve endpoints")
             return None

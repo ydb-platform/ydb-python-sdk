@@ -21,13 +21,13 @@ def wrap_endpoint(endpoint):
 class DriverConfig(object):
     __slots__ = ('endpoint', 'database', 'ca_cert', 'channel_options', 'credentials', 'use_all_nodes',
                  'root_certificates', 'certificate_chain', 'private_key', 'grpc_keep_alive_timeout', 'secure_channel',
-                 'table_client_settings')
+                 'table_client_settings', 'endpoints')
 
     def __init__(
             self, endpoint, database=None, ca_cert=None, auth_token=None,
             channel_options=None, credentials=None, use_all_nodes=False,
             root_certificates=None, certificate_chain=None, private_key=None,
-            grpc_keep_alive_timeout=None, table_client_settings=None):
+            grpc_keep_alive_timeout=None, table_client_settings=None, endpoints=None):
         """
         A driver config to initialize a driver instance
         :param endpoint: A endpoint specified in pattern host:port to be used for initial
@@ -50,6 +50,9 @@ class DriverConfig(object):
         self.channel_options = channel_options
         self.secure_channel = is_secure_protocol(endpoint)
         self.endpoint = wrap_endpoint(self.endpoint)
+        self.endpoints = []
+        if endpoints is not None:
+            self.endpoints = [wrap_endpoint(endp) for endp in endpoints]
         if auth_token is not None:
             credentials = credentials_impl.AuthTokenCredentials(auth_token)
         self.credentials = credentials
