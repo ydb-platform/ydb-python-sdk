@@ -263,8 +263,13 @@ def parameters_to_pb(parameters_types, parameters_values):
     param_values_pb = {}
     for name, type_pb in six.iteritems(parameters_types):
         result = _apis.ydb_value.TypedValue()
-        result.type.MergeFrom(type_pb)
-        result.value.MergeFrom(_from_native_value(type_pb, parameters_values[name]))
+        ttype = type_pb
+        if isinstance(type_pb, types.AbstractTypeBuilder):
+            ttype = type_pb.proto
+        elif isinstance(type_pb, types.PrimitiveType):
+            ttype = type_pb.proto
+        result.type.MergeFrom(ttype)
+        result.value.MergeFrom(_from_native_value(ttype, parameters_values[name]))
         param_values_pb[name] = result
     return param_values_pb
 

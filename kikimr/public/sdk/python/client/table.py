@@ -708,9 +708,28 @@ class ScanQueryResult(object):
         self.result_set = convert.ResultSet.from_message(self._result.result_set)
 
 
+class ScanQuery(object):
+    def __init__(self, yql_text, parameters_types):
+        self.yql_text = yql_text
+        self.parameters_types = parameters_types
+
+
 def _wrap_scan_query_response(response):
     issues._process_response(response)
     return ScanQueryResult(response.result)
+
+
+def _scan_query_request_factory(query, parameters=None, settings=None):
+    if not isinstance(query, ScanQuery):
+        query = ScanQuery(query, {})
+    parameters = {} if parameters is None else parameters
+    return _apis.ydb_table.ExecuteScanQueryRequest(
+        query=_apis.ydb_table.Query(yql_text=query.yql_text),
+        parameters=convert.parameters_to_pb(
+            query.parameters_types,
+            parameters
+        )
+    )
 
 
 class TableClient(object):
@@ -721,15 +740,13 @@ class TableClient(object):
     def session(self):
         return Session(self._driver, self._table_client_settings._client_query_cache_enabled)
 
-    def scan_query(self, query, settings=None):
-        request = _apis.ydb_table.ExecuteScanQueryRequest()
-        request.query.yql_text = query
+    def scan_query(self, query, parameters=None, settings=None):
+        request = _scan_query_request_factory(query, parameters, settings)
         stream_it = self._driver(request, _apis.TableService.Stub, _apis.TableService.StreamExecuteScanQuery, settings=settings)
         return _utilities.SyncResponseIterator(stream_it, _wrap_scan_query_response)
 
-    def async_scan_query(self, query, settings=None):
-        request = _apis.ydb_table.ExecuteScanQueryRequest()
-        request.query.yql_text = query
+    def async_scan_query(self, query, parameters=None, settings=None):
+        request = _scan_query_request_factory(query, parameters, settings)
         stream_it = self._driver(request, _apis.TableService.Stub, _apis.TableService.StreamExecuteScanQuery, settings=settings)
         return _utilities.AsyncResponseIterator(stream_it, _wrap_scan_query_response)
 
