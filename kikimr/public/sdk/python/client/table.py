@@ -702,6 +702,17 @@ class TableClientSettings(object):
         return self
 
 
+class ScanQueryResult(object):
+    def __init__(self, result):
+        self._result = result
+        self.result_set = convert.ResultSet.from_message(self._result.result_set)
+
+
+def _wrap_scan_query_response(response):
+    issues._process_response(response)
+    return ScanQueryResult(response.result)
+
+
 class TableClient(object):
     def __init__(self, driver, table_client_settings=None):
         self._driver = driver
@@ -709,6 +720,18 @@ class TableClient(object):
 
     def session(self):
         return Session(self._driver, self._table_client_settings._client_query_cache_enabled)
+
+    def scan_query(self, query, settings=None):
+        request = _apis.ydb_table.ExecuteScanQueryRequest()
+        request.query.yql_text = query
+        stream_it = self._driver(request, _apis.TableService.Stub, _apis.TableService.StreamExecuteScanQuery, settings=settings)
+        return _utilities.SyncResponseIterator(stream_it, _wrap_scan_query_response)
+
+    def async_scan_query(self, query, settings=None):
+        request = _apis.ydb_table.ExecuteScanQueryRequest()
+        request.query.yql_text = query
+        stream_it = self._driver(request, _apis.TableService.Stub, _apis.TableService.StreamExecuteScanQuery, settings=settings)
+        return _utilities.AsyncResponseIterator(stream_it, _wrap_scan_query_response)
 
     @_utilities.wrap_async_call_exceptions
     def async_bulk_upsert(self, table_path, rows, column_types, settings=None):

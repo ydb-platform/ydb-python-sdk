@@ -44,6 +44,7 @@ class SchemeService(object):
 class TableService(object):
     Stub = ydb_table_v1_pb2_grpc.TableServiceStub
 
+    StreamExecuteScanQuery = 'StreamExecuteScanQuery'
     ExplainDataQuery = 'ExplainDataQuery'
     CreateTable = 'CreateTable'
     DropTable = 'DropTable'
