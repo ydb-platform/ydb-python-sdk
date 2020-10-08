@@ -22,7 +22,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='kikimr/public/api/protos/draft/persqueue.proto',
   package='NPersQueue',
   syntax='proto3',
-  serialized_pb=_b('\n.kikimr/public/api/protos/draft/persqueue.proto\x12\nNPersQueue\x1a google/protobuf/descriptor.proto\x1a:kikimr/public/api/protos/draft/persqueue_error_codes.proto\"\x14\n\x04Path\x12\x0c\n\x04path\x18\x01 \x01(\t\"M\n\x05\x45rror\x12/\n\x04\x63ode\x18\x01 \x01(\x0e\x32!.NPersQueue.NErrorCode.EErrorCode\x12\x13\n\x0b\x64\x65scription\x18\x02 \x01(\t\"&\n\x08KeyValue\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t\".\n\x07MapType\x12#\n\x05items\x18\x01 \x03(\x0b\x32\x14.NPersQueue.KeyValue\"Q\n\x0b\x43redentials\x12\x1c\n\x12tvm_service_ticket\x18\x01 \x01(\x0cH\x00\x12\x15\n\x0boauth_token\x18\x02 \x01(\x0cH\x00\x42\r\n\x0b\x63redentials\"\x91\x04\n\x0cWriteRequest\x12-\n\x04init\x18\x01 \x01(\x0b\x32\x1d.NPersQueue.WriteRequest.InitH\x00\x12-\n\x04\x64\x61ta\x18\x02 \x01(\x0b\x32\x1d.NPersQueue.WriteRequest.DataH\x00\x12\x38\n\ndata_batch\x18\x03 \x01(\x0b\x32\".NPersQueue.WriteRequest.DataBatchH\x00\x12,\n\x0b\x63redentials\x18\x14 \x01(\x0b\x32\x17.NPersQueue.Credentials\x1a\x94\x01\n\x04Init\x12\r\n\x05topic\x18\x01 \x01(\t\x12\x11\n\tsource_id\x18\x02 \x01(\x0c\x12)\n\x0c\x65xtra_fields\x18\x07 \x01(\x0b\x32\x13.NPersQueue.MapType\x12\x14\n\x0cproxy_cookie\x18\x08 \x01(\x04\x12\x17\n\x0fpartition_group\x18\x0c \x01(\r\x12\x10\n\x07version\x18\xe7\x07 \x01(\t\x1a_\n\x04\x44\x61ta\x12\x0e\n\x06seq_no\x18\x01 \x01(\x04\x12\x0c\n\x04\x64\x61ta\x18\x02 \x01(\x0c\x12\x16\n\x0e\x63reate_time_ms\x18\x03 \x01(\x04\x12!\n\x05\x63odec\x18\x04 \x01(\x0e\x32\x12.NPersQueue.ECodec\x1a\x38\n\tDataBatch\x12+\n\x04\x64\x61ta\x18\x01 \x03(\x0b\x32\x1d.NPersQueue.WriteRequest.DataB\t\n\x07request\"\x86\x05\n\rWriteResponse\x12.\n\x04init\x18\x01 \x01(\x0b\x32\x1e.NPersQueue.WriteResponse.InitH\x00\x12,\n\x03\x61\x63k\x18\x02 \x01(\x0b\x32\x1d.NPersQueue.WriteResponse.AckH\x00\x12\x37\n\tack_batch\x18\x04 \x01(\x0b\x32\".NPersQueue.WriteResponse.AckBatchH\x00\x12\"\n\x05\x65rror\x18\x03 \x01(\x0b\x32\x11.NPersQueue.ErrorH\x00\x1aP\n\x04Init\x12\x12\n\nmax_seq_no\x18\x01 \x01(\x04\x12\x12\n\nsession_id\x18\x02 \x01(\t\x12\x11\n\tpartition\x18\x03 \x01(\r\x12\r\n\x05topic\x18\x04 \x01(\t\x1a\x87\x01\n\x04Stat\x12\x15\n\rwrite_time_ms\x18\x01 \x01(\r\x12(\n total_time_in_partition_queue_ms\x18\x02 \x01(\r\x12 \n\x18partition_quoted_time_ms\x18\x03 \x01(\r\x12\x1c\n\x14topic_quoted_time_ms\x18\x04 \x01(\r\x1al\n\x03\x41\x63k\x12\x0e\n\x06seq_no\x18\x01 \x01(\x04\x12\x0e\n\x06offset\x18\x02 \x01(\x04\x12\x17\n\x0f\x61lready_written\x18\x03 \x01(\x08\x12,\n\x04stat\x18\x04 \x01(\x0b\x32\x1e.NPersQueue.WriteResponse.Stat\x1a\x64\n\x08\x41\x63kBatch\x12,\n\x04stat\x18\x02 \x01(\x0b\x32\x1e.NPersQueue.WriteResponse.Stat\x12*\n\x03\x61\x63k\x18\x01 \x03(\x0b\x32\x1d.NPersQueue.WriteResponse.AckB\n\n\x08response\"\xab\t\n\x0bReadRequest\x12,\n\x04init\x18\x01 \x01(\x0b\x32\x1c.NPersQueue.ReadRequest.InitH\x00\x12,\n\x04read\x18\x02 \x01(\x0b\x32\x1c.NPersQueue.ReadRequest.ReadH\x00\x12\x37\n\nstart_read\x18\x03 \x01(\x0b\x32!.NPersQueue.ReadRequest.StartReadH\x00\x12\x30\n\x06\x63ommit\x18\x04 \x01(\x0b\x32\x1e.NPersQueue.ReadRequest.CommitH\x00\x12\x30\n\x06status\x18\x05 \x01(\x0b\x32\x1e.NPersQueue.ReadRequest.StatusH\x00\x12,\n\x0b\x63redentials\x18\x14 \x01(\x0b\x32\x17.NPersQueue.Credentials\x1a\xc4\x03\n\x04Init\x12\x0e\n\x06topics\x18\x01 \x03(\t\x12\x17\n\x0fread_only_local\x18\x02 \x01(\x08\x12\x11\n\tclient_id\x18\x04 \x01(\t\x12 \n\x18\x63lientside_locks_allowed\x18\x05 \x01(\x08\x12\x14\n\x0cproxy_cookie\x18\x06 \x01(\x04\x12#\n\x1b\x62\x61lance_partition_right_now\x18\x08 \x01(\x08\x12\x18\n\x10partition_groups\x18\t \x03(\r\x12\x18\n\x10idle_timeout_sec\x18\n \x01(\r\x12\x1a\n\x12\x63ommit_interval_ms\x18\x0c \x01(\r\x12\x1f\n\x17max_read_messages_count\x18\x0e \x01(\r\x12\x15\n\rmax_read_size\x18\x0f \x01(\r\x12!\n\x19max_read_partitions_count\x18\x10 \x01(\r\x12\x17\n\x0fmax_time_lag_ms\x18\x11 \x01(\r\x12\x19\n\x11read_timestamp_ms\x18\x12 \x01(\x04\x12\x18\n\x10\x63ommits_disabled\x18\x13 \x01(\x08\x12\x10\n\x07version\x18\xe7\x07 \x01(\t\x12\x18\n\x10protocol_version\x18\r \x01(\r\x1a{\n\x04Read\x12\x11\n\tmax_count\x18\x01 \x01(\r\x12\x10\n\x08max_size\x18\x02 \x01(\r\x12\x1a\n\x12partitions_at_once\x18\x03 \x01(\r\x12\x17\n\x0fmax_time_lag_ms\x18\x05 \x01(\r\x12\x19\n\x11read_timestamp_ms\x18\x06 \x01(\x04\x1a\x89\x01\n\tStartRead\x12\r\n\x05topic\x18\x01 \x01(\t\x12\x11\n\tpartition\x18\x02 \x01(\r\x12\x13\n\x0bread_offset\x18\x03 \x01(\x04\x12\x1a\n\x12verify_read_offset\x18\x04 \x01(\x08\x12\x12\n\ngeneration\x18\x05 \x01(\x04\x12\x15\n\rcommit_offset\x18\x06 \x01(\x04\x1a\x18\n\x06\x43ommit\x12\x0e\n\x06\x63ookie\x18\x01 \x03(\x04\x1a>\n\x06Status\x12\x12\n\ngeneration\x18\x01 \x01(\x04\x12\r\n\x05topic\x18\x02 \x01(\t\x12\x11\n\tpartition\x18\x03 \x01(\r\"@\n\x10\x45ProtocolVersion\x12\x08\n\x04\x42\x61se\x10\x00\x12\x0c\n\x08\x42\x61tching\x10\x01\x12\x14\n\x10ReadParamsInInit\x10\x02\x42\t\n\x07request\"\xb9\x01\n\x0bMessageMeta\x12\x11\n\tsource_id\x18\x01 \x01(\x0c\x12\x0e\n\x06seq_no\x18\x02 \x01(\x04\x12\x16\n\x0e\x63reate_time_ms\x18\x03 \x01(\x04\x12\x15\n\rwrite_time_ms\x18\x04 \x01(\x04\x12)\n\x0c\x65xtra_fields\x18\x07 \x01(\x0b\x32\x13.NPersQueue.MapType\x12!\n\x05\x63odec\x18\x08 \x01(\x0e\x32\x12.NPersQueue.ECodec\x12\n\n\x02ip\x18\t \x01(\t\"\xf4\x0c\n\x0cReadResponse\x12-\n\x04init\x18\x01 \x01(\x0b\x32\x1d.NPersQueue.ReadResponse.InitH\x00\x12-\n\x04\x64\x61ta\x18\x02 \x01(\x0b\x32\x1d.NPersQueue.ReadResponse.DataH\x00\x12<\n\x0c\x62\x61tched_data\x18\x07 \x01(\x0b\x32$.NPersQueue.ReadResponse.BatchedDataH\x00\x12\"\n\x05\x65rror\x18\x03 \x01(\x0b\x32\x11.NPersQueue.ErrorH\x00\x12-\n\x04lock\x18\x04 \x01(\x0b\x32\x1d.NPersQueue.ReadResponse.LockH\x00\x12\x33\n\x07release\x18\x05 \x01(\x0b\x32 .NPersQueue.ReadResponse.ReleaseH\x00\x12\x31\n\x06\x63ommit\x18\x06 \x01(\x0b\x32\x1f.NPersQueue.ReadResponse.CommitH\x00\x12\x44\n\x10partition_status\x18\x08 \x01(\x0b\x32(.NPersQueue.ReadResponse.PartitionStatusH\x00\x1a\x1a\n\x04Init\x12\x12\n\nsession_id\x18\x02 \x01(\t\x1a\xaf\x02\n\x04\x44\x61ta\x12\x41\n\rmessage_batch\x18\x01 \x03(\x0b\x32*.NPersQueue.ReadResponse.Data.MessageBatch\x12\x0e\n\x06\x63ookie\x18\x02 \x01(\x04\x1aj\n\x07Message\x12%\n\x04meta\x18\x01 \x01(\x0b\x32\x17.NPersQueue.MessageMeta\x12\x0c\n\x04\x64\x61ta\x18\x02 \x01(\x0c\x12\x0e\n\x06offset\x18\x03 \x01(\x04\x12\x1a\n\x12\x62roken_packed_data\x18\x04 \x01(\x0c\x1ah\n\x0cMessageBatch\x12\r\n\x05topic\x18\x01 \x01(\t\x12\x11\n\tpartition\x18\x02 \x01(\r\x12\x36\n\x07message\x18\x03 \x03(\x0b\x32%.NPersQueue.ReadResponse.Data.Message\x1a\x82\x04\n\x0b\x42\x61tchedData\x12\x0e\n\x06\x63ookie\x18\x02 \x01(\x04\x12J\n\x0epartition_data\x18\x01 \x03(\x0b\x32\x32.NPersQueue.ReadResponse.BatchedData.PartitionData\x1av\n\x0bMessageData\x12!\n\x05\x63odec\x18\x02 \x01(\x0e\x32\x12.NPersQueue.ECodec\x12\x0e\n\x06offset\x18\x03 \x01(\x04\x12\x0e\n\x06seq_no\x18\x04 \x01(\x04\x12\x16\n\x0e\x63reate_time_ms\x18\x05 \x01(\x04\x12\x0c\n\x04\x64\x61ta\x18\x01 \x01(\x0c\x1a\xb0\x01\n\x05\x42\x61tch\x12\x11\n\tsource_id\x18\x02 \x01(\x0c\x12)\n\x0c\x65xtra_fields\x18\x03 \x01(\x0b\x32\x13.NPersQueue.MapType\x12\x15\n\rwrite_time_ms\x18\x04 \x01(\x04\x12\n\n\x02ip\x18\x05 \x01(\t\x12\x46\n\x0cmessage_data\x18\x01 \x03(\x0b\x32\x30.NPersQueue.ReadResponse.BatchedData.MessageData\x1al\n\rPartitionData\x12\r\n\x05topic\x18\x02 \x01(\t\x12\x11\n\tpartition\x18\x03 \x01(\r\x12\x39\n\x05\x62\x61tch\x18\x01 \x03(\x0b\x32*.NPersQueue.ReadResponse.BatchedData.Batch\x1a\x65\n\x04Lock\x12\r\n\x05topic\x18\x01 \x01(\t\x12\x11\n\tpartition\x18\x02 \x01(\r\x12\x13\n\x0bread_offset\x18\x03 \x01(\x04\x12\x12\n\nend_offset\x18\x04 \x01(\x04\x12\x12\n\ngeneration\x18\x05 \x01(\x04\x1aS\n\x07Release\x12\r\n\x05topic\x18\x01 \x01(\t\x12\x11\n\tpartition\x18\x02 \x01(\r\x12\x12\n\ncan_commit\x18\x03 \x01(\x08\x12\x12\n\ngeneration\x18\x04 \x01(\x04\x1a\x18\n\x06\x43ommit\x12\x0e\n\x06\x63ookie\x18\x01 \x03(\x04\x1a\x91\x01\n\x0fPartitionStatus\x12\x12\n\ngeneration\x18\x01 \x01(\x04\x12\r\n\x05topic\x18\x02 \x01(\t\x12\x11\n\tpartition\x18\x03 \x01(\r\x12\x18\n\x10\x63ommitted_offset\x18\x04 \x01(\x04\x12\x12\n\nend_offset\x18\x05 \x01(\x04\x12\x1a\n\x12write_watermark_ms\x18\x06 \x01(\x04\x42\n\n\x08response*<\n\x06\x45\x43odec\x12\x07\n\x03RAW\x10\x00\x12\x08\n\x04GZIP\x10\x01\x12\x08\n\x04LZOP\x10\x02\x12\x08\n\x04ZSTD\x10\x03\x12\x0b\n\x07\x44\x45\x46\x41ULT\x10\x64:7\n\x0fGenerateYaStyle\x12\x1c.google.protobuf.FileOptions\x18\xf5\x88\x04 \x01(\x08\x42\x1d\n\x18\x63om.yandex.ydb.persqueue\xf8\x01\x01\x62\x06proto3')
+  serialized_pb=_b('\n.kikimr/public/api/protos/draft/persqueue.proto\x12\nNPersQueue\x1a google/protobuf/descriptor.proto\x1a:kikimr/public/api/protos/draft/persqueue_error_codes.proto\"\x14\n\x04Path\x12\x0c\n\x04path\x18\x01 \x01(\t\"M\n\x05\x45rror\x12/\n\x04\x63ode\x18\x01 \x01(\x0e\x32!.NPersQueue.NErrorCode.EErrorCode\x12\x13\n\x0b\x64\x65scription\x18\x02 \x01(\t\"&\n\x08KeyValue\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t\".\n\x07MapType\x12#\n\x05items\x18\x01 \x03(\x0b\x32\x14.NPersQueue.KeyValue\"Q\n\x0b\x43redentials\x12\x1c\n\x12tvm_service_ticket\x18\x01 \x01(\x0cH\x00\x12\x15\n\x0boauth_token\x18\x02 \x01(\x0cH\x00\x42\r\n\x0b\x63redentials\"\xac\x04\n\x0cWriteRequest\x12-\n\x04init\x18\x01 \x01(\x0b\x32\x1d.NPersQueue.WriteRequest.InitH\x00\x12-\n\x04\x64\x61ta\x18\x02 \x01(\x0b\x32\x1d.NPersQueue.WriteRequest.DataH\x00\x12\x38\n\ndata_batch\x18\x03 \x01(\x0b\x32\".NPersQueue.WriteRequest.DataBatchH\x00\x12,\n\x0b\x63redentials\x18\x14 \x01(\x0b\x32\x17.NPersQueue.Credentials\x1a\x94\x01\n\x04Init\x12\r\n\x05topic\x18\x01 \x01(\t\x12\x11\n\tsource_id\x18\x02 \x01(\x0c\x12)\n\x0c\x65xtra_fields\x18\x07 \x01(\x0b\x32\x13.NPersQueue.MapType\x12\x14\n\x0cproxy_cookie\x18\x08 \x01(\x04\x12\x17\n\x0fpartition_group\x18\x0c \x01(\r\x12\x10\n\x07version\x18\xe7\x07 \x01(\t\x1az\n\x04\x44\x61ta\x12\x0e\n\x06seq_no\x18\x01 \x01(\x04\x12\x0c\n\x04\x64\x61ta\x18\x02 \x01(\x0c\x12\x16\n\x0e\x63reate_time_ms\x18\x03 \x01(\x04\x12!\n\x05\x63odec\x18\x04 \x01(\x0e\x32\x12.NPersQueue.ECodec\x12\x19\n\x11uncompressed_size\x18\x05 \x01(\r\x1a\x38\n\tDataBatch\x12+\n\x04\x64\x61ta\x18\x01 \x03(\x0b\x32\x1d.NPersQueue.WriteRequest.DataB\t\n\x07request\"\x86\x05\n\rWriteResponse\x12.\n\x04init\x18\x01 \x01(\x0b\x32\x1e.NPersQueue.WriteResponse.InitH\x00\x12,\n\x03\x61\x63k\x18\x02 \x01(\x0b\x32\x1d.NPersQueue.WriteResponse.AckH\x00\x12\x37\n\tack_batch\x18\x04 \x01(\x0b\x32\".NPersQueue.WriteResponse.AckBatchH\x00\x12\"\n\x05\x65rror\x18\x03 \x01(\x0b\x32\x11.NPersQueue.ErrorH\x00\x1aP\n\x04Init\x12\x12\n\nmax_seq_no\x18\x01 \x01(\x04\x12\x12\n\nsession_id\x18\x02 \x01(\t\x12\x11\n\tpartition\x18\x03 \x01(\r\x12\r\n\x05topic\x18\x04 \x01(\t\x1a\x87\x01\n\x04Stat\x12\x15\n\rwrite_time_ms\x18\x01 \x01(\r\x12(\n total_time_in_partition_queue_ms\x18\x02 \x01(\r\x12 \n\x18partition_quoted_time_ms\x18\x03 \x01(\r\x12\x1c\n\x14topic_quoted_time_ms\x18\x04 \x01(\r\x1al\n\x03\x41\x63k\x12\x0e\n\x06seq_no\x18\x01 \x01(\x04\x12\x0e\n\x06offset\x18\x02 \x01(\x04\x12\x17\n\x0f\x61lready_written\x18\x03 \x01(\x08\x12,\n\x04stat\x18\x04 \x01(\x0b\x32\x1e.NPersQueue.WriteResponse.Stat\x1a\x64\n\x08\x41\x63kBatch\x12,\n\x04stat\x18\x02 \x01(\x0b\x32\x1e.NPersQueue.WriteResponse.Stat\x12*\n\x03\x61\x63k\x18\x01 \x03(\x0b\x32\x1d.NPersQueue.WriteResponse.AckB\n\n\x08response\"\xab\t\n\x0bReadRequest\x12,\n\x04init\x18\x01 \x01(\x0b\x32\x1c.NPersQueue.ReadRequest.InitH\x00\x12,\n\x04read\x18\x02 \x01(\x0b\x32\x1c.NPersQueue.ReadRequest.ReadH\x00\x12\x37\n\nstart_read\x18\x03 \x01(\x0b\x32!.NPersQueue.ReadRequest.StartReadH\x00\x12\x30\n\x06\x63ommit\x18\x04 \x01(\x0b\x32\x1e.NPersQueue.ReadRequest.CommitH\x00\x12\x30\n\x06status\x18\x05 \x01(\x0b\x32\x1e.NPersQueue.ReadRequest.StatusH\x00\x12,\n\x0b\x63redentials\x18\x14 \x01(\x0b\x32\x17.NPersQueue.Credentials\x1a\xc4\x03\n\x04Init\x12\x0e\n\x06topics\x18\x01 \x03(\t\x12\x17\n\x0fread_only_local\x18\x02 \x01(\x08\x12\x11\n\tclient_id\x18\x04 \x01(\t\x12 \n\x18\x63lientside_locks_allowed\x18\x05 \x01(\x08\x12\x14\n\x0cproxy_cookie\x18\x06 \x01(\x04\x12#\n\x1b\x62\x61lance_partition_right_now\x18\x08 \x01(\x08\x12\x18\n\x10partition_groups\x18\t \x03(\r\x12\x18\n\x10idle_timeout_sec\x18\n \x01(\r\x12\x1a\n\x12\x63ommit_interval_ms\x18\x0c \x01(\r\x12\x1f\n\x17max_read_messages_count\x18\x0e \x01(\r\x12\x15\n\rmax_read_size\x18\x0f \x01(\r\x12!\n\x19max_read_partitions_count\x18\x10 \x01(\r\x12\x17\n\x0fmax_time_lag_ms\x18\x11 \x01(\r\x12\x19\n\x11read_timestamp_ms\x18\x12 \x01(\x04\x12\x18\n\x10\x63ommits_disabled\x18\x13 \x01(\x08\x12\x10\n\x07version\x18\xe7\x07 \x01(\t\x12\x18\n\x10protocol_version\x18\r \x01(\r\x1a{\n\x04Read\x12\x11\n\tmax_count\x18\x01 \x01(\r\x12\x10\n\x08max_size\x18\x02 \x01(\r\x12\x1a\n\x12partitions_at_once\x18\x03 \x01(\r\x12\x17\n\x0fmax_time_lag_ms\x18\x05 \x01(\r\x12\x19\n\x11read_timestamp_ms\x18\x06 \x01(\x04\x1a\x89\x01\n\tStartRead\x12\r\n\x05topic\x18\x01 \x01(\t\x12\x11\n\tpartition\x18\x02 \x01(\r\x12\x13\n\x0bread_offset\x18\x03 \x01(\x04\x12\x1a\n\x12verify_read_offset\x18\x04 \x01(\x08\x12\x12\n\ngeneration\x18\x05 \x01(\x04\x12\x15\n\rcommit_offset\x18\x06 \x01(\x04\x1a\x18\n\x06\x43ommit\x12\x0e\n\x06\x63ookie\x18\x01 \x03(\x04\x1a>\n\x06Status\x12\x12\n\ngeneration\x18\x01 \x01(\x04\x12\r\n\x05topic\x18\x02 \x01(\t\x12\x11\n\tpartition\x18\x03 \x01(\r\"@\n\x10\x45ProtocolVersion\x12\x08\n\x04\x42\x61se\x10\x00\x12\x0c\n\x08\x42\x61tching\x10\x01\x12\x14\n\x10ReadParamsInInit\x10\x02\x42\t\n\x07request\"\xd4\x01\n\x0bMessageMeta\x12\x11\n\tsource_id\x18\x01 \x01(\x0c\x12\x0e\n\x06seq_no\x18\x02 \x01(\x04\x12\x16\n\x0e\x63reate_time_ms\x18\x03 \x01(\x04\x12\x15\n\rwrite_time_ms\x18\x04 \x01(\x04\x12)\n\x0c\x65xtra_fields\x18\x07 \x01(\x0b\x32\x13.NPersQueue.MapType\x12!\n\x05\x63odec\x18\x08 \x01(\x0e\x32\x12.NPersQueue.ECodec\x12\n\n\x02ip\x18\t \x01(\t\x12\x19\n\x11uncompressed_size\x18\n \x01(\r\"\x90\r\n\x0cReadResponse\x12-\n\x04init\x18\x01 \x01(\x0b\x32\x1d.NPersQueue.ReadResponse.InitH\x00\x12-\n\x04\x64\x61ta\x18\x02 \x01(\x0b\x32\x1d.NPersQueue.ReadResponse.DataH\x00\x12<\n\x0c\x62\x61tched_data\x18\x07 \x01(\x0b\x32$.NPersQueue.ReadResponse.BatchedDataH\x00\x12\"\n\x05\x65rror\x18\x03 \x01(\x0b\x32\x11.NPersQueue.ErrorH\x00\x12-\n\x04lock\x18\x04 \x01(\x0b\x32\x1d.NPersQueue.ReadResponse.LockH\x00\x12\x33\n\x07release\x18\x05 \x01(\x0b\x32 .NPersQueue.ReadResponse.ReleaseH\x00\x12\x31\n\x06\x63ommit\x18\x06 \x01(\x0b\x32\x1f.NPersQueue.ReadResponse.CommitH\x00\x12\x44\n\x10partition_status\x18\x08 \x01(\x0b\x32(.NPersQueue.ReadResponse.PartitionStatusH\x00\x1a\x1a\n\x04Init\x12\x12\n\nsession_id\x18\x02 \x01(\t\x1a\xaf\x02\n\x04\x44\x61ta\x12\x41\n\rmessage_batch\x18\x01 \x03(\x0b\x32*.NPersQueue.ReadResponse.Data.MessageBatch\x12\x0e\n\x06\x63ookie\x18\x02 \x01(\x04\x1aj\n\x07Message\x12%\n\x04meta\x18\x01 \x01(\x0b\x32\x17.NPersQueue.MessageMeta\x12\x0c\n\x04\x64\x61ta\x18\x02 \x01(\x0c\x12\x0e\n\x06offset\x18\x03 \x01(\x04\x12\x1a\n\x12\x62roken_packed_data\x18\x04 \x01(\x0c\x1ah\n\x0cMessageBatch\x12\r\n\x05topic\x18\x01 \x01(\t\x12\x11\n\tpartition\x18\x02 \x01(\r\x12\x36\n\x07message\x18\x03 \x03(\x0b\x32%.NPersQueue.ReadResponse.Data.Message\x1a\x9e\x04\n\x0b\x42\x61tchedData\x12\x0e\n\x06\x63ookie\x18\x02 \x01(\x04\x12J\n\x0epartition_data\x18\x01 \x03(\x0b\x32\x32.NPersQueue.ReadResponse.BatchedData.PartitionData\x1a\x91\x01\n\x0bMessageData\x12!\n\x05\x63odec\x18\x02 \x01(\x0e\x32\x12.NPersQueue.ECodec\x12\x0e\n\x06offset\x18\x03 \x01(\x04\x12\x0e\n\x06seq_no\x18\x04 \x01(\x04\x12\x16\n\x0e\x63reate_time_ms\x18\x05 \x01(\x04\x12\x19\n\x11uncompressed_size\x18\x06 \x01(\x04\x12\x0c\n\x04\x64\x61ta\x18\x01 \x01(\x0c\x1a\xb0\x01\n\x05\x42\x61tch\x12\x11\n\tsource_id\x18\x02 \x01(\x0c\x12)\n\x0c\x65xtra_fields\x18\x03 \x01(\x0b\x32\x13.NPersQueue.MapType\x12\x15\n\rwrite_time_ms\x18\x04 \x01(\x04\x12\n\n\x02ip\x18\x05 \x01(\t\x12\x46\n\x0cmessage_data\x18\x01 \x03(\x0b\x32\x30.NPersQueue.ReadResponse.BatchedData.MessageData\x1al\n\rPartitionData\x12\r\n\x05topic\x18\x02 \x01(\t\x12\x11\n\tpartition\x18\x03 \x01(\r\x12\x39\n\x05\x62\x61tch\x18\x01 \x03(\x0b\x32*.NPersQueue.ReadResponse.BatchedData.Batch\x1a\x65\n\x04Lock\x12\r\n\x05topic\x18\x01 \x01(\t\x12\x11\n\tpartition\x18\x02 \x01(\r\x12\x13\n\x0bread_offset\x18\x03 \x01(\x04\x12\x12\n\nend_offset\x18\x04 \x01(\x04\x12\x12\n\ngeneration\x18\x05 \x01(\x04\x1aS\n\x07Release\x12\r\n\x05topic\x18\x01 \x01(\t\x12\x11\n\tpartition\x18\x02 \x01(\r\x12\x12\n\ncan_commit\x18\x03 \x01(\x08\x12\x12\n\ngeneration\x18\x04 \x01(\x04\x1a\x18\n\x06\x43ommit\x12\x0e\n\x06\x63ookie\x18\x01 \x03(\x04\x1a\x91\x01\n\x0fPartitionStatus\x12\x12\n\ngeneration\x18\x01 \x01(\x04\x12\r\n\x05topic\x18\x02 \x01(\t\x12\x11\n\tpartition\x18\x03 \x01(\r\x12\x18\n\x10\x63ommitted_offset\x18\x04 \x01(\x04\x12\x12\n\nend_offset\x18\x05 \x01(\x04\x12\x1a\n\x12write_watermark_ms\x18\x06 \x01(\x04\x42\n\n\x08response*<\n\x06\x45\x43odec\x12\x07\n\x03RAW\x10\x00\x12\x08\n\x04GZIP\x10\x01\x12\x08\n\x04LZOP\x10\x02\x12\x08\n\x04ZSTD\x10\x03\x12\x0b\n\x07\x44\x45\x46\x41ULT\x10\x64:7\n\x0fGenerateYaStyle\x12\x1c.google.protobuf.FileOptions\x18\xf5\x88\x04 \x01(\x08\x42\x1d\n\x18\x63om.yandex.ydb.persqueue\xf8\x01\x01\x62\x06proto3')
   ,
   dependencies=[google_dot_protobuf_dot_descriptor__pb2.DESCRIPTOR,kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_persqueue__error__codes__pb2.DESCRIPTOR,])
 
@@ -55,8 +55,8 @@ _ECODEC = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=4650,
-  serialized_end=4710,
+  serialized_start=4732,
+  serialized_end=4792,
 )
 _sym_db.RegisterEnumDescriptor(_ECODEC)
 
@@ -97,8 +97,8 @@ _READREQUEST_EPROTOCOLVERSION = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=2730,
-  serialized_end=2794,
+  serialized_start=2757,
+  serialized_end=2821,
 )
 _sym_db.RegisterEnumDescriptor(_READREQUEST_EPROTOCOLVERSION)
 
@@ -382,6 +382,13 @@ _WRITEREQUEST_DATA = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
+    _descriptor.FieldDescriptor(
+      name='uncompressed_size', full_name='NPersQueue.WriteRequest.Data.uncompressed_size', index=4,
+      number=5, type=13, cpp_type=3, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
   ],
   extensions=[
   ],
@@ -395,7 +402,7 @@ _WRITEREQUEST_DATA = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=794,
-  serialized_end=889,
+  serialized_end=916,
 )
 
 _WRITEREQUEST_DATABATCH = _descriptor.Descriptor(
@@ -424,8 +431,8 @@ _WRITEREQUEST_DATABATCH = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=891,
-  serialized_end=947,
+  serialized_start=918,
+  serialized_end=974,
 )
 
 _WRITEREQUEST = _descriptor.Descriptor(
@@ -479,7 +486,7 @@ _WRITEREQUEST = _descriptor.Descriptor(
       index=0, containing_type=None, fields=[]),
   ],
   serialized_start=429,
-  serialized_end=958,
+  serialized_end=985,
 )
 
 
@@ -530,8 +537,8 @@ _WRITERESPONSE_INIT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1165,
-  serialized_end=1245,
+  serialized_start=1192,
+  serialized_end=1272,
 )
 
 _WRITERESPONSE_STAT = _descriptor.Descriptor(
@@ -581,8 +588,8 @@ _WRITERESPONSE_STAT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1248,
-  serialized_end=1383,
+  serialized_start=1275,
+  serialized_end=1410,
 )
 
 _WRITERESPONSE_ACK = _descriptor.Descriptor(
@@ -632,8 +639,8 @@ _WRITERESPONSE_ACK = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1385,
-  serialized_end=1493,
+  serialized_start=1412,
+  serialized_end=1520,
 )
 
 _WRITERESPONSE_ACKBATCH = _descriptor.Descriptor(
@@ -669,8 +676,8 @@ _WRITERESPONSE_ACKBATCH = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1495,
-  serialized_end=1595,
+  serialized_start=1522,
+  serialized_end=1622,
 )
 
 _WRITERESPONSE = _descriptor.Descriptor(
@@ -723,8 +730,8 @@ _WRITERESPONSE = _descriptor.Descriptor(
       name='response', full_name='NPersQueue.WriteResponse.response',
       index=0, containing_type=None, fields=[]),
   ],
-  serialized_start=961,
-  serialized_end=1607,
+  serialized_start=988,
+  serialized_end=1634,
 )
 
 
@@ -866,8 +873,8 @@ _READREQUEST_INIT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1921,
-  serialized_end=2373,
+  serialized_start=1948,
+  serialized_end=2400,
 )
 
 _READREQUEST_READ = _descriptor.Descriptor(
@@ -924,8 +931,8 @@ _READREQUEST_READ = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2375,
-  serialized_end=2498,
+  serialized_start=2402,
+  serialized_end=2525,
 )
 
 _READREQUEST_STARTREAD = _descriptor.Descriptor(
@@ -989,8 +996,8 @@ _READREQUEST_STARTREAD = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2501,
-  serialized_end=2638,
+  serialized_start=2528,
+  serialized_end=2665,
 )
 
 _READREQUEST_COMMIT = _descriptor.Descriptor(
@@ -1019,8 +1026,8 @@ _READREQUEST_COMMIT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2640,
-  serialized_end=2664,
+  serialized_start=2667,
+  serialized_end=2691,
 )
 
 _READREQUEST_STATUS = _descriptor.Descriptor(
@@ -1063,8 +1070,8 @@ _READREQUEST_STATUS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2666,
-  serialized_end=2728,
+  serialized_start=2693,
+  serialized_end=2755,
 )
 
 _READREQUEST = _descriptor.Descriptor(
@@ -1132,8 +1139,8 @@ _READREQUEST = _descriptor.Descriptor(
       name='request', full_name='NPersQueue.ReadRequest.request',
       index=0, containing_type=None, fields=[]),
   ],
-  serialized_start=1610,
-  serialized_end=2805,
+  serialized_start=1637,
+  serialized_end=2832,
 )
 
 
@@ -1193,6 +1200,13 @@ _MESSAGEMETA = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
+    _descriptor.FieldDescriptor(
+      name='uncompressed_size', full_name='NPersQueue.MessageMeta.uncompressed_size', index=7,
+      number=10, type=13, cpp_type=3, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
   ],
   extensions=[
   ],
@@ -1205,8 +1219,8 @@ _MESSAGEMETA = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2808,
-  serialized_end=2993,
+  serialized_start=2835,
+  serialized_end=3047,
 )
 
 
@@ -1236,8 +1250,8 @@ _READRESPONSE_INIT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3425,
-  serialized_end=3451,
+  serialized_start=3479,
+  serialized_end=3505,
 )
 
 _READRESPONSE_DATA_MESSAGE = _descriptor.Descriptor(
@@ -1287,8 +1301,8 @@ _READRESPONSE_DATA_MESSAGE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3545,
-  serialized_end=3651,
+  serialized_start=3599,
+  serialized_end=3705,
 )
 
 _READRESPONSE_DATA_MESSAGEBATCH = _descriptor.Descriptor(
@@ -1331,8 +1345,8 @@ _READRESPONSE_DATA_MESSAGEBATCH = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3653,
-  serialized_end=3757,
+  serialized_start=3707,
+  serialized_end=3811,
 )
 
 _READRESPONSE_DATA = _descriptor.Descriptor(
@@ -1368,8 +1382,8 @@ _READRESPONSE_DATA = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3454,
-  serialized_end=3757,
+  serialized_start=3508,
+  serialized_end=3811,
 )
 
 _READRESPONSE_BATCHEDDATA_MESSAGEDATA = _descriptor.Descriptor(
@@ -1408,7 +1422,14 @@ _READRESPONSE_BATCHEDDATA_MESSAGEDATA = _descriptor.Descriptor(
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='data', full_name='NPersQueue.ReadResponse.BatchedData.MessageData.data', index=4,
+      name='uncompressed_size', full_name='NPersQueue.ReadResponse.BatchedData.MessageData.uncompressed_size', index=4,
+      number=6, type=4, cpp_type=4, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='data', full_name='NPersQueue.ReadResponse.BatchedData.MessageData.data', index=5,
       number=1, type=12, cpp_type=9, label=1,
       has_default_value=False, default_value=_b(""),
       message_type=None, enum_type=None, containing_type=None,
@@ -1426,8 +1447,8 @@ _READRESPONSE_BATCHEDDATA_MESSAGEDATA = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3867,
-  serialized_end=3985,
+  serialized_start=3922,
+  serialized_end=4067,
 )
 
 _READRESPONSE_BATCHEDDATA_BATCH = _descriptor.Descriptor(
@@ -1484,8 +1505,8 @@ _READRESPONSE_BATCHEDDATA_BATCH = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3988,
-  serialized_end=4164,
+  serialized_start=4070,
+  serialized_end=4246,
 )
 
 _READRESPONSE_BATCHEDDATA_PARTITIONDATA = _descriptor.Descriptor(
@@ -1528,8 +1549,8 @@ _READRESPONSE_BATCHEDDATA_PARTITIONDATA = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=4166,
-  serialized_end=4274,
+  serialized_start=4248,
+  serialized_end=4356,
 )
 
 _READRESPONSE_BATCHEDDATA = _descriptor.Descriptor(
@@ -1565,8 +1586,8 @@ _READRESPONSE_BATCHEDDATA = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3760,
-  serialized_end=4274,
+  serialized_start=3814,
+  serialized_end=4356,
 )
 
 _READRESPONSE_LOCK = _descriptor.Descriptor(
@@ -1623,8 +1644,8 @@ _READRESPONSE_LOCK = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=4276,
-  serialized_end=4377,
+  serialized_start=4358,
+  serialized_end=4459,
 )
 
 _READRESPONSE_RELEASE = _descriptor.Descriptor(
@@ -1674,8 +1695,8 @@ _READRESPONSE_RELEASE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=4379,
-  serialized_end=4462,
+  serialized_start=4461,
+  serialized_end=4544,
 )
 
 _READRESPONSE_COMMIT = _descriptor.Descriptor(
@@ -1704,8 +1725,8 @@ _READRESPONSE_COMMIT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2640,
-  serialized_end=2664,
+  serialized_start=2667,
+  serialized_end=2691,
 )
 
 _READRESPONSE_PARTITIONSTATUS = _descriptor.Descriptor(
@@ -1769,8 +1790,8 @@ _READRESPONSE_PARTITIONSTATUS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=4491,
-  serialized_end=4636,
+  serialized_start=4573,
+  serialized_end=4718,
 )
 
 _READRESPONSE = _descriptor.Descriptor(
@@ -1851,8 +1872,8 @@ _READRESPONSE = _descriptor.Descriptor(
       name='response', full_name='NPersQueue.ReadResponse.response',
       index=0, containing_type=None, fields=[]),
   ],
-  serialized_start=2996,
-  serialized_end=4648,
+  serialized_start=3050,
+  serialized_end=4730,
 )
 
 _ERROR.fields_by_name['code'].enum_type = kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_persqueue__error__codes__pb2._EERRORCODE
