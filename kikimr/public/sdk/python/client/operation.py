@@ -3,8 +3,8 @@ from . import issues
 from . import _apis
 
 
-def _forget_operation_request(self):
-    request = _apis.ydb_operation.ForgetOperationRequest(id=self.id)
+def _forget_operation_request(operation_id):
+    request = _apis.ydb_operation.ForgetOperationRequest(id=operation_id)
     return request
 
 
@@ -24,6 +24,20 @@ def _cancel_operation_response(rpc_state, response):
 def _get_operation_request(self):
     request = _apis.ydb_operation.GetOperationRequest(id=self.id)
     return request
+
+
+class OperationClient(object):
+    def __init__(self, driver):
+        self._driver = driver
+
+    def forget(self, operation_id, settings=None):
+        return self._driver(
+            _forget_operation_request(operation_id),
+            _apis.OperationService.Stub,
+            _apis.OperationService.ForgetOperation,
+            _forget_operation_response,
+            settings,
+        )
 
 
 class Operation(object):
@@ -59,7 +73,7 @@ class Operation(object):
     def forget(self, settings=None):
         self._ensure_implements()
         return self._driver(
-            _forget_operation_request(self),
+            _forget_operation_request(self.id),
             _apis.OperationService.Stub,
             _apis.OperationService.ForgetOperation,
             _forget_operation_response,
