@@ -99,10 +99,40 @@ def wrap_describe_table_response(rpc_state, response_pb, sesssion_state, scheme_
     )
 
 
+def explicit_partitions_factory(primary_key, columns, split_points):
+    column_types = {}
+    pk = set(primary_key)
+    for column in columns:
+        if column.name in pk:
+            column_types[column.name] = column.type
+
+    explicit_partitions = _apis.ydb_table.ExplicitPartitions()
+    for split_point in split_points:
+        typed_value = explicit_partitions.split_points.add()
+        split_point_type = types.TupleType()
+        prefix_size = len(split_point.value)
+        for pl_el_id, pk_name in enumerate(primary_key):
+            if pl_el_id >= prefix_size:
+                break
+
+            split_point_type.add_element(column_types[pk_name])
+
+        typed_value.type.MergeFrom(split_point_type.proto)
+        typed_value.value.MergeFrom(
+            convert.from_native_value(
+                split_point_type.proto,
+                split_point.value
+            )
+        )
+
+    return explicit_partitions
+
+
 def create_table_request_factory(session_state, path, table_description):
     if isinstance(table_description, _apis.ydb_table.CreateTableRequest):
         request = session_state.attach_request(table_description)
         return request
+
     request = _apis.ydb_table.CreateTableRequest()
     request.path = path
     request.primary_key.extend(list(table_description.primary_key))
@@ -126,6 +156,25 @@ def create_table_request_factory(session_state, path, table_description):
         )
 
     request.attributes.update(table_description.attributes)
+
+    if table_description.read_replicas_settings is not None:
+        request.read_replicas_settings.MergeFrom(
+            table_description.read_replicas_settings.to_pb())
+
+    request.key_bloom_filter = table_description.key_bloom_filter
+    if table_description.compaction_policy is not None:
+        request.compaction_policy = table_description.compaction_policy
+    if table_description.partition_at_keys is not None:
+        request.partition_at_keys.MergeFrom(
+            explicit_partitions_factory(
+                list(table_description.primary_key),
+                table_description.columns,
+                table_description.partition_at_keys.split_points,
+            )
+        )
+
+    elif table_description.uniform_partitions > 0:
+        request.uniform_partitions = table_description.uniform_partitions
 
     return session_state.attach_request(request)
 

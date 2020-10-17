@@ -483,6 +483,28 @@ class TableStats(object):
         return self
 
 
+class ReadReplicasSettings(object):
+    def __init__(self):
+        self.per_az_read_replicas_count = 0
+        self.any_az_read_replicas_count = 0
+
+    def with_any_az_read_replicas_count(self, any_az_read_replicas_count):
+        self.any_az_read_replicas_count = any_az_read_replicas_count
+        return self
+
+    def with_per_az_read_replicas_count(self, per_az_read_replicas_count):
+        self.per_az_read_replicas_count = per_az_read_replicas_count
+        return self
+
+    def to_pb(self):
+        pb = _apis.ydb_table.ReadReplicasSettings()
+        if self.per_az_read_replicas_count > 0:
+            pb.per_az_read_replicas_count = self.per_az_read_replicas_count
+        elif self.any_az_read_replicas_count > 0:
+            pb.any_az_read_replicas_count = self.any_az_read_replicas_count
+        return pb
+
+
 class TableDescription(object):
     def __init__(self):
         self.columns = []
@@ -491,6 +513,11 @@ class TableDescription(object):
         self.indexes = []
         self.ttl_settings = None
         self.attributes = {}
+        self.uniform_partitions = 0
+        self.partition_at_keys = None
+        self.compaction_policy = None
+        self.key_bloom_filter = 0
+        self.read_replicas_settings = None
 
     def with_column(self, column):
         self.columns.append(column)
@@ -529,6 +556,26 @@ class TableDescription(object):
 
     def with_attributes(self, attributes):
         self.attributes = attributes
+        return self
+
+    def with_uniform_partitions(self, uniform_partitions):
+        self.uniform_partitions = uniform_partitions
+        return self
+
+    def with_partition_at_keys(self, partition_at_keys):
+        self.partition_at_keys = partition_at_keys
+        return self
+
+    def with_key_bloom_filter(self, key_bloom_filter):
+        self.key_bloom_filter = key_bloom_filter
+        return self
+
+    def with_read_replicas_settings(self, read_replicas_settings):
+        self.read_replicas_settings = read_replicas_settings
+        return self
+
+    def with_compaction_policy(self, compaction_policy):
+        self.compaction_policy = compaction_policy
         return self
 
 
