@@ -95,7 +95,8 @@ def wrap_describe_table_response(rpc_state, response_pb, sesssion_state, scheme_
         message.indexes,
         message.table_stats if message.HasField('table_stats') else None,
         message.ttl_settings if message.HasField('ttl_settings') else None,
-        message.attributes
+        message.attributes,
+        message.partitioning_settings if message.HasField('partitioning_settings') else None,
     )
 
 
@@ -160,6 +161,10 @@ def create_table_request_factory(session_state, path, table_description):
     if table_description.read_replicas_settings is not None:
         request.read_replicas_settings.MergeFrom(
             table_description.read_replicas_settings.to_pb())
+
+    if table_description.partitioning_settings is not None:
+        request.partitioning_settings.MergeFrom(
+            table_description.partitioning_settings.to_pb())
 
     request.key_bloom_filter = table_description.key_bloom_filter
     if table_description.compaction_policy is not None:
