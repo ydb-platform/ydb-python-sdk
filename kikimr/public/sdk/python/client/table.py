@@ -505,6 +505,44 @@ class ReadReplicasSettings(object):
         return pb
 
 
+class PartitioningSettings(object):
+    def __init__(self):
+        self.partitioning_by_size = 0
+        self.partition_size_mb = 0
+        self.partitioning_by_load = 0
+        self.min_partitions_count = 0
+        self.max_partitions_count = 0
+
+    def with_max_partitions_count(self, max_partitions_count):
+        self.max_partitions_count = max_partitions_count
+        return self
+
+    def with_min_partitions_count(self, min_partitions_count):
+        self.min_partitions_count = min_partitions_count
+        return self
+
+    def with_partitioning_by_load(self, partitioning_by_load):
+        self.partitioning_by_load = partitioning_by_load
+        return self
+
+    def with_partition_size_mb(self, partition_size_mb):
+        self.partition_size_mb = partition_size_mb
+        return self
+
+    def with_partitioning_by_size(self, partitioning_by_size):
+        self.partitioning_by_size = partitioning_by_size
+        return self
+
+    def to_pb(self):
+        pb = _apis.ydb_table.PartitioningSettings()
+        pb.partitioning_by_size = self.partitioning_by_size
+        pb.partition_size_mb = self.partition_size_mb
+        pb.partitioning_by_load = self.partitioning_by_load
+        pb.min_partitions_count = self.min_partitions_count
+        pb.max_partitions_count = self.max_partitions_count
+        return pb
+
+
 class TableDescription(object):
     def __init__(self):
         self.columns = []
@@ -518,6 +556,7 @@ class TableDescription(object):
         self.compaction_policy = None
         self.key_bloom_filter = 0
         self.read_replicas_settings = None
+        self.partitioning_settings = None
 
     def with_column(self, column):
         self.columns.append(column)
@@ -568,6 +607,10 @@ class TableDescription(object):
 
     def with_key_bloom_filter(self, key_bloom_filter):
         self.key_bloom_filter = key_bloom_filter
+        return self
+
+    def with_partitioning_settings(self, partitioning_settings):
+        self.partitioning_settings = partitioning_settings
         return self
 
     def with_read_replicas_settings(self, read_replicas_settings):
@@ -834,7 +877,7 @@ def _make_index_description(index):
 class TableSchemeEntry(scheme.SchemeEntry):
     def __init__(
             self, name, owner, type, effective_permissions, permissions, columns, primary_key, shard_key_bounds,
-            indexes, table_stats, ttl_settings, attributes, *args, **kwargs):
+            indexes, table_stats, ttl_settings, attributes, partitioning_settings, *args, **kwargs):
 
         super(TableSchemeEntry, self).__init__(name, owner, type, effective_permissions, permissions, *args, **kwargs)
         self.primary_key = [pk for pk in primary_key]
@@ -867,6 +910,12 @@ class TableSchemeEntry(scheme.SchemeEntry):
         else:
             self.shard_key_ranges.append(
                 KeyRange(None, None))
+
+        self.partitioning_settings = None
+        if partitioning_settings is not None:
+            self.partitioning_settings = PartitioningSettings()
+            for field in ('partitioning_by_size', 'partitioning_by_load', 'partition_size_mb', 'min_partitions_count', 'max_partitions_count'):
+                setattr(self.partitioning_settings, field, getattr(partitioning_settings, field))
 
         self.ttl_settings = None
         if ttl_settings is not None:
