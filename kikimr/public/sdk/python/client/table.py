@@ -107,9 +107,10 @@ class KeyRange(object):
 
 
 class Column(object):
-    def __init__(self, name, type):
+    def __init__(self, name, type, family=None):
         self._name = name
         self._type = type
+        self.family = family
 
     def __eq__(self, other):
         return self.name == other.name and self._type.item == other.type.item
@@ -121,6 +122,10 @@ class Column(object):
     @property
     def type(self):
         return self._type
+
+    def with_family(self, family):
+        self.family = family
+        return self
 
     @property
     def type_pb(self):
@@ -578,12 +583,53 @@ class StorageSettings(object):
         return st
 
 
+@enum.unique
+class Compression(enum.IntEnum):
+    NONE = 1
+    LZ4 = 2
+
+
+class ColumnFamily(object):
+    def __init__(self):
+        self.compression = 0
+        self.name = None
+        self.data = None
+        self.keep_in_memory = 0
+
+    def with_name(self, name):
+        self.name = name
+        return self
+
+    def with_compression(self, compression):
+        self.compression = compression
+        return self
+
+    def with_data(self, data):
+        self.data = data
+        return self
+
+    def with_keep_in_memory(self, keep_in_memory):
+        self.keep_in_memory = keep_in_memory
+        return self
+
+    def to_pb(self):
+        cm = _apis.ydb_table.ColumnFamily()
+        cm.keep_in_memory = self.keep_in_memory
+        cm.compression = self.compression
+        if self.name is not None:
+            cm.name = self.name
+        if self.data is not None:
+            cm.data.MergeFrom(self.data.to_pb())
+        return cm
+
+
 class TableDescription(object):
     def __init__(self):
         self.columns = []
         self.primary_key = []
         self.profile = None
         self.indexes = []
+        self.column_families = []
         self.ttl_settings = None
         self.attributes = {}
         self.uniform_partitions = 0
@@ -614,6 +660,15 @@ class TableDescription(object):
     def with_primary_keys(self, *keys):
         for pk in keys:
             self.with_primary_key(pk)
+        return self
+
+    def with_column_family(self, column_family):
+        self.column_families.append(column_family)
+        return self
+
+    def with_column_families(self, *column_families):
+        for column_family in column_families:
+            self.with_column_family(column_family)
         return self
 
     def with_indexes(self, *indexes):

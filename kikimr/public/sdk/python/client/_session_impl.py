@@ -138,7 +138,7 @@ def create_table_request_factory(session_state, path, table_description):
     request.path = path
     request.primary_key.extend(list(table_description.primary_key))
     for column in table_description.columns:
-        request.columns.add(name=column.name, type=column.type_pb)
+        request.columns.add(name=column.name, type=column.type_pb, family=column.family)
 
     if table_description.profile is not None:
         request.profile.MergeFrom(
@@ -157,6 +157,11 @@ def create_table_request_factory(session_state, path, table_description):
         )
 
     request.attributes.update(table_description.attributes)
+
+    if table_description.column_families:
+        for column_family in table_description.column_families:
+            request.column_families.add().MergeFrom(
+                column_family.to_pb())
 
     if table_description.storage_settings is not None:
         request.storage_settings.MergeFrom(
