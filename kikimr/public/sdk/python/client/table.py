@@ -543,6 +543,41 @@ class PartitioningSettings(object):
         return pb
 
 
+class StorageSettings(object):
+    def __init__(self):
+        self.tablet_commit_log0 = None
+        self.tablet_commit_log1 = None
+        self.external = None
+        self.store_external_blobs = 0
+
+    def with_store_external_blobs(self, store_external_blobs):
+        self.store_external_blobs = store_external_blobs
+        return self
+
+    def with_external(self, external):
+        self.external = external
+        return self
+
+    def with_tablet_commit_log1(self, tablet_commit_log1):
+        self.tablet_commit_log1 = tablet_commit_log1
+        return self
+
+    def with_tablet_commit_log0(self, tablet_commit_log0):
+        self.tablet_commit_log0 = tablet_commit_log0
+        return self
+
+    def to_pb(self):
+        st = _apis.ydb_table.StorageSettings()
+        st.store_external_blobs = self.store_external_blobs
+        if self.external:
+            st.external.MergeFrom(self.external.to_pb())
+        if self.tablet_commit_log0:
+            st.tablet_commit_log0.MergeFrom(self.tablet_commit_log0.to_pb())
+        if self.tablet_commit_log1:
+            st.tablet_commit_log1.MergeFrom(self.tablet_commit_log1.to_pb())
+        return st
+
+
 class TableDescription(object):
     def __init__(self):
         self.columns = []
@@ -557,6 +592,11 @@ class TableDescription(object):
         self.key_bloom_filter = 0
         self.read_replicas_settings = None
         self.partitioning_settings = None
+        self.storage_settings = None
+
+    def with_storage_settings(self, storage_settings):
+        self.storage_settings = storage_settings
+        return self
 
     def with_column(self, column):
         self.columns.append(column)
