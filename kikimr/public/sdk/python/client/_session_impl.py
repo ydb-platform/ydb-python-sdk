@@ -97,6 +97,10 @@ def wrap_describe_table_response(rpc_state, response_pb, sesssion_state, scheme_
         message.ttl_settings if message.HasField('ttl_settings') else None,
         message.attributes,
         message.partitioning_settings if message.HasField('partitioning_settings') else None,
+        message.column_families,
+        message.key_bloom_filter,
+        message.read_replicas_settings if message.HasField('read_replicas_settings') else None,
+        message.storage_settings if message.HasField('storage_settings') else None,
     )
 
 

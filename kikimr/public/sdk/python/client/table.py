@@ -137,6 +137,7 @@ class Column(object):
 
 @enum.unique
 class FeatureFlag(enum.IntEnum):
+    UNSPECIFIED = 0
     ENABLED = 1
     DISABLED = 2
 
@@ -585,6 +586,7 @@ class StorageSettings(object):
 
 @enum.unique
 class Compression(enum.IntEnum):
+    UNSPECIFIED = 0
     NONE = 1
     LZ4 = 2
 
@@ -972,14 +974,32 @@ def _make_index_description(index):
 class TableSchemeEntry(scheme.SchemeEntry):
     def __init__(
             self, name, owner, type, effective_permissions, permissions, columns, primary_key, shard_key_bounds,
-            indexes, table_stats, ttl_settings, attributes, partitioning_settings, *args, **kwargs):
+            indexes, table_stats, ttl_settings, attributes, partitioning_settings, column_families, key_bloom_filter,
+            read_replicas_settings, storage_settings, *args, **kwargs):
 
         super(TableSchemeEntry, self).__init__(name, owner, type, effective_permissions, permissions, *args, **kwargs)
         self.primary_key = [pk for pk in primary_key]
-        self.columns = [Column(column.name, convert.type_to_native(column.type)) for column in columns]
+        self.columns = [Column(column.name, convert.type_to_native(column.type), column.family) for column in columns]
         self.indexes = [_make_index_description(index) for index in indexes]
         self.shard_key_ranges = []
+        self.column_families = []
+        self.key_bloom_filter = FeatureFlag(key_bloom_filter)
         left_key_bound = None
+        for column_family in column_families:
+            self.column_families.append(
+                ColumnFamily()
+                .with_name(column_family.name)
+                .with_keep_in_memory(FeatureFlag(column_family.keep_in_memory))
+                .with_compression(Compression(column_family.compression))
+            )
+
+            if column_family.HasField('data'):
+                self.column_families[-1].with_data(
+                    StoragePool(
+                        column_family.data.media
+                    )
+                )
+
         for shard_key_bound in shard_key_bounds:
             # for next key range
             key_bound_type = shard_key_bound.type
@@ -1005,6 +1025,28 @@ class TableSchemeEntry(scheme.SchemeEntry):
         else:
             self.shard_key_ranges.append(
                 KeyRange(None, None))
+
+        self.read_replicas_settings = None
+        if read_replicas_settings is not None:
+            self.read_replicas_settings = ReadReplicasSettings()
+            for field in ('per_az_read_replicas_count', 'any_az_read_replicas_count'):
+                if read_replicas_settings.WhichOneof('settings') == field:
+                    setattr(self.read_replicas_settings, field, getattr(read_replicas_settings, field))
+
+        self.storage_settings = None
+        if storage_settings is not None:
+            self.storage_settings = StorageSettings()
+            self.storage_settings.store_external_blobs = FeatureFlag(self.storage_settings.store_external_blobs)
+            if storage_settings.HasField('tablet_commit_log0'):
+                self.storage_settings.with_tablet_commit_log0(
+                    StoragePool(storage_settings.tablet_commit_log0.media))
+
+            if storage_settings.HasField('tablet_commit_log1'):
+                self.storage_settings.with_tablet_commit_log1(
+                    StoragePool(storage_settings.tablet_commit_log1.media))
+
+            if storage_settings.HasField('external'):
+                self.storage_settings.with_external(StoragePool(storage_settings.external.media))
 
         self.partitioning_settings = None
         if partitioning_settings is not None:
