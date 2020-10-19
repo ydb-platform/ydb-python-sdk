@@ -158,6 +158,10 @@ def create_table_request_factory(session_state, path, table_description):
 
     request.attributes.update(table_description.attributes)
 
+    if table_description.storage_settings is not None:
+        request.storage_settings.MergeFrom(
+            table_description.storage_settings.to_pb())
+
     if table_description.read_replicas_settings is not None:
         request.read_replicas_settings.MergeFrom(
             table_description.read_replicas_settings.to_pb())
