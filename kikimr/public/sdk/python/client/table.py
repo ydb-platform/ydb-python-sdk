@@ -1433,14 +1433,26 @@ class Session(object):
             settings=None,
             alter_attributes=None,
             add_indexes=None, drop_indexes=None,
-            set_ttl_settings=None, drop_ttl_settings=None):
+            set_ttl_settings=None, drop_ttl_settings=None,
+            add_column_families=None, alter_column_families=None,
+            alter_storage_settings=None,
+            set_compaction_policy=None,
+            alter_partitioning_settings=None,
+            set_key_bloom_filter=None,
+            set_read_replicas_settings=None):
         return self._driver.future(
             _session_impl.alter_table_request_factory(
                 self._state, path,
                 add_columns, drop_columns,
                 alter_attributes,
                 add_indexes, drop_indexes,
-                set_ttl_settings, drop_ttl_settings
+                set_ttl_settings, drop_ttl_settings,
+                add_column_families, alter_column_families,
+                alter_storage_settings,
+                set_compaction_policy,
+                alter_partitioning_settings,
+                set_key_bloom_filter,
+                set_read_replicas_settings,
             ),
             _apis.TableService.Stub,
             _apis.TableService.AlterTable,
@@ -1456,14 +1468,26 @@ class Session(object):
             settings=None,
             alter_attributes=None,
             add_indexes=None, drop_indexes=None,
-            set_ttl_settings=None, drop_ttl_settings=None):
+            set_ttl_settings=None, drop_ttl_settings=None,
+            add_column_families=None, alter_column_families=None,
+            alter_storage_settings=None,
+            set_compaction_policy=None,
+            alter_partitioning_settings=None,
+            set_key_bloom_filter=None,
+            set_read_replicas_settings=None):
         return self._driver(
             _session_impl.alter_table_request_factory(
                 self._state, path,
                 add_columns, drop_columns,
                 alter_attributes,
                 add_indexes, drop_indexes,
-                set_ttl_settings, drop_ttl_settings
+                set_ttl_settings, drop_ttl_settings,
+                add_column_families, alter_column_families,
+                alter_storage_settings,
+                set_compaction_policy,
+                alter_partitioning_settings,
+                set_key_bloom_filter,
+                set_read_replicas_settings,
             ),
             _apis.TableService.Stub,
             _apis.TableService.AlterTable,
