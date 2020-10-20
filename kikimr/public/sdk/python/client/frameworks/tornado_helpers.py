@@ -3,9 +3,7 @@ import tornado.concurrent
 import tornado.ioloop
 import tornado.gen
 from tornado.concurrent import TracebackFuture
-from kikimr.public.sdk.python.client.table import RetrySettings, SessionPoolEmpty
-from kikimr.public.sdk.python.client import issues
-import six.moves
+from kikimr.public.sdk.python.client.table import retry_operation_impl, YdbRetryOperationSleepOpt
 
 
 def as_tornado_future(foreign_future, timeout=None):
@@ -55,49 +53,10 @@ def as_tornado_future(foreign_future, timeout=None):
 
 
 async def retry_operation(callee, retry_settings=None, *args, **kwargs):
+    opt_generator = retry_operation_impl(callee, retry_settings, *args, **kwargs)
 
-    retry_settings = RetrySettings() if retry_settings is None else retry_settings
-    status = None
-
-    for attempt in six.moves.range(retry_settings.max_retries + 1):
-        try:
-            return await callee(*args, **kwargs)
-        except (
-                issues.Aborted, issues.BadSession,
-                issues.NotFound, issues.InternalError) as e:
-            status = e
-            retry_settings.on_ydb_error_callback(e)
-
-            if isinstance(e, issues.NotFound) and not retry_settings.retry_not_found:
-                raise e
-
-            if isinstance(e, issues.InternalError) and not retry_settings.retry_internal_error:
-                raise e
-
-        except (issues.Overloaded, SessionPoolEmpty, issues.ConnectionError) as e:
-            status = e
-            retry_settings.on_ydb_error_callback(e)
-            await tornado.gen.sleep(
-                retry_settings.slow_backoff.calc_timeout(
-                    attempt
-                )
-            )
-
-        except (issues.Overloaded, SessionPoolEmpty, issues.ConnectionError) as e:
-            status = e
-            retry_settings.on_ydb_error_callback(e)
-            await tornado.gen.sleep(
-                retry_settings.fast_backoff.calc_timeout(
-                    attempt
-                )
-            )
-
-        except issues.Error as e:
-            retry_settings.on_ydb_error_callback(e)
-            raise
-
-        except Exception as e:
-            # you should provide your own handler you want
-            retry_settings.unknown_error_handler(e)
-
-    raise status
+    for next_opt in opt_generator:
+        if isinstance(next_opt, YdbRetryOperationSleepOpt):
+            await tornado.gen.sleep(next_opt.timeout)
+        else:
+            return await next_opt.result

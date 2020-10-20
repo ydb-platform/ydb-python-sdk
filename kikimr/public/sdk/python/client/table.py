@@ -803,13 +803,14 @@ class BackoffSettings(object):
 class RetrySettings(object):
     def __init__(
             self, max_retries=10,
-            max_session_acquire_timeout=3,
+            max_session_acquire_timeout=None,
             on_ydb_error_callback=None,
             backoff_ceiling=6,
             backoff_slot_duration=1,
             get_session_client_timeout=5,
             fast_backoff_settings=None,
-            slow_backoff_settings=None):
+            slow_backoff_settings=None,
+            idempotent=False):
         self.max_retries = max_retries
         self.max_session_acquire_timeout = max_session_acquire_timeout
         self.on_ydb_error_callback = (lambda e: None) if on_ydb_error_callback is None else on_ydb_error_callback
@@ -817,9 +818,15 @@ class RetrySettings(object):
         self.slow_backoff = BackoffSettings(backoff_ceiling, backoff_slot_duration) \
             if slow_backoff_settings is None else slow_backoff_settings
         self.retry_not_found = True
+        self.idempotent = idempotent
         self.retry_internal_error = True
         self.unknown_error_handler = lambda e: None
         self.get_session_client_timeout = get_session_client_timeout
+        if max_session_acquire_timeout is not None:
+            self.get_session_client_timeout = min(
+                self.max_session_acquire_timeout,
+                self.get_session_client_timeout
+            )
 
     def with_fast_backoff(self, backoff_settings):
         self.fast_backoff = backoff_settings
@@ -830,14 +837,24 @@ class RetrySettings(object):
         return self
 
 
-def retry_operation_sync(callee, retry_settings=None, *args, **kwargs):
+class YdbRetryOperationSleepOpt(object):
+    def __init__(self, timeout):
+        self.timeout = timeout
+
+
+class YdbRetryOperationFinalResult(object):
+    def __init__(self, result):
+        self.result = result
+
+
+def retry_operation_impl(callee, retry_settings=None, *args, **kwargs):
 
     retry_settings = RetrySettings() if retry_settings is None else retry_settings
     status = None
 
     for attempt in six.moves.range(retry_settings.max_retries + 1):
         try:
-            return callee(*args, **kwargs)
+            yield YdbRetryOperationFinalResult(callee(*args, **kwargs))
         except (
                 issues.Aborted, issues.BadSession,
                 issues.NotFound, issues.InternalError) as e:
@@ -853,20 +870,21 @@ def retry_operation_sync(callee, retry_settings=None, *args, **kwargs):
         except (issues.Overloaded, issues.SessionPoolEmpty, issues.ConnectionError) as e:
             status = e
             retry_settings.on_ydb_error_callback(e)
-            time.sleep(
-                retry_settings.slow_backoff.calc_timeout(
-                    attempt
-                )
-            )
+            yield YdbRetryOperationSleepOpt(retry_settings.slow_backoff.calc_timeout(attempt))
 
         except issues.Unavailable as e:
             status = e
             retry_settings.on_ydb_error_callback(e)
-            time.sleep(
-                retry_settings.fast_backoff.calc_timeout(
-                    attempt
-                )
-            )
+            yield YdbRetryOperationSleepOpt(retry_settings.fast_backoff.calc_timeout(attempt))
+
+        except issues.Undetermined as e:
+            status = e
+            retry_settings.on_ydb_error_callback(e)
+            if not retry_settings.idempotent:
+                # operation is not idempotent, so we cannot retry.
+                raise
+
+            yield YdbRetryOperationSleepOpt(retry_settings.fast_backoff.calc_timeout(attempt))
 
         except issues.Error as e:
             retry_settings.on_ydb_error_callback(e)
@@ -878,6 +896,15 @@ def retry_operation_sync(callee, retry_settings=None, *args, **kwargs):
             raise
 
     raise status
+
+
+def retry_operation_sync(callee, retry_settings=None, *args, **kwargs):
+    opt_generator = retry_operation_impl(callee, retry_settings, *args, **kwargs)
+    for next_opt in opt_generator:
+        if isinstance(next_opt, YdbRetryOperationSleepOpt):
+            time.sleep(next_opt.timeout)
+        else:
+            return next_opt.result
 
 
 class TableClientSettings(object):
