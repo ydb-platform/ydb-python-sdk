@@ -938,6 +938,7 @@ def _scan_query_request_factory(query, parameters=None, settings=None):
         query = ScanQuery(query, {})
     parameters = {} if parameters is None else parameters
     return _apis.ydb_table.ExecuteScanQueryRequest(
+        mode=_apis.ydb_table.ExecuteScanQueryRequest.Mode.MODE_EXEC,
         query=_apis.ydb_table.Query(yql_text=query.yql_text),
         parameters=convert.parameters_to_pb(
             query.parameters_types,
