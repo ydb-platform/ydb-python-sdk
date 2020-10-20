@@ -251,7 +251,13 @@ def alter_table_request_factory(
         add_columns, drop_columns,
         alter_attributes,
         add_indexes, drop_indexes,
-        set_ttl_settings, drop_ttl_settings):
+        set_ttl_settings, drop_ttl_settings,
+        add_column_families, alter_column_families,
+        alter_storage_settings,
+        set_compaction_policy,
+        alter_partitioning_settings,
+        set_key_bloom_filter,
+        set_read_replicas_settings):
     request = session_state.attach_request(_apis.ydb_table.AlterTableRequest(path=path))
     if add_columns is not None:
         for column in add_columns:
@@ -277,6 +283,29 @@ def alter_table_request_factory(
 
     if drop_ttl_settings is not None and drop_ttl_settings:
         request.drop_ttl_settings.MergeFrom(Empty())
+
+    if add_column_families is not None:
+        for column_family in add_column_families:
+            request.add_column_families.add().MergeFrom(column_family.to_pb())
+
+    if alter_column_families is not None:
+        for column_family in alter_column_families:
+            request.alter_column_families.add().MergeFrom(column_family.to_pb())
+
+    if alter_storage_settings is not None:
+        request.alter_storage_settings.MergeFrom(alter_storage_settings.to_pb())
+
+    if set_compaction_policy is not None:
+        request.set_compaction_policy = set_compaction_policy
+
+    if alter_partitioning_settings is not None:
+        request.alter_partitioning_settings.MergeFrom(alter_partitioning_settings.to_pb())
+
+    if set_key_bloom_filter is not None:
+        request.set_key_bloom_filter = set_key_bloom_filter
+
+    if set_read_replicas_settings is not None:
+        request.set_read_replicas_settings.MergeFrom(set_read_replicas_settings.to_pb())
 
     return request
 
