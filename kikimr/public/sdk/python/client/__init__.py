@@ -12,3 +12,4 @@ from .export import *  # noqa
 from .s3list import *  # noqa
 from .auth_helpers import *  # noqa
 from .operation import *  # noqa
+from .scripting import *  # noqa
