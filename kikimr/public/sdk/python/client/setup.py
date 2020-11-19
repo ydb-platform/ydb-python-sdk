@@ -4,7 +4,7 @@ import setuptools
 
 setuptools.setup(
     name='ydb',
-    version='0.0.44',
+    version='0.0.46',
     description='YDB Python library',
     author='Yandex LLC',
     author_email='ydb@yandex-team.ru',
@@ -20,7 +20,7 @@ setuptools.setup(
         'Programming Language :: Python :: 3.6',
     ],
     install_requires=(
-        'protobuf>=3.3.0',
+        'protobuf>=3.13.0',
         'grpcio>=1.5.0',
         'enum-compat>=0.0.1',
     )
