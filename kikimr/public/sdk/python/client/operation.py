@@ -12,8 +12,8 @@ def _forget_operation_response(rpc_state, response):
     issues._process_response(response)
 
 
-def _cancel_operation_request(self):
-    request = _apis.ydb_operation.CancelOperationRequest(id=self.id)
+def _cancel_operation_request(operation_id):
+    request = _apis.ydb_operation.CancelOperationRequest(id=operation_id)
     return request
 
 
@@ -29,6 +29,15 @@ def _get_operation_request(self):
 class OperationClient(object):
     def __init__(self, driver):
         self._driver = driver
+
+    def cancel(self, operation_id, settings=None):
+        return self._driver(
+            _cancel_operation_request(operation_id),
+            _apis.OperationService.Stub,
+            _apis.OperationService.CancelOperation,
+            _cancel_operation_response,
+            settings,
+        )
 
     def forget(self, operation_id, settings=None):
         return self._driver(
@@ -63,7 +72,7 @@ class Operation(object):
     def cancel(self, settings=None):
         self._ensure_implements()
         return self._driver(
-            _cancel_operation_request(self),
+            _cancel_operation_request(self.id),
             _apis.OperationService.Stub,
             _apis.OperationService.CancelOperation,
             _cancel_operation_response,
