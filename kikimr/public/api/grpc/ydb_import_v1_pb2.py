@@ -20,7 +20,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='kikimr/public/api/grpc/ydb_import_v1.proto',
   package='Ydb.Import.V1',
   syntax='proto3',
-  serialized_pb=_b('\n*kikimr/public/api/grpc/ydb_import_v1.proto\x12\rYdb.Import.V1\x1a)kikimr/public/api/protos/ydb_import.proto2b\n\rImportService\x12Q\n\x0cImportFromS3\x12\x1f.Ydb.Import.ImportFromS3Request\x1a .Ydb.Import.ImportFromS3ResponseB\x1b\n\x19\x63om.yandex.ydb.import_.v1b\x06proto3')
+  serialized_pb=_b('\n*kikimr/public/api/grpc/ydb_import_v1.proto\x12\rYdb.Import.V1\x1a)kikimr/public/api/protos/ydb_import.proto2\xaf\x01\n\rImportService\x12Q\n\x0cImportFromS3\x12\x1f.Ydb.Import.ImportFromS3Request\x1a .Ydb.Import.ImportFromS3Response\x12K\n\nImportData\x12\x1d.Ydb.Import.ImportDataRequest\x1a\x1e.Ydb.Import.ImportDataResponseB\x1b\n\x19\x63om.yandex.ydb.import_.v1b\x06proto3')
   ,
   dependencies=[kikimr_dot_public_dot_api_dot_protos_dot_ydb__import__pb2.DESCRIPTOR,])
 
@@ -38,8 +38,8 @@ _IMPORTSERVICE = _descriptor.ServiceDescriptor(
   file=DESCRIPTOR,
   index=0,
   options=None,
-  serialized_start=104,
-  serialized_end=202,
+  serialized_start=105,
+  serialized_end=280,
   methods=[
   _descriptor.MethodDescriptor(
     name='ImportFromS3',
@@ -48,6 +48,15 @@ _IMPORTSERVICE = _descriptor.ServiceDescriptor(
     containing_service=None,
     input_type=kikimr_dot_public_dot_api_dot_protos_dot_ydb__import__pb2._IMPORTFROMS3REQUEST,
     output_type=kikimr_dot_public_dot_api_dot_protos_dot_ydb__import__pb2._IMPORTFROMS3RESPONSE,
+    options=None,
+  ),
+  _descriptor.MethodDescriptor(
+    name='ImportData',
+    full_name='Ydb.Import.V1.ImportService.ImportData',
+    index=1,
+    containing_service=None,
+    input_type=kikimr_dot_public_dot_api_dot_protos_dot_ydb__import__pb2._IMPORTDATAREQUEST,
+    output_type=kikimr_dot_public_dot_api_dot_protos_dot_ydb__import__pb2._IMPORTDATARESPONSE,
     options=None,
   ),
 ])
