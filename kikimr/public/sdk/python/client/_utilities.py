@@ -29,7 +29,7 @@ def future():
 
 
 def x_ydb_sdk_build_info_header():
-    return ("x-ydb-sdk-build-info", "python_sdk_revision: 0.0.46")
+    return ("x-ydb-sdk-build-info", "python_sdk_revision: 0.0.50")
 
 
 # Decorator that ensures no exceptions are leaked from decorated async call
