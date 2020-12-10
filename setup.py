@@ -2,9 +2,13 @@
 import setuptools
 
 
+with open('VERSION', 'r') as r:
+    VERS = r.read()
+
+
 setuptools.setup(
     name='ydb',
-    version='0.0.46',
+    version=VERS,
     description='YDB Python library',
     author='Yandex LLC',
     author_email='ydb@yandex-team.ru',
@@ -23,5 +27,8 @@ setuptools.setup(
         'protobuf>=3.13.0',
         'grpcio>=1.5.0',
         'enum-compat>=0.0.1',
-    )
+    ),
+    options={
+        'bdist_wheel': {'universal': True}
+    },
 )
