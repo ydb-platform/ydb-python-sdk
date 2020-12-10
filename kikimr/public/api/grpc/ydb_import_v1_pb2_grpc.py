@@ -19,6 +19,11 @@ class ImportServiceStub(object):
         request_serializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__import__pb2.ImportFromS3Request.SerializeToString,
         response_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__import__pb2.ImportFromS3Response.FromString,
         )
+    self.ImportData = channel.unary_unary(
+        '/Ydb.Import.V1.ImportService/ImportData',
+        request_serializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__import__pb2.ImportDataRequest.SerializeToString,
+        response_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__import__pb2.ImportDataResponse.FromString,
+        )
 
 
 class ImportServiceServicer(object):
@@ -33,6 +38,14 @@ class ImportServiceServicer(object):
     context.set_details('Method not implemented!')
     raise NotImplementedError('Method not implemented!')
 
+  def ImportData(self, request, context):
+    """Writes data to a table.
+    Method accepts serialized data in the selected format and writes it non-transactionally.
+    """
+    context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+    context.set_details('Method not implemented!')
+    raise NotImplementedError('Method not implemented!')
+
 
 def add_ImportServiceServicer_to_server(servicer, server):
   rpc_method_handlers = {
@@ -40,6 +53,11 @@ def add_ImportServiceServicer_to_server(servicer, server):
           servicer.ImportFromS3,
           request_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__import__pb2.ImportFromS3Request.FromString,
           response_serializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__import__pb2.ImportFromS3Response.SerializeToString,
+      ),
+      'ImportData': grpc.unary_unary_rpc_method_handler(
+          servicer.ImportData,
+          request_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__import__pb2.ImportDataRequest.FromString,
+          response_serializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__import__pb2.ImportDataResponse.SerializeToString,
       ),
   }
   generic_handler = grpc.method_handlers_generic_handler(
