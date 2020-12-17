@@ -19,6 +19,11 @@ class ScriptingServiceStub(object):
         request_serializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__scripting__pb2.ExecuteYqlRequest.SerializeToString,
         response_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__scripting__pb2.ExecuteYqlResponse.FromString,
         )
+    self.ExplainYql = channel.unary_unary(
+        '/Ydb.Scripting.V1.ScriptingService/ExplainYql',
+        request_serializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__scripting__pb2.ExplainYqlRequest.SerializeToString,
+        response_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__scripting__pb2.ExplainYqlResponse.FromString,
+        )
 
 
 class ScriptingServiceServicer(object):
@@ -32,6 +37,13 @@ class ScriptingServiceServicer(object):
     context.set_details('Method not implemented!')
     raise NotImplementedError('Method not implemented!')
 
+  def ExplainYql(self, request, context):
+    # missing associated documentation comment in .proto file
+    pass
+    context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+    context.set_details('Method not implemented!')
+    raise NotImplementedError('Method not implemented!')
+
 
 def add_ScriptingServiceServicer_to_server(servicer, server):
   rpc_method_handlers = {
@@ -39,6 +51,11 @@ def add_ScriptingServiceServicer_to_server(servicer, server):
           servicer.ExecuteYql,
           request_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__scripting__pb2.ExecuteYqlRequest.FromString,
           response_serializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__scripting__pb2.ExecuteYqlResponse.SerializeToString,
+      ),
+      'ExplainYql': grpc.unary_unary_rpc_method_handler(
+          servicer.ExplainYql,
+          request_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__scripting__pb2.ExplainYqlRequest.FromString,
+          response_serializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__scripting__pb2.ExplainYqlResponse.SerializeToString,
       ),
   }
   generic_handler = grpc.method_handlers_generic_handler(

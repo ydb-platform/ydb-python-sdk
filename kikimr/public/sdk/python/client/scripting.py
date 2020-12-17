@@ -1,6 +1,6 @@
 from kikimr.public.api.protos import ydb_scripting_pb2
 from kikimr.public.api.grpc import ydb_scripting_v1_pb2_grpc
-from . import issues, convert
+from . import issues, convert, settings
 
 
 class TypedParameters(object):
@@ -9,11 +9,25 @@ class TypedParameters(object):
         self.parameters_values = parameters_values
 
 
+class ExplainYqlScriptSettings(settings.BaseRequestSettings):
+    MODE_PARSE = 0
+    MODE_VALIDATE = 1
+    MODE_EXPLAIN = 2
+
+    def __init__(self):
+        super(ExplainYqlScriptSettings, self).__init__()
+        self.mode = False
+
+    def with_mode(self, val):
+        self.mode = val
+        return self
+
+
 def _execute_yql_query_request_factory(script, tp=None, settings=None):
     params = None if tp is None else convert.parameters_to_pb(tp.parameters_types, tp.parameters_values)
     return ydb_scripting_pb2.ExecuteYqlRequest(
         script=script,
-        parameters=params,
+        parameters=params
     )
 
 
@@ -22,11 +36,23 @@ class YqlQueryResult(object):
         self.result_sets = convert.ResultSets(result.result_sets)
 
 
+class YqlExplainResult(object):
+    def __init__(self, result):
+        self.plan = result.plan
+
+
 def _wrap_response(rpc_state, response):
     issues._process_response(response.operation)
     message = ydb_scripting_pb2.ExecuteYqlResult()
     response.operation.result.Unpack(message)
     return YqlQueryResult(message)
+
+
+def _wrap_explain_response(rpc_state, response):
+    issues._process_response(response.operation)
+    message = ydb_scripting_pb2.ExplainYqlResult()
+    response.operation.result.Unpack(message)
+    return YqlExplainResult(message)
 
 
 class ScriptingClient(object):
@@ -40,5 +66,14 @@ class ScriptingClient(object):
             ydb_scripting_v1_pb2_grpc.ScriptingServiceStub,
             'ExecuteYql',
             _wrap_response,
+            settings=settings
+        )
+
+    def explain_yql(self, script, settings=None):
+        return self.driver(
+            ydb_scripting_pb2.ExplainYqlRequest(script=script, mode=settings.mode),
+            ydb_scripting_v1_pb2_grpc.ScriptingServiceStub,
+            'ExplainYql',
+            _wrap_explain_response,
             settings=settings
         )
