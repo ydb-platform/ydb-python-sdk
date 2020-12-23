@@ -20,7 +20,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='kikimr/public/api/protos/draft/ydb_long_tx_internal.proto',
   package='Ydb.LongTxInternal',
   syntax='proto3',
-  serialized_pb=_b('\n9kikimr/public/api/protos/draft/ydb_long_tx_internal.proto\x12\x12Ydb.LongTxInternal\x1a(kikimr/public/api/protos/ydb_value.proto\",\n\x08Snapshot\x12\x11\n\tplan_step\x18\x01 \x01(\x04\x12\r\n\x05tx_id\x18\x02 \x01(\x04\"_\n\x08LongTxId\x12\x11\n\tinitiator\x18\x01 \x01(\x04\x12\x10\n\x08write_id\x18\x02 \x01(\x04\x12.\n\x08snapshot\x18\x03 \x01(\x0b\x32\x1c.Ydb.LongTxInternal.Snapshot\"m\n\x0cLongTxRoutes\x12\x36\n\x06tables\x18\x01 \x03(\x0b\x32&.Ydb.LongTxInternal.LongTxRoutes.Table\x1a%\n\x05Table\x12\x0c\n\x04path\x18\x01 \x01(\t\x12\x0e\n\x06shards\x18\x02 \x03(\x04\"\xdf\x05\n\x14GeneratedSelectQuery\x12\x44\n\x06select\x18\x01 \x03(\x0b\x32\x34.Ydb.LongTxInternal.GeneratedSelectQuery.NamedColumn\x12@\n\x05where\x18\x02 \x01(\x0b\x32\x31.Ydb.LongTxInternal.GeneratedSelectQuery.Function\x12\x46\n\x08group_by\x18\x03 \x03(\x0b\x32\x34.Ydb.LongTxInternal.GeneratedSelectQuery.NamedColumn\x12\x41\n\x06having\x18\x04 \x01(\x0b\x32\x31.Ydb.LongTxInternal.GeneratedSelectQuery.Function\x12\x46\n\x08order_by\x18\x05 \x03(\x0b\x32\x34.Ydb.LongTxInternal.GeneratedSelectQuery.NamedColumn\x12\r\n\x05limit\x18\x06 \x01(\x04\x12\x0e\n\x06offset\x18\x07 \x01(\x04\x1a`\n\x0bNamedColumn\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x43\n\x08\x66unction\x18\x02 \x01(\x0b\x32\x31.Ydb.LongTxInternal.GeneratedSelectQuery.Function\x1a\xea\x01\n\x08\x46unction\x12\x0c\n\x04name\x18\x01 \x01(\t\x12M\n\targuments\x18\x02 \x03(\x0b\x32:.Ydb.LongTxInternal.GeneratedSelectQuery.Function.Argument\x1a\x80\x01\n\x08\x41rgument\x12\x46\n\x06\x63olumn\x18\x01 \x01(\x0b\x32\x34.Ydb.LongTxInternal.GeneratedSelectQuery.NamedColumnH\x00\x12 \n\x05value\x18\x02 \x01(\x0b\x32\x0f.Ydb.TypedValueH\x00\x42\n\n\x08\x61rgumentB:\n\x1f\x63om.yandex.ydb.long_tx_internalB\x14LongTxInternalProtos\xf8\x01\x01\x62\x06proto3')
+  serialized_pb=_b('\n9kikimr/public/api/protos/draft/ydb_long_tx_internal.proto\x12\x12Ydb.LongTxInternal\x1a(kikimr/public/api/protos/ydb_value.proto\",\n\x08Snapshot\x12\x11\n\tplan_step\x18\x01 \x01(\x04\x12\r\n\x05tx_id\x18\x02 \x01(\x04\"_\n\x08LongTxId\x12\x11\n\tinitiator\x18\x01 \x01(\x04\x12\x10\n\x08write_id\x18\x02 \x01(\x04\x12.\n\x08snapshot\x18\x03 \x01(\x0b\x32\x1c.Ydb.LongTxInternal.Snapshot\"y\n\x0cLongTxRoutes\x12\x36\n\x06tables\x18\x01 \x03(\x0b\x32&.Ydb.LongTxInternal.LongTxRoutes.Table\x1a\x31\n\x05Table\x12\x0c\n\x04path\x18\x01 \x01(\t\x12\n\n\x02id\x18\x02 \x01(\x04\x12\x0e\n\x06shards\x18\x03 \x03(\x04\"\xdf\x05\n\x14GeneratedSelectQuery\x12\x44\n\x06select\x18\x01 \x03(\x0b\x32\x34.Ydb.LongTxInternal.GeneratedSelectQuery.NamedColumn\x12@\n\x05where\x18\x02 \x01(\x0b\x32\x31.Ydb.LongTxInternal.GeneratedSelectQuery.Function\x12\x46\n\x08group_by\x18\x03 \x03(\x0b\x32\x34.Ydb.LongTxInternal.GeneratedSelectQuery.NamedColumn\x12\x41\n\x06having\x18\x04 \x01(\x0b\x32\x31.Ydb.LongTxInternal.GeneratedSelectQuery.Function\x12\x46\n\x08order_by\x18\x05 \x03(\x0b\x32\x34.Ydb.LongTxInternal.GeneratedSelectQuery.NamedColumn\x12\r\n\x05limit\x18\x06 \x01(\x04\x12\x0e\n\x06offset\x18\x07 \x01(\x04\x1a`\n\x0bNamedColumn\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x43\n\x08\x66unction\x18\x02 \x01(\x0b\x32\x31.Ydb.LongTxInternal.GeneratedSelectQuery.Function\x1a\xea\x01\n\x08\x46unction\x12\x0c\n\x04name\x18\x01 \x01(\t\x12M\n\targuments\x18\x02 \x03(\x0b\x32:.Ydb.LongTxInternal.GeneratedSelectQuery.Function.Argument\x1a\x80\x01\n\x08\x41rgument\x12\x46\n\x06\x63olumn\x18\x01 \x01(\x0b\x32\x34.Ydb.LongTxInternal.GeneratedSelectQuery.NamedColumnH\x00\x12 \n\x05value\x18\x02 \x01(\x0b\x32\x0f.Ydb.TypedValueH\x00\x42\n\n\x08\x61rgumentB:\n\x1f\x63om.yandex.ydb.long_tx_internalB\x14LongTxInternalProtos\xf8\x01\x01\x62\x06proto3')
   ,
   dependencies=[kikimr_dot_public_dot_api_dot_protos_dot_ydb__value__pb2.DESCRIPTOR,])
 
@@ -125,8 +125,15 @@ _LONGTXROUTES_TABLE = _descriptor.Descriptor(
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='shards', full_name='Ydb.LongTxInternal.LongTxRoutes.Table.shards', index=1,
-      number=2, type=4, cpp_type=4, label=3,
+      name='id', full_name='Ydb.LongTxInternal.LongTxRoutes.Table.id', index=1,
+      number=2, type=4, cpp_type=4, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='shards', full_name='Ydb.LongTxInternal.LongTxRoutes.Table.shards', index=2,
+      number=3, type=4, cpp_type=4, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -144,7 +151,7 @@ _LONGTXROUTES_TABLE = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=338,
-  serialized_end=375,
+  serialized_end=387,
 )
 
 _LONGTXROUTES = _descriptor.Descriptor(
@@ -174,7 +181,7 @@ _LONGTXROUTES = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=266,
-  serialized_end=375,
+  serialized_end=387,
 )
 
 
@@ -211,8 +218,8 @@ _GENERATEDSELECTQUERY_NAMEDCOLUMN = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=780,
-  serialized_end=876,
+  serialized_start=792,
+  serialized_end=888,
 )
 
 _GENERATEDSELECTQUERY_FUNCTION_ARGUMENT = _descriptor.Descriptor(
@@ -251,8 +258,8 @@ _GENERATEDSELECTQUERY_FUNCTION_ARGUMENT = _descriptor.Descriptor(
       name='argument', full_name='Ydb.LongTxInternal.GeneratedSelectQuery.Function.Argument.argument',
       index=0, containing_type=None, fields=[]),
   ],
-  serialized_start=985,
-  serialized_end=1113,
+  serialized_start=997,
+  serialized_end=1125,
 )
 
 _GENERATEDSELECTQUERY_FUNCTION = _descriptor.Descriptor(
@@ -288,8 +295,8 @@ _GENERATEDSELECTQUERY_FUNCTION = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=879,
-  serialized_end=1113,
+  serialized_start=891,
+  serialized_end=1125,
 )
 
 _GENERATEDSELECTQUERY = _descriptor.Descriptor(
@@ -360,8 +367,8 @@ _GENERATEDSELECTQUERY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=378,
-  serialized_end=1113,
+  serialized_start=390,
+  serialized_end=1125,
 )
 
 _LONGTXID.fields_by_name['snapshot'].message_type = _SNAPSHOT
