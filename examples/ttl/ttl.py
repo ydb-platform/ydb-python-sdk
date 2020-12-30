@@ -10,7 +10,9 @@ import random
 EXPIRATION_QUEUE_COUNT = 4
 DOC_TABLE_PARTITION_COUNT = 4
 
-ADD_DOCUMENT_TRANSACTION = """PRAGMA TablePathPrefix("%s");
+ADD_DOCUMENT_TRANSACTION = """
+--!syntax_v1
+PRAGMA TablePathPrefix("%s");
 DECLARE $url AS Utf8;
 DECLARE $html AS Utf8;
 DECLARE $timestamp AS Uint64;
@@ -18,63 +20,79 @@ DECLARE $timestamp AS Uint64;
 $doc_id = Digest::CityHash($url);
 
 REPLACE INTO documents
-    (doc_id, url, html, timestamp)
+    (`doc_id`, `url`, `html`, `timestamp`)
 VALUES
     ($doc_id, $url, $html, $timestamp);
 REPLACE INTO expiration_queue_%d
-    (timestamp, doc_id)
+    (`timestamp`, `doc_id`)
 VALUES
     ($timestamp, $doc_id);
 """
-READ_DOCUMENT_TRANSACTION = """PRAGMA TablePathPrefix("%s");
+
+READ_DOCUMENT_TRANSACTION = """
+--!syntax_v1
+PRAGMA TablePathPrefix("%s");
 DECLARE $url AS Utf8;
 
 $doc_id = Digest::CityHash($url);
 
-SELECT doc_id, url, html, timestamp
+SELECT `doc_id`, `url`, `html`, `timestamp`
 FROM documents
-WHERE doc_id = $doc_id;
+WHERE `doc_id` = $doc_id;
 """
-READ_EXPIRED_BATCH_TRANSACTION = """PRAGMA TablePathPrefix("%s");
+
+READ_EXPIRED_BATCH_TRANSACTION = """
+--!syntax_v1
+PRAGMA TablePathPrefix("%s");
 DECLARE $timestamp AS Uint64;
 DECLARE $prev_timestamp AS Uint64;
 DECLARE $prev_doc_id AS Uint64;
 
-$data = (
+$part_1 = (
     SELECT *
     FROM expiration_queue_%d
     WHERE
-        timestamp <= $timestamp
+        `timestamp` <= $timestamp
             AND
-        timestamp > $prev_timestamp
-    ORDER BY timestamp, doc_id
-    LIMIT 100
-
-    UNION ALL
-
-    SELECT *
-    FROM expiration_queue_%d
-    WHERE
-        timestamp = $prev_timestamp AND doc_id > $prev_doc_id
-    ORDER BY timestamp, doc_id
+        `timestamp` > $prev_timestamp
+    ORDER BY `timestamp`, `doc_id`
     LIMIT 100
 );
 
-SELECT timestamp, doc_id
-FROM $data
-ORDER BY timestamp, doc_id
+$part_2 = (
+    SELECT *
+    FROM expiration_queue_%d
+    WHERE
+        `timestamp` = $prev_timestamp AND `doc_id` > $prev_doc_id
+    ORDER BY `timestamp`, `doc_id`
+    LIMIT 100
+);
+
+$union = (
+    SELECT * FROM $part_1
+    UNION ALL
+    SELECT * FROM $part_2
+);
+
+
+SELECT `timestamp`, `doc_id`
+FROM $union
+ORDER BY `timestamp`, `doc_id`
 LIMIT 100;
 """
-DELETE_EXPIRED_DOCUMENT = """PRAGMA TablePathPrefix("%s");
+
+DELETE_EXPIRED_DOCUMENT = """
+--!syntax_v1
+PRAGMA TablePathPrefix("%s");
 
 DECLARE $doc_id AS Uint64;
 DECLARE $timestamp AS Uint64;
 
 DELETE FROM documents
-WHERE doc_id = $doc_id AND timestamp = $timestamp;
+WHERE `doc_id` = $doc_id AND `timestamp` = $timestamp;
 
 DELETE FROM expiration_queue_%d
-WHERE timestamp = $timestamp AND doc_id = $doc_id;
+WHERE `timestamp` = $timestamp AND `doc_id` = $doc_id;
 """
 
 
