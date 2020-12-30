@@ -9,7 +9,9 @@ from kikimr.public.sdk.python import client as ydb
 DOC_TABLE_PARTITION_COUNT = 4
 DELETE_BATCH_SIZE = 10
 
-ADD_DOCUMENT_TRANSACTION = """PRAGMA TablePathPrefix("%s");
+ADD_DOCUMENT_TRANSACTION = """
+--!syntax_v1
+PRAGMA TablePathPrefix("%s");
 DECLARE $url AS Utf8;
 DECLARE $html AS Utf8;
 DECLARE $timestamp AS Uint64;
@@ -17,24 +19,26 @@ DECLARE $timestamp AS Uint64;
 $doc_id = Digest::CityHash($url);
 
 REPLACE INTO documents
-    (doc_id, url, html, timestamp)
+    (`doc_id`, `url`, `html`, `timestamp`)
 VALUES
     ($doc_id, $url, $html, $timestamp);
 """
-READ_DOCUMENT_TRANSACTION = """PRAGMA TablePathPrefix("%s");
+
+READ_DOCUMENT_TRANSACTION = """
+--!syntax_v1
+PRAGMA TablePathPrefix("%s");
 DECLARE $url AS Utf8;
 
 $doc_id = Digest::CityHash($url);
 
-SELECT doc_id, url, html, timestamp
+SELECT `doc_id`, `url`, `html`, `timestamp`
 FROM documents
-WHERE doc_id = $doc_id;
+WHERE `doc_id` = $doc_id;
 """
-DELETE_EXPIRED_DOCUMENTS = """PRAGMA TablePathPrefix("%s");
-
-DECLARE $keys AS 'List<Struct<
-    doc_id: Uint64
->>';
+DELETE_EXPIRED_DOCUMENTS = """
+--!syntax_v1
+PRAGMA TablePathPrefix("%s");
+DECLARE $keys AS List<Struct<doc_id: Uint64>>;
 
 DECLARE $timestamp AS Uint64;
 
@@ -43,7 +47,7 @@ $expired = (
     FROM AS_TABLE($keys) AS k
     INNER JOIN documents AS d
     ON k.doc_id = d.doc_id
-    WHERE timestamp <= $timestamp
+    WHERE `timestamp` <= $timestamp
 );
 
 DELETE FROM documents ON
