@@ -175,16 +175,16 @@ class SessionPoolImpl(object):
                 f.result()
                 if self._initializer is None:
                     return self.put(session)
-            except issues.Error:
-                self._logger.error("Failed to create session. Put event to a delayed queue.")
+            except issues.Error as e:
+                self._logger.error("Failed to create session. Put event to a delayed queue. Reason: %s", str(e))
                 return self._event_queue.put(
                     lambda: self._delayed_prepare(
                         session
                     )
                 )
 
-            except Exception:
-                self._logger.exception("Failed to create session. Put event to a delayed queue.")
+            except Exception as e:
+                self._logger.exception("Failed to create session. Put event to a delayed queue. Reason: %s", str(e))
                 return self._event_queue.put(
                     lambda: self._delayed_prepare(
                         session
