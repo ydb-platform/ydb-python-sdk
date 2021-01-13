@@ -276,6 +276,18 @@ def _wrap_list_directory_response(rpc_state, response):
     issues._process_response(response.operation)
     message = _apis.ydb_scheme.ListDirectoryResult()
     response.operation.result.Unpack(message)
+    children = []
+    supported_items = set([i.value for i in SchemeEntryType])
+    for children_item in message.children:
+        if children_item.type not in supported_items:
+            continue
+
+        children.append(
+            _wrap_scheme_entry(
+                children_item
+            )
+        )
+
     return Directory(
         message.self.name,
         message.self.owner,
@@ -283,8 +295,7 @@ def _wrap_list_directory_response(rpc_state, response):
         _wrap_permissions(message.self.effective_permissions),
         _wrap_permissions(message.self.permissions),
         tuple(
-            _wrap_scheme_entry(children)
-            for children in message.children
+            children,
         )
     )
 
