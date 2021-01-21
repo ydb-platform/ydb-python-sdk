@@ -23,7 +23,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='kikimr/public/api/protos/ydb_scripting.proto',
   package='Ydb.Scripting',
   syntax='proto3',
-  serialized_pb=_b('\n,kikimr/public/api/protos/ydb_scripting.proto\x12\rYdb.Scripting\x1a,kikimr/public/api/protos/ydb_operation.proto\x1a(kikimr/public/api/protos/ydb_value.proto\x1a(kikimr/public/api/protos/ydb_table.proto\x1a.kikimr/public/api/protos/ydb_query_stats.proto\"\xa5\x02\n\x11\x45xecuteYqlRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x0e\n\x06script\x18\x02 \x01(\t\x12\x44\n\nparameters\x18\x03 \x03(\x0b\x32\x30.Ydb.Scripting.ExecuteYqlRequest.ParametersEntry\x12;\n\rcollect_stats\x18\x04 \x01(\x0e\x32$.Ydb.Table.QueryStatsCollection.Mode\x1a\x42\n\x0fParametersEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\x1e\n\x05value\x18\x02 \x01(\x0b\x32\x0f.Ydb.TypedValue:\x02\x38\x01\"B\n\x12\x45xecuteYqlResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"h\n\x10\x45xecuteYqlResult\x12#\n\x0bresult_sets\x18\x01 \x03(\x0b\x32\x0e.Ydb.ResultSet\x12/\n\x0bquery_stats\x18\x02 \x01(\x0b\x32\x1a.Ydb.TableStats.QueryStats\"\xbe\x01\n\x11\x45xplainYqlRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x0e\n\x06script\x18\x02 \x01(\t\x12\x33\n\x04mode\x18\x03 \x01(\x0e\x32%.Ydb.Scripting.ExplainYqlRequest.Mode\")\n\x04Mode\x12\t\n\x05PARSE\x10\x00\x12\x0c\n\x08VALIDATE\x10\x01\x12\x08\n\x04PLAN\x10\x02\"B\n\x12\x45xplainYqlResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\xb3\x01\n\x10\x45xplainYqlResult\x12N\n\x10parameters_types\x18\x01 \x03(\x0b\x32\x34.Ydb.Scripting.ExplainYqlResult.ParametersTypesEntry\x12\x0c\n\x04plan\x18\x02 \x01(\t\x1a\x41\n\x14ParametersTypesEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\x18\n\x05value\x18\x02 \x01(\x0b\x32\t.Ydb.Type:\x02\x38\x01\x42.\n\x18\x63om.yandex.ydb.scriptingB\x0fScriptingProtos\xf8\x01\x01\x62\x06proto3')
+  serialized_pb=_b('\n,kikimr/public/api/protos/ydb_scripting.proto\x12\rYdb.Scripting\x1a,kikimr/public/api/protos/ydb_operation.proto\x1a(kikimr/public/api/protos/ydb_value.proto\x1a(kikimr/public/api/protos/ydb_table.proto\x1a.kikimr/public/api/protos/ydb_query_stats.proto\"\xa5\x02\n\x11\x45xecuteYqlRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x0e\n\x06script\x18\x02 \x01(\t\x12\x44\n\nparameters\x18\x03 \x03(\x0b\x32\x30.Ydb.Scripting.ExecuteYqlRequest.ParametersEntry\x12;\n\rcollect_stats\x18\x04 \x01(\x0e\x32$.Ydb.Table.QueryStatsCollection.Mode\x1a\x42\n\x0fParametersEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\x1e\n\x05value\x18\x02 \x01(\x0b\x32\x0f.Ydb.TypedValue:\x02\x38\x01\"B\n\x12\x45xecuteYqlResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"h\n\x10\x45xecuteYqlResult\x12#\n\x0bresult_sets\x18\x01 \x03(\x0b\x32\x0e.Ydb.ResultSet\x12/\n\x0bquery_stats\x18\x02 \x01(\x0b\x32\x1a.Ydb.TableStats.QueryStats\"\xc9\x01\n\x11\x45xplainYqlRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x0e\n\x06script\x18\x02 \x01(\t\x12\x33\n\x04mode\x18\x03 \x01(\x0e\x32%.Ydb.Scripting.ExplainYqlRequest.Mode\"4\n\x04Mode\x12\x14\n\x10MODE_UNSPECIFIED\x10\x00\x12\x0c\n\x08VALIDATE\x10\x02\x12\x08\n\x04PLAN\x10\x03\"B\n\x12\x45xplainYqlResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\xb3\x01\n\x10\x45xplainYqlResult\x12N\n\x10parameters_types\x18\x01 \x03(\x0b\x32\x34.Ydb.Scripting.ExplainYqlResult.ParametersTypesEntry\x12\x0c\n\x04plan\x18\x02 \x01(\t\x1a\x41\n\x14ParametersTypesEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\x18\n\x05value\x18\x02 \x01(\x0b\x32\t.Ydb.Type:\x02\x38\x01\x42.\n\x18\x63om.yandex.ydb.scriptingB\x0fScriptingProtos\xf8\x01\x01\x62\x06proto3')
   ,
   dependencies=[kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2.DESCRIPTOR,kikimr_dot_public_dot_api_dot_protos_dot_ydb__value__pb2.DESCRIPTOR,kikimr_dot_public_dot_api_dot_protos_dot_ydb__table__pb2.DESCRIPTOR,kikimr_dot_public_dot_api_dot_protos_dot_ydb__query__stats__pb2.DESCRIPTOR,])
 
@@ -36,22 +36,22 @@ _EXPLAINYQLREQUEST_MODE = _descriptor.EnumDescriptor(
   file=DESCRIPTOR,
   values=[
     _descriptor.EnumValueDescriptor(
-      name='PARSE', index=0, number=0,
+      name='MODE_UNSPECIFIED', index=0, number=0,
       options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='VALIDATE', index=1, number=1,
+      name='VALIDATE', index=1, number=2,
       options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='PLAN', index=2, number=2,
+      name='PLAN', index=2, number=3,
       options=None,
       type=None),
   ],
   containing_type=None,
   options=None,
   serialized_start=861,
-  serialized_end=902,
+  serialized_end=913,
 )
 _sym_db.RegisterEnumDescriptor(_EXPLAINYQLREQUEST_MODE)
 
@@ -256,7 +256,7 @@ _EXPLAINYQLREQUEST = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=712,
-  serialized_end=902,
+  serialized_end=913,
 )
 
 
@@ -286,8 +286,8 @@ _EXPLAINYQLRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=904,
-  serialized_end=970,
+  serialized_start=915,
+  serialized_end=981,
 )
 
 
@@ -324,8 +324,8 @@ _EXPLAINYQLRESULT_PARAMETERSTYPESENTRY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1087,
-  serialized_end=1152,
+  serialized_start=1098,
+  serialized_end=1163,
 )
 
 _EXPLAINYQLRESULT = _descriptor.Descriptor(
@@ -361,8 +361,8 @@ _EXPLAINYQLRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=973,
-  serialized_end=1152,
+  serialized_start=984,
+  serialized_end=1163,
 )
 
 _EXECUTEYQLREQUEST_PARAMETERSENTRY.fields_by_name['value'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__value__pb2._TYPEDVALUE
