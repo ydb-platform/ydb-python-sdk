@@ -10,9 +10,10 @@ class TypedParameters(object):
 
 
 class ExplainYqlScriptSettings(settings.BaseRequestSettings):
-    MODE_PARSE = 0
-    MODE_VALIDATE = 1
-    MODE_EXPLAIN = 2
+    MODE_UNSPECIFIED = 0
+    MODE_PARSE = 1
+    MODE_VALIDATE = 2
+    MODE_EXPLAIN = 3
 
     def __init__(self):
         super(ExplainYqlScriptSettings, self).__init__()
