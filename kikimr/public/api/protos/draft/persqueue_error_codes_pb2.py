@@ -20,7 +20,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='kikimr/public/api/protos/draft/persqueue_error_codes.proto',
   package='NPersQueue.NErrorCode',
   syntax='proto3',
-  serialized_pb=_b('\n:kikimr/public/api/protos/draft/persqueue_error_codes.proto\x12\x15NPersQueue.NErrorCode*\xd9\x04\n\nEErrorCode\x12\x06\n\x02OK\x10\x00\x12\x10\n\x0cINITIALIZING\x10\x01\x12\x0c\n\x08OVERLOAD\x10\x02\x12\x0f\n\x0b\x42\x41\x44_REQUEST\x10\x03\x12\x10\n\x0cWRONG_COOKIE\x10\x04\x12!\n\x1dWRITE_ERROR_PARTITION_IS_FULL\x10\x05\x12\x1c\n\x18WRITE_ERROR_DISK_IS_FULL\x10\x0f\x12\x1a\n\x16WRITE_ERROR_BAD_OFFSET\x10\x13\x12!\n\x1d\x43REATE_SESSION_ALREADY_LOCKED\x10\x06\x12\x1d\n\x19\x44\x45LETE_SESSION_NO_SESSION\x10\x07\x12\x1a\n\x16READ_ERROR_IN_PROGRESS\x10\x08\x12\x19\n\x15READ_ERROR_NO_SESSION\x10\t\x12\x10\n\x0cREAD_TIMEOUT\x10\n\x12\x1f\n\x1bREAD_ERROR_TOO_SMALL_OFFSET\x10\x0b\x12\x1d\n\x19READ_ERROR_TOO_BIG_OFFSET\x10\x0c\x12%\n!SET_OFFSET_ERROR_COMMIT_TO_FUTURE\x10\r\x12\x15\n\x11TABLET_IS_DROPPED\x10\x0e\x12\x11\n\rREAD_NOT_DONE\x10\x10\x12\x11\n\rUNKNOWN_TOPIC\x10\x11\x12\x11\n\rACCESS_DENIED\x10\x12\x12\x14\n\x10\x43LUSTER_DISABLED\x10\x14\x12\x1a\n\x16WRONG_PARTITION_NUMBER\x10\x15\x12\x12\n\x0e\x43REATE_TIMEOUT\x10\x16\x12\x10\n\x0cIDLE_TIMEOUT\x10\x17\x12\t\n\x05\x45RROR\x10\x64\x42\x1a\n\x18\x63om.yandex.ydb.persqueueb\x06proto3')
+  serialized_pb=_b('\n:kikimr/public/api/protos/draft/persqueue_error_codes.proto\x12\x15NPersQueue.NErrorCode*\xef\x04\n\nEErrorCode\x12\x06\n\x02OK\x10\x00\x12\x10\n\x0cINITIALIZING\x10\x01\x12\x0c\n\x08OVERLOAD\x10\x02\x12\x0f\n\x0b\x42\x41\x44_REQUEST\x10\x03\x12\x10\n\x0cWRONG_COOKIE\x10\x04\x12\x14\n\x10SOURCEID_DELETED\x10\x18\x12!\n\x1dWRITE_ERROR_PARTITION_IS_FULL\x10\x05\x12\x1c\n\x18WRITE_ERROR_DISK_IS_FULL\x10\x0f\x12\x1a\n\x16WRITE_ERROR_BAD_OFFSET\x10\x13\x12!\n\x1d\x43REATE_SESSION_ALREADY_LOCKED\x10\x06\x12\x1d\n\x19\x44\x45LETE_SESSION_NO_SESSION\x10\x07\x12\x1a\n\x16READ_ERROR_IN_PROGRESS\x10\x08\x12\x19\n\x15READ_ERROR_NO_SESSION\x10\t\x12\x10\n\x0cREAD_TIMEOUT\x10\n\x12\x1f\n\x1bREAD_ERROR_TOO_SMALL_OFFSET\x10\x0b\x12\x1d\n\x19READ_ERROR_TOO_BIG_OFFSET\x10\x0c\x12%\n!SET_OFFSET_ERROR_COMMIT_TO_FUTURE\x10\r\x12\x15\n\x11TABLET_IS_DROPPED\x10\x0e\x12\x11\n\rREAD_NOT_DONE\x10\x10\x12\x11\n\rUNKNOWN_TOPIC\x10\x11\x12\x11\n\rACCESS_DENIED\x10\x12\x12\x14\n\x10\x43LUSTER_DISABLED\x10\x14\x12\x1a\n\x16WRONG_PARTITION_NUMBER\x10\x15\x12\x12\n\x0e\x43REATE_TIMEOUT\x10\x16\x12\x10\n\x0cIDLE_TIMEOUT\x10\x17\x12\t\n\x05\x45RROR\x10\x64\x42\x1a\n\x18\x63om.yandex.ydb.persqueueb\x06proto3')
 )
 
 _EERRORCODE = _descriptor.EnumDescriptor(
@@ -50,90 +50,94 @@ _EERRORCODE = _descriptor.EnumDescriptor(
       options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='WRITE_ERROR_PARTITION_IS_FULL', index=5, number=5,
+      name='SOURCEID_DELETED', index=5, number=24,
       options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='WRITE_ERROR_DISK_IS_FULL', index=6, number=15,
+      name='WRITE_ERROR_PARTITION_IS_FULL', index=6, number=5,
       options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='WRITE_ERROR_BAD_OFFSET', index=7, number=19,
+      name='WRITE_ERROR_DISK_IS_FULL', index=7, number=15,
       options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='CREATE_SESSION_ALREADY_LOCKED', index=8, number=6,
+      name='WRITE_ERROR_BAD_OFFSET', index=8, number=19,
       options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='DELETE_SESSION_NO_SESSION', index=9, number=7,
+      name='CREATE_SESSION_ALREADY_LOCKED', index=9, number=6,
       options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='READ_ERROR_IN_PROGRESS', index=10, number=8,
+      name='DELETE_SESSION_NO_SESSION', index=10, number=7,
       options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='READ_ERROR_NO_SESSION', index=11, number=9,
+      name='READ_ERROR_IN_PROGRESS', index=11, number=8,
       options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='READ_TIMEOUT', index=12, number=10,
+      name='READ_ERROR_NO_SESSION', index=12, number=9,
       options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='READ_ERROR_TOO_SMALL_OFFSET', index=13, number=11,
+      name='READ_TIMEOUT', index=13, number=10,
       options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='READ_ERROR_TOO_BIG_OFFSET', index=14, number=12,
+      name='READ_ERROR_TOO_SMALL_OFFSET', index=14, number=11,
       options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='SET_OFFSET_ERROR_COMMIT_TO_FUTURE', index=15, number=13,
+      name='READ_ERROR_TOO_BIG_OFFSET', index=15, number=12,
       options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='TABLET_IS_DROPPED', index=16, number=14,
+      name='SET_OFFSET_ERROR_COMMIT_TO_FUTURE', index=16, number=13,
       options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='READ_NOT_DONE', index=17, number=16,
+      name='TABLET_IS_DROPPED', index=17, number=14,
       options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='UNKNOWN_TOPIC', index=18, number=17,
+      name='READ_NOT_DONE', index=18, number=16,
       options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='ACCESS_DENIED', index=19, number=18,
+      name='UNKNOWN_TOPIC', index=19, number=17,
       options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='CLUSTER_DISABLED', index=20, number=20,
+      name='ACCESS_DENIED', index=20, number=18,
       options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='WRONG_PARTITION_NUMBER', index=21, number=21,
+      name='CLUSTER_DISABLED', index=21, number=20,
       options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='CREATE_TIMEOUT', index=22, number=22,
+      name='WRONG_PARTITION_NUMBER', index=22, number=21,
       options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='IDLE_TIMEOUT', index=23, number=23,
+      name='CREATE_TIMEOUT', index=23, number=22,
       options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='ERROR', index=24, number=100,
+      name='IDLE_TIMEOUT', index=24, number=23,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='ERROR', index=25, number=100,
       options=None,
       type=None),
   ],
   containing_type=None,
   options=None,
   serialized_start=86,
-  serialized_end=687,
+  serialized_end=709,
 )
 _sym_db.RegisterEnumDescriptor(_EERRORCODE)
 
@@ -143,6 +147,7 @@ INITIALIZING = 1
 OVERLOAD = 2
 BAD_REQUEST = 3
 WRONG_COOKIE = 4
+SOURCEID_DELETED = 24
 WRITE_ERROR_PARTITION_IS_FULL = 5
 WRITE_ERROR_DISK_IS_FULL = 15
 WRITE_ERROR_BAD_OFFSET = 19
