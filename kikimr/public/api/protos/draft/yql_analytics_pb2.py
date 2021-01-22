@@ -22,7 +22,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='kikimr/public/api/protos/draft/yql_analytics.proto',
   package='Yql.Analytics',
   syntax='proto3',
-  serialized_pb=_b('\n2kikimr/public/api/protos/draft/yql_analytics.proto\x12\rYql.Analytics\x1a,kikimr/public/api/protos/ydb_operation.proto\x1a(kikimr/public/api/protos/ydb_value.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xdb\x03\n\x13\x45xecuteQueryRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x10\n\x08yql_text\x18\x02 \x01(\t\x12\x45\n\x0c\x65xecute_mode\x18\x03 \x01(\x0e\x32/.Yql.Analytics.ExecuteQueryRequest.EExecuteMode\x12\x18\n\x10max_result_bytes\x18\x04 \x01(\x04\x12\x17\n\x0fmax_result_rows\x18\x05 \x01(\x04\x12\x1c\n\x14\x65xpire_after_seconds\x18\x06 \x01(\r\x12\x46\n\nparameters\x18\x07 \x03(\x0b\x32\x32.Yql.Analytics.ExecuteQueryRequest.ParametersEntry\x1a\x42\n\x0fParametersEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\x1e\n\x05value\x18\x02 \x01(\x0b\x32\x0f.Ydb.TypedValue:\x02\x38\x01\"S\n\x0c\x45\x45xecuteMode\x12\x14\n\x10MODE_UNSPECIFIED\x10\x00\x12\x07\n\x03RUN\x10\x01\x12\x0b\n\x07\x45XPLAIN\x10\x02\x12\x0c\n\x08VALIDATE\x10\x03\x12\t\n\x05PARSE\x10\x04\"D\n\x14\x45xecuteQueryResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\";\n\x12\x45xecuteQueryResult\x12\x11\n\tresult_id\x18\x01 \x01(\t\x12\x12\n\nquery_plan\x18\x02 \x01(\t\"d\n\x14GetResultInfoRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x11\n\tresult_id\x18\x02 \x01(\t\"E\n\x15GetResultInfoResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"9\n\rResultSetInfo\x12\x12\n\nrows_count\x18\x01 \x01(\x04\x12\x14\n\x0cis_truncated\x18\x02 \x01(\x08\"\x81\x01\n\x13GetResultInfoResult\x12\x31\n\x0bresult_sets\x18\x01 \x03(\x0b\x32\x1c.Yql.Analytics.ResultSetInfo\x12\x37\n\x13\x65xpiration_deadline\x18\x02 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\"\x9a\x01\n\x14GetResultDataRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x11\n\tresult_id\x18\x02 \x01(\t\x12\x15\n\rresult_set_id\x18\x03 \x01(\r\x12\x0e\n\x06offset\x18\x04 \x01(\x04\x12\r\n\x05limit\x18\x05 \x01(\x04\"E\n\x15GetResultDataResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"9\n\x13GetResultDataResult\x12\"\n\nresult_set\x18\x01 \x01(\x0b\x32\x0e.Ydb.ResultSetB.\n\x18\x63om.yandex.yql.analyticsB\x0f\x41nalyticsProtos\xf8\x01\x01\x62\x06proto3')
+  serialized_pb=_b('\n2kikimr/public/api/protos/draft/yql_analytics.proto\x12\rYql.Analytics\x1a,kikimr/public/api/protos/ydb_operation.proto\x1a(kikimr/public/api/protos/ydb_value.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"1\n\x0bYdbDatabase\x12\x10\n\x08\x65ndpoint\x18\x01 \x01(\t\x12\x10\n\x08\x64\x61tabase\x18\x02 \x01(\t\"N\n\nConnection\x12\x32\n\x0cydb_database\x18\x01 \x01(\x0b\x32\x1a.Yql.Analytics.YdbDatabaseH\x00\x42\x0c\n\nconnection\"\x8b\x04\n\x13\x45xecuteQueryRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x10\n\x08yql_text\x18\x02 \x01(\t\x12\x45\n\x0c\x65xecute_mode\x18\x03 \x01(\x0e\x32/.Yql.Analytics.ExecuteQueryRequest.EExecuteMode\x12\x18\n\x10max_result_bytes\x18\x04 \x01(\x04\x12\x17\n\x0fmax_result_rows\x18\x05 \x01(\x04\x12\x1c\n\x14\x65xpire_after_seconds\x18\x06 \x01(\r\x12\x46\n\nparameters\x18\x07 \x03(\x0b\x32\x32.Yql.Analytics.ExecuteQueryRequest.ParametersEntry\x12.\n\x0b\x63onnections\x18\x08 \x03(\x0b\x32\x19.Yql.Analytics.Connection\x1a\x42\n\x0fParametersEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\x1e\n\x05value\x18\x02 \x01(\x0b\x32\x0f.Ydb.TypedValue:\x02\x38\x01\"S\n\x0c\x45\x45xecuteMode\x12\x14\n\x10MODE_UNSPECIFIED\x10\x00\x12\x07\n\x03RUN\x10\x01\x12\x0b\n\x07\x45XPLAIN\x10\x02\x12\x0c\n\x08VALIDATE\x10\x03\x12\t\n\x05PARSE\x10\x04\"D\n\x14\x45xecuteQueryResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\";\n\x12\x45xecuteQueryResult\x12\x11\n\tresult_id\x18\x01 \x01(\t\x12\x12\n\nquery_plan\x18\x02 \x01(\t\"d\n\x14GetResultInfoRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x11\n\tresult_id\x18\x02 \x01(\t\"E\n\x15GetResultInfoResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"9\n\rResultSetInfo\x12\x12\n\nrows_count\x18\x01 \x01(\x04\x12\x14\n\x0cis_truncated\x18\x02 \x01(\x08\"\x81\x01\n\x13GetResultInfoResult\x12\x31\n\x0bresult_sets\x18\x01 \x03(\x0b\x32\x1c.Yql.Analytics.ResultSetInfo\x12\x37\n\x13\x65xpiration_deadline\x18\x02 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\"\x9a\x01\n\x14GetResultDataRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x11\n\tresult_id\x18\x02 \x01(\t\x12\x15\n\rresult_set_id\x18\x03 \x01(\r\x12\x0e\n\x06offset\x18\x04 \x01(\x04\x12\r\n\x05limit\x18\x05 \x01(\x04\"E\n\x15GetResultDataResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"9\n\x13GetResultDataResult\x12\"\n\nresult_set\x18\x01 \x01(\x0b\x32\x0e.Ydb.ResultSetB.\n\x18\x63om.yandex.yql.analyticsB\x0f\x41nalyticsProtos\xf8\x01\x01\x62\x06proto3')
   ,
   dependencies=[kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2.DESCRIPTOR,kikimr_dot_public_dot_api_dot_protos_dot_ydb__value__pb2.DESCRIPTOR,google_dot_protobuf_dot_timestamp__pb2.DESCRIPTOR,])
 
@@ -57,10 +57,82 @@ _EXECUTEQUERYREQUEST_EEXECUTEMODE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=583,
-  serialized_end=666,
+  serialized_start=762,
+  serialized_end=845,
 )
 _sym_db.RegisterEnumDescriptor(_EXECUTEQUERYREQUEST_EEXECUTEMODE)
+
+
+_YDBDATABASE = _descriptor.Descriptor(
+  name='YdbDatabase',
+  full_name='Yql.Analytics.YdbDatabase',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='endpoint', full_name='Yql.Analytics.YdbDatabase.endpoint', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='database', full_name='Yql.Analytics.YdbDatabase.database', index=1,
+      number=2, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=190,
+  serialized_end=239,
+)
+
+
+_CONNECTION = _descriptor.Descriptor(
+  name='Connection',
+  full_name='Yql.Analytics.Connection',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='ydb_database', full_name='Yql.Analytics.Connection.ydb_database', index=0,
+      number=1, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+    _descriptor.OneofDescriptor(
+      name='connection', full_name='Yql.Analytics.Connection.connection',
+      index=0, containing_type=None, fields=[]),
+  ],
+  serialized_start=241,
+  serialized_end=319,
+)
 
 
 _EXECUTEQUERYREQUEST_PARAMETERSENTRY = _descriptor.Descriptor(
@@ -96,8 +168,8 @@ _EXECUTEQUERYREQUEST_PARAMETERSENTRY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=515,
-  serialized_end=581,
+  serialized_start=694,
+  serialized_end=760,
 )
 
 _EXECUTEQUERYREQUEST = _descriptor.Descriptor(
@@ -156,6 +228,13 @@ _EXECUTEQUERYREQUEST = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
+    _descriptor.FieldDescriptor(
+      name='connections', full_name='Yql.Analytics.ExecuteQueryRequest.connections', index=7,
+      number=8, type=11, cpp_type=10, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
   ],
   extensions=[
   ],
@@ -169,8 +248,8 @@ _EXECUTEQUERYREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=191,
-  serialized_end=666,
+  serialized_start=322,
+  serialized_end=845,
 )
 
 
@@ -200,8 +279,8 @@ _EXECUTEQUERYRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=668,
-  serialized_end=736,
+  serialized_start=847,
+  serialized_end=915,
 )
 
 
@@ -238,8 +317,8 @@ _EXECUTEQUERYRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=738,
-  serialized_end=797,
+  serialized_start=917,
+  serialized_end=976,
 )
 
 
@@ -276,8 +355,8 @@ _GETRESULTINFOREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=799,
-  serialized_end=899,
+  serialized_start=978,
+  serialized_end=1078,
 )
 
 
@@ -307,8 +386,8 @@ _GETRESULTINFORESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=901,
-  serialized_end=970,
+  serialized_start=1080,
+  serialized_end=1149,
 )
 
 
@@ -345,8 +424,8 @@ _RESULTSETINFO = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=972,
-  serialized_end=1029,
+  serialized_start=1151,
+  serialized_end=1208,
 )
 
 
@@ -383,8 +462,8 @@ _GETRESULTINFORESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1032,
-  serialized_end=1161,
+  serialized_start=1211,
+  serialized_end=1340,
 )
 
 
@@ -442,8 +521,8 @@ _GETRESULTDATAREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1164,
-  serialized_end=1318,
+  serialized_start=1343,
+  serialized_end=1497,
 )
 
 
@@ -473,8 +552,8 @@ _GETRESULTDATARESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1320,
-  serialized_end=1389,
+  serialized_start=1499,
+  serialized_end=1568,
 )
 
 
@@ -504,15 +583,20 @@ _GETRESULTDATARESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1391,
-  serialized_end=1448,
+  serialized_start=1570,
+  serialized_end=1627,
 )
 
+_CONNECTION.fields_by_name['ydb_database'].message_type = _YDBDATABASE
+_CONNECTION.oneofs_by_name['connection'].fields.append(
+  _CONNECTION.fields_by_name['ydb_database'])
+_CONNECTION.fields_by_name['ydb_database'].containing_oneof = _CONNECTION.oneofs_by_name['connection']
 _EXECUTEQUERYREQUEST_PARAMETERSENTRY.fields_by_name['value'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__value__pb2._TYPEDVALUE
 _EXECUTEQUERYREQUEST_PARAMETERSENTRY.containing_type = _EXECUTEQUERYREQUEST
 _EXECUTEQUERYREQUEST.fields_by_name['operation_params'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2._OPERATIONPARAMS
 _EXECUTEQUERYREQUEST.fields_by_name['execute_mode'].enum_type = _EXECUTEQUERYREQUEST_EEXECUTEMODE
 _EXECUTEQUERYREQUEST.fields_by_name['parameters'].message_type = _EXECUTEQUERYREQUEST_PARAMETERSENTRY
+_EXECUTEQUERYREQUEST.fields_by_name['connections'].message_type = _CONNECTION
 _EXECUTEQUERYREQUEST_EEXECUTEMODE.containing_type = _EXECUTEQUERYREQUEST
 _EXECUTEQUERYRESPONSE.fields_by_name['operation'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2._OPERATION
 _GETRESULTINFOREQUEST.fields_by_name['operation_params'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2._OPERATIONPARAMS
@@ -522,6 +606,8 @@ _GETRESULTINFORESULT.fields_by_name['expiration_deadline'].message_type = google
 _GETRESULTDATAREQUEST.fields_by_name['operation_params'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2._OPERATIONPARAMS
 _GETRESULTDATARESPONSE.fields_by_name['operation'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2._OPERATION
 _GETRESULTDATARESULT.fields_by_name['result_set'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__value__pb2._RESULTSET
+DESCRIPTOR.message_types_by_name['YdbDatabase'] = _YDBDATABASE
+DESCRIPTOR.message_types_by_name['Connection'] = _CONNECTION
 DESCRIPTOR.message_types_by_name['ExecuteQueryRequest'] = _EXECUTEQUERYREQUEST
 DESCRIPTOR.message_types_by_name['ExecuteQueryResponse'] = _EXECUTEQUERYRESPONSE
 DESCRIPTOR.message_types_by_name['ExecuteQueryResult'] = _EXECUTEQUERYRESULT
@@ -533,6 +619,20 @@ DESCRIPTOR.message_types_by_name['GetResultDataRequest'] = _GETRESULTDATAREQUEST
 DESCRIPTOR.message_types_by_name['GetResultDataResponse'] = _GETRESULTDATARESPONSE
 DESCRIPTOR.message_types_by_name['GetResultDataResult'] = _GETRESULTDATARESULT
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
+
+YdbDatabase = _reflection.GeneratedProtocolMessageType('YdbDatabase', (_message.Message,), dict(
+  DESCRIPTOR = _YDBDATABASE,
+  __module__ = 'kikimr.public.api.protos.draft.yql_analytics_pb2'
+  # @@protoc_insertion_point(class_scope:Yql.Analytics.YdbDatabase)
+  ))
+_sym_db.RegisterMessage(YdbDatabase)
+
+Connection = _reflection.GeneratedProtocolMessageType('Connection', (_message.Message,), dict(
+  DESCRIPTOR = _CONNECTION,
+  __module__ = 'kikimr.public.api.protos.draft.yql_analytics_pb2'
+  # @@protoc_insertion_point(class_scope:Yql.Analytics.Connection)
+  ))
+_sym_db.RegisterMessage(Connection)
 
 ExecuteQueryRequest = _reflection.GeneratedProtocolMessageType('ExecuteQueryRequest', (_message.Message,), dict(
 
