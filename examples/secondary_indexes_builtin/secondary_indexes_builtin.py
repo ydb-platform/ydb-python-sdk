@@ -5,20 +5,21 @@ from concurrent.futures import TimeoutError
 
 
 FILL_DATA_QUERY = """
+--!syntax_v1
 PRAGMA TablePathPrefix("{}");
 
-DECLARE $seriesData AS "List<Struct<
+DECLARE $seriesData AS List<Struct<
     series_id: Uint64,
     title: Utf8,
     info: Utf8,
     release_date: Date,
     views: Uint64,
-    uploaded_user_id: Uint64>>";
+    uploaded_user_id: Uint64>>;
 
-DECLARE $usersData AS "List<Struct<
+DECLARE $usersData AS List<Struct<
     user_id: Uint64,
     name: Utf8,
-    age: Uint32>>";
+    age: Uint32>>;
 
 REPLACE INTO series
     SELECT
@@ -37,7 +38,9 @@ REPLACE INTO users
     age
 FROM AS_TABLE($usersData);
 """
+
 SELECT_SERIES_BY_UPLOADER = """
+--!syntax_v1
 PRAGMA TablePathPrefix("{}");
 
 DECLARE $userName AS Utf8;
@@ -50,8 +53,8 @@ SELECT
  t1.views as views,
  t1.uploaded_user_id as uploaded_user_id
 
-FROM [series]:users_index AS t1
-INNER JOIN [users]:name_index AS t2
+FROM series view users_index AS t1
+INNER JOIN users view name_index AS t2
 ON t1.uploaded_user_id == t2.user_id
 WHERE t2.name == $userName;
 """
