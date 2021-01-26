@@ -16,38 +16,42 @@ class SchoolsPaginated(object):
         self.last_number = None
 
         next_page_query = """
+        --!syntax_v1
         PRAGMA TablePathPrefix("{path}");
 
         DECLARE $limit AS Uint32;
         DECLARE $lastCity AS Utf8;
         DECLARE $lastNumber AS Uint32;
 
-        $Data = (
+        $Part1 = (
             SELECT * FROM schools
-            WHERE city = $lastCity AND number > $lastNumber
-            ORDER BY city, number
-            LIMIT $limit
-
-            UNION ALL
-
-            SELECT * FROM schools
-            WHERE city > $lastCity
-            ORDER BY city, number
+            WHERE `city` = $lastCity AND `number` > $lastNumber
+            ORDER BY `city`, `number`
             LIMIT $limit
         );
-        SELECT * FROM $Data ORDER BY city, number LIMIT $limit;
+
+        $Part2 = (
+            SELECT * FROM schools
+            WHERE `city` > $lastCity
+            ORDER BY `city`, `number`
+            LIMIT $limit
+        );
+
+        $Union = (SELECT * FROM $Part1 UNION ALL SELECT * FROM $Part2);
+        SELECT * FROM $Union ORDER BY `city`, `number` LIMIT $limit;
         """.format(path=self.path)
 
         self.prepared_next_page_query = self.session.prepare(next_page_query)
 
     def get_first_page(self):
         query = """
+        --!syntax_v1
         PRAGMA TablePathPrefix("{path}");
 
         DECLARE $limit AS Uint32;
 
         SELECT * FROM schools
-        ORDER BY city, number
+        ORDER BY `city`, `number`
         LIMIT $limit;
         """.format(path=self.path)
         prepared_query = self.session.prepare(query)
