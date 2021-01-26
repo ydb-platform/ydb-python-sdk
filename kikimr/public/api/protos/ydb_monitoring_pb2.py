@@ -20,7 +20,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='kikimr/public/api/protos/ydb_monitoring.proto',
   package='Ydb.Monitoring',
   syntax='proto3',
-  serialized_pb=_b('\n-kikimr/public/api/protos/ydb_monitoring.proto\x12\x0eYdb.Monitoring\x1a,kikimr/public/api/protos/ydb_operation.proto\"l\n\x10SelfCheckRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x1d\n\x15return_verbose_status\x18\x02 \x01(\x08\"A\n\x11SelfCheckResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"g\n\nStatusFlag\"Y\n\x06Status\x12\x0f\n\x0bUNSPECIFIED\x10\x00\x12\x08\n\x04GREY\x10\x01\x12\t\n\x05GREEN\x10\x02\x12\x08\n\x04\x42LUE\x10\x03\x12\n\n\x06YELLOW\x10\x04\x12\n\n\x06ORANGE\x10\x05\x12\x07\n\x03RED\x10\x06\"g\n\tSelfCheck\"Z\n\x06Result\x12\x0f\n\x0bUNSPECIFIED\x10\x00\x12\x08\n\x04GOOD\x10\x01\x12\x0c\n\x08\x44\x45GRADED\x10\x02\x12\x18\n\x14MAINTENANCE_REQUIRED\x10\x03\x12\r\n\tEMERGENCY\x10\x04\"T\n\x12StoragePDiskStatus\x12\n\n\x02id\x18\x01 \x01(\t\x12\x32\n\x07overall\x18\x02 \x01(\x0e\x32!.Ydb.Monitoring.StatusFlag.Status\"\xc0\x01\n\x12StorageVDiskStatus\x12\n\n\x02id\x18\x01 \x01(\t\x12\x32\n\x07overall\x18\x02 \x01(\x0e\x32!.Ydb.Monitoring.StatusFlag.Status\x12\x37\n\x0cvdisk_status\x18\x03 \x01(\x0e\x32!.Ydb.Monitoring.StatusFlag.Status\x12\x31\n\x05pdisk\x18\x04 \x01(\x0b\x32\".Ydb.Monitoring.StoragePDiskStatus\"\x88\x01\n\x12StorageGroupStatus\x12\n\n\x02id\x18\x01 \x01(\t\x12\x32\n\x07overall\x18\x02 \x01(\x0e\x32!.Ydb.Monitoring.StatusFlag.Status\x12\x32\n\x06vdisks\x18\x03 \x03(\x0b\x32\".Ydb.Monitoring.StorageVDiskStatus\"\x87\x01\n\x11StoragePoolStatus\x12\n\n\x02id\x18\x01 \x01(\t\x12\x32\n\x07overall\x18\x02 \x01(\x0e\x32!.Ydb.Monitoring.StatusFlag.Status\x12\x32\n\x06groups\x18\x03 \x03(\x0b\x32\".Ydb.Monitoring.StorageGroupStatus\"u\n\rStorageStatus\x12\x32\n\x07overall\x18\x01 \x01(\x0e\x32!.Ydb.Monitoring.StatusFlag.Status\x12\x30\n\x05pools\x18\x02 \x03(\x0b\x32!.Ydb.Monitoring.StoragePoolStatus\"u\n\x13\x43omputeTabletStatus\x12\x32\n\x07overall\x18\x01 \x01(\x0e\x32!.Ydb.Monitoring.StatusFlag.Status\x12\x0c\n\x04type\x18\x02 \x01(\t\x12\r\n\x05state\x18\x03 \x01(\t\x12\r\n\x05\x63ount\x18\x04 \x01(\r\"c\n\x10ThreadPoolStatus\x12\x32\n\x07overall\x18\x01 \x01(\x0e\x32!.Ydb.Monitoring.StatusFlag.Status\x12\x0c\n\x04name\x18\x02 \x01(\t\x12\r\n\x05usage\x18\x03 \x01(\x02\"d\n\x11LoadAverageStatus\x12\x32\n\x07overall\x18\x01 \x01(\x0e\x32!.Ydb.Monitoring.StatusFlag.Status\x12\x0c\n\x04load\x18\x02 \x01(\x02\x12\r\n\x05\x63ores\x18\x03 \x01(\r\"\xeb\x01\n\x11\x43omputeNodeStatus\x12\n\n\x02id\x18\x01 \x01(\t\x12\x32\n\x07overall\x18\x02 \x01(\x0e\x32!.Ydb.Monitoring.StatusFlag.Status\x12\x34\n\x07tablets\x18\x03 \x03(\x0b\x32#.Ydb.Monitoring.ComputeTabletStatus\x12/\n\x05pools\x18\x04 \x03(\x0b\x32 .Ydb.Monitoring.ThreadPoolStatus\x12/\n\x04load\x18\x05 \x01(\x0b\x32!.Ydb.Monitoring.LoadAverageStatus\"u\n\rComputeStatus\x12\x32\n\x07overall\x18\x01 \x01(\x0e\x32!.Ydb.Monitoring.StatusFlag.Status\x12\x30\n\x05nodes\x18\x02 \x03(\x0b\x32!.Ydb.Monitoring.ComputeNodeStatus\"6\n\x0cLocationNode\x12\n\n\x02id\x18\x01 \x01(\r\x12\x0c\n\x04host\x18\x02 \x01(\t\x12\x0c\n\x04port\x18\x03 \x01(\r\"0\n\x14LocationStoragePDisk\x12\n\n\x02id\x18\x01 \x01(\t\x12\x0c\n\x04path\x18\x02 \x01(\t\"W\n\x14LocationStorageVDisk\x12\n\n\x02id\x18\x01 \x01(\t\x12\x33\n\x05pdisk\x18\x02 \x01(\x0b\x32$.Ydb.Monitoring.LocationStoragePDisk\"W\n\x14LocationStorageGroup\x12\n\n\x02id\x18\x01 \x01(\t\x12\x33\n\x05vdisk\x18\x02 \x01(\x0b\x32$.Ydb.Monitoring.LocationStorageVDisk\"X\n\x13LocationStoragePool\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x33\n\x05group\x18\x02 \x01(\x0b\x32$.Ydb.Monitoring.LocationStorageGroup\"p\n\x0fLocationStorage\x12*\n\x04node\x18\x01 \x01(\x0b\x32\x1c.Ydb.Monitoring.LocationNode\x12\x31\n\x04pool\x18\x02 \x01(\x0b\x32#.Ydb.Monitoring.LocationStoragePool\"#\n\x13LocationComputePool\x12\x0c\n\x04name\x18\x01 \x01(\t\"%\n\x15LocationComputeTablet\x12\x0c\n\x04type\x18\x01 \x01(\t\"\xa7\x01\n\x0fLocationCompute\x12*\n\x04node\x18\x01 \x01(\x0b\x32\x1c.Ydb.Monitoring.LocationNode\x12\x31\n\x04pool\x18\x02 \x01(\x0b\x32#.Ydb.Monitoring.LocationComputePool\x12\x35\n\x06tablet\x18\x03 \x01(\x0b\x32%.Ydb.Monitoring.LocationComputeTablet\" \n\x10LocationDatabase\x12\x0c\n\x04name\x18\x01 \x01(\t\"\xa2\x01\n\x08Location\x12\x30\n\x07storage\x18\x01 \x01(\x0b\x32\x1f.Ydb.Monitoring.LocationStorage\x12\x30\n\x07\x63ompute\x18\x02 \x01(\x0b\x32\x1f.Ydb.Monitoring.LocationCompute\x12\x32\n\x08\x64\x61tabase\x18\x03 \x01(\x0b\x32 .Ydb.Monitoring.LocationDatabase\"\x96\x01\n\x08IssueLog\x12\n\n\x02id\x18\x01 \x01(\t\x12\x31\n\x06status\x18\x02 \x01(\x0e\x32!.Ydb.Monitoring.StatusFlag.Status\x12\x0f\n\x07message\x18\x03 \x01(\t\x12*\n\x08location\x18\x04 \x01(\x0b\x32\x18.Ydb.Monitoring.Location\x12\x0e\n\x06reason\x18\x05 \x03(\t\"\xa4\x01\n\x0e\x44\x61tabaseStatus\x12\x32\n\x07overall\x18\x01 \x01(\x0e\x32!.Ydb.Monitoring.StatusFlag.Status\x12.\n\x07storage\x18\x02 \x01(\x0b\x32\x1d.Ydb.Monitoring.StorageStatus\x12.\n\x07\x63ompute\x18\x03 \x01(\x0b\x32\x1d.Ydb.Monitoring.ComputeStatus\"\xb4\x01\n\x0fSelfCheckResult\x12;\n\x11self_check_result\x18\x01 \x01(\x0e\x32 .Ydb.Monitoring.SelfCheck.Result\x12+\n\tissue_log\x18\x02 \x03(\x0b\x32\x18.Ydb.Monitoring.IssueLog\x12\x37\n\x0f\x64\x61tabase_status\x18\x03 \x01(\x0b\x32\x1e.Ydb.Monitoring.DatabaseStatusB0\n\x19\x63om.yandex.ydb.monitoringB\x10MonitoringProtos\xf8\x01\x01\x62\x06proto3')
+  serialized_pb=_b('\n-kikimr/public/api/protos/ydb_monitoring.proto\x12\x0eYdb.Monitoring\x1a,kikimr/public/api/protos/ydb_operation.proto\"g\n\nStatusFlag\"Y\n\x06Status\x12\x0f\n\x0bUNSPECIFIED\x10\x00\x12\x08\n\x04GREY\x10\x01\x12\t\n\x05GREEN\x10\x02\x12\x08\n\x04\x42LUE\x10\x03\x12\n\n\x06YELLOW\x10\x04\x12\n\n\x06ORANGE\x10\x05\x12\x07\n\x03RED\x10\x06\"\xa7\x01\n\x10SelfCheckRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x1d\n\x15return_verbose_status\x18\x02 \x01(\x08\x12\x39\n\x0eminimum_status\x18\x03 \x01(\x0e\x32!.Ydb.Monitoring.StatusFlag.Status\"A\n\x11SelfCheckResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"g\n\tSelfCheck\"Z\n\x06Result\x12\x0f\n\x0bUNSPECIFIED\x10\x00\x12\x08\n\x04GOOD\x10\x01\x12\x0c\n\x08\x44\x45GRADED\x10\x02\x12\x18\n\x14MAINTENANCE_REQUIRED\x10\x03\x12\r\n\tEMERGENCY\x10\x04\"T\n\x12StoragePDiskStatus\x12\n\n\x02id\x18\x01 \x01(\t\x12\x32\n\x07overall\x18\x02 \x01(\x0e\x32!.Ydb.Monitoring.StatusFlag.Status\"\xc0\x01\n\x12StorageVDiskStatus\x12\n\n\x02id\x18\x01 \x01(\t\x12\x32\n\x07overall\x18\x02 \x01(\x0e\x32!.Ydb.Monitoring.StatusFlag.Status\x12\x37\n\x0cvdisk_status\x18\x03 \x01(\x0e\x32!.Ydb.Monitoring.StatusFlag.Status\x12\x31\n\x05pdisk\x18\x04 \x01(\x0b\x32\".Ydb.Monitoring.StoragePDiskStatus\"\x88\x01\n\x12StorageGroupStatus\x12\n\n\x02id\x18\x01 \x01(\t\x12\x32\n\x07overall\x18\x02 \x01(\x0e\x32!.Ydb.Monitoring.StatusFlag.Status\x12\x32\n\x06vdisks\x18\x03 \x03(\x0b\x32\".Ydb.Monitoring.StorageVDiskStatus\"\x87\x01\n\x11StoragePoolStatus\x12\n\n\x02id\x18\x01 \x01(\t\x12\x32\n\x07overall\x18\x02 \x01(\x0e\x32!.Ydb.Monitoring.StatusFlag.Status\x12\x32\n\x06groups\x18\x03 \x03(\x0b\x32\".Ydb.Monitoring.StorageGroupStatus\"u\n\rStorageStatus\x12\x32\n\x07overall\x18\x01 \x01(\x0e\x32!.Ydb.Monitoring.StatusFlag.Status\x12\x30\n\x05pools\x18\x02 \x03(\x0b\x32!.Ydb.Monitoring.StoragePoolStatus\"u\n\x13\x43omputeTabletStatus\x12\x32\n\x07overall\x18\x01 \x01(\x0e\x32!.Ydb.Monitoring.StatusFlag.Status\x12\x0c\n\x04type\x18\x02 \x01(\t\x12\r\n\x05state\x18\x03 \x01(\t\x12\r\n\x05\x63ount\x18\x04 \x01(\r\"c\n\x10ThreadPoolStatus\x12\x32\n\x07overall\x18\x01 \x01(\x0e\x32!.Ydb.Monitoring.StatusFlag.Status\x12\x0c\n\x04name\x18\x02 \x01(\t\x12\r\n\x05usage\x18\x03 \x01(\x02\"d\n\x11LoadAverageStatus\x12\x32\n\x07overall\x18\x01 \x01(\x0e\x32!.Ydb.Monitoring.StatusFlag.Status\x12\x0c\n\x04load\x18\x02 \x01(\x02\x12\r\n\x05\x63ores\x18\x03 \x01(\r\"\xeb\x01\n\x11\x43omputeNodeStatus\x12\n\n\x02id\x18\x01 \x01(\t\x12\x32\n\x07overall\x18\x02 \x01(\x0e\x32!.Ydb.Monitoring.StatusFlag.Status\x12\x34\n\x07tablets\x18\x03 \x03(\x0b\x32#.Ydb.Monitoring.ComputeTabletStatus\x12/\n\x05pools\x18\x04 \x03(\x0b\x32 .Ydb.Monitoring.ThreadPoolStatus\x12/\n\x04load\x18\x05 \x01(\x0b\x32!.Ydb.Monitoring.LoadAverageStatus\"u\n\rComputeStatus\x12\x32\n\x07overall\x18\x01 \x01(\x0e\x32!.Ydb.Monitoring.StatusFlag.Status\x12\x30\n\x05nodes\x18\x02 \x03(\x0b\x32!.Ydb.Monitoring.ComputeNodeStatus\"6\n\x0cLocationNode\x12\n\n\x02id\x18\x01 \x01(\r\x12\x0c\n\x04host\x18\x02 \x01(\t\x12\x0c\n\x04port\x18\x03 \x01(\r\"0\n\x14LocationStoragePDisk\x12\n\n\x02id\x18\x01 \x01(\t\x12\x0c\n\x04path\x18\x02 \x01(\t\"W\n\x14LocationStorageVDisk\x12\n\n\x02id\x18\x01 \x01(\t\x12\x33\n\x05pdisk\x18\x02 \x01(\x0b\x32$.Ydb.Monitoring.LocationStoragePDisk\"W\n\x14LocationStorageGroup\x12\n\n\x02id\x18\x01 \x01(\t\x12\x33\n\x05vdisk\x18\x02 \x01(\x0b\x32$.Ydb.Monitoring.LocationStorageVDisk\"X\n\x13LocationStoragePool\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x33\n\x05group\x18\x02 \x01(\x0b\x32$.Ydb.Monitoring.LocationStorageGroup\"p\n\x0fLocationStorage\x12*\n\x04node\x18\x01 \x01(\x0b\x32\x1c.Ydb.Monitoring.LocationNode\x12\x31\n\x04pool\x18\x02 \x01(\x0b\x32#.Ydb.Monitoring.LocationStoragePool\"#\n\x13LocationComputePool\x12\x0c\n\x04name\x18\x01 \x01(\t\"%\n\x15LocationComputeTablet\x12\x0c\n\x04type\x18\x01 \x01(\t\"\xa7\x01\n\x0fLocationCompute\x12*\n\x04node\x18\x01 \x01(\x0b\x32\x1c.Ydb.Monitoring.LocationNode\x12\x31\n\x04pool\x18\x02 \x01(\x0b\x32#.Ydb.Monitoring.LocationComputePool\x12\x35\n\x06tablet\x18\x03 \x01(\x0b\x32%.Ydb.Monitoring.LocationComputeTablet\" \n\x10LocationDatabase\x12\x0c\n\x04name\x18\x01 \x01(\t\"\xa2\x01\n\x08Location\x12\x30\n\x07storage\x18\x01 \x01(\x0b\x32\x1f.Ydb.Monitoring.LocationStorage\x12\x30\n\x07\x63ompute\x18\x02 \x01(\x0b\x32\x1f.Ydb.Monitoring.LocationCompute\x12\x32\n\x08\x64\x61tabase\x18\x03 \x01(\x0b\x32 .Ydb.Monitoring.LocationDatabase\"\x96\x01\n\x08IssueLog\x12\n\n\x02id\x18\x01 \x01(\t\x12\x31\n\x06status\x18\x02 \x01(\x0e\x32!.Ydb.Monitoring.StatusFlag.Status\x12\x0f\n\x07message\x18\x03 \x01(\t\x12*\n\x08location\x18\x04 \x01(\x0b\x32\x18.Ydb.Monitoring.Location\x12\x0e\n\x06reason\x18\x05 \x03(\t\"\xb2\x01\n\x0e\x44\x61tabaseStatus\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x32\n\x07overall\x18\x02 \x01(\x0e\x32!.Ydb.Monitoring.StatusFlag.Status\x12.\n\x07storage\x18\x03 \x01(\x0b\x32\x1d.Ydb.Monitoring.StorageStatus\x12.\n\x07\x63ompute\x18\x04 \x01(\x0b\x32\x1d.Ydb.Monitoring.ComputeStatus\"\xb4\x01\n\x0fSelfCheckResult\x12;\n\x11self_check_result\x18\x01 \x01(\x0e\x32 .Ydb.Monitoring.SelfCheck.Result\x12+\n\tissue_log\x18\x02 \x03(\x0b\x32\x18.Ydb.Monitoring.IssueLog\x12\x37\n\x0f\x64\x61tabase_status\x18\x03 \x03(\x0b\x32\x1e.Ydb.Monitoring.DatabaseStatusB0\n\x19\x63om.yandex.ydb.monitoringB\x10MonitoringProtos\xf8\x01\x01\x62\x06proto3')
   ,
   dependencies=[kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2.DESCRIPTOR,])
 
@@ -63,8 +63,8 @@ _STATUSFLAG_STATUS = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=302,
-  serialized_end=391,
+  serialized_start=125,
+  serialized_end=214,
 )
 _sym_db.RegisterEnumDescriptor(_STATUSFLAG_STATUS)
 
@@ -97,10 +97,35 @@ _SELFCHECK_RESULT = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=406,
-  serialized_end=496,
+  serialized_start=466,
+  serialized_end=556,
 )
 _sym_db.RegisterEnumDescriptor(_SELFCHECK_RESULT)
+
+
+_STATUSFLAG = _descriptor.Descriptor(
+  name='StatusFlag',
+  full_name='Ydb.Monitoring.StatusFlag',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+    _STATUSFLAG_STATUS,
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=111,
+  serialized_end=214,
+)
 
 
 _SELFCHECKREQUEST = _descriptor.Descriptor(
@@ -124,6 +149,13 @@ _SELFCHECKREQUEST = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
+    _descriptor.FieldDescriptor(
+      name='minimum_status', full_name='Ydb.Monitoring.SelfCheckRequest.minimum_status', index=2,
+      number=3, type=14, cpp_type=8, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
   ],
   extensions=[
   ],
@@ -136,8 +168,8 @@ _SELFCHECKREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=111,
-  serialized_end=219,
+  serialized_start=217,
+  serialized_end=384,
 )
 
 
@@ -167,33 +199,8 @@ _SELFCHECKRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=221,
-  serialized_end=286,
-)
-
-
-_STATUSFLAG = _descriptor.Descriptor(
-  name='StatusFlag',
-  full_name='Ydb.Monitoring.StatusFlag',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  fields=[
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-    _STATUSFLAG_STATUS,
-  ],
-  options=None,
-  is_extendable=False,
-  syntax='proto3',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=288,
-  serialized_end=391,
+  serialized_start=386,
+  serialized_end=451,
 )
 
 
@@ -217,8 +224,8 @@ _SELFCHECK = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=393,
-  serialized_end=496,
+  serialized_start=453,
+  serialized_end=556,
 )
 
 
@@ -255,8 +262,8 @@ _STORAGEPDISKSTATUS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=498,
-  serialized_end=582,
+  serialized_start=558,
+  serialized_end=642,
 )
 
 
@@ -307,8 +314,8 @@ _STORAGEVDISKSTATUS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=585,
-  serialized_end=777,
+  serialized_start=645,
+  serialized_end=837,
 )
 
 
@@ -352,8 +359,8 @@ _STORAGEGROUPSTATUS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=780,
-  serialized_end=916,
+  serialized_start=840,
+  serialized_end=976,
 )
 
 
@@ -397,8 +404,8 @@ _STORAGEPOOLSTATUS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=919,
-  serialized_end=1054,
+  serialized_start=979,
+  serialized_end=1114,
 )
 
 
@@ -435,8 +442,8 @@ _STORAGESTATUS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1056,
-  serialized_end=1173,
+  serialized_start=1116,
+  serialized_end=1233,
 )
 
 
@@ -487,8 +494,8 @@ _COMPUTETABLETSTATUS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1175,
-  serialized_end=1292,
+  serialized_start=1235,
+  serialized_end=1352,
 )
 
 
@@ -532,8 +539,8 @@ _THREADPOOLSTATUS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1294,
-  serialized_end=1393,
+  serialized_start=1354,
+  serialized_end=1453,
 )
 
 
@@ -577,8 +584,8 @@ _LOADAVERAGESTATUS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1395,
-  serialized_end=1495,
+  serialized_start=1455,
+  serialized_end=1555,
 )
 
 
@@ -636,8 +643,8 @@ _COMPUTENODESTATUS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1498,
-  serialized_end=1733,
+  serialized_start=1558,
+  serialized_end=1793,
 )
 
 
@@ -674,8 +681,8 @@ _COMPUTESTATUS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1735,
-  serialized_end=1852,
+  serialized_start=1795,
+  serialized_end=1912,
 )
 
 
@@ -719,8 +726,8 @@ _LOCATIONNODE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1854,
-  serialized_end=1908,
+  serialized_start=1914,
+  serialized_end=1968,
 )
 
 
@@ -757,8 +764,8 @@ _LOCATIONSTORAGEPDISK = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1910,
-  serialized_end=1958,
+  serialized_start=1970,
+  serialized_end=2018,
 )
 
 
@@ -795,8 +802,8 @@ _LOCATIONSTORAGEVDISK = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1960,
-  serialized_end=2047,
+  serialized_start=2020,
+  serialized_end=2107,
 )
 
 
@@ -833,8 +840,8 @@ _LOCATIONSTORAGEGROUP = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2049,
-  serialized_end=2136,
+  serialized_start=2109,
+  serialized_end=2196,
 )
 
 
@@ -871,8 +878,8 @@ _LOCATIONSTORAGEPOOL = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2138,
-  serialized_end=2226,
+  serialized_start=2198,
+  serialized_end=2286,
 )
 
 
@@ -909,8 +916,8 @@ _LOCATIONSTORAGE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2228,
-  serialized_end=2340,
+  serialized_start=2288,
+  serialized_end=2400,
 )
 
 
@@ -940,8 +947,8 @@ _LOCATIONCOMPUTEPOOL = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2342,
-  serialized_end=2377,
+  serialized_start=2402,
+  serialized_end=2437,
 )
 
 
@@ -971,8 +978,8 @@ _LOCATIONCOMPUTETABLET = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2379,
-  serialized_end=2416,
+  serialized_start=2439,
+  serialized_end=2476,
 )
 
 
@@ -1016,8 +1023,8 @@ _LOCATIONCOMPUTE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2419,
-  serialized_end=2586,
+  serialized_start=2479,
+  serialized_end=2646,
 )
 
 
@@ -1047,8 +1054,8 @@ _LOCATIONDATABASE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2588,
-  serialized_end=2620,
+  serialized_start=2648,
+  serialized_end=2680,
 )
 
 
@@ -1092,8 +1099,8 @@ _LOCATION = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2623,
-  serialized_end=2785,
+  serialized_start=2683,
+  serialized_end=2845,
 )
 
 
@@ -1151,8 +1158,8 @@ _ISSUELOG = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2788,
-  serialized_end=2938,
+  serialized_start=2848,
+  serialized_end=2998,
 )
 
 
@@ -1164,22 +1171,29 @@ _DATABASESTATUS = _descriptor.Descriptor(
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='overall', full_name='Ydb.Monitoring.DatabaseStatus.overall', index=0,
-      number=1, type=14, cpp_type=8, label=1,
+      name='name', full_name='Ydb.Monitoring.DatabaseStatus.name', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='overall', full_name='Ydb.Monitoring.DatabaseStatus.overall', index=1,
+      number=2, type=14, cpp_type=8, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='storage', full_name='Ydb.Monitoring.DatabaseStatus.storage', index=1,
-      number=2, type=11, cpp_type=10, label=1,
+      name='storage', full_name='Ydb.Monitoring.DatabaseStatus.storage', index=2,
+      number=3, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='compute', full_name='Ydb.Monitoring.DatabaseStatus.compute', index=2,
-      number=3, type=11, cpp_type=10, label=1,
+      name='compute', full_name='Ydb.Monitoring.DatabaseStatus.compute', index=3,
+      number=4, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -1196,8 +1210,8 @@ _DATABASESTATUS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2941,
-  serialized_end=3105,
+  serialized_start=3001,
+  serialized_end=3179,
 )
 
 
@@ -1224,8 +1238,8 @@ _SELFCHECKRESULT = _descriptor.Descriptor(
       options=None),
     _descriptor.FieldDescriptor(
       name='database_status', full_name='Ydb.Monitoring.SelfCheckResult.database_status', index=2,
-      number=3, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
+      number=3, type=11, cpp_type=10, label=3,
+      has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
@@ -1241,13 +1255,14 @@ _SELFCHECKRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3108,
-  serialized_end=3288,
+  serialized_start=3182,
+  serialized_end=3362,
 )
 
-_SELFCHECKREQUEST.fields_by_name['operation_params'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2._OPERATIONPARAMS
-_SELFCHECKRESPONSE.fields_by_name['operation'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2._OPERATION
 _STATUSFLAG_STATUS.containing_type = _STATUSFLAG
+_SELFCHECKREQUEST.fields_by_name['operation_params'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2._OPERATIONPARAMS
+_SELFCHECKREQUEST.fields_by_name['minimum_status'].enum_type = _STATUSFLAG_STATUS
+_SELFCHECKRESPONSE.fields_by_name['operation'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2._OPERATION
 _SELFCHECK_RESULT.containing_type = _SELFCHECK
 _STORAGEPDISKSTATUS.fields_by_name['overall'].enum_type = _STATUSFLAG_STATUS
 _STORAGEVDISKSTATUS.fields_by_name['overall'].enum_type = _STATUSFLAG_STATUS
@@ -1287,9 +1302,9 @@ _DATABASESTATUS.fields_by_name['compute'].message_type = _COMPUTESTATUS
 _SELFCHECKRESULT.fields_by_name['self_check_result'].enum_type = _SELFCHECK_RESULT
 _SELFCHECKRESULT.fields_by_name['issue_log'].message_type = _ISSUELOG
 _SELFCHECKRESULT.fields_by_name['database_status'].message_type = _DATABASESTATUS
+DESCRIPTOR.message_types_by_name['StatusFlag'] = _STATUSFLAG
 DESCRIPTOR.message_types_by_name['SelfCheckRequest'] = _SELFCHECKREQUEST
 DESCRIPTOR.message_types_by_name['SelfCheckResponse'] = _SELFCHECKRESPONSE
-DESCRIPTOR.message_types_by_name['StatusFlag'] = _STATUSFLAG
 DESCRIPTOR.message_types_by_name['SelfCheck'] = _SELFCHECK
 DESCRIPTOR.message_types_by_name['StoragePDiskStatus'] = _STORAGEPDISKSTATUS
 DESCRIPTOR.message_types_by_name['StorageVDiskStatus'] = _STORAGEVDISKSTATUS
@@ -1317,6 +1332,13 @@ DESCRIPTOR.message_types_by_name['DatabaseStatus'] = _DATABASESTATUS
 DESCRIPTOR.message_types_by_name['SelfCheckResult'] = _SELFCHECKRESULT
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
+StatusFlag = _reflection.GeneratedProtocolMessageType('StatusFlag', (_message.Message,), dict(
+  DESCRIPTOR = _STATUSFLAG,
+  __module__ = 'kikimr.public.api.protos.ydb_monitoring_pb2'
+  # @@protoc_insertion_point(class_scope:Ydb.Monitoring.StatusFlag)
+  ))
+_sym_db.RegisterMessage(StatusFlag)
+
 SelfCheckRequest = _reflection.GeneratedProtocolMessageType('SelfCheckRequest', (_message.Message,), dict(
   DESCRIPTOR = _SELFCHECKREQUEST,
   __module__ = 'kikimr.public.api.protos.ydb_monitoring_pb2'
@@ -1330,13 +1352,6 @@ SelfCheckResponse = _reflection.GeneratedProtocolMessageType('SelfCheckResponse'
   # @@protoc_insertion_point(class_scope:Ydb.Monitoring.SelfCheckResponse)
   ))
 _sym_db.RegisterMessage(SelfCheckResponse)
-
-StatusFlag = _reflection.GeneratedProtocolMessageType('StatusFlag', (_message.Message,), dict(
-  DESCRIPTOR = _STATUSFLAG,
-  __module__ = 'kikimr.public.api.protos.ydb_monitoring_pb2'
-  # @@protoc_insertion_point(class_scope:Ydb.Monitoring.StatusFlag)
-  ))
-_sym_db.RegisterMessage(StatusFlag)
 
 SelfCheck = _reflection.GeneratedProtocolMessageType('SelfCheck', (_message.Message,), dict(
   DESCRIPTOR = _SELFCHECK,
