@@ -282,26 +282,28 @@ class SessionPoolImpl(object):
 
     def acquire(self, blocking=True, timeout=None):
         waiter = self.subscribe()
+        has_result = False
         if blocking:
             try:
                 session = waiter.result(timeout=timeout)
+                has_result = True
                 return session
             except futures.TimeoutError:
-                self.unsubscribe(waiter)
                 raise issues.SessionPoolEmpty("Timeout on session acquire.")
-            except Exception:
-                self.unsubscribe(waiter)
-                raise
+            finally:
+                if not has_result:
+                    self.unsubscribe(waiter)
 
         else:
             try:
-                return waiter.result(timeout=-1)
+                session = waiter.result(timeout=-1)
+                has_result = True
+                return session
             except futures.TimeoutError:
-                self.unsubscribe(waiter)
                 raise issues.SessionPoolEmpty("Session pool is empty.")
-            except Exception:
-                self.unsubscribe(waiter)
-                raise
+            finally:
+                if not has_result:
+                    self.unsubscribe(waiter)
 
     def events_loop(self):
         while True:
