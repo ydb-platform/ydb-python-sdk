@@ -29,6 +29,26 @@ class AnalyticsServiceStub(object):
         request_serializer=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yql__analytics__pb2.GetResultDataRequest.SerializeToString,
         response_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yql__analytics__pb2.GetResultDataResponse.FromString,
         )
+    self.GetConnections = channel.unary_unary(
+        '/Yql.Analytics.V1.AnalyticsService/GetConnections',
+        request_serializer=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yql__analytics__pb2.GetConnectionsRequest.SerializeToString,
+        response_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yql__analytics__pb2.GetConnectionsResponse.FromString,
+        )
+    self.ModifyConnections = channel.unary_unary(
+        '/Yql.Analytics.V1.AnalyticsService/ModifyConnections',
+        request_serializer=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yql__analytics__pb2.ModifyConnectionsRequest.SerializeToString,
+        response_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yql__analytics__pb2.ModifyConnectionsResponse.FromString,
+        )
+    self.GetQueries = channel.unary_unary(
+        '/Yql.Analytics.V1.AnalyticsService/GetQueries',
+        request_serializer=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yql__analytics__pb2.GetQueriesRequest.SerializeToString,
+        response_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yql__analytics__pb2.GetQueriesResponse.FromString,
+        )
+    self.GetHistory = channel.unary_unary(
+        '/Yql.Analytics.V1.AnalyticsService/GetHistory',
+        request_serializer=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yql__analytics__pb2.GetHistoryRequest.SerializeToString,
+        response_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yql__analytics__pb2.GetHistoryResponse.FromString,
+        )
 
 
 class AnalyticsServiceServicer(object):
@@ -56,6 +76,34 @@ class AnalyticsServiceServicer(object):
     context.set_details('Method not implemented!')
     raise NotImplementedError('Method not implemented!')
 
+  def GetConnections(self, request, context):
+    # missing associated documentation comment in .proto file
+    pass
+    context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+    context.set_details('Method not implemented!')
+    raise NotImplementedError('Method not implemented!')
+
+  def ModifyConnections(self, request, context):
+    # missing associated documentation comment in .proto file
+    pass
+    context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+    context.set_details('Method not implemented!')
+    raise NotImplementedError('Method not implemented!')
+
+  def GetQueries(self, request, context):
+    # missing associated documentation comment in .proto file
+    pass
+    context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+    context.set_details('Method not implemented!')
+    raise NotImplementedError('Method not implemented!')
+
+  def GetHistory(self, request, context):
+    # missing associated documentation comment in .proto file
+    pass
+    context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+    context.set_details('Method not implemented!')
+    raise NotImplementedError('Method not implemented!')
+
 
 def add_AnalyticsServiceServicer_to_server(servicer, server):
   rpc_method_handlers = {
@@ -73,6 +121,26 @@ def add_AnalyticsServiceServicer_to_server(servicer, server):
           servicer.GetResultData,
           request_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yql__analytics__pb2.GetResultDataRequest.FromString,
           response_serializer=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yql__analytics__pb2.GetResultDataResponse.SerializeToString,
+      ),
+      'GetConnections': grpc.unary_unary_rpc_method_handler(
+          servicer.GetConnections,
+          request_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yql__analytics__pb2.GetConnectionsRequest.FromString,
+          response_serializer=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yql__analytics__pb2.GetConnectionsResponse.SerializeToString,
+      ),
+      'ModifyConnections': grpc.unary_unary_rpc_method_handler(
+          servicer.ModifyConnections,
+          request_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yql__analytics__pb2.ModifyConnectionsRequest.FromString,
+          response_serializer=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yql__analytics__pb2.ModifyConnectionsResponse.SerializeToString,
+      ),
+      'GetQueries': grpc.unary_unary_rpc_method_handler(
+          servicer.GetQueries,
+          request_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yql__analytics__pb2.GetQueriesRequest.FromString,
+          response_serializer=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yql__analytics__pb2.GetQueriesResponse.SerializeToString,
+      ),
+      'GetHistory': grpc.unary_unary_rpc_method_handler(
+          servicer.GetHistory,
+          request_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yql__analytics__pb2.GetHistoryRequest.FromString,
+          response_serializer=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yql__analytics__pb2.GetHistoryResponse.SerializeToString,
       ),
   }
   generic_handler = grpc.method_handlers_generic_handler(
