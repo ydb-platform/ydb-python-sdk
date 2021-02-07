@@ -20,7 +20,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='kikimr/public/api/grpc/draft/yql_analytics_v1.proto',
   package='Yql.Analytics.V1',
   syntax='proto3',
-  serialized_pb=_b('\n3kikimr/public/api/grpc/draft/yql_analytics_v1.proto\x12\x10Yql.Analytics.V1\x1a\x32kikimr/public/api/protos/draft/yql_analytics.proto2\x90\x05\n\x10\x41nalyticsService\x12W\n\x0c\x45xecuteQuery\x12\".Yql.Analytics.ExecuteQueryRequest\x1a#.Yql.Analytics.ExecuteQueryResponse\x12Z\n\rGetResultInfo\x12#.Yql.Analytics.GetResultInfoRequest\x1a$.Yql.Analytics.GetResultInfoResponse\x12Z\n\rGetResultData\x12#.Yql.Analytics.GetResultDataRequest\x1a$.Yql.Analytics.GetResultDataResponse\x12]\n\x0eGetConnections\x12$.Yql.Analytics.GetConnectionsRequest\x1a%.Yql.Analytics.GetConnectionsResponse\x12\x66\n\x11ModifyConnections\x12\'.Yql.Analytics.ModifyConnectionsRequest\x1a(.Yql.Analytics.ModifyConnectionsResponse\x12Q\n\nGetQueries\x12 .Yql.Analytics.GetQueriesRequest\x1a!.Yql.Analytics.GetQueriesResponse\x12Q\n\nGetHistory\x12 .Yql.Analytics.GetHistoryRequest\x1a!.Yql.Analytics.GetHistoryResponseB\x1d\n\x1b\x63om.yandex.yql.analytics.v1b\x06proto3')
+  serialized_pb=_b('\n3kikimr/public/api/grpc/draft/yql_analytics_v1.proto\x12\x10Yql.Analytics.V1\x1a\x32kikimr/public/api/protos/draft/yql_analytics.proto2\xc2\x06\n\x10\x41nalyticsService\x12W\n\x0c\x45xecuteQuery\x12\".Yql.Analytics.ExecuteQueryRequest\x1a#.Yql.Analytics.ExecuteQueryResponse\x12Z\n\rGetResultInfo\x12#.Yql.Analytics.GetResultInfoRequest\x1a$.Yql.Analytics.GetResultInfoResponse\x12Z\n\rGetResultData\x12#.Yql.Analytics.GetResultDataRequest\x1a$.Yql.Analytics.GetResultDataResponse\x12]\n\x0eGetConnections\x12$.Yql.Analytics.GetConnectionsRequest\x1a%.Yql.Analytics.GetConnectionsResponse\x12\x66\n\x11ModifyConnections\x12\'.Yql.Analytics.ModifyConnectionsRequest\x1a(.Yql.Analytics.ModifyConnectionsResponse\x12Q\n\nGetQueries\x12 .Yql.Analytics.GetQueriesRequest\x1a!.Yql.Analytics.GetQueriesResponse\x12T\n\x0bModifyQuery\x12!.Yql.Analytics.ModifyQueryRequest\x1a\".Yql.Analytics.ModifyQueryResponse\x12Q\n\nGetHistory\x12 .Yql.Analytics.GetHistoryRequest\x1a!.Yql.Analytics.GetHistoryResponse\x12Z\n\rModifyHistory\x12#.Yql.Analytics.ModifyHistoryRequest\x1a$.Yql.Analytics.ModifyHistoryResponseB\x1d\n\x1b\x63om.yandex.yql.analytics.v1b\x06proto3')
   ,
   dependencies=[kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yql__analytics__pb2.DESCRIPTOR,])
 
@@ -39,7 +39,7 @@ _ANALYTICSSERVICE = _descriptor.ServiceDescriptor(
   index=0,
   options=None,
   serialized_start=126,
-  serialized_end=782,
+  serialized_end=960,
   methods=[
   _descriptor.MethodDescriptor(
     name='ExecuteQuery',
@@ -96,12 +96,30 @@ _ANALYTICSSERVICE = _descriptor.ServiceDescriptor(
     options=None,
   ),
   _descriptor.MethodDescriptor(
+    name='ModifyQuery',
+    full_name='Yql.Analytics.V1.AnalyticsService.ModifyQuery',
+    index=6,
+    containing_service=None,
+    input_type=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yql__analytics__pb2._MODIFYQUERYREQUEST,
+    output_type=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yql__analytics__pb2._MODIFYQUERYRESPONSE,
+    options=None,
+  ),
+  _descriptor.MethodDescriptor(
     name='GetHistory',
     full_name='Yql.Analytics.V1.AnalyticsService.GetHistory',
-    index=6,
+    index=7,
     containing_service=None,
     input_type=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yql__analytics__pb2._GETHISTORYREQUEST,
     output_type=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yql__analytics__pb2._GETHISTORYRESPONSE,
+    options=None,
+  ),
+  _descriptor.MethodDescriptor(
+    name='ModifyHistory',
+    full_name='Yql.Analytics.V1.AnalyticsService.ModifyHistory',
+    index=8,
+    containing_service=None,
+    input_type=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yql__analytics__pb2._MODIFYHISTORYREQUEST,
+    output_type=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yql__analytics__pb2._MODIFYHISTORYRESPONSE,
     options=None,
   ),
 ])
