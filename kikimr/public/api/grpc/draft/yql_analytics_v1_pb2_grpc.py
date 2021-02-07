@@ -44,10 +44,20 @@ class AnalyticsServiceStub(object):
         request_serializer=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yql__analytics__pb2.GetQueriesRequest.SerializeToString,
         response_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yql__analytics__pb2.GetQueriesResponse.FromString,
         )
+    self.ModifyQuery = channel.unary_unary(
+        '/Yql.Analytics.V1.AnalyticsService/ModifyQuery',
+        request_serializer=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yql__analytics__pb2.ModifyQueryRequest.SerializeToString,
+        response_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yql__analytics__pb2.ModifyQueryResponse.FromString,
+        )
     self.GetHistory = channel.unary_unary(
         '/Yql.Analytics.V1.AnalyticsService/GetHistory',
         request_serializer=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yql__analytics__pb2.GetHistoryRequest.SerializeToString,
         response_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yql__analytics__pb2.GetHistoryResponse.FromString,
+        )
+    self.ModifyHistory = channel.unary_unary(
+        '/Yql.Analytics.V1.AnalyticsService/ModifyHistory',
+        request_serializer=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yql__analytics__pb2.ModifyHistoryRequest.SerializeToString,
+        response_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yql__analytics__pb2.ModifyHistoryResponse.FromString,
         )
 
 
@@ -97,7 +107,21 @@ class AnalyticsServiceServicer(object):
     context.set_details('Method not implemented!')
     raise NotImplementedError('Method not implemented!')
 
+  def ModifyQuery(self, request, context):
+    # missing associated documentation comment in .proto file
+    pass
+    context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+    context.set_details('Method not implemented!')
+    raise NotImplementedError('Method not implemented!')
+
   def GetHistory(self, request, context):
+    # missing associated documentation comment in .proto file
+    pass
+    context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+    context.set_details('Method not implemented!')
+    raise NotImplementedError('Method not implemented!')
+
+  def ModifyHistory(self, request, context):
     # missing associated documentation comment in .proto file
     pass
     context.set_code(grpc.StatusCode.UNIMPLEMENTED)
@@ -137,10 +161,20 @@ def add_AnalyticsServiceServicer_to_server(servicer, server):
           request_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yql__analytics__pb2.GetQueriesRequest.FromString,
           response_serializer=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yql__analytics__pb2.GetQueriesResponse.SerializeToString,
       ),
+      'ModifyQuery': grpc.unary_unary_rpc_method_handler(
+          servicer.ModifyQuery,
+          request_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yql__analytics__pb2.ModifyQueryRequest.FromString,
+          response_serializer=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yql__analytics__pb2.ModifyQueryResponse.SerializeToString,
+      ),
       'GetHistory': grpc.unary_unary_rpc_method_handler(
           servicer.GetHistory,
           request_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yql__analytics__pb2.GetHistoryRequest.FromString,
           response_serializer=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yql__analytics__pb2.GetHistoryResponse.SerializeToString,
+      ),
+      'ModifyHistory': grpc.unary_unary_rpc_method_handler(
+          servicer.ModifyHistory,
+          request_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yql__analytics__pb2.ModifyHistoryRequest.FromString,
+          response_serializer=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yql__analytics__pb2.ModifyHistoryResponse.SerializeToString,
       ),
   }
   generic_handler = grpc.method_handlers_generic_handler(
