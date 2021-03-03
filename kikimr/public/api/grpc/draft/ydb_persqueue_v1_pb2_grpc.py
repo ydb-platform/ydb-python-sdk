@@ -50,6 +50,16 @@ class PersQueueServiceStub(object):
         request_serializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.AlterTopicRequest.SerializeToString,
         response_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.AlterTopicResponse.FromString,
         )
+    self.AddReadRule = channel.unary_unary(
+        '/Ydb.PersQueue.V1.PersQueueService/AddReadRule',
+        request_serializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.AddReadRuleRequest.SerializeToString,
+        response_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.AddReadRuleResponse.FromString,
+        )
+    self.RemoveReadRule = channel.unary_unary(
+        '/Ydb.PersQueue.V1.PersQueueService/RemoveReadRule',
+        request_serializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.RemoveReadRuleRequest.SerializeToString,
+        response_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.RemoveReadRuleResponse.FromString,
+        )
 
 
 class PersQueueServiceServicer(object):
@@ -156,6 +166,20 @@ class PersQueueServiceServicer(object):
     context.set_details('Method not implemented!')
     raise NotImplementedError('Method not implemented!')
 
+  def AddReadRule(self, request, context):
+    """Add read rule command.
+    """
+    context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+    context.set_details('Method not implemented!')
+    raise NotImplementedError('Method not implemented!')
+
+  def RemoveReadRule(self, request, context):
+    """Remove read rule command.
+    """
+    context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+    context.set_details('Method not implemented!')
+    raise NotImplementedError('Method not implemented!')
+
 
 def add_PersQueueServiceServicer_to_server(servicer, server):
   rpc_method_handlers = {
@@ -193,6 +217,16 @@ def add_PersQueueServiceServicer_to_server(servicer, server):
           servicer.AlterTopic,
           request_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.AlterTopicRequest.FromString,
           response_serializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.AlterTopicResponse.SerializeToString,
+      ),
+      'AddReadRule': grpc.unary_unary_rpc_method_handler(
+          servicer.AddReadRule,
+          request_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.AddReadRuleRequest.FromString,
+          response_serializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.AddReadRuleResponse.SerializeToString,
+      ),
+      'RemoveReadRule': grpc.unary_unary_rpc_method_handler(
+          servicer.RemoveReadRule,
+          request_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.RemoveReadRuleRequest.FromString,
+          response_serializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.RemoveReadRuleResponse.SerializeToString,
       ),
   }
   generic_handler = grpc.method_handlers_generic_handler(
