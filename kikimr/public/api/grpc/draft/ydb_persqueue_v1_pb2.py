@@ -21,7 +21,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='kikimr/public/api/grpc/draft/ydb_persqueue_v1.proto',
   package='Ydb.PersQueue.V1',
   syntax='proto3',
-  serialized_pb=_b('\n3kikimr/public/api/grpc/draft/ydb_persqueue_v1.proto\x12\x10Ydb.PersQueue.V1\x1a>kikimr/public/api/protos/ydb_persqueue_cluster_discovery.proto\x1a/kikimr/public/api/protos/ydb_persqueue_v1.proto2\xde\x05\n\x10PersQueueService\x12r\n\x0eStreamingWrite\x12-.Ydb.PersQueue.V1.StreamingWriteClientMessage\x1a-.Ydb.PersQueue.V1.StreamingWriteServerMessage(\x01\x30\x01\x12\x8a\x01\n\x16MigrationStreamingRead\x12\x35.Ydb.PersQueue.V1.MigrationStreamingReadClientMessage\x1a\x35.Ydb.PersQueue.V1.MigrationStreamingReadServerMessage(\x01\x30\x01\x12\\\n\x13GetReadSessionsInfo\x12!.Ydb.PersQueue.V1.ReadInfoRequest\x1a\".Ydb.PersQueue.V1.ReadInfoResponse\x12`\n\rDescribeTopic\x12&.Ydb.PersQueue.V1.DescribeTopicRequest\x1a\'.Ydb.PersQueue.V1.DescribeTopicResponse\x12T\n\tDropTopic\x12\".Ydb.PersQueue.V1.DropTopicRequest\x1a#.Ydb.PersQueue.V1.DropTopicResponse\x12Z\n\x0b\x43reateTopic\x12$.Ydb.PersQueue.V1.CreateTopicRequest\x1a%.Ydb.PersQueue.V1.CreateTopicResponse\x12W\n\nAlterTopic\x12#.Ydb.PersQueue.V1.AlterTopicRequest\x1a$.Ydb.PersQueue.V1.AlterTopicResponse2\xa1\x01\n\x17\x43lusterDiscoveryService\x12\x85\x01\n\x10\x44iscoverClusters\x12\x37.Ydb.PersQueue.ClusterDiscovery.DiscoverClustersRequest\x1a\x38.Ydb.PersQueue.ClusterDiscovery.DiscoverClustersResponseB \n\x1b\x63om.yandex.ydb.persqueue.v1\xf8\x01\x01\x62\x06proto3')
+  serialized_pb=_b('\n3kikimr/public/api/grpc/draft/ydb_persqueue_v1.proto\x12\x10Ydb.PersQueue.V1\x1a>kikimr/public/api/protos/ydb_persqueue_cluster_discovery.proto\x1a/kikimr/public/api/protos/ydb_persqueue_v1.proto2\x9f\x07\n\x10PersQueueService\x12r\n\x0eStreamingWrite\x12-.Ydb.PersQueue.V1.StreamingWriteClientMessage\x1a-.Ydb.PersQueue.V1.StreamingWriteServerMessage(\x01\x30\x01\x12\x8a\x01\n\x16MigrationStreamingRead\x12\x35.Ydb.PersQueue.V1.MigrationStreamingReadClientMessage\x1a\x35.Ydb.PersQueue.V1.MigrationStreamingReadServerMessage(\x01\x30\x01\x12\\\n\x13GetReadSessionsInfo\x12!.Ydb.PersQueue.V1.ReadInfoRequest\x1a\".Ydb.PersQueue.V1.ReadInfoResponse\x12`\n\rDescribeTopic\x12&.Ydb.PersQueue.V1.DescribeTopicRequest\x1a\'.Ydb.PersQueue.V1.DescribeTopicResponse\x12T\n\tDropTopic\x12\".Ydb.PersQueue.V1.DropTopicRequest\x1a#.Ydb.PersQueue.V1.DropTopicResponse\x12Z\n\x0b\x43reateTopic\x12$.Ydb.PersQueue.V1.CreateTopicRequest\x1a%.Ydb.PersQueue.V1.CreateTopicResponse\x12W\n\nAlterTopic\x12#.Ydb.PersQueue.V1.AlterTopicRequest\x1a$.Ydb.PersQueue.V1.AlterTopicResponse\x12Z\n\x0b\x41\x64\x64ReadRule\x12$.Ydb.PersQueue.V1.AddReadRuleRequest\x1a%.Ydb.PersQueue.V1.AddReadRuleResponse\x12\x63\n\x0eRemoveReadRule\x12\'.Ydb.PersQueue.V1.RemoveReadRuleRequest\x1a(.Ydb.PersQueue.V1.RemoveReadRuleResponse2\xa1\x01\n\x17\x43lusterDiscoveryService\x12\x85\x01\n\x10\x44iscoverClusters\x12\x37.Ydb.PersQueue.ClusterDiscovery.DiscoverClustersRequest\x1a\x38.Ydb.PersQueue.ClusterDiscovery.DiscoverClustersResponseB \n\x1b\x63om.yandex.ydb.persqueue.v1\xf8\x01\x01\x62\x06proto3')
   ,
   dependencies=[kikimr_dot_public_dot_api_dot_protos_dot_ydb__persqueue__cluster__discovery__pb2.DESCRIPTOR,kikimr_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.DESCRIPTOR,])
 
@@ -40,7 +40,7 @@ _PERSQUEUESERVICE = _descriptor.ServiceDescriptor(
   index=0,
   options=None,
   serialized_start=187,
-  serialized_end=921,
+  serialized_end=1114,
   methods=[
   _descriptor.MethodDescriptor(
     name='StreamingWrite',
@@ -105,6 +105,24 @@ _PERSQUEUESERVICE = _descriptor.ServiceDescriptor(
     output_type=kikimr_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2._ALTERTOPICRESPONSE,
     options=None,
   ),
+  _descriptor.MethodDescriptor(
+    name='AddReadRule',
+    full_name='Ydb.PersQueue.V1.PersQueueService.AddReadRule',
+    index=7,
+    containing_service=None,
+    input_type=kikimr_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2._ADDREADRULEREQUEST,
+    output_type=kikimr_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2._ADDREADRULERESPONSE,
+    options=None,
+  ),
+  _descriptor.MethodDescriptor(
+    name='RemoveReadRule',
+    full_name='Ydb.PersQueue.V1.PersQueueService.RemoveReadRule',
+    index=8,
+    containing_service=None,
+    input_type=kikimr_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2._REMOVEREADRULEREQUEST,
+    output_type=kikimr_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2._REMOVEREADRULERESPONSE,
+    options=None,
+  ),
 ])
 _sym_db.RegisterServiceDescriptor(_PERSQUEUESERVICE)
 
@@ -117,8 +135,8 @@ _CLUSTERDISCOVERYSERVICE = _descriptor.ServiceDescriptor(
   file=DESCRIPTOR,
   index=1,
   options=None,
-  serialized_start=924,
-  serialized_end=1085,
+  serialized_start=1117,
+  serialized_end=1278,
   methods=[
   _descriptor.MethodDescriptor(
     name='DiscoverClusters',

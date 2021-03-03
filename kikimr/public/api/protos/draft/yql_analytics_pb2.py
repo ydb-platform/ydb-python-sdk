@@ -23,7 +23,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='kikimr/public/api/protos/draft/yql_analytics.proto',
   package='Yql.Analytics',
   syntax='proto3',
-  serialized_pb=_b('\n2kikimr/public/api/protos/draft/yql_analytics.proto\x12\rYql.Analytics\x1a,kikimr/public/api/protos/ydb_operation.proto\x1a(kikimr/public/api/protos/ydb_value.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"1\n\x0bYdbDatabase\x12\x10\n\x08\x65ndpoint\x18\x01 \x01(\t\x12\x10\n\x08\x64\x61tabase\x18\x02 \x01(\t\"q\n\x11\x43lickHouseCluster\x12\x0f\n\x07\x63luster\x18\x01 \x01(\t\x12\x0c\n\x04host\x18\x02 \x01(\t\x12\x0c\n\x04port\x18\x03 \x01(\x05\x12\x0e\n\x06secure\x18\x04 \x01(\x08\x12\r\n\x05login\x18\x05 \x01(\t\x12\x10\n\x08password\x18\x06 \x01(\t\"\x8e\x01\n\nConnection\x12\x32\n\x0cydb_database\x18\x01 \x01(\x0b\x32\x1a.Yql.Analytics.YdbDatabaseH\x00\x12>\n\x12\x63lickhouse_cluster\x18\x02 \x01(\x0b\x32 .Yql.Analytics.ClickHouseClusterH\x00\x42\x0c\n\nconnection\"\x88\x01\n\x15GetConnectionsRequest\x12\x11\n\tfolder_id\x18\x01 \x01(\t\x12;\n\x06\x66ilter\x18\x02 \x01(\x0b\x32+.Yql.Analytics.GetConnectionsRequest.Filter\x1a\x1f\n\x06\x46ilter\x12\x15\n\rconnection_id\x18\x01 \x01(\t\"\xad\x02\n\x10\x43onnectionEntity\x12\x11\n\tfolder_id\x18\x01 \x01(\t\x12\x15\n\rconnection_id\x18\x02 \x01(\t\x12\x12\n\ncreated_by\x18\x03 \x01(\t\x12\x13\n\x0bmodified_by\x18\x04 \x01(\t\x12\x0c\n\x04name\x18\x05 \x01(\t\x12-\n\nconnection\x18\x06 \x01(\x0b\x32\x19.Yql.Analytics.Connection\x12\x0b\n\x03\x61\x63l\x18\x07 \x01(\t\x12\x31\n\rcreation_time\x18\x08 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12\x35\n\x11modification_time\x18\t \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12\x12\n\nis_deleted\x18\n \x01(\x08\"I\n\x16GetConnectionsResponse\x12/\n\x06\x65ntity\x18\x01 \x03(\x0b\x32\x1f.Yql.Analytics.ConnectionEntity\"O\n\x18ModifyConnectionsRequest\x12\x33\n\nconnection\x18\x01 \x03(\x0b\x32\x1f.Yql.Analytics.ConnectionEntity\"\x1b\n\x19ModifyConnectionsResponse\"\xba\x01\n\x11GetQueriesRequest\x12\x11\n\tfolder_id\x18\x01 \x01(\t\x12\x1a\n\x12\x63ontinuation_token\x18\x02 \x01(\t\x12\r\n\x05limit\x18\x03 \x01(\x05\x12\x37\n\x06\x66ilter\x18\x04 \x01(\x0b\x32\'.Yql.Analytics.GetQueriesRequest.Filter\x1a.\n\x06\x46ilter\x12\x10\n\x08query_id\x18\x01 \x01(\t\x12\x12\n\nfield_type\x18\x02 \x01(\x05\"\x83\x03\n\x12GetQueriesResponse\x12>\n\x07queries\x18\x01 \x03(\x0b\x32-.Yql.Analytics.GetQueriesResponse.QueryEntity\x12\x1a\n\x12\x63ontinuation_token\x18\x02 \x01(\t\x1a\x90\x02\n\x0bQueryEntity\x12\n\n\x02id\x18\x01 \x01(\t\x12\x0b\n\x03sql\x18\x02 \x01(\t\x12\x12\n\ncreated_by\x18\x03 \x01(\t\x12\x13\n\x0bmodified_by\x18\x04 \x01(\t\x12\x0c\n\x04name\x18\x05 \x01(\t\x12\x11\n\tfolder_id\x18\x06 \x01(\t\x12\x0b\n\x03\x61\x63l\x18\x07 \x01(\t\x12\x12\n\nrows_limit\x18\x08 \x01(\x03\x12\x13\n\x0b\x62ytes_limit\x18\t \x01(\x03\x12\x31\n\rcreation_time\x18\n \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12\x35\n\x11modification_time\x18\x0b \x01(\x0b\x32\x1a.google.protobuf.Timestamp\"\x98\x01\n\x12ModifyQueryRequest\x12\n\n\x02id\x18\x01 \x01(\t\x12\x11\n\tfolder_id\x18\x02 \x01(\t\x12\x0b\n\x03sql\x18\x04 \x01(\t\x12\x0c\n\x04name\x18\x05 \x01(\t\x12\x0b\n\x03\x61\x63l\x18\x06 \x01(\t\x12\x12\n\nrows_limit\x18\x07 \x01(\x03\x12\x13\n\x0b\x62ytes_limit\x18\x08 \x01(\x03\x12\x12\n\nis_deleted\x18\t \x01(\x08\"\x15\n\x13ModifyQueryResponse\"\xbf\x01\n\x11GetHistoryRequest\x12\x11\n\tfolder_id\x18\x01 \x01(\t\x12\x1a\n\x12\x63ontinuation_token\x18\x02 \x01(\t\x12\x37\n\x06\x66ilter\x18\x03 \x01(\x0b\x32\'.Yql.Analytics.GetHistoryRequest.Filter\x1a\x42\n\x06\x46ilter\x12\x10\n\x08query_id\x18\x01 \x01(\t\x12\x12\n\nhistory_id\x18\x02 \x01(\t\x12\x12\n\nfield_type\x18\x03 \x01(\x05\"\x11\n\x0fQueryStatistics\"\x82\x06\n\x12GetHistoryResponse\x12@\n\x07history\x18\x01 \x03(\x0b\x32/.Yql.Analytics.GetHistoryResponse.HistoryEntity\x12\x1a\n\x12\x63ontinuation_token\x18\x02 \x01(\t\x1a\x8d\x05\n\rHistoryEntity\x12\n\n\x02id\x18\x01 \x01(\t\x12\x0b\n\x03sql\x18\x02 \x01(\t\x12\x12\n\ncreated_by\x18\x03 \x01(\t\x12\x13\n\x0bmodified_by\x18\x04 \x01(\t\x12\x0c\n\x04name\x18\x05 \x01(\t\x12\x11\n\tfolder_id\x18\x06 \x01(\t\x12\x0b\n\x03\x61\x63l\x18\x07 \x01(\t\x12\x12\n\nquery_plan\x18\x08 \x01(\t\x12\x10\n\x08query_id\x18\t \x01(\t\x12\x11\n\ttruncated\x18\n \x03(\x08\x12\x12\n\nrows_count\x18\x0b \x03(\x03\x12+\n\x06status\x18\x0c \x01(\x0e\x32\x1b.Yql.Analytics.EQueryStatus\x12\x31\n\x0c\x65xecute_mode\x18\r \x01(\x0e\x32\x1b.Yql.Analytics.EExecuteMode\x12\x12\n\nrows_limit\x18\x0e \x01(\x03\x12\x13\n\x0b\x62ytes_limit\x18\x0f \x01(\x03\x12.\n\nstart_time\x18\x10 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12/\n\x0b\x66inish_time\x18\x11 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12\x37\n\x13\x65xpiration_deadline\x18\x12 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12\x31\n\rcreation_time\x18\x13 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12\x35\n\x11modification_time\x18\x14 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12\x32\n\nstatistics\x18\x15 \x01(\x0b\x32\x1e.Yql.Analytics.QueryStatistics\"d\n\x14ModifyHistoryRequest\x12\n\n\x02id\x18\x01 \x01(\t\x12\x11\n\tfolder_id\x18\x02 \x01(\t\x12\x0c\n\x04name\x18\x04 \x01(\t\x12\x0b\n\x03\x61\x63l\x18\x05 \x01(\t\x12\x12\n\nis_deleted\x18\x06 \x01(\x08\"\x17\n\x15ModifyHistoryResponse\"\xa2\x03\n\x13\x45xecuteQueryRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x10\n\x08yql_text\x18\x02 \x01(\t\x12\x31\n\x0c\x65xecute_mode\x18\x03 \x01(\x0e\x32\x1b.Yql.Analytics.EExecuteMode\x12\x18\n\x10max_result_bytes\x18\x04 \x01(\x04\x12\x17\n\x0fmax_result_rows\x18\x05 \x01(\x04\x12\x1c\n\x14\x65xpire_after_seconds\x18\x06 \x01(\r\x12\x46\n\nparameters\x18\x07 \x03(\x0b\x32\x32.Yql.Analytics.ExecuteQueryRequest.ParametersEntry\x12.\n\x0b\x63onnections\x18\x08 \x03(\x0b\x32\x19.Yql.Analytics.Connection\x1a\x42\n\x0fParametersEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\x1e\n\x05value\x18\x02 \x01(\x0b\x32\x0f.Ydb.TypedValue:\x02\x38\x01\"D\n\x14\x45xecuteQueryResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\";\n\x12\x45xecuteQueryResult\x12\x11\n\tresult_id\x18\x01 \x01(\t\x12\x12\n\nquery_plan\x18\x02 \x01(\t\"d\n\x14GetResultInfoRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x11\n\tresult_id\x18\x02 \x01(\t\"E\n\x15GetResultInfoResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"9\n\rResultSetInfo\x12\x12\n\nrows_count\x18\x01 \x01(\x04\x12\x14\n\x0cis_truncated\x18\x02 \x01(\x08\"\x81\x01\n\x13GetResultInfoResult\x12\x31\n\x0bresult_sets\x18\x01 \x03(\x0b\x32\x1c.Yql.Analytics.ResultSetInfo\x12\x37\n\x13\x65xpiration_deadline\x18\x02 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\"\x9a\x01\n\x14GetResultDataRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x11\n\tresult_id\x18\x02 \x01(\t\x12\x15\n\rresult_set_id\x18\x03 \x01(\r\x12\x0e\n\x06offset\x18\x04 \x01(\x04\x12\r\n\x05limit\x18\x05 \x01(\x04\"E\n\x15GetResultDataResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"9\n\x13GetResultDataResult\x12\"\n\nresult_set\x18\x01 \x01(\x0b\x32\x0e.Ydb.ResultSet*/\n\nEFieldType\x12\x08\n\x04NONE\x10\x00\x12\x07\n\x03SQL\x10\x01\x12\x0e\n\nQUERY_PLAN\x10\x02*S\n\x0c\x45\x45xecuteMode\x12\x14\n\x10MODE_UNSPECIFIED\x10\x00\x12\x07\n\x03RUN\x10\x01\x12\x0b\n\x07\x45XPLAIN\x10\x02\x12\x0c\n\x08VALIDATE\x10\x03\x12\t\n\x05PARSE\x10\x04*Q\n\x0c\x45QueryStatus\x12\x0f\n\x0bUNSPECIFIED\x10\x00\x12\t\n\x05SAVED\x10\x01\x12\x0b\n\x07RUNNING\x10\x02\x12\n\n\x06\x46\x41ILED\x10\x03\x12\x0c\n\x08\x46INISHED\x10\x04\x42.\n\x18\x63om.yandex.yql.analyticsB\x0f\x41nalyticsProtos\xf8\x01\x01\x62\x06proto3')
+  serialized_pb=_b('\n2kikimr/public/api/protos/draft/yql_analytics.proto\x12\rYql.Analytics\x1a,kikimr/public/api/protos/ydb_operation.proto\x1a(kikimr/public/api/protos/ydb_value.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"1\n\x0bYdbDatabase\x12\x10\n\x08\x65ndpoint\x18\x01 \x01(\t\x12\x10\n\x08\x64\x61tabase\x18\x02 \x01(\t\"q\n\x11\x43lickHouseCluster\x12\x0f\n\x07\x63luster\x18\x01 \x01(\t\x12\x0c\n\x04host\x18\x02 \x01(\t\x12\x0c\n\x04port\x18\x03 \x01(\x05\x12\x0e\n\x06secure\x18\x04 \x01(\x08\x12\r\n\x05login\x18\x05 \x01(\t\x12\x10\n\x08password\x18\x06 \x01(\t\"\x8e\x01\n\nConnection\x12\x32\n\x0cydb_database\x18\x01 \x01(\x0b\x32\x1a.Yql.Analytics.YdbDatabaseH\x00\x12>\n\x12\x63lickhouse_cluster\x18\x02 \x01(\x0b\x32 .Yql.Analytics.ClickHouseClusterH\x00\x42\x0c\n\nconnection\"\x88\x01\n\x15GetConnectionsRequest\x12\x11\n\tfolder_id\x18\x01 \x01(\t\x12;\n\x06\x66ilter\x18\x02 \x01(\x0b\x32+.Yql.Analytics.GetConnectionsRequest.Filter\x1a\x1f\n\x06\x46ilter\x12\x15\n\rconnection_id\x18\x01 \x01(\t\"\xad\x02\n\x10\x43onnectionEntity\x12\x11\n\tfolder_id\x18\x01 \x01(\t\x12\x15\n\rconnection_id\x18\x02 \x01(\t\x12\x12\n\ncreated_by\x18\x03 \x01(\t\x12\x13\n\x0bmodified_by\x18\x04 \x01(\t\x12\x0c\n\x04name\x18\x05 \x01(\t\x12-\n\nconnection\x18\x06 \x01(\x0b\x32\x19.Yql.Analytics.Connection\x12\x0b\n\x03\x61\x63l\x18\x07 \x01(\t\x12\x31\n\rcreation_time\x18\x08 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12\x35\n\x11modification_time\x18\t \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12\x12\n\nis_deleted\x18\n \x01(\x08\"I\n\x16GetConnectionsResponse\x12/\n\x06\x65ntity\x18\x01 \x03(\x0b\x32\x1f.Yql.Analytics.ConnectionEntity\"O\n\x18ModifyConnectionsRequest\x12\x33\n\nconnection\x18\x01 \x03(\x0b\x32\x1f.Yql.Analytics.ConnectionEntity\"\x1b\n\x19ModifyConnectionsResponse\"\xba\x01\n\x11GetQueriesRequest\x12\x11\n\tfolder_id\x18\x01 \x01(\t\x12\x1a\n\x12\x63ontinuation_token\x18\x02 \x01(\t\x12\r\n\x05limit\x18\x03 \x01(\x05\x12\x37\n\x06\x66ilter\x18\x04 \x01(\x0b\x32\'.Yql.Analytics.GetQueriesRequest.Filter\x1a.\n\x06\x46ilter\x12\x10\n\x08query_id\x18\x01 \x01(\t\x12\x12\n\nfield_type\x18\x02 \x01(\x05\"\x83\x03\n\x12GetQueriesResponse\x12>\n\x07queries\x18\x01 \x03(\x0b\x32-.Yql.Analytics.GetQueriesResponse.QueryEntity\x12\x1a\n\x12\x63ontinuation_token\x18\x02 \x01(\t\x1a\x90\x02\n\x0bQueryEntity\x12\n\n\x02id\x18\x01 \x01(\t\x12\x0b\n\x03sql\x18\x02 \x01(\t\x12\x12\n\ncreated_by\x18\x03 \x01(\t\x12\x13\n\x0bmodified_by\x18\x04 \x01(\t\x12\x0c\n\x04name\x18\x05 \x01(\t\x12\x11\n\tfolder_id\x18\x06 \x01(\t\x12\x0b\n\x03\x61\x63l\x18\x07 \x01(\t\x12\x12\n\nrows_limit\x18\x08 \x01(\x03\x12\x13\n\x0b\x62ytes_limit\x18\t \x01(\x03\x12\x31\n\rcreation_time\x18\n \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12\x35\n\x11modification_time\x18\x0b \x01(\x0b\x32\x1a.google.protobuf.Timestamp\"\x98\x01\n\x12ModifyQueryRequest\x12\n\n\x02id\x18\x01 \x01(\t\x12\x11\n\tfolder_id\x18\x02 \x01(\t\x12\x0b\n\x03sql\x18\x04 \x01(\t\x12\x0c\n\x04name\x18\x05 \x01(\t\x12\x0b\n\x03\x61\x63l\x18\x06 \x01(\t\x12\x12\n\nrows_limit\x18\x07 \x01(\x03\x12\x13\n\x0b\x62ytes_limit\x18\x08 \x01(\x03\x12\x12\n\nis_deleted\x18\t \x01(\x08\"\x15\n\x13ModifyQueryResponse\"\xfa\x01\n\x11GetHistoryRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x11\n\tfolder_id\x18\x02 \x01(\t\x12\x1a\n\x12\x63ontinuation_token\x18\x03 \x01(\t\x12\x37\n\x06\x66ilter\x18\x04 \x01(\x0b\x32\'.Yql.Analytics.GetHistoryRequest.Filter\x1a\x42\n\x06\x46ilter\x12\x10\n\x08query_id\x18\x01 \x01(\t\x12\x12\n\nhistory_id\x18\x02 \x01(\t\x12\x12\n\nfield_type\x18\x03 \x01(\x05\"\x1f\n\x0fQueryStatistics\x12\x0c\n\x04yson\x18\x01 \x01(\x0c\"B\n\x12GetHistoryResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\xfe\x05\n\x10GetHistoryResult\x12>\n\x07history\x18\x01 \x03(\x0b\x32-.Yql.Analytics.GetHistoryResult.HistoryEntity\x12\x1a\n\x12\x63ontinuation_token\x18\x02 \x01(\t\x1a\x8d\x05\n\rHistoryEntity\x12\n\n\x02id\x18\x01 \x01(\t\x12\x0b\n\x03sql\x18\x02 \x01(\t\x12\x12\n\ncreated_by\x18\x03 \x01(\t\x12\x13\n\x0bmodified_by\x18\x04 \x01(\t\x12\x0c\n\x04name\x18\x05 \x01(\t\x12\x11\n\tfolder_id\x18\x06 \x01(\t\x12\x0b\n\x03\x61\x63l\x18\x07 \x01(\t\x12\x12\n\nquery_plan\x18\x08 \x01(\t\x12\x10\n\x08query_id\x18\t \x01(\t\x12\x11\n\ttruncated\x18\n \x03(\x08\x12\x12\n\nrows_count\x18\x0b \x03(\x03\x12+\n\x06status\x18\x0c \x01(\x0e\x32\x1b.Yql.Analytics.EQueryStatus\x12\x31\n\x0c\x65xecute_mode\x18\r \x01(\x0e\x32\x1b.Yql.Analytics.EExecuteMode\x12\x12\n\nrows_limit\x18\x0e \x01(\x03\x12\x13\n\x0b\x62ytes_limit\x18\x0f \x01(\x03\x12.\n\nstart_time\x18\x10 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12/\n\x0b\x66inish_time\x18\x11 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12\x37\n\x13\x65xpiration_deadline\x18\x12 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12\x31\n\rcreation_time\x18\x13 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12\x35\n\x11modification_time\x18\x14 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12\x32\n\nstatistics\x18\x15 \x01(\x0b\x32\x1e.Yql.Analytics.QueryStatistics\"d\n\x14ModifyHistoryRequest\x12\n\n\x02id\x18\x01 \x01(\t\x12\x11\n\tfolder_id\x18\x02 \x01(\t\x12\x0c\n\x04name\x18\x04 \x01(\t\x12\x0b\n\x03\x61\x63l\x18\x05 \x01(\t\x12\x12\n\nis_deleted\x18\x06 \x01(\x08\"\x17\n\x15ModifyHistoryResponse\"\xa2\x03\n\x13\x45xecuteQueryRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x10\n\x08yql_text\x18\x02 \x01(\t\x12\x31\n\x0c\x65xecute_mode\x18\x03 \x01(\x0e\x32\x1b.Yql.Analytics.EExecuteMode\x12\x18\n\x10max_result_bytes\x18\x04 \x01(\x04\x12\x17\n\x0fmax_result_rows\x18\x05 \x01(\x04\x12\x1c\n\x14\x65xpire_after_seconds\x18\x06 \x01(\r\x12\x46\n\nparameters\x18\x07 \x03(\x0b\x32\x32.Yql.Analytics.ExecuteQueryRequest.ParametersEntry\x12.\n\x0b\x63onnections\x18\x08 \x03(\x0b\x32\x19.Yql.Analytics.Connection\x1a\x42\n\x0fParametersEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\x1e\n\x05value\x18\x02 \x01(\x0b\x32\x0f.Ydb.TypedValue:\x02\x38\x01\"D\n\x14\x45xecuteQueryResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"(\n\x12\x45xecuteQueryResult\x12\x12\n\nhistory_id\x18\x01 \x01(\t\"\x9b\x01\n\x14GetResultDataRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x12\n\nhistory_id\x18\x02 \x01(\t\x12\x15\n\rresult_set_id\x18\x03 \x01(\x05\x12\x0e\n\x06offset\x18\x04 \x01(\x03\x12\r\n\x05limit\x18\x05 \x01(\x03\"E\n\x15GetResultDataResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"9\n\x13GetResultDataResult\x12\"\n\nresult_set\x18\x01 \x01(\x0b\x32\x0e.Ydb.ResultSet*/\n\nEFieldType\x12\x08\n\x04NONE\x10\x00\x12\x07\n\x03SQL\x10\x01\x12\x0e\n\nQUERY_PLAN\x10\x02*S\n\x0c\x45\x45xecuteMode\x12\x14\n\x10MODE_UNSPECIFIED\x10\x00\x12\x07\n\x03RUN\x10\x01\x12\x0b\n\x07\x45XPLAIN\x10\x02\x12\x0c\n\x08VALIDATE\x10\x03\x12\t\n\x05PARSE\x10\x04*Q\n\x0c\x45QueryStatus\x12\x0f\n\x0bUNSPECIFIED\x10\x00\x12\t\n\x05SAVED\x10\x01\x12\x0b\n\x07RUNNING\x10\x02\x12\n\n\x06\x46\x41ILED\x10\x03\x12\x0c\n\x08\x46INISHED\x10\x04\x42.\n\x18\x63om.yandex.yql.analyticsB\x0f\x41nalyticsProtos\xf8\x01\x01\x62\x06proto3')
   ,
   dependencies=[kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2.DESCRIPTOR,kikimr_dot_public_dot_api_dot_protos_dot_ydb__value__pb2.DESCRIPTOR,google_dot_protobuf_dot_timestamp__pb2.DESCRIPTOR,])
 
@@ -48,8 +48,8 @@ _EFIELDTYPE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=4202,
-  serialized_end=4249,
+  serialized_start=3957,
+  serialized_end=4004,
 )
 _sym_db.RegisterEnumDescriptor(_EFIELDTYPE)
 
@@ -83,8 +83,8 @@ _EEXECUTEMODE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=4251,
-  serialized_end=4334,
+  serialized_start=4006,
+  serialized_end=4089,
 )
 _sym_db.RegisterEnumDescriptor(_EEXECUTEMODE)
 
@@ -118,8 +118,8 @@ _EQUERYSTATUS = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=4336,
-  serialized_end=4417,
+  serialized_start=4091,
+  serialized_end=4172,
 )
 _sym_db.RegisterEnumDescriptor(_EQUERYSTATUS)
 
@@ -904,8 +904,8 @@ _GETHISTORYREQUEST_FILTER = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2012,
-  serialized_end=2078,
+  serialized_start=2071,
+  serialized_end=2137,
 )
 
 _GETHISTORYREQUEST = _descriptor.Descriptor(
@@ -916,22 +916,29 @@ _GETHISTORYREQUEST = _descriptor.Descriptor(
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='folder_id', full_name='Yql.Analytics.GetHistoryRequest.folder_id', index=0,
-      number=1, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=_b("").decode('utf-8'),
+      name='operation_params', full_name='Yql.Analytics.GetHistoryRequest.operation_params', index=0,
+      number=1, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='continuation_token', full_name='Yql.Analytics.GetHistoryRequest.continuation_token', index=1,
+      name='folder_id', full_name='Yql.Analytics.GetHistoryRequest.folder_id', index=1,
       number=2, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='filter', full_name='Yql.Analytics.GetHistoryRequest.filter', index=2,
-      number=3, type=11, cpp_type=10, label=1,
+      name='continuation_token', full_name='Yql.Analytics.GetHistoryRequest.continuation_token', index=2,
+      number=3, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='filter', full_name='Yql.Analytics.GetHistoryRequest.filter', index=3,
+      number=4, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -949,7 +956,7 @@ _GETHISTORYREQUEST = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=1887,
-  serialized_end=2078,
+  serialized_end=2137,
 )
 
 
@@ -960,6 +967,13 @@ _QUERYSTATISTICS = _descriptor.Descriptor(
   file=DESCRIPTOR,
   containing_type=None,
   fields=[
+    _descriptor.FieldDescriptor(
+      name='yson', full_name='Yql.Analytics.QueryStatistics.yson', index=0,
+      number=1, type=12, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b(""),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
   ],
   extensions=[
   ],
@@ -972,160 +986,191 @@ _QUERYSTATISTICS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2080,
-  serialized_end=2097,
+  serialized_start=2139,
+  serialized_end=2170,
 )
 
 
-_GETHISTORYRESPONSE_HISTORYENTITY = _descriptor.Descriptor(
-  name='HistoryEntity',
-  full_name='Yql.Analytics.GetHistoryResponse.HistoryEntity',
+_GETHISTORYRESPONSE = _descriptor.Descriptor(
+  name='GetHistoryResponse',
+  full_name='Yql.Analytics.GetHistoryResponse',
   filename=None,
   file=DESCRIPTOR,
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='id', full_name='Yql.Analytics.GetHistoryResponse.HistoryEntity.id', index=0,
+      name='operation', full_name='Yql.Analytics.GetHistoryResponse.operation', index=0,
+      number=1, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=2172,
+  serialized_end=2238,
+)
+
+
+_GETHISTORYRESULT_HISTORYENTITY = _descriptor.Descriptor(
+  name='HistoryEntity',
+  full_name='Yql.Analytics.GetHistoryResult.HistoryEntity',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='id', full_name='Yql.Analytics.GetHistoryResult.HistoryEntity.id', index=0,
       number=1, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='sql', full_name='Yql.Analytics.GetHistoryResponse.HistoryEntity.sql', index=1,
+      name='sql', full_name='Yql.Analytics.GetHistoryResult.HistoryEntity.sql', index=1,
       number=2, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='created_by', full_name='Yql.Analytics.GetHistoryResponse.HistoryEntity.created_by', index=2,
+      name='created_by', full_name='Yql.Analytics.GetHistoryResult.HistoryEntity.created_by', index=2,
       number=3, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='modified_by', full_name='Yql.Analytics.GetHistoryResponse.HistoryEntity.modified_by', index=3,
+      name='modified_by', full_name='Yql.Analytics.GetHistoryResult.HistoryEntity.modified_by', index=3,
       number=4, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='name', full_name='Yql.Analytics.GetHistoryResponse.HistoryEntity.name', index=4,
+      name='name', full_name='Yql.Analytics.GetHistoryResult.HistoryEntity.name', index=4,
       number=5, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='folder_id', full_name='Yql.Analytics.GetHistoryResponse.HistoryEntity.folder_id', index=5,
+      name='folder_id', full_name='Yql.Analytics.GetHistoryResult.HistoryEntity.folder_id', index=5,
       number=6, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='acl', full_name='Yql.Analytics.GetHistoryResponse.HistoryEntity.acl', index=6,
+      name='acl', full_name='Yql.Analytics.GetHistoryResult.HistoryEntity.acl', index=6,
       number=7, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='query_plan', full_name='Yql.Analytics.GetHistoryResponse.HistoryEntity.query_plan', index=7,
+      name='query_plan', full_name='Yql.Analytics.GetHistoryResult.HistoryEntity.query_plan', index=7,
       number=8, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='query_id', full_name='Yql.Analytics.GetHistoryResponse.HistoryEntity.query_id', index=8,
+      name='query_id', full_name='Yql.Analytics.GetHistoryResult.HistoryEntity.query_id', index=8,
       number=9, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='truncated', full_name='Yql.Analytics.GetHistoryResponse.HistoryEntity.truncated', index=9,
+      name='truncated', full_name='Yql.Analytics.GetHistoryResult.HistoryEntity.truncated', index=9,
       number=10, type=8, cpp_type=7, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='rows_count', full_name='Yql.Analytics.GetHistoryResponse.HistoryEntity.rows_count', index=10,
+      name='rows_count', full_name='Yql.Analytics.GetHistoryResult.HistoryEntity.rows_count', index=10,
       number=11, type=3, cpp_type=2, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='status', full_name='Yql.Analytics.GetHistoryResponse.HistoryEntity.status', index=11,
+      name='status', full_name='Yql.Analytics.GetHistoryResult.HistoryEntity.status', index=11,
       number=12, type=14, cpp_type=8, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='execute_mode', full_name='Yql.Analytics.GetHistoryResponse.HistoryEntity.execute_mode', index=12,
+      name='execute_mode', full_name='Yql.Analytics.GetHistoryResult.HistoryEntity.execute_mode', index=12,
       number=13, type=14, cpp_type=8, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='rows_limit', full_name='Yql.Analytics.GetHistoryResponse.HistoryEntity.rows_limit', index=13,
+      name='rows_limit', full_name='Yql.Analytics.GetHistoryResult.HistoryEntity.rows_limit', index=13,
       number=14, type=3, cpp_type=2, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='bytes_limit', full_name='Yql.Analytics.GetHistoryResponse.HistoryEntity.bytes_limit', index=14,
+      name='bytes_limit', full_name='Yql.Analytics.GetHistoryResult.HistoryEntity.bytes_limit', index=14,
       number=15, type=3, cpp_type=2, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='start_time', full_name='Yql.Analytics.GetHistoryResponse.HistoryEntity.start_time', index=15,
+      name='start_time', full_name='Yql.Analytics.GetHistoryResult.HistoryEntity.start_time', index=15,
       number=16, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='finish_time', full_name='Yql.Analytics.GetHistoryResponse.HistoryEntity.finish_time', index=16,
+      name='finish_time', full_name='Yql.Analytics.GetHistoryResult.HistoryEntity.finish_time', index=16,
       number=17, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='expiration_deadline', full_name='Yql.Analytics.GetHistoryResponse.HistoryEntity.expiration_deadline', index=17,
+      name='expiration_deadline', full_name='Yql.Analytics.GetHistoryResult.HistoryEntity.expiration_deadline', index=17,
       number=18, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='creation_time', full_name='Yql.Analytics.GetHistoryResponse.HistoryEntity.creation_time', index=18,
+      name='creation_time', full_name='Yql.Analytics.GetHistoryResult.HistoryEntity.creation_time', index=18,
       number=19, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='modification_time', full_name='Yql.Analytics.GetHistoryResponse.HistoryEntity.modification_time', index=19,
+      name='modification_time', full_name='Yql.Analytics.GetHistoryResult.HistoryEntity.modification_time', index=19,
       number=20, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='statistics', full_name='Yql.Analytics.GetHistoryResponse.HistoryEntity.statistics', index=20,
+      name='statistics', full_name='Yql.Analytics.GetHistoryResult.HistoryEntity.statistics', index=20,
       number=21, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
@@ -1143,26 +1188,26 @@ _GETHISTORYRESPONSE_HISTORYENTITY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2217,
-  serialized_end=2870,
+  serialized_start=2354,
+  serialized_end=3007,
 )
 
-_GETHISTORYRESPONSE = _descriptor.Descriptor(
-  name='GetHistoryResponse',
-  full_name='Yql.Analytics.GetHistoryResponse',
+_GETHISTORYRESULT = _descriptor.Descriptor(
+  name='GetHistoryResult',
+  full_name='Yql.Analytics.GetHistoryResult',
   filename=None,
   file=DESCRIPTOR,
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='history', full_name='Yql.Analytics.GetHistoryResponse.history', index=0,
+      name='history', full_name='Yql.Analytics.GetHistoryResult.history', index=0,
       number=1, type=11, cpp_type=10, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='continuation_token', full_name='Yql.Analytics.GetHistoryResponse.continuation_token', index=1,
+      name='continuation_token', full_name='Yql.Analytics.GetHistoryResult.continuation_token', index=1,
       number=2, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
@@ -1171,7 +1216,7 @@ _GETHISTORYRESPONSE = _descriptor.Descriptor(
   ],
   extensions=[
   ],
-  nested_types=[_GETHISTORYRESPONSE_HISTORYENTITY, ],
+  nested_types=[_GETHISTORYRESULT_HISTORYENTITY, ],
   enum_types=[
   ],
   options=None,
@@ -1180,8 +1225,8 @@ _GETHISTORYRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2100,
-  serialized_end=2870,
+  serialized_start=2241,
+  serialized_end=3007,
 )
 
 
@@ -1239,8 +1284,8 @@ _MODIFYHISTORYREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2872,
-  serialized_end=2972,
+  serialized_start=3009,
+  serialized_end=3109,
 )
 
 
@@ -1263,8 +1308,8 @@ _MODIFYHISTORYRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2974,
-  serialized_end=2997,
+  serialized_start=3111,
+  serialized_end=3134,
 )
 
 
@@ -1301,8 +1346,8 @@ _EXECUTEQUERYREQUEST_PARAMETERSENTRY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3352,
-  serialized_end=3418,
+  serialized_start=3489,
+  serialized_end=3555,
 )
 
 _EXECUTEQUERYREQUEST = _descriptor.Descriptor(
@@ -1380,8 +1425,8 @@ _EXECUTEQUERYREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3000,
-  serialized_end=3418,
+  serialized_start=3137,
+  serialized_end=3555,
 )
 
 
@@ -1411,8 +1456,8 @@ _EXECUTEQUERYRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3420,
-  serialized_end=3488,
+  serialized_start=3557,
+  serialized_end=3625,
 )
 
 
@@ -1424,19 +1469,12 @@ _EXECUTEQUERYRESULT = _descriptor.Descriptor(
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='result_id', full_name='Yql.Analytics.ExecuteQueryResult.result_id', index=0,
+      name='history_id', full_name='Yql.Analytics.ExecuteQueryResult.history_id', index=0,
       number=1, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
-    _descriptor.FieldDescriptor(
-      name='query_plan', full_name='Yql.Analytics.ExecuteQueryResult.query_plan', index=1,
-      number=2, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=_b("").decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
   ],
   extensions=[
   ],
@@ -1449,153 +1487,8 @@ _EXECUTEQUERYRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3490,
-  serialized_end=3549,
-)
-
-
-_GETRESULTINFOREQUEST = _descriptor.Descriptor(
-  name='GetResultInfoRequest',
-  full_name='Yql.Analytics.GetResultInfoRequest',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='operation_params', full_name='Yql.Analytics.GetResultInfoRequest.operation_params', index=0,
-      number=1, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='result_id', full_name='Yql.Analytics.GetResultInfoRequest.result_id', index=1,
-      number=2, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=_b("").decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  options=None,
-  is_extendable=False,
-  syntax='proto3',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=3551,
-  serialized_end=3651,
-)
-
-
-_GETRESULTINFORESPONSE = _descriptor.Descriptor(
-  name='GetResultInfoResponse',
-  full_name='Yql.Analytics.GetResultInfoResponse',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='operation', full_name='Yql.Analytics.GetResultInfoResponse.operation', index=0,
-      number=1, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  options=None,
-  is_extendable=False,
-  syntax='proto3',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=3653,
-  serialized_end=3722,
-)
-
-
-_RESULTSETINFO = _descriptor.Descriptor(
-  name='ResultSetInfo',
-  full_name='Yql.Analytics.ResultSetInfo',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='rows_count', full_name='Yql.Analytics.ResultSetInfo.rows_count', index=0,
-      number=1, type=4, cpp_type=4, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='is_truncated', full_name='Yql.Analytics.ResultSetInfo.is_truncated', index=1,
-      number=2, type=8, cpp_type=7, label=1,
-      has_default_value=False, default_value=False,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  options=None,
-  is_extendable=False,
-  syntax='proto3',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=3724,
-  serialized_end=3781,
-)
-
-
-_GETRESULTINFORESULT = _descriptor.Descriptor(
-  name='GetResultInfoResult',
-  full_name='Yql.Analytics.GetResultInfoResult',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='result_sets', full_name='Yql.Analytics.GetResultInfoResult.result_sets', index=0,
-      number=1, type=11, cpp_type=10, label=3,
-      has_default_value=False, default_value=[],
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='expiration_deadline', full_name='Yql.Analytics.GetResultInfoResult.expiration_deadline', index=1,
-      number=2, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  options=None,
-  is_extendable=False,
-  syntax='proto3',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=3784,
-  serialized_end=3913,
+  serialized_start=3627,
+  serialized_end=3667,
 )
 
 
@@ -1614,7 +1507,7 @@ _GETRESULTDATAREQUEST = _descriptor.Descriptor(
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='result_id', full_name='Yql.Analytics.GetResultDataRequest.result_id', index=1,
+      name='history_id', full_name='Yql.Analytics.GetResultDataRequest.history_id', index=1,
       number=2, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
@@ -1622,21 +1515,21 @@ _GETRESULTDATAREQUEST = _descriptor.Descriptor(
       options=None),
     _descriptor.FieldDescriptor(
       name='result_set_id', full_name='Yql.Analytics.GetResultDataRequest.result_set_id', index=2,
-      number=3, type=13, cpp_type=3, label=1,
+      number=3, type=5, cpp_type=1, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
       name='offset', full_name='Yql.Analytics.GetResultDataRequest.offset', index=3,
-      number=4, type=4, cpp_type=4, label=1,
+      number=4, type=3, cpp_type=2, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
       name='limit', full_name='Yql.Analytics.GetResultDataRequest.limit', index=4,
-      number=5, type=4, cpp_type=4, label=1,
+      number=5, type=3, cpp_type=2, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -1653,8 +1546,8 @@ _GETRESULTDATAREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3916,
-  serialized_end=4070,
+  serialized_start=3670,
+  serialized_end=3825,
 )
 
 
@@ -1684,8 +1577,8 @@ _GETRESULTDATARESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=4072,
-  serialized_end=4141,
+  serialized_start=3827,
+  serialized_end=3896,
 )
 
 
@@ -1715,8 +1608,8 @@ _GETRESULTDATARESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=4143,
-  serialized_end=4200,
+  serialized_start=3898,
+  serialized_end=3955,
 )
 
 _CONNECTION.fields_by_name['ydb_database'].message_type = _YDBDATABASE
@@ -1741,17 +1634,19 @@ _GETQUERIESRESPONSE_QUERYENTITY.fields_by_name['modification_time'].message_type
 _GETQUERIESRESPONSE_QUERYENTITY.containing_type = _GETQUERIESRESPONSE
 _GETQUERIESRESPONSE.fields_by_name['queries'].message_type = _GETQUERIESRESPONSE_QUERYENTITY
 _GETHISTORYREQUEST_FILTER.containing_type = _GETHISTORYREQUEST
+_GETHISTORYREQUEST.fields_by_name['operation_params'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2._OPERATIONPARAMS
 _GETHISTORYREQUEST.fields_by_name['filter'].message_type = _GETHISTORYREQUEST_FILTER
-_GETHISTORYRESPONSE_HISTORYENTITY.fields_by_name['status'].enum_type = _EQUERYSTATUS
-_GETHISTORYRESPONSE_HISTORYENTITY.fields_by_name['execute_mode'].enum_type = _EEXECUTEMODE
-_GETHISTORYRESPONSE_HISTORYENTITY.fields_by_name['start_time'].message_type = google_dot_protobuf_dot_timestamp__pb2._TIMESTAMP
-_GETHISTORYRESPONSE_HISTORYENTITY.fields_by_name['finish_time'].message_type = google_dot_protobuf_dot_timestamp__pb2._TIMESTAMP
-_GETHISTORYRESPONSE_HISTORYENTITY.fields_by_name['expiration_deadline'].message_type = google_dot_protobuf_dot_timestamp__pb2._TIMESTAMP
-_GETHISTORYRESPONSE_HISTORYENTITY.fields_by_name['creation_time'].message_type = google_dot_protobuf_dot_timestamp__pb2._TIMESTAMP
-_GETHISTORYRESPONSE_HISTORYENTITY.fields_by_name['modification_time'].message_type = google_dot_protobuf_dot_timestamp__pb2._TIMESTAMP
-_GETHISTORYRESPONSE_HISTORYENTITY.fields_by_name['statistics'].message_type = _QUERYSTATISTICS
-_GETHISTORYRESPONSE_HISTORYENTITY.containing_type = _GETHISTORYRESPONSE
-_GETHISTORYRESPONSE.fields_by_name['history'].message_type = _GETHISTORYRESPONSE_HISTORYENTITY
+_GETHISTORYRESPONSE.fields_by_name['operation'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2._OPERATION
+_GETHISTORYRESULT_HISTORYENTITY.fields_by_name['status'].enum_type = _EQUERYSTATUS
+_GETHISTORYRESULT_HISTORYENTITY.fields_by_name['execute_mode'].enum_type = _EEXECUTEMODE
+_GETHISTORYRESULT_HISTORYENTITY.fields_by_name['start_time'].message_type = google_dot_protobuf_dot_timestamp__pb2._TIMESTAMP
+_GETHISTORYRESULT_HISTORYENTITY.fields_by_name['finish_time'].message_type = google_dot_protobuf_dot_timestamp__pb2._TIMESTAMP
+_GETHISTORYRESULT_HISTORYENTITY.fields_by_name['expiration_deadline'].message_type = google_dot_protobuf_dot_timestamp__pb2._TIMESTAMP
+_GETHISTORYRESULT_HISTORYENTITY.fields_by_name['creation_time'].message_type = google_dot_protobuf_dot_timestamp__pb2._TIMESTAMP
+_GETHISTORYRESULT_HISTORYENTITY.fields_by_name['modification_time'].message_type = google_dot_protobuf_dot_timestamp__pb2._TIMESTAMP
+_GETHISTORYRESULT_HISTORYENTITY.fields_by_name['statistics'].message_type = _QUERYSTATISTICS
+_GETHISTORYRESULT_HISTORYENTITY.containing_type = _GETHISTORYRESULT
+_GETHISTORYRESULT.fields_by_name['history'].message_type = _GETHISTORYRESULT_HISTORYENTITY
 _EXECUTEQUERYREQUEST_PARAMETERSENTRY.fields_by_name['value'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__value__pb2._TYPEDVALUE
 _EXECUTEQUERYREQUEST_PARAMETERSENTRY.containing_type = _EXECUTEQUERYREQUEST
 _EXECUTEQUERYREQUEST.fields_by_name['operation_params'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2._OPERATIONPARAMS
@@ -1759,10 +1654,6 @@ _EXECUTEQUERYREQUEST.fields_by_name['execute_mode'].enum_type = _EEXECUTEMODE
 _EXECUTEQUERYREQUEST.fields_by_name['parameters'].message_type = _EXECUTEQUERYREQUEST_PARAMETERSENTRY
 _EXECUTEQUERYREQUEST.fields_by_name['connections'].message_type = _CONNECTION
 _EXECUTEQUERYRESPONSE.fields_by_name['operation'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2._OPERATION
-_GETRESULTINFOREQUEST.fields_by_name['operation_params'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2._OPERATIONPARAMS
-_GETRESULTINFORESPONSE.fields_by_name['operation'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2._OPERATION
-_GETRESULTINFORESULT.fields_by_name['result_sets'].message_type = _RESULTSETINFO
-_GETRESULTINFORESULT.fields_by_name['expiration_deadline'].message_type = google_dot_protobuf_dot_timestamp__pb2._TIMESTAMP
 _GETRESULTDATAREQUEST.fields_by_name['operation_params'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2._OPERATIONPARAMS
 _GETRESULTDATARESPONSE.fields_by_name['operation'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2._OPERATION
 _GETRESULTDATARESULT.fields_by_name['result_set'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__value__pb2._RESULTSET
@@ -1781,15 +1672,12 @@ DESCRIPTOR.message_types_by_name['ModifyQueryResponse'] = _MODIFYQUERYRESPONSE
 DESCRIPTOR.message_types_by_name['GetHistoryRequest'] = _GETHISTORYREQUEST
 DESCRIPTOR.message_types_by_name['QueryStatistics'] = _QUERYSTATISTICS
 DESCRIPTOR.message_types_by_name['GetHistoryResponse'] = _GETHISTORYRESPONSE
+DESCRIPTOR.message_types_by_name['GetHistoryResult'] = _GETHISTORYRESULT
 DESCRIPTOR.message_types_by_name['ModifyHistoryRequest'] = _MODIFYHISTORYREQUEST
 DESCRIPTOR.message_types_by_name['ModifyHistoryResponse'] = _MODIFYHISTORYRESPONSE
 DESCRIPTOR.message_types_by_name['ExecuteQueryRequest'] = _EXECUTEQUERYREQUEST
 DESCRIPTOR.message_types_by_name['ExecuteQueryResponse'] = _EXECUTEQUERYRESPONSE
 DESCRIPTOR.message_types_by_name['ExecuteQueryResult'] = _EXECUTEQUERYRESULT
-DESCRIPTOR.message_types_by_name['GetResultInfoRequest'] = _GETRESULTINFOREQUEST
-DESCRIPTOR.message_types_by_name['GetResultInfoResponse'] = _GETRESULTINFORESPONSE
-DESCRIPTOR.message_types_by_name['ResultSetInfo'] = _RESULTSETINFO
-DESCRIPTOR.message_types_by_name['GetResultInfoResult'] = _GETRESULTINFORESULT
 DESCRIPTOR.message_types_by_name['GetResultDataRequest'] = _GETRESULTDATAREQUEST
 DESCRIPTOR.message_types_by_name['GetResultDataResponse'] = _GETRESULTDATARESPONSE
 DESCRIPTOR.message_types_by_name['GetResultDataResult'] = _GETRESULTDATARESULT
@@ -1929,19 +1817,26 @@ QueryStatistics = _reflection.GeneratedProtocolMessageType('QueryStatistics', (_
 _sym_db.RegisterMessage(QueryStatistics)
 
 GetHistoryResponse = _reflection.GeneratedProtocolMessageType('GetHistoryResponse', (_message.Message,), dict(
-
-  HistoryEntity = _reflection.GeneratedProtocolMessageType('HistoryEntity', (_message.Message,), dict(
-    DESCRIPTOR = _GETHISTORYRESPONSE_HISTORYENTITY,
-    __module__ = 'kikimr.public.api.protos.draft.yql_analytics_pb2'
-    # @@protoc_insertion_point(class_scope:Yql.Analytics.GetHistoryResponse.HistoryEntity)
-    ))
-  ,
   DESCRIPTOR = _GETHISTORYRESPONSE,
   __module__ = 'kikimr.public.api.protos.draft.yql_analytics_pb2'
   # @@protoc_insertion_point(class_scope:Yql.Analytics.GetHistoryResponse)
   ))
 _sym_db.RegisterMessage(GetHistoryResponse)
-_sym_db.RegisterMessage(GetHistoryResponse.HistoryEntity)
+
+GetHistoryResult = _reflection.GeneratedProtocolMessageType('GetHistoryResult', (_message.Message,), dict(
+
+  HistoryEntity = _reflection.GeneratedProtocolMessageType('HistoryEntity', (_message.Message,), dict(
+    DESCRIPTOR = _GETHISTORYRESULT_HISTORYENTITY,
+    __module__ = 'kikimr.public.api.protos.draft.yql_analytics_pb2'
+    # @@protoc_insertion_point(class_scope:Yql.Analytics.GetHistoryResult.HistoryEntity)
+    ))
+  ,
+  DESCRIPTOR = _GETHISTORYRESULT,
+  __module__ = 'kikimr.public.api.protos.draft.yql_analytics_pb2'
+  # @@protoc_insertion_point(class_scope:Yql.Analytics.GetHistoryResult)
+  ))
+_sym_db.RegisterMessage(GetHistoryResult)
+_sym_db.RegisterMessage(GetHistoryResult.HistoryEntity)
 
 ModifyHistoryRequest = _reflection.GeneratedProtocolMessageType('ModifyHistoryRequest', (_message.Message,), dict(
   DESCRIPTOR = _MODIFYHISTORYREQUEST,
@@ -1985,34 +1880,6 @@ ExecuteQueryResult = _reflection.GeneratedProtocolMessageType('ExecuteQueryResul
   # @@protoc_insertion_point(class_scope:Yql.Analytics.ExecuteQueryResult)
   ))
 _sym_db.RegisterMessage(ExecuteQueryResult)
-
-GetResultInfoRequest = _reflection.GeneratedProtocolMessageType('GetResultInfoRequest', (_message.Message,), dict(
-  DESCRIPTOR = _GETRESULTINFOREQUEST,
-  __module__ = 'kikimr.public.api.protos.draft.yql_analytics_pb2'
-  # @@protoc_insertion_point(class_scope:Yql.Analytics.GetResultInfoRequest)
-  ))
-_sym_db.RegisterMessage(GetResultInfoRequest)
-
-GetResultInfoResponse = _reflection.GeneratedProtocolMessageType('GetResultInfoResponse', (_message.Message,), dict(
-  DESCRIPTOR = _GETRESULTINFORESPONSE,
-  __module__ = 'kikimr.public.api.protos.draft.yql_analytics_pb2'
-  # @@protoc_insertion_point(class_scope:Yql.Analytics.GetResultInfoResponse)
-  ))
-_sym_db.RegisterMessage(GetResultInfoResponse)
-
-ResultSetInfo = _reflection.GeneratedProtocolMessageType('ResultSetInfo', (_message.Message,), dict(
-  DESCRIPTOR = _RESULTSETINFO,
-  __module__ = 'kikimr.public.api.protos.draft.yql_analytics_pb2'
-  # @@protoc_insertion_point(class_scope:Yql.Analytics.ResultSetInfo)
-  ))
-_sym_db.RegisterMessage(ResultSetInfo)
-
-GetResultInfoResult = _reflection.GeneratedProtocolMessageType('GetResultInfoResult', (_message.Message,), dict(
-  DESCRIPTOR = _GETRESULTINFORESULT,
-  __module__ = 'kikimr.public.api.protos.draft.yql_analytics_pb2'
-  # @@protoc_insertion_point(class_scope:Yql.Analytics.GetResultInfoResult)
-  ))
-_sym_db.RegisterMessage(GetResultInfoResult)
 
 GetResultDataRequest = _reflection.GeneratedProtocolMessageType('GetResultDataRequest', (_message.Message,), dict(
   DESCRIPTOR = _GETRESULTDATAREQUEST,
