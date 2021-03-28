@@ -44,13 +44,9 @@ message DeleteSessionResponse {
 }
 
 message GlobalIndex {
-    // list of columns content to be copied in to index table
-    repeated string data_columns = 1;
 }
 
 message GlobalAsyncIndex {
-    // list of columns content to be copied in to index table
-    repeated string data_columns = 1;
 }
 
 // Represent secondary index
@@ -64,6 +60,8 @@ message TableIndex {
        GlobalIndex global_index = 3;
        GlobalAsyncIndex global_async_index = 4;
     }
+    // list of columns content to be copied in to index table
+    repeated string data_columns = 5;
 }
 
 // Represent secondary index with index state
@@ -85,6 +83,8 @@ message TableIndexDescription {
        GlobalAsyncIndex global_async_index = 5;
     }
     Status status = 4;
+    // list of columns content to be copied in to index table
+    repeated string data_columns = 6;
 }
 
 // State of index building operation
@@ -256,9 +256,36 @@ message DateTypeColumnModeSettings {
     uint32 expire_after_seconds = 2;
 }
 
+message ValueSinceUnixEpochModeSettings {
+    // Same as DateTypeColumnModeSettings (above), but useful when type of the
+    // value stored in <column_name> is not a date type.
+
+    enum Unit {
+        UNIT_UNSPECIFIED = 0;
+        UNIT_SECONDS = 1;
+        UNIT_MILLISECONDS = 2;
+        UNIT_MICROSECONDS = 3;
+        UNIT_NANOSECONDS = 4;
+    }
+
+    // The column type must be one of:
+    // - Uint32
+    // - Uint64
+    // - DyNumber
+    string column_name = 1;
+
+    // Interpretation of the value stored in <column_name>
+    Unit column_unit = 2;
+
+    // This option is always interpreted as seconds regardless of the
+    // <column_unit> value.
+    uint32 expire_after_seconds = 3;
+}
+
 message TtlSettings {
     oneof mode {
         DateTypeColumnModeSettings date_type_column = 1;
+        ValueSinceUnixEpochModeSettings value_since_unix_epoch = 2;
     }
 
     // There is no guarantee that expired row will be deleted immediately upon

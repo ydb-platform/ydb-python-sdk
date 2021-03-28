@@ -20,7 +20,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='kikimr/public/api/protos/draft/ydb_long_tx.proto',
   package='Ydb.LongTx',
   syntax='proto3',
-  serialized_pb=_b('\n0kikimr/public/api/protos/draft/ydb_long_tx.proto\x12\nYdb.LongTx\x1a,kikimr/public/api/protos/ydb_operation.proto\"\x7f\n\x04\x44\x61ta\x12\'\n\x06\x66ormat\x18\x01 \x01(\x0e\x32\x17.Ydb.LongTx.Data.Format\x12\x0c\n\x04\x64\x61ta\x18\x02 \x01(\x0c\"@\n\x06\x46ormat\x12\x16\n\x12\x46ORMAT_UNSPECIFIED\x10\x00\x12\x0c\n\x08YDB_ROWS\x10\x01\x12\x10\n\x0c\x41PACHE_ARROW\x10\x03\"5\n\x0fTransactionMeta\x12\x12\n\nlong_tx_id\x18\x01 \x01(\x0c\x12\x0e\n\x06routes\x18\x02 \x01(\x0c\"\xdf\x01\n\x17\x42\x65ginTransactionRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12=\n\x07tx_type\x18\x02 \x01(\x0e\x32,.Ydb.LongTx.BeginTransactionRequest.TxTypeId\x12\r\n\x05paths\x18\x03 \x03(\t\";\n\x08TxTypeId\x12\x1a\n\x16TX_TYPE_ID_UNSPECIFIED\x10\x00\x12\t\n\x05WRITE\x10\x01\x12\x08\n\x04READ\x10\x02\"F\n\x16\x42\x65ginTransactionResult\x12,\n\x07tx_meta\x18\x01 \x01(\x0b\x32\x1b.Ydb.LongTx.TransactionMeta\"H\n\x18\x42\x65ginTransactionResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\x83\x01\n\x18\x43ommitTransactionRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12,\n\x07tx_meta\x18\x02 \x01(\x0b\x32\x1b.Ydb.LongTx.TransactionMeta\"G\n\x17\x43ommitTransactionResult\x12,\n\x07tx_meta\x18\x01 \x01(\x0b\x32\x1b.Ydb.LongTx.TransactionMeta\"I\n\x19\x43ommitTransactionResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\x85\x01\n\x1aRollbackTransactionRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12,\n\x07tx_meta\x18\x02 \x01(\x0b\x32\x1b.Ydb.LongTx.TransactionMeta\"I\n\x19RollbackTransactionResult\x12,\n\x07tx_meta\x18\x01 \x01(\x0b\x32\x1b.Ydb.LongTx.TransactionMeta\"K\n\x1bRollbackTransactionResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\xb7\x01\n\x0cWriteRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12,\n\x07tx_meta\x18\x02 \x01(\x0b\x32\x1b.Ydb.LongTx.TransactionMeta\x12\x0c\n\x04path\x18\x03 \x01(\t\x12\x10\n\x08\x64\x65\x64up_id\x18\x04 \x01(\t\x12\x1e\n\x04\x64\x61ta\x18\x05 \x01(\x0b\x32\x10.Ydb.LongTx.Data\"[\n\x0bWriteResult\x12,\n\x07tx_meta\x18\x01 \x01(\x0b\x32\x1b.Ydb.LongTx.TransactionMeta\x12\x0c\n\x04path\x18\x02 \x01(\t\x12\x10\n\x08\x64\x65\x64up_id\x18\x03 \x01(\t\"=\n\rWriteResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\xb1\x01\n\x0bReadRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12,\n\x07tx_meta\x18\x02 \x01(\x0b\x32\x1b.Ydb.LongTx.TransactionMeta\x12\x0c\n\x04path\x18\x03 \x01(\t\x12\r\n\x03sql\x18\x0b \x01(\tH\x00\x12\x13\n\tgenerated\x18\x0c \x01(\x0cH\x00\x42\x07\n\x05query\"\x89\x01\n\nReadResult\x12,\n\x07tx_meta\x18\x01 \x01(\x0b\x32\x1b.Ydb.LongTx.TransactionMeta\x12\x0c\n\x04path\x18\x02 \x01(\t\x12\r\n\x05\x63hunk\x18\x03 \x01(\x04\x12\x10\n\x08\x66inished\x18\x04 \x01(\x08\x12\x1e\n\x04\x64\x61ta\x18\x05 \x01(\x0b\x32\x10.Ydb.LongTx.Data\"<\n\x0cReadResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.OperationB)\n\x16\x63om.yandex.ydb.long_txB\x0cLongTxProtos\xf8\x01\x01\x62\x06proto3')
+  serialized_pb=_b('\n0kikimr/public/api/protos/draft/ydb_long_tx.proto\x12\nYdb.LongTx\x1a,kikimr/public/api/protos/ydb_operation.proto\"\x7f\n\x04\x44\x61ta\x12\'\n\x06\x66ormat\x18\x01 \x01(\x0e\x32\x17.Ydb.LongTx.Data.Format\x12\x0c\n\x04\x64\x61ta\x18\x02 \x01(\x0c\"@\n\x06\x46ormat\x12\x16\n\x12\x46ORMAT_UNSPECIFIED\x10\x00\x12\x0c\n\x08YDB_ROWS\x10\x01\x12\x10\n\x0c\x41PACHE_ARROW\x10\x03\"\xd0\x01\n\x17\x42\x65ginTransactionRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12=\n\x07tx_type\x18\x02 \x01(\x0e\x32,.Ydb.LongTx.BeginTransactionRequest.TxTypeId\";\n\x08TxTypeId\x12\x1a\n\x16TX_TYPE_ID_UNSPECIFIED\x10\x00\x12\t\n\x05WRITE\x10\x01\x12\x08\n\x04READ\x10\x02\"\'\n\x16\x42\x65ginTransactionResult\x12\r\n\x05tx_id\x18\x01 \x01(\t\"H\n\x18\x42\x65ginTransactionResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"d\n\x18\x43ommitTransactionRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\r\n\x05tx_id\x18\x02 \x01(\t\"(\n\x17\x43ommitTransactionResult\x12\r\n\x05tx_id\x18\x01 \x01(\t\"I\n\x19\x43ommitTransactionResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"f\n\x1aRollbackTransactionRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\r\n\x05tx_id\x18\x02 \x01(\t\"*\n\x19RollbackTransactionResult\x12\r\n\x05tx_id\x18\x01 \x01(\t\"K\n\x1bRollbackTransactionResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\x98\x01\n\x0cWriteRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\r\n\x05tx_id\x18\x02 \x01(\t\x12\x0c\n\x04path\x18\x03 \x01(\t\x12\x10\n\x08\x64\x65\x64up_id\x18\x04 \x01(\t\x12\x1e\n\x04\x64\x61ta\x18\x05 \x01(\x0b\x32\x10.Ydb.LongTx.Data\"<\n\x0bWriteResult\x12\r\n\x05tx_id\x18\x01 \x01(\t\x12\x0c\n\x04path\x18\x02 \x01(\t\x12\x10\n\x08\x64\x65\x64up_id\x18\x03 \x01(\t\"=\n\rWriteResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\x92\x01\n\x0bReadRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\r\n\x05tx_id\x18\x02 \x01(\t\x12\x0c\n\x04path\x18\x03 \x01(\t\x12\r\n\x03sql\x18\x0b \x01(\tH\x00\x12\x13\n\tgenerated\x18\x0c \x01(\x0cH\x00\x42\x07\n\x05query\"j\n\nReadResult\x12\r\n\x05tx_id\x18\x01 \x01(\t\x12\x0c\n\x04path\x18\x02 \x01(\t\x12\r\n\x05\x63hunk\x18\x03 \x01(\x04\x12\x10\n\x08\x66inished\x18\x04 \x01(\x08\x12\x1e\n\x04\x64\x61ta\x18\x05 \x01(\x0b\x32\x10.Ydb.LongTx.Data\"<\n\x0cReadResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.OperationB)\n\x16\x63om.yandex.ydb.long_txB\x0cLongTxProtos\xf8\x01\x01\x62\x06proto3')
   ,
   dependencies=[kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2.DESCRIPTOR,])
 
@@ -73,8 +73,8 @@ _BEGINTRANSACTIONREQUEST_TXTYPEID = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=459,
-  serialized_end=518,
+  serialized_start=389,
+  serialized_end=448,
 )
 _sym_db.RegisterEnumDescriptor(_BEGINTRANSACTIONREQUEST_TXTYPEID)
 
@@ -118,44 +118,6 @@ _DATA = _descriptor.Descriptor(
 )
 
 
-_TRANSACTIONMETA = _descriptor.Descriptor(
-  name='TransactionMeta',
-  full_name='Ydb.LongTx.TransactionMeta',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='long_tx_id', full_name='Ydb.LongTx.TransactionMeta.long_tx_id', index=0,
-      number=1, type=12, cpp_type=9, label=1,
-      has_default_value=False, default_value=_b(""),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='routes', full_name='Ydb.LongTx.TransactionMeta.routes', index=1,
-      number=2, type=12, cpp_type=9, label=1,
-      has_default_value=False, default_value=_b(""),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  options=None,
-  is_extendable=False,
-  syntax='proto3',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=239,
-  serialized_end=292,
-)
-
-
 _BEGINTRANSACTIONREQUEST = _descriptor.Descriptor(
   name='BeginTransactionRequest',
   full_name='Ydb.LongTx.BeginTransactionRequest',
@@ -177,13 +139,6 @@ _BEGINTRANSACTIONREQUEST = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
-    _descriptor.FieldDescriptor(
-      name='paths', full_name='Ydb.LongTx.BeginTransactionRequest.paths', index=2,
-      number=3, type=9, cpp_type=9, label=3,
-      has_default_value=False, default_value=[],
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
   ],
   extensions=[
   ],
@@ -197,8 +152,8 @@ _BEGINTRANSACTIONREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=295,
-  serialized_end=518,
+  serialized_start=240,
+  serialized_end=448,
 )
 
 
@@ -210,9 +165,9 @@ _BEGINTRANSACTIONRESULT = _descriptor.Descriptor(
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='tx_meta', full_name='Ydb.LongTx.BeginTransactionResult.tx_meta', index=0,
-      number=1, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
+      name='tx_id', full_name='Ydb.LongTx.BeginTransactionResult.tx_id', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
@@ -228,8 +183,8 @@ _BEGINTRANSACTIONRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=520,
-  serialized_end=590,
+  serialized_start=450,
+  serialized_end=489,
 )
 
 
@@ -259,8 +214,8 @@ _BEGINTRANSACTIONRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=592,
-  serialized_end=664,
+  serialized_start=491,
+  serialized_end=563,
 )
 
 
@@ -279,9 +234,40 @@ _COMMITTRANSACTIONREQUEST = _descriptor.Descriptor(
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='tx_meta', full_name='Ydb.LongTx.CommitTransactionRequest.tx_meta', index=1,
-      number=2, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
+      name='tx_id', full_name='Ydb.LongTx.CommitTransactionRequest.tx_id', index=1,
+      number=2, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=565,
+  serialized_end=665,
+)
+
+
+_COMMITTRANSACTIONRESULT = _descriptor.Descriptor(
+  name='CommitTransactionResult',
+  full_name='Ydb.LongTx.CommitTransactionResult',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='tx_id', full_name='Ydb.LongTx.CommitTransactionResult.tx_id', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
@@ -298,38 +284,7 @@ _COMMITTRANSACTIONREQUEST = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=667,
-  serialized_end=798,
-)
-
-
-_COMMITTRANSACTIONRESULT = _descriptor.Descriptor(
-  name='CommitTransactionResult',
-  full_name='Ydb.LongTx.CommitTransactionResult',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='tx_meta', full_name='Ydb.LongTx.CommitTransactionResult.tx_meta', index=0,
-      number=1, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  options=None,
-  is_extendable=False,
-  syntax='proto3',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=800,
-  serialized_end=871,
+  serialized_end=707,
 )
 
 
@@ -359,8 +314,8 @@ _COMMITTRANSACTIONRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=873,
-  serialized_end=946,
+  serialized_start=709,
+  serialized_end=782,
 )
 
 
@@ -379,9 +334,9 @@ _ROLLBACKTRANSACTIONREQUEST = _descriptor.Descriptor(
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='tx_meta', full_name='Ydb.LongTx.RollbackTransactionRequest.tx_meta', index=1,
-      number=2, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
+      name='tx_id', full_name='Ydb.LongTx.RollbackTransactionRequest.tx_id', index=1,
+      number=2, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
@@ -397,8 +352,8 @@ _ROLLBACKTRANSACTIONREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=949,
-  serialized_end=1082,
+  serialized_start=784,
+  serialized_end=886,
 )
 
 
@@ -410,9 +365,9 @@ _ROLLBACKTRANSACTIONRESULT = _descriptor.Descriptor(
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='tx_meta', full_name='Ydb.LongTx.RollbackTransactionResult.tx_meta', index=0,
-      number=1, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
+      name='tx_id', full_name='Ydb.LongTx.RollbackTransactionResult.tx_id', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
@@ -428,8 +383,8 @@ _ROLLBACKTRANSACTIONRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1084,
-  serialized_end=1157,
+  serialized_start=888,
+  serialized_end=930,
 )
 
 
@@ -459,8 +414,8 @@ _ROLLBACKTRANSACTIONRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1159,
-  serialized_end=1234,
+  serialized_start=932,
+  serialized_end=1007,
 )
 
 
@@ -479,9 +434,9 @@ _WRITEREQUEST = _descriptor.Descriptor(
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='tx_meta', full_name='Ydb.LongTx.WriteRequest.tx_meta', index=1,
-      number=2, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
+      name='tx_id', full_name='Ydb.LongTx.WriteRequest.tx_id', index=1,
+      number=2, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
@@ -518,8 +473,8 @@ _WRITEREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1237,
-  serialized_end=1420,
+  serialized_start=1010,
+  serialized_end=1162,
 )
 
 
@@ -531,9 +486,9 @@ _WRITERESULT = _descriptor.Descriptor(
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='tx_meta', full_name='Ydb.LongTx.WriteResult.tx_meta', index=0,
-      number=1, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
+      name='tx_id', full_name='Ydb.LongTx.WriteResult.tx_id', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
@@ -563,8 +518,8 @@ _WRITERESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1422,
-  serialized_end=1513,
+  serialized_start=1164,
+  serialized_end=1224,
 )
 
 
@@ -594,8 +549,8 @@ _WRITERESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1515,
-  serialized_end=1576,
+  serialized_start=1226,
+  serialized_end=1287,
 )
 
 
@@ -614,9 +569,9 @@ _READREQUEST = _descriptor.Descriptor(
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='tx_meta', full_name='Ydb.LongTx.ReadRequest.tx_meta', index=1,
-      number=2, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
+      name='tx_id', full_name='Ydb.LongTx.ReadRequest.tx_id', index=1,
+      number=2, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
@@ -656,8 +611,8 @@ _READREQUEST = _descriptor.Descriptor(
       name='query', full_name='Ydb.LongTx.ReadRequest.query',
       index=0, containing_type=None, fields=[]),
   ],
-  serialized_start=1579,
-  serialized_end=1756,
+  serialized_start=1290,
+  serialized_end=1436,
 )
 
 
@@ -669,9 +624,9 @@ _READRESULT = _descriptor.Descriptor(
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='tx_meta', full_name='Ydb.LongTx.ReadResult.tx_meta', index=0,
-      number=1, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
+      name='tx_id', full_name='Ydb.LongTx.ReadResult.tx_id', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
@@ -715,8 +670,8 @@ _READRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1759,
-  serialized_end=1896,
+  serialized_start=1438,
+  serialized_end=1544,
 )
 
 
@@ -746,8 +701,8 @@ _READRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1898,
-  serialized_end=1958,
+  serialized_start=1546,
+  serialized_end=1606,
 )
 
 _DATA.fields_by_name['format'].enum_type = _DATA_FORMAT
@@ -755,34 +710,24 @@ _DATA_FORMAT.containing_type = _DATA
 _BEGINTRANSACTIONREQUEST.fields_by_name['operation_params'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2._OPERATIONPARAMS
 _BEGINTRANSACTIONREQUEST.fields_by_name['tx_type'].enum_type = _BEGINTRANSACTIONREQUEST_TXTYPEID
 _BEGINTRANSACTIONREQUEST_TXTYPEID.containing_type = _BEGINTRANSACTIONREQUEST
-_BEGINTRANSACTIONRESULT.fields_by_name['tx_meta'].message_type = _TRANSACTIONMETA
 _BEGINTRANSACTIONRESPONSE.fields_by_name['operation'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2._OPERATION
 _COMMITTRANSACTIONREQUEST.fields_by_name['operation_params'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2._OPERATIONPARAMS
-_COMMITTRANSACTIONREQUEST.fields_by_name['tx_meta'].message_type = _TRANSACTIONMETA
-_COMMITTRANSACTIONRESULT.fields_by_name['tx_meta'].message_type = _TRANSACTIONMETA
 _COMMITTRANSACTIONRESPONSE.fields_by_name['operation'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2._OPERATION
 _ROLLBACKTRANSACTIONREQUEST.fields_by_name['operation_params'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2._OPERATIONPARAMS
-_ROLLBACKTRANSACTIONREQUEST.fields_by_name['tx_meta'].message_type = _TRANSACTIONMETA
-_ROLLBACKTRANSACTIONRESULT.fields_by_name['tx_meta'].message_type = _TRANSACTIONMETA
 _ROLLBACKTRANSACTIONRESPONSE.fields_by_name['operation'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2._OPERATION
 _WRITEREQUEST.fields_by_name['operation_params'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2._OPERATIONPARAMS
-_WRITEREQUEST.fields_by_name['tx_meta'].message_type = _TRANSACTIONMETA
 _WRITEREQUEST.fields_by_name['data'].message_type = _DATA
-_WRITERESULT.fields_by_name['tx_meta'].message_type = _TRANSACTIONMETA
 _WRITERESPONSE.fields_by_name['operation'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2._OPERATION
 _READREQUEST.fields_by_name['operation_params'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2._OPERATIONPARAMS
-_READREQUEST.fields_by_name['tx_meta'].message_type = _TRANSACTIONMETA
 _READREQUEST.oneofs_by_name['query'].fields.append(
   _READREQUEST.fields_by_name['sql'])
 _READREQUEST.fields_by_name['sql'].containing_oneof = _READREQUEST.oneofs_by_name['query']
 _READREQUEST.oneofs_by_name['query'].fields.append(
   _READREQUEST.fields_by_name['generated'])
 _READREQUEST.fields_by_name['generated'].containing_oneof = _READREQUEST.oneofs_by_name['query']
-_READRESULT.fields_by_name['tx_meta'].message_type = _TRANSACTIONMETA
 _READRESULT.fields_by_name['data'].message_type = _DATA
 _READRESPONSE.fields_by_name['operation'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2._OPERATION
 DESCRIPTOR.message_types_by_name['Data'] = _DATA
-DESCRIPTOR.message_types_by_name['TransactionMeta'] = _TRANSACTIONMETA
 DESCRIPTOR.message_types_by_name['BeginTransactionRequest'] = _BEGINTRANSACTIONREQUEST
 DESCRIPTOR.message_types_by_name['BeginTransactionResult'] = _BEGINTRANSACTIONRESULT
 DESCRIPTOR.message_types_by_name['BeginTransactionResponse'] = _BEGINTRANSACTIONRESPONSE
@@ -806,13 +751,6 @@ Data = _reflection.GeneratedProtocolMessageType('Data', (_message.Message,), dic
   # @@protoc_insertion_point(class_scope:Ydb.LongTx.Data)
   ))
 _sym_db.RegisterMessage(Data)
-
-TransactionMeta = _reflection.GeneratedProtocolMessageType('TransactionMeta', (_message.Message,), dict(
-  DESCRIPTOR = _TRANSACTIONMETA,
-  __module__ = 'kikimr.public.api.protos.draft.ydb_long_tx_pb2'
-  # @@protoc_insertion_point(class_scope:Ydb.LongTx.TransactionMeta)
-  ))
-_sym_db.RegisterMessage(TransactionMeta)
 
 BeginTransactionRequest = _reflection.GeneratedProtocolMessageType('BeginTransactionRequest', (_message.Message,), dict(
   DESCRIPTOR = _BEGINTRANSACTIONREQUEST,

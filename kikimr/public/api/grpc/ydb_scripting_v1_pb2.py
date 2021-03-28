@@ -20,7 +20,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='kikimr/public/api/grpc/ydb_scripting_v1.proto',
   package='Ydb.Scripting.V1',
   syntax='proto3',
-  serialized_pb=_b('\n-kikimr/public/api/grpc/ydb_scripting_v1.proto\x12\x10Ydb.Scripting.V1\x1a,kikimr/public/api/protos/ydb_scripting.proto2\xb8\x01\n\x10ScriptingService\x12Q\n\nExecuteYql\x12 .Ydb.Scripting.ExecuteYqlRequest\x1a!.Ydb.Scripting.ExecuteYqlResponse\x12Q\n\nExplainYql\x12 .Ydb.Scripting.ExplainYqlRequest\x1a!.Ydb.Scripting.ExplainYqlResponseB\x1d\n\x1b\x63om.yandex.ydb.scripting.v1b\x06proto3')
+  serialized_pb=_b('\n-kikimr/public/api/grpc/ydb_scripting_v1.proto\x12\x10Ydb.Scripting.V1\x1a,kikimr/public/api/protos/ydb_scripting.proto2\xa6\x02\n\x10ScriptingService\x12Q\n\nExecuteYql\x12 .Ydb.Scripting.ExecuteYqlRequest\x1a!.Ydb.Scripting.ExecuteYqlResponse\x12l\n\x10StreamExecuteYql\x12&.Ydb.Scripting.StreamExecuteYqlRequest\x1a..Ydb.Scripting.StreamExecuteYqlPartialResponse0\x01\x12Q\n\nExplainYql\x12 .Ydb.Scripting.ExplainYqlRequest\x1a!.Ydb.Scripting.ExplainYqlResponseB\x1d\n\x1b\x63om.yandex.ydb.scripting.v1b\x06proto3')
   ,
   dependencies=[kikimr_dot_public_dot_api_dot_protos_dot_ydb__scripting__pb2.DESCRIPTOR,])
 
@@ -39,7 +39,7 @@ _SCRIPTINGSERVICE = _descriptor.ServiceDescriptor(
   index=0,
   options=None,
   serialized_start=114,
-  serialized_end=298,
+  serialized_end=408,
   methods=[
   _descriptor.MethodDescriptor(
     name='ExecuteYql',
@@ -51,9 +51,18 @@ _SCRIPTINGSERVICE = _descriptor.ServiceDescriptor(
     options=None,
   ),
   _descriptor.MethodDescriptor(
+    name='StreamExecuteYql',
+    full_name='Ydb.Scripting.V1.ScriptingService.StreamExecuteYql',
+    index=1,
+    containing_service=None,
+    input_type=kikimr_dot_public_dot_api_dot_protos_dot_ydb__scripting__pb2._STREAMEXECUTEYQLREQUEST,
+    output_type=kikimr_dot_public_dot_api_dot_protos_dot_ydb__scripting__pb2._STREAMEXECUTEYQLPARTIALRESPONSE,
+    options=None,
+  ),
+  _descriptor.MethodDescriptor(
     name='ExplainYql',
     full_name='Ydb.Scripting.V1.ScriptingService.ExplainYql',
-    index=1,
+    index=2,
     containing_service=None,
     input_type=kikimr_dot_public_dot_api_dot_protos_dot_ydb__scripting__pb2._EXPLAINYQLREQUEST,
     output_type=kikimr_dot_public_dot_api_dot_protos_dot_ydb__scripting__pb2._EXPLAINYQLRESPONSE,

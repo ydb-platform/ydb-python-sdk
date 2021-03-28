@@ -20,169 +20,11 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='kikimr/public/api/protos/draft/ydb_long_tx_internal.proto',
   package='Ydb.LongTxInternal',
   syntax='proto3',
-  serialized_pb=_b('\n9kikimr/public/api/protos/draft/ydb_long_tx_internal.proto\x12\x12Ydb.LongTxInternal\x1a(kikimr/public/api/protos/ydb_value.proto\",\n\x08Snapshot\x12\x11\n\tplan_step\x18\x01 \x01(\x04\x12\r\n\x05tx_id\x18\x02 \x01(\x04\"_\n\x08LongTxId\x12\x11\n\tinitiator\x18\x01 \x01(\x04\x12\x10\n\x08write_id\x18\x02 \x01(\x04\x12.\n\x08snapshot\x18\x03 \x01(\x0b\x32\x1c.Ydb.LongTxInternal.Snapshot\"y\n\x0cLongTxRoutes\x12\x36\n\x06tables\x18\x01 \x03(\x0b\x32&.Ydb.LongTxInternal.LongTxRoutes.Table\x1a\x31\n\x05Table\x12\x0c\n\x04path\x18\x01 \x01(\t\x12\n\n\x02id\x18\x02 \x01(\x04\x12\x0e\n\x06shards\x18\x03 \x03(\x04\"\xdf\x05\n\x14GeneratedSelectQuery\x12\x44\n\x06select\x18\x01 \x03(\x0b\x32\x34.Ydb.LongTxInternal.GeneratedSelectQuery.NamedColumn\x12@\n\x05where\x18\x02 \x01(\x0b\x32\x31.Ydb.LongTxInternal.GeneratedSelectQuery.Function\x12\x46\n\x08group_by\x18\x03 \x03(\x0b\x32\x34.Ydb.LongTxInternal.GeneratedSelectQuery.NamedColumn\x12\x41\n\x06having\x18\x04 \x01(\x0b\x32\x31.Ydb.LongTxInternal.GeneratedSelectQuery.Function\x12\x46\n\x08order_by\x18\x05 \x03(\x0b\x32\x34.Ydb.LongTxInternal.GeneratedSelectQuery.NamedColumn\x12\r\n\x05limit\x18\x06 \x01(\x04\x12\x0e\n\x06offset\x18\x07 \x01(\x04\x1a`\n\x0bNamedColumn\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x43\n\x08\x66unction\x18\x02 \x01(\x0b\x32\x31.Ydb.LongTxInternal.GeneratedSelectQuery.Function\x1a\xea\x01\n\x08\x46unction\x12\x0c\n\x04name\x18\x01 \x01(\t\x12M\n\targuments\x18\x02 \x03(\x0b\x32:.Ydb.LongTxInternal.GeneratedSelectQuery.Function.Argument\x1a\x80\x01\n\x08\x41rgument\x12\x46\n\x06\x63olumn\x18\x01 \x01(\x0b\x32\x34.Ydb.LongTxInternal.GeneratedSelectQuery.NamedColumnH\x00\x12 \n\x05value\x18\x02 \x01(\x0b\x32\x0f.Ydb.TypedValueH\x00\x42\n\n\x08\x61rgumentB:\n\x1f\x63om.yandex.ydb.long_tx_internalB\x14LongTxInternalProtos\xf8\x01\x01\x62\x06proto3')
+  serialized_pb=_b('\n9kikimr/public/api/protos/draft/ydb_long_tx_internal.proto\x12\x12Ydb.LongTxInternal\x1a(kikimr/public/api/protos/ydb_value.proto\"\xdf\x05\n\x14GeneratedSelectQuery\x12\x44\n\x06select\x18\x01 \x03(\x0b\x32\x34.Ydb.LongTxInternal.GeneratedSelectQuery.NamedColumn\x12@\n\x05where\x18\x02 \x01(\x0b\x32\x31.Ydb.LongTxInternal.GeneratedSelectQuery.Function\x12\x46\n\x08group_by\x18\x03 \x03(\x0b\x32\x34.Ydb.LongTxInternal.GeneratedSelectQuery.NamedColumn\x12\x41\n\x06having\x18\x04 \x01(\x0b\x32\x31.Ydb.LongTxInternal.GeneratedSelectQuery.Function\x12\x46\n\x08order_by\x18\x05 \x03(\x0b\x32\x34.Ydb.LongTxInternal.GeneratedSelectQuery.NamedColumn\x12\r\n\x05limit\x18\x06 \x01(\x04\x12\x0e\n\x06offset\x18\x07 \x01(\x04\x1a`\n\x0bNamedColumn\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x43\n\x08\x66unction\x18\x02 \x01(\x0b\x32\x31.Ydb.LongTxInternal.GeneratedSelectQuery.Function\x1a\xea\x01\n\x08\x46unction\x12\x0c\n\x04name\x18\x01 \x01(\t\x12M\n\targuments\x18\x02 \x03(\x0b\x32:.Ydb.LongTxInternal.GeneratedSelectQuery.Function.Argument\x1a\x80\x01\n\x08\x41rgument\x12\x46\n\x06\x63olumn\x18\x01 \x01(\x0b\x32\x34.Ydb.LongTxInternal.GeneratedSelectQuery.NamedColumnH\x00\x12 \n\x05value\x18\x02 \x01(\x0b\x32\x0f.Ydb.TypedValueH\x00\x42\n\n\x08\x61rgumentB:\n\x1f\x63om.yandex.ydb.long_tx_internalB\x14LongTxInternalProtos\xf8\x01\x01\x62\x06proto3')
   ,
   dependencies=[kikimr_dot_public_dot_api_dot_protos_dot_ydb__value__pb2.DESCRIPTOR,])
 
 
-
-
-_SNAPSHOT = _descriptor.Descriptor(
-  name='Snapshot',
-  full_name='Ydb.LongTxInternal.Snapshot',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='plan_step', full_name='Ydb.LongTxInternal.Snapshot.plan_step', index=0,
-      number=1, type=4, cpp_type=4, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='tx_id', full_name='Ydb.LongTxInternal.Snapshot.tx_id', index=1,
-      number=2, type=4, cpp_type=4, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  options=None,
-  is_extendable=False,
-  syntax='proto3',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=123,
-  serialized_end=167,
-)
-
-
-_LONGTXID = _descriptor.Descriptor(
-  name='LongTxId',
-  full_name='Ydb.LongTxInternal.LongTxId',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='initiator', full_name='Ydb.LongTxInternal.LongTxId.initiator', index=0,
-      number=1, type=4, cpp_type=4, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='write_id', full_name='Ydb.LongTxInternal.LongTxId.write_id', index=1,
-      number=2, type=4, cpp_type=4, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='snapshot', full_name='Ydb.LongTxInternal.LongTxId.snapshot', index=2,
-      number=3, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  options=None,
-  is_extendable=False,
-  syntax='proto3',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=169,
-  serialized_end=264,
-)
-
-
-_LONGTXROUTES_TABLE = _descriptor.Descriptor(
-  name='Table',
-  full_name='Ydb.LongTxInternal.LongTxRoutes.Table',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='path', full_name='Ydb.LongTxInternal.LongTxRoutes.Table.path', index=0,
-      number=1, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=_b("").decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='id', full_name='Ydb.LongTxInternal.LongTxRoutes.Table.id', index=1,
-      number=2, type=4, cpp_type=4, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='shards', full_name='Ydb.LongTxInternal.LongTxRoutes.Table.shards', index=2,
-      number=3, type=4, cpp_type=4, label=3,
-      has_default_value=False, default_value=[],
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  options=None,
-  is_extendable=False,
-  syntax='proto3',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=338,
-  serialized_end=387,
-)
-
-_LONGTXROUTES = _descriptor.Descriptor(
-  name='LongTxRoutes',
-  full_name='Ydb.LongTxInternal.LongTxRoutes',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='tables', full_name='Ydb.LongTxInternal.LongTxRoutes.tables', index=0,
-      number=1, type=11, cpp_type=10, label=3,
-      has_default_value=False, default_value=[],
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-  ],
-  extensions=[
-  ],
-  nested_types=[_LONGTXROUTES_TABLE, ],
-  enum_types=[
-  ],
-  options=None,
-  is_extendable=False,
-  syntax='proto3',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=266,
-  serialized_end=387,
-)
 
 
 _GENERATEDSELECTQUERY_NAMEDCOLUMN = _descriptor.Descriptor(
@@ -218,8 +60,8 @@ _GENERATEDSELECTQUERY_NAMEDCOLUMN = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=792,
-  serialized_end=888,
+  serialized_start=526,
+  serialized_end=622,
 )
 
 _GENERATEDSELECTQUERY_FUNCTION_ARGUMENT = _descriptor.Descriptor(
@@ -258,8 +100,8 @@ _GENERATEDSELECTQUERY_FUNCTION_ARGUMENT = _descriptor.Descriptor(
       name='argument', full_name='Ydb.LongTxInternal.GeneratedSelectQuery.Function.Argument.argument',
       index=0, containing_type=None, fields=[]),
   ],
-  serialized_start=997,
-  serialized_end=1125,
+  serialized_start=731,
+  serialized_end=859,
 )
 
 _GENERATEDSELECTQUERY_FUNCTION = _descriptor.Descriptor(
@@ -295,8 +137,8 @@ _GENERATEDSELECTQUERY_FUNCTION = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=891,
-  serialized_end=1125,
+  serialized_start=625,
+  serialized_end=859,
 )
 
 _GENERATEDSELECTQUERY = _descriptor.Descriptor(
@@ -367,13 +209,10 @@ _GENERATEDSELECTQUERY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=390,
-  serialized_end=1125,
+  serialized_start=124,
+  serialized_end=859,
 )
 
-_LONGTXID.fields_by_name['snapshot'].message_type = _SNAPSHOT
-_LONGTXROUTES_TABLE.containing_type = _LONGTXROUTES
-_LONGTXROUTES.fields_by_name['tables'].message_type = _LONGTXROUTES_TABLE
 _GENERATEDSELECTQUERY_NAMEDCOLUMN.fields_by_name['function'].message_type = _GENERATEDSELECTQUERY_FUNCTION
 _GENERATEDSELECTQUERY_NAMEDCOLUMN.containing_type = _GENERATEDSELECTQUERY
 _GENERATEDSELECTQUERY_FUNCTION_ARGUMENT.fields_by_name['column'].message_type = _GENERATEDSELECTQUERY_NAMEDCOLUMN
@@ -392,40 +231,8 @@ _GENERATEDSELECTQUERY.fields_by_name['where'].message_type = _GENERATEDSELECTQUE
 _GENERATEDSELECTQUERY.fields_by_name['group_by'].message_type = _GENERATEDSELECTQUERY_NAMEDCOLUMN
 _GENERATEDSELECTQUERY.fields_by_name['having'].message_type = _GENERATEDSELECTQUERY_FUNCTION
 _GENERATEDSELECTQUERY.fields_by_name['order_by'].message_type = _GENERATEDSELECTQUERY_NAMEDCOLUMN
-DESCRIPTOR.message_types_by_name['Snapshot'] = _SNAPSHOT
-DESCRIPTOR.message_types_by_name['LongTxId'] = _LONGTXID
-DESCRIPTOR.message_types_by_name['LongTxRoutes'] = _LONGTXROUTES
 DESCRIPTOR.message_types_by_name['GeneratedSelectQuery'] = _GENERATEDSELECTQUERY
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
-
-Snapshot = _reflection.GeneratedProtocolMessageType('Snapshot', (_message.Message,), dict(
-  DESCRIPTOR = _SNAPSHOT,
-  __module__ = 'kikimr.public.api.protos.draft.ydb_long_tx_internal_pb2'
-  # @@protoc_insertion_point(class_scope:Ydb.LongTxInternal.Snapshot)
-  ))
-_sym_db.RegisterMessage(Snapshot)
-
-LongTxId = _reflection.GeneratedProtocolMessageType('LongTxId', (_message.Message,), dict(
-  DESCRIPTOR = _LONGTXID,
-  __module__ = 'kikimr.public.api.protos.draft.ydb_long_tx_internal_pb2'
-  # @@protoc_insertion_point(class_scope:Ydb.LongTxInternal.LongTxId)
-  ))
-_sym_db.RegisterMessage(LongTxId)
-
-LongTxRoutes = _reflection.GeneratedProtocolMessageType('LongTxRoutes', (_message.Message,), dict(
-
-  Table = _reflection.GeneratedProtocolMessageType('Table', (_message.Message,), dict(
-    DESCRIPTOR = _LONGTXROUTES_TABLE,
-    __module__ = 'kikimr.public.api.protos.draft.ydb_long_tx_internal_pb2'
-    # @@protoc_insertion_point(class_scope:Ydb.LongTxInternal.LongTxRoutes.Table)
-    ))
-  ,
-  DESCRIPTOR = _LONGTXROUTES,
-  __module__ = 'kikimr.public.api.protos.draft.ydb_long_tx_internal_pb2'
-  # @@protoc_insertion_point(class_scope:Ydb.LongTxInternal.LongTxRoutes)
-  ))
-_sym_db.RegisterMessage(LongTxRoutes)
-_sym_db.RegisterMessage(LongTxRoutes.Table)
 
 GeneratedSelectQuery = _reflection.GeneratedProtocolMessageType('GeneratedSelectQuery', (_message.Message,), dict(
 
