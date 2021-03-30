@@ -405,6 +405,10 @@ class SessionState(object):
             self._query_cache.put(
                 query.name,
                 (query, query_id))
+        else:
+            self._query_cache.put(
+                query.name,
+                (query, None))
         return self
 
     @staticmethod
@@ -415,7 +419,7 @@ class SessionState(object):
         return self._query_cache.get(self._query_key(query), self._default)
 
     def erase(self, query):
-        query, query_id = self.lookup(query)
+        query, _ = self.lookup(query)
         self._query_cache.erase(query.name)
 
     def complete_query(self):
