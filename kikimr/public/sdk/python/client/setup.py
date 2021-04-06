@@ -1,9 +1,12 @@
 # -*- coding: utf-8 -*-
 import setuptools
+import os
 
 
-with open('VERSION', 'r') as r:
-    VERS = r.read()
+VERS = "0.0.1-dev"
+if os.path.exists('VERSION'):
+    with open('VERSION', 'r') as r:
+        VERS = r.read()
 
 
 setuptools.setup(
