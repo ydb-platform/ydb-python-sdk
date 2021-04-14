@@ -25,7 +25,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='kikimr/public/api/protos/ydb_scripting.proto',
   package='Ydb.Scripting',
   syntax='proto3',
-  serialized_pb=_b('\n,kikimr/public/api/protos/ydb_scripting.proto\x12\rYdb.Scripting\x1a,kikimr/public/api/protos/ydb_operation.proto\x1a(kikimr/public/api/protos/ydb_value.proto\x1a(kikimr/public/api/protos/ydb_table.proto\x1a.kikimr/public/api/protos/ydb_query_stats.proto\x1a\x30kikimr/public/api/protos/ydb_issue_message.proto\x1a/kikimr/public/api/protos/ydb_status_codes.proto\"\xa5\x02\n\x11\x45xecuteYqlRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x0e\n\x06script\x18\x02 \x01(\t\x12\x44\n\nparameters\x18\x03 \x03(\x0b\x32\x30.Ydb.Scripting.ExecuteYqlRequest.ParametersEntry\x12;\n\rcollect_stats\x18\x04 \x01(\x0e\x32$.Ydb.Table.QueryStatsCollection.Mode\x1a\x42\n\x0fParametersEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\x1e\n\x05value\x18\x02 \x01(\x0b\x32\x0f.Ydb.TypedValue:\x02\x38\x01\"B\n\x12\x45xecuteYqlResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"h\n\x10\x45xecuteYqlResult\x12#\n\x0bresult_sets\x18\x01 \x03(\x0b\x32\x0e.Ydb.ResultSet\x12/\n\x0bquery_stats\x18\x02 \x01(\x0b\x32\x1a.Ydb.TableStats.QueryStats\"\xf6\x01\n\x17StreamExecuteYqlRequest\x12\x0e\n\x06script\x18\x01 \x01(\t\x12J\n\nparameters\x18\x02 \x03(\x0b\x32\x36.Ydb.Scripting.StreamExecuteYqlRequest.ParametersEntry\x12;\n\rcollect_stats\x18\x03 \x01(\x0e\x32$.Ydb.Table.QueryStatsCollection.Mode\x1a\x42\n\x0fParametersEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\x1e\n\x05value\x18\x02 \x01(\x0b\x32\x0f.Ydb.TypedValue:\x02\x38\x01\"\xb3\x01\n\x1fStreamExecuteYqlPartialResponse\x12)\n\x06status\x18\x01 \x01(\x0e\x32\x19.Ydb.StatusIds.StatusCode\x12\'\n\x06issues\x18\x02 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessage\x12<\n\x06result\x18\x03 \x01(\x0b\x32,.Ydb.Scripting.StreamExecuteYqlPartialResult\"\x8a\x01\n\x1dStreamExecuteYqlPartialResult\x12\x14\n\x0cresult_index\x18\x01 \x01(\r\x12\"\n\nresult_set\x18\x02 \x01(\x0b\x32\x0e.Ydb.ResultSet\x12/\n\x0bquery_stats\x18\x03 \x01(\x0b\x32\x1a.Ydb.TableStats.QueryStats\"\xc9\x01\n\x11\x45xplainYqlRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x0e\n\x06script\x18\x02 \x01(\t\x12\x33\n\x04mode\x18\x03 \x01(\x0e\x32%.Ydb.Scripting.ExplainYqlRequest.Mode\"4\n\x04Mode\x12\x14\n\x10MODE_UNSPECIFIED\x10\x00\x12\x0c\n\x08VALIDATE\x10\x02\x12\x08\n\x04PLAN\x10\x03\"B\n\x12\x45xplainYqlResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\xb3\x01\n\x10\x45xplainYqlResult\x12N\n\x10parameters_types\x18\x01 \x03(\x0b\x32\x34.Ydb.Scripting.ExplainYqlResult.ParametersTypesEntry\x12\x0c\n\x04plan\x18\x02 \x01(\t\x1a\x41\n\x14ParametersTypesEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\x18\n\x05value\x18\x02 \x01(\x0b\x32\t.Ydb.Type:\x02\x38\x01\x42.\n\x18\x63om.yandex.ydb.scriptingB\x0fScriptingProtos\xf8\x01\x01\x62\x06proto3')
+  serialized_pb=_b('\n,kikimr/public/api/protos/ydb_scripting.proto\x12\rYdb.Scripting\x1a,kikimr/public/api/protos/ydb_operation.proto\x1a(kikimr/public/api/protos/ydb_value.proto\x1a(kikimr/public/api/protos/ydb_table.proto\x1a.kikimr/public/api/protos/ydb_query_stats.proto\x1a\x30kikimr/public/api/protos/ydb_issue_message.proto\x1a/kikimr/public/api/protos/ydb_status_codes.proto\"\xa5\x02\n\x11\x45xecuteYqlRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x0e\n\x06script\x18\x02 \x01(\t\x12\x44\n\nparameters\x18\x03 \x03(\x0b\x32\x30.Ydb.Scripting.ExecuteYqlRequest.ParametersEntry\x12;\n\rcollect_stats\x18\x04 \x01(\x0e\x32$.Ydb.Table.QueryStatsCollection.Mode\x1a\x42\n\x0fParametersEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\x1e\n\x05value\x18\x02 \x01(\x0b\x32\x0f.Ydb.TypedValue:\x02\x38\x01\"B\n\x12\x45xecuteYqlResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"h\n\x10\x45xecuteYqlResult\x12#\n\x0bresult_sets\x18\x01 \x03(\x0b\x32\x0e.Ydb.ResultSet\x12/\n\x0bquery_stats\x18\x02 \x01(\x0b\x32\x1a.Ydb.TableStats.QueryStats\"\xa7\x01\n\x19\x45xecuteYqlPartialResponse\x12)\n\x06status\x18\x01 \x01(\x0e\x32\x19.Ydb.StatusIds.StatusCode\x12\'\n\x06issues\x18\x02 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessage\x12\x36\n\x06result\x18\x03 \x01(\x0b\x32&.Ydb.Scripting.ExecuteYqlPartialResult\"\x88\x01\n\x17\x45xecuteYqlPartialResult\x12\x18\n\x10result_set_index\x18\x01 \x01(\r\x12\"\n\nresult_set\x18\x02 \x01(\x0b\x32\x0e.Ydb.ResultSet\x12/\n\x0bquery_stats\x18\x03 \x01(\x0b\x32\x1a.Ydb.TableStats.QueryStats\"\xc9\x01\n\x11\x45xplainYqlRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x0e\n\x06script\x18\x02 \x01(\t\x12\x33\n\x04mode\x18\x03 \x01(\x0e\x32%.Ydb.Scripting.ExplainYqlRequest.Mode\"4\n\x04Mode\x12\x14\n\x10MODE_UNSPECIFIED\x10\x00\x12\x0c\n\x08VALIDATE\x10\x02\x12\x08\n\x04PLAN\x10\x03\"B\n\x12\x45xplainYqlResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\xb3\x01\n\x10\x45xplainYqlResult\x12N\n\x10parameters_types\x18\x01 \x03(\x0b\x32\x34.Ydb.Scripting.ExplainYqlResult.ParametersTypesEntry\x12\x0c\n\x04plan\x18\x02 \x01(\t\x1a\x41\n\x14ParametersTypesEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\x18\n\x05value\x18\x02 \x01(\x0b\x32\t.Ydb.Type:\x02\x38\x01\x42.\n\x18\x63om.yandex.ydb.scriptingB\x0fScriptingProtos\xf8\x01\x01\x62\x06proto3')
   ,
   dependencies=[kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2.DESCRIPTOR,kikimr_dot_public_dot_api_dot_protos_dot_ydb__value__pb2.DESCRIPTOR,kikimr_dot_public_dot_api_dot_protos_dot_ydb__table__pb2.DESCRIPTOR,kikimr_dot_public_dot_api_dot_protos_dot_ydb__query__stats__pb2.DESCRIPTOR,kikimr_dot_public_dot_api_dot_protos_dot_ydb__issue__message__pb2.DESCRIPTOR,kikimr_dot_public_dot_api_dot_protos_dot_ydb__status__codes__pb2.DESCRIPTOR,])
 
@@ -52,8 +52,8 @@ _EXPLAINYQLREQUEST_MODE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=1532,
-  serialized_end=1584,
+  serialized_start=1269,
+  serialized_end=1321,
 )
 _sym_db.RegisterEnumDescriptor(_EXPLAINYQLREQUEST_MODE)
 
@@ -216,23 +216,30 @@ _EXECUTEYQLRESULT = _descriptor.Descriptor(
 )
 
 
-_STREAMEXECUTEYQLREQUEST_PARAMETERSENTRY = _descriptor.Descriptor(
-  name='ParametersEntry',
-  full_name='Ydb.Scripting.StreamExecuteYqlRequest.ParametersEntry',
+_EXECUTEYQLPARTIALRESPONSE = _descriptor.Descriptor(
+  name='ExecuteYqlPartialResponse',
+  full_name='Ydb.Scripting.ExecuteYqlPartialResponse',
   filename=None,
   file=DESCRIPTOR,
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='key', full_name='Ydb.Scripting.StreamExecuteYqlRequest.ParametersEntry.key', index=0,
-      number=1, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=_b("").decode('utf-8'),
+      name='status', full_name='Ydb.Scripting.ExecuteYqlPartialResponse.status', index=0,
+      number=1, type=14, cpp_type=8, label=1,
+      has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='value', full_name='Ydb.Scripting.StreamExecuteYqlRequest.ParametersEntry.value', index=1,
-      number=2, type=11, cpp_type=10, label=1,
+      name='issues', full_name='Ydb.Scripting.ExecuteYqlPartialResponse.issues', index=1,
+      number=2, type=11, cpp_type=10, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='result', full_name='Ydb.Scripting.ExecuteYqlPartialResponse.result', index=2,
+      number=3, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -241,50 +248,6 @@ _STREAMEXECUTEYQLREQUEST_PARAMETERSENTRY = _descriptor.Descriptor(
   extensions=[
   ],
   nested_types=[],
-  enum_types=[
-  ],
-  options=_descriptor._ParseOptions(descriptor_pb2.MessageOptions(), _b('8\001')),
-  is_extendable=False,
-  syntax='proto3',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=568,
-  serialized_end=634,
-)
-
-_STREAMEXECUTEYQLREQUEST = _descriptor.Descriptor(
-  name='StreamExecuteYqlRequest',
-  full_name='Ydb.Scripting.StreamExecuteYqlRequest',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='script', full_name='Ydb.Scripting.StreamExecuteYqlRequest.script', index=0,
-      number=1, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=_b("").decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='parameters', full_name='Ydb.Scripting.StreamExecuteYqlRequest.parameters', index=1,
-      number=2, type=11, cpp_type=10, label=3,
-      has_default_value=False, default_value=[],
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='collect_stats', full_name='Ydb.Scripting.StreamExecuteYqlRequest.collect_stats', index=2,
-      number=3, type=14, cpp_type=8, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-  ],
-  extensions=[
-  ],
-  nested_types=[_STREAMEXECUTEYQLREQUEST_PARAMETERSENTRY, ],
   enum_types=[
   ],
   options=None,
@@ -294,78 +257,33 @@ _STREAMEXECUTEYQLREQUEST = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=811,
-  serialized_end=1057,
+  serialized_end=978,
 )
 
 
-_STREAMEXECUTEYQLPARTIALRESPONSE = _descriptor.Descriptor(
-  name='StreamExecuteYqlPartialResponse',
-  full_name='Ydb.Scripting.StreamExecuteYqlPartialResponse',
+_EXECUTEYQLPARTIALRESULT = _descriptor.Descriptor(
+  name='ExecuteYqlPartialResult',
+  full_name='Ydb.Scripting.ExecuteYqlPartialResult',
   filename=None,
   file=DESCRIPTOR,
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='status', full_name='Ydb.Scripting.StreamExecuteYqlPartialResponse.status', index=0,
-      number=1, type=14, cpp_type=8, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='issues', full_name='Ydb.Scripting.StreamExecuteYqlPartialResponse.issues', index=1,
-      number=2, type=11, cpp_type=10, label=3,
-      has_default_value=False, default_value=[],
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='result', full_name='Ydb.Scripting.StreamExecuteYqlPartialResponse.result', index=2,
-      number=3, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  options=None,
-  is_extendable=False,
-  syntax='proto3',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=1060,
-  serialized_end=1239,
-)
-
-
-_STREAMEXECUTEYQLPARTIALRESULT = _descriptor.Descriptor(
-  name='StreamExecuteYqlPartialResult',
-  full_name='Ydb.Scripting.StreamExecuteYqlPartialResult',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='result_index', full_name='Ydb.Scripting.StreamExecuteYqlPartialResult.result_index', index=0,
+      name='result_set_index', full_name='Ydb.Scripting.ExecuteYqlPartialResult.result_set_index', index=0,
       number=1, type=13, cpp_type=3, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='result_set', full_name='Ydb.Scripting.StreamExecuteYqlPartialResult.result_set', index=1,
+      name='result_set', full_name='Ydb.Scripting.ExecuteYqlPartialResult.result_set', index=1,
       number=2, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='query_stats', full_name='Ydb.Scripting.StreamExecuteYqlPartialResult.query_stats', index=2,
+      name='query_stats', full_name='Ydb.Scripting.ExecuteYqlPartialResult.query_stats', index=2,
       number=3, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
@@ -383,8 +301,8 @@ _STREAMEXECUTEYQLPARTIALRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1242,
-  serialized_end=1380,
+  serialized_start=981,
+  serialized_end=1117,
 )
 
 
@@ -429,8 +347,8 @@ _EXPLAINYQLREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1383,
-  serialized_end=1584,
+  serialized_start=1120,
+  serialized_end=1321,
 )
 
 
@@ -460,8 +378,8 @@ _EXPLAINYQLRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1586,
-  serialized_end=1652,
+  serialized_start=1323,
+  serialized_end=1389,
 )
 
 
@@ -498,8 +416,8 @@ _EXPLAINYQLRESULT_PARAMETERSTYPESENTRY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1769,
-  serialized_end=1834,
+  serialized_start=1506,
+  serialized_end=1571,
 )
 
 _EXPLAINYQLRESULT = _descriptor.Descriptor(
@@ -535,8 +453,8 @@ _EXPLAINYQLRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1655,
-  serialized_end=1834,
+  serialized_start=1392,
+  serialized_end=1571,
 )
 
 _EXECUTEYQLREQUEST_PARAMETERSENTRY.fields_by_name['value'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__value__pb2._TYPEDVALUE
@@ -547,15 +465,11 @@ _EXECUTEYQLREQUEST.fields_by_name['collect_stats'].enum_type = kikimr_dot_public
 _EXECUTEYQLRESPONSE.fields_by_name['operation'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2._OPERATION
 _EXECUTEYQLRESULT.fields_by_name['result_sets'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__value__pb2._RESULTSET
 _EXECUTEYQLRESULT.fields_by_name['query_stats'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__query__stats__pb2._QUERYSTATS
-_STREAMEXECUTEYQLREQUEST_PARAMETERSENTRY.fields_by_name['value'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__value__pb2._TYPEDVALUE
-_STREAMEXECUTEYQLREQUEST_PARAMETERSENTRY.containing_type = _STREAMEXECUTEYQLREQUEST
-_STREAMEXECUTEYQLREQUEST.fields_by_name['parameters'].message_type = _STREAMEXECUTEYQLREQUEST_PARAMETERSENTRY
-_STREAMEXECUTEYQLREQUEST.fields_by_name['collect_stats'].enum_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__table__pb2._QUERYSTATSCOLLECTION_MODE
-_STREAMEXECUTEYQLPARTIALRESPONSE.fields_by_name['status'].enum_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__status__codes__pb2._STATUSIDS_STATUSCODE
-_STREAMEXECUTEYQLPARTIALRESPONSE.fields_by_name['issues'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__issue__message__pb2._ISSUEMESSAGE
-_STREAMEXECUTEYQLPARTIALRESPONSE.fields_by_name['result'].message_type = _STREAMEXECUTEYQLPARTIALRESULT
-_STREAMEXECUTEYQLPARTIALRESULT.fields_by_name['result_set'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__value__pb2._RESULTSET
-_STREAMEXECUTEYQLPARTIALRESULT.fields_by_name['query_stats'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__query__stats__pb2._QUERYSTATS
+_EXECUTEYQLPARTIALRESPONSE.fields_by_name['status'].enum_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__status__codes__pb2._STATUSIDS_STATUSCODE
+_EXECUTEYQLPARTIALRESPONSE.fields_by_name['issues'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__issue__message__pb2._ISSUEMESSAGE
+_EXECUTEYQLPARTIALRESPONSE.fields_by_name['result'].message_type = _EXECUTEYQLPARTIALRESULT
+_EXECUTEYQLPARTIALRESULT.fields_by_name['result_set'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__value__pb2._RESULTSET
+_EXECUTEYQLPARTIALRESULT.fields_by_name['query_stats'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__query__stats__pb2._QUERYSTATS
 _EXPLAINYQLREQUEST.fields_by_name['operation_params'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2._OPERATIONPARAMS
 _EXPLAINYQLREQUEST.fields_by_name['mode'].enum_type = _EXPLAINYQLREQUEST_MODE
 _EXPLAINYQLREQUEST_MODE.containing_type = _EXPLAINYQLREQUEST
@@ -566,9 +480,8 @@ _EXPLAINYQLRESULT.fields_by_name['parameters_types'].message_type = _EXPLAINYQLR
 DESCRIPTOR.message_types_by_name['ExecuteYqlRequest'] = _EXECUTEYQLREQUEST
 DESCRIPTOR.message_types_by_name['ExecuteYqlResponse'] = _EXECUTEYQLRESPONSE
 DESCRIPTOR.message_types_by_name['ExecuteYqlResult'] = _EXECUTEYQLRESULT
-DESCRIPTOR.message_types_by_name['StreamExecuteYqlRequest'] = _STREAMEXECUTEYQLREQUEST
-DESCRIPTOR.message_types_by_name['StreamExecuteYqlPartialResponse'] = _STREAMEXECUTEYQLPARTIALRESPONSE
-DESCRIPTOR.message_types_by_name['StreamExecuteYqlPartialResult'] = _STREAMEXECUTEYQLPARTIALRESULT
+DESCRIPTOR.message_types_by_name['ExecuteYqlPartialResponse'] = _EXECUTEYQLPARTIALRESPONSE
+DESCRIPTOR.message_types_by_name['ExecuteYqlPartialResult'] = _EXECUTEYQLPARTIALRESULT
 DESCRIPTOR.message_types_by_name['ExplainYqlRequest'] = _EXPLAINYQLREQUEST
 DESCRIPTOR.message_types_by_name['ExplainYqlResponse'] = _EXPLAINYQLRESPONSE
 DESCRIPTOR.message_types_by_name['ExplainYqlResult'] = _EXPLAINYQLRESULT
@@ -603,34 +516,19 @@ ExecuteYqlResult = _reflection.GeneratedProtocolMessageType('ExecuteYqlResult', 
   ))
 _sym_db.RegisterMessage(ExecuteYqlResult)
 
-StreamExecuteYqlRequest = _reflection.GeneratedProtocolMessageType('StreamExecuteYqlRequest', (_message.Message,), dict(
-
-  ParametersEntry = _reflection.GeneratedProtocolMessageType('ParametersEntry', (_message.Message,), dict(
-    DESCRIPTOR = _STREAMEXECUTEYQLREQUEST_PARAMETERSENTRY,
-    __module__ = 'kikimr.public.api.protos.ydb_scripting_pb2'
-    # @@protoc_insertion_point(class_scope:Ydb.Scripting.StreamExecuteYqlRequest.ParametersEntry)
-    ))
-  ,
-  DESCRIPTOR = _STREAMEXECUTEYQLREQUEST,
+ExecuteYqlPartialResponse = _reflection.GeneratedProtocolMessageType('ExecuteYqlPartialResponse', (_message.Message,), dict(
+  DESCRIPTOR = _EXECUTEYQLPARTIALRESPONSE,
   __module__ = 'kikimr.public.api.protos.ydb_scripting_pb2'
-  # @@protoc_insertion_point(class_scope:Ydb.Scripting.StreamExecuteYqlRequest)
+  # @@protoc_insertion_point(class_scope:Ydb.Scripting.ExecuteYqlPartialResponse)
   ))
-_sym_db.RegisterMessage(StreamExecuteYqlRequest)
-_sym_db.RegisterMessage(StreamExecuteYqlRequest.ParametersEntry)
+_sym_db.RegisterMessage(ExecuteYqlPartialResponse)
 
-StreamExecuteYqlPartialResponse = _reflection.GeneratedProtocolMessageType('StreamExecuteYqlPartialResponse', (_message.Message,), dict(
-  DESCRIPTOR = _STREAMEXECUTEYQLPARTIALRESPONSE,
+ExecuteYqlPartialResult = _reflection.GeneratedProtocolMessageType('ExecuteYqlPartialResult', (_message.Message,), dict(
+  DESCRIPTOR = _EXECUTEYQLPARTIALRESULT,
   __module__ = 'kikimr.public.api.protos.ydb_scripting_pb2'
-  # @@protoc_insertion_point(class_scope:Ydb.Scripting.StreamExecuteYqlPartialResponse)
+  # @@protoc_insertion_point(class_scope:Ydb.Scripting.ExecuteYqlPartialResult)
   ))
-_sym_db.RegisterMessage(StreamExecuteYqlPartialResponse)
-
-StreamExecuteYqlPartialResult = _reflection.GeneratedProtocolMessageType('StreamExecuteYqlPartialResult', (_message.Message,), dict(
-  DESCRIPTOR = _STREAMEXECUTEYQLPARTIALRESULT,
-  __module__ = 'kikimr.public.api.protos.ydb_scripting_pb2'
-  # @@protoc_insertion_point(class_scope:Ydb.Scripting.StreamExecuteYqlPartialResult)
-  ))
-_sym_db.RegisterMessage(StreamExecuteYqlPartialResult)
+_sym_db.RegisterMessage(ExecuteYqlPartialResult)
 
 ExplainYqlRequest = _reflection.GeneratedProtocolMessageType('ExplainYqlRequest', (_message.Message,), dict(
   DESCRIPTOR = _EXPLAINYQLREQUEST,
@@ -666,8 +564,6 @@ DESCRIPTOR.has_options = True
 DESCRIPTOR._options = _descriptor._ParseOptions(descriptor_pb2.FileOptions(), _b('\n\030com.yandex.ydb.scriptingB\017ScriptingProtos\370\001\001'))
 _EXECUTEYQLREQUEST_PARAMETERSENTRY.has_options = True
 _EXECUTEYQLREQUEST_PARAMETERSENTRY._options = _descriptor._ParseOptions(descriptor_pb2.MessageOptions(), _b('8\001'))
-_STREAMEXECUTEYQLREQUEST_PARAMETERSENTRY.has_options = True
-_STREAMEXECUTEYQLREQUEST_PARAMETERSENTRY._options = _descriptor._ParseOptions(descriptor_pb2.MessageOptions(), _b('8\001'))
 _EXPLAINYQLRESULT_PARAMETERSTYPESENTRY.has_options = True
 _EXPLAINYQLRESULT_PARAMETERSTYPESENTRY._options = _descriptor._ParseOptions(descriptor_pb2.MessageOptions(), _b('8\001'))
 # @@protoc_insertion_point(module_scope)

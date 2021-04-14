@@ -20,7 +20,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='kikimr/public/api/grpc/draft/streaming_v1.proto',
   package='Streaming.V1',
   syntax='proto3',
-  serialized_pb=_b('\n/kikimr/public/api/grpc/draft/streaming_v1.proto\x12\x0cStreaming.V1\x1a.kikimr/public/api/protos/draft/streaming.proto2c\n\x10StreamingService\x12O\n\x0c\x45xecuteQuery\x12\x1e.Streaming.ExecuteQueryRequest\x1a\x1f.Streaming.ExecuteQueryResponseB\x19\n\x17\x63om.yandex.streaming.v1b\x06proto3')
+  serialized_pb=_b('\n/kikimr/public/api/grpc/draft/streaming_v1.proto\x12\x0cStreaming.V1\x1a.kikimr/public/api/protos/draft/streaming.proto2\xd3\x02\n\x10StreamingService\x12O\n\x0cInstallQuery\x12\x1e.Streaming.InstallQueryRequest\x1a\x1f.Streaming.InstallQueryResponse\x12L\n\x0b\x44\x65leteQuery\x12\x1d.Streaming.DeleteQueryRequest\x1a\x1e.Streaming.DeleteQueryResponse\x12L\n\x0bListQueries\x12\x1d.Streaming.ListQueriesRequest\x1a\x1e.Streaming.ListQueriesResponse\x12R\n\rDescribeQuery\x12\x1f.Streaming.DescribeQueryRequest\x1a .Streaming.DescribeQueryResponseB\x19\n\x17\x63om.yandex.streaming.v1b\x06proto3')
   ,
   dependencies=[kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_streaming__pb2.DESCRIPTOR,])
 
@@ -38,16 +38,43 @@ _STREAMINGSERVICE = _descriptor.ServiceDescriptor(
   file=DESCRIPTOR,
   index=0,
   options=None,
-  serialized_start=113,
-  serialized_end=212,
+  serialized_start=114,
+  serialized_end=453,
   methods=[
   _descriptor.MethodDescriptor(
-    name='ExecuteQuery',
-    full_name='Streaming.V1.StreamingService.ExecuteQuery',
+    name='InstallQuery',
+    full_name='Streaming.V1.StreamingService.InstallQuery',
     index=0,
     containing_service=None,
-    input_type=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_streaming__pb2._EXECUTEQUERYREQUEST,
-    output_type=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_streaming__pb2._EXECUTEQUERYRESPONSE,
+    input_type=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_streaming__pb2._INSTALLQUERYREQUEST,
+    output_type=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_streaming__pb2._INSTALLQUERYRESPONSE,
+    options=None,
+  ),
+  _descriptor.MethodDescriptor(
+    name='DeleteQuery',
+    full_name='Streaming.V1.StreamingService.DeleteQuery',
+    index=1,
+    containing_service=None,
+    input_type=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_streaming__pb2._DELETEQUERYREQUEST,
+    output_type=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_streaming__pb2._DELETEQUERYRESPONSE,
+    options=None,
+  ),
+  _descriptor.MethodDescriptor(
+    name='ListQueries',
+    full_name='Streaming.V1.StreamingService.ListQueries',
+    index=2,
+    containing_service=None,
+    input_type=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_streaming__pb2._LISTQUERIESREQUEST,
+    output_type=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_streaming__pb2._LISTQUERIESRESPONSE,
+    options=None,
+  ),
+  _descriptor.MethodDescriptor(
+    name='DescribeQuery',
+    full_name='Streaming.V1.StreamingService.DescribeQuery',
+    index=3,
+    containing_service=None,
+    input_type=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_streaming__pb2._DESCRIBEQUERYREQUEST,
+    output_type=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_streaming__pb2._DESCRIBEQUERYRESPONSE,
     options=None,
   ),
 ])
