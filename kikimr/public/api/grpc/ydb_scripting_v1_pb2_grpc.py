@@ -21,8 +21,8 @@ class ScriptingServiceStub(object):
         )
     self.StreamExecuteYql = channel.unary_stream(
         '/Ydb.Scripting.V1.ScriptingService/StreamExecuteYql',
-        request_serializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__scripting__pb2.StreamExecuteYqlRequest.SerializeToString,
-        response_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__scripting__pb2.StreamExecuteYqlPartialResponse.FromString,
+        request_serializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__scripting__pb2.ExecuteYqlRequest.SerializeToString,
+        response_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__scripting__pb2.ExecuteYqlPartialResponse.FromString,
         )
     self.ExplainYql = channel.unary_unary(
         '/Ydb.Scripting.V1.ScriptingService/ExplainYql',
@@ -66,8 +66,8 @@ def add_ScriptingServiceServicer_to_server(servicer, server):
       ),
       'StreamExecuteYql': grpc.unary_stream_rpc_method_handler(
           servicer.StreamExecuteYql,
-          request_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__scripting__pb2.StreamExecuteYqlRequest.FromString,
-          response_serializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__scripting__pb2.StreamExecuteYqlPartialResponse.SerializeToString,
+          request_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__scripting__pb2.ExecuteYqlRequest.FromString,
+          response_serializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__scripting__pb2.ExecuteYqlPartialResponse.SerializeToString,
       ),
       'ExplainYql': grpc.unary_unary_rpc_method_handler(
           servicer.ExplainYql,

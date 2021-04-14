@@ -14,67 +14,37 @@ _sym_db = _symbol_database.Default()
 
 
 from kikimr.public.api.protos import ydb_operation_pb2 as kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2
+from kikimr.streaming.libs.control_plane.proto.public import control_plane_pb2 as kikimr_dot_streaming_dot_libs_dot_control__plane_dot_proto_dot_public_dot_control__plane__pb2
 
 
 DESCRIPTOR = _descriptor.FileDescriptor(
   name='kikimr/public/api/protos/draft/streaming.proto',
   package='Streaming',
   syntax='proto3',
-  serialized_pb=_b('\n.kikimr/public/api/protos/draft/streaming.proto\x12\tStreaming\x1a,kikimr/public/api/protos/ydb_operation.proto\"b\n\x13\x45xecuteQueryRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x10\n\x08yql_text\x18\x02 \x01(\t\"D\n\x14\x45xecuteQueryResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\'\n\x12\x45xecuteQueryResult\x12\x11\n\tresult_id\x18\x01 \x01(\tB*\n\x14\x63om.yandex.StreamingB\x0fStreamingProtos\xf8\x01\x01\x62\x06proto3')
+  serialized_pb=_b('\n.kikimr/public/api/protos/draft/streaming.proto\x12\tStreaming\x1a,kikimr/public/api/protos/ydb_operation.proto\x1a\x44kikimr/streaming/libs/control_plane/proto/public/control_plane.proto\"\x8f\x01\n\x13InstallQueryRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12=\n\x07request\x18\x02 \x01(\x0b\x32,.NStreams.NControlPlane.TInstallQueryRequest\"D\n\x14InstallQueryResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\x8d\x01\n\x12\x44\x65leteQueryRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12<\n\x07request\x18\x02 \x01(\x0b\x32+.NStreams.NControlPlane.TDeleteQueryRequest\"C\n\x13\x44\x65leteQueryResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\x8d\x01\n\x12ListQueriesRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12<\n\x07request\x18\x02 \x01(\x0b\x32+.NStreams.NControlPlane.TListQueriesRequest\"C\n\x13ListQueriesResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\x91\x01\n\x14\x44\x65scribeQueryRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12>\n\x07request\x18\x02 \x01(\x0b\x32-.NStreams.NControlPlane.TDescribeQueryRequest\"E\n\x15\x44\x65scribeQueryResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.OperationB*\n\x14\x63om.yandex.StreamingB\x0fStreamingProtos\xf8\x01\x01\x62\x06proto3')
   ,
-  dependencies=[kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2.DESCRIPTOR,])
+  dependencies=[kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2.DESCRIPTOR,kikimr_dot_streaming_dot_libs_dot_control__plane_dot_proto_dot_public_dot_control__plane__pb2.DESCRIPTOR,])
 
 
 
 
-_EXECUTEQUERYREQUEST = _descriptor.Descriptor(
-  name='ExecuteQueryRequest',
-  full_name='Streaming.ExecuteQueryRequest',
+_INSTALLQUERYREQUEST = _descriptor.Descriptor(
+  name='InstallQueryRequest',
+  full_name='Streaming.InstallQueryRequest',
   filename=None,
   file=DESCRIPTOR,
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='operation_params', full_name='Streaming.ExecuteQueryRequest.operation_params', index=0,
+      name='operation_params', full_name='Streaming.InstallQueryRequest.operation_params', index=0,
       number=1, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='yql_text', full_name='Streaming.ExecuteQueryRequest.yql_text', index=1,
-      number=2, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=_b("").decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  options=None,
-  is_extendable=False,
-  syntax='proto3',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=107,
-  serialized_end=205,
-)
-
-
-_EXECUTEQUERYRESPONSE = _descriptor.Descriptor(
-  name='ExecuteQueryResponse',
-  full_name='Streaming.ExecuteQueryResponse',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='operation', full_name='Streaming.ExecuteQueryResponse.operation', index=0,
-      number=1, type=11, cpp_type=10, label=1,
+      name='request', full_name='Streaming.InstallQueryRequest.request', index=1,
+      number=2, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -91,22 +61,22 @@ _EXECUTEQUERYRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=207,
-  serialized_end=275,
+  serialized_start=178,
+  serialized_end=321,
 )
 
 
-_EXECUTEQUERYRESULT = _descriptor.Descriptor(
-  name='ExecuteQueryResult',
-  full_name='Streaming.ExecuteQueryResult',
+_INSTALLQUERYRESPONSE = _descriptor.Descriptor(
+  name='InstallQueryResponse',
+  full_name='Streaming.InstallQueryResponse',
   filename=None,
   file=DESCRIPTOR,
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='result_id', full_name='Streaming.ExecuteQueryResult.result_id', index=0,
-      number=1, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=_b("").decode('utf-8'),
+      name='operation', full_name='Streaming.InstallQueryResponse.operation', index=0,
+      number=1, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
@@ -122,37 +92,294 @@ _EXECUTEQUERYRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=277,
-  serialized_end=316,
+  serialized_start=323,
+  serialized_end=391,
 )
 
-_EXECUTEQUERYREQUEST.fields_by_name['operation_params'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2._OPERATIONPARAMS
-_EXECUTEQUERYRESPONSE.fields_by_name['operation'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2._OPERATION
-DESCRIPTOR.message_types_by_name['ExecuteQueryRequest'] = _EXECUTEQUERYREQUEST
-DESCRIPTOR.message_types_by_name['ExecuteQueryResponse'] = _EXECUTEQUERYRESPONSE
-DESCRIPTOR.message_types_by_name['ExecuteQueryResult'] = _EXECUTEQUERYRESULT
+
+_DELETEQUERYREQUEST = _descriptor.Descriptor(
+  name='DeleteQueryRequest',
+  full_name='Streaming.DeleteQueryRequest',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='operation_params', full_name='Streaming.DeleteQueryRequest.operation_params', index=0,
+      number=1, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='request', full_name='Streaming.DeleteQueryRequest.request', index=1,
+      number=2, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=394,
+  serialized_end=535,
+)
+
+
+_DELETEQUERYRESPONSE = _descriptor.Descriptor(
+  name='DeleteQueryResponse',
+  full_name='Streaming.DeleteQueryResponse',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='operation', full_name='Streaming.DeleteQueryResponse.operation', index=0,
+      number=1, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=537,
+  serialized_end=604,
+)
+
+
+_LISTQUERIESREQUEST = _descriptor.Descriptor(
+  name='ListQueriesRequest',
+  full_name='Streaming.ListQueriesRequest',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='operation_params', full_name='Streaming.ListQueriesRequest.operation_params', index=0,
+      number=1, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='request', full_name='Streaming.ListQueriesRequest.request', index=1,
+      number=2, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=607,
+  serialized_end=748,
+)
+
+
+_LISTQUERIESRESPONSE = _descriptor.Descriptor(
+  name='ListQueriesResponse',
+  full_name='Streaming.ListQueriesResponse',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='operation', full_name='Streaming.ListQueriesResponse.operation', index=0,
+      number=1, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=750,
+  serialized_end=817,
+)
+
+
+_DESCRIBEQUERYREQUEST = _descriptor.Descriptor(
+  name='DescribeQueryRequest',
+  full_name='Streaming.DescribeQueryRequest',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='operation_params', full_name='Streaming.DescribeQueryRequest.operation_params', index=0,
+      number=1, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='request', full_name='Streaming.DescribeQueryRequest.request', index=1,
+      number=2, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=820,
+  serialized_end=965,
+)
+
+
+_DESCRIBEQUERYRESPONSE = _descriptor.Descriptor(
+  name='DescribeQueryResponse',
+  full_name='Streaming.DescribeQueryResponse',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='operation', full_name='Streaming.DescribeQueryResponse.operation', index=0,
+      number=1, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=967,
+  serialized_end=1036,
+)
+
+_INSTALLQUERYREQUEST.fields_by_name['operation_params'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2._OPERATIONPARAMS
+_INSTALLQUERYREQUEST.fields_by_name['request'].message_type = kikimr_dot_streaming_dot_libs_dot_control__plane_dot_proto_dot_public_dot_control__plane__pb2._TINSTALLQUERYREQUEST
+_INSTALLQUERYRESPONSE.fields_by_name['operation'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2._OPERATION
+_DELETEQUERYREQUEST.fields_by_name['operation_params'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2._OPERATIONPARAMS
+_DELETEQUERYREQUEST.fields_by_name['request'].message_type = kikimr_dot_streaming_dot_libs_dot_control__plane_dot_proto_dot_public_dot_control__plane__pb2._TDELETEQUERYREQUEST
+_DELETEQUERYRESPONSE.fields_by_name['operation'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2._OPERATION
+_LISTQUERIESREQUEST.fields_by_name['operation_params'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2._OPERATIONPARAMS
+_LISTQUERIESREQUEST.fields_by_name['request'].message_type = kikimr_dot_streaming_dot_libs_dot_control__plane_dot_proto_dot_public_dot_control__plane__pb2._TLISTQUERIESREQUEST
+_LISTQUERIESRESPONSE.fields_by_name['operation'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2._OPERATION
+_DESCRIBEQUERYREQUEST.fields_by_name['operation_params'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2._OPERATIONPARAMS
+_DESCRIBEQUERYREQUEST.fields_by_name['request'].message_type = kikimr_dot_streaming_dot_libs_dot_control__plane_dot_proto_dot_public_dot_control__plane__pb2._TDESCRIBEQUERYREQUEST
+_DESCRIBEQUERYRESPONSE.fields_by_name['operation'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2._OPERATION
+DESCRIPTOR.message_types_by_name['InstallQueryRequest'] = _INSTALLQUERYREQUEST
+DESCRIPTOR.message_types_by_name['InstallQueryResponse'] = _INSTALLQUERYRESPONSE
+DESCRIPTOR.message_types_by_name['DeleteQueryRequest'] = _DELETEQUERYREQUEST
+DESCRIPTOR.message_types_by_name['DeleteQueryResponse'] = _DELETEQUERYRESPONSE
+DESCRIPTOR.message_types_by_name['ListQueriesRequest'] = _LISTQUERIESREQUEST
+DESCRIPTOR.message_types_by_name['ListQueriesResponse'] = _LISTQUERIESRESPONSE
+DESCRIPTOR.message_types_by_name['DescribeQueryRequest'] = _DESCRIBEQUERYREQUEST
+DESCRIPTOR.message_types_by_name['DescribeQueryResponse'] = _DESCRIBEQUERYRESPONSE
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
-ExecuteQueryRequest = _reflection.GeneratedProtocolMessageType('ExecuteQueryRequest', (_message.Message,), dict(
-  DESCRIPTOR = _EXECUTEQUERYREQUEST,
+InstallQueryRequest = _reflection.GeneratedProtocolMessageType('InstallQueryRequest', (_message.Message,), dict(
+  DESCRIPTOR = _INSTALLQUERYREQUEST,
   __module__ = 'kikimr.public.api.protos.draft.streaming_pb2'
-  # @@protoc_insertion_point(class_scope:Streaming.ExecuteQueryRequest)
+  # @@protoc_insertion_point(class_scope:Streaming.InstallQueryRequest)
   ))
-_sym_db.RegisterMessage(ExecuteQueryRequest)
+_sym_db.RegisterMessage(InstallQueryRequest)
 
-ExecuteQueryResponse = _reflection.GeneratedProtocolMessageType('ExecuteQueryResponse', (_message.Message,), dict(
-  DESCRIPTOR = _EXECUTEQUERYRESPONSE,
+InstallQueryResponse = _reflection.GeneratedProtocolMessageType('InstallQueryResponse', (_message.Message,), dict(
+  DESCRIPTOR = _INSTALLQUERYRESPONSE,
   __module__ = 'kikimr.public.api.protos.draft.streaming_pb2'
-  # @@protoc_insertion_point(class_scope:Streaming.ExecuteQueryResponse)
+  # @@protoc_insertion_point(class_scope:Streaming.InstallQueryResponse)
   ))
-_sym_db.RegisterMessage(ExecuteQueryResponse)
+_sym_db.RegisterMessage(InstallQueryResponse)
 
-ExecuteQueryResult = _reflection.GeneratedProtocolMessageType('ExecuteQueryResult', (_message.Message,), dict(
-  DESCRIPTOR = _EXECUTEQUERYRESULT,
+DeleteQueryRequest = _reflection.GeneratedProtocolMessageType('DeleteQueryRequest', (_message.Message,), dict(
+  DESCRIPTOR = _DELETEQUERYREQUEST,
   __module__ = 'kikimr.public.api.protos.draft.streaming_pb2'
-  # @@protoc_insertion_point(class_scope:Streaming.ExecuteQueryResult)
+  # @@protoc_insertion_point(class_scope:Streaming.DeleteQueryRequest)
   ))
-_sym_db.RegisterMessage(ExecuteQueryResult)
+_sym_db.RegisterMessage(DeleteQueryRequest)
+
+DeleteQueryResponse = _reflection.GeneratedProtocolMessageType('DeleteQueryResponse', (_message.Message,), dict(
+  DESCRIPTOR = _DELETEQUERYRESPONSE,
+  __module__ = 'kikimr.public.api.protos.draft.streaming_pb2'
+  # @@protoc_insertion_point(class_scope:Streaming.DeleteQueryResponse)
+  ))
+_sym_db.RegisterMessage(DeleteQueryResponse)
+
+ListQueriesRequest = _reflection.GeneratedProtocolMessageType('ListQueriesRequest', (_message.Message,), dict(
+  DESCRIPTOR = _LISTQUERIESREQUEST,
+  __module__ = 'kikimr.public.api.protos.draft.streaming_pb2'
+  # @@protoc_insertion_point(class_scope:Streaming.ListQueriesRequest)
+  ))
+_sym_db.RegisterMessage(ListQueriesRequest)
+
+ListQueriesResponse = _reflection.GeneratedProtocolMessageType('ListQueriesResponse', (_message.Message,), dict(
+  DESCRIPTOR = _LISTQUERIESRESPONSE,
+  __module__ = 'kikimr.public.api.protos.draft.streaming_pb2'
+  # @@protoc_insertion_point(class_scope:Streaming.ListQueriesResponse)
+  ))
+_sym_db.RegisterMessage(ListQueriesResponse)
+
+DescribeQueryRequest = _reflection.GeneratedProtocolMessageType('DescribeQueryRequest', (_message.Message,), dict(
+  DESCRIPTOR = _DESCRIBEQUERYREQUEST,
+  __module__ = 'kikimr.public.api.protos.draft.streaming_pb2'
+  # @@protoc_insertion_point(class_scope:Streaming.DescribeQueryRequest)
+  ))
+_sym_db.RegisterMessage(DescribeQueryRequest)
+
+DescribeQueryResponse = _reflection.GeneratedProtocolMessageType('DescribeQueryResponse', (_message.Message,), dict(
+  DESCRIPTOR = _DESCRIBEQUERYRESPONSE,
+  __module__ = 'kikimr.public.api.protos.draft.streaming_pb2'
+  # @@protoc_insertion_point(class_scope:Streaming.DescribeQueryResponse)
+  ))
+_sym_db.RegisterMessage(DescribeQueryResponse)
 
 
 DESCRIPTOR.has_options = True
