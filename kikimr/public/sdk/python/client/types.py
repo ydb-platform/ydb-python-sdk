@@ -2,6 +2,23 @@
 import abc
 import enum
 from . import _utilities, _apis
+from datetime import date, datetime
+
+
+def _from_bytes(x, table_client_settings):
+    return _utilities.from_bytes(x)
+
+
+def _from_date_number(x, table_client_settings):
+    if table_client_settings is not None and table_client_settings._native_date_in_result_sets:
+        return date.fromordinal(x + date(1970, 1, 1).toordinal())
+    return x
+
+
+def _from_datetime_number(x, table_client_settings):
+    if table_client_settings is not None and table_client_settings._native_datetime_in_result_sets:
+        return datetime.utcfromtimestamp(x)
+    return x
 
 
 @enum.unique
@@ -23,32 +40,32 @@ class PrimitiveType(enum.Enum):
     Float = _apis.primitive_types.FLOAT, 'float_value'
 
     String = _apis.primitive_types.STRING, 'bytes_value'
-    Utf8 = _apis.primitive_types.UTF8, 'text_value', _utilities.from_bytes
+    Utf8 = _apis.primitive_types.UTF8, 'text_value', _from_bytes
 
     Yson = _apis.primitive_types.YSON, 'bytes_value'
-    Json = _apis.primitive_types.JSON, 'text_value', _utilities.from_bytes
-    JsonDocument = _apis.primitive_types.JSON_DOCUMENT, 'text_value', _utilities.from_bytes
+    Json = _apis.primitive_types.JSON, 'text_value', _from_bytes
+    JsonDocument = _apis.primitive_types.JSON_DOCUMENT, 'text_value', _from_bytes
 
-    Date = _apis.primitive_types.DATE, 'uint32_value'
-    Datetime = _apis.primitive_types.DATETIME, 'uint32_value'
+    Date = _apis.primitive_types.DATE, 'uint32_value', _from_date_number,
+    Datetime = _apis.primitive_types.DATETIME, 'uint32_value', _from_datetime_number,
     Timestamp = _apis.primitive_types.TIMESTAMP, 'uint64_value'
     Interval = _apis.primitive_types.INTERVAL, 'int64_value'
 
-    DyNumber = _apis.primitive_types.DYNUMBER, 'text_value', _utilities.from_bytes
+    DyNumber = _apis.primitive_types.DYNUMBER, 'text_value', _from_bytes
 
     def __init__(self, idn, proto_field, to_obj=None):
         self._idn_ = idn
         self._to_obj = to_obj
         self._proto_field = proto_field
 
-    def get_value(self, value_pb):
+    def get_value(self, value_pb, table_client_settings):
         """
         Extracts value from protocol buffer
         :param value_pb: A protocol buffer
         :return: A valid value of primitive type
         """
         if self._to_obj is not None:
-            return self._to_obj(getattr(value_pb, self._proto_field))
+            return self._to_obj(getattr(value_pb, self._proto_field), table_client_settings)
         return getattr(value_pb, self._proto_field)
 
     def set_value(self, pb, value):

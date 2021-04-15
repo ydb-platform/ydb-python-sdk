@@ -910,6 +910,16 @@ def retry_operation_sync(callee, retry_settings=None, *args, **kwargs):
 class TableClientSettings(object):
     def __init__(self):
         self._client_query_cache_enabled = True
+        self._native_datetime_in_result_sets = False
+        self._native_date_in_result_sets = False
+
+    def with_native_date_in_result_sets(self, enabled):
+        self._native_date_in_result_sets = enabled
+        return self
+
+    def with_native_datetime_in_result_sets(self, enabled):
+        self._native_datetime_in_result_sets = enabled
+        return self
 
     def with_client_query_cache(self, enabled):
         self._client_query_cache_enabled = enabled
@@ -917,9 +927,9 @@ class TableClientSettings(object):
 
 
 class ScanQueryResult(object):
-    def __init__(self, result):
+    def __init__(self, result, table_client_settings):
         self._result = result
-        self.result_set = convert.ResultSet.from_message(self._result.result_set)
+        self.result_set = convert.ResultSet.from_message(self._result.result_set, table_client_settings)
 
 
 class ScanQuery(object):
@@ -928,9 +938,9 @@ class ScanQuery(object):
         self.parameters_types = parameters_types
 
 
-def _wrap_scan_query_response(response):
+def _wrap_scan_query_response(response, table_client_settings):
     issues._process_response(response)
-    return ScanQueryResult(response.result)
+    return ScanQueryResult(response.result, table_client_settings)
 
 
 def _scan_query_request_factory(query, parameters=None, settings=None):
@@ -953,17 +963,17 @@ class TableClient(object):
         self._table_client_settings = TableClientSettings() if table_client_settings is None else table_client_settings
 
     def session(self):
-        return Session(self._driver, self._table_client_settings._client_query_cache_enabled)
+        return Session(self._driver, self._table_client_settings)
 
     def scan_query(self, query, parameters=None, settings=None):
         request = _scan_query_request_factory(query, parameters, settings)
         stream_it = self._driver(request, _apis.TableService.Stub, _apis.TableService.StreamExecuteScanQuery, settings=settings)
-        return _utilities.SyncResponseIterator(stream_it, _wrap_scan_query_response)
+        return _utilities.SyncResponseIterator(stream_it, lambda resp: _wrap_scan_query_response(resp, self._table_client_settings))
 
     def async_scan_query(self, query, parameters=None, settings=None):
         request = _scan_query_request_factory(query, parameters, settings)
         stream_it = self._driver(request, _apis.TableService.Stub, _apis.TableService.StreamExecuteScanQuery, settings=settings)
-        return _utilities.AsyncResponseIterator(stream_it, _wrap_scan_query_response)
+        return _utilities.AsyncResponseIterator(stream_it, lambda resp: _wrap_scan_query_response(resp, self._table_client_settings))
 
     @_utilities.wrap_async_call_exceptions
     def async_bulk_upsert(self, table_path, rows, column_types, settings=None):
@@ -1104,9 +1114,9 @@ class TableSchemeEntry(scheme.SchemeEntry):
 class Session(object):
     __slots__ = ('_state', '_driver', '__weakref__')
 
-    def __init__(self, driver, client_query_cache_enabled):
+    def __init__(self, driver, table_client_settings):
         self._driver = driver
-        self._state = _session_impl.SessionState(client_query_cache_enabled)
+        self._state = _session_impl.SessionState(table_client_settings)
 
     def __lt__(self, other):
         return self.session_id < other.session_id
