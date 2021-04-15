@@ -39,6 +39,16 @@ class DataStreamsServiceStub(object):
         request_serializer=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_datastreams__pb2.ListShardsRequest.SerializeToString,
         response_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_datastreams__pb2.ListShardsResponse.FromString,
         )
+    self.SetWriteQuota = channel.unary_unary(
+        '/Ydb.DataStreams.V1.DataStreamsService/SetWriteQuota',
+        request_serializer=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_datastreams__pb2.SetWriteQuotaRequest.SerializeToString,
+        response_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_datastreams__pb2.SetWriteQuotaResponse.FromString,
+        )
+    self.UpdateStream = channel.unary_unary(
+        '/Ydb.DataStreams.V1.DataStreamsService/UpdateStream',
+        request_serializer=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_datastreams__pb2.UpdateStreamRequest.SerializeToString,
+        response_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_datastreams__pb2.UpdateStreamResponse.FromString,
+        )
     self.PutRecord = channel.unary_unary(
         '/Ydb.DataStreams.V1.DataStreamsService/PutRecord',
         request_serializer=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_datastreams__pb2.PutRecordRequest.SerializeToString,
@@ -189,6 +199,20 @@ class DataStreamsServiceServicer(object):
     raise NotImplementedError('Method not implemented!')
 
   def ListShards(self, request, context):
+    # missing associated documentation comment in .proto file
+    pass
+    context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+    context.set_details('Method not implemented!')
+    raise NotImplementedError('Method not implemented!')
+
+  def SetWriteQuota(self, request, context):
+    # missing associated documentation comment in .proto file
+    pass
+    context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+    context.set_details('Method not implemented!')
+    raise NotImplementedError('Method not implemented!')
+
+  def UpdateStream(self, request, context):
     # missing associated documentation comment in .proto file
     pass
     context.set_code(grpc.StatusCode.UNIMPLEMENTED)
@@ -383,6 +407,16 @@ def add_DataStreamsServiceServicer_to_server(servicer, server):
           servicer.ListShards,
           request_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_datastreams__pb2.ListShardsRequest.FromString,
           response_serializer=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_datastreams__pb2.ListShardsResponse.SerializeToString,
+      ),
+      'SetWriteQuota': grpc.unary_unary_rpc_method_handler(
+          servicer.SetWriteQuota,
+          request_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_datastreams__pb2.SetWriteQuotaRequest.FromString,
+          response_serializer=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_datastreams__pb2.SetWriteQuotaResponse.SerializeToString,
+      ),
+      'UpdateStream': grpc.unary_unary_rpc_method_handler(
+          servicer.UpdateStream,
+          request_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_datastreams__pb2.UpdateStreamRequest.FromString,
+          response_serializer=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_datastreams__pb2.UpdateStreamResponse.SerializeToString,
       ),
       'PutRecord': grpc.unary_unary_rpc_method_handler(
           servicer.PutRecord,
