@@ -35,7 +35,7 @@ def _is_decimal_signed(hi_value):
     return (hi_value & _SIGN_BIT) == _SIGN_BIT
 
 
-def _pb_to_decimal(type_pb, value_pb):
+def _pb_to_decimal(type_pb, value_pb, table_client_settings):
     hi = (value_pb.high_128 - (1 << _SHIFT_BIT_COUNT)) if _is_decimal_signed(value_pb.high_128) else value_pb.high_128
     int128_value = value_pb.low_128 + (hi << _SHIFT_BIT_COUNT)
     if int128_value == _DecimalNanRepr:
@@ -47,37 +47,37 @@ def _pb_to_decimal(type_pb, value_pb):
     return decimal.Decimal(int128_value) / decimal.Decimal(10 ** type_pb.decimal_type.scale)
 
 
-def _pb_to_primitive(type_pb, value_pb):
-    return _primitive_type_by_id.get(type_pb.type_id).get_value(value_pb)
+def _pb_to_primitive(type_pb, value_pb, table_client_settings):
+    return _primitive_type_by_id.get(type_pb.type_id).get_value(value_pb, table_client_settings)
 
 
-def _pb_to_optional(type_pb, value_pb):
+def _pb_to_optional(type_pb, value_pb, table_client_settings):
     if value_pb.WhichOneof('value') == 'null_flag_value':
         return None
     if value_pb.WhichOneof('value') == 'nested_value':
-        return _to_native_value(type_pb.optional_type.item, value_pb.nested_value)
-    return _to_native_value(type_pb.optional_type.item, value_pb)
+        return _to_native_value(type_pb.optional_type.item, value_pb.nested_value, table_client_settings)
+    return _to_native_value(type_pb.optional_type.item, value_pb, table_client_settings)
 
 
-def _pb_to_list(type_pb, value_pb):
+def _pb_to_list(type_pb, value_pb, table_client_settings):
     return [
-        _to_native_value(type_pb.list_type.item, value_proto_item)
+        _to_native_value(type_pb.list_type.item, value_proto_item, table_client_settings)
         for value_proto_item in value_pb.items
     ]
 
 
-def _pb_to_tuple(type_pb, value_pb):
+def _pb_to_tuple(type_pb, value_pb, table_client_settings):
     return tuple(
-        _to_native_value(item_type, item_value)
+        _to_native_value(item_type, item_value, table_client_settings)
         for item_type, item_value in six.moves.zip(type_pb.tuple_type.elements, value_pb.items)
     )
 
 
-def _pb_to_dict(type_pb, value_pb):
+def _pb_to_dict(type_pb, value_pb, table_client_settings):
     result = {}
     for kv_pair in value_pb.pairs:
-        key = _to_native_value(type_pb.dict_type.key, kv_pair.key)
-        payload = _to_native_value(type_pb.dict_type.payload, kv_pair.payload)
+        key = _to_native_value(type_pb.dict_type.key, kv_pair.key, table_client_settings)
+        payload = _to_native_value(type_pb.dict_type.payload, kv_pair.payload, table_client_settings)
         result[key] = payload
     return result
 
@@ -86,14 +86,14 @@ class _Struct(_DotDict):
     pass
 
 
-def _pb_to_struct(type_pb, value_pb):
+def _pb_to_struct(type_pb, value_pb, table_client_settings):
     result = _Struct()
     for member, item in six.moves.zip(type_pb.struct_type.members, value_pb.items):
-        result[member.name] = _to_native_value(member.type, item)
+        result[member.name] = _to_native_value(member.type, item, table_client_settings)
     return result
 
 
-def _pb_to_void(type_pb, value_pb):
+def _pb_to_void(type_pb, value_pb, table_client_settings):
     return None
 
 
@@ -109,9 +109,9 @@ _to_native_map = {
 }
 
 
-def _to_native_value(type_pb, value_pb):
+def _to_native_value(type_pb, value_pb, table_client_settings=None):
     return _to_native_map.get(
-        type_pb.WhichOneof("type"))(type_pb, value_pb)
+        type_pb.WhichOneof("type"))(type_pb, value_pb, table_client_settings)
 
 
 def _decimal_to_int128(value_type, value):
@@ -283,12 +283,12 @@ class _ResultSet(object):
         self.truncated = truncated
 
     @classmethod
-    def from_message(cls, message):
+    def from_message(cls, message, table_client_settings=None):
         rows = []
         for row_proto in message.rows:
             row = _Row(message.columns)
             for column, value in six.moves.zip(message.columns, row_proto.items):
-                row[column.name] = _to_native_value(column.type, value)
+                row[column.name] = _to_native_value(column.type, value, table_client_settings)
             rows.append(row)
         return cls(message.columns, rows, message.truncated)
 
@@ -321,12 +321,13 @@ def to_native_value(typed_value):
 
 
 class ResultSets(list):
-    def __init__(self, result_sets_pb):
+    def __init__(self, result_sets_pb, table_client_settings=None):
         result_sets = []
         for result_set in result_sets_pb:
             result_sets.append(
                 _ResultSet.from_message(
-                    result_set
+                    result_set,
+                    table_client_settings,
                 )
             )
         super(ResultSets, self).__init__(result_sets)

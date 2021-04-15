@@ -364,13 +364,14 @@ def wrap_read_table_response(response):
 
 
 class SessionState(object):
-    def __init__(self, client_cache_enabled):
+    def __init__(self, table_client_settings):
         self._session_id = None
         self._query_cache = _utilities.LRUCache(1000)
         self._default = (None, None)
         self._pending_query = False
         self._endpoint = None
-        self._client_cache_enabled = client_cache_enabled
+        self._client_cache_enabled = table_client_settings._client_query_cache_enabled
+        self.table_client_settings = table_client_settings
 
     def __contains__(self, query):
         return self.lookup(query) != self._default
