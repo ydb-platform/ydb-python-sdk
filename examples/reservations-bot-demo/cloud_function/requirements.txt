@@ -8,7 +8,7 @@ grpcio==1.31.0
 idna==2.10
 protobuf==3.13.0
 pycparser==2.20
-pydantic==1.6.1
+pydantic==1.6.2
 PyJWT==1.7.1
 requests==2.24.0
 six==1.15.0
