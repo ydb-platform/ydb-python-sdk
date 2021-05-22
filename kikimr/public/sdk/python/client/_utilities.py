@@ -5,6 +5,7 @@ from concurrent import futures
 import functools
 import hashlib
 import collections
+from . import ydb_version
 
 try:
     from . import interceptor
@@ -29,7 +30,7 @@ def future():
 
 
 def x_ydb_sdk_build_info_header():
-    return ("x-ydb-sdk-build-info", "python_sdk_revision: 0.0.50")
+    return ("x-ydb-sdk-build-info", "ydb-python-sdk/" + ydb_version.VERSION)
 
 
 # Decorator that ensures no exceptions are leaked from decorated async call

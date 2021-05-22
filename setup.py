@@ -2,16 +2,15 @@
 import setuptools
 import os
 
-
-VERS = "0.0.1-dev"
-if os.path.exists('VERSION'):
-    with open('VERSION', 'r') as r:
-        VERS = r.read()
+try:
+    from ydb_version import VERSION
+except ImportError:
+    VERSION = "0.0.1-dev"
 
 
 setuptools.setup(
     name='ydb',
-    version=VERS,
+    version=VERSION,
     description='YDB Python library',
     author='Yandex LLC',
     author_email='ydb@yandex-team.ru',

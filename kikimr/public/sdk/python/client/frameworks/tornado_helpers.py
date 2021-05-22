@@ -59,4 +59,7 @@ async def retry_operation(callee, retry_settings=None, *args, **kwargs):
         if isinstance(next_opt, YdbRetryOperationSleepOpt):
             await tornado.gen.sleep(next_opt.timeout)
         else:
-            return await next_opt.result
+            try:
+                return await next_opt.result
+            except Exception as e:
+                next_opt.set_exception(e)

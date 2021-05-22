@@ -845,6 +845,10 @@ class YdbRetryOperationSleepOpt(object):
 class YdbRetryOperationFinalResult(object):
     def __init__(self, result):
         self.result = result
+        self.exc = None
+
+    def set_exception(self, exc):
+        self.exc = exc
 
 
 def retry_operation_impl(callee, retry_settings=None, *args, **kwargs):
@@ -854,7 +858,12 @@ def retry_operation_impl(callee, retry_settings=None, *args, **kwargs):
 
     for attempt in six.moves.range(retry_settings.max_retries + 1):
         try:
-            yield YdbRetryOperationFinalResult(callee(*args, **kwargs))
+            result = YdbRetryOperationFinalResult(callee(*args, **kwargs))
+            yield result
+
+            if result.exc is not None:
+                raise result.exc
+
         except (
                 issues.Aborted, issues.BadSession,
                 issues.NotFound, issues.InternalError) as e:
