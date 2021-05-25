@@ -483,6 +483,11 @@ class TtlSettings(object):
 class TableStats(object):
     def __init__(self):
         self.partitions = None
+        self.store_size = 0
+
+    def with_store_size(self, store_size):
+        self.store_size = store_size
+        return self
 
     def with_partitions(self, partitions):
         self.partitions = partitions
@@ -1115,6 +1120,11 @@ class TableSchemeEntry(scheme.SchemeEntry):
             if table_stats.partitions != 0:
                 self.table_stats = self.table_stats.with_partitions(
                     table_stats.partitions
+                )
+
+            if table_stats.store_size != 0:
+                self.table_stats = self.table_stats.with_store_size(
+                    table_stats.store_size
                 )
 
         self.attributes = attributes
