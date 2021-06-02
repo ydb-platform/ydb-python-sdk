@@ -52,5 +52,5 @@ def test_hashes_requires_update_of_versions_and_changelog():
 
     f = yatest_common.output_path("GOLDEN")
     with open(f, 'w') as golden:
-        golden.write(json.dumps(hashes))
+        golden.write(json.dumps(hashes, indent=4))
     return yatest_common.canonical_file(f)
