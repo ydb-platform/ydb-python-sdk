@@ -24,7 +24,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='kikimr/public/api/protos/draft/datastreams.proto',
   package='Ydb.DataStreams.V1',
   syntax='proto3',
-  serialized_pb=_b('\n0kikimr/public/api/protos/draft/datastreams.proto\x12\x12Ydb.DataStreams.V1\x1a google/protobuf/descriptor.proto\x1a,kikimr/public/api/protos/ydb_operation.proto\x1a/kikimr/public/api/protos/ydb_status_codes.proto\x1a\x34kikimr/public/api/protos/validation/validation.proto\".\n\x0f\x45nhancedMetrics\x12\x1b\n\x13shard_level_metrics\x18\x01 \x03(\t\"k\n\nChildShard\x12\x38\n\x0ehash_key_range\x18\x01 \x01(\x0b\x32 .Ydb.DataStreams.V1.HashKeyRange\x12\x15\n\rparent_shards\x18\x02 \x03(\t\x12\x0c\n\x04name\x18\x03 \x01(\t\"\xad\x01\n\x08\x43onsumer\x12\x14\n\x0c\x63onsumer_arn\x18\x01 \x01(\t\x12#\n\x1b\x63onsumer_creation_timestamp\x18\x02 \x01(\x05\x12\x15\n\rconsumer_name\x18\x03 \x01(\t\x12O\n\x0f\x63onsumer_status\x18\x04 \x01(\x0e\x32\x36.Ydb.DataStreams.V1.ConsumerDescription.ConsumerStatus\"B\n\x0cHashKeyRange\x12\x19\n\x11starting_hash_key\x18\x01 \x01(\t\x12\x17\n\x0f\x65nding_hash_key\x18\x02 \x01(\t\"\x91\x01\n\x06Record\x12\x11\n\ttimestamp\x18\x01 \x01(\x05\x12\x0c\n\x04\x64\x61ta\x18\x02 \x01(\x0c\x12\x36\n\nencryption\x18\x03 \x01(\x0e\x32\".Ydb.DataStreams.V1.EncryptionType\x12\x15\n\rpartition_key\x18\x04 \x01(\t\x12\x17\n\x0fsequence_number\x18\x05 \x01(\t\"\xa8\x04\n\x11StreamDescription\x12;\n\x0f\x65ncryption_type\x18\x01 \x01(\x0e\x32\".Ydb.DataStreams.V1.EncryptionType\x12@\n\x13\x65nhanced_monitoring\x18\x02 \x03(\x0b\x32#.Ydb.DataStreams.V1.EnhancedMetrics\x12\x17\n\x0fhas_more_shards\x18\x03 \x01(\x08\x12\x0e\n\x06key_id\x18\x04 \x01(\t\x12\x1e\n\x16retention_period_hours\x18\x05 \x01(\x05\x12)\n\x06shards\x18\x06 \x03(\x0b\x32\x19.Ydb.DataStreams.V1.Shard\x12\x12\n\nstream_arn\x18\x07 \x01(\t\x12!\n\x19stream_creation_timestamp\x18\x08 \x01(\x03\x12I\n\rstream_status\x18\t \x01(\x0e\x32\x32.Ydb.DataStreams.V1.StreamDescription.StreamStatus\x12\x13\n\x0bstream_name\x18\n \x01(\t\x12\x1e\n\x16write_quota_kb_per_sec\x18\x0b \x01(\x05\x12\r\n\x05owner\x18\x0c \x01(\t\"Z\n\x0cStreamStatus\x12\x14\n\x10STATUS_UNDEFINED\x10\x00\x12\x0c\n\x08\x43REATING\x10\x01\x12\x0c\n\x08\x44\x45LETING\x10\x02\x12\n\n\x06\x41\x43TIVE\x10\x03\x12\x0c\n\x08UPDATING\x10\x04\"W\n\x13SequenceNumberRange\x12 \n\x18starting_sequence_number\x18\x01 \x01(\t\x12\x1e\n\x16\x65nding_sequence_number\x18\x02 \x01(\t\"\xd4\x01\n\x05Shard\x12 \n\x18\x61\x64jacent_parent_shard_id\x18\x01 \x01(\t\x12\x38\n\x0ehash_key_range\x18\x02 \x01(\x0b\x32 .Ydb.DataStreams.V1.HashKeyRange\x12\x17\n\x0fparent_shard_id\x18\x03 \x01(\t\x12\x44\n\x13partition_key_range\x18\x04 \x01(\x0b\x32\'.Ydb.DataStreams.V1.SequenceNumberRange\x12\x10\n\x08shard_id\x18\x05 \x01(\t\"\x9a\x02\n\x13\x43onsumerDescription\x12\x14\n\x0c\x63onsumer_arn\x18\x01 \x01(\t\x12#\n\x1b\x63onsumer_creation_timestamp\x18\x02 \x01(\x03\x12\x15\n\rconsumer_name\x18\x03 \x01(\t\x12O\n\x0f\x63onsumer_status\x18\x04 \x01(\x0e\x32\x36.Ydb.DataStreams.V1.ConsumerDescription.ConsumerStatus\x12\x12\n\nstream_arn\x18\x05 \x01(\t\"L\n\x0e\x43onsumerStatus\x12\x12\n\x0eSTATUS_UNKNOWN\x10\x00\x12\x0c\n\x08\x43REATING\x10\x01\x12\x0c\n\x08\x44\x45LETING\x10\x02\x12\n\n\x06\x41\x43TIVE\x10\x03\"\x8a\x02\n\x0bShardFilter\x12\x10\n\x08shard_id\x18\x01 \x01(\t\x12\x11\n\ttimestamp\x18\x02 \x01(\x03\x12\x33\n\x04type\x18\x03 \x01(\x0e\x32%.Ydb.DataStreams.V1.ShardIteratorType\"\xa0\x01\n\x0fShardFilterType\x12\x18\n\x14SHARD_TYPE_UNDEFINED\x10\x00\x12\x12\n\x0e\x41\x46TER_SHARD_ID\x10\x01\x12\x13\n\x0f\x41T_TRIM_HORIZON\x10\x02\x12\x15\n\x11\x46ROM_TRIM_HORIZON\x10\x03\x12\r\n\tAT_LATEST\x10\x04\x12\x10\n\x0c\x41T_TIMESTAMP\x10\x05\x12\x12\n\x0e\x46ROM_TIMESTAMP\x10\x06\"s\n\x10StartingPosition\x12\x11\n\ttimestamp\x18\x01 \x01(\x03\x12\x17\n\x0fsequence_number\x18\x02 \x01(\t\x12\x33\n\x04type\x18\x03 \x01(\x0e\x32%.Ydb.DataStreams.V1.ShardIteratorType\"\x92\x03\n\x18StreamDescriptionSummary\x12\x16\n\x0e\x63onsumer_count\x18\x01 \x01(\x05\x12;\n\x0f\x65ncryption_type\x18\x02 \x01(\x0e\x32\".Ydb.DataStreams.V1.EncryptionType\x12@\n\x13\x65nhanced_monitoring\x18\x03 \x03(\x0b\x32#.Ydb.DataStreams.V1.EnhancedMetrics\x12\x0e\n\x06key_id\x18\x04 \x01(\t\x12\x18\n\x10open_shard_count\x18\x05 \x01(\x05\x12\x1e\n\x16retention_period_hours\x18\x06 \x01(\x05\x12\x12\n\nstream_arn\x18\x07 \x01(\t\x12!\n\x19stream_creation_timestamp\x18\x08 \x01(\x03\x12\x13\n\x0bstream_name\x18\t \x01(\t\x12I\n\rstream_status\x18\n \x01(\x0e\x32\x32.Ydb.DataStreams.V1.StreamDescription.StreamStatus\"\xbe\x01\n\x15SubscribeToShardEvent\x12\x34\n\x0c\x63hild_shards\x18\x01 \x03(\x0b\x32\x1e.Ydb.DataStreams.V1.ChildShard\x12$\n\x1c\x63ontinuation_sequence_number\x18\x02 \x01(\t\x12\x1c\n\x14millis_behind_latest\x18\x03 \x01(\x05\x12+\n\x07records\x18\x04 \x03(\x0b\x32\x1a.Ydb.DataStreams.V1.Record\"\x90\x08\n\x1bSubscribeToShardEventStream\x12\x64\n\x1ainternal_failure_exception\x18\x01 \x01(\x0b\x32>.Ydb.DataStreams.V1.SubscribeToShardEventStream.ExceptionEventH\x00\x12\x65\n\x1bkms_access_denied_exception\x18\x02 \x01(\x0b\x32>.Ydb.DataStreams.V1.SubscribeToShardEventStream.ExceptionEventH\x00\x12`\n\x16kms_disabled_exception\x18\x03 \x01(\x0b\x32>.Ydb.DataStreams.V1.SubscribeToShardEventStream.ExceptionEventH\x00\x12\x65\n\x1bkms_invalid_state_exception\x18\x04 \x01(\x0b\x32>.Ydb.DataStreams.V1.SubscribeToShardEventStream.ExceptionEventH\x00\x12\x61\n\x17kms_not_found_exception\x18\x05 \x01(\x0b\x32>.Ydb.DataStreams.V1.SubscribeToShardEventStream.ExceptionEventH\x00\x12]\n\x13kms_opt_in_required\x18\x06 \x01(\x0b\x32>.Ydb.DataStreams.V1.SubscribeToShardEventStream.ExceptionEventH\x00\x12\x62\n\x18kms_throttling_exception\x18\x07 \x01(\x0b\x32>.Ydb.DataStreams.V1.SubscribeToShardEventStream.ExceptionEventH\x00\x12\x63\n\x19resource_in_use_exception\x18\x08 \x01(\x0b\x32>.Ydb.DataStreams.V1.SubscribeToShardEventStream.ExceptionEventH\x00\x12\x66\n\x1cresource_not_found_exception\x18\t \x01(\x0b\x32>.Ydb.DataStreams.V1.SubscribeToShardEventStream.ExceptionEventH\x00\x12M\n\x18subscribe_to_shard_event\x18\n \x01(\x0b\x32).Ydb.DataStreams.V1.SubscribeToShardEventH\x00\x1a\x10\n\x0e\x45xceptionEventB\x07\n\x05\x65vent\"!\n\x03Tag\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t\"\xba\x01\n\x13\x43reateStreamRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x13\n\x0bstream_name\x18\x02 \x01(\t\x12\x13\n\x0bshard_count\x18\x03 \x01(\x05\x12\x1e\n\x16write_quota_kb_per_sec\x18\x04 \x01(\x05\x12\x1e\n\x16retention_period_hours\x18\x05 \x01(\x05\"D\n\x14\x43reateStreamResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\x14\n\x12\x43reateStreamResult\"\x88\x01\n\x13\x44\x65leteStreamRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12!\n\x19\x65nforce_consumer_deletion\x18\x02 \x01(\x08\x12\x13\n\x0bstream_name\x18\x03 \x01(\t\"D\n\x14\x44\x65leteStreamResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\x14\n\x12\x44\x65leteStreamResult\"\x83\x01\n\x12ListStreamsRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12#\n\x1b\x65xclusive_start_stream_name\x18\x02 \x01(\t\x12\r\n\x05limit\x18\x03 \x01(\x05\"C\n\x13ListStreamsResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"C\n\x11ListStreamsResult\x12\x18\n\x10has_more_streams\x18\x01 \x01(\x08\x12\x14\n\x0cstream_names\x18\x02 \x03(\t\"\x88\x02\n\x11ListShardsRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12 \n\x18\x65xclusive_start_shard_id\x18\x02 \x01(\t\x12\x13\n\x0bmax_results\x18\x03 \x01(\x05\x12\x12\n\nnext_token\x18\x04 \x01(\t\x12\x35\n\x0cshard_filter\x18\x05 \x01(\x0b\x32\x1f.Ydb.DataStreams.V1.ShardFilter\x12!\n\x19stream_creation_timestamp\x18\x06 \x01(\x03\x12\x13\n\x0bstream_name\x18\x07 \x01(\t\"B\n\x12ListShardsResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"Q\n\x10ListShardsResult\x12\x12\n\nnext_token\x18\x01 \x01(\t\x12)\n\x06shards\x18\x02 \x03(\x0b\x32\x19.Ydb.DataStreams.V1.Shard\"\x86\x01\n\x14SetWriteQuotaRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x13\n\x0bstream_name\x18\x02 \x01(\t\x12\x1e\n\x16write_quota_kb_per_sec\x18\x03 \x01(\x05\"E\n\x15SetWriteQuotaResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\x15\n\x13SetWriteQuotaResult\"\xc1\x01\n\x13UpdateStreamRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x13\n\x0bstream_name\x18\x02 \x01(\t\x12\x1e\n\x16write_quota_kb_per_sec\x18\x03 \x01(\x05\x12\x1a\n\x12target_shard_count\x18\x04 \x01(\x05\x12\x1e\n\x16retention_period_hours\x18\x05 \x01(\x05\"D\n\x14UpdateStreamResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\x14\n\x12UpdateStreamResult\"\xb7\x01\n\x1aListStreamConsumersRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x13\n\x0bmax_results\x18\x02 \x01(\x05\x12\x12\n\nnext_token\x18\x03 \x01(\t\x12\x12\n\nstream_arn\x18\x04 \x01(\t\x12!\n\x19stream_creation_timestamp\x18\x05 \x01(\x03\"K\n\x1bListStreamConsumersResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"`\n\x19ListStreamConsumersResult\x12\x12\n\nnext_token\x18\x01 \x01(\t\x12/\n\tconsumers\x18\x02 \x03(\x0b\x32\x1c.Ydb.DataStreams.V1.Consumer\"\x98\x01\n\x15\x44\x65scribeStreamRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12 \n\x18\x65xclusive_start_shard_id\x18\x02 \x01(\t\x12\r\n\x05limit\x18\x03 \x01(\x05\x12\x13\n\x0bstream_name\x18\x04 \x01(\t\"F\n\x16\x44\x65scribeStreamResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"R\n\x14\x44\x65scribeStreamResult\x12:\n\x0b\x64\x65scription\x18\x01 \x01(\x0b\x32%.Ydb.DataStreams.V1.StreamDescription\"\x85\x01\n\x1dRegisterStreamConsumerRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x15\n\rconsumer_name\x18\x02 \x01(\t\x12\x12\n\nstream_arn\x18\x03 \x01(\t\"N\n\x1eRegisterStreamConsumerResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"N\n\x1cRegisterStreamConsumerResult\x12.\n\x08\x63onsumer\x18\x01 \x01(\x0b\x32\x1c.Ydb.DataStreams.V1.Consumer\"\x9d\x01\n\x1f\x44\x65registerStreamConsumerRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x14\n\x0c\x63onsumer_arn\x18\x02 \x01(\t\x12\x15\n\rconsumer_name\x18\x03 \x01(\t\x12\x12\n\nstream_arn\x18\x04 \x01(\t\"P\n DeregisterStreamConsumerResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\" \n\x1e\x44\x65registerStreamConsumerResult\"\x9b\x01\n\x1d\x44\x65scribeStreamConsumerRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x14\n\x0c\x63onsumer_arn\x18\x02 \x01(\t\x12\x15\n\rconsumer_name\x18\x03 \x01(\t\x12\x12\n\nstream_arn\x18\x04 \x01(\t\"N\n\x1e\x44\x65scribeStreamConsumerResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"e\n\x1c\x44\x65scribeStreamConsumerResult\x12\x45\n\x14\x63onsumer_description\x18\x01 \x01(\x0b\x32\'.Ydb.DataStreams.V1.ConsumerDescription\"^\n\x16PutRecordsRequestEntry\x12\x12\n\x04\x64\x61ta\x18\x01 \x01(\x0c\x42\x04\xd8\xb0\x1c\x01\x12\x19\n\x11\x65xplicit_hash_key\x18\x02 \x01(\t\x12\x15\n\rpartition_key\x18\x03 \x01(\t\"\x93\x01\n\x15PutRecordsResultEntry\x12\'\n\x04\x63ode\x18\x01 \x01(\x0e\x32\x19.Ydb.StatusIds.StatusCode\x12\x15\n\rerror_message\x18\x02 \x01(\t\x12\x12\n\nerror_code\x18\x03 \x01(\t\x12\x17\n\x0fsequence_number\x18\x04 \x01(\t\x12\r\n\x05shard\x18\x05 \x01(\t\"u\n\x11GetRecordsRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\r\n\x05limit\x18\x02 \x01(\x05\x12\x16\n\x0eshard_iterator\x18\x03 \x01(\t\"B\n\x12GetRecordsResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\xb0\x01\n\x10GetRecordsResult\x12\x34\n\x0c\x63hild_shards\x18\x01 \x03(\x0b\x32\x1e.Ydb.DataStreams.V1.ChildShard\x12\x1c\n\x14millis_behind_latest\x18\x02 \x01(\x03\x12\x1b\n\x13next_shard_iterator\x18\x03 \x01(\t\x12+\n\x07records\x18\x04 \x03(\x0b\x32\x1a.Ydb.DataStreams.V1.Record\"\xc1\x01\n\x10PutRecordRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x12\n\x04\x64\x61ta\x18\x02 \x01(\x0c\x42\x04\xd8\xb0\x1c\x01\x12\x19\n\x11\x65xplicit_hash_key\x18\x03 \x01(\t\x12\x15\n\rpartition_key\x18\x04 \x01(\t\x12\x17\n\x0fsequence_number\x18\x05 \x01(\t\x12\x13\n\x0bstream_name\x18\x06 \x01(\t\"A\n\x11PutRecordResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"{\n\x0fPutRecordResult\x12;\n\x0f\x65ncryption_type\x18\x01 \x01(\x0e\x32\".Ydb.DataStreams.V1.EncryptionType\x12\x17\n\x0fsequence_number\x18\x02 \x01(\t\x12\x12\n\nshard_name\x18\x03 \x01(\t\"\xa0\x01\n\x11PutRecordsRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12;\n\x07records\x18\x02 \x03(\x0b\x32*.Ydb.DataStreams.V1.PutRecordsRequestEntry\x12\x13\n\x0bstream_name\x18\x03 \x01(\t\"B\n\x12PutRecordsResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\xa8\x01\n\x10PutRecordsResult\x12;\n\x0f\x65ncryption_type\x18\x01 \x01(\x0e\x32\".Ydb.DataStreams.V1.EncryptionType\x12\x1b\n\x13\x66\x61iled_record_count\x18\x02 \x01(\x05\x12:\n\x07records\x18\x03 \x03(\x0b\x32).Ydb.DataStreams.V1.PutRecordsResultEntry\"\xf4\x01\n\x17GetShardIteratorRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x10\n\x08shard_id\x18\x02 \x01(\t\x12\x42\n\x13shard_iterator_type\x18\x03 \x01(\x0e\x32%.Ydb.DataStreams.V1.ShardIteratorType\x12 \n\x18starting_sequence_number\x18\x04 \x01(\t\x12\x13\n\x0bstream_name\x18\x05 \x01(\t\x12\x11\n\ttimestamp\x18\x06 \x01(\x03\"H\n\x18GetShardIteratorResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"*\n\x16GetShardIteratorResult\x12\x10\n\x08iterator\x18\x01 \x01(\t\"\xbd\x01\n\x17SubscribeToShardRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x14\n\x0c\x63onsumer_arn\x18\x02 \x01(\t\x12\x10\n\x08shard_id\x18\x03 \x01(\t\x12?\n\x11starting_position\x18\x04 \x01(\x0b\x32$.Ydb.DataStreams.V1.StartingPosition\"H\n\x18SubscribeToShardResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"_\n\x16SubscribeToShardResult\x12\x45\n\x0c\x65vent_stream\x18\x01 \x01(\x0b\x32/.Ydb.DataStreams.V1.SubscribeToShardEventStream\"v\n\x16\x41\x64\x64TagsToStreamRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x13\n\x0bstream_name\x18\x02 \x01(\t\x12\x0c\n\x04tags\x18\x03 \x03(\t\"G\n\x17\x41\x64\x64TagsToStreamResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\x17\n\x15\x41\x64\x64TagsToStreamResult\"\x96\x01\n$DecreaseStreamRetentionPeriodRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x13\n\x0bstream_name\x18\x02 \x01(\t\x12\x1e\n\x16retention_period_hours\x18\x03 \x01(\x05\"U\n%DecreaseStreamRetentionPeriodResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"%\n#DecreaseStreamRetentionPeriodResult\"R\n\x15\x44\x65scribeLimitsRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\"F\n\x16\x44\x65scribeLimitsResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"E\n\x14\x44\x65scribeLimitsResult\x12\x18\n\x10open_shard_count\x18\x01 \x01(\x05\x12\x13\n\x0bshard_limit\x18\x02 \x01(\x05\"n\n\x1c\x44\x65scribeStreamSummaryRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x13\n\x0bstream_name\x18\x02 \x01(\t\"M\n\x1d\x44\x65scribeStreamSummaryResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\x1d\n\x1b\x44\x65scribeStreamSummaryResult\"\x8f\x01\n DisableEnhancedMonitoringRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x1b\n\x13shard_level_metrics\x18\x02 \x03(\t\x12\x13\n\x0bstream_name\x18\x03 \x01(\t\"Q\n!DisableEnhancedMonitoringResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\x80\x01\n\x1f\x44isableEnhancedMonitoringResult\x12#\n\x1b\x63urrent_shard_level_metrics\x18\x01 \x03(\t\x12#\n\x1b\x64\x65sired_shard_level_metrics\x18\x02 \x03(\t\x12\x13\n\x0bstream_name\x18\x03 \x01(\t\"\x8e\x01\n\x1f\x45nableEnhancedMonitoringRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x1b\n\x13shard_level_metrics\x18\x02 \x03(\t\x12\x13\n\x0bstream_name\x18\x03 \x01(\t\"P\n EnableEnhancedMonitoringResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\x7f\n\x1e\x45nableEnhancedMonitoringResult\x12#\n\x1b\x63urrent_shard_level_metrics\x18\x01 \x03(\t\x12#\n\x1b\x64\x65sired_shard_level_metrics\x18\x02 \x03(\t\x12\x13\n\x0bstream_name\x18\x03 \x01(\t\"\x96\x01\n$IncreaseStreamRetentionPeriodRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x1e\n\x16retention_period_hours\x18\x02 \x01(\x05\x12\x13\n\x0bstream_name\x18\x03 \x01(\t\"U\n%IncreaseStreamRetentionPeriodResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"%\n#IncreaseStreamRetentionPeriodResult\"\x9a\x01\n\x18ListTagsForStreamRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x1f\n\x17\x65xclusive_start_tag_key\x18\x02 \x01(\t\x12\r\n\x05limit\x18\x03 \x01(\x05\x12\x13\n\x0bstream_name\x18\x04 \x01(\t\"I\n\x19ListTagsForStreamResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"W\n\x17ListTagsForStreamResult\x12\x15\n\rhas_more_tags\x18\x01 \x01(\x08\x12%\n\x04tags\x18\x02 \x03(\x0b\x32\x17.Ydb.DataStreams.V1.Tag\"\x9d\x01\n\x12MergeShardsRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x1f\n\x17\x61\x64jacent_shard_to_merge\x18\x02 \x01(\t\x12\x16\n\x0eshard_to_merge\x18\x03 \x01(\t\x12\x13\n\x0bstream_name\x18\x04 \x01(\t\"C\n\x13MergeShardsResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\x13\n\x11MergeShardsResult\"\x7f\n\x1bRemoveTagsFromStreamRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x13\n\x0bstream_name\x18\x02 \x01(\t\x12\x10\n\x08tag_keys\x18\x03 \x03(\t\"L\n\x1cRemoveTagsFromStreamResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\x1c\n\x1aRemoveTagsFromStreamResult\"\x9a\x01\n\x11SplitShardRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x1d\n\x15new_starting_hash_key\x18\x02 \x01(\t\x12\x16\n\x0eshard_to_split\x18\x03 \x01(\t\x12\x13\n\x0bstream_name\x18\x04 \x01(\t\"B\n\x12SplitShardResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\x12\n\x10SplitShardResult\"\xbb\x01\n\x1cStartStreamEncryptionRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12;\n\x0f\x65ncryption_type\x18\x02 \x01(\x0e\x32\".Ydb.DataStreams.V1.EncryptionType\x12\x0e\n\x06key_id\x18\x03 \x01(\t\x12\x13\n\x0bstream_name\x18\x04 \x01(\t\"M\n\x1dStartStreamEncryptionResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\x1d\n\x1bStartStreamEncryptionResult\"\xba\x01\n\x1bStopStreamEncryptionRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12;\n\x0f\x65ncryption_type\x18\x02 \x01(\x0e\x32\".Ydb.DataStreams.V1.EncryptionType\x12\x0e\n\x06key_id\x18\x03 \x01(\t\x12\x13\n\x0bstream_name\x18\x04 \x01(\t\"L\n\x1cStopStreamEncryptionResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\x1c\n\x1aStopStreamEncryptionResult\"\x92\x02\n\x17UpdateShardCountRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12M\n\x0cscaling_type\x18\x02 \x01(\x0e\x32\x37.Ydb.DataStreams.V1.UpdateShardCountRequest.ScalingType\x12\x13\n\x0bstream_name\x18\x03 \x01(\t\x12\x1a\n\x12target_shard_count\x18\x04 \x01(\x05\"<\n\x0bScalingType\x12\x18\n\x14SCALING_TYPE_UNKNOWN\x10\x00\x12\x13\n\x0fUNIFORM_SCALING\x10\x01\"H\n\x18UpdateShardCountResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"f\n\x16UpdateShardCountResult\x12\x1b\n\x13\x63urrent_shard_count\x18\x01 \x01(\x05\x12\x13\n\x0bstream_name\x18\x02 \x01(\t\x12\x1a\n\x12target_shard_count\x18\x03 \x01(\x05*D\n\x18\x45\x46ieldTransformationType\x12\x12\n\x0eTRANSFORM_NONE\x10\x00\x12\x14\n\x10TRANSFORM_BASE64\x10\x01*S\n\x0e\x45ncryptionType\x12\x18\n\x14\x45NCRYPTION_UNDEFINED\x10\x00\x12\x12\n\x0e\x45NCRYPTION_KMS\x10\x01\x12\x13\n\x0f\x45NCRYPTION_NONE\x10\x02*\xdf\x01\n\x11ShardIteratorType\x12\x1c\n\x18SHARD_ITERATOR_UNDEFINED\x10\x00\x12%\n!SHARD_ITERATOR_AT_SEQUENCE_NUMBER\x10\x01\x12(\n$SHARD_ITERATOR_AFTER_SEQUENCE_NUMBER\x10\x02\x12\x1f\n\x1bSHARD_ITERATOR_AT_TIMESTAMP\x10\x03\x12\x1f\n\x1bSHARD_ITERATOR_TRIM_HORIZON\x10\x04\x12\x19\n\x15SHARD_ITERATOR_LATEST\x10\x05:g\n\x10\x46ieldTransformer\x12\x1d.google.protobuf.FieldOptions\x18\x8b\xc6\x03 \x01(\x0e\x32,.Ydb.DataStreams.V1.EFieldTransformationTypeB\"\n\x1d\x63om.yandex.ydb.datastreams.v1\xf8\x01\x01\x62\x06proto3')
+  serialized_pb=_b('\n0kikimr/public/api/protos/draft/datastreams.proto\x12\x12Ydb.DataStreams.V1\x1a google/protobuf/descriptor.proto\x1a,kikimr/public/api/protos/ydb_operation.proto\x1a/kikimr/public/api/protos/ydb_status_codes.proto\x1a\x34kikimr/public/api/protos/validation/validation.proto\".\n\x0f\x45nhancedMetrics\x12\x1b\n\x13shard_level_metrics\x18\x01 \x03(\t\"k\n\nChildShard\x12\x38\n\x0ehash_key_range\x18\x01 \x01(\x0b\x32 .Ydb.DataStreams.V1.HashKeyRange\x12\x15\n\rparent_shards\x18\x02 \x03(\t\x12\x0c\n\x04name\x18\x03 \x01(\t\"\xad\x01\n\x08\x43onsumer\x12\x14\n\x0c\x63onsumer_arn\x18\x01 \x01(\t\x12#\n\x1b\x63onsumer_creation_timestamp\x18\x02 \x01(\x05\x12\x15\n\rconsumer_name\x18\x03 \x01(\t\x12O\n\x0f\x63onsumer_status\x18\x04 \x01(\x0e\x32\x36.Ydb.DataStreams.V1.ConsumerDescription.ConsumerStatus\"B\n\x0cHashKeyRange\x12\x19\n\x11starting_hash_key\x18\x01 \x01(\t\x12\x17\n\x0f\x65nding_hash_key\x18\x02 \x01(\t\"\x91\x01\n\x06Record\x12\x11\n\ttimestamp\x18\x01 \x01(\x05\x12\x0c\n\x04\x64\x61ta\x18\x02 \x01(\x0c\x12\x36\n\nencryption\x18\x03 \x01(\x0e\x32\".Ydb.DataStreams.V1.EncryptionType\x12\x15\n\rpartition_key\x18\x04 \x01(\t\x12\x17\n\x0fsequence_number\x18\x05 \x01(\t\"\xa8\x04\n\x11StreamDescription\x12;\n\x0f\x65ncryption_type\x18\x01 \x01(\x0e\x32\".Ydb.DataStreams.V1.EncryptionType\x12@\n\x13\x65nhanced_monitoring\x18\x02 \x03(\x0b\x32#.Ydb.DataStreams.V1.EnhancedMetrics\x12\x17\n\x0fhas_more_shards\x18\x03 \x01(\x08\x12\x0e\n\x06key_id\x18\x04 \x01(\t\x12\x1e\n\x16retention_period_hours\x18\x05 \x01(\x05\x12)\n\x06shards\x18\x06 \x03(\x0b\x32\x19.Ydb.DataStreams.V1.Shard\x12\x12\n\nstream_arn\x18\x07 \x01(\t\x12!\n\x19stream_creation_timestamp\x18\x08 \x01(\x03\x12I\n\rstream_status\x18\t \x01(\x0e\x32\x32.Ydb.DataStreams.V1.StreamDescription.StreamStatus\x12\x13\n\x0bstream_name\x18\n \x01(\t\x12\x1e\n\x16write_quota_kb_per_sec\x18\x0b \x01(\x05\x12\r\n\x05owner\x18\x0c \x01(\t\"Z\n\x0cStreamStatus\x12\x14\n\x10STATUS_UNDEFINED\x10\x00\x12\x0c\n\x08\x43REATING\x10\x01\x12\x0c\n\x08\x44\x45LETING\x10\x02\x12\n\n\x06\x41\x43TIVE\x10\x03\x12\x0c\n\x08UPDATING\x10\x04\"W\n\x13SequenceNumberRange\x12 \n\x18starting_sequence_number\x18\x01 \x01(\t\x12\x1e\n\x16\x65nding_sequence_number\x18\x02 \x01(\t\"\xd4\x01\n\x05Shard\x12 \n\x18\x61\x64jacent_parent_shard_id\x18\x01 \x01(\t\x12\x38\n\x0ehash_key_range\x18\x02 \x01(\x0b\x32 .Ydb.DataStreams.V1.HashKeyRange\x12\x17\n\x0fparent_shard_id\x18\x03 \x01(\t\x12\x44\n\x13partition_key_range\x18\x04 \x01(\x0b\x32\'.Ydb.DataStreams.V1.SequenceNumberRange\x12\x10\n\x08shard_id\x18\x05 \x01(\t\"\x9a\x02\n\x13\x43onsumerDescription\x12\x14\n\x0c\x63onsumer_arn\x18\x01 \x01(\t\x12#\n\x1b\x63onsumer_creation_timestamp\x18\x02 \x01(\x03\x12\x15\n\rconsumer_name\x18\x03 \x01(\t\x12O\n\x0f\x63onsumer_status\x18\x04 \x01(\x0e\x32\x36.Ydb.DataStreams.V1.ConsumerDescription.ConsumerStatus\x12\x12\n\nstream_arn\x18\x05 \x01(\t\"L\n\x0e\x43onsumerStatus\x12\x12\n\x0eSTATUS_UNKNOWN\x10\x00\x12\x0c\n\x08\x43REATING\x10\x01\x12\x0c\n\x08\x44\x45LETING\x10\x02\x12\n\n\x06\x41\x43TIVE\x10\x03\"\x8a\x02\n\x0bShardFilter\x12\x10\n\x08shard_id\x18\x01 \x01(\t\x12\x11\n\ttimestamp\x18\x02 \x01(\x03\x12\x33\n\x04type\x18\x03 \x01(\x0e\x32%.Ydb.DataStreams.V1.ShardIteratorType\"\xa0\x01\n\x0fShardFilterType\x12\x18\n\x14SHARD_TYPE_UNDEFINED\x10\x00\x12\x12\n\x0e\x41\x46TER_SHARD_ID\x10\x01\x12\x13\n\x0f\x41T_TRIM_HORIZON\x10\x02\x12\x15\n\x11\x46ROM_TRIM_HORIZON\x10\x03\x12\r\n\tAT_LATEST\x10\x04\x12\x10\n\x0c\x41T_TIMESTAMP\x10\x05\x12\x12\n\x0e\x46ROM_TIMESTAMP\x10\x06\"s\n\x10StartingPosition\x12\x11\n\ttimestamp\x18\x01 \x01(\x03\x12\x17\n\x0fsequence_number\x18\x02 \x01(\t\x12\x33\n\x04type\x18\x03 \x01(\x0e\x32%.Ydb.DataStreams.V1.ShardIteratorType\"\x92\x03\n\x18StreamDescriptionSummary\x12\x16\n\x0e\x63onsumer_count\x18\x01 \x01(\x05\x12;\n\x0f\x65ncryption_type\x18\x02 \x01(\x0e\x32\".Ydb.DataStreams.V1.EncryptionType\x12@\n\x13\x65nhanced_monitoring\x18\x03 \x03(\x0b\x32#.Ydb.DataStreams.V1.EnhancedMetrics\x12\x0e\n\x06key_id\x18\x04 \x01(\t\x12\x18\n\x10open_shard_count\x18\x05 \x01(\x05\x12\x1e\n\x16retention_period_hours\x18\x06 \x01(\x05\x12\x12\n\nstream_arn\x18\x07 \x01(\t\x12!\n\x19stream_creation_timestamp\x18\x08 \x01(\x03\x12\x13\n\x0bstream_name\x18\t \x01(\t\x12I\n\rstream_status\x18\n \x01(\x0e\x32\x32.Ydb.DataStreams.V1.StreamDescription.StreamStatus\"\xbe\x01\n\x15SubscribeToShardEvent\x12\x34\n\x0c\x63hild_shards\x18\x01 \x03(\x0b\x32\x1e.Ydb.DataStreams.V1.ChildShard\x12$\n\x1c\x63ontinuation_sequence_number\x18\x02 \x01(\t\x12\x1c\n\x14millis_behind_latest\x18\x03 \x01(\x05\x12+\n\x07records\x18\x04 \x03(\x0b\x32\x1a.Ydb.DataStreams.V1.Record\"\x90\x08\n\x1bSubscribeToShardEventStream\x12\x64\n\x1ainternal_failure_exception\x18\x01 \x01(\x0b\x32>.Ydb.DataStreams.V1.SubscribeToShardEventStream.ExceptionEventH\x00\x12\x65\n\x1bkms_access_denied_exception\x18\x02 \x01(\x0b\x32>.Ydb.DataStreams.V1.SubscribeToShardEventStream.ExceptionEventH\x00\x12`\n\x16kms_disabled_exception\x18\x03 \x01(\x0b\x32>.Ydb.DataStreams.V1.SubscribeToShardEventStream.ExceptionEventH\x00\x12\x65\n\x1bkms_invalid_state_exception\x18\x04 \x01(\x0b\x32>.Ydb.DataStreams.V1.SubscribeToShardEventStream.ExceptionEventH\x00\x12\x61\n\x17kms_not_found_exception\x18\x05 \x01(\x0b\x32>.Ydb.DataStreams.V1.SubscribeToShardEventStream.ExceptionEventH\x00\x12]\n\x13kms_opt_in_required\x18\x06 \x01(\x0b\x32>.Ydb.DataStreams.V1.SubscribeToShardEventStream.ExceptionEventH\x00\x12\x62\n\x18kms_throttling_exception\x18\x07 \x01(\x0b\x32>.Ydb.DataStreams.V1.SubscribeToShardEventStream.ExceptionEventH\x00\x12\x63\n\x19resource_in_use_exception\x18\x08 \x01(\x0b\x32>.Ydb.DataStreams.V1.SubscribeToShardEventStream.ExceptionEventH\x00\x12\x66\n\x1cresource_not_found_exception\x18\t \x01(\x0b\x32>.Ydb.DataStreams.V1.SubscribeToShardEventStream.ExceptionEventH\x00\x12M\n\x18subscribe_to_shard_event\x18\n \x01(\x0b\x32).Ydb.DataStreams.V1.SubscribeToShardEventH\x00\x1a\x10\n\x0e\x45xceptionEventB\x07\n\x05\x65vent\"!\n\x03Tag\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t\"\xba\x01\n\x13\x43reateStreamRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x13\n\x0bstream_name\x18\x02 \x01(\t\x12\x13\n\x0bshard_count\x18\x03 \x01(\x05\x12\x1e\n\x16write_quota_kb_per_sec\x18\x04 \x01(\x05\x12\x1e\n\x16retention_period_hours\x18\x05 \x01(\x05\"D\n\x14\x43reateStreamResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\x14\n\x12\x43reateStreamResult\"\x88\x01\n\x13\x44\x65leteStreamRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12!\n\x19\x65nforce_consumer_deletion\x18\x02 \x01(\x08\x12\x13\n\x0bstream_name\x18\x03 \x01(\t\"D\n\x14\x44\x65leteStreamResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\x14\n\x12\x44\x65leteStreamResult\"\x83\x01\n\x12ListStreamsRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12#\n\x1b\x65xclusive_start_stream_name\x18\x02 \x01(\t\x12\r\n\x05limit\x18\x03 \x01(\x05\"C\n\x13ListStreamsResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"C\n\x11ListStreamsResult\x12\x18\n\x10has_more_streams\x18\x01 \x01(\x08\x12\x14\n\x0cstream_names\x18\x02 \x03(\t\"\x88\x02\n\x11ListShardsRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12 \n\x18\x65xclusive_start_shard_id\x18\x02 \x01(\t\x12\x13\n\x0bmax_results\x18\x03 \x01(\x05\x12\x12\n\nnext_token\x18\x04 \x01(\t\x12\x35\n\x0cshard_filter\x18\x05 \x01(\x0b\x32\x1f.Ydb.DataStreams.V1.ShardFilter\x12!\n\x19stream_creation_timestamp\x18\x06 \x01(\x03\x12\x13\n\x0bstream_name\x18\x07 \x01(\t\"B\n\x12ListShardsResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"Q\n\x10ListShardsResult\x12\x12\n\nnext_token\x18\x01 \x01(\t\x12)\n\x06shards\x18\x02 \x03(\x0b\x32\x19.Ydb.DataStreams.V1.Shard\"\x86\x01\n\x14SetWriteQuotaRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x13\n\x0bstream_name\x18\x02 \x01(\t\x12\x1e\n\x16write_quota_kb_per_sec\x18\x03 \x01(\x05\"E\n\x15SetWriteQuotaResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\x15\n\x13SetWriteQuotaResult\"\xc1\x01\n\x13UpdateStreamRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x13\n\x0bstream_name\x18\x02 \x01(\t\x12\x1e\n\x16write_quota_kb_per_sec\x18\x03 \x01(\x05\x12\x1a\n\x12target_shard_count\x18\x04 \x01(\x05\x12\x1e\n\x16retention_period_hours\x18\x05 \x01(\x05\"D\n\x14UpdateStreamResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\x14\n\x12UpdateStreamResult\"\xb7\x01\n\x1aListStreamConsumersRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x13\n\x0bmax_results\x18\x02 \x01(\x05\x12\x12\n\nnext_token\x18\x03 \x01(\t\x12\x12\n\nstream_arn\x18\x04 \x01(\t\x12!\n\x19stream_creation_timestamp\x18\x05 \x01(\x03\"K\n\x1bListStreamConsumersResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"`\n\x19ListStreamConsumersResult\x12\x12\n\nnext_token\x18\x01 \x01(\t\x12/\n\tconsumers\x18\x02 \x03(\x0b\x32\x1c.Ydb.DataStreams.V1.Consumer\"\x98\x01\n\x15\x44\x65scribeStreamRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12 \n\x18\x65xclusive_start_shard_id\x18\x02 \x01(\t\x12\r\n\x05limit\x18\x03 \x01(\x05\x12\x13\n\x0bstream_name\x18\x04 \x01(\t\"F\n\x16\x44\x65scribeStreamResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"Y\n\x14\x44\x65scribeStreamResult\x12\x41\n\x12stream_description\x18\x01 \x01(\x0b\x32%.Ydb.DataStreams.V1.StreamDescription\"\x85\x01\n\x1dRegisterStreamConsumerRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x15\n\rconsumer_name\x18\x02 \x01(\t\x12\x12\n\nstream_arn\x18\x03 \x01(\t\"N\n\x1eRegisterStreamConsumerResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"N\n\x1cRegisterStreamConsumerResult\x12.\n\x08\x63onsumer\x18\x01 \x01(\x0b\x32\x1c.Ydb.DataStreams.V1.Consumer\"\x9d\x01\n\x1f\x44\x65registerStreamConsumerRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x14\n\x0c\x63onsumer_arn\x18\x02 \x01(\t\x12\x15\n\rconsumer_name\x18\x03 \x01(\t\x12\x12\n\nstream_arn\x18\x04 \x01(\t\"P\n DeregisterStreamConsumerResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\" \n\x1e\x44\x65registerStreamConsumerResult\"\x9b\x01\n\x1d\x44\x65scribeStreamConsumerRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x14\n\x0c\x63onsumer_arn\x18\x02 \x01(\t\x12\x15\n\rconsumer_name\x18\x03 \x01(\t\x12\x12\n\nstream_arn\x18\x04 \x01(\t\"N\n\x1e\x44\x65scribeStreamConsumerResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"e\n\x1c\x44\x65scribeStreamConsumerResult\x12\x45\n\x14\x63onsumer_description\x18\x01 \x01(\x0b\x32\'.Ydb.DataStreams.V1.ConsumerDescription\"^\n\x16PutRecordsRequestEntry\x12\x12\n\x04\x64\x61ta\x18\x01 \x01(\x0c\x42\x04\xd8\xb0\x1c\x01\x12\x19\n\x11\x65xplicit_hash_key\x18\x02 \x01(\t\x12\x15\n\rpartition_key\x18\x03 \x01(\t\"\x96\x01\n\x15PutRecordsResultEntry\x12\'\n\x04\x63ode\x18\x01 \x01(\x0e\x32\x19.Ydb.StatusIds.StatusCode\x12\x15\n\rerror_message\x18\x02 \x01(\t\x12\x12\n\nerror_code\x18\x03 \x01(\t\x12\x17\n\x0fsequence_number\x18\x04 \x01(\t\x12\x10\n\x08shard_id\x18\x05 \x01(\t\"u\n\x11GetRecordsRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\r\n\x05limit\x18\x02 \x01(\x05\x12\x16\n\x0eshard_iterator\x18\x03 \x01(\t\"B\n\x12GetRecordsResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\xb0\x01\n\x10GetRecordsResult\x12\x34\n\x0c\x63hild_shards\x18\x01 \x03(\x0b\x32\x1e.Ydb.DataStreams.V1.ChildShard\x12\x1c\n\x14millis_behind_latest\x18\x02 \x01(\x03\x12\x1b\n\x13next_shard_iterator\x18\x03 \x01(\t\x12+\n\x07records\x18\x04 \x03(\x0b\x32\x1a.Ydb.DataStreams.V1.Record\"\xc1\x01\n\x10PutRecordRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x12\n\x04\x64\x61ta\x18\x02 \x01(\x0c\x42\x04\xd8\xb0\x1c\x01\x12\x19\n\x11\x65xplicit_hash_key\x18\x03 \x01(\t\x12\x15\n\rpartition_key\x18\x04 \x01(\t\x12\x17\n\x0fsequence_number\x18\x05 \x01(\t\x12\x13\n\x0bstream_name\x18\x06 \x01(\t\"A\n\x11PutRecordResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"y\n\x0fPutRecordResult\x12;\n\x0f\x65ncryption_type\x18\x01 \x01(\x0e\x32\".Ydb.DataStreams.V1.EncryptionType\x12\x17\n\x0fsequence_number\x18\x02 \x01(\t\x12\x10\n\x08shard_id\x18\x03 \x01(\t\"\xa0\x01\n\x11PutRecordsRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12;\n\x07records\x18\x02 \x03(\x0b\x32*.Ydb.DataStreams.V1.PutRecordsRequestEntry\x12\x13\n\x0bstream_name\x18\x03 \x01(\t\"B\n\x12PutRecordsResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\xa8\x01\n\x10PutRecordsResult\x12;\n\x0f\x65ncryption_type\x18\x01 \x01(\x0e\x32\".Ydb.DataStreams.V1.EncryptionType\x12\x1b\n\x13\x66\x61iled_record_count\x18\x02 \x01(\x05\x12:\n\x07records\x18\x03 \x03(\x0b\x32).Ydb.DataStreams.V1.PutRecordsResultEntry\"\xf4\x01\n\x17GetShardIteratorRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x10\n\x08shard_id\x18\x02 \x01(\t\x12\x42\n\x13shard_iterator_type\x18\x03 \x01(\x0e\x32%.Ydb.DataStreams.V1.ShardIteratorType\x12 \n\x18starting_sequence_number\x18\x04 \x01(\t\x12\x13\n\x0bstream_name\x18\x05 \x01(\t\x12\x11\n\ttimestamp\x18\x06 \x01(\x03\"H\n\x18GetShardIteratorResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"*\n\x16GetShardIteratorResult\x12\x10\n\x08iterator\x18\x01 \x01(\t\"\xbd\x01\n\x17SubscribeToShardRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x14\n\x0c\x63onsumer_arn\x18\x02 \x01(\t\x12\x10\n\x08shard_id\x18\x03 \x01(\t\x12?\n\x11starting_position\x18\x04 \x01(\x0b\x32$.Ydb.DataStreams.V1.StartingPosition\"H\n\x18SubscribeToShardResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"_\n\x16SubscribeToShardResult\x12\x45\n\x0c\x65vent_stream\x18\x01 \x01(\x0b\x32/.Ydb.DataStreams.V1.SubscribeToShardEventStream\"v\n\x16\x41\x64\x64TagsToStreamRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x13\n\x0bstream_name\x18\x02 \x01(\t\x12\x0c\n\x04tags\x18\x03 \x03(\t\"G\n\x17\x41\x64\x64TagsToStreamResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\x17\n\x15\x41\x64\x64TagsToStreamResult\"\x96\x01\n$DecreaseStreamRetentionPeriodRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x13\n\x0bstream_name\x18\x02 \x01(\t\x12\x1e\n\x16retention_period_hours\x18\x03 \x01(\x05\"U\n%DecreaseStreamRetentionPeriodResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"%\n#DecreaseStreamRetentionPeriodResult\"R\n\x15\x44\x65scribeLimitsRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\"F\n\x16\x44\x65scribeLimitsResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"E\n\x14\x44\x65scribeLimitsResult\x12\x18\n\x10open_shard_count\x18\x01 \x01(\x05\x12\x13\n\x0bshard_limit\x18\x02 \x01(\x05\"n\n\x1c\x44\x65scribeStreamSummaryRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x13\n\x0bstream_name\x18\x02 \x01(\t\"M\n\x1d\x44\x65scribeStreamSummaryResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\x1d\n\x1b\x44\x65scribeStreamSummaryResult\"\x8f\x01\n DisableEnhancedMonitoringRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x1b\n\x13shard_level_metrics\x18\x02 \x03(\t\x12\x13\n\x0bstream_name\x18\x03 \x01(\t\"Q\n!DisableEnhancedMonitoringResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\x80\x01\n\x1f\x44isableEnhancedMonitoringResult\x12#\n\x1b\x63urrent_shard_level_metrics\x18\x01 \x03(\t\x12#\n\x1b\x64\x65sired_shard_level_metrics\x18\x02 \x03(\t\x12\x13\n\x0bstream_name\x18\x03 \x01(\t\"\x8e\x01\n\x1f\x45nableEnhancedMonitoringRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x1b\n\x13shard_level_metrics\x18\x02 \x03(\t\x12\x13\n\x0bstream_name\x18\x03 \x01(\t\"P\n EnableEnhancedMonitoringResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\x7f\n\x1e\x45nableEnhancedMonitoringResult\x12#\n\x1b\x63urrent_shard_level_metrics\x18\x01 \x03(\t\x12#\n\x1b\x64\x65sired_shard_level_metrics\x18\x02 \x03(\t\x12\x13\n\x0bstream_name\x18\x03 \x01(\t\"\x96\x01\n$IncreaseStreamRetentionPeriodRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x1e\n\x16retention_period_hours\x18\x02 \x01(\x05\x12\x13\n\x0bstream_name\x18\x03 \x01(\t\"U\n%IncreaseStreamRetentionPeriodResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"%\n#IncreaseStreamRetentionPeriodResult\"\x9a\x01\n\x18ListTagsForStreamRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x1f\n\x17\x65xclusive_start_tag_key\x18\x02 \x01(\t\x12\r\n\x05limit\x18\x03 \x01(\x05\x12\x13\n\x0bstream_name\x18\x04 \x01(\t\"I\n\x19ListTagsForStreamResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"W\n\x17ListTagsForStreamResult\x12\x15\n\rhas_more_tags\x18\x01 \x01(\x08\x12%\n\x04tags\x18\x02 \x03(\x0b\x32\x17.Ydb.DataStreams.V1.Tag\"\x9d\x01\n\x12MergeShardsRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x1f\n\x17\x61\x64jacent_shard_to_merge\x18\x02 \x01(\t\x12\x16\n\x0eshard_to_merge\x18\x03 \x01(\t\x12\x13\n\x0bstream_name\x18\x04 \x01(\t\"C\n\x13MergeShardsResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\x13\n\x11MergeShardsResult\"\x7f\n\x1bRemoveTagsFromStreamRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x13\n\x0bstream_name\x18\x02 \x01(\t\x12\x10\n\x08tag_keys\x18\x03 \x03(\t\"L\n\x1cRemoveTagsFromStreamResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\x1c\n\x1aRemoveTagsFromStreamResult\"\x9a\x01\n\x11SplitShardRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x1d\n\x15new_starting_hash_key\x18\x02 \x01(\t\x12\x16\n\x0eshard_to_split\x18\x03 \x01(\t\x12\x13\n\x0bstream_name\x18\x04 \x01(\t\"B\n\x12SplitShardResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\x12\n\x10SplitShardResult\"\xbb\x01\n\x1cStartStreamEncryptionRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12;\n\x0f\x65ncryption_type\x18\x02 \x01(\x0e\x32\".Ydb.DataStreams.V1.EncryptionType\x12\x0e\n\x06key_id\x18\x03 \x01(\t\x12\x13\n\x0bstream_name\x18\x04 \x01(\t\"M\n\x1dStartStreamEncryptionResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\x1d\n\x1bStartStreamEncryptionResult\"\xba\x01\n\x1bStopStreamEncryptionRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12;\n\x0f\x65ncryption_type\x18\x02 \x01(\x0e\x32\".Ydb.DataStreams.V1.EncryptionType\x12\x0e\n\x06key_id\x18\x03 \x01(\t\x12\x13\n\x0bstream_name\x18\x04 \x01(\t\"L\n\x1cStopStreamEncryptionResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\x1c\n\x1aStopStreamEncryptionResult\"\x92\x02\n\x17UpdateShardCountRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12M\n\x0cscaling_type\x18\x02 \x01(\x0e\x32\x37.Ydb.DataStreams.V1.UpdateShardCountRequest.ScalingType\x12\x13\n\x0bstream_name\x18\x03 \x01(\t\x12\x1a\n\x12target_shard_count\x18\x04 \x01(\x05\"<\n\x0bScalingType\x12\x18\n\x14SCALING_TYPE_UNKNOWN\x10\x00\x12\x13\n\x0fUNIFORM_SCALING\x10\x01\"H\n\x18UpdateShardCountResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"f\n\x16UpdateShardCountResult\x12\x1b\n\x13\x63urrent_shard_count\x18\x01 \x01(\x05\x12\x13\n\x0bstream_name\x18\x02 \x01(\t\x12\x1a\n\x12target_shard_count\x18\x03 \x01(\x05*D\n\x18\x45\x46ieldTransformationType\x12\x12\n\x0eTRANSFORM_NONE\x10\x00\x12\x14\n\x10TRANSFORM_BASE64\x10\x01*S\n\x0e\x45ncryptionType\x12\x18\n\x14\x45NCRYPTION_UNDEFINED\x10\x00\x12\x12\n\x0e\x45NCRYPTION_KMS\x10\x01\x12\x13\n\x0f\x45NCRYPTION_NONE\x10\x02*\xdf\x01\n\x11ShardIteratorType\x12\x1c\n\x18SHARD_ITERATOR_UNDEFINED\x10\x00\x12%\n!SHARD_ITERATOR_AT_SEQUENCE_NUMBER\x10\x01\x12(\n$SHARD_ITERATOR_AFTER_SEQUENCE_NUMBER\x10\x02\x12\x1f\n\x1bSHARD_ITERATOR_AT_TIMESTAMP\x10\x03\x12\x1f\n\x1bSHARD_ITERATOR_TRIM_HORIZON\x10\x04\x12\x19\n\x15SHARD_ITERATOR_LATEST\x10\x05:g\n\x10\x46ieldTransformer\x12\x1d.google.protobuf.FieldOptions\x18\x8b\xc6\x03 \x01(\x0e\x32,.Ydb.DataStreams.V1.EFieldTransformationTypeB\"\n\x1d\x63om.yandex.ydb.datastreams.v1\xf8\x01\x01\x62\x06proto3')
   ,
   dependencies=[google_dot_protobuf_dot_descriptor__pb2.DESCRIPTOR,kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2.DESCRIPTOR,kikimr_dot_public_dot_api_dot_protos_dot_ydb__status__codes__pb2.DESCRIPTOR,kikimr_dot_public_dot_api_dot_protos_dot_validation_dot_validation__pb2.DESCRIPTOR,])
 
@@ -45,8 +45,8 @@ _EFIELDTRANSFORMATIONTYPE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=13492,
-  serialized_end=13560,
+  serialized_start=13500,
+  serialized_end=13568,
 )
 _sym_db.RegisterEnumDescriptor(_EFIELDTRANSFORMATIONTYPE)
 
@@ -72,8 +72,8 @@ _ENCRYPTIONTYPE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=13562,
-  serialized_end=13645,
+  serialized_start=13570,
+  serialized_end=13653,
 )
 _sym_db.RegisterEnumDescriptor(_ENCRYPTIONTYPE)
 
@@ -111,8 +111,8 @@ _SHARDITERATORTYPE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=13648,
-  serialized_end=13871,
+  serialized_start=13656,
+  serialized_end=13879,
 )
 _sym_db.RegisterEnumDescriptor(_SHARDITERATORTYPE)
 
@@ -261,8 +261,8 @@ _UPDATESHARDCOUNTREQUEST_SCALINGTYPE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=13252,
-  serialized_end=13312,
+  serialized_start=13260,
+  serialized_end=13320,
 )
 _sym_db.RegisterEnumDescriptor(_UPDATESHARDCOUNTREQUEST_SCALINGTYPE)
 
@@ -2056,7 +2056,7 @@ _DESCRIBESTREAMRESULT = _descriptor.Descriptor(
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='description', full_name='Ydb.DataStreams.V1.DescribeStreamResult.description', index=0,
+      name='stream_description', full_name='Ydb.DataStreams.V1.DescribeStreamResult.stream_description', index=0,
       number=1, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
@@ -2075,7 +2075,7 @@ _DESCRIBESTREAMRESULT = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=6319,
-  serialized_end=6401,
+  serialized_end=6408,
 )
 
 
@@ -2119,8 +2119,8 @@ _REGISTERSTREAMCONSUMERREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=6404,
-  serialized_end=6537,
+  serialized_start=6411,
+  serialized_end=6544,
 )
 
 
@@ -2150,8 +2150,8 @@ _REGISTERSTREAMCONSUMERRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=6539,
-  serialized_end=6617,
+  serialized_start=6546,
+  serialized_end=6624,
 )
 
 
@@ -2181,8 +2181,8 @@ _REGISTERSTREAMCONSUMERRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=6619,
-  serialized_end=6697,
+  serialized_start=6626,
+  serialized_end=6704,
 )
 
 
@@ -2233,8 +2233,8 @@ _DEREGISTERSTREAMCONSUMERREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=6700,
-  serialized_end=6857,
+  serialized_start=6707,
+  serialized_end=6864,
 )
 
 
@@ -2264,8 +2264,8 @@ _DEREGISTERSTREAMCONSUMERRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=6859,
-  serialized_end=6939,
+  serialized_start=6866,
+  serialized_end=6946,
 )
 
 
@@ -2288,8 +2288,8 @@ _DEREGISTERSTREAMCONSUMERRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=6941,
-  serialized_end=6973,
+  serialized_start=6948,
+  serialized_end=6980,
 )
 
 
@@ -2340,8 +2340,8 @@ _DESCRIBESTREAMCONSUMERREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=6976,
-  serialized_end=7131,
+  serialized_start=6983,
+  serialized_end=7138,
 )
 
 
@@ -2371,8 +2371,8 @@ _DESCRIBESTREAMCONSUMERRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=7133,
-  serialized_end=7211,
+  serialized_start=7140,
+  serialized_end=7218,
 )
 
 
@@ -2402,8 +2402,8 @@ _DESCRIBESTREAMCONSUMERRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=7213,
-  serialized_end=7314,
+  serialized_start=7220,
+  serialized_end=7321,
 )
 
 
@@ -2447,8 +2447,8 @@ _PUTRECORDSREQUESTENTRY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=7316,
-  serialized_end=7410,
+  serialized_start=7323,
+  serialized_end=7417,
 )
 
 
@@ -2488,7 +2488,7 @@ _PUTRECORDSRESULTENTRY = _descriptor.Descriptor(
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='shard', full_name='Ydb.DataStreams.V1.PutRecordsResultEntry.shard', index=4,
+      name='shard_id', full_name='Ydb.DataStreams.V1.PutRecordsResultEntry.shard_id', index=4,
       number=5, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
@@ -2506,8 +2506,8 @@ _PUTRECORDSRESULTENTRY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=7413,
-  serialized_end=7560,
+  serialized_start=7420,
+  serialized_end=7570,
 )
 
 
@@ -2551,8 +2551,8 @@ _GETRECORDSREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=7562,
-  serialized_end=7679,
+  serialized_start=7572,
+  serialized_end=7689,
 )
 
 
@@ -2582,8 +2582,8 @@ _GETRECORDSRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=7681,
-  serialized_end=7747,
+  serialized_start=7691,
+  serialized_end=7757,
 )
 
 
@@ -2634,8 +2634,8 @@ _GETRECORDSRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=7750,
-  serialized_end=7926,
+  serialized_start=7760,
+  serialized_end=7936,
 )
 
 
@@ -2700,8 +2700,8 @@ _PUTRECORDREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=7929,
-  serialized_end=8122,
+  serialized_start=7939,
+  serialized_end=8132,
 )
 
 
@@ -2731,8 +2731,8 @@ _PUTRECORDRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=8124,
-  serialized_end=8189,
+  serialized_start=8134,
+  serialized_end=8199,
 )
 
 
@@ -2758,7 +2758,7 @@ _PUTRECORDRESULT = _descriptor.Descriptor(
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='shard_name', full_name='Ydb.DataStreams.V1.PutRecordResult.shard_name', index=2,
+      name='shard_id', full_name='Ydb.DataStreams.V1.PutRecordResult.shard_id', index=2,
       number=3, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
@@ -2776,8 +2776,8 @@ _PUTRECORDRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=8191,
-  serialized_end=8314,
+  serialized_start=8201,
+  serialized_end=8322,
 )
 
 
@@ -2821,8 +2821,8 @@ _PUTRECORDSREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=8317,
-  serialized_end=8477,
+  serialized_start=8325,
+  serialized_end=8485,
 )
 
 
@@ -2852,8 +2852,8 @@ _PUTRECORDSRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=8479,
-  serialized_end=8545,
+  serialized_start=8487,
+  serialized_end=8553,
 )
 
 
@@ -2897,8 +2897,8 @@ _PUTRECORDSRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=8548,
-  serialized_end=8716,
+  serialized_start=8556,
+  serialized_end=8724,
 )
 
 
@@ -2963,8 +2963,8 @@ _GETSHARDITERATORREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=8719,
-  serialized_end=8963,
+  serialized_start=8727,
+  serialized_end=8971,
 )
 
 
@@ -2994,8 +2994,8 @@ _GETSHARDITERATORRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=8965,
-  serialized_end=9037,
+  serialized_start=8973,
+  serialized_end=9045,
 )
 
 
@@ -3025,8 +3025,8 @@ _GETSHARDITERATORRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=9039,
-  serialized_end=9081,
+  serialized_start=9047,
+  serialized_end=9089,
 )
 
 
@@ -3077,8 +3077,8 @@ _SUBSCRIBETOSHARDREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=9084,
-  serialized_end=9273,
+  serialized_start=9092,
+  serialized_end=9281,
 )
 
 
@@ -3108,8 +3108,8 @@ _SUBSCRIBETOSHARDRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=9275,
-  serialized_end=9347,
+  serialized_start=9283,
+  serialized_end=9355,
 )
 
 
@@ -3139,8 +3139,8 @@ _SUBSCRIBETOSHARDRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=9349,
-  serialized_end=9444,
+  serialized_start=9357,
+  serialized_end=9452,
 )
 
 
@@ -3184,8 +3184,8 @@ _ADDTAGSTOSTREAMREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=9446,
-  serialized_end=9564,
+  serialized_start=9454,
+  serialized_end=9572,
 )
 
 
@@ -3215,8 +3215,8 @@ _ADDTAGSTOSTREAMRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=9566,
-  serialized_end=9637,
+  serialized_start=9574,
+  serialized_end=9645,
 )
 
 
@@ -3239,8 +3239,8 @@ _ADDTAGSTOSTREAMRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=9639,
-  serialized_end=9662,
+  serialized_start=9647,
+  serialized_end=9670,
 )
 
 
@@ -3284,8 +3284,8 @@ _DECREASESTREAMRETENTIONPERIODREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=9665,
-  serialized_end=9815,
+  serialized_start=9673,
+  serialized_end=9823,
 )
 
 
@@ -3315,8 +3315,8 @@ _DECREASESTREAMRETENTIONPERIODRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=9817,
-  serialized_end=9902,
+  serialized_start=9825,
+  serialized_end=9910,
 )
 
 
@@ -3339,8 +3339,8 @@ _DECREASESTREAMRETENTIONPERIODRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=9904,
-  serialized_end=9941,
+  serialized_start=9912,
+  serialized_end=9949,
 )
 
 
@@ -3370,8 +3370,8 @@ _DESCRIBELIMITSREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=9943,
-  serialized_end=10025,
+  serialized_start=9951,
+  serialized_end=10033,
 )
 
 
@@ -3401,8 +3401,8 @@ _DESCRIBELIMITSRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=10027,
-  serialized_end=10097,
+  serialized_start=10035,
+  serialized_end=10105,
 )
 
 
@@ -3439,8 +3439,8 @@ _DESCRIBELIMITSRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=10099,
-  serialized_end=10168,
+  serialized_start=10107,
+  serialized_end=10176,
 )
 
 
@@ -3477,8 +3477,8 @@ _DESCRIBESTREAMSUMMARYREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=10170,
-  serialized_end=10280,
+  serialized_start=10178,
+  serialized_end=10288,
 )
 
 
@@ -3508,8 +3508,8 @@ _DESCRIBESTREAMSUMMARYRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=10282,
-  serialized_end=10359,
+  serialized_start=10290,
+  serialized_end=10367,
 )
 
 
@@ -3532,8 +3532,8 @@ _DESCRIBESTREAMSUMMARYRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=10361,
-  serialized_end=10390,
+  serialized_start=10369,
+  serialized_end=10398,
 )
 
 
@@ -3577,8 +3577,8 @@ _DISABLEENHANCEDMONITORINGREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=10393,
-  serialized_end=10536,
+  serialized_start=10401,
+  serialized_end=10544,
 )
 
 
@@ -3608,8 +3608,8 @@ _DISABLEENHANCEDMONITORINGRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=10538,
-  serialized_end=10619,
+  serialized_start=10546,
+  serialized_end=10627,
 )
 
 
@@ -3653,8 +3653,8 @@ _DISABLEENHANCEDMONITORINGRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=10622,
-  serialized_end=10750,
+  serialized_start=10630,
+  serialized_end=10758,
 )
 
 
@@ -3698,8 +3698,8 @@ _ENABLEENHANCEDMONITORINGREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=10753,
-  serialized_end=10895,
+  serialized_start=10761,
+  serialized_end=10903,
 )
 
 
@@ -3729,8 +3729,8 @@ _ENABLEENHANCEDMONITORINGRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=10897,
-  serialized_end=10977,
+  serialized_start=10905,
+  serialized_end=10985,
 )
 
 
@@ -3774,8 +3774,8 @@ _ENABLEENHANCEDMONITORINGRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=10979,
-  serialized_end=11106,
+  serialized_start=10987,
+  serialized_end=11114,
 )
 
 
@@ -3819,8 +3819,8 @@ _INCREASESTREAMRETENTIONPERIODREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=11109,
-  serialized_end=11259,
+  serialized_start=11117,
+  serialized_end=11267,
 )
 
 
@@ -3850,8 +3850,8 @@ _INCREASESTREAMRETENTIONPERIODRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=11261,
-  serialized_end=11346,
+  serialized_start=11269,
+  serialized_end=11354,
 )
 
 
@@ -3874,8 +3874,8 @@ _INCREASESTREAMRETENTIONPERIODRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=11348,
-  serialized_end=11385,
+  serialized_start=11356,
+  serialized_end=11393,
 )
 
 
@@ -3926,8 +3926,8 @@ _LISTTAGSFORSTREAMREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=11388,
-  serialized_end=11542,
+  serialized_start=11396,
+  serialized_end=11550,
 )
 
 
@@ -3957,8 +3957,8 @@ _LISTTAGSFORSTREAMRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=11544,
-  serialized_end=11617,
+  serialized_start=11552,
+  serialized_end=11625,
 )
 
 
@@ -3995,8 +3995,8 @@ _LISTTAGSFORSTREAMRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=11619,
-  serialized_end=11706,
+  serialized_start=11627,
+  serialized_end=11714,
 )
 
 
@@ -4047,8 +4047,8 @@ _MERGESHARDSREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=11709,
-  serialized_end=11866,
+  serialized_start=11717,
+  serialized_end=11874,
 )
 
 
@@ -4078,8 +4078,8 @@ _MERGESHARDSRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=11868,
-  serialized_end=11935,
+  serialized_start=11876,
+  serialized_end=11943,
 )
 
 
@@ -4102,8 +4102,8 @@ _MERGESHARDSRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=11937,
-  serialized_end=11956,
+  serialized_start=11945,
+  serialized_end=11964,
 )
 
 
@@ -4147,8 +4147,8 @@ _REMOVETAGSFROMSTREAMREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=11958,
-  serialized_end=12085,
+  serialized_start=11966,
+  serialized_end=12093,
 )
 
 
@@ -4178,8 +4178,8 @@ _REMOVETAGSFROMSTREAMRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=12087,
-  serialized_end=12163,
+  serialized_start=12095,
+  serialized_end=12171,
 )
 
 
@@ -4202,8 +4202,8 @@ _REMOVETAGSFROMSTREAMRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=12165,
-  serialized_end=12193,
+  serialized_start=12173,
+  serialized_end=12201,
 )
 
 
@@ -4254,8 +4254,8 @@ _SPLITSHARDREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=12196,
-  serialized_end=12350,
+  serialized_start=12204,
+  serialized_end=12358,
 )
 
 
@@ -4285,8 +4285,8 @@ _SPLITSHARDRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=12352,
-  serialized_end=12418,
+  serialized_start=12360,
+  serialized_end=12426,
 )
 
 
@@ -4309,8 +4309,8 @@ _SPLITSHARDRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=12420,
-  serialized_end=12438,
+  serialized_start=12428,
+  serialized_end=12446,
 )
 
 
@@ -4361,8 +4361,8 @@ _STARTSTREAMENCRYPTIONREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=12441,
-  serialized_end=12628,
+  serialized_start=12449,
+  serialized_end=12636,
 )
 
 
@@ -4392,8 +4392,8 @@ _STARTSTREAMENCRYPTIONRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=12630,
-  serialized_end=12707,
+  serialized_start=12638,
+  serialized_end=12715,
 )
 
 
@@ -4416,8 +4416,8 @@ _STARTSTREAMENCRYPTIONRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=12709,
-  serialized_end=12738,
+  serialized_start=12717,
+  serialized_end=12746,
 )
 
 
@@ -4468,8 +4468,8 @@ _STOPSTREAMENCRYPTIONREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=12741,
-  serialized_end=12927,
+  serialized_start=12749,
+  serialized_end=12935,
 )
 
 
@@ -4499,8 +4499,8 @@ _STOPSTREAMENCRYPTIONRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=12929,
-  serialized_end=13005,
+  serialized_start=12937,
+  serialized_end=13013,
 )
 
 
@@ -4523,8 +4523,8 @@ _STOPSTREAMENCRYPTIONRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=13007,
-  serialized_end=13035,
+  serialized_start=13015,
+  serialized_end=13043,
 )
 
 
@@ -4576,8 +4576,8 @@ _UPDATESHARDCOUNTREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=13038,
-  serialized_end=13312,
+  serialized_start=13046,
+  serialized_end=13320,
 )
 
 
@@ -4607,8 +4607,8 @@ _UPDATESHARDCOUNTRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=13314,
-  serialized_end=13386,
+  serialized_start=13322,
+  serialized_end=13394,
 )
 
 
@@ -4652,8 +4652,8 @@ _UPDATESHARDCOUNTRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=13388,
-  serialized_end=13490,
+  serialized_start=13396,
+  serialized_end=13498,
 )
 
 _CHILDSHARD.fields_by_name['hash_key_range'].message_type = _HASHKEYRANGE
@@ -4736,7 +4736,7 @@ _LISTSTREAMCONSUMERSRESPONSE.fields_by_name['operation'].message_type = kikimr_d
 _LISTSTREAMCONSUMERSRESULT.fields_by_name['consumers'].message_type = _CONSUMER
 _DESCRIBESTREAMREQUEST.fields_by_name['operation_params'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2._OPERATIONPARAMS
 _DESCRIBESTREAMRESPONSE.fields_by_name['operation'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2._OPERATION
-_DESCRIBESTREAMRESULT.fields_by_name['description'].message_type = _STREAMDESCRIPTION
+_DESCRIBESTREAMRESULT.fields_by_name['stream_description'].message_type = _STREAMDESCRIPTION
 _REGISTERSTREAMCONSUMERREQUEST.fields_by_name['operation_params'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2._OPERATIONPARAMS
 _REGISTERSTREAMCONSUMERRESPONSE.fields_by_name['operation'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2._OPERATION
 _REGISTERSTREAMCONSUMERRESULT.fields_by_name['consumer'].message_type = _CONSUMER
