@@ -3,6 +3,8 @@ import abc
 import enum
 from . import _utilities, _apis
 from datetime import date, datetime
+import uuid
+import struct
 
 
 def _from_bytes(x, table_client_settings):
@@ -19,6 +21,15 @@ def _from_datetime_number(x, table_client_settings):
     if table_client_settings is not None and table_client_settings._native_datetime_in_result_sets:
         return datetime.utcfromtimestamp(x)
     return x
+
+
+def _to_uuid(value_pb, table_client_settings):
+    return uuid.UUID(bytes_le=struct.pack("QQ", value_pb.low_128, value_pb.high_128))
+
+
+def _from_uuid(pb, value):
+    pb.low_128 = struct.unpack("Q", value.bytes_le[0:8])[0]
+    pb.high_128 = struct.unpack("Q", value.bytes_le[8:16])[0]
 
 
 @enum.unique
@@ -45,6 +56,7 @@ class PrimitiveType(enum.Enum):
     Yson = _apis.primitive_types.YSON, 'bytes_value'
     Json = _apis.primitive_types.JSON, 'text_value', _from_bytes
     JsonDocument = _apis.primitive_types.JSON_DOCUMENT, 'text_value', _from_bytes
+    UUID = _apis.primitive_types.UUID, None, _to_uuid, _from_uuid
 
     Date = _apis.primitive_types.DATE, 'uint32_value', _from_date_number,
     Datetime = _apis.primitive_types.DATETIME, 'uint32_value', _from_datetime_number,
@@ -53,9 +65,10 @@ class PrimitiveType(enum.Enum):
 
     DyNumber = _apis.primitive_types.DYNUMBER, 'text_value', _from_bytes
 
-    def __init__(self, idn, proto_field, to_obj=None):
+    def __init__(self, idn, proto_field, to_obj=None, from_obj=None):
         self._idn_ = idn
         self._to_obj = to_obj
+        self._from_obj = from_obj
         self._proto_field = proto_field
 
     def get_value(self, value_pb, table_client_settings):
@@ -64,8 +77,12 @@ class PrimitiveType(enum.Enum):
         :param value_pb: A protocol buffer
         :return: A valid value of primitive type
         """
-        if self._to_obj is not None:
+        if self._to_obj is not None and self._proto_field:
             return self._to_obj(getattr(value_pb, self._proto_field), table_client_settings)
+
+        if self._to_obj is not None:
+            return self._to_obj(value_pb, table_client_settings)
+
         return getattr(value_pb, self._proto_field)
 
     def set_value(self, pb, value):
@@ -75,7 +92,10 @@ class PrimitiveType(enum.Enum):
         :param value: A valid value to set
         :return: None
         """
-        setattr(pb, self._proto_field, value)
+        if self._from_obj:
+            self._from_obj(pb, value)
+        else:
+            setattr(pb, self._proto_field, value)
 
     def __str__(self):
         return self._name_

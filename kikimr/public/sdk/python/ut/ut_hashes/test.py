@@ -42,6 +42,8 @@ def test_hashes_requires_update_of_versions_and_changelog():
             if os.path.isdir(fp):
                 queue.append(fp)
             else:
+                if not fp.endswith('.py'):
+                    continue
 
                 with open(fp, 'r') as r:
                     data = r.read()
