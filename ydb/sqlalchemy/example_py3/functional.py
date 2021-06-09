@@ -7,7 +7,7 @@ import os
 import ydb
 import sqlalchemy as sa
 
-from ydb.sqlalchemy import register_dialect
+from ydb.sqlalchemy import register_dialect, ParametrizedFunction
 
 
 TOKEN_FILE = '~/.yt/token'
@@ -94,15 +94,27 @@ def run(table=table, stmt=stmt):
         print(table)
 
     print('### Table columns ###')
-    #columns = inspect.get_columns(table)
-    #for col in columns:
-    #    print(col)
+    columns = inspect.get_columns(table)
+    for col in columns:
+        print(col)
 
     print('\n### SQL ###')
     stmt_str = str(stmt.compile(
         dialect=engine.dialect,
         compile_kwargs=dict(literal_binds=True),
     ))
+
+    pexpr = ParametrizedFunction(
+        'Datetime::Format',
+        [sa.literal('%Y-%m-%d %H:%M:%S')],
+        sa.func.DateTime.FromSeconds(sa.literal(1568592000))
+    ).label('val')
+
+    pstm = sa.select([pexpr])
+    pstm_str = str(pstm.compile(dialect=engine.dialect, compile_kwargs=dict(literal_binds=True)))
+    res = engine.execute(pstm_str)
+    print(pstm_str)
+    print(res)
 
     print('\n### SQL ###')
     print(stmt_str)
