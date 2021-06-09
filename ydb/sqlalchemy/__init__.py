@@ -13,6 +13,8 @@ try:
     from sqlalchemy.engine.default import DefaultDialect
     from sqlalchemy.sql.compiler import IdentifierPreparer, GenericTypeCompiler, SQLCompiler
     from sqlalchemy import Table
+    from sqlalchemy.sql.elements import ClauseList
+    from sqlalchemy.sql import functions
     import sqlalchemy as sa
 
     class YqlIdentifierPreparer(IdentifierPreparer):
@@ -42,7 +44,40 @@ try:
         def visit_BOOLEAN(self, type_, **kw):
             return "BOOL"
 
+    class ParametrizedFunction(functions.Function):
+        __visit_name__ = 'parametrized_function'
+
+        def __init__(self, name, params, *args, **kwargs):
+            super(ParametrizedFunction, self).__init__(
+                name, *args, **kwargs)
+            self._func_name = name
+            self._func_params = params
+            self.params_expr = ClauseList(
+                operator=functions.operators.comma_op,
+                group_contents=True,
+                *params
+            ).self_group()
+
     class YqlCompiler(SQLCompiler):
+        def visit_parametrized_function(self, func, **kwargs):
+            name = func.name
+            name_parts = []
+            for name in name.split('::'):
+                fname = (
+                    self.preparer.quote(name)
+                    if self.preparer._requires_quotes_illegal_chars(name)
+                    or isinstance(name, sa.sql.elements.quoted_name)
+                    else name
+                )
+
+                name_parts.append(fname)
+
+            name = '::'.join(name_parts)
+            params = func.params_expr._compiler_dispatch(self, **kwargs)
+            args = self.function_argspec(func, **kwargs)
+            return "%(name)s%(params)s%(args)s" % dict(
+                name=name, params=params, args=args)
+
         def visit_function(self, func, add_to_result_map=None, **kwargs):
             # Copypaste of `sa.sql.compiler.SQLCompiler.visit_function` with
             # `::` as namespace separator instead of `.`
@@ -99,6 +134,7 @@ try:
         ydb.PrimitiveType.Datetime: sa.DATETIME,
         ydb.PrimitiveType.Timestamp: sa.DATETIME,
         ydb.PrimitiveType.Interval: sa.INTEGER,
+        ydb.PrimitiveType.Bool: sa.BOOLEAN,
     }
 
     def _get_column_type(t):
