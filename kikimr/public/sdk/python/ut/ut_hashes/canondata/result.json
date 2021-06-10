@@ -1,7 +1,7 @@
 {
     "test.test_hashes_requires_update_of_versions_and_changelog": {
-        "checksum": "b7d10aa2e4fb5bd99cd096052f7e98c8",
-        "size": 3402,
-        "uri": "https://storage.yandex-team.ru/get-devtools/1903885/0733821d70a4c97be9ab6d3f8768d9f3326b0c58/resource.tar.gz#test.test_hashes_requires_update_of_versions_and_changelog/GOLDEN"
+        "checksum": "4ee7aebe1a4f5418b6b9023d6d8ebb2c",
+        "size": 3790,
+        "uri": "https://storage.yandex-team.ru/get-devtools/1777230/8e9d39ef7f931816f8b91015cf1bf30d17a361e1/resource.tar.gz#test.test_hashes_requires_update_of_versions_and_changelog/GOLDEN"
     }
 }
