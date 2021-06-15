@@ -7,6 +7,7 @@ option java_outer_classname = "AnalyticsProtos";
 
 import "kikimr/public/api/protos/ydb_operation.proto";
 import "kikimr/public/api/protos/ydb_value.proto";
+import "kikimr/public/api/protos/ydb_issue_message.proto";
 
 import "google/protobuf/timestamp.proto";
 
@@ -221,6 +222,7 @@ message GetHistoryResult {
         google.protobuf.Timestamp modification_time = 20;
 
         QueryStatistics statistics = 21;
+        repeated Ydb.Issue.IssueMessage issues = 22;
     }
 
     repeated HistoryEntity history = 1;
@@ -274,10 +276,11 @@ message GetResultDataRequest {
     Ydb.Operations.OperationParams operation_params = 1;
     string history_id = 2;
     int32 result_set_id = 3;
-    int64 offset = 4;
+    int64 offset = 4; // change
     int64 limit = 5;
     string folder_id = 6;
     string cloud_id = 7;
+    string page_token = 8;
 }
 
 message GetResultDataResponse {
@@ -286,6 +289,7 @@ message GetResultDataResponse {
 
 message GetResultDataResult {
     Ydb.ResultSet result_set = 1;
+    string next_page_token = 2;
 }
 
 message ResultSetHeader {
