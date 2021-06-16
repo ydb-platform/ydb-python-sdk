@@ -923,7 +923,7 @@ def retry_operation_sync(callee, retry_settings=None, *args, **kwargs):
 
 class TableClientSettings(object):
     def __init__(self):
-        self._client_query_cache_enabled = True
+        self._client_query_cache_enabled = False
         self._native_datetime_in_result_sets = False
         self._native_date_in_result_sets = False
 
