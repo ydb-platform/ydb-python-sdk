@@ -21,6 +21,7 @@ class ConnectionsCache(object):
         self.logger = logging.getLogger(__name__)
         self.use_all_nodes = use_all_nodes
         self.conn_lst_order = (self.connections, ) if self.use_all_nodes else (self.preferred, self.connections)
+        self.fast_fail_subscriptions = set()
 
     def add(self, connection, preferred=False):
         if connection is None:
@@ -33,6 +34,9 @@ class ConnectionsCache(object):
             self.connections[connection.endpoint] = connection
             subscriptions = list(self.subscriptions)
             self.subscriptions.clear()
+
+            if len(self.connections) > 0:
+                self.complete_discovery(None)
 
         for subscription in subscriptions:
             subscription.set_result(None)
@@ -80,6 +84,26 @@ class ConnectionsCache(object):
             actual_connections = list(self.connections.values())
             for connection in actual_connections:
                 connection.close()
+
+    def complete_discovery(self, error):
+        with self.lock:
+            for subscription in self.fast_fail_subscriptions:
+                if error is None:
+                    subscription.set_result(None)
+                else:
+                    subscription.set_exception(error)
+
+            self.fast_fail_subscriptions.clear()
+
+    def add_fast_fail(self):
+        with self.lock:
+            subscription = futures.Future()
+            if len(self.connections) > 0:
+                subscription.set_result(None)
+                return subscription
+
+            self.fast_fail_subscriptions.add(subscription)
+            return subscription
 
     def subscribe(self):
         with self.lock:
@@ -212,6 +236,11 @@ class Discovery(threading.Thread):
                     break
 
                 successful = self.execute_discovery()
+                if successful:
+                    self._cache.complete_discovery(None)
+                else:
+                    self._cache.complete_discovery(issues.ConnectionFailure(str(self.discovery_debug_details())))
+
                 if self._should_stop.is_set():
                     break
 
@@ -252,20 +281,25 @@ class ConnectionPool(object):
         self._grpc_init.close()
         self._discovery_thread.join(timeout)
 
-    def async_wait(self):
+    def async_wait(self, fail_fast=False):
         """
         Returns a future to subscribe on endpoints availability.
         :return: A concurrent.futures.Future instance.
         """
+        if fail_fast:
+            return self._store.add_fast_fail()
         return self._store.subscribe()
 
-    def wait(self, timeout=None):
+    def wait(self, timeout=None, fail_fast=False):
         """
         Waits for endpoints to be are available to serve user requests
         :param timeout: A timeout to wait in seconds
         :return: None
         """
-        self._store.subscribe().result(timeout)
+        if fail_fast:
+            self._store.add_fast_fail().result(timeout)
+        else:
+            self._store.subscribe().result(timeout)
 
     def _on_disconnected(self, connection):
         """
