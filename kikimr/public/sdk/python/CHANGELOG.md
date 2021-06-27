@@ -1,3 +1,7 @@
+## 1.0.7 ##
+
+* allow to fail fast on driver wait
+
 ## 1.0.6 ##
 
 * disable client query cache by default

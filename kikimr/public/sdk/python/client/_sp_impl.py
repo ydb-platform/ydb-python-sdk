@@ -74,8 +74,8 @@ class SessionPoolImpl(object):
 
     def _delayed_prepare(self, session):
         try:
-            self._driver.wait(self._driver_await_timeout)
-        except futures.TimeoutError:
+            self._driver.wait(self._driver_await_timeout, fail_fast=False)
+        except Exception:
             pass
 
         self._prepare(session)
