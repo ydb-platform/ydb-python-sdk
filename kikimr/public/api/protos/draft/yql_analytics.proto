@@ -64,8 +64,6 @@ message Acl {
 }
 
 message ConnectionEntity {
-    string cloud_id = 100;
-    string folder_id = 1;
     string connection_id = 2; // create new if connection_id is empty
     string created_by = 3;
     string modified_by = 4;
@@ -88,11 +86,14 @@ message GetConnectionsResponse {
 message ModifyConnectionsRequest {
     Ydb.Operations.OperationParams operation_params = 1;
     repeated ConnectionEntity connection = 2;
+    string cloud_id = 3;
+    string folder_id = 4;
+    string idempotency_key = 5;
 }
 
 message ModifyConnectionsResult {
     repeated string connection_id = 1;
- }
+}
 
 message ModifyConnectionsResponse {
     Ydb.Operations.Operation operation = 1; // ModifyConnectionsResult
@@ -238,8 +239,9 @@ message ModifyHistoryRequest {
     Acl acl = 5;
     bool is_deleted = 6;
     string yql_text = 7;
-    EQueryStatus status = 8;
     Ydb.Operations.OperationParams operation_params = 9;
+
+    string idempotency_key = 10;
 }
 
 message ModifyHistoryResult{
@@ -250,37 +252,14 @@ message ModifyHistoryResponse {
     Ydb.Operations.Operation operation = 1; // ModifyHistoryResult
 }
 
-message ExecuteQueryRequest {
-    Ydb.Operations.OperationParams operation_params = 1;
-    string yql_text = 2;
-    EExecuteMode execute_mode = 3;
-    uint64 max_result_bytes = 4;
-    uint64 max_result_rows = 5;
-    uint32 expire_after_seconds = 6;
-    // Map of query parameters (optional)
-    map<string, Ydb.TypedValue> parameters = 7;
-    repeated Connection connections = 8;
-    string folder_id = 9;
-    string cloud_id = 10;
-}
-
-message ExecuteQueryResponse {
-    Ydb.Operations.Operation operation = 1; // ExecuteQueryResult
-}
-
-message ExecuteQueryResult {
-    string history_id = 1;
-}
-
 message GetResultDataRequest {
     Ydb.Operations.OperationParams operation_params = 1;
     string history_id = 2;
-    int32 result_set_id = 3;
-    int64 offset = 4; // change
-    int64 limit = 5;
-    string folder_id = 6;
-    string cloud_id = 7;
-    string page_token = 8;
+    uint32 result_set_id = 3;
+    uint64 limit = 4;
+    string folder_id = 5;
+    string cloud_id = 6;
+    string page_token = 7;
 }
 
 message GetResultDataResponse {
