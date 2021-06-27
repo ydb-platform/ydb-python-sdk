@@ -14,11 +14,6 @@ class AnalyticsServiceStub(object):
     Args:
       channel: A grpc.Channel.
     """
-    self.ExecuteQuery = channel.unary_unary(
-        '/Yql.Analytics.V1.AnalyticsService/ExecuteQuery',
-        request_serializer=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yql__analytics__pb2.ExecuteQueryRequest.SerializeToString,
-        response_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yql__analytics__pb2.ExecuteQueryResponse.FromString,
-        )
     self.GetResultData = channel.unary_unary(
         '/Yql.Analytics.V1.AnalyticsService/GetResultData',
         request_serializer=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yql__analytics__pb2.GetResultDataRequest.SerializeToString,
@@ -59,13 +54,6 @@ class AnalyticsServiceStub(object):
 class AnalyticsServiceServicer(object):
   # missing associated documentation comment in .proto file
   pass
-
-  def ExecuteQuery(self, request, context):
-    # missing associated documentation comment in .proto file
-    pass
-    context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-    context.set_details('Method not implemented!')
-    raise NotImplementedError('Method not implemented!')
 
   def GetResultData(self, request, context):
     # missing associated documentation comment in .proto file
@@ -119,11 +107,6 @@ class AnalyticsServiceServicer(object):
 
 def add_AnalyticsServiceServicer_to_server(servicer, server):
   rpc_method_handlers = {
-      'ExecuteQuery': grpc.unary_unary_rpc_method_handler(
-          servicer.ExecuteQuery,
-          request_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yql__analytics__pb2.ExecuteQueryRequest.FromString,
-          response_serializer=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yql__analytics__pb2.ExecuteQueryResponse.SerializeToString,
-      ),
       'GetResultData': grpc.unary_unary_rpc_method_handler(
           servicer.GetResultData,
           request_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yql__analytics__pb2.GetResultDataRequest.FromString,
