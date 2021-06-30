@@ -1,3 +1,7 @@
+## 1.0.8 ##
+
+* load YDB certificates by default
+
 ## 1.0.7 ##
 
 * allow to fail fast on driver wait

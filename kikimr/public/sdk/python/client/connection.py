@@ -8,6 +8,7 @@ import threading
 from google.protobuf import text_format
 import grpc
 from . import issues, _apis, _utilities
+from . import default_pem
 
 _stubs_list = (
     _apis.TableService.Stub,
@@ -252,8 +253,11 @@ def channel_factory(endpoint, driver_config):
 
     if driver_config.root_certificates is None and not driver_config.secure_channel:
         return grpc.insecure_channel(endpoint, options)
+    root_certificates = driver_config.root_certificates
+    if root_certificates is None:
+        root_certificates = default_pem.load_default_pem()
     credentials = grpc.ssl_channel_credentials(
-        driver_config.root_certificates, driver_config.private_key, driver_config.certificate_chain)
+        root_certificates, driver_config.private_key, driver_config.certificate_chain)
     return grpc.secure_channel(endpoint, credentials, options)
 
 
