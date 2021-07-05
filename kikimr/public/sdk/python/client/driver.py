@@ -21,13 +21,14 @@ def wrap_endpoint(endpoint):
 class DriverConfig(object):
     __slots__ = ('endpoint', 'database', 'ca_cert', 'channel_options', 'credentials', 'use_all_nodes',
                  'root_certificates', 'certificate_chain', 'private_key', 'grpc_keep_alive_timeout', 'secure_channel',
-                 'table_client_settings', 'endpoints')
+                 'table_client_settings', 'endpoints', 'primary_user_agent')
 
     def __init__(
             self, endpoint, database=None, ca_cert=None, auth_token=None,
             channel_options=None, credentials=None, use_all_nodes=False,
             root_certificates=None, certificate_chain=None, private_key=None,
-            grpc_keep_alive_timeout=None, table_client_settings=None, endpoints=None):
+            grpc_keep_alive_timeout=None, table_client_settings=None, endpoints=None,
+            primary_user_agent='python-library'):
         """
         A driver config to initialize a driver instance
         :param endpoint: A endpoint specified in pattern host:port to be used for initial
@@ -62,6 +63,7 @@ class DriverConfig(object):
         self.private_key = private_key
         self.grpc_keep_alive_timeout = grpc_keep_alive_timeout
         self.table_client_settings = table_client_settings
+        self.primary_user_agent = primary_user_agent
 
     def set_database(self, database):
         self.database = database
