@@ -1,3 +1,7 @@
+## 1.0.9 ##
+
+* allow custom user agent
+
 ## 1.0.8 ##
 
 * load YDB certificates by default

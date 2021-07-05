@@ -177,7 +177,7 @@ def _construct_channel_options(driver_config):
     _default_connect_options = [
         ('grpc.max_receive_message_length', _max_message_size),
         ('grpc.max_send_message_length', _max_message_size),
-        ('grpc.primary_user_agent', 'python-library'),
+        ('grpc.primary_user_agent', driver_config.primary_user_agent),
     ]
     if driver_config.grpc_keep_alive_timeout is not None:
         _default_connect_options.extend([
