@@ -1,3 +1,7 @@
+## 1.0.10 ##
+
+* pass issues to dbapi errors
+
 ## 1.0.9 ##
 
 * allow custom user agent

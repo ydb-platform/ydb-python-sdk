@@ -36,6 +36,9 @@ class Connection(object):
         try:
             res = self.pool.retry_operation_sync(lambda cli: cli.describe_table(full_path))
             return res.columns
+        except ydb.Error as e:
+            raise DatabaseError(e.message, e.issues, e.status)
+
         except Exception:
             raise DatabaseError("Failed to describe table %r" % (table_path,))
 
@@ -73,7 +76,10 @@ class Connection(object):
             **conn_kwargs)
         driver = ydb.Driver(driver_config)
         try:
-            driver.wait(timeout=5)
+            driver.wait(timeout=5, fail_fast=True)
+        except ydb.Error as e:
+            raise DatabaseError(e.message, e.issues, e.status)
+
         except Exception:
             driver.stop()
             raise DatabaseError('Failed to connect to YDB, details %s' % driver.discovery_debug_details())
