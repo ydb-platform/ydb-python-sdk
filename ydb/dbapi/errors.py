@@ -4,7 +4,11 @@ class Warning(Exception):
 
 
 class Error(Exception):
-    pass
+    def __init__(self, message, issues=None, status=None):
+        super(Error, self).__init__(message)
+        self.issues = issues
+        self.message = message
+        self.status = status
 
 
 class InterfaceError(Error):

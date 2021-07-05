@@ -94,7 +94,7 @@ class Cursor(object):
         try:
             chunks = self.connection.driver.table_client.scan_query(fsql)
         except ydb.Error as e:
-            raise DatabaseError(e.message)
+            raise DatabaseError(e.message, e.issues, e.status)
 
         self.description = []
 
@@ -127,7 +127,7 @@ class Cursor(object):
                 for row in chunk.result_set.rows:
                     yield nmd(**row)
         except ydb.Error as e:
-            raise DatabaseError(e.message)
+            raise DatabaseError(e.message, e.issues, e.status)
 
     def _ensure_prefetched(self):
         if self.rows is not None and self._rows_prefetched is None:
