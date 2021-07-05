@@ -1,0 +1,83 @@
+syntax = "proto3";
+option cc_enable_arenas = true;
+
+package Yql.Analytics;
+option java_package = "com.yandex.yql.analytics.internal";
+option java_outer_classname = "AnalyticsIntenalProtos";
+
+import "kikimr/public/api/protos/ydb_operation.proto";
+import "kikimr/public/api/protos/ydb_value.proto";
+import "kikimr/public/api/protos/ydb_issue_message.proto";
+
+import "kikimr/public/api/protos/draft/yql_analytics.proto";
+import "kikimr/public/api/protos/draft/yq.proto";
+
+import "google/protobuf/timestamp.proto";
+
+////////////////////////////////////////////////////////////
+
+message GetTaskRequest {
+}
+
+message GetTaskResult {
+    bool has_task = 1;
+    string result_id = 2;
+    string result_id_signature = 3;
+
+    string operation_id = 4;
+    string operation_id_signature = 5;
+
+    string content = 6;
+    repeated YandexQuery.Connection connection = 7;
+    repeated YandexQuery.Binding binding = 8;
+
+    string user_token = 9; // TODO: move to impersonation service
+    string token = 10;
+}
+
+message GetTaskResponse {
+    Ydb.Operations.Operation operation = 1; // GetTaskResult
+}
+
+message PingTaskRequest {
+    string operation_id = 1;
+    string operation_id_signature = 2;
+    string result_id = 3;
+    string result_id_signature = 4;
+    Yql.Analytics.EQueryStatus status = 5;
+    repeated Ydb.Issue.IssueMessage issues = 6;
+    uint32 result_set_count = 7;
+    string statistics = 8;
+    string serialized_headers = 9;
+    string executer_info = 10;
+    string ast = 11;
+    string plan = 12;
+
+    string token = 100;
+}
+
+message PingTaskResult {
+
+}
+
+message PingTaskResponse {
+    Ydb.Operations.Operation operation = 1; // PingTaskResult
+}
+
+message WriteTaskResultRequest {
+    string result_id = 1;
+    string result_id_signature = 2;
+    Ydb.ResultSet result_set = 3;
+    uint32 result_set_id = 4;
+    uint64 offset = 5;
+
+    string token = 100;
+}
+
+message WriteTaskResultResult {
+
+}
+
+message WriteTaskResultResponse {
+    Ydb.Operations.Operation operation = 1; // WriteRowsResultResult
+}
