@@ -1,3 +1,7 @@
+## 1.0.11 ##
+
+* add default credentials constructor
+
 ## 1.0.10 ##
 
 * pass issues to dbapi errors

@@ -76,7 +76,7 @@ def _rpc_error_handler(rpc_state, rpc_error, on_disconnected=None):
     logger.info("%s: received error, %s", rpc_state, rpc_error)
     if isinstance(rpc_error, grpc.Call):
         if rpc_error.code() == grpc.StatusCode.UNAUTHENTICATED:
-            return issues.Unauthenticated('User should be authenticated!')
+            return issues.Unauthenticated(rpc_error.details())
         elif rpc_error.code() == grpc.StatusCode.DEADLINE_EXCEEDED:
             return issues.DeadlineExceed('Deadline exceeded on request')
         elif rpc_error.code() == grpc.StatusCode.UNIMPLEMENTED:

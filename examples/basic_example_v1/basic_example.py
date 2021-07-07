@@ -2,7 +2,6 @@
 import os
 
 from kikimr.public.sdk.python import client as ydb
-from concurrent.futures import TimeoutError
 import basic_example_data
 
 FillDataQuery = """PRAGMA TablePathPrefix("{}");
@@ -55,166 +54,193 @@ FROM AS_TABLE($episodesData);
 """
 
 
-def fill_tables_with_data(session, path):
+def fill_tables_with_data(pool, path):
     global FillDataQuery
 
-    prepared_query = session.prepare(FillDataQuery.format(path))
-    session.transaction(ydb.SerializableReadWrite()).execute(
-        prepared_query, {
-            '$seriesData': basic_example_data.get_series_data(),
-            '$seasonsData': basic_example_data.get_seasons_data(),
-            '$episodesData': basic_example_data.get_episodes_data(),
-        },
-        commit_tx=True,
-    )
+    def callee(session):
+        prepared_query = session.prepare(FillDataQuery.format(path))
+        session.transaction(ydb.SerializableReadWrite()).execute(
+            prepared_query, {
+                '$seriesData': basic_example_data.get_series_data(),
+                '$seasonsData': basic_example_data.get_seasons_data(),
+                '$episodesData': basic_example_data.get_episodes_data(),
+            },
+            commit_tx=True,
+        )
+
+    return pool.retry_operation_sync(callee)
 
 
-def select_simple(session, path):
-    # new transaction in serializable read write mode
-    # if query successfully completed you will get result sets.
-    # otherwise exception will be raised
-    result_sets = session.transaction(ydb.SerializableReadWrite()).execute(
-        """
+def select_simple(pool, path):
+
+    def callee(session):
+        # new transaction in serializable read write mode
+        # if query successfully completed you will get result sets.
+        # otherwise exception will be raised
+        result_sets = session.transaction(ydb.SerializableReadWrite()).execute(
+            """
+            PRAGMA TablePathPrefix("{}");
+            $format = DateTime::Format("%Y-%m-%d");
+            SELECT
+                series_id,
+                title,
+                $format(DateTime::FromSeconds(CAST(DateTime::ToSeconds(DateTime::IntervalFromDays(CAST(release_date AS Int16))) AS Uint32))) AS release_date
+            FROM series
+            WHERE series_id = 1;
+            """.format(path),
+            commit_tx=True,
+        )
+        print("\n> select_simple_transaction:")
+        for row in result_sets[0].rows:
+            print("series, id: ", row.series_id, ", title: ", row.title, ", release date: ", row.release_date)
+
+        return result_sets[0]
+
+    return pool.retry_operation_sync(callee)
+
+
+def upsert_simple(pool, path):
+
+    def callee(session):
+        session.transaction().execute(
+            """
+            PRAGMA TablePathPrefix("{}");
+            UPSERT INTO episodes (series_id, season_id, episode_id, title) VALUES
+                (2, 6, 1, "TBD");
+            """.format(path),
+            commit_tx=True,
+        )
+
+    return pool.retry_operation_sync(callee)
+
+
+def select_prepared(pool, path, series_id, season_id, episode_id):
+
+    def callee(session):
+        query = """
         PRAGMA TablePathPrefix("{}");
+
+        DECLARE $seriesId AS Uint64;
+        DECLARE $seasonId AS Uint64;
+        DECLARE $episodeId AS Uint64;
+
         $format = DateTime::Format("%Y-%m-%d");
         SELECT
-            series_id,
             title,
-            $format(DateTime::FromSeconds(CAST(DateTime::ToSeconds(DateTime::IntervalFromDays(CAST(release_date AS Int16))) AS Uint32))) AS release_date
-        FROM series
-        WHERE series_id = 1;
-        """.format(path),
-        commit_tx=True,
-    )
-    print("\n> select_simple_transaction:")
-    for row in result_sets[0].rows:
-        print("series, id: ", row.series_id, ", title: ", row.title, ", release date: ", row.release_date)
+            $format(DateTime::FromSeconds(CAST(DateTime::ToSeconds(DateTime::IntervalFromDays(CAST(air_date AS Int16))) AS Uint32))) AS air_date
+        FROM episodes
+        WHERE series_id = $seriesId AND season_id = $seasonId AND episode_id = $episodeId;
+        """.format(path)
 
-    return result_sets[0]
+        prepared_query = session.prepare(query)
+        result_sets = session.transaction(ydb.SerializableReadWrite()).execute(
+            prepared_query, {
+                '$seriesId': series_id,
+                '$seasonId': season_id,
+                '$episodeId': episode_id,
+            },
+            commit_tx=True
+        )
+        print("\n> select_prepared_transaction:")
+        for row in result_sets[0].rows:
+            print("episode title:", row.title, ", air date:", row.air_date)
 
+        return result_sets[0]
 
-def upsert_simple(session, path):
-    session.transaction().execute(
-        """
-        PRAGMA TablePathPrefix("{}");
-        UPSERT INTO episodes (series_id, season_id, episode_id, title) VALUES
-            (2, 6, 1, "TBD");
-        """.format(path),
-        commit_tx=True,
-    )
-
-
-def select_prepared(session, path, series_id, season_id, episode_id):
-    query = """
-    PRAGMA TablePathPrefix("{}");
-
-    DECLARE $seriesId AS Uint64;
-    DECLARE $seasonId AS Uint64;
-    DECLARE $episodeId AS Uint64;
-
-    $format = DateTime::Format("%Y-%m-%d");
-    SELECT
-        title,
-        $format(DateTime::FromSeconds(CAST(DateTime::ToSeconds(DateTime::IntervalFromDays(CAST(air_date AS Int16))) AS Uint32))) AS air_date
-    FROM episodes
-    WHERE series_id = $seriesId AND season_id = $seasonId AND episode_id = $episodeId;
-    """.format(path)
-
-    prepared_query = session.prepare(query)
-    result_sets = session.transaction(ydb.SerializableReadWrite()).execute(
-        prepared_query, {
-            '$seriesId': series_id,
-            '$seasonId': season_id,
-            '$episodeId': episode_id,
-        },
-        commit_tx=True
-    )
-    print("\n> select_prepared_transaction:")
-    for row in result_sets[0].rows:
-        print("episode title:", row.title, ", air date:", row.air_date)
-
-    return result_sets[0]
+    return pool.retry_operation_sync(callee)
 
 
 # Show usage of explicit Begin/Commit transaction control calls.
 # In most cases it's better to use transaction control settings in session.transaction
 # calls instead to avoid additional hops to YDB cluster and allow more efficient
 # execution of queries.
-def explicit_tcl(session, path, series_id, season_id, episode_id):
-    query = """
-    PRAGMA TablePathPrefix("{}");
+def explicit_tcl(pool, path, series_id, season_id, episode_id):
 
-    DECLARE $seriesId AS Uint64;
-    DECLARE $seasonId AS Uint64;
-    DECLARE $episodeId AS Uint64;
+    def callee(session):
+        query = """
+        PRAGMA TablePathPrefix("{}");
 
-    UPDATE episodes
-    SET air_date = CAST(CurrentUtcDate() AS Uint64)
-    WHERE series_id = $seriesId AND season_id = $seasonId AND episode_id = $episodeId;
-    """.format(path)
-    prepared_query = session.prepare(query)
+        DECLARE $seriesId AS Uint64;
+        DECLARE $seasonId AS Uint64;
+        DECLARE $episodeId AS Uint64;
 
-    # Get newly created transaction id
-    tx = session.transaction(ydb.SerializableReadWrite()).begin()
+        UPDATE episodes
+        SET air_date = CAST(CurrentUtcDate() AS Uint64)
+        WHERE series_id = $seriesId AND season_id = $seasonId AND episode_id = $episodeId;
+        """.format(path)
+        prepared_query = session.prepare(query)
 
-    # Execute data query.
-    # Transaction control settings continues active transaction (tx)
-    tx.execute(
-        prepared_query, {
-            '$seriesId': series_id,
-            '$seasonId': season_id,
-            '$episodeId': episode_id
-        }
-    )
+        # Get newly created transaction id
+        tx = session.transaction(ydb.SerializableReadWrite()).begin()
 
-    print("\n> explicit TCL call")
+        # Execute data query.
+        # Transaction control settings continues active transaction (tx)
+        tx.execute(
+            prepared_query, {
+                '$seriesId': series_id,
+                '$seasonId': season_id,
+                '$episodeId': episode_id
+            }
+        )
 
-    # Commit active transaction(tx)
-    tx.commit()
+        print("\n> explicit TCL call")
 
+        # Commit active transaction(tx)
+        tx.commit()
 
-def create_tables(session, path):
-    # Creating Series table
-    session.create_table(
-        os.path.join(path, 'series'),
-        ydb.TableDescription()
-        .with_column(ydb.Column('series_id', ydb.OptionalType(ydb.PrimitiveType.Uint64)))
-        .with_column(ydb.Column('title', ydb.OptionalType(ydb.PrimitiveType.Utf8)))
-        .with_column(ydb.Column('series_info', ydb.OptionalType(ydb.PrimitiveType.Utf8)))
-        .with_column(ydb.Column('release_date', ydb.OptionalType(ydb.PrimitiveType.Uint64)))
-        .with_primary_key('series_id')
-    )
-
-    # Creating Seasons table
-    session.create_table(
-        os.path.join(path, 'seasons'),
-        ydb.TableDescription()
-        .with_column(ydb.Column('series_id', ydb.OptionalType(ydb.PrimitiveType.Uint64)))
-        .with_column(ydb.Column('season_id', ydb.OptionalType(ydb.PrimitiveType.Uint64)))
-        .with_column(ydb.Column('title', ydb.OptionalType(ydb.PrimitiveType.Utf8)))
-        .with_column(ydb.Column('first_aired', ydb.OptionalType(ydb.PrimitiveType.Uint64)))
-        .with_column(ydb.Column('last_aired', ydb.OptionalType(ydb.PrimitiveType.Uint64)))
-        .with_primary_keys('series_id', 'season_id')
-    )
-
-    # Creating Episodes table
-    session.create_table(
-        os.path.join(path, 'episodes'),
-        ydb.TableDescription()
-        .with_column(ydb.Column('series_id', ydb.OptionalType(ydb.PrimitiveType.Uint64)))
-        .with_column(ydb.Column('season_id', ydb.OptionalType(ydb.PrimitiveType.Uint64)))
-        .with_column(ydb.Column('episode_id', ydb.OptionalType(ydb.PrimitiveType.Uint64)))
-        .with_column(ydb.Column('title', ydb.OptionalType(ydb.PrimitiveType.Utf8)))
-        .with_column(ydb.Column('air_date', ydb.OptionalType(ydb.PrimitiveType.Uint64)))
-        .with_primary_keys('series_id', 'season_id', 'episode_id')
-    )
+    return pool.retry_operation_sync(callee)
 
 
-def describe_table(session, path, name):
-    result = session.describe_table(os.path.join(path, name))
-    print("\n> describe table: series")
-    for column in result.columns:
-        print("column, name:", column.name, ",", str(column.type.item).strip())
+def create_tables(pool, path):
+
+    def callee(session):
+        # Creating Series table
+        session.create_table(
+            os.path.join(path, 'series'),
+            ydb.TableDescription()
+            .with_column(ydb.Column('series_id', ydb.OptionalType(ydb.PrimitiveType.Uint64)))
+            .with_column(ydb.Column('title', ydb.OptionalType(ydb.PrimitiveType.Utf8)))
+            .with_column(ydb.Column('series_info', ydb.OptionalType(ydb.PrimitiveType.Utf8)))
+            .with_column(ydb.Column('release_date', ydb.OptionalType(ydb.PrimitiveType.Uint64)))
+            .with_primary_key('series_id')
+        )
+
+        # Creating Seasons table
+        session.create_table(
+            os.path.join(path, 'seasons'),
+            ydb.TableDescription()
+            .with_column(ydb.Column('series_id', ydb.OptionalType(ydb.PrimitiveType.Uint64)))
+            .with_column(ydb.Column('season_id', ydb.OptionalType(ydb.PrimitiveType.Uint64)))
+            .with_column(ydb.Column('title', ydb.OptionalType(ydb.PrimitiveType.Utf8)))
+            .with_column(ydb.Column('first_aired', ydb.OptionalType(ydb.PrimitiveType.Uint64)))
+            .with_column(ydb.Column('last_aired', ydb.OptionalType(ydb.PrimitiveType.Uint64)))
+            .with_primary_keys('series_id', 'season_id')
+        )
+
+        # Creating Episodes table
+        session.create_table(
+            os.path.join(path, 'episodes'),
+            ydb.TableDescription()
+            .with_column(ydb.Column('series_id', ydb.OptionalType(ydb.PrimitiveType.Uint64)))
+            .with_column(ydb.Column('season_id', ydb.OptionalType(ydb.PrimitiveType.Uint64)))
+            .with_column(ydb.Column('episode_id', ydb.OptionalType(ydb.PrimitiveType.Uint64)))
+            .with_column(ydb.Column('title', ydb.OptionalType(ydb.PrimitiveType.Utf8)))
+            .with_column(ydb.Column('air_date', ydb.OptionalType(ydb.PrimitiveType.Uint64)))
+            .with_primary_keys('series_id', 'season_id', 'episode_id')
+        )
+
+    return pool.retry_operation_sync(callee)
+
+
+def describe_table(pool, path, name):
+
+    def callee(session):
+        result = session.describe_table(os.path.join(path, name))
+        print("\n> describe table: series")
+        for column in result.columns:
+            print("column, name:", column.name, ",", str(column.type.item).strip())
+
+    return pool.retry_operation_sync(callee)
 
 
 def bulk_upsert(table_client, path):
@@ -252,38 +278,29 @@ def ensure_path_exists(driver, database, path):
 
 
 def run(endpoint, database, path):
-    driver_config = ydb.DriverConfig(
-        endpoint, database, credentials=ydb.construct_credentials_from_environ(),
-        root_certificates=ydb.load_ydb_root_certificate(),
-    )
-    with ydb.Driver(driver_config) as driver:
-        try:
-            driver.wait(timeout=5)
-        except TimeoutError:
-            print("Connect failed to YDB")
-            print("Last reported errors by discovery:")
-            print(driver.discovery_debug_details())
-            exit(1)
+    with ydb.Driver(endpoint=endpoint, database=database) as driver:
+        driver.wait(timeout=5, fail_fast=True)
 
-        session = driver.table_client.session().create()
-        ensure_path_exists(driver, database, path)
+        with ydb.SessionPool(driver) as pool:
 
-        full_path = os.path.join(database, path)
+            ensure_path_exists(driver, database, path)
 
-        create_tables(session, full_path)
+            full_path = os.path.join(database, path)
 
-        describe_table(session, full_path, "series")
+            create_tables(pool, full_path)
 
-        fill_tables_with_data(session, full_path)
+            describe_table(pool, full_path, "series")
 
-        select_simple(session, full_path)
+            fill_tables_with_data(pool, full_path)
 
-        upsert_simple(session, full_path)
+            select_simple(pool, full_path)
 
-        bulk_upsert(driver.table_client, full_path)
+            upsert_simple(pool, full_path)
 
-        select_prepared(session, full_path, 2, 3, 7)
-        select_prepared(session, full_path, 2, 3, 8)
+            bulk_upsert(driver.table_client, full_path)
 
-        explicit_tcl(session, full_path, 2, 6, 1)
-        select_prepared(session, full_path, 2, 6, 1)
+            select_prepared(pool, full_path, 2, 3, 7)
+            select_prepared(pool, full_path, 2, 3, 8)
+
+            explicit_tcl(pool, full_path, 2, 6, 1)
+            select_prepared(pool, full_path, 2, 6, 1)

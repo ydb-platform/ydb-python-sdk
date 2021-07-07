@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 from . import credentials as credentials_impl, table, scheme, pool
+import six
+import os
 
 
 _grpcs_protocol = 'grpcs://'
@@ -16,6 +18,46 @@ def wrap_endpoint(endpoint):
     if endpoint.startswith(_grpc_protocol):
         return endpoint[len(_grpc_protocol):]
     return endpoint
+
+
+def parse_connection_string(connection_string):
+    cs = connection_string
+    if not cs.startswith(_grpc_protocol) and not cs.startswith(_grpcs_protocol):
+        # default is grpcs
+        cs = _grpcs_protocol + cs
+
+    p = six.moves.urllib.parse.urlparse(connection_string)
+    b = six.moves.urllib.parse.parse_qs(p.query)
+    database = b.get('database', [])
+    assert len(database) > 0
+
+    return p.scheme + "://" + p.netloc , database[0]
+
+
+def default_credentials(credentials=None):
+    if credentials is not None:
+        return credentials
+
+    service_account_key_file = os.getenv("YDB_SERVICE_ACCOUNT_KEY_FILE_CREDENTIALS")
+    if service_account_key_file is not None:
+        from kikimr.public.sdk.python import iam
+        return iam.ServiceAccountCredentials.from_file(service_account_key_file)
+
+    anonymous_credetials = os.getenv("YDB_ANONYMOUS_CREDENTIALS", "0") == "1"
+    if anonymous_credetials:
+        return credentials_impl.AnonymousCredentials()
+
+    metadata_credentials = os.getenv("YDB_METADATA_CREDENTIALS", "0") == "1"
+    if metadata_credentials:
+        from kikimr.public.sdk.python import iam
+        return iam.MetadataUrlCredentials()
+
+    access_token = os.getenv("YDB_ACCESS_TOKEN_CREDENTIALS")
+    if access_token is not None:
+        return credentials_impl.AuthTokenCredentials(access_token)
+
+    from kikimr.public.sdk.python import iam
+    return iam.MetadataUrlCredentials()
 
 
 class DriverConfig(object):
@@ -69,6 +111,27 @@ class DriverConfig(object):
         self.database = database
         return self
 
+    @classmethod
+    def default_from_endpoint_and_database(cls, endpoint, database, root_certificates=None, credentials=None, **kwargs):
+        return cls(
+            endpoint,
+            database,
+            credentials=default_credentials(credentials),
+            root_certificates=root_certificates,
+            **kwargs
+        )
+
+    @classmethod
+    def default_from_connection_string(cls, connection_string, root_certificates=None, credentials=None, **kwargs):
+        endpoint, database = parse_connection_string(connection_string)
+        return cls(
+            endpoint,
+            database,
+            credentials=default_credentials(credentials),
+            root_certificates=root_certificates,
+            **kwargs
+        )
+
     def set_grpc_keep_alive_timeout(self, timeout):
         self.grpc_keep_alive_timeout = timeout
         return self
@@ -80,14 +143,24 @@ ConnectionParams = DriverConfig
 class Driver(pool.ConnectionPool):
     __slots__ = ('scheme_client', 'table_client')
 
-    def __init__(self, driver_config):
+    def __init__(self, driver_config=None, connection_string=None, endpoint=None, database=None, root_certificates=None, credentials=None, **kwargs):
         """
         Constructs a driver instance to be used in table and scheme clients.
         It encapsulates endpoints discovery mechanism and provides ability to execute RPCs
         on discovered endpoints
 
         :param driver_config: A driver config
+        :param connection_string A string in the following format: <protocol>://<hostame>:<port>/?database=/path/to/the/database
+        :param endpoint: An endpoint specified in the following format: <protocol>://<hostame>:<port>
+        :param database: A database path
+        :param credentials: A credentials. If not specifed credentials constructed by default.
         """
+        if driver_config is None:
+            if connection_string is not None:
+                driver_config = DriverConfig.default_from_connection_string(connection_string, root_certificates, credentials, **kwargs)
+            else:
+                driver_config = DriverConfig.default_from_endpoint_and_database(endpoint, database, root_certificates, credentials, **kwargs)
+
         super(Driver, self).__init__(driver_config)
         self.scheme_client = scheme.SchemeClient(self)
         self.table_client = table.TableClient(self, driver_config.table_client_settings)

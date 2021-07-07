@@ -22,6 +22,12 @@ class Credentials(object):
         pass
 
 
+class AnonymousCredentials(Credentials):
+    @staticmethod
+    def auth_metadata():
+        return []
+
+
 class AuthTokenCredentials(Credentials):
     def __init__(self, token):
         self._token = token

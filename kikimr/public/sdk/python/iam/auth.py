@@ -99,36 +99,36 @@ class IamTokenCredentials(credentials.Credentials):
         self._iam_token = OneToManyValue()
         self._tp = AtMostOneExecution()
         self.logger = logger.getChild(self.__class__.__name__)
+        self.last_error = None
+        self.extra_error_message = ""
 
     @abc.abstractmethod
     def _get_iam_token(self):
         pass
 
     def _refresh(self):
-        success = False
-        while not success:
-            current_time = time.time()
-            self.logger.debug("Start refresh token from metadata")
-            if current_time > self._refresh_in:
-                self.logger.info("Cached token reached refresh_in deadline, current time %s, deadline %s", current_time, self._refresh_in)
+        current_time = time.time()
+        self.logger.debug("Start refresh token from metadata")
+        if current_time > self._refresh_in:
+            self.logger.info("Cached token reached refresh_in deadline, current time %s, deadline %s", current_time, self._refresh_in)
 
-            if current_time > self._expires_in and self._expires_in > 0:
-                self.logger.error("Cached token reached expires_in deadline, current time %s, deadline %s", current_time, self._expires_in)
+        if current_time > self._expires_in and self._expires_in > 0:
+            self.logger.error("Cached token reached expires_in deadline, current time %s, deadline %s", current_time, self._expires_in)
 
-            try:
-                auth_metadata = self._get_iam_token()
-                self._iam_token.update(auth_metadata['access_token'])
-                self._expires_in = time.time() + min(self._hour, auth_metadata['expires_in'] / 2)
-                self._refresh_in = time.time() + min(self._hour / 2, auth_metadata['expires_in'] / 4)
-                self.logger.info("Token refresh successful. current_time %s, refresh_in %s", current_time, self._refresh_in)
-                success = True
+        try:
+            auth_metadata = self._get_iam_token()
+            self._iam_token.update(auth_metadata['access_token'])
+            self._expires_in = time.time() + min(self._hour, auth_metadata['expires_in'] / 2)
+            self._refresh_in = time.time() + min(self._hour / 2, auth_metadata['expires_in'] / 4)
+            self.logger.info("Token refresh successful. current_time %s, refresh_in %s", current_time, self._refresh_in)
 
-            except KeyboardInterrupt:
-                break
+        except (KeyboardInterrupt, SystemExit):
+            return
 
-            except Exception:
-                time.sleep(1)
-                self.logger.exception("Error on token refresh")
+        except Exception as e:
+            self.last_error = str(e)
+            time.sleep(1)
+            self._tp.submit(self._refresh)
 
     @property
     def iam_token(self):
@@ -138,7 +138,9 @@ class IamTokenCredentials(credentials.Credentials):
 
         iam_token = self._iam_token.consume(timeout=3)
         if iam_token is None:
-            raise issues.ConnectionError("Timeout occurred while waiting for token.")
+            if self.last_error is None:
+                raise issues.ConnectionError("%s: timeout occurred while waiting for token.\n%s" % self.__class__.__name__, self.extra_error_message)
+            raise issues.ConnectionError("%s: %s.\n%s" % (self.__class__.__name__, self.last_error, self.extra_error_message))
         return iam_token
 
     def auth_metadata(self):
@@ -226,6 +228,7 @@ class MetadataUrlCredentials(IamTokenCredentials):
                 "Install requests library to use metadata credentials provider")
         self._metadata_url = DEFAULT_METADATA_URL if metadata_url is None else metadata_url
         self._tp.submit(self._refresh)
+        self.extra_error_message = "Check that metadata service configured properly and application deployed in VM or function at Yandex.Cloud."
 
     def _get_iam_token(self):
         response = requests.get(self._metadata_url, headers={'Metadata-Flavor': 'Google'}, timeout=3)
