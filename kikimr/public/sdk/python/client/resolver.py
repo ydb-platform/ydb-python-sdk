@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 import logging
 import threading
-import time
 import random
 import itertools
 from . import connection as conn_impl, issues, settings as settings_impl, _apis
@@ -91,7 +90,7 @@ class DiscoveryEndpointsResolver(object):
         self.logger.debug(message, *args)
         message = message % args
         with self._lock:
-            self._debug_details_items.append("timestamp %d: %s" % (int(time.time()), message))
+            self._debug_details_items.append(message)
             if len(self._debug_details_items) > self._debug_details_history_size:
                 self._debug_details_items.pop()
 
@@ -107,7 +106,7 @@ class DiscoveryEndpointsResolver(object):
         endpoint = next(self._endpoints_iter)
         initial = conn_impl.Connection.ready_factory(endpoint, self._driver_config)
         if initial is None:
-            self._add_debug_details("Failed to prepare initial endpoint to resolve endpoints")
+            self._add_debug_details("Failed to establish connection to YDB discovery endpoint: \"%s\". Check endpoint correctness." % endpoint)
             return None
 
         self.logger.debug("Resolving endpoints for database %s", self._driver_config.database)
@@ -129,7 +128,7 @@ class DiscoveryEndpointsResolver(object):
         except Exception as e:
 
             self._add_debug_details(
-                "Failed to resolve endpoints for database %s, details: %s", self._driver_config.database, e)
+                "Failed to resolve endpoints for database %s. Endpoint: \"%s\". Error details:\n %s", self._driver_config.database, endpoint, e)
 
         finally:
             initial.close()
