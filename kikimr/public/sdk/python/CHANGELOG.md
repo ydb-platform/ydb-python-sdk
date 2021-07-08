@@ -1,3 +1,7 @@
+## 1.0.12 ##
+
+* add ``ValueSinceUnixEpochModeSettings`` support to ``TtlSettings``
+
 ## 1.0.11 ##
 
 * add default credentials constructor
