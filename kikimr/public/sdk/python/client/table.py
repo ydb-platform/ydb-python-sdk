@@ -461,12 +461,42 @@ class DateTypeColumnModeSettings(object):
         return pb
 
 
+@enum.unique
+class ColumnUnit(enum.IntEnum):
+    UNIT_UNSPECIFIED = 0
+    UNIT_SECONDS = 1
+    UNIT_MILLISECONDS = 2
+    UNIT_MICROSECONDS = 3
+    UNIT_NANOSECONDS = 4
+
+
+class ValueSinceUnixEpochModeSettings(object):
+    def __init__(self, column_name, column_unit, expire_after_seconds=0):
+        self.column_name = column_name
+        self.column_unit = column_unit
+        self.expire_after_seconds = expire_after_seconds
+
+    def to_pb(self):
+        pb = _apis.ydb_table.ValueSinceUnixEpochModeSettings()
+
+        pb.column_name = self.column_name
+        pb.column_unit = self.column_unit
+        pb.expire_after_seconds = self.expire_after_seconds
+
+        return pb
+
+
 class TtlSettings(object):
     def __init__(self):
         self.date_type_column = None
+        self.value_since_unix_epoch = None
 
     def with_date_type_column(self, column_name, expire_after_seconds=0):
         self.date_type_column = DateTypeColumnModeSettings(column_name, expire_after_seconds)
+        return self
+
+    def with_value_since_unix_epoch(self, column_name, column_unit, expire_after_seconds=0):
+        self.value_since_unix_epoch = ValueSinceUnixEpochModeSettings(column_name, column_unit, expire_after_seconds)
         return self
 
     def to_pb(self):
@@ -474,6 +504,8 @@ class TtlSettings(object):
 
         if self.date_type_column is not None:
             pb.date_type_column.MergeFrom(self.date_type_column.to_pb())
+        elif self.value_since_unix_epoch is not None:
+            pb.value_since_unix_epoch.MergeFrom(self.value_since_unix_epoch.to_pb())
         else:
             raise RuntimeError("Unspecified ttl settings mode")
 
@@ -1112,6 +1144,12 @@ class TableSchemeEntry(scheme.SchemeEntry):
                 self.ttl_settings = TtlSettings().with_date_type_column(
                     ttl_settings.date_type_column.column_name,
                     ttl_settings.date_type_column.expire_after_seconds
+                )
+            elif ttl_settings.HasField('value_since_unix_epoch'):
+                self.ttl_settings = TtlSettings().with_value_since_unix_epoch(
+                    ttl_settings.value_since_unix_epoch.column_name,
+                    ColumnUnit(ttl_settings.value_since_unix_epoch.column_unit),
+                    ttl_settings.value_since_unix_epoch.expire_after_seconds
                 )
 
         self.table_stats = None
