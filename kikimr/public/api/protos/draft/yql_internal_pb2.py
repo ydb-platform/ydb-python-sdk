@@ -15,7 +15,7 @@ from kikimr.public.api.protos import ydb_operation_pb2 as kikimr_dot_public_dot_
 from kikimr.public.api.protos import ydb_value_pb2 as kikimr_dot_public_dot_api_dot_protos_dot_ydb__value__pb2
 from kikimr.public.api.protos import ydb_issue_message_pb2 as kikimr_dot_public_dot_api_dot_protos_dot_ydb__issue__message__pb2
 from kikimr.public.api.protos.draft import yql_analytics_pb2 as kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yql__analytics__pb2
-from kikimr.public.api.protos.draft import yq_pb2 as kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yq__pb2
+from kikimr.public.api.protos import yq_pb2 as kikimr_dot_public_dot_api_dot_protos_dot_yq__pb2
 from google.protobuf import timestamp_pb2 as google_dot_protobuf_dot_timestamp__pb2
 
 
@@ -25,9 +25,9 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   syntax='proto3',
   serialized_options=b'\n!com.yandex.yql.analytics.internalB\026AnalyticsIntenalProtos\370\001\001',
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n1kikimr/public/api/protos/draft/yql_internal.proto\x12\rYql.Analytics\x1a,kikimr/public/api/protos/ydb_operation.proto\x1a(kikimr/public/api/protos/ydb_value.proto\x1a\x30kikimr/public/api/protos/ydb_issue_message.proto\x1a\x32kikimr/public/api/protos/draft/yql_analytics.proto\x1a\'kikimr/public/api/protos/draft/yq.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\x10\n\x0eGetTaskRequest\"\x8f\x02\n\rGetTaskResult\x12\x10\n\x08has_task\x18\x01 \x01(\x08\x12\x11\n\tresult_id\x18\x02 \x01(\t\x12\x1b\n\x13result_id_signature\x18\x03 \x01(\t\x12\x14\n\x0coperation_id\x18\x04 \x01(\t\x12\x1e\n\x16operation_id_signature\x18\x05 \x01(\t\x12\x0f\n\x07\x63ontent\x18\x06 \x01(\t\x12+\n\nconnection\x18\x07 \x03(\x0b\x32\x17.YandexQuery.Connection\x12%\n\x07\x62inding\x18\x08 \x03(\x0b\x32\x14.YandexQuery.Binding\x12\x12\n\nuser_token\x18\t \x01(\t\x12\r\n\x05token\x18\n \x01(\t\"?\n\x0fGetTaskResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\xd8\x02\n\x0fPingTaskRequest\x12\x14\n\x0coperation_id\x18\x01 \x01(\t\x12\x1e\n\x16operation_id_signature\x18\x02 \x01(\t\x12\x11\n\tresult_id\x18\x03 \x01(\t\x12\x1b\n\x13result_id_signature\x18\x04 \x01(\t\x12+\n\x06status\x18\x05 \x01(\x0e\x32\x1b.Yql.Analytics.EQueryStatus\x12\'\n\x06issues\x18\x06 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessage\x12\x18\n\x10result_set_count\x18\x07 \x01(\r\x12\x12\n\nstatistics\x18\x08 \x01(\t\x12\x1a\n\x12serialized_headers\x18\t \x01(\t\x12\x15\n\rexecuter_info\x18\n \x01(\t\x12\x0b\n\x03\x61st\x18\x0b \x01(\t\x12\x0c\n\x04plan\x18\x0c \x01(\t\x12\r\n\x05token\x18\x64 \x01(\t\"\x10\n\x0ePingTaskResult\"@\n\x10PingTaskResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\xa2\x01\n\x16WriteTaskResultRequest\x12\x11\n\tresult_id\x18\x01 \x01(\t\x12\x1b\n\x13result_id_signature\x18\x02 \x01(\t\x12\"\n\nresult_set\x18\x03 \x01(\x0b\x32\x0e.Ydb.ResultSet\x12\x15\n\rresult_set_id\x18\x04 \x01(\r\x12\x0e\n\x06offset\x18\x05 \x01(\x04\x12\r\n\x05token\x18\x64 \x01(\t\"\x17\n\x15WriteTaskResultResult\"G\n\x17WriteTaskResultResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.OperationB>\n!com.yandex.yql.analytics.internalB\x16\x41nalyticsIntenalProtos\xf8\x01\x01\x62\x06proto3'
+  serialized_pb=b'\n1kikimr/public/api/protos/draft/yql_internal.proto\x12\rYql.Analytics\x1a,kikimr/public/api/protos/ydb_operation.proto\x1a(kikimr/public/api/protos/ydb_value.proto\x1a\x30kikimr/public/api/protos/ydb_issue_message.proto\x1a\x32kikimr/public/api/protos/draft/yql_analytics.proto\x1a!kikimr/public/api/protos/yq.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\x10\n\x0eGetTaskRequest\"\x8f\x02\n\rGetTaskResult\x12\x10\n\x08has_task\x18\x01 \x01(\x08\x12\x11\n\tresult_id\x18\x02 \x01(\t\x12\x1b\n\x13result_id_signature\x18\x03 \x01(\t\x12\x14\n\x0coperation_id\x18\x04 \x01(\t\x12\x1e\n\x16operation_id_signature\x18\x05 \x01(\t\x12\x0f\n\x07\x63ontent\x18\x06 \x01(\t\x12+\n\nconnection\x18\x07 \x03(\x0b\x32\x17.YandexQuery.Connection\x12%\n\x07\x62inding\x18\x08 \x03(\x0b\x32\x14.YandexQuery.Binding\x12\x12\n\nuser_token\x18\t \x01(\t\x12\r\n\x05token\x18\n \x01(\t\"?\n\x0fGetTaskResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\xd8\x02\n\x0fPingTaskRequest\x12\x14\n\x0coperation_id\x18\x01 \x01(\t\x12\x1e\n\x16operation_id_signature\x18\x02 \x01(\t\x12\x11\n\tresult_id\x18\x03 \x01(\t\x12\x1b\n\x13result_id_signature\x18\x04 \x01(\t\x12+\n\x06status\x18\x05 \x01(\x0e\x32\x1b.Yql.Analytics.EQueryStatus\x12\'\n\x06issues\x18\x06 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessage\x12\x18\n\x10result_set_count\x18\x07 \x01(\r\x12\x12\n\nstatistics\x18\x08 \x01(\t\x12\x1a\n\x12serialized_headers\x18\t \x01(\t\x12\x15\n\rexecuter_info\x18\n \x01(\t\x12\x0b\n\x03\x61st\x18\x0b \x01(\t\x12\x0c\n\x04plan\x18\x0c \x01(\t\x12\r\n\x05token\x18\x64 \x01(\t\"\x10\n\x0ePingTaskResult\"@\n\x10PingTaskResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\xa2\x01\n\x16WriteTaskResultRequest\x12\x11\n\tresult_id\x18\x01 \x01(\t\x12\x1b\n\x13result_id_signature\x18\x02 \x01(\t\x12\"\n\nresult_set\x18\x03 \x01(\x0b\x32\x0e.Ydb.ResultSet\x12\x15\n\rresult_set_id\x18\x04 \x01(\r\x12\x0e\n\x06offset\x18\x05 \x01(\x04\x12\r\n\x05token\x18\x64 \x01(\t\"\x17\n\x15WriteTaskResultResult\"G\n\x17WriteTaskResultResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.OperationB>\n!com.yandex.yql.analytics.internalB\x16\x41nalyticsIntenalProtos\xf8\x01\x01\x62\x06proto3'
   ,
-  dependencies=[kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2.DESCRIPTOR,kikimr_dot_public_dot_api_dot_protos_dot_ydb__value__pb2.DESCRIPTOR,kikimr_dot_public_dot_api_dot_protos_dot_ydb__issue__message__pb2.DESCRIPTOR,kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yql__analytics__pb2.DESCRIPTOR,kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yq__pb2.DESCRIPTOR,google_dot_protobuf_dot_timestamp__pb2.DESCRIPTOR,])
+  dependencies=[kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2.DESCRIPTOR,kikimr_dot_public_dot_api_dot_protos_dot_ydb__value__pb2.DESCRIPTOR,kikimr_dot_public_dot_api_dot_protos_dot_ydb__issue__message__pb2.DESCRIPTOR,kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yql__analytics__pb2.DESCRIPTOR,kikimr_dot_public_dot_api_dot_protos_dot_yq__pb2.DESCRIPTOR,google_dot_protobuf_dot_timestamp__pb2.DESCRIPTOR,])
 
 
 
@@ -52,8 +52,8 @@ _GETTASKREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=332,
-  serialized_end=348,
+  serialized_start=326,
+  serialized_end=342,
 )
 
 
@@ -147,8 +147,8 @@ _GETTASKRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=351,
-  serialized_end=622,
+  serialized_start=345,
+  serialized_end=616,
 )
 
 
@@ -179,8 +179,8 @@ _GETTASKRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=624,
-  serialized_end=687,
+  serialized_start=618,
+  serialized_end=681,
 )
 
 
@@ -295,8 +295,8 @@ _PINGTASKREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=690,
-  serialized_end=1034,
+  serialized_start=684,
+  serialized_end=1028,
 )
 
 
@@ -320,8 +320,8 @@ _PINGTASKRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1036,
-  serialized_end=1052,
+  serialized_start=1030,
+  serialized_end=1046,
 )
 
 
@@ -352,8 +352,8 @@ _PINGTASKRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1054,
-  serialized_end=1118,
+  serialized_start=1048,
+  serialized_end=1112,
 )
 
 
@@ -419,8 +419,8 @@ _WRITETASKRESULTREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1121,
-  serialized_end=1283,
+  serialized_start=1115,
+  serialized_end=1277,
 )
 
 
@@ -444,8 +444,8 @@ _WRITETASKRESULTRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1285,
-  serialized_end=1308,
+  serialized_start=1279,
+  serialized_end=1302,
 )
 
 
@@ -476,12 +476,12 @@ _WRITETASKRESULTRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1310,
-  serialized_end=1381,
+  serialized_start=1304,
+  serialized_end=1375,
 )
 
-_GETTASKRESULT.fields_by_name['connection'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yq__pb2._CONNECTION
-_GETTASKRESULT.fields_by_name['binding'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yq__pb2._BINDING
+_GETTASKRESULT.fields_by_name['connection'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_yq__pb2._CONNECTION
+_GETTASKRESULT.fields_by_name['binding'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_yq__pb2._BINDING
 _GETTASKRESPONSE.fields_by_name['operation'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2._OPERATION
 _PINGTASKREQUEST.fields_by_name['status'].enum_type = kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yql__analytics__pb2._EQUERYSTATUS
 _PINGTASKREQUEST.fields_by_name['issues'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__issue__message__pb2._ISSUEMESSAGE
