@@ -10,7 +10,7 @@ import "kikimr/public/api/protos/ydb_value.proto";
 import "kikimr/public/api/protos/ydb_issue_message.proto";
 
 import "kikimr/public/api/protos/draft/yql_analytics.proto";
-import "kikimr/public/api/protos/draft/yq.proto";
+import "kikimr/public/api/protos/yq.proto";
 
 import "google/protobuf/timestamp.proto";
 
