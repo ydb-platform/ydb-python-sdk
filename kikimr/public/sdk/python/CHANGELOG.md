@@ -1,3 +1,7 @@
+## 1.0.13 ##
+
+* change error format for sqlalchemy
+
 ## 1.0.12 ##
 
 * add ``ValueSinceUnixEpochModeSettings`` support to ``TtlSettings``
