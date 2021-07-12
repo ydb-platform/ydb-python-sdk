@@ -50,10 +50,10 @@ def render(value):
 
 
 def render_sql(sql, parameters):
-    assert sql.count('?') == len(parameters), 'num of placeholders != num of params'
-
     if not parameters:
         return sql
+
+    assert sql.count('?') == len(parameters), 'num of placeholders != num of params'
 
     quoted_params = [render(param) for param in parameters]
     quoted_params += ['']
