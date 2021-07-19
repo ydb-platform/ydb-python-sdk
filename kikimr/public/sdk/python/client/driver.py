@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from . import credentials as credentials_impl, table, scheme, pool
+from . import credentials as credentials_impl, table, scheme, pool, auth_helpers
 import six
 import os
 
@@ -55,6 +55,11 @@ def default_credentials(credentials=None):
     access_token = os.getenv("YDB_ACCESS_TOKEN_CREDENTIALS")
     if access_token is not None:
         return credentials_impl.AuthTokenCredentials(access_token)
+
+    # (legacy instantiation)
+    creds = auth_helpers.construct_credentials_from_environ()
+    if creds is not None:
+        return creds
 
     from kikimr.public.sdk.python import iam
     return iam.MetadataUrlCredentials()
