@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
 import abc
+from abc import abstractmethod
 import logging
 import time
 import random
 import enum
+
 import six
 from . import issues, convert, settings, scheme, types, _utilities, _apis, _sp_impl, _session_impl, _tx_ctx_impl
 
@@ -12,9 +14,7 @@ try:
 except ImportError:
     interceptor = None
 
-
 logger = logging.getLogger(__name__)
-
 
 ##################################################################
 # A deprecated aliases in case when direct import has been used  #
@@ -889,7 +889,6 @@ class YdbRetryOperationFinalResult(object):
 
 
 def retry_operation_impl(callee, retry_settings=None, *args, **kwargs):
-
     retry_settings = RetrySettings() if retry_settings is None else retry_settings
     status = None
 
@@ -1003,7 +1002,250 @@ def _scan_query_request_factory(query, parameters=None, settings=None):
     )
 
 
-class TableClient(object):
+@six.add_metaclass(abc.ABCMeta)
+class ISession:
+
+    @abstractmethod
+    def __init__(self, driver, table_client_settings):
+        pass
+
+    @abstractmethod
+    def __lt__(self, other):
+        pass
+
+    @abstractmethod
+    def __eq__(self, other):
+        pass
+
+    @property
+    @abstractmethod
+    def session_id(self):
+        pass
+
+    @abstractmethod
+    def initialized(self):
+        """
+        Return True if session is successfully initialized with a session_id and False otherwise.
+        """
+        pass
+
+    @abstractmethod
+    def pending_query(self):
+        pass
+
+    @abstractmethod
+    def reset(self):
+        """
+        Perform session state reset (that includes cleanup of the session_id, query cache, and etc.)
+        """
+        pass
+
+    @abstractmethod
+    def read_table(
+        self,
+        path,
+        key_range=None,
+        columns=(),
+        ordered=False,
+        row_limit=None,
+        settings=None,
+        use_snapshot=None
+    ):
+        """
+                Perform an read table request.
+
+                from kikimr.public.sdk.python import client as ydb
+
+                .... initialize driver and session ....
+
+                key_prefix_type = ydb.TupleType().add_element(
+                    ydb.OptionalType(ydb.PrimitiveType.Uint64).add_element(
+                    ydb.OptionalType(ydb.PrimitiveType.Utf8))
+                table_iterator = session.read_table(
+                    '/my/table',
+                    columns=('KeyColumn0', 'KeyColumn1', 'ValueColumn'),
+                    ydb.KeyRange(
+                        ydb.KeyBound((100, 'hundred'), key_prefix_type)
+                        ydb.KeyBound((200, 'two-hundreds'), key_prefix_type)
+                    )
+                )
+
+                while True:
+                    try:
+                        chunk = next(table_iterator)
+                        ... additional data processing ...
+                    except StopIteration:
+                        break
+
+                :param path: A path to the table
+                :param key_range: (optional) A KeyRange instance that describes a range to read. The KeyRange instance
+                should include from_bound and/or to_bound. Each of the bounds (if provided) should specify a value of the
+                key bound, and type of the key prefix. See an example above.
+                :param columns: (optional) An iterable with table columns to read.
+                :param ordered: (optional) A flag that indicates that result should be ordered.
+                :param row_limit: (optional) A number of rows to read.
+                :param settings: Request settings
+                :return: SyncResponseIterator instance
+                """
+        pass
+
+    @abstractmethod
+    def keep_alive(self, settings=None):
+        pass
+
+    @abstractmethod
+    def create(self, settings=None):
+        pass
+
+    @abstractmethod
+    def delete(self, settings=None):
+        pass
+
+    @abstractmethod
+    def execute_scheme(self, yql_text, settings=None):
+        pass
+
+    @abstractmethod
+    def transaction(self, tx_mode=None):
+        pass
+
+    @abstractmethod
+    def has_prepared(self, query):
+        pass
+
+    @abstractmethod
+    def prepare(self, query, settings=None):
+        pass
+
+    @abstractmethod
+    def explain(self, yql_text, settings=None):
+        """
+        Expiremental API.
+
+        :param yql_text:
+        :param settings:
+        :return:
+        """
+        pass
+
+    @abstractmethod
+    def create_table(self, path, table_description, settings=None):
+        """
+                Create a YDB table.
+
+                from kikimr.public.sdk.python import client as ydb
+
+                ... create an instance of Driver ...
+
+                description = (
+                    ydb.TableDescription()
+                    .with_primary_keys('key1', 'key2')
+                    .with_columns(
+                        ydb.Column('key1', ydb.OptionalType(ydb.PrimitiveType.Uint64)),
+                        ydb.Column('key2', ydb.OptionalType(ydb.PrimitiveType.Uint64)),
+                        ydb.Column('value', ydb.OptionalType(ydb.PrimitiveType.Utf8))
+                    )
+                    .with_profile(
+                        ydb.TableProfile()
+                        .with_partitioning_policy(
+                            ydb.PartitioningPolicy()
+                            .with_explicit_partitions(
+                                ydb.ExplicitPartitions(
+                                    (
+                                        ydb.KeyBound((100, )),
+                                        ydb.KeyBound((300, 100)),
+                                        ydb.KeyBound((400, )),
+                                    )
+                                )
+                            )
+                        )
+                    )
+                )
+
+                session = driver.table_client.session().create()
+                session.create_table('/my/table/', description)
+
+                :param path: A table path
+                :param table_description: A description of table to create. An instance TableDescription
+                :param settings: An instance of BaseRequestSettings that describes how rpc should invoked.
+                :return: A description of created scheme entry or error otherwise.
+                """
+        pass
+
+    @abstractmethod
+    def drop_table(self, path, settings=None):
+        pass
+
+    @abstractmethod
+    def alter_table(
+        self, path,
+        add_columns=None, drop_columns=None,
+        settings=None,
+        alter_attributes=None,
+        add_indexes=None, drop_indexes=None,
+        set_ttl_settings=None, drop_ttl_settings=None,
+        add_column_families=None, alter_column_families=None,
+        alter_storage_settings=None,
+        set_compaction_policy=None,
+        alter_partitioning_settings=None,
+        set_key_bloom_filter=None,
+        set_read_replicas_settings=None
+    ):
+        pass
+
+    @abstractmethod
+    def copy_table(self, source_path, destination_path, settings=None):
+        pass
+
+    @abstractmethod
+    def copy_tables(
+        self,
+        source_destination_pairs,
+        settings=None
+    ):
+        pass
+
+    def describe_table(self, path, settings=None):
+        """
+        Returns a description of the table by provided path
+        :param path: A table path
+        :param settings: A request settings
+        :return: Description of a table
+        """
+        pass
+
+
+@six.add_metaclass(abc.ABCMeta)
+class ITableClient:
+    def __init__(self, driver, table_client_settings=None):
+        pass
+
+    @abstractmethod
+    def session(self):
+        pass
+
+    @abstractmethod
+    def scan_query(self, query, parameters=None, settings=None):
+        pass
+
+    @abstractmethod
+    def bulk_upsert(
+        self,
+        table_path,
+        rows,
+        column_types,
+        settings=None
+    ):
+        """
+        Bulk upsert data
+        :param table_path: A table path.
+        :param rows: A list of structures.
+        :param column_types: Bulk upsert column types.
+        """
+        pass
+
+
+class BaseTableClient(ITableClient):
     def __init__(self, driver, table_client_settings=None):
         self._driver = driver
         self._table_client_settings = TableClientSettings() if table_client_settings is None else table_client_settings
@@ -1016,22 +1258,6 @@ class TableClient(object):
         stream_it = self._driver(request, _apis.TableService.Stub, _apis.TableService.StreamExecuteScanQuery, settings=settings)
         return _utilities.SyncResponseIterator(stream_it, lambda resp: _wrap_scan_query_response(resp, self._table_client_settings))
 
-    def async_scan_query(self, query, parameters=None, settings=None):
-        request = _scan_query_request_factory(query, parameters, settings)
-        stream_it = self._driver(request, _apis.TableService.Stub, _apis.TableService.StreamExecuteScanQuery, settings=settings)
-        return _utilities.AsyncResponseIterator(stream_it, lambda resp: _wrap_scan_query_response(resp, self._table_client_settings))
-
-    @_utilities.wrap_async_call_exceptions
-    def async_bulk_upsert(self, table_path, rows, column_types, settings=None):
-        return self._driver.future(
-            _session_impl.bulk_upsert_request_factory(table_path, rows, column_types),
-            _apis.TableService.Stub,
-            _apis.TableService.BulkUpsert,
-            _session_impl.wrap_operation_bulk_upsert,
-            settings,
-            (),
-        )
-
     def bulk_upsert(self, table_path, rows, column_types, settings=None):
         """
         Bulk upsert data
@@ -1040,6 +1266,25 @@ class TableClient(object):
         :param column_types: Bulk upsert column types.
         """
         return self._driver(
+            _session_impl.bulk_upsert_request_factory(table_path, rows, column_types),
+            _apis.TableService.Stub,
+            _apis.TableService.BulkUpsert,
+            _session_impl.wrap_operation_bulk_upsert,
+            settings,
+            (),
+        )
+
+
+class TableClient(BaseTableClient):
+
+    def async_scan_query(self, query, parameters=None, settings=None):
+        request = _scan_query_request_factory(query, parameters, settings)
+        stream_it = self._driver(request, _apis.TableService.Stub, _apis.TableService.StreamExecuteScanQuery, settings=settings)
+        return _utilities.AsyncResponseIterator(stream_it, lambda resp: _wrap_scan_query_response(resp, self._table_client_settings))
+
+    @_utilities.wrap_async_call_exceptions
+    def async_bulk_upsert(self, table_path, rows, column_types, settings=None):
+        return self._driver.future(
             _session_impl.bulk_upsert_request_factory(table_path, rows, column_types),
             _apis.TableService.Stub,
             _apis.TableService.BulkUpsert,
@@ -1168,9 +1413,7 @@ class TableSchemeEntry(scheme.SchemeEntry):
         self.attributes = attributes
 
 
-class Session(object):
-    __slots__ = ('_state', '_driver', '__weakref__')
-
+class BaseSession(ISession):
     def __init__(self, driver, table_client_settings):
         self._driver = driver
         self._state = _session_impl.SessionState(table_client_settings)
@@ -1243,81 +1486,12 @@ class Session(object):
         stream_it = self._driver(request, _apis.TableService.Stub, _apis.TableService.StreamReadTable, settings=settings)
         return _utilities.SyncResponseIterator(stream_it, _session_impl.wrap_read_table_response)
 
-    def async_read_table(self, path, key_range=None, columns=(), ordered=False, row_limit=None, settings=None, use_snapshot=None):
-        """
-        Perform an read table request.
-
-        from kikimr.public.sdk.python import client as ydb
-
-        .... initialize driver and session ....
-
-        key_prefix_type = ydb.TupleType().add_element(
-            ydb.OptionalType(ydb.PrimitiveType.Uint64).add_element(
-            ydb.OptionalType(ydb.PrimitiveType.Utf8))
-        async_table_iterator = session.read_table(
-            '/my/table',
-            columns=('KeyColumn0', 'KeyColumn1', 'ValueColumn'),
-            ydb.KeyRange(
-                ydb.KeyBound((100, 'hundred'), key_prefix_type)
-                ydb.KeyBound((200, 'two-hundreds'), key_prefix_type)
-            )
-        )
-
-        while True:
-            try:
-                chunk_future = next(table_iterator)
-                chunk = chunk_future.result()  # or any other way to await
-                ... additional data processing ...
-            except StopIteration:
-                break
-
-        :param path: A path to the table
-        :param key_range: (optional) A KeyRange instance that describes a range to read. The KeyRange instance
-        should include from_bound and/or to_bound. Each of the bounds (if provided) should specify a value of the
-        key bound, and type of the key prefix. See an example above.
-        :param columns: (optional) An iterable with table columns to read.
-        :param ordered: (optional) A flag that indicates that result should be ordered.
-        :param row_limit: (optional) A number of rows to read.
-        :return: AsyncResponseIterator instance
-        """
-        if interceptor is None:
-            raise RuntimeError("Async read table is not available due to import issues")
-        request = _session_impl.read_table_request_factory(self._state, path, key_range, columns, ordered, row_limit, use_snapshot=use_snapshot)
-        stream_it = self._driver(request, _apis.TableService.Stub, _apis.TableService.StreamReadTable, settings=settings)
-        return _utilities.AsyncResponseIterator(stream_it, _session_impl.wrap_read_table_response)
-
     def keep_alive(self, settings=None):
         return self._driver(
             _session_impl.keep_alive_request_factory(self._state),
             _apis.TableService.Stub,
             _apis.TableService.KeepAlive,
             _session_impl.wrap_keep_alive_response,
-            settings,
-            (self._state, self),
-            self._state.endpoint,
-        )
-
-    @_utilities.wrap_async_call_exceptions
-    def async_keep_alive(self, settings=None):
-        return self._driver.future(
-            _session_impl.keep_alive_request_factory(self._state),
-            _apis.TableService.Stub,
-            _apis.TableService.KeepAlive,
-            _session_impl.wrap_keep_alive_response,
-            settings,
-            (self._state, self),
-            self._state.endpoint,
-        )
-
-    @_utilities.wrap_async_call_exceptions
-    def async_create(self, settings=None):
-        if self._state.session_id is not None:
-            return _utilities.wrap_result_in_future(self)
-        return self._driver.future(
-            _apis.ydb_table.CreateSessionRequest(),
-            _apis.TableService.Stub,
-            _apis.TableService.CreateSession,
-            _session_impl.initialize_session,
             settings,
             (self._state, self),
             self._state.endpoint,
@@ -1336,18 +1510,6 @@ class Session(object):
             self._state.endpoint,
         )
 
-    @_utilities.wrap_async_call_exceptions
-    def async_delete(self, settings=None):
-        return self._driver.future(
-            self._state.attach_request(_apis.ydb_table.DeleteSessionRequest()),
-            _apis.TableService.Stub,
-            _apis.TableService.DeleteSession,
-            _session_impl.cleanup_session,
-            settings,
-            (self._state, self),
-            self._state.endpoint,
-        )
-
     def delete(self, settings=None):
         return self._driver(
             self._state.attach_request(_apis.ydb_table.DeleteSessionRequest()),
@@ -1356,18 +1518,6 @@ class Session(object):
             _session_impl.cleanup_session,
             settings,
             (self._state, self),
-            self._state.endpoint,
-        )
-
-    @_utilities.wrap_async_call_exceptions
-    def async_execute_scheme(self, yql_text, settings=None):
-        return self._driver.future(
-            _session_impl.execute_scheme_request_factory(self._state, yql_text),
-            _apis.TableService.Stub,
-            _apis.TableService.ExecuteSchemeQuery,
-            _session_impl.wrap_execute_scheme_result,
-            settings,
-            (self._state,),
             self._state.endpoint,
         )
 
@@ -1388,21 +1538,6 @@ class Session(object):
     def has_prepared(self, query):
         return query in self._state
 
-    @_utilities.wrap_async_call_exceptions
-    def async_prepare(self, query, settings=None):
-        data_query, _ = self._state.lookup(query)
-        if data_query is not None:
-            return _utilities.wrap_result_in_future(data_query)
-        return self._driver.future(
-            _session_impl.prepare_request_factory(self._state, query),
-            _apis.TableService.Stub,
-            _apis.TableService.PrepareDataQuery,
-            _session_impl.wrap_prepare_query_response,
-            settings,
-            (self._state, query,),
-            self._state.endpoint,
-        )
-
     def prepare(self, query, settings=None):
         data_query, _ = self._state.lookup(query)
         if data_query is not None:
@@ -1414,18 +1549,6 @@ class Session(object):
             _session_impl.wrap_prepare_query_response,
             settings,
             (self._state, query),
-            self._state.endpoint,
-        )
-
-    @_utilities.wrap_async_call_exceptions
-    def async_create_table(self, path, table_description, settings=None):
-        return self._driver.future(
-            _session_impl.create_table_request_factory(self._state, path, table_description),
-            _apis.TableService.Stub,
-            _apis.TableService.CreateTable,
-            _session_impl.wrap_operation,
-            settings,
-            (self._driver, ),
             self._state.endpoint,
         )
 
@@ -1498,9 +1621,8 @@ class Session(object):
             self._state.endpoint,
         )
 
-    @_utilities.wrap_async_call_exceptions
-    def async_drop_table(self, path, settings=None):
-        return self._driver.future(
+    def drop_table(self, path, settings=None):
+        return self._driver(
             self._state.attach_request(_apis.ydb_table.DropTableRequest(path=path)),
             _apis.TableService.Stub,
             _apis.TableService.DropTable,
@@ -1510,8 +1632,198 @@ class Session(object):
             self._state.endpoint,
         )
 
-    def drop_table(self, path, settings=None):
+    def alter_table(
+            self, path,
+            add_columns=None, drop_columns=None,
+            settings=None,
+            alter_attributes=None,
+            add_indexes=None, drop_indexes=None,
+            set_ttl_settings=None, drop_ttl_settings=None,
+            add_column_families=None, alter_column_families=None,
+            alter_storage_settings=None,
+            set_compaction_policy=None,
+            alter_partitioning_settings=None,
+            set_key_bloom_filter=None,
+            set_read_replicas_settings=None):
         return self._driver(
+            _session_impl.alter_table_request_factory(
+                self._state, path,
+                add_columns, drop_columns,
+                alter_attributes,
+                add_indexes, drop_indexes,
+                set_ttl_settings, drop_ttl_settings,
+                add_column_families, alter_column_families,
+                alter_storage_settings,
+                set_compaction_policy,
+                alter_partitioning_settings,
+                set_key_bloom_filter,
+                set_read_replicas_settings,
+            ),
+            _apis.TableService.Stub,
+            _apis.TableService.AlterTable,
+            _session_impl.AlterTableOperation,
+            settings,
+            (self._driver, ),
+            self._state.endpoint,
+        )
+
+    def describe_table(self, path, settings=None):
+        """
+        Returns a description of the table by provided path
+        :param path: A table path
+        :param settings: A request settings
+        :return: Description of a table
+        """
+        return self._driver(
+            _session_impl.describe_table_request_factory(self._state, path, settings),
+            _apis.TableService.Stub,
+            _apis.TableService.DescribeTable,
+            _session_impl.wrap_describe_table_response,
+            settings,
+            (self._state, TableSchemeEntry),
+            self._state.endpoint,
+        )
+
+    def copy_table(self, source_path, destination_path, settings=None):
+        return self.copy_tables([(source_path, destination_path)], settings=settings)
+
+    def copy_tables(self, source_destination_pairs, settings=None):
+        return self._driver(
+            _session_impl.copy_tables_request_factory(self._state, source_destination_pairs),
+            _apis.TableService.Stub,
+            _apis.TableService.CopyTables,
+            _session_impl.wrap_operation,
+            settings,
+            (self._state,),
+            self._state.endpoint,
+        )
+
+
+class Session(BaseSession):
+
+    def async_read_table(self, path, key_range=None, columns=(), ordered=False, row_limit=None, settings=None, use_snapshot=None):
+        """
+        Perform an read table request.
+
+        from kikimr.public.sdk.python import client as ydb
+
+        .... initialize driver and session ....
+
+        key_prefix_type = ydb.TupleType().add_element(
+            ydb.OptionalType(ydb.PrimitiveType.Uint64).add_element(
+            ydb.OptionalType(ydb.PrimitiveType.Utf8))
+        async_table_iterator = session.read_table(
+            '/my/table',
+            columns=('KeyColumn0', 'KeyColumn1', 'ValueColumn'),
+            ydb.KeyRange(
+                ydb.KeyBound((100, 'hundred'), key_prefix_type)
+                ydb.KeyBound((200, 'two-hundreds'), key_prefix_type)
+            )
+        )
+
+        while True:
+            try:
+                chunk_future = next(table_iterator)
+                chunk = chunk_future.result()  # or any other way to await
+                ... additional data processing ...
+            except StopIteration:
+                break
+
+        :param path: A path to the table
+        :param key_range: (optional) A KeyRange instance that describes a range to read. The KeyRange instance
+        should include from_bound and/or to_bound. Each of the bounds (if provided) should specify a value of the
+        key bound, and type of the key prefix. See an example above.
+        :param columns: (optional) An iterable with table columns to read.
+        :param ordered: (optional) A flag that indicates that result should be ordered.
+        :param row_limit: (optional) A number of rows to read.
+        :return: AsyncResponseIterator instance
+        """
+        if interceptor is None:
+            raise RuntimeError("Async read table is not available due to import issues")
+        request = _session_impl.read_table_request_factory(self._state, path, key_range, columns, ordered, row_limit, use_snapshot=use_snapshot)
+        stream_it = self._driver(request, _apis.TableService.Stub, _apis.TableService.StreamReadTable, settings=settings)
+        return _utilities.AsyncResponseIterator(stream_it, _session_impl.wrap_read_table_response)
+
+    @_utilities.wrap_async_call_exceptions
+    def async_keep_alive(self, settings=None):
+        return self._driver.future(
+            _session_impl.keep_alive_request_factory(self._state),
+            _apis.TableService.Stub,
+            _apis.TableService.KeepAlive,
+            _session_impl.wrap_keep_alive_response,
+            settings,
+            (self._state, self),
+            self._state.endpoint,
+        )
+
+    @_utilities.wrap_async_call_exceptions
+    def async_create(self, settings=None):
+        if self._state.session_id is not None:
+            return _utilities.wrap_result_in_future(self)
+        return self._driver.future(
+            _apis.ydb_table.CreateSessionRequest(),
+            _apis.TableService.Stub,
+            _apis.TableService.CreateSession,
+            _session_impl.initialize_session,
+            settings,
+            (self._state, self),
+            self._state.endpoint,
+        )
+
+    @_utilities.wrap_async_call_exceptions
+    def async_delete(self, settings=None):
+        return self._driver.future(
+            self._state.attach_request(_apis.ydb_table.DeleteSessionRequest()),
+            _apis.TableService.Stub,
+            _apis.TableService.DeleteSession,
+            _session_impl.cleanup_session,
+            settings,
+            (self._state, self),
+            self._state.endpoint,
+        )
+
+    @_utilities.wrap_async_call_exceptions
+    def async_execute_scheme(self, yql_text, settings=None):
+        return self._driver.future(
+            _session_impl.execute_scheme_request_factory(self._state, yql_text),
+            _apis.TableService.Stub,
+            _apis.TableService.ExecuteSchemeQuery,
+            _session_impl.wrap_execute_scheme_result,
+            settings,
+            (self._state,),
+            self._state.endpoint,
+        )
+
+    @_utilities.wrap_async_call_exceptions
+    def async_prepare(self, query, settings=None):
+        data_query, _ = self._state.lookup(query)
+        if data_query is not None:
+            return _utilities.wrap_result_in_future(data_query)
+        return self._driver.future(
+            _session_impl.prepare_request_factory(self._state, query),
+            _apis.TableService.Stub,
+            _apis.TableService.PrepareDataQuery,
+            _session_impl.wrap_prepare_query_response,
+            settings,
+            (self._state, query,),
+            self._state.endpoint,
+        )
+
+    @_utilities.wrap_async_call_exceptions
+    def async_create_table(self, path, table_description, settings=None):
+        return self._driver.future(
+            _session_impl.create_table_request_factory(self._state, path, table_description),
+            _apis.TableService.Stub,
+            _apis.TableService.CreateTable,
+            _session_impl.wrap_operation,
+            settings,
+            (self._driver, ),
+            self._state.endpoint,
+        )
+
+    @_utilities.wrap_async_call_exceptions
+    def async_drop_table(self, path, settings=None):
+        return self._driver.future(
             self._state.attach_request(_apis.ydb_table.DropTableRequest(path=path)),
             _apis.TableService.Stub,
             _apis.TableService.DropTable,
@@ -1553,65 +1865,16 @@ class Session(object):
             _apis.TableService.AlterTable,
             _session_impl.AlterTableOperation,
             settings,
-            (self._driver, ),
-            self._state.endpoint,
-        )
-
-    def alter_table(
-            self, path,
-            add_columns=None, drop_columns=None,
-            settings=None,
-            alter_attributes=None,
-            add_indexes=None, drop_indexes=None,
-            set_ttl_settings=None, drop_ttl_settings=None,
-            add_column_families=None, alter_column_families=None,
-            alter_storage_settings=None,
-            set_compaction_policy=None,
-            alter_partitioning_settings=None,
-            set_key_bloom_filter=None,
-            set_read_replicas_settings=None):
-        return self._driver(
-            _session_impl.alter_table_request_factory(
-                self._state, path,
-                add_columns, drop_columns,
-                alter_attributes,
-                add_indexes, drop_indexes,
-                set_ttl_settings, drop_ttl_settings,
-                add_column_families, alter_column_families,
-                alter_storage_settings,
-                set_compaction_policy,
-                alter_partitioning_settings,
-                set_key_bloom_filter,
-                set_read_replicas_settings,
-            ),
-            _apis.TableService.Stub,
-            _apis.TableService.AlterTable,
-            _session_impl.AlterTableOperation,
-            settings,
-            (self._driver, ),
+            (self._driver,),
             self._state.endpoint,
         )
 
     def async_copy_table(self, source_path, destination_path, settings=None):
         return self.async_copy_tables([(source_path, destination_path)], settings=settings)
 
-    def copy_table(self, source_path, destination_path, settings=None):
-        return self.copy_tables([(source_path, destination_path)], settings=settings)
-
     @_utilities.wrap_async_call_exceptions
     def async_copy_tables(self, source_destination_pairs, settings=None):
         return self._driver.future(
-            _session_impl.copy_tables_request_factory(self._state, source_destination_pairs),
-            _apis.TableService.Stub,
-            _apis.TableService.CopyTables,
-            _session_impl.wrap_operation,
-            settings,
-            (self._state,),
-            self._state.endpoint,
-        )
-
-    def copy_tables(self, source_destination_pairs, settings=None):
-        return self._driver(
             _session_impl.copy_tables_request_factory(self._state, source_destination_pairs),
             _apis.TableService.Stub,
             _apis.TableService.CopyTables,
@@ -1633,25 +1896,118 @@ class Session(object):
             self._state.endpoint,
         )
 
-    def describe_table(self, path, settings=None):
+
+@six.add_metaclass(abc.ABCMeta)
+class ITxContext:
+
+    @abstractmethod
+    def __init__(
+        self,
+        driver,
+        session_state,
+        session,
+        tx_mode=None
+    ):
         """
-        Returns a description of the table by provided path
-        :param path: A table path
+        An object that provides a simple transaction context manager that allows statements execution
+        in a transaction. You don't have to open transaction explicitly, because context manager encapsulates
+        transaction control logic, and opens new transaction if:
+         1) By explicit .begin();
+         2) On execution of a first statement, which is strictly recommended method, because that avoids
+         useless round trip
+
+        This context manager is not thread-safe, so you should not manipulate on it concurrently.
+
+        :param driver: A driver instance
+        :param session_state: A state of session
+        :param tx_mode: A transaction mode, which is a one from the following choices:
+         1) SerializableReadWrite() which is default mode;
+         2) OnlineReadOnly();
+         3) StaleReadOnly().
+        """
+        pass
+
+    @abstractmethod
+    def __enter__(self):
+        """
+        Enters a context manager and returns a session
+        :return: A session instance
+        """
+        pass
+
+    @abstractmethod
+    def __exit__(self, *args, **kwargs):
+        """
+        Closes a transaction context manager and rollbacks transaction if
+        it is not rolled back explicitly
+        """
+        pass
+
+    @property
+    @abstractmethod
+    def session_id(self):
+        """
+        A transaction's session id
+        :return: A transaction's session id
+        """
+        pass
+
+    @property
+    @abstractmethod
+    def tx_id(self):
+        """
+        Returns a id of open transaction or None otherwise
+        :return: A id of open transaction or None otherwise
+        """
+        pass
+
+    @abstractmethod
+    def execute(self, query, parameters=None, commit_tx=False, settings=None):
+        """
+        Sends a query (yql text or an instance of DataQuery) to be executed with parameters.
+        Execution with parameters supported only for DataQuery instances and is not supported yql text queries.
+
+        :param query: A query, yql text or DataQuery instance.
+        :param parameters: A dictionary with parameters values.
+        :param commit_tx: A special flag that allows transaction commit
+        :param settings: An additional request settings
+        :return: A result sets or exception in case of execution errors
+        """
+        pass
+
+    @abstractmethod
+    def commit(self, settings=None):
+        """
+        Calls commit on a transaction if it is open otherwise is no-op. If transaction execution
+        failed then this method raises PreconditionFailed.
+
         :param settings: A request settings
-        :return: Description of a table
+        :return: A committed transaction or exception if commit is failed
         """
-        return self._driver(
-            _session_impl.describe_table_request_factory(self._state, path, settings),
-            _apis.TableService.Stub,
-            _apis.TableService.DescribeTable,
-            _session_impl.wrap_describe_table_response,
-            settings,
-            (self._state, TableSchemeEntry),
-            self._state.endpoint,
-        )
+        pass
+
+    @abstractmethod
+    def rollback(self, settings=None):
+        """
+        Calls rollback on a transaction if it is open otherwise is no-op. If transaction execution
+        failed then this method raises PreconditionFailed.
+
+        :param settings: A request settings
+        :return: A rolled back transaction or exception if rollback is failed
+        """
+        pass
+
+    @abstractmethod
+    def begin(self, settings=None):
+        """
+        Explicitly begins a transaction
+        :param settings: A request settings
+        :return: An open transaction
+        """
+        pass
 
 
-class TxContext(object):
+class BaseTxContext(ITxContext):
     __slots__ = ('_tx_state', '_session_state', '_driver', 'session')
 
     def __init__(self, driver, session_state, session, tx_mode=None):
@@ -1720,29 +2076,6 @@ class TxContext(object):
         """
         return self._tx_state.tx_id
 
-    @_utilities.wrap_async_call_exceptions
-    def async_execute(self, query, parameters=None, commit_tx=False, settings=None):
-        """
-        Sends a query (yql text or an instance of DataQuery) to be executed with parameters.
-        Execution with parameters supported only for DataQuery instances and not supported for YQL text.
-
-        :param query: A query: YQL text or DataQuery instance. E
-        :param parameters: A dictionary with parameters values.
-        :param commit_tx: A special flag that allows transaction commit
-        :param settings: A request settings (an instance of ExecDataQuerySettings)
-        :return: A future of query execution
-        """
-        return self._driver.future(
-            _tx_ctx_impl.execute_request_factory(
-                self._session_state, self._tx_state, query, parameters, commit_tx, settings),
-            _apis.TableService.Stub,
-            _apis.TableService.ExecuteDataQuery,
-            _tx_ctx_impl.wrap_result_and_tx_id,
-            settings,
-            (self._session_state, self._tx_state, query,),
-            self._session_state.endpoint,
-        )
-
     def execute(self, query, parameters=None, commit_tx=False, settings=None):
         """
         Sends a query (yql text or an instance of DataQuery) to be executed with parameters.
@@ -1776,6 +2109,89 @@ class TxContext(object):
             self._session_state.endpoint,
         )
 
+    def commit(self, settings=None):
+        """
+        Calls commit on a transaction if it is open otherwise is no-op. If transaction execution
+        failed then this method raises PreconditionFailed.
+
+        :param settings: A request settings
+        :return: A committed transaction or exception if commit is failed
+        """
+        if self._tx_state.tx_id is None and not self._tx_state.dead:
+            return self
+        return self._driver(
+            _tx_ctx_impl.commit_request_factory(self._session_state, self._tx_state),
+            _apis.TableService.Stub,
+            _apis.TableService.CommitTransaction,
+            _tx_ctx_impl.wrap_result_on_rollback_or_commit_tx,
+            settings,
+            (self._session_state, self._tx_state, self),
+            self._session_state.endpoint,
+        )
+
+    def rollback(self, settings=None):
+        """
+        Calls rollback on a transaction if it is open otherwise is no-op. If transaction execution
+        failed then this method raises PreconditionFailed.
+
+        :param settings: A request settings
+        :return: A rolled back transaction or exception if rollback is failed
+        """
+        if self._tx_state.tx_id is None and not self._tx_state.dead:
+            return self
+        return self._driver(
+            _tx_ctx_impl.rollback_request_factory(self._session_state, self._tx_state),
+            _apis.TableService.Stub,
+            _apis.TableService.RollbackTransaction,
+            _tx_ctx_impl.wrap_result_on_rollback_or_commit_tx,
+            settings,
+            (self._session_state, self._tx_state, self),
+            self._session_state.endpoint
+        )
+
+    def begin(self, settings=None):
+        """
+        Explicitly begins a transaction
+        :param settings: A request settings
+        :return: An open transaction
+        """
+        if self._tx_state.tx_id is not None:
+            return self
+        return self._driver(
+            _tx_ctx_impl.begin_request_factory(self._session_state, self._tx_state),
+            _apis.TableService.Stub,
+            _apis.TableService.BeginTransaction,
+            _tx_ctx_impl.wrap_tx_begin_response,
+            settings,
+            (self._session_state, self._tx_state, self),
+            self._session_state.endpoint,
+        )
+
+
+class TxContext(BaseTxContext):
+    @_utilities.wrap_async_call_exceptions
+    def async_execute(self, query, parameters=None, commit_tx=False, settings=None):
+        """
+        Sends a query (yql text or an instance of DataQuery) to be executed with parameters.
+        Execution with parameters supported only for DataQuery instances and not supported for YQL text.
+
+        :param query: A query: YQL text or DataQuery instance. E
+        :param parameters: A dictionary with parameters values.
+        :param commit_tx: A special flag that allows transaction commit
+        :param settings: A request settings (an instance of ExecDataQuerySettings)
+        :return: A future of query execution
+        """
+        return self._driver.future(
+            _tx_ctx_impl.execute_request_factory(
+                self._session_state, self._tx_state, query, parameters, commit_tx, settings),
+            _apis.TableService.Stub,
+            _apis.TableService.ExecuteDataQuery,
+            _tx_ctx_impl.wrap_result_and_tx_id,
+            settings,
+            (self._session_state, self._tx_state, query,),
+            self._session_state.endpoint,
+        )
+
     @_utilities.wrap_async_call_exceptions
     def async_commit(self, settings=None):
         """
@@ -1788,26 +2204,6 @@ class TxContext(object):
         if self._tx_state.tx_id is None and not self._tx_state.dead:
             return _utilities.wrap_result_in_future(self)
         return self._driver.future(
-            _tx_ctx_impl.commit_request_factory(self._session_state, self._tx_state),
-            _apis.TableService.Stub,
-            _apis.TableService.CommitTransaction,
-            _tx_ctx_impl.wrap_result_on_rollback_or_commit_tx,
-            settings,
-            (self._session_state, self._tx_state, self),
-            self._session_state.endpoint,
-        )
-
-    def commit(self, settings=None):
-        """
-        Calls commit on a transaction if it is open otherwise is no-op. If transaction execution
-        failed then this method raises PreconditionFailed.
-
-        :param settings: A request settings
-        :return: A committed transaction or exception if commit is failed
-        """
-        if self._tx_state.tx_id is None and not self._tx_state.dead:
-            return self
-        return self._driver(
             _tx_ctx_impl.commit_request_factory(self._session_state, self._tx_state),
             _apis.TableService.Stub,
             _apis.TableService.CommitTransaction,
@@ -1838,26 +2234,6 @@ class TxContext(object):
             self._session_state.endpoint,
         )
 
-    def rollback(self, settings=None):
-        """
-        Calls rollback on a transaction if it is open otherwise is no-op. If transaction execution
-        failed then this method raises PreconditionFailed.
-
-        :param settings: A request settings
-        :return: A rolled back transaction or exception if rollback is failed
-        """
-        if self._tx_state.tx_id is None and not self._tx_state.dead:
-            return self
-        return self._driver(
-            _tx_ctx_impl.rollback_request_factory(self._session_state, self._tx_state),
-            _apis.TableService.Stub,
-            _apis.TableService.RollbackTransaction,
-            _tx_ctx_impl.wrap_result_on_rollback_or_commit_tx,
-            settings,
-            (self._session_state, self._tx_state, self),
-            self._session_state.endpoint
-        )
-
     @_utilities.wrap_async_call_exceptions
     def async_begin(self, settings=None):
         """
@@ -1868,24 +2244,6 @@ class TxContext(object):
         if self._tx_state.tx_id is not None:
             return _utilities.wrap_result_in_future(self)
         return self._driver.future(
-            _tx_ctx_impl.begin_request_factory(self._session_state, self._tx_state),
-            _apis.TableService.Stub,
-            _apis.TableService.BeginTransaction,
-            _tx_ctx_impl.wrap_tx_begin_response,
-            settings,
-            (self._session_state, self._tx_state, self),
-            self._session_state.endpoint,
-        )
-
-    def begin(self, settings=None):
-        """
-        Explicitly begins a transaction
-        :param settings: A request settings
-        :return: An open transaction
-        """
-        if self._tx_state.tx_id is not None:
-            return self
-        return self._driver(
             _tx_ctx_impl.begin_request_factory(self._session_state, self._tx_state),
             _apis.TableService.Stub,
             _apis.TableService.BeginTransaction,
