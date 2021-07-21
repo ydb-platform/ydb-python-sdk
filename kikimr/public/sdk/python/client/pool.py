@@ -5,7 +5,10 @@ from concurrent import futures
 import collections
 import random
 
+import six
+
 from . import connection as connection_impl, issues, resolver, _utilities
+from abc import abstractmethod, ABCMeta
 
 
 logger = logging.getLogger(__name__)
@@ -251,7 +254,70 @@ class Discovery(threading.Thread):
         self.logger.info("Successfully terminated discovery process")
 
 
-class ConnectionPool(object):
+@six.add_metaclass(ABCMeta)
+class IConnectionPool:
+
+    @abstractmethod
+    def __init__(self, driver_config):
+        """
+        An object that encapsulates discovery logic and provides ability to execute user requests
+        on discovered endpoints.
+        :param driver_config: An instance of DriverConfig
+        """
+        pass
+
+    @abstractmethod
+    def stop(self, timeout=10):
+        """
+        Stops underlying discovery process and cleanups
+        :param timeout: A timeout to wait for stop completion
+        :return: None
+        """
+        pass
+
+    @abstractmethod
+    def wait(self, timeout=None, fail_fast=False):
+        """
+        Waits for endpoints to be are available to serve user requests
+        :param timeout: A timeout to wait in seconds
+        :param fail_fast: Should wait fail fast?
+        :return: None
+        """
+
+    @abstractmethod
+    def discovery_debug_details(self):
+        """
+        Returns debug string about last errors
+        :return:
+        """
+        pass
+
+    @abstractmethod
+    def __call__(
+        self,
+        request,
+        stub,
+        rpc_name,
+        wrap_result=None,
+        settings=None,
+        wrap_args=(),
+        preferred_endpoint=None
+    ):
+        """
+       Sends request constructed by client library
+       :param request: A request constructed by client
+       :param stub: A stub instance to wrap channel
+       :param rpc_name: A name of RPC to be executed
+       :param wrap_result: A callable that intercepts call and wraps received response
+       :param settings: An instance of BaseRequestSettings that can be used
+       for RPC metadata construction
+       :param wrap_args: And arguments to be passed into wrap_result callable
+       :return: A result of computation
+       """
+        pass
+
+
+class ConnectionPool(IConnectionPool):
     def __init__(self, driver_config):
         """
         An object that encapsulates discovery logic and provides ability to execute user requests
