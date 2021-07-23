@@ -1052,41 +1052,41 @@ class ISession:
         use_snapshot=None
     ):
         """
-                Perform an read table request.
+        Perform an read table request.
 
-                from kikimr.public.sdk.python import client as ydb
+        from kikimr.public.sdk.python import client as ydb
 
-                .... initialize driver and session ....
+        .... initialize driver and session ....
 
-                key_prefix_type = ydb.TupleType().add_element(
-                    ydb.OptionalType(ydb.PrimitiveType.Uint64).add_element(
-                    ydb.OptionalType(ydb.PrimitiveType.Utf8))
-                table_iterator = session.read_table(
-                    '/my/table',
-                    columns=('KeyColumn0', 'KeyColumn1', 'ValueColumn'),
-                    ydb.KeyRange(
-                        ydb.KeyBound((100, 'hundred'), key_prefix_type)
-                        ydb.KeyBound((200, 'two-hundreds'), key_prefix_type)
-                    )
-                )
+        key_prefix_type = ydb.TupleType().add_element(
+            ydb.OptionalType(ydb.PrimitiveType.Uint64).add_element(
+            ydb.OptionalType(ydb.PrimitiveType.Utf8))
+        table_iterator = session.read_table(
+            '/my/table',
+            columns=('KeyColumn0', 'KeyColumn1', 'ValueColumn'),
+            ydb.KeyRange(
+                ydb.KeyBound((100, 'hundred'), key_prefix_type)
+                ydb.KeyBound((200, 'two-hundreds'), key_prefix_type)
+            )
+        )
 
-                while True:
-                    try:
-                        chunk = next(table_iterator)
-                        ... additional data processing ...
-                    except StopIteration:
-                        break
+        while True:
+            try:
+                chunk = next(table_iterator)
+                ... additional data processing ...
+            except StopIteration:
+                break
 
-                :param path: A path to the table
-                :param key_range: (optional) A KeyRange instance that describes a range to read. The KeyRange instance
-                should include from_bound and/or to_bound. Each of the bounds (if provided) should specify a value of the
-                key bound, and type of the key prefix. See an example above.
-                :param columns: (optional) An iterable with table columns to read.
-                :param ordered: (optional) A flag that indicates that result should be ordered.
-                :param row_limit: (optional) A number of rows to read.
-                :param settings: Request settings
-                :return: SyncResponseIterator instance
-                """
+        :param path: A path to the table
+        :param key_range: (optional) A KeyRange instance that describes a range to read. The KeyRange instance
+        should include from_bound and/or to_bound. Each of the bounds (if provided) should specify a value of the
+        key bound, and type of the key prefix. See an example above.
+        :param columns: (optional) An iterable with table columns to read.
+        :param ordered: (optional) A flag that indicates that result should be ordered.
+        :param row_limit: (optional) A number of rows to read.
+        :param settings: Request settings
+        :return: SyncResponseIterator instance
+        """
         pass
 
     @abstractmethod
@@ -1131,45 +1131,45 @@ class ISession:
     @abstractmethod
     def create_table(self, path, table_description, settings=None):
         """
-                Create a YDB table.
+        Create a YDB table.
 
-                from kikimr.public.sdk.python import client as ydb
+        from kikimr.public.sdk.python import client as ydb
 
-                ... create an instance of Driver ...
+        ... create an instance of Driver ...
 
-                description = (
-                    ydb.TableDescription()
-                    .with_primary_keys('key1', 'key2')
-                    .with_columns(
-                        ydb.Column('key1', ydb.OptionalType(ydb.PrimitiveType.Uint64)),
-                        ydb.Column('key2', ydb.OptionalType(ydb.PrimitiveType.Uint64)),
-                        ydb.Column('value', ydb.OptionalType(ydb.PrimitiveType.Utf8))
-                    )
-                    .with_profile(
-                        ydb.TableProfile()
-                        .with_partitioning_policy(
-                            ydb.PartitioningPolicy()
-                            .with_explicit_partitions(
-                                ydb.ExplicitPartitions(
-                                    (
-                                        ydb.KeyBound((100, )),
-                                        ydb.KeyBound((300, 100)),
-                                        ydb.KeyBound((400, )),
-                                    )
-                                )
+        description = (
+            ydb.TableDescription()
+            .with_primary_keys('key1', 'key2')
+            .with_columns(
+                ydb.Column('key1', ydb.OptionalType(ydb.PrimitiveType.Uint64)),
+                ydb.Column('key2', ydb.OptionalType(ydb.PrimitiveType.Uint64)),
+                ydb.Column('value', ydb.OptionalType(ydb.PrimitiveType.Utf8))
+            )
+            .with_profile(
+                ydb.TableProfile()
+                .with_partitioning_policy(
+                    ydb.PartitioningPolicy()
+                    .with_explicit_partitions(
+                        ydb.ExplicitPartitions(
+                            (
+                                ydb.KeyBound((100, )),
+                                ydb.KeyBound((300, 100)),
+                                ydb.KeyBound((400, )),
                             )
                         )
                     )
                 )
+            )
+        )
 
-                session = driver.table_client.session().create()
-                session.create_table('/my/table/', description)
+        session = driver.table_client.session().create()
+        session.create_table('/my/table/', description)
 
-                :param path: A table path
-                :param table_description: A description of table to create. An instance TableDescription
-                :param settings: An instance of BaseRequestSettings that describes how rpc should invoked.
-                :return: A description of created scheme entry or error otherwise.
-                """
+        :param path: A table path
+        :param table_description: A description of table to create. An instance TableDescription
+        :param settings: An instance of BaseRequestSettings that describes how rpc should invoked.
+        :return: A description of created scheme entry or error otherwise.
+        """
         pass
 
     @abstractmethod

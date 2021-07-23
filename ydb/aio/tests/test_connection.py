@@ -1,6 +1,6 @@
 import asyncio
 
-from connection import Connection
+from ydb.aio.connection import Connection
 import pytest
 from kikimr.public.sdk.python.client import _apis
 
