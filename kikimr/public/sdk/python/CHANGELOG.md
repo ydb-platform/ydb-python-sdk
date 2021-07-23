@@ -1,3 +1,7 @@
+## 1.0.17 ##
+
+* add asyncio support
+
 ## 1.0.14 ##
 
 * add some custom datatypes for sqlalchemy

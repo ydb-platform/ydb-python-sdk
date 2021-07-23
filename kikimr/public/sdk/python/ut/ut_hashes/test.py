@@ -20,6 +20,9 @@ def test_hashes_requires_update_of_versions_and_changelog():
     ])
 
     skip_calculation_for = set([
+        yatest_common.source_path("kikimr/public/sdk/python/ydb/aio/tests"),
+        yatest_common.source_path("kikimr/public/sdk/python/ydb/aio/tools"),
+        yatest_common.source_path("kikimr/public/sdk/python/kikimr"),
         yatest_common.source_path("kikimr/public/sdk/python/ut"),
         yatest_common.source_path("kikimr/public/sdk/python/examples"),
         yatest_common.source_path("kikimr/public/sdk/python/persqueue/examples"),
@@ -29,6 +32,9 @@ def test_hashes_requires_update_of_versions_and_changelog():
     hashes = {}
     while len(queue) > 0:
         dr = queue.popleft()
+
+        if os.path.basename(dr).startswith("."):
+            continue
 
         for child in os.listdir(dr):
             fp = os.path.join(dr, child)

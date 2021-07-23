@@ -36,7 +36,10 @@ class _RpcState(RpcState):
         super().__init__(stub_instance, rpc_name, endpoint)
 
     async def __call__(self, *args, **kwargs):
-        return await self.rpc(*args, **kwargs)
+        resp = self.rpc(*args, **kwargs)
+        if hasattr(resp, "__await__"):  # Check to support async iterators from streams
+            return await resp
+        return resp
 
     def future(self, *args, **kwargs):
         raise NotImplementedError
