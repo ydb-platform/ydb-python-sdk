@@ -8,9 +8,9 @@ from kikimr.public.sdk.python.client.pool import (
     IConnectionPool
 )
 
-from connection import Connection
+from .connection import Connection
 
-import resolver
+from . import resolver
 
 logger = logging.getLogger(__name__)
 
@@ -24,7 +24,7 @@ class ConnectionsCache(_ConnectionsCache):
 
         self._fast_fail_error = None
 
-    async def get(self, preferred_endpoint=None, fast_fail=False, wait_timeout=5):
+    async def get(self, preferred_endpoint=None, fast_fail=False, wait_timeout=10):
 
         if fast_fail:
             await asyncio.wait_for(self._fast_fail_event.wait(), timeout=wait_timeout)
@@ -188,7 +188,7 @@ class ConnectionPool(IConnectionPool):
         self._discovery.notify_disconnected()
 
     async def wait(self, timeout=7, fail_fast=False):
-        await asyncio.wait_for(self._store.get(fast_fail=fail_fast), timeout=timeout)
+        await self._store.get(fast_fail=fail_fast, wait_timeout=timeout)
 
     def discovery_debug_details(self):
         return self._discovery.discovery_debug_details()
@@ -202,9 +202,9 @@ class ConnectionPool(IConnectionPool):
         settings=None,
         wrap_args=(),
         preferred_endpoint=None,
-        fast_fail=False,
-        wait_timeout=5
+        fast_fail=False
     ):
+        wait_timeout = settings.timeout if settings else 10
         try:
             connection = await self._store.get(preferred_endpoint, fast_fail=fast_fail, wait_timeout=wait_timeout)
         except Exception:

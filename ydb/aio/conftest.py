@@ -23,7 +23,7 @@ def database():
 @pytest.fixture()
 async def aio_connection(endpoint, database):
     """A fixture to wait ydb start"""
-    from connection import Connection
+    from ydb.aio.connection import Connection
     from kikimr.public.sdk.python.client.driver import DriverConfig
     config = DriverConfig.default_from_endpoint_and_database(endpoint, database)
     connection = Connection(endpoint, config)

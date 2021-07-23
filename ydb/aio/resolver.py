@@ -1,4 +1,4 @@
-import connection as conn_impl
+from . import connection as conn_impl
 
 from kikimr.public.sdk.python.client.resolver import (
     DiscoveryResult,

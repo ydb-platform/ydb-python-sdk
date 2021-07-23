@@ -1,6 +1,4 @@
-import pool
-import scheme
-import table
+from . import pool, scheme, table
 from kikimr.public.sdk.python.client.driver import get_config
 
 

@@ -1,9 +1,8 @@
 from kikimr.public.sdk.python.client import scheme
-from driver import Driver
 
 
 class SchemeClient(scheme.BaseSchemeClient):
-    def __init__(self, driver: Driver):
+    def __init__(self, driver):
         super(SchemeClient, self).__init__(driver)
 
     async def make_directory(self, path, settings=None):
