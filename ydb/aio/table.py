@@ -8,7 +8,8 @@ from kikimr.public.sdk.python.client.table import (
     _wrap_scan_query_response,
     BaseTxContext
 )
-from kikimr.public.sdk.python.client import _apis, _utilities, _session_impl
+from . import _utilities
+from kikimr.public.sdk.python.client import _apis, _session_impl
 logger = logging.getLogger(__name__)
 
 
@@ -22,7 +23,7 @@ class Session(BaseSession):
         stream_it = await self._driver(
             request, _apis.TableService.Stub, _apis.TableService.StreamReadTable, settings=settings
         )
-        return _utilities.SyncResponseIterator(stream_it, _session_impl.wrap_read_table_response)
+        return _utilities.AsyncResponseIterator(stream_it, _session_impl.wrap_read_table_response)
 
     async def keep_alive(self, settings=None):
         return await super(Session, self).keep_alive(settings)
@@ -106,7 +107,7 @@ class TableClient(BaseTableClient):
         response = await self._driver(
             request, _apis.TableService.Stub, _apis.TableService.StreamExecuteScanQuery, settings=settings
         )
-        return _utilities.SyncResponseIterator(
+        return _utilities.AsyncResponseIterator(
             response, lambda resp: _wrap_scan_query_response(resp, self._table_client_settings)
         )
 

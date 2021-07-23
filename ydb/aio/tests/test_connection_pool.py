@@ -4,6 +4,8 @@ from ydb.aio.driver import Driver
 import pytest
 import ydb
 
+from concurrent.futures import ProcessPoolExecutor
+
 
 @pytest.mark.asyncio
 async def test_async_call(endpoint, database):
@@ -78,3 +80,28 @@ async def test_session(endpoint, database):
 
     response = await session.describe_table(database + "/some_table")
     assert [c.name for c in response.columns] == ['key1', 'key2', 'value']
+
+
+@pytest.mark.asyncio
+async def test_raises_when_disconnect(endpoint, database, docker_project):
+
+    driver_config = ydb.DriverConfig(
+        endpoint, database, credentials=ydb.construct_credentials_from_environ(),
+        root_certificates=ydb.load_ydb_root_certificate(),
+    )
+
+    driver = Driver(driver_config=driver_config)
+
+    await driver.wait(timeout=10)
+
+    async def restart_docker():
+        docker_project.restart()
+
+    coros = [
+        driver.scheme_client.make_directory("/local/dir%i" % i)
+        for i in range(100)
+    ]
+    coros.append(restart_docker())
+
+    with pytest.raises(ydb.ConnectionLost):
+        await asyncio.gather(*coros, return_exceptions=False)
