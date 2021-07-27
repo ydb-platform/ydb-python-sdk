@@ -67,8 +67,9 @@ def render_sql(sql, parameters):
     )
 
 
-def named_result_for(rs):
-    return collections.namedtuple('NamedResult', [column.name for column in rs.columns])
+def named_result_for(column_names):
+    # TODO fix: this doesn't allow columns names starting with underscore, e.g. `select 1 as _a`.
+    return collections.namedtuple('NamedResult', column_names)
 
 
 def _get_column_type(type_obj):
@@ -123,7 +124,7 @@ class Cursor(object):
                     ]
                     self.description = description
                 if nmd is None:
-                    nmd = named_result_for(chunk.result_set)
+                    nmd = named_result_for([col[0] for col in description])
                 for row in chunk.result_set.rows:
                     yield nmd(**row)
         except ydb.Error as e:

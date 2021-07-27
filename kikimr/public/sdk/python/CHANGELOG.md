@@ -1,3 +1,7 @@
+## 1.0.18 ##
+
+* minor change in dbapi
+
 ## 1.0.17 ##
 
 * add asyncio support
