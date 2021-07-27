@@ -25,7 +25,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   syntax='proto3',
   serialized_options=b'\n!com.yandex.yql.analytics.internalB\026AnalyticsIntenalProtos\370\001\001',
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n1kikimr/public/api/protos/draft/yql_internal.proto\x12\rYql.Analytics\x1a,kikimr/public/api/protos/ydb_operation.proto\x1a(kikimr/public/api/protos/ydb_value.proto\x1a\x30kikimr/public/api/protos/ydb_issue_message.proto\x1a\x32kikimr/public/api/protos/draft/yql_analytics.proto\x1a!kikimr/public/api/protos/yq.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\x10\n\x0eGetTaskRequest\"\x8f\x02\n\rGetTaskResult\x12\x10\n\x08has_task\x18\x01 \x01(\x08\x12\x11\n\tresult_id\x18\x02 \x01(\t\x12\x1b\n\x13result_id_signature\x18\x03 \x01(\t\x12\x14\n\x0coperation_id\x18\x04 \x01(\t\x12\x1e\n\x16operation_id_signature\x18\x05 \x01(\t\x12\x0f\n\x07\x63ontent\x18\x06 \x01(\t\x12+\n\nconnection\x18\x07 \x03(\x0b\x32\x17.YandexQuery.Connection\x12%\n\x07\x62inding\x18\x08 \x03(\x0b\x32\x14.YandexQuery.Binding\x12\x12\n\nuser_token\x18\t \x01(\t\x12\r\n\x05token\x18\n \x01(\t\"?\n\x0fGetTaskResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\xd8\x02\n\x0fPingTaskRequest\x12\x14\n\x0coperation_id\x18\x01 \x01(\t\x12\x1e\n\x16operation_id_signature\x18\x02 \x01(\t\x12\x11\n\tresult_id\x18\x03 \x01(\t\x12\x1b\n\x13result_id_signature\x18\x04 \x01(\t\x12+\n\x06status\x18\x05 \x01(\x0e\x32\x1b.Yql.Analytics.EQueryStatus\x12\'\n\x06issues\x18\x06 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessage\x12\x18\n\x10result_set_count\x18\x07 \x01(\r\x12\x12\n\nstatistics\x18\x08 \x01(\t\x12\x1a\n\x12serialized_headers\x18\t \x01(\t\x12\x15\n\rexecuter_info\x18\n \x01(\t\x12\x0b\n\x03\x61st\x18\x0b \x01(\t\x12\x0c\n\x04plan\x18\x0c \x01(\t\x12\r\n\x05token\x18\x64 \x01(\t\"\x10\n\x0ePingTaskResult\"@\n\x10PingTaskResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\xa2\x01\n\x16WriteTaskResultRequest\x12\x11\n\tresult_id\x18\x01 \x01(\t\x12\x1b\n\x13result_id_signature\x18\x02 \x01(\t\x12\"\n\nresult_set\x18\x03 \x01(\x0b\x32\x0e.Ydb.ResultSet\x12\x15\n\rresult_set_id\x18\x04 \x01(\r\x12\x0e\n\x06offset\x18\x05 \x01(\x04\x12\r\n\x05token\x18\x64 \x01(\t\"\x17\n\x15WriteTaskResultResult\"G\n\x17WriteTaskResultResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.OperationB>\n!com.yandex.yql.analytics.internalB\x16\x41nalyticsIntenalProtos\xf8\x01\x01\x62\x06proto3'
+  serialized_pb=b'\n1kikimr/public/api/protos/draft/yql_internal.proto\x12\rYql.Analytics\x1a,kikimr/public/api/protos/ydb_operation.proto\x1a(kikimr/public/api/protos/ydb_value.proto\x1a\x30kikimr/public/api/protos/ydb_issue_message.proto\x1a\x32kikimr/public/api/protos/draft/yql_analytics.proto\x1a!kikimr/public/api/protos/yq.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"@\n\x0eGetTaskRequest\x12\x0e\n\x06tenant\x18\x01 \x01(\t\x12\x10\n\x08owner_id\x18\x02 \x01(\t\x12\x0c\n\x04host\x18\x03 \x01(\t\"2\n\x0eSignedIdentity\x12\r\n\x05value\x18\x01 \x01(\t\x12\x11\n\tsignature\x18\x02 \x01(\t\"\x9b\x03\n\rGetTaskResult\x12\x10\n\x08has_task\x18\x01 \x01(\x08\x12\x30\n\tresult_id\x18\x02 \x01(\x0b\x32\x1d.Yql.Analytics.SignedIdentity\x12/\n\x08query_id\x18\x03 \x01(\x0b\x32\x1d.Yql.Analytics.SignedIdentity\x12-\n\x06job_id\x18\x04 \x01(\x0b\x32\x1d.Yql.Analytics.SignedIdentity\x12\x12\n\ngeneration\x18\x05 \x01(\x04\x12\x11\n\tstreaming\x18\x06 \x01(\x08\x12\x10\n\x08\x64q_graph\x18\x07 \x01(\t\x12\x0c\n\x04text\x18\x08 \x01(\t\x12+\n\nconnection\x18\t \x03(\x0b\x32\x17.YandexQuery.Connection\x12%\n\x07\x62inding\x18\n \x03(\x0b\x32\x14.YandexQuery.Binding\x12\x12\n\nuser_token\x18\x0b \x01(\t\x12\x37\n\x10service_accounts\x18\x0c \x03(\x0b\x32\x1d.Yql.Analytics.SignedIdentity\"?\n\x0fGetTaskResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\x82\x04\n\x0fPingTaskRequest\x12\x10\n\x08owner_id\x18\x01 \x01(\t\x12/\n\x08query_id\x18\x02 \x01(\x0b\x32\x1d.Yql.Analytics.SignedIdentity\x12-\n\x06job_id\x18\x03 \x01(\x0b\x32\x1d.Yql.Analytics.SignedIdentity\x12\x30\n\tresult_id\x18\x04 \x01(\x0b\x32\x1d.Yql.Analytics.SignedIdentity\x12\x34\n\x06status\x18\x05 \x01(\x0e\x32$.YandexQuery.QueryMeta.ComputeStatus\x12\'\n\x06issues\x18\x06 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessage\x12\x18\n\x10result_set_count\x18\x07 \x01(\r\x12\x12\n\nstatistics\x18\x08 \x01(\t\x12\x1a\n\x12serialized_headers\x18\t \x01(\t\x12\x15\n\rexecuter_info\x18\n \x01(\t\x12\x10\n\x08\x64q_graph\x18\x0b \x01(\t\x12\x0b\n\x03\x61st\x18\x0c \x01(\t\x12\x0c\n\x04plan\x18\r \x01(\t\x12\x14\n\x0cresign_query\x18\x0e \x01(\x08\x12\x39\n\x10operation_params\x18\x0f \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\r\n\x05scope\x18\x64 \x01(\t\":\n\x0ePingTaskResult\x12(\n\x06\x61\x63tion\x18\x01 \x01(\x0e\x32\x18.YandexQuery.QueryAction\"@\n\x10PingTaskResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\xa7\x01\n\x16WriteTaskResultRequest\x12\x10\n\x08owner_id\x18\x01 \x01(\t\x12\x30\n\tresult_id\x18\x02 \x01(\x0b\x32\x1d.Yql.Analytics.SignedIdentity\x12\"\n\nresult_set\x18\x03 \x01(\x0b\x32\x0e.Ydb.ResultSet\x12\x15\n\rresult_set_id\x18\x04 \x01(\r\x12\x0e\n\x06offset\x18\x05 \x01(\x04\"\x17\n\x15WriteTaskResultResult\"G\n\x17WriteTaskResultResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.OperationB>\n!com.yandex.yql.analytics.internalB\x16\x41nalyticsIntenalProtos\xf8\x01\x01\x62\x06proto3'
   ,
   dependencies=[kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2.DESCRIPTOR,kikimr_dot_public_dot_api_dot_protos_dot_ydb__value__pb2.DESCRIPTOR,kikimr_dot_public_dot_api_dot_protos_dot_ydb__issue__message__pb2.DESCRIPTOR,kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yql__analytics__pb2.DESCRIPTOR,kikimr_dot_public_dot_api_dot_protos_dot_yq__pb2.DESCRIPTOR,google_dot_protobuf_dot_timestamp__pb2.DESCRIPTOR,])
 
@@ -40,6 +40,27 @@ _GETTASKREQUEST = _descriptor.Descriptor(
   containing_type=None,
   create_key=_descriptor._internal_create_key,
   fields=[
+    _descriptor.FieldDescriptor(
+      name='tenant', full_name='Yql.Analytics.GetTaskRequest.tenant', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='owner_id', full_name='Yql.Analytics.GetTaskRequest.owner_id', index=1,
+      number=2, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='host', full_name='Yql.Analytics.GetTaskRequest.host', index=2,
+      number=3, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
   ],
   extensions=[
   ],
@@ -53,7 +74,46 @@ _GETTASKREQUEST = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=326,
-  serialized_end=342,
+  serialized_end=390,
+)
+
+
+_SIGNEDIDENTITY = _descriptor.Descriptor(
+  name='SignedIdentity',
+  full_name='Yql.Analytics.SignedIdentity',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='value', full_name='Yql.Analytics.SignedIdentity.value', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='signature', full_name='Yql.Analytics.SignedIdentity.signature', index=1,
+      number=2, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=392,
+  serialized_end=442,
 )
 
 
@@ -74,64 +134,78 @@ _GETTASKRESULT = _descriptor.Descriptor(
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
       name='result_id', full_name='Yql.Analytics.GetTaskResult.result_id', index=1,
-      number=2, type=9, cpp_type=9, label=1,
+      number=2, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='query_id', full_name='Yql.Analytics.GetTaskResult.query_id', index=2,
+      number=3, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='job_id', full_name='Yql.Analytics.GetTaskResult.job_id', index=3,
+      number=4, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='generation', full_name='Yql.Analytics.GetTaskResult.generation', index=4,
+      number=5, type=4, cpp_type=4, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='streaming', full_name='Yql.Analytics.GetTaskResult.streaming', index=5,
+      number=6, type=8, cpp_type=7, label=1,
+      has_default_value=False, default_value=False,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='dq_graph', full_name='Yql.Analytics.GetTaskResult.dq_graph', index=6,
+      number=7, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=b"".decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='result_id_signature', full_name='Yql.Analytics.GetTaskResult.result_id_signature', index=2,
-      number=3, type=9, cpp_type=9, label=1,
+      name='text', full_name='Yql.Analytics.GetTaskResult.text', index=7,
+      number=8, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=b"".decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='operation_id', full_name='Yql.Analytics.GetTaskResult.operation_id', index=3,
-      number=4, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=b"".decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='operation_id_signature', full_name='Yql.Analytics.GetTaskResult.operation_id_signature', index=4,
-      number=5, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=b"".decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='content', full_name='Yql.Analytics.GetTaskResult.content', index=5,
-      number=6, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=b"".decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='connection', full_name='Yql.Analytics.GetTaskResult.connection', index=6,
-      number=7, type=11, cpp_type=10, label=3,
+      name='connection', full_name='Yql.Analytics.GetTaskResult.connection', index=8,
+      number=9, type=11, cpp_type=10, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='binding', full_name='Yql.Analytics.GetTaskResult.binding', index=7,
-      number=8, type=11, cpp_type=10, label=3,
+      name='binding', full_name='Yql.Analytics.GetTaskResult.binding', index=9,
+      number=10, type=11, cpp_type=10, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='user_token', full_name='Yql.Analytics.GetTaskResult.user_token', index=8,
-      number=9, type=9, cpp_type=9, label=1,
+      name='user_token', full_name='Yql.Analytics.GetTaskResult.user_token', index=10,
+      number=11, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=b"".decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='token', full_name='Yql.Analytics.GetTaskResult.token', index=9,
-      number=10, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=b"".decode('utf-8'),
+      name='service_accounts', full_name='Yql.Analytics.GetTaskResult.service_accounts', index=11,
+      number=12, type=11, cpp_type=10, label=3,
+      has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
@@ -147,8 +221,8 @@ _GETTASKRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=345,
-  serialized_end=616,
+  serialized_start=445,
+  serialized_end=856,
 )
 
 
@@ -179,8 +253,8 @@ _GETTASKRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=618,
-  serialized_end=681,
+  serialized_start=858,
+  serialized_end=921,
 )
 
 
@@ -193,30 +267,30 @@ _PINGTASKREQUEST = _descriptor.Descriptor(
   create_key=_descriptor._internal_create_key,
   fields=[
     _descriptor.FieldDescriptor(
-      name='operation_id', full_name='Yql.Analytics.PingTaskRequest.operation_id', index=0,
+      name='owner_id', full_name='Yql.Analytics.PingTaskRequest.owner_id', index=0,
       number=1, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=b"".decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='operation_id_signature', full_name='Yql.Analytics.PingTaskRequest.operation_id_signature', index=1,
-      number=2, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=b"".decode('utf-8'),
+      name='query_id', full_name='Yql.Analytics.PingTaskRequest.query_id', index=1,
+      number=2, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='result_id', full_name='Yql.Analytics.PingTaskRequest.result_id', index=2,
-      number=3, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=b"".decode('utf-8'),
+      name='job_id', full_name='Yql.Analytics.PingTaskRequest.job_id', index=2,
+      number=3, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='result_id_signature', full_name='Yql.Analytics.PingTaskRequest.result_id_signature', index=3,
-      number=4, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=b"".decode('utf-8'),
+      name='result_id', full_name='Yql.Analytics.PingTaskRequest.result_id', index=3,
+      number=4, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
@@ -263,21 +337,42 @@ _PINGTASKREQUEST = _descriptor.Descriptor(
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='ast', full_name='Yql.Analytics.PingTaskRequest.ast', index=10,
+      name='dq_graph', full_name='Yql.Analytics.PingTaskRequest.dq_graph', index=10,
       number=11, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=b"".decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='plan', full_name='Yql.Analytics.PingTaskRequest.plan', index=11,
+      name='ast', full_name='Yql.Analytics.PingTaskRequest.ast', index=11,
       number=12, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=b"".decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='token', full_name='Yql.Analytics.PingTaskRequest.token', index=12,
+      name='plan', full_name='Yql.Analytics.PingTaskRequest.plan', index=12,
+      number=13, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='resign_query', full_name='Yql.Analytics.PingTaskRequest.resign_query', index=13,
+      number=14, type=8, cpp_type=7, label=1,
+      has_default_value=False, default_value=False,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='operation_params', full_name='Yql.Analytics.PingTaskRequest.operation_params', index=14,
+      number=15, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='scope', full_name='Yql.Analytics.PingTaskRequest.scope', index=15,
       number=100, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=b"".decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
@@ -295,8 +390,8 @@ _PINGTASKREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=684,
-  serialized_end=1028,
+  serialized_start=924,
+  serialized_end=1438,
 )
 
 
@@ -308,6 +403,13 @@ _PINGTASKRESULT = _descriptor.Descriptor(
   containing_type=None,
   create_key=_descriptor._internal_create_key,
   fields=[
+    _descriptor.FieldDescriptor(
+      name='action', full_name='Yql.Analytics.PingTaskResult.action', index=0,
+      number=1, type=14, cpp_type=8, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
   ],
   extensions=[
   ],
@@ -320,8 +422,8 @@ _PINGTASKRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1030,
-  serialized_end=1046,
+  serialized_start=1440,
+  serialized_end=1498,
 )
 
 
@@ -352,8 +454,8 @@ _PINGTASKRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1048,
-  serialized_end=1112,
+  serialized_start=1500,
+  serialized_end=1564,
 )
 
 
@@ -366,16 +468,16 @@ _WRITETASKRESULTREQUEST = _descriptor.Descriptor(
   create_key=_descriptor._internal_create_key,
   fields=[
     _descriptor.FieldDescriptor(
-      name='result_id', full_name='Yql.Analytics.WriteTaskResultRequest.result_id', index=0,
+      name='owner_id', full_name='Yql.Analytics.WriteTaskResultRequest.owner_id', index=0,
       number=1, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=b"".decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='result_id_signature', full_name='Yql.Analytics.WriteTaskResultRequest.result_id_signature', index=1,
-      number=2, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=b"".decode('utf-8'),
+      name='result_id', full_name='Yql.Analytics.WriteTaskResultRequest.result_id', index=1,
+      number=2, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
@@ -400,13 +502,6 @@ _WRITETASKRESULTREQUEST = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='token', full_name='Yql.Analytics.WriteTaskResultRequest.token', index=5,
-      number=100, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=b"".decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
   ],
   extensions=[
   ],
@@ -419,8 +514,8 @@ _WRITETASKRESULTREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1115,
-  serialized_end=1277,
+  serialized_start=1567,
+  serialized_end=1734,
 )
 
 
@@ -444,8 +539,8 @@ _WRITETASKRESULTRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1279,
-  serialized_end=1302,
+  serialized_start=1736,
+  serialized_end=1759,
 )
 
 
@@ -476,19 +571,30 @@ _WRITETASKRESULTRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1304,
-  serialized_end=1375,
+  serialized_start=1761,
+  serialized_end=1832,
 )
 
+_GETTASKRESULT.fields_by_name['result_id'].message_type = _SIGNEDIDENTITY
+_GETTASKRESULT.fields_by_name['query_id'].message_type = _SIGNEDIDENTITY
+_GETTASKRESULT.fields_by_name['job_id'].message_type = _SIGNEDIDENTITY
 _GETTASKRESULT.fields_by_name['connection'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_yq__pb2._CONNECTION
 _GETTASKRESULT.fields_by_name['binding'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_yq__pb2._BINDING
+_GETTASKRESULT.fields_by_name['service_accounts'].message_type = _SIGNEDIDENTITY
 _GETTASKRESPONSE.fields_by_name['operation'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2._OPERATION
-_PINGTASKREQUEST.fields_by_name['status'].enum_type = kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yql__analytics__pb2._EQUERYSTATUS
+_PINGTASKREQUEST.fields_by_name['query_id'].message_type = _SIGNEDIDENTITY
+_PINGTASKREQUEST.fields_by_name['job_id'].message_type = _SIGNEDIDENTITY
+_PINGTASKREQUEST.fields_by_name['result_id'].message_type = _SIGNEDIDENTITY
+_PINGTASKREQUEST.fields_by_name['status'].enum_type = kikimr_dot_public_dot_api_dot_protos_dot_yq__pb2._QUERYMETA_COMPUTESTATUS
 _PINGTASKREQUEST.fields_by_name['issues'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__issue__message__pb2._ISSUEMESSAGE
+_PINGTASKREQUEST.fields_by_name['operation_params'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2._OPERATIONPARAMS
+_PINGTASKRESULT.fields_by_name['action'].enum_type = kikimr_dot_public_dot_api_dot_protos_dot_yq__pb2._QUERYACTION
 _PINGTASKRESPONSE.fields_by_name['operation'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2._OPERATION
+_WRITETASKRESULTREQUEST.fields_by_name['result_id'].message_type = _SIGNEDIDENTITY
 _WRITETASKRESULTREQUEST.fields_by_name['result_set'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__value__pb2._RESULTSET
 _WRITETASKRESULTRESPONSE.fields_by_name['operation'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2._OPERATION
 DESCRIPTOR.message_types_by_name['GetTaskRequest'] = _GETTASKREQUEST
+DESCRIPTOR.message_types_by_name['SignedIdentity'] = _SIGNEDIDENTITY
 DESCRIPTOR.message_types_by_name['GetTaskResult'] = _GETTASKRESULT
 DESCRIPTOR.message_types_by_name['GetTaskResponse'] = _GETTASKRESPONSE
 DESCRIPTOR.message_types_by_name['PingTaskRequest'] = _PINGTASKREQUEST
@@ -505,6 +611,13 @@ GetTaskRequest = _reflection.GeneratedProtocolMessageType('GetTaskRequest', (_me
   # @@protoc_insertion_point(class_scope:Yql.Analytics.GetTaskRequest)
   })
 _sym_db.RegisterMessage(GetTaskRequest)
+
+SignedIdentity = _reflection.GeneratedProtocolMessageType('SignedIdentity', (_message.Message,), {
+  'DESCRIPTOR' : _SIGNEDIDENTITY,
+  '__module__' : 'kikimr.public.api.protos.draft.yql_internal_pb2'
+  # @@protoc_insertion_point(class_scope:Yql.Analytics.SignedIdentity)
+  })
+_sym_db.RegisterMessage(SignedIdentity)
 
 GetTaskResult = _reflection.GeneratedProtocolMessageType('GetTaskResult', (_message.Message,), {
   'DESCRIPTOR' : _GETTASKRESULT,
