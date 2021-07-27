@@ -1,3 +1,7 @@
+## 1.0.19 ##
+
+* add async `SessionPool` support
+
 ## 1.0.18 ##
 
 * minor change in dbapi

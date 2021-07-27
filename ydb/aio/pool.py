@@ -180,7 +180,10 @@ class ConnectionPool(IConnectionPool):
 
     async def stop(self, timeout=10):
         await self._grpc_init.close()
-        await asyncio.wait_for(self._discovery_task, timeout=timeout)
+        try:
+            await asyncio.wait_for(self._discovery_task, timeout=timeout)
+        except asyncio.TimeoutError:
+            self._discovery_task.cancel()
         self._stopped = True
 
     async def _on_disconnected(self, connection):
