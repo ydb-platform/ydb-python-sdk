@@ -114,9 +114,14 @@ class ExportToS3Settings(s_impl.BaseRequestSettings):
         self.access_key = None
         self.secret_key = None
         self.number_of_retries = 0
+        self.storage_class = None
 
     def with_scheme(self, scheme):
         self.scheme = scheme
+        return self
+
+    def with_storage_class(self, storage_class):
+        self.storage_class = storage_class
         return self
 
     def with_bucket(self, bucket):
@@ -190,6 +195,7 @@ def _export_to_s3_request_factory(settings):
             access_key=settings.access_key,
             secret_key=settings.secret_key,
             scheme=settings.scheme,
+            storage_class=settings.storage_class,
         )
     )
 

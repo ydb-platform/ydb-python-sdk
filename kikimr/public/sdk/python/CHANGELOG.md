@@ -1,3 +1,7 @@
+## 1.0.20 ##
+
+* storage class support
+
 ## 1.0.19 ##
 
 * add async `SessionPool` support
