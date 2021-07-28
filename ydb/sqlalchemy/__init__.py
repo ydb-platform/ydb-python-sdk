@@ -205,13 +205,14 @@ try:
         statement_compiler = YqlCompiler
         type_compiler = YqlTypeCompiler
 
-        def __init(self, **kwargs):
-            super(DefaultDialect, self).__init__(**kwargs)
-
         @staticmethod
         def dbapi():
             import ydb.dbapi
             return ydb.dbapi
+
+        def _check_unicode_returns(self, *args, **kwargs):
+            # Normally, this would do 2 SQL queries, which isn't quite necessary.
+            return 'conditional'
 
         def get_columns(self, connection, table_name, schema=None, **kw):
             if schema is not None:
