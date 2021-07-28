@@ -113,7 +113,6 @@ class Cursor(object):
         self.rows = rows
 
     def _rows_iterable(self, chunks_iterable):
-        nmd = None
         description = None
         try:
             for chunk in chunks_iterable:
@@ -123,10 +122,8 @@ class Cursor(object):
                         for col in chunk.result_set.columns
                     ]
                     self.description = description
-                if nmd is None:
-                    nmd = named_result_for([col[0] for col in description])
                 for row in chunk.result_set.rows:
-                    yield nmd(**row)
+                    yield row[::]  # returns tuple to be compatible with SqlAlchemy and because of this PEP to return a sequence: https://www.python.org/dev/peps/pep-0249/#fetchmany
         except ydb.Error as e:
             raise DatabaseError(e.message, e.issues, e.status)
 
