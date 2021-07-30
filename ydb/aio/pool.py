@@ -186,9 +186,11 @@ class ConnectionPool(IConnectionPool):
             self._discovery_task.cancel()
         self._stopped = True
 
-    async def _on_disconnected(self, connection):
-        await connection.close()
-        self._discovery.notify_disconnected()
+    def _on_disconnected(self, connection):
+        async def __wrapper__():
+            await connection.close()
+            self._discovery.notify_disconnected()
+        return __wrapper__
 
     async def wait(self, timeout=7, fail_fast=False):
         await self._store.get(fast_fail=fail_fast, wait_timeout=timeout)

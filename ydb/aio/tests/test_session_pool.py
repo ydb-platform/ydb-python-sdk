@@ -45,7 +45,6 @@ async def test_no_race_after_future_cancel(driver):
 
 
 @pytest.mark.asyncio
-@pytest.mark.timeout(5)
 async def test_release_logic(driver):
     pool = ydb.aio.SessionPool(driver, 1)
     session = await pool.acquire()

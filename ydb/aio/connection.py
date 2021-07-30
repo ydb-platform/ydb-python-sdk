@@ -1,5 +1,6 @@
 import logging
 import asyncio
+import typing
 from typing import Any, Tuple, Callable, Iterable
 
 import grpc
@@ -123,9 +124,11 @@ class Connection:
             _log_response(rpc_state, response)
             return response if wrap_result is None else wrap_result(rpc_state, response, *wrap_args)
         except grpc.RpcError as rpc_error:
-            if asyncio.iscoroutine(on_disconnected):
-                await on_disconnected
-            on_disconnected = None
+            if on_disconnected:
+                coro = on_disconnected()
+                if asyncio.iscoroutine(coro):
+                    await coro
+                on_disconnected = None
             raise _rpc_error_handler(rpc_state, rpc_error, on_disconnected)
         finally:
             self._finish_call(rpc_state)

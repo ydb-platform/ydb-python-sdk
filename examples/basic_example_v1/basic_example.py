@@ -195,38 +195,44 @@ def create_tables(pool, path):
 
     def callee(session):
         # Creating Series table
-        session.create_table(
-            os.path.join(path, 'series'),
-            ydb.TableDescription()
-            .with_column(ydb.Column('series_id', ydb.OptionalType(ydb.PrimitiveType.Uint64)))
-            .with_column(ydb.Column('title', ydb.OptionalType(ydb.PrimitiveType.Utf8)))
-            .with_column(ydb.Column('series_info', ydb.OptionalType(ydb.PrimitiveType.Utf8)))
-            .with_column(ydb.Column('release_date', ydb.OptionalType(ydb.PrimitiveType.Uint64)))
-            .with_primary_key('series_id')
+        session.execute_scheme(
+            """
+                CREATE table `series` (
+                    `series_id` Uint64,
+                    `title` Utf8,
+                    `series_info` Utf8,
+                    `release_date` Uint64,
+                    PRIMARY KEY (`series_id`)
+                )
+                """
         )
 
         # Creating Seasons table
-        session.create_table(
-            os.path.join(path, 'seasons'),
-            ydb.TableDescription()
-            .with_column(ydb.Column('series_id', ydb.OptionalType(ydb.PrimitiveType.Uint64)))
-            .with_column(ydb.Column('season_id', ydb.OptionalType(ydb.PrimitiveType.Uint64)))
-            .with_column(ydb.Column('title', ydb.OptionalType(ydb.PrimitiveType.Utf8)))
-            .with_column(ydb.Column('first_aired', ydb.OptionalType(ydb.PrimitiveType.Uint64)))
-            .with_column(ydb.Column('last_aired', ydb.OptionalType(ydb.PrimitiveType.Uint64)))
-            .with_primary_keys('series_id', 'season_id')
+        session.execute_scheme(
+            """
+               CREATE table `seasons` (
+                   `series_id` Uint64,
+                   `season_id` Uint64,
+                   `title` Utf8,
+                   `first_aired` Uint64,
+                   `last_aired` Uint64,
+                   PRIMARY KEY (`series_id`, `season_id`)
+               )
+               """
         )
 
         # Creating Episodes table
-        session.create_table(
-            os.path.join(path, 'episodes'),
-            ydb.TableDescription()
-            .with_column(ydb.Column('series_id', ydb.OptionalType(ydb.PrimitiveType.Uint64)))
-            .with_column(ydb.Column('season_id', ydb.OptionalType(ydb.PrimitiveType.Uint64)))
-            .with_column(ydb.Column('episode_id', ydb.OptionalType(ydb.PrimitiveType.Uint64)))
-            .with_column(ydb.Column('title', ydb.OptionalType(ydb.PrimitiveType.Utf8)))
-            .with_column(ydb.Column('air_date', ydb.OptionalType(ydb.PrimitiveType.Uint64)))
-            .with_primary_keys('series_id', 'season_id', 'episode_id')
+        session.execute_scheme(
+            """
+            CREATE table `episodes` (
+                `series_id` Uint64,
+                `season_id` Uint64,
+                `episode_id` Uint64,
+                `title` Utf8,
+                `air_date` Uint64,
+                PRIMARY KEY (`series_id`, `season_id`, `episode_id`)
+            )
+            """
         )
 
     return pool.retry_operation_sync(callee)
