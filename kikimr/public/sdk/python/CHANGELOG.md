@@ -1,3 +1,7 @@
+## 1.0.21 ##
+
+* ydb.aio supports retry operation helper.
+
 ## 1.0.20 ##
 
 * storage class support

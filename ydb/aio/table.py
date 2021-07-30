@@ -149,6 +149,31 @@ class TxContext(BaseTxContext):
         return await super(TxContext, self).begin(settings)
 
 
+async def retry_operation(callee, retry_settings=None, *args, **kwargs):
+    """
+    The retry operation helper can be used to retry a coroutine that raises YDB specific
+    exceptions.
+
+    :param callee: A coroutine to retry.
+    :param retry_settings: An instance of ydb.RetrySettings that describes how the coroutine
+    should be retried. If None, default instance of retry settings will be used.
+    :param args: A tuple with positional arguments to be passed into the coroutine.
+    :param kwargs: A dictionary with keyword arguments to be passed into the coroutine.
+
+    Returns awaitable result of coroutine. If retries are not succussful exception is raised.
+    """
+
+    opt_generator = ydb.retry_operation_impl(callee, retry_settings, *args, **kwargs)
+    for next_opt in opt_generator:
+        if isinstance(next_opt, ydb.YdbRetryOperationSleepOpt):
+            await asyncio.sleep(next_opt.timeout)
+        else:
+            try:
+                return await next_opt.result
+            except Exception as e:
+                next_opt.set_exception(e)
+
+
 class SessionPool:
     def __init__(self, driver: ydb.pool.IConnectionPool, size: int, min_pool_size: int = 0):
         self._driver_await_timeout = 3
