@@ -2,9 +2,10 @@ import asyncio
 import logging
 import time
 import typing
+
 import ydb
 
-from kikimr.public.sdk.python.client import issues, settings
+from kikimr.public.sdk.python.client import issues, settings, table
 
 from kikimr.public.sdk.python.client.table import (
     BaseSession,
@@ -174,6 +175,31 @@ async def retry_operation(callee, retry_settings=None, *args, **kwargs):
                 next_opt.set_exception(e)
 
 
+class SessionCheckout:
+    __slots__ = ('_acquired', '_pool', '_blocking', '_timeout', '_retry_timeout')
+
+    def __init__(self, pool, timeout, retry_timeout):
+        """
+        A context manager that checkouts a session from the specified pool and
+        returns it on manager exit.
+        :param pool: A SessionPool instance
+        :param blocking: A flag that specifies that session acquire method should blocks
+        :param timeout: A timeout in seconds for session acquire
+        """
+        self._pool = pool
+        self._acquired = None
+        self._timeout = timeout
+        self._retry_timeout = retry_timeout
+
+    async def __aenter__(self):
+        self._acquired = await self._pool.acquire(self._timeout, self._retry_timeout)
+        return self._acquired
+
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        if self._acquired is not None:
+            await self._pool.release(self._acquired)
+
+
 class SessionPool:
     def __init__(self, driver: ydb.pool.IConnectionPool, size: int, min_pool_size: int = 0):
         self._driver_await_timeout = 3
@@ -196,6 +222,18 @@ class SessionPool:
 
         for _ in range(self._min_pool_size):
             self._min_pool_tasks.append(asyncio.ensure_future(self._init_and_put(self._init_session_timeout)))
+
+    async def retry_operation(self, callee: typing.Callable, *args,  retry_settings: table.RetrySettings = None,
+                              **kwargs):
+
+        if retry_settings is None:
+            retry_settings = table.RetrySettings()
+
+        async def wrapper_callee():
+            async with self.checkout(timeout=retry_settings.get_session_client_timeout) as session:
+                return await callee(session, *args, **kwargs)
+
+        return await retry_operation(wrapper_callee, retry_settings)
 
     def _create(self) -> ydb.ISession:
         self._active_count += 1
@@ -404,3 +442,6 @@ class SessionPool:
 
     async def wait_until_min_size(self):
         await asyncio.gather(*self._min_pool_tasks)
+
+    def checkout(self, timeout:float = None, retry_timeout:float = None):
+        return SessionCheckout(self, timeout, retry_timeout=retry_timeout)

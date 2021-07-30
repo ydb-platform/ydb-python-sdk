@@ -1,3 +1,7 @@
+## 1.0.22 ##
+
+* add retry_operation to `aio.SessionPool`
+
 ## 1.0.21 ##
 
 * ydb.aio supports retry operation helper.

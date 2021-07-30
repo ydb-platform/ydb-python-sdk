@@ -1,11 +1,11 @@
+import threading
+
 import asyncio
 
 from ydb.aio.driver import Driver
 import pytest
 import ydb
 import os
-
-from concurrent.futures import ProcessPoolExecutor
 
 
 @pytest.mark.asyncio
@@ -18,10 +18,10 @@ async def test_async_call(endpoint, database):
     driver = Driver(driver_config=driver_config)
 
     await driver.scheme_client.make_directory("/local/lol")
+    await driver.stop()
 
 
 @pytest.mark.asyncio
-@pytest.mark.skipif(os.getenv("CI_TESTING") == "1", reason="Not working now on ci testing")
 async def test_disconnect_by_call(endpoint, database, docker_project):
     driver_config = ydb.DriverConfig(
         endpoint, database, credentials=ydb.construct_credentials_from_environ(),
@@ -32,7 +32,7 @@ async def test_disconnect_by_call(endpoint, database, docker_project):
 
     await driver.wait(timeout=10)
 
-    docker_project.restart()
+    docker_project.stop()
 
     try:
         await driver.scheme_client.make_directory("/local/lol")
@@ -40,6 +40,8 @@ async def test_disconnect_by_call(endpoint, database, docker_project):
         pass
     await asyncio.sleep(5)
     assert len(driver._store.connections) == 0
+    docker_project.start()
+    await driver.stop()
 
 
 @pytest.mark.asyncio
@@ -82,10 +84,10 @@ async def test_session(endpoint, database):
 
     response = await session.describe_table(database + "/some_table")
     assert [c.name for c in response.columns] == ['key1', 'key2', 'value']
+    await driver.stop()
 
 
 @pytest.mark.asyncio
-@pytest.mark.skipif(os.getenv("CI_TESTING") == "1", reason="Not working now on ci testing")
 async def test_raises_when_disconnect(endpoint, database, docker_project):
 
     driver_config = ydb.DriverConfig(
@@ -98,13 +100,16 @@ async def test_raises_when_disconnect(endpoint, database, docker_project):
     await driver.wait(timeout=10)
 
     async def restart_docker():
-        docker_project.restart()
+        docker_project.stop()
 
     coros = [
-        driver.scheme_client.make_directory("/local/dir%i" % i)
+        driver.scheme_client.describe_path("/local")
         for i in range(100)
     ]
     coros.append(restart_docker())
 
     with pytest.raises(ydb.ConnectionLost):
         await asyncio.gather(*coros, return_exceptions=False)
+
+    docker_project.start()
+    await driver.stop()
