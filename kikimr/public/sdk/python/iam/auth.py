@@ -8,6 +8,7 @@ from datetime import datetime
 import json
 import threading
 from concurrent import futures
+import os
 import logging
 from kikimr.public.sdk.python.client import issues
 
@@ -197,7 +198,7 @@ class JWTIamCredentials(TokenServiceCredentials):
 
     @classmethod
     def from_file(cls, key_file, iam_endpoint=None, iam_channel_credentials=None):
-        with open(key_file, 'r') as r:
+        with open(os.path.expanduser(key_file), 'r') as r:
             output = json.loads(r.read())
         account_id = output.get('service_account_id', None)
         if account_id is None:
