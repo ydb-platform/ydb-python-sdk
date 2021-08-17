@@ -73,6 +73,11 @@ try:
 
     class YqlCompiler(SQLCompiler):
 
+        def group_by_clause(self, select, **kw):
+            # Hack to ensure it is possible to define labels in groupby.
+            kw.update(within_columns_clause=True)
+            return super(YqlCompiler, self).group_by_clause(select, **kw)
+
         def visit_lambda(self, lambda_, **kw):
             func = lambda_.func
             spec = inspect_getfullargspec(func)
