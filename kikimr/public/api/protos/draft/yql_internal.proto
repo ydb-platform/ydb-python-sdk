@@ -45,6 +45,9 @@ message GetTaskResult {
 
     string user_token = 11; // IAM token for debug
     repeated SignedIdentity service_accounts = 12;
+    string user_id = 13;
+    YandexQuery.QueryContent.QueryType query_type = 14;
+    string scope = 15;
 }
 
 message GetTaskResponse {
@@ -84,10 +87,11 @@ message WriteTaskResultRequest {
     Ydb.ResultSet result_set = 3;
     uint32 result_set_id = 4;
     uint64 offset = 5;
+    uint64 cookie = 6;
 }
 
 message WriteTaskResultResult {
-
+    uint64 cookie = 1;
 }
 
 message WriteTaskResultResponse {
