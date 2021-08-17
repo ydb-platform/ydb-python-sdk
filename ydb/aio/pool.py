@@ -77,6 +77,17 @@ class ConnectionsCache(_ConnectionsCache):
             if not self._fast_fail_error:
                 self._fast_fail_event.clear()
 
+    async def cleanup(self):
+        actual_connections = list(self.connections.values())
+        for connection in actual_connections:
+            await connection.close()
+
+    async def cleanup_outdated(self):
+        outdated_connections = list(self.outdated.values())
+        for outdated_connection in outdated_connections:
+            await outdated_connection.close()
+        return self
+
 
 class Discovery:
     def __init__(self, store: ConnectionsCache, driver_config):
@@ -137,6 +148,9 @@ class Discovery:
 
             self._cache.add(ready_connection, preferred)
 
+        await self._cache.cleanup_outdated()
+        return self._cache.size > 0
+
     def stop(self):
         self._should_stop = True
         self._wake_up_event.set()
@@ -164,7 +178,7 @@ class Discovery:
             except asyncio.TimeoutError:
                 continue
 
-        self._cache.cleanup()
+        await self._cache.cleanup()
         self.logger.info("Successfully terminated discovery process")
 
 
@@ -179,6 +193,7 @@ class ConnectionPool(IConnectionPool):
         self._discovery_task = asyncio.get_event_loop().create_task(self._discovery.run())
 
     async def stop(self, timeout=10):
+        self._discovery.stop()
         await self._grpc_init.close()
         try:
             await asyncio.wait_for(self._discovery_task, timeout=timeout)
