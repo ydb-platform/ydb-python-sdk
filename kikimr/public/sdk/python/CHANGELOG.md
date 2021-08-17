@@ -1,3 +1,7 @@
+## 1.0.27 ##
+
+* fix bug with prepare in aio
+
 ## 1.0.26 ##
 
 * allow specifying column labels in group by in the sqlalchemy dialect
