@@ -16,10 +16,10 @@ _sym_db = _symbol_database.Default()
 DESCRIPTOR = _descriptor.FileDescriptor(
   name='kikimr/public/api/protos/ydb_issue_message.proto',
   package='Ydb.Issue',
-  syntax='proto2',
-  serialized_options=b'\n\016com.yandex.ydb',
+  syntax='proto3',
+  serialized_options=b'\n\016com.yandex.ydb\370\001\001',
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n0kikimr/public/api/protos/ydb_issue_message.proto\x12\tYdb.Issue\"\x91\x02\n\x0cIssueMessage\x12\x32\n\x08position\x18\x01 \x01(\x0b\x32 .Ydb.Issue.IssueMessage.Position\x12\x0f\n\x07message\x18\x02 \x01(\t\x12\x36\n\x0c\x65nd_position\x18\x03 \x01(\x0b\x32 .Ydb.Issue.IssueMessage.Position\x12\x12\n\nissue_code\x18\x04 \x01(\r\x12\x10\n\x08severity\x18\x05 \x01(\r\x12\'\n\x06issues\x18\x06 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessage\x1a\x35\n\x08Position\x12\x0b\n\x03row\x18\x01 \x01(\r\x12\x0e\n\x06\x63olumn\x18\x02 \x01(\r\x12\x0c\n\x04\x66ile\x18\x03 \x01(\tB\x10\n\x0e\x63om.yandex.ydb'
+  serialized_pb=b'\n0kikimr/public/api/protos/ydb_issue_message.proto\x12\tYdb.Issue\"\x91\x02\n\x0cIssueMessage\x12\x32\n\x08position\x18\x01 \x01(\x0b\x32 .Ydb.Issue.IssueMessage.Position\x12\x0f\n\x07message\x18\x02 \x01(\t\x12\x36\n\x0c\x65nd_position\x18\x03 \x01(\x0b\x32 .Ydb.Issue.IssueMessage.Position\x12\x12\n\nissue_code\x18\x04 \x01(\r\x12\x10\n\x08severity\x18\x05 \x01(\r\x12\'\n\x06issues\x18\x06 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessage\x1a\x35\n\x08Position\x12\x0b\n\x03row\x18\x01 \x01(\r\x12\x0e\n\x06\x63olumn\x18\x02 \x01(\r\x12\x0c\n\x04\x66ile\x18\x03 \x01(\tB\x13\n\x0e\x63om.yandex.ydb\xf8\x01\x01\x62\x06proto3'
 )
 
 
@@ -62,7 +62,7 @@ _ISSUEMESSAGE_POSITION = _descriptor.Descriptor(
   ],
   serialized_options=None,
   is_extendable=False,
-  syntax='proto2',
+  syntax='proto3',
   extension_ranges=[],
   oneofs=[
   ],
@@ -128,7 +128,7 @@ _ISSUEMESSAGE = _descriptor.Descriptor(
   ],
   serialized_options=None,
   is_extendable=False,
-  syntax='proto2',
+  syntax='proto3',
   extension_ranges=[],
   oneofs=[
   ],
