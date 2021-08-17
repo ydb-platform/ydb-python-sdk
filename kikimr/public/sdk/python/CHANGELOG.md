@@ -1,3 +1,7 @@
+## 1.0.26 ##
+
+* allow specifying column labels in group by in the sqlalchemy dialect
+
 ## 1.0.25 ##
 
 * add SEQUENCE to known schema types
