@@ -44,7 +44,10 @@ class Session(BaseSession):
         return await super(Session, self).execute_scheme(yql_text, settings)
 
     async def prepare(self, query, settings=None):
-        return await super(Session, self).prepare(query, settings)
+        res = super(Session, self).prepare(query, settings)
+        if asyncio.iscoroutine(res):
+            res = await res
+        return res
 
     async def explain(self, yql_text, settings=None):
         return await super(Session, self).explain(yql_text, settings)
@@ -303,6 +306,7 @@ class SessionPool:
     async def acquire(self, timeout: float = None, retry_timeout: float = None, retry_num: int = None) -> ydb.ISession:
 
         if self._should_stop.is_set():
+            self._logger.debug("Acquired not inited session")
             return self._create()
 
         if retry_timeout is None:
@@ -310,6 +314,7 @@ class SessionPool:
 
         try:
             _, session = self._active_queue.get_nowait()
+            self._logger.debug("Acquired active session from queue: %s" % session.session_id)
             return session
         except asyncio.QueueEmpty:
             pass
@@ -324,6 +329,7 @@ class SessionPool:
                 raise issues.SessionPoolEmpty("Timeout when creating session")
 
             if session is not None:
+                self._logger.debug("Acquired new created session: %s" % session.session_id)
                 return session
 
         try:
@@ -366,7 +372,7 @@ class SessionPool:
                 asyncio.ensure_future(coro)
 
     async def release(self, session: ydb.ISession):
-        self._logger.debug("Put on session %s", session)
+        self._logger.debug("Put on session %s", session.session_id)
         if session.pending_query():
             self._destroy(session)
             return False
@@ -377,6 +383,7 @@ class SessionPool:
         await self._active_queue.put(
             (time.time() + 10 * 60, session)
         )
+        self._logger.debug("Session returned to queue: %s", session.session_id)
 
     async def _pick_for_keepalive(self):
         try:
