@@ -14,6 +14,8 @@ _sym_db = _symbol_database.Default()
 from kikimr.public.api.protos import ydb_operation_pb2 as kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2
 from kikimr.public.api.protos import ydb_value_pb2 as kikimr_dot_public_dot_api_dot_protos_dot_ydb__value__pb2
 from kikimr.public.api.protos import ydb_scheme_pb2 as kikimr_dot_public_dot_api_dot_protos_dot_ydb__scheme__pb2
+from kikimr.public.api.protos import ydb_table_pb2 as kikimr_dot_public_dot_api_dot_protos_dot_ydb__table__pb2
+from google.protobuf import empty_pb2 as google_dot_protobuf_dot_empty__pb2
 
 
 DESCRIPTOR = _descriptor.FileDescriptor(
@@ -22,9 +24,9 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   syntax='proto3',
   serialized_options=b'\n\027com.yandex.ydb.logstoreB\016LogStoreProtos\370\001\001',
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n1kikimr/public/api/protos/draft/ydb_logstore.proto\x12\x0cYdb.LogStore\x1a,kikimr/public/api/protos/ydb_operation.proto\x1a(kikimr/public/api/protos/ydb_value.proto\x1a)kikimr/public/api/protos/ydb_scheme.proto\"3\n\nColumnMeta\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x17\n\x04type\x18\x02 \x01(\x0b\x32\t.Ydb.Type\"H\n\x06Schema\x12)\n\x07\x63olumns\x18\x01 \x03(\x0b\x32\x18.Ydb.LogStore.ColumnMeta\x12\x13\n\x0bprimary_key\x18\x02 \x03(\t\"B\n\x0cSchemaPreset\x12\x0c\n\x04name\x18\x01 \x01(\t\x12$\n\x06schema\x18\x02 \x01(\x0b\x32\x14.Ydb.LogStore.Schema\"\r\n\x0bTtlSettings\"R\n\x11TtlSettingsPreset\x12\x0c\n\x04name\x18\x01 \x01(\t\x12/\n\x0cttl_settings\x18\x02 \x01(\x0b\x32\x19.Ydb.LogStore.TtlSettings\"\xef\x01\n\x15\x43reateLogStoreRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x0c\n\x04path\x18\x02 \x01(\t\x12\x1a\n\x12\x63olumn_shard_count\x18\x03 \x01(\r\x12\x32\n\x0eschema_presets\x18\x04 \x03(\x0b\x32\x1a.Ydb.LogStore.SchemaPreset\x12=\n\x14ttl_settings_presets\x18\x05 \x03(\x0b\x32\x1f.Ydb.LogStore.TtlSettingsPreset\"F\n\x16\x43reateLogStoreResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"b\n\x17\x44\x65scribeLogStoreRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x0c\n\x04path\x18\x02 \x01(\t\"\xc8\x01\n\x16\x44\x65scribeLogStoreResult\x12\x1f\n\x04self\x18\x01 \x01(\x0b\x32\x11.Ydb.Scheme.Entry\x12\x1a\n\x12\x63olumn_shard_count\x18\x02 \x01(\r\x12\x32\n\x0eschema_presets\x18\x03 \x03(\x0b\x32\x1a.Ydb.LogStore.SchemaPreset\x12=\n\x14ttl_settings_presets\x18\x04 \x03(\x0b\x32\x1f.Ydb.LogStore.TtlSettingsPreset\"H\n\x18\x44\x65scribeLogStoreResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"^\n\x13\x44ropLogStoreRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x0c\n\x04path\x18\x02 \x01(\t\"D\n\x14\x44ropLogStoreResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\xe0\x02\n\x15\x43reateLogTableRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x0c\n\x04path\x18\x02 \x01(\t\x12\x1c\n\x12schema_preset_name\x18\x03 \x01(\tH\x00\x12&\n\x06schema\x18\x04 \x01(\x0b\x32\x14.Ydb.LogStore.SchemaH\x00\x12\"\n\x18ttl_settings_preset_name\x18\x05 \x01(\tH\x01\x12\x31\n\x0cttl_settings\x18\x06 \x01(\x0b\x32\x19.Ydb.LogStore.TtlSettingsH\x01\x12\x1a\n\x12\x63olumn_shard_count\x18\x07 \x01(\r\x12\x18\n\x10sharding_columns\x18\x08 \x03(\tB\x16\n\x14schema_specificationB\x13\n\x11ttl_specification\"F\n\x16\x43reateLogTableResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"b\n\x17\x44\x65scribeLogTableRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x0c\n\x04path\x18\x02 \x01(\t\"\x84\x02\n\x16\x44\x65scribeLogTableResult\x12\x1f\n\x04self\x18\x01 \x01(\x0b\x32\x11.Ydb.Scheme.Entry\x12\x1a\n\x12schema_preset_name\x18\x02 \x01(\t\x12$\n\x06schema\x18\x03 \x01(\x0b\x32\x14.Ydb.LogStore.Schema\x12 \n\x18ttl_settings_preset_name\x18\x04 \x01(\t\x12/\n\x0cttl_settings\x18\x05 \x01(\x0b\x32\x19.Ydb.LogStore.TtlSettings\x12\x1a\n\x12\x63olumn_shard_count\x18\x06 \x01(\r\x12\x18\n\x10sharding_columns\x18\x07 \x03(\t\"H\n\x18\x44\x65scribeLogTableResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"^\n\x13\x44ropLogTableRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x0c\n\x04path\x18\x02 \x01(\t\"D\n\x14\x44ropLogTableResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.OperationB,\n\x17\x63om.yandex.ydb.logstoreB\x0eLogStoreProtos\xf8\x01\x01\x62\x06proto3'
+  serialized_pb=b'\n1kikimr/public/api/protos/draft/ydb_logstore.proto\x12\x0cYdb.LogStore\x1a,kikimr/public/api/protos/ydb_operation.proto\x1a(kikimr/public/api/protos/ydb_value.proto\x1a)kikimr/public/api/protos/ydb_scheme.proto\x1a(kikimr/public/api/protos/ydb_table.proto\x1a\x1bgoogle/protobuf/empty.proto\"3\n\nColumnMeta\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x17\n\x04type\x18\x02 \x01(\x0b\x32\t.Ydb.Type\"H\n\x06Schema\x12)\n\x07\x63olumns\x18\x01 \x03(\x0b\x32\x18.Ydb.LogStore.ColumnMeta\x12\x13\n\x0bprimary_key\x18\x02 \x03(\t\"B\n\x0cSchemaPreset\x12\x0c\n\x04name\x18\x01 \x01(\t\x12$\n\x06schema\x18\x02 \x01(\x0b\x32\x14.Ydb.LogStore.Schema\"O\n\x11TtlSettingsPreset\x12\x0c\n\x04name\x18\x01 \x01(\t\x12,\n\x0cttl_settings\x18\x02 \x01(\x0b\x32\x16.Ydb.Table.TtlSettings\"\xb0\x01\n\x15\x43reateLogStoreRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x0c\n\x04path\x18\x02 \x01(\t\x12\x1a\n\x12\x63olumn_shard_count\x18\x03 \x01(\r\x12\x32\n\x0eschema_presets\x18\x04 \x03(\x0b\x32\x1a.Ydb.LogStore.SchemaPreset\"F\n\x16\x43reateLogStoreResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"b\n\x17\x44\x65scribeLogStoreRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x0c\n\x04path\x18\x02 \x01(\t\"\x89\x01\n\x16\x44\x65scribeLogStoreResult\x12\x1f\n\x04self\x18\x01 \x01(\x0b\x32\x11.Ydb.Scheme.Entry\x12\x1a\n\x12\x63olumn_shard_count\x18\x02 \x01(\r\x12\x32\n\x0eschema_presets\x18\x03 \x03(\x0b\x32\x1a.Ydb.LogStore.SchemaPreset\"H\n\x18\x44\x65scribeLogStoreResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"^\n\x13\x44ropLogStoreRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x0c\n\x04path\x18\x02 \x01(\t\"D\n\x14\x44ropLogStoreResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\xb9\x02\n\x15\x43reateLogTableRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x0c\n\x04path\x18\x02 \x01(\t\x12\x1c\n\x12schema_preset_name\x18\x03 \x01(\tH\x00\x12&\n\x06schema\x18\x04 \x01(\x0b\x32\x14.Ydb.LogStore.SchemaH\x00\x12.\n\x0cttl_settings\x18\x05 \x01(\x0b\x32\x16.Ydb.Table.TtlSettingsH\x01\x12\x1a\n\x12\x63olumn_shard_count\x18\x07 \x01(\r\x12\x18\n\x10sharding_columns\x18\x08 \x03(\tB\x16\n\x14schema_specificationB\x13\n\x11ttl_specification\"F\n\x16\x43reateLogTableResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"b\n\x17\x44\x65scribeLogTableRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x0c\n\x04path\x18\x02 \x01(\t\"\x81\x02\n\x16\x44\x65scribeLogTableResult\x12\x1f\n\x04self\x18\x01 \x01(\x0b\x32\x11.Ydb.Scheme.Entry\x12\x1a\n\x12schema_preset_name\x18\x02 \x01(\t\x12$\n\x06schema\x18\x03 \x01(\x0b\x32\x14.Ydb.LogStore.Schema\x12 \n\x18ttl_settings_preset_name\x18\x04 \x01(\t\x12,\n\x0cttl_settings\x18\x05 \x01(\x0b\x32\x16.Ydb.Table.TtlSettings\x12\x1a\n\x12\x63olumn_shard_count\x18\x06 \x01(\r\x12\x18\n\x10sharding_columns\x18\x07 \x03(\t\"H\n\x18\x44\x65scribeLogTableResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"^\n\x13\x44ropLogTableRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x0c\n\x04path\x18\x02 \x01(\t\"D\n\x14\x44ropLogTableResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\xd6\x01\n\x14\x41lterLogTableRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x0c\n\x04path\x18\x02 \x01(\t\x12\x33\n\x11\x64rop_ttl_settings\x18\x03 \x01(\x0b\x32\x16.google.protobuf.EmptyH\x00\x12\x32\n\x10set_ttl_settings\x18\x04 \x01(\x0b\x32\x16.Ydb.Table.TtlSettingsH\x00\x42\x0c\n\nttl_action\"E\n\x15\x41lterLogTableResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.OperationB,\n\x17\x63om.yandex.ydb.logstoreB\x0eLogStoreProtos\xf8\x01\x01\x62\x06proto3'
   ,
-  dependencies=[kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2.DESCRIPTOR,kikimr_dot_public_dot_api_dot_protos_dot_ydb__value__pb2.DESCRIPTOR,kikimr_dot_public_dot_api_dot_protos_dot_ydb__scheme__pb2.DESCRIPTOR,])
+  dependencies=[kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2.DESCRIPTOR,kikimr_dot_public_dot_api_dot_protos_dot_ydb__value__pb2.DESCRIPTOR,kikimr_dot_public_dot_api_dot_protos_dot_ydb__scheme__pb2.DESCRIPTOR,kikimr_dot_public_dot_api_dot_protos_dot_ydb__table__pb2.DESCRIPTOR,google_dot_protobuf_dot_empty__pb2.DESCRIPTOR,])
 
 
 
@@ -63,8 +65,8 @@ _COLUMNMETA = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=198,
-  serialized_end=249,
+  serialized_start=269,
+  serialized_end=320,
 )
 
 
@@ -102,8 +104,8 @@ _SCHEMA = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=251,
-  serialized_end=323,
+  serialized_start=322,
+  serialized_end=394,
 )
 
 
@@ -141,33 +143,8 @@ _SCHEMAPRESET = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=325,
-  serialized_end=391,
-)
-
-
-_TTLSETTINGS = _descriptor.Descriptor(
-  name='TtlSettings',
-  full_name='Ydb.LogStore.TtlSettings',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  create_key=_descriptor._internal_create_key,
-  fields=[
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  serialized_options=None,
-  is_extendable=False,
-  syntax='proto3',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=393,
-  serialized_end=406,
+  serialized_start=396,
+  serialized_end=462,
 )
 
 
@@ -205,8 +182,8 @@ _TTLSETTINGSPRESET = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=408,
-  serialized_end=490,
+  serialized_start=464,
+  serialized_end=543,
 )
 
 
@@ -246,13 +223,6 @@ _CREATELOGSTOREREQUEST = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='ttl_settings_presets', full_name='Ydb.LogStore.CreateLogStoreRequest.ttl_settings_presets', index=4,
-      number=5, type=11, cpp_type=10, label=3,
-      has_default_value=False, default_value=[],
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
   ],
   extensions=[
   ],
@@ -265,8 +235,8 @@ _CREATELOGSTOREREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=493,
-  serialized_end=732,
+  serialized_start=546,
+  serialized_end=722,
 )
 
 
@@ -297,8 +267,8 @@ _CREATELOGSTORERESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=734,
-  serialized_end=804,
+  serialized_start=724,
+  serialized_end=794,
 )
 
 
@@ -336,8 +306,8 @@ _DESCRIBELOGSTOREREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=806,
-  serialized_end=904,
+  serialized_start=796,
+  serialized_end=894,
 )
 
 
@@ -370,13 +340,6 @@ _DESCRIBELOGSTORERESULT = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='ttl_settings_presets', full_name='Ydb.LogStore.DescribeLogStoreResult.ttl_settings_presets', index=3,
-      number=4, type=11, cpp_type=10, label=3,
-      has_default_value=False, default_value=[],
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
   ],
   extensions=[
   ],
@@ -389,8 +352,8 @@ _DESCRIBELOGSTORERESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=907,
-  serialized_end=1107,
+  serialized_start=897,
+  serialized_end=1034,
 )
 
 
@@ -421,8 +384,8 @@ _DESCRIBELOGSTORERESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1109,
-  serialized_end=1181,
+  serialized_start=1036,
+  serialized_end=1108,
 )
 
 
@@ -460,8 +423,8 @@ _DROPLOGSTOREREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1183,
-  serialized_end=1277,
+  serialized_start=1110,
+  serialized_end=1204,
 )
 
 
@@ -492,8 +455,8 @@ _DROPLOGSTORERESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1279,
-  serialized_end=1347,
+  serialized_start=1206,
+  serialized_end=1274,
 )
 
 
@@ -534,28 +497,21 @@ _CREATELOGTABLEREQUEST = _descriptor.Descriptor(
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='ttl_settings_preset_name', full_name='Ydb.LogStore.CreateLogTableRequest.ttl_settings_preset_name', index=4,
-      number=5, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=b"".decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='ttl_settings', full_name='Ydb.LogStore.CreateLogTableRequest.ttl_settings', index=5,
-      number=6, type=11, cpp_type=10, label=1,
+      name='ttl_settings', full_name='Ydb.LogStore.CreateLogTableRequest.ttl_settings', index=4,
+      number=5, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='column_shard_count', full_name='Ydb.LogStore.CreateLogTableRequest.column_shard_count', index=6,
+      name='column_shard_count', full_name='Ydb.LogStore.CreateLogTableRequest.column_shard_count', index=5,
       number=7, type=13, cpp_type=3, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='sharding_columns', full_name='Ydb.LogStore.CreateLogTableRequest.sharding_columns', index=7,
+      name='sharding_columns', full_name='Ydb.LogStore.CreateLogTableRequest.sharding_columns', index=6,
       number=8, type=9, cpp_type=9, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
@@ -583,8 +539,8 @@ _CREATELOGTABLEREQUEST = _descriptor.Descriptor(
       create_key=_descriptor._internal_create_key,
     fields=[]),
   ],
-  serialized_start=1350,
-  serialized_end=1702,
+  serialized_start=1277,
+  serialized_end=1590,
 )
 
 
@@ -615,8 +571,8 @@ _CREATELOGTABLERESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1704,
-  serialized_end=1774,
+  serialized_start=1592,
+  serialized_end=1662,
 )
 
 
@@ -654,8 +610,8 @@ _DESCRIBELOGTABLEREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1776,
-  serialized_end=1874,
+  serialized_start=1664,
+  serialized_end=1762,
 )
 
 
@@ -728,8 +684,8 @@ _DESCRIBELOGTABLERESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1877,
-  serialized_end=2137,
+  serialized_start=1765,
+  serialized_end=2022,
 )
 
 
@@ -760,8 +716,8 @@ _DESCRIBELOGTABLERESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2139,
-  serialized_end=2211,
+  serialized_start=2024,
+  serialized_end=2096,
 )
 
 
@@ -799,8 +755,8 @@ _DROPLOGTABLEREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2213,
-  serialized_end=2307,
+  serialized_start=2098,
+  serialized_end=2192,
 )
 
 
@@ -831,28 +787,116 @@ _DROPLOGTABLERESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2309,
-  serialized_end=2377,
+  serialized_start=2194,
+  serialized_end=2262,
+)
+
+
+_ALTERLOGTABLEREQUEST = _descriptor.Descriptor(
+  name='AlterLogTableRequest',
+  full_name='Ydb.LogStore.AlterLogTableRequest',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='operation_params', full_name='Ydb.LogStore.AlterLogTableRequest.operation_params', index=0,
+      number=1, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='path', full_name='Ydb.LogStore.AlterLogTableRequest.path', index=1,
+      number=2, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='drop_ttl_settings', full_name='Ydb.LogStore.AlterLogTableRequest.drop_ttl_settings', index=2,
+      number=3, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='set_ttl_settings', full_name='Ydb.LogStore.AlterLogTableRequest.set_ttl_settings', index=3,
+      number=4, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+    _descriptor.OneofDescriptor(
+      name='ttl_action', full_name='Ydb.LogStore.AlterLogTableRequest.ttl_action',
+      index=0, containing_type=None,
+      create_key=_descriptor._internal_create_key,
+    fields=[]),
+  ],
+  serialized_start=2265,
+  serialized_end=2479,
+)
+
+
+_ALTERLOGTABLERESPONSE = _descriptor.Descriptor(
+  name='AlterLogTableResponse',
+  full_name='Ydb.LogStore.AlterLogTableResponse',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='operation', full_name='Ydb.LogStore.AlterLogTableResponse.operation', index=0,
+      number=1, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=2481,
+  serialized_end=2550,
 )
 
 _COLUMNMETA.fields_by_name['type'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__value__pb2._TYPE
 _SCHEMA.fields_by_name['columns'].message_type = _COLUMNMETA
 _SCHEMAPRESET.fields_by_name['schema'].message_type = _SCHEMA
-_TTLSETTINGSPRESET.fields_by_name['ttl_settings'].message_type = _TTLSETTINGS
+_TTLSETTINGSPRESET.fields_by_name['ttl_settings'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__table__pb2._TTLSETTINGS
 _CREATELOGSTOREREQUEST.fields_by_name['operation_params'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2._OPERATIONPARAMS
 _CREATELOGSTOREREQUEST.fields_by_name['schema_presets'].message_type = _SCHEMAPRESET
-_CREATELOGSTOREREQUEST.fields_by_name['ttl_settings_presets'].message_type = _TTLSETTINGSPRESET
 _CREATELOGSTORERESPONSE.fields_by_name['operation'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2._OPERATION
 _DESCRIBELOGSTOREREQUEST.fields_by_name['operation_params'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2._OPERATIONPARAMS
 _DESCRIBELOGSTORERESULT.fields_by_name['self'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__scheme__pb2._ENTRY
 _DESCRIBELOGSTORERESULT.fields_by_name['schema_presets'].message_type = _SCHEMAPRESET
-_DESCRIBELOGSTORERESULT.fields_by_name['ttl_settings_presets'].message_type = _TTLSETTINGSPRESET
 _DESCRIBELOGSTORERESPONSE.fields_by_name['operation'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2._OPERATION
 _DROPLOGSTOREREQUEST.fields_by_name['operation_params'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2._OPERATIONPARAMS
 _DROPLOGSTORERESPONSE.fields_by_name['operation'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2._OPERATION
 _CREATELOGTABLEREQUEST.fields_by_name['operation_params'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2._OPERATIONPARAMS
 _CREATELOGTABLEREQUEST.fields_by_name['schema'].message_type = _SCHEMA
-_CREATELOGTABLEREQUEST.fields_by_name['ttl_settings'].message_type = _TTLSETTINGS
+_CREATELOGTABLEREQUEST.fields_by_name['ttl_settings'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__table__pb2._TTLSETTINGS
 _CREATELOGTABLEREQUEST.oneofs_by_name['schema_specification'].fields.append(
   _CREATELOGTABLEREQUEST.fields_by_name['schema_preset_name'])
 _CREATELOGTABLEREQUEST.fields_by_name['schema_preset_name'].containing_oneof = _CREATELOGTABLEREQUEST.oneofs_by_name['schema_specification']
@@ -860,23 +904,29 @@ _CREATELOGTABLEREQUEST.oneofs_by_name['schema_specification'].fields.append(
   _CREATELOGTABLEREQUEST.fields_by_name['schema'])
 _CREATELOGTABLEREQUEST.fields_by_name['schema'].containing_oneof = _CREATELOGTABLEREQUEST.oneofs_by_name['schema_specification']
 _CREATELOGTABLEREQUEST.oneofs_by_name['ttl_specification'].fields.append(
-  _CREATELOGTABLEREQUEST.fields_by_name['ttl_settings_preset_name'])
-_CREATELOGTABLEREQUEST.fields_by_name['ttl_settings_preset_name'].containing_oneof = _CREATELOGTABLEREQUEST.oneofs_by_name['ttl_specification']
-_CREATELOGTABLEREQUEST.oneofs_by_name['ttl_specification'].fields.append(
   _CREATELOGTABLEREQUEST.fields_by_name['ttl_settings'])
 _CREATELOGTABLEREQUEST.fields_by_name['ttl_settings'].containing_oneof = _CREATELOGTABLEREQUEST.oneofs_by_name['ttl_specification']
 _CREATELOGTABLERESPONSE.fields_by_name['operation'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2._OPERATION
 _DESCRIBELOGTABLEREQUEST.fields_by_name['operation_params'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2._OPERATIONPARAMS
 _DESCRIBELOGTABLERESULT.fields_by_name['self'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__scheme__pb2._ENTRY
 _DESCRIBELOGTABLERESULT.fields_by_name['schema'].message_type = _SCHEMA
-_DESCRIBELOGTABLERESULT.fields_by_name['ttl_settings'].message_type = _TTLSETTINGS
+_DESCRIBELOGTABLERESULT.fields_by_name['ttl_settings'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__table__pb2._TTLSETTINGS
 _DESCRIBELOGTABLERESPONSE.fields_by_name['operation'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2._OPERATION
 _DROPLOGTABLEREQUEST.fields_by_name['operation_params'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2._OPERATIONPARAMS
 _DROPLOGTABLERESPONSE.fields_by_name['operation'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2._OPERATION
+_ALTERLOGTABLEREQUEST.fields_by_name['operation_params'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2._OPERATIONPARAMS
+_ALTERLOGTABLEREQUEST.fields_by_name['drop_ttl_settings'].message_type = google_dot_protobuf_dot_empty__pb2._EMPTY
+_ALTERLOGTABLEREQUEST.fields_by_name['set_ttl_settings'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__table__pb2._TTLSETTINGS
+_ALTERLOGTABLEREQUEST.oneofs_by_name['ttl_action'].fields.append(
+  _ALTERLOGTABLEREQUEST.fields_by_name['drop_ttl_settings'])
+_ALTERLOGTABLEREQUEST.fields_by_name['drop_ttl_settings'].containing_oneof = _ALTERLOGTABLEREQUEST.oneofs_by_name['ttl_action']
+_ALTERLOGTABLEREQUEST.oneofs_by_name['ttl_action'].fields.append(
+  _ALTERLOGTABLEREQUEST.fields_by_name['set_ttl_settings'])
+_ALTERLOGTABLEREQUEST.fields_by_name['set_ttl_settings'].containing_oneof = _ALTERLOGTABLEREQUEST.oneofs_by_name['ttl_action']
+_ALTERLOGTABLERESPONSE.fields_by_name['operation'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2._OPERATION
 DESCRIPTOR.message_types_by_name['ColumnMeta'] = _COLUMNMETA
 DESCRIPTOR.message_types_by_name['Schema'] = _SCHEMA
 DESCRIPTOR.message_types_by_name['SchemaPreset'] = _SCHEMAPRESET
-DESCRIPTOR.message_types_by_name['TtlSettings'] = _TTLSETTINGS
 DESCRIPTOR.message_types_by_name['TtlSettingsPreset'] = _TTLSETTINGSPRESET
 DESCRIPTOR.message_types_by_name['CreateLogStoreRequest'] = _CREATELOGSTOREREQUEST
 DESCRIPTOR.message_types_by_name['CreateLogStoreResponse'] = _CREATELOGSTORERESPONSE
@@ -892,6 +942,8 @@ DESCRIPTOR.message_types_by_name['DescribeLogTableResult'] = _DESCRIBELOGTABLERE
 DESCRIPTOR.message_types_by_name['DescribeLogTableResponse'] = _DESCRIBELOGTABLERESPONSE
 DESCRIPTOR.message_types_by_name['DropLogTableRequest'] = _DROPLOGTABLEREQUEST
 DESCRIPTOR.message_types_by_name['DropLogTableResponse'] = _DROPLOGTABLERESPONSE
+DESCRIPTOR.message_types_by_name['AlterLogTableRequest'] = _ALTERLOGTABLEREQUEST
+DESCRIPTOR.message_types_by_name['AlterLogTableResponse'] = _ALTERLOGTABLERESPONSE
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
 ColumnMeta = _reflection.GeneratedProtocolMessageType('ColumnMeta', (_message.Message,), {
@@ -914,13 +966,6 @@ SchemaPreset = _reflection.GeneratedProtocolMessageType('SchemaPreset', (_messag
   # @@protoc_insertion_point(class_scope:Ydb.LogStore.SchemaPreset)
   })
 _sym_db.RegisterMessage(SchemaPreset)
-
-TtlSettings = _reflection.GeneratedProtocolMessageType('TtlSettings', (_message.Message,), {
-  'DESCRIPTOR' : _TTLSETTINGS,
-  '__module__' : 'kikimr.public.api.protos.draft.ydb_logstore_pb2'
-  # @@protoc_insertion_point(class_scope:Ydb.LogStore.TtlSettings)
-  })
-_sym_db.RegisterMessage(TtlSettings)
 
 TtlSettingsPreset = _reflection.GeneratedProtocolMessageType('TtlSettingsPreset', (_message.Message,), {
   'DESCRIPTOR' : _TTLSETTINGSPRESET,
@@ -1026,6 +1071,20 @@ DropLogTableResponse = _reflection.GeneratedProtocolMessageType('DropLogTableRes
   # @@protoc_insertion_point(class_scope:Ydb.LogStore.DropLogTableResponse)
   })
 _sym_db.RegisterMessage(DropLogTableResponse)
+
+AlterLogTableRequest = _reflection.GeneratedProtocolMessageType('AlterLogTableRequest', (_message.Message,), {
+  'DESCRIPTOR' : _ALTERLOGTABLEREQUEST,
+  '__module__' : 'kikimr.public.api.protos.draft.ydb_logstore_pb2'
+  # @@protoc_insertion_point(class_scope:Ydb.LogStore.AlterLogTableRequest)
+  })
+_sym_db.RegisterMessage(AlterLogTableRequest)
+
+AlterLogTableResponse = _reflection.GeneratedProtocolMessageType('AlterLogTableResponse', (_message.Message,), {
+  'DESCRIPTOR' : _ALTERLOGTABLERESPONSE,
+  '__module__' : 'kikimr.public.api.protos.draft.ydb_logstore_pb2'
+  # @@protoc_insertion_point(class_scope:Ydb.LogStore.AlterLogTableResponse)
+  })
+_sym_db.RegisterMessage(AlterLogTableResponse)
 
 
 DESCRIPTOR._options = None

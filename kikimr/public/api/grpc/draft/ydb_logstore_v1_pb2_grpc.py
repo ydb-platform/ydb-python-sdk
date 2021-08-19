@@ -44,6 +44,11 @@ class LogStoreServiceStub(object):
         request_serializer=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_ydb__logstore__pb2.DropLogTableRequest.SerializeToString,
         response_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_ydb__logstore__pb2.DropLogTableResponse.FromString,
         )
+    self.AlterLogTable = channel.unary_unary(
+        '/Ydb.LogStore.V1.LogStoreService/AlterLogTable',
+        request_serializer=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_ydb__logstore__pb2.AlterLogTableRequest.SerializeToString,
+        response_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_ydb__logstore__pb2.AlterLogTableResponse.FromString,
+        )
 
 
 class LogStoreServiceServicer(object):
@@ -92,6 +97,13 @@ class LogStoreServiceServicer(object):
     context.set_details('Method not implemented!')
     raise NotImplementedError('Method not implemented!')
 
+  def AlterLogTable(self, request, context):
+    # missing associated documentation comment in .proto file
+    pass
+    context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+    context.set_details('Method not implemented!')
+    raise NotImplementedError('Method not implemented!')
+
 
 def add_LogStoreServiceServicer_to_server(servicer, server):
   rpc_method_handlers = {
@@ -124,6 +136,11 @@ def add_LogStoreServiceServicer_to_server(servicer, server):
           servicer.DropLogTable,
           request_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_ydb__logstore__pb2.DropLogTableRequest.FromString,
           response_serializer=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_ydb__logstore__pb2.DropLogTableResponse.SerializeToString,
+      ),
+      'AlterLogTable': grpc.unary_unary_rpc_method_handler(
+          servicer.AlterLogTable,
+          request_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_ydb__logstore__pb2.AlterLogTableRequest.FromString,
+          response_serializer=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_ydb__logstore__pb2.AlterLogTableResponse.SerializeToString,
       ),
   }
   generic_handler = grpc.method_handlers_generic_handler(

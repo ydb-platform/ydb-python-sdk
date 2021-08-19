@@ -20,7 +20,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   syntax='proto3',
   serialized_options=b'\n\032com.yandex.ydb.logstore.v1',
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n2kikimr/public/api/grpc/draft/ydb_logstore_v1.proto\x12\x0fYdb.LogStore.V1\x1a\x31kikimr/public/api/protos/draft/ydb_logstore.proto2\xbf\x04\n\x0fLogStoreService\x12[\n\x0e\x43reateLogStore\x12#.Ydb.LogStore.CreateLogStoreRequest\x1a$.Ydb.LogStore.CreateLogStoreResponse\x12\x61\n\x10\x44\x65scribeLogStore\x12%.Ydb.LogStore.DescribeLogStoreRequest\x1a&.Ydb.LogStore.DescribeLogStoreResponse\x12U\n\x0c\x44ropLogStore\x12!.Ydb.LogStore.DropLogStoreRequest\x1a\".Ydb.LogStore.DropLogStoreResponse\x12[\n\x0e\x43reateLogTable\x12#.Ydb.LogStore.CreateLogTableRequest\x1a$.Ydb.LogStore.CreateLogTableResponse\x12\x61\n\x10\x44\x65scribeLogTable\x12%.Ydb.LogStore.DescribeLogTableRequest\x1a&.Ydb.LogStore.DescribeLogTableResponse\x12U\n\x0c\x44ropLogTable\x12!.Ydb.LogStore.DropLogTableRequest\x1a\".Ydb.LogStore.DropLogTableResponseB\x1c\n\x1a\x63om.yandex.ydb.logstore.v1b\x06proto3'
+  serialized_pb=b'\n2kikimr/public/api/grpc/draft/ydb_logstore_v1.proto\x12\x0fYdb.LogStore.V1\x1a\x31kikimr/public/api/protos/draft/ydb_logstore.proto2\x99\x05\n\x0fLogStoreService\x12[\n\x0e\x43reateLogStore\x12#.Ydb.LogStore.CreateLogStoreRequest\x1a$.Ydb.LogStore.CreateLogStoreResponse\x12\x61\n\x10\x44\x65scribeLogStore\x12%.Ydb.LogStore.DescribeLogStoreRequest\x1a&.Ydb.LogStore.DescribeLogStoreResponse\x12U\n\x0c\x44ropLogStore\x12!.Ydb.LogStore.DropLogStoreRequest\x1a\".Ydb.LogStore.DropLogStoreResponse\x12[\n\x0e\x43reateLogTable\x12#.Ydb.LogStore.CreateLogTableRequest\x1a$.Ydb.LogStore.CreateLogTableResponse\x12\x61\n\x10\x44\x65scribeLogTable\x12%.Ydb.LogStore.DescribeLogTableRequest\x1a&.Ydb.LogStore.DescribeLogTableResponse\x12U\n\x0c\x44ropLogTable\x12!.Ydb.LogStore.DropLogTableRequest\x1a\".Ydb.LogStore.DropLogTableResponse\x12X\n\rAlterLogTable\x12\".Ydb.LogStore.AlterLogTableRequest\x1a#.Ydb.LogStore.AlterLogTableResponseB\x1c\n\x1a\x63om.yandex.ydb.logstore.v1b\x06proto3'
   ,
   dependencies=[kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_ydb__logstore__pb2.DESCRIPTOR,])
 
@@ -39,7 +39,7 @@ _LOGSTORESERVICE = _descriptor.ServiceDescriptor(
   serialized_options=None,
   create_key=_descriptor._internal_create_key,
   serialized_start=123,
-  serialized_end=698,
+  serialized_end=788,
   methods=[
   _descriptor.MethodDescriptor(
     name='CreateLogStore',
@@ -98,6 +98,16 @@ _LOGSTORESERVICE = _descriptor.ServiceDescriptor(
     containing_service=None,
     input_type=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_ydb__logstore__pb2._DROPLOGTABLEREQUEST,
     output_type=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_ydb__logstore__pb2._DROPLOGTABLERESPONSE,
+    serialized_options=None,
+    create_key=_descriptor._internal_create_key,
+  ),
+  _descriptor.MethodDescriptor(
+    name='AlterLogTable',
+    full_name='Ydb.LogStore.V1.LogStoreService.AlterLogTable',
+    index=6,
+    containing_service=None,
+    input_type=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_ydb__logstore__pb2._ALTERLOGTABLEREQUEST,
+    output_type=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_ydb__logstore__pb2._ALTERLOGTABLERESPONSE,
     serialized_options=None,
     create_key=_descriptor._internal_create_key,
   ),
