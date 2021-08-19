@@ -23,6 +23,14 @@ async def test_async_call(endpoint, database):
 
 
 @pytest.mark.asyncio
+async def test_other_credentials(endpoint, database):
+    driver = Driver(endpoint=endpoint, database=database)
+
+    await driver.scheme_client.make_directory("/local/lol")
+    await driver.stop()
+
+
+@pytest.mark.asyncio
 async def test_disconnect_by_call(endpoint, database, docker_project):
     driver_config = ydb.DriverConfig(
         endpoint, database, credentials=ydb.construct_credentials_from_environ(),

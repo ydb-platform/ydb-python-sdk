@@ -75,6 +75,9 @@ def sync_main(driver, limit, num):
 
 
 if __name__ == "__main__":
+    import logging
+
+    logging.basicConfig(filename='example.log', level=logging.DEBUG)
 
     parser = argparse.ArgumentParser(description="Test python ydb sdk")
     parser.add_argument("-e", "--endpoint", default="0.0.0.0:2135", help="Ydb endpoint")
@@ -99,24 +102,19 @@ if __name__ == "__main__":
     limit = int(limit)
     num = int(num)
 
-    config = ydb.DriverConfig(
-        endpoint, database, credentials=ydb.construct_credentials_from_environ(),
-        root_certificates=ydb.load_ydb_root_certificate(),
-    )
-
     print("running %s test" % test_type)
     let = 0
     start = time.time()
     connections = []
     if test_type == "async":
-        async_driver = AioDriver(config)
+        async_driver = AioDriver(endpoint=endpoint, database=database)
         loop = asyncio.get_event_loop()
         let = loop.run_until_complete(async_main(async_driver, limit, num))
         connections.extend(async_driver._store.connections)
 
     if test_type == "sync":
         start = time.time()
-        sync_driver = SyncDriver(config)
+        sync_driver = SyncDriver(endpoint=endpoint, database=database)
         sync_driver.wait(5)
         let = sync_main(sync_driver, limit, num)
         connections.extend(sync_driver._store.connections)

@@ -5,17 +5,19 @@ from typing import Any, Tuple, Callable, Iterable
 
 import grpc
 
-from kikimr.public.sdk.python.client import _apis
+from kikimr.public.sdk.python.client import _apis, _utilities
 
 from kikimr.public.sdk.python.client.connection import (
     _log_request,
     _log_response,
     _rpc_error_handler,
-    _construct_metadata,
     _get_request_timeout,
     _set_server_timeouts,
     _RpcState as RpcState,
-    channel_factory
+    channel_factory,
+    YDB_DATABASE_HEADER,
+    YDB_TRACE_ID_HEADER,
+    YDB_REQUEST_TYPE_HEADER
 )
 from kikimr.public.sdk.python.client.driver import DriverConfig
 from kikimr.public.sdk.python.client.settings import BaseRequestSettings
@@ -28,6 +30,33 @@ _stubs_list = (
     _apis.CmsService.Stub
 )
 logger = logging.getLogger(__name__)
+
+
+async def _construct_metadata(driver_config, settings):
+    """
+    Translates request settings into RPC metadata
+    :param driver_config: A driver config
+    :param settings: An instance of BaseRequestSettings
+    :return: RPC metadata
+    """
+    metadata = []
+    if driver_config.database is not None:
+        metadata.append((YDB_DATABASE_HEADER, driver_config.database))
+
+    if driver_config.credentials is not None:
+        res = driver_config.credentials.auth_metadata()
+        if asyncio.iscoroutine(res):
+            res = await res
+        metadata.extend(res)
+
+    if settings is not None:
+        if settings.trace_id is not None:
+            metadata.append((YDB_TRACE_ID_HEADER, settings.trace_id))
+        if settings.request_type is not None:
+            metadata.append((YDB_REQUEST_TYPE_HEADER, settings.request_type))
+
+    metadata.append(_utilities.x_ydb_sdk_build_info_header())
+    return metadata
 
 
 class _RpcState(RpcState):
@@ -70,7 +99,7 @@ class Connection:
         if stub not in self._stub_instances:
             self._stub_instances[stub] = stub(self._channel)
 
-    def _prepare_call(
+    async def _prepare_call(
         self,
         stub: Any,
         rpc_name: str,
@@ -78,7 +107,7 @@ class Connection:
         settings: BaseRequestSettings
     ) -> Tuple[_RpcState, float, Any]:
 
-        timeout, metadata = _get_request_timeout(settings), _construct_metadata(self._driver_config, settings)
+        timeout, metadata = _get_request_timeout(settings), await _construct_metadata(self._driver_config, settings)
         _set_server_timeouts(request, settings, timeout)
         self._prepare_stub_instance(stub)
         rpc_state = _RpcState(self._stub_instances[stub], rpc_name, self.endpoint)
@@ -113,7 +142,7 @@ class Connection:
         :param wrap_args: And arguments to be passed into wrap_result callable
         :return: A result of computation
         """
-        rpc_state, timeout, metadata = self._prepare_call(stub, rpc_name, request, settings)
+        rpc_state, timeout, metadata = await self._prepare_call(stub, rpc_name, request, settings)
         try:
             feature = asyncio.ensure_future(rpc_state(request, timeout=timeout, metadata=metadata))
 

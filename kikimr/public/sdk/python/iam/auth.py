@@ -107,20 +107,27 @@ class IamTokenCredentials(credentials.Credentials):
     def _get_iam_token(self):
         pass
 
-    def _refresh(self):
-        current_time = time.time()
+    def _log_refresh_start(self, current_time):
         self.logger.debug("Start refresh token from metadata")
         if current_time > self._refresh_in:
-            self.logger.info("Cached token reached refresh_in deadline, current time %s, deadline %s", current_time, self._refresh_in)
+            self.logger.info("Cached token reached refresh_in deadline, current time %s, deadline %s", current_time,
+                             self._refresh_in)
 
         if current_time > self._expires_in and self._expires_in > 0:
-            self.logger.error("Cached token reached expires_in deadline, current time %s, deadline %s", current_time, self._expires_in)
+            self.logger.error("Cached token reached expires_in deadline, current time %s, deadline %s", current_time,
+                              self._expires_in)
 
+    def _update_expiration_info(self, auth_metadata):
+        self._expires_in = time.time() + min(self._hour, auth_metadata['expires_in'] / 2)
+        self._refresh_in = time.time() + min(self._hour / 2, auth_metadata['expires_in'] / 4)
+
+    def _refresh(self):
+        current_time = time.time()
+        self._log_refresh_start(current_time)
         try:
             auth_metadata = self._get_iam_token()
             self._iam_token.update(auth_metadata['access_token'])
-            self._expires_in = time.time() + min(self._hour, auth_metadata['expires_in'] / 2)
-            self._refresh_in = time.time() + min(self._hour / 2, auth_metadata['expires_in'] / 4)
+            self._update_expiration_info(auth_metadata)
             self.logger.info("Token refresh successful. current_time %s, refresh_in %s", current_time, self._refresh_in)
 
         except (KeyboardInterrupt, SystemExit):
@@ -176,9 +183,9 @@ class TokenServiceCredentials(IamTokenCredentials):
             return {'access_token': response.iam_token, 'expires_in': expires_in}
 
 
-class JWTIamCredentials(TokenServiceCredentials):
-    def __init__(self, account_id, access_key_id, private_key, iam_endpoint=None, iam_channel_credentials=None):
-        super(JWTIamCredentials, self).__init__(iam_endpoint, iam_channel_credentials)
+@six.add_metaclass(abc.ABCMeta)
+class BaseJWTCredentials(object):
+    def __init__(self, account_id, access_key_id, private_key):
         self._account_id = account_id
         self._jwt_expiration_timeout = 60. * 60
         self._token_expiration_timeout = 120
@@ -188,13 +195,6 @@ class JWTIamCredentials(TokenServiceCredentials):
     def set_token_expiration_timeout(self, value):
         self._token_expiration_timeout = value
         return self
-
-    def _get_token_request(self):
-        return iam_token_service_pb2.CreateIamTokenRequest(
-            jwt=get_jwt(
-                self._account_id, self._access_key_id, self._private_key, self._jwt_expiration_timeout
-            )
-        )
 
     @classmethod
     def from_file(cls, key_file, iam_endpoint=None, iam_channel_credentials=None):
@@ -209,6 +209,19 @@ class JWTIamCredentials(TokenServiceCredentials):
             output['private_key'],
             iam_endpoint=iam_endpoint,
             iam_channel_credentials=iam_channel_credentials
+        )
+
+
+class JWTIamCredentials(TokenServiceCredentials, BaseJWTCredentials):
+    def __init__(self, account_id, access_key_id, private_key, iam_endpoint=None, iam_channel_credentials=None):
+        TokenServiceCredentials.__init__(self, iam_endpoint, iam_channel_credentials)
+        BaseJWTCredentials.__init__(self, account_id, access_key_id, private_key)
+
+    def _get_token_request(self):
+        return iam_token_service_pb2.CreateIamTokenRequest(
+            jwt=get_jwt(
+                self._account_id, self._access_key_id, self._private_key, self._jwt_expiration_timeout
+            )
         )
 
 

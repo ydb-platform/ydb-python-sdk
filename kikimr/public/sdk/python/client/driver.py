@@ -145,13 +145,19 @@ class DriverConfig(object):
 ConnectionParams = DriverConfig
 
 
-def get_config(driver_config=None, connection_string=None, endpoint=None, database=None, root_certificates=None, credentials=None, **kwargs):
+def get_config(
+    driver_config=None, connection_string=None,
+    endpoint=None, database=None,
+    root_certificates=None, credentials=None,
+    config_class=DriverConfig,
+    **kwargs
+):
     if driver_config is None:
         if connection_string is not None:
-            driver_config = DriverConfig.default_from_connection_string(connection_string, root_certificates,
+            driver_config = config_class.default_from_connection_string(connection_string, root_certificates,
                                                                         credentials, **kwargs)
         else:
-            driver_config = DriverConfig.default_from_endpoint_and_database(endpoint, database, root_certificates,
+            driver_config = config_class.default_from_endpoint_and_database(endpoint, database, root_certificates,
                                                                             credentials, **kwargs)
         return driver_config
     return driver_config
