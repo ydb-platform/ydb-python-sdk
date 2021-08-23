@@ -1,3 +1,8 @@
+## 1.1.0 ##
+
+* remove useless `from_bytes` for PY3
+* improve performance of column parser
+
 ## 1.0.27 ##
 
 * fix bug with prepare in aio
@@ -12,7 +17,7 @@
 
 ## 1.0.22 ##
 
-* add retry_operation to `aio.SessionPool`
+* add `retry_operation` to `aio.SessionPool`
 
 ## 1.0.21 ##
 
