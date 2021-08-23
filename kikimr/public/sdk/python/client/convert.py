@@ -285,10 +285,23 @@ class _ResultSet(object):
     @classmethod
     def from_message(cls, message, table_client_settings=None):
         rows = []
+
+        # prepare columnn parsers before actuall parsing
+        column_parsers = []
+        if len(message.rows) > 0:
+            for column in message.columns:
+                column_parsers.append(
+                    _to_native_map.get(
+                        column.type.WhichOneof('type')
+                    )
+                )
+
         for row_proto in message.rows:
             row = _Row(message.columns)
-            for column, value in six.moves.zip(message.columns, row_proto.items):
-                row[column.name] = _to_native_value(column.type, value, table_client_settings)
+
+            for column, value, column_parser in six.moves.zip(message.columns, row_proto.items, column_parsers):
+                row[column.name] = column_parser(column.type, value, table_client_settings)
+
             rows.append(row)
         return cls(message.columns, rows, message.truncated)
 
