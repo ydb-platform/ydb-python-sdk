@@ -54,6 +54,11 @@ class TableServiceStub(object):
         request_serializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__table__pb2.CopyTablesRequest.SerializeToString,
         response_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__table__pb2.CopyTablesResponse.FromString,
         )
+    self.RenameTables = channel.unary_unary(
+        '/Ydb.Table.V1.TableService/RenameTables',
+        request_serializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__table__pb2.RenameTablesRequest.SerializeToString,
+        response_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__table__pb2.RenameTablesResponse.FromString,
+        )
     self.DescribeTable = channel.unary_unary(
         '/Ydb.Table.V1.TableService/DescribeTable',
         request_serializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__table__pb2.DescribeTableRequest.SerializeToString,
@@ -177,6 +182,13 @@ class TableServiceServicer(object):
 
   def CopyTables(self, request, context):
     """Creates consistent copy of given tables.
+    """
+    context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+    context.set_details('Method not implemented!')
+    raise NotImplementedError('Method not implemented!')
+
+  def RenameTables(self, request, context):
+    """Creates consistent move of given tables.
     """
     context.set_code(grpc.StatusCode.UNIMPLEMENTED)
     context.set_details('Method not implemented!')
@@ -314,6 +326,11 @@ def add_TableServiceServicer_to_server(servicer, server):
           servicer.CopyTables,
           request_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__table__pb2.CopyTablesRequest.FromString,
           response_serializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__table__pb2.CopyTablesResponse.SerializeToString,
+      ),
+      'RenameTables': grpc.unary_unary_rpc_method_handler(
+          servicer.RenameTables,
+          request_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__table__pb2.RenameTablesRequest.FromString,
+          response_serializer=kikimr_dot_public_dot_api_dot_protos_dot_ydb__table__pb2.RenameTablesResponse.SerializeToString,
       ),
       'DescribeTable': grpc.unary_unary_rpc_method_handler(
           servicer.DescribeTable,

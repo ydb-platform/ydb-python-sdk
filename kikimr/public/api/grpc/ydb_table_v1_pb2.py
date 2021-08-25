@@ -20,7 +20,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   syntax='proto3',
   serialized_options=b'\n\027com.yandex.ydb.table.v1',
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n)kikimr/public/api/grpc/ydb_table_v1.proto\x12\x0cYdb.Table.V1\x1a(kikimr/public/api/protos/ydb_table.proto2\xd3\r\n\x0cTableService\x12R\n\rCreateSession\x12\x1f.Ydb.Table.CreateSessionRequest\x1a .Ydb.Table.CreateSessionResponse\x12R\n\rDeleteSession\x12\x1f.Ydb.Table.DeleteSessionRequest\x1a .Ydb.Table.DeleteSessionResponse\x12\x46\n\tKeepAlive\x12\x1b.Ydb.Table.KeepAliveRequest\x1a\x1c.Ydb.Table.KeepAliveResponse\x12L\n\x0b\x43reateTable\x12\x1d.Ydb.Table.CreateTableRequest\x1a\x1e.Ydb.Table.CreateTableResponse\x12\x46\n\tDropTable\x12\x1b.Ydb.Table.DropTableRequest\x1a\x1c.Ydb.Table.DropTableResponse\x12I\n\nAlterTable\x12\x1c.Ydb.Table.AlterTableRequest\x1a\x1d.Ydb.Table.AlterTableResponse\x12\x46\n\tCopyTable\x12\x1b.Ydb.Table.CopyTableRequest\x1a\x1c.Ydb.Table.CopyTableResponse\x12I\n\nCopyTables\x12\x1c.Ydb.Table.CopyTablesRequest\x1a\x1d.Ydb.Table.CopyTablesResponse\x12R\n\rDescribeTable\x12\x1f.Ydb.Table.DescribeTableRequest\x1a .Ydb.Table.DescribeTableResponse\x12[\n\x10\x45xplainDataQuery\x12\".Ydb.Table.ExplainDataQueryRequest\x1a#.Ydb.Table.ExplainDataQueryResponse\x12[\n\x10PrepareDataQuery\x12\".Ydb.Table.PrepareDataQueryRequest\x1a#.Ydb.Table.PrepareDataQueryResponse\x12[\n\x10\x45xecuteDataQuery\x12\".Ydb.Table.ExecuteDataQueryRequest\x1a#.Ydb.Table.ExecuteDataQueryResponse\x12\x61\n\x12\x45xecuteSchemeQuery\x12$.Ydb.Table.ExecuteSchemeQueryRequest\x1a%.Ydb.Table.ExecuteSchemeQueryResponse\x12[\n\x10\x42\x65ginTransaction\x12\".Ydb.Table.BeginTransactionRequest\x1a#.Ydb.Table.BeginTransactionResponse\x12^\n\x11\x43ommitTransaction\x12#.Ydb.Table.CommitTransactionRequest\x1a$.Ydb.Table.CommitTransactionResponse\x12\x64\n\x13RollbackTransaction\x12%.Ydb.Table.RollbackTransactionRequest\x1a&.Ydb.Table.RollbackTransactionResponse\x12g\n\x14\x44\x65scribeTableOptions\x12&.Ydb.Table.DescribeTableOptionsRequest\x1a\'.Ydb.Table.DescribeTableOptionsResponse\x12N\n\x0fStreamReadTable\x12\x1b.Ydb.Table.ReadTableRequest\x1a\x1c.Ydb.Table.ReadTableResponse0\x01\x12I\n\nBulkUpsert\x12\x1c.Ydb.Table.BulkUpsertRequest\x1a\x1d.Ydb.Table.BulkUpsertResponse\x12j\n\x16StreamExecuteScanQuery\x12\".Ydb.Table.ExecuteScanQueryRequest\x1a*.Ydb.Table.ExecuteScanQueryPartialResponse0\x01\x42\x19\n\x17\x63om.yandex.ydb.table.v1b\x06proto3'
+  serialized_pb=b'\n)kikimr/public/api/grpc/ydb_table_v1.proto\x12\x0cYdb.Table.V1\x1a(kikimr/public/api/protos/ydb_table.proto2\xa4\x0e\n\x0cTableService\x12R\n\rCreateSession\x12\x1f.Ydb.Table.CreateSessionRequest\x1a .Ydb.Table.CreateSessionResponse\x12R\n\rDeleteSession\x12\x1f.Ydb.Table.DeleteSessionRequest\x1a .Ydb.Table.DeleteSessionResponse\x12\x46\n\tKeepAlive\x12\x1b.Ydb.Table.KeepAliveRequest\x1a\x1c.Ydb.Table.KeepAliveResponse\x12L\n\x0b\x43reateTable\x12\x1d.Ydb.Table.CreateTableRequest\x1a\x1e.Ydb.Table.CreateTableResponse\x12\x46\n\tDropTable\x12\x1b.Ydb.Table.DropTableRequest\x1a\x1c.Ydb.Table.DropTableResponse\x12I\n\nAlterTable\x12\x1c.Ydb.Table.AlterTableRequest\x1a\x1d.Ydb.Table.AlterTableResponse\x12\x46\n\tCopyTable\x12\x1b.Ydb.Table.CopyTableRequest\x1a\x1c.Ydb.Table.CopyTableResponse\x12I\n\nCopyTables\x12\x1c.Ydb.Table.CopyTablesRequest\x1a\x1d.Ydb.Table.CopyTablesResponse\x12O\n\x0cRenameTables\x12\x1e.Ydb.Table.RenameTablesRequest\x1a\x1f.Ydb.Table.RenameTablesResponse\x12R\n\rDescribeTable\x12\x1f.Ydb.Table.DescribeTableRequest\x1a .Ydb.Table.DescribeTableResponse\x12[\n\x10\x45xplainDataQuery\x12\".Ydb.Table.ExplainDataQueryRequest\x1a#.Ydb.Table.ExplainDataQueryResponse\x12[\n\x10PrepareDataQuery\x12\".Ydb.Table.PrepareDataQueryRequest\x1a#.Ydb.Table.PrepareDataQueryResponse\x12[\n\x10\x45xecuteDataQuery\x12\".Ydb.Table.ExecuteDataQueryRequest\x1a#.Ydb.Table.ExecuteDataQueryResponse\x12\x61\n\x12\x45xecuteSchemeQuery\x12$.Ydb.Table.ExecuteSchemeQueryRequest\x1a%.Ydb.Table.ExecuteSchemeQueryResponse\x12[\n\x10\x42\x65ginTransaction\x12\".Ydb.Table.BeginTransactionRequest\x1a#.Ydb.Table.BeginTransactionResponse\x12^\n\x11\x43ommitTransaction\x12#.Ydb.Table.CommitTransactionRequest\x1a$.Ydb.Table.CommitTransactionResponse\x12\x64\n\x13RollbackTransaction\x12%.Ydb.Table.RollbackTransactionRequest\x1a&.Ydb.Table.RollbackTransactionResponse\x12g\n\x14\x44\x65scribeTableOptions\x12&.Ydb.Table.DescribeTableOptionsRequest\x1a\'.Ydb.Table.DescribeTableOptionsResponse\x12N\n\x0fStreamReadTable\x12\x1b.Ydb.Table.ReadTableRequest\x1a\x1c.Ydb.Table.ReadTableResponse0\x01\x12I\n\nBulkUpsert\x12\x1c.Ydb.Table.BulkUpsertRequest\x1a\x1d.Ydb.Table.BulkUpsertResponse\x12j\n\x16StreamExecuteScanQuery\x12\".Ydb.Table.ExecuteScanQueryRequest\x1a*.Ydb.Table.ExecuteScanQueryPartialResponse0\x01\x42\x19\n\x17\x63om.yandex.ydb.table.v1b\x06proto3'
   ,
   dependencies=[kikimr_dot_public_dot_api_dot_protos_dot_ydb__table__pb2.DESCRIPTOR,])
 
@@ -39,7 +39,7 @@ _TABLESERVICE = _descriptor.ServiceDescriptor(
   serialized_options=None,
   create_key=_descriptor._internal_create_key,
   serialized_start=102,
-  serialized_end=1849,
+  serialized_end=1930,
   methods=[
   _descriptor.MethodDescriptor(
     name='CreateSession',
@@ -122,9 +122,19 @@ _TABLESERVICE = _descriptor.ServiceDescriptor(
     create_key=_descriptor._internal_create_key,
   ),
   _descriptor.MethodDescriptor(
+    name='RenameTables',
+    full_name='Ydb.Table.V1.TableService.RenameTables',
+    index=8,
+    containing_service=None,
+    input_type=kikimr_dot_public_dot_api_dot_protos_dot_ydb__table__pb2._RENAMETABLESREQUEST,
+    output_type=kikimr_dot_public_dot_api_dot_protos_dot_ydb__table__pb2._RENAMETABLESRESPONSE,
+    serialized_options=None,
+    create_key=_descriptor._internal_create_key,
+  ),
+  _descriptor.MethodDescriptor(
     name='DescribeTable',
     full_name='Ydb.Table.V1.TableService.DescribeTable',
-    index=8,
+    index=9,
     containing_service=None,
     input_type=kikimr_dot_public_dot_api_dot_protos_dot_ydb__table__pb2._DESCRIBETABLEREQUEST,
     output_type=kikimr_dot_public_dot_api_dot_protos_dot_ydb__table__pb2._DESCRIBETABLERESPONSE,
@@ -134,7 +144,7 @@ _TABLESERVICE = _descriptor.ServiceDescriptor(
   _descriptor.MethodDescriptor(
     name='ExplainDataQuery',
     full_name='Ydb.Table.V1.TableService.ExplainDataQuery',
-    index=9,
+    index=10,
     containing_service=None,
     input_type=kikimr_dot_public_dot_api_dot_protos_dot_ydb__table__pb2._EXPLAINDATAQUERYREQUEST,
     output_type=kikimr_dot_public_dot_api_dot_protos_dot_ydb__table__pb2._EXPLAINDATAQUERYRESPONSE,
@@ -144,7 +154,7 @@ _TABLESERVICE = _descriptor.ServiceDescriptor(
   _descriptor.MethodDescriptor(
     name='PrepareDataQuery',
     full_name='Ydb.Table.V1.TableService.PrepareDataQuery',
-    index=10,
+    index=11,
     containing_service=None,
     input_type=kikimr_dot_public_dot_api_dot_protos_dot_ydb__table__pb2._PREPAREDATAQUERYREQUEST,
     output_type=kikimr_dot_public_dot_api_dot_protos_dot_ydb__table__pb2._PREPAREDATAQUERYRESPONSE,
@@ -154,7 +164,7 @@ _TABLESERVICE = _descriptor.ServiceDescriptor(
   _descriptor.MethodDescriptor(
     name='ExecuteDataQuery',
     full_name='Ydb.Table.V1.TableService.ExecuteDataQuery',
-    index=11,
+    index=12,
     containing_service=None,
     input_type=kikimr_dot_public_dot_api_dot_protos_dot_ydb__table__pb2._EXECUTEDATAQUERYREQUEST,
     output_type=kikimr_dot_public_dot_api_dot_protos_dot_ydb__table__pb2._EXECUTEDATAQUERYRESPONSE,
@@ -164,7 +174,7 @@ _TABLESERVICE = _descriptor.ServiceDescriptor(
   _descriptor.MethodDescriptor(
     name='ExecuteSchemeQuery',
     full_name='Ydb.Table.V1.TableService.ExecuteSchemeQuery',
-    index=12,
+    index=13,
     containing_service=None,
     input_type=kikimr_dot_public_dot_api_dot_protos_dot_ydb__table__pb2._EXECUTESCHEMEQUERYREQUEST,
     output_type=kikimr_dot_public_dot_api_dot_protos_dot_ydb__table__pb2._EXECUTESCHEMEQUERYRESPONSE,
@@ -174,7 +184,7 @@ _TABLESERVICE = _descriptor.ServiceDescriptor(
   _descriptor.MethodDescriptor(
     name='BeginTransaction',
     full_name='Ydb.Table.V1.TableService.BeginTransaction',
-    index=13,
+    index=14,
     containing_service=None,
     input_type=kikimr_dot_public_dot_api_dot_protos_dot_ydb__table__pb2._BEGINTRANSACTIONREQUEST,
     output_type=kikimr_dot_public_dot_api_dot_protos_dot_ydb__table__pb2._BEGINTRANSACTIONRESPONSE,
@@ -184,7 +194,7 @@ _TABLESERVICE = _descriptor.ServiceDescriptor(
   _descriptor.MethodDescriptor(
     name='CommitTransaction',
     full_name='Ydb.Table.V1.TableService.CommitTransaction',
-    index=14,
+    index=15,
     containing_service=None,
     input_type=kikimr_dot_public_dot_api_dot_protos_dot_ydb__table__pb2._COMMITTRANSACTIONREQUEST,
     output_type=kikimr_dot_public_dot_api_dot_protos_dot_ydb__table__pb2._COMMITTRANSACTIONRESPONSE,
@@ -194,7 +204,7 @@ _TABLESERVICE = _descriptor.ServiceDescriptor(
   _descriptor.MethodDescriptor(
     name='RollbackTransaction',
     full_name='Ydb.Table.V1.TableService.RollbackTransaction',
-    index=15,
+    index=16,
     containing_service=None,
     input_type=kikimr_dot_public_dot_api_dot_protos_dot_ydb__table__pb2._ROLLBACKTRANSACTIONREQUEST,
     output_type=kikimr_dot_public_dot_api_dot_protos_dot_ydb__table__pb2._ROLLBACKTRANSACTIONRESPONSE,
@@ -204,7 +214,7 @@ _TABLESERVICE = _descriptor.ServiceDescriptor(
   _descriptor.MethodDescriptor(
     name='DescribeTableOptions',
     full_name='Ydb.Table.V1.TableService.DescribeTableOptions',
-    index=16,
+    index=17,
     containing_service=None,
     input_type=kikimr_dot_public_dot_api_dot_protos_dot_ydb__table__pb2._DESCRIBETABLEOPTIONSREQUEST,
     output_type=kikimr_dot_public_dot_api_dot_protos_dot_ydb__table__pb2._DESCRIBETABLEOPTIONSRESPONSE,
@@ -214,7 +224,7 @@ _TABLESERVICE = _descriptor.ServiceDescriptor(
   _descriptor.MethodDescriptor(
     name='StreamReadTable',
     full_name='Ydb.Table.V1.TableService.StreamReadTable',
-    index=17,
+    index=18,
     containing_service=None,
     input_type=kikimr_dot_public_dot_api_dot_protos_dot_ydb__table__pb2._READTABLEREQUEST,
     output_type=kikimr_dot_public_dot_api_dot_protos_dot_ydb__table__pb2._READTABLERESPONSE,
@@ -224,7 +234,7 @@ _TABLESERVICE = _descriptor.ServiceDescriptor(
   _descriptor.MethodDescriptor(
     name='BulkUpsert',
     full_name='Ydb.Table.V1.TableService.BulkUpsert',
-    index=18,
+    index=19,
     containing_service=None,
     input_type=kikimr_dot_public_dot_api_dot_protos_dot_ydb__table__pb2._BULKUPSERTREQUEST,
     output_type=kikimr_dot_public_dot_api_dot_protos_dot_ydb__table__pb2._BULKUPSERTRESPONSE,
@@ -234,7 +244,7 @@ _TABLESERVICE = _descriptor.ServiceDescriptor(
   _descriptor.MethodDescriptor(
     name='StreamExecuteScanQuery',
     full_name='Ydb.Table.V1.TableService.StreamExecuteScanQuery',
-    index=19,
+    index=20,
     containing_service=None,
     input_type=kikimr_dot_public_dot_api_dot_protos_dot_ydb__table__pb2._EXECUTESCANQUERYREQUEST,
     output_type=kikimr_dot_public_dot_api_dot_protos_dot_ydb__table__pb2._EXECUTESCANQUERYPARTIALRESPONSE,
