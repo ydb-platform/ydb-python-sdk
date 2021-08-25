@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import os
 
-from kikimr.public.sdk.python import client as ydb
+import ydb
 import basic_example_data
 
 FillDataQuery = """PRAGMA TablePathPrefix("{}");

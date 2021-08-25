@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 
 import os
 
-from kikimr.public.sdk.python import iam, client as ydb
+from kikimr.public.sdk.python import iam, ydb
 
 from kikimr.public.dbapi.cursor import Cursor
 from kikimr.public.dbapi.errors import DatabaseError

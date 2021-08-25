@@ -26,7 +26,7 @@ def database():
 async def aio_connection(endpoint, database):
     """A fixture to wait ydb start"""
     from ydb.aio.connection import Connection
-    from kikimr.public.sdk.python.client.driver import DriverConfig
+    from ydb.driver import DriverConfig
     config = DriverConfig.default_from_endpoint_and_database(endpoint, database)
     connection = Connection(endpoint, config)
     await connection.connection_ready(ready_timeout=7)

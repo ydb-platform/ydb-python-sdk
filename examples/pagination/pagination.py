@@ -2,7 +2,7 @@
 from __future__ import print_function
 import os
 
-import kikimr.public.sdk.python.client as ydb
+import ydb
 from concurrent.futures import TimeoutError
 import sample_data
 

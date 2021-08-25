@@ -5,9 +5,9 @@ from typing import Any, Tuple, Callable, Iterable
 
 import grpc
 
-from kikimr.public.sdk.python.client import _apis, _utilities
+from ydb import _apis, _utilities
 
-from kikimr.public.sdk.python.client.connection import (
+from ydb.connection import (
     _log_request,
     _log_response,
     _rpc_error_handler,
@@ -19,9 +19,9 @@ from kikimr.public.sdk.python.client.connection import (
     YDB_TRACE_ID_HEADER,
     YDB_REQUEST_TYPE_HEADER
 )
-from kikimr.public.sdk.python.client.driver import DriverConfig
-from kikimr.public.sdk.python.client.settings import BaseRequestSettings
-from kikimr.public.sdk.python.client import issues
+from ydb.driver import DriverConfig
+from ydb.settings import BaseRequestSettings
+from ydb import issues
 
 _stubs_list = (
     _apis.TableService.Stub,

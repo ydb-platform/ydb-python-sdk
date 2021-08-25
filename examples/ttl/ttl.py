@@ -3,7 +3,7 @@ from __future__ import print_function
 import os
 from concurrent.futures import TimeoutError
 
-from kikimr.public.sdk.python import client as ydb
+import ydb
 import random
 
 

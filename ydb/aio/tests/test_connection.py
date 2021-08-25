@@ -2,7 +2,7 @@ import asyncio
 
 from ydb.aio.connection import Connection
 import pytest
-from kikimr.public.sdk.python.client import _apis
+from ydb import _apis
 
 
 @pytest.mark.asyncio
@@ -21,7 +21,7 @@ async def test_close(aio_connection: Connection):
     stub = _apis.SchemeService.Stub
 
     async def run_and_catch():
-        from kikimr.public.sdk.python.client.issues import ConnectionLost
+        from ydb.issues import ConnectionLost
         try:
             await aio_connection(request, stub, _apis.SchemeService.DescribePath)
         except ConnectionLost:
