@@ -20,7 +20,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   syntax='proto3',
   serialized_options=b'\n\036com.yandex.yql.analytics.db.v1',
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n,kikimr/public/api/grpc/draft/yql_db_v1.proto\x12\x10Yql.Analytics.V1\x1a\x31kikimr/public/api/protos/draft/yql_internal.proto2\x91\x02\n\x16YqlInternalTaskService\x12H\n\x07GetTask\x12\x1d.Yql.Analytics.GetTaskRequest\x1a\x1e.Yql.Analytics.GetTaskResponse\x12K\n\x08PingTask\x12\x1e.Yql.Analytics.PingTaskRequest\x1a\x1f.Yql.Analytics.PingTaskResponse\x12`\n\x0fWriteTaskResult\x12%.Yql.Analytics.WriteTaskResultRequest\x1a&.Yql.Analytics.WriteTaskResultResponseB \n\x1e\x63om.yandex.yql.analytics.db.v1b\x06proto3'
+  serialized_pb=b'\n,kikimr/public/api/grpc/draft/yql_db_v1.proto\x12\x10Yql.Analytics.V1\x1a\x31kikimr/public/api/protos/draft/yql_internal.proto2\xf6\x02\n\x16YqlInternalTaskService\x12H\n\x07GetTask\x12\x1d.Yql.Analytics.GetTaskRequest\x1a\x1e.Yql.Analytics.GetTaskResponse\x12K\n\x08PingTask\x12\x1e.Yql.Analytics.PingTaskRequest\x1a\x1f.Yql.Analytics.PingTaskResponse\x12`\n\x0fWriteTaskResult\x12%.Yql.Analytics.WriteTaskResultRequest\x1a&.Yql.Analytics.WriteTaskResultResponse\x12\x63\n\x10NodesHealthCheck\x12&.Yql.Analytics.NodesHealthCheckRequest\x1a\'.Yql.Analytics.NodesHealthCheckResponseB \n\x1e\x63om.yandex.yql.analytics.db.v1b\x06proto3'
   ,
   dependencies=[kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yql__internal__pb2.DESCRIPTOR,])
 
@@ -39,7 +39,7 @@ _YQLINTERNALTASKSERVICE = _descriptor.ServiceDescriptor(
   serialized_options=None,
   create_key=_descriptor._internal_create_key,
   serialized_start=118,
-  serialized_end=391,
+  serialized_end=492,
   methods=[
   _descriptor.MethodDescriptor(
     name='GetTask',
@@ -68,6 +68,16 @@ _YQLINTERNALTASKSERVICE = _descriptor.ServiceDescriptor(
     containing_service=None,
     input_type=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yql__internal__pb2._WRITETASKRESULTREQUEST,
     output_type=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yql__internal__pb2._WRITETASKRESULTRESPONSE,
+    serialized_options=None,
+    create_key=_descriptor._internal_create_key,
+  ),
+  _descriptor.MethodDescriptor(
+    name='NodesHealthCheck',
+    full_name='Yql.Analytics.V1.YqlInternalTaskService.NodesHealthCheck',
+    index=3,
+    containing_service=None,
+    input_type=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yql__internal__pb2._NODESHEALTHCHECKREQUEST,
+    output_type=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yql__internal__pb2._NODESHEALTHCHECKRESPONSE,
     serialized_options=None,
     create_key=_descriptor._internal_create_key,
   ),

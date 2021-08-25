@@ -29,6 +29,11 @@ class YqlInternalTaskServiceStub(object):
         request_serializer=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yql__internal__pb2.WriteTaskResultRequest.SerializeToString,
         response_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yql__internal__pb2.WriteTaskResultResponse.FromString,
         )
+    self.NodesHealthCheck = channel.unary_unary(
+        '/Yql.Analytics.V1.YqlInternalTaskService/NodesHealthCheck',
+        request_serializer=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yql__internal__pb2.NodesHealthCheckRequest.SerializeToString,
+        response_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yql__internal__pb2.NodesHealthCheckResponse.FromString,
+        )
 
 
 class YqlInternalTaskServiceServicer(object):
@@ -56,6 +61,13 @@ class YqlInternalTaskServiceServicer(object):
     context.set_details('Method not implemented!')
     raise NotImplementedError('Method not implemented!')
 
+  def NodesHealthCheck(self, request, context):
+    """Nodes
+    """
+    context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+    context.set_details('Method not implemented!')
+    raise NotImplementedError('Method not implemented!')
+
 
 def add_YqlInternalTaskServiceServicer_to_server(servicer, server):
   rpc_method_handlers = {
@@ -73,6 +85,11 @@ def add_YqlInternalTaskServiceServicer_to_server(servicer, server):
           servicer.WriteTaskResult,
           request_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yql__internal__pb2.WriteTaskResultRequest.FromString,
           response_serializer=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yql__internal__pb2.WriteTaskResultResponse.SerializeToString,
+      ),
+      'NodesHealthCheck': grpc.unary_unary_rpc_method_handler(
+          servicer.NodesHealthCheck,
+          request_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yql__internal__pb2.NodesHealthCheckRequest.FromString,
+          response_serializer=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yql__internal__pb2.NodesHealthCheckResponse.SerializeToString,
       ),
   }
   generic_handler = grpc.method_handlers_generic_handler(
