@@ -274,6 +274,15 @@ def parameters_to_pb(parameters_types, parameters_values):
     return param_values_pb
 
 
+def _unwrap_optionality(column):
+    c_type = column.type
+    current_type = c_type.WhichOneof('type')
+    while current_type == 'optional_type':
+        c_type = c_type.optional_type.item
+        current_type = c_type.WhichOneof('type')
+    return _to_native_map.get(current_type), c_type
+
+
 class _ResultSet(object):
     __slots__ = ('columns', 'rows', 'truncated')
 
@@ -289,15 +298,22 @@ class _ResultSet(object):
         column_parsers = []
         if len(message.rows) > 0:
             for column in message.columns:
-                column_parsers.append(
-                    _to_native_map.get(
-                        column.type.WhichOneof('type')
-                    )
-                )
+                column_parsers.append(_unwrap_optionality(column))
+
         for row_proto in message.rows:
             row = _Row(message.columns)
-            for column, value, column_parser in six.moves.zip(message.columns, row_proto.items, column_parsers):
-                row[column.name] = column_parser(column.type, value, table_client_settings)
+            for column, value, column_info in six.moves.zip(message.columns, row_proto.items, column_parsers):
+                v_type = value.WhichOneof('value')
+                if v_type == 'null_flag_value':
+                    row[column.name] = None
+                    continue
+
+                while v_type == 'nested_value':
+                    value = value.nested_value
+                    v_type = value.WhichOneof('value')
+
+                column_parser, unwrapped_type = column_info
+                row[column.name] = column_parser(unwrapped_type, value, table_client_settings)
             rows.append(row)
         return cls(message.columns, rows, message.truncated)
 
