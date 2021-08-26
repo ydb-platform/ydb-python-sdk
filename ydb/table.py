@@ -957,6 +957,7 @@ class TableClientSettings(object):
         self._client_query_cache_enabled = False
         self._native_datetime_in_result_sets = False
         self._native_date_in_result_sets = False
+        self._make_result_sets_lazy = False
 
     def with_native_date_in_result_sets(self, enabled):
         self._native_date_in_result_sets = enabled
@@ -968,6 +969,10 @@ class TableClientSettings(object):
 
     def with_client_query_cache(self, enabled):
         self._client_query_cache_enabled = enabled
+        return self
+
+    def with_lazy_result_sets(self, enabled):
+        self._make_result_sets_lazy = enabled
         return self
 
 
