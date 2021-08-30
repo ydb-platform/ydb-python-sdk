@@ -76,21 +76,23 @@ class DriverConfig(object):
             root_certificates=None, certificate_chain=None, private_key=None,
             grpc_keep_alive_timeout=None, table_client_settings=None, endpoints=None,
             primary_user_agent='python-library'):
+        # type:(str, str, str, str, Any, ydb.AbstractCredentials, bool, bytes, bytes, bytes, float, ydb.TableClientSettings, list, str) -> None
         """
         A driver config to initialize a driver instance
-        :param endpoint: A endpoint specified in pattern host:port to be used for initial
-        channel initialization and for YDB endpoint discovery mechanism
+
+        :param endpoint: A endpoint specified in pattern host:port to be used for initial channel initialization and for YDB endpoint discovery mechanism
         :param database: A name of the database
         :param ca_cert: A CA certificate when SSL should be used
         :param auth_token: A authentication token
         :param credentials: An instance of AbstractCredentials
         :param use_all_nodes: A balancing policy that forces to use all available nodes.
         :param root_certificates: The PEM-encoded root certificates as a byte string.
-        :param private_key: The PEM-encoded private key as a byte string, or None if no
+        :param private_key: The PEM-encoded private key as a byte string, or None if no\
         private key should be used.
-        :param certificate_chain: The PEM-encoded certificate chain as a byte string
+        :param certificate_chain: The PEM-encoded certificate chain as a byte string\
         to use or or None if no certificate chain should be used.
         :param grpc_keep_alive_timeout: GRpc KeepAlive timeout, ms
+
         """
         self.endpoint = endpoint
         self.database = database
@@ -170,13 +172,15 @@ class Driver(pool.ConnectionPool):
     __slots__ = ('scheme_client', 'table_client')
 
     def __init__(self, driver_config=None, connection_string=None, endpoint=None, database=None, root_certificates=None, credentials=None, **kwargs):
+        # type:(DriverConfig, str, str, str, bytes, ydb.AbstractCredentials, **Any) -> None
+
         """
         Constructs a driver instance to be used in table and scheme clients.
         It encapsulates endpoints discovery mechanism and provides ability to execute RPCs
         on discovered endpoints
 
         :param driver_config: A driver config
-        :param connection_string A string in the following format: <protocol>://<hostame>:<port>/?database=/path/to/the/database
+        :param connection_string: A string in the following format: <protocol>://<hostame>:<port>/?database=/path/to/the/database
         :param endpoint: An endpoint specified in the following format: <protocol>://<hostame>:<port>
         :param database: A database path
         :param credentials: A credentials. If not specifed credentials constructed by default.
