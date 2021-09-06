@@ -65,9 +65,9 @@ class SchemeEntryType(enum.IntEnum):
 
 
 class SchemeEntry(object):
-    __slots__ = ('name', 'owner', 'type', 'effective_permissions', 'permissions')
+    __slots__ = ('name', 'owner', 'type', 'effective_permissions', 'permissions', 'size_bytes')
 
-    def __init__(self, name, owner, type, effective_permissions, permissions, *args, **kwargs):
+    def __init__(self, name, owner, type, effective_permissions, permissions, size_bytes, *args, **kwargs):
         """
         Represents a scheme entry.
         :param name: A name of a scheme entry
@@ -75,12 +75,14 @@ class SchemeEntry(object):
         :param type: A type of scheme entry
         :param effective_permissions: A list of effective permissions applied to this scheme entry
         :param permissions: A list of permissions applied to this scheme entry
+        :param size_bytes: Size of entry in bytes
         """
         self.name = name
         self.owner = owner
         self.type = type
         self.effective_permissions = effective_permissions
         self.permissions = permissions
+        self.size_bytes = size_bytes
 
     def is_directory(self):
         """
@@ -126,7 +128,7 @@ class Directory(SchemeEntry):
         :param permissions: A list of permissions applied to this scheme entry
         :param children: A list of children
         """
-        super(Directory, self).__init__(name, owner, type, effective_permissions, permissions)
+        super(Directory, self).__init__(name, owner, type, effective_permissions, permissions, 0)
         self.children = children
 
 
@@ -266,6 +268,7 @@ def _wrap_scheme_entry(entry_pb, scheme_entry_cls=None, *args, **kwargs):
         getattr(SchemeEntryType, _apis.ydb_scheme.Entry.Type.Name(entry_pb.type)),
         _wrap_permissions(entry_pb.effective_permissions),
         _wrap_permissions(entry_pb.permissions),
+        entry_pb.size_bytes,
         *args,
         **kwargs
     )

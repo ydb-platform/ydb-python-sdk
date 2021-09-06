@@ -1271,11 +1271,11 @@ def _make_index_description(index):
 
 class TableSchemeEntry(scheme.SchemeEntry):
     def __init__(
-            self, name, owner, type, effective_permissions, permissions, columns, primary_key, shard_key_bounds,
+            self, name, owner, type, effective_permissions, permissions, size_bytes, columns, primary_key, shard_key_bounds,
             indexes, table_stats, ttl_settings, attributes, partitioning_settings, column_families, key_bloom_filter,
             read_replicas_settings, storage_settings, *args, **kwargs):
 
-        super(TableSchemeEntry, self).__init__(name, owner, type, effective_permissions, permissions, *args, **kwargs)
+        super(TableSchemeEntry, self).__init__(name, owner, type, effective_permissions, permissions, size_bytes, *args, **kwargs)
         self.primary_key = [pk for pk in primary_key]
         self.columns = [Column(column.name, convert.type_to_native(column.type), column.family) for column in columns]
         self.indexes = [_make_index_description(index) for index in indexes]
