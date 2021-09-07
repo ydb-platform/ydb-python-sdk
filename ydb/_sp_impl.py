@@ -2,16 +2,13 @@
 import collections
 from concurrent import futures
 from six.moves import queue
-import logging
 import time
 import threading
 from . import settings, issues, _utilities
 
-logger = logging.getLogger(__name__)
-
 
 class SessionPoolImpl(object):
-    def __init__(self, driver, size, workers_threads_count=4, initializer=None, min_pool_size=0):
+    def __init__(self, logger, driver, size, workers_threads_count=4, initializer=None, min_pool_size=0):
         self._lock = threading.RLock()
         self._waiters = collections.OrderedDict()
         self._driver = driver
@@ -29,7 +26,7 @@ class SessionPoolImpl(object):
         self._event_loop_thread = threading.Thread(target=self.events_loop)
         self._event_loop_thread.daemon = True
         self._event_loop_thread.start()
-        self._logger = logger.getChild(self.__class__.__name__)
+        self._logger = logger
         self._min_pool_size = min_pool_size
         self._terminating = False
         if self._min_pool_size > self._size:
