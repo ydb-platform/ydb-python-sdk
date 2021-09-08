@@ -7,7 +7,7 @@ import random
 
 import six
 
-from . import connection as connection_impl, issues, resolver, _utilities
+from . import connection as connection_impl, issues, resolver, _utilities, tracing
 from abc import abstractmethod, ABCMeta
 
 
@@ -15,7 +15,8 @@ logger = logging.getLogger(__name__)
 
 
 class ConnectionsCache(object):
-    def __init__(self, use_all_nodes=False):
+    def __init__(self, use_all_nodes=False, tracer=tracing.Tracer(None)):
+        self.tracer = tracer
         self.lock = threading.RLock()
         self.connections = collections.OrderedDict()
         self.outdated = collections.OrderedDict()
@@ -118,15 +119,22 @@ class ConnectionsCache(object):
             subscription.add_done_callback(self._on_done_callback)
             return subscription
 
+    @tracing.with_trace()
     def get(self, preferred_endpoint=None):
         with self.lock:
             if preferred_endpoint is not None and preferred_endpoint in self.connections:
+                tracing.trace(self.tracer, {
+                    "found_preferred_endpoint": True
+                })
                 return self.connections[preferred_endpoint]
 
             for conn_lst in self.conn_lst_order:
                 try:
                     endpoint, connection = conn_lst.popitem(last=False)
                     conn_lst[endpoint] = connection
+                    tracing.trace(self.tracer, {
+                        "found_in_lists": True
+                    })
                     return connection
                 except KeyError:
                     continue
@@ -326,7 +334,8 @@ class ConnectionPool(IConnectionPool):
         :param driver_config: An instance of DriverConfig
         """
         self._driver_config = driver_config
-        self._store = ConnectionsCache(driver_config.use_all_nodes)
+        self._store = ConnectionsCache(driver_config.use_all_nodes, driver_config.tracer)
+        self.tracer = driver_config.tracer
         self._grpc_init = connection_impl.Connection(self._driver_config.endpoint, self._driver_config)
         self._discovery_thread = Discovery(self._store, self._driver_config)
         self._discovery_thread.start()
@@ -384,6 +393,7 @@ class ConnectionPool(IConnectionPool):
     def discovery_debug_details(self):
         return self._discovery_thread.discovery_debug_details()
 
+    @tracing.with_trace()
     def __call__(self, request, stub, rpc_name, wrap_result=None, settings=None, wrap_args=(), preferred_endpoint=None):
         """
         Synchronously sends request constructed by client library
@@ -398,18 +408,27 @@ class ConnectionPool(IConnectionPool):
 
         :return: A result of computation
         """
+        tracing.trace(self.tracer, {
+            "request": request,
+            "stub": stub,
+            "rpc_name": rpc_name
+        })
         try:
             connection = self._store.get(preferred_endpoint)
         except Exception:
             self._discovery_thread.notify_disconnected()
             raise
 
-        return connection(
+        res = connection(
             request, stub, rpc_name, wrap_result, settings,
             wrap_args, lambda: self._on_disconnected(
                 connection
             )
         )
+        tracing.trace(self.tracer, {
+            "response": res
+        }, trace_level=tracing.TraceLevel.DEBUG)
+        return res
 
     @_utilities.wrap_async_call_exceptions
     def future(self, request, stub, rpc_name, wrap_result=None, settings=None, wrap_args=(), preferred_endpoint=None):

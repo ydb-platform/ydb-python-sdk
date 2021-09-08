@@ -2,7 +2,7 @@
 
 
 class BaseRequestSettings(object):
-    __slots__ = ('trace_id', 'request_type', 'timeout', 'cancel_after', 'operation_timeout')
+    __slots__ = ('trace_id', 'request_type', 'timeout', 'cancel_after', 'operation_timeout', 'tracer')
 
     def __init__(self):
         """

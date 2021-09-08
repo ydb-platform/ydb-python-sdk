@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import abc
+import ydb
 from abc import abstractmethod
 import logging
 import time
@@ -7,7 +8,7 @@ import random
 import enum
 
 import six
-from . import issues, convert, settings, scheme, types, _utilities, _apis, _sp_impl, _session_impl, _tx_ctx_impl
+from . import issues, convert, settings, scheme, types, _utilities, _apis, _sp_impl, _session_impl, _tx_ctx_impl, tracing
 
 try:
     from . import interceptor
@@ -2182,7 +2183,10 @@ class SessionPool(object):
         """
         self._logger = logger.getChild(self.__class__.__name__)
         self._pool_impl = _sp_impl.SessionPoolImpl(self._logger, driver, size, workers_threads_count, initializer, min_pool_size)
-
+        if hasattr(driver, "_driver_config"):
+            self.tracer = driver._driver_config.tracer
+        else:
+            self.tracer = ydb.Tracer(None)
     def retry_operation_sync(self, callee, retry_settings=None, *args, **kwargs):
 
         retry_settings = RetrySettings() if retry_settings is None else retry_settings
@@ -2213,15 +2217,19 @@ class SessionPool(object):
     def waiters_count(self):
         return self._pool_impl.waiters_count
 
+    @tracing.with_trace()
     def subscribe(self):
         return self._pool_impl.subscribe()
 
+    @tracing.with_trace()
     def unsubscribe(self, waiter):
         return self._pool_impl.unsubscribe(waiter)
 
+    @tracing.with_trace()
     def acquire(self, blocking=True, timeout=None):
         return self._pool_impl.acquire(blocking, timeout)
 
+    @tracing.with_trace()
     def release(self, session):
         return self._pool_impl.put(session)
 
