@@ -58,7 +58,7 @@ def default_credentials(credentials=None, tracer=None):
         if metadata_credentials:
             ctx.trace({"credentials.metadata": True})
             from kikimr.public.sdk.python import iam
-            return iam.MetadataUrlCredentials(tracer)
+            return iam.MetadataUrlCredentials(tracer=tracer)
 
         access_token = os.getenv("YDB_ACCESS_TOKEN_CREDENTIALS")
         if access_token is not None:
@@ -72,7 +72,7 @@ def default_credentials(credentials=None, tracer=None):
             return creds
 
         from kikimr.public.sdk.python import iam
-        return iam.MetadataUrlCredentials(tracer)
+        return iam.MetadataUrlCredentials(tracer=tracer)
 
 
 class DriverConfig(object):
