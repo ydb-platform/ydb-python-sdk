@@ -216,7 +216,7 @@ class ConnectionPool(IConnectionPool):
     async def __aenter__(self):
         return self
 
-    async def __aenter__(self, exc_type, exc, tb):
+    async def __aexit__(self, exc_type, exc, tb):
         await self.stop()
 
     async def __call__(
