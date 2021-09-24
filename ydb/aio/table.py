@@ -102,6 +102,9 @@ class Session(BaseSession):
     async def copy_tables(self, source_destination_pairs, settings=None):
         return await super(Session, self).copy_tables(source_destination_pairs, settings)
 
+    async def rename_tables(self, rename_items, settings=None):
+        return await super(Session, self).rename_tables(rename_items, settings)
+
 
 class TableClient(BaseTableClient):
 
