@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import contextlib
 import logging
 import threading
 import random
@@ -102,12 +103,17 @@ class DiscoveryEndpointsResolver(object):
             return "\n".join(self._debug_details_items)
 
     def resolve(self):
+        with self.context_resolve() as result:
+            return result
+
+    @contextlib.contextmanager
+    def context_resolve(self):
         self.logger.debug("Preparing initial endpoint to resolve endpoints")
         endpoint = next(self._endpoints_iter)
         initial = conn_impl.Connection.ready_factory(endpoint, self._driver_config)
         if initial is None:
             self._add_debug_details("Failed to establish connection to YDB discovery endpoint: \"%s\". Check endpoint correctness." % endpoint)
-            return None
+            yield
 
         self.logger.debug("Resolving endpoints for database %s", self._driver_config.database)
         try:
@@ -124,13 +130,13 @@ class DiscoveryEndpointsResolver(object):
             self._add_debug_details(
                 "Resolved endpoints for database %s: %s", self._driver_config.database, resolved)
 
-            return resolved
+            yield resolved
         except Exception as e:
 
             self._add_debug_details(
                 "Failed to resolve endpoints for database %s. Endpoint: \"%s\". Error details:\n %s", self._driver_config.database, endpoint, e)
 
+            yield
+
         finally:
             initial.close()
-
-        return None
