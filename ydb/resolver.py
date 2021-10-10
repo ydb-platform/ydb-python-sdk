@@ -123,6 +123,7 @@ class DiscoveryEndpointsResolver(object):
         if initial is None:
             self._add_debug_details("Failed to establish connection to YDB discovery endpoint: \"%s\". Check endpoint correctness." % endpoint)
             yield
+            return
 
         self.logger.debug("Resolving endpoints for database %s", self._driver_config.database)
         try:
