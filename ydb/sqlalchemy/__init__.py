@@ -21,6 +21,9 @@ try:
     from sqlalchemy.util.compat import inspect_getfullargspec
     from sqlalchemy.sql import literal_column
 
+    SQLALCHEMY_VERSION = tuple(sa.__version__.split("."))
+    SA_14 = SQLALCHEMY_VERSION >= ("1", "4")
+
     class YqlIdentifierPreparer(IdentifierPreparer):
         def __init__(self, dialect):
             super(YqlIdentifierPreparer, self).__init__(
@@ -232,7 +235,11 @@ try:
             else:
                 qt = table_name
 
-            columns = connection.raw_connection().describe(qt)
+            if SA_14:
+                raw_conn = connection.connection
+            else:
+                raw_conn = connection.raw_connection()
+            columns = raw_conn.describe(qt)
             as_compatible = []
             for column in columns:
                 as_compatible.append(
