@@ -27,7 +27,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   syntax='proto3',
   serialized_options=b'\n\020com.yandex.queryB\021YandexQueryProtos\370\001\001',
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n!kikimr/public/api/protos/yq.proto\x12\x0bYandexQuery\x1a\x34kikimr/public/api/protos/validation/validation.proto\x1a,kikimr/public/api/protos/ydb_operation.proto\x1a(kikimr/public/api/protos/ydb_value.proto\x1a\x30kikimr/public/api/protos/ydb_issue_message.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1bgoogle/protobuf/empty.proto\"x\n\x03\x41\x63l\x12/\n\nvisibility\x18\x01 \x01(\x0e\x32\x1b.YandexQuery.Acl.Visibility\"@\n\nVisibility\x12\x1a\n\x16VISIBILITY_UNSPECIFIED\x10\x00\x12\x0b\n\x07PRIVATE\x10\x01\x12\t\n\x05SCOPE\x10\x02\"\x86\x02\n\x06Limits\x12!\n\x0fvcpu_rate_limit\x18\x01 \x01(\x03\x42\x08\xb2\xe6*\x04>= 0\x12!\n\x0f\x66low_rate_limit\x18\x02 \x01(\x03\x42\x08\xb2\xe6*\x04>= 0\x12!\n\x0fvcpu_time_limit\x18\x03 \x01(\x03\x42\x08\xb2\xe6*\x04>= 0\x12!\n\x0fmax_result_size\x18\x04 \x01(\x03\x42\x08\xb2\xe6*\x04>= 0\x12!\n\x0fmax_result_rows\x18\x05 \x01(\x03\x42\x08\xb2\xe6*\x04>= 0\x12\x1e\n\x0cmemory_limit\x18\x06 \x01(\x03\x42\x08\xb2\xe6*\x04>= 0\x12-\n\nresult_ttl\x18\x07 \x01(\x0b\x32\x19.google.protobuf.Duration\"\xa3\x03\n\x14StreamingDisposition\x12(\n\x06oldest\x18\x01 \x01(\x0b\x32\x16.google.protobuf.EmptyH\x00\x12\'\n\x05\x66resh\x18\x02 \x01(\x0b\x32\x16.google.protobuf.EmptyH\x00\x12?\n\tfrom_time\x18\x03 \x01(\x0b\x32*.YandexQuery.StreamingDisposition.FromTimeH\x00\x12=\n\x08time_ago\x18\x04 \x01(\x0b\x32).YandexQuery.StreamingDisposition.TimeAgoH\x00\x12\x36\n\x14\x66rom_last_checkpoint\x18\x05 \x01(\x0b\x32\x16.google.protobuf.EmptyH\x00\x1a\x39\n\x08\x46romTime\x12-\n\ttimestamp\x18\x01 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x1a\x36\n\x07TimeAgo\x12+\n\x08\x64uration\x18\x01 \x01(\x0b\x32\x19.google.protobuf.DurationB\r\n\x0b\x64isposition\"\xac\x02\n\x0cQueryContent\x12\x31\n\x04type\x18\x01 \x01(\x0e\x32#.YandexQuery.QueryContent.QueryType\x12\x15\n\x04name\x18\x02 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\x12\x1d\n\x03\x61\x63l\x18\x03 \x01(\x0b\x32\x10.YandexQuery.Acl\x12#\n\x06limits\x18\x04 \x01(\x0b\x32\x13.YandexQuery.Limits\x12\x16\n\x04text\x18\x05 \x01(\tB\x08\xa2\xe6*\x04\x18\x80\xa0\x06\x12\x11\n\tautomatic\x18\x06 \x01(\x08\x12\x1c\n\x0b\x64\x65scription\x18\x07 \x01(\tB\x07\xa2\xe6*\x03\x18\x80P\"E\n\tQueryType\x12\x1a\n\x16QUERY_TYPE_UNSPECIFIED\x10\x00\x12\r\n\tANALYTICS\x10\x01\x12\r\n\tSTREAMING\x10\x02\"\xe5\x01\n\nCommonMeta\x12\x17\n\x02id\x18\x01 \x01(\tB\x0b\xa2\xe6*\x07\n\x05\x08\x01\x10\x80\x08\x12\x1f\n\ncreated_by\x18\x02 \x01(\tB\x0b\xa2\xe6*\x07\n\x05\x08\x01\x10\x80\x08\x12 \n\x0bmodified_by\x18\x03 \x01(\tB\x0b\xa2\xe6*\x07\n\x05\x08\x01\x10\x80\x08\x12.\n\ncreated_at\x18\x04 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12/\n\x0bmodified_at\x18\x05 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12\x1a\n\x08revision\x18\x06 \x01(\x03\x42\x08\xb2\xe6*\x04>= 0\"\x9a\x04\n\tQueryMeta\x12\'\n\x06\x63ommon\x18\x01 \x01(\x0b\x32\x17.YandexQuery.CommonMeta\x12.\n\nstarted_at\x18\x02 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12/\n\x0b\x66inished_at\x18\x03 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12.\n\x0c\x65xecute_mode\x18\x04 \x01(\x0e\x32\x18.YandexQuery.ExecuteMode\x12\x34\n\x06status\x18\x05 \x01(\x0e\x32$.YandexQuery.QueryMeta.ComputeStatus\x12\x1f\n\x17last_job_query_revision\x18\x06 \x01(\x03\x12\x13\n\x0blast_job_id\x18\x07 \x01(\t\"\xe6\x01\n\rComputeStatus\x12\x1e\n\x1a\x43OMPUTE_STATUS_UNSPECIFIED\x10\x00\x12\x0c\n\x08STARTING\x10\x01\x12\x13\n\x0f\x41\x42ORTED_BY_USER\x10\x02\x12\x15\n\x11\x41\x42ORTED_BY_SYSTEM\x10\x03\x12\x14\n\x10\x41\x42ORTING_BY_USER\x10\x04\x12\x16\n\x12\x41\x42ORTING_BY_SYSTEM\x10\x05\x12\x0c\n\x08RESUMING\x10\x06\x12\x0b\n\x07RUNNING\x10\x07\x12\r\n\tCOMPLETED\x10\x08\x12\n\n\x06\x46\x41ILED\x10\t\x12\x0b\n\x07PAUSING\x10\n\x12\n\n\x06PAUSED\x10\x0b\"|\n\nBriefQuery\x12\x31\n\x04type\x18\x01 \x01(\x0e\x32#.YandexQuery.QueryContent.QueryType\x12\x15\n\x04name\x18\x02 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\x12$\n\x04meta\x18\x03 \x01(\x0b\x32\x16.YandexQuery.QueryMeta\"\x19\n\tQueryPlan\x12\x0c\n\x04json\x18\x01 \x01(\t\"]\n\rResultSetMeta\x12\x1b\n\x06\x63olumn\x18\x01 \x03(\x0b\x32\x0b.Ydb.Column\x12\x1c\n\nrows_count\x18\x02 \x01(\x03\x42\x08\xb2\xe6*\x04>= 0\x12\x11\n\ttruncated\x18\x03 \x01(\x08\"\xc0\x02\n\x05Query\x12$\n\x04meta\x18\x01 \x01(\x0b\x32\x16.YandexQuery.QueryMeta\x12*\n\x07\x63ontent\x18\x02 \x01(\x0b\x32\x19.YandexQuery.QueryContent\x12$\n\x04plan\x18\x03 \x01(\x0b\x32\x16.YandexQuery.QueryPlan\x12&\n\x05issue\x18\x04 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessage\x12\x30\n\x0ftransient_issue\x18\x05 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessage\x12\x30\n\nstatistics\x18\x06 \x01(\x0b\x32\x1c.YandexQuery.QueryStatistics\x12\x33\n\x0fresult_set_meta\x18\x07 \x03(\x0b\x32\x1a.YandexQuery.ResultSetMeta\"\x1f\n\x0fQueryStatistics\x12\x0c\n\x04json\x18\x01 \x01(\t\"\x85\x02\n\x12\x43reateQueryRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12*\n\x07\x63ontent\x18\x02 \x01(\x0b\x32\x19.YandexQuery.QueryContent\x12.\n\x0c\x65xecute_mode\x18\x03 \x01(\x0e\x32\x18.YandexQuery.ExecuteMode\x12\x36\n\x0b\x64isposition\x18\x04 \x01(\x0b\x32!.YandexQuery.StreamingDisposition\x12 \n\x0fidempotency_key\x18\x05 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\"C\n\x13\x43reateQueryResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\".\n\x11\x43reateQueryResult\x12\x19\n\x08query_id\x18\x01 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\"\x8a\x03\n\x12ListQueriesRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x1b\n\npage_token\x18\x02 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\x12\x1b\n\x05limit\x18\x03 \x01(\x05\x42\x0c\xb2\xe6*\x08[1; 100]\x12\x36\n\x06\x66ilter\x18\x04 \x01(\x0b\x32&.YandexQuery.ListQueriesRequest.Filter\x1a\xc6\x01\n\x06\x46ilter\x12\x37\n\nquery_type\x18\x01 \x01(\x0e\x32#.YandexQuery.QueryContent.QueryType\x12<\n\x06status\x18\x02 \x03(\x0e\x32$.YandexQuery.QueryMeta.ComputeStatusB\x06\x9a\xe6*\x02\x18\x14\x12.\n\x04mode\x18\x03 \x03(\x0e\x32\x18.YandexQuery.ExecuteModeB\x06\x9a\xe6*\x02\x18\x14\x12\x15\n\x04name\x18\x04 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\"C\n\x13ListQueriesResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"]\n\x11ListQueriesResult\x12&\n\x05query\x18\x01 \x03(\x0b\x32\x17.YandexQuery.BriefQuery\x12 \n\x0fnext_page_token\x18\x02 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\"p\n\x14\x44\x65scribeQueryRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x1d\n\x08query_id\x18\x02 \x01(\tB\x0b\xa2\xe6*\x07\n\x05\x08\x01\x10\x80\x08\"E\n\x15\x44\x65scribeQueryResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"8\n\x13\x44\x65scribeQueryResult\x12!\n\x05query\x18\x01 \x01(\x0b\x32\x12.YandexQuery.Query\"\xb5\x01\n\x12\x44\x65leteQueryRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x1d\n\x08query_id\x18\x02 \x01(\tB\x0b\xa2\xe6*\x07\n\x05\x08\x01\x10\x80\x08\x12#\n\x11previous_revision\x18\x03 \x01(\x03\x42\x08\xb2\xe6*\x04>= 0\x12 \n\x0fidempotency_key\x18\x04 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\"C\n\x13\x44\x65leteQueryResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\x13\n\x11\x44\x65leteQueryResult\"\xf9\x02\n\x12ModifyQueryRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x1d\n\x08query_id\x18\x02 \x01(\tB\x0b\xa2\xe6*\x07\n\x05\x08\x01\x10\x80\x08\x12*\n\x07\x63ontent\x18\x03 \x01(\x0b\x32\x19.YandexQuery.QueryContent\x12.\n\x0c\x65xecute_mode\x18\x04 \x01(\x0e\x32\x18.YandexQuery.ExecuteMode\x12\x36\n\x0b\x64isposition\x18\x05 \x01(\x0b\x32!.YandexQuery.StreamingDisposition\x12.\n\nstate_mode\x18\x06 \x01(\x0e\x32\x1a.YandexQuery.StateLoadMode\x12#\n\x11previous_revision\x18\x07 \x01(\x03\x42\x08\xb2\xe6*\x04>= 0\x12 \n\x0fidempotency_key\x18\x08 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\"C\n\x13ModifyQueryResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\x13\n\x11ModifyQueryResult\"\xe0\x01\n\x13\x43ontrolQueryRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x1d\n\x08query_id\x18\x02 \x01(\tB\x0b\xa2\xe6*\x07\n\x05\x08\x01\x10\x80\x08\x12(\n\x06\x61\x63tion\x18\x03 \x01(\x0e\x32\x18.YandexQuery.QueryAction\x12#\n\x11previous_revision\x18\x04 \x01(\x03\x42\x08\xb2\xe6*\x04>= 0\x12 \n\x0fidempotency_key\x18\x05 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\"D\n\x14\x43ontrolQueryResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\x14\n\x12\x43ontrolQueryResult\"\x9b\x02\n\x03Job\x12%\n\x04meta\x18\x01 \x01(\x0b\x32\x17.YandexQuery.CommonMeta\x12\x0c\n\x04text\x18\x02 \x01(\t\x12*\n\nquery_meta\x18\x03 \x01(\x0b\x32\x16.YandexQuery.QueryMeta\x12$\n\x04plan\x18\x04 \x01(\x0b\x32\x16.YandexQuery.QueryPlan\x12&\n\x05issue\x18\x05 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessage\x12\x30\n\nstatistics\x18\x06 \x01(\x0b\x32\x1c.YandexQuery.QueryStatistics\x12\x33\n\x0fresult_set_meta\x18\x07 \x03(\x0b\x32\x1a.YandexQuery.ResultSetMeta\"\xf2\x01\n\x0fListJobsRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x1b\n\npage_token\x18\x02 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\x12\x1b\n\x05limit\x18\x03 \x01(\x05\x42\x0c\xb2\xe6*\x08[1; 100]\x12\x10\n\x08query_id\x18\x05 \x01(\t\x12\x33\n\x06\x66ilter\x18\x04 \x01(\x0b\x32#.YandexQuery.ListJobsRequest.Filter\x1a#\n\x06\x46ilter\x12\x19\n\x08query_id\x18\x01 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\"@\n\x10ListJobsResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"Q\n\x0eListJobsResult\x12\x1d\n\x03job\x18\x01 \x03(\x0b\x32\x10.YandexQuery.Job\x12 \n\x0fnext_page_token\x18\x02 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\"\x15\n\x13\x43urrentIAMTokenAuth\"\n\n\x08NoneAuth\")\n\x12ServiceAccountAuth\x12\x13\n\x02id\x18\x01 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\"\xb1\x01\n\x07IamAuth\x12\x37\n\x0b\x63urrent_iam\x18\x01 \x01(\x0b\x32 .YandexQuery.CurrentIAMTokenAuthH\x00\x12:\n\x0fservice_account\x18\x02 \x01(\x0b\x32\x1f.YandexQuery.ServiceAccountAuthH\x00\x12%\n\x04none\x18\x03 \x01(\x0b\x32\x15.YandexQuery.NoneAuthH\x00\x42\n\n\x08identity\"\x95\x01\n\x0b\x44\x61taStreams\x12\x1c\n\x0b\x64\x61tabase_id\x18\x01 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\x12\"\n\x04\x61uth\x18\x02 \x01(\x0b\x32\x14.YandexQuery.IamAuth\x12\x19\n\x08\x65ndpoint\x18\x03 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\x12\x19\n\x08\x64\x61tabase\x18\x04 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\x12\x0e\n\x06secure\x18\x05 \x01(\x08\"d\n\nMonitoring\x12\x18\n\x07project\x18\x01 \x01(\tB\x07\xa2\xe6*\x03\x18\xc8\x01\x12\x18\n\x07\x63luster\x18\x02 \x01(\tB\x07\xa2\xe6*\x03\x18\xc8\x01\x12\"\n\x04\x61uth\x18\x03 \x01(\x0b\x32\x14.YandexQuery.IamAuth\"\x95\x01\n\x0bYdbDatabase\x12\x1c\n\x0b\x64\x61tabase_id\x18\x01 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\x12\"\n\x04\x61uth\x18\x02 \x01(\x0b\x32\x14.YandexQuery.IamAuth\x12\x19\n\x08\x65ndpoint\x18\x03 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\x12\x19\n\x08\x64\x61tabase\x18\x04 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\x12\x0e\n\x06secure\x18\x05 \x01(\x08\"\xcd\x01\n\x11\x43lickHouseCluster\x12\x1c\n\x0b\x64\x61tabase_id\x18\x01 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\x12\x16\n\x05login\x18\x02 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\x12\x19\n\x08password\x18\x03 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\x12\"\n\x04\x61uth\x18\x04 \x01(\x0b\x32\x14.YandexQuery.IamAuth\x12\x15\n\x04host\x18\x05 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\x12\x1c\n\x04port\x18\x06 \x01(\x05\x42\x0e\xb2\xe6*\n[0; 65536]\x12\x0e\n\x06secure\x18\x07 \x01(\x08\"V\n\x17ObjectStorageConnection\x12\x17\n\x06\x62ucket\x18\x01 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\x12\"\n\x04\x61uth\x18\x02 \x01(\x0b\x32\x14.YandexQuery.IamAuth\"\xb2\x02\n\x11\x43onnectionSetting\x12\x30\n\x0cydb_database\x18\x01 \x01(\x0b\x32\x18.YandexQuery.YdbDatabaseH\x00\x12<\n\x12\x63lickhouse_cluster\x18\x02 \x01(\x0b\x32\x1e.YandexQuery.ClickHouseClusterH\x00\x12\x30\n\x0c\x64\x61ta_streams\x18\x03 \x01(\x0b\x32\x18.YandexQuery.DataStreamsH\x00\x12>\n\x0eobject_storage\x18\x04 \x01(\x0b\x32$.YandexQuery.ObjectStorageConnectionH\x00\x12-\n\nmonitoring\x18\x05 \x01(\x0b\x32\x17.YandexQuery.MonitoringH\x00\x42\x0c\n\nconnection\"\x9c\x01\n\x11\x43onnectionContent\x12\x19\n\x04name\x18\x01 \x01(\tB\x0b\xa2\xe6*\x07\n\x05\x08\x01\x10\x80\x08\x12/\n\x07setting\x18\x02 \x01(\x0b\x32\x1e.YandexQuery.ConnectionSetting\x12\x1d\n\x03\x61\x63l\x18\x03 \x01(\x0b\x32\x10.YandexQuery.Acl\x12\x1c\n\x0b\x64\x65scription\x18\x04 \x01(\tB\x07\xa2\xe6*\x03\x18\x80P\"d\n\nConnection\x12/\n\x07\x63ontent\x18\x01 \x01(\x0b\x32\x1e.YandexQuery.ConnectionContent\x12%\n\x04meta\x18\x02 \x01(\x0b\x32\x17.YandexQuery.CommonMeta\"\xa7\x01\n\x17\x43reateConnectionRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12/\n\x07\x63ontent\x18\x02 \x01(\x0b\x32\x1e.YandexQuery.ConnectionContent\x12 \n\x0fidempotency_key\x18\x03 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\"H\n\x18\x43reateConnectionResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"<\n\x16\x43reateConnectionResult\x12\"\n\rconnection_id\x18\x01 \x01(\tB\x0b\xa2\xe6*\x07\n\x05\x08\x01\x10\x80\x08\"\x8d\x01\n\x16ListConnectionsRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x1b\n\npage_token\x18\x02 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\x12\x1b\n\x05limit\x18\x03 \x01(\x05\x42\x0c\xb2\xe6*\x08[1; 100]\"G\n\x17ListConnectionsResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"f\n\x15ListConnectionsResult\x12+\n\nconnection\x18\x01 \x03(\x0b\x32\x17.YandexQuery.Connection\x12 \n\x0fnext_page_token\x18\x02 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\"z\n\x19\x44\x65scribeConnectionRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\"\n\rconnection_id\x18\x02 \x01(\tB\x0b\xa2\xe6*\x07\n\x05\x08\x01\x10\x80\x08\"J\n\x1a\x44\x65scribeConnectionResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"G\n\x18\x44\x65scribeConnectionResult\x12+\n\nconnection\x18\x01 \x01(\x0b\x32\x17.YandexQuery.Connection\"\xf0\x01\n\x17ModifyConnectionRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\"\n\rconnection_id\x18\x02 \x01(\tB\x0b\xa2\xe6*\x07\n\x05\x08\x01\x10\x80\x08\x12/\n\x07\x63ontent\x18\x03 \x01(\x0b\x32\x1e.YandexQuery.ConnectionContent\x12#\n\x11previous_revision\x18\x04 \x01(\x03\x42\x08\xb2\xe6*\x04>= 0\x12 \n\x0fidempotency_key\x18\x05 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\"H\n\x18ModifyConnectionResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\x18\n\x16ModifyConnectionResult\"\xbf\x01\n\x17\x44\x65leteConnectionRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\"\n\rconnection_id\x18\x02 \x01(\tB\x0b\xa2\xe6*\x07\n\x05\x08\x01\x10\x80\x08\x12#\n\x11previous_revision\x18\x03 \x01(\x03\x42\x08\xb2\xe6*\x04>= 0\x12 \n\x0fidempotency_key\x18\x04 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\"H\n\x18\x44\x65leteConnectionResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\x18\n\x16\x44\x65leteConnectionResult\"\xcb\x01\n\x14GetResultDataRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x1d\n\x08query_id\x18\x02 \x01(\tB\x0b\xa2\xe6*\x07\n\x05\x08\x01\x10\x80\x08\x12\"\n\x10result_set_index\x18\x03 \x01(\x05\x42\x08\xb2\xe6*\x04>= 0\x12\x18\n\x06offset\x18\x04 \x01(\x03\x42\x08\xb2\xe6*\x04>= 0\x12\x1b\n\x05limit\x18\x05 \x01(\x03\x42\x0c\xb2\xe6*\x08[1; 100]\"E\n\x15GetResultDataResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"9\n\x13GetResultDataResult\x12\"\n\nresult_set\x18\x01 \x01(\x0b\x32\x0e.Ydb.ResultSet\"-\n\x06Schema\x12#\n\x06\x63olumn\x18\x01 \x03(\x0b\x32\x0b.Ydb.ColumnB\x06\x9a\xe6*\x02\x18\x64\"\x92\x01\n\x12\x44\x61taStreamsBinding\x12 \n\x0bstream_name\x18\x01 \x01(\tB\x0b\xa2\xe6*\x07\n\x05\x08\x01\x10\x80\x08\x12\x17\n\x06\x66ormat\x18\x02 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\x12\x1c\n\x0b\x63ompression\x18\x03 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\x12#\n\x06schema\x18\x04 \x01(\x0b\x32\x13.YandexQuery.Schema\"\xed\x02\n\x14ObjectStorageBinding\x12\x38\n\x06subset\x18\x01 \x03(\x0b\x32(.YandexQuery.ObjectStorageBinding.Subset\x1a\x9a\x02\n\x06Subset\x12!\n\x0cpath_pattern\x18\x01 \x01(\tB\x0b\xa2\xe6*\x07\n\x05\x08\x01\x10\x80\x08\x12\x17\n\x06\x66ormat\x18\x02 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\x12[\n\x0e\x66ormat_setting\x18\x03 \x03(\x0b\x32;.YandexQuery.ObjectStorageBinding.Subset.FormatSettingEntryB\x06\x9a\xe6*\x02\x18\x64\x12\x1c\n\x0b\x63ompression\x18\x04 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\x12#\n\x06schema\x18\x05 \x01(\x0b\x32\x13.YandexQuery.Schema\x1a\x34\n\x12\x46ormatSettingEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\"\x91\x01\n\x0e\x42indingSetting\x12\x37\n\x0c\x64\x61ta_streams\x18\x01 \x01(\x0b\x32\x1f.YandexQuery.DataStreamsBindingH\x00\x12;\n\x0eobject_storage\x18\x02 \x01(\x0b\x32!.YandexQuery.ObjectStorageBindingH\x00\x42\t\n\x07\x62inding\"\x9c\x01\n\x0c\x42riefBinding\x12\x19\n\x04name\x18\x01 \x01(\tB\x0b\xa2\xe6*\x07\n\x05\x08\x01\x10\x80\x08\x12\"\n\rconnection_id\x18\x02 \x01(\tB\x0b\xa2\xe6*\x07\n\x05\x08\x01\x10\x80\x08\x12%\n\x04meta\x18\x03 \x01(\x0b\x32\x17.YandexQuery.CommonMeta\x12&\n\x04type\x18\x04 \x01(\x0e\x32\x18.YandexQuery.BindingType\"\xba\x01\n\x0e\x42indingContent\x12\x19\n\x04name\x18\x01 \x01(\tB\x0b\xa2\xe6*\x07\n\x05\x08\x01\x10\x80\x08\x12\"\n\rconnection_id\x18\x02 \x01(\tB\x0b\xa2\xe6*\x07\n\x05\x08\x01\x10\x80\x08\x12,\n\x07setting\x18\x03 \x01(\x0b\x32\x1b.YandexQuery.BindingSetting\x12\x1d\n\x03\x61\x63l\x18\x04 \x01(\x0b\x32\x10.YandexQuery.Acl\x12\x1c\n\x0b\x64\x65scription\x18\x05 \x01(\tB\x07\xa2\xe6*\x03\x18\x80P\"^\n\x07\x42inding\x12,\n\x07\x63ontent\x18\x01 \x01(\x0b\x32\x1b.YandexQuery.BindingContent\x12%\n\x04meta\x18\x02 \x01(\x0b\x32\x17.YandexQuery.CommonMeta\"\xa1\x01\n\x14\x43reateBindingRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12,\n\x07\x63ontent\x18\x02 \x01(\x0b\x32\x1b.YandexQuery.BindingContent\x12 \n\x0fidempotency_key\x18\x03 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\"E\n\x15\x43reateBindingResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"6\n\x13\x43reateBindingResult\x12\x1f\n\nbinding_id\x18\x01 \x01(\tB\x0b\xa2\xe6*\x07\n\x05\x08\x01\x10\x80\x08\"\xed\x01\n\x13ListBindingsRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x1b\n\npage_token\x18\x02 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\x12\x1b\n\x05limit\x18\x03 \x01(\x05\x42\x0c\xb2\xe6*\x08[1; 100]\x12\x37\n\x06\x66ilter\x18\x04 \x01(\x0b\x32\'.YandexQuery.ListBindingsRequest.Filter\x1a(\n\x06\x46ilter\x12\x1e\n\rconnection_id\x18\x02 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\"D\n\x14ListBindingsResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"b\n\x12ListBindingsResult\x12*\n\x07\x62inding\x18\x01 \x03(\x0b\x32\x19.YandexQuery.BriefBinding\x12 \n\x0fnext_page_token\x18\x02 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\"t\n\x16\x44\x65scribeBindingRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x1f\n\nbinding_id\x18\x02 \x01(\tB\x0b\xa2\xe6*\x07\n\x05\x08\x01\x10\x80\x08\"G\n\x17\x44\x65scribeBindingResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\">\n\x15\x44\x65scribeBindingResult\x12%\n\x07\x62inding\x18\x01 \x01(\x0b\x32\x14.YandexQuery.Binding\"\xe7\x01\n\x14ModifyBindingRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x1f\n\nbinding_id\x18\x02 \x01(\tB\x0b\xa2\xe6*\x07\n\x05\x08\x01\x10\x80\x08\x12,\n\x07\x63ontent\x18\x03 \x01(\x0b\x32\x1b.YandexQuery.BindingContent\x12#\n\x11previous_revision\x18\x04 \x01(\x03\x42\x08\xb2\xe6*\x04>= 0\x12 \n\x0fidempotency_key\x18\x05 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\"E\n\x15ModifyBindingResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\x15\n\x13ModifyBindingResult\"\xb9\x01\n\x14\x44\x65leteBindingRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x1f\n\nbinding_id\x18\x02 \x01(\tB\x0b\xa2\xe6*\x07\n\x05\x08\x01\x10\x80\x08\x12#\n\x11previous_revision\x18\x03 \x01(\x03\x42\x08\xb2\xe6*\x04>= 0\x12 \n\x0fidempotency_key\x18\x04 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\"E\n\x15\x44\x65leteBindingResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\x15\n\x13\x44\x65leteBindingResult*q\n\x0b\x45xecuteMode\x12\x1c\n\x18\x45XECUTE_MODE_UNSPECIFIED\x10\x00\x12\x08\n\x04SAVE\x10\x01\x12\t\n\x05PARSE\x10\x02\x12\x0b\n\x07\x43OMPILE\x10\x03\x12\x0c\n\x08VALIDATE\x10\x04\x12\x0b\n\x07\x45XPLAIN\x10\x05\x12\x07\n\x03RUN\x10\x06*y\n\x0bQueryAction\x12\x1c\n\x18QUERY_ACTION_UNSPECIFIED\x10\x00\x12\t\n\x05PAUSE\x10\x01\x12\x14\n\x10PAUSE_GRACEFULLY\x10\x02\x12\t\n\x05\x41\x42ORT\x10\x03\x12\x14\n\x10\x41\x42ORT_GRACEFULLY\x10\x04\x12\n\n\x06RESUME\x10\x05*U\n\rStateLoadMode\x12\x1f\n\x1bSTATE_LOAD_MODE_UNSPECIFIED\x10\x00\x12\t\n\x05\x45MPTY\x10\x01\x12\x18\n\x14\x46ROM_LAST_CHECKPOINT\x10\x02*Q\n\x0b\x42indingType\x12\x1c\n\x18\x42INDING_TYPE_UNSPECIFIED\x10\x00\x12\x10\n\x0c\x44\x41TA_STREAMS\x10\x01\x12\x12\n\x0eOBJECT_STORAGE\x10\x02\x42(\n\x10\x63om.yandex.queryB\x11YandexQueryProtos\xf8\x01\x01\x62\x06proto3'
+  serialized_pb=b'\n!kikimr/public/api/protos/yq.proto\x12\x0bYandexQuery\x1a\x34kikimr/public/api/protos/validation/validation.proto\x1a,kikimr/public/api/protos/ydb_operation.proto\x1a(kikimr/public/api/protos/ydb_value.proto\x1a\x30kikimr/public/api/protos/ydb_issue_message.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1bgoogle/protobuf/empty.proto\"x\n\x03\x41\x63l\x12/\n\nvisibility\x18\x01 \x01(\x0e\x32\x1b.YandexQuery.Acl.Visibility\"@\n\nVisibility\x12\x1a\n\x16VISIBILITY_UNSPECIFIED\x10\x00\x12\x0b\n\x07PRIVATE\x10\x01\x12\t\n\x05SCOPE\x10\x02\"\x86\x02\n\x06Limits\x12!\n\x0fvcpu_rate_limit\x18\x01 \x01(\x03\x42\x08\xb2\xe6*\x04>= 0\x12!\n\x0f\x66low_rate_limit\x18\x02 \x01(\x03\x42\x08\xb2\xe6*\x04>= 0\x12!\n\x0fvcpu_time_limit\x18\x03 \x01(\x03\x42\x08\xb2\xe6*\x04>= 0\x12!\n\x0fmax_result_size\x18\x04 \x01(\x03\x42\x08\xb2\xe6*\x04>= 0\x12!\n\x0fmax_result_rows\x18\x05 \x01(\x03\x42\x08\xb2\xe6*\x04>= 0\x12\x1e\n\x0cmemory_limit\x18\x06 \x01(\x03\x42\x08\xb2\xe6*\x04>= 0\x12-\n\nresult_ttl\x18\x07 \x01(\x0b\x32\x19.google.protobuf.Duration\"\xa3\x03\n\x14StreamingDisposition\x12(\n\x06oldest\x18\x01 \x01(\x0b\x32\x16.google.protobuf.EmptyH\x00\x12\'\n\x05\x66resh\x18\x02 \x01(\x0b\x32\x16.google.protobuf.EmptyH\x00\x12?\n\tfrom_time\x18\x03 \x01(\x0b\x32*.YandexQuery.StreamingDisposition.FromTimeH\x00\x12=\n\x08time_ago\x18\x04 \x01(\x0b\x32).YandexQuery.StreamingDisposition.TimeAgoH\x00\x12\x36\n\x14\x66rom_last_checkpoint\x18\x05 \x01(\x0b\x32\x16.google.protobuf.EmptyH\x00\x1a\x39\n\x08\x46romTime\x12-\n\ttimestamp\x18\x01 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x1a\x36\n\x07TimeAgo\x12+\n\x08\x64uration\x18\x01 \x01(\x0b\x32\x19.google.protobuf.DurationB\r\n\x0b\x64isposition\"\xac\x02\n\x0cQueryContent\x12\x31\n\x04type\x18\x01 \x01(\x0e\x32#.YandexQuery.QueryContent.QueryType\x12\x15\n\x04name\x18\x02 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\x12\x1d\n\x03\x61\x63l\x18\x03 \x01(\x0b\x32\x10.YandexQuery.Acl\x12#\n\x06limits\x18\x04 \x01(\x0b\x32\x13.YandexQuery.Limits\x12\x16\n\x04text\x18\x05 \x01(\tB\x08\xa2\xe6*\x04\x18\x80\xa0\x06\x12\x11\n\tautomatic\x18\x06 \x01(\x08\x12\x1c\n\x0b\x64\x65scription\x18\x07 \x01(\tB\x07\xa2\xe6*\x03\x18\x80P\"E\n\tQueryType\x12\x1a\n\x16QUERY_TYPE_UNSPECIFIED\x10\x00\x12\r\n\tANALYTICS\x10\x01\x12\r\n\tSTREAMING\x10\x02\"\xe5\x01\n\nCommonMeta\x12\x17\n\x02id\x18\x01 \x01(\tB\x0b\xa2\xe6*\x07\n\x05\x08\x01\x10\x80\x08\x12\x1f\n\ncreated_by\x18\x02 \x01(\tB\x0b\xa2\xe6*\x07\n\x05\x08\x01\x10\x80\x08\x12 \n\x0bmodified_by\x18\x03 \x01(\tB\x0b\xa2\xe6*\x07\n\x05\x08\x01\x10\x80\x08\x12.\n\ncreated_at\x18\x04 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12/\n\x0bmodified_at\x18\x05 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12\x1a\n\x08revision\x18\x06 \x01(\x03\x42\x08\xb2\xe6*\x04>= 0\"\x9a\x04\n\tQueryMeta\x12\'\n\x06\x63ommon\x18\x01 \x01(\x0b\x32\x17.YandexQuery.CommonMeta\x12.\n\nstarted_at\x18\x02 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12/\n\x0b\x66inished_at\x18\x03 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12.\n\x0c\x65xecute_mode\x18\x04 \x01(\x0e\x32\x18.YandexQuery.ExecuteMode\x12\x34\n\x06status\x18\x05 \x01(\x0e\x32$.YandexQuery.QueryMeta.ComputeStatus\x12\x1f\n\x17last_job_query_revision\x18\x06 \x01(\x03\x12\x13\n\x0blast_job_id\x18\x07 \x01(\t\"\xe6\x01\n\rComputeStatus\x12\x1e\n\x1a\x43OMPUTE_STATUS_UNSPECIFIED\x10\x00\x12\x0c\n\x08STARTING\x10\x01\x12\x13\n\x0f\x41\x42ORTED_BY_USER\x10\x02\x12\x15\n\x11\x41\x42ORTED_BY_SYSTEM\x10\x03\x12\x14\n\x10\x41\x42ORTING_BY_USER\x10\x04\x12\x16\n\x12\x41\x42ORTING_BY_SYSTEM\x10\x05\x12\x0c\n\x08RESUMING\x10\x06\x12\x0b\n\x07RUNNING\x10\x07\x12\r\n\tCOMPLETED\x10\x08\x12\n\n\x06\x46\x41ILED\x10\t\x12\x0b\n\x07PAUSING\x10\n\x12\n\n\x06PAUSED\x10\x0b\"\xc0\x01\n\nBriefQuery\x12\x31\n\x04type\x18\x01 \x01(\x0e\x32#.YandexQuery.QueryContent.QueryType\x12\x15\n\x04name\x18\x02 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\x12$\n\x04meta\x18\x03 \x01(\x0b\x32\x16.YandexQuery.QueryMeta\x12/\n\nvisibility\x18\x04 \x01(\x0e\x32\x1b.YandexQuery.Acl.Visibility\x12\x11\n\tautomatic\x18\x05 \x01(\x08\"\x19\n\tQueryPlan\x12\x0c\n\x04json\x18\x01 \x01(\t\"]\n\rResultSetMeta\x12\x1b\n\x06\x63olumn\x18\x01 \x03(\x0b\x32\x0b.Ydb.Column\x12\x1c\n\nrows_count\x18\x02 \x01(\x03\x42\x08\xb2\xe6*\x04>= 0\x12\x11\n\ttruncated\x18\x03 \x01(\x08\"\xc0\x02\n\x05Query\x12$\n\x04meta\x18\x01 \x01(\x0b\x32\x16.YandexQuery.QueryMeta\x12*\n\x07\x63ontent\x18\x02 \x01(\x0b\x32\x19.YandexQuery.QueryContent\x12$\n\x04plan\x18\x03 \x01(\x0b\x32\x16.YandexQuery.QueryPlan\x12&\n\x05issue\x18\x04 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessage\x12\x30\n\x0ftransient_issue\x18\x05 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessage\x12\x30\n\nstatistics\x18\x06 \x01(\x0b\x32\x1c.YandexQuery.QueryStatistics\x12\x33\n\x0fresult_set_meta\x18\x07 \x03(\x0b\x32\x1a.YandexQuery.ResultSetMeta\"\x1f\n\x0fQueryStatistics\x12\x0c\n\x04json\x18\x01 \x01(\t\"\x85\x02\n\x12\x43reateQueryRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12*\n\x07\x63ontent\x18\x02 \x01(\x0b\x32\x19.YandexQuery.QueryContent\x12.\n\x0c\x65xecute_mode\x18\x03 \x01(\x0e\x32\x18.YandexQuery.ExecuteMode\x12\x36\n\x0b\x64isposition\x18\x04 \x01(\x0b\x32!.YandexQuery.StreamingDisposition\x12 \n\x0fidempotency_key\x18\x05 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\"C\n\x13\x43reateQueryResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\".\n\x11\x43reateQueryResult\x12\x19\n\x08query_id\x18\x01 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\"\x8a\x03\n\x12ListQueriesRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x1b\n\npage_token\x18\x02 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\x12\x1b\n\x05limit\x18\x03 \x01(\x05\x42\x0c\xb2\xe6*\x08[1; 100]\x12\x36\n\x06\x66ilter\x18\x04 \x01(\x0b\x32&.YandexQuery.ListQueriesRequest.Filter\x1a\xc6\x01\n\x06\x46ilter\x12\x37\n\nquery_type\x18\x01 \x01(\x0e\x32#.YandexQuery.QueryContent.QueryType\x12<\n\x06status\x18\x02 \x03(\x0e\x32$.YandexQuery.QueryMeta.ComputeStatusB\x06\x9a\xe6*\x02\x18\x14\x12.\n\x04mode\x18\x03 \x03(\x0e\x32\x18.YandexQuery.ExecuteModeB\x06\x9a\xe6*\x02\x18\x14\x12\x15\n\x04name\x18\x04 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\"C\n\x13ListQueriesResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"]\n\x11ListQueriesResult\x12&\n\x05query\x18\x01 \x03(\x0b\x32\x17.YandexQuery.BriefQuery\x12 \n\x0fnext_page_token\x18\x02 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\"p\n\x14\x44\x65scribeQueryRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x1d\n\x08query_id\x18\x02 \x01(\tB\x0b\xa2\xe6*\x07\n\x05\x08\x01\x10\x80\x08\"E\n\x15\x44\x65scribeQueryResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"8\n\x13\x44\x65scribeQueryResult\x12!\n\x05query\x18\x01 \x01(\x0b\x32\x12.YandexQuery.Query\"\xb5\x01\n\x12\x44\x65leteQueryRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x1d\n\x08query_id\x18\x02 \x01(\tB\x0b\xa2\xe6*\x07\n\x05\x08\x01\x10\x80\x08\x12#\n\x11previous_revision\x18\x03 \x01(\x03\x42\x08\xb2\xe6*\x04>= 0\x12 \n\x0fidempotency_key\x18\x04 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\"C\n\x13\x44\x65leteQueryResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\x13\n\x11\x44\x65leteQueryResult\"\xf9\x02\n\x12ModifyQueryRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x1d\n\x08query_id\x18\x02 \x01(\tB\x0b\xa2\xe6*\x07\n\x05\x08\x01\x10\x80\x08\x12*\n\x07\x63ontent\x18\x03 \x01(\x0b\x32\x19.YandexQuery.QueryContent\x12.\n\x0c\x65xecute_mode\x18\x04 \x01(\x0e\x32\x18.YandexQuery.ExecuteMode\x12\x36\n\x0b\x64isposition\x18\x05 \x01(\x0b\x32!.YandexQuery.StreamingDisposition\x12.\n\nstate_mode\x18\x06 \x01(\x0e\x32\x1a.YandexQuery.StateLoadMode\x12#\n\x11previous_revision\x18\x07 \x01(\x03\x42\x08\xb2\xe6*\x04>= 0\x12 \n\x0fidempotency_key\x18\x08 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\"C\n\x13ModifyQueryResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\x13\n\x11ModifyQueryResult\"\xe0\x01\n\x13\x43ontrolQueryRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x1d\n\x08query_id\x18\x02 \x01(\tB\x0b\xa2\xe6*\x07\n\x05\x08\x01\x10\x80\x08\x12(\n\x06\x61\x63tion\x18\x03 \x01(\x0e\x32\x18.YandexQuery.QueryAction\x12#\n\x11previous_revision\x18\x04 \x01(\x03\x42\x08\xb2\xe6*\x04>= 0\x12 \n\x0fidempotency_key\x18\x05 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\"D\n\x14\x43ontrolQueryResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\x14\n\x12\x43ontrolQueryResult\"\x9b\x02\n\x03Job\x12%\n\x04meta\x18\x01 \x01(\x0b\x32\x17.YandexQuery.CommonMeta\x12\x0c\n\x04text\x18\x02 \x01(\t\x12*\n\nquery_meta\x18\x03 \x01(\x0b\x32\x16.YandexQuery.QueryMeta\x12$\n\x04plan\x18\x04 \x01(\x0b\x32\x16.YandexQuery.QueryPlan\x12&\n\x05issue\x18\x05 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessage\x12\x30\n\nstatistics\x18\x06 \x01(\x0b\x32\x1c.YandexQuery.QueryStatistics\x12\x33\n\x0fresult_set_meta\x18\x07 \x03(\x0b\x32\x1a.YandexQuery.ResultSetMeta\"\xf2\x01\n\x0fListJobsRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x1b\n\npage_token\x18\x02 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\x12\x1b\n\x05limit\x18\x03 \x01(\x05\x42\x0c\xb2\xe6*\x08[1; 100]\x12\x10\n\x08query_id\x18\x05 \x01(\t\x12\x33\n\x06\x66ilter\x18\x04 \x01(\x0b\x32#.YandexQuery.ListJobsRequest.Filter\x1a#\n\x06\x46ilter\x12\x19\n\x08query_id\x18\x01 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\"@\n\x10ListJobsResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"Q\n\x0eListJobsResult\x12\x1d\n\x03job\x18\x01 \x03(\x0b\x32\x10.YandexQuery.Job\x12 \n\x0fnext_page_token\x18\x02 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\"\x15\n\x13\x43urrentIAMTokenAuth\"\n\n\x08NoneAuth\")\n\x12ServiceAccountAuth\x12\x13\n\x02id\x18\x01 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\"\xb1\x01\n\x07IamAuth\x12\x37\n\x0b\x63urrent_iam\x18\x01 \x01(\x0b\x32 .YandexQuery.CurrentIAMTokenAuthH\x00\x12:\n\x0fservice_account\x18\x02 \x01(\x0b\x32\x1f.YandexQuery.ServiceAccountAuthH\x00\x12%\n\x04none\x18\x03 \x01(\x0b\x32\x15.YandexQuery.NoneAuthH\x00\x42\n\n\x08identity\"\x95\x01\n\x0b\x44\x61taStreams\x12\x1c\n\x0b\x64\x61tabase_id\x18\x01 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\x12\"\n\x04\x61uth\x18\x02 \x01(\x0b\x32\x14.YandexQuery.IamAuth\x12\x19\n\x08\x65ndpoint\x18\x03 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\x12\x19\n\x08\x64\x61tabase\x18\x04 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\x12\x0e\n\x06secure\x18\x05 \x01(\x08\"d\n\nMonitoring\x12\x18\n\x07project\x18\x01 \x01(\tB\x07\xa2\xe6*\x03\x18\xc8\x01\x12\x18\n\x07\x63luster\x18\x02 \x01(\tB\x07\xa2\xe6*\x03\x18\xc8\x01\x12\"\n\x04\x61uth\x18\x03 \x01(\x0b\x32\x14.YandexQuery.IamAuth\"\x95\x01\n\x0bYdbDatabase\x12\x1c\n\x0b\x64\x61tabase_id\x18\x01 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\x12\"\n\x04\x61uth\x18\x02 \x01(\x0b\x32\x14.YandexQuery.IamAuth\x12\x19\n\x08\x65ndpoint\x18\x03 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\x12\x19\n\x08\x64\x61tabase\x18\x04 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\x12\x0e\n\x06secure\x18\x05 \x01(\x08\"\xcd\x01\n\x11\x43lickHouseCluster\x12\x1c\n\x0b\x64\x61tabase_id\x18\x01 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\x12\x16\n\x05login\x18\x02 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\x12\x19\n\x08password\x18\x03 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\x12\"\n\x04\x61uth\x18\x04 \x01(\x0b\x32\x14.YandexQuery.IamAuth\x12\x15\n\x04host\x18\x05 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\x12\x1c\n\x04port\x18\x06 \x01(\x05\x42\x0e\xb2\xe6*\n[0; 65536]\x12\x0e\n\x06secure\x18\x07 \x01(\x08\"V\n\x17ObjectStorageConnection\x12\x17\n\x06\x62ucket\x18\x01 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\x12\"\n\x04\x61uth\x18\x02 \x01(\x0b\x32\x14.YandexQuery.IamAuth\"\xb2\x02\n\x11\x43onnectionSetting\x12\x30\n\x0cydb_database\x18\x01 \x01(\x0b\x32\x18.YandexQuery.YdbDatabaseH\x00\x12<\n\x12\x63lickhouse_cluster\x18\x02 \x01(\x0b\x32\x1e.YandexQuery.ClickHouseClusterH\x00\x12\x30\n\x0c\x64\x61ta_streams\x18\x03 \x01(\x0b\x32\x18.YandexQuery.DataStreamsH\x00\x12>\n\x0eobject_storage\x18\x04 \x01(\x0b\x32$.YandexQuery.ObjectStorageConnectionH\x00\x12-\n\nmonitoring\x18\x05 \x01(\x0b\x32\x17.YandexQuery.MonitoringH\x00\x42\x0c\n\nconnection\"\x9c\x01\n\x11\x43onnectionContent\x12\x19\n\x04name\x18\x01 \x01(\tB\x0b\xa2\xe6*\x07\n\x05\x08\x01\x10\x80\x08\x12/\n\x07setting\x18\x02 \x01(\x0b\x32\x1e.YandexQuery.ConnectionSetting\x12\x1d\n\x03\x61\x63l\x18\x03 \x01(\x0b\x32\x10.YandexQuery.Acl\x12\x1c\n\x0b\x64\x65scription\x18\x04 \x01(\tB\x07\xa2\xe6*\x03\x18\x80P\"d\n\nConnection\x12/\n\x07\x63ontent\x18\x01 \x01(\x0b\x32\x1e.YandexQuery.ConnectionContent\x12%\n\x04meta\x18\x02 \x01(\x0b\x32\x17.YandexQuery.CommonMeta\"\xa7\x01\n\x17\x43reateConnectionRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12/\n\x07\x63ontent\x18\x02 \x01(\x0b\x32\x1e.YandexQuery.ConnectionContent\x12 \n\x0fidempotency_key\x18\x03 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\"H\n\x18\x43reateConnectionResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"<\n\x16\x43reateConnectionResult\x12\"\n\rconnection_id\x18\x01 \x01(\tB\x0b\xa2\xe6*\x07\n\x05\x08\x01\x10\x80\x08\"\x8d\x01\n\x16ListConnectionsRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x1b\n\npage_token\x18\x02 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\x12\x1b\n\x05limit\x18\x03 \x01(\x05\x42\x0c\xb2\xe6*\x08[1; 100]\"G\n\x17ListConnectionsResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"f\n\x15ListConnectionsResult\x12+\n\nconnection\x18\x01 \x03(\x0b\x32\x17.YandexQuery.Connection\x12 \n\x0fnext_page_token\x18\x02 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\"z\n\x19\x44\x65scribeConnectionRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\"\n\rconnection_id\x18\x02 \x01(\tB\x0b\xa2\xe6*\x07\n\x05\x08\x01\x10\x80\x08\"J\n\x1a\x44\x65scribeConnectionResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"G\n\x18\x44\x65scribeConnectionResult\x12+\n\nconnection\x18\x01 \x01(\x0b\x32\x17.YandexQuery.Connection\"\xf0\x01\n\x17ModifyConnectionRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\"\n\rconnection_id\x18\x02 \x01(\tB\x0b\xa2\xe6*\x07\n\x05\x08\x01\x10\x80\x08\x12/\n\x07\x63ontent\x18\x03 \x01(\x0b\x32\x1e.YandexQuery.ConnectionContent\x12#\n\x11previous_revision\x18\x04 \x01(\x03\x42\x08\xb2\xe6*\x04>= 0\x12 \n\x0fidempotency_key\x18\x05 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\"H\n\x18ModifyConnectionResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\x18\n\x16ModifyConnectionResult\"\xbf\x01\n\x17\x44\x65leteConnectionRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\"\n\rconnection_id\x18\x02 \x01(\tB\x0b\xa2\xe6*\x07\n\x05\x08\x01\x10\x80\x08\x12#\n\x11previous_revision\x18\x03 \x01(\x03\x42\x08\xb2\xe6*\x04>= 0\x12 \n\x0fidempotency_key\x18\x04 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\"H\n\x18\x44\x65leteConnectionResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\x18\n\x16\x44\x65leteConnectionResult\"\xcb\x01\n\x14GetResultDataRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x1d\n\x08query_id\x18\x02 \x01(\tB\x0b\xa2\xe6*\x07\n\x05\x08\x01\x10\x80\x08\x12\"\n\x10result_set_index\x18\x03 \x01(\x05\x42\x08\xb2\xe6*\x04>= 0\x12\x18\n\x06offset\x18\x04 \x01(\x03\x42\x08\xb2\xe6*\x04>= 0\x12\x1b\n\x05limit\x18\x05 \x01(\x03\x42\x0c\xb2\xe6*\x08[1; 100]\"E\n\x15GetResultDataResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"9\n\x13GetResultDataResult\x12\"\n\nresult_set\x18\x01 \x01(\x0b\x32\x0e.Ydb.ResultSet\"-\n\x06Schema\x12#\n\x06\x63olumn\x18\x01 \x03(\x0b\x32\x0b.Ydb.ColumnB\x06\x9a\xe6*\x02\x18\x64\"\x92\x01\n\x12\x44\x61taStreamsBinding\x12 \n\x0bstream_name\x18\x01 \x01(\tB\x0b\xa2\xe6*\x07\n\x05\x08\x01\x10\x80\x08\x12\x17\n\x06\x66ormat\x18\x02 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\x12\x1c\n\x0b\x63ompression\x18\x03 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\x12#\n\x06schema\x18\x04 \x01(\x0b\x32\x13.YandexQuery.Schema\"\xed\x02\n\x14ObjectStorageBinding\x12\x38\n\x06subset\x18\x01 \x03(\x0b\x32(.YandexQuery.ObjectStorageBinding.Subset\x1a\x9a\x02\n\x06Subset\x12!\n\x0cpath_pattern\x18\x01 \x01(\tB\x0b\xa2\xe6*\x07\n\x05\x08\x01\x10\x80\x08\x12\x17\n\x06\x66ormat\x18\x02 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\x12[\n\x0e\x66ormat_setting\x18\x03 \x03(\x0b\x32;.YandexQuery.ObjectStorageBinding.Subset.FormatSettingEntryB\x06\x9a\xe6*\x02\x18\x64\x12\x1c\n\x0b\x63ompression\x18\x04 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\x12#\n\x06schema\x18\x05 \x01(\x0b\x32\x13.YandexQuery.Schema\x1a\x34\n\x12\x46ormatSettingEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\"\x91\x01\n\x0e\x42indingSetting\x12\x37\n\x0c\x64\x61ta_streams\x18\x01 \x01(\x0b\x32\x1f.YandexQuery.DataStreamsBindingH\x00\x12;\n\x0eobject_storage\x18\x02 \x01(\x0b\x32!.YandexQuery.ObjectStorageBindingH\x00\x42\t\n\x07\x62inding\"\x9c\x01\n\x0c\x42riefBinding\x12\x19\n\x04name\x18\x01 \x01(\tB\x0b\xa2\xe6*\x07\n\x05\x08\x01\x10\x80\x08\x12\"\n\rconnection_id\x18\x02 \x01(\tB\x0b\xa2\xe6*\x07\n\x05\x08\x01\x10\x80\x08\x12%\n\x04meta\x18\x03 \x01(\x0b\x32\x17.YandexQuery.CommonMeta\x12&\n\x04type\x18\x04 \x01(\x0e\x32\x18.YandexQuery.BindingType\"\xba\x01\n\x0e\x42indingContent\x12\x19\n\x04name\x18\x01 \x01(\tB\x0b\xa2\xe6*\x07\n\x05\x08\x01\x10\x80\x08\x12\"\n\rconnection_id\x18\x02 \x01(\tB\x0b\xa2\xe6*\x07\n\x05\x08\x01\x10\x80\x08\x12,\n\x07setting\x18\x03 \x01(\x0b\x32\x1b.YandexQuery.BindingSetting\x12\x1d\n\x03\x61\x63l\x18\x04 \x01(\x0b\x32\x10.YandexQuery.Acl\x12\x1c\n\x0b\x64\x65scription\x18\x05 \x01(\tB\x07\xa2\xe6*\x03\x18\x80P\"^\n\x07\x42inding\x12,\n\x07\x63ontent\x18\x01 \x01(\x0b\x32\x1b.YandexQuery.BindingContent\x12%\n\x04meta\x18\x02 \x01(\x0b\x32\x17.YandexQuery.CommonMeta\"\xa1\x01\n\x14\x43reateBindingRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12,\n\x07\x63ontent\x18\x02 \x01(\x0b\x32\x1b.YandexQuery.BindingContent\x12 \n\x0fidempotency_key\x18\x03 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\"E\n\x15\x43reateBindingResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"6\n\x13\x43reateBindingResult\x12\x1f\n\nbinding_id\x18\x01 \x01(\tB\x0b\xa2\xe6*\x07\n\x05\x08\x01\x10\x80\x08\"\xed\x01\n\x13ListBindingsRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x1b\n\npage_token\x18\x02 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\x12\x1b\n\x05limit\x18\x03 \x01(\x05\x42\x0c\xb2\xe6*\x08[1; 100]\x12\x37\n\x06\x66ilter\x18\x04 \x01(\x0b\x32\'.YandexQuery.ListBindingsRequest.Filter\x1a(\n\x06\x46ilter\x12\x1e\n\rconnection_id\x18\x02 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\"D\n\x14ListBindingsResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"b\n\x12ListBindingsResult\x12*\n\x07\x62inding\x18\x01 \x03(\x0b\x32\x19.YandexQuery.BriefBinding\x12 \n\x0fnext_page_token\x18\x02 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\"t\n\x16\x44\x65scribeBindingRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x1f\n\nbinding_id\x18\x02 \x01(\tB\x0b\xa2\xe6*\x07\n\x05\x08\x01\x10\x80\x08\"G\n\x17\x44\x65scribeBindingResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\">\n\x15\x44\x65scribeBindingResult\x12%\n\x07\x62inding\x18\x01 \x01(\x0b\x32\x14.YandexQuery.Binding\"\xe7\x01\n\x14ModifyBindingRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x1f\n\nbinding_id\x18\x02 \x01(\tB\x0b\xa2\xe6*\x07\n\x05\x08\x01\x10\x80\x08\x12,\n\x07\x63ontent\x18\x03 \x01(\x0b\x32\x1b.YandexQuery.BindingContent\x12#\n\x11previous_revision\x18\x04 \x01(\x03\x42\x08\xb2\xe6*\x04>= 0\x12 \n\x0fidempotency_key\x18\x05 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\"E\n\x15ModifyBindingResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\x15\n\x13ModifyBindingResult\"\xb9\x01\n\x14\x44\x65leteBindingRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x1f\n\nbinding_id\x18\x02 \x01(\tB\x0b\xa2\xe6*\x07\n\x05\x08\x01\x10\x80\x08\x12#\n\x11previous_revision\x18\x03 \x01(\x03\x42\x08\xb2\xe6*\x04>= 0\x12 \n\x0fidempotency_key\x18\x04 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\"E\n\x15\x44\x65leteBindingResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\x15\n\x13\x44\x65leteBindingResult*q\n\x0b\x45xecuteMode\x12\x1c\n\x18\x45XECUTE_MODE_UNSPECIFIED\x10\x00\x12\x08\n\x04SAVE\x10\x01\x12\t\n\x05PARSE\x10\x02\x12\x0b\n\x07\x43OMPILE\x10\x03\x12\x0c\n\x08VALIDATE\x10\x04\x12\x0b\n\x07\x45XPLAIN\x10\x05\x12\x07\n\x03RUN\x10\x06*y\n\x0bQueryAction\x12\x1c\n\x18QUERY_ACTION_UNSPECIFIED\x10\x00\x12\t\n\x05PAUSE\x10\x01\x12\x14\n\x10PAUSE_GRACEFULLY\x10\x02\x12\t\n\x05\x41\x42ORT\x10\x03\x12\x14\n\x10\x41\x42ORT_GRACEFULLY\x10\x04\x12\n\n\x06RESUME\x10\x05*U\n\rStateLoadMode\x12\x1f\n\x1bSTATE_LOAD_MODE_UNSPECIFIED\x10\x00\x12\t\n\x05\x45MPTY\x10\x01\x12\x18\n\x14\x46ROM_LAST_CHECKPOINT\x10\x02*Q\n\x0b\x42indingType\x12\x1c\n\x18\x42INDING_TYPE_UNSPECIFIED\x10\x00\x12\x10\n\x0c\x44\x41TA_STREAMS\x10\x01\x12\x12\n\x0eOBJECT_STORAGE\x10\x02\x42(\n\x10\x63om.yandex.queryB\x11YandexQueryProtos\xf8\x01\x01\x62\x06proto3'
   ,
   dependencies=[kikimr_dot_public_dot_api_dot_protos_dot_validation_dot_validation__pb2.DESCRIPTOR,kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2.DESCRIPTOR,kikimr_dot_public_dot_api_dot_protos_dot_ydb__value__pb2.DESCRIPTOR,kikimr_dot_public_dot_api_dot_protos_dot_ydb__issue__message__pb2.DESCRIPTOR,google_dot_protobuf_dot_duration__pb2.DESCRIPTOR,google_dot_protobuf_dot_timestamp__pb2.DESCRIPTOR,google_dot_protobuf_dot_empty__pb2.DESCRIPTOR,])
 
@@ -76,8 +76,8 @@ _EXECUTEMODE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=11878,
-  serialized_end=11991,
+  serialized_start=11947,
+  serialized_end=12060,
 )
 _sym_db.RegisterEnumDescriptor(_EXECUTEMODE)
 
@@ -122,8 +122,8 @@ _QUERYACTION = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=11993,
-  serialized_end=12114,
+  serialized_start=12062,
+  serialized_end=12183,
 )
 _sym_db.RegisterEnumDescriptor(_QUERYACTION)
 
@@ -153,8 +153,8 @@ _STATELOADMODE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=12116,
-  serialized_end=12201,
+  serialized_start=12185,
+  serialized_end=12270,
 )
 _sym_db.RegisterEnumDescriptor(_STATELOADMODE)
 
@@ -184,8 +184,8 @@ _BINDINGTYPE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=12203,
-  serialized_end=12284,
+  serialized_start=12272,
+  serialized_end=12353,
 )
 _sym_db.RegisterEnumDescriptor(_BINDINGTYPE)
 
@@ -827,6 +827,20 @@ _BRIEFQUERY = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='visibility', full_name='YandexQuery.BriefQuery.visibility', index=3,
+      number=4, type=14, cpp_type=8, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='automatic', full_name='YandexQuery.BriefQuery.automatic', index=4,
+      number=5, type=8, cpp_type=7, label=1,
+      has_default_value=False, default_value=False,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
   ],
   extensions=[
   ],
@@ -839,8 +853,8 @@ _BRIEFQUERY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2221,
-  serialized_end=2345,
+  serialized_start=2222,
+  serialized_end=2414,
 )
 
 
@@ -871,8 +885,8 @@ _QUERYPLAN = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2347,
-  serialized_end=2372,
+  serialized_start=2416,
+  serialized_end=2441,
 )
 
 
@@ -917,8 +931,8 @@ _RESULTSETMETA = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2374,
-  serialized_end=2467,
+  serialized_start=2443,
+  serialized_end=2536,
 )
 
 
@@ -991,8 +1005,8 @@ _QUERY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2470,
-  serialized_end=2790,
+  serialized_start=2539,
+  serialized_end=2859,
 )
 
 
@@ -1023,8 +1037,8 @@ _QUERYSTATISTICS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2792,
-  serialized_end=2823,
+  serialized_start=2861,
+  serialized_end=2892,
 )
 
 
@@ -1083,8 +1097,8 @@ _CREATEQUERYREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2826,
-  serialized_end=3087,
+  serialized_start=2895,
+  serialized_end=3156,
 )
 
 
@@ -1115,8 +1129,8 @@ _CREATEQUERYRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3089,
-  serialized_end=3156,
+  serialized_start=3158,
+  serialized_end=3225,
 )
 
 
@@ -1147,8 +1161,8 @@ _CREATEQUERYRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3158,
-  serialized_end=3204,
+  serialized_start=3227,
+  serialized_end=3273,
 )
 
 
@@ -1200,8 +1214,8 @@ _LISTQUERIESREQUEST_FILTER = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3403,
-  serialized_end=3601,
+  serialized_start=3472,
+  serialized_end=3670,
 )
 
 _LISTQUERIESREQUEST = _descriptor.Descriptor(
@@ -1252,8 +1266,8 @@ _LISTQUERIESREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3207,
-  serialized_end=3601,
+  serialized_start=3276,
+  serialized_end=3670,
 )
 
 
@@ -1284,8 +1298,8 @@ _LISTQUERIESRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3603,
-  serialized_end=3670,
+  serialized_start=3672,
+  serialized_end=3739,
 )
 
 
@@ -1323,8 +1337,8 @@ _LISTQUERIESRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3672,
-  serialized_end=3765,
+  serialized_start=3741,
+  serialized_end=3834,
 )
 
 
@@ -1362,8 +1376,8 @@ _DESCRIBEQUERYREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3767,
-  serialized_end=3879,
+  serialized_start=3836,
+  serialized_end=3948,
 )
 
 
@@ -1394,8 +1408,8 @@ _DESCRIBEQUERYRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3881,
-  serialized_end=3950,
+  serialized_start=3950,
+  serialized_end=4019,
 )
 
 
@@ -1426,8 +1440,8 @@ _DESCRIBEQUERYRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3952,
-  serialized_end=4008,
+  serialized_start=4021,
+  serialized_end=4077,
 )
 
 
@@ -1479,8 +1493,8 @@ _DELETEQUERYREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=4011,
-  serialized_end=4192,
+  serialized_start=4080,
+  serialized_end=4261,
 )
 
 
@@ -1511,8 +1525,8 @@ _DELETEQUERYRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=4194,
-  serialized_end=4261,
+  serialized_start=4263,
+  serialized_end=4330,
 )
 
 
@@ -1536,8 +1550,8 @@ _DELETEQUERYRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=4263,
-  serialized_end=4282,
+  serialized_start=4332,
+  serialized_end=4351,
 )
 
 
@@ -1617,8 +1631,8 @@ _MODIFYQUERYREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=4285,
-  serialized_end=4662,
+  serialized_start=4354,
+  serialized_end=4731,
 )
 
 
@@ -1649,8 +1663,8 @@ _MODIFYQUERYRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=4664,
-  serialized_end=4731,
+  serialized_start=4733,
+  serialized_end=4800,
 )
 
 
@@ -1674,8 +1688,8 @@ _MODIFYQUERYRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=4733,
-  serialized_end=4752,
+  serialized_start=4802,
+  serialized_end=4821,
 )
 
 
@@ -1734,8 +1748,8 @@ _CONTROLQUERYREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=4755,
-  serialized_end=4979,
+  serialized_start=4824,
+  serialized_end=5048,
 )
 
 
@@ -1766,8 +1780,8 @@ _CONTROLQUERYRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=4981,
-  serialized_end=5049,
+  serialized_start=5050,
+  serialized_end=5118,
 )
 
 
@@ -1791,8 +1805,8 @@ _CONTROLQUERYRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=5051,
-  serialized_end=5071,
+  serialized_start=5120,
+  serialized_end=5140,
 )
 
 
@@ -1865,8 +1879,8 @@ _JOB = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=5074,
-  serialized_end=5357,
+  serialized_start=5143,
+  serialized_end=5426,
 )
 
 
@@ -1897,8 +1911,8 @@ _LISTJOBSREQUEST_FILTER = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=5567,
-  serialized_end=5602,
+  serialized_start=5636,
+  serialized_end=5671,
 )
 
 _LISTJOBSREQUEST = _descriptor.Descriptor(
@@ -1956,8 +1970,8 @@ _LISTJOBSREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=5360,
-  serialized_end=5602,
+  serialized_start=5429,
+  serialized_end=5671,
 )
 
 
@@ -1988,8 +2002,8 @@ _LISTJOBSRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=5604,
-  serialized_end=5668,
+  serialized_start=5673,
+  serialized_end=5737,
 )
 
 
@@ -2027,8 +2041,8 @@ _LISTJOBSRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=5670,
-  serialized_end=5751,
+  serialized_start=5739,
+  serialized_end=5820,
 )
 
 
@@ -2052,8 +2066,8 @@ _CURRENTIAMTOKENAUTH = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=5753,
-  serialized_end=5774,
+  serialized_start=5822,
+  serialized_end=5843,
 )
 
 
@@ -2077,8 +2091,8 @@ _NONEAUTH = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=5776,
-  serialized_end=5786,
+  serialized_start=5845,
+  serialized_end=5855,
 )
 
 
@@ -2109,8 +2123,8 @@ _SERVICEACCOUNTAUTH = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=5788,
-  serialized_end=5829,
+  serialized_start=5857,
+  serialized_end=5898,
 )
 
 
@@ -2160,8 +2174,8 @@ _IAMAUTH = _descriptor.Descriptor(
       create_key=_descriptor._internal_create_key,
     fields=[]),
   ],
-  serialized_start=5832,
-  serialized_end=6009,
+  serialized_start=5901,
+  serialized_end=6078,
 )
 
 
@@ -2220,8 +2234,8 @@ _DATASTREAMS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=6012,
-  serialized_end=6161,
+  serialized_start=6081,
+  serialized_end=6230,
 )
 
 
@@ -2266,8 +2280,8 @@ _MONITORING = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=6163,
-  serialized_end=6263,
+  serialized_start=6232,
+  serialized_end=6332,
 )
 
 
@@ -2326,8 +2340,8 @@ _YDBDATABASE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=6266,
-  serialized_end=6415,
+  serialized_start=6335,
+  serialized_end=6484,
 )
 
 
@@ -2400,8 +2414,8 @@ _CLICKHOUSECLUSTER = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=6418,
-  serialized_end=6623,
+  serialized_start=6487,
+  serialized_end=6692,
 )
 
 
@@ -2439,8 +2453,8 @@ _OBJECTSTORAGECONNECTION = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=6625,
-  serialized_end=6711,
+  serialized_start=6694,
+  serialized_end=6780,
 )
 
 
@@ -2504,8 +2518,8 @@ _CONNECTIONSETTING = _descriptor.Descriptor(
       create_key=_descriptor._internal_create_key,
     fields=[]),
   ],
-  serialized_start=6714,
-  serialized_end=7020,
+  serialized_start=6783,
+  serialized_end=7089,
 )
 
 
@@ -2557,8 +2571,8 @@ _CONNECTIONCONTENT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=7023,
-  serialized_end=7179,
+  serialized_start=7092,
+  serialized_end=7248,
 )
 
 
@@ -2596,8 +2610,8 @@ _CONNECTION = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=7181,
-  serialized_end=7281,
+  serialized_start=7250,
+  serialized_end=7350,
 )
 
 
@@ -2642,8 +2656,8 @@ _CREATECONNECTIONREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=7284,
-  serialized_end=7451,
+  serialized_start=7353,
+  serialized_end=7520,
 )
 
 
@@ -2674,8 +2688,8 @@ _CREATECONNECTIONRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=7453,
-  serialized_end=7525,
+  serialized_start=7522,
+  serialized_end=7594,
 )
 
 
@@ -2706,8 +2720,8 @@ _CREATECONNECTIONRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=7527,
-  serialized_end=7587,
+  serialized_start=7596,
+  serialized_end=7656,
 )
 
 
@@ -2752,8 +2766,8 @@ _LISTCONNECTIONSREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=7590,
-  serialized_end=7731,
+  serialized_start=7659,
+  serialized_end=7800,
 )
 
 
@@ -2784,8 +2798,8 @@ _LISTCONNECTIONSRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=7733,
-  serialized_end=7804,
+  serialized_start=7802,
+  serialized_end=7873,
 )
 
 
@@ -2823,8 +2837,8 @@ _LISTCONNECTIONSRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=7806,
-  serialized_end=7908,
+  serialized_start=7875,
+  serialized_end=7977,
 )
 
 
@@ -2862,8 +2876,8 @@ _DESCRIBECONNECTIONREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=7910,
-  serialized_end=8032,
+  serialized_start=7979,
+  serialized_end=8101,
 )
 
 
@@ -2894,8 +2908,8 @@ _DESCRIBECONNECTIONRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=8034,
-  serialized_end=8108,
+  serialized_start=8103,
+  serialized_end=8177,
 )
 
 
@@ -2926,8 +2940,8 @@ _DESCRIBECONNECTIONRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=8110,
-  serialized_end=8181,
+  serialized_start=8179,
+  serialized_end=8250,
 )
 
 
@@ -2986,8 +3000,8 @@ _MODIFYCONNECTIONREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=8184,
-  serialized_end=8424,
+  serialized_start=8253,
+  serialized_end=8493,
 )
 
 
@@ -3018,8 +3032,8 @@ _MODIFYCONNECTIONRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=8426,
-  serialized_end=8498,
+  serialized_start=8495,
+  serialized_end=8567,
 )
 
 
@@ -3043,8 +3057,8 @@ _MODIFYCONNECTIONRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=8500,
-  serialized_end=8524,
+  serialized_start=8569,
+  serialized_end=8593,
 )
 
 
@@ -3096,8 +3110,8 @@ _DELETECONNECTIONREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=8527,
-  serialized_end=8718,
+  serialized_start=8596,
+  serialized_end=8787,
 )
 
 
@@ -3128,8 +3142,8 @@ _DELETECONNECTIONRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=8720,
-  serialized_end=8792,
+  serialized_start=8789,
+  serialized_end=8861,
 )
 
 
@@ -3153,8 +3167,8 @@ _DELETECONNECTIONRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=8794,
-  serialized_end=8818,
+  serialized_start=8863,
+  serialized_end=8887,
 )
 
 
@@ -3213,8 +3227,8 @@ _GETRESULTDATAREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=8821,
-  serialized_end=9024,
+  serialized_start=8890,
+  serialized_end=9093,
 )
 
 
@@ -3245,8 +3259,8 @@ _GETRESULTDATARESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=9026,
-  serialized_end=9095,
+  serialized_start=9095,
+  serialized_end=9164,
 )
 
 
@@ -3277,8 +3291,8 @@ _GETRESULTDATARESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=9097,
-  serialized_end=9154,
+  serialized_start=9166,
+  serialized_end=9223,
 )
 
 
@@ -3309,8 +3323,8 @@ _SCHEMA = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=9156,
-  serialized_end=9201,
+  serialized_start=9225,
+  serialized_end=9270,
 )
 
 
@@ -3362,8 +3376,8 @@ _DATASTREAMSBINDING = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=9204,
-  serialized_end=9350,
+  serialized_start=9273,
+  serialized_end=9419,
 )
 
 
@@ -3401,8 +3415,8 @@ _OBJECTSTORAGEBINDING_SUBSET_FORMATSETTINGENTRY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=9666,
-  serialized_end=9718,
+  serialized_start=9735,
+  serialized_end=9787,
 )
 
 _OBJECTSTORAGEBINDING_SUBSET = _descriptor.Descriptor(
@@ -3460,8 +3474,8 @@ _OBJECTSTORAGEBINDING_SUBSET = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=9436,
-  serialized_end=9718,
+  serialized_start=9505,
+  serialized_end=9787,
 )
 
 _OBJECTSTORAGEBINDING = _descriptor.Descriptor(
@@ -3491,8 +3505,8 @@ _OBJECTSTORAGEBINDING = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=9353,
-  serialized_end=9718,
+  serialized_start=9422,
+  serialized_end=9787,
 )
 
 
@@ -3535,8 +3549,8 @@ _BINDINGSETTING = _descriptor.Descriptor(
       create_key=_descriptor._internal_create_key,
     fields=[]),
   ],
-  serialized_start=9721,
-  serialized_end=9866,
+  serialized_start=9790,
+  serialized_end=9935,
 )
 
 
@@ -3588,8 +3602,8 @@ _BRIEFBINDING = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=9869,
-  serialized_end=10025,
+  serialized_start=9938,
+  serialized_end=10094,
 )
 
 
@@ -3648,8 +3662,8 @@ _BINDINGCONTENT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=10028,
-  serialized_end=10214,
+  serialized_start=10097,
+  serialized_end=10283,
 )
 
 
@@ -3687,8 +3701,8 @@ _BINDING = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=10216,
-  serialized_end=10310,
+  serialized_start=10285,
+  serialized_end=10379,
 )
 
 
@@ -3733,8 +3747,8 @@ _CREATEBINDINGREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=10313,
-  serialized_end=10474,
+  serialized_start=10382,
+  serialized_end=10543,
 )
 
 
@@ -3765,8 +3779,8 @@ _CREATEBINDINGRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=10476,
-  serialized_end=10545,
+  serialized_start=10545,
+  serialized_end=10614,
 )
 
 
@@ -3797,8 +3811,8 @@ _CREATEBINDINGRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=10547,
-  serialized_end=10601,
+  serialized_start=10616,
+  serialized_end=10670,
 )
 
 
@@ -3829,8 +3843,8 @@ _LISTBINDINGSREQUEST_FILTER = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=10801,
-  serialized_end=10841,
+  serialized_start=10870,
+  serialized_end=10910,
 )
 
 _LISTBINDINGSREQUEST = _descriptor.Descriptor(
@@ -3881,8 +3895,8 @@ _LISTBINDINGSREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=10604,
-  serialized_end=10841,
+  serialized_start=10673,
+  serialized_end=10910,
 )
 
 
@@ -3913,8 +3927,8 @@ _LISTBINDINGSRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=10843,
-  serialized_end=10911,
+  serialized_start=10912,
+  serialized_end=10980,
 )
 
 
@@ -3952,8 +3966,8 @@ _LISTBINDINGSRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=10913,
-  serialized_end=11011,
+  serialized_start=10982,
+  serialized_end=11080,
 )
 
 
@@ -3991,8 +4005,8 @@ _DESCRIBEBINDINGREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=11013,
-  serialized_end=11129,
+  serialized_start=11082,
+  serialized_end=11198,
 )
 
 
@@ -4023,8 +4037,8 @@ _DESCRIBEBINDINGRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=11131,
-  serialized_end=11202,
+  serialized_start=11200,
+  serialized_end=11271,
 )
 
 
@@ -4055,8 +4069,8 @@ _DESCRIBEBINDINGRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=11204,
-  serialized_end=11266,
+  serialized_start=11273,
+  serialized_end=11335,
 )
 
 
@@ -4115,8 +4129,8 @@ _MODIFYBINDINGREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=11269,
-  serialized_end=11500,
+  serialized_start=11338,
+  serialized_end=11569,
 )
 
 
@@ -4147,8 +4161,8 @@ _MODIFYBINDINGRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=11502,
-  serialized_end=11571,
+  serialized_start=11571,
+  serialized_end=11640,
 )
 
 
@@ -4172,8 +4186,8 @@ _MODIFYBINDINGRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=11573,
-  serialized_end=11594,
+  serialized_start=11642,
+  serialized_end=11663,
 )
 
 
@@ -4225,8 +4239,8 @@ _DELETEBINDINGREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=11597,
-  serialized_end=11782,
+  serialized_start=11666,
+  serialized_end=11851,
 )
 
 
@@ -4257,8 +4271,8 @@ _DELETEBINDINGRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=11784,
-  serialized_end=11853,
+  serialized_start=11853,
+  serialized_end=11922,
 )
 
 
@@ -4282,8 +4296,8 @@ _DELETEBINDINGRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=11855,
-  serialized_end=11876,
+  serialized_start=11924,
+  serialized_end=11945,
 )
 
 _ACL.fields_by_name['visibility'].enum_type = _ACL_VISIBILITY
@@ -4327,6 +4341,7 @@ _QUERYMETA.fields_by_name['status'].enum_type = _QUERYMETA_COMPUTESTATUS
 _QUERYMETA_COMPUTESTATUS.containing_type = _QUERYMETA
 _BRIEFQUERY.fields_by_name['type'].enum_type = _QUERYCONTENT_QUERYTYPE
 _BRIEFQUERY.fields_by_name['meta'].message_type = _QUERYMETA
+_BRIEFQUERY.fields_by_name['visibility'].enum_type = _ACL_VISIBILITY
 _RESULTSETMETA.fields_by_name['column'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__value__pb2._COLUMN
 _QUERY.fields_by_name['meta'].message_type = _QUERYMETA
 _QUERY.fields_by_name['content'].message_type = _QUERYCONTENT
