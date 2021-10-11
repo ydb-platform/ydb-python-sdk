@@ -20,7 +20,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   syntax='proto3',
   serialized_options=b'\n\025com.yandex.ydb.schemeB\025SchemeOperationProtos\370\001\001',
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n)kikimr/public/api/protos/ydb_scheme.proto\x12\nYdb.Scheme\x1a,kikimr/public/api/protos/ydb_operation.proto\"_\n\x14MakeDirectoryRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x0c\n\x04path\x18\x02 \x01(\t\"E\n\x15MakeDirectoryResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"a\n\x16RemoveDirectoryRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x0c\n\x04path\x18\x02 \x01(\t\"G\n\x17RemoveDirectoryResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"_\n\x14ListDirectoryRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x0c\n\x04path\x18\x02 \x01(\t\"E\n\x15ListDirectoryResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"8\n\x0bPermissions\x12\x0f\n\x07subject\x18\x01 \x01(\t\x12\x18\n\x10permission_names\x18\x02 \x03(\t\"\xdb\x02\n\x05\x45ntry\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\r\n\x05owner\x18\x02 \x01(\t\x12$\n\x04type\x18\x05 \x01(\x0e\x32\x16.Ydb.Scheme.Entry.Type\x12\x36\n\x15\x65\x66\x66\x65\x63tive_permissions\x18\x06 \x03(\x0b\x32\x17.Ydb.Scheme.Permissions\x12,\n\x0bpermissions\x18\x07 \x03(\x0b\x32\x17.Ydb.Scheme.Permissions\"\xa8\x01\n\x04Type\x12\x14\n\x10TYPE_UNSPECIFIED\x10\x00\x12\r\n\tDIRECTORY\x10\x01\x12\t\n\x05TABLE\x10\x02\x12\x14\n\x10PERS_QUEUE_GROUP\x10\x03\x12\x0c\n\x08\x44\x41TABASE\x10\x04\x12\x0f\n\x0bRTMR_VOLUME\x10\x05\x12\x16\n\x12\x42LOCK_STORE_VOLUME\x10\x06\x12\x15\n\x11\x43OORDINATION_NODE\x10\x07\x12\x0c\n\x08SEQUENCE\x10\x0f\"[\n\x13ListDirectoryResult\x12\x1f\n\x04self\x18\x01 \x01(\x0b\x32\x11.Ydb.Scheme.Entry\x12#\n\x08\x63hildren\x18\x02 \x03(\x0b\x32\x11.Ydb.Scheme.Entry\"^\n\x13\x44\x65scribePathRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x0c\n\x04path\x18\x02 \x01(\t\"D\n\x14\x44\x65scribePathResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"5\n\x12\x44\x65scribePathResult\x12\x1f\n\x04self\x18\x01 \x01(\x0b\x32\x11.Ydb.Scheme.Entry\"\xb2\x01\n\x11PermissionsAction\x12(\n\x05grant\x18\x01 \x01(\x0b\x32\x17.Ydb.Scheme.PermissionsH\x00\x12)\n\x06revoke\x18\x02 \x01(\x0b\x32\x17.Ydb.Scheme.PermissionsH\x00\x12&\n\x03set\x18\x03 \x01(\x0b\x32\x17.Ydb.Scheme.PermissionsH\x00\x12\x16\n\x0c\x63hange_owner\x18\x04 \x01(\tH\x00\x42\x08\n\x06\x61\x63tion\"\xae\x01\n\x18ModifyPermissionsRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x0c\n\x04path\x18\x02 \x01(\t\x12.\n\x07\x61\x63tions\x18\x03 \x03(\x0b\x32\x1d.Ydb.Scheme.PermissionsAction\x12\x19\n\x11\x63lear_permissions\x18\x04 \x01(\x08\"I\n\x19ModifyPermissionsResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.OperationB1\n\x15\x63om.yandex.ydb.schemeB\x15SchemeOperationProtos\xf8\x01\x01\x62\x06proto3'
+  serialized_pb=b'\n)kikimr/public/api/protos/ydb_scheme.proto\x12\nYdb.Scheme\x1a,kikimr/public/api/protos/ydb_operation.proto\"_\n\x14MakeDirectoryRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x0c\n\x04path\x18\x02 \x01(\t\"E\n\x15MakeDirectoryResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"a\n\x16RemoveDirectoryRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x0c\n\x04path\x18\x02 \x01(\t\"G\n\x17RemoveDirectoryResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"_\n\x14ListDirectoryRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x0c\n\x04path\x18\x02 \x01(\t\"E\n\x15ListDirectoryResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"8\n\x0bPermissions\x12\x0f\n\x07subject\x18\x01 \x01(\t\x12\x18\n\x10permission_names\x18\x02 \x03(\t\"\xef\x02\n\x05\x45ntry\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\r\n\x05owner\x18\x02 \x01(\t\x12$\n\x04type\x18\x05 \x01(\x0e\x32\x16.Ydb.Scheme.Entry.Type\x12\x36\n\x15\x65\x66\x66\x65\x63tive_permissions\x18\x06 \x03(\x0b\x32\x17.Ydb.Scheme.Permissions\x12,\n\x0bpermissions\x18\x07 \x03(\x0b\x32\x17.Ydb.Scheme.Permissions\x12\x12\n\nsize_bytes\x18\x08 \x01(\x04\"\xa8\x01\n\x04Type\x12\x14\n\x10TYPE_UNSPECIFIED\x10\x00\x12\r\n\tDIRECTORY\x10\x01\x12\t\n\x05TABLE\x10\x02\x12\x14\n\x10PERS_QUEUE_GROUP\x10\x03\x12\x0c\n\x08\x44\x41TABASE\x10\x04\x12\x0f\n\x0bRTMR_VOLUME\x10\x05\x12\x16\n\x12\x42LOCK_STORE_VOLUME\x10\x06\x12\x15\n\x11\x43OORDINATION_NODE\x10\x07\x12\x0c\n\x08SEQUENCE\x10\x0f\"[\n\x13ListDirectoryResult\x12\x1f\n\x04self\x18\x01 \x01(\x0b\x32\x11.Ydb.Scheme.Entry\x12#\n\x08\x63hildren\x18\x02 \x03(\x0b\x32\x11.Ydb.Scheme.Entry\"^\n\x13\x44\x65scribePathRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x0c\n\x04path\x18\x02 \x01(\t\"D\n\x14\x44\x65scribePathResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"5\n\x12\x44\x65scribePathResult\x12\x1f\n\x04self\x18\x01 \x01(\x0b\x32\x11.Ydb.Scheme.Entry\"\xb2\x01\n\x11PermissionsAction\x12(\n\x05grant\x18\x01 \x01(\x0b\x32\x17.Ydb.Scheme.PermissionsH\x00\x12)\n\x06revoke\x18\x02 \x01(\x0b\x32\x17.Ydb.Scheme.PermissionsH\x00\x12&\n\x03set\x18\x03 \x01(\x0b\x32\x17.Ydb.Scheme.PermissionsH\x00\x12\x16\n\x0c\x63hange_owner\x18\x04 \x01(\tH\x00\x42\x08\n\x06\x61\x63tion\"\xae\x01\n\x18ModifyPermissionsRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x0c\n\x04path\x18\x02 \x01(\t\x12.\n\x07\x61\x63tions\x18\x03 \x03(\x0b\x32\x1d.Ydb.Scheme.PermissionsAction\x12\x19\n\x11\x63lear_permissions\x18\x04 \x01(\x08\"I\n\x19ModifyPermissionsResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.OperationB1\n\x15\x63om.yandex.ydb.schemeB\x15SchemeOperationProtos\xf8\x01\x01\x62\x06proto3'
   ,
   dependencies=[kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2.DESCRIPTOR,])
 
@@ -81,8 +81,8 @@ _ENTRY_TYPE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=849,
-  serialized_end=1017,
+  serialized_start=869,
+  serialized_end=1037,
 )
 _sym_db.RegisterEnumDescriptor(_ENTRY_TYPE)
 
@@ -382,6 +382,13 @@ _ENTRY = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='size_bytes', full_name='Ydb.Scheme.Entry.size_bytes', index=5,
+      number=8, type=4, cpp_type=4, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
   ],
   extensions=[
   ],
@@ -396,7 +403,7 @@ _ENTRY = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=670,
-  serialized_end=1017,
+  serialized_end=1037,
 )
 
 
@@ -434,8 +441,8 @@ _LISTDIRECTORYRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1019,
-  serialized_end=1110,
+  serialized_start=1039,
+  serialized_end=1130,
 )
 
 
@@ -473,8 +480,8 @@ _DESCRIBEPATHREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1112,
-  serialized_end=1206,
+  serialized_start=1132,
+  serialized_end=1226,
 )
 
 
@@ -505,8 +512,8 @@ _DESCRIBEPATHRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1208,
-  serialized_end=1276,
+  serialized_start=1228,
+  serialized_end=1296,
 )
 
 
@@ -537,8 +544,8 @@ _DESCRIBEPATHRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1278,
-  serialized_end=1331,
+  serialized_start=1298,
+  serialized_end=1351,
 )
 
 
@@ -595,8 +602,8 @@ _PERMISSIONSACTION = _descriptor.Descriptor(
       create_key=_descriptor._internal_create_key,
     fields=[]),
   ],
-  serialized_start=1334,
-  serialized_end=1512,
+  serialized_start=1354,
+  serialized_end=1532,
 )
 
 
@@ -648,8 +655,8 @@ _MODIFYPERMISSIONSREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1515,
-  serialized_end=1689,
+  serialized_start=1535,
+  serialized_end=1709,
 )
 
 
@@ -680,8 +687,8 @@ _MODIFYPERMISSIONSRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1691,
-  serialized_end=1764,
+  serialized_start=1711,
+  serialized_end=1784,
 )
 
 _MAKEDIRECTORYREQUEST.fields_by_name['operation_params'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2._OPERATIONPARAMS
