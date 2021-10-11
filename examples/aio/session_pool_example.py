@@ -1,6 +1,7 @@
 import asyncio
 
 import ydb
+import ydb.aio
 import os
 
 

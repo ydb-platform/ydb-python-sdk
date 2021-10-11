@@ -25,8 +25,7 @@ def default_credentials(credentials=None):
 
     access_token = os.getenv("YDB_ACCESS_TOKEN_CREDENTIALS")
     if access_token is not None:
-        from .iam import YandexPassportOAuthIamCredentials
-        return YandexPassportOAuthIamCredentials(access_token)
+        return ydb.credentials.AccessTokenCredentials(access_token)
 
     # (legacy instantiation)
     creds = ydb.auth_helpers.construct_credentials_from_environ()
@@ -38,7 +37,6 @@ def default_credentials(credentials=None):
 
 
 class DriverConfig(ydb.DriverConfig):
-
     @classmethod
     def default_from_endpoint_and_database(cls, endpoint, database, root_certificates=None, credentials=None, **kwargs):
         return cls(

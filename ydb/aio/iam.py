@@ -31,19 +31,20 @@ class _OneToManyValue(object):
         self._condition = asyncio.Condition()
 
     async def consume(self, timeout=3):
-        await self._condition.acquire()
-        if self._value is None:
-            await asyncio.wait_for(self._condition.wait(), timeout=timeout)
-        self._condition.release()
-        return self._value
+        async with self._condition:
+            if self._value is None:
+                try:
+                    await asyncio.wait_for(self._condition.wait(), timeout=timeout)
+                except Exception:
+                    return self._value
+            return self._value
 
     async def update(self, n_value):
-        await self._condition.acquire()
-        prev_value = self._value
-        self._value = n_value
-        if prev_value is None:
-            self._condition.notify_all()
-        self._condition.release()
+        async with self._condition:
+            prev_value = self._value
+            self._value = n_value
+            if prev_value is None:
+                self._condition.notify_all()
 
 
 class _AtMostOneExecution(object):
@@ -175,17 +176,15 @@ class MetadataUrlCredentials(IamTokenCredentials):
     def __init__(self, metadata_url=None):
         super(MetadataUrlCredentials, self).__init__()
         if aiohttp is None:
-            raise RuntimeError(
-                "Install requests library to use metadata credentials provider")
+            raise RuntimeError("Install aiohttp library to use metadata credentials provider")
         self._metadata_url = auth.DEFAULT_METADATA_URL if metadata_url is None else metadata_url
         self._tp.submit(self._refresh)
         self.extra_error_message = "Check that metadata service configured properly and application deployed in VM or function at Yandex.Cloud."
 
     async def _get_iam_token(self):
-        async with aiohttp.ClientSession(timeout=3) as session:
-            async with session.get(
-                self._metadata_url, headers={'Metadata-Flavor': 'Google'}
-            ) as response:
+        timeout = aiohttp.ClientTimeout(total=2)
+        async with aiohttp.ClientSession(timeout=timeout) as session:
+            async with session.get(self._metadata_url, headers={'Metadata-Flavor': 'Google'}) as response:
                 if not response.ok:
                     self.logger.error("Error while getting token from metadata: %s" % response.text())
                 response.raise_for_status()
