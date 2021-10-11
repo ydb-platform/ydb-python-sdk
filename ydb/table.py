@@ -2180,16 +2180,8 @@ class SessionPool(object):
         :param driver: A Driver instance
         :param size: A maximum number of sessions to maintain in the pool
         """
-        if initializer is not None:
-            import warnings
-            if initializer is not None:
-                warnings.warn(
-                    "Using initializer API in YDB SessionPool is deprecated and "
-                    "will be removed in future releases! Please, don't use it in new code. "
-                    "To prepare statements in session use keep in cache feature."
-                )
-
-        self._pool_impl = _sp_impl.SessionPoolImpl(driver, size, workers_threads_count, initializer, min_pool_size)
+        self._logger = logger.getChild(self.__class__.__name__)
+        self._pool_impl = _sp_impl.SessionPoolImpl(self._logger, driver, size, workers_threads_count, initializer, min_pool_size)
 
     def retry_operation_sync(self, callee, retry_settings=None, *args, **kwargs):
 
