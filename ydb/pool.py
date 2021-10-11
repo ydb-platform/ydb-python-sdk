@@ -207,30 +207,30 @@ class Discovery(threading.Thread):
         if self._driver_config.database is None:
             return self._handle_empty_database()
 
-        resolve_details = self._resolver.resolve()
-        if resolve_details is None:
-            return False
+        with self._resolver.context_resolve() as resolve_details:
+            if resolve_details is None:
+                return False
 
-        resolved_endpoints = set(details.endpoint for details in resolve_details.endpoints)
-        for cached_endpoint in self._cache.values():
-            if cached_endpoint.endpoint not in resolved_endpoints:
-                self._cache.make_outdated(cached_endpoint)
+            resolved_endpoints = set(details.endpoint for details in resolve_details.endpoints)
+            for cached_endpoint in self._cache.values():
+                if cached_endpoint.endpoint not in resolved_endpoints:
+                    self._cache.make_outdated(cached_endpoint)
 
-        for resolved_endpoint in resolve_details.endpoints:
-            if self._cache.size >= self._max_size or self._cache.already_exists(resolved_endpoint.endpoint):
-                continue
+            for resolved_endpoint in resolve_details.endpoints:
+                if self._cache.size >= self._max_size or self._cache.already_exists(resolved_endpoint.endpoint):
+                    continue
 
-            if self._ssl_required and not resolved_endpoint.ssl:
-                continue
+                if self._ssl_required and not resolved_endpoint.ssl:
+                    continue
 
-            if not self._ssl_required and resolved_endpoint.ssl:
-                continue
+                if not self._ssl_required and resolved_endpoint.ssl:
+                    continue
 
-            endpoint = resolved_endpoint.endpoint
-            preferred = resolve_details.self_location == resolved_endpoint.location
-            ready_connection = connection_impl.Connection.ready_factory(
-                endpoint, self._driver_config, self._ready_timeout)
-            self._cache.add(ready_connection, preferred)
+                endpoint = resolved_endpoint.endpoint
+                preferred = resolve_details.self_location == resolved_endpoint.location
+                ready_connection = connection_impl.Connection.ready_factory(
+                    endpoint, self._driver_config, self._ready_timeout)
+                self._cache.add(ready_connection, preferred)
 
         self._cache.cleanup_outdated()
 

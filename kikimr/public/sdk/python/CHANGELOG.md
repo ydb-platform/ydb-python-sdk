@@ -1,4 +1,9 @@
+## 1.1.11 ##
+
+ * speedup driver initialization and first driver.wait
+
 ## 1.1.10 ##
+
  * add methods to request `_apis.TableService.RenameTables` call
  * by now the call is disabled at the server side
  * it will be enabled soon
