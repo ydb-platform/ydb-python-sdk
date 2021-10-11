@@ -44,14 +44,7 @@ def _list_endpoints_request_factory(connection_params):
 class DiscoveryResult(object):
     def __init__(self, self_location, endpoints):
         self.self_location = self_location
-        endpoints = list(set(endpoints))
-        random.shuffle(endpoints)
-        self.endpoints = list(
-            sorted(
-                endpoints,
-                key=lambda x: self.self_location != x.location
-            )
-        )
+        self.endpoints = endpoints
 
     def __str__(self):
         return "DiscoveryResult <self_location: %s, endpoints %s>" % (self.self_location, self.endpoints)
@@ -60,16 +53,32 @@ class DiscoveryResult(object):
         return self.__str__()
 
     @classmethod
-    def from_response(cls, rpc_state, response):
+    def from_response(cls, rpc_state, response, use_all_nodes=False):
         issues._process_response(response.operation)
         message = _apis.ydb_discovery.ListEndpointsResult()
         response.operation.result.Unpack(message)
-        return cls(
-            message.self_location, list(
-                EndpointInfo(info)
-                for info in message.endpoints
-            )
-        )
+        unique_local_endpoints = set()
+        unique_different_endpoints = set()
+        for info in message.endpoints:
+            if info.location == message.self_location:
+                unique_local_endpoints.add(EndpointInfo(info))
+            else:
+                unique_different_endpoints.add(EndpointInfo(info))
+
+        result = []
+        unique_local_endpoints = list(unique_local_endpoints)
+        unique_different_endpoints = list(unique_different_endpoints)
+        if use_all_nodes:
+            result.extend(unique_local_endpoints)
+            result.extend(unique_different_endpoints)
+            random.shuffle(result)
+        else:
+            random.shuffle(unique_local_endpoints)
+            random.shuffle(unique_different_endpoints)
+            result.extend(unique_local_endpoints)
+            result.extend(unique_different_endpoints)
+
+        return cls(message.self_location, result)
 
 
 class DiscoveryEndpointsResolver(object):
@@ -122,8 +131,9 @@ class DiscoveryEndpointsResolver(object):
                 _apis.DiscoveryService.Stub,
                 _apis.DiscoveryService.ListEndpoints,
                 DiscoveryResult.from_response,
-                settings=settings_impl.BaseRequestSettings().with_timeout(
-                    self._request_timeout
+                settings=settings_impl.BaseRequestSettings().with_timeout(self._request_timeout),
+                wrap_args=(
+                    self._driver_config.use_all_nodes,
                 )
             )
 
