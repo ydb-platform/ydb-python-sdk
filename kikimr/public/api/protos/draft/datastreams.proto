@@ -485,7 +485,7 @@ message PutRecordsResultEntry {
 message GetRecordsRequest {
     Ydb.Operations.OperationParams operation_params = 1;
     // Max number of records to return
-    uint32 limit = 2;
+    int32 limit = 2;
     // Iterator to shard
     string shard_iterator = 3;
 }
@@ -565,7 +565,7 @@ message GetShardIteratorRequest {
     // Name of the stream
     string stream_name = 5;
     // Used with shard iterator type AT_TIMESTAMP
-    int64 timestamp = 6;
+    int64 timestamp = 6 [(FieldTransformer) = TRANSFORM_DOUBLE_S_TO_INT_MS];
 }
 
 message GetShardIteratorResponse {
