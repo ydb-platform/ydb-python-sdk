@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import os
 
-from . import credentials
+from . import credentials, tracing
 
 
 def read_bytes(f):
@@ -16,13 +16,16 @@ def load_ydb_root_certificate():
     return None
 
 
-def construct_credentials_from_environ():
+def construct_credentials_from_environ(tracer=None):
+    tracer = tracer if tracer is not None else tracing.Tracer(None)
     # dynamically import required authentication libraries
     if os.getenv('USE_METADATA_CREDENTIALS') is not None and int(os.getenv('USE_METADATA_CREDENTIALS')) == 1:
         from kikimr.public.sdk.python import iam
+        tracing.trace(tracer, {"credentials.metadata": True})
         return iam.MetadataUrlCredentials()
 
     if os.getenv('YDB_TOKEN') is not None:
+        tracing.trace(tracer, {"credentials.access_token": True})
         return credentials.AuthTokenCredentials(
             os.getenv(
                 'YDB_TOKEN'
@@ -31,6 +34,7 @@ def construct_credentials_from_environ():
 
     if os.getenv('SA_KEY_FILE') is not None:
         from kikimr.public.sdk.python import iam
+        tracing.trace(tracer, {"credentials.sa_key_file": True})
         root_certificates_file = os.getenv('SSL_ROOT_CERTIFICATES_FILE',  None)
         iam_channel_credentials = {}
         if root_certificates_file is not None:

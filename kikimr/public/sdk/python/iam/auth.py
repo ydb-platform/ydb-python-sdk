@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from ydb import credentials
+from ydb import credentials, tracing
 import grpc
 import time
 import abc
@@ -92,8 +92,8 @@ class AtMostOneExecution(object):
 
 @six.add_metaclass(abc.ABCMeta)
 class IamTokenCredentials(credentials.Credentials):
-    def __init__(self):
-        super(IamTokenCredentials, self).__init__()
+    def __init__(self, tracer=None):
+        super(IamTokenCredentials, self).__init__(tracer)
         self._expires_in = 0
         self._refresh_in = 0
         self._hour = 60 * 60
@@ -139,12 +139,20 @@ class IamTokenCredentials(credentials.Credentials):
             self._tp.submit(self._refresh)
 
     @property
+    @tracing.with_trace()
     def iam_token(self):
         current_time = time.time()
         if current_time > self._refresh_in:
+            tracing.trace(self.tracer, {
+                "refresh": True
+            })
             self._tp.submit(self._refresh)
-
         iam_token = self._iam_token.consume(timeout=3)
+        tracing.trace(
+            self.tracer, {
+                "consumed": True
+            }
+        )
         if iam_token is None:
             if self.last_error is None:
                 raise issues.ConnectionError("%s: timeout occurred while waiting for token.\n%s" % self.__class__.__name__, self.extra_error_message)
@@ -159,8 +167,8 @@ class IamTokenCredentials(credentials.Credentials):
 
 @six.add_metaclass(abc.ABCMeta)
 class TokenServiceCredentials(IamTokenCredentials):
-    def __init__(self, iam_endpoint=None, iam_channel_credentials=None):
-        super(TokenServiceCredentials, self).__init__()
+    def __init__(self, iam_endpoint=None, iam_channel_credentials=None, tracer=None):
+        super(TokenServiceCredentials, self).__init__(tracer)
         self._iam_endpoint = 'iam.api.cloud.yandex.net:443' if iam_endpoint is None else iam_endpoint
         self._iam_channel_credentials = {} if iam_channel_credentials is None else iam_channel_credentials
         self._get_token_request_timeout = 10
@@ -175,8 +183,12 @@ class TokenServiceCredentials(IamTokenCredentials):
     def _get_token_request(self):
         pass
 
+    @tracing.with_trace()
     def _get_iam_token(self):
         with self._channel_factory() as channel:
+            tracing.trace(self.tracer, {
+                "iam_token.from_service": True
+            })
             stub = iam_token_service_pb2_grpc.IamTokenServiceStub(channel)
             response = stub.Create(self._get_token_request(), timeout=self._get_token_request_timeout)
             expires_in = max(0, response.expires_at.seconds - int(time.time()))
@@ -235,8 +247,13 @@ class YandexPassportOAuthIamCredentials(TokenServiceCredentials):
 
 
 class MetadataUrlCredentials(IamTokenCredentials):
-    def __init__(self, metadata_url=None):
-        super(MetadataUrlCredentials, self).__init__()
+    def __init__(self, metadata_url=None, tracer=None):
+        """
+
+        :param metadata_url: Metadata url
+        :param ydb.Tracer tracer: ydb tracer
+        """
+        super(MetadataUrlCredentials, self).__init__(tracer)
         if requests is None:
             raise RuntimeError(
                 "Install requests library to use metadata credentials provider")
@@ -244,6 +261,7 @@ class MetadataUrlCredentials(IamTokenCredentials):
         self._tp.submit(self._refresh)
         self.extra_error_message = "Check that metadata service configured properly and application deployed in VM or function at Yandex.Cloud."
 
+    @tracing.with_trace()
     def _get_iam_token(self):
         response = requests.get(self._metadata_url, headers={'Metadata-Flavor': 'Google'}, timeout=3)
         response.raise_for_status()
