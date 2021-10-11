@@ -150,6 +150,10 @@ message QueryPlan {
     string json = 1; // No validation because generated on server side
 }
 
+message QueryAst {
+    string data = 1;
+}
+
 message ResultSetMeta {
     repeated Ydb.Column column = 1;
     int64 rows_count = 2 [(Ydb.value) = ">= 0"];
@@ -164,6 +168,7 @@ message Query {
     repeated Ydb.Issue.IssueMessage transient_issue = 5;
     QueryStatistics statistics = 6;
     repeated ResultSetMeta result_set_meta = 7;
+    QueryAst ast = 8;
 }
 
 message QueryStatistics {
@@ -286,6 +291,7 @@ message Job {
     repeated Ydb.Issue.IssueMessage issue = 5;
     QueryStatistics statistics = 6;
     repeated ResultSetMeta result_set_meta = 7;
+    QueryAst ast = 8;
 }
 
 // Information about recent query runs
