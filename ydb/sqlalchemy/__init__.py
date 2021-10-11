@@ -29,6 +29,10 @@ try:
                 final_quote='`',
             )
 
+        def _requires_quotes(self, *args, **kwargs):
+            # Force all identifiers to get quoted.
+            return True
+
     class YqlTypeCompiler(GenericTypeCompiler):
         def visit_VARCHAR(self, type_, **kw):
             return "STRING"
