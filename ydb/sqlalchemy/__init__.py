@@ -176,6 +176,7 @@ try:
         ydb.PrimitiveType.String: sa.TEXT,
         ydb.PrimitiveType.Utf8: sa.TEXT,
         ydb.PrimitiveType.Json: sa.JSON,
+        ydb.PrimitiveType.JsonDocument: sa.JSON,
         ydb.DecimalType: sa.DECIMAL,
         ydb.PrimitiveType.Yson: sa.TEXT,
         ydb.PrimitiveType.Date: sa.DATE,
@@ -183,6 +184,7 @@ try:
         ydb.PrimitiveType.Timestamp: sa.DATETIME,
         ydb.PrimitiveType.Interval: sa.INTEGER,
         ydb.PrimitiveType.Bool: sa.BOOLEAN,
+        ydb.PrimitiveType.DyNumber: sa.TEXT,
     }
 
     def _get_column_type(t):
