@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import os
 
-import kikimr.public.sdk.python.client as ydb
+import ydb
 
 
 class School(object):

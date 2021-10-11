@@ -1,1 +1,1 @@
-VERSION = "1.1.0"
+from ydb.ydb_version import *  # noqa

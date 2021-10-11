@@ -2,7 +2,7 @@ import os
 
 from kikimr.public.sdk.python import client
 from . import pool, scheme, table
-from kikimr.public.sdk.python.client.driver import get_config
+from ydb.driver import get_config
 
 
 def default_credentials(credentials=None):
@@ -64,7 +64,15 @@ class DriverConfig(client.DriverConfig):
 class Driver(pool.ConnectionPool):
     def __init__(self, driver_config=None, connection_string=None, endpoint=None, database=None, root_certificates=None,
                  credentials=None, **kwargs):
-        config = get_config(driver_config, connection_string, endpoint, database, root_certificates, credentials, config_class=DriverConfig)
+        config = get_config(
+            driver_config,
+            connection_string,
+            endpoint,
+            database,
+            root_certificates,
+            credentials,
+            config_class=DriverConfig
+        )
 
         super(Driver, self).__init__(config)
 

@@ -1,4 +1,4 @@
-from kikimr.public.sdk.python.client import scheme
+from ydb import scheme
 
 
 class SchemeClient(scheme.BaseSchemeClient):

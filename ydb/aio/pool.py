@@ -2,8 +2,8 @@ import asyncio
 import logging
 import random
 
-from kikimr.public.sdk.python.client import issues
-from kikimr.public.sdk.python.client.pool import (
+from ydb import issues
+from ydb.pool import (
     ConnectionsCache as _ConnectionsCache,
     IConnectionPool
 )

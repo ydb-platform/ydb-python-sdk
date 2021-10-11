@@ -1,7 +1,7 @@
 import os
 import logging
 import contextlib
-from kikimr.public.sdk.python import client as ydb
+import ydb
 
 
 def make_driver_config(endpoint, database, path):

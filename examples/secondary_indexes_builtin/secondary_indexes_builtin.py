@@ -1,6 +1,6 @@
 import iso8601
 import os
-from kikimr.public.sdk.python import client as ydb
+import ydb
 from concurrent.futures import TimeoutError
 
 

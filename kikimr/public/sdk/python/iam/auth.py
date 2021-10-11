@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from kikimr.public.sdk.python.client import credentials
+from ydb import credentials
 import grpc
 import time
 import abc
@@ -10,7 +10,7 @@ import threading
 from concurrent import futures
 import os
 import logging
-from kikimr.public.sdk.python.client import issues
+from ydb import issues
 
 logger = logging.getLogger(__name__)
 

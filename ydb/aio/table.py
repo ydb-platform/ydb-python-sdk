@@ -5,9 +5,9 @@ import typing
 
 import ydb
 
-from kikimr.public.sdk.python.client import issues, settings, table
+from ydb import issues, settings, table
 
-from kikimr.public.sdk.python.client.table import (
+from ydb.table import (
     BaseSession,
     BaseTableClient,
     _scan_query_request_factory,
@@ -15,7 +15,7 @@ from kikimr.public.sdk.python.client.table import (
     BaseTxContext
 )
 from . import _utilities
-from kikimr.public.sdk.python.client import _apis, _session_impl
+from ydb import _apis, _session_impl
 logger = logging.getLogger(__name__)
 
 
