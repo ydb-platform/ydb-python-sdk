@@ -24,7 +24,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   syntax='proto3',
   serialized_options=b'\n!com.yandex.yql.analytics.internalB\026AnalyticsIntenalProtos\370\001\001',
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n1kikimr/public/api/protos/draft/yql_internal.proto\x12\rYql.Analytics\x1a,kikimr/public/api/protos/ydb_operation.proto\x1a(kikimr/public/api/protos/ydb_value.proto\x1a\x30kikimr/public/api/protos/ydb_issue_message.proto\x1a!kikimr/public/api/protos/yq.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"{\n\x0eGetTaskRequest\x12\x0e\n\x06tenant\x18\x01 \x01(\t\x12\x10\n\x08owner_id\x18\x02 \x01(\t\x12\x0c\n\x04host\x18\x03 \x01(\t\x12\x39\n\x10operation_params\x18\x04 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\"2\n\x0eSignedIdentity\x12\r\n\x05value\x18\x01 \x01(\t\x12\x11\n\tsignature\x18\x02 \x01(\t\"a\n\rTopicConsumer\x12\x13\n\x0b\x64\x61tabase_id\x18\x01 \x01(\t\x12\x10\n\x08\x64\x61tabase\x18\x02 \x01(\t\x12\x12\n\ntopic_path\x18\x03 \x01(\t\x12\x15\n\rconsumer_name\x18\x04 \x01(\t\"\xd8\x06\n\rGetTaskResult\x12\x10\n\x08has_task\x18\x01 \x01(\x08\x12\x30\n\tresult_id\x18\x02 \x01(\x0b\x32\x1d.Yql.Analytics.SignedIdentity\x12/\n\x08query_id\x18\x03 \x01(\x0b\x32\x1d.Yql.Analytics.SignedIdentity\x12-\n\x06job_id\x18\x04 \x01(\x0b\x32\x1d.Yql.Analytics.SignedIdentity\x12\x12\n\ngeneration\x18\x05 \x01(\x04\x12\x11\n\tstreaming\x18\x06 \x01(\x08\x12\x10\n\x08\x64q_graph\x18\x07 \x03(\x0c\x12\x16\n\x0e\x64q_graph_index\x18\x14 \x01(\x05\x12\x0c\n\x04text\x18\x08 \x01(\t\x12+\n\nconnection\x18\t \x03(\x0b\x32\x17.YandexQuery.Connection\x12%\n\x07\x62inding\x18\n \x03(\x0b\x32\x14.YandexQuery.Binding\x12\x12\n\nuser_token\x18\x0b \x01(\t\x12\x37\n\x10service_accounts\x18\x0c \x03(\x0b\x32\x1d.Yql.Analytics.SignedIdentity\x12\x0f\n\x07user_id\x18\r \x01(\t\x12\x37\n\nquery_type\x18\x0e \x01(\x0e\x32#.YandexQuery.QueryContent.QueryType\x12\r\n\x05scope\x18\x0f \x01(\t\x12.\n\x0c\x65xecute_mode\x18\x10 \x01(\x0e\x32\x18.YandexQuery.ExecuteMode\x12\x33\n\x0fstate_load_mode\x18\x11 \x01(\x0e\x32\x1a.YandexQuery.StateLoadMode\x12\x34\n\x06status\x18\x12 \x01(\x0e\x32$.YandexQuery.QueryMeta.ComputeStatus\x12\x45\n\rsensor_labels\x18\x13 \x03(\x0b\x32..Yql.Analytics.GetTaskResult.SensorLabelsEntry\x12\x33\n\x0fresult_set_meta\x18\x15 \x03(\x0b\x32\x1a.YandexQuery.ResultSetMeta\x1a\x33\n\x11SensorLabelsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\"?\n\x0fGetTaskResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\x86\x06\n\x0fPingTaskRequest\x12\x10\n\x08owner_id\x18\x01 \x01(\t\x12/\n\x08query_id\x18\x02 \x01(\x0b\x32\x1d.Yql.Analytics.SignedIdentity\x12-\n\x06job_id\x18\x03 \x01(\x0b\x32\x1d.Yql.Analytics.SignedIdentity\x12\x30\n\tresult_id\x18\x04 \x01(\x0b\x32\x1d.Yql.Analytics.SignedIdentity\x12\x34\n\x06status\x18\x05 \x01(\x0e\x32$.YandexQuery.QueryMeta.ComputeStatus\x12\'\n\x06issues\x18\x06 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessage\x12\x31\n\x10transient_issues\x18\x10 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessage\x12\x18\n\x10result_set_count\x18\x07 \x01(\r\x12\x12\n\nstatistics\x18\x08 \x01(\t\x12\x33\n\x0fresult_set_meta\x18\t \x03(\x0b\x32\x1a.YandexQuery.ResultSetMeta\x12\x15\n\rexecuter_info\x18\n \x01(\t\x12\x10\n\x08\x64q_graph\x18\x0b \x03(\x0c\x12\x16\n\x0e\x64q_graph_index\x18\x14 \x01(\x05\x12\x0b\n\x03\x61st\x18\x0c \x01(\t\x12\x0c\n\x04plan\x18\r \x01(\t\x12\x14\n\x0cresign_query\x18\x0e \x01(\x08\x12=\n\x17\x63reated_topic_consumers\x18\x11 \x03(\x0b\x32\x1c.Yql.Analytics.TopicConsumer\x12\x39\n\x10operation_params\x18\x0f \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\r\n\x05scope\x18\x64 \x01(\t\x12.\n\nstarted_at\x18\x65 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12/\n\x0b\x66inished_at\x18\x66 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\":\n\x0ePingTaskResult\x12(\n\x06\x61\x63tion\x18\x01 \x01(\x0e\x32\x18.YandexQuery.QueryAction\"@\n\x10PingTaskResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\xf6\x01\n\x16WriteTaskResultRequest\x12\x10\n\x08owner_id\x18\x01 \x01(\t\x12\x30\n\tresult_id\x18\x02 \x01(\x0b\x32\x1d.Yql.Analytics.SignedIdentity\x12\"\n\nresult_set\x18\x03 \x01(\x0b\x32\x0e.Ydb.ResultSet\x12\x15\n\rresult_set_id\x18\x04 \x01(\r\x12\x0e\n\x06offset\x18\x05 \x01(\x04\x12\x12\n\nrequest_id\x18\x06 \x01(\x04\x12\x39\n\x10operation_params\x18\x07 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\"+\n\x15WriteTaskResultResult\x12\x12\n\nrequest_id\x18\x01 \x01(\x04\"G\n\x17WriteTaskResultResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\xb4\x01\n\x17NodesHealthCheckRequest\x12\x0e\n\x06tenant\x18\x01 \x01(\t\x12\x0f\n\x07node_id\x18\x02 \x01(\r\x12\x13\n\x0binstance_id\x18\x03 \x01(\t\x12\x10\n\x08hostname\x18\x04 \x01(\t\x12\x16\n\x0e\x61\x63tive_workers\x18\x05 \x01(\x04\x12\x39\n\x10operation_params\x18\x06 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\"\x9b\x01\n\x16NodesHealthCheckResult\x12=\n\x05nodes\x18\x01 \x03(\x0b\x32..Yql.Analytics.NodesHealthCheckResult.NodeInfo\x1a\x42\n\x08NodeInfo\x12\x0f\n\x07node_id\x18\x01 \x01(\r\x12\x13\n\x0binstance_id\x18\x02 \x01(\t\x12\x10\n\x08hostname\x18\x03 \x01(\t\"H\n\x18NodesHealthCheckResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.OperationB>\n!com.yandex.yql.analytics.internalB\x16\x41nalyticsIntenalProtos\xf8\x01\x01\x62\x06proto3'
+  serialized_pb=b'\n1kikimr/public/api/protos/draft/yql_internal.proto\x12\rYql.Analytics\x1a,kikimr/public/api/protos/ydb_operation.proto\x1a(kikimr/public/api/protos/ydb_value.proto\x1a\x30kikimr/public/api/protos/ydb_issue_message.proto\x1a!kikimr/public/api/protos/yq.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"{\n\x0eGetTaskRequest\x12\x0e\n\x06tenant\x18\x01 \x01(\t\x12\x10\n\x08owner_id\x18\x02 \x01(\t\x12\x0c\n\x04host\x18\x03 \x01(\t\x12\x39\n\x10operation_params\x18\x04 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\"2\n\x0eSignedIdentity\x12\r\n\x05value\x18\x01 \x01(\t\x12\x11\n\tsignature\x18\x02 \x01(\t\"\xbd\x01\n\rTopicConsumer\x12\x13\n\x0b\x64\x61tabase_id\x18\x01 \x01(\t\x12\x10\n\x08\x64\x61tabase\x18\x02 \x01(\t\x12\x12\n\ntopic_path\x18\x03 \x01(\t\x12\x15\n\rconsumer_name\x18\x04 \x01(\t\x12\x18\n\x10\x63luster_endpoint\x18\x05 \x01(\t\x12\x0f\n\x07use_ssl\x18\x06 \x01(\x08\x12\x12\n\ntoken_name\x18\x07 \x01(\t\x12\x1b\n\x13\x61\x64\x64_bearer_to_token\x18\x08 \x01(\x08\"\x97\x07\n\rGetTaskResult\x12\x10\n\x08has_task\x18\x01 \x01(\x08\x12\x30\n\tresult_id\x18\x02 \x01(\x0b\x32\x1d.Yql.Analytics.SignedIdentity\x12/\n\x08query_id\x18\x03 \x01(\x0b\x32\x1d.Yql.Analytics.SignedIdentity\x12-\n\x06job_id\x18\x04 \x01(\x0b\x32\x1d.Yql.Analytics.SignedIdentity\x12\x12\n\ngeneration\x18\x05 \x01(\x04\x12\x11\n\tstreaming\x18\x06 \x01(\x08\x12\x10\n\x08\x64q_graph\x18\x07 \x03(\x0c\x12\x16\n\x0e\x64q_graph_index\x18\x14 \x01(\x05\x12\x0c\n\x04text\x18\x08 \x01(\t\x12+\n\nconnection\x18\t \x03(\x0b\x32\x17.YandexQuery.Connection\x12%\n\x07\x62inding\x18\n \x03(\x0b\x32\x14.YandexQuery.Binding\x12\x12\n\nuser_token\x18\x0b \x01(\t\x12\x37\n\x10service_accounts\x18\x0c \x03(\x0b\x32\x1d.Yql.Analytics.SignedIdentity\x12\x0f\n\x07user_id\x18\r \x01(\t\x12\x37\n\nquery_type\x18\x0e \x01(\x0e\x32#.YandexQuery.QueryContent.QueryType\x12\r\n\x05scope\x18\x0f \x01(\t\x12.\n\x0c\x65xecute_mode\x18\x10 \x01(\x0e\x32\x18.YandexQuery.ExecuteMode\x12\x33\n\x0fstate_load_mode\x18\x11 \x01(\x0e\x32\x1a.YandexQuery.StateLoadMode\x12\x34\n\x06status\x18\x12 \x01(\x0e\x32$.YandexQuery.QueryMeta.ComputeStatus\x12\x45\n\rsensor_labels\x18\x13 \x03(\x0b\x32..Yql.Analytics.GetTaskResult.SensorLabelsEntry\x12\x33\n\x0fresult_set_meta\x18\x15 \x03(\x0b\x32\x1a.YandexQuery.ResultSetMeta\x12=\n\x17\x63reated_topic_consumers\x18\x16 \x03(\x0b\x32\x1c.Yql.Analytics.TopicConsumer\x1a\x33\n\x11SensorLabelsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\"?\n\x0fGetTaskResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\x86\x06\n\x0fPingTaskRequest\x12\x10\n\x08owner_id\x18\x01 \x01(\t\x12/\n\x08query_id\x18\x02 \x01(\x0b\x32\x1d.Yql.Analytics.SignedIdentity\x12-\n\x06job_id\x18\x03 \x01(\x0b\x32\x1d.Yql.Analytics.SignedIdentity\x12\x30\n\tresult_id\x18\x04 \x01(\x0b\x32\x1d.Yql.Analytics.SignedIdentity\x12\x34\n\x06status\x18\x05 \x01(\x0e\x32$.YandexQuery.QueryMeta.ComputeStatus\x12\'\n\x06issues\x18\x06 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessage\x12\x31\n\x10transient_issues\x18\x10 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessage\x12\x18\n\x10result_set_count\x18\x07 \x01(\r\x12\x12\n\nstatistics\x18\x08 \x01(\t\x12\x33\n\x0fresult_set_meta\x18\t \x03(\x0b\x32\x1a.YandexQuery.ResultSetMeta\x12\x15\n\rexecuter_info\x18\n \x01(\t\x12\x10\n\x08\x64q_graph\x18\x0b \x03(\x0c\x12\x16\n\x0e\x64q_graph_index\x18\x14 \x01(\x05\x12\x0b\n\x03\x61st\x18\x0c \x01(\t\x12\x0c\n\x04plan\x18\r \x01(\t\x12\x14\n\x0cresign_query\x18\x0e \x01(\x08\x12=\n\x17\x63reated_topic_consumers\x18\x11 \x03(\x0b\x32\x1c.Yql.Analytics.TopicConsumer\x12\x39\n\x10operation_params\x18\x0f \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\r\n\x05scope\x18\x64 \x01(\t\x12.\n\nstarted_at\x18\x65 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12/\n\x0b\x66inished_at\x18\x66 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\":\n\x0ePingTaskResult\x12(\n\x06\x61\x63tion\x18\x01 \x01(\x0e\x32\x18.YandexQuery.QueryAction\"@\n\x10PingTaskResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\xf6\x01\n\x16WriteTaskResultRequest\x12\x10\n\x08owner_id\x18\x01 \x01(\t\x12\x30\n\tresult_id\x18\x02 \x01(\x0b\x32\x1d.Yql.Analytics.SignedIdentity\x12\"\n\nresult_set\x18\x03 \x01(\x0b\x32\x0e.Ydb.ResultSet\x12\x15\n\rresult_set_id\x18\x04 \x01(\r\x12\x0e\n\x06offset\x18\x05 \x01(\x04\x12\x12\n\nrequest_id\x18\x06 \x01(\x04\x12\x39\n\x10operation_params\x18\x07 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\"+\n\x15WriteTaskResultResult\x12\x12\n\nrequest_id\x18\x01 \x01(\x04\"G\n\x17WriteTaskResultResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\xb4\x01\n\x17NodesHealthCheckRequest\x12\x0e\n\x06tenant\x18\x01 \x01(\t\x12\x0f\n\x07node_id\x18\x02 \x01(\r\x12\x13\n\x0binstance_id\x18\x03 \x01(\t\x12\x10\n\x08hostname\x18\x04 \x01(\t\x12\x16\n\x0e\x61\x63tive_workers\x18\x05 \x01(\x04\x12\x39\n\x10operation_params\x18\x06 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\"\x9b\x01\n\x16NodesHealthCheckResult\x12=\n\x05nodes\x18\x01 \x03(\x0b\x32..Yql.Analytics.NodesHealthCheckResult.NodeInfo\x1a\x42\n\x08NodeInfo\x12\x0f\n\x07node_id\x18\x01 \x01(\r\x12\x13\n\x0binstance_id\x18\x02 \x01(\t\x12\x10\n\x08hostname\x18\x03 \x01(\t\"H\n\x18NodesHealthCheckResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.OperationB>\n!com.yandex.yql.analytics.internalB\x16\x41nalyticsIntenalProtos\xf8\x01\x01\x62\x06proto3'
   ,
   dependencies=[kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2.DESCRIPTOR,kikimr_dot_public_dot_api_dot_protos_dot_ydb__value__pb2.DESCRIPTOR,kikimr_dot_public_dot_api_dot_protos_dot_ydb__issue__message__pb2.DESCRIPTOR,kikimr_dot_public_dot_api_dot_protos_dot_yq__pb2.DESCRIPTOR,google_dot_protobuf_dot_timestamp__pb2.DESCRIPTOR,])
 
@@ -159,6 +159,34 @@ _TOPICCONSUMER = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='cluster_endpoint', full_name='Yql.Analytics.TopicConsumer.cluster_endpoint', index=4,
+      number=5, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='use_ssl', full_name='Yql.Analytics.TopicConsumer.use_ssl', index=5,
+      number=6, type=8, cpp_type=7, label=1,
+      has_default_value=False, default_value=False,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='token_name', full_name='Yql.Analytics.TopicConsumer.token_name', index=6,
+      number=7, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='add_bearer_to_token', full_name='Yql.Analytics.TopicConsumer.add_bearer_to_token', index=7,
+      number=8, type=8, cpp_type=7, label=1,
+      has_default_value=False, default_value=False,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
   ],
   extensions=[
   ],
@@ -171,8 +199,8 @@ _TOPICCONSUMER = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=451,
-  serialized_end=548,
+  serialized_start=452,
+  serialized_end=641,
 )
 
 
@@ -210,8 +238,8 @@ _GETTASKRESULT_SENSORLABELSENTRY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1356,
-  serialized_end=1407,
+  serialized_start=1512,
+  serialized_end=1563,
 )
 
 _GETTASKRESULT = _descriptor.Descriptor(
@@ -369,6 +397,13 @@ _GETTASKRESULT = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='created_topic_consumers', full_name='Yql.Analytics.GetTaskResult.created_topic_consumers', index=21,
+      number=22, type=11, cpp_type=10, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
   ],
   extensions=[
   ],
@@ -381,8 +416,8 @@ _GETTASKRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=551,
-  serialized_end=1407,
+  serialized_start=644,
+  serialized_end=1563,
 )
 
 
@@ -413,8 +448,8 @@ _GETTASKRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1409,
-  serialized_end=1472,
+  serialized_start=1565,
+  serialized_end=1628,
 )
 
 
@@ -585,8 +620,8 @@ _PINGTASKREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1475,
-  serialized_end=2249,
+  serialized_start=1631,
+  serialized_end=2405,
 )
 
 
@@ -617,8 +652,8 @@ _PINGTASKRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2251,
-  serialized_end=2309,
+  serialized_start=2407,
+  serialized_end=2465,
 )
 
 
@@ -649,8 +684,8 @@ _PINGTASKRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2311,
-  serialized_end=2375,
+  serialized_start=2467,
+  serialized_end=2531,
 )
 
 
@@ -723,8 +758,8 @@ _WRITETASKRESULTREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2378,
-  serialized_end=2624,
+  serialized_start=2534,
+  serialized_end=2780,
 )
 
 
@@ -755,8 +790,8 @@ _WRITETASKRESULTRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2626,
-  serialized_end=2669,
+  serialized_start=2782,
+  serialized_end=2825,
 )
 
 
@@ -787,8 +822,8 @@ _WRITETASKRESULTRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2671,
-  serialized_end=2742,
+  serialized_start=2827,
+  serialized_end=2898,
 )
 
 
@@ -854,8 +889,8 @@ _NODESHEALTHCHECKREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2745,
-  serialized_end=2925,
+  serialized_start=2901,
+  serialized_end=3081,
 )
 
 
@@ -900,8 +935,8 @@ _NODESHEALTHCHECKRESULT_NODEINFO = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3017,
-  serialized_end=3083,
+  serialized_start=3173,
+  serialized_end=3239,
 )
 
 _NODESHEALTHCHECKRESULT = _descriptor.Descriptor(
@@ -931,8 +966,8 @@ _NODESHEALTHCHECKRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2928,
-  serialized_end=3083,
+  serialized_start=3084,
+  serialized_end=3239,
 )
 
 
@@ -963,8 +998,8 @@ _NODESHEALTHCHECKRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3085,
-  serialized_end=3157,
+  serialized_start=3241,
+  serialized_end=3313,
 )
 
 _GETTASKREQUEST.fields_by_name['operation_params'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2._OPERATIONPARAMS
@@ -981,6 +1016,7 @@ _GETTASKRESULT.fields_by_name['state_load_mode'].enum_type = kikimr_dot_public_d
 _GETTASKRESULT.fields_by_name['status'].enum_type = kikimr_dot_public_dot_api_dot_protos_dot_yq__pb2._QUERYMETA_COMPUTESTATUS
 _GETTASKRESULT.fields_by_name['sensor_labels'].message_type = _GETTASKRESULT_SENSORLABELSENTRY
 _GETTASKRESULT.fields_by_name['result_set_meta'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_yq__pb2._RESULTSETMETA
+_GETTASKRESULT.fields_by_name['created_topic_consumers'].message_type = _TOPICCONSUMER
 _GETTASKRESPONSE.fields_by_name['operation'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2._OPERATION
 _PINGTASKREQUEST.fields_by_name['query_id'].message_type = _SIGNEDIDENTITY
 _PINGTASKREQUEST.fields_by_name['job_id'].message_type = _SIGNEDIDENTITY
