@@ -188,7 +188,7 @@ class MetadataUrlCredentials(IamTokenCredentials):
                 if not response.ok:
                     self.logger.error("Error while getting token from metadata: %s" % response.text())
                 response.raise_for_status()
-                return response.json()
+                return await response.json()
 
 
 class ServiceAccountCredentials(JWTIamCredentials):
