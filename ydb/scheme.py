@@ -338,8 +338,10 @@ class ISchemeClient:
     def modify_permissions(self, path, settings):
         """
         Modifies permissions for provided scheme entry
+
         :param path: A path of scheme entry
         :param settings: An instance of ModifyPermissionsSettings
+
         :return: An operation if success or exception on case of failure
         """
         pass
@@ -390,8 +392,10 @@ class BaseSchemeClient(ISchemeClient):
     def modify_permissions(self, path, settings):
         """
         Modifies permissions for provided scheme entry
+
         :param path: A path of scheme entry
         :param settings: An instance of ModifyPermissionsSettings
+
         :return: An operation if success or exception on case of failure
         """
         return self._driver(
@@ -443,8 +447,10 @@ class SchemeClient(BaseSchemeClient):
     def async_modify_permissions(self, path, settings):
         """
         Modifies permissions for provided scheme entry
+
         :param path: A path of scheme entry
         :param settings: An instance of ModifyPermissionsSettings
+
         :return: An future of computation
         """
         return self._driver.future(

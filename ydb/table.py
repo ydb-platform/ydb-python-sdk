@@ -960,18 +960,22 @@ class TableClientSettings(object):
         self._make_result_sets_lazy = False
 
     def with_native_date_in_result_sets(self, enabled):
+        # type:(bool) -> ydb.TableClientSettings
         self._native_date_in_result_sets = enabled
         return self
 
     def with_native_datetime_in_result_sets(self, enabled):
+        # type:(bool) -> ydb.TableClientSettings
         self._native_datetime_in_result_sets = enabled
         return self
 
     def with_client_query_cache(self, enabled):
+        # type:(bool) -> ydb.TableClientSettings
         self._client_query_cache_enabled = enabled
         return self
 
     def with_lazy_result_sets(self, enabled):
+        # type:(bool) -> ydb.TableClientSettings
         self._make_result_sets_lazy = enabled
         return self
 
@@ -1059,37 +1063,15 @@ class ISession:
         """
         Perform an read table request.
 
-        from kikimr.public.sdk.python import client as ydb
-
-        .... initialize driver and session ....
-
-        key_prefix_type = ydb.TupleType().add_element(
-            ydb.OptionalType(ydb.PrimitiveType.Uint64).add_element(
-            ydb.OptionalType(ydb.PrimitiveType.Utf8))
-        table_iterator = session.read_table(
-            '/my/table',
-            columns=('KeyColumn0', 'KeyColumn1', 'ValueColumn'),
-            ydb.KeyRange(
-                ydb.KeyBound((100, 'hundred'), key_prefix_type)
-                ydb.KeyBound((200, 'two-hundreds'), key_prefix_type)
-            )
-        )
-
-        while True:
-            try:
-                chunk = next(table_iterator)
-                ... additional data processing ...
-            except StopIteration:
-                break
-
         :param path: A path to the table
-        :param key_range: (optional) A KeyRange instance that describes a range to read. The KeyRange instance
-        should include from_bound and/or to_bound. Each of the bounds (if provided) should specify a value of the
+        :param key_range: (optional) A KeyRange instance that describes a range to read. The KeyRange instance\
+        should include from_bound and/or to_bound. Each of the bounds (if provided) should specify a value of the\
         key bound, and type of the key prefix. See an example above.
         :param columns: (optional) An iterable with table columns to read.
         :param ordered: (optional) A flag that indicates that result should be ordered.
         :param row_limit: (optional) A number of rows to read.
         :param settings: Request settings
+
         :return: SyncResponseIterator instance
         """
         pass
@@ -1129,6 +1111,7 @@ class ISession:
 
         :param yql_text:
         :param settings:
+
         :return:
         """
         pass
@@ -1138,41 +1121,10 @@ class ISession:
         """
         Create a YDB table.
 
-        from kikimr.public.sdk.python import client as ydb
-
-        ... create an instance of Driver ...
-
-        description = (
-            ydb.TableDescription()
-            .with_primary_keys('key1', 'key2')
-            .with_columns(
-                ydb.Column('key1', ydb.OptionalType(ydb.PrimitiveType.Uint64)),
-                ydb.Column('key2', ydb.OptionalType(ydb.PrimitiveType.Uint64)),
-                ydb.Column('value', ydb.OptionalType(ydb.PrimitiveType.Utf8))
-            )
-            .with_profile(
-                ydb.TableProfile()
-                .with_partitioning_policy(
-                    ydb.PartitioningPolicy()
-                    .with_explicit_partitions(
-                        ydb.ExplicitPartitions(
-                            (
-                                ydb.KeyBound((100, )),
-                                ydb.KeyBound((300, 100)),
-                                ydb.KeyBound((400, )),
-                            )
-                        )
-                    )
-                )
-            )
-        )
-
-        session = driver.table_client.session().create()
-        session.create_table('/my/table/', description)
-
         :param path: A table path
         :param table_description: A description of table to create. An instance TableDescription
         :param settings: An instance of BaseRequestSettings that describes how rpc should invoked.
+
         :return: A description of created scheme entry or error otherwise.
         """
         pass
@@ -1213,8 +1165,10 @@ class ISession:
     def describe_table(self, path, settings=None):
         """
         Returns a description of the table by provided path
+
         :param path: A table path
         :param settings: A request settings
+
         :return: Description of a table
         """
         pass
@@ -1243,32 +1197,40 @@ class ITableClient:
     ):
         """
         Bulk upsert data
+
         :param table_path: A table path.
         :param rows: A list of structures.
         :param column_types: Bulk upsert column types.
+
         """
         pass
 
 
 class BaseTableClient(ITableClient):
     def __init__(self, driver, table_client_settings=None):
+        # type:(ydb.Driver, ydb.TableClientSettings) -> None
         self._driver = driver
         self._table_client_settings = TableClientSettings() if table_client_settings is None else table_client_settings
 
     def session(self):
+        # type: () -> ydb.Session
         return Session(self._driver, self._table_client_settings)
 
     def scan_query(self, query, parameters=None, settings=None):
+        # type: (ydb.ScanQuery, tuple, ydb.BaseRequestSettings) -> ydb.SyncResponseIterator
         request = _scan_query_request_factory(query, parameters, settings)
         stream_it = self._driver(request, _apis.TableService.Stub, _apis.TableService.StreamExecuteScanQuery, settings=settings)
         return _utilities.SyncResponseIterator(stream_it, lambda resp: _wrap_scan_query_response(resp, self._table_client_settings))
 
     def bulk_upsert(self, table_path, rows, column_types, settings=None):
+        # type: (str, list, ydb.AbstractTypeBuilder | ydb.PrimitiveType, ydb.BaseRequestSettings) -> None
         """
         Bulk upsert data
+
         :param table_path: A table path.
         :param rows: A list of structures.
         :param column_types: Bulk upsert column types.
+
         """
         return self._driver(
             _session_impl.bulk_upsert_request_factory(table_path, rows, column_types),
@@ -1283,12 +1245,14 @@ class BaseTableClient(ITableClient):
 class TableClient(BaseTableClient):
 
     def async_scan_query(self, query, parameters=None, settings=None):
+        # type: (ydb.ScanQuery, tuple, ydb.BaseRequestSettings) -> ydb.AsyncResponseIterator
         request = _scan_query_request_factory(query, parameters, settings)
         stream_it = self._driver(request, _apis.TableService.Stub, _apis.TableService.StreamExecuteScanQuery, settings=settings)
         return _utilities.AsyncResponseIterator(stream_it, lambda resp: _wrap_scan_query_response(resp, self._table_client_settings))
 
     @_utilities.wrap_async_call_exceptions
     def async_bulk_upsert(self, table_path, rows, column_types, settings=None):
+        # type: (str, list, ydb.AbstractTypeBuilder | ydb.PrimitiveType, ydb.BaseRequestSettings) -> None
         return self._driver.future(
             _session_impl.bulk_upsert_request_factory(table_path, rows, column_types),
             _apis.TableService.Stub,
@@ -1455,36 +1419,14 @@ class BaseSession(ISession):
         """
         Perform an read table request.
 
-        from kikimr.public.sdk.python import client as ydb
-
-        .... initialize driver and session ....
-
-        key_prefix_type = ydb.TupleType().add_element(
-            ydb.OptionalType(ydb.PrimitiveType.Uint64).add_element(
-            ydb.OptionalType(ydb.PrimitiveType.Utf8))
-        table_iterator = session.read_table(
-            '/my/table',
-            columns=('KeyColumn0', 'KeyColumn1', 'ValueColumn'),
-            ydb.KeyRange(
-                ydb.KeyBound((100, 'hundred'), key_prefix_type)
-                ydb.KeyBound((200, 'two-hundreds'), key_prefix_type)
-            )
-        )
-
-        while True:
-            try:
-                chunk = next(table_iterator)
-                ... additional data processing ...
-            except StopIteration:
-                break
-
         :param path: A path to the table
-        :param key_range: (optional) A KeyRange instance that describes a range to read. The KeyRange instance
-        should include from_bound and/or to_bound. Each of the bounds (if provided) should specify a value of the
+        :param key_range: (optional) A KeyRange instance that describes a range to read. The KeyRange instance\
+        should include from_bound and/or to_bound. Each of the bounds (if provided) should specify a value of the\
         key bound, and type of the key prefix. See an example above.
         :param columns: (optional) An iterable with table columns to read.
         :param ordered: (optional) A flag that indicates that result should be ordered.
         :param row_limit: (optional) A number of rows to read.
+
         :return: SyncResponseIterator instance
         """
         request = _session_impl.read_table_request_factory(self._state, path, key_range, columns, ordered, row_limit, use_snapshot=use_snapshot)
@@ -1563,6 +1505,7 @@ class BaseSession(ISession):
 
         :param yql_text:
         :param settings:
+
         :return:
         """
         return self._driver(
@@ -1579,41 +1522,10 @@ class BaseSession(ISession):
         """
         Create a YDB table.
 
-        from kikimr.public.sdk.python import client as ydb
-
-        ... create an instance of Driver ...
-
-        description = (
-            ydb.TableDescription()
-            .with_primary_keys('key1', 'key2')
-            .with_columns(
-                ydb.Column('key1', ydb.OptionalType(ydb.PrimitiveType.Uint64)),
-                ydb.Column('key2', ydb.OptionalType(ydb.PrimitiveType.Uint64)),
-                ydb.Column('value', ydb.OptionalType(ydb.PrimitiveType.Utf8))
-            )
-            .with_profile(
-                ydb.TableProfile()
-                .with_partitioning_policy(
-                    ydb.PartitioningPolicy()
-                    .with_explicit_partitions(
-                        ydb.ExplicitPartitions(
-                            (
-                                ydb.KeyBound((100, )),
-                                ydb.KeyBound((300, 100)),
-                                ydb.KeyBound((400, )),
-                            )
-                        )
-                    )
-                )
-            )
-        )
-
-        session = driver.table_client.session().create()
-        session.create_table('/my/table/', description)
-
         :param path: A table path
         :param table_description: A description of table to create. An instance TableDescription
         :param settings: An instance of BaseRequestSettings that describes how rpc should invoked.
+
         :return: A description of created scheme entry or error otherwise.
         """
         return self._driver(
@@ -1675,8 +1587,10 @@ class BaseSession(ISession):
     def describe_table(self, path, settings=None):
         """
         Returns a description of the table by provided path
+
         :param path: A table path
         :param settings: A request settings
+
         :return: Description of a table
         """
         return self._driver(
@@ -1710,37 +1624,14 @@ class Session(BaseSession):
         """
         Perform an read table request.
 
-        from kikimr.public.sdk.python import client as ydb
-
-        .... initialize driver and session ....
-
-        key_prefix_type = ydb.TupleType().add_element(
-            ydb.OptionalType(ydb.PrimitiveType.Uint64).add_element(
-            ydb.OptionalType(ydb.PrimitiveType.Utf8))
-        async_table_iterator = session.read_table(
-            '/my/table',
-            columns=('KeyColumn0', 'KeyColumn1', 'ValueColumn'),
-            ydb.KeyRange(
-                ydb.KeyBound((100, 'hundred'), key_prefix_type)
-                ydb.KeyBound((200, 'two-hundreds'), key_prefix_type)
-            )
-        )
-
-        while True:
-            try:
-                chunk_future = next(table_iterator)
-                chunk = chunk_future.result()  # or any other way to await
-                ... additional data processing ...
-            except StopIteration:
-                break
-
         :param path: A path to the table
-        :param key_range: (optional) A KeyRange instance that describes a range to read. The KeyRange instance
-        should include from_bound and/or to_bound. Each of the bounds (if provided) should specify a value of the
+        :param key_range: (optional) A KeyRange instance that describes a range to read. The KeyRange instance\
+        should include from_bound and/or to_bound. Each of the bounds (if provided) should specify a value of the\
         key bound, and type of the key prefix. See an example above.
         :param columns: (optional) An iterable with table columns to read.
         :param ordered: (optional) A flag that indicates that result should be ordered.
         :param row_limit: (optional) A number of rows to read.
+
         :return: AsyncResponseIterator instance
         """
         if interceptor is None:
@@ -1936,6 +1827,7 @@ class ITxContext:
     def __enter__(self):
         """
         Enters a context manager and returns a session
+
         :return: A session instance
         """
         pass
@@ -1953,6 +1845,7 @@ class ITxContext:
     def session_id(self):
         """
         A transaction's session id
+
         :return: A transaction's session id
         """
         pass
@@ -1962,6 +1855,7 @@ class ITxContext:
     def tx_id(self):
         """
         Returns a id of open transaction or None otherwise
+
         :return: A id of open transaction or None otherwise
         """
         pass
@@ -1976,6 +1870,7 @@ class ITxContext:
         :param parameters: A dictionary with parameters values.
         :param commit_tx: A special flag that allows transaction commit
         :param settings: An additional request settings
+
         :return: A result sets or exception in case of execution errors
         """
         pass
@@ -1987,6 +1882,7 @@ class ITxContext:
         failed then this method raises PreconditionFailed.
 
         :param settings: A request settings
+
         :return: A committed transaction or exception if commit is failed
         """
         pass
@@ -1998,6 +1894,7 @@ class ITxContext:
         failed then this method raises PreconditionFailed.
 
         :param settings: A request settings
+
         :return: A rolled back transaction or exception if rollback is failed
         """
         pass
@@ -2006,7 +1903,9 @@ class ITxContext:
     def begin(self, settings=None):
         """
         Explicitly begins a transaction
+
         :param settings: A request settings
+
         :return: An open transaction
         """
         pass
@@ -2020,9 +1919,9 @@ class BaseTxContext(ITxContext):
         An object that provides a simple transaction context manager that allows statements execution
         in a transaction. You don't have to open transaction explicitly, because context manager encapsulates
         transaction control logic, and opens new transaction if:
-         1) By explicit .begin() and .async_begin() methods;
-         2) On execution of a first statement, which is strictly recommended method, because that avoids
-         useless round trip
+
+        1) By explicit .begin() and .async_begin() methods;
+        2) On execution of a first statement, which is strictly recommended method, because that avoids useless round trip
 
         This context manager is not thread-safe, so you should not manipulate on it concurrently.
 
@@ -2042,6 +1941,7 @@ class BaseTxContext(ITxContext):
     def __enter__(self):
         """
         Enters a context manager and returns a session
+
         :return: A session instance
         """
         return self
@@ -2069,6 +1969,7 @@ class BaseTxContext(ITxContext):
     def session_id(self):
         """
         A transaction's session id
+
         :return: A transaction's session id
         """
         return self._session_state.session_id
@@ -2077,6 +1978,7 @@ class BaseTxContext(ITxContext):
     def tx_id(self):
         """
         Returns a id of open transaction or None otherwise
+
         :return: A id of open transaction or None otherwise
         """
         return self._tx_state.tx_id
@@ -2090,6 +1992,7 @@ class BaseTxContext(ITxContext):
         :param parameters: A dictionary with parameters values.
         :param commit_tx: A special flag that allows transaction commit
         :param settings: An additional request settings
+
         :return: A result sets or exception in case of execution errors
         """
         return self._driver(
@@ -2120,6 +2023,7 @@ class BaseTxContext(ITxContext):
         failed then this method raises PreconditionFailed.
 
         :param settings: A request settings
+
         :return: A committed transaction or exception if commit is failed
         """
         if self._tx_state.tx_id is None and not self._tx_state.dead:
@@ -2140,6 +2044,7 @@ class BaseTxContext(ITxContext):
         failed then this method raises PreconditionFailed.
 
         :param settings: A request settings
+
         :return: A rolled back transaction or exception if rollback is failed
         """
         if self._tx_state.tx_id is None and not self._tx_state.dead:
@@ -2157,7 +2062,9 @@ class BaseTxContext(ITxContext):
     def begin(self, settings=None):
         """
         Explicitly begins a transaction
+
         :param settings: A request settings
+
         :return: An open transaction
         """
         if self._tx_state.tx_id is not None:
@@ -2184,6 +2091,7 @@ class TxContext(BaseTxContext):
         :param parameters: A dictionary with parameters values.
         :param commit_tx: A special flag that allows transaction commit
         :param settings: A request settings (an instance of ExecDataQuerySettings)
+
         :return: A future of query execution
         """
         return self._driver.future(
@@ -2204,6 +2112,7 @@ class TxContext(BaseTxContext):
         failed then this method raises PreconditionFailed.
 
         :param settings: A request settings (an instance of BaseRequestSettings)
+
         :return: A future of commit call
         """
         if self._tx_state.tx_id is None and not self._tx_state.dead:
@@ -2225,6 +2134,7 @@ class TxContext(BaseTxContext):
         failed then this method raises PreconditionFailed.
 
         :param settings: A request settings
+
         :return: A future of rollback call
         """
         if self._tx_state.tx_id is None and not self._tx_state.dead:
@@ -2243,7 +2153,9 @@ class TxContext(BaseTxContext):
     def async_begin(self, settings=None):
         """
         Explicitly begins a transaction
+
         :param settings: A request settings
+
         :return: A future of begin call
         """
         if self._tx_state.tx_id is not None:
@@ -2264,6 +2176,7 @@ class SessionPool(object):
         """
         An object that encapsulates session creation, deletion and etc. and maintains
         a pool of active sessions of specified size
+
         :param driver: A Driver instance
         :param size: A maximum number of sessions to maintain in the pool
         """
@@ -2324,10 +2237,6 @@ class SessionPool(object):
         """
         Returns a context manager that asynchronously checkouts a session from the pool.
 
-        with my_pool.async_checkout() as async_session:
-            session = await async_session
-            results = await session.transaction().async_execute(....)
-
         """
         return AsyncSessionCheckout(self)
 
@@ -2351,6 +2260,7 @@ class AsyncSessionCheckout(object):
         """
         A context manager that asynchronously checkouts a session for the specified pool
         and returns it on manager exit.
+
         :param pool: A SessionPool instance.
         """
         self.pool = pool
@@ -2371,6 +2281,7 @@ class SessionCheckout(object):
         """
         A context manager that checkouts a session from the specified pool and
         returns it on manager exit.
+
         :param pool: A SessionPool instance
         :param blocking: A flag that specifies that session acquire method should blocks
         :param timeout: A timeout in seconds for session acquire
