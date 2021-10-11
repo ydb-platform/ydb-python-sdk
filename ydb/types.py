@@ -2,6 +2,7 @@
 import abc
 import enum
 import six
+import json
 from . import _utilities, _apis
 from datetime import date, datetime
 import uuid
@@ -24,6 +25,14 @@ def _from_date_number(x, table_client_settings):
 def _from_datetime_number(x, table_client_settings):
     if table_client_settings is not None and table_client_settings._native_datetime_in_result_sets:
         return datetime.utcfromtimestamp(x)
+    return x
+
+
+def _from_json(x, table_client_settings):
+    if table_client_settings is not None and table_client_settings._native_json_in_result_sets:
+        return json.loads(x)
+    if _from_bytes is not None:
+        return _from_bytes(x, table_client_settings)
     return x
 
 
@@ -58,8 +67,8 @@ class PrimitiveType(enum.Enum):
     Utf8 = _apis.primitive_types.UTF8, 'text_value', _from_bytes
 
     Yson = _apis.primitive_types.YSON, 'bytes_value'
-    Json = _apis.primitive_types.JSON, 'text_value', _from_bytes
-    JsonDocument = _apis.primitive_types.JSON_DOCUMENT, 'text_value', _from_bytes
+    Json = _apis.primitive_types.JSON, 'text_value', _from_json
+    JsonDocument = _apis.primitive_types.JSON_DOCUMENT, 'text_value', _from_json
     UUID = _apis.primitive_types.UUID, None, _to_uuid, _from_uuid
 
     Date = _apis.primitive_types.DATE, 'uint32_value', _from_date_number,
