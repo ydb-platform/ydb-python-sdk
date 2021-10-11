@@ -50,6 +50,7 @@ class TableService(object):
     DropTable = 'DropTable'
     AlterTable = 'AlterTable'
     CopyTables = 'CopyTables'
+    RenameTables = 'RenameTables'
     DescribeTable = 'DescribeTable'
     CreateSession = 'CreateSession'
     DeleteSession = 'DeleteSession'

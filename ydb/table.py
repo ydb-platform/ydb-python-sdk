@@ -1383,6 +1383,25 @@ class TableSchemeEntry(scheme.SchemeEntry):
         self.attributes = attributes
 
 
+class RenameItem:
+    def __init__(self, source_path, destination_path, replace_destination=False):
+        self._source_path = source_path
+        self._destination_path = destination_path
+        self._replace_destination = replace_destination
+
+    @property
+    def source_path(self):
+        return self._source_path
+
+    @property
+    def destination_path(self):
+        return self._destination_path
+
+    @property
+    def replace_destination(self):
+        return self._replace_destination
+
+
 class BaseSession(ISession):
     def __init__(self, driver, table_client_settings):
         self._driver = driver
@@ -1618,6 +1637,17 @@ class BaseSession(ISession):
             self._state.endpoint,
         )
 
+    def rename_tables(self, rename_items, settings=None):
+        return self._driver(
+            _session_impl.rename_tables_request_factory(self._state, rename_items),
+            _apis.TableService.Stub,
+            _apis.TableService.RenameTables,
+            _session_impl.wrap_operation,
+            settings,
+            (self._state,),
+            self._state.endpoint,
+        )
+
 
 class Session(BaseSession):
 
@@ -1775,6 +1805,18 @@ class Session(BaseSession):
             _session_impl.copy_tables_request_factory(self._state, source_destination_pairs),
             _apis.TableService.Stub,
             _apis.TableService.CopyTables,
+            _session_impl.wrap_operation,
+            settings,
+            (self._state,),
+            self._state.endpoint,
+        )
+
+    @_utilities.wrap_async_call_exceptions
+    def async_rename_tables(self, rename_tables, settings=None):
+        return self._driver.future(
+            _session_impl.rename_tables_request_factory(self._state, rename_tables),
+            _apis.TableService.Stub,
+            _apis.TableService.RenameTables,
             _session_impl.wrap_operation,
             settings,
             (self._state,),

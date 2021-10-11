@@ -1,3 +1,8 @@
+## 1.1.10 ##
+ * add methods to request `_apis.TableService.RenameTables` call
+ * by now the call is disabled at the server side
+ * it will be enabled soon
+
 ## 1.1.0 ##
 
 * remove useless `from_bytes` for PY3
