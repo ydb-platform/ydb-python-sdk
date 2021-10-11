@@ -54,6 +54,11 @@ class YandexQueryServiceStub(object):
         request_serializer=kikimr_dot_public_dot_api_dot_protos_dot_yq__pb2.ListJobsRequest.SerializeToString,
         response_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_yq__pb2.ListJobsResponse.FromString,
         )
+    self.DescribeJob = channel.unary_unary(
+        '/YandexQuery.V1.YandexQueryService/DescribeJob',
+        request_serializer=kikimr_dot_public_dot_api_dot_protos_dot_yq__pb2.DescribeJobRequest.SerializeToString,
+        response_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_yq__pb2.DescribeJobResponse.FromString,
+        )
     self.CreateConnection = channel.unary_unary(
         '/YandexQuery.V1.YandexQueryService/CreateConnection',
         request_serializer=kikimr_dot_public_dot_api_dot_protos_dot_yq__pb2.CreateConnectionRequest.SerializeToString,
@@ -164,7 +169,14 @@ class YandexQueryServiceServicer(object):
   def ListJobs(self, request, context):
     """Job
     Job - appears immediately after starting the request and contains the request metadata
-    Get information about the job
+    Get a list of jobs
+    """
+    context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+    context.set_details('Method not implemented!')
+    raise NotImplementedError('Method not implemented!')
+
+  def DescribeJob(self, request, context):
+    """Get information about the job
     """
     context.set_code(grpc.StatusCode.UNIMPLEMENTED)
     context.set_details('Method not implemented!')
@@ -286,6 +298,11 @@ def add_YandexQueryServiceServicer_to_server(servicer, server):
           servicer.ListJobs,
           request_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_yq__pb2.ListJobsRequest.FromString,
           response_serializer=kikimr_dot_public_dot_api_dot_protos_dot_yq__pb2.ListJobsResponse.SerializeToString,
+      ),
+      'DescribeJob': grpc.unary_unary_rpc_method_handler(
+          servicer.DescribeJob,
+          request_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_yq__pb2.DescribeJobRequest.FromString,
+          response_serializer=kikimr_dot_public_dot_api_dot_protos_dot_yq__pb2.DescribeJobResponse.SerializeToString,
       ),
       'CreateConnection': grpc.unary_unary_rpc_method_handler(
           servicer.CreateConnection,
