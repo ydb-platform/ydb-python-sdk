@@ -1,14 +1,18 @@
 # -*- coding: utf-8 -*-
 import abc
 import enum
+import six
 from . import _utilities, _apis
 from datetime import date, datetime
 import uuid
 import struct
 
 
-def _from_bytes(x, table_client_settings):
-    return _utilities.from_bytes(x)
+if six.PY3:
+    _from_bytes = None
+else:
+    def _from_bytes(x, table_client_settings):
+        return _utilities.from_bytes(x)
 
 
 def _from_date_number(x, table_client_settings):
