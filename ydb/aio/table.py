@@ -447,6 +447,12 @@ class SessionPool:
 
         await asyncio.wait_for(self._keep_alive_task, timeout=timeout)
 
+    async def __aenter__(self):
+        return self
+
+    async def __aenter__(self, exc_type, exc, tb):
+        await self.stop()
+
     async def wait_until_min_size(self):
         await asyncio.gather(*self._min_pool_tasks)
 

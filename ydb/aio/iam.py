@@ -5,9 +5,8 @@ import abc
 import asyncio
 import logging
 import six
-from kikimr.public.sdk.python.client import issues, credentials
-
-from kikimr.public.sdk.python.iam import auth
+from ydb import issues, credentials
+from ydb.iam import auth
 
 logger = logging.getLogger(__name__)
 

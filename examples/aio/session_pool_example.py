@@ -42,32 +42,26 @@ async def create_table(session, query):
     Helper function to acquire session, execute `create_table` and release it
     """
     await session.execute_scheme(query)
-
+    print("created table, query: ", query)
 
 async def main():
     endpoint = os.getenv('YDB_ENDPOINT')
     database = os.getenv('YDB_DATABASE')
-    driver = ydb.aio.Driver(
-        endpoint=endpoint,
-        database=database
-    )
-    pool = ydb.aio.SessionPool(
-        driver,
-        size=10  # Max number of available session
-    )
+    async with ydb.aio.Driver(endpoint=endpoint, database=database) as driver:
+        await driver.wait(fail_fast=True)
 
-    coros = [  # Generating coroutines to create tables concurrently
-        pool.retry_operation(create_table, query)
-        for query in queries
-    ]
-    await asyncio.gather(*coros)  # Run table creating concurrently
+        async with ydb.aio.SessionPool(driver, size=10) as pool:
+            coros = [  # Generating coroutines to create tables concurrently
+                pool.retry_operation(create_table, query)
+                for query in queries
+            ]
 
-    await pool.stop()
-    await driver.stop()
-    directory = await driver.scheme_client.list_directory(database)  # Listing database to ensure that tables are created
-    print("Items in database:")
-    for child in directory.children:
-        print(child.type, child.name)
+            await asyncio.gather(*coros)  # Run table creating concurrently
+
+            directory = await driver.scheme_client.list_directory(database)  # Listing database to ensure that tables are created
+            print("Items in database:")
+            for child in directory.children:
+                print(child.type, child.name)
 
 
 if __name__ == "__main__":

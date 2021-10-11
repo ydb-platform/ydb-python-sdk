@@ -213,6 +213,12 @@ class ConnectionPool(IConnectionPool):
     def discovery_debug_details(self):
         return self._discovery.discovery_debug_details()
 
+    async def __aenter__(self):
+        return self
+
+    async def __aenter__(self, exc_type, exc, tb):
+        await self.stop()
+
     async def __call__(
         self,
         request,
