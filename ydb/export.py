@@ -36,6 +36,7 @@ class ExportToYTOperation(operation.Operation):
         metadata = ydb_export_pb2.ExportToYtMetadata()
         response.operation.metadata.Unpack(metadata)
         self.progress = _progresses.get(metadata.progress)
+        self.items_progress = metadata.items_progress
 
     def __str__(self):
         return "ExportToYTOperation<id: %s, progress: %s>" % (self.id, self.progress.name)
@@ -50,6 +51,7 @@ class ExportToS3Operation(operation.Operation):
         metadata = ydb_export_pb2.ExportToS3Metadata()
         response.operation.metadata.Unpack(metadata)
         self.progress = _progresses.get(metadata.progress)
+        self.items_progress = metadata.items_progress
 
     def __str__(self):
         return "ExportToS3Operation<id: %s, progress: %s>" % (self.id, self.progress.name)
