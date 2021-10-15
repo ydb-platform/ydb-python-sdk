@@ -9,7 +9,7 @@ from .errors import DatabaseError
 
 class Connection(object):
 
-    deiver = None
+    driver = None
     pool = None
 
     def __init__(self, endpoint, database=None, **conn_kwargs):
