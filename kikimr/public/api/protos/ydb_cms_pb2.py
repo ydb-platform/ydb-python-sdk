@@ -20,7 +20,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   syntax='proto3',
   serialized_options=b'\n\022com.yandex.ydb.cms\370\001\001',
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n&kikimr/public/api/protos/ydb_cms.proto\x12\x07Ydb.Cms\x1a,kikimr/public/api/protos/ydb_operation.proto\"0\n\x0cStorageUnits\x12\x11\n\tunit_kind\x18\x01 \x01(\t\x12\r\n\x05\x63ount\x18\x02 \x01(\x04\"Q\n\x12\x43omputationalUnits\x12\x11\n\tunit_kind\x18\x01 \x01(\t\x12\x19\n\x11\x61vailability_zone\x18\x02 \x01(\t\x12\r\n\x05\x63ount\x18\x03 \x01(\x04\"K\n\x1a\x41llocatedComputationalUnit\x12\x0c\n\x04host\x18\x01 \x01(\t\x12\x0c\n\x04port\x18\x02 \x01(\r\x12\x11\n\tunit_kind\x18\x03 \x01(\t\"s\n\tResources\x12,\n\rstorage_units\x18\x01 \x03(\x0b\x32\x15.Ydb.Cms.StorageUnits\x12\x38\n\x13\x63omputational_units\x18\x02 \x03(\x0b\x32\x1b.Ydb.Cms.ComputationalUnits\"3\n\x13ServerlessResources\x12\x1c\n\x14shared_database_path\x18\x01 \x01(\t\"j\n\x0f\x44\x61tabaseOptions\x12\x1a\n\x12\x64isable_tx_service\x18\x01 \x01(\x08\x12\"\n\x1a\x64isable_external_subdomain\x18\x02 \x01(\x08\x12\x17\n\x0fplan_resolution\x18\x03 \x01(\r\"(\n\tAttribute\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t\"\x9c\x01\n\x15SchemaOperationQuotas\x12G\n\x13leaky_bucket_quotas\x18\x01 \x03(\x0b\x32*.Ydb.Cms.SchemaOperationQuotas.LeakyBucket\x1a:\n\x0bLeakyBucket\x12\x13\n\x0b\x62ucket_size\x18\x01 \x01(\x01\x12\x16\n\x0e\x62ucket_seconds\x18\x02 \x01(\x04\"\x94\x01\n\x0e\x44\x61tabaseQuotas\x12\x1c\n\x14\x64\x61ta_size_hard_quota\x18\x01 \x01(\x04\x12\x1c\n\x14\x64\x61ta_size_soft_quota\x18\x02 \x01(\x04\x12 \n\x18\x64\x61ta_stream_shards_quota\x18\x03 \x01(\x04\x12$\n\x1cttl_min_run_internal_seconds\x18\x04 \x01(\r\"\xe8\x03\n\x15\x43reateDatabaseRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x0c\n\x04path\x18\x02 \x01(\t\x12\'\n\tresources\x18\x03 \x01(\x0b\x32\x12.Ydb.Cms.ResourcesH\x00\x12.\n\x10shared_resources\x18\x06 \x01(\x0b\x32\x12.Ydb.Cms.ResourcesH\x00\x12<\n\x14serverless_resources\x18\x07 \x01(\x0b\x32\x1c.Ydb.Cms.ServerlessResourcesH\x00\x12)\n\x07options\x18\x04 \x01(\x0b\x32\x18.Ydb.Cms.DatabaseOptions\x12&\n\nattributes\x18\x05 \x03(\x0b\x32\x12.Ydb.Cms.Attribute\x12?\n\x17schema_operation_quotas\x18\x08 \x01(\x0b\x32\x1e.Ydb.Cms.SchemaOperationQuotas\x12\x17\n\x0fidempotency_key\x18\t \x01(\t\x12\x30\n\x0f\x64\x61tabase_quotas\x18\n \x01(\x0b\x32\x17.Ydb.Cms.DatabaseQuotasB\x10\n\x0eresources_kind\"F\n\x16\x43reateDatabaseResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"c\n\x18GetDatabaseStatusRequest\x12\x0c\n\x04path\x18\x01 \x01(\t\x12\x39\n\x10operation_params\x18\x02 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\"I\n\x19GetDatabaseStatusResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\x85\x05\n\x17GetDatabaseStatusResult\x12\x0c\n\x04path\x18\x01 \x01(\t\x12\x35\n\x05state\x18\x02 \x01(\x0e\x32&.Ydb.Cms.GetDatabaseStatusResult.State\x12\x30\n\x12required_resources\x18\x03 \x01(\x0b\x32\x12.Ydb.Cms.ResourcesH\x00\x12\x37\n\x19required_shared_resources\x18\x07 \x01(\x0b\x32\x12.Ydb.Cms.ResourcesH\x00\x12<\n\x14serverless_resources\x18\x08 \x01(\x0b\x32\x1c.Ydb.Cms.ServerlessResourcesH\x00\x12/\n\x13\x61llocated_resources\x18\x04 \x01(\x0b\x32\x12.Ydb.Cms.Resources\x12\x41\n\x14registered_resources\x18\x05 \x03(\x0b\x32#.Ydb.Cms.AllocatedComputationalUnit\x12\x12\n\ngeneration\x18\x06 \x01(\x04\x12?\n\x17schema_operation_quotas\x18\t \x01(\x0b\x32\x1e.Ydb.Cms.SchemaOperationQuotas\x12\x30\n\x0f\x64\x61tabase_quotas\x18\n \x01(\x0b\x32\x17.Ydb.Cms.DatabaseQuotas\"o\n\x05State\x12\x15\n\x11STATE_UNSPECIFIED\x10\x00\x12\x0c\n\x08\x43REATING\x10\x01\x12\x0b\n\x07RUNNING\x10\x02\x12\x0c\n\x08REMOVING\x10\x03\x12\x15\n\x11PENDING_RESOURCES\x10\x04\x12\x0f\n\x0b\x43ONFIGURING\x10\x05\x42\x10\n\x0eresources_kind\"\xd7\x04\n\x14\x41lterDatabaseRequest\x12\x0c\n\x04path\x18\x01 \x01(\t\x12?\n\x1a\x63omputational_units_to_add\x18\x02 \x03(\x0b\x32\x1b.Ydb.Cms.ComputationalUnits\x12\x42\n\x1d\x63omputational_units_to_remove\x18\x03 \x03(\x0b\x32\x1b.Ydb.Cms.ComputationalUnits\x12\x33\n\x14storage_units_to_add\x18\x04 \x03(\x0b\x32\x15.Ydb.Cms.StorageUnits\x12L\n\x1f\x63omputational_units_to_register\x18\x05 \x03(\x0b\x32#.Ydb.Cms.AllocatedComputationalUnit\x12N\n!computational_units_to_deregister\x18\x06 \x03(\x0b\x32#.Ydb.Cms.AllocatedComputationalUnit\x12\x39\n\x10operation_params\x18\x07 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x12\n\ngeneration\x18\x08 \x01(\x04\x12?\n\x17schema_operation_quotas\x18\t \x01(\x0b\x32\x1e.Ydb.Cms.SchemaOperationQuotas\x12\x17\n\x0fidempotency_key\x18\n \x01(\t\x12\x30\n\x0f\x64\x61tabase_quotas\x18\x0b \x01(\x0b\x32\x17.Ydb.Cms.DatabaseQuotas\"E\n\x15\x41lterDatabaseResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"Q\n\x14ListDatabasesRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\"E\n\x15ListDatabasesResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"$\n\x13ListDatabasesResult\x12\r\n\x05paths\x18\x01 \x03(\t\"`\n\x15RemoveDatabaseRequest\x12\x0c\n\x04path\x18\x01 \x01(\t\x12\x39\n\x10operation_params\x18\x02 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\"F\n\x16RemoveDatabaseResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\x92\x01\n\x16StorageUnitDescription\x12\x0c\n\x04kind\x18\x01 \x01(\t\x12;\n\x06labels\x18\x02 \x03(\x0b\x32+.Ydb.Cms.StorageUnitDescription.LabelsEntry\x1a-\n\x0bLabelsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\"\x9c\x01\n\x1b\x41vailabilityZoneDescription\x12\x0c\n\x04name\x18\x01 \x01(\t\x12@\n\x06labels\x18\x02 \x03(\x0b\x32\x30.Ydb.Cms.AvailabilityZoneDescription.LabelsEntry\x1a-\n\x0bLabelsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\"\xc2\x01\n\x1c\x43omputationalUnitDescription\x12\x0c\n\x04kind\x18\x01 \x01(\t\x12\x41\n\x06labels\x18\x02 \x03(\x0b\x32\x31.Ydb.Cms.ComputationalUnitDescription.LabelsEntry\x12\"\n\x1a\x61llowed_availability_zones\x18\x03 \x03(\t\x1a-\n\x0bLabelsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\"[\n\x1e\x44\x65scribeDatabaseOptionsRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\"O\n\x1f\x44\x65scribeDatabaseOptionsResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\xdd\x01\n\x1d\x44\x65scribeDatabaseOptionsResult\x12\x36\n\rstorage_units\x18\x01 \x03(\x0b\x32\x1f.Ydb.Cms.StorageUnitDescription\x12@\n\x12\x61vailability_zones\x18\x02 \x03(\x0b\x32$.Ydb.Cms.AvailabilityZoneDescription\x12\x42\n\x13\x63omputational_units\x18\x03 \x03(\x0b\x32%.Ydb.Cms.ComputationalUnitDescriptionB\x17\n\x12\x63om.yandex.ydb.cms\xf8\x01\x01\x62\x06proto3'
+  serialized_pb=b'\n&kikimr/public/api/protos/ydb_cms.proto\x12\x07Ydb.Cms\x1a,kikimr/public/api/protos/ydb_operation.proto\"0\n\x0cStorageUnits\x12\x11\n\tunit_kind\x18\x01 \x01(\t\x12\r\n\x05\x63ount\x18\x02 \x01(\x04\"Q\n\x12\x43omputationalUnits\x12\x11\n\tunit_kind\x18\x01 \x01(\t\x12\x19\n\x11\x61vailability_zone\x18\x02 \x01(\t\x12\r\n\x05\x63ount\x18\x03 \x01(\x04\"K\n\x1a\x41llocatedComputationalUnit\x12\x0c\n\x04host\x18\x01 \x01(\t\x12\x0c\n\x04port\x18\x02 \x01(\r\x12\x11\n\tunit_kind\x18\x03 \x01(\t\"s\n\tResources\x12,\n\rstorage_units\x18\x01 \x03(\x0b\x32\x15.Ydb.Cms.StorageUnits\x12\x38\n\x13\x63omputational_units\x18\x02 \x03(\x0b\x32\x1b.Ydb.Cms.ComputationalUnits\"3\n\x13ServerlessResources\x12\x1c\n\x14shared_database_path\x18\x01 \x01(\t\"j\n\x0f\x44\x61tabaseOptions\x12\x1a\n\x12\x64isable_tx_service\x18\x01 \x01(\x08\x12\"\n\x1a\x64isable_external_subdomain\x18\x02 \x01(\x08\x12\x17\n\x0fplan_resolution\x18\x03 \x01(\r\"\x9c\x01\n\x15SchemaOperationQuotas\x12G\n\x13leaky_bucket_quotas\x18\x01 \x03(\x0b\x32*.Ydb.Cms.SchemaOperationQuotas.LeakyBucket\x1a:\n\x0bLeakyBucket\x12\x13\n\x0b\x62ucket_size\x18\x01 \x01(\x01\x12\x16\n\x0e\x62ucket_seconds\x18\x02 \x01(\x04\"\x94\x01\n\x0e\x44\x61tabaseQuotas\x12\x1c\n\x14\x64\x61ta_size_hard_quota\x18\x01 \x01(\x04\x12\x1c\n\x14\x64\x61ta_size_soft_quota\x18\x02 \x01(\x04\x12 \n\x18\x64\x61ta_stream_shards_quota\x18\x03 \x01(\x04\x12$\n\x1cttl_min_run_internal_seconds\x18\x04 \x01(\r\"\xb7\x04\n\x15\x43reateDatabaseRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x0c\n\x04path\x18\x02 \x01(\t\x12\'\n\tresources\x18\x03 \x01(\x0b\x32\x12.Ydb.Cms.ResourcesH\x00\x12.\n\x10shared_resources\x18\x06 \x01(\x0b\x32\x12.Ydb.Cms.ResourcesH\x00\x12<\n\x14serverless_resources\x18\x07 \x01(\x0b\x32\x1c.Ydb.Cms.ServerlessResourcesH\x00\x12)\n\x07options\x18\x04 \x01(\x0b\x32\x18.Ydb.Cms.DatabaseOptions\x12\x42\n\nattributes\x18\x05 \x03(\x0b\x32..Ydb.Cms.CreateDatabaseRequest.AttributesEntry\x12?\n\x17schema_operation_quotas\x18\x08 \x01(\x0b\x32\x1e.Ydb.Cms.SchemaOperationQuotas\x12\x17\n\x0fidempotency_key\x18\t \x01(\t\x12\x30\n\x0f\x64\x61tabase_quotas\x18\n \x01(\x0b\x32\x17.Ydb.Cms.DatabaseQuotas\x1a\x31\n\x0f\x41ttributesEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\x42\x10\n\x0eresources_kind\"F\n\x16\x43reateDatabaseResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"c\n\x18GetDatabaseStatusRequest\x12\x0c\n\x04path\x18\x01 \x01(\t\x12\x39\n\x10operation_params\x18\x02 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\"I\n\x19GetDatabaseStatusResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\x85\x05\n\x17GetDatabaseStatusResult\x12\x0c\n\x04path\x18\x01 \x01(\t\x12\x35\n\x05state\x18\x02 \x01(\x0e\x32&.Ydb.Cms.GetDatabaseStatusResult.State\x12\x30\n\x12required_resources\x18\x03 \x01(\x0b\x32\x12.Ydb.Cms.ResourcesH\x00\x12\x37\n\x19required_shared_resources\x18\x07 \x01(\x0b\x32\x12.Ydb.Cms.ResourcesH\x00\x12<\n\x14serverless_resources\x18\x08 \x01(\x0b\x32\x1c.Ydb.Cms.ServerlessResourcesH\x00\x12/\n\x13\x61llocated_resources\x18\x04 \x01(\x0b\x32\x12.Ydb.Cms.Resources\x12\x41\n\x14registered_resources\x18\x05 \x03(\x0b\x32#.Ydb.Cms.AllocatedComputationalUnit\x12\x12\n\ngeneration\x18\x06 \x01(\x04\x12?\n\x17schema_operation_quotas\x18\t \x01(\x0b\x32\x1e.Ydb.Cms.SchemaOperationQuotas\x12\x30\n\x0f\x64\x61tabase_quotas\x18\n \x01(\x0b\x32\x17.Ydb.Cms.DatabaseQuotas\"o\n\x05State\x12\x15\n\x11STATE_UNSPECIFIED\x10\x00\x12\x0c\n\x08\x43REATING\x10\x01\x12\x0b\n\x07RUNNING\x10\x02\x12\x0c\n\x08REMOVING\x10\x03\x12\x15\n\x11PENDING_RESOURCES\x10\x04\x12\x0f\n\x0b\x43ONFIGURING\x10\x05\x42\x10\n\x0eresources_kind\"\xdd\x05\n\x14\x41lterDatabaseRequest\x12\x0c\n\x04path\x18\x01 \x01(\t\x12?\n\x1a\x63omputational_units_to_add\x18\x02 \x03(\x0b\x32\x1b.Ydb.Cms.ComputationalUnits\x12\x42\n\x1d\x63omputational_units_to_remove\x18\x03 \x03(\x0b\x32\x1b.Ydb.Cms.ComputationalUnits\x12\x33\n\x14storage_units_to_add\x18\x04 \x03(\x0b\x32\x15.Ydb.Cms.StorageUnits\x12L\n\x1f\x63omputational_units_to_register\x18\x05 \x03(\x0b\x32#.Ydb.Cms.AllocatedComputationalUnit\x12N\n!computational_units_to_deregister\x18\x06 \x03(\x0b\x32#.Ydb.Cms.AllocatedComputationalUnit\x12\x39\n\x10operation_params\x18\x07 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x12\n\ngeneration\x18\x08 \x01(\x04\x12?\n\x17schema_operation_quotas\x18\t \x01(\x0b\x32\x1e.Ydb.Cms.SchemaOperationQuotas\x12\x17\n\x0fidempotency_key\x18\n \x01(\t\x12\x30\n\x0f\x64\x61tabase_quotas\x18\x0b \x01(\x0b\x32\x17.Ydb.Cms.DatabaseQuotas\x12L\n\x10\x61lter_attributes\x18\x0c \x03(\x0b\x32\x32.Ydb.Cms.AlterDatabaseRequest.AlterAttributesEntry\x1a\x36\n\x14\x41lterAttributesEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\"E\n\x15\x41lterDatabaseResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"Q\n\x14ListDatabasesRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\"E\n\x15ListDatabasesResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"$\n\x13ListDatabasesResult\x12\r\n\x05paths\x18\x01 \x03(\t\"`\n\x15RemoveDatabaseRequest\x12\x0c\n\x04path\x18\x01 \x01(\t\x12\x39\n\x10operation_params\x18\x02 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\"F\n\x16RemoveDatabaseResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\x92\x01\n\x16StorageUnitDescription\x12\x0c\n\x04kind\x18\x01 \x01(\t\x12;\n\x06labels\x18\x02 \x03(\x0b\x32+.Ydb.Cms.StorageUnitDescription.LabelsEntry\x1a-\n\x0bLabelsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\"\x9c\x01\n\x1b\x41vailabilityZoneDescription\x12\x0c\n\x04name\x18\x01 \x01(\t\x12@\n\x06labels\x18\x02 \x03(\x0b\x32\x30.Ydb.Cms.AvailabilityZoneDescription.LabelsEntry\x1a-\n\x0bLabelsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\"\xc2\x01\n\x1c\x43omputationalUnitDescription\x12\x0c\n\x04kind\x18\x01 \x01(\t\x12\x41\n\x06labels\x18\x02 \x03(\x0b\x32\x31.Ydb.Cms.ComputationalUnitDescription.LabelsEntry\x12\"\n\x1a\x61llowed_availability_zones\x18\x03 \x03(\t\x1a-\n\x0bLabelsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\"[\n\x1e\x44\x65scribeDatabaseOptionsRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\"O\n\x1f\x44\x65scribeDatabaseOptionsResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\xdd\x01\n\x1d\x44\x65scribeDatabaseOptionsResult\x12\x36\n\rstorage_units\x18\x01 \x03(\x0b\x32\x1f.Ydb.Cms.StorageUnitDescription\x12@\n\x12\x61vailability_zones\x18\x02 \x03(\x0b\x32$.Ydb.Cms.AvailabilityZoneDescription\x12\x42\n\x13\x63omputational_units\x18\x03 \x03(\x0b\x32%.Ydb.Cms.ComputationalUnitDescriptionB\x17\n\x12\x63om.yandex.ydb.cms\xf8\x01\x01\x62\x06proto3'
   ,
   dependencies=[kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2.DESCRIPTOR,])
 
@@ -66,8 +66,8 @@ _GETDATABASESTATUSRESULT_STATE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=2193,
-  serialized_end=2304,
+  serialized_start=2230,
+  serialized_end=2341,
 )
 _sym_db.RegisterEnumDescriptor(_GETDATABASESTATUSRESULT_STATE)
 
@@ -320,45 +320,6 @@ _DATABASEOPTIONS = _descriptor.Descriptor(
 )
 
 
-_ATTRIBUTE = _descriptor.Descriptor(
-  name='Attribute',
-  full_name='Ydb.Cms.Attribute',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  create_key=_descriptor._internal_create_key,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='name', full_name='Ydb.Cms.Attribute.name', index=0,
-      number=1, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=b"".decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='value', full_name='Ydb.Cms.Attribute.value', index=1,
-      number=2, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=b"".decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  serialized_options=None,
-  is_extendable=False,
-  syntax='proto3',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=585,
-  serialized_end=625,
-)
-
-
 _SCHEMAOPERATIONQUOTAS_LEAKYBUCKET = _descriptor.Descriptor(
   name='LeakyBucket',
   full_name='Ydb.Cms.SchemaOperationQuotas.LeakyBucket',
@@ -393,8 +354,8 @@ _SCHEMAOPERATIONQUOTAS_LEAKYBUCKET = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=726,
-  serialized_end=784,
+  serialized_start=684,
+  serialized_end=742,
 )
 
 _SCHEMAOPERATIONQUOTAS = _descriptor.Descriptor(
@@ -424,8 +385,8 @@ _SCHEMAOPERATIONQUOTAS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=628,
-  serialized_end=784,
+  serialized_start=586,
+  serialized_end=742,
 )
 
 
@@ -477,10 +438,48 @@ _DATABASEQUOTAS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=787,
-  serialized_end=935,
+  serialized_start=745,
+  serialized_end=893,
 )
 
+
+_CREATEDATABASEREQUEST_ATTRIBUTESENTRY = _descriptor.Descriptor(
+  name='AttributesEntry',
+  full_name='Ydb.Cms.CreateDatabaseRequest.AttributesEntry',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='key', full_name='Ydb.Cms.CreateDatabaseRequest.AttributesEntry.key', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='value', full_name='Ydb.Cms.CreateDatabaseRequest.AttributesEntry.value', index=1,
+      number=2, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=b'8\001',
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=1396,
+  serialized_end=1445,
+)
 
 _CREATEDATABASEREQUEST = _descriptor.Descriptor(
   name='CreateDatabaseRequest',
@@ -563,7 +562,7 @@ _CREATEDATABASEREQUEST = _descriptor.Descriptor(
   ],
   extensions=[
   ],
-  nested_types=[],
+  nested_types=[_CREATEDATABASEREQUEST_ATTRIBUTESENTRY, ],
   enum_types=[
   ],
   serialized_options=None,
@@ -577,8 +576,8 @@ _CREATEDATABASEREQUEST = _descriptor.Descriptor(
       create_key=_descriptor._internal_create_key,
     fields=[]),
   ],
-  serialized_start=938,
-  serialized_end=1426,
+  serialized_start=896,
+  serialized_end=1463,
 )
 
 
@@ -609,8 +608,8 @@ _CREATEDATABASERESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1428,
-  serialized_end=1498,
+  serialized_start=1465,
+  serialized_end=1535,
 )
 
 
@@ -648,8 +647,8 @@ _GETDATABASESTATUSREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1500,
-  serialized_end=1599,
+  serialized_start=1537,
+  serialized_end=1636,
 )
 
 
@@ -680,8 +679,8 @@ _GETDATABASESTATUSRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1601,
-  serialized_end=1674,
+  serialized_start=1638,
+  serialized_end=1711,
 )
 
 
@@ -781,10 +780,48 @@ _GETDATABASESTATUSRESULT = _descriptor.Descriptor(
       create_key=_descriptor._internal_create_key,
     fields=[]),
   ],
-  serialized_start=1677,
-  serialized_end=2322,
+  serialized_start=1714,
+  serialized_end=2359,
 )
 
+
+_ALTERDATABASEREQUEST_ALTERATTRIBUTESENTRY = _descriptor.Descriptor(
+  name='AlterAttributesEntry',
+  full_name='Ydb.Cms.AlterDatabaseRequest.AlterAttributesEntry',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='key', full_name='Ydb.Cms.AlterDatabaseRequest.AlterAttributesEntry.key', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='value', full_name='Ydb.Cms.AlterDatabaseRequest.AlterAttributesEntry.value', index=1,
+      number=2, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=b'8\001',
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=3041,
+  serialized_end=3095,
+)
 
 _ALTERDATABASEREQUEST = _descriptor.Descriptor(
   name='AlterDatabaseRequest',
@@ -871,10 +908,17 @@ _ALTERDATABASEREQUEST = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='alter_attributes', full_name='Ydb.Cms.AlterDatabaseRequest.alter_attributes', index=11,
+      number=12, type=11, cpp_type=10, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
   ],
   extensions=[
   ],
-  nested_types=[],
+  nested_types=[_ALTERDATABASEREQUEST_ALTERATTRIBUTESENTRY, ],
   enum_types=[
   ],
   serialized_options=None,
@@ -883,8 +927,8 @@ _ALTERDATABASEREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2325,
-  serialized_end=2924,
+  serialized_start=2362,
+  serialized_end=3095,
 )
 
 
@@ -915,8 +959,8 @@ _ALTERDATABASERESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2926,
-  serialized_end=2995,
+  serialized_start=3097,
+  serialized_end=3166,
 )
 
 
@@ -947,8 +991,8 @@ _LISTDATABASESREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2997,
-  serialized_end=3078,
+  serialized_start=3168,
+  serialized_end=3249,
 )
 
 
@@ -979,8 +1023,8 @@ _LISTDATABASESRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3080,
-  serialized_end=3149,
+  serialized_start=3251,
+  serialized_end=3320,
 )
 
 
@@ -1011,8 +1055,8 @@ _LISTDATABASESRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3151,
-  serialized_end=3187,
+  serialized_start=3322,
+  serialized_end=3358,
 )
 
 
@@ -1050,8 +1094,8 @@ _REMOVEDATABASEREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3189,
-  serialized_end=3285,
+  serialized_start=3360,
+  serialized_end=3456,
 )
 
 
@@ -1082,8 +1126,8 @@ _REMOVEDATABASERESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3287,
-  serialized_end=3357,
+  serialized_start=3458,
+  serialized_end=3528,
 )
 
 
@@ -1121,8 +1165,8 @@ _STORAGEUNITDESCRIPTION_LABELSENTRY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3461,
-  serialized_end=3506,
+  serialized_start=3632,
+  serialized_end=3677,
 )
 
 _STORAGEUNITDESCRIPTION = _descriptor.Descriptor(
@@ -1159,8 +1203,8 @@ _STORAGEUNITDESCRIPTION = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3360,
-  serialized_end=3506,
+  serialized_start=3531,
+  serialized_end=3677,
 )
 
 
@@ -1198,8 +1242,8 @@ _AVAILABILITYZONEDESCRIPTION_LABELSENTRY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3461,
-  serialized_end=3506,
+  serialized_start=3632,
+  serialized_end=3677,
 )
 
 _AVAILABILITYZONEDESCRIPTION = _descriptor.Descriptor(
@@ -1236,8 +1280,8 @@ _AVAILABILITYZONEDESCRIPTION = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3509,
-  serialized_end=3665,
+  serialized_start=3680,
+  serialized_end=3836,
 )
 
 
@@ -1275,8 +1319,8 @@ _COMPUTATIONALUNITDESCRIPTION_LABELSENTRY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3461,
-  serialized_end=3506,
+  serialized_start=3632,
+  serialized_end=3677,
 )
 
 _COMPUTATIONALUNITDESCRIPTION = _descriptor.Descriptor(
@@ -1320,8 +1364,8 @@ _COMPUTATIONALUNITDESCRIPTION = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3668,
-  serialized_end=3862,
+  serialized_start=3839,
+  serialized_end=4033,
 )
 
 
@@ -1352,8 +1396,8 @@ _DESCRIBEDATABASEOPTIONSREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3864,
-  serialized_end=3955,
+  serialized_start=4035,
+  serialized_end=4126,
 )
 
 
@@ -1384,8 +1428,8 @@ _DESCRIBEDATABASEOPTIONSRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3957,
-  serialized_end=4036,
+  serialized_start=4128,
+  serialized_end=4207,
 )
 
 
@@ -1430,20 +1474,21 @@ _DESCRIBEDATABASEOPTIONSRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=4039,
-  serialized_end=4260,
+  serialized_start=4210,
+  serialized_end=4431,
 )
 
 _RESOURCES.fields_by_name['storage_units'].message_type = _STORAGEUNITS
 _RESOURCES.fields_by_name['computational_units'].message_type = _COMPUTATIONALUNITS
 _SCHEMAOPERATIONQUOTAS_LEAKYBUCKET.containing_type = _SCHEMAOPERATIONQUOTAS
 _SCHEMAOPERATIONQUOTAS.fields_by_name['leaky_bucket_quotas'].message_type = _SCHEMAOPERATIONQUOTAS_LEAKYBUCKET
+_CREATEDATABASEREQUEST_ATTRIBUTESENTRY.containing_type = _CREATEDATABASEREQUEST
 _CREATEDATABASEREQUEST.fields_by_name['operation_params'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2._OPERATIONPARAMS
 _CREATEDATABASEREQUEST.fields_by_name['resources'].message_type = _RESOURCES
 _CREATEDATABASEREQUEST.fields_by_name['shared_resources'].message_type = _RESOURCES
 _CREATEDATABASEREQUEST.fields_by_name['serverless_resources'].message_type = _SERVERLESSRESOURCES
 _CREATEDATABASEREQUEST.fields_by_name['options'].message_type = _DATABASEOPTIONS
-_CREATEDATABASEREQUEST.fields_by_name['attributes'].message_type = _ATTRIBUTE
+_CREATEDATABASEREQUEST.fields_by_name['attributes'].message_type = _CREATEDATABASEREQUEST_ATTRIBUTESENTRY
 _CREATEDATABASEREQUEST.fields_by_name['schema_operation_quotas'].message_type = _SCHEMAOPERATIONQUOTAS
 _CREATEDATABASEREQUEST.fields_by_name['database_quotas'].message_type = _DATABASEQUOTAS
 _CREATEDATABASEREQUEST.oneofs_by_name['resources_kind'].fields.append(
@@ -1476,6 +1521,7 @@ _GETDATABASESTATUSRESULT.fields_by_name['required_shared_resources'].containing_
 _GETDATABASESTATUSRESULT.oneofs_by_name['resources_kind'].fields.append(
   _GETDATABASESTATUSRESULT.fields_by_name['serverless_resources'])
 _GETDATABASESTATUSRESULT.fields_by_name['serverless_resources'].containing_oneof = _GETDATABASESTATUSRESULT.oneofs_by_name['resources_kind']
+_ALTERDATABASEREQUEST_ALTERATTRIBUTESENTRY.containing_type = _ALTERDATABASEREQUEST
 _ALTERDATABASEREQUEST.fields_by_name['computational_units_to_add'].message_type = _COMPUTATIONALUNITS
 _ALTERDATABASEREQUEST.fields_by_name['computational_units_to_remove'].message_type = _COMPUTATIONALUNITS
 _ALTERDATABASEREQUEST.fields_by_name['storage_units_to_add'].message_type = _STORAGEUNITS
@@ -1484,6 +1530,7 @@ _ALTERDATABASEREQUEST.fields_by_name['computational_units_to_deregister'].messag
 _ALTERDATABASEREQUEST.fields_by_name['operation_params'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2._OPERATIONPARAMS
 _ALTERDATABASEREQUEST.fields_by_name['schema_operation_quotas'].message_type = _SCHEMAOPERATIONQUOTAS
 _ALTERDATABASEREQUEST.fields_by_name['database_quotas'].message_type = _DATABASEQUOTAS
+_ALTERDATABASEREQUEST.fields_by_name['alter_attributes'].message_type = _ALTERDATABASEREQUEST_ALTERATTRIBUTESENTRY
 _ALTERDATABASERESPONSE.fields_by_name['operation'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2._OPERATION
 _LISTDATABASESREQUEST.fields_by_name['operation_params'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2._OPERATIONPARAMS
 _LISTDATABASESRESPONSE.fields_by_name['operation'].message_type = kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2._OPERATION
@@ -1506,7 +1553,6 @@ DESCRIPTOR.message_types_by_name['AllocatedComputationalUnit'] = _ALLOCATEDCOMPU
 DESCRIPTOR.message_types_by_name['Resources'] = _RESOURCES
 DESCRIPTOR.message_types_by_name['ServerlessResources'] = _SERVERLESSRESOURCES
 DESCRIPTOR.message_types_by_name['DatabaseOptions'] = _DATABASEOPTIONS
-DESCRIPTOR.message_types_by_name['Attribute'] = _ATTRIBUTE
 DESCRIPTOR.message_types_by_name['SchemaOperationQuotas'] = _SCHEMAOPERATIONQUOTAS
 DESCRIPTOR.message_types_by_name['DatabaseQuotas'] = _DATABASEQUOTAS
 DESCRIPTOR.message_types_by_name['CreateDatabaseRequest'] = _CREATEDATABASEREQUEST
@@ -1571,13 +1617,6 @@ DatabaseOptions = _reflection.GeneratedProtocolMessageType('DatabaseOptions', (_
   })
 _sym_db.RegisterMessage(DatabaseOptions)
 
-Attribute = _reflection.GeneratedProtocolMessageType('Attribute', (_message.Message,), {
-  'DESCRIPTOR' : _ATTRIBUTE,
-  '__module__' : 'kikimr.public.api.protos.ydb_cms_pb2'
-  # @@protoc_insertion_point(class_scope:Ydb.Cms.Attribute)
-  })
-_sym_db.RegisterMessage(Attribute)
-
 SchemaOperationQuotas = _reflection.GeneratedProtocolMessageType('SchemaOperationQuotas', (_message.Message,), {
 
   'LeakyBucket' : _reflection.GeneratedProtocolMessageType('LeakyBucket', (_message.Message,), {
@@ -1601,11 +1640,19 @@ DatabaseQuotas = _reflection.GeneratedProtocolMessageType('DatabaseQuotas', (_me
 _sym_db.RegisterMessage(DatabaseQuotas)
 
 CreateDatabaseRequest = _reflection.GeneratedProtocolMessageType('CreateDatabaseRequest', (_message.Message,), {
+
+  'AttributesEntry' : _reflection.GeneratedProtocolMessageType('AttributesEntry', (_message.Message,), {
+    'DESCRIPTOR' : _CREATEDATABASEREQUEST_ATTRIBUTESENTRY,
+    '__module__' : 'kikimr.public.api.protos.ydb_cms_pb2'
+    # @@protoc_insertion_point(class_scope:Ydb.Cms.CreateDatabaseRequest.AttributesEntry)
+    })
+  ,
   'DESCRIPTOR' : _CREATEDATABASEREQUEST,
   '__module__' : 'kikimr.public.api.protos.ydb_cms_pb2'
   # @@protoc_insertion_point(class_scope:Ydb.Cms.CreateDatabaseRequest)
   })
 _sym_db.RegisterMessage(CreateDatabaseRequest)
+_sym_db.RegisterMessage(CreateDatabaseRequest.AttributesEntry)
 
 CreateDatabaseResponse = _reflection.GeneratedProtocolMessageType('CreateDatabaseResponse', (_message.Message,), {
   'DESCRIPTOR' : _CREATEDATABASERESPONSE,
@@ -1636,11 +1683,19 @@ GetDatabaseStatusResult = _reflection.GeneratedProtocolMessageType('GetDatabaseS
 _sym_db.RegisterMessage(GetDatabaseStatusResult)
 
 AlterDatabaseRequest = _reflection.GeneratedProtocolMessageType('AlterDatabaseRequest', (_message.Message,), {
+
+  'AlterAttributesEntry' : _reflection.GeneratedProtocolMessageType('AlterAttributesEntry', (_message.Message,), {
+    'DESCRIPTOR' : _ALTERDATABASEREQUEST_ALTERATTRIBUTESENTRY,
+    '__module__' : 'kikimr.public.api.protos.ydb_cms_pb2'
+    # @@protoc_insertion_point(class_scope:Ydb.Cms.AlterDatabaseRequest.AlterAttributesEntry)
+    })
+  ,
   'DESCRIPTOR' : _ALTERDATABASEREQUEST,
   '__module__' : 'kikimr.public.api.protos.ydb_cms_pb2'
   # @@protoc_insertion_point(class_scope:Ydb.Cms.AlterDatabaseRequest)
   })
 _sym_db.RegisterMessage(AlterDatabaseRequest)
+_sym_db.RegisterMessage(AlterDatabaseRequest.AlterAttributesEntry)
 
 AlterDatabaseResponse = _reflection.GeneratedProtocolMessageType('AlterDatabaseResponse', (_message.Message,), {
   'DESCRIPTOR' : _ALTERDATABASERESPONSE,
@@ -1752,6 +1807,8 @@ _sym_db.RegisterMessage(DescribeDatabaseOptionsResult)
 
 
 DESCRIPTOR._options = None
+_CREATEDATABASEREQUEST_ATTRIBUTESENTRY._options = None
+_ALTERDATABASEREQUEST_ALTERATTRIBUTESENTRY._options = None
 _STORAGEUNITDESCRIPTION_LABELSENTRY._options = None
 _AVAILABILITYZONEDESCRIPTION_LABELSENTRY._options = None
 _COMPUTATIONALUNITDESCRIPTION_LABELSENTRY._options = None
