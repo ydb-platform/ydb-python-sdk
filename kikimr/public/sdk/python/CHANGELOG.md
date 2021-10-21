@@ -1,6 +1,10 @@
+## 1.1.14 ##
+
+* support session graceful shutdown protocol.
+
 ## 1.1.11 ##
 
- * speedup driver initialization and first driver.wait
+* speedup driver initialization and first driver.wait
 
 ## 1.1.10 ##
 

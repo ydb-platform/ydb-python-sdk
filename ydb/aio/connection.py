@@ -2,7 +2,7 @@ import logging
 import asyncio
 import typing
 from typing import Any, Tuple, Callable, Iterable
-
+import collections
 import grpc
 
 from ydb import _apis, _utilities
@@ -60,7 +60,7 @@ async def _construct_metadata(driver_config, settings):
 
 
 class _RpcState(RpcState):
-    __slots__ = ('rpc', 'request_id', 'response_future', 'result_future', 'rpc_name', 'endpoint')
+    __slots__ = ('rpc', 'request_id', 'rendezvous', 'result_future', 'rpc_name', 'endpoint', 'metadata_kv', '_trailing_metadata')
 
     def __init__(self, stub_instance: Any, rpc_name: str, endpoint: str):
         super().__init__(stub_instance, rpc_name, endpoint)
@@ -68,8 +68,17 @@ class _RpcState(RpcState):
     async def __call__(self, *args, **kwargs):
         resp = self.rpc(*args, **kwargs)
         if hasattr(resp, "__await__"):  # Check to support async iterators from streams
-            return await resp
+            response = await resp
+            self._trailing_metadata = await resp.trailing_metadata()
+            return response
         return resp
+
+    def trailing_metadata(self):
+        if self.metadata_kv is None:
+            self.metadata_kv = collections.defaultdict(set)
+            for key, value in self._trailing_metadata:
+                self.metadata_kv[key].add(value)
+        return self.metadata_kv
 
     def future(self, *args, **kwargs):
         raise NotImplementedError
