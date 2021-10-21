@@ -6,8 +6,6 @@ from models import (
     ReservationCreateRequest,
     ReservationCancelRequest,
     ReservationCancelResponse,
-    Table,
-    Reservation
 )
 
 
@@ -57,4 +55,3 @@ class Controller(object):
             logging.warning(f'failed to cancel reservation for {request.phone} '
                             f'{request.dt} due to {repr(e)}')
             return ReservationCancelResponse(success=False)
-

@@ -141,7 +141,7 @@ class ImportClient(object):
             (
                 self._driver,
             )
-       )
+        )
 
     def import_from_s3(self, settings):
         return self._driver(

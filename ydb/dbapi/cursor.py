@@ -123,7 +123,9 @@ class Cursor(object):
                     ]
                     self.description = description
                 for row in chunk.result_set.rows:
-                    yield row[::]  # returns tuple to be compatible with SqlAlchemy and because of this PEP to return a sequence: https://www.python.org/dev/peps/pep-0249/#fetchmany
+                    # returns tuple to be compatible with SqlAlchemy and because
+                    #  of this PEP to return a sequence: https://www.python.org/dev/peps/pep-0249/#fetchmany
+                    yield row[::]
         except ydb.Error as e:
             raise DatabaseError(e.message, e.issues, e.status)
 

@@ -1,6 +1,5 @@
 import pytest
 import ydb
-from ydb.aio.driver import Driver
 
 
 @pytest.mark.asyncio

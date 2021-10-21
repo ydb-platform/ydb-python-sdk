@@ -5,6 +5,7 @@ services:
     restart: always
     ports:
       - 2135:2135
+      - 2136:2136
     hostname: 0.0.0.0
     environment:
       - YDB_USE_IN_MEMORY_PDISKS=true

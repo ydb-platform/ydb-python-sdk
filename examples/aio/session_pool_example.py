@@ -45,6 +45,7 @@ async def create_table(session, query):
     await session.execute_scheme(query)
     print("created table, query: ", query)
 
+
 async def main():
     endpoint = os.getenv('YDB_ENDPOINT')
     database = os.getenv('YDB_DATABASE')

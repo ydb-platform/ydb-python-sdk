@@ -1,6 +1,5 @@
 import logging
 import asyncio
-import typing
 from typing import Any, Tuple, Callable, Iterable
 import collections
 import grpc

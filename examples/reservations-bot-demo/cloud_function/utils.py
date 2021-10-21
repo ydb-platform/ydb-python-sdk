@@ -1,4 +1,3 @@
-import os
 import logging
 import contextlib
 import ydb
@@ -29,4 +28,3 @@ def session_pool_context(
                 yield session_pool
             except Exception as e:
                 logging.critical(f"failed to create session pool due to {repr(e)}")
-

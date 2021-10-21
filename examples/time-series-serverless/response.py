@@ -31,4 +31,3 @@ class Conflict(ErrorResponse):
 
 class BadRequest(ErrorResponse):
     status = 400
-

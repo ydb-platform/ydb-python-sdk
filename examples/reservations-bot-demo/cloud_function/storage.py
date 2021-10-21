@@ -115,4 +115,3 @@ class Storage(object):
 
         with session_pool_context(self._driver_config) as session_pool:
             session_pool.retry_operation_sync(transaction)
-
