@@ -1,12 +1,9 @@
-import threading
-
 import asyncio
 from unittest.mock import MagicMock
 
 from ydb.aio.driver import Driver
 import pytest
 import ydb
-import os
 
 
 @pytest.mark.asyncio
@@ -45,8 +42,9 @@ async def test_disconnect_by_call(endpoint, database, docker_project):
 
     try:
         await driver.scheme_client.make_directory("/local/lol")
-    except Exception as e:
+    except Exception:
         pass
+
     await asyncio.sleep(5)
     assert len(driver._store.connections) == 0
     docker_project.start()
@@ -132,4 +130,3 @@ async def test_good_discovery_interval(driver):
     driver._discovery._wake_up_event.set()
     await asyncio.sleep(1)
     assert mock.called
-

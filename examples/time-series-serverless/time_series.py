@@ -35,7 +35,7 @@ def do_handle(event: Dict, _) -> Response:
         end_ms = query_string['end']
         interval_ms = query_string['interval']
     except KeyError:
-        return BadRequest(f'Incorrect function call: required parameters missing')
+        return BadRequest('Incorrect function call: required parameters missing')
 
     try:
         parameters = Parameters.from_strings(start_ms, end_ms, interval_ms, mean, sigma)

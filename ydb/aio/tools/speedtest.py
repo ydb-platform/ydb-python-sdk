@@ -2,7 +2,6 @@ from ydb.aio.driver import Driver as AioDriver
 from ydb import Driver as SyncDriver
 import ydb
 
-import sys
 import asyncio
 import time
 from concurrent.futures import TimeoutError, ThreadPoolExecutor

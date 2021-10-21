@@ -51,4 +51,5 @@ def main():
             result = pool.retry_operation_sync(execute_query)
             assert result[0].rows[0].cnt == 1
 
+
 main()

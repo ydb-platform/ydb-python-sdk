@@ -230,7 +230,7 @@ class ExportClient(object):
             (
                 self._driver,
             )
-       )
+        )
 
     def export_to_s3(self, settings):
         return self._driver(

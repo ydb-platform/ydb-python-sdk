@@ -1,5 +1,6 @@
 from . import connection as conn_impl
 
+from ydb import _apis, settings as settings_impl
 from ydb.resolver import (
     DiscoveryResult,
     DiscoveryEndpointsResolver as _DiscoveryEndpointsResolver,
@@ -17,8 +18,6 @@ class _FakeLock:
     def __exit__(self, exc_type, exc_val, exc_tb):
         pass
 
-from ydb import _apis, settings as settings_impl
-
 
 class DiscoveryEndpointsResolver(_DiscoveryEndpointsResolver):
     def __init__(self, driver_config):
@@ -31,7 +30,7 @@ class DiscoveryEndpointsResolver(_DiscoveryEndpointsResolver):
         connection = conn_impl.Connection(endpoint, self._driver_config)
         try:
             await connection.connection_ready()
-        except Exception as e:
+        except Exception:
             self._add_debug_details(
                 "Failed to establish connection to YDB discovery endpoint: \"%s\". Check endpoint correctness." % endpoint)
             return None

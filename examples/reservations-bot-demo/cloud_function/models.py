@@ -35,4 +35,3 @@ class ReservationCancelRequest(BaseModel):
 
 class ReservationCancelResponse(BaseModel):
     success: bool
-

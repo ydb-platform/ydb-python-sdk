@@ -5,6 +5,10 @@ from . import credentials as credentials_impl, table, scheme, pool, auth_helpers
 import six
 import os
 
+if six.PY2:
+    Any = None
+else:
+    from typing import Any # noqa
 
 _grpcs_protocol = 'grpcs://'
 _grpc_protocol = 'grpc://'
@@ -33,7 +37,7 @@ def parse_connection_string(connection_string):
     database = b.get('database', [])
     assert len(database) > 0
 
-    return p.scheme + "://" + p.netloc , database[0]
+    return p.scheme + "://" + p.netloc, database[0]
 
 
 def default_credentials(credentials=None, tracer=None):

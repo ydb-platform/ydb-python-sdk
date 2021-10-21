@@ -23,4 +23,3 @@ class Config(object):
     @classmethod
     def reservation_period_minutes(cls):
         return cls._reservation_period_minutes
-

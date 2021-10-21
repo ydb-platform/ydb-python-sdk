@@ -11,5 +11,3 @@ class ConnectionFailure(CloudFunctionException):
 
 class ValidationError(CloudFunctionException):
     error = "Incoming parameters invalid"
-
-

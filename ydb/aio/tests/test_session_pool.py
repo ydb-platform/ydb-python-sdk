@@ -2,7 +2,6 @@ import asyncio
 
 import pytest
 import ydb
-import time
 
 
 @pytest.mark.asyncio
@@ -16,7 +15,7 @@ async def test_simple_acquire(driver):
     assert session.initialized()
 
     await pool.release(session)
-    s = await pool.acquire()
+    await pool.acquire()
     assert session.initialized()
     await pool.stop(timeout=10)
 

@@ -3,8 +3,6 @@ import os
 import pytest
 import ydb
 
-pytest_plugins = ["docker_compose"]
-
 
 @pytest.fixture(scope="module")
 def docker_compose_file(pytestconfig):
@@ -49,4 +47,3 @@ async def driver(endpoint, database, request):
     request.addfinalizer(teardown)
 
     return driver
-

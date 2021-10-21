@@ -37,4 +37,3 @@ class Parameters:
 
         if self.interval_us == 0:
             raise ValidationError
-

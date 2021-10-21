@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 import setuptools
-import os
-
 try:
     from ydb_version import VERSION
 except ImportError:

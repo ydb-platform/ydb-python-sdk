@@ -463,5 +463,5 @@ class SessionPool:
     async def wait_until_min_size(self):
         await asyncio.gather(*self._min_pool_tasks)
 
-    def checkout(self, timeout:float = None, retry_timeout:float = None):
+    def checkout(self, timeout: float = None, retry_timeout: float = None):
         return SessionCheckout(self, timeout, retry_timeout=retry_timeout)
