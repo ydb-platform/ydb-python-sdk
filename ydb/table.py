@@ -1435,6 +1435,10 @@ class BaseSession(ISession):
     def pending_query(self):
         return self._state.pending_query()
 
+    def closing(self):
+        """Returns True if session is closing."""
+        return self._state.closing()
+
     def reset(self):
         """
         Perform session state reset (that includes cleanup of the session_id, query cache, and etc.)

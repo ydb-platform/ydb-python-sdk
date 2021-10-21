@@ -60,7 +60,7 @@ class SessionPoolImpl(object):
             while True:
                 try:
                     _, session = self._active_queue.get(block=False)
-                    self._destroy(session)
+                    self._destroy(session, "session-pool-terminated")
 
                 except queue.Empty:
                     break
@@ -130,9 +130,10 @@ class SessionPoolImpl(object):
             return True
         return self._active_count + delta >= self._min_pool_size
 
-    def _destroy(self, session):
-        self._logger.debug("Requested session destroy: %s.", session)
+    def _destroy(self, session, reason):
+        self._logger.debug("Requested session destroy: %s, reason: %s", session, reason)
         with self._lock:
+            tracing.trace(self.tracer, {"destroy.reason": reason})
             self._active_count -= 1
             self._logger.debug("Session %s is no longer active. Current active count %d.", session, self._active_count)
             cnt_waiters = len(self._waiters)
@@ -152,16 +153,16 @@ class SessionPoolImpl(object):
     def put(self, session):
         with self._lock:
             self._logger.debug("Put on session %s", session)
+            if session.closing():
+                self._destroy(session, "session-close")
+                return False
+
             if session.pending_query():
-                tracing.trace(self.tracer, {"put.session_destroyed.reason": "pending_query", "put.session_destroyed": True})
-                self._destroy(session)
+                self._destroy(session, "pending-query")
                 return False
 
             if not session.initialized() or self._should_stop.is_set():
-                tracing.trace(self.tracer, {
-                    "put.session_destroyed.reason": "session not initialized", "put.session_destroyed": True
-                })
-                self._destroy(session)
+                self._destroy(session, "not-initialized")
                 # we should probably prepare replacement session here
                 return False
 
@@ -211,14 +212,14 @@ class SessionPoolImpl(object):
 
     def _prepare(self, session):
         if self._should_stop.is_set():
-            self._destroy(session)
+            self._destroy(session, "session-pool-terminated")
             return
 
         with self._lock:
             self._logger.debug("Preparing session %s", session)
             if len(self._waiters) < 1 and self._is_min_pool_size_satisfied(delta=-1):
                 self._logger.info("No pending waiters, will destroy session")
-                return self._destroy(session)
+                return self._destroy(session, "session-useless")
 
             f = session.async_create(self._req_settings)
             f.add_done_callback(
@@ -296,12 +297,9 @@ class SessionPoolImpl(object):
             # additional logic should be added to check
             # current status of the session
         except issues.Error:
-            self._destroy(
-                session)
+            self._destroy(session, "keep-alive-error")
         except Exception:
-
-            self._destroy(
-                session)
+            self._destroy(session, "keep-alive-error")
 
     def acquire(self, blocking=True, timeout=None):
         waiter = self.subscribe()
@@ -354,7 +352,7 @@ class SessionPoolImpl(object):
             return False
 
         if self._should_stop.is_set():
-            self._destroy(session)
+            self._destroy(session, "session-pool-terminated")
             return False
 
         f = session.async_keep_alive(self._req_settings)

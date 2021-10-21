@@ -2,11 +2,21 @@ import functools
 from google.protobuf.empty_pb2 import Empty
 from . import issues, types, _apis, convert, scheme, operation, _utilities
 
+X_YDB_SERVER_HINTS = 'x-ydb-server-hints'
+X_YDB_SESSION_CLOSE = 'session-close'
+
+
+def _check_session_is_closing(rpc_state, session_state):
+    metadata = rpc_state.trailing_metadata()
+    if X_YDB_SESSION_CLOSE in metadata.get(X_YDB_SERVER_HINTS, []):
+        session_state.set_closing()
+
 
 def bad_session_handler(func):
     @functools.wraps(func)
     def decorator(rpc_state, response_pb, session_state, *args, **kwargs):
         try:
+            _check_session_is_closing(rpc_state, session_state)
             return func(rpc_state, response_pb, session_state, *args, **kwargs)
         except issues.BadSession:
             session_state.reset()
@@ -380,6 +390,7 @@ class SessionState(object):
         self._default = (None, None)
         self._pending_query = False
         self._endpoint = None
+        self._closing = False
         self._client_cache_enabled = table_client_settings._client_query_cache_enabled
         self.table_client_settings = table_client_settings
 
@@ -395,6 +406,13 @@ class SessionState(object):
     def attach_endpoint(self, endpoint):
         self._endpoint = endpoint
         return self
+
+    def set_closing(self):
+        self._closing = True
+        return self
+
+    def closing(self):
+        return self._closing
 
     @property
     def endpoint(self):

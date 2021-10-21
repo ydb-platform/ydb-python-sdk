@@ -4,6 +4,7 @@ import copy
 from concurrent import futures
 import uuid
 import threading
+import collections
 
 from google.protobuf import text_format
 import grpc
@@ -104,7 +105,7 @@ def _on_response_callback(rpc_state, call_state_unref, wrap_result=None, on_disc
     """
     try:
         logger.debug("%s: on response callback started", rpc_state)
-        response = rpc_state.response_future.result()
+        response = rpc_state.rendezvous.result()
         _log_response(rpc_state, response)
         response = response if wrap_result is None else wrap_result(rpc_state, response, *wrap_args)
         rpc_state.result_future.set_result(response)
@@ -196,34 +197,50 @@ def _construct_channel_options(driver_config):
 
 
 class _RpcState(object):
-    __slots__ = ('rpc', 'request_id', 'response_future', 'result_future', 'rpc_name', 'endpoint')
+    __slots__ = ('rpc', 'request_id', 'result_future', 'rpc_name', 'endpoint', 'rendezvous', 'metadata_kv')
 
     def __init__(self, stub_instance, rpc_name, endpoint):
         """Stores all RPC related data"""
         self.rpc_name = rpc_name
         self.rpc = getattr(stub_instance, rpc_name)
         self.request_id = uuid.uuid4()
-        self.response_future = None
-        self.result_future = None
         self.endpoint = endpoint
+        self.rendezvous = None
+        self.metadata_kv = None
 
     def __str__(self):
         return "RpcState(%s, %s, %s)" % (self.rpc_name, self.request_id, self.endpoint)
 
     def __call__(self, *args, **kwargs):
-        return self.rpc(*args, **kwargs)
+        """Execute a RPC."""
+        try:
+            response, rendezvous = self.rpc.with_call(*args, **kwargs)
+            self.rendezvous = rendezvous
+            return response
+        except AttributeError:
+            return self.rpc(*args, **kwargs)
+
+    def trailing_metadata(self):
+        """Trailing metadata of the call."""
+        if self.metadata_kv is None:
+
+            self.metadata_kv = collections.defaultdict(set)
+            for metadatum in self.rendezvous.trailing_metadata():
+                self.metadata_kv[metadatum.key].add(metadatum.value)
+
+        return self.metadata_kv
 
     def future(self, *args, **kwargs):
-        self.response_future = self.rpc.future(*args, **kwargs)
+        self.rendezvous = self.rpc.future(*args, **kwargs)
         self.result_future = futures.Future()
 
         def _cancel_callback(f):
             """forwards cancel to gPRC future"""
             if f.cancelled():
-                self.response_future.cancel()
+                self.rendezvous.cancel()
 
-        self.response_future.add_done_callback(_cancel_callback)
-        return self.response_future, self.result_future
+        self.rendezvous.add_done_callback(_cancel_callback)
+        return self.rendezvous, self.result_future
 
 
 _nanos_in_second = 10**9
@@ -334,8 +351,8 @@ class Connection(object):
         :return: A future of computation
         """
         rpc_state, timeout, metadata = self._prepare_call(stub, rpc_name, request, settings)
-        response_future, result_future = rpc_state.future(request, timeout, metadata)
-        response_future.add_done_callback(
+        rendezvous, result_future = rpc_state.future(request, timeout, metadata)
+        rendezvous.add_done_callback(
             lambda resp_future: _on_response_callback(
                 rpc_state, lambda: self._finish_call(rpc_state),
                 wrap_result, on_disconnected, wrap_args,

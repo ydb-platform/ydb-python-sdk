@@ -376,6 +376,10 @@ class SessionPool:
 
     async def release(self, session: ydb.ISession):
         self._logger.debug("Put on session %s", session.session_id)
+        if session.closing():
+            self._destroy(session)
+            return False
+
         if session.pending_query():
             self._destroy(session)
             return False
