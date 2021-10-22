@@ -4,7 +4,7 @@ from ydb import _apis, settings as settings_impl
 from ydb.resolver import (
     DiscoveryResult,
     DiscoveryEndpointsResolver as _DiscoveryEndpointsResolver,
-    _list_endpoints_request_factory
+    _list_endpoints_request_factory,
 )
 
 
@@ -32,9 +32,13 @@ class DiscoveryEndpointsResolver(_DiscoveryEndpointsResolver):
             await connection.connection_ready()
         except Exception:
             self._add_debug_details(
-                "Failed to establish connection to YDB discovery endpoint: \"%s\". Check endpoint correctness." % endpoint)
+                'Failed to establish connection to YDB discovery endpoint: "%s". Check endpoint correctness.'
+                % endpoint
+            )
             return None
-        self.logger.debug("Resolving endpoints for database %s", self._driver_config.database)
+        self.logger.debug(
+            "Resolving endpoints for database %s", self._driver_config.database
+        )
 
         try:
             resolved = await connection(
@@ -44,17 +48,24 @@ class DiscoveryEndpointsResolver(_DiscoveryEndpointsResolver):
                 DiscoveryResult.from_response,
                 settings=settings_impl.BaseRequestSettings().with_timeout(
                     self._request_timeout
-                )
+                ),
             )
 
             self._add_debug_details(
-                "Resolved endpoints for database %s: %s", self._driver_config.database, resolved)
+                "Resolved endpoints for database %s: %s",
+                self._driver_config.database,
+                resolved,
+            )
 
             return resolved
         except Exception as e:
 
             self._add_debug_details(
-                "Failed to resolve endpoints for database %s. Endpoint: \"%s\". Error details:\n %s", self._driver_config.database, endpoint, e)
+                'Failed to resolve endpoints for database %s. Endpoint: "%s". Error details:\n %s',
+                self._driver_config.database,
+                endpoint,
+                e,
+            )
 
         finally:
             await connection.close()

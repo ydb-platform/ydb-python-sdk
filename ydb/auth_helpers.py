@@ -35,7 +35,7 @@ def construct_credentials_from_environ(tracer=None):
     if os.getenv('SA_KEY_FILE') is not None:
         from kikimr.public.sdk.python import iam
         tracing.trace(tracer, {"credentials.sa_key_file": True})
-        root_certificates_file = os.getenv('SSL_ROOT_CERTIFICATES_FILE',  None)
+        root_certificates_file = os.getenv('SSL_ROOT_CERTIFICATES_FILE', None)
         iam_channel_credentials = {}
         if root_certificates_file is not None:
             iam_channel_credentials = {'root_certificates': read_bytes(root_certificates_file)}

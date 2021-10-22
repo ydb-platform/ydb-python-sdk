@@ -15,7 +15,7 @@ async def describe_database():
 
     try:
         res = await driver.scheme_client.describe_path(database)
-        print(" name: ", res.name, "\n",  "owner: ", res.owner, "\n", "type: ", res.type)
+        print(" name: ", res.name, "\n", "owner: ", res.owner, "\n", "type: ", res.type)
     except ydb.Error as e:
         print("Cannot execute query. Reason: %s" % e)
 
