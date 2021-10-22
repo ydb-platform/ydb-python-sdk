@@ -38,7 +38,7 @@ def get_series_data():
         Series(1, "IT Crowd", "2006-02-03",
                "The IT Crowd is a British sitcom produced by Channel 4, written by Graham Linehan, produced by "
                "Ash Atalla and starring Chris O'Dowd, Richard Ayoade, Katherine Parkinson, and Matt Berry."),
-        Series(2, "Silicon Valley",  "2014-04-06",
+        Series(2, "Silicon Valley", "2014-04-06",
                "Silicon Valley is an American comedy television series created by Mike Judge, John Altschuler and "
                "Dave Krinsky. The series focuses on five young men who founded a startup company in Silicon Valley.")
     ]

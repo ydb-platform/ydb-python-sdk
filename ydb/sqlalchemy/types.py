@@ -22,7 +22,7 @@ class Lambda(ColumnElement):
 
     def __init__(self, func):
         if not util.callable(func):
-            raise exc.ArgumentError('func must be callable')
+            raise exc.ArgumentError("func must be callable")
 
         self.type = type_api.NULLTYPE
         self.func = func

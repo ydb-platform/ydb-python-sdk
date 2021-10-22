@@ -12,6 +12,7 @@ def default_credentials(credentials=None):
     service_account_key_file = os.getenv("YDB_SERVICE_ACCOUNT_KEY_FILE_CREDENTIALS")
     if service_account_key_file is not None:
         from .iam import ServiceAccountCredentials
+
         return ServiceAccountCredentials.from_file(service_account_key_file)
 
     anonymous_credetials = os.getenv("YDB_ANONYMOUS_CREDENTIALS", "0") == "1"
@@ -21,6 +22,7 @@ def default_credentials(credentials=None):
     metadata_credentials = os.getenv("YDB_METADATA_CREDENTIALS", "0") == "1"
     if metadata_credentials:
         from .iam import MetadataUrlCredentials
+
         return MetadataUrlCredentials()
 
     access_token = os.getenv("YDB_ACCESS_TOKEN_CREDENTIALS")
@@ -33,12 +35,15 @@ def default_credentials(credentials=None):
         return creds
 
     from .iam import MetadataUrlCredentials
+
     return MetadataUrlCredentials()
 
 
 class DriverConfig(ydb.DriverConfig):
     @classmethod
-    def default_from_endpoint_and_database(cls, endpoint, database, root_certificates=None, credentials=None, **kwargs):
+    def default_from_endpoint_and_database(
+        cls, endpoint, database, root_certificates=None, credentials=None, **kwargs
+    ):
         return cls(
             endpoint,
             database,
@@ -48,7 +53,9 @@ class DriverConfig(ydb.DriverConfig):
         )
 
     @classmethod
-    def default_from_connection_string(cls, connection_string, root_certificates=None, credentials=None, **kwargs):
+    def default_from_connection_string(
+        cls, connection_string, root_certificates=None, credentials=None, **kwargs
+    ):
         endpoint, database = ydb.parse_connection_string(connection_string)
         return cls(
             endpoint,
@@ -60,8 +67,16 @@ class DriverConfig(ydb.DriverConfig):
 
 
 class Driver(pool.ConnectionPool):
-    def __init__(self, driver_config=None, connection_string=None, endpoint=None, database=None, root_certificates=None,
-                 credentials=None, **kwargs):
+    def __init__(
+        self,
+        driver_config=None,
+        connection_string=None,
+        endpoint=None,
+        database=None,
+        root_certificates=None,
+        credentials=None,
+        **kwargs
+    ):
         config = get_config(
             driver_config,
             connection_string,
@@ -69,7 +84,7 @@ class Driver(pool.ConnectionPool):
             database,
             root_certificates,
             credentials,
-            config_class=DriverConfig
+            config_class=DriverConfig,
         )
 
         super(Driver, self).__init__(config)

@@ -12,7 +12,11 @@ from ydb.sqlalchemy.types import UInt32, UInt64
 
 try:
     from sqlalchemy.engine.default import DefaultDialect
-    from sqlalchemy.sql.compiler import IdentifierPreparer, GenericTypeCompiler, SQLCompiler
+    from sqlalchemy.sql.compiler import (
+        IdentifierPreparer,
+        GenericTypeCompiler,
+        SQLCompiler,
+    )
     from sqlalchemy import Table
     from sqlalchemy.sql.elements import ClauseList
     from sqlalchemy.sql import functions
@@ -28,8 +32,8 @@ try:
         def __init__(self, dialect):
             super(YqlIdentifierPreparer, self).__init__(
                 dialect,
-                initial_quote='`',
-                final_quote='`',
+                initial_quote="`",
+                final_quote="`",
             )
 
         def _requires_quotes(self, *args, **kwargs):
@@ -65,21 +69,17 @@ try:
             return "UInt8"
 
     class ParametrizedFunction(functions.Function):
-        __visit_name__ = 'parametrized_function'
+        __visit_name__ = "parametrized_function"
 
         def __init__(self, name, params, *args, **kwargs):
-            super(ParametrizedFunction, self).__init__(
-                name, *args, **kwargs)
+            super(ParametrizedFunction, self).__init__(name, *args, **kwargs)
             self._func_name = name
             self._func_params = params
             self.params_expr = ClauseList(
-                operator=functions.operators.comma_op,
-                group_contents=True,
-                *params
+                operator=functions.operators.comma_op, group_contents=True, *params
             ).self_group()
 
     class YqlCompiler(SQLCompiler):
-
         def group_by_clause(self, select, **kw):
             # Hack to ensure it is possible to define labels in groupby.
             kw.update(within_columns_clause=True)
@@ -90,7 +90,7 @@ try:
             spec = inspect_getfullargspec(func)
 
             if spec.varargs:
-                raise exc.CompileError('Lambdas with *args are not supported')
+                raise exc.CompileError("Lambdas with *args are not supported")
 
             try:
                 keywords = spec.keywords
@@ -98,11 +98,11 @@ try:
                 keywords = spec.varkw
 
             if keywords:
-                raise exc.CompileError('Lambdas with **kwargs are not supported')
+                raise exc.CompileError("Lambdas with **kwargs are not supported")
 
-            text = '(' + ', '.join('$' + arg for arg in spec.args) + ')' + ' -> '
+            text = "(" + ", ".join("$" + arg for arg in spec.args) + ")" + " -> "
 
-            args = [literal_column('$' + arg) for arg in spec.args]
+            args = [literal_column("$" + arg) for arg in spec.args]
             text += "{ RETURN " + self.process(func(*args), **kw) + " ;}"
 
             return text
@@ -110,7 +110,7 @@ try:
         def visit_parametrized_function(self, func, **kwargs):
             name = func.name
             name_parts = []
-            for name in name.split('::'):
+            for name in name.split("::"):
                 fname = (
                     self.preparer.quote(name)
                     if self.preparer._requires_quotes_illegal_chars(name)
@@ -120,11 +120,12 @@ try:
 
                 name_parts.append(fname)
 
-            name = '::'.join(name_parts)
+            name = "::".join(name_parts)
             params = func.params_expr._compiler_dispatch(self, **kwargs)
             args = self.function_argspec(func, **kwargs)
             return "%(name)s%(params)s%(args)s" % dict(
-                name=name, params=params, args=args)
+                name=name, params=params, args=args
+            )
 
         def visit_function(self, func, add_to_result_map=None, **kwargs):
             # Copypaste of `sa.sql.compiler.SQLCompiler.visit_function` with
@@ -194,7 +195,7 @@ try:
         return COLUMN_TYPES[t.item]
 
     class YqlDialect(DefaultDialect):
-        name = 'yql'
+        name = "yql"
         supports_alter = False
         max_identifier_length = 63
         supports_sane_rowcount = False
@@ -211,7 +212,7 @@ try:
         supports_default_values = False
         supports_empty_insert = False
         supports_multivalues_insert = True
-        default_paramstyle = 'qmark'
+        default_paramstyle = "qmark"
 
         isolation_level = None
 
@@ -222,11 +223,12 @@ try:
         @staticmethod
         def dbapi():
             import ydb.dbapi
+
             return ydb.dbapi
 
         def _check_unicode_returns(self, *args, **kwargs):
             # Normally, this would do 2 SQL queries, which isn't quite necessary.
-            return 'conditional'
+            return "conditional"
 
         def get_columns(self, connection, table_name, schema=None, **kw):
             if schema is not None:
@@ -246,8 +248,9 @@ try:
             for column in columns:
                 as_compatible.append(
                     {
-                        'name': column.name, 'type': _get_column_type(column.type),
-                        'nullable': True,
+                        "name": column.name,
+                        "type": _get_column_type(column.type),
+                        "nullable": True,
                     }
                 )
 
@@ -261,23 +264,26 @@ try:
             qtable = quote(table_name)
 
             # TODO: use `get_columns` instead.
-            statement = 'SELECT * FROM ' + qtable
+            statement = "SELECT * FROM " + qtable
             try:
                 connection.execute(statement)
                 return True
             except Exception:
                 return False
 
+
 except ImportError:
+
     class YqlDialect(object):
         def __init__(self):
-            raise RuntimeError('could not import sqlalchemy')
+            raise RuntimeError("could not import sqlalchemy")
 
 
 def register_dialect(
-        name='yql',
-        module=__name__,
-        cls='YqlDialect',
+    name="yql",
+    module=__name__,
+    cls="YqlDialect",
 ):
     import sqlalchemy as sa
+
     return sa.dialects.registry.register(name, module, cls)

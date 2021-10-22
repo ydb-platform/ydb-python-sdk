@@ -57,10 +57,7 @@ def thread(driver, limit, it):
 
 
 async def async_main(driver, limit, num):
-    coroutines = [
-        coroutine(driver, limit, i)
-        for i in range(num)
-    ]
+    coroutines = [coroutine(driver, limit, i) for i in range(num)]
     return mean(await asyncio.gather(*coroutines))
 
 
@@ -76,13 +73,17 @@ def sync_main(driver, limit, num):
 if __name__ == "__main__":
     import logging
 
-    logging.basicConfig(filename='example.log', level=logging.DEBUG)
+    logging.basicConfig(filename="example.log", level=logging.DEBUG)
 
     parser = argparse.ArgumentParser(description="Test python ydb sdk")
     parser.add_argument("-e", "--endpoint", default="0.0.0.0:2135", help="Ydb endpoint")
     parser.add_argument("-d", "--database", default="local", help="Ydb database")
-    parser.add_argument("-t", "--test_type", choices=("sync", "async"), help="Run sync or async sdk")
-    parser.add_argument("-l", "--limit", type=int, help="Limit of request on one worker")
+    parser.add_argument(
+        "-t", "--test_type", choices=("sync", "async"), help="Run sync or async sdk"
+    )
+    parser.add_argument(
+        "-l", "--limit", type=int, help="Limit of request on one worker"
+    )
     parser.add_argument("-w", "--workers", type=int, help="Number of workers")
 
     args = parser.parse_args()
@@ -92,12 +93,15 @@ if __name__ == "__main__":
     test_type = args.test_type
     num = args.workers
 
-    print("""
+    print(
+        """
     endpoint: %s,
     database: %s,
     limit: %s,
     workers number: %s
-    """ % (endpoint, database, limit, num))
+    """
+        % (endpoint, database, limit, num)
+    )
     limit = int(limit)
     num = int(num)
 

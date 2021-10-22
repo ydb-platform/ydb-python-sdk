@@ -3,10 +3,7 @@ import logging
 import random
 
 from ydb import issues
-from ydb.pool import (
-    ConnectionsCache as _ConnectionsCache,
-    IConnectionPool
-)
+from ydb.pool import ConnectionsCache as _ConnectionsCache, IConnectionPool
 
 from .connection import Connection
 
@@ -125,13 +122,17 @@ class Discovery:
         if resolve_details is None:
             return False
 
-        resolved_endpoints = set(details.endpoint for details in resolve_details.endpoints)
+        resolved_endpoints = set(
+            details.endpoint for details in resolve_details.endpoints
+        )
         for cached_endpoint in self._cache.values():
             if cached_endpoint.endpoint not in resolved_endpoints:
                 self._cache.make_outdated(cached_endpoint)
 
         for resolved_endpoint in resolve_details.endpoints:
-            if self._cache.size >= self._max_size or self._cache.already_exists(resolved_endpoint.endpoint):
+            if self._cache.size >= self._max_size or self._cache.already_exists(
+                resolved_endpoint.endpoint
+            ):
                 continue
 
             if self._ssl_required and not resolved_endpoint.ssl:
@@ -164,9 +165,15 @@ class Discovery:
             if successful:
                 self._cache.complete_discovery(None)
             else:
-                self._cache.complete_discovery(issues.ConnectionFailure(str(self.discovery_debug_details())))
+                self._cache.complete_discovery(
+                    issues.ConnectionFailure(str(self.discovery_debug_details()))
+                )
 
-            interval = self._discovery_interval() if successful else self._emergency_retry_interval()
+            interval = (
+                self._discovery_interval()
+                if successful
+                else self._emergency_retry_interval()
+            )
 
             try:
                 await asyncio.wait_for(self._wake_up_event.wait(), timeout=interval)
@@ -190,7 +197,9 @@ class ConnectionPool(IConnectionPool):
         self._stopped = False
         self._discovery = Discovery(self._store, self._driver_config)
 
-        self._discovery_task = asyncio.get_event_loop().create_task(self._discovery.run())
+        self._discovery_task = asyncio.get_event_loop().create_task(
+            self._discovery.run()
+        )
 
     async def stop(self, timeout=10):
         self._discovery.stop()
@@ -205,6 +214,7 @@ class ConnectionPool(IConnectionPool):
         async def __wrapper__():
             await connection.close()
             self._discovery.notify_disconnected()
+
         return __wrapper__
 
     async def wait(self, timeout=7, fail_fast=False):
@@ -228,18 +238,23 @@ class ConnectionPool(IConnectionPool):
         settings=None,
         wrap_args=(),
         preferred_endpoint=None,
-        fast_fail=False
+        fast_fail=False,
     ):
         wait_timeout = settings.timeout if settings else 10
         try:
-            connection = await self._store.get(preferred_endpoint, fast_fail=fast_fail, wait_timeout=wait_timeout)
+            connection = await self._store.get(
+                preferred_endpoint, fast_fail=fast_fail, wait_timeout=wait_timeout
+            )
         except Exception:
             self._discovery.notify_disconnected()
             raise
 
         return await connection(
-            request, stub, rpc_name, wrap_result, settings,
-            wrap_args, self._on_disconnected(
-                connection
-            )
+            request,
+            stub,
+            rpc_name,
+            wrap_result,
+            settings,
+            wrap_args,
+            self._on_disconnected(connection),
         )

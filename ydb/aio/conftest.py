@@ -25,6 +25,7 @@ async def aio_connection(endpoint, database):
     """A fixture to wait ydb start"""
     from ydb.aio.connection import Connection
     from ydb.driver import DriverConfig
+
     config = DriverConfig.default_from_endpoint_and_database(endpoint, database)
     connection = Connection(endpoint, config)
     await connection.connection_ready(ready_timeout=7)
@@ -34,7 +35,9 @@ async def aio_connection(endpoint, database):
 @pytest.fixture()
 async def driver(endpoint, database, request):
     driver_config = ydb.DriverConfig(
-        endpoint, database, credentials=ydb.construct_credentials_from_environ(),
+        endpoint,
+        database,
+        credentials=ydb.construct_credentials_from_environ(),
         root_certificates=ydb.load_ydb_root_certificate(),
     )
 

@@ -59,8 +59,7 @@ class SchemeEntryType(enum.IntEnum):
         :return: True if scheme entry is a directory or database and False otherwise
         """
         return (
-            entry == SchemeEntryType.DATABASE or
-            entry == SchemeEntryType.DIRECTORY
+            entry == SchemeEntryType.DATABASE or entry == SchemeEntryType.DIRECTORY
         )
 
 
