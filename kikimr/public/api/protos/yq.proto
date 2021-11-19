@@ -239,6 +239,20 @@ message DescribeQueryResult {
     Query query = 1;
 }
 
+// Getting status of the query
+message GetQueryStatusRequest {
+    Ydb.Operations.OperationParams operation_params = 1;
+    string query_id = 2 [(Ydb.length).range = {min: 1, max: 1024}];
+}
+
+message GetQueryStatusResponse {
+    Ydb.Operations.Operation operation = 1; // GetQueryStatusResult
+}
+
+message GetQueryStatusResult {
+    QueryMeta.ComputeStatus status = 1;
+}
+
 // Complete removal of query. Recovery of the query after this operation is not possible
 message DeleteQueryRequest {
     Ydb.Operations.OperationParams operation_params = 1;
