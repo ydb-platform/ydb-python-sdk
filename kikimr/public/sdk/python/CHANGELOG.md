@@ -1,3 +1,7 @@
+## 1.1.15 ##
+
+* override the default load balancing policy for discovery endpoint to the `round_robin` policy.
+
 ## 1.1.14 ##
 
 * support session graceful shutdown protocol.

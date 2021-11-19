@@ -96,6 +96,8 @@ class DriverConfig(object):
         'endpoints',
         'primary_user_agent',
         'tracer',
+        'grpc_lb_policy_name',
+        'discovery_request_timeout',
     )
 
     def __init__(
@@ -115,6 +117,8 @@ class DriverConfig(object):
         endpoints=None,
         primary_user_agent='python-library',
         tracer=None,
+        grpc_lb_policy_name='round_robin',
+        discovery_request_timeout=10,
     ):
         # type:(str, str, str, str, Any, ydb.Credentials, bool, bytes, bytes, bytes, float, ydb.TableClientSettings, list, str, ydb.Tracer) -> None
         """
@@ -134,6 +138,8 @@ class DriverConfig(object):
         :param grpc_keep_alive_timeout: GRpc KeepAlive timeout, ms
         :param ydb.Tracer tracer: ydb.Tracer instance to trace requests in driver.\
         If tracing aio ScopeManager must be ContextVarsScopeManager
+        :param grpc_lb_policy_name: A load balancing policy to be used for discovery channel construction. Default value is `round_round`
+        :param discovery_request_timeout: A default timeout to complete the discovery. The default value is 10 seconds.
 
         """
         self.endpoint = endpoint
@@ -156,6 +162,8 @@ class DriverConfig(object):
         self.table_client_settings = table_client_settings
         self.primary_user_agent = primary_user_agent
         self.tracer = tracer if tracer is not None else ydb.Tracer(None)
+        self.grpc_lb_policy_name = grpc_lb_policy_name
+        self.discovery_request_timeout = discovery_request_timeout
 
     def set_database(self, database):
         self.database = database

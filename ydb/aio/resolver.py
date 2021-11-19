@@ -47,7 +47,7 @@ class DiscoveryEndpointsResolver(_DiscoveryEndpointsResolver):
                 _apis.DiscoveryService.ListEndpoints,
                 DiscoveryResult.from_response,
                 settings=settings_impl.BaseRequestSettings().with_timeout(
-                    self._request_timeout
+                    self._ready_timeout
                 ),
             )
 
