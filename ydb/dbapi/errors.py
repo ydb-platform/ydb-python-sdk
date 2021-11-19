@@ -77,7 +77,8 @@ def _get_messages(issue, max_depth=100, indent=2, depth=0, root=False):
             pre_message = ""
 
         children_messages = [
-            _get_messages(iss, max_depth=max_depth, indent=indent, depth=depth + 1) for iss in issue.issues
+            _get_messages(iss, max_depth=max_depth, indent=indent, depth=depth + 1)
+            for iss in issue.issues
         ]
 
         if None in children_messages:
@@ -85,8 +86,18 @@ def _get_messages(issue, max_depth=100, indent=2, depth=0, root=False):
 
         children = "\n".join(children_messages)
 
-    return pre_message + \
-        margin_str + issue.message + "\n" + \
-        margin_str + "severity level: " + str(issue.severity) + "\n" + \
-        margin_str + "issue code: " + str(issue.issue_code) + "\n" + \
-        children
+    return (
+        pre_message
+        + margin_str
+        + issue.message
+        + "\n"
+        + margin_str
+        + "severity level: "
+        + str(issue.severity)
+        + "\n"
+        + margin_str
+        + "issue code: "
+        + str(issue.issue_code)
+        + "\n"
+        + children
+    )
