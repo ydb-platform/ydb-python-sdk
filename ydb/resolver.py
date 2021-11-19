@@ -85,8 +85,7 @@ class DiscoveryEndpointsResolver(object):
     def __init__(self, driver_config):
         self.logger = logger.getChild(self.__class__.__name__)
         self._driver_config = driver_config
-        self._request_timeout = 3
-        self._ready_timeout = 2
+        self._ready_timeout = getattr(self._driver_config, 'discovery_request_timeout', 10)
         self._lock = threading.Lock()
         self._debug_details_history_size = 20
         self._debug_details_items = []
@@ -119,7 +118,7 @@ class DiscoveryEndpointsResolver(object):
     def context_resolve(self):
         self.logger.debug("Preparing initial endpoint to resolve endpoints")
         endpoint = next(self._endpoints_iter)
-        initial = conn_impl.Connection.ready_factory(endpoint, self._driver_config)
+        initial = conn_impl.Connection.ready_factory(endpoint, self._driver_config, ready_timeout=self._ready_timeout)
         if initial is None:
             self._add_debug_details("Failed to establish connection to YDB discovery endpoint: \"%s\". Check endpoint correctness." % endpoint)
             yield
@@ -132,7 +131,7 @@ class DiscoveryEndpointsResolver(object):
                 _apis.DiscoveryService.Stub,
                 _apis.DiscoveryService.ListEndpoints,
                 DiscoveryResult.from_response,
-                settings=settings_impl.BaseRequestSettings().with_timeout(self._request_timeout),
+                settings=settings_impl.BaseRequestSettings().with_timeout(self._ready_timeout),
                 wrap_args=(
                     self._driver_config.use_all_nodes,
                 )

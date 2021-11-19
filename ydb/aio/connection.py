@@ -209,7 +209,7 @@ class Connection:
     def add_cleanup_callback(self, callback):
         self._cleanup_callbacks.append(callback)
 
-    async def connection_ready(self, ready_timeout=7):
+    async def connection_ready(self, ready_timeout=10):
         """
         Awaits until channel is ready
         :return: None

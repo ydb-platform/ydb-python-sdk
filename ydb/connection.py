@@ -179,6 +179,7 @@ def _construct_channel_options(driver_config):
         ('grpc.max_receive_message_length', _max_message_size),
         ('grpc.max_send_message_length', _max_message_size),
         ('grpc.primary_user_agent', driver_config.primary_user_agent),
+        ('grpc.lb_policy_name', getattr(driver_config, 'grpc_lb_policy_name', 'round_robin')),
     ]
     if driver_config.grpc_keep_alive_timeout is not None:
         _default_connect_options.extend([
@@ -384,7 +385,7 @@ class Connection(object):
             self._finish_call(rpc_state)
 
     @classmethod
-    def ready_factory(cls, endpoint, driver_config, ready_timeout=2):
+    def ready_factory(cls, endpoint, driver_config, ready_timeout=10):
         candidate = cls(endpoint, driver_config)
         ready_future = candidate.ready_future()
         try:
