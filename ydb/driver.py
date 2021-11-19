@@ -80,16 +80,42 @@ def default_credentials(credentials=None, tracer=None):
 
 
 class DriverConfig(object):
-    __slots__ = ('endpoint', 'database', 'ca_cert', 'channel_options', 'credentials', 'use_all_nodes',
-                 'root_certificates', 'certificate_chain', 'private_key', 'grpc_keep_alive_timeout', 'secure_channel',
-                 'table_client_settings', 'endpoints', 'primary_user_agent', 'tracer')
+    __slots__ = (
+        'endpoint',
+        'database',
+        'ca_cert',
+        'channel_options',
+        'credentials',
+        'use_all_nodes',
+        'root_certificates',
+        'certificate_chain',
+        'private_key',
+        'grpc_keep_alive_timeout',
+        'secure_channel',
+        'table_client_settings',
+        'endpoints',
+        'primary_user_agent',
+        'tracer',
+    )
 
     def __init__(
-            self, endpoint, database=None, ca_cert=None, auth_token=None,
-            channel_options=None, credentials=None, use_all_nodes=False,
-            root_certificates=None, certificate_chain=None, private_key=None,
-            grpc_keep_alive_timeout=None, table_client_settings=None, endpoints=None,
-            primary_user_agent='python-library', tracer=None):
+        self,
+        endpoint,
+        database=None,
+        ca_cert=None,
+        auth_token=None,
+        channel_options=None,
+        credentials=None,
+        use_all_nodes=False,
+        root_certificates=None,
+        certificate_chain=None,
+        private_key=None,
+        grpc_keep_alive_timeout=None,
+        table_client_settings=None,
+        endpoints=None,
+        primary_user_agent='python-library',
+        tracer=None,
+    ):
         # type:(str, str, str, str, Any, ydb.Credentials, bool, bytes, bytes, bytes, float, ydb.TableClientSettings, list, str, ydb.Tracer) -> None
         """
         A driver config to initialize a driver instance
