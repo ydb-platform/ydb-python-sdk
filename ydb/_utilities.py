@@ -41,14 +41,17 @@ def wrap_async_call_exceptions(f):
             return f(*args, **kwargs)
         except Exception as e:
             return wrap_exception_in_future(e)
+
     return decorator
 
 
 def get_query_hash(yql_text):
     try:
-        return hashlib.sha256(six.text_type(yql_text, 'utf-8').encode('utf-8')).hexdigest()
+        return hashlib.sha256(
+            six.text_type(yql_text, "utf-8").encode("utf-8")
+        ).hexdigest()
     except TypeError:
-        return hashlib.sha256(six.text_type(yql_text).encode('utf-8')).hexdigest()
+        return hashlib.sha256(six.text_type(yql_text).encode("utf-8")).hexdigest()
 
 
 class LRUCache(object):
@@ -79,7 +82,7 @@ def from_bytes(val):
     :return: A valid utf8 string
     """
     try:
-        return codecs.decode(val, 'utf8')
+        return codecs.decode(val, "utf8")
     except (UnicodeEncodeError, TypeError):
         return val
 

@@ -24,7 +24,11 @@ class ConnectionsCache(object):
         self.preferred = collections.OrderedDict()
         self.logger = logging.getLogger(__name__)
         self.use_all_nodes = use_all_nodes
-        self.conn_lst_order = (self.connections, ) if self.use_all_nodes else (self.preferred, self.connections)
+        self.conn_lst_order = (
+            (self.connections,)
+            if self.use_all_nodes
+            else (self.preferred, self.connections)
+        )
         self.fast_fail_subscriptions = set()
 
     def add(self, connection, preferred=False):
@@ -122,19 +126,18 @@ class ConnectionsCache(object):
     @tracing.with_trace()
     def get(self, preferred_endpoint=None):
         with self.lock:
-            if preferred_endpoint is not None and preferred_endpoint in self.connections:
-                tracing.trace(self.tracer, {
-                    "found_preferred_endpoint": True
-                })
+            if (
+                preferred_endpoint is not None
+                and preferred_endpoint in self.connections
+            ):
+                tracing.trace(self.tracer, {"found_preferred_endpoint": True})
                 return self.connections[preferred_endpoint]
 
             for conn_lst in self.conn_lst_order:
                 try:
                     endpoint, connection = conn_lst.popitem(last=False)
                     conn_lst[endpoint] = connection
-                    tracing.trace(self.tracer, {
-                        "found_in_lists": True
-                    })
+                    tracing.trace(self.tracer, {"found_in_lists": True})
                     return connection
                 except KeyError:
                     continue
@@ -211,13 +214,17 @@ class Discovery(threading.Thread):
             if resolve_details is None:
                 return False
 
-            resolved_endpoints = set(details.endpoint for details in resolve_details.endpoints)
+            resolved_endpoints = set(
+                details.endpoint for details in resolve_details.endpoints
+            )
             for cached_endpoint in self._cache.values():
                 if cached_endpoint.endpoint not in resolved_endpoints:
                     self._cache.make_outdated(cached_endpoint)
 
             for resolved_endpoint in resolve_details.endpoints:
-                if self._cache.size >= self._max_size or self._cache.already_exists(resolved_endpoint.endpoint):
+                if self._cache.size >= self._max_size or self._cache.already_exists(
+                    resolved_endpoint.endpoint
+                ):
                     continue
 
                 if self._ssl_required and not resolved_endpoint.ssl:
@@ -229,7 +236,8 @@ class Discovery(threading.Thread):
                 endpoint = resolved_endpoint.endpoint
                 preferred = resolve_details.self_location == resolved_endpoint.location
                 ready_connection = connection_impl.Connection.ready_factory(
-                    endpoint, self._driver_config, self._ready_timeout)
+                    endpoint, self._driver_config, self._ready_timeout
+                )
                 self._cache.add(ready_connection, preferred)
 
         self._cache.cleanup_outdated()
@@ -250,12 +258,18 @@ class Discovery(threading.Thread):
                 if successful:
                     self._cache.complete_discovery(None)
                 else:
-                    self._cache.complete_discovery(issues.ConnectionFailure(str(self.discovery_debug_details())))
+                    self._cache.complete_discovery(
+                        issues.ConnectionFailure(str(self.discovery_debug_details()))
+                    )
 
                 if self._should_stop.is_set():
                     break
 
-                interval = self._discovery_interval() if successful else self._emergency_retry_interval()
+                interval = (
+                    self._discovery_interval()
+                    if successful
+                    else self._emergency_retry_interval()
+                )
                 self.condition.wait(interval)
 
             self._cache.cleanup()
@@ -264,7 +278,6 @@ class Discovery(threading.Thread):
 
 @six.add_metaclass(ABCMeta)
 class IConnectionPool:
-
     @abstractmethod
     def __init__(self, driver_config):
         """
@@ -309,19 +322,19 @@ class IConnectionPool:
         wrap_result=None,
         settings=None,
         wrap_args=(),
-        preferred_endpoint=None
+        preferred_endpoint=None,
     ):
         """
-       Sends request constructed by client library
-       :param request: A request constructed by client
-       :param stub: A stub instance to wrap channel
-       :param rpc_name: A name of RPC to be executed
-       :param wrap_result: A callable that intercepts call and wraps received response
-       :param settings: An instance of BaseRequestSettings that can be used
-       for RPC metadata construction
-       :param wrap_args: And arguments to be passed into wrap_result callable
-       :return: A result of computation
-       """
+        Sends request constructed by client library
+        :param request: A request constructed by client
+        :param stub: A stub instance to wrap channel
+        :param rpc_name: A name of RPC to be executed
+        :param wrap_result: A callable that intercepts call and wraps received response
+        :param settings: An instance of BaseRequestSettings that can be used
+        for RPC metadata construction
+        :param wrap_args: And arguments to be passed into wrap_result callable
+        :return: A result of computation
+        """
         pass
 
 
@@ -334,9 +347,13 @@ class ConnectionPool(IConnectionPool):
         :param driver_config: An instance of DriverConfig
         """
         self._driver_config = driver_config
-        self._store = ConnectionsCache(driver_config.use_all_nodes, driver_config.tracer)
+        self._store = ConnectionsCache(
+            driver_config.use_all_nodes, driver_config.tracer
+        )
         self.tracer = driver_config.tracer
-        self._grpc_init = connection_impl.Connection(self._driver_config.endpoint, self._driver_config)
+        self._grpc_init = connection_impl.Connection(
+            self._driver_config.endpoint, self._driver_config
+        )
         self._discovery_thread = Discovery(self._store, self._driver_config)
         self._discovery_thread.start()
         self._stopped = False
@@ -394,7 +411,16 @@ class ConnectionPool(IConnectionPool):
         return self._discovery_thread.discovery_debug_details()
 
     @tracing.with_trace()
-    def __call__(self, request, stub, rpc_name, wrap_result=None, settings=None, wrap_args=(), preferred_endpoint=None):
+    def __call__(
+        self,
+        request,
+        stub,
+        rpc_name,
+        wrap_result=None,
+        settings=None,
+        wrap_args=(),
+        preferred_endpoint=None,
+    ):
         """
         Synchronously sends request constructed by client library
 
@@ -408,11 +434,9 @@ class ConnectionPool(IConnectionPool):
 
         :return: A result of computation
         """
-        tracing.trace(self.tracer, {
-            "request": request,
-            "stub": stub,
-            "rpc_name": rpc_name
-        })
+        tracing.trace(
+            self.tracer, {"request": request, "stub": stub, "rpc_name": rpc_name}
+        )
         try:
             connection = self._store.get(preferred_endpoint)
         except Exception:
@@ -420,18 +444,30 @@ class ConnectionPool(IConnectionPool):
             raise
 
         res = connection(
-            request, stub, rpc_name, wrap_result, settings,
-            wrap_args, lambda: self._on_disconnected(
-                connection
-            )
+            request,
+            stub,
+            rpc_name,
+            wrap_result,
+            settings,
+            wrap_args,
+            lambda: self._on_disconnected(connection),
         )
-        tracing.trace(self.tracer, {
-            "response": res
-        }, trace_level=tracing.TraceLevel.DEBUG)
+        tracing.trace(
+            self.tracer, {"response": res}, trace_level=tracing.TraceLevel.DEBUG
+        )
         return res
 
     @_utilities.wrap_async_call_exceptions
-    def future(self, request, stub, rpc_name, wrap_result=None, settings=None, wrap_args=(), preferred_endpoint=None):
+    def future(
+        self,
+        request,
+        stub,
+        rpc_name,
+        wrap_result=None,
+        settings=None,
+        wrap_args=(),
+        preferred_endpoint=None,
+    ):
         """
         Sends request constructed by client
 
@@ -452,10 +488,13 @@ class ConnectionPool(IConnectionPool):
             raise
 
         return connection.future(
-            request, stub, rpc_name, wrap_result, settings,
-            wrap_args, lambda: self._on_disconnected(
-                connection
-            )
+            request,
+            stub,
+            rpc_name,
+            wrap_result,
+            settings,
+            wrap_args,
+            lambda: self._on_disconnected(connection),
         )
 
     def __enter__(self):

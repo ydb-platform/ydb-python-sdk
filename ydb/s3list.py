@@ -4,7 +4,7 @@ from kikimr.public.api.protos import ydb_s3_internal_pb2
 from . import convert, issues, types
 
 
-_S3Listing = 'S3Listing'
+_S3Listing = "S3Listing"
 
 
 def _prepare_tuple_typed_value(vl):
@@ -13,20 +13,24 @@ def _prepare_tuple_typed_value(vl):
 
     tpb = types.TupleType()
     for _ in vl:
-        tpb.add_element(
-            types.OptionalType(
-                types.PrimitiveType.Utf8
-            )
-        )
+        tpb.add_element(types.OptionalType(types.PrimitiveType.Utf8))
 
     return convert.to_typed_value_from_native(tpb.proto, vl)
 
 
 def _s3_listing_request_factory(
-        table_name, key_prefix, path_column_prefix, path_column_delimiter, max_keys, columns_to_return=None,
-        start_after_key_suffix=None):
+    table_name,
+    key_prefix,
+    path_column_prefix,
+    path_column_delimiter,
+    max_keys,
+    columns_to_return=None,
+    start_after_key_suffix=None,
+):
     columns_to_return = [] if columns_to_return is None else columns_to_return
-    start_after_key_suffix = [] if start_after_key_suffix is None else start_after_key_suffix
+    start_after_key_suffix = (
+        [] if start_after_key_suffix is None else start_after_key_suffix
+    )
     return ydb_s3_internal_pb2.S3ListingRequest(
         table_name=table_name,
         key_prefix=_prepare_tuple_typed_value(key_prefix),
@@ -39,9 +43,22 @@ def _s3_listing_request_factory(
 
 
 class S3ListingResult(object):
-    __slots__ = ('is_truncated', 'continue_after', 'path_column_delimiter', 'common_prefixes', 'contents')
+    __slots__ = (
+        "is_truncated",
+        "continue_after",
+        "path_column_delimiter",
+        "common_prefixes",
+        "contents",
+    )
 
-    def __init__(self, is_truncated, continue_after, path_column_delimiter, common_prefixes, contents):
+    def __init__(
+        self,
+        is_truncated,
+        continue_after,
+        path_column_delimiter,
+        common_prefixes,
+        contents,
+    ):
         self.is_truncated = is_truncated
         self.continue_after = continue_after
         self.path_column_delimiter = path_column_delimiter
@@ -75,7 +92,7 @@ def _wrap_s3_listing_response(rpc_state, response, path_column_delimiter, max_ke
 
         use_contents_for_continue_after = True
         if len(contents) > 0 and len(common_prefixes) > 0:
-            use_contents_for_continue_after = (contents[-1][0] > common_prefixes[-1])
+            use_contents_for_continue_after = contents[-1][0] > common_prefixes[-1]
         elif len(common_prefixes) > 0:
             use_contents_for_continue_after = False
 
@@ -89,7 +106,7 @@ def _wrap_s3_listing_response(rpc_state, response, path_column_delimiter, max_ke
         continue_after=continue_after,
         path_column_delimiter=path_column_delimiter,
         common_prefixes=common_prefixes,
-        contents=contents
+        contents=contents,
     )
 
 
@@ -98,12 +115,27 @@ class S3InternalClient(object):
         self._driver = driver
 
     @staticmethod
-    def _handle(callee, table_name, key_prefix, path_column_prefix, path_column_delimiter, max_keys,
-                columns_to_return=None, start_after_key_suffix=None, settings=None):
+    def _handle(
+        callee,
+        table_name,
+        key_prefix,
+        path_column_prefix,
+        path_column_delimiter,
+        max_keys,
+        columns_to_return=None,
+        start_after_key_suffix=None,
+        settings=None,
+    ):
         return callee(
             _s3_listing_request_factory(
-                table_name, key_prefix, path_column_prefix, path_column_delimiter, max_keys, columns_to_return,
-                start_after_key_suffix),
+                table_name,
+                key_prefix,
+                path_column_prefix,
+                path_column_delimiter,
+                max_keys,
+                columns_to_return,
+                start_after_key_suffix,
+            ),
             ydb_s3_internal_v1_pb2_grpc.S3InternalServiceStub,
             _S3Listing,
             _wrap_s3_listing_response,
@@ -111,21 +143,51 @@ class S3InternalClient(object):
             (
                 path_column_delimiter,
                 max_keys,
-            )
+            ),
         )
 
-    def s3_listing(self, table_name, key_prefix, path_column_prefix, path_column_delimiter, max_keys,
-                   columns_to_return=None, start_after_key_suffix=None, settings=None):
+    def s3_listing(
+        self,
+        table_name,
+        key_prefix,
+        path_column_prefix,
+        path_column_delimiter,
+        max_keys,
+        columns_to_return=None,
+        start_after_key_suffix=None,
+        settings=None,
+    ):
         return self._handle(
             self._driver,
-            table_name, key_prefix, path_column_prefix, path_column_delimiter, max_keys,
-            columns_to_return, start_after_key_suffix, settings,
+            table_name,
+            key_prefix,
+            path_column_prefix,
+            path_column_delimiter,
+            max_keys,
+            columns_to_return,
+            start_after_key_suffix,
+            settings,
         )
 
-    def async_s3_listing(self, table_name, key_prefix, path_column_prefix, path_column_delimiter, max_keys,
-                         columns_to_return=None, start_after_key_suffix=None, settings=None):
+    def async_s3_listing(
+        self,
+        table_name,
+        key_prefix,
+        path_column_prefix,
+        path_column_delimiter,
+        max_keys,
+        columns_to_return=None,
+        start_after_key_suffix=None,
+        settings=None,
+    ):
         return self._handle(
             self._driver.future,
-            table_name, key_prefix, path_column_prefix, path_column_delimiter, max_keys,
-            columns_to_return, start_after_key_suffix, settings,
+            table_name,
+            key_prefix,
+            path_column_prefix,
+            path_column_delimiter,
+            max_keys,
+            columns_to_return,
+            start_after_key_suffix,
+            settings,
         )

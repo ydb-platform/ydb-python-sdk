@@ -50,7 +50,7 @@ class OperationClient(object):
 
 
 class Operation(object):
-    __slots__ = ('id', '_driver', 'self_cls')
+    __slots__ = ("id", "_driver", "self_cls")
 
     def __init__(self, rpc_state, response, driver=None):
         # implement proper interface a bit later
@@ -63,7 +63,7 @@ class Operation(object):
         return self.__str__()
 
     def __str__(self):
-        return "<Operation %s>" % (self.id, )
+        return "<Operation %s>" % (self.id,)
 
     def _ensure_implements(self):
         if self._driver is None:
@@ -97,7 +97,5 @@ class Operation(object):
             _apis.OperationService.GetOperation,
             self.__class__,
             settings,
-            (
-                self._driver,
-            )
+            (self._driver,),
         )

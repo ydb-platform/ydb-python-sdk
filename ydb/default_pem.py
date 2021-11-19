@@ -4687,5 +4687,5 @@ def load_default_pem():
     global data
 
     if six.PY3:
-        return data.encode('utf-8')
+        return data.encode("utf-8")
     return data

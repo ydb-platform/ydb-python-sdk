@@ -11,6 +11,7 @@ class SchemeEntryType(enum.IntEnum):
     """
     Enumerates all available entry types.
     """
+
     DIRECTORY = 1
     TABLE = 2
     PERS_QUEUE_GROUP = 3
@@ -58,15 +59,30 @@ class SchemeEntryType(enum.IntEnum):
         :param entry: A scheme entry to check
         :return: True if scheme entry is a directory or database and False otherwise
         """
-        return (
-            entry == SchemeEntryType.DATABASE or entry == SchemeEntryType.DIRECTORY
-        )
+        return entry == SchemeEntryType.DATABASE or entry == SchemeEntryType.DIRECTORY
 
 
 class SchemeEntry(object):
-    __slots__ = ('name', 'owner', 'type', 'effective_permissions', 'permissions', 'size_bytes')
+    __slots__ = (
+        "name",
+        "owner",
+        "type",
+        "effective_permissions",
+        "permissions",
+        "size_bytes",
+    )
 
-    def __init__(self, name, owner, type, effective_permissions, permissions, size_bytes, *args, **kwargs):
+    def __init__(
+        self,
+        name,
+        owner,
+        type,
+        effective_permissions,
+        permissions,
+        size_bytes,
+        *args,
+        **kwargs
+    ):
         """
         Represents a scheme entry.
         :param name: A name of a scheme entry
@@ -115,9 +131,19 @@ class SchemeEntry(object):
 
 
 class Directory(SchemeEntry):
-    __slots__ = ('children', )
+    __slots__ = ("children",)
 
-    def __init__(self, name, owner, type, effective_permissions, permissions, children, *args, **kwargs):
+    def __init__(
+        self,
+        name,
+        owner,
+        type,
+        effective_permissions,
+        permissions,
+        children,
+        *args,
+        **kwargs
+    ):
         """
         Represents a directory scheme entry.
         :param name: A name of a scheme entry
@@ -127,7 +153,9 @@ class Directory(SchemeEntry):
         :param permissions: A list of permissions applied to this scheme entry
         :param children: A list of children
         """
-        super(Directory, self).__init__(name, owner, type, effective_permissions, permissions, 0)
+        super(Directory, self).__init__(
+            name, owner, type, effective_permissions, permissions, 0
+        )
         self.children = children
 
 
@@ -178,12 +206,16 @@ class ModifyPermissionsSettings(settings_impl.BaseRequestSettings):
 
     def grant_permissions(self, subject, permission_names):
         permission_action = self._pb.actions.add()
-        permission_action.grant.MergeFrom(Permissions(subject, permission_names).to_pb())
+        permission_action.grant.MergeFrom(
+            Permissions(subject, permission_names).to_pb()
+        )
         return self
 
     def revoke_permissions(self, subject, permission_names):
         permission_action = self._pb.actions.add()
-        permission_action.revoke.MergeFrom(Permissions(subject, permission_names).to_pb())
+        permission_action.revoke.MergeFrom(
+            Permissions(subject, permission_names).to_pb()
+        )
         return self
 
     def set_permissions(self, subject, permission_names):
@@ -205,7 +237,7 @@ class ModifyPermissionsSettings(settings_impl.BaseRequestSettings):
 
 
 class Permissions(object):
-    __slots__ = ('subject', 'permission_names')
+    __slots__ = ("subject", "permission_names")
 
     def __init__(self, subject, permission_names):
         """
@@ -288,11 +320,7 @@ def _wrap_list_directory_response(rpc_state, response):
         if children_item.type not in supported_items:
             continue
 
-        children.append(
-            _wrap_scheme_entry(
-                children_item
-            )
-        )
+        children.append(_wrap_scheme_entry(children_item))
 
     return Directory(
         message.self.name,
@@ -302,7 +330,7 @@ def _wrap_list_directory_response(rpc_state, response):
         _wrap_permissions(message.self.permissions),
         tuple(
             children,
-        )
+        ),
     )
 
 
@@ -315,7 +343,6 @@ def _wrap_describe_path_response(rpc_state, response):
 
 @six.add_metaclass(abc.ABCMeta)
 class ISchemeClient:
-
     @abstractmethod
     def __init__(self, driver):
         pass
@@ -350,7 +377,7 @@ class ISchemeClient:
 
 
 class BaseSchemeClient(ISchemeClient):
-    __slots__ = ('_driver',)
+    __slots__ = ("_driver",)
 
     def __init__(self, driver):
         self._driver = driver
@@ -379,7 +406,7 @@ class BaseSchemeClient(ISchemeClient):
             _apis.SchemeService.Stub,
             _apis.SchemeService.ListDirectory,
             _wrap_list_directory_response,
-            settings
+            settings,
         )
 
     def describe_path(self, path, settings=None):
@@ -388,7 +415,7 @@ class BaseSchemeClient(ISchemeClient):
             _apis.SchemeService.Stub,
             _apis.SchemeService.DescribePath,
             _wrap_describe_path_response,
-            settings
+            settings,
         )
 
     def modify_permissions(self, path, settings):
@@ -443,7 +470,7 @@ class SchemeClient(BaseSchemeClient):
             _apis.SchemeService.Stub,
             _apis.SchemeService.DescribePath,
             _wrap_describe_path_response,
-            settings
+            settings,
         )
 
     def async_modify_permissions(self, path, settings):

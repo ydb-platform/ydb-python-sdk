@@ -8,21 +8,21 @@ import os
 if six.PY2:
     Any = None
 else:
-    from typing import Any # noqa
+    from typing import Any  # noqa
 
-_grpcs_protocol = 'grpcs://'
-_grpc_protocol = 'grpc://'
+_grpcs_protocol = "grpcs://"
+_grpc_protocol = "grpc://"
 
 
 def is_secure_protocol(endpoint):
-    return endpoint.startswith('grpcs://')
+    return endpoint.startswith("grpcs://")
 
 
 def wrap_endpoint(endpoint):
     if endpoint.startswith(_grpcs_protocol):
-        return endpoint[len(_grpcs_protocol):]
+        return endpoint[len(_grpcs_protocol) :]
     if endpoint.startswith(_grpc_protocol):
-        return endpoint[len(_grpc_protocol):]
+        return endpoint[len(_grpc_protocol) :]
     return endpoint
 
 
@@ -34,7 +34,7 @@ def parse_connection_string(connection_string):
 
     p = six.moves.urllib.parse.urlparse(connection_string)
     b = six.moves.urllib.parse.parse_qs(p.query)
-    database = b.get('database', [])
+    database = b.get("database", [])
     assert len(database) > 0
 
     return p.scheme + "://" + p.netloc, database[0]
@@ -51,6 +51,7 @@ def default_credentials(credentials=None, tracer=None):
         if service_account_key_file is not None:
             ctx.trace({"credentials.service_account_key_file": True})
             from kikimr.public.sdk.python import iam
+
             return iam.ServiceAccountCredentials.from_file(service_account_key_file)
 
         anonymous_credetials = os.getenv("YDB_ANONYMOUS_CREDENTIALS", "0") == "1"
@@ -62,6 +63,7 @@ def default_credentials(credentials=None, tracer=None):
         if metadata_credentials:
             ctx.trace({"credentials.metadata": True})
             from kikimr.public.sdk.python import iam
+
             return iam.MetadataUrlCredentials(tracer=tracer)
 
         access_token = os.getenv("YDB_ACCESS_TOKEN_CREDENTIALS")
@@ -76,28 +78,29 @@ def default_credentials(credentials=None, tracer=None):
             return creds
 
         from kikimr.public.sdk.python import iam
+
         return iam.MetadataUrlCredentials(tracer=tracer)
 
 
 class DriverConfig(object):
     __slots__ = (
-        'endpoint',
-        'database',
-        'ca_cert',
-        'channel_options',
-        'credentials',
-        'use_all_nodes',
-        'root_certificates',
-        'certificate_chain',
-        'private_key',
-        'grpc_keep_alive_timeout',
-        'secure_channel',
-        'table_client_settings',
-        'endpoints',
-        'primary_user_agent',
-        'tracer',
-        'grpc_lb_policy_name',
-        'discovery_request_timeout',
+        "endpoint",
+        "database",
+        "ca_cert",
+        "channel_options",
+        "credentials",
+        "use_all_nodes",
+        "root_certificates",
+        "certificate_chain",
+        "private_key",
+        "grpc_keep_alive_timeout",
+        "secure_channel",
+        "table_client_settings",
+        "endpoints",
+        "primary_user_agent",
+        "tracer",
+        "grpc_lb_policy_name",
+        "discovery_request_timeout",
     )
 
     def __init__(
@@ -115,9 +118,9 @@ class DriverConfig(object):
         grpc_keep_alive_timeout=None,
         table_client_settings=None,
         endpoints=None,
-        primary_user_agent='python-library',
+        primary_user_agent="python-library",
         tracer=None,
-        grpc_lb_policy_name='round_robin',
+        grpc_lb_policy_name="round_robin",
         discovery_request_timeout=10,
     ):
         # type:(str, str, str, str, Any, ydb.Credentials, bool, bytes, bytes, bytes, float, ydb.TableClientSettings, list, str, ydb.Tracer) -> None
@@ -170,7 +173,9 @@ class DriverConfig(object):
         return self
 
     @classmethod
-    def default_from_endpoint_and_database(cls, endpoint, database, root_certificates=None, credentials=None, **kwargs):
+    def default_from_endpoint_and_database(
+        cls, endpoint, database, root_certificates=None, credentials=None, **kwargs
+    ):
         return cls(
             endpoint,
             database,
@@ -180,7 +185,9 @@ class DriverConfig(object):
         )
 
     @classmethod
-    def default_from_connection_string(cls, connection_string, root_certificates=None, credentials=None, **kwargs):
+    def default_from_connection_string(
+        cls, connection_string, root_certificates=None, credentials=None, **kwargs
+    ):
         endpoint, database = parse_connection_string(connection_string)
         return cls(
             endpoint,
@@ -210,19 +217,30 @@ def get_config(
 ):
     if driver_config is None:
         if connection_string is not None:
-            driver_config = config_class.default_from_connection_string(connection_string, root_certificates,
-                                                                        credentials, **kwargs)
+            driver_config = config_class.default_from_connection_string(
+                connection_string, root_certificates, credentials, **kwargs
+            )
         else:
-            driver_config = config_class.default_from_endpoint_and_database(endpoint, database, root_certificates,
-                                                                            credentials, **kwargs)
+            driver_config = config_class.default_from_endpoint_and_database(
+                endpoint, database, root_certificates, credentials, **kwargs
+            )
         return driver_config
     return driver_config
 
 
 class Driver(pool.ConnectionPool):
-    __slots__ = ('scheme_client', 'table_client')
+    __slots__ = ("scheme_client", "table_client")
 
-    def __init__(self, driver_config=None, connection_string=None, endpoint=None, database=None, root_certificates=None, credentials=None, **kwargs):
+    def __init__(
+        self,
+        driver_config=None,
+        connection_string=None,
+        endpoint=None,
+        database=None,
+        root_certificates=None,
+        credentials=None,
+        **kwargs
+    ):
         # type:(DriverConfig, str, str, str, bytes, ydb.AbstractCredentials, **Any) -> None
 
         """
@@ -236,7 +254,14 @@ class Driver(pool.ConnectionPool):
         :param database: A database path
         :param credentials: A credentials. If not specifed credentials constructed by default.
         """
-        driver_config = get_config(driver_config, connection_string, endpoint, database, root_certificates, credentials)
+        driver_config = get_config(
+            driver_config,
+            connection_string,
+            endpoint,
+            database,
+            root_certificates,
+            credentials,
+        )
 
         super(Driver, self).__init__(driver_config)
         self.scheme_client = scheme.SchemeClient(self)

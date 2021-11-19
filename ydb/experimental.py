@@ -15,14 +15,14 @@ class StreamQueryResult(object):
         self._result = result
 
     def is_progress(self):
-        return self._result.WhichOneof("result") == 'ping'
+        return self._result.WhichOneof("result") == "ping"
 
     @property
     def result_set(self):
         return convert.ResultSet.from_message(self._result.result_set)
 
     def is_result_set(self):
-        return self._result.WhichOneof("result") == 'result_set'
+        return self._result.WhichOneof("result") == "result_set"
 
 
 def _wrap_stream_query_response(response):
@@ -39,7 +39,12 @@ class ExperimentalClient(object):
         That is experimental api. Can be used only for tests, not for production.
         """
         request = _execute_stream_query_request_factory(yql_text, parameters, settings)
-        stream_it = self.driver(request, ydb_experimental_v1_pb2_grpc.ExperimentalServiceStub, 'ExecuteStreamQuery', settings=settings)
+        stream_it = self.driver(
+            request,
+            ydb_experimental_v1_pb2_grpc.ExperimentalServiceStub,
+            "ExecuteStreamQuery",
+            settings=settings,
+        )
         return _utilities.AsyncResponseIterator(stream_it, _wrap_stream_query_response)
 
     def execute_stream_query(self, yql_text, parameters=None, settings=None):
@@ -47,5 +52,10 @@ class ExperimentalClient(object):
         That is experimental api. Can be used only for tests, not for production.
         """
         request = _execute_stream_query_request_factory(yql_text, parameters, settings)
-        stream_it = self.driver(request, ydb_experimental_v1_pb2_grpc.ExperimentalServiceStub, 'ExecuteStreamQuery', settings=settings)
+        stream_it = self.driver(
+            request,
+            ydb_experimental_v1_pb2_grpc.ExperimentalServiceStub,
+            "ExecuteStreamQuery",
+            settings=settings,
+        )
         return _utilities.SyncResponseIterator(stream_it, _wrap_stream_query_response)

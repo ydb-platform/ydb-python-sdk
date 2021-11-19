@@ -8,7 +8,15 @@ from . import settings, issues, _utilities, tracing
 
 
 class SessionPoolImpl(object):
-    def __init__(self, logger, driver, size, workers_threads_count=4, initializer=None, min_pool_size=0):
+    def __init__(
+        self,
+        logger,
+        driver,
+        size,
+        workers_threads_count=4,
+        initializer=None,
+        min_pool_size=0,
+    ):
         self._lock = threading.RLock()
         self._waiters = collections.OrderedDict()
         self._driver = driver
@@ -45,14 +53,19 @@ class SessionPoolImpl(object):
             self._should_stop.set()
             self._terminating = True
 
-            self._logger.debug("Session pool is under stop, cancelling all in flight waiters.")
+            self._logger.debug(
+                "Session pool is under stop, cancelling all in flight waiters."
+            )
             while True:
                 try:
                     _, waiter = self._waiters.popitem(last=False)
                     session = self._create()
                     waiter.set_result(session)
                     self._logger.debug(
-                        "Waiter %s has been replied with empty session info. Session details: %s.", waiter, session)
+                        "Waiter %s has been replied with empty session info. Session details: %s.",
+                        waiter,
+                        session,
+                    )
                 except KeyError:
                     break
 
@@ -135,15 +148,26 @@ class SessionPoolImpl(object):
         with self._lock:
             tracing.trace(self.tracer, {"destroy.reason": reason})
             self._active_count -= 1
-            self._logger.debug("Session %s is no longer active. Current active count %d.", session, self._active_count)
+            self._logger.debug(
+                "Session %s is no longer active. Current active count %d.",
+                session,
+                self._active_count,
+            )
             cnt_waiters = len(self._waiters)
             if cnt_waiters > 0:
                 self._logger.debug(
-                    "In flight waiters: %d, preparing session %s replacement.", cnt_waiters, session)
+                    "In flight waiters: %d, preparing session %s replacement.",
+                    cnt_waiters,
+                    session,
+                )
                 # we have a waiter that should be replied, so we have to prepare replacement
                 self._prepare(self._create())
             elif not self._is_min_pool_size_satisfied():
-                self._logger.debug("Current session pool size is less than %s, actual size %s", self._min_pool_size, self._active_count)
+                self._logger.debug(
+                    "Current session pool size is less than %s, actual size %s",
+                    self._min_pool_size,
+                    self._active_count,
+                )
                 self._prepare(self._create())
 
         if session.initialized():
@@ -173,9 +197,10 @@ class SessionPoolImpl(object):
                 self._logger.debug("Replying to waiter with a session %s", session)
             except KeyError:
                 priority = time.time() + 10 * 60
-                tracing.trace(self.tracer, {"put.to_pool": True, "session.new_priority": priority})
-                self._active_queue.put(
-                    (priority, session))
+                tracing.trace(
+                    self.tracer, {"put.to_pool": True, "session.new_priority": priority}
+                )
+                self._active_queue.put((priority, session))
 
     def _on_session_create(self, session, f):
         with self._lock:
@@ -184,20 +209,18 @@ class SessionPoolImpl(object):
                 if self._initializer is None:
                     return self.put(session)
             except issues.Error as e:
-                self._logger.error("Failed to create session. Put event to a delayed queue. Reason: %s", str(e))
-                return self._event_queue.put(
-                    lambda: self._delayed_prepare(
-                        session
-                    )
+                self._logger.error(
+                    "Failed to create session. Put event to a delayed queue. Reason: %s",
+                    str(e),
                 )
+                return self._event_queue.put(lambda: self._delayed_prepare(session))
 
             except Exception as e:
-                self._logger.exception("Failed to create session. Put event to a delayed queue. Reason: %s", str(e))
-                return self._event_queue.put(
-                    lambda: self._delayed_prepare(
-                        session
-                    )
+                self._logger.exception(
+                    "Failed to create session. Put event to a delayed queue. Reason: %s",
+                    str(e),
                 )
+                return self._event_queue.put(lambda: self._delayed_prepare(session))
 
         init_f = self._tp.submit(self._initializer, session)
 
@@ -222,11 +245,7 @@ class SessionPoolImpl(object):
                 return self._destroy(session, "session-useless")
 
             f = session.async_create(self._req_settings)
-            f.add_done_callback(
-                lambda _: self._on_session_create(
-                    session, _
-                )
-            )
+            f.add_done_callback(lambda _: self._on_session_create(session, _))
 
     def _waiter_cleanup(self, w):
         with self._lock:
@@ -242,13 +261,24 @@ class SessionPoolImpl(object):
                 tracing.trace(self.tracer, {"acquire.found_free_session": True})
                 return _utilities.wrap_result_in_future(session)
             except queue.Empty:
-                self._logger.debug("Active session queue is empty, subscribe waiter for a session")
+                self._logger.debug(
+                    "Active session queue is empty, subscribe waiter for a session"
+                )
                 waiter = _utilities.future()
                 self._logger.debug("Subscribe waiter %s", waiter)
                 if self._should_stop.is_set():
-                    tracing.trace(self.tracer, {"acquire.found_free_session": False, "acquire.empty_session": True})
+                    tracing.trace(
+                        self.tracer,
+                        {
+                            "acquire.found_free_session": False,
+                            "acquire.empty_session": True,
+                        },
+                    )
                     session = self._create()
-                    self._logger.debug("Session pool is under stop, replying with empty session, %s", session)
+                    self._logger.debug(
+                        "Session pool is under stop, replying with empty session, %s",
+                        session,
+                    )
                     waiter.set_result(session)
                     return waiter
 
@@ -257,23 +287,32 @@ class SessionPoolImpl(object):
                 if self._active_count < self._size:
                     self._logger.debug(
                         "Session pool is not large enough (active_count < size: %d < %d). "
-                        "will create a new session.", self._active_count, self._size)
-                    tracing.trace(self.tracer, {
-                        "acquire.found_free_session": False,
-                        "acquire.creating_new_session": True,
-                        "session_pool.active_size": self._active_count,
-                        "session_pool.size": self._size
-                    })
+                        "will create a new session.",
+                        self._active_count,
+                        self._size,
+                    )
+                    tracing.trace(
+                        self.tracer,
+                        {
+                            "acquire.found_free_session": False,
+                            "acquire.creating_new_session": True,
+                            "session_pool.active_size": self._active_count,
+                            "session_pool.size": self._size,
+                        },
+                    )
                     session = self._create()
                     self._prepare(session)
                 else:
-                    tracing.trace(self.tracer, {
-                        "acquire.found_free_session": False,
-                        "acquire.creating_new_session": False,
-                        "session_pool.active_size": self._active_count,
-                        "session_pool.size": self._size,
-                        "acquire.waiting_for_free_session": True
-                    })
+                    tracing.trace(
+                        self.tracer,
+                        {
+                            "acquire.found_free_session": False,
+                            "acquire.creating_new_session": False,
+                            "session_pool.active_size": self._active_count,
+                            "session_pool.size": self._size,
+                            "acquire.waiting_for_free_session": True,
+                        },
+                    )
                 return waiter
 
     def unsubscribe(self, waiter):

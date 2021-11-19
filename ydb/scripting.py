@@ -39,16 +39,19 @@ class ExplainYqlScriptSettings(settings.BaseRequestSettings):
 
 
 def _execute_yql_query_request_factory(script, tp=None, settings=None):
-    params = None if tp is None else convert.parameters_to_pb(tp.parameters_types, tp.parameters_values)
-    return ydb_scripting_pb2.ExecuteYqlRequest(
-        script=script,
-        parameters=params
+    params = (
+        None
+        if tp is None
+        else convert.parameters_to_pb(tp.parameters_types, tp.parameters_values)
     )
+    return ydb_scripting_pb2.ExecuteYqlRequest(script=script, parameters=params)
 
 
 class YqlQueryResult(object):
     def __init__(self, result, scripting_client_settings=None):
-        self.result_sets = convert.ResultSets(result.result_sets, scripting_client_settings)
+        self.result_sets = convert.ResultSets(
+            result.result_sets, scripting_client_settings
+        )
 
 
 class YqlExplainResult(object):
@@ -73,24 +76,28 @@ def _wrap_explain_response(rpc_state, response):
 class ScriptingClient(object):
     def __init__(self, driver, scripting_client_settings=None):
         self.driver = driver
-        self.scripting_client_settings = scripting_client_settings if scripting_client_settings is not None else ScriptingClientSettings()
+        self.scripting_client_settings = (
+            scripting_client_settings
+            if scripting_client_settings is not None
+            else ScriptingClientSettings()
+        )
 
     def execute_yql(self, script, typed_parameters=None, settings=None):
         request = _execute_yql_query_request_factory(script, typed_parameters, settings)
         return self.driver(
             request,
             ydb_scripting_v1_pb2_grpc.ScriptingServiceStub,
-            'ExecuteYql',
+            "ExecuteYql",
             _wrap_response,
             settings=settings,
-            wrap_args=(self.scripting_client_settings, ),
+            wrap_args=(self.scripting_client_settings,),
         )
 
     def explain_yql(self, script, settings=None):
         return self.driver(
             ydb_scripting_pb2.ExplainYqlRequest(script=script, mode=settings.mode),
             ydb_scripting_v1_pb2_grpc.ScriptingServiceStub,
-            'ExplainYql',
+            "ExplainYql",
             _wrap_explain_response,
             settings=settings,
         )

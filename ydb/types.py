@@ -12,24 +12,34 @@ import struct
 if six.PY3:
     _from_bytes = None
 else:
+
     def _from_bytes(x, table_client_settings):
         return _utilities.from_bytes(x)
 
 
 def _from_date_number(x, table_client_settings):
-    if table_client_settings is not None and table_client_settings._native_date_in_result_sets:
+    if (
+        table_client_settings is not None
+        and table_client_settings._native_date_in_result_sets
+    ):
         return date.fromordinal(x + date(1970, 1, 1).toordinal())
     return x
 
 
 def _from_datetime_number(x, table_client_settings):
-    if table_client_settings is not None and table_client_settings._native_datetime_in_result_sets:
+    if (
+        table_client_settings is not None
+        and table_client_settings._native_datetime_in_result_sets
+    ):
         return datetime.utcfromtimestamp(x)
     return x
 
 
 def _from_json(x, table_client_settings):
-    if table_client_settings is not None and table_client_settings._native_json_in_result_sets:
+    if (
+        table_client_settings is not None
+        and table_client_settings._native_json_in_result_sets
+    ):
         return json.loads(x)
     if _from_bytes is not None:
         return _from_bytes(x, table_client_settings)
@@ -51,32 +61,41 @@ class PrimitiveType(enum.Enum):
     Enumerates all available primitive types that can be used
     in computations.
     """
-    Int32 = _apis.primitive_types.INT32, 'int32_value'
-    Uint32 = _apis.primitive_types.UINT32, 'uint32_value'
-    Int64 = _apis.primitive_types.INT64, 'int64_value'
-    Uint64 = _apis.primitive_types.UINT64, 'uint64_value'
-    Int8 = _apis.primitive_types.INT8, 'int32_value'
-    Uint8 = _apis.primitive_types.UINT8, 'uint32_value'
-    Int16 = _apis.primitive_types.INT16, 'int32_value'
-    Uint16 = _apis.primitive_types.UINT16, 'uint32_value'
-    Bool = _apis.primitive_types.BOOL, 'bool_value'
-    Double = _apis.primitive_types.DOUBLE, 'double_value'
-    Float = _apis.primitive_types.FLOAT, 'float_value'
 
-    String = _apis.primitive_types.STRING, 'bytes_value'
-    Utf8 = _apis.primitive_types.UTF8, 'text_value', _from_bytes
+    Int32 = _apis.primitive_types.INT32, "int32_value"
+    Uint32 = _apis.primitive_types.UINT32, "uint32_value"
+    Int64 = _apis.primitive_types.INT64, "int64_value"
+    Uint64 = _apis.primitive_types.UINT64, "uint64_value"
+    Int8 = _apis.primitive_types.INT8, "int32_value"
+    Uint8 = _apis.primitive_types.UINT8, "uint32_value"
+    Int16 = _apis.primitive_types.INT16, "int32_value"
+    Uint16 = _apis.primitive_types.UINT16, "uint32_value"
+    Bool = _apis.primitive_types.BOOL, "bool_value"
+    Double = _apis.primitive_types.DOUBLE, "double_value"
+    Float = _apis.primitive_types.FLOAT, "float_value"
 
-    Yson = _apis.primitive_types.YSON, 'bytes_value'
-    Json = _apis.primitive_types.JSON, 'text_value', _from_json
-    JsonDocument = _apis.primitive_types.JSON_DOCUMENT, 'text_value', _from_json
+    String = _apis.primitive_types.STRING, "bytes_value"
+    Utf8 = _apis.primitive_types.UTF8, "text_value", _from_bytes
+
+    Yson = _apis.primitive_types.YSON, "bytes_value"
+    Json = _apis.primitive_types.JSON, "text_value", _from_json
+    JsonDocument = _apis.primitive_types.JSON_DOCUMENT, "text_value", _from_json
     UUID = _apis.primitive_types.UUID, None, _to_uuid, _from_uuid
 
-    Date = _apis.primitive_types.DATE, 'uint32_value', _from_date_number,
-    Datetime = _apis.primitive_types.DATETIME, 'uint32_value', _from_datetime_number,
-    Timestamp = _apis.primitive_types.TIMESTAMP, 'uint64_value'
-    Interval = _apis.primitive_types.INTERVAL, 'int64_value'
+    Date = (
+        _apis.primitive_types.DATE,
+        "uint32_value",
+        _from_date_number,
+    )
+    Datetime = (
+        _apis.primitive_types.DATETIME,
+        "uint32_value",
+        _from_datetime_number,
+    )
+    Timestamp = _apis.primitive_types.TIMESTAMP, "uint64_value"
+    Interval = _apis.primitive_types.INTERVAL, "int64_value"
 
-    DyNumber = _apis.primitive_types.DYNUMBER, 'text_value', _from_bytes
+    DyNumber = _apis.primitive_types.DYNUMBER, "text_value", _from_bytes
 
     def __init__(self, idn, proto_field, to_obj=None, from_obj=None):
         self._idn_ = idn
@@ -91,7 +110,9 @@ class PrimitiveType(enum.Enum):
         :return: A valid value of primitive type
         """
         if self._to_obj is not None and self._proto_field:
-            return self._to_obj(getattr(value_pb, self._proto_field), table_client_settings)
+            return self._to_obj(
+                getattr(value_pb, self._proto_field), table_client_settings
+            )
 
         if self._to_obj is not None:
             return self._to_obj(value_pb, table_client_settings)
@@ -123,7 +144,7 @@ class PrimitiveType(enum.Enum):
 
 
 class DataQuery(object):
-    __slots__ = ('yql_text', 'parameters_types', 'name')
+    __slots__ = ("yql_text", "parameters_types", "name")
 
     def __init__(self, query_id, parameters_types, name=None):
         self.yql_text = query_id
@@ -151,7 +172,7 @@ class AbstractTypeBuilder(object):
 
 
 class DecimalType(AbstractTypeBuilder):
-    __slots__ = ('_proto', '_precision', '_scale')
+    __slots__ = ("_proto", "_precision", "_scale")
 
     def __init__(self, precision=22, scale=9):
         """
@@ -163,7 +184,8 @@ class DecimalType(AbstractTypeBuilder):
         self._scale = scale
         self._proto = _apis.ydb_value.Type()
         self._proto.decimal_type.MergeFrom(
-            _apis.ydb_value.DecimalType(precision=self._precision, scale=self._scale))
+            _apis.ydb_value.DecimalType(precision=self._precision, scale=self._scale)
+        )
 
     @property
     def precision(self):
@@ -189,11 +211,11 @@ class DecimalType(AbstractTypeBuilder):
         Returns string representation of a type
         :return: A string representation
         """
-        return 'Decimal(%d,%d)' % (self._precision, self._scale)
+        return "Decimal(%d,%d)" % (self._precision, self._scale)
 
 
 class OptionalType(AbstractTypeBuilder):
-    __slots__ = ('_repr', '_proto', '_item')
+    __slots__ = ("_repr", "_proto", "_item")
 
     def __init__(self, optional_type):
         """
@@ -204,7 +226,8 @@ class OptionalType(AbstractTypeBuilder):
         self._proto = _apis.ydb_value.Type()
         self._item = optional_type
         self._proto.optional_type.MergeFrom(
-            _apis.ydb_value.OptionalType(item=optional_type.proto))
+            _apis.ydb_value.OptionalType(item=optional_type.proto)
+        )
 
     @property
     def item(self):
@@ -226,7 +249,7 @@ class OptionalType(AbstractTypeBuilder):
 
 
 class ListType(AbstractTypeBuilder):
-    __slots__ = ('_repr', '_proto')
+    __slots__ = ("_repr", "_proto")
 
     def __init__(self, list_type):
         """
@@ -234,9 +257,7 @@ class ListType(AbstractTypeBuilder):
         """
         self._repr = "List<%s>" % str(list_type)
         self._proto = _apis.ydb_value.Type(
-            list_type=_apis.ydb_value.ListType(
-                item=list_type.proto
-            )
+            list_type=_apis.ydb_value.ListType(item=list_type.proto)
         )
 
     @property
@@ -252,7 +273,7 @@ class ListType(AbstractTypeBuilder):
 
 
 class DictType(AbstractTypeBuilder):
-    __slots__ = ('__repr', '__proto')
+    __slots__ = ("__repr", "__proto")
 
     def __init__(self, key_type, payload_type):
         """
@@ -276,7 +297,7 @@ class DictType(AbstractTypeBuilder):
 
 
 class TupleType(AbstractTypeBuilder):
-    __slots__ = ('__elements_repr', '__proto')
+    __slots__ = ("__elements_repr", "__proto")
 
     def __init__(self):
         self.__elements_repr = []
@@ -301,7 +322,7 @@ class TupleType(AbstractTypeBuilder):
 
 
 class StructType(AbstractTypeBuilder):
-    __slots__ = ('__members_repr', '__proto')
+    __slots__ = ("__members_repr", "__proto")
 
     def __init__(self):
         self.__members_repr = []
@@ -328,7 +349,7 @@ class StructType(AbstractTypeBuilder):
 
 
 class BulkUpsertColumns(AbstractTypeBuilder):
-    __slots__ = ('__columns_repr', '__proto')
+    __slots__ = ("__columns_repr", "__proto")
 
     def __init__(self):
         self.__columns_repr = []

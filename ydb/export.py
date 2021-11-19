@@ -7,8 +7,8 @@ from kikimr.public.api.protos import ydb_export_pb2
 from kikimr.public.api.grpc import ydb_export_v1_pb2_grpc
 from . import operation
 
-_ExportToYt = 'ExportToYt'
-_ExportToS3 = 'ExportToS3'
+_ExportToYt = "ExportToYt"
+_ExportToS3 = "ExportToS3"
 _progresses = {}
 
 
@@ -24,7 +24,7 @@ class ExportProgress(enum.IntEnum):
 
 def _initialize_progresses():
     for key, value in ydb_export_pb2.ExportProgress.Progress.items():
-        _progresses[value] = getattr(ExportProgress, key[len('PROGRESS_'):])
+        _progresses[value] = getattr(ExportProgress, key[len("PROGRESS_") :])
 
 
 _initialize_progresses()
@@ -39,7 +39,10 @@ class ExportToYTOperation(operation.Operation):
         self.items_progress = metadata.items_progress
 
     def __str__(self):
-        return "ExportToYTOperation<id: %s, progress: %s>" % (self.id, self.progress.name)
+        return "ExportToYTOperation<id: %s, progress: %s>" % (
+            self.id,
+            self.progress.name,
+        )
 
     def __repr__(self):
         return self.__str__()
@@ -54,7 +57,10 @@ class ExportToS3Operation(operation.Operation):
         self.items_progress = metadata.items_progress
 
     def __str__(self):
-        return "ExportToS3Operation<id: %s, progress: %s>" % (self.id, self.progress.name)
+        return "ExportToS3Operation<id: %s, progress: %s>" % (
+            self.id,
+            self.progress.name,
+        )
 
     def __repr__(self):
         return self.__str__()
@@ -177,8 +183,7 @@ def _export_to_yt_request_factory(settings):
 
     for source_path, destination_path in settings.items:
         request.settings.items.add(
-            source_path=source_path,
-            destination_path=destination_path
+            source_path=source_path, destination_path=destination_path
         )
 
     return request
@@ -202,7 +207,7 @@ def _export_to_s3_request_factory(settings):
     )
 
     if settings.uid is not None:
-        request.operation_params.labels['uid'] = settings.uid
+        request.operation_params.labels["uid"] = settings.uid
 
     if settings.number_of_retries > 0:
         request.settings.number_of_retries = settings.number_of_retries
@@ -227,9 +232,7 @@ class ExportClient(object):
             _apis.OperationService.GetOperation,
             ExportToS3Operation,
             settings,
-            (
-                self._driver,
-            )
+            (self._driver,),
         )
 
     def export_to_s3(self, settings):
@@ -239,9 +242,7 @@ class ExportClient(object):
             _ExportToS3,
             ExportToS3Operation,
             settings,
-            (
-                self._driver,
-            )
+            (self._driver,),
         )
 
     def export_to_yt(self, settings):
@@ -251,9 +252,7 @@ class ExportClient(object):
             _ExportToYt,
             ExportToYTOperation,
             settings,
-            (
-                self._driver,
-            )
+            (self._driver,),
         )
 
     def async_export_to_yt(self, settings):
@@ -263,7 +262,5 @@ class ExportClient(object):
             _ExportToYt,
             ExportToYTOperation,
             settings,
-            (
-                self._driver,
-            )
+            (self._driver,),
         )

@@ -14,15 +14,15 @@ def _event_handler(state, response_deserializer):
         for callback in callbacks:
             callback()
 
-        if getattr(state, 'on_event_handler_callback', None) is not None:
+        if getattr(state, "on_event_handler_callback", None) is not None:
             state.on_event_handler_callback(state)
 
         return done and state.fork_epoch >= cygrpc.get_fork_epoch()
+
     return handle_event
 
 
 def on_event_callback(future, it, response_wrapper):
-
     def _callback(state):
         with state.condition:
             if state.response is not None:
@@ -53,14 +53,10 @@ def operate_async_stream_call(it, wrapper):
             it._state.on_event_handler_callback = callback
             operating = it._call.operate(
                 (cygrpc.ReceiveMessageOperation(_EMPTY_FLAGS),),
-                _event_handler(
-                    it._state,
-                    it._response_deserializer
-                )
+                _event_handler(it._state, it._response_deserializer),
             )
             if operating:
-                it._state.due.add(
-                    cygrpc.OperationType.receive_message)
+                it._state.due.add(cygrpc.OperationType.receive_message)
         elif it._state.code is grpc.StatusCode.OK:
             future.set_exception(StopIteration())
         else:

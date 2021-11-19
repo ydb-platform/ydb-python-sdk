@@ -37,9 +37,7 @@ class AuthTokenCredentials(Credentials):
         self._token = token
 
     def auth_metadata(self):
-        return [
-            (YDB_AUTH_TICKET_HEADER, self._token)
-        ]
+        return [(YDB_AUTH_TICKET_HEADER, self._token)]
 
 
 class AccessTokenCredentials(Credentials):
@@ -47,6 +45,4 @@ class AccessTokenCredentials(Credentials):
         self._token = token
 
     def auth_metadata(self):
-        return [
-            (YDB_AUTH_TICKET_HEADER, self._token)
-        ]
+        return [(YDB_AUTH_TICKET_HEADER, self._token)]
