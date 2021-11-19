@@ -29,12 +29,14 @@ def render_str(value):
 
 
 def render_date(value):
-    return 'Date({})'.format(render_str(value.isoformat()))
+    return "Date({})".format(render_str(value.isoformat()))
 
 
 def render_datetime(value):
     # TODO: is there a better solution for this?
-    return 'DateTime::MakeDatetime(DateTime::ParseIso8601({}))'.format(render_str(value.isoformat()))
+    return "DateTime::MakeDatetime(DateTime::ParseIso8601({}))".format(
+        render_str(value.isoformat())
+    )
 
 
 def render(value):
@@ -53,23 +55,20 @@ def render_sql(sql, parameters):
     if not parameters:
         return sql
 
-    assert sql.count('?') == len(parameters), 'num of placeholders != num of params'
+    assert sql.count("?") == len(parameters), "num of placeholders != num of params"
 
     quoted_params = [render(param) for param in parameters]
-    quoted_params += ['']
-    sql_pieces = sql.split('?')
+    quoted_params += [""]
+    sql_pieces = sql.split("?")
     assert len(sql_pieces) == len(quoted_params)
-    return ''.join(
-        piece
-        for pair in zip(sql_pieces, quoted_params)
-        for piece in pair
-        if piece
+    return "".join(
+        piece for pair in zip(sql_pieces, quoted_params) for piece in pair if piece
     )
 
 
 def named_result_for(column_names):
     # TODO fix: this doesn't allow columns names starting with underscore, e.g. `select 1 as _a`.
-    return collections.namedtuple('NamedResult', column_names)
+    return collections.namedtuple("NamedResult", column_names)
 
 
 def _get_column_type(type_obj):
@@ -118,7 +117,15 @@ class Cursor(object):
             for chunk in chunks_iterable:
                 if description is None and len(chunk.result_set.rows) > 0:
                     description = [
-                        (col.name, get_column_type(col.type), None, None, None, None, None)
+                        (
+                            col.name,
+                            get_column_type(col.type),
+                            None,
+                            None,
+                            None,
+                            None,
+                            None,
+                        )
                         for col in chunk.result_set.columns
                     ]
                     self.description = description

@@ -16,9 +16,7 @@ class Connection(object):
         self.endpoint = endpoint
         self.database = database
         self._conn_kwargs = conn_kwargs
-        driver, pool = self._create_driver(
-            self.endpoint, self.database,
-            **conn_kwargs)
+        driver, pool = self._create_driver(self.endpoint, self.database, **conn_kwargs)
         self.driver = driver
         self.pool = pool
 
@@ -34,7 +32,9 @@ class Connection(object):
     def describe(self, table_path):
         full_path = posixpath.join(self.database, table_path)
         try:
-            res = self.pool.retry_operation_sync(lambda cli: cli.describe_table(full_path))
+            res = self.pool.retry_operation_sync(
+                lambda cli: cli.describe_table(full_path)
+            )
             return res.columns
         except ydb.Error as e:
             raise DatabaseError(e.message, e.issues, e.status)
@@ -63,7 +63,7 @@ class Connection(object):
 
     @staticmethod
     def _create_endpoint(host, port):
-        return '%s:%d' % (host, port)
+        return "%s:%d" % (host, port)
 
     @staticmethod
     def _create_driver(endpoint, database, **conn_kwargs):
@@ -74,7 +74,8 @@ class Connection(object):
             .with_native_date_in_result_sets(True)
             .with_native_datetime_in_result_sets(True)
             .with_native_json_in_result_sets(True),
-            **conn_kwargs)
+            **conn_kwargs
+        )
         driver = ydb.Driver(driver_config)
         try:
             driver.wait(timeout=5, fail_fast=True)
@@ -83,6 +84,9 @@ class Connection(object):
 
         except Exception:
             driver.stop()
-            raise DatabaseError('Failed to connect to YDB, details %s' % driver.discovery_debug_details())
+            raise DatabaseError(
+                "Failed to connect to YDB, details %s"
+                % driver.discovery_debug_details()
+            )
 
         return driver, ydb.SessionPool(driver)
