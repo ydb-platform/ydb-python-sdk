@@ -197,6 +197,7 @@ def create_tables(pool, path):
         # Creating Series table
         session.execute_scheme(
             """
+                PRAGMA TablePathPrefix("{}");
                 CREATE table `series` (
                     `series_id` Uint64,
                     `title` Utf8,
@@ -204,12 +205,13 @@ def create_tables(pool, path):
                     `release_date` Uint64,
                     PRIMARY KEY (`series_id`)
                 )
-                """
+                """.format(path)
         )
 
         # Creating Seasons table
         session.execute_scheme(
             """
+               PRAGMA TablePathPrefix("{}");
                CREATE table `seasons` (
                    `series_id` Uint64,
                    `season_id` Uint64,
@@ -218,12 +220,13 @@ def create_tables(pool, path):
                    `last_aired` Uint64,
                    PRIMARY KEY (`series_id`, `season_id`)
                )
-               """
+               """.format(path)
         )
 
         # Creating Episodes table
         session.execute_scheme(
             """
+            PRAGMA TablePathPrefix("{}");
             CREATE table `episodes` (
                 `series_id` Uint64,
                 `season_id` Uint64,
@@ -232,7 +235,7 @@ def create_tables(pool, path):
                 `air_date` Uint64,
                 PRIMARY KEY (`series_id`, `season_id`, `episode_id`)
             )
-            """
+            """.format(path)
         )
 
     return pool.retry_operation_sync(callee)
