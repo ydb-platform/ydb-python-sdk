@@ -15,7 +15,7 @@ _stubs_list = (
     _apis.TableService.Stub,
     _apis.SchemeService.Stub,
     _apis.DiscoveryService.Stub,
-    _apis.CmsService.Stub
+    _apis.CmsService.Stub,
 )
 
 logger = logging.getLogger(__name__)
@@ -45,11 +45,7 @@ def _log_response(rpc_state, response):
     :return: None
     """
     if logger.isEnabledFor(logging.DEBUG):
-        logger.debug(
-            "%s: response = { %s }", rpc_state, _message_to_string(
-                response
-            )
-        )
+        logger.debug("%s: response = { %s }", rpc_state, _message_to_string(response))
 
 
 def _log_request(rpc_state, request):
@@ -60,11 +56,7 @@ def _log_request(rpc_state, request):
     :return: None
     """
     if logger.isEnabledFor(logging.DEBUG):
-        logger.debug(
-            "%s: request = { %s }", rpc_state, _message_to_string(
-                request
-            )
-        )
+        logger.debug("%s: request = { %s }", rpc_state, _message_to_string(request))
 
 
 def _rpc_error_handler(rpc_state, rpc_error, on_disconnected=None):
@@ -79,22 +71,22 @@ def _rpc_error_handler(rpc_state, rpc_error, on_disconnected=None):
         if rpc_error.code() == grpc.StatusCode.UNAUTHENTICATED:
             return issues.Unauthenticated(rpc_error.details())
         elif rpc_error.code() == grpc.StatusCode.DEADLINE_EXCEEDED:
-            return issues.DeadlineExceed('Deadline exceeded on request')
+            return issues.DeadlineExceed("Deadline exceeded on request")
         elif rpc_error.code() == grpc.StatusCode.UNIMPLEMENTED:
-            return issues.Unimplemented('Method or feature is not implemented on server!')
+            return issues.Unimplemented(
+                "Method or feature is not implemented on server!"
+            )
 
     logger.debug("%s: unhandled rpc error, disconnecting channel", rpc_state)
     if on_disconnected is not None:
         on_disconnected()
 
-    return issues.ConnectionLost(
-        "Rpc error, reason %s" % str(
-            rpc_error
-        )
-    )
+    return issues.ConnectionLost("Rpc error, reason %s" % str(rpc_error))
 
 
-def _on_response_callback(rpc_state, call_state_unref, wrap_result=None, on_disconnected=None, wrap_args=()):
+def _on_response_callback(
+    rpc_state, call_state_unref, wrap_result=None, on_disconnected=None, wrap_args=()
+):
     """
     Callback to be executed on received RPC response
     :param rpc_state: A name of RPC
@@ -107,7 +99,11 @@ def _on_response_callback(rpc_state, call_state_unref, wrap_result=None, on_disc
         logger.debug("%s: on response callback started", rpc_state)
         response = rpc_state.rendezvous.result()
         _log_response(rpc_state, response)
-        response = response if wrap_result is None else wrap_result(rpc_state, response, *wrap_args)
+        response = (
+            response
+            if wrap_result is None
+            else wrap_result(rpc_state, response, *wrap_args)
+        )
         rpc_state.result_future.set_result(response)
         logger.debug("%s: on response callback success", rpc_state)
     except grpc.FutureCancelledError as e:
@@ -117,9 +113,7 @@ def _on_response_callback(rpc_state, call_state_unref, wrap_result=None, on_disc
 
     except grpc.RpcError as rpc_call_error:
         rpc_state.result_future.set_exception(
-            _rpc_error_handler(
-                rpc_state, rpc_call_error, on_disconnected
-            )
+            _rpc_error_handler(rpc_state, rpc_call_error, on_disconnected)
         )
 
     except issues.Error as e:
@@ -176,29 +170,44 @@ def _construct_channel_options(driver_config):
     """
     _max_message_size = 64 * 10 ** 6
     _default_connect_options = [
-        ('grpc.max_receive_message_length', _max_message_size),
-        ('grpc.max_send_message_length', _max_message_size),
-        ('grpc.primary_user_agent', driver_config.primary_user_agent),
-        ('grpc.lb_policy_name', getattr(driver_config, 'grpc_lb_policy_name', 'round_robin')),
+        ("grpc.max_receive_message_length", _max_message_size),
+        ("grpc.max_send_message_length", _max_message_size),
+        ("grpc.primary_user_agent", driver_config.primary_user_agent),
+        (
+            "grpc.lb_policy_name",
+            getattr(driver_config, "grpc_lb_policy_name", "round_robin"),
+        ),
     ]
     if driver_config.grpc_keep_alive_timeout is not None:
-        _default_connect_options.extend([
-            ('grpc.keepalive_time_ms', driver_config.grpc_keep_alive_timeout >> 3),
-            ('grpc.keepalive_timeout_ms', driver_config.grpc_keep_alive_timeout),
-            ('grpc.http2.max_pings_without_data', 0),
-            ('grpc.keepalive_permit_without_calls', 0),
-        ])
+        _default_connect_options.extend(
+            [
+                ("grpc.keepalive_time_ms", driver_config.grpc_keep_alive_timeout >> 3),
+                ("grpc.keepalive_timeout_ms", driver_config.grpc_keep_alive_timeout),
+                ("grpc.http2.max_pings_without_data", 0),
+                ("grpc.keepalive_permit_without_calls", 0),
+            ]
+        )
     if driver_config.channel_options is None:
         return _default_connect_options
     channel_options = copy.deepcopy(driver_config.channel_options)
     custom_options_keys = set(i[0] for i in driver_config.channel_options)
-    for item in filter(lambda x: x[0] not in custom_options_keys, _default_connect_options):
+    for item in filter(
+        lambda x: x[0] not in custom_options_keys, _default_connect_options
+    ):
         channel_options.append(item)
     return channel_options
 
 
 class _RpcState(object):
-    __slots__ = ('rpc', 'request_id', 'result_future', 'rpc_name', 'endpoint', 'rendezvous', 'metadata_kv')
+    __slots__ = (
+        "rpc",
+        "request_id",
+        "result_future",
+        "rpc_name",
+        "endpoint",
+        "rendezvous",
+        "metadata_kv",
+    )
 
     def __init__(self, stub_instance, rpc_name, endpoint):
         """Stores all RPC related data"""
@@ -244,7 +253,7 @@ class _RpcState(object):
         return self.rendezvous, self.result_future
 
 
-_nanos_in_second = 10**9
+_nanos_in_second = 10 ** 9
 
 
 def _set_duration(duration_value, seconds_float):
@@ -254,12 +263,14 @@ def _set_duration(duration_value, seconds_float):
 
 
 def _set_server_timeouts(request, settings, default_value):
-    if not hasattr(request, 'operation_params'):
+    if not hasattr(request, "operation_params"):
         return
 
-    operation_timeout = getattr(settings, 'operation_timeout', default_value)
-    operation_timeout = default_value if operation_timeout is None else operation_timeout
-    cancel_after = getattr(settings, 'cancel_after', default_value)
+    operation_timeout = getattr(settings, "operation_timeout", default_value)
+    operation_timeout = (
+        default_value if operation_timeout is None else operation_timeout
+    )
+    cancel_after = getattr(settings, "cancel_after", default_value)
     cancel_after = default_value if cancel_after is None else cancel_after
     _set_duration(request.operation_params.operation_timeout, operation_timeout)
     _set_duration(request.operation_params.cancel_after, cancel_after)
@@ -276,14 +287,23 @@ def channel_factory(endpoint, driver_config, channel_provider=None):
     if root_certificates is None:
         root_certificates = default_pem.load_default_pem()
     credentials = grpc.ssl_channel_credentials(
-        root_certificates, driver_config.private_key, driver_config.certificate_chain)
+        root_certificates, driver_config.private_key, driver_config.certificate_chain
+    )
     return channel_provider.secure_channel(endpoint, credentials, options)
 
 
 class Connection(object):
     __slots__ = (
-        'endpoint', '_channel', '_call_states', '_stub_instances', '_driver_config', '_cleanup_callbacks',
-        '__weakref__', 'lock', 'calls', 'closing',
+        "endpoint",
+        "_channel",
+        "_call_states",
+        "_stub_instances",
+        "_driver_config",
+        "_cleanup_callbacks",
+        "__weakref__",
+        "lock",
+        "calls",
+        "closing",
     )
 
     def __init__(self, endpoint, driver_config=None):
@@ -315,7 +335,9 @@ class Connection(object):
         self._cleanup_callbacks.append(callback)
 
     def _prepare_call(self, stub, rpc_name, request, settings):
-        timeout, metadata = _get_request_timeout(settings), _construct_metadata(self._driver_config, settings)
+        timeout, metadata = _get_request_timeout(settings), _construct_metadata(
+            self._driver_config, settings
+        )
         _set_server_timeouts(request, settings, timeout)
         self._prepare_stub_instance(stub)
         rpc_state = _RpcState(self._stub_instances[stub], rpc_name, self.endpoint)
@@ -338,7 +360,16 @@ class Connection(object):
                 # Channel is closing and we have to destroy channel
                 self.destroy()
 
-    def future(self, request, stub, rpc_name, wrap_result=None, settings=None, wrap_args=(), on_disconnected=None):
+    def future(
+        self,
+        request,
+        stub,
+        rpc_name,
+        wrap_result=None,
+        settings=None,
+        wrap_args=(),
+        on_disconnected=None,
+    ):
         """
         Sends request constructed by client
         :param request: A request constructed by client
@@ -351,17 +382,31 @@ class Connection(object):
         :param wrap_args: And arguments to be passed into wrap_result callable
         :return: A future of computation
         """
-        rpc_state, timeout, metadata = self._prepare_call(stub, rpc_name, request, settings)
+        rpc_state, timeout, metadata = self._prepare_call(
+            stub, rpc_name, request, settings
+        )
         rendezvous, result_future = rpc_state.future(request, timeout, metadata)
         rendezvous.add_done_callback(
             lambda resp_future: _on_response_callback(
-                rpc_state, lambda: self._finish_call(rpc_state),
-                wrap_result, on_disconnected, wrap_args,
+                rpc_state,
+                lambda: self._finish_call(rpc_state),
+                wrap_result,
+                on_disconnected,
+                wrap_args,
             )
         )
         return result_future
 
-    def __call__(self, request, stub, rpc_name, wrap_result=None, settings=None, wrap_args=(), on_disconnected=None):
+    def __call__(
+        self,
+        request,
+        stub,
+        rpc_name,
+        wrap_result=None,
+        settings=None,
+        wrap_args=(),
+        on_disconnected=None,
+    ):
         """
         Synchronously sends request constructed by client library
         :param request: A request constructed by client
@@ -374,11 +419,17 @@ class Connection(object):
         :param wrap_args: And arguments to be passed into wrap_result callable
         :return: A result of computation
         """
-        rpc_state, timeout, metadata = self._prepare_call(stub, rpc_name, request, settings)
+        rpc_state, timeout, metadata = self._prepare_call(
+            stub, rpc_name, request, settings
+        )
         try:
             response = rpc_state(request, timeout, metadata)
             _log_response(rpc_state, response)
-            return response if wrap_result is None else wrap_result(rpc_state, response, *wrap_args)
+            return (
+                response
+                if wrap_result is None
+                else wrap_result(rpc_state, response, *wrap_args)
+            )
         except grpc.RpcError as rpc_error:
             raise _rpc_error_handler(rpc_state, rpc_error, on_disconnected)
         finally:
@@ -426,7 +477,7 @@ class Connection(object):
                 self.destroy()
 
     def destroy(self):
-        if hasattr(self, '_channel') and hasattr(self._channel, 'close'):
+        if hasattr(self, "_channel") and hasattr(self._channel, "close"):
             self._channel.close()
 
     def ready_future(self):

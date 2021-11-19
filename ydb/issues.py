@@ -186,7 +186,4 @@ _server_side_error_map = {
 def _process_response(response_proto):
     if response_proto.status not in _success_status_codes:
         exc_obj = _server_side_error_map.get(response_proto.status)
-        raise exc_obj(
-            _format_issues(response_proto.issues),
-            response_proto.issues
-        )
+        raise exc_obj(_format_issues(response_proto.issues), response_proto.issues)

@@ -8,7 +8,19 @@ import random
 import enum
 
 import six
-from . import issues, convert, settings, scheme, types, _utilities, _apis, _sp_impl, _session_impl, _tx_ctx_impl, tracing
+from . import (
+    issues,
+    convert,
+    settings,
+    scheme,
+    types,
+    _utilities,
+    _apis,
+    _sp_impl,
+    _session_impl,
+    _tx_ctx_impl,
+    tracing,
+)
 
 try:
     from . import interceptor
@@ -50,7 +62,7 @@ class ExecDataQuerySettings(settings.BaseRequestSettings):
 
 
 class KeyBound(object):
-    __slots__ = ('_equal', 'value', 'type')
+    __slots__ = ("_equal", "value", "type")
 
     def __init__(self, key_value, key_type=None, inclusive=False):
         """
@@ -80,8 +92,8 @@ class KeyBound(object):
 
     def __str__(self):
         if self._equal:
-            return 'InclusiveKeyBound(Tuple%s)' % str(self.value)
-        return 'ExclusiveKeyBound(Tuple%s)' % str(self.value)
+            return "InclusiveKeyBound(Tuple%s)" % str(self.value)
+        return "ExclusiveKeyBound(Tuple%s)" % str(self.value)
 
     @classmethod
     def inclusive(cls, key_value, key_type):
@@ -93,7 +105,7 @@ class KeyBound(object):
 
 
 class KeyRange(object):
-    __slots__ = ('from_bound', 'to_bound')
+    __slots__ = ("from_bound", "to_bound")
 
     def __init__(self, from_bound, to_bound):
         self.from_bound = from_bound
@@ -103,8 +115,7 @@ class KeyRange(object):
         return self.__str__()
 
     def __str__(self):
-        return 'KeyRange(%s, %s)' % (
-            str(self.from_bound), str(self.to_bound))
+        return "KeyRange(%s, %s)" % (str(self.from_bound), str(self.to_bound))
 
 
 class Column(object):
@@ -261,10 +272,7 @@ class PartitioningPolicy(object):
 
                 typed_value.type.MergeFrom(split_point_type.proto)
                 typed_value.value.MergeFrom(
-                    convert.from_native_value(
-                        split_point_type.proto,
-                        split_point.value
-                    )
+                    convert.from_native_value(split_point_type.proto, split_point.value)
                 )
 
         return self._pb
@@ -422,28 +430,24 @@ class TableProfile(object):
             pb.preset_name = self.preset_name
 
         if self.execution_policy is not None:
-            pb.execution_policy.MergeFrom(
-                self.execution_policy.to_pb())
+            pb.execution_policy.MergeFrom(self.execution_policy.to_pb())
 
         if self.storage_policy is not None:
-            pb.storage_policy.MergeFrom(
-                self.storage_policy.to_pb())
+            pb.storage_policy.MergeFrom(self.storage_policy.to_pb())
 
         if self.replication_policy is not None:
-            pb.replication_policy.MergeFrom(
-                self.replication_policy.to_pb())
+            pb.replication_policy.MergeFrom(self.replication_policy.to_pb())
 
         if self.caching_policy is not None:
-            pb.caching_policy.MergeFrom(
-                self.caching_policy.to_pb())
+            pb.caching_policy.MergeFrom(self.caching_policy.to_pb())
 
         if self.compaction_policy is not None:
-            pb.compaction_policy.MergeFrom(
-                self.compaction_policy.to_pb())
+            pb.compaction_policy.MergeFrom(self.compaction_policy.to_pb())
 
         if self.partitioning_policy is not None:
             pb.partitioning_policy.MergeFrom(
-                self.partitioning_policy.to_pb(table_description))
+                self.partitioning_policy.to_pb(table_description)
+            )
 
         return pb
 
@@ -493,11 +497,17 @@ class TtlSettings(object):
         self.value_since_unix_epoch = None
 
     def with_date_type_column(self, column_name, expire_after_seconds=0):
-        self.date_type_column = DateTypeColumnModeSettings(column_name, expire_after_seconds)
+        self.date_type_column = DateTypeColumnModeSettings(
+            column_name, expire_after_seconds
+        )
         return self
 
-    def with_value_since_unix_epoch(self, column_name, column_unit, expire_after_seconds=0):
-        self.value_since_unix_epoch = ValueSinceUnixEpochModeSettings(column_name, column_unit, expire_after_seconds)
+    def with_value_since_unix_epoch(
+        self, column_name, column_unit, expire_after_seconds=0
+    ):
+        self.value_since_unix_epoch = ValueSinceUnixEpochModeSettings(
+            column_name, column_unit, expire_after_seconds
+        )
         return self
 
     def to_pb(self):
@@ -759,7 +769,6 @@ class TableDescription(object):
 
 @six.add_metaclass(abc.ABCMeta)
 class AbstractTransactionModeBuilder(object):
-
     @property
     @abc.abstractmethod
     def name(self):
@@ -772,10 +781,10 @@ class AbstractTransactionModeBuilder(object):
 
 
 class SerializableReadWrite(AbstractTransactionModeBuilder):
-    __slots__ = ('_pb', '_name')
+    __slots__ = ("_pb", "_name")
 
     def __init__(self):
-        self._name = 'serializable_read_write'
+        self._name = "serializable_read_write"
         self._pb = _apis.ydb_table.SerializableModeSettings()
 
     @property
@@ -788,12 +797,12 @@ class SerializableReadWrite(AbstractTransactionModeBuilder):
 
 
 class OnlineReadOnly(AbstractTransactionModeBuilder):
-    __slots__ = ('_pb', '_name')
+    __slots__ = ("_pb", "_name")
 
     def __init__(self):
         self._pb = _apis.ydb_table.OnlineModeSettings()
         self._pb.allow_inconsistent_reads = False
-        self._name = 'online_read_only'
+        self._name = "online_read_only"
 
     def with_allow_inconsistent_reads(self):
         self._pb.allow_inconsistent_reads = True
@@ -809,11 +818,11 @@ class OnlineReadOnly(AbstractTransactionModeBuilder):
 
 
 class StaleReadOnly(AbstractTransactionModeBuilder):
-    __slots__ = ('_pb', '_name')
+    __slots__ = ("_pb", "_name")
 
     def __init__(self):
         self._pb = _apis.ydb_table.StaleModeSettings()
-        self._name = 'stale_read_only'
+        self._name = "stale_read_only"
 
     @property
     def settings(self):
@@ -825,36 +834,49 @@ class StaleReadOnly(AbstractTransactionModeBuilder):
 
 
 class BackoffSettings(object):
-    def __init__(self, ceiling=6, slot_duration=.001, uncertain_ratio=0.5):
+    def __init__(self, ceiling=6, slot_duration=0.001, uncertain_ratio=0.5):
         self.ceiling = ceiling
         self.slot_duration = slot_duration
         self.uncertain_ratio = uncertain_ratio
 
     def calc_timeout(self, retry_number):
         slots_count = 1 << min(retry_number, self.ceiling)
-        max_duration_ms = slots_count * self.slot_duration * 1000.
+        max_duration_ms = slots_count * self.slot_duration * 1000.0
         # duration_ms = random.random() * max_duration_ms * uncertain_ratio) + max_duration_ms * (1 - uncertain_ratio)
-        duration_ms = max_duration_ms * (random.random() * self.uncertain_ratio + 1. - self.uncertain_ratio)
-        return duration_ms / 1000.
+        duration_ms = max_duration_ms * (
+            random.random() * self.uncertain_ratio + 1.0 - self.uncertain_ratio
+        )
+        return duration_ms / 1000.0
 
 
 class RetrySettings(object):
     def __init__(
-            self, max_retries=10,
-            max_session_acquire_timeout=None,
-            on_ydb_error_callback=None,
-            backoff_ceiling=6,
-            backoff_slot_duration=1,
-            get_session_client_timeout=5,
-            fast_backoff_settings=None,
-            slow_backoff_settings=None,
-            idempotent=False):
+        self,
+        max_retries=10,
+        max_session_acquire_timeout=None,
+        on_ydb_error_callback=None,
+        backoff_ceiling=6,
+        backoff_slot_duration=1,
+        get_session_client_timeout=5,
+        fast_backoff_settings=None,
+        slow_backoff_settings=None,
+        idempotent=False,
+    ):
         self.max_retries = max_retries
         self.max_session_acquire_timeout = max_session_acquire_timeout
-        self.on_ydb_error_callback = (lambda e: None) if on_ydb_error_callback is None else on_ydb_error_callback
-        self.fast_backoff = BackoffSettings(10, .005) if fast_backoff_settings is None else fast_backoff_settings
-        self.slow_backoff = BackoffSettings(backoff_ceiling, backoff_slot_duration) \
-            if slow_backoff_settings is None else slow_backoff_settings
+        self.on_ydb_error_callback = (
+            (lambda e: None) if on_ydb_error_callback is None else on_ydb_error_callback
+        )
+        self.fast_backoff = (
+            BackoffSettings(10, 0.005)
+            if fast_backoff_settings is None
+            else fast_backoff_settings
+        )
+        self.slow_backoff = (
+            BackoffSettings(backoff_ceiling, backoff_slot_duration)
+            if slow_backoff_settings is None
+            else slow_backoff_settings
+        )
         self.retry_not_found = True
         self.idempotent = idempotent
         self.retry_internal_error = True
@@ -862,8 +884,7 @@ class RetrySettings(object):
         self.get_session_client_timeout = get_session_client_timeout
         if max_session_acquire_timeout is not None:
             self.get_session_client_timeout = min(
-                self.max_session_acquire_timeout,
-                self.get_session_client_timeout
+                self.max_session_acquire_timeout, self.get_session_client_timeout
             )
 
     def with_fast_backoff(self, backoff_settings):
@@ -902,26 +923,40 @@ def retry_operation_impl(callee, retry_settings=None, *args, **kwargs):
                 raise result.exc
 
         except (
-                issues.Aborted, issues.BadSession,
-                issues.NotFound, issues.InternalError) as e:
+            issues.Aborted,
+            issues.BadSession,
+            issues.NotFound,
+            issues.InternalError,
+        ) as e:
             status = e
             retry_settings.on_ydb_error_callback(e)
 
             if isinstance(e, issues.NotFound) and not retry_settings.retry_not_found:
                 raise e
 
-            if isinstance(e, issues.InternalError) and not retry_settings.retry_internal_error:
+            if (
+                isinstance(e, issues.InternalError)
+                and not retry_settings.retry_internal_error
+            ):
                 raise e
 
-        except (issues.Overloaded, issues.SessionPoolEmpty, issues.ConnectionError) as e:
+        except (
+            issues.Overloaded,
+            issues.SessionPoolEmpty,
+            issues.ConnectionError,
+        ) as e:
             status = e
             retry_settings.on_ydb_error_callback(e)
-            yield YdbRetryOperationSleepOpt(retry_settings.slow_backoff.calc_timeout(attempt))
+            yield YdbRetryOperationSleepOpt(
+                retry_settings.slow_backoff.calc_timeout(attempt)
+            )
 
         except issues.Unavailable as e:
             status = e
             retry_settings.on_ydb_error_callback(e)
-            yield YdbRetryOperationSleepOpt(retry_settings.fast_backoff.calc_timeout(attempt))
+            yield YdbRetryOperationSleepOpt(
+                retry_settings.fast_backoff.calc_timeout(attempt)
+            )
 
         except issues.Undetermined as e:
             status = e
@@ -930,7 +965,9 @@ def retry_operation_impl(callee, retry_settings=None, *args, **kwargs):
                 # operation is not idempotent, so we cannot retry.
                 raise
 
-            yield YdbRetryOperationSleepOpt(retry_settings.fast_backoff.calc_timeout(attempt))
+            yield YdbRetryOperationSleepOpt(
+                retry_settings.fast_backoff.calc_timeout(attempt)
+            )
 
         except issues.Error as e:
             retry_settings.on_ydb_error_callback(e)
@@ -990,7 +1027,9 @@ class TableClientSettings(object):
 class ScanQueryResult(object):
     def __init__(self, result, table_client_settings):
         self._result = result
-        self.result_set = convert.ResultSet.from_message(self._result.result_set, table_client_settings)
+        self.result_set = convert.ResultSet.from_message(
+            self._result.result_set, table_client_settings
+        )
 
 
 class ScanQuery(object):
@@ -1011,16 +1050,12 @@ def _scan_query_request_factory(query, parameters=None, settings=None):
     return _apis.ydb_table.ExecuteScanQueryRequest(
         mode=_apis.ydb_table.ExecuteScanQueryRequest.Mode.MODE_EXEC,
         query=_apis.ydb_table.Query(yql_text=query.yql_text),
-        parameters=convert.parameters_to_pb(
-            query.parameters_types,
-            parameters
-        )
+        parameters=convert.parameters_to_pb(query.parameters_types, parameters),
     )
 
 
 @six.add_metaclass(abc.ABCMeta)
 class ISession:
-
     @abstractmethod
     def __init__(self, driver, table_client_settings):
         pass
@@ -1065,7 +1100,7 @@ class ISession:
         ordered=False,
         row_limit=None,
         settings=None,
-        use_snapshot=None
+        use_snapshot=None,
     ):
         """
         Perform an read table request.
@@ -1142,18 +1177,23 @@ class ISession:
 
     @abstractmethod
     def alter_table(
-        self, path,
-        add_columns=None, drop_columns=None,
+        self,
+        path,
+        add_columns=None,
+        drop_columns=None,
         settings=None,
         alter_attributes=None,
-        add_indexes=None, drop_indexes=None,
-        set_ttl_settings=None, drop_ttl_settings=None,
-        add_column_families=None, alter_column_families=None,
+        add_indexes=None,
+        drop_indexes=None,
+        set_ttl_settings=None,
+        drop_ttl_settings=None,
+        add_column_families=None,
+        alter_column_families=None,
         alter_storage_settings=None,
         set_compaction_policy=None,
         alter_partitioning_settings=None,
         set_key_bloom_filter=None,
-        set_read_replicas_settings=None
+        set_read_replicas_settings=None,
     ):
         pass
 
@@ -1162,11 +1202,7 @@ class ISession:
         pass
 
     @abstractmethod
-    def copy_tables(
-        self,
-        source_destination_pairs,
-        settings=None
-    ):
+    def copy_tables(self, source_destination_pairs, settings=None):
         pass
 
     def describe_table(self, path, settings=None):
@@ -1195,13 +1231,7 @@ class ITableClient:
         pass
 
     @abstractmethod
-    def bulk_upsert(
-        self,
-        table_path,
-        rows,
-        column_types,
-        settings=None
-    ):
+    def bulk_upsert(self, table_path, rows, column_types, settings=None):
         """
         Bulk upsert data
 
@@ -1217,7 +1247,11 @@ class BaseTableClient(ITableClient):
     def __init__(self, driver, table_client_settings=None):
         # type:(ydb.Driver, ydb.TableClientSettings) -> None
         self._driver = driver
-        self._table_client_settings = TableClientSettings() if table_client_settings is None else table_client_settings
+        self._table_client_settings = (
+            TableClientSettings()
+            if table_client_settings is None
+            else table_client_settings
+        )
 
     def session(self):
         # type: () -> ydb.Session
@@ -1226,8 +1260,16 @@ class BaseTableClient(ITableClient):
     def scan_query(self, query, parameters=None, settings=None):
         # type: (ydb.ScanQuery, tuple, ydb.BaseRequestSettings) -> ydb.SyncResponseIterator
         request = _scan_query_request_factory(query, parameters, settings)
-        stream_it = self._driver(request, _apis.TableService.Stub, _apis.TableService.StreamExecuteScanQuery, settings=settings)
-        return _utilities.SyncResponseIterator(stream_it, lambda resp: _wrap_scan_query_response(resp, self._table_client_settings))
+        stream_it = self._driver(
+            request,
+            _apis.TableService.Stub,
+            _apis.TableService.StreamExecuteScanQuery,
+            settings=settings,
+        )
+        return _utilities.SyncResponseIterator(
+            stream_it,
+            lambda resp: _wrap_scan_query_response(resp, self._table_client_settings),
+        )
 
     def bulk_upsert(self, table_path, rows, column_types, settings=None):
         # type: (str, list, ydb.AbstractTypeBuilder | ydb.PrimitiveType, ydb.BaseRequestSettings) -> None
@@ -1250,12 +1292,19 @@ class BaseTableClient(ITableClient):
 
 
 class TableClient(BaseTableClient):
-
     def async_scan_query(self, query, parameters=None, settings=None):
         # type: (ydb.ScanQuery, tuple, ydb.BaseRequestSettings) -> ydb.AsyncResponseIterator
         request = _scan_query_request_factory(query, parameters, settings)
-        stream_it = self._driver(request, _apis.TableService.Stub, _apis.TableService.StreamExecuteScanQuery, settings=settings)
-        return _utilities.AsyncResponseIterator(stream_it, lambda resp: _wrap_scan_query_response(resp, self._table_client_settings))
+        stream_it = self._driver(
+            request,
+            _apis.TableService.Stub,
+            _apis.TableService.StreamExecuteScanQuery,
+            settings=settings,
+        )
+        return _utilities.AsyncResponseIterator(
+            stream_it,
+            lambda resp: _wrap_scan_query_response(resp, self._table_client_settings),
+        )
 
     @_utilities.wrap_async_call_exceptions
     def async_bulk_upsert(self, table_path, rows, column_types, settings=None):
@@ -1271,20 +1320,53 @@ class TableClient(BaseTableClient):
 
 
 def _make_index_description(index):
-    result = TableIndex(index.name).with_index_columns(*tuple(col for col in index.index_columns))
+    result = TableIndex(index.name).with_index_columns(
+        *tuple(col for col in index.index_columns)
+    )
     result.status = IndexStatus(index.status)
     return result
 
 
 class TableSchemeEntry(scheme.SchemeEntry):
     def __init__(
-            self, name, owner, type, effective_permissions, permissions, size_bytes, columns, primary_key, shard_key_bounds,
-            indexes, table_stats, ttl_settings, attributes, partitioning_settings, column_families, key_bloom_filter,
-            read_replicas_settings, storage_settings, *args, **kwargs):
+        self,
+        name,
+        owner,
+        type,
+        effective_permissions,
+        permissions,
+        size_bytes,
+        columns,
+        primary_key,
+        shard_key_bounds,
+        indexes,
+        table_stats,
+        ttl_settings,
+        attributes,
+        partitioning_settings,
+        column_families,
+        key_bloom_filter,
+        read_replicas_settings,
+        storage_settings,
+        *args,
+        **kwargs
+    ):
 
-        super(TableSchemeEntry, self).__init__(name, owner, type, effective_permissions, permissions, size_bytes, *args, **kwargs)
+        super(TableSchemeEntry, self).__init__(
+            name,
+            owner,
+            type,
+            effective_permissions,
+            permissions,
+            size_bytes,
+            *args,
+            **kwargs
+        )
         self.primary_key = [pk for pk in primary_key]
-        self.columns = [Column(column.name, convert.type_to_native(column.type), column.family) for column in columns]
+        self.columns = [
+            Column(column.name, convert.type_to_native(column.type), column.family)
+            for column in columns
+        ]
         self.indexes = [_make_index_description(index) for index in indexes]
         self.shard_key_ranges = []
         self.column_families = []
@@ -1298,11 +1380,9 @@ class TableSchemeEntry(scheme.SchemeEntry):
                 .with_compression(Compression(column_family.compression))
             )
 
-            if column_family.HasField('data'):
+            if column_family.HasField("data"):
                 self.column_families[-1].with_data(
-                    StoragePool(
-                        column_family.data.media
-                    )
+                    StoragePool(column_family.data.media)
                 )
 
         for shard_key_bound in shard_key_bounds:
@@ -1311,8 +1391,10 @@ class TableSchemeEntry(scheme.SchemeEntry):
             current_bound = convert.to_native_value(shard_key_bound)
             self.shard_key_ranges.append(
                 KeyRange(
-                    None if left_key_bound is None else KeyBound.inclusive(left_key_bound, key_bound_type),
-                    KeyBound.exclusive(current_bound, key_bound_type)
+                    None
+                    if left_key_bound is None
+                    else KeyBound.inclusive(left_key_bound, key_bound_type),
+                    KeyBound.exclusive(current_bound, key_bound_type),
                 )
             )
             left_key_bound = current_bound
@@ -1328,49 +1410,68 @@ class TableSchemeEntry(scheme.SchemeEntry):
             )
 
         else:
-            self.shard_key_ranges.append(
-                KeyRange(None, None))
+            self.shard_key_ranges.append(KeyRange(None, None))
 
         self.read_replicas_settings = None
         if read_replicas_settings is not None:
             self.read_replicas_settings = ReadReplicasSettings()
-            for field in ('per_az_read_replicas_count', 'any_az_read_replicas_count'):
-                if read_replicas_settings.WhichOneof('settings') == field:
-                    setattr(self.read_replicas_settings, field, getattr(read_replicas_settings, field))
+            for field in ("per_az_read_replicas_count", "any_az_read_replicas_count"):
+                if read_replicas_settings.WhichOneof("settings") == field:
+                    setattr(
+                        self.read_replicas_settings,
+                        field,
+                        getattr(read_replicas_settings, field),
+                    )
 
         self.storage_settings = None
         if storage_settings is not None:
             self.storage_settings = StorageSettings()
-            self.storage_settings.store_external_blobs = FeatureFlag(self.storage_settings.store_external_blobs)
-            if storage_settings.HasField('tablet_commit_log0'):
+            self.storage_settings.store_external_blobs = FeatureFlag(
+                self.storage_settings.store_external_blobs
+            )
+            if storage_settings.HasField("tablet_commit_log0"):
                 self.storage_settings.with_tablet_commit_log0(
-                    StoragePool(storage_settings.tablet_commit_log0.media))
+                    StoragePool(storage_settings.tablet_commit_log0.media)
+                )
 
-            if storage_settings.HasField('tablet_commit_log1'):
+            if storage_settings.HasField("tablet_commit_log1"):
                 self.storage_settings.with_tablet_commit_log1(
-                    StoragePool(storage_settings.tablet_commit_log1.media))
+                    StoragePool(storage_settings.tablet_commit_log1.media)
+                )
 
-            if storage_settings.HasField('external'):
-                self.storage_settings.with_external(StoragePool(storage_settings.external.media))
+            if storage_settings.HasField("external"):
+                self.storage_settings.with_external(
+                    StoragePool(storage_settings.external.media)
+                )
 
         self.partitioning_settings = None
         if partitioning_settings is not None:
             self.partitioning_settings = PartitioningSettings()
-            for field in ('partitioning_by_size', 'partitioning_by_load', 'partition_size_mb', 'min_partitions_count', 'max_partitions_count'):
-                setattr(self.partitioning_settings, field, getattr(partitioning_settings, field))
+            for field in (
+                "partitioning_by_size",
+                "partitioning_by_load",
+                "partition_size_mb",
+                "min_partitions_count",
+                "max_partitions_count",
+            ):
+                setattr(
+                    self.partitioning_settings,
+                    field,
+                    getattr(partitioning_settings, field),
+                )
 
         self.ttl_settings = None
         if ttl_settings is not None:
-            if ttl_settings.HasField('date_type_column'):
+            if ttl_settings.HasField("date_type_column"):
                 self.ttl_settings = TtlSettings().with_date_type_column(
                     ttl_settings.date_type_column.column_name,
-                    ttl_settings.date_type_column.expire_after_seconds
+                    ttl_settings.date_type_column.expire_after_seconds,
                 )
-            elif ttl_settings.HasField('value_since_unix_epoch'):
+            elif ttl_settings.HasField("value_since_unix_epoch"):
                 self.ttl_settings = TtlSettings().with_value_since_unix_epoch(
                     ttl_settings.value_since_unix_epoch.column_name,
                     ColumnUnit(ttl_settings.value_since_unix_epoch.column_unit),
-                    ttl_settings.value_since_unix_epoch.expire_after_seconds
+                    ttl_settings.value_since_unix_epoch.expire_after_seconds,
                 )
 
         self.table_stats = None
@@ -1445,7 +1546,16 @@ class BaseSession(ISession):
         """
         return self._state.reset()
 
-    def read_table(self, path, key_range=None, columns=(), ordered=False, row_limit=None, settings=None, use_snapshot=None):
+    def read_table(
+        self,
+        path,
+        key_range=None,
+        columns=(),
+        ordered=False,
+        row_limit=None,
+        settings=None,
+        use_snapshot=None,
+    ):
         """
         Perform an read table request.
 
@@ -1459,9 +1569,24 @@ class BaseSession(ISession):
 
         :return: SyncResponseIterator instance
         """
-        request = _session_impl.read_table_request_factory(self._state, path, key_range, columns, ordered, row_limit, use_snapshot=use_snapshot)
-        stream_it = self._driver(request, _apis.TableService.Stub, _apis.TableService.StreamReadTable, settings=settings)
-        return _utilities.SyncResponseIterator(stream_it, _session_impl.wrap_read_table_response)
+        request = _session_impl.read_table_request_factory(
+            self._state,
+            path,
+            key_range,
+            columns,
+            ordered,
+            row_limit,
+            use_snapshot=use_snapshot,
+        )
+        stream_it = self._driver(
+            request,
+            _apis.TableService.Stub,
+            _apis.TableService.StreamReadTable,
+            settings=settings,
+        )
+        return _utilities.SyncResponseIterator(
+            stream_it, _session_impl.wrap_read_table_response
+        )
 
     def keep_alive(self, settings=None):
         return self._driver(
@@ -1544,7 +1669,7 @@ class BaseSession(ISession):
             _apis.TableService.ExplainDataQuery,
             _session_impl.wrap_explain_response,
             settings,
-            (self._state, ),
+            (self._state,),
             self._state.endpoint,
         )
 
@@ -1559,7 +1684,9 @@ class BaseSession(ISession):
         :return: A description of created scheme entry or error otherwise.
         """
         return self._driver(
-            _session_impl.create_table_request_factory(self._state, path, table_description),
+            _session_impl.create_table_request_factory(
+                self._state, path, table_description
+            ),
             _apis.TableService.Stub,
             _apis.TableService.CreateTable,
             _session_impl.wrap_operation,
@@ -1580,26 +1707,37 @@ class BaseSession(ISession):
         )
 
     def alter_table(
-            self, path,
-            add_columns=None, drop_columns=None,
-            settings=None,
-            alter_attributes=None,
-            add_indexes=None, drop_indexes=None,
-            set_ttl_settings=None, drop_ttl_settings=None,
-            add_column_families=None, alter_column_families=None,
-            alter_storage_settings=None,
-            set_compaction_policy=None,
-            alter_partitioning_settings=None,
-            set_key_bloom_filter=None,
-            set_read_replicas_settings=None):
+        self,
+        path,
+        add_columns=None,
+        drop_columns=None,
+        settings=None,
+        alter_attributes=None,
+        add_indexes=None,
+        drop_indexes=None,
+        set_ttl_settings=None,
+        drop_ttl_settings=None,
+        add_column_families=None,
+        alter_column_families=None,
+        alter_storage_settings=None,
+        set_compaction_policy=None,
+        alter_partitioning_settings=None,
+        set_key_bloom_filter=None,
+        set_read_replicas_settings=None,
+    ):
         return self._driver(
             _session_impl.alter_table_request_factory(
-                self._state, path,
-                add_columns, drop_columns,
+                self._state,
+                path,
+                add_columns,
+                drop_columns,
                 alter_attributes,
-                add_indexes, drop_indexes,
-                set_ttl_settings, drop_ttl_settings,
-                add_column_families, alter_column_families,
+                add_indexes,
+                drop_indexes,
+                set_ttl_settings,
+                drop_ttl_settings,
+                add_column_families,
+                alter_column_families,
                 alter_storage_settings,
                 set_compaction_policy,
                 alter_partitioning_settings,
@@ -1610,7 +1748,7 @@ class BaseSession(ISession):
             _apis.TableService.AlterTable,
             _session_impl.AlterTableOperation,
             settings,
-            (self._driver, ),
+            (self._driver,),
             self._state.endpoint,
         )
 
@@ -1638,7 +1776,9 @@ class BaseSession(ISession):
 
     def copy_tables(self, source_destination_pairs, settings=None):
         return self._driver(
-            _session_impl.copy_tables_request_factory(self._state, source_destination_pairs),
+            _session_impl.copy_tables_request_factory(
+                self._state, source_destination_pairs
+            ),
             _apis.TableService.Stub,
             _apis.TableService.CopyTables,
             _session_impl.wrap_operation,
@@ -1660,8 +1800,16 @@ class BaseSession(ISession):
 
 
 class Session(BaseSession):
-
-    def async_read_table(self, path, key_range=None, columns=(), ordered=False, row_limit=None, settings=None, use_snapshot=None):
+    def async_read_table(
+        self,
+        path,
+        key_range=None,
+        columns=(),
+        ordered=False,
+        row_limit=None,
+        settings=None,
+        use_snapshot=None,
+    ):
         """
         Perform an read table request.
 
@@ -1677,9 +1825,24 @@ class Session(BaseSession):
         """
         if interceptor is None:
             raise RuntimeError("Async read table is not available due to import issues")
-        request = _session_impl.read_table_request_factory(self._state, path, key_range, columns, ordered, row_limit, use_snapshot=use_snapshot)
-        stream_it = self._driver(request, _apis.TableService.Stub, _apis.TableService.StreamReadTable, settings=settings)
-        return _utilities.AsyncResponseIterator(stream_it, _session_impl.wrap_read_table_response)
+        request = _session_impl.read_table_request_factory(
+            self._state,
+            path,
+            key_range,
+            columns,
+            ordered,
+            row_limit,
+            use_snapshot=use_snapshot,
+        )
+        stream_it = self._driver(
+            request,
+            _apis.TableService.Stub,
+            _apis.TableService.StreamReadTable,
+            settings=settings,
+        )
+        return _utilities.AsyncResponseIterator(
+            stream_it, _session_impl.wrap_read_table_response
+        )
 
     @_utilities.wrap_async_call_exceptions
     def async_keep_alive(self, settings=None):
@@ -1742,19 +1905,24 @@ class Session(BaseSession):
             _apis.TableService.PrepareDataQuery,
             _session_impl.wrap_prepare_query_response,
             settings,
-            (self._state, query,),
+            (
+                self._state,
+                query,
+            ),
             self._state.endpoint,
         )
 
     @_utilities.wrap_async_call_exceptions
     def async_create_table(self, path, table_description, settings=None):
         return self._driver.future(
-            _session_impl.create_table_request_factory(self._state, path, table_description),
+            _session_impl.create_table_request_factory(
+                self._state, path, table_description
+            ),
             _apis.TableService.Stub,
             _apis.TableService.CreateTable,
             _session_impl.wrap_operation,
             settings,
-            (self._driver, ),
+            (self._driver,),
             self._state.endpoint,
         )
 
@@ -1772,26 +1940,37 @@ class Session(BaseSession):
 
     @_utilities.wrap_async_call_exceptions
     def async_alter_table(
-            self, path,
-            add_columns=None, drop_columns=None,
-            settings=None,
-            alter_attributes=None,
-            add_indexes=None, drop_indexes=None,
-            set_ttl_settings=None, drop_ttl_settings=None,
-            add_column_families=None, alter_column_families=None,
-            alter_storage_settings=None,
-            set_compaction_policy=None,
-            alter_partitioning_settings=None,
-            set_key_bloom_filter=None,
-            set_read_replicas_settings=None):
+        self,
+        path,
+        add_columns=None,
+        drop_columns=None,
+        settings=None,
+        alter_attributes=None,
+        add_indexes=None,
+        drop_indexes=None,
+        set_ttl_settings=None,
+        drop_ttl_settings=None,
+        add_column_families=None,
+        alter_column_families=None,
+        alter_storage_settings=None,
+        set_compaction_policy=None,
+        alter_partitioning_settings=None,
+        set_key_bloom_filter=None,
+        set_read_replicas_settings=None,
+    ):
         return self._driver.future(
             _session_impl.alter_table_request_factory(
-                self._state, path,
-                add_columns, drop_columns,
+                self._state,
+                path,
+                add_columns,
+                drop_columns,
                 alter_attributes,
-                add_indexes, drop_indexes,
-                set_ttl_settings, drop_ttl_settings,
-                add_column_families, alter_column_families,
+                add_indexes,
+                drop_indexes,
+                set_ttl_settings,
+                drop_ttl_settings,
+                add_column_families,
+                alter_column_families,
                 alter_storage_settings,
                 set_compaction_policy,
                 alter_partitioning_settings,
@@ -1807,12 +1986,16 @@ class Session(BaseSession):
         )
 
     def async_copy_table(self, source_path, destination_path, settings=None):
-        return self.async_copy_tables([(source_path, destination_path)], settings=settings)
+        return self.async_copy_tables(
+            [(source_path, destination_path)], settings=settings
+        )
 
     @_utilities.wrap_async_call_exceptions
     def async_copy_tables(self, source_destination_pairs, settings=None):
         return self._driver.future(
-            _session_impl.copy_tables_request_factory(self._state, source_destination_pairs),
+            _session_impl.copy_tables_request_factory(
+                self._state, source_destination_pairs
+            ),
             _apis.TableService.Stub,
             _apis.TableService.CopyTables,
             _session_impl.wrap_operation,
@@ -1848,15 +2031,8 @@ class Session(BaseSession):
 
 @six.add_metaclass(abc.ABCMeta)
 class ITxContext:
-
     @abstractmethod
-    def __init__(
-        self,
-        driver,
-        session_state,
-        session,
-        tx_mode=None
-    ):
+    def __init__(self, driver, session_state, session, tx_mode=None):
         """
         An object that provides a simple transaction context manager that allows statements execution
         in a transaction. You don't have to open transaction explicitly, because context manager encapsulates
@@ -1965,7 +2141,7 @@ class ITxContext:
 
 
 class BaseTxContext(ITxContext):
-    __slots__ = ('_tx_state', '_session_state', '_driver', 'session')
+    __slots__ = ("_tx_state", "_session_state", "_driver", "session")
 
     def __init__(self, driver, session_state, session, tx_mode=None):
         """
@@ -2013,8 +2189,7 @@ class BaseTxContext(ITxContext):
             try:
                 self.rollback()
             except issues.Error:
-                logger.warning(
-                    "Failed to rollback leaked tx: %s", self._tx_state.tx_id)
+                logger.warning("Failed to rollback leaked tx: %s", self._tx_state.tx_id)
 
             self._tx_state.tx_id = None
 
@@ -2050,7 +2225,13 @@ class BaseTxContext(ITxContext):
         """
         return self._driver(
             _tx_ctx_impl.execute_request_factory(
-                self._session_state, self._tx_state, query, parameters, commit_tx, settings),
+                self._session_state,
+                self._tx_state,
+                query,
+                parameters,
+                commit_tx,
+                settings,
+            ),
             _apis.TableService.Stub,
             _apis.TableService.ExecuteDataQuery,
             _tx_ctx_impl.wrap_result_and_tx_id,
@@ -2109,7 +2290,7 @@ class BaseTxContext(ITxContext):
             _tx_ctx_impl.wrap_result_on_rollback_or_commit_tx,
             settings,
             (self._session_state, self._tx_state, self),
-            self._session_state.endpoint
+            self._session_state.endpoint,
         )
 
     def begin(self, settings=None):
@@ -2149,12 +2330,22 @@ class TxContext(BaseTxContext):
         """
         return self._driver.future(
             _tx_ctx_impl.execute_request_factory(
-                self._session_state, self._tx_state, query, parameters, commit_tx, settings),
+                self._session_state,
+                self._tx_state,
+                query,
+                parameters,
+                commit_tx,
+                settings,
+            ),
             _apis.TableService.Stub,
             _apis.TableService.ExecuteDataQuery,
             _tx_ctx_impl.wrap_result_and_tx_id,
             settings,
-            (self._session_state, self._tx_state, query,),
+            (
+                self._session_state,
+                self._tx_state,
+                query,
+            ),
             self._session_state.endpoint,
         )
 
@@ -2225,7 +2416,14 @@ class TxContext(BaseTxContext):
 
 
 class SessionPool(object):
-    def __init__(self, driver, size=100, workers_threads_count=4, initializer=None, min_pool_size=0):
+    def __init__(
+        self,
+        driver,
+        size=100,
+        workers_threads_count=4,
+        initializer=None,
+        min_pool_size=0,
+    ):
         """
         An object that encapsulates session creation, deletion and etc. and maintains
         a pool of active sessions of specified size
@@ -2234,7 +2432,14 @@ class SessionPool(object):
         :param size: A maximum number of sessions to maintain in the pool
         """
         self._logger = logger.getChild(self.__class__.__name__)
-        self._pool_impl = _sp_impl.SessionPoolImpl(self._logger, driver, size, workers_threads_count, initializer, min_pool_size)
+        self._pool_impl = _sp_impl.SessionPoolImpl(
+            self._logger,
+            driver,
+            size,
+            workers_threads_count,
+            initializer,
+            min_pool_size,
+        )
         if hasattr(driver, "_driver_config"):
             self.tracer = driver._driver_config.tracer
         else:
@@ -2245,7 +2450,9 @@ class SessionPool(object):
         retry_settings = RetrySettings() if retry_settings is None else retry_settings
 
         def wrapped_callee():
-            with self.checkout(timeout=retry_settings.get_session_client_timeout) as session:
+            with self.checkout(
+                timeout=retry_settings.get_session_client_timeout
+            ) as session:
                 return callee(session, *args, **kwargs)
 
         return retry_operation_sync(wrapped_callee, retry_settings)
@@ -2307,7 +2514,7 @@ class SessionPool(object):
 
 
 class AsyncSessionCheckout(object):
-    __slots__ = ('subscription', 'pool')
+    __slots__ = ("subscription", "pool")
 
     def __init__(self, pool):
         """
@@ -2328,7 +2535,7 @@ class AsyncSessionCheckout(object):
 
 
 class SessionCheckout(object):
-    __slots__ = ('_acquired', '_pool', '_blocking', '_timeout')
+    __slots__ = ("_acquired", "_pool", "_blocking", "_timeout")
 
     def __init__(self, pool, blocking, timeout):
         """

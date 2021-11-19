@@ -2,8 +2,8 @@ import functools
 from google.protobuf.empty_pb2 import Empty
 from . import issues, types, _apis, convert, scheme, operation, _utilities
 
-X_YDB_SERVER_HINTS = 'x-ydb-server-hints'
-X_YDB_SESSION_CLOSE = 'session-close'
+X_YDB_SERVER_HINTS = "x-ydb-server-hints"
+X_YDB_SESSION_CLOSE = "session-close"
 
 
 def _check_session_is_closing(rpc_state, session_state):
@@ -21,6 +21,7 @@ def bad_session_handler(func):
         except issues.BadSession:
             session_state.reset()
             raise
+
     return decorator
 
 
@@ -36,7 +37,9 @@ def wrap_prepare_query_response(rpc_state, response_pb, session_state, yql_text)
 
 
 def prepare_request_factory(session_state, yql_text):
-    request = session_state.start_query().attach_request(_apis.ydb_table.PrepareDataQueryRequest())
+    request = session_state.start_query().attach_request(
+        _apis.ydb_table.PrepareDataQueryRequest()
+    )
     request.yql_text = yql_text
     return request
 
@@ -67,7 +70,9 @@ def rename_tables_request_factory(session_state, rename_items):
 
 
 def explain_data_query_request_factory(session_state, yql_text):
-    request = session_state.start_query().attach_request(_apis.ydb_table.ExplainDataQueryRequest())
+    request = session_state.start_query().attach_request(
+        _apis.ydb_table.ExplainDataQueryRequest()
+    )
     request.yql_text = yql_text
     return request
 
@@ -96,13 +101,17 @@ def wrap_execute_scheme_result(rpc_state, response_pb, session_state):
 
 
 def execute_scheme_request_factory(session_state, yql_text):
-    request = session_state.start_query().attach_request(_apis.ydb_table.ExecuteSchemeQueryRequest())
+    request = session_state.start_query().attach_request(
+        _apis.ydb_table.ExecuteSchemeQueryRequest()
+    )
     request.yql_text = yql_text
     return request
 
 
 @bad_session_handler
-def wrap_describe_table_response(rpc_state, response_pb, sesssion_state, scheme_entry_cls):
+def wrap_describe_table_response(
+    rpc_state, response_pb, sesssion_state, scheme_entry_cls
+):
     issues._process_response(response_pb.operation)
     message = _apis.ydb_table.DescribeTableResult()
     response_pb.operation.result.Unpack(message)
@@ -113,14 +122,18 @@ def wrap_describe_table_response(rpc_state, response_pb, sesssion_state, scheme_
         message.primary_key,
         message.shard_key_bounds,
         message.indexes,
-        message.table_stats if message.HasField('table_stats') else None,
-        message.ttl_settings if message.HasField('ttl_settings') else None,
+        message.table_stats if message.HasField("table_stats") else None,
+        message.ttl_settings if message.HasField("ttl_settings") else None,
         message.attributes,
-        message.partitioning_settings if message.HasField('partitioning_settings') else None,
+        message.partitioning_settings
+        if message.HasField("partitioning_settings")
+        else None,
         message.column_families,
         message.key_bloom_filter,
-        message.read_replicas_settings if message.HasField('read_replicas_settings') else None,
-        message.storage_settings if message.HasField('storage_settings') else None,
+        message.read_replicas_settings
+        if message.HasField("read_replicas_settings")
+        else None,
+        message.storage_settings if message.HasField("storage_settings") else None,
     )
 
 
@@ -144,10 +157,7 @@ def explicit_partitions_factory(primary_key, columns, split_points):
 
         typed_value.type.MergeFrom(split_point_type.proto)
         typed_value.value.MergeFrom(
-            convert.from_native_value(
-                split_point_type.proto,
-                split_point.value
-            )
+            convert.from_native_value(split_point_type.proto, split_point.value)
         )
 
     return explicit_partitions
@@ -165,39 +175,32 @@ def create_table_request_factory(session_state, path, table_description):
         request.columns.add(name=column.name, type=column.type_pb, family=column.family)
 
     if table_description.profile is not None:
-        request.profile.MergeFrom(
-            table_description.profile.to_pb(
-                table_description
-            )
-        )
+        request.profile.MergeFrom(table_description.profile.to_pb(table_description))
 
     for index in table_description.indexes:
-        request.indexes.add().MergeFrom(
-            index.to_pb())
+        request.indexes.add().MergeFrom(index.to_pb())
 
     if table_description.ttl_settings is not None:
-        request.ttl_settings.MergeFrom(
-            table_description.ttl_settings.to_pb()
-        )
+        request.ttl_settings.MergeFrom(table_description.ttl_settings.to_pb())
 
     request.attributes.update(table_description.attributes)
 
     if table_description.column_families:
         for column_family in table_description.column_families:
-            request.column_families.add().MergeFrom(
-                column_family.to_pb())
+            request.column_families.add().MergeFrom(column_family.to_pb())
 
     if table_description.storage_settings is not None:
-        request.storage_settings.MergeFrom(
-            table_description.storage_settings.to_pb())
+        request.storage_settings.MergeFrom(table_description.storage_settings.to_pb())
 
     if table_description.read_replicas_settings is not None:
         request.read_replicas_settings.MergeFrom(
-            table_description.read_replicas_settings.to_pb())
+            table_description.read_replicas_settings.to_pb()
+        )
 
     if table_description.partitioning_settings is not None:
         request.partitioning_settings.MergeFrom(
-            table_description.partitioning_settings.to_pb())
+            table_description.partitioning_settings.to_pb()
+        )
 
     request.key_bloom_filter = table_description.key_bloom_filter
     if table_description.compaction_policy is not None:
@@ -257,33 +260,45 @@ def describe_table_request_factory(session_state, path, settings=None):
     request = session_state.attach_request(_apis.ydb_table.DescribeTableRequest())
     request.path = path
 
-    if settings is not None and hasattr(settings, 'include_shard_key_bounds') and settings.include_shard_key_bounds:
+    if (
+        settings is not None
+        and hasattr(settings, "include_shard_key_bounds")
+        and settings.include_shard_key_bounds
+    ):
         request.include_shard_key_bounds = settings.include_shard_key_bounds
 
-    if settings is not None and hasattr(settings, 'include_table_stats') and settings.include_table_stats:
+    if (
+        settings is not None
+        and hasattr(settings, "include_table_stats")
+        and settings.include_table_stats
+    ):
         request.include_table_stats = settings.include_table_stats
 
     return request
 
 
 def alter_table_request_factory(
-        session_state, path,
-        add_columns, drop_columns,
-        alter_attributes,
-        add_indexes, drop_indexes,
-        set_ttl_settings, drop_ttl_settings,
-        add_column_families, alter_column_families,
-        alter_storage_settings,
-        set_compaction_policy,
-        alter_partitioning_settings,
-        set_key_bloom_filter,
-        set_read_replicas_settings):
+    session_state,
+    path,
+    add_columns,
+    drop_columns,
+    alter_attributes,
+    add_indexes,
+    drop_indexes,
+    set_ttl_settings,
+    drop_ttl_settings,
+    add_column_families,
+    alter_column_families,
+    alter_storage_settings,
+    set_compaction_policy,
+    alter_partitioning_settings,
+    set_key_bloom_filter,
+    set_read_replicas_settings,
+):
     request = session_state.attach_request(_apis.ydb_table.AlterTableRequest(path=path))
     if add_columns is not None:
         for column in add_columns:
-            request.add_columns.add(
-                name=column.name, type=column.type_pb
-            )
+            request.add_columns.add(name=column.name, type=column.type_pb)
 
     if drop_columns is not None:
         request.drop_columns.extend(list(drop_columns))
@@ -319,7 +334,9 @@ def alter_table_request_factory(
         request.set_compaction_policy = set_compaction_policy
 
     if alter_partitioning_settings is not None:
-        request.alter_partitioning_settings.MergeFrom(alter_partitioning_settings.to_pb())
+        request.alter_partitioning_settings.MergeFrom(
+            alter_partitioning_settings.to_pb()
+        )
 
     if set_key_bloom_filter is not None:
         request.set_key_bloom_filter = set_key_bloom_filter
@@ -330,25 +347,35 @@ def alter_table_request_factory(
     return request
 
 
-def read_table_request_factory(session_state, path, key_range=None, columns=None, ordered=False, row_limit=None, use_snapshot=None):
+def read_table_request_factory(
+    session_state,
+    path,
+    key_range=None,
+    columns=None,
+    ordered=False,
+    row_limit=None,
+    use_snapshot=None,
+):
     request = _apis.ydb_table.ReadTableRequest()
     request.path = path
     request.ordered = ordered
     if key_range is not None and key_range.from_bound is not None:
-        target_attribute = 'greater_or_equal' if key_range.from_bound.is_inclusive() else 'greater'
+        target_attribute = (
+            "greater_or_equal" if key_range.from_bound.is_inclusive() else "greater"
+        )
         getattr(request.key_range, target_attribute).MergeFrom(
             convert.to_typed_value_from_native(
-                key_range.from_bound.type,
-                key_range.from_bound.value
+                key_range.from_bound.type, key_range.from_bound.value
             )
         )
 
     if key_range is not None and key_range.to_bound is not None:
-        target_attribute = 'less_or_equal' if key_range.to_bound.is_inclusive() else 'less'
+        target_attribute = (
+            "less_or_equal" if key_range.to_bound.is_inclusive() else "less"
+        )
         getattr(request.key_range, target_attribute).MergeFrom(
             convert.to_typed_value_from_native(
-                key_range.to_bound.type,
-                key_range.to_bound.value
+                key_range.to_bound.type, key_range.to_bound.value
             )
         )
 
@@ -371,10 +398,9 @@ def read_table_request_factory(session_state, path, key_range=None, columns=None
 def bulk_upsert_request_factory(table, rows, column_types):
     request = _apis.ydb_table.BulkUpsertRequest()
     request.table = table
-    request.rows.MergeFrom(convert.to_typed_value_from_native(
-        types.ListType(column_types).proto,
-        rows
-    ))
+    request.rows.MergeFrom(
+        convert.to_typed_value_from_native(types.ListType(column_types).proto, rows)
+    )
     return request
 
 
@@ -431,18 +457,18 @@ class SessionState(object):
 
     def keep(self, query, query_id):
         if self._client_cache_enabled:
-            self._query_cache.put(
-                query.name,
-                (query, query_id))
+            self._query_cache.put(query.name, (query, query_id))
         else:
-            self._query_cache.put(
-                query.name,
-                (query, None))
+            self._query_cache.put(query.name, (query, None))
         return self
 
     @staticmethod
     def _query_key(query):
-        return query.name if isinstance(query, types.DataQuery) else _utilities.get_query_hash(query)
+        return (
+            query.name
+            if isinstance(query, types.DataQuery)
+            else _utilities.get_query_hash(query)
+        )
 
     def lookup(self, query):
         return self._query_cache.get(self._query_key(query), self._default)

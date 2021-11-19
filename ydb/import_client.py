@@ -7,7 +7,7 @@ from kikimr.public.api.protos import ydb_import_pb2
 from kikimr.public.api.grpc import ydb_import_v1_pb2_grpc
 from . import operation
 
-_ImportFromS3 = 'ImportFromS3'
+_ImportFromS3 = "ImportFromS3"
 _progresses = {}
 
 
@@ -24,7 +24,7 @@ class ImportProgress(enum.IntEnum):
 
 def _initialize_progresses():
     for key, value in ydb_import_pb2.ImportProgress.Progress.items():
-        _progresses[value] = getattr(ImportProgress, key[len('PROGRESS_'):])
+        _progresses[value] = getattr(ImportProgress, key[len("PROGRESS_") :])
 
 
 _initialize_progresses()
@@ -38,7 +38,10 @@ class ImportFromS3Operation(operation.Operation):
         self.progress = _progresses.get(metadata.progress)
 
     def __str__(self):
-        return "ImportFromS3Operation<id: %s, progress: %s>" % (self.id, self.progress.name)
+        return "ImportFromS3Operation<id: %s, progress: %s>" % (
+            self.id,
+            self.progress.name,
+        )
 
     def __repr__(self):
         return self.__str__()
@@ -113,7 +116,7 @@ def _import_from_s3_request_factory(settings):
     )
 
     if settings.uid is not None:
-        request.operation_params.labels['uid'] = settings.uid
+        request.operation_params.labels["uid"] = settings.uid
 
     if settings.number_of_retries > 0:
         request.settings.number_of_retries = settings.number_of_retries
@@ -138,9 +141,7 @@ class ImportClient(object):
             _apis.OperationService.GetOperation,
             ImportFromS3Operation,
             settings,
-            (
-                self._driver,
-            )
+            (self._driver,),
         )
 
     def import_from_s3(self, settings):
@@ -150,7 +151,5 @@ class ImportClient(object):
             _ImportFromS3,
             ImportFromS3Operation,
             settings,
-            (
-                self._driver,
-            )
+            (self._driver,),
         )
