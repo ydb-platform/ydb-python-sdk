@@ -39,7 +39,9 @@ class SchoolsPaginated(object):
 
         $Union = (SELECT * FROM $Part1 UNION ALL SELECT * FROM $Part2);
         SELECT * FROM $Union ORDER BY `city`, `number` LIMIT $limit;
-        """.format(path=self.path)
+        """.format(
+            path=self.path
+        )
 
         self.prepared_next_page_query = self.session.prepare(next_page_query)
 
@@ -53,24 +55,24 @@ class SchoolsPaginated(object):
         SELECT * FROM schools
         ORDER BY `city`, `number`
         LIMIT $limit;
-        """.format(path=self.path)
+        """.format(
+            path=self.path
+        )
         prepared_query = self.session.prepare(query)
         result_sets = self.session.transaction(ydb.SerializableReadWrite()).execute(
-            prepared_query, {
-                "$limit": self.limit
-            },
-            commit_tx=True
+            prepared_query, {"$limit": self.limit}, commit_tx=True
         )
         return result_sets[0]
 
     def get_next_page(self):
         result_sets = self.session.transaction(ydb.SerializableReadWrite()).execute(
-            self.prepared_next_page_query, {
+            self.prepared_next_page_query,
+            {
                 "$limit": self.limit,
                 "$lastCity": self.last_city,
                 "$lastNumber": self.last_number,
             },
-            commit_tx=True
+            commit_tx=True,
         )
         return result_sets[0]
 
@@ -106,7 +108,7 @@ def run(endpoint, database, path, auth_token):
             page_num = page_num + 1
             print("-- page: {} --".format(page_num))
             for row in page.rows:
-                print(row.city.encode('utf-8'), row.number, row.address.encode('utf-8'))
+                print(row.city.encode("utf-8"), row.number, row.address.encode("utf-8"))
 
     finally:
         driver.stop()

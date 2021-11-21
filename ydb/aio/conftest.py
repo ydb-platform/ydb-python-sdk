@@ -1,4 +1,3 @@
-import asyncio
 import os
 import pytest
 import ydb
@@ -33,7 +32,7 @@ async def aio_connection(endpoint, database):
 
 
 @pytest.fixture()
-async def driver(endpoint, database, request):
+async def driver(endpoint, database, event_loop):
     driver_config = ydb.DriverConfig(
         endpoint,
         database,
@@ -44,9 +43,6 @@ async def driver(endpoint, database, request):
     driver = ydb.aio.Driver(driver_config=driver_config)
     await driver.wait(timeout=15)
 
-    def teardown():
-        asyncio.get_event_loop().run_until_complete(driver.stop())
+    yield driver
 
-    request.addfinalizer(teardown)
-
-    return driver
+    await driver.stop(timeout=10)

@@ -66,7 +66,7 @@ def ensure_path_exists(driver, database, path):
     paths_to_create = list()
     path = path.rstrip("/")
 
-    if path == '':
+    if path == "":
         return database
 
     while path not in ("", database):
@@ -88,7 +88,6 @@ def ensure_path_exists(driver, database, path):
 
 # Creates Documents table and multiple ExpirationQueue tables
 def create_tables(session_pool, path):
-
     def callee(session):
         # Documents table stores the contents of web pages.
         # The table is partitioned by hash(Url) in order to evenly distribute the load.
@@ -98,7 +97,6 @@ def create_tables(session_pool, path):
             ydb.TableDescription()
             .with_primary_keys("doc_id")
             .with_columns(
-
                 ydb.Column("doc_id", ydb.OptionalType(ydb.PrimitiveType.Uint64)),
                 ydb.Column("url", ydb.OptionalType(ydb.PrimitiveType.Utf8)),
                 ydb.Column("html", ydb.OptionalType(ydb.PrimitiveType.Utf8)),
@@ -112,8 +110,9 @@ def create_tables(session_pool, path):
                         DOC_TABLE_PARTITION_COUNT
                     )
                 )
-            )
+            ),
         )
+
     return session_pool.retry_operation_sync(callee)
 
 
@@ -125,16 +124,18 @@ def add_document(session_pool, path, url, html, timestamp):
         print(
             "> AddDocument: \n"
             " Url: %s\n"
-            " Timestamp %d" % (
+            " Timestamp %d"
+            % (
                 url,
                 timestamp,
             )
         )
         session.transaction().execute(
             prepared,
-            {'$url': url, '$html': html, '$timestamp': timestamp},
+            {"$url": url, "$html": html, "$timestamp": timestamp},
             commit_tx=True,
         )
+
     return session_pool.retry_operation_sync(callee)
 
 
@@ -143,7 +144,9 @@ def read_document(session_pool, path, url):
     def callee(session):
         prepared = session.prepare(READ_DOCUMENT_TRANSACTION % path)
         print("> ReadDocument %s:" % url)
-        result_sets = session.transaction().execute(prepared, {'$url': url}, commit_tx=True)
+        result_sets = session.transaction().execute(
+            prepared, {"$url": url}, commit_tx=True
+        )
         result_set = result_sets[0]
         if len(result_set.rows) < 1:
             print(" Not found")
@@ -154,37 +157,48 @@ def read_document(session_pool, path, url):
             " DocId: %s\n"
             " Url: %s\n"
             " Timestamp: %d\n"
-            " Html: %s" % (
+            " Html: %s"
+            % (
                 document.doc_id,
                 document.url,
                 document.timestamp,
                 document.html,
             )
         )
+
     return session_pool.retry_operation_sync(callee)
 
 
 def delete_expired_documents(session_pool, path, expired_documents, timestamp):
     def callee(session):
-        print("> DeleteExpiredDocuments: %s" % ", ".join(str(document.doc_id) for document in expired_documents))
+        print(
+            "> DeleteExpiredDocuments: %s"
+            % ", ".join(str(document.doc_id) for document in expired_documents)
+        )
         prepared = session.prepare(DELETE_EXPIRED_DOCUMENTS % path)
         session.transaction().execute(
             prepared,
             commit_tx=True,
             parameters={
-                '$timestamp': timestamp,
-                '$keys': expired_documents,
-            }
+                "$timestamp": timestamp,
+                "$keys": expired_documents,
+            },
         )
+
     return session_pool.retry_operation_sync(callee)
 
 
 def delete_expired_range(session_pool, path, key_range, timestamp):
     def callee(session):
-        print("> DeleteExpiredRange, From: %s, To %s" % (str(key_range.from_bound), str(key_range.to_bound)))
+        print(
+            "> DeleteExpiredRange, From: %s, To %s"
+            % (str(key_range.from_bound), str(key_range.to_bound))
+        )
         # As single key range usually represents a single shard, so we batch deletions here
         # without introducing distributed transactions.
-        return session.read_table(os.path.join(path, 'documents'), key_range, columns=('doc_id', 'timestamp'))
+        return session.read_table(
+            os.path.join(path, "documents"), key_range, columns=("doc_id", "timestamp")
+        )
 
     table_iterator = session_pool.retry_operation_sync(callee)
     expired_documents = []
@@ -199,7 +213,9 @@ def delete_expired_range(session_pool, path, key_range, timestamp):
                 expired_documents.append(document)
 
             if len(expired_documents) >= DELETE_BATCH_SIZE:
-                delete_expired_documents(session_pool, path, expired_documents, timestamp)
+                delete_expired_documents(
+                    session_pool, path, expired_documents, timestamp
+                )
                 expired_documents = []
 
     if len(expired_documents) > 0:
@@ -210,10 +226,7 @@ def delete_expired(session_pool, path, timestamp):
     print("> DeleteExpired, timestamp %s" % str(timestamp))
     table_description = session_pool.retry_operation_sync(
         lambda session: session.describe_table(
-            path,
-            ydb.DescribeTableSettings().with_include_shard_key_bounds(
-                True
-            )
+            path, ydb.DescribeTableSettings().with_include_shard_key_bounds(True)
         )
     )
 
@@ -221,12 +234,7 @@ def delete_expired(session_pool, path, timestamp):
         # DeleteExpiredRange can be run in parallel for different ranges.
         # Keep in mind that deletion RPS should be somehow limited in this case to avoid
         # spikes of cluster load due to TTL.
-        delete_expired_range(
-            session_pool,
-            path,
-            key_range,
-            timestamp
-        )
+        delete_expired_range(session_pool, path, key_range, timestamp)
 
 
 def _run(driver, session_pool, database, path):
@@ -234,17 +242,19 @@ def _run(driver, session_pool, database, path):
     create_tables(session_pool, path)
 
     add_document(
-        session_pool, path,
+        session_pool,
+        path,
         "https://yandex.ru/",
         "<html><body><h1>Yandex</h1></body></html>",
         1,
     )
 
     add_document(
-        session_pool, path,
+        session_pool,
+        path,
         "https://ya.ru/",
         "<html><body><h1>Yandex</h1></body></html>",
-        2
+        2,
     )
 
     read_document(session_pool, path, "https://yandex.ru/")
@@ -255,17 +265,19 @@ def _run(driver, session_pool, database, path):
     read_document(session_pool, path, "https://ya.ru/")
 
     add_document(
-        session_pool, path,
+        session_pool,
+        path,
         "https://yandex.ru/",
         "<html><body><h1>Yandex</h1></body></html>",
-        2
+        2,
     )
 
     add_document(
-        session_pool, path,
+        session_pool,
+        path,
         "https://yandex.ru/",
         "<html><body><h1>Yandex</h1></body></html>",
-        3
+        3,
     )
 
     delete_expired(session_pool, path, 2)
@@ -275,7 +287,9 @@ def _run(driver, session_pool, database, path):
 
 
 def run(endpoint, database, path):
-    driver_config = ydb.DriverConfig(endpoint, database, credentials=ydb.construct_credentials_from_environ())
+    driver_config = ydb.DriverConfig(
+        endpoint, database, credentials=ydb.construct_credentials_from_environ()
+    )
     with ydb.Driver(driver_config) as driver:
         try:
             driver.wait(timeout=5)
@@ -283,7 +297,4 @@ def run(endpoint, database, path):
             raise RuntimeError("Connect failed to YDB")
 
         with ydb.SessionPool(driver, size=10) as session_pool:
-            _run(
-                driver,
-                session_pool,
-                database, path)
+            _run(driver, session_pool, database, path)
