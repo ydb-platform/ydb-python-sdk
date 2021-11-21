@@ -9,9 +9,9 @@ def execute_query(session):
     # statement. The either way to commit transaction is using `commit` method of `TxContext` object, which is
     # not recommended.
     return session.transaction().execute(
-        'select 1 as cnt;',
+        "select 1 as cnt;",
         commit_tx=True,
-        settings=ydb.BaseRequestSettings().with_timeout(3).with_operation_timeout(2)
+        settings=ydb.BaseRequestSettings().with_timeout(3).with_operation_timeout(2),
     )
 
 
@@ -22,9 +22,11 @@ def main():
     # because the specified access token can expire. For example,
     # Yandex.Cloud IAM token lifetime is limited by 12 hours.
     driver = ydb.Driver(
-        endpoint=os.getenv('YDB_ENDPOINT'),
-        database=os.getenv('YDB_DATABASE'),
-        credentials=ydb.AccessTokenCredentials(os.getenv("YDB_ACCESS_TOKEN_CREDENTIALS")),
+        endpoint=os.getenv("YDB_ENDPOINT"),
+        database=os.getenv("YDB_DATABASE"),
+        credentials=ydb.AccessTokenCredentials(
+            os.getenv("YDB_ACCESS_TOKEN_CREDENTIALS")
+        ),
     )
 
     # Start driver context manager.

@@ -8,7 +8,7 @@ def _forget_operation_request(operation_id):
     return request
 
 
-def _forget_operation_response(rpc_state, response):
+def _forget_operation_response(rpc_state, response):  # pylint: disable=W0613
     issues._process_response(response)
 
 
@@ -17,7 +17,7 @@ def _cancel_operation_request(operation_id):
     return request
 
 
-def _cancel_operation_response(rpc_state, response):
+def _cancel_operation_response(rpc_state, response):  # pylint: disable=W0613
     issues._process_response(response)
 
 
@@ -52,7 +52,7 @@ class OperationClient(object):
 class Operation(object):
     __slots__ = ("id", "_driver", "self_cls")
 
-    def __init__(self, rpc_state, response, driver=None):
+    def __init__(self, rpc_state, response, driver=None):  # pylint: disable=W0613
         # implement proper interface a bit later
         issues._process_response(response.operation)
         self.id = response.operation.id

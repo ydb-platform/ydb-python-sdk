@@ -137,4 +137,5 @@ async def test_no_session_leak(driver, docker_project):
         pass
     assert pool._active_count == 0
 
+    docker_project.start()
     await pool.stop()

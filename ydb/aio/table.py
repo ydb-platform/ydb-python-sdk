@@ -5,7 +5,7 @@ import typing
 
 import ydb
 
-from ydb import issues, settings, table
+from ydb import issues, settings as settings_impl, table
 
 from ydb.table import (
     BaseSession,
@@ -30,7 +30,7 @@ class Session(BaseSession):
         row_limit=None,
         settings=None,
         use_snapshot=None,
-    ):
+    ):  # pylint: disable=W0236
         request = _session_impl.read_table_request_factory(
             self._state,
             path,
@@ -50,34 +50,34 @@ class Session(BaseSession):
             stream_it, _session_impl.wrap_read_table_response
         )
 
-    async def keep_alive(self, settings=None):
-        return await super(Session, self).keep_alive(settings)
+    async def keep_alive(self, settings=None):  # pylint: disable=W0236
+        return await super().keep_alive(settings)
 
-    async def create(self, settings=None):
-        return await super(Session, self).create(settings)
+    async def create(self, settings=None):  # pylint: disable=W0236
+        return await super().create(settings)
 
-    async def delete(self, settings=None):
-        return await super(Session, self).delete(settings)
+    async def delete(self, settings=None):  # pylint: disable=W0236
+        return await super().delete(settings)
 
-    async def execute_scheme(self, yql_text, settings=None):
-        return await super(Session, self).execute_scheme(yql_text, settings)
+    async def execute_scheme(self, yql_text, settings=None):  # pylint: disable=W0236
+        return await super().execute_scheme(yql_text, settings)
 
-    async def prepare(self, query, settings=None):
-        res = super(Session, self).prepare(query, settings)
+    async def prepare(self, query, settings=None):  # pylint: disable=W0236
+        res = super().prepare(query, settings)
         if asyncio.iscoroutine(res):
             res = await res
         return res
 
-    async def explain(self, yql_text, settings=None):
-        return await super(Session, self).explain(yql_text, settings)
+    async def explain(self, yql_text, settings=None):  # pylint: disable=W0236
+        return await super().explain(yql_text, settings)
 
-    async def create_table(self, path, table_description, settings=None):
-        return await super(Session, self).create_table(
-            path, table_description, settings
-        )
+    async def create_table(
+        self, path, table_description, settings=None
+    ):  # pylint: disable=W0236
+        return await super().create_table(path, table_description, settings)
 
-    async def drop_table(self, path, settings=None):
-        return await super(Session, self).drop_table(path, settings)
+    async def drop_table(self, path, settings=None):  # pylint: disable=W0236
+        return await super().drop_table(path, settings)
 
     async def alter_table(
         self,
@@ -97,8 +97,8 @@ class Session(BaseSession):
         alter_partitioning_settings=None,
         set_key_bloom_filter=None,
         set_read_replicas_settings=None,
-    ):
-        return await super(Session, self).alter_table(
+    ):  # pylint: disable=W0236,R0913,R0914
+        return await super().alter_table(
             path,
             add_columns,
             drop_columns,
@@ -120,31 +120,33 @@ class Session(BaseSession):
     def transaction(self, tx_mode=None):
         return TxContext(self._driver, self._state, self, tx_mode)
 
-    async def describe_table(self, path, settings=None):
-        return await super(Session, self).describe_table(path, settings)
+    async def describe_table(self, path, settings=None):  # pylint: disable=W0236
+        return await super().describe_table(path, settings)
 
-    async def copy_table(self, source_path, destination_path, settings=None):
-        return await super(Session, self).copy_table(
-            source_path, destination_path, settings
-        )
+    async def copy_table(
+        self, source_path, destination_path, settings=None
+    ):  # pylint: disable=W0236
+        return await super().copy_table(source_path, destination_path, settings)
 
-    async def copy_tables(self, source_destination_pairs, settings=None):
-        return await super(Session, self).copy_tables(
-            source_destination_pairs, settings
-        )
+    async def copy_tables(
+        self, source_destination_pairs, settings=None
+    ):  # pylint: disable=W0236
+        return await super().copy_tables(source_destination_pairs, settings)
 
-    async def rename_tables(self, rename_items, settings=None):
-        return await super(Session, self).rename_tables(rename_items, settings)
+    async def rename_tables(self, rename_items, settings=None):  # pylint: disable=W0236
+        return await super().rename_tables(rename_items, settings)
 
 
 class TableClient(BaseTableClient):
     def session(self):
         return Session(self._driver, self._table_client_settings)
 
-    async def bulk_upsert(self, *args, **kwargs):
-        return await super(TableClient, self).bulk_upsert(*args, **kwargs)
+    async def bulk_upsert(self, *args, **kwargs):  # pylint: disable=W0236
+        return await super().bulk_upsert(*args, **kwargs)
 
-    async def scan_query(self, query, parameters=None, settings=None):
+    async def scan_query(
+        self, query, parameters=None, settings=None
+    ):  # pylint: disable=W0236
         request = _scan_query_request_factory(query, parameters, settings)
         response = await self._driver(
             request,
@@ -176,22 +178,24 @@ class TxContext(BaseTxContext):
 
             self._tx_state.tx_id = None
 
-    async def execute(self, query, parameters=None, commit_tx=False, settings=None):
-        return await super(TxContext, self).execute(
-            query, parameters, commit_tx, settings
-        )
+    async def execute(
+        self, query, parameters=None, commit_tx=False, settings=None
+    ):  # pylint: disable=W0236
+        return await super().execute(query, parameters, commit_tx, settings)
 
-    async def commit(self, settings=None):
-        return await super(TxContext, self).commit(settings)
+    async def commit(self, settings=None):  # pylint: disable=W0236
+        return await super().commit(settings)
 
-    async def rollback(self, settings=None):
-        return await super(TxContext, self).rollback(settings)
+    async def rollback(self, settings=None):  # pylint: disable=W0236
+        return await super().rollback(settings)
 
-    async def begin(self, settings=None):
-        return await super(TxContext, self).begin(settings)
+    async def begin(self, settings=None):  # pylint: disable=W0236
+        return await super().begin(settings)
 
 
-async def retry_operation(callee, retry_settings=None, *args, **kwargs):
+async def retry_operation(
+    callee, retry_settings=None, *args, **kwargs
+):  # pylint: disable=W1113
     """
     The retry operation helper can be used to retry a coroutine that raises YDB specific
     exceptions.
@@ -212,7 +216,7 @@ async def retry_operation(callee, retry_settings=None, *args, **kwargs):
         else:
             try:
                 return await next_opt.result
-            except Exception as e:
+            except Exception as e:  # pylint: disable=W0703
                 next_opt.set_exception(e)
 
 
@@ -252,7 +256,7 @@ class SessionPool:
         self._active_queue = asyncio.PriorityQueue()
         self._active_count = 0
         self._size = size
-        self._req_settings = settings.BaseRequestSettings().with_timeout(3)
+        self._req_settings = settings_impl.BaseRequestSettings().with_timeout(3)
         self._logger = logger.getChild(self.__class__.__name__)
         self._min_pool_size = min_pool_size
         self._keep_alive_threshold = 4 * 60
@@ -302,7 +306,7 @@ class SessionPool:
             return session
         except issues.Error as e:
             self._logger.error("Failed to create session. Reason: %s", str(e))
-        except Exception as e:
+        except Exception as e:  # pylint: disable=W0703
             self._logger.exception("Failed to create session. Reason: %s", str(e))
 
         return None
@@ -340,7 +344,7 @@ class SessionPool:
             asyncio.wait_for(self._active_queue.get(), timeout=timeout)
         )
         task_should_stop = asyncio.ensure_future(self._should_stop.wait())
-        done, pending = await asyncio.wait(
+        done, _ = await asyncio.wait(
             (task_wait, task_should_stop), return_when=asyncio.FIRST_COMPLETED
         )
         if task_should_stop in done:
@@ -363,7 +367,7 @@ class SessionPool:
         try:
             _, session = self._active_queue.get_nowait()
             self._logger.debug(
-                "Acquired active session from queue: %s" % session.session_id
+                "Acquired active session from queue: %s", session.session_id
             )
             return session
         except asyncio.QueueEmpty:
@@ -381,11 +385,11 @@ class SessionPool:
                     timeout=retry_timeout, retry_num=retry_num
                 )
             except asyncio.TimeoutError:
-                raise issues.SessionPoolEmpty("Timeout when creating session")
+                raise issues.SessionPoolEmpty("Timeout when creating session") from None
 
             if session is not None:
                 self._logger.debug(
-                    "Acquired new created session: %s" % session.session_id
+                    "Acquired new created session: %s", session.session_id
                 )
                 return session
 
@@ -394,7 +398,7 @@ class SessionPool:
             session = await self._get_session_from_queue(timeout)
             return session
         except asyncio.TimeoutError:
-            raise issues.SessionPoolEmpty("Timeout when wait")
+            raise issues.SessionPoolEmpty("Timeout when wait") from None
         finally:
             self._waiters -= 1
 
@@ -426,6 +430,7 @@ class SessionPool:
                 return coro
             else:
                 asyncio.ensure_future(coro)
+        return None
 
     async def release(self, session: ydb.ISession):
         self._logger.debug("Put on session %s", session.session_id)
@@ -464,7 +469,7 @@ class SessionPool:
         await session.keep_alive(self._req_settings)
         try:
             await self.release(session)
-        except Exception:
+        except Exception:  # pylint: disable=W0703
             self._destroy(session)
 
     async def _keep_alive_loop(self):

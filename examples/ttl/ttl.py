@@ -128,7 +128,6 @@ def create_tables(table_client, path):
         ydb.TableDescription()
         .with_primary_keys("doc_id")
         .with_columns(
-
             ydb.Column("doc_id", ydb.OptionalType(ydb.PrimitiveType.Uint64)),
             ydb.Column("url", ydb.OptionalType(ydb.PrimitiveType.Utf8)),
             ydb.Column("html", ydb.OptionalType(ydb.PrimitiveType.Utf8)),
@@ -142,7 +141,7 @@ def create_tables(table_client, path):
                     DOC_TABLE_PARTITION_COUNT
                 )
             )
-        )
+        ),
     )
 
     # Multiple ExpirationQueue tables allow to scale the load.
@@ -155,7 +154,7 @@ def create_tables(table_client, path):
             .with_columns(
                 ydb.Column("doc_id", ydb.OptionalType(ydb.PrimitiveType.Uint64)),
                 ydb.Column("timestamp", ydb.OptionalType(ydb.PrimitiveType.Uint64)),
-            )
+            ),
         )
 
 
@@ -167,14 +166,15 @@ def add_document(session, path, url, html, timestamp):
     print(
         "> AddDocument: \n"
         " Url: %s\n"
-        " Timestamp %d" % (
+        " Timestamp %d"
+        % (
             url,
             timestamp,
         )
     )
     session.transaction().execute(
         prepared,
-        {'$url': url, '$html': html, '$timestamp': timestamp},
+        {"$url": url, "$html": html, "$timestamp": timestamp},
         commit_tx=True,
     )
 
@@ -183,7 +183,7 @@ def add_document(session, path, url, html, timestamp):
 def read_document(session, path, url):
     prepared = session.prepare(READ_DOCUMENT_TRANSACTION % path)
     print("> ReadDocument %s:" % url)
-    result_sets = session.transaction().execute(prepared, {'$url': url}, commit_tx=True)
+    result_sets = session.transaction().execute(prepared, {"$url": url}, commit_tx=True)
     result_set = result_sets[0]
     if len(result_set.rows) > 0:
         document = result_sets[0].rows[0]
@@ -191,7 +191,8 @@ def read_document(session, path, url):
             " DocId: %s\n"
             " Url: %s\n"
             " Timestamp: %d\n"
-            " Html: %s" % (
+            " Html: %s"
+            % (
                 document.doc_id,
                 document.url,
                 document.timestamp,
@@ -202,10 +203,19 @@ def read_document(session, path, url):
         print(" Not found")
 
 
-def read_expired_document(session, path, expiration_queue, timestamp, last_timestamp, last_doc_id):
-    prepared = session.prepare(READ_EXPIRED_BATCH_TRANSACTION % (path, expiration_queue, expiration_queue))
+def read_expired_document(
+    session, path, expiration_queue, timestamp, last_timestamp, last_doc_id
+):
+    prepared = session.prepare(
+        READ_EXPIRED_BATCH_TRANSACTION % (path, expiration_queue, expiration_queue)
+    )
     result_sets = session.transaction().execute(
-        prepared, {'$timestamp': timestamp, '$prev_timestamp': last_timestamp, '$prev_doc_id': last_doc_id},
+        prepared,
+        {
+            "$timestamp": timestamp,
+            "$prev_timestamp": last_timestamp,
+            "$prev_doc_id": last_doc_id,
+        },
         commit_tx=True,
     )
     return result_sets[0]
@@ -214,7 +224,8 @@ def read_expired_document(session, path, expiration_queue, timestamp, last_times
 def delete_expired_document(session, path, expiration_queue, doc_id, timestamp):
     prepared = session.prepare(DELETE_EXPIRED_DOCUMENT % (path, expiration_queue))
     session.transaction().execute(
-        prepared, {'$doc_id': doc_id, '$timestamp': timestamp},
+        prepared,
+        {"$doc_id": doc_id, "$timestamp": timestamp},
         commit_tx=True,
     )
 
@@ -225,8 +236,7 @@ def delete_expired(session, path, expiration_queue, timestamp):
     last_doc_id = 0
     while True:
         result_set = read_expired_document(
-            session, path, expiration_queue, timestamp,
-            last_timestamp, last_doc_id
+            session, path, expiration_queue, timestamp, last_timestamp, last_doc_id
         )
 
         if not result_set.rows:
@@ -237,7 +247,8 @@ def delete_expired(session, path, expiration_queue, timestamp):
             last_timestamp = document.timestamp
             print(" DocId: %s Timestamp: %d" % (last_doc_id, timestamp))
             delete_expired_document(
-                session, path, expiration_queue, last_doc_id, last_timestamp)
+                session, path, expiration_queue, last_doc_id, last_timestamp
+            )
 
 
 def _run(driver, database, path):
@@ -248,59 +259,56 @@ def _run(driver, database, path):
     session = driver.table_client.session().create()
 
     add_document(
-        session, full_path,
+        session,
+        full_path,
         "https://yandex.ru/",
         "<html><body><h1>Yandex</h1></body></html>",
         1,
     )
 
     add_document(
-        session, full_path,
+        session,
+        full_path,
         "https://ya.ru/",
         "<html><body><h1>Yandex</h1></body></html>",
-        2
+        2,
     )
 
     read_document(session, full_path, "https://yandex.ru/")
     read_document(session, full_path, "https://ya.ru/")
 
     for expiration_queue in range(EXPIRATION_QUEUE_COUNT):
-        delete_expired(
-            session,
-            full_path,
-            expiration_queue,
-            1
-        )
+        delete_expired(session, full_path, expiration_queue, 1)
 
     read_document(session, full_path, "https://ya.ru/")
 
     add_document(
-        session, full_path,
+        session,
+        full_path,
         "https://yandex.ru/",
         "<html><body><h1>Yandex</h1></body></html>",
-        2
+        2,
     )
 
     add_document(
-        session, full_path,
+        session,
+        full_path,
         "https://yandex.ru/",
         "<html><body><h1>Yandex</h1></body></html>",
-        3
+        3,
     )
 
     for expiration_queue in range(EXPIRATION_QUEUE_COUNT):
-        delete_expired(
-            session, full_path,
-            expiration_queue,
-            2
-        )
+        delete_expired(session, full_path, expiration_queue, 2)
 
     read_document(session, full_path, "https://yandex.ru/")
     read_document(session, full_path, "https://ya.ru/")
 
 
 def run(endpoint, database, path):
-    driver_config = ydb.DriverConfig(endpoint, database, credentials=ydb.construct_credentials_from_environ())
+    driver_config = ydb.DriverConfig(
+        endpoint, database, credentials=ydb.construct_credentials_from_environ()
+    )
     with ydb.Driver(driver_config) as driver:
         try:
             driver.wait(timeout=5)

@@ -61,20 +61,28 @@ WHERE t2.name == $userName;
 
 
 class Series(object):
-    __slots__ = ('series_id', 'title', 'release_date', 'info', 'views', 'uploaded_user_id')
+    __slots__ = (
+        "series_id",
+        "title",
+        "release_date",
+        "info",
+        "views",
+        "uploaded_user_id",
+    )
 
     def __init__(self, series_id, title, release_date, info, views, uploaded_user_id):
         self.series_id = series_id
         self.title = title
-        self.release_date = to_days(release_date) if isinstance(release_date, str) else release_date
+        self.release_date = (
+            to_days(release_date) if isinstance(release_date, str) else release_date
+        )
         self.info = info
         self.views = views
         self.uploaded_user_id = uploaded_user_id
 
     @classmethod
     def from_db(cls, entry):
-        return cls(
-            **entry)
+        return cls(**entry)
 
     def __str__(self):
         return "Series<series_id: %s, title: %s, views: %d>" % (
@@ -85,7 +93,7 @@ class Series(object):
 
 
 class User(object):
-    __slots__ = ('user_id', 'name', 'age')
+    __slots__ = ("user_id", "name", "age")
 
     def __init__(self, user_id, name, age):
         self.user_id = user_id
@@ -123,34 +131,36 @@ def ensure_path_exists(driver, database, path):
 def create_tables(session_pool, path):
     def callee(session):
         session.create_table(
-            os.path.join(path, 'series'),
+            os.path.join(path, "series"),
             ydb.TableDescription()
-            .with_primary_keys('series_id')
+            .with_primary_keys("series_id")
             .with_columns(
-                ydb.Column('series_id', ydb.OptionalType(ydb.PrimitiveType.Uint64)),
-                ydb.Column('title', ydb.OptionalType(ydb.PrimitiveType.Utf8)),
-                ydb.Column('info', ydb.OptionalType(ydb.PrimitiveType.Utf8)),
-                ydb.Column('release_date', ydb.OptionalType(ydb.PrimitiveType.Datetime)),
-                ydb.Column('views', ydb.OptionalType(ydb.PrimitiveType.Uint64)),
-                ydb.Column('uploaded_user_id', ydb.OptionalType(ydb.PrimitiveType.Uint64)),
+                ydb.Column("series_id", ydb.OptionalType(ydb.PrimitiveType.Uint64)),
+                ydb.Column("title", ydb.OptionalType(ydb.PrimitiveType.Utf8)),
+                ydb.Column("info", ydb.OptionalType(ydb.PrimitiveType.Utf8)),
+                ydb.Column(
+                    "release_date", ydb.OptionalType(ydb.PrimitiveType.Datetime)
+                ),
+                ydb.Column("views", ydb.OptionalType(ydb.PrimitiveType.Uint64)),
+                ydb.Column(
+                    "uploaded_user_id", ydb.OptionalType(ydb.PrimitiveType.Uint64)
+                ),
             )
             .with_indexes(
-                ydb.TableIndex('users_index').with_index_columns('uploaded_user_id')
-            )
+                ydb.TableIndex("users_index").with_index_columns("uploaded_user_id")
+            ),
         )
 
         session.create_table(
-            os.path.join(path, 'users'),
+            os.path.join(path, "users"),
             ydb.TableDescription()
-            .with_primary_keys('user_id')
+            .with_primary_keys("user_id")
             .with_columns(
-                ydb.Column('user_id', ydb.OptionalType(ydb.PrimitiveType.Uint64)),
-                ydb.Column('name', ydb.OptionalType(ydb.PrimitiveType.Utf8)),
-                ydb.Column('age', ydb.OptionalType(ydb.PrimitiveType.Uint32)),
+                ydb.Column("user_id", ydb.OptionalType(ydb.PrimitiveType.Uint64)),
+                ydb.Column("name", ydb.OptionalType(ydb.PrimitiveType.Utf8)),
+                ydb.Column("age", ydb.OptionalType(ydb.PrimitiveType.Uint32)),
             )
-            .with_index(
-                ydb.TableIndex('name_index').with_index_columns('name')
-            )
+            .with_index(ydb.TableIndex("name_index").with_index_columns("name")),
         )
 
     session_pool.retry_operation_sync(callee)
@@ -160,13 +170,36 @@ def get_series_data():
     return [
         Series(1, "First episode", "2006-01-01", "Pilot episode.", 1000, 0),
         Series(2, "Second episode", "2006-02-01", "Jon Snow knows nothing.", 2000, 1),
-        Series(3, "Third episode", "2006-03-01", "Daenerys is the mother of dragons.", 3000, 2),
-        Series(4, "Fourth episode", "2006-04-01", "Jorah Mormont is the king of the friendzone.", 4000, 3),
+        Series(
+            3,
+            "Third episode",
+            "2006-03-01",
+            "Daenerys is the mother of dragons.",
+            3000,
+            2,
+        ),
+        Series(
+            4,
+            "Fourth episode",
+            "2006-04-01",
+            "Jorah Mormont is the king of the friendzone.",
+            4000,
+            3,
+        ),
         Series(5, "Fifth episode", "2006-05-01", "Cercei is not good person.", 5000, 1),
         Series(6, "Sixth episode", "2006-06-01", "Tyrion is not big.", 6000, 2),
-        Series(7, "Seventh episode", "2006-07-01", "Tywin should close the door.", 7000, 2),
-        Series(8, "Eighth episode", "2006-08-01", "The white walkers are well-organized.", 8000, 3),
-        Series(9, "Ninth episode", "2006-09-01", "Dragons can fly.", 9000, 1)
+        Series(
+            7, "Seventh episode", "2006-07-01", "Tywin should close the door.", 7000, 2
+        ),
+        Series(
+            8,
+            "Eighth episode",
+            "2006-08-01",
+            "The white walkers are well-organized.",
+            8000,
+            3,
+        ),
+        Series(9, "Ninth episode", "2006-09-01", "Dragons can fly.", 9000, 1),
     ]
 
 
@@ -175,7 +208,7 @@ def get_users_data():
         User(0, "Kit Harrington", 32),
         User(1, "Emilia Clarke", 32),
         User(2, "Jason Momoa", 39),
-        User(3, "Peter Dinklage", 49)
+        User(3, "Peter Dinklage", 49),
     ]
 
 
@@ -187,8 +220,9 @@ def fill_data(session_pool, path):
             parameters={
                 "$seriesData": get_series_data(),
                 "$usersData": get_users_data(),
-            }
+            },
         )
+
     return session_pool.retry_operation_sync(callee)
 
 
@@ -197,26 +231,22 @@ def select_by_username(session_pool, path, username):
         result_sets = session.transaction(ydb.SerializableReadWrite()).execute(
             session.prepare(SELECT_SERIES_BY_UPLOADER.format(path)),
             commit_tx=True,
-            parameters={
-                "$userName": username
-            }
+            parameters={"$userName": username},
         )
 
         series_rows = map(lambda x: Series(**x), result_sets[0].rows)
         print("Series by %s" % username)
         for series in series_rows:
-            print(
-                "Series %s" % str(
-                    series
-                )
-            )
+            print("Series %s" % str(series))
         return series_rows
 
     return session_pool.retry_operation_sync(callee)
 
 
 def run(endpoint, database, path):
-    driver_config = ydb.DriverConfig(endpoint, database, credentials=ydb.construct_credentials_from_environ())
+    driver_config = ydb.DriverConfig(
+        endpoint, database, credentials=ydb.construct_credentials_from_environ()
+    )
     with ydb.Driver(driver_config) as driver:
         try:
             driver.wait(timeout=5)

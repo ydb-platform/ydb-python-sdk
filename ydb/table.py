@@ -11,7 +11,7 @@ import six
 from . import (
     issues,
     convert,
-    settings,
+    settings as settings_impl,
     scheme,
     types,
     _utilities,
@@ -36,7 +36,7 @@ SessionPoolEmpty = issues.SessionPoolEmpty
 DataQuery = types.DataQuery
 
 
-class DescribeTableSettings(settings.BaseRequestSettings):
+class DescribeTableSettings(settings_impl.BaseRequestSettings):
     def __init__(self):
         super(DescribeTableSettings, self).__init__()
         self.include_shard_key_bounds = False
@@ -51,7 +51,7 @@ class DescribeTableSettings(settings.BaseRequestSettings):
         return self
 
 
-class ExecDataQuerySettings(settings.BaseRequestSettings):
+class ExecDataQuerySettings(settings_impl.BaseRequestSettings):
     def __init__(self):
         super(ExecDataQuerySettings, self).__init__()
         self.keep_in_cache = True
@@ -2237,17 +2237,6 @@ class BaseTxContext(ITxContext):
             _tx_ctx_impl.wrap_result_and_tx_id,
             settings,
             (self._session_state, self._tx_state, query),
-            self._session_state.endpoint,
-        )
-
-    def _explicit_tcl_call_future(self, request_factory, response_wrapper, stub_method):
-        return self._driver.future(
-            request_factory(self._session_state, self._tx_state),
-            _apis.TableService.Stub,
-            stub_method,
-            response_wrapper,
-            settings,
-            (self._session_state, self._tx_state, self),
             self._session_state.endpoint,
         )
 

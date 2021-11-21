@@ -34,7 +34,7 @@ queries = [  # Tables description to create
         `air_date` Date,
         PRIMARY KEY (`series_id`, `season_id`, `episode_id`)
     )
-    """
+    """,
 ]
 
 
@@ -47,20 +47,21 @@ async def create_table(session, query):
 
 
 async def main():
-    endpoint = os.getenv('YDB_ENDPOINT')
-    database = os.getenv('YDB_DATABASE')
+    endpoint = os.getenv("YDB_ENDPOINT")
+    database = os.getenv("YDB_DATABASE")
     async with ydb.aio.Driver(endpoint=endpoint, database=database) as driver:
         await driver.wait(fail_fast=True)
 
         async with ydb.aio.SessionPool(driver, size=10) as pool:
             coros = [  # Generating coroutines to create tables concurrently
-                pool.retry_operation(create_table, query)
-                for query in queries
+                pool.retry_operation(create_table, query) for query in queries
             ]
 
             await asyncio.gather(*coros)  # Run table creating concurrently
 
-            directory = await driver.scheme_client.list_directory(database)  # Listing database to ensure that tables are created
+            directory = await driver.scheme_client.list_directory(
+                database
+            )  # Listing database to ensure that tables are created
             print("Items in database:")
             for child in directory.children:
                 print(child.type, child.name)

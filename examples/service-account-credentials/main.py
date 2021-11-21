@@ -9,9 +9,9 @@ def execute_query(session):
     # statement. The either way to commit transaction is using `commit` method of `TxContext` object, which is
     # not recommended.
     return session.transaction().execute(
-        'select 1 as cnt;',
+        "select 1 as cnt;",
         commit_tx=True,
-        settings=ydb.BaseRequestSettings().with_timeout(3).with_operation_timeout(2)
+        settings=ydb.BaseRequestSettings().with_timeout(3).with_operation_timeout(2),
     )
 
 
@@ -22,13 +22,13 @@ def main():
     # from the authorized key file with a private key.
     driver = ydb.Driver(
         # specify YDB_ENDPOINT environment variable.
-        endpoint=os.getenv('YDB_ENDPOINT'),
+        endpoint=os.getenv("YDB_ENDPOINT"),
         # specify YDB_DATABASE environment variable.
-        database=os.getenv('YDB_DATABASE'),
+        database=os.getenv("YDB_DATABASE"),
         # construct the service account credentials instance
         credentials=ydb.iam.ServiceAccountCredentials.from_file(
-            '~/.ydb/sa.json',
-        )
+            "~/.ydb/sa.json",
+        ),
     )
 
     # Start driver context manager.
