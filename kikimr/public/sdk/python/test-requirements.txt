@@ -42,3 +42,4 @@ pytest-pep8
 pytest-flake8
 flake8==3.9.2
 sqlalchemy==1.4.26
+pylint-protobuf
