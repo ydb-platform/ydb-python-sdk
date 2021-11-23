@@ -1,11 +1,13 @@
 version: "3.9"
 services:
   ydb:
-    image: registry.yandex.net/yandex-docker-local-ydb:stable
+    image: cr.yandex/yc/yandex-docker-local-ydb:latest
     restart: always
     ports:
-      - 2135:2135
       - 2136:2136
-    hostname: 0.0.0.0
+      - 2135:2135
+    hostname: localhost
+    volumes:
+    - ./ydb_certs:/ydb_certs
     environment:
       - YDB_USE_IN_MEMORY_PDISKS=true
