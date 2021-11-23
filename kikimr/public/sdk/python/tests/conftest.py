@@ -25,7 +25,7 @@ def wait_container_ready(driver):
 
                 return True
 
-            except ydb.Error as e:
+            except ydb.Error:
                 time.sleep(1)
 
     raise RuntimeError("Container is not ready after timeout.")
