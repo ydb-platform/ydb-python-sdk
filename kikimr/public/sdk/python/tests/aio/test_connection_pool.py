@@ -30,32 +30,6 @@ async def test_other_credentials(endpoint, database):
 
 
 @pytest.mark.asyncio
-async def test_disconnect_by_call(endpoint, database, docker_project):
-    driver_config = ydb.DriverConfig(
-        endpoint,
-        database,
-        credentials=ydb.construct_credentials_from_environ(),
-        root_certificates=ydb.load_ydb_root_certificate(),
-    )
-
-    driver = Driver(driver_config=driver_config)
-
-    await driver.wait(timeout=10)
-
-    docker_project.stop()
-
-    try:
-        await driver.scheme_client.make_directory("/local/lol")
-    except Exception:
-        pass
-
-    await asyncio.sleep(5)
-    assert len(driver._store.connections) == 0
-    docker_project.start()
-    await driver.stop()
-
-
-@pytest.mark.asyncio
 async def test_session(endpoint, database):
     driver_config = ydb.DriverConfig(
         endpoint,
@@ -92,9 +66,9 @@ async def test_session(endpoint, database):
     )
 
     session = await driver.table_client.session().create()
-    await session.create_table(database + "/some_table", description)
+    await session.create_table(database + "/test_session", description)
 
-    response = await session.describe_table(database + "/some_table")
+    response = await session.describe_table(database + "/test_session")
     assert [c.name for c in response.columns] == ["key1", "key2", "value"]
     await driver.stop()
 
@@ -122,6 +96,32 @@ async def test_raises_when_disconnect(endpoint, database, docker_project):
     with pytest.raises(ydb.ConnectionLost):
         await asyncio.gather(*coros, return_exceptions=False)
 
+    docker_project.start()
+    await driver.stop()
+
+
+@pytest.mark.asyncio
+async def test_disconnect_by_call(endpoint, database, docker_project):
+    driver_config = ydb.DriverConfig(
+        endpoint,
+        database,
+        credentials=ydb.construct_credentials_from_environ(),
+        root_certificates=ydb.load_ydb_root_certificate(),
+    )
+
+    driver = Driver(driver_config=driver_config)
+
+    await driver.wait(timeout=10)
+
+    docker_project.stop()
+
+    try:
+        await driver.scheme_client.make_directory("/local/lol")
+    except Exception:
+        pass
+
+    await asyncio.sleep(5)
+    assert len(driver._store.connections) == 0
     docker_project.start()
     await driver.stop()
 

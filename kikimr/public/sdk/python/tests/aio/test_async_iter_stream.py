@@ -15,17 +15,19 @@ async def test_read_table(driver, database):
     )
 
     session = await driver.table_client.session().create()
-    await session.create_table(database + "/some_table", description)
+    await session.create_table(database + "/test_read_table", description)
 
     await session.transaction(ydb.SerializableReadWrite()).execute(
-        """INSERT INTO `some_table` (`key1`, `value`) VALUES (1, "hello_world"), (2, "2")""",
+        """INSERT INTO `test_read_table` (`key1`, `value`) VALUES (1, "hello_world"), (2, "2")""",
         commit_tx=True,
     )
 
     expected_res = [[{"key1": 1, "value": "hello_world"}], [{"key1": 2, "value": "2"}]]
 
     i = 0
-    async for resp in await session.read_table(database + "/some_table", row_limit=1):
+    async for resp in await session.read_table(
+        database + "/test_read_table", row_limit=1
+    ):
         assert resp.rows == expected_res[i]
         i += 1
 

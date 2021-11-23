@@ -383,7 +383,8 @@ def read_table_request_factory(
         for column in columns:
             request.columns.append(column)
     if row_limit:
-        request.row_limit = row_limit
+        # NOTE(gvit): pylint cannot understand that row_limit is not None
+        request.row_limit = row_limit  # pylint: disable=E5903
     if use_snapshot is not None:
         if isinstance(use_snapshot, bool):
             if use_snapshot:
