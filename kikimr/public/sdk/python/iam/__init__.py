@@ -1,3 +1,4 @@
-# -*- coding: utf-8 -*-
-from .auth import ServiceAccountCredentials  # noqa
-from .auth import MetadataUrlCredentials  # noqa
+from ydb.iam import *  # noqa
+import sys
+
+sys.modules['kikimr.public.sdk.python.iam.auth'] = sys.modules['ydb.iam.auth']
