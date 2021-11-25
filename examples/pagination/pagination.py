@@ -16,7 +16,6 @@ class SchoolsPaginated(object):
         self.last_number = None
 
         next_page_query = """
-        
         PRAGMA TablePathPrefix("{path}");
 
         DECLARE $limit AS Uint32;
@@ -47,7 +46,6 @@ class SchoolsPaginated(object):
 
     def get_first_page(self):
         query = """
-        
         PRAGMA TablePathPrefix("{path}");
 
         DECLARE $limit AS Uint32;

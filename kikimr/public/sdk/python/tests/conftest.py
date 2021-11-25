@@ -2,7 +2,6 @@ import os
 import pytest
 import ydb
 import time
-import shutil
 
 
 @pytest.fixture(scope="module")
@@ -37,11 +36,9 @@ def endpoint(pytestconfig, module_scoped_container_getter):
         wait_container_ready(driver)
     yield "localhost:2136"
 
-    shutil.rmtree(os.path.join(str(pytestconfig.rootdir), "ydb_certs"))
 
-
-@pytest.fixture(scope="module")
-def secure_endpoint(pytestconfig, module_scoped_container_getter):
+@pytest.fixture(scope="session")
+def secure_endpoint(pytestconfig, session_scoped_container_getter):
     ca_path = os.path.join(str(pytestconfig.rootdir), "ydb_certs/ca.pem")
     iterations = 0
     while not os.path.exists(ca_path) and iterations < 10:
@@ -57,8 +54,6 @@ def secure_endpoint(pytestconfig, module_scoped_container_getter):
     ) as driver:
         wait_container_ready(driver)
     yield "localhost:2135"
-
-    shutil.rmtree(os.path.join(str(pytestconfig.rootdir), "ydb_certs"))
 
 
 @pytest.fixture(scope="module")

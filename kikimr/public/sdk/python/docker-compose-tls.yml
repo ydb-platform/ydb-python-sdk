@@ -5,6 +5,9 @@ services:
     restart: always
     ports:
       - 2136:2136
+      - 2135:2135
     hostname: localhost
+    volumes:
+    - ./ydb_certs:/ydb_certs
     environment:
       - YDB_USE_IN_MEMORY_PDISKS=true

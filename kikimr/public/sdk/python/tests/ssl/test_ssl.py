@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 import ydb
+import pytest
 
 
+@pytest.mark.tls
 def test_connect_secure(secure_endpoint, database):
     with ydb.Driver(
         endpoint="grpcs://localhost:2135",
