@@ -20,9 +20,7 @@ def as_tornado_future(foreign_future, timeout=None):
             foreign_future.cancel()
 
         timeout_timer.add(
-            tornado.ioloop.IOLoop.current().call_later(
-                timeout, on_timeout
-            )
+            tornado.ioloop.IOLoop.current().call_later(timeout, on_timeout)
         )
 
     def copy_to_result_future(foreign_future):
@@ -36,9 +34,9 @@ def as_tornado_future(foreign_future, timeout=None):
             return
 
         if (
-                isinstance(foreign_future, TracebackFuture)
-                and isinstance(result_future, TracebackFuture)
-                and result_future.exc_info() is not None
+            isinstance(foreign_future, TracebackFuture)
+            and isinstance(result_future, TracebackFuture)
+            and result_future.exc_info() is not None
         ):
             result_future.set_exc_info(foreign_future.exc_info())
         elif foreign_future.cancelled():
