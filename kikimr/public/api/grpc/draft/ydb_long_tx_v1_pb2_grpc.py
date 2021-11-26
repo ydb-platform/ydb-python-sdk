@@ -119,6 +119,7 @@ class LongTxService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -127,7 +128,7 @@ class LongTxService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_ydb__long__tx__pb2.BeginTransactionRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_ydb__long__tx__pb2.BeginTransactionResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def CommitTx(request,
@@ -135,6 +136,7 @@ class LongTxService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -143,7 +145,7 @@ class LongTxService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_ydb__long__tx__pb2.CommitTransactionRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_ydb__long__tx__pb2.CommitTransactionResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def RollbackTx(request,
@@ -151,6 +153,7 @@ class LongTxService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -159,7 +162,7 @@ class LongTxService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_ydb__long__tx__pb2.RollbackTransactionRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_ydb__long__tx__pb2.RollbackTransactionResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def Write(request,
@@ -167,6 +170,7 @@ class LongTxService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -175,7 +179,7 @@ class LongTxService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_ydb__long__tx__pb2.WriteRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_ydb__long__tx__pb2.WriteResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def Read(request,
@@ -183,6 +187,7 @@ class LongTxService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -191,4 +196,4 @@ class LongTxService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_ydb__long__tx__pb2.ReadRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_ydb__long__tx__pb2.ReadResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)

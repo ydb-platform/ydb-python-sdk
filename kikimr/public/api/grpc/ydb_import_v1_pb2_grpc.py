@@ -74,6 +74,7 @@ class ImportService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -82,7 +83,7 @@ class ImportService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__import__pb2.ImportFromS3Request.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__import__pb2.ImportFromS3Response.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def ImportData(request,
@@ -90,6 +91,7 @@ class ImportService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -98,4 +100,4 @@ class ImportService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__import__pb2.ImportDataRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__import__pb2.ImportDataResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)

@@ -407,6 +407,7 @@ class TableService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -415,7 +416,7 @@ class TableService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__table__pb2.CreateSessionRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__table__pb2.CreateSessionResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def DeleteSession(request,
@@ -423,6 +424,7 @@ class TableService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -431,7 +433,7 @@ class TableService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__table__pb2.DeleteSessionRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__table__pb2.DeleteSessionResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def KeepAlive(request,
@@ -439,6 +441,7 @@ class TableService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -447,7 +450,7 @@ class TableService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__table__pb2.KeepAliveRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__table__pb2.KeepAliveResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def CreateTable(request,
@@ -455,6 +458,7 @@ class TableService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -463,7 +467,7 @@ class TableService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__table__pb2.CreateTableRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__table__pb2.CreateTableResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def DropTable(request,
@@ -471,6 +475,7 @@ class TableService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -479,7 +484,7 @@ class TableService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__table__pb2.DropTableRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__table__pb2.DropTableResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def AlterTable(request,
@@ -487,6 +492,7 @@ class TableService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -495,7 +501,7 @@ class TableService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__table__pb2.AlterTableRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__table__pb2.AlterTableResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def CopyTable(request,
@@ -503,6 +509,7 @@ class TableService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -511,7 +518,7 @@ class TableService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__table__pb2.CopyTableRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__table__pb2.CopyTableResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def CopyTables(request,
@@ -519,6 +526,7 @@ class TableService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -527,7 +535,7 @@ class TableService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__table__pb2.CopyTablesRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__table__pb2.CopyTablesResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def RenameTables(request,
@@ -535,6 +543,7 @@ class TableService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -543,7 +552,7 @@ class TableService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__table__pb2.RenameTablesRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__table__pb2.RenameTablesResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def DescribeTable(request,
@@ -551,6 +560,7 @@ class TableService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -559,7 +569,7 @@ class TableService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__table__pb2.DescribeTableRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__table__pb2.DescribeTableResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def ExplainDataQuery(request,
@@ -567,6 +577,7 @@ class TableService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -575,7 +586,7 @@ class TableService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__table__pb2.ExplainDataQueryRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__table__pb2.ExplainDataQueryResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def PrepareDataQuery(request,
@@ -583,6 +594,7 @@ class TableService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -591,7 +603,7 @@ class TableService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__table__pb2.PrepareDataQueryRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__table__pb2.PrepareDataQueryResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def ExecuteDataQuery(request,
@@ -599,6 +611,7 @@ class TableService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -607,7 +620,7 @@ class TableService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__table__pb2.ExecuteDataQueryRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__table__pb2.ExecuteDataQueryResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def ExecuteSchemeQuery(request,
@@ -615,6 +628,7 @@ class TableService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -623,7 +637,7 @@ class TableService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__table__pb2.ExecuteSchemeQueryRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__table__pb2.ExecuteSchemeQueryResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def BeginTransaction(request,
@@ -631,6 +645,7 @@ class TableService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -639,7 +654,7 @@ class TableService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__table__pb2.BeginTransactionRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__table__pb2.BeginTransactionResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def CommitTransaction(request,
@@ -647,6 +662,7 @@ class TableService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -655,7 +671,7 @@ class TableService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__table__pb2.CommitTransactionRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__table__pb2.CommitTransactionResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def RollbackTransaction(request,
@@ -663,6 +679,7 @@ class TableService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -671,7 +688,7 @@ class TableService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__table__pb2.RollbackTransactionRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__table__pb2.RollbackTransactionResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def DescribeTableOptions(request,
@@ -679,6 +696,7 @@ class TableService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -687,7 +705,7 @@ class TableService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__table__pb2.DescribeTableOptionsRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__table__pb2.DescribeTableOptionsResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def StreamReadTable(request,
@@ -695,6 +713,7 @@ class TableService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -703,7 +722,7 @@ class TableService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__table__pb2.ReadTableRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__table__pb2.ReadTableResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def BulkUpsert(request,
@@ -711,6 +730,7 @@ class TableService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -719,7 +739,7 @@ class TableService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__table__pb2.BulkUpsertRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__table__pb2.BulkUpsertResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def StreamExecuteScanQuery(request,
@@ -727,6 +747,7 @@ class TableService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -735,4 +756,4 @@ class TableService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__table__pb2.ExecuteScanQueryRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__table__pb2.ExecuteScanQueryPartialResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)

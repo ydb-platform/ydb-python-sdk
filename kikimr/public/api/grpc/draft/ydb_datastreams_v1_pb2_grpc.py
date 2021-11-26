@@ -522,6 +522,7 @@ class DataStreamsService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -530,7 +531,7 @@ class DataStreamsService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_datastreams__pb2.CreateStreamRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_datastreams__pb2.CreateStreamResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def ListStreams(request,
@@ -538,6 +539,7 @@ class DataStreamsService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -546,7 +548,7 @@ class DataStreamsService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_datastreams__pb2.ListStreamsRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_datastreams__pb2.ListStreamsResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def DeleteStream(request,
@@ -554,6 +556,7 @@ class DataStreamsService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -562,7 +565,7 @@ class DataStreamsService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_datastreams__pb2.DeleteStreamRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_datastreams__pb2.DeleteStreamResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def DescribeStream(request,
@@ -570,6 +573,7 @@ class DataStreamsService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -578,7 +582,7 @@ class DataStreamsService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_datastreams__pb2.DescribeStreamRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_datastreams__pb2.DescribeStreamResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def ListShards(request,
@@ -586,6 +590,7 @@ class DataStreamsService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -594,7 +599,7 @@ class DataStreamsService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_datastreams__pb2.ListShardsRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_datastreams__pb2.ListShardsResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def SetWriteQuota(request,
@@ -602,6 +607,7 @@ class DataStreamsService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -610,7 +616,7 @@ class DataStreamsService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_datastreams__pb2.SetWriteQuotaRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_datastreams__pb2.SetWriteQuotaResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def UpdateStream(request,
@@ -618,6 +624,7 @@ class DataStreamsService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -626,7 +633,7 @@ class DataStreamsService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_datastreams__pb2.UpdateStreamRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_datastreams__pb2.UpdateStreamResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def PutRecord(request,
@@ -634,6 +641,7 @@ class DataStreamsService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -642,7 +650,7 @@ class DataStreamsService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_datastreams__pb2.PutRecordRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_datastreams__pb2.PutRecordResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def PutRecords(request,
@@ -650,6 +658,7 @@ class DataStreamsService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -658,7 +667,7 @@ class DataStreamsService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_datastreams__pb2.PutRecordsRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_datastreams__pb2.PutRecordsResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def GetRecords(request,
@@ -666,6 +675,7 @@ class DataStreamsService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -674,7 +684,7 @@ class DataStreamsService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_datastreams__pb2.GetRecordsRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_datastreams__pb2.GetRecordsResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def GetShardIterator(request,
@@ -682,6 +692,7 @@ class DataStreamsService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -690,7 +701,7 @@ class DataStreamsService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_datastreams__pb2.GetShardIteratorRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_datastreams__pb2.GetShardIteratorResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def SubscribeToShard(request,
@@ -698,6 +709,7 @@ class DataStreamsService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -706,7 +718,7 @@ class DataStreamsService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_datastreams__pb2.SubscribeToShardRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_datastreams__pb2.SubscribeToShardResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def DescribeLimits(request,
@@ -714,6 +726,7 @@ class DataStreamsService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -722,7 +735,7 @@ class DataStreamsService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_datastreams__pb2.DescribeLimitsRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_datastreams__pb2.DescribeLimitsResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def DescribeStreamSummary(request,
@@ -730,6 +743,7 @@ class DataStreamsService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -738,7 +752,7 @@ class DataStreamsService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_datastreams__pb2.DescribeStreamSummaryRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_datastreams__pb2.DescribeStreamSummaryResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def DecreaseStreamRetentionPeriod(request,
@@ -746,6 +760,7 @@ class DataStreamsService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -754,7 +769,7 @@ class DataStreamsService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_datastreams__pb2.DecreaseStreamRetentionPeriodRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_datastreams__pb2.DecreaseStreamRetentionPeriodResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def IncreaseStreamRetentionPeriod(request,
@@ -762,6 +777,7 @@ class DataStreamsService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -770,7 +786,7 @@ class DataStreamsService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_datastreams__pb2.IncreaseStreamRetentionPeriodRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_datastreams__pb2.IncreaseStreamRetentionPeriodResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def UpdateShardCount(request,
@@ -778,6 +794,7 @@ class DataStreamsService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -786,7 +803,7 @@ class DataStreamsService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_datastreams__pb2.UpdateShardCountRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_datastreams__pb2.UpdateShardCountResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def RegisterStreamConsumer(request,
@@ -794,6 +811,7 @@ class DataStreamsService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -802,7 +820,7 @@ class DataStreamsService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_datastreams__pb2.RegisterStreamConsumerRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_datastreams__pb2.RegisterStreamConsumerResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def DeregisterStreamConsumer(request,
@@ -810,6 +828,7 @@ class DataStreamsService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -818,7 +837,7 @@ class DataStreamsService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_datastreams__pb2.DeregisterStreamConsumerRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_datastreams__pb2.DeregisterStreamConsumerResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def DescribeStreamConsumer(request,
@@ -826,6 +845,7 @@ class DataStreamsService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -834,7 +854,7 @@ class DataStreamsService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_datastreams__pb2.DescribeStreamConsumerRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_datastreams__pb2.DescribeStreamConsumerResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def ListStreamConsumers(request,
@@ -842,6 +862,7 @@ class DataStreamsService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -850,7 +871,7 @@ class DataStreamsService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_datastreams__pb2.ListStreamConsumersRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_datastreams__pb2.ListStreamConsumersResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def AddTagsToStream(request,
@@ -858,6 +879,7 @@ class DataStreamsService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -866,7 +888,7 @@ class DataStreamsService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_datastreams__pb2.AddTagsToStreamRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_datastreams__pb2.AddTagsToStreamResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def DisableEnhancedMonitoring(request,
@@ -874,6 +896,7 @@ class DataStreamsService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -882,7 +905,7 @@ class DataStreamsService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_datastreams__pb2.DisableEnhancedMonitoringRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_datastreams__pb2.DisableEnhancedMonitoringResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def EnableEnhancedMonitoring(request,
@@ -890,6 +913,7 @@ class DataStreamsService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -898,7 +922,7 @@ class DataStreamsService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_datastreams__pb2.EnableEnhancedMonitoringRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_datastreams__pb2.EnableEnhancedMonitoringResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def ListTagsForStream(request,
@@ -906,6 +930,7 @@ class DataStreamsService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -914,7 +939,7 @@ class DataStreamsService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_datastreams__pb2.ListTagsForStreamRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_datastreams__pb2.ListTagsForStreamResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def MergeShards(request,
@@ -922,6 +947,7 @@ class DataStreamsService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -930,7 +956,7 @@ class DataStreamsService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_datastreams__pb2.MergeShardsRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_datastreams__pb2.MergeShardsResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def RemoveTagsFromStream(request,
@@ -938,6 +964,7 @@ class DataStreamsService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -946,7 +973,7 @@ class DataStreamsService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_datastreams__pb2.RemoveTagsFromStreamRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_datastreams__pb2.RemoveTagsFromStreamResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def SplitShard(request,
@@ -954,6 +981,7 @@ class DataStreamsService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -962,7 +990,7 @@ class DataStreamsService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_datastreams__pb2.SplitShardRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_datastreams__pb2.SplitShardResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def StartStreamEncryption(request,
@@ -970,6 +998,7 @@ class DataStreamsService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -978,7 +1007,7 @@ class DataStreamsService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_datastreams__pb2.StartStreamEncryptionRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_datastreams__pb2.StartStreamEncryptionResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def StopStreamEncryption(request,
@@ -986,6 +1015,7 @@ class DataStreamsService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -994,4 +1024,4 @@ class DataStreamsService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_datastreams__pb2.StopStreamEncryptionRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_datastreams__pb2.StopStreamEncryptionResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)

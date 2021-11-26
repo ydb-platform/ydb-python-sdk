@@ -152,6 +152,7 @@ class CmsService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -160,7 +161,7 @@ class CmsService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__cms__pb2.CreateDatabaseRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__cms__pb2.CreateDatabaseResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def GetDatabaseStatus(request,
@@ -168,6 +169,7 @@ class CmsService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -176,7 +178,7 @@ class CmsService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__cms__pb2.GetDatabaseStatusRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__cms__pb2.GetDatabaseStatusResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def AlterDatabase(request,
@@ -184,6 +186,7 @@ class CmsService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -192,7 +195,7 @@ class CmsService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__cms__pb2.AlterDatabaseRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__cms__pb2.AlterDatabaseResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def ListDatabases(request,
@@ -200,6 +203,7 @@ class CmsService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -208,7 +212,7 @@ class CmsService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__cms__pb2.ListDatabasesRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__cms__pb2.ListDatabasesResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def RemoveDatabase(request,
@@ -216,6 +220,7 @@ class CmsService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -224,7 +229,7 @@ class CmsService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__cms__pb2.RemoveDatabaseRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__cms__pb2.RemoveDatabaseResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def DescribeDatabaseOptions(request,
@@ -232,6 +237,7 @@ class CmsService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -240,4 +246,4 @@ class CmsService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__cms__pb2.DescribeDatabaseOptionsRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__cms__pb2.DescribeDatabaseOptionsResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)

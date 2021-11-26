@@ -150,6 +150,7 @@ class LogStoreService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -158,7 +159,7 @@ class LogStoreService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_ydb__logstore__pb2.CreateLogStoreRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_ydb__logstore__pb2.CreateLogStoreResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def DescribeLogStore(request,
@@ -166,6 +167,7 @@ class LogStoreService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -174,7 +176,7 @@ class LogStoreService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_ydb__logstore__pb2.DescribeLogStoreRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_ydb__logstore__pb2.DescribeLogStoreResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def DropLogStore(request,
@@ -182,6 +184,7 @@ class LogStoreService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -190,7 +193,7 @@ class LogStoreService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_ydb__logstore__pb2.DropLogStoreRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_ydb__logstore__pb2.DropLogStoreResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def CreateLogTable(request,
@@ -198,6 +201,7 @@ class LogStoreService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -206,7 +210,7 @@ class LogStoreService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_ydb__logstore__pb2.CreateLogTableRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_ydb__logstore__pb2.CreateLogTableResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def DescribeLogTable(request,
@@ -214,6 +218,7 @@ class LogStoreService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -222,7 +227,7 @@ class LogStoreService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_ydb__logstore__pb2.DescribeLogTableRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_ydb__logstore__pb2.DescribeLogTableResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def DropLogTable(request,
@@ -230,6 +235,7 @@ class LogStoreService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -238,7 +244,7 @@ class LogStoreService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_ydb__logstore__pb2.DropLogTableRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_ydb__logstore__pb2.DropLogTableResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def AlterLogTable(request,
@@ -246,6 +252,7 @@ class LogStoreService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -254,4 +261,4 @@ class LogStoreService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_ydb__logstore__pb2.AlterLogTableRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_ydb__logstore__pb2.AlterLogTableResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)

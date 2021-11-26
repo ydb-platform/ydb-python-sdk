@@ -120,6 +120,7 @@ class PersQueueService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -128,7 +129,7 @@ class PersQueueService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_persqueue__pb2.WriteRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_persqueue__pb2.WriteResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def ReadSession(request_iterator,
@@ -136,6 +137,7 @@ class PersQueueService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -144,4 +146,4 @@ class PersQueueService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_persqueue__pb2.ReadRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_persqueue__pb2.ReadResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)

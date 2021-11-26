@@ -47,6 +47,7 @@ class CoordinationServiceServicer(object):
     def Session(self, request_iterator, context):
         """*
         Bidirectional stream used to establish a session with a coordination node
+
         Relevant APIs for managing semaphores, distributed locking, creating or
         restoring a previously established session are described using nested
         messages in SessionRequest and SessionResponse. Session is established
@@ -129,6 +130,7 @@ class CoordinationService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -137,7 +139,7 @@ class CoordinationService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__coordination__pb2.SessionRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__coordination__pb2.SessionResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def CreateNode(request,
@@ -145,6 +147,7 @@ class CoordinationService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -153,7 +156,7 @@ class CoordinationService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__coordination__pb2.CreateNodeRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__coordination__pb2.CreateNodeResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def AlterNode(request,
@@ -161,6 +164,7 @@ class CoordinationService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -169,7 +173,7 @@ class CoordinationService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__coordination__pb2.AlterNodeRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__coordination__pb2.AlterNodeResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def DropNode(request,
@@ -177,6 +181,7 @@ class CoordinationService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -185,7 +190,7 @@ class CoordinationService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__coordination__pb2.DropNodeRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__coordination__pb2.DropNodeResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def DescribeNode(request,
@@ -193,6 +198,7 @@ class CoordinationService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -201,4 +207,4 @@ class CoordinationService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__coordination__pb2.DescribeNodeRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__coordination__pb2.DescribeNodeResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)

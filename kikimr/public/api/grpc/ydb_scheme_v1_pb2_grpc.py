@@ -9,6 +9,7 @@ class SchemeServiceStub(object):
     """Every YDB Database Instance has set of objects organized a tree.
     SchemeService provides some functionality to browse and modify
     this tree.
+
     SchemeService provides a generic tree functionality, to create specific
     objects like YDB Table or Persistent Queue use corresponding services.
 
@@ -51,6 +52,7 @@ class SchemeServiceServicer(object):
     """Every YDB Database Instance has set of objects organized a tree.
     SchemeService provides some functionality to browse and modify
     this tree.
+
     SchemeService provides a generic tree functionality, to create specific
     objects like YDB Table or Persistent Queue use corresponding services.
 
@@ -130,6 +132,7 @@ class SchemeService(object):
     """Every YDB Database Instance has set of objects organized a tree.
     SchemeService provides some functionality to browse and modify
     this tree.
+
     SchemeService provides a generic tree functionality, to create specific
     objects like YDB Table or Persistent Queue use corresponding services.
 
@@ -141,6 +144,7 @@ class SchemeService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -149,7 +153,7 @@ class SchemeService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__scheme__pb2.MakeDirectoryRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__scheme__pb2.MakeDirectoryResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def RemoveDirectory(request,
@@ -157,6 +161,7 @@ class SchemeService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -165,7 +170,7 @@ class SchemeService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__scheme__pb2.RemoveDirectoryRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__scheme__pb2.RemoveDirectoryResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def ListDirectory(request,
@@ -173,6 +178,7 @@ class SchemeService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -181,7 +187,7 @@ class SchemeService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__scheme__pb2.ListDirectoryRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__scheme__pb2.ListDirectoryResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def DescribePath(request,
@@ -189,6 +195,7 @@ class SchemeService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -197,7 +204,7 @@ class SchemeService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__scheme__pb2.DescribePathRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__scheme__pb2.DescribePathResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def ModifyPermissions(request,
@@ -205,6 +212,7 @@ class SchemeService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -213,4 +221,4 @@ class SchemeService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__scheme__pb2.ModifyPermissionsRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__scheme__pb2.ModifyPermissionsResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)

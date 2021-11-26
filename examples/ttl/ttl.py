@@ -11,7 +11,7 @@ EXPIRATION_QUEUE_COUNT = 4
 DOC_TABLE_PARTITION_COUNT = 4
 
 ADD_DOCUMENT_TRANSACTION = """
-
+--!syntax_v1
 PRAGMA TablePathPrefix("%s");
 DECLARE $url AS Utf8;
 DECLARE $html AS Utf8;
@@ -30,7 +30,7 @@ VALUES
 """
 
 READ_DOCUMENT_TRANSACTION = """
-
+--!syntax_v1
 PRAGMA TablePathPrefix("%s");
 DECLARE $url AS Utf8;
 
@@ -42,7 +42,7 @@ WHERE `doc_id` = $doc_id;
 """
 
 READ_EXPIRED_BATCH_TRANSACTION = """
-
+--!syntax_v1
 PRAGMA TablePathPrefix("%s");
 DECLARE $timestamp AS Uint64;
 DECLARE $prev_timestamp AS Uint64;
@@ -82,7 +82,7 @@ LIMIT 100;
 """
 
 DELETE_EXPIRED_DOCUMENT = """
-
+--!syntax_v1
 PRAGMA TablePathPrefix("%s");
 
 DECLARE $doc_id AS Uint64;

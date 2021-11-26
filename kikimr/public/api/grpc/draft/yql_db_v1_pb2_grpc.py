@@ -106,6 +106,7 @@ class YqlInternalTaskService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -114,7 +115,7 @@ class YqlInternalTaskService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yql__internal__pb2.GetTaskRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yql__internal__pb2.GetTaskResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def PingTask(request,
@@ -122,6 +123,7 @@ class YqlInternalTaskService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -130,7 +132,7 @@ class YqlInternalTaskService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yql__internal__pb2.PingTaskRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yql__internal__pb2.PingTaskResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def WriteTaskResult(request,
@@ -138,6 +140,7 @@ class YqlInternalTaskService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -146,7 +149,7 @@ class YqlInternalTaskService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yql__internal__pb2.WriteTaskResultRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yql__internal__pb2.WriteTaskResultResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def NodesHealthCheck(request,
@@ -154,6 +157,7 @@ class YqlInternalTaskService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -162,4 +166,4 @@ class YqlInternalTaskService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yql__internal__pb2.NodesHealthCheckRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yql__internal__pb2.NodesHealthCheckResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
