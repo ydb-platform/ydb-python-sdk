@@ -55,6 +55,7 @@ class AuthService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -63,4 +64,4 @@ class AuthService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__auth__pb2.LoginRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__auth__pb2.LoginResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)

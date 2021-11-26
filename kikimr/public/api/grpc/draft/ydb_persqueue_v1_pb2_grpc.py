@@ -138,42 +138,48 @@ class PersQueueServiceServicer(object):
         raise NotImplementedError('Method not implemented!')
 
     def DescribeTopic(self, request, context):
-        """Describe topic command.
+        """
+        Describe topic command.
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
     def DropTopic(self, request, context):
-        """Drop topic command.
+        """
+        Drop topic command.
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
     def CreateTopic(self, request, context):
-        """Create topic command.
+        """
+        Create topic command.
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
     def AlterTopic(self, request, context):
-        """Alter topic command.
+        """
+        Alter topic command.
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
     def AddReadRule(self, request, context):
-        """Add read rule command.
+        """
+        Add read rule command.
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
     def RemoveReadRule(self, request, context):
-        """Remove read rule command.
+        """
+        Remove read rule command.
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -243,6 +249,7 @@ class PersQueueService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -251,7 +258,7 @@ class PersQueueService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.StreamingWriteClientMessage.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.StreamingWriteServerMessage.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def MigrationStreamingRead(request_iterator,
@@ -259,6 +266,7 @@ class PersQueueService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -267,7 +275,7 @@ class PersQueueService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.MigrationStreamingReadClientMessage.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.MigrationStreamingReadServerMessage.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def GetReadSessionsInfo(request,
@@ -275,6 +283,7 @@ class PersQueueService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -283,7 +292,7 @@ class PersQueueService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.ReadInfoRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.ReadInfoResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def DescribeTopic(request,
@@ -291,6 +300,7 @@ class PersQueueService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -299,7 +309,7 @@ class PersQueueService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.DescribeTopicRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.DescribeTopicResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def DropTopic(request,
@@ -307,6 +317,7 @@ class PersQueueService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -315,7 +326,7 @@ class PersQueueService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.DropTopicRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.DropTopicResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def CreateTopic(request,
@@ -323,6 +334,7 @@ class PersQueueService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -331,7 +343,7 @@ class PersQueueService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.CreateTopicRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.CreateTopicResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def AlterTopic(request,
@@ -339,6 +351,7 @@ class PersQueueService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -347,7 +360,7 @@ class PersQueueService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.AlterTopicRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.AlterTopicResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def AddReadRule(request,
@@ -355,6 +368,7 @@ class PersQueueService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -363,7 +377,7 @@ class PersQueueService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.AddReadRuleRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.AddReadRuleResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def RemoveReadRule(request,
@@ -371,6 +385,7 @@ class PersQueueService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -379,7 +394,7 @@ class PersQueueService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.RemoveReadRuleRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.RemoveReadRuleResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
 
 class ClusterDiscoveryServiceStub(object):
@@ -432,6 +447,7 @@ class ClusterDiscoveryService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -440,4 +456,4 @@ class ClusterDiscoveryService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__persqueue__cluster__discovery__pb2.DiscoverClustersRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__persqueue__cluster__discovery__pb2.DiscoverClustersResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)

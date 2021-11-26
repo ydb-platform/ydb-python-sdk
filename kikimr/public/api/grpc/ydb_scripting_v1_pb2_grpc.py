@@ -87,6 +87,7 @@ class ScriptingService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -95,7 +96,7 @@ class ScriptingService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__scripting__pb2.ExecuteYqlRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__scripting__pb2.ExecuteYqlResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def StreamExecuteYql(request,
@@ -103,6 +104,7 @@ class ScriptingService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -111,7 +113,7 @@ class ScriptingService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__scripting__pb2.ExecuteYqlRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__scripting__pb2.ExecuteYqlPartialResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def ExplainYql(request,
@@ -119,6 +121,7 @@ class ScriptingService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -127,4 +130,4 @@ class ScriptingService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__scripting__pb2.ExplainYqlRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__scripting__pb2.ExplainYqlResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)

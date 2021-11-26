@@ -5,7 +5,7 @@ from concurrent.futures import TimeoutError
 
 
 FILL_DATA_QUERY = """
-
+--!syntax_v1
 PRAGMA TablePathPrefix("{}");
 
 DECLARE $seriesData AS List<Struct<
@@ -40,7 +40,7 @@ FROM AS_TABLE($usersData);
 """
 
 SELECT_SERIES_BY_UPLOADER = """
-
+--!syntax_v1
 PRAGMA TablePathPrefix("{}");
 
 DECLARE $userName AS Utf8;

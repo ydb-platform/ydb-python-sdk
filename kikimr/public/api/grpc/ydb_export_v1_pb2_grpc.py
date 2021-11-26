@@ -74,6 +74,7 @@ class ExportService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -82,7 +83,7 @@ class ExportService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__export__pb2.ExportToYtRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__export__pb2.ExportToYtResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def ExportToS3(request,
@@ -90,6 +91,7 @@ class ExportService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -98,4 +100,4 @@ class ExportService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__export__pb2.ExportToS3Request.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__export__pb2.ExportToS3Response.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)

@@ -7,6 +7,7 @@ from kikimr.public.api.protos import ydb_rate_limiter_pb2 as kikimr_dot_public_d
 
 class RateLimiterServiceStub(object):
     """Service that implements distributed rate limiting.
+
     To use rate limiter functionality you need an existing coordination node.
 
     Control plane API
@@ -52,6 +53,7 @@ class RateLimiterServiceStub(object):
 
 class RateLimiterServiceServicer(object):
     """Service that implements distributed rate limiting.
+
     To use rate limiter functionality you need an existing coordination node.
 
     Control plane API
@@ -141,6 +143,7 @@ def add_RateLimiterServiceServicer_to_server(servicer, server):
  # This class is part of an EXPERIMENTAL API.
 class RateLimiterService(object):
     """Service that implements distributed rate limiting.
+
     To use rate limiter functionality you need an existing coordination node.
 
     Control plane API
@@ -152,6 +155,7 @@ class RateLimiterService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -160,7 +164,7 @@ class RateLimiterService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__rate__limiter__pb2.CreateResourceRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__rate__limiter__pb2.CreateResourceResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def AlterResource(request,
@@ -168,6 +172,7 @@ class RateLimiterService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -176,7 +181,7 @@ class RateLimiterService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__rate__limiter__pb2.AlterResourceRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__rate__limiter__pb2.AlterResourceResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def DropResource(request,
@@ -184,6 +189,7 @@ class RateLimiterService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -192,7 +198,7 @@ class RateLimiterService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__rate__limiter__pb2.DropResourceRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__rate__limiter__pb2.DropResourceResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def ListResources(request,
@@ -200,6 +206,7 @@ class RateLimiterService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -208,7 +215,7 @@ class RateLimiterService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__rate__limiter__pb2.ListResourcesRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__rate__limiter__pb2.ListResourcesResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def DescribeResource(request,
@@ -216,6 +223,7 @@ class RateLimiterService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -224,7 +232,7 @@ class RateLimiterService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__rate__limiter__pb2.DescribeResourceRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__rate__limiter__pb2.DescribeResourceResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def AcquireResource(request,
@@ -232,6 +240,7 @@ class RateLimiterService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -240,4 +249,4 @@ class RateLimiterService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__rate__limiter__pb2.AcquireResourceRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__rate__limiter__pb2.AcquireResourceResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)

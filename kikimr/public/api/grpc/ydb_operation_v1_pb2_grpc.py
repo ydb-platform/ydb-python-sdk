@@ -9,11 +9,13 @@ class OperationServiceStub(object):
     """All rpc calls to YDB are allowed to be asynchronous. Response message
     of an rpc call contains Operation structure and OperationService
     is used for polling operation completion.
+
     Operation has a field 'ready' to notify client if operation has been
     completed or not. If result is ready a client has to handle 'result' field,
     otherwise it is expected that client continues polling result via
     GetOperation rpc of OperationService. Polling is made via unique
     operation id provided in 'id' field of Operation.
+
     Note: Currently some operations have synchronous implementation and their result
     is available when response is obtained. But a client must not make any
     assumptions about synchronous or asynchronous nature of any operation and
@@ -53,11 +55,13 @@ class OperationServiceServicer(object):
     """All rpc calls to YDB are allowed to be asynchronous. Response message
     of an rpc call contains Operation structure and OperationService
     is used for polling operation completion.
+
     Operation has a field 'ready' to notify client if operation has been
     completed or not. If result is ready a client has to handle 'result' field,
     otherwise it is expected that client continues polling result via
     GetOperation rpc of OperationService. Polling is made via unique
     operation id provided in 'id' field of Operation.
+
     Note: Currently some operations have synchronous implementation and their result
     is available when response is obtained. But a client must not make any
     assumptions about synchronous or asynchronous nature of any operation and
@@ -130,11 +134,13 @@ class OperationService(object):
     """All rpc calls to YDB are allowed to be asynchronous. Response message
     of an rpc call contains Operation structure and OperationService
     is used for polling operation completion.
+
     Operation has a field 'ready' to notify client if operation has been
     completed or not. If result is ready a client has to handle 'result' field,
     otherwise it is expected that client continues polling result via
     GetOperation rpc of OperationService. Polling is made via unique
     operation id provided in 'id' field of Operation.
+
     Note: Currently some operations have synchronous implementation and their result
     is available when response is obtained. But a client must not make any
     assumptions about synchronous or asynchronous nature of any operation and
@@ -148,6 +154,7 @@ class OperationService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -156,7 +163,7 @@ class OperationService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2.GetOperationRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2.GetOperationResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def CancelOperation(request,
@@ -164,6 +171,7 @@ class OperationService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -172,7 +180,7 @@ class OperationService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2.CancelOperationRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2.CancelOperationResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def ForgetOperation(request,
@@ -180,6 +188,7 @@ class OperationService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -188,7 +197,7 @@ class OperationService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2.ForgetOperationRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2.ForgetOperationResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def ListOperations(request,
@@ -196,6 +205,7 @@ class OperationService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -204,4 +214,4 @@ class OperationService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2.ListOperationsRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2.ListOperationsResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)

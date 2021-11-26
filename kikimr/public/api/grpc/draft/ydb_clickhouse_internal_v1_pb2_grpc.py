@@ -145,6 +145,7 @@ class ClickhouseInternalService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -153,7 +154,7 @@ class ClickhouseInternalService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__clickhouse__internal__pb2.ScanRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__clickhouse__internal__pb2.ScanResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def GetShardLocations(request,
@@ -161,6 +162,7 @@ class ClickhouseInternalService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -169,7 +171,7 @@ class ClickhouseInternalService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__clickhouse__internal__pb2.GetShardLocationsRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__clickhouse__internal__pb2.GetShardLocationsResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def DescribeTable(request,
@@ -177,6 +179,7 @@ class ClickhouseInternalService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -185,7 +188,7 @@ class ClickhouseInternalService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__clickhouse__internal__pb2.DescribeTableRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__clickhouse__internal__pb2.DescribeTableResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def CreateSnapshot(request,
@@ -193,6 +196,7 @@ class ClickhouseInternalService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -201,7 +205,7 @@ class ClickhouseInternalService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__clickhouse__internal__pb2.CreateSnapshotRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__clickhouse__internal__pb2.CreateSnapshotResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def RefreshSnapshot(request,
@@ -209,6 +213,7 @@ class ClickhouseInternalService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -217,7 +222,7 @@ class ClickhouseInternalService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__clickhouse__internal__pb2.RefreshSnapshotRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__clickhouse__internal__pb2.RefreshSnapshotResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def DiscardSnapshot(request,
@@ -225,6 +230,7 @@ class ClickhouseInternalService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -233,4 +239,4 @@ class ClickhouseInternalService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__clickhouse__internal__pb2.DiscardSnapshotRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_ydb__clickhouse__internal__pb2.DiscardSnapshotResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)

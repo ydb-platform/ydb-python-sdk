@@ -386,6 +386,7 @@ class YandexQueryService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -394,7 +395,7 @@ class YandexQueryService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_yq__pb2.CreateQueryRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_yq__pb2.CreateQueryResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def ListQueries(request,
@@ -402,6 +403,7 @@ class YandexQueryService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -410,7 +412,7 @@ class YandexQueryService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_yq__pb2.ListQueriesRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_yq__pb2.ListQueriesResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def DescribeQuery(request,
@@ -418,6 +420,7 @@ class YandexQueryService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -426,7 +429,7 @@ class YandexQueryService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_yq__pb2.DescribeQueryRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_yq__pb2.DescribeQueryResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def GetQueryStatus(request,
@@ -434,6 +437,7 @@ class YandexQueryService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -442,7 +446,7 @@ class YandexQueryService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_yq__pb2.GetQueryStatusRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_yq__pb2.GetQueryStatusResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def ModifyQuery(request,
@@ -450,6 +454,7 @@ class YandexQueryService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -458,7 +463,7 @@ class YandexQueryService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_yq__pb2.ModifyQueryRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_yq__pb2.ModifyQueryResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def DeleteQuery(request,
@@ -466,6 +471,7 @@ class YandexQueryService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -474,7 +480,7 @@ class YandexQueryService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_yq__pb2.DeleteQueryRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_yq__pb2.DeleteQueryResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def ControlQuery(request,
@@ -482,6 +488,7 @@ class YandexQueryService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -490,7 +497,7 @@ class YandexQueryService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_yq__pb2.ControlQueryRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_yq__pb2.ControlQueryResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def GetResultData(request,
@@ -498,6 +505,7 @@ class YandexQueryService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -506,7 +514,7 @@ class YandexQueryService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_yq__pb2.GetResultDataRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_yq__pb2.GetResultDataResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def ListJobs(request,
@@ -514,6 +522,7 @@ class YandexQueryService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -522,7 +531,7 @@ class YandexQueryService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_yq__pb2.ListJobsRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_yq__pb2.ListJobsResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def DescribeJob(request,
@@ -530,6 +539,7 @@ class YandexQueryService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -538,7 +548,7 @@ class YandexQueryService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_yq__pb2.DescribeJobRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_yq__pb2.DescribeJobResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def CreateConnection(request,
@@ -546,6 +556,7 @@ class YandexQueryService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -554,7 +565,7 @@ class YandexQueryService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_yq__pb2.CreateConnectionRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_yq__pb2.CreateConnectionResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def ListConnections(request,
@@ -562,6 +573,7 @@ class YandexQueryService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -570,7 +582,7 @@ class YandexQueryService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_yq__pb2.ListConnectionsRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_yq__pb2.ListConnectionsResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def DescribeConnection(request,
@@ -578,6 +590,7 @@ class YandexQueryService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -586,7 +599,7 @@ class YandexQueryService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_yq__pb2.DescribeConnectionRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_yq__pb2.DescribeConnectionResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def ModifyConnection(request,
@@ -594,6 +607,7 @@ class YandexQueryService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -602,7 +616,7 @@ class YandexQueryService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_yq__pb2.ModifyConnectionRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_yq__pb2.ModifyConnectionResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def DeleteConnection(request,
@@ -610,6 +624,7 @@ class YandexQueryService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -618,7 +633,7 @@ class YandexQueryService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_yq__pb2.DeleteConnectionRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_yq__pb2.DeleteConnectionResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def CreateBinding(request,
@@ -626,6 +641,7 @@ class YandexQueryService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -634,7 +650,7 @@ class YandexQueryService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_yq__pb2.CreateBindingRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_yq__pb2.CreateBindingResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def ListBindings(request,
@@ -642,6 +658,7 @@ class YandexQueryService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -650,7 +667,7 @@ class YandexQueryService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_yq__pb2.ListBindingsRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_yq__pb2.ListBindingsResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def DescribeBinding(request,
@@ -658,6 +675,7 @@ class YandexQueryService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -666,7 +684,7 @@ class YandexQueryService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_yq__pb2.DescribeBindingRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_yq__pb2.DescribeBindingResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def ModifyBinding(request,
@@ -674,6 +692,7 @@ class YandexQueryService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -682,7 +701,7 @@ class YandexQueryService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_yq__pb2.ModifyBindingRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_yq__pb2.ModifyBindingResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def DeleteBinding(request,
@@ -690,6 +709,7 @@ class YandexQueryService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -698,4 +718,4 @@ class YandexQueryService(object):
             kikimr_dot_public_dot_api_dot_protos_dot_yq__pb2.DeleteBindingRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_protos_dot_yq__pb2.DeleteBindingResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)

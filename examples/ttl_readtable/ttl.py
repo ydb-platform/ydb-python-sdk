@@ -10,7 +10,7 @@ DOC_TABLE_PARTITION_COUNT = 4
 DELETE_BATCH_SIZE = 10
 
 ADD_DOCUMENT_TRANSACTION = """
-
+--!syntax_v1
 PRAGMA TablePathPrefix("%s");
 DECLARE $url AS Utf8;
 DECLARE $html AS Utf8;
@@ -25,7 +25,7 @@ VALUES
 """
 
 READ_DOCUMENT_TRANSACTION = """
-
+--!syntax_v1
 PRAGMA TablePathPrefix("%s");
 DECLARE $url AS Utf8;
 
@@ -36,7 +36,7 @@ FROM documents
 WHERE `doc_id` = $doc_id;
 """
 DELETE_EXPIRED_DOCUMENTS = """
-
+--!syntax_v1
 PRAGMA TablePathPrefix("%s");
 DECLARE $keys AS List<Struct<doc_id: Uint64>>;
 

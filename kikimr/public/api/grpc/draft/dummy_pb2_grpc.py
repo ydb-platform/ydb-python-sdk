@@ -86,6 +86,7 @@ class DummyService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -94,7 +95,7 @@ class DummyService(object):
             kikimr_dot_public_dot_api_dot_grpc_dot_draft_dot_dummy__pb2.PingRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_grpc_dot_draft_dot_dummy__pb2.PingResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def Infinite(request,
@@ -102,6 +103,7 @@ class DummyService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -110,7 +112,7 @@ class DummyService(object):
             kikimr_dot_public_dot_api_dot_grpc_dot_draft_dot_dummy__pb2.InfiniteRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_grpc_dot_draft_dot_dummy__pb2.InfiniteResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def BiStreamPing(request_iterator,
@@ -118,6 +120,7 @@ class DummyService(object):
             options=(),
             channel_credentials=None,
             call_credentials=None,
+            insecure=False,
             compression=None,
             wait_for_ready=None,
             timeout=None,
@@ -126,4 +129,4 @@ class DummyService(object):
             kikimr_dot_public_dot_api_dot_grpc_dot_draft_dot_dummy__pb2.PingRequest.SerializeToString,
             kikimr_dot_public_dot_api_dot_grpc_dot_draft_dot_dummy__pb2.PingResponse.FromString,
             options, channel_credentials,
-            call_credentials, compression, wait_for_ready, timeout, metadata)
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
