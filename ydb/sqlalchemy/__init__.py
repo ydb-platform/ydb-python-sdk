@@ -271,7 +271,6 @@ try:
             except Exception:
                 return False
 
-
 except ImportError:
 
     class YqlDialect(object):
