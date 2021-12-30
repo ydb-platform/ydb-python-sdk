@@ -3,7 +3,7 @@
 
 import logging
 
-import kikimr.public.api.grpc.draft.persqueue_pb2_grpc as pqv0_server
+import kikimr.yndx.api.grpc.persqueue_pb2_grpc as pqv0_server
 import kikimr.public.api.grpc.draft.ydb_persqueue_v1_pb2_grpc as pqv1_server
 from ydb.pool import ConnectionPool
 from ydb.settings import BaseRequestSettings

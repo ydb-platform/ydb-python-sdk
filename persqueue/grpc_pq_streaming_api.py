@@ -60,7 +60,7 @@ class PQStreamingProducer(AbstractActorFrontend):
         :param create_time_ms: optional
         :param codec: optional
         :return: concurrent.futures.Future.
-        Future result will be protobuf kikimr/public/api/protos/draft/persqueue.proto::WriteResponse
+        Future result will be protobuf kikimr/yndx/api/protos/persqueue.proto::WriteResponse
         """
         WriterCodec.is_codec_valid(codec)
         args = {
@@ -75,7 +75,7 @@ class PQStreamingProducer(AbstractActorFrontend):
         :param create_time_ms: optional
         :param codec: optional
         :return: concurrent.futures.Future.
-        Future result will be protobuf kikimr/public/api/protos/persqueue.proto::WriteResponse
+        Future result will be protobuf kikimr/yndx/api/protos/persqueue.proto::WriteResponse
         """
         WriterCodec.is_codec_valid(codec)
         args = {
@@ -208,7 +208,7 @@ class ProducerConfigurator(collections.namedtuple(
 )):
     """
     Configurator class for PQStreaming writers. Keeps all WriteSession parameters and used for Producer initialization.
-    See kikimr/public/api/protos/draft/persqueue.proto`:TWriteRequest:TInit to learn more about parameters.
+    See kikimr/yndx/api/protos/persqueue.proto`:TWriteRequest:TInit to learn more about parameters.
     """
     def __new__(
         cls, topic, source_id, partition_group=None, deadline=None, preferred_datacenter=None, extra_fields=None
@@ -241,7 +241,7 @@ class ConsumerConfigurator(collections.namedtuple(
 )):
     """
     Configurator class for PQStreaming readers. Keeps all ReadSession parameters and used for Consumer initialization.
-    See kikimr/public/api/protos/draft/persqueue.proto:ReadRequest to learn more about parameters.
+    See kikimr/yndx/api/protos/persqueue.proto:ReadRequest to learn more about parameters.
 
     Note: unlike ProducerConfigurator, who's parameter are only used for session init,
     parameters from ConsumerConfigurator will be also used in further read requests (max_count, max_size, etc.)

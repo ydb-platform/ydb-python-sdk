@@ -8,13 +8,13 @@ import kikimr.public.sdk.python.iam.auth as iam_auth
 from ydb.credentials import YDB_AUTH_TICKET_HEADER
 
 from kikimr.public.sdk.python.persqueue import errors
-from kikimr.public.api.protos.draft import persqueue_pb2
+from kikimr.public.api.protos.draft import persqueue_common_pb2
 
 
 @six.add_metaclass(abc.ABCMeta)
 class CredentialsProvider(object):
     def __init__(self):
-        self._cached_proto = persqueue_pb2.Credentials()
+        self._cached_proto = persqueue_common_pb2.Credentials()
 
     @abc.abstractmethod
     def _build_protobuf(self):

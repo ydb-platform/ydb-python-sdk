@@ -5,8 +5,8 @@ import time
 
 import enum
 
-from kikimr.public.api.protos.draft.persqueue_pb2 import WriteRequest, ReadRequest
-from kikimr.public.api.protos.draft.persqueue_pb2 import WriteResponse, ReadResponse
+from kikimr.yndx.api.protos.persqueue_pb2 import WriteRequest, ReadRequest
+from kikimr.yndx.api.protos.persqueue_pb2 import WriteResponse, ReadResponse
 
 import kikimr.public.api.protos.draft.persqueue_error_codes_pb2 as pq_err_codes
 import kikimr.public.api.protos.ydb_persqueue_cluster_discovery_pb2 as cds_proto
