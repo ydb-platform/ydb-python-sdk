@@ -959,7 +959,7 @@ class AbstractActorFrontend(AbstractActorCore):
         """
         Start actor. Async
         :return: concurrent.futures.Future.
-        Future result will be protobuf kikimr/public/api/protos/draft/persqueue.proto::<RequestType>::Init
+        Future result will be protobuf kikimr/yndx/api/protos/persqueue.proto::<RequestType>::Init
         Request type is ReadResponse OR WriteResponse depending on type of actor
         """
         self.__pqlib._start_actor(self._actor_uid)
