@@ -11,79 +11,78 @@ from google.protobuf import symbol_database as _symbol_database
 _sym_db = _symbol_database.Default()
 
 
-from kikimr.public.api.protos.draft import yql_internal_pb2 as kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yql__internal__pb2
+from kikimr.public.api.protos.draft import yq_private_pb2 as kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yq__private__pb2
 
 
 DESCRIPTOR = _descriptor.FileDescriptor(
   name='kikimr/public/api/grpc/draft/yql_db_v1.proto',
-  package='Yql.Analytics.V1',
+  package='Yq.Private.V1',
   syntax='proto3',
-  serialized_options=b'\n\036com.yandex.yql.analytics.db.v1',
+  serialized_options=None,
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n,kikimr/public/api/grpc/draft/yql_db_v1.proto\x12\x10Yql.Analytics.V1\x1a\x31kikimr/public/api/protos/draft/yql_internal.proto2\xf6\x02\n\x16YqlInternalTaskService\x12H\n\x07GetTask\x12\x1d.Yql.Analytics.GetTaskRequest\x1a\x1e.Yql.Analytics.GetTaskResponse\x12K\n\x08PingTask\x12\x1e.Yql.Analytics.PingTaskRequest\x1a\x1f.Yql.Analytics.PingTaskResponse\x12`\n\x0fWriteTaskResult\x12%.Yql.Analytics.WriteTaskResultRequest\x1a&.Yql.Analytics.WriteTaskResultResponse\x12\x63\n\x10NodesHealthCheck\x12&.Yql.Analytics.NodesHealthCheckRequest\x1a\'.Yql.Analytics.NodesHealthCheckResponseB \n\x1e\x63om.yandex.yql.analytics.db.v1b\x06proto3'
+  serialized_pb=b'\n,kikimr/public/api/grpc/draft/yql_db_v1.proto\x12\rYq.Private.V1\x1a/kikimr/public/api/protos/draft/yq_private.proto2\xdc\x02\n\x14YqPrivateTaskService\x12\x42\n\x07GetTask\x12\x1a.Yq.Private.GetTaskRequest\x1a\x1b.Yq.Private.GetTaskResponse\x12\x45\n\x08PingTask\x12\x1b.Yq.Private.PingTaskRequest\x1a\x1c.Yq.Private.PingTaskResponse\x12Z\n\x0fWriteTaskResult\x12\".Yq.Private.WriteTaskResultRequest\x1a#.Yq.Private.WriteTaskResultResponse\x12]\n\x10NodesHealthCheck\x12#.Yq.Private.NodesHealthCheckRequest\x1a$.Yq.Private.NodesHealthCheckResponseb\x06proto3'
   ,
-  dependencies=[kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yql__internal__pb2.DESCRIPTOR,])
+  dependencies=[kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yq__private__pb2.DESCRIPTOR,])
 
 
 
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
 
-DESCRIPTOR._options = None
 
-_YQLINTERNALTASKSERVICE = _descriptor.ServiceDescriptor(
-  name='YqlInternalTaskService',
-  full_name='Yql.Analytics.V1.YqlInternalTaskService',
+_YQPRIVATETASKSERVICE = _descriptor.ServiceDescriptor(
+  name='YqPrivateTaskService',
+  full_name='Yq.Private.V1.YqPrivateTaskService',
   file=DESCRIPTOR,
   index=0,
   serialized_options=None,
   create_key=_descriptor._internal_create_key,
-  serialized_start=118,
-  serialized_end=492,
+  serialized_start=113,
+  serialized_end=461,
   methods=[
   _descriptor.MethodDescriptor(
     name='GetTask',
-    full_name='Yql.Analytics.V1.YqlInternalTaskService.GetTask',
+    full_name='Yq.Private.V1.YqPrivateTaskService.GetTask',
     index=0,
     containing_service=None,
-    input_type=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yql__internal__pb2._GETTASKREQUEST,
-    output_type=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yql__internal__pb2._GETTASKRESPONSE,
+    input_type=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yq__private__pb2._GETTASKREQUEST,
+    output_type=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yq__private__pb2._GETTASKRESPONSE,
     serialized_options=None,
     create_key=_descriptor._internal_create_key,
   ),
   _descriptor.MethodDescriptor(
     name='PingTask',
-    full_name='Yql.Analytics.V1.YqlInternalTaskService.PingTask',
+    full_name='Yq.Private.V1.YqPrivateTaskService.PingTask',
     index=1,
     containing_service=None,
-    input_type=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yql__internal__pb2._PINGTASKREQUEST,
-    output_type=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yql__internal__pb2._PINGTASKRESPONSE,
+    input_type=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yq__private__pb2._PINGTASKREQUEST,
+    output_type=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yq__private__pb2._PINGTASKRESPONSE,
     serialized_options=None,
     create_key=_descriptor._internal_create_key,
   ),
   _descriptor.MethodDescriptor(
     name='WriteTaskResult',
-    full_name='Yql.Analytics.V1.YqlInternalTaskService.WriteTaskResult',
+    full_name='Yq.Private.V1.YqPrivateTaskService.WriteTaskResult',
     index=2,
     containing_service=None,
-    input_type=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yql__internal__pb2._WRITETASKRESULTREQUEST,
-    output_type=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yql__internal__pb2._WRITETASKRESULTRESPONSE,
+    input_type=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yq__private__pb2._WRITETASKRESULTREQUEST,
+    output_type=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yq__private__pb2._WRITETASKRESULTRESPONSE,
     serialized_options=None,
     create_key=_descriptor._internal_create_key,
   ),
   _descriptor.MethodDescriptor(
     name='NodesHealthCheck',
-    full_name='Yql.Analytics.V1.YqlInternalTaskService.NodesHealthCheck',
+    full_name='Yq.Private.V1.YqPrivateTaskService.NodesHealthCheck',
     index=3,
     containing_service=None,
-    input_type=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yql__internal__pb2._NODESHEALTHCHECKREQUEST,
-    output_type=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yql__internal__pb2._NODESHEALTHCHECKRESPONSE,
+    input_type=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yq__private__pb2._NODESHEALTHCHECKREQUEST,
+    output_type=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yq__private__pb2._NODESHEALTHCHECKRESPONSE,
     serialized_options=None,
     create_key=_descriptor._internal_create_key,
   ),
 ])
-_sym_db.RegisterServiceDescriptor(_YQLINTERNALTASKSERVICE)
+_sym_db.RegisterServiceDescriptor(_YQPRIVATETASKSERVICE)
 
-DESCRIPTOR.services_by_name['YqlInternalTaskService'] = _YQLINTERNALTASKSERVICE
+DESCRIPTOR.services_by_name['YqPrivateTaskService'] = _YQPRIVATETASKSERVICE
 
 # @@protoc_insertion_point(module_scope)

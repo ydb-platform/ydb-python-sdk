@@ -11,7 +11,7 @@ from google.protobuf import symbol_database as _symbol_database
 _sym_db = _symbol_database.Default()
 
 
-from kikimr.public.api.protos.validation import validation_pb2 as kikimr_dot_public_dot_api_dot_protos_dot_validation_dot_validation__pb2
+from kikimr.public.api.protos.annotations import validation_pb2 as kikimr_dot_public_dot_api_dot_protos_dot_annotations_dot_validation__pb2
 from kikimr.public.api.protos import ydb_operation_pb2 as kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2
 from google.protobuf import timestamp_pb2 as google_dot_protobuf_dot_timestamp__pb2
 
@@ -22,9 +22,9 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   syntax='proto3',
   serialized_options=b'\n\026com.yandex.ydb.import_\370\001\001',
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n)kikimr/public/api/protos/ydb_import.proto\x12\nYdb.Import\x1a\x34kikimr/public/api/protos/validation/validation.proto\x1a,kikimr/public/api/protos/ydb_operation.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xcd\x01\n\x0eImportProgress\"\xba\x01\n\x08Progress\x12\x18\n\x14PROGRESS_UNSPECIFIED\x10\x00\x12\x16\n\x12PROGRESS_PREPARING\x10\x01\x12\x1a\n\x16PROGRESS_TRANSFER_DATA\x10\x02\x12\x1a\n\x16PROGRESS_BUILD_INDEXES\x10\x03\x12\x11\n\rPROGRESS_DONE\x10\x04\x12\x19\n\x15PROGRESS_CANCELLATION\x10\x05\x12\x16\n\x12PROGRESS_CANCELLED\x10\x06\"\xa0\x01\n\x12ImportItemProgress\x12\x13\n\x0bparts_total\x18\x01 \x01(\r\x12\x17\n\x0fparts_completed\x18\x02 \x01(\r\x12.\n\nstart_time\x18\x03 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12,\n\x08\x65nd_time\x18\x04 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\"\x9d\x03\n\x14ImportFromS3Settings\x12\x16\n\x08\x65ndpoint\x18\x01 \x01(\tB\x04\x90\xe6*\x01\x12\x37\n\x06scheme\x18\x02 \x01(\x0e\x32\'.Ydb.Import.ImportFromS3Settings.Scheme\x12\x14\n\x06\x62ucket\x18\x03 \x01(\tB\x04\x90\xe6*\x01\x12\x18\n\naccess_key\x18\x04 \x01(\tB\x04\x90\xe6*\x01\x12\x18\n\nsecret_key\x18\x05 \x01(\tB\x04\x90\xe6*\x01\x12<\n\x05items\x18\x06 \x03(\x0b\x32%.Ydb.Import.ImportFromS3Settings.ItemB\x06\x9a\xe6*\x02(\x01\x12\x1c\n\x0b\x64\x65scription\x18\x07 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x01\x12\x19\n\x11number_of_retries\x18\x08 \x01(\r\x1a\x43\n\x04Item\x12\x1b\n\rsource_prefix\x18\x01 \x01(\tB\x04\x90\xe6*\x01\x12\x1e\n\x10\x64\x65stination_path\x18\x02 \x01(\tB\x04\x90\xe6*\x01\".\n\x06Scheme\x12\x0f\n\x0bUNSPECIFIED\x10\x00\x12\x08\n\x04HTTP\x10\x01\x12\t\n\x05HTTPS\x10\x02\"\x14\n\x12ImportFromS3Result\"\xb9\x01\n\x14ImportFromS3Metadata\x12\x32\n\x08settings\x18\x01 \x01(\x0b\x32 .Ydb.Import.ImportFromS3Settings\x12\x35\n\x08progress\x18\x02 \x01(\x0e\x32#.Ydb.Import.ImportProgress.Progress\x12\x36\n\x0eitems_progress\x18\x03 \x03(\x0b\x32\x1e.Ydb.Import.ImportItemProgress\"\x8a\x01\n\x13ImportFromS3Request\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x38\n\x08settings\x18\x02 \x01(\x0b\x32 .Ydb.Import.ImportFromS3SettingsB\x04\x90\xe6*\x01\"D\n\x14ImportFromS3Response\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\" \n\rYdbDumpFormat\x12\x0f\n\x07\x63olumns\x18\x01 \x03(\t\"\x12\n\x10ImportDataResult\"\xae\x01\n\x11ImportDataRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x0c\n\x04path\x18\x02 \x01(\t\x12\x17\n\x04\x64\x61ta\x18\x03 \x01(\x0c\x42\t\xa2\xe6*\x05\x18\x80\x80\x80\x04\x12-\n\x08ydb_dump\x18\x04 \x01(\x0b\x32\x19.Ydb.Import.YdbDumpFormatH\x00\x42\x08\n\x06\x66ormat\"B\n\x12ImportDataResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.OperationB\x1b\n\x16\x63om.yandex.ydb.import_\xf8\x01\x01\x62\x06proto3'
+  serialized_pb=b'\n)kikimr/public/api/protos/ydb_import.proto\x12\nYdb.Import\x1a\x35kikimr/public/api/protos/annotations/validation.proto\x1a,kikimr/public/api/protos/ydb_operation.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xcd\x01\n\x0eImportProgress\"\xba\x01\n\x08Progress\x12\x18\n\x14PROGRESS_UNSPECIFIED\x10\x00\x12\x16\n\x12PROGRESS_PREPARING\x10\x01\x12\x1a\n\x16PROGRESS_TRANSFER_DATA\x10\x02\x12\x1a\n\x16PROGRESS_BUILD_INDEXES\x10\x03\x12\x11\n\rPROGRESS_DONE\x10\x04\x12\x19\n\x15PROGRESS_CANCELLATION\x10\x05\x12\x16\n\x12PROGRESS_CANCELLED\x10\x06\"\xa0\x01\n\x12ImportItemProgress\x12\x13\n\x0bparts_total\x18\x01 \x01(\r\x12\x17\n\x0fparts_completed\x18\x02 \x01(\r\x12.\n\nstart_time\x18\x03 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12,\n\x08\x65nd_time\x18\x04 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\"\x9d\x03\n\x14ImportFromS3Settings\x12\x16\n\x08\x65ndpoint\x18\x01 \x01(\tB\x04\x90\xe6*\x01\x12\x37\n\x06scheme\x18\x02 \x01(\x0e\x32\'.Ydb.Import.ImportFromS3Settings.Scheme\x12\x14\n\x06\x62ucket\x18\x03 \x01(\tB\x04\x90\xe6*\x01\x12\x18\n\naccess_key\x18\x04 \x01(\tB\x04\x90\xe6*\x01\x12\x18\n\nsecret_key\x18\x05 \x01(\tB\x04\x90\xe6*\x01\x12<\n\x05items\x18\x06 \x03(\x0b\x32%.Ydb.Import.ImportFromS3Settings.ItemB\x06\x9a\xe6*\x02(\x01\x12\x1c\n\x0b\x64\x65scription\x18\x07 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x01\x12\x19\n\x11number_of_retries\x18\x08 \x01(\r\x1a\x43\n\x04Item\x12\x1b\n\rsource_prefix\x18\x01 \x01(\tB\x04\x90\xe6*\x01\x12\x1e\n\x10\x64\x65stination_path\x18\x02 \x01(\tB\x04\x90\xe6*\x01\".\n\x06Scheme\x12\x0f\n\x0bUNSPECIFIED\x10\x00\x12\x08\n\x04HTTP\x10\x01\x12\t\n\x05HTTPS\x10\x02\"\x14\n\x12ImportFromS3Result\"\xb9\x01\n\x14ImportFromS3Metadata\x12\x32\n\x08settings\x18\x01 \x01(\x0b\x32 .Ydb.Import.ImportFromS3Settings\x12\x35\n\x08progress\x18\x02 \x01(\x0e\x32#.Ydb.Import.ImportProgress.Progress\x12\x36\n\x0eitems_progress\x18\x03 \x03(\x0b\x32\x1e.Ydb.Import.ImportItemProgress\"\x8a\x01\n\x13ImportFromS3Request\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x38\n\x08settings\x18\x02 \x01(\x0b\x32 .Ydb.Import.ImportFromS3SettingsB\x04\x90\xe6*\x01\"D\n\x14ImportFromS3Response\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\" \n\rYdbDumpFormat\x12\x0f\n\x07\x63olumns\x18\x01 \x03(\t\"\x12\n\x10ImportDataResult\"\xae\x01\n\x11ImportDataRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x0c\n\x04path\x18\x02 \x01(\t\x12\x17\n\x04\x64\x61ta\x18\x03 \x01(\x0c\x42\t\xa2\xe6*\x05\x18\x80\x80\x80\x04\x12-\n\x08ydb_dump\x18\x04 \x01(\x0b\x32\x19.Ydb.Import.YdbDumpFormatH\x00\x42\x08\n\x06\x66ormat\"B\n\x12ImportDataResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.OperationB\x1b\n\x16\x63om.yandex.ydb.import_\xf8\x01\x01\x62\x06proto3'
   ,
-  dependencies=[kikimr_dot_public_dot_api_dot_protos_dot_validation_dot_validation__pb2.DESCRIPTOR,kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2.DESCRIPTOR,google_dot_protobuf_dot_timestamp__pb2.DESCRIPTOR,])
+  dependencies=[kikimr_dot_public_dot_api_dot_protos_dot_annotations_dot_validation__pb2.DESCRIPTOR,kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2.DESCRIPTOR,google_dot_protobuf_dot_timestamp__pb2.DESCRIPTOR,])
 
 
 
@@ -73,8 +73,8 @@ _IMPORTPROGRESS_PROGRESS = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=210,
-  serialized_end=396,
+  serialized_start=211,
+  serialized_end=397,
 )
 _sym_db.RegisterEnumDescriptor(_IMPORTPROGRESS_PROGRESS)
 
@@ -103,8 +103,8 @@ _IMPORTFROMS3SETTINGS_SCHEME = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=929,
-  serialized_end=975,
+  serialized_start=930,
+  serialized_end=976,
 )
 _sym_db.RegisterEnumDescriptor(_IMPORTFROMS3SETTINGS_SCHEME)
 
@@ -130,8 +130,8 @@ _IMPORTPROGRESS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=191,
-  serialized_end=396,
+  serialized_start=192,
+  serialized_end=397,
 )
 
 
@@ -183,8 +183,8 @@ _IMPORTITEMPROGRESS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=399,
-  serialized_end=559,
+  serialized_start=400,
+  serialized_end=560,
 )
 
 
@@ -222,8 +222,8 @@ _IMPORTFROMS3SETTINGS_ITEM = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=860,
-  serialized_end=927,
+  serialized_start=861,
+  serialized_end=928,
 )
 
 _IMPORTFROMS3SETTINGS = _descriptor.Descriptor(
@@ -303,8 +303,8 @@ _IMPORTFROMS3SETTINGS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=562,
-  serialized_end=975,
+  serialized_start=563,
+  serialized_end=976,
 )
 
 
@@ -328,8 +328,8 @@ _IMPORTFROMS3RESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=977,
-  serialized_end=997,
+  serialized_start=978,
+  serialized_end=998,
 )
 
 
@@ -374,8 +374,8 @@ _IMPORTFROMS3METADATA = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1000,
-  serialized_end=1185,
+  serialized_start=1001,
+  serialized_end=1186,
 )
 
 
@@ -413,8 +413,8 @@ _IMPORTFROMS3REQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1188,
-  serialized_end=1326,
+  serialized_start=1189,
+  serialized_end=1327,
 )
 
 
@@ -445,8 +445,8 @@ _IMPORTFROMS3RESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1328,
-  serialized_end=1396,
+  serialized_start=1329,
+  serialized_end=1397,
 )
 
 
@@ -477,8 +477,8 @@ _YDBDUMPFORMAT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1398,
-  serialized_end=1430,
+  serialized_start=1399,
+  serialized_end=1431,
 )
 
 
@@ -502,8 +502,8 @@ _IMPORTDATARESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1432,
-  serialized_end=1450,
+  serialized_start=1433,
+  serialized_end=1451,
 )
 
 
@@ -560,8 +560,8 @@ _IMPORTDATAREQUEST = _descriptor.Descriptor(
       create_key=_descriptor._internal_create_key,
     fields=[]),
   ],
-  serialized_start=1453,
-  serialized_end=1627,
+  serialized_start=1454,
+  serialized_end=1628,
 )
 
 
@@ -592,8 +592,8 @@ _IMPORTDATARESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1629,
-  serialized_end=1695,
+  serialized_start=1630,
+  serialized_end=1696,
 )
 
 _IMPORTPROGRESS_PROGRESS.containing_type = _IMPORTPROGRESS

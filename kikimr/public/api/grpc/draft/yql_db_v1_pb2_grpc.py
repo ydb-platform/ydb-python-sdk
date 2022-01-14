@@ -2,10 +2,10 @@
 """Client and server classes corresponding to protobuf-defined services."""
 import grpc
 
-from kikimr.public.api.protos.draft import yql_internal_pb2 as kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yql__internal__pb2
+from kikimr.public.api.protos.draft import yq_private_pb2 as kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yq__private__pb2
 
 
-class YqlInternalTaskServiceStub(object):
+class YqPrivateTaskServiceStub(object):
     """Missing associated documentation comment in .proto file."""
 
     def __init__(self, channel):
@@ -15,28 +15,28 @@ class YqlInternalTaskServiceStub(object):
             channel: A grpc.Channel.
         """
         self.GetTask = channel.unary_unary(
-                '/Yql.Analytics.V1.YqlInternalTaskService/GetTask',
-                request_serializer=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yql__internal__pb2.GetTaskRequest.SerializeToString,
-                response_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yql__internal__pb2.GetTaskResponse.FromString,
+                '/Yq.Private.V1.YqPrivateTaskService/GetTask',
+                request_serializer=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yq__private__pb2.GetTaskRequest.SerializeToString,
+                response_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yq__private__pb2.GetTaskResponse.FromString,
                 )
         self.PingTask = channel.unary_unary(
-                '/Yql.Analytics.V1.YqlInternalTaskService/PingTask',
-                request_serializer=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yql__internal__pb2.PingTaskRequest.SerializeToString,
-                response_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yql__internal__pb2.PingTaskResponse.FromString,
+                '/Yq.Private.V1.YqPrivateTaskService/PingTask',
+                request_serializer=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yq__private__pb2.PingTaskRequest.SerializeToString,
+                response_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yq__private__pb2.PingTaskResponse.FromString,
                 )
         self.WriteTaskResult = channel.unary_unary(
-                '/Yql.Analytics.V1.YqlInternalTaskService/WriteTaskResult',
-                request_serializer=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yql__internal__pb2.WriteTaskResultRequest.SerializeToString,
-                response_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yql__internal__pb2.WriteTaskResultResponse.FromString,
+                '/Yq.Private.V1.YqPrivateTaskService/WriteTaskResult',
+                request_serializer=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yq__private__pb2.WriteTaskResultRequest.SerializeToString,
+                response_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yq__private__pb2.WriteTaskResultResponse.FromString,
                 )
         self.NodesHealthCheck = channel.unary_unary(
-                '/Yql.Analytics.V1.YqlInternalTaskService/NodesHealthCheck',
-                request_serializer=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yql__internal__pb2.NodesHealthCheckRequest.SerializeToString,
-                response_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yql__internal__pb2.NodesHealthCheckResponse.FromString,
+                '/Yq.Private.V1.YqPrivateTaskService/NodesHealthCheck',
+                request_serializer=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yq__private__pb2.NodesHealthCheckRequest.SerializeToString,
+                response_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yq__private__pb2.NodesHealthCheckResponse.FromString,
                 )
 
 
-class YqlInternalTaskServiceServicer(object):
+class YqPrivateTaskServiceServicer(object):
     """Missing associated documentation comment in .proto file."""
 
     def GetTask(self, request, context):
@@ -68,36 +68,36 @@ class YqlInternalTaskServiceServicer(object):
         raise NotImplementedError('Method not implemented!')
 
 
-def add_YqlInternalTaskServiceServicer_to_server(servicer, server):
+def add_YqPrivateTaskServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
             'GetTask': grpc.unary_unary_rpc_method_handler(
                     servicer.GetTask,
-                    request_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yql__internal__pb2.GetTaskRequest.FromString,
-                    response_serializer=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yql__internal__pb2.GetTaskResponse.SerializeToString,
+                    request_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yq__private__pb2.GetTaskRequest.FromString,
+                    response_serializer=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yq__private__pb2.GetTaskResponse.SerializeToString,
             ),
             'PingTask': grpc.unary_unary_rpc_method_handler(
                     servicer.PingTask,
-                    request_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yql__internal__pb2.PingTaskRequest.FromString,
-                    response_serializer=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yql__internal__pb2.PingTaskResponse.SerializeToString,
+                    request_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yq__private__pb2.PingTaskRequest.FromString,
+                    response_serializer=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yq__private__pb2.PingTaskResponse.SerializeToString,
             ),
             'WriteTaskResult': grpc.unary_unary_rpc_method_handler(
                     servicer.WriteTaskResult,
-                    request_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yql__internal__pb2.WriteTaskResultRequest.FromString,
-                    response_serializer=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yql__internal__pb2.WriteTaskResultResponse.SerializeToString,
+                    request_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yq__private__pb2.WriteTaskResultRequest.FromString,
+                    response_serializer=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yq__private__pb2.WriteTaskResultResponse.SerializeToString,
             ),
             'NodesHealthCheck': grpc.unary_unary_rpc_method_handler(
                     servicer.NodesHealthCheck,
-                    request_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yql__internal__pb2.NodesHealthCheckRequest.FromString,
-                    response_serializer=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yql__internal__pb2.NodesHealthCheckResponse.SerializeToString,
+                    request_deserializer=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yq__private__pb2.NodesHealthCheckRequest.FromString,
+                    response_serializer=kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yq__private__pb2.NodesHealthCheckResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
-            'Yql.Analytics.V1.YqlInternalTaskService', rpc_method_handlers)
+            'Yq.Private.V1.YqPrivateTaskService', rpc_method_handlers)
     server.add_generic_rpc_handlers((generic_handler,))
 
 
  # This class is part of an EXPERIMENTAL API.
-class YqlInternalTaskService(object):
+class YqPrivateTaskService(object):
     """Missing associated documentation comment in .proto file."""
 
     @staticmethod
@@ -111,9 +111,9 @@ class YqlInternalTaskService(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/Yql.Analytics.V1.YqlInternalTaskService/GetTask',
-            kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yql__internal__pb2.GetTaskRequest.SerializeToString,
-            kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yql__internal__pb2.GetTaskResponse.FromString,
+        return grpc.experimental.unary_unary(request, target, '/Yq.Private.V1.YqPrivateTaskService/GetTask',
+            kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yq__private__pb2.GetTaskRequest.SerializeToString,
+            kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yq__private__pb2.GetTaskResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
@@ -128,9 +128,9 @@ class YqlInternalTaskService(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/Yql.Analytics.V1.YqlInternalTaskService/PingTask',
-            kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yql__internal__pb2.PingTaskRequest.SerializeToString,
-            kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yql__internal__pb2.PingTaskResponse.FromString,
+        return grpc.experimental.unary_unary(request, target, '/Yq.Private.V1.YqPrivateTaskService/PingTask',
+            kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yq__private__pb2.PingTaskRequest.SerializeToString,
+            kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yq__private__pb2.PingTaskResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
@@ -145,9 +145,9 @@ class YqlInternalTaskService(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/Yql.Analytics.V1.YqlInternalTaskService/WriteTaskResult',
-            kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yql__internal__pb2.WriteTaskResultRequest.SerializeToString,
-            kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yql__internal__pb2.WriteTaskResultResponse.FromString,
+        return grpc.experimental.unary_unary(request, target, '/Yq.Private.V1.YqPrivateTaskService/WriteTaskResult',
+            kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yq__private__pb2.WriteTaskResultRequest.SerializeToString,
+            kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yq__private__pb2.WriteTaskResultResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
@@ -162,8 +162,8 @@ class YqlInternalTaskService(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/Yql.Analytics.V1.YqlInternalTaskService/NodesHealthCheck',
-            kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yql__internal__pb2.NodesHealthCheckRequest.SerializeToString,
-            kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yql__internal__pb2.NodesHealthCheckResponse.FromString,
+        return grpc.experimental.unary_unary(request, target, '/Yq.Private.V1.YqPrivateTaskService/NodesHealthCheck',
+            kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yq__private__pb2.NodesHealthCheckRequest.SerializeToString,
+            kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yq__private__pb2.NodesHealthCheckResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
