@@ -20,7 +20,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   syntax='proto3',
   serialized_options=b'\n\030com.yandex.ydb.discoveryB\017DiscoveryProtos\370\001\001',
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n,kikimr/public/api/protos/ydb_discovery.proto\x12\rYdb.Discovery\x1a,kikimr/public/api/protos/ydb_operation.proto\"9\n\x14ListEndpointsRequest\x12\x10\n\x08\x64\x61tabase\x18\x01 \x01(\t\x12\x0f\n\x07service\x18\x02 \x03(\t\"\x83\x01\n\x0c\x45ndpointInfo\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x01(\t\x12\x0c\n\x04port\x18\x02 \x01(\r\x12\x13\n\x0bload_factor\x18\x03 \x01(\x02\x12\x0b\n\x03ssl\x18\x04 \x01(\x08\x12\x0f\n\x07service\x18\x05 \x03(\t\x12\x10\n\x08location\x18\x06 \x01(\t\x12\x0f\n\x07node_id\x18\x07 \x01(\r\"\\\n\x13ListEndpointsResult\x12.\n\tendpoints\x18\x01 \x03(\x0b\x32\x1b.Ydb.Discovery.EndpointInfo\x12\x15\n\rself_location\x18\x02 \x01(\t\"E\n\x15ListEndpointsResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\'\n\rWhoAmIRequest\x12\x16\n\x0einclude_groups\x18\x01 \x01(\x08\",\n\x0cWhoAmIResult\x12\x0c\n\x04user\x18\x01 \x01(\t\x12\x0e\n\x06groups\x18\x02 \x03(\t\">\n\x0eWhoAmIResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.OperationB.\n\x18\x63om.yandex.ydb.discoveryB\x0f\x44iscoveryProtos\xf8\x01\x01\x62\x06proto3'
+  serialized_pb=b'\n,kikimr/public/api/protos/ydb_discovery.proto\x12\rYdb.Discovery\x1a,kikimr/public/api/protos/ydb_operation.proto\"9\n\x14ListEndpointsRequest\x12\x10\n\x08\x64\x61tabase\x18\x01 \x01(\t\x12\x0f\n\x07service\x18\x02 \x03(\t\"\xc3\x01\n\x0c\x45ndpointInfo\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x01(\t\x12\x0c\n\x04port\x18\x02 \x01(\r\x12\x13\n\x0bload_factor\x18\x03 \x01(\x02\x12\x0b\n\x03ssl\x18\x04 \x01(\x08\x12\x0f\n\x07service\x18\x05 \x03(\t\x12\x10\n\x08location\x18\x06 \x01(\t\x12\x0f\n\x07node_id\x18\x07 \x01(\r\x12\r\n\x05ip_v4\x18\x08 \x03(\t\x12\r\n\x05ip_v6\x18\t \x03(\t\x12 \n\x18ssl_target_name_override\x18\n \x01(\t\"\\\n\x13ListEndpointsResult\x12.\n\tendpoints\x18\x01 \x03(\x0b\x32\x1b.Ydb.Discovery.EndpointInfo\x12\x15\n\rself_location\x18\x02 \x01(\t\"E\n\x15ListEndpointsResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\'\n\rWhoAmIRequest\x12\x16\n\x0einclude_groups\x18\x01 \x01(\x08\",\n\x0cWhoAmIResult\x12\x0c\n\x04user\x18\x01 \x01(\t\x12\x0e\n\x06groups\x18\x02 \x03(\t\">\n\x0eWhoAmIResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.OperationB.\n\x18\x63om.yandex.ydb.discoveryB\x0f\x44iscoveryProtos\xf8\x01\x01\x62\x06proto3'
   ,
   dependencies=[kikimr_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2.DESCRIPTOR,])
 
@@ -123,6 +123,27 @@ _ENDPOINTINFO = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='ip_v4', full_name='Ydb.Discovery.EndpointInfo.ip_v4', index=7,
+      number=8, type=9, cpp_type=9, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='ip_v6', full_name='Ydb.Discovery.EndpointInfo.ip_v6', index=8,
+      number=9, type=9, cpp_type=9, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='ssl_target_name_override', full_name='Ydb.Discovery.EndpointInfo.ssl_target_name_override', index=9,
+      number=10, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
   ],
   extensions=[
   ],
@@ -136,7 +157,7 @@ _ENDPOINTINFO = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=169,
-  serialized_end=300,
+  serialized_end=364,
 )
 
 
@@ -174,8 +195,8 @@ _LISTENDPOINTSRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=302,
-  serialized_end=394,
+  serialized_start=366,
+  serialized_end=458,
 )
 
 
@@ -206,8 +227,8 @@ _LISTENDPOINTSRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=396,
-  serialized_end=465,
+  serialized_start=460,
+  serialized_end=529,
 )
 
 
@@ -238,8 +259,8 @@ _WHOAMIREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=467,
-  serialized_end=506,
+  serialized_start=531,
+  serialized_end=570,
 )
 
 
@@ -277,8 +298,8 @@ _WHOAMIRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=508,
-  serialized_end=552,
+  serialized_start=572,
+  serialized_end=616,
 )
 
 
@@ -309,8 +330,8 @@ _WHOAMIRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=554,
-  serialized_end=616,
+  serialized_start=618,
+  serialized_end=680,
 )
 
 _LISTENDPOINTSRESULT.fields_by_name['endpoints'].message_type = _ENDPOINTINFO
