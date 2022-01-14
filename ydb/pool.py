@@ -215,30 +215,40 @@ class Discovery(threading.Thread):
                 return False
 
             resolved_endpoints = set(
-                details.endpoint for details in resolve_details.endpoints
+                endpoint
+                for resolved_endpoint in resolve_details.endpoints
+                for endpoint, endpoint_options in resolved_endpoint.endpoints_with_options()
             )
             for cached_endpoint in self._cache.values():
                 if cached_endpoint.endpoint not in resolved_endpoints:
                     self._cache.make_outdated(cached_endpoint)
 
             for resolved_endpoint in resolve_details.endpoints:
-                if self._cache.size >= self._max_size or self._cache.already_exists(
-                    resolved_endpoint.endpoint
-                ):
-                    continue
-
                 if self._ssl_required and not resolved_endpoint.ssl:
                     continue
 
                 if not self._ssl_required and resolved_endpoint.ssl:
                     continue
 
-                endpoint = resolved_endpoint.endpoint
                 preferred = resolve_details.self_location == resolved_endpoint.location
-                ready_connection = connection_impl.Connection.ready_factory(
-                    endpoint, self._driver_config, self._ready_timeout
-                )
-                self._cache.add(ready_connection, preferred)
+
+                for (
+                    endpoint,
+                    endpoint_options,
+                ) in resolved_endpoint.endpoints_with_options():
+                    if (
+                        self._cache.size >= self._max_size
+                        or self._cache.already_exists(endpoint)
+                    ):
+                        continue
+
+                    ready_connection = connection_impl.Connection.ready_factory(
+                        endpoint,
+                        self._driver_config,
+                        self._ready_timeout,
+                        endpoint_options=endpoint_options,
+                    )
+                    self._cache.add(ready_connection, preferred)
 
         self._cache.cleanup_outdated()
 
