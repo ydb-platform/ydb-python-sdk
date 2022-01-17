@@ -2,7 +2,7 @@
 """Client and server classes corresponding to protobuf-defined services."""
 import grpc
 
-from kikimr.public.api.grpc.draft import dummy_pb2 as kikimr_dot_public_dot_api_dot_grpc_dot_draft_dot_dummy__pb2
+from ydb.public.api.grpc.draft import dummy_pb2 as kikimr_dot_public_dot_api_dot_grpc_dot_draft_dot_dummy__pb2
 
 
 class DummyServiceStub(object):

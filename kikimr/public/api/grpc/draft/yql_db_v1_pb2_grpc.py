@@ -2,7 +2,7 @@
 """Client and server classes corresponding to protobuf-defined services."""
 import grpc
 
-from kikimr.public.api.protos.draft import yq_private_pb2 as kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yq__private__pb2
+from ydb.public.api.protos.draft import yq_private_pb2 as kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_yq__private__pb2
 
 
 class YqPrivateTaskServiceStub(object):

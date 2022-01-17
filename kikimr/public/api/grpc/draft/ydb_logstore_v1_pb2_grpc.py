@@ -2,7 +2,7 @@
 """Client and server classes corresponding to protobuf-defined services."""
 import grpc
 
-from kikimr.public.api.protos.draft import ydb_logstore_pb2 as kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_ydb__logstore__pb2
+from ydb.public.api.protos.draft import ydb_logstore_pb2 as kikimr_dot_public_dot_api_dot_protos_dot_draft_dot_ydb__logstore__pb2
 
 
 class LogStoreServiceStub(object):
