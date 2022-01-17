@@ -1,5 +1,5 @@
-#include <kikimr/public/api/protos/ydb_cms.pb.h>
-#include <kikimr/public/api/protos/ydb_status_codes.pb.h>
+#include <ydb/public/api/protos/ydb_cms.pb.h>
+#include <ydb/public/api/protos/ydb_status_codes.pb.h>
 
 #include <util/stream/output.h>
 

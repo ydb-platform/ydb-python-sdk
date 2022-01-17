@@ -2,7 +2,7 @@
 """Client and server classes corresponding to protobuf-defined services."""
 import grpc
 
-from kikimr.public.api.protos import ydb_s3_internal_pb2 as kikimr_dot_public_dot_api_dot_protos_dot_ydb__s3__internal__pb2
+from ydb.public.api.protos import ydb_s3_internal_pb2 as kikimr_dot_public_dot_api_dot_protos_dot_ydb__s3__internal__pb2
 
 
 class S3InternalServiceStub(object):

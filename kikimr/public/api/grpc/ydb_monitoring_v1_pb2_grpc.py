@@ -2,7 +2,7 @@
 """Client and server classes corresponding to protobuf-defined services."""
 import grpc
 
-from kikimr.public.api.protos import ydb_monitoring_pb2 as kikimr_dot_public_dot_api_dot_protos_dot_ydb__monitoring__pb2
+from ydb.public.api.protos import ydb_monitoring_pb2 as kikimr_dot_public_dot_api_dot_protos_dot_ydb__monitoring__pb2
 
 
 class MonitoringServiceStub(object):
