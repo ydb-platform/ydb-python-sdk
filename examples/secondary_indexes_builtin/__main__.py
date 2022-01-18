@@ -4,8 +4,8 @@ import secondary_indexes_builtin
 import logging
 
 INTERESTING_TARGETS = [
-    "kikimr.public.sdk.python.client.resolver.DiscoveryEndpointsResolver",
-    "kikimr.public.sdk.python.client.connection",
+    "ydb.resolver.DiscoveryEndpointsResolver",
+    "ydb.connection",
 ]
 
 if __name__ == "__main__":

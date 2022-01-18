@@ -19,7 +19,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     if args.verbose:
-        logger = logging.getLogger("kikimr.public.sdk.python.client.pool.Discovery")
+        logger = logging.getLogger("ydb.pool.Discovery")
         logger.setLevel(logging.INFO)
         logger.addHandler(logging.StreamHandler())
 
