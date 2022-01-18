@@ -1,8 +1,12 @@
 # -*- coding: utf-8 -*-
-import tornado.concurrent
-import tornado.ioloop
-import tornado.gen
-from tornado.concurrent import TracebackFuture
+try:
+    import tornado.concurrent
+    import tornado.ioloop
+    import tornado.gen
+    from tornado.concurrent import TracebackFuture
+except ImportError:
+    tornado = None
+
 from ydb.table import retry_operation_impl, YdbRetryOperationSleepOpt
 
 
