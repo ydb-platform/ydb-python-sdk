@@ -5,12 +5,12 @@ Work in progress, breaking changes are possible.
 
 from __future__ import absolute_import, unicode_literals
 
-import ydb
-from ydb.dbapi.errors import NotSupportedError
-from ydb.sqlalchemy.types import UInt32, UInt64
-
 
 try:
+    import ydb
+    from ydb.dbapi.errors import NotSupportedError
+    from ydb.sqlalchemy.types import UInt32, UInt64
+
     from sqlalchemy.engine.default import DefaultDialect
     from sqlalchemy.sql.compiler import (
         IdentifierPreparer,
