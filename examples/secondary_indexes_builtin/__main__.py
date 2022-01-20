@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import argparse
-import secondary_indexes_builtin
+from . import secondary_indexes_builtin
 import logging
 
 INTERESTING_TARGETS = [

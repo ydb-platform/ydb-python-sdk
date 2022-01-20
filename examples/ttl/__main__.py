@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import argparse
 
-import ttl
+from . import ttl
 
 
 if __name__ == "__main__":
