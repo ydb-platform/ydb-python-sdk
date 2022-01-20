@@ -4,7 +4,7 @@ import os
 
 import ydb
 from concurrent.futures import TimeoutError
-import sample_data
+from . import sample_data
 
 
 class SchoolsPaginated(object):

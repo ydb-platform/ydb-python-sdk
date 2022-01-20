@@ -234,7 +234,7 @@ def select_by_username(session_pool, path, username):
             parameters={"$userName": username},
         )
 
-        series_rows = map(lambda x: Series(**x), result_sets[0].rows)
+        series_rows = list(map(lambda x: Series(**x), result_sets[0].rows))
         print("Series by %s" % username)
         for series in series_rows:
             print("Series %s" % str(series))

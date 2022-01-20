@@ -2,7 +2,7 @@
 import argparse
 import os
 
-import pagination
+from . import pagination
 
 
 if __name__ == "__main__":
