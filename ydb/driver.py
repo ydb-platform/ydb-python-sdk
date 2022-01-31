@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import ydb
 
-from . import credentials as credentials_impl, table, scheme, pool, auth_helpers
+from . import credentials as credentials_impl, table, scheme, pool
 import six
 import os
 
@@ -50,9 +50,9 @@ def default_credentials(credentials=None, tracer=None):
         service_account_key_file = os.getenv("YDB_SERVICE_ACCOUNT_KEY_FILE_CREDENTIALS")
         if service_account_key_file is not None:
             ctx.trace({"credentials.service_account_key_file": True})
-            from kikimr.public.sdk.python import iam
+            import ydb.iam
 
-            return iam.ServiceAccountCredentials.from_file(service_account_key_file)
+            return ydb.iam.ServiceAccountCredentials.from_file(service_account_key_file)
 
         anonymous_credetials = os.getenv("YDB_ANONYMOUS_CREDENTIALS", "0") == "1"
         if anonymous_credetials:
@@ -62,24 +62,18 @@ def default_credentials(credentials=None, tracer=None):
         metadata_credentials = os.getenv("YDB_METADATA_CREDENTIALS", "0") == "1"
         if metadata_credentials:
             ctx.trace({"credentials.metadata": True})
-            from kikimr.public.sdk.python import iam
+            import ydb.iam
 
-            return iam.MetadataUrlCredentials(tracer=tracer)
+            return ydb.iam.MetadataUrlCredentials(tracer=tracer)
 
         access_token = os.getenv("YDB_ACCESS_TOKEN_CREDENTIALS")
         if access_token is not None:
             ctx.trace({"credentials.access_token": True})
             return credentials_impl.AuthTokenCredentials(access_token)
 
-        # (legacy instantiation)
-        creds = auth_helpers.construct_credentials_from_environ()
-        if creds is not None:
-            ctx.trace({"credentials.legacy_instantiation": True})
-            return creds
+        import ydb.iam
 
-        from kikimr.public.sdk.python import iam
-
-        return iam.MetadataUrlCredentials(tracer=tracer)
+        return ydb.iam.MetadataUrlCredentials(tracer=tracer)
 
 
 class DriverConfig(object):

@@ -1,3 +1,9 @@
+## 1.1.16 ##
+
+* alias `kikimr.public.sdk.python.client` is deprecated. use `import ydb` instead.
+* alias `kikimr.public.api` is deprecated, use `ydb.public.api` instead.
+* method `construct_credentials_from_environ` is now deprecated and will be removed in the future.
+
 ## 1.1.15 ##
 
 * override the default load balancing policy for discovery endpoint to the `round_robin` policy.
