@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
-import ydb
-
 from . import credentials as credentials_impl, table, scheme, pool
+from . import tracing
 import six
 import os
 
@@ -41,7 +40,7 @@ def parse_connection_string(connection_string):
 
 
 def default_credentials(credentials=None, tracer=None):
-    tracer = tracer if tracer is not None else ydb.Tracer(None)
+    tracer = tracer if tracer is not None else tracing.Tracer(None)
     with tracer.trace("Driver.default_credentials") as ctx:
         if credentials is not None:
             ctx.trace({"credentials.prepared": True})
@@ -158,7 +157,7 @@ class DriverConfig(object):
         self.grpc_keep_alive_timeout = grpc_keep_alive_timeout
         self.table_client_settings = table_client_settings
         self.primary_user_agent = primary_user_agent
-        self.tracer = tracer if tracer is not None else ydb.Tracer(None)
+        self.tracer = tracer if tracer is not None else tracing.Tracer(None)
         self.grpc_lb_policy_name = grpc_lb_policy_name
         self.discovery_request_timeout = discovery_request_timeout
 
