@@ -116,7 +116,6 @@ class DriverConfig(object):
         grpc_lb_policy_name="round_robin",
         discovery_request_timeout=10,
     ):
-        # type:(str, str, str, str, Any, ydb.Credentials, bool, bytes, bytes, bytes, float, ydb.TableClientSettings, list, str, ydb.Tracer) -> None
         """
         A driver config to initialize a driver instance
 
@@ -234,8 +233,6 @@ class Driver(pool.ConnectionPool):
         credentials=None,
         **kwargs
     ):
-        # type:(DriverConfig, str, str, str, bytes, ydb.AbstractCredentials, **Any) -> None
-
         """
         Constructs a driver instance to be used in table and scheme clients.
         It encapsulates endpoints discovery mechanism and provides ability to execute RPCs
