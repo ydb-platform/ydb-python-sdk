@@ -1,6 +1,7 @@
 ## 2.2.0 ##
 
 * allow to refer endpoints by node id
+* support null type in queries
 
 ## 2.1.0 ##
 
