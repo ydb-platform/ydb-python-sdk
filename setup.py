@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 import setuptools
 
+with open("README.md", "r") as r:
+    long_description = r.read()
 
 setuptools.setup(
     name="ydb",
@@ -11,6 +13,8 @@ setuptools.setup(
     url="http://github.com/ydb-platform/ydb-python-sdk",
     license="Apache 2.0",
     package_dir={"": "."},
+    long_description=long_description,
+    long_description_content_type='text/markdown',
     packages=setuptools.find_packages("."),
     classifiers=[
         "Programming Language :: Python",
