@@ -29,4 +29,7 @@ setuptools.setup(
         "enum-compat>=0.0.1",
     ),
     options={"bdist_wheel": {"universal": True}},
+    extras_require={
+        "yc": ["yandexcloud", ],
+    }
 )
