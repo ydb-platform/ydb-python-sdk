@@ -1,3 +1,8 @@
+## 2.6.0 ##
+
+* support `with_native_interval_in_result_sets` flag in the table client.
+* support `with_native_timestamp_in_result_sets` flag in the table client.
+
 ## 2.4.0 ##
 
 * support query stats in scan query
