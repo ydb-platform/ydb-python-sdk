@@ -1,4 +1,4 @@
-name: Python package
+name: Style checks
 
 on:
   push:
@@ -11,7 +11,7 @@ jobs:
       max-parallel: 4
       matrix:
         python-version: [3.8]
-        environment: [style, black, py38, py38-tls]
+        environment: [style, black]
 
     steps:
     - uses: actions/checkout@v1
