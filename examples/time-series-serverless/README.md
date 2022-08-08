@@ -28,6 +28,11 @@ CREATE TABLE `tsdemo/data1` (
 To create service account you need to go to cloud console to **Service accounts** in left pane and create account with **editor** and **viewer** roles.
 Remember account id, it will be used later to allow access to serverless database.
 
+To grab the list of service accounts in the command line, the following can be used:
+```shell
+yc iam service-account list
+```
+
 # Create cloud function
 Create cloud function from source code. You should archive source code directory to zip file and upload it into **Cloud functions** section. 
 Please do not forget to add requirements.txt to this archive.

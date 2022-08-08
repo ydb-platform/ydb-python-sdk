@@ -1,5 +1,7 @@
 yc serverless function create --name=time-series
 
+yc iam service-account list
+
 yc sls fn version create --service-account-id=ajes0cnn9dkefgjk2eer \
   --function-name=time-series --runtime python39 --entrypoint time_series.handler \
   --memory 128m --execution-timeout 60s --source-path time-series-serverless.zip \
