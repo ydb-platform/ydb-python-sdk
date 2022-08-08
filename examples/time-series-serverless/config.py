@@ -5,7 +5,7 @@ class Config(object):
     def __init__(self):
         self._endpoint = os.getenv("YDB_ENDPOINT")
         self._database = os.getenv("YDB_DATABASE")
-        self._path = os.getenv("YDB_PATH")
+        self._path = os.getenv("YDB_TABLE")
 
     @property
     def endpoint(self):
