@@ -44,7 +44,10 @@ yc serverless function create --name=time-series
 
 Next you should upload code and create new version of function via following command:
 ```shell
-yc sls fn version create --service-account-id=<service-account-id> --function-name=time-series --runtime python37 --entrypoint time_series.handler --memory 128m --execution-timeout 60s --source-path <path-to-archived-sources> --environment YDB_ENDPOINT=<db-endpoint>,YDB_DATABASE=<db-database>,YDB_TABLE=<db-table>,USE_METADATA_CREDENTIALS=1
+yc sls fn version create --service-account-id=<service-account-id> \
+  --function-name=time-series --runtime python37 --entrypoint time_series.handler \
+  --memory 128m --execution-timeout 60s --source-path <path-to-archived-sources> \
+  --environment YDB_ENDPOINT=<db-endpoint>,YDB_DATABASE=<db-database>,YDB_TABLE=<db-table>,USE_METADATA_CREDENTIALS=1
 ```
 
 The environment variables passed to function 
