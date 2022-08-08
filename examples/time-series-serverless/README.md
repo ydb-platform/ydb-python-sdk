@@ -13,7 +13,16 @@ You should select next values for this example.
 | timestamp   | Timestamp | Primary |
 | value       | Double    |         |
 
-Remember YDB endpoint, database and table name
+Remember YDB endpoint, database and table name.
+
+Or use the following YQL query to create the table:
+```SQL
+CREATE TABLE `tsdemo/data1` (
+   `timestamp` Timestamp,
+   `value` Double,
+   PRIMARY KEY(`timestamp`)
+);
+```
 
 ## Create Service account
 To create service account you need to go to cloud console to **Service accounts** in left pane and create account with **editor** and **viewer** roles.
