@@ -1,4 +1,5 @@
 import pytest
+import ydb.aio.iam
 
 
 @pytest.mark.asyncio
@@ -36,3 +37,15 @@ async def test_tx_begin(driver, database):
     await tx.begin()
     await tx.begin()
     await tx.rollback()
+
+
+@pytest.mark.asyncio
+async def test_credentials():
+    credentials = ydb.aio.iam.MetadataUrlCredentials()
+    raised = False
+    try:
+        await credentials.auth_metadata()
+    except Exception:
+        raised = True
+
+    assert raised
