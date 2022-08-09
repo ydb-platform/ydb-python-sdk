@@ -13,11 +13,25 @@ You should select next values for this example.
 | timestamp   | Timestamp | Primary |
 | value       | Double    |         |
 
-Remember YDB endpoint, database and table name
+Remember YDB endpoint, database and table name.
+
+Or use the following YQL query to create the table:
+```SQL
+CREATE TABLE `tsdemo/data1` (
+   `timestamp` Timestamp,
+   `value` Double,
+   PRIMARY KEY(`timestamp`)
+);
+```
 
 ## Create Service account
 To create service account you need to go to cloud console to **Service accounts** in left pane and create account with **editor** and **viewer** roles.
 Remember account id, it will be used later to allow access to serverless database.
+
+To grab the list of service accounts in the command line, the following can be used:
+```shell
+yc iam service-account list
+```
 
 # Create cloud function
 Create cloud function from source code. You should archive source code directory to zip file and upload it into **Cloud functions** section. 
@@ -35,7 +49,10 @@ yc serverless function create --name=time-series
 
 Next you should upload code and create new version of function via following command:
 ```shell
-yc sls fn version create --service-account-id=<service-account-id> --function-name=time-series --runtime python37 --entrypoint time_series.handler --memory 128m --execution-timeout 60s --source-path <path-to-archived-sources> --environment YDB_ENDPOINT=<db-endpoint>,YDB_DATABASE=<db-database>,YDB_TABLE=<db-table>,USE_METADATA_CREDENTIALS=1
+yc sls fn version create --service-account-id=<service-account-id> \
+  --function-name=time-series --runtime python39 --entrypoint time_series.handler \
+  --memory 128m --execution-timeout 60s --source-path <path-to-archived-sources> \
+  --environment YDB_ENDPOINT=<db-endpoint>,YDB_DATABASE=<db-database>,YDB_TABLE=<db-table>,USE_METADATA_CREDENTIALS=1
 ```
 
 The environment variables passed to function 
