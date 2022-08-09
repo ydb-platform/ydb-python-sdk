@@ -1,3 +1,7 @@
+## 2.7.0 ##
+
+* fixes in TxContext in ydb.aio module.
+
 ## 2.6.0 ##
 
 * support `with_native_interval_in_result_sets` flag in the table client.
