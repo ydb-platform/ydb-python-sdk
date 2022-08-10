@@ -998,6 +998,7 @@ class TableClientSettings(object):
         self._make_result_sets_lazy = False
         self._native_json_in_result_sets = False
         self._native_interval_in_result_sets = False
+        self._native_timestamp_in_result_sets = False
 
     def with_native_timestamp_in_result_sets(self, enabled):
         # type:(bool) -> ydb.TableClientSettings
