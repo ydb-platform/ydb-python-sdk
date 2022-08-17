@@ -4,6 +4,17 @@ import os
 import ydb
 import basic_example_data
 
+# Table path prefix allows to put the working tables into the specific directory
+# inside the YDB database. Putting `PRAGMA TablePathPrefix("some/path")`
+# at the beginning of the query allows to reference the tables through
+# their names "under" the specified directory.
+#
+# TablePathPrefix can be defined as an absolute path (starting with slash),
+# or as a relative path. Absolute path has to be started with the current
+# database location.
+#
+# https://ydb.tech/ru/docs/yql/reference/syntax/pragma#table-path-prefix
+
 FillDataQuery = """PRAGMA TablePathPrefix("{}");
 
 DECLARE $seriesData AS List<Struct<
@@ -310,6 +321,8 @@ def run(endpoint, database, path):
 
             ensure_path_exists(driver, database, path)
 
+            # absolute path - prefix to the table's names,
+            # including the database location
             full_path = os.path.join(database, path)
 
             create_tables(pool, full_path)
