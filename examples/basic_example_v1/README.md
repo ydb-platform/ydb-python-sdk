@@ -2,9 +2,11 @@ Running this sample with the managed YDB instance in Yandex Cloud
 ---
 
 (0) Install the yc command line tool
+
 https://cloud.yandex.ru/docs/cli/operations/install-cli
 
 (1) Create the service account using the YC Web Console, and assign it the ydb.editor role.
+
 Alternatively use the following shell snippet:
 
 ```bash
@@ -20,6 +22,7 @@ yc resource-manager folder add-access-binding $YC_FOLDER --role ydb.editor --sub
 ```
 
 (2) Generate the service account key to be used for authentication.
+
 Note: unfortunately, right now YC Web Console does not offer a way to generate the SA key
 with its Web interface.
 
@@ -28,6 +31,7 @@ yc iam key create --service-account-name $SA_NAME --output $HOME/key-ydb-sa-0.js
 ```
 
 (3) Obtain the endpoint and database path from the Web Console.
+
 Alternatively, use the following command to grab the required data in the shell:
 
 ```bash
