@@ -1,11 +1,16 @@
 Running this sample with the managed YDB instance in Yandex Cloud
 ---
 
-(0) Install the yc command line tool
+(0) Install the required Python dependencies
+
+python3 -m pip install iso8601
+python3 -m pip install 'ydb[yc]'
+
+(1) Install the yc command line tool
 
 https://cloud.yandex.ru/docs/cli/operations/install-cli
 
-(1) Create the service account using the YC Web Console, and assign it the ydb.editor role.
+(2) Create the service account using the YC Web Console, and assign it the ydb.editor role.
 
 Alternatively use the following shell snippet:
 
@@ -21,7 +26,7 @@ export SA_ID=`yc iam service-account get --name $SA_NAME | sed -n 's/^id: \(.*\)
 yc resource-manager folder add-access-binding $YC_FOLDER --role ydb.editor --subject serviceAccount:$SA_ID 
 ```
 
-(2) Generate the service account key to be used for authentication.
+(3) Generate the service account key to be used for authentication.
 
 Note: unfortunately, right now YC Web Console does not offer a way to generate the SA key
 with its Web interface.
@@ -30,7 +35,7 @@ with its Web interface.
 yc iam key create --service-account-name $SA_NAME --output $HOME/key-ydb-sa-0.json
 ```
 
-(3) Obtain the endpoint and database path from the Web Console.
+(4) Obtain the endpoint and database path from the Web Console.
 
 Alternatively, use the following command to grab the required data in the shell:
 
@@ -40,7 +45,7 @@ yc ydb db get --name ydb1
 
 `ydb1` value in the command above is the logical name of the YDB managed database.
 
-(4) Run the sample:
+(5) Run the sample:
 
 ```bash
 # Set the path to the service account key file
