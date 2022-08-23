@@ -1,3 +1,7 @@
+## 2.9.0 ##
+
+* fixed minor issue in SDK imports for Python 2.
+
 ## 2.7.0 ##
 
 * fixes in TxContext in ydb.aio module.
