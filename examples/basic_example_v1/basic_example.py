@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-import os
-
+import posixpath
 import ydb
 import basic_example_data
 
@@ -269,7 +268,7 @@ def create_tables(pool, path):
 
 def describe_table(pool, path, name):
     def callee(session):
-        result = session.describe_table(os.path.join(path, name))
+        result = session.describe_table(posixpath.join(path, name))
         print("\n> describe table: series")
         for column in result.columns:
             print("column, name:", column.name, ",", str(column.type.item).strip())
@@ -288,7 +287,7 @@ def bulk_upsert(table_client, path):
         .add_column("air_date", ydb.OptionalType(ydb.PrimitiveType.Uint64))
     )
     rows = basic_example_data.get_episodes_data_for_bulk_upsert()
-    table_client.bulk_upsert(os.path.join(path, "episodes"), rows, column_types)
+    table_client.bulk_upsert(posixpath.join(path, "episodes"), rows, column_types)
 
 
 def is_directory_exists(driver, path):
@@ -302,11 +301,11 @@ def ensure_path_exists(driver, database, path):
     paths_to_create = list()
     path = path.rstrip("/")
     while path not in ("", database):
-        full_path = os.path.join(database, path)
+        full_path = posixpath.join(database, path)
         if is_directory_exists(driver, full_path):
             break
         paths_to_create.append(full_path)
-        path = os.path.dirname(path).rstrip("/")
+        path = posixpath.dirname(path).rstrip("/")
 
     while len(paths_to_create) > 0:
         full_path = paths_to_create.pop(-1)
@@ -323,7 +322,7 @@ def run(endpoint, database, path):
 
             # absolute path - prefix to the table's names,
             # including the database location
-            full_path = os.path.join(database, path)
+            full_path = posixpath.join(database, path)
 
             create_tables(pool, full_path)
 

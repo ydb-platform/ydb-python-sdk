@@ -26,8 +26,10 @@ def main():
         # specify YDB_DATABASE environment variable.
         database=os.getenv("YDB_DATABASE"),
         # construct the service account credentials instance
+        #   service account key should be in the local file,
+        #   and SA_KEY_FILE environment variable should point to it
         credentials=ydb.iam.ServiceAccountCredentials.from_file(
-            "~/.ydb/sa.json",
+            os.getenv("SA_KEY_FILE"),
         ),
     )
 
