@@ -8,9 +8,8 @@ import basic_example_data
 # at the beginning of the query allows to reference the tables through
 # their names "under" the specified directory.
 #
-# TablePathPrefix can be defined as an absolute path (starting with slash),
-# or as a relative path. Absolute path has to be started with the current
-# database location.
+# TablePathPrefix has to be defined as an absolute path, which has to be started
+# with the current database location.
 #
 # https://ydb.tech/ru/docs/yql/reference/syntax/pragma#table-path-prefix
 
