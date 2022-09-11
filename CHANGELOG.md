@@ -1,3 +1,7 @@
+## 2.10.0 ##
+
+* fixed double quoting issue in sqlalchemy
+
 ## 2.9.0 ##
 
 * fixed minor issue in SDK imports for Python 2.

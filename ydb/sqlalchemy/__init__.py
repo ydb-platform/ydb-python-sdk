@@ -36,9 +36,12 @@ try:
                 final_quote="`",
             )
 
-        def _requires_quotes(self, *args, **kwargs):
+        def _requires_quotes(self, value):
             # Force all identifiers to get quoted unless already quoted.
-            return not (value.startswith(self.initial_quote) and value.endswith(self.final_quote))
+            return not (
+                value.startswith(self.initial_quote)
+                and value.endswith(self.final_quote)
+            )
 
     class YqlTypeCompiler(GenericTypeCompiler):
         def visit_VARCHAR(self, type_, **kw):
