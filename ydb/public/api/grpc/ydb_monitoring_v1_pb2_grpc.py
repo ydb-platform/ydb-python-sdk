@@ -2,7 +2,7 @@
 """Client and server classes corresponding to protobuf-defined services."""
 import grpc
 
-from ydb.public.api.protos import ydb_monitoring_pb2 as ydb_dot_public_dot_api_dot_protos_dot_ydb__monitoring__pb2
+from protos import ydb_monitoring_pb2 as protos_dot_ydb__monitoring__pb2
 
 
 class MonitoringServiceStub(object):
@@ -16,8 +16,13 @@ class MonitoringServiceStub(object):
         """
         self.SelfCheck = channel.unary_unary(
                 '/Ydb.Monitoring.V1.MonitoringService/SelfCheck',
-                request_serializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__monitoring__pb2.SelfCheckRequest.SerializeToString,
-                response_deserializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__monitoring__pb2.SelfCheckResponse.FromString,
+                request_serializer=protos_dot_ydb__monitoring__pb2.SelfCheckRequest.SerializeToString,
+                response_deserializer=protos_dot_ydb__monitoring__pb2.SelfCheckResponse.FromString,
+                )
+        self.NodeCheck = channel.unary_unary(
+                '/Ydb.Monitoring.V1.MonitoringService/NodeCheck',
+                request_serializer=protos_dot_ydb__monitoring__pb2.NodeCheckRequest.SerializeToString,
+                response_deserializer=protos_dot_ydb__monitoring__pb2.NodeCheckResponse.FromString,
                 )
 
 
@@ -31,13 +36,25 @@ class MonitoringServiceServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def NodeCheck(self, request, context):
+        """Checks current node health
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
 
 def add_MonitoringServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
             'SelfCheck': grpc.unary_unary_rpc_method_handler(
                     servicer.SelfCheck,
-                    request_deserializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__monitoring__pb2.SelfCheckRequest.FromString,
-                    response_serializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__monitoring__pb2.SelfCheckResponse.SerializeToString,
+                    request_deserializer=protos_dot_ydb__monitoring__pb2.SelfCheckRequest.FromString,
+                    response_serializer=protos_dot_ydb__monitoring__pb2.SelfCheckResponse.SerializeToString,
+            ),
+            'NodeCheck': grpc.unary_unary_rpc_method_handler(
+                    servicer.NodeCheck,
+                    request_deserializer=protos_dot_ydb__monitoring__pb2.NodeCheckRequest.FromString,
+                    response_serializer=protos_dot_ydb__monitoring__pb2.NodeCheckResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -61,7 +78,24 @@ class MonitoringService(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/Ydb.Monitoring.V1.MonitoringService/SelfCheck',
-            ydb_dot_public_dot_api_dot_protos_dot_ydb__monitoring__pb2.SelfCheckRequest.SerializeToString,
-            ydb_dot_public_dot_api_dot_protos_dot_ydb__monitoring__pb2.SelfCheckResponse.FromString,
+            protos_dot_ydb__monitoring__pb2.SelfCheckRequest.SerializeToString,
+            protos_dot_ydb__monitoring__pb2.SelfCheckResponse.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def NodeCheck(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/Ydb.Monitoring.V1.MonitoringService/NodeCheck',
+            protos_dot_ydb__monitoring__pb2.NodeCheckRequest.SerializeToString,
+            protos_dot_ydb__monitoring__pb2.NodeCheckResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)

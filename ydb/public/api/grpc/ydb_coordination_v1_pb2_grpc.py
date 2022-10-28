@@ -2,7 +2,7 @@
 """Client and server classes corresponding to protobuf-defined services."""
 import grpc
 
-from ydb.public.api.protos import ydb_coordination_pb2 as ydb_dot_public_dot_api_dot_protos_dot_ydb__coordination__pb2
+from protos import ydb_coordination_pb2 as protos_dot_ydb__coordination__pb2
 
 
 class CoordinationServiceStub(object):
@@ -16,28 +16,28 @@ class CoordinationServiceStub(object):
         """
         self.Session = channel.stream_stream(
                 '/Ydb.Coordination.V1.CoordinationService/Session',
-                request_serializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__coordination__pb2.SessionRequest.SerializeToString,
-                response_deserializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__coordination__pb2.SessionResponse.FromString,
+                request_serializer=protos_dot_ydb__coordination__pb2.SessionRequest.SerializeToString,
+                response_deserializer=protos_dot_ydb__coordination__pb2.SessionResponse.FromString,
                 )
         self.CreateNode = channel.unary_unary(
                 '/Ydb.Coordination.V1.CoordinationService/CreateNode',
-                request_serializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__coordination__pb2.CreateNodeRequest.SerializeToString,
-                response_deserializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__coordination__pb2.CreateNodeResponse.FromString,
+                request_serializer=protos_dot_ydb__coordination__pb2.CreateNodeRequest.SerializeToString,
+                response_deserializer=protos_dot_ydb__coordination__pb2.CreateNodeResponse.FromString,
                 )
         self.AlterNode = channel.unary_unary(
                 '/Ydb.Coordination.V1.CoordinationService/AlterNode',
-                request_serializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__coordination__pb2.AlterNodeRequest.SerializeToString,
-                response_deserializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__coordination__pb2.AlterNodeResponse.FromString,
+                request_serializer=protos_dot_ydb__coordination__pb2.AlterNodeRequest.SerializeToString,
+                response_deserializer=protos_dot_ydb__coordination__pb2.AlterNodeResponse.FromString,
                 )
         self.DropNode = channel.unary_unary(
                 '/Ydb.Coordination.V1.CoordinationService/DropNode',
-                request_serializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__coordination__pb2.DropNodeRequest.SerializeToString,
-                response_deserializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__coordination__pb2.DropNodeResponse.FromString,
+                request_serializer=protos_dot_ydb__coordination__pb2.DropNodeRequest.SerializeToString,
+                response_deserializer=protos_dot_ydb__coordination__pb2.DropNodeResponse.FromString,
                 )
         self.DescribeNode = channel.unary_unary(
                 '/Ydb.Coordination.V1.CoordinationService/DescribeNode',
-                request_serializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__coordination__pb2.DescribeNodeRequest.SerializeToString,
-                response_deserializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__coordination__pb2.DescribeNodeResponse.FromString,
+                request_serializer=protos_dot_ydb__coordination__pb2.DescribeNodeRequest.SerializeToString,
+                response_deserializer=protos_dot_ydb__coordination__pb2.DescribeNodeResponse.FromString,
                 )
 
 
@@ -91,28 +91,28 @@ def add_CoordinationServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
             'Session': grpc.stream_stream_rpc_method_handler(
                     servicer.Session,
-                    request_deserializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__coordination__pb2.SessionRequest.FromString,
-                    response_serializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__coordination__pb2.SessionResponse.SerializeToString,
+                    request_deserializer=protos_dot_ydb__coordination__pb2.SessionRequest.FromString,
+                    response_serializer=protos_dot_ydb__coordination__pb2.SessionResponse.SerializeToString,
             ),
             'CreateNode': grpc.unary_unary_rpc_method_handler(
                     servicer.CreateNode,
-                    request_deserializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__coordination__pb2.CreateNodeRequest.FromString,
-                    response_serializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__coordination__pb2.CreateNodeResponse.SerializeToString,
+                    request_deserializer=protos_dot_ydb__coordination__pb2.CreateNodeRequest.FromString,
+                    response_serializer=protos_dot_ydb__coordination__pb2.CreateNodeResponse.SerializeToString,
             ),
             'AlterNode': grpc.unary_unary_rpc_method_handler(
                     servicer.AlterNode,
-                    request_deserializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__coordination__pb2.AlterNodeRequest.FromString,
-                    response_serializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__coordination__pb2.AlterNodeResponse.SerializeToString,
+                    request_deserializer=protos_dot_ydb__coordination__pb2.AlterNodeRequest.FromString,
+                    response_serializer=protos_dot_ydb__coordination__pb2.AlterNodeResponse.SerializeToString,
             ),
             'DropNode': grpc.unary_unary_rpc_method_handler(
                     servicer.DropNode,
-                    request_deserializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__coordination__pb2.DropNodeRequest.FromString,
-                    response_serializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__coordination__pb2.DropNodeResponse.SerializeToString,
+                    request_deserializer=protos_dot_ydb__coordination__pb2.DropNodeRequest.FromString,
+                    response_serializer=protos_dot_ydb__coordination__pb2.DropNodeResponse.SerializeToString,
             ),
             'DescribeNode': grpc.unary_unary_rpc_method_handler(
                     servicer.DescribeNode,
-                    request_deserializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__coordination__pb2.DescribeNodeRequest.FromString,
-                    response_serializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__coordination__pb2.DescribeNodeResponse.SerializeToString,
+                    request_deserializer=protos_dot_ydb__coordination__pb2.DescribeNodeRequest.FromString,
+                    response_serializer=protos_dot_ydb__coordination__pb2.DescribeNodeResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -136,8 +136,8 @@ class CoordinationService(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.stream_stream(request_iterator, target, '/Ydb.Coordination.V1.CoordinationService/Session',
-            ydb_dot_public_dot_api_dot_protos_dot_ydb__coordination__pb2.SessionRequest.SerializeToString,
-            ydb_dot_public_dot_api_dot_protos_dot_ydb__coordination__pb2.SessionResponse.FromString,
+            protos_dot_ydb__coordination__pb2.SessionRequest.SerializeToString,
+            protos_dot_ydb__coordination__pb2.SessionResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
@@ -153,8 +153,8 @@ class CoordinationService(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/Ydb.Coordination.V1.CoordinationService/CreateNode',
-            ydb_dot_public_dot_api_dot_protos_dot_ydb__coordination__pb2.CreateNodeRequest.SerializeToString,
-            ydb_dot_public_dot_api_dot_protos_dot_ydb__coordination__pb2.CreateNodeResponse.FromString,
+            protos_dot_ydb__coordination__pb2.CreateNodeRequest.SerializeToString,
+            protos_dot_ydb__coordination__pb2.CreateNodeResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
@@ -170,8 +170,8 @@ class CoordinationService(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/Ydb.Coordination.V1.CoordinationService/AlterNode',
-            ydb_dot_public_dot_api_dot_protos_dot_ydb__coordination__pb2.AlterNodeRequest.SerializeToString,
-            ydb_dot_public_dot_api_dot_protos_dot_ydb__coordination__pb2.AlterNodeResponse.FromString,
+            protos_dot_ydb__coordination__pb2.AlterNodeRequest.SerializeToString,
+            protos_dot_ydb__coordination__pb2.AlterNodeResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
@@ -187,8 +187,8 @@ class CoordinationService(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/Ydb.Coordination.V1.CoordinationService/DropNode',
-            ydb_dot_public_dot_api_dot_protos_dot_ydb__coordination__pb2.DropNodeRequest.SerializeToString,
-            ydb_dot_public_dot_api_dot_protos_dot_ydb__coordination__pb2.DropNodeResponse.FromString,
+            protos_dot_ydb__coordination__pb2.DropNodeRequest.SerializeToString,
+            protos_dot_ydb__coordination__pb2.DropNodeResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
@@ -204,7 +204,7 @@ class CoordinationService(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/Ydb.Coordination.V1.CoordinationService/DescribeNode',
-            ydb_dot_public_dot_api_dot_protos_dot_ydb__coordination__pb2.DescribeNodeRequest.SerializeToString,
-            ydb_dot_public_dot_api_dot_protos_dot_ydb__coordination__pb2.DescribeNodeResponse.FromString,
+            protos_dot_ydb__coordination__pb2.DescribeNodeRequest.SerializeToString,
+            protos_dot_ydb__coordination__pb2.DescribeNodeResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)

@@ -2,7 +2,7 @@
 """Client and server classes corresponding to protobuf-defined services."""
 import grpc
 
-from ydb.public.api.protos import ydb_operation_pb2 as ydb_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2
+from protos import ydb_operation_pb2 as protos_dot_ydb__operation__pb2
 
 
 class OperationServiceStub(object):
@@ -31,23 +31,23 @@ class OperationServiceStub(object):
         """
         self.GetOperation = channel.unary_unary(
                 '/Ydb.Operation.V1.OperationService/GetOperation',
-                request_serializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2.GetOperationRequest.SerializeToString,
-                response_deserializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2.GetOperationResponse.FromString,
+                request_serializer=protos_dot_ydb__operation__pb2.GetOperationRequest.SerializeToString,
+                response_deserializer=protos_dot_ydb__operation__pb2.GetOperationResponse.FromString,
                 )
         self.CancelOperation = channel.unary_unary(
                 '/Ydb.Operation.V1.OperationService/CancelOperation',
-                request_serializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2.CancelOperationRequest.SerializeToString,
-                response_deserializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2.CancelOperationResponse.FromString,
+                request_serializer=protos_dot_ydb__operation__pb2.CancelOperationRequest.SerializeToString,
+                response_deserializer=protos_dot_ydb__operation__pb2.CancelOperationResponse.FromString,
                 )
         self.ForgetOperation = channel.unary_unary(
                 '/Ydb.Operation.V1.OperationService/ForgetOperation',
-                request_serializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2.ForgetOperationRequest.SerializeToString,
-                response_deserializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2.ForgetOperationResponse.FromString,
+                request_serializer=protos_dot_ydb__operation__pb2.ForgetOperationRequest.SerializeToString,
+                response_deserializer=protos_dot_ydb__operation__pb2.ForgetOperationResponse.FromString,
                 )
         self.ListOperations = channel.unary_unary(
                 '/Ydb.Operation.V1.OperationService/ListOperations',
-                request_serializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2.ListOperationsRequest.SerializeToString,
-                response_deserializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2.ListOperationsResponse.FromString,
+                request_serializer=protos_dot_ydb__operation__pb2.ListOperationsRequest.SerializeToString,
+                response_deserializer=protos_dot_ydb__operation__pb2.ListOperationsResponse.FromString,
                 )
 
 
@@ -105,23 +105,23 @@ def add_OperationServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
             'GetOperation': grpc.unary_unary_rpc_method_handler(
                     servicer.GetOperation,
-                    request_deserializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2.GetOperationRequest.FromString,
-                    response_serializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2.GetOperationResponse.SerializeToString,
+                    request_deserializer=protos_dot_ydb__operation__pb2.GetOperationRequest.FromString,
+                    response_serializer=protos_dot_ydb__operation__pb2.GetOperationResponse.SerializeToString,
             ),
             'CancelOperation': grpc.unary_unary_rpc_method_handler(
                     servicer.CancelOperation,
-                    request_deserializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2.CancelOperationRequest.FromString,
-                    response_serializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2.CancelOperationResponse.SerializeToString,
+                    request_deserializer=protos_dot_ydb__operation__pb2.CancelOperationRequest.FromString,
+                    response_serializer=protos_dot_ydb__operation__pb2.CancelOperationResponse.SerializeToString,
             ),
             'ForgetOperation': grpc.unary_unary_rpc_method_handler(
                     servicer.ForgetOperation,
-                    request_deserializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2.ForgetOperationRequest.FromString,
-                    response_serializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2.ForgetOperationResponse.SerializeToString,
+                    request_deserializer=protos_dot_ydb__operation__pb2.ForgetOperationRequest.FromString,
+                    response_serializer=protos_dot_ydb__operation__pb2.ForgetOperationResponse.SerializeToString,
             ),
             'ListOperations': grpc.unary_unary_rpc_method_handler(
                     servicer.ListOperations,
-                    request_deserializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2.ListOperationsRequest.FromString,
-                    response_serializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2.ListOperationsResponse.SerializeToString,
+                    request_deserializer=protos_dot_ydb__operation__pb2.ListOperationsRequest.FromString,
+                    response_serializer=protos_dot_ydb__operation__pb2.ListOperationsResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -160,8 +160,8 @@ class OperationService(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/Ydb.Operation.V1.OperationService/GetOperation',
-            ydb_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2.GetOperationRequest.SerializeToString,
-            ydb_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2.GetOperationResponse.FromString,
+            protos_dot_ydb__operation__pb2.GetOperationRequest.SerializeToString,
+            protos_dot_ydb__operation__pb2.GetOperationResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
@@ -177,8 +177,8 @@ class OperationService(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/Ydb.Operation.V1.OperationService/CancelOperation',
-            ydb_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2.CancelOperationRequest.SerializeToString,
-            ydb_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2.CancelOperationResponse.FromString,
+            protos_dot_ydb__operation__pb2.CancelOperationRequest.SerializeToString,
+            protos_dot_ydb__operation__pb2.CancelOperationResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
@@ -194,8 +194,8 @@ class OperationService(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/Ydb.Operation.V1.OperationService/ForgetOperation',
-            ydb_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2.ForgetOperationRequest.SerializeToString,
-            ydb_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2.ForgetOperationResponse.FromString,
+            protos_dot_ydb__operation__pb2.ForgetOperationRequest.SerializeToString,
+            protos_dot_ydb__operation__pb2.ForgetOperationResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
@@ -211,7 +211,7 @@ class OperationService(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/Ydb.Operation.V1.OperationService/ListOperations',
-            ydb_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2.ListOperationsRequest.SerializeToString,
-            ydb_dot_public_dot_api_dot_protos_dot_ydb__operation__pb2.ListOperationsResponse.FromString,
+            protos_dot_ydb__operation__pb2.ListOperationsRequest.SerializeToString,
+            protos_dot_ydb__operation__pb2.ListOperationsResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)

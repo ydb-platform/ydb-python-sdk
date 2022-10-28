@@ -2,7 +2,7 @@
 """Client and server classes corresponding to protobuf-defined services."""
 import grpc
 
-from ydb.public.api.protos import ydb_import_pb2 as ydb_dot_public_dot_api_dot_protos_dot_ydb__import__pb2
+from protos import ydb_import_pb2 as protos_dot_ydb__import__pb2
 
 
 class ImportServiceStub(object):
@@ -16,13 +16,13 @@ class ImportServiceStub(object):
         """
         self.ImportFromS3 = channel.unary_unary(
                 '/Ydb.Import.V1.ImportService/ImportFromS3',
-                request_serializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__import__pb2.ImportFromS3Request.SerializeToString,
-                response_deserializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__import__pb2.ImportFromS3Response.FromString,
+                request_serializer=protos_dot_ydb__import__pb2.ImportFromS3Request.SerializeToString,
+                response_deserializer=protos_dot_ydb__import__pb2.ImportFromS3Response.FromString,
                 )
         self.ImportData = channel.unary_unary(
                 '/Ydb.Import.V1.ImportService/ImportData',
-                request_serializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__import__pb2.ImportDataRequest.SerializeToString,
-                response_deserializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__import__pb2.ImportDataResponse.FromString,
+                request_serializer=protos_dot_ydb__import__pb2.ImportDataRequest.SerializeToString,
+                response_deserializer=protos_dot_ydb__import__pb2.ImportDataResponse.FromString,
                 )
 
 
@@ -50,13 +50,13 @@ def add_ImportServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
             'ImportFromS3': grpc.unary_unary_rpc_method_handler(
                     servicer.ImportFromS3,
-                    request_deserializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__import__pb2.ImportFromS3Request.FromString,
-                    response_serializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__import__pb2.ImportFromS3Response.SerializeToString,
+                    request_deserializer=protos_dot_ydb__import__pb2.ImportFromS3Request.FromString,
+                    response_serializer=protos_dot_ydb__import__pb2.ImportFromS3Response.SerializeToString,
             ),
             'ImportData': grpc.unary_unary_rpc_method_handler(
                     servicer.ImportData,
-                    request_deserializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__import__pb2.ImportDataRequest.FromString,
-                    response_serializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__import__pb2.ImportDataResponse.SerializeToString,
+                    request_deserializer=protos_dot_ydb__import__pb2.ImportDataRequest.FromString,
+                    response_serializer=protos_dot_ydb__import__pb2.ImportDataResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -80,8 +80,8 @@ class ImportService(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/Ydb.Import.V1.ImportService/ImportFromS3',
-            ydb_dot_public_dot_api_dot_protos_dot_ydb__import__pb2.ImportFromS3Request.SerializeToString,
-            ydb_dot_public_dot_api_dot_protos_dot_ydb__import__pb2.ImportFromS3Response.FromString,
+            protos_dot_ydb__import__pb2.ImportFromS3Request.SerializeToString,
+            protos_dot_ydb__import__pb2.ImportFromS3Response.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
@@ -97,7 +97,7 @@ class ImportService(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/Ydb.Import.V1.ImportService/ImportData',
-            ydb_dot_public_dot_api_dot_protos_dot_ydb__import__pb2.ImportDataRequest.SerializeToString,
-            ydb_dot_public_dot_api_dot_protos_dot_ydb__import__pb2.ImportDataResponse.FromString,
+            protos_dot_ydb__import__pb2.ImportDataRequest.SerializeToString,
+            protos_dot_ydb__import__pb2.ImportDataResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)

@@ -2,7 +2,7 @@
 """Client and server classes corresponding to protobuf-defined services."""
 import grpc
 
-from ydb.public.api.protos import ydb_rate_limiter_pb2 as ydb_dot_public_dot_api_dot_protos_dot_ydb__rate__limiter__pb2
+from protos import ydb_rate_limiter_pb2 as protos_dot_ydb__rate__limiter__pb2
 
 
 class RateLimiterServiceStub(object):
@@ -21,33 +21,33 @@ class RateLimiterServiceStub(object):
         """
         self.CreateResource = channel.unary_unary(
                 '/Ydb.RateLimiter.V1.RateLimiterService/CreateResource',
-                request_serializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__rate__limiter__pb2.CreateResourceRequest.SerializeToString,
-                response_deserializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__rate__limiter__pb2.CreateResourceResponse.FromString,
+                request_serializer=protos_dot_ydb__rate__limiter__pb2.CreateResourceRequest.SerializeToString,
+                response_deserializer=protos_dot_ydb__rate__limiter__pb2.CreateResourceResponse.FromString,
                 )
         self.AlterResource = channel.unary_unary(
                 '/Ydb.RateLimiter.V1.RateLimiterService/AlterResource',
-                request_serializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__rate__limiter__pb2.AlterResourceRequest.SerializeToString,
-                response_deserializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__rate__limiter__pb2.AlterResourceResponse.FromString,
+                request_serializer=protos_dot_ydb__rate__limiter__pb2.AlterResourceRequest.SerializeToString,
+                response_deserializer=protos_dot_ydb__rate__limiter__pb2.AlterResourceResponse.FromString,
                 )
         self.DropResource = channel.unary_unary(
                 '/Ydb.RateLimiter.V1.RateLimiterService/DropResource',
-                request_serializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__rate__limiter__pb2.DropResourceRequest.SerializeToString,
-                response_deserializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__rate__limiter__pb2.DropResourceResponse.FromString,
+                request_serializer=protos_dot_ydb__rate__limiter__pb2.DropResourceRequest.SerializeToString,
+                response_deserializer=protos_dot_ydb__rate__limiter__pb2.DropResourceResponse.FromString,
                 )
         self.ListResources = channel.unary_unary(
                 '/Ydb.RateLimiter.V1.RateLimiterService/ListResources',
-                request_serializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__rate__limiter__pb2.ListResourcesRequest.SerializeToString,
-                response_deserializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__rate__limiter__pb2.ListResourcesResponse.FromString,
+                request_serializer=protos_dot_ydb__rate__limiter__pb2.ListResourcesRequest.SerializeToString,
+                response_deserializer=protos_dot_ydb__rate__limiter__pb2.ListResourcesResponse.FromString,
                 )
         self.DescribeResource = channel.unary_unary(
                 '/Ydb.RateLimiter.V1.RateLimiterService/DescribeResource',
-                request_serializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__rate__limiter__pb2.DescribeResourceRequest.SerializeToString,
-                response_deserializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__rate__limiter__pb2.DescribeResourceResponse.FromString,
+                request_serializer=protos_dot_ydb__rate__limiter__pb2.DescribeResourceRequest.SerializeToString,
+                response_deserializer=protos_dot_ydb__rate__limiter__pb2.DescribeResourceResponse.FromString,
                 )
         self.AcquireResource = channel.unary_unary(
                 '/Ydb.RateLimiter.V1.RateLimiterService/AcquireResource',
-                request_serializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__rate__limiter__pb2.AcquireResourceRequest.SerializeToString,
-                response_deserializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__rate__limiter__pb2.AcquireResourceResponse.FromString,
+                request_serializer=protos_dot_ydb__rate__limiter__pb2.AcquireResourceRequest.SerializeToString,
+                response_deserializer=protos_dot_ydb__rate__limiter__pb2.AcquireResourceResponse.FromString,
                 )
 
 
@@ -106,33 +106,33 @@ def add_RateLimiterServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
             'CreateResource': grpc.unary_unary_rpc_method_handler(
                     servicer.CreateResource,
-                    request_deserializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__rate__limiter__pb2.CreateResourceRequest.FromString,
-                    response_serializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__rate__limiter__pb2.CreateResourceResponse.SerializeToString,
+                    request_deserializer=protos_dot_ydb__rate__limiter__pb2.CreateResourceRequest.FromString,
+                    response_serializer=protos_dot_ydb__rate__limiter__pb2.CreateResourceResponse.SerializeToString,
             ),
             'AlterResource': grpc.unary_unary_rpc_method_handler(
                     servicer.AlterResource,
-                    request_deserializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__rate__limiter__pb2.AlterResourceRequest.FromString,
-                    response_serializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__rate__limiter__pb2.AlterResourceResponse.SerializeToString,
+                    request_deserializer=protos_dot_ydb__rate__limiter__pb2.AlterResourceRequest.FromString,
+                    response_serializer=protos_dot_ydb__rate__limiter__pb2.AlterResourceResponse.SerializeToString,
             ),
             'DropResource': grpc.unary_unary_rpc_method_handler(
                     servicer.DropResource,
-                    request_deserializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__rate__limiter__pb2.DropResourceRequest.FromString,
-                    response_serializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__rate__limiter__pb2.DropResourceResponse.SerializeToString,
+                    request_deserializer=protos_dot_ydb__rate__limiter__pb2.DropResourceRequest.FromString,
+                    response_serializer=protos_dot_ydb__rate__limiter__pb2.DropResourceResponse.SerializeToString,
             ),
             'ListResources': grpc.unary_unary_rpc_method_handler(
                     servicer.ListResources,
-                    request_deserializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__rate__limiter__pb2.ListResourcesRequest.FromString,
-                    response_serializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__rate__limiter__pb2.ListResourcesResponse.SerializeToString,
+                    request_deserializer=protos_dot_ydb__rate__limiter__pb2.ListResourcesRequest.FromString,
+                    response_serializer=protos_dot_ydb__rate__limiter__pb2.ListResourcesResponse.SerializeToString,
             ),
             'DescribeResource': grpc.unary_unary_rpc_method_handler(
                     servicer.DescribeResource,
-                    request_deserializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__rate__limiter__pb2.DescribeResourceRequest.FromString,
-                    response_serializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__rate__limiter__pb2.DescribeResourceResponse.SerializeToString,
+                    request_deserializer=protos_dot_ydb__rate__limiter__pb2.DescribeResourceRequest.FromString,
+                    response_serializer=protos_dot_ydb__rate__limiter__pb2.DescribeResourceResponse.SerializeToString,
             ),
             'AcquireResource': grpc.unary_unary_rpc_method_handler(
                     servicer.AcquireResource,
-                    request_deserializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__rate__limiter__pb2.AcquireResourceRequest.FromString,
-                    response_serializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__rate__limiter__pb2.AcquireResourceResponse.SerializeToString,
+                    request_deserializer=protos_dot_ydb__rate__limiter__pb2.AcquireResourceRequest.FromString,
+                    response_serializer=protos_dot_ydb__rate__limiter__pb2.AcquireResourceResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -161,8 +161,8 @@ class RateLimiterService(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/Ydb.RateLimiter.V1.RateLimiterService/CreateResource',
-            ydb_dot_public_dot_api_dot_protos_dot_ydb__rate__limiter__pb2.CreateResourceRequest.SerializeToString,
-            ydb_dot_public_dot_api_dot_protos_dot_ydb__rate__limiter__pb2.CreateResourceResponse.FromString,
+            protos_dot_ydb__rate__limiter__pb2.CreateResourceRequest.SerializeToString,
+            protos_dot_ydb__rate__limiter__pb2.CreateResourceResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
@@ -178,8 +178,8 @@ class RateLimiterService(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/Ydb.RateLimiter.V1.RateLimiterService/AlterResource',
-            ydb_dot_public_dot_api_dot_protos_dot_ydb__rate__limiter__pb2.AlterResourceRequest.SerializeToString,
-            ydb_dot_public_dot_api_dot_protos_dot_ydb__rate__limiter__pb2.AlterResourceResponse.FromString,
+            protos_dot_ydb__rate__limiter__pb2.AlterResourceRequest.SerializeToString,
+            protos_dot_ydb__rate__limiter__pb2.AlterResourceResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
@@ -195,8 +195,8 @@ class RateLimiterService(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/Ydb.RateLimiter.V1.RateLimiterService/DropResource',
-            ydb_dot_public_dot_api_dot_protos_dot_ydb__rate__limiter__pb2.DropResourceRequest.SerializeToString,
-            ydb_dot_public_dot_api_dot_protos_dot_ydb__rate__limiter__pb2.DropResourceResponse.FromString,
+            protos_dot_ydb__rate__limiter__pb2.DropResourceRequest.SerializeToString,
+            protos_dot_ydb__rate__limiter__pb2.DropResourceResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
@@ -212,8 +212,8 @@ class RateLimiterService(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/Ydb.RateLimiter.V1.RateLimiterService/ListResources',
-            ydb_dot_public_dot_api_dot_protos_dot_ydb__rate__limiter__pb2.ListResourcesRequest.SerializeToString,
-            ydb_dot_public_dot_api_dot_protos_dot_ydb__rate__limiter__pb2.ListResourcesResponse.FromString,
+            protos_dot_ydb__rate__limiter__pb2.ListResourcesRequest.SerializeToString,
+            protos_dot_ydb__rate__limiter__pb2.ListResourcesResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
@@ -229,8 +229,8 @@ class RateLimiterService(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/Ydb.RateLimiter.V1.RateLimiterService/DescribeResource',
-            ydb_dot_public_dot_api_dot_protos_dot_ydb__rate__limiter__pb2.DescribeResourceRequest.SerializeToString,
-            ydb_dot_public_dot_api_dot_protos_dot_ydb__rate__limiter__pb2.DescribeResourceResponse.FromString,
+            protos_dot_ydb__rate__limiter__pb2.DescribeResourceRequest.SerializeToString,
+            protos_dot_ydb__rate__limiter__pb2.DescribeResourceResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
@@ -246,7 +246,7 @@ class RateLimiterService(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/Ydb.RateLimiter.V1.RateLimiterService/AcquireResource',
-            ydb_dot_public_dot_api_dot_protos_dot_ydb__rate__limiter__pb2.AcquireResourceRequest.SerializeToString,
-            ydb_dot_public_dot_api_dot_protos_dot_ydb__rate__limiter__pb2.AcquireResourceResponse.FromString,
+            protos_dot_ydb__rate__limiter__pb2.AcquireResourceRequest.SerializeToString,
+            protos_dot_ydb__rate__limiter__pb2.AcquireResourceResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)

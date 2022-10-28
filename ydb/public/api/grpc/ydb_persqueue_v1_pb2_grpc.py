@@ -2,8 +2,8 @@
 """Client and server classes corresponding to protobuf-defined services."""
 import grpc
 
-from ydb.public.api.protos import ydb_persqueue_cluster_discovery_pb2 as ydb_dot_public_dot_api_dot_protos_dot_ydb__persqueue__cluster__discovery__pb2
-from ydb.public.api.protos import ydb_persqueue_v1_pb2 as ydb_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2
+from protos import ydb_persqueue_cluster_discovery_pb2 as protos_dot_ydb__persqueue__cluster__discovery__pb2
+from protos import ydb_persqueue_v1_pb2 as protos_dot_ydb__persqueue__v1__pb2
 
 
 class PersQueueServiceStub(object):
@@ -17,48 +17,48 @@ class PersQueueServiceStub(object):
         """
         self.StreamingWrite = channel.stream_stream(
                 '/Ydb.PersQueue.V1.PersQueueService/StreamingWrite',
-                request_serializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.StreamingWriteClientMessage.SerializeToString,
-                response_deserializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.StreamingWriteServerMessage.FromString,
+                request_serializer=protos_dot_ydb__persqueue__v1__pb2.StreamingWriteClientMessage.SerializeToString,
+                response_deserializer=protos_dot_ydb__persqueue__v1__pb2.StreamingWriteServerMessage.FromString,
                 )
         self.MigrationStreamingRead = channel.stream_stream(
                 '/Ydb.PersQueue.V1.PersQueueService/MigrationStreamingRead',
-                request_serializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.MigrationStreamingReadClientMessage.SerializeToString,
-                response_deserializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.MigrationStreamingReadServerMessage.FromString,
+                request_serializer=protos_dot_ydb__persqueue__v1__pb2.MigrationStreamingReadClientMessage.SerializeToString,
+                response_deserializer=protos_dot_ydb__persqueue__v1__pb2.MigrationStreamingReadServerMessage.FromString,
                 )
         self.GetReadSessionsInfo = channel.unary_unary(
                 '/Ydb.PersQueue.V1.PersQueueService/GetReadSessionsInfo',
-                request_serializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.ReadInfoRequest.SerializeToString,
-                response_deserializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.ReadInfoResponse.FromString,
+                request_serializer=protos_dot_ydb__persqueue__v1__pb2.ReadInfoRequest.SerializeToString,
+                response_deserializer=protos_dot_ydb__persqueue__v1__pb2.ReadInfoResponse.FromString,
                 )
         self.DescribeTopic = channel.unary_unary(
                 '/Ydb.PersQueue.V1.PersQueueService/DescribeTopic',
-                request_serializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.DescribeTopicRequest.SerializeToString,
-                response_deserializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.DescribeTopicResponse.FromString,
+                request_serializer=protos_dot_ydb__persqueue__v1__pb2.DescribeTopicRequest.SerializeToString,
+                response_deserializer=protos_dot_ydb__persqueue__v1__pb2.DescribeTopicResponse.FromString,
                 )
         self.DropTopic = channel.unary_unary(
                 '/Ydb.PersQueue.V1.PersQueueService/DropTopic',
-                request_serializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.DropTopicRequest.SerializeToString,
-                response_deserializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.DropTopicResponse.FromString,
+                request_serializer=protos_dot_ydb__persqueue__v1__pb2.DropTopicRequest.SerializeToString,
+                response_deserializer=protos_dot_ydb__persqueue__v1__pb2.DropTopicResponse.FromString,
                 )
         self.CreateTopic = channel.unary_unary(
                 '/Ydb.PersQueue.V1.PersQueueService/CreateTopic',
-                request_serializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.CreateTopicRequest.SerializeToString,
-                response_deserializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.CreateTopicResponse.FromString,
+                request_serializer=protos_dot_ydb__persqueue__v1__pb2.CreateTopicRequest.SerializeToString,
+                response_deserializer=protos_dot_ydb__persqueue__v1__pb2.CreateTopicResponse.FromString,
                 )
         self.AlterTopic = channel.unary_unary(
                 '/Ydb.PersQueue.V1.PersQueueService/AlterTopic',
-                request_serializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.AlterTopicRequest.SerializeToString,
-                response_deserializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.AlterTopicResponse.FromString,
+                request_serializer=protos_dot_ydb__persqueue__v1__pb2.AlterTopicRequest.SerializeToString,
+                response_deserializer=protos_dot_ydb__persqueue__v1__pb2.AlterTopicResponse.FromString,
                 )
         self.AddReadRule = channel.unary_unary(
                 '/Ydb.PersQueue.V1.PersQueueService/AddReadRule',
-                request_serializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.AddReadRuleRequest.SerializeToString,
-                response_deserializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.AddReadRuleResponse.FromString,
+                request_serializer=protos_dot_ydb__persqueue__v1__pb2.AddReadRuleRequest.SerializeToString,
+                response_deserializer=protos_dot_ydb__persqueue__v1__pb2.AddReadRuleResponse.FromString,
                 )
         self.RemoveReadRule = channel.unary_unary(
                 '/Ydb.PersQueue.V1.PersQueueService/RemoveReadRule',
-                request_serializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.RemoveReadRuleRequest.SerializeToString,
-                response_deserializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.RemoveReadRuleResponse.FromString,
+                request_serializer=protos_dot_ydb__persqueue__v1__pb2.RemoveReadRuleRequest.SerializeToString,
+                response_deserializer=protos_dot_ydb__persqueue__v1__pb2.RemoveReadRuleResponse.FromString,
                 )
 
 
@@ -190,48 +190,48 @@ def add_PersQueueServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
             'StreamingWrite': grpc.stream_stream_rpc_method_handler(
                     servicer.StreamingWrite,
-                    request_deserializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.StreamingWriteClientMessage.FromString,
-                    response_serializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.StreamingWriteServerMessage.SerializeToString,
+                    request_deserializer=protos_dot_ydb__persqueue__v1__pb2.StreamingWriteClientMessage.FromString,
+                    response_serializer=protos_dot_ydb__persqueue__v1__pb2.StreamingWriteServerMessage.SerializeToString,
             ),
             'MigrationStreamingRead': grpc.stream_stream_rpc_method_handler(
                     servicer.MigrationStreamingRead,
-                    request_deserializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.MigrationStreamingReadClientMessage.FromString,
-                    response_serializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.MigrationStreamingReadServerMessage.SerializeToString,
+                    request_deserializer=protos_dot_ydb__persqueue__v1__pb2.MigrationStreamingReadClientMessage.FromString,
+                    response_serializer=protos_dot_ydb__persqueue__v1__pb2.MigrationStreamingReadServerMessage.SerializeToString,
             ),
             'GetReadSessionsInfo': grpc.unary_unary_rpc_method_handler(
                     servicer.GetReadSessionsInfo,
-                    request_deserializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.ReadInfoRequest.FromString,
-                    response_serializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.ReadInfoResponse.SerializeToString,
+                    request_deserializer=protos_dot_ydb__persqueue__v1__pb2.ReadInfoRequest.FromString,
+                    response_serializer=protos_dot_ydb__persqueue__v1__pb2.ReadInfoResponse.SerializeToString,
             ),
             'DescribeTopic': grpc.unary_unary_rpc_method_handler(
                     servicer.DescribeTopic,
-                    request_deserializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.DescribeTopicRequest.FromString,
-                    response_serializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.DescribeTopicResponse.SerializeToString,
+                    request_deserializer=protos_dot_ydb__persqueue__v1__pb2.DescribeTopicRequest.FromString,
+                    response_serializer=protos_dot_ydb__persqueue__v1__pb2.DescribeTopicResponse.SerializeToString,
             ),
             'DropTopic': grpc.unary_unary_rpc_method_handler(
                     servicer.DropTopic,
-                    request_deserializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.DropTopicRequest.FromString,
-                    response_serializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.DropTopicResponse.SerializeToString,
+                    request_deserializer=protos_dot_ydb__persqueue__v1__pb2.DropTopicRequest.FromString,
+                    response_serializer=protos_dot_ydb__persqueue__v1__pb2.DropTopicResponse.SerializeToString,
             ),
             'CreateTopic': grpc.unary_unary_rpc_method_handler(
                     servicer.CreateTopic,
-                    request_deserializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.CreateTopicRequest.FromString,
-                    response_serializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.CreateTopicResponse.SerializeToString,
+                    request_deserializer=protos_dot_ydb__persqueue__v1__pb2.CreateTopicRequest.FromString,
+                    response_serializer=protos_dot_ydb__persqueue__v1__pb2.CreateTopicResponse.SerializeToString,
             ),
             'AlterTopic': grpc.unary_unary_rpc_method_handler(
                     servicer.AlterTopic,
-                    request_deserializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.AlterTopicRequest.FromString,
-                    response_serializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.AlterTopicResponse.SerializeToString,
+                    request_deserializer=protos_dot_ydb__persqueue__v1__pb2.AlterTopicRequest.FromString,
+                    response_serializer=protos_dot_ydb__persqueue__v1__pb2.AlterTopicResponse.SerializeToString,
             ),
             'AddReadRule': grpc.unary_unary_rpc_method_handler(
                     servicer.AddReadRule,
-                    request_deserializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.AddReadRuleRequest.FromString,
-                    response_serializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.AddReadRuleResponse.SerializeToString,
+                    request_deserializer=protos_dot_ydb__persqueue__v1__pb2.AddReadRuleRequest.FromString,
+                    response_serializer=protos_dot_ydb__persqueue__v1__pb2.AddReadRuleResponse.SerializeToString,
             ),
             'RemoveReadRule': grpc.unary_unary_rpc_method_handler(
                     servicer.RemoveReadRule,
-                    request_deserializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.RemoveReadRuleRequest.FromString,
-                    response_serializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.RemoveReadRuleResponse.SerializeToString,
+                    request_deserializer=protos_dot_ydb__persqueue__v1__pb2.RemoveReadRuleRequest.FromString,
+                    response_serializer=protos_dot_ydb__persqueue__v1__pb2.RemoveReadRuleResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -255,8 +255,8 @@ class PersQueueService(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.stream_stream(request_iterator, target, '/Ydb.PersQueue.V1.PersQueueService/StreamingWrite',
-            ydb_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.StreamingWriteClientMessage.SerializeToString,
-            ydb_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.StreamingWriteServerMessage.FromString,
+            protos_dot_ydb__persqueue__v1__pb2.StreamingWriteClientMessage.SerializeToString,
+            protos_dot_ydb__persqueue__v1__pb2.StreamingWriteServerMessage.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
@@ -272,8 +272,8 @@ class PersQueueService(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.stream_stream(request_iterator, target, '/Ydb.PersQueue.V1.PersQueueService/MigrationStreamingRead',
-            ydb_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.MigrationStreamingReadClientMessage.SerializeToString,
-            ydb_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.MigrationStreamingReadServerMessage.FromString,
+            protos_dot_ydb__persqueue__v1__pb2.MigrationStreamingReadClientMessage.SerializeToString,
+            protos_dot_ydb__persqueue__v1__pb2.MigrationStreamingReadServerMessage.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
@@ -289,8 +289,8 @@ class PersQueueService(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/Ydb.PersQueue.V1.PersQueueService/GetReadSessionsInfo',
-            ydb_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.ReadInfoRequest.SerializeToString,
-            ydb_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.ReadInfoResponse.FromString,
+            protos_dot_ydb__persqueue__v1__pb2.ReadInfoRequest.SerializeToString,
+            protos_dot_ydb__persqueue__v1__pb2.ReadInfoResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
@@ -306,8 +306,8 @@ class PersQueueService(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/Ydb.PersQueue.V1.PersQueueService/DescribeTopic',
-            ydb_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.DescribeTopicRequest.SerializeToString,
-            ydb_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.DescribeTopicResponse.FromString,
+            protos_dot_ydb__persqueue__v1__pb2.DescribeTopicRequest.SerializeToString,
+            protos_dot_ydb__persqueue__v1__pb2.DescribeTopicResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
@@ -323,8 +323,8 @@ class PersQueueService(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/Ydb.PersQueue.V1.PersQueueService/DropTopic',
-            ydb_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.DropTopicRequest.SerializeToString,
-            ydb_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.DropTopicResponse.FromString,
+            protos_dot_ydb__persqueue__v1__pb2.DropTopicRequest.SerializeToString,
+            protos_dot_ydb__persqueue__v1__pb2.DropTopicResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
@@ -340,8 +340,8 @@ class PersQueueService(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/Ydb.PersQueue.V1.PersQueueService/CreateTopic',
-            ydb_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.CreateTopicRequest.SerializeToString,
-            ydb_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.CreateTopicResponse.FromString,
+            protos_dot_ydb__persqueue__v1__pb2.CreateTopicRequest.SerializeToString,
+            protos_dot_ydb__persqueue__v1__pb2.CreateTopicResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
@@ -357,8 +357,8 @@ class PersQueueService(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/Ydb.PersQueue.V1.PersQueueService/AlterTopic',
-            ydb_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.AlterTopicRequest.SerializeToString,
-            ydb_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.AlterTopicResponse.FromString,
+            protos_dot_ydb__persqueue__v1__pb2.AlterTopicRequest.SerializeToString,
+            protos_dot_ydb__persqueue__v1__pb2.AlterTopicResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
@@ -374,8 +374,8 @@ class PersQueueService(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/Ydb.PersQueue.V1.PersQueueService/AddReadRule',
-            ydb_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.AddReadRuleRequest.SerializeToString,
-            ydb_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.AddReadRuleResponse.FromString,
+            protos_dot_ydb__persqueue__v1__pb2.AddReadRuleRequest.SerializeToString,
+            protos_dot_ydb__persqueue__v1__pb2.AddReadRuleResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
@@ -391,8 +391,8 @@ class PersQueueService(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/Ydb.PersQueue.V1.PersQueueService/RemoveReadRule',
-            ydb_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.RemoveReadRuleRequest.SerializeToString,
-            ydb_dot_public_dot_api_dot_protos_dot_ydb__persqueue__v1__pb2.RemoveReadRuleResponse.FromString,
+            protos_dot_ydb__persqueue__v1__pb2.RemoveReadRuleRequest.SerializeToString,
+            protos_dot_ydb__persqueue__v1__pb2.RemoveReadRuleResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
@@ -408,8 +408,8 @@ class ClusterDiscoveryServiceStub(object):
         """
         self.DiscoverClusters = channel.unary_unary(
                 '/Ydb.PersQueue.V1.ClusterDiscoveryService/DiscoverClusters',
-                request_serializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__persqueue__cluster__discovery__pb2.DiscoverClustersRequest.SerializeToString,
-                response_deserializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__persqueue__cluster__discovery__pb2.DiscoverClustersResponse.FromString,
+                request_serializer=protos_dot_ydb__persqueue__cluster__discovery__pb2.DiscoverClustersRequest.SerializeToString,
+                response_deserializer=protos_dot_ydb__persqueue__cluster__discovery__pb2.DiscoverClustersResponse.FromString,
                 )
 
 
@@ -428,8 +428,8 @@ def add_ClusterDiscoveryServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
             'DiscoverClusters': grpc.unary_unary_rpc_method_handler(
                     servicer.DiscoverClusters,
-                    request_deserializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__persqueue__cluster__discovery__pb2.DiscoverClustersRequest.FromString,
-                    response_serializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__persqueue__cluster__discovery__pb2.DiscoverClustersResponse.SerializeToString,
+                    request_deserializer=protos_dot_ydb__persqueue__cluster__discovery__pb2.DiscoverClustersRequest.FromString,
+                    response_serializer=protos_dot_ydb__persqueue__cluster__discovery__pb2.DiscoverClustersResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -453,7 +453,7 @@ class ClusterDiscoveryService(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/Ydb.PersQueue.V1.ClusterDiscoveryService/DiscoverClusters',
-            ydb_dot_public_dot_api_dot_protos_dot_ydb__persqueue__cluster__discovery__pb2.DiscoverClustersRequest.SerializeToString,
-            ydb_dot_public_dot_api_dot_protos_dot_ydb__persqueue__cluster__discovery__pb2.DiscoverClustersResponse.FromString,
+            protos_dot_ydb__persqueue__cluster__discovery__pb2.DiscoverClustersRequest.SerializeToString,
+            protos_dot_ydb__persqueue__cluster__discovery__pb2.DiscoverClustersResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)

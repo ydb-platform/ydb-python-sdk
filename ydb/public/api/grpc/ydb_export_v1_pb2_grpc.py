@@ -2,7 +2,7 @@
 """Client and server classes corresponding to protobuf-defined services."""
 import grpc
 
-from ydb.public.api.protos import ydb_export_pb2 as ydb_dot_public_dot_api_dot_protos_dot_ydb__export__pb2
+from protos import ydb_export_pb2 as protos_dot_ydb__export__pb2
 
 
 class ExportServiceStub(object):
@@ -16,13 +16,13 @@ class ExportServiceStub(object):
         """
         self.ExportToYt = channel.unary_unary(
                 '/Ydb.Export.V1.ExportService/ExportToYt',
-                request_serializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__export__pb2.ExportToYtRequest.SerializeToString,
-                response_deserializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__export__pb2.ExportToYtResponse.FromString,
+                request_serializer=protos_dot_ydb__export__pb2.ExportToYtRequest.SerializeToString,
+                response_deserializer=protos_dot_ydb__export__pb2.ExportToYtResponse.FromString,
                 )
         self.ExportToS3 = channel.unary_unary(
                 '/Ydb.Export.V1.ExportService/ExportToS3',
-                request_serializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__export__pb2.ExportToS3Request.SerializeToString,
-                response_deserializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__export__pb2.ExportToS3Response.FromString,
+                request_serializer=protos_dot_ydb__export__pb2.ExportToS3Request.SerializeToString,
+                response_deserializer=protos_dot_ydb__export__pb2.ExportToS3Response.FromString,
                 )
 
 
@@ -50,13 +50,13 @@ def add_ExportServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
             'ExportToYt': grpc.unary_unary_rpc_method_handler(
                     servicer.ExportToYt,
-                    request_deserializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__export__pb2.ExportToYtRequest.FromString,
-                    response_serializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__export__pb2.ExportToYtResponse.SerializeToString,
+                    request_deserializer=protos_dot_ydb__export__pb2.ExportToYtRequest.FromString,
+                    response_serializer=protos_dot_ydb__export__pb2.ExportToYtResponse.SerializeToString,
             ),
             'ExportToS3': grpc.unary_unary_rpc_method_handler(
                     servicer.ExportToS3,
-                    request_deserializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__export__pb2.ExportToS3Request.FromString,
-                    response_serializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__export__pb2.ExportToS3Response.SerializeToString,
+                    request_deserializer=protos_dot_ydb__export__pb2.ExportToS3Request.FromString,
+                    response_serializer=protos_dot_ydb__export__pb2.ExportToS3Response.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -80,8 +80,8 @@ class ExportService(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/Ydb.Export.V1.ExportService/ExportToYt',
-            ydb_dot_public_dot_api_dot_protos_dot_ydb__export__pb2.ExportToYtRequest.SerializeToString,
-            ydb_dot_public_dot_api_dot_protos_dot_ydb__export__pb2.ExportToYtResponse.FromString,
+            protos_dot_ydb__export__pb2.ExportToYtRequest.SerializeToString,
+            protos_dot_ydb__export__pb2.ExportToYtResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
@@ -97,7 +97,7 @@ class ExportService(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/Ydb.Export.V1.ExportService/ExportToS3',
-            ydb_dot_public_dot_api_dot_protos_dot_ydb__export__pb2.ExportToS3Request.SerializeToString,
-            ydb_dot_public_dot_api_dot_protos_dot_ydb__export__pb2.ExportToS3Response.FromString,
+            protos_dot_ydb__export__pb2.ExportToS3Request.SerializeToString,
+            protos_dot_ydb__export__pb2.ExportToS3Response.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)

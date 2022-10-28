@@ -2,7 +2,7 @@
 """Client and server classes corresponding to protobuf-defined services."""
 import grpc
 
-from ydb.public.api.protos import ydb_discovery_pb2 as ydb_dot_public_dot_api_dot_protos_dot_ydb__discovery__pb2
+from protos import ydb_discovery_pb2 as protos_dot_ydb__discovery__pb2
 
 
 class DiscoveryServiceStub(object):
@@ -16,13 +16,13 @@ class DiscoveryServiceStub(object):
         """
         self.ListEndpoints = channel.unary_unary(
                 '/Ydb.Discovery.V1.DiscoveryService/ListEndpoints',
-                request_serializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__discovery__pb2.ListEndpointsRequest.SerializeToString,
-                response_deserializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__discovery__pb2.ListEndpointsResponse.FromString,
+                request_serializer=protos_dot_ydb__discovery__pb2.ListEndpointsRequest.SerializeToString,
+                response_deserializer=protos_dot_ydb__discovery__pb2.ListEndpointsResponse.FromString,
                 )
         self.WhoAmI = channel.unary_unary(
                 '/Ydb.Discovery.V1.DiscoveryService/WhoAmI',
-                request_serializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__discovery__pb2.WhoAmIRequest.SerializeToString,
-                response_deserializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__discovery__pb2.WhoAmIResponse.FromString,
+                request_serializer=protos_dot_ydb__discovery__pb2.WhoAmIRequest.SerializeToString,
+                response_deserializer=protos_dot_ydb__discovery__pb2.WhoAmIResponse.FromString,
                 )
 
 
@@ -46,13 +46,13 @@ def add_DiscoveryServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
             'ListEndpoints': grpc.unary_unary_rpc_method_handler(
                     servicer.ListEndpoints,
-                    request_deserializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__discovery__pb2.ListEndpointsRequest.FromString,
-                    response_serializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__discovery__pb2.ListEndpointsResponse.SerializeToString,
+                    request_deserializer=protos_dot_ydb__discovery__pb2.ListEndpointsRequest.FromString,
+                    response_serializer=protos_dot_ydb__discovery__pb2.ListEndpointsResponse.SerializeToString,
             ),
             'WhoAmI': grpc.unary_unary_rpc_method_handler(
                     servicer.WhoAmI,
-                    request_deserializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__discovery__pb2.WhoAmIRequest.FromString,
-                    response_serializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__discovery__pb2.WhoAmIResponse.SerializeToString,
+                    request_deserializer=protos_dot_ydb__discovery__pb2.WhoAmIRequest.FromString,
+                    response_serializer=protos_dot_ydb__discovery__pb2.WhoAmIResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -76,8 +76,8 @@ class DiscoveryService(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/Ydb.Discovery.V1.DiscoveryService/ListEndpoints',
-            ydb_dot_public_dot_api_dot_protos_dot_ydb__discovery__pb2.ListEndpointsRequest.SerializeToString,
-            ydb_dot_public_dot_api_dot_protos_dot_ydb__discovery__pb2.ListEndpointsResponse.FromString,
+            protos_dot_ydb__discovery__pb2.ListEndpointsRequest.SerializeToString,
+            protos_dot_ydb__discovery__pb2.ListEndpointsResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
@@ -93,7 +93,7 @@ class DiscoveryService(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/Ydb.Discovery.V1.DiscoveryService/WhoAmI',
-            ydb_dot_public_dot_api_dot_protos_dot_ydb__discovery__pb2.WhoAmIRequest.SerializeToString,
-            ydb_dot_public_dot_api_dot_protos_dot_ydb__discovery__pb2.WhoAmIResponse.FromString,
+            protos_dot_ydb__discovery__pb2.WhoAmIRequest.SerializeToString,
+            protos_dot_ydb__discovery__pb2.WhoAmIResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)

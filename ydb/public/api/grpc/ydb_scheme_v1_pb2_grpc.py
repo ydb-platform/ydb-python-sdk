@@ -2,7 +2,7 @@
 """Client and server classes corresponding to protobuf-defined services."""
 import grpc
 
-from ydb.public.api.protos import ydb_scheme_pb2 as ydb_dot_public_dot_api_dot_protos_dot_ydb__scheme__pb2
+from protos import ydb_scheme_pb2 as protos_dot_ydb__scheme__pb2
 
 
 class SchemeServiceStub(object):
@@ -23,28 +23,28 @@ class SchemeServiceStub(object):
         """
         self.MakeDirectory = channel.unary_unary(
                 '/Ydb.Scheme.V1.SchemeService/MakeDirectory',
-                request_serializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__scheme__pb2.MakeDirectoryRequest.SerializeToString,
-                response_deserializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__scheme__pb2.MakeDirectoryResponse.FromString,
+                request_serializer=protos_dot_ydb__scheme__pb2.MakeDirectoryRequest.SerializeToString,
+                response_deserializer=protos_dot_ydb__scheme__pb2.MakeDirectoryResponse.FromString,
                 )
         self.RemoveDirectory = channel.unary_unary(
                 '/Ydb.Scheme.V1.SchemeService/RemoveDirectory',
-                request_serializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__scheme__pb2.RemoveDirectoryRequest.SerializeToString,
-                response_deserializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__scheme__pb2.RemoveDirectoryResponse.FromString,
+                request_serializer=protos_dot_ydb__scheme__pb2.RemoveDirectoryRequest.SerializeToString,
+                response_deserializer=protos_dot_ydb__scheme__pb2.RemoveDirectoryResponse.FromString,
                 )
         self.ListDirectory = channel.unary_unary(
                 '/Ydb.Scheme.V1.SchemeService/ListDirectory',
-                request_serializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__scheme__pb2.ListDirectoryRequest.SerializeToString,
-                response_deserializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__scheme__pb2.ListDirectoryResponse.FromString,
+                request_serializer=protos_dot_ydb__scheme__pb2.ListDirectoryRequest.SerializeToString,
+                response_deserializer=protos_dot_ydb__scheme__pb2.ListDirectoryResponse.FromString,
                 )
         self.DescribePath = channel.unary_unary(
                 '/Ydb.Scheme.V1.SchemeService/DescribePath',
-                request_serializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__scheme__pb2.DescribePathRequest.SerializeToString,
-                response_deserializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__scheme__pb2.DescribePathResponse.FromString,
+                request_serializer=protos_dot_ydb__scheme__pb2.DescribePathRequest.SerializeToString,
+                response_deserializer=protos_dot_ydb__scheme__pb2.DescribePathResponse.FromString,
                 )
         self.ModifyPermissions = channel.unary_unary(
                 '/Ydb.Scheme.V1.SchemeService/ModifyPermissions',
-                request_serializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__scheme__pb2.ModifyPermissionsRequest.SerializeToString,
-                response_deserializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__scheme__pb2.ModifyPermissionsResponse.FromString,
+                request_serializer=protos_dot_ydb__scheme__pb2.ModifyPermissionsRequest.SerializeToString,
+                response_deserializer=protos_dot_ydb__scheme__pb2.ModifyPermissionsResponse.FromString,
                 )
 
 
@@ -98,28 +98,28 @@ def add_SchemeServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
             'MakeDirectory': grpc.unary_unary_rpc_method_handler(
                     servicer.MakeDirectory,
-                    request_deserializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__scheme__pb2.MakeDirectoryRequest.FromString,
-                    response_serializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__scheme__pb2.MakeDirectoryResponse.SerializeToString,
+                    request_deserializer=protos_dot_ydb__scheme__pb2.MakeDirectoryRequest.FromString,
+                    response_serializer=protos_dot_ydb__scheme__pb2.MakeDirectoryResponse.SerializeToString,
             ),
             'RemoveDirectory': grpc.unary_unary_rpc_method_handler(
                     servicer.RemoveDirectory,
-                    request_deserializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__scheme__pb2.RemoveDirectoryRequest.FromString,
-                    response_serializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__scheme__pb2.RemoveDirectoryResponse.SerializeToString,
+                    request_deserializer=protos_dot_ydb__scheme__pb2.RemoveDirectoryRequest.FromString,
+                    response_serializer=protos_dot_ydb__scheme__pb2.RemoveDirectoryResponse.SerializeToString,
             ),
             'ListDirectory': grpc.unary_unary_rpc_method_handler(
                     servicer.ListDirectory,
-                    request_deserializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__scheme__pb2.ListDirectoryRequest.FromString,
-                    response_serializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__scheme__pb2.ListDirectoryResponse.SerializeToString,
+                    request_deserializer=protos_dot_ydb__scheme__pb2.ListDirectoryRequest.FromString,
+                    response_serializer=protos_dot_ydb__scheme__pb2.ListDirectoryResponse.SerializeToString,
             ),
             'DescribePath': grpc.unary_unary_rpc_method_handler(
                     servicer.DescribePath,
-                    request_deserializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__scheme__pb2.DescribePathRequest.FromString,
-                    response_serializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__scheme__pb2.DescribePathResponse.SerializeToString,
+                    request_deserializer=protos_dot_ydb__scheme__pb2.DescribePathRequest.FromString,
+                    response_serializer=protos_dot_ydb__scheme__pb2.DescribePathResponse.SerializeToString,
             ),
             'ModifyPermissions': grpc.unary_unary_rpc_method_handler(
                     servicer.ModifyPermissions,
-                    request_deserializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__scheme__pb2.ModifyPermissionsRequest.FromString,
-                    response_serializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__scheme__pb2.ModifyPermissionsResponse.SerializeToString,
+                    request_deserializer=protos_dot_ydb__scheme__pb2.ModifyPermissionsRequest.FromString,
+                    response_serializer=protos_dot_ydb__scheme__pb2.ModifyPermissionsResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -150,8 +150,8 @@ class SchemeService(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/Ydb.Scheme.V1.SchemeService/MakeDirectory',
-            ydb_dot_public_dot_api_dot_protos_dot_ydb__scheme__pb2.MakeDirectoryRequest.SerializeToString,
-            ydb_dot_public_dot_api_dot_protos_dot_ydb__scheme__pb2.MakeDirectoryResponse.FromString,
+            protos_dot_ydb__scheme__pb2.MakeDirectoryRequest.SerializeToString,
+            protos_dot_ydb__scheme__pb2.MakeDirectoryResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
@@ -167,8 +167,8 @@ class SchemeService(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/Ydb.Scheme.V1.SchemeService/RemoveDirectory',
-            ydb_dot_public_dot_api_dot_protos_dot_ydb__scheme__pb2.RemoveDirectoryRequest.SerializeToString,
-            ydb_dot_public_dot_api_dot_protos_dot_ydb__scheme__pb2.RemoveDirectoryResponse.FromString,
+            protos_dot_ydb__scheme__pb2.RemoveDirectoryRequest.SerializeToString,
+            protos_dot_ydb__scheme__pb2.RemoveDirectoryResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
@@ -184,8 +184,8 @@ class SchemeService(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/Ydb.Scheme.V1.SchemeService/ListDirectory',
-            ydb_dot_public_dot_api_dot_protos_dot_ydb__scheme__pb2.ListDirectoryRequest.SerializeToString,
-            ydb_dot_public_dot_api_dot_protos_dot_ydb__scheme__pb2.ListDirectoryResponse.FromString,
+            protos_dot_ydb__scheme__pb2.ListDirectoryRequest.SerializeToString,
+            protos_dot_ydb__scheme__pb2.ListDirectoryResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
@@ -201,8 +201,8 @@ class SchemeService(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/Ydb.Scheme.V1.SchemeService/DescribePath',
-            ydb_dot_public_dot_api_dot_protos_dot_ydb__scheme__pb2.DescribePathRequest.SerializeToString,
-            ydb_dot_public_dot_api_dot_protos_dot_ydb__scheme__pb2.DescribePathResponse.FromString,
+            protos_dot_ydb__scheme__pb2.DescribePathRequest.SerializeToString,
+            protos_dot_ydb__scheme__pb2.DescribePathResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
@@ -218,7 +218,7 @@ class SchemeService(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/Ydb.Scheme.V1.SchemeService/ModifyPermissions',
-            ydb_dot_public_dot_api_dot_protos_dot_ydb__scheme__pb2.ModifyPermissionsRequest.SerializeToString,
-            ydb_dot_public_dot_api_dot_protos_dot_ydb__scheme__pb2.ModifyPermissionsResponse.FromString,
+            protos_dot_ydb__scheme__pb2.ModifyPermissionsRequest.SerializeToString,
+            protos_dot_ydb__scheme__pb2.ModifyPermissionsResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)

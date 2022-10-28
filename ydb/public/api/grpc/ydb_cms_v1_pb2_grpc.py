@@ -2,7 +2,7 @@
 """Client and server classes corresponding to protobuf-defined services."""
 import grpc
 
-from ydb.public.api.protos import ydb_cms_pb2 as ydb_dot_public_dot_api_dot_protos_dot_ydb__cms__pb2
+from protos import ydb_cms_pb2 as protos_dot_ydb__cms__pb2
 
 
 class CmsServiceStub(object):
@@ -20,33 +20,33 @@ class CmsServiceStub(object):
         """
         self.CreateDatabase = channel.unary_unary(
                 '/Ydb.Cms.V1.CmsService/CreateDatabase',
-                request_serializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__cms__pb2.CreateDatabaseRequest.SerializeToString,
-                response_deserializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__cms__pb2.CreateDatabaseResponse.FromString,
+                request_serializer=protos_dot_ydb__cms__pb2.CreateDatabaseRequest.SerializeToString,
+                response_deserializer=protos_dot_ydb__cms__pb2.CreateDatabaseResponse.FromString,
                 )
         self.GetDatabaseStatus = channel.unary_unary(
                 '/Ydb.Cms.V1.CmsService/GetDatabaseStatus',
-                request_serializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__cms__pb2.GetDatabaseStatusRequest.SerializeToString,
-                response_deserializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__cms__pb2.GetDatabaseStatusResponse.FromString,
+                request_serializer=protos_dot_ydb__cms__pb2.GetDatabaseStatusRequest.SerializeToString,
+                response_deserializer=protos_dot_ydb__cms__pb2.GetDatabaseStatusResponse.FromString,
                 )
         self.AlterDatabase = channel.unary_unary(
                 '/Ydb.Cms.V1.CmsService/AlterDatabase',
-                request_serializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__cms__pb2.AlterDatabaseRequest.SerializeToString,
-                response_deserializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__cms__pb2.AlterDatabaseResponse.FromString,
+                request_serializer=protos_dot_ydb__cms__pb2.AlterDatabaseRequest.SerializeToString,
+                response_deserializer=protos_dot_ydb__cms__pb2.AlterDatabaseResponse.FromString,
                 )
         self.ListDatabases = channel.unary_unary(
                 '/Ydb.Cms.V1.CmsService/ListDatabases',
-                request_serializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__cms__pb2.ListDatabasesRequest.SerializeToString,
-                response_deserializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__cms__pb2.ListDatabasesResponse.FromString,
+                request_serializer=protos_dot_ydb__cms__pb2.ListDatabasesRequest.SerializeToString,
+                response_deserializer=protos_dot_ydb__cms__pb2.ListDatabasesResponse.FromString,
                 )
         self.RemoveDatabase = channel.unary_unary(
                 '/Ydb.Cms.V1.CmsService/RemoveDatabase',
-                request_serializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__cms__pb2.RemoveDatabaseRequest.SerializeToString,
-                response_deserializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__cms__pb2.RemoveDatabaseResponse.FromString,
+                request_serializer=protos_dot_ydb__cms__pb2.RemoveDatabaseRequest.SerializeToString,
+                response_deserializer=protos_dot_ydb__cms__pb2.RemoveDatabaseResponse.FromString,
                 )
         self.DescribeDatabaseOptions = channel.unary_unary(
                 '/Ydb.Cms.V1.CmsService/DescribeDatabaseOptions',
-                request_serializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__cms__pb2.DescribeDatabaseOptionsRequest.SerializeToString,
-                response_deserializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__cms__pb2.DescribeDatabaseOptionsResponse.FromString,
+                request_serializer=protos_dot_ydb__cms__pb2.DescribeDatabaseOptionsRequest.SerializeToString,
+                response_deserializer=protos_dot_ydb__cms__pb2.DescribeDatabaseOptionsResponse.FromString,
                 )
 
 
@@ -104,33 +104,33 @@ def add_CmsServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
             'CreateDatabase': grpc.unary_unary_rpc_method_handler(
                     servicer.CreateDatabase,
-                    request_deserializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__cms__pb2.CreateDatabaseRequest.FromString,
-                    response_serializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__cms__pb2.CreateDatabaseResponse.SerializeToString,
+                    request_deserializer=protos_dot_ydb__cms__pb2.CreateDatabaseRequest.FromString,
+                    response_serializer=protos_dot_ydb__cms__pb2.CreateDatabaseResponse.SerializeToString,
             ),
             'GetDatabaseStatus': grpc.unary_unary_rpc_method_handler(
                     servicer.GetDatabaseStatus,
-                    request_deserializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__cms__pb2.GetDatabaseStatusRequest.FromString,
-                    response_serializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__cms__pb2.GetDatabaseStatusResponse.SerializeToString,
+                    request_deserializer=protos_dot_ydb__cms__pb2.GetDatabaseStatusRequest.FromString,
+                    response_serializer=protos_dot_ydb__cms__pb2.GetDatabaseStatusResponse.SerializeToString,
             ),
             'AlterDatabase': grpc.unary_unary_rpc_method_handler(
                     servicer.AlterDatabase,
-                    request_deserializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__cms__pb2.AlterDatabaseRequest.FromString,
-                    response_serializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__cms__pb2.AlterDatabaseResponse.SerializeToString,
+                    request_deserializer=protos_dot_ydb__cms__pb2.AlterDatabaseRequest.FromString,
+                    response_serializer=protos_dot_ydb__cms__pb2.AlterDatabaseResponse.SerializeToString,
             ),
             'ListDatabases': grpc.unary_unary_rpc_method_handler(
                     servicer.ListDatabases,
-                    request_deserializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__cms__pb2.ListDatabasesRequest.FromString,
-                    response_serializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__cms__pb2.ListDatabasesResponse.SerializeToString,
+                    request_deserializer=protos_dot_ydb__cms__pb2.ListDatabasesRequest.FromString,
+                    response_serializer=protos_dot_ydb__cms__pb2.ListDatabasesResponse.SerializeToString,
             ),
             'RemoveDatabase': grpc.unary_unary_rpc_method_handler(
                     servicer.RemoveDatabase,
-                    request_deserializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__cms__pb2.RemoveDatabaseRequest.FromString,
-                    response_serializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__cms__pb2.RemoveDatabaseResponse.SerializeToString,
+                    request_deserializer=protos_dot_ydb__cms__pb2.RemoveDatabaseRequest.FromString,
+                    response_serializer=protos_dot_ydb__cms__pb2.RemoveDatabaseResponse.SerializeToString,
             ),
             'DescribeDatabaseOptions': grpc.unary_unary_rpc_method_handler(
                     servicer.DescribeDatabaseOptions,
-                    request_deserializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__cms__pb2.DescribeDatabaseOptionsRequest.FromString,
-                    response_serializer=ydb_dot_public_dot_api_dot_protos_dot_ydb__cms__pb2.DescribeDatabaseOptionsResponse.SerializeToString,
+                    request_deserializer=protos_dot_ydb__cms__pb2.DescribeDatabaseOptionsRequest.FromString,
+                    response_serializer=protos_dot_ydb__cms__pb2.DescribeDatabaseOptionsResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -158,8 +158,8 @@ class CmsService(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/Ydb.Cms.V1.CmsService/CreateDatabase',
-            ydb_dot_public_dot_api_dot_protos_dot_ydb__cms__pb2.CreateDatabaseRequest.SerializeToString,
-            ydb_dot_public_dot_api_dot_protos_dot_ydb__cms__pb2.CreateDatabaseResponse.FromString,
+            protos_dot_ydb__cms__pb2.CreateDatabaseRequest.SerializeToString,
+            protos_dot_ydb__cms__pb2.CreateDatabaseResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
@@ -175,8 +175,8 @@ class CmsService(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/Ydb.Cms.V1.CmsService/GetDatabaseStatus',
-            ydb_dot_public_dot_api_dot_protos_dot_ydb__cms__pb2.GetDatabaseStatusRequest.SerializeToString,
-            ydb_dot_public_dot_api_dot_protos_dot_ydb__cms__pb2.GetDatabaseStatusResponse.FromString,
+            protos_dot_ydb__cms__pb2.GetDatabaseStatusRequest.SerializeToString,
+            protos_dot_ydb__cms__pb2.GetDatabaseStatusResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
@@ -192,8 +192,8 @@ class CmsService(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/Ydb.Cms.V1.CmsService/AlterDatabase',
-            ydb_dot_public_dot_api_dot_protos_dot_ydb__cms__pb2.AlterDatabaseRequest.SerializeToString,
-            ydb_dot_public_dot_api_dot_protos_dot_ydb__cms__pb2.AlterDatabaseResponse.FromString,
+            protos_dot_ydb__cms__pb2.AlterDatabaseRequest.SerializeToString,
+            protos_dot_ydb__cms__pb2.AlterDatabaseResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
@@ -209,8 +209,8 @@ class CmsService(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/Ydb.Cms.V1.CmsService/ListDatabases',
-            ydb_dot_public_dot_api_dot_protos_dot_ydb__cms__pb2.ListDatabasesRequest.SerializeToString,
-            ydb_dot_public_dot_api_dot_protos_dot_ydb__cms__pb2.ListDatabasesResponse.FromString,
+            protos_dot_ydb__cms__pb2.ListDatabasesRequest.SerializeToString,
+            protos_dot_ydb__cms__pb2.ListDatabasesResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
@@ -226,8 +226,8 @@ class CmsService(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/Ydb.Cms.V1.CmsService/RemoveDatabase',
-            ydb_dot_public_dot_api_dot_protos_dot_ydb__cms__pb2.RemoveDatabaseRequest.SerializeToString,
-            ydb_dot_public_dot_api_dot_protos_dot_ydb__cms__pb2.RemoveDatabaseResponse.FromString,
+            protos_dot_ydb__cms__pb2.RemoveDatabaseRequest.SerializeToString,
+            protos_dot_ydb__cms__pb2.RemoveDatabaseResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
@@ -243,7 +243,7 @@ class CmsService(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/Ydb.Cms.V1.CmsService/DescribeDatabaseOptions',
-            ydb_dot_public_dot_api_dot_protos_dot_ydb__cms__pb2.DescribeDatabaseOptionsRequest.SerializeToString,
-            ydb_dot_public_dot_api_dot_protos_dot_ydb__cms__pb2.DescribeDatabaseOptionsResponse.FromString,
+            protos_dot_ydb__cms__pb2.DescribeDatabaseOptionsRequest.SerializeToString,
+            protos_dot_ydb__cms__pb2.DescribeDatabaseOptionsResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
