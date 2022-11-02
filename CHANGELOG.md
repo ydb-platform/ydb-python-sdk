@@ -1,3 +1,7 @@
+## 2.11.0 ##
+
+* removed unused experimental client from ydb python sdk.
+
 ## 2.10.0 ##
 
 * fixed double quoting issue in sqlalchemy
