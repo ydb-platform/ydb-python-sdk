@@ -5,7 +5,7 @@ This document has detailed instructions on how to build ydb-python-sdk from sour
 ### Pre-requisites
 
 - Install [Docker](https://docs.docker.com/engine/install/).
-- Install [Python 3.8](https://www.python.org/downloads/release/python-38/)
+- Install [Python](https://docs.python.org/3.8/)
 - Install [pip](https://pip.pypa.io/en/latest/installation/)
 - Install [Tox](https://tox.wiki/en/latest/install.html)
 
@@ -43,5 +43,5 @@ tox -eblack-format
 Use the command below to run unit tests.
 
 ```sh
-tox -epy310
+tox -epy38
 ```
