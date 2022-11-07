@@ -7,12 +7,12 @@ from grpc_tools import command
 
 
 def files_filter(dir, items: List[str]) -> List[str]:
-    ignored_dirs = ['protos', '.git']
+    ignored_names = ['.git']
 
     ignore = []
     for item in items:
         fullpath = os.path.join(dir, item)
-        if os.path.isdir(fullpath) and item not in ignored_dirs:
+        if os.path.isdir(fullpath) and item not in ignored_names:
             continue
         if item.endswith(".proto"):
             continue
@@ -32,12 +32,11 @@ def create_init_files(dir):
 
 def replace_protos_dir():
     def replace_dir(src, dst):
-        shutil.rmtree(dst)
+        shutil.rmtree(dst, ignore_errors=True)
         shutil.copytree(src, dst, ignore=files_filter)
         create_init_files(dst)
 
-    replace_dir("ydb-api-protos", "ydb/public/api/grpc")
-    replace_dir("ydb-api-protos/protos", "ydb/public/api/protos")
+    replace_dir("ydb-api-protos", "ydb/_grpc")
 
 
 def remove_protos():
@@ -49,5 +48,5 @@ def remove_protos():
 
 if __name__ == '__main__':
     replace_protos_dir()
-    command.build_package_protos('./ydb/public/api/')
-    remove_protos()
+    command.build_package_protos("ydb/_grpc")
+    # remove_protos()
