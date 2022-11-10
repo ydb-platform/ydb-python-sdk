@@ -398,3 +398,5 @@ _sym_db.RegisterMessage(WhoAmIResponse)
 
 DESCRIPTOR._options = None
 # @@protoc_insertion_point(module_scope)
+
+# flake8: noqa

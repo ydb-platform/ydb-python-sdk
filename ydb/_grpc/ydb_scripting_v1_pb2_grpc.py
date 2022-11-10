@@ -131,3 +131,5 @@ class ScriptingService(object):
             protos_dot_ydb__scripting__pb2.ExplainYqlResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+# flake8: noqa

@@ -99,3 +99,5 @@ class MonitoringService(object):
             protos_dot_ydb__monitoring__pb2.NodeCheckResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+# flake8: noqa

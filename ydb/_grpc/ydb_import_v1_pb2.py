@@ -67,3 +67,5 @@ _sym_db.RegisterServiceDescriptor(_IMPORTSERVICE)
 DESCRIPTOR.services_by_name['ImportService'] = _IMPORTSERVICE
 
 # @@protoc_insertion_point(module_scope)
+
+# flake8: noqa

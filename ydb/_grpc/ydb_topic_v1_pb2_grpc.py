@@ -285,3 +285,5 @@ class TopicService(object):
             protos_dot_ydb__topic__pb2.DropTopicResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+# flake8: noqa

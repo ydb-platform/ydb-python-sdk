@@ -6344,3 +6344,5 @@ _ADDREADRULEREQUEST.fields_by_name['path']._options = None
 _REMOVEREADRULEREQUEST.fields_by_name['path']._options = None
 _DESCRIBETOPICREQUEST.fields_by_name['path']._options = None
 # @@protoc_insertion_point(module_scope)
+
+# flake8: noqa

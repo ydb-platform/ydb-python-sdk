@@ -501,3 +501,5 @@ _sym_db.RegisterMessage(DiscoverClustersResult)
 
 DESCRIPTOR._options = None
 # @@protoc_insertion_point(module_scope)
+
+# flake8: noqa

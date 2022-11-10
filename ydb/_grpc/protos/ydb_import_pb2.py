@@ -726,3 +726,5 @@ _IMPORTFROMS3SETTINGS.fields_by_name['description']._options = None
 _IMPORTFROMS3REQUEST.fields_by_name['settings']._options = None
 _IMPORTDATAREQUEST.fields_by_name['data']._options = None
 # @@protoc_insertion_point(module_scope)
+
+# flake8: noqa

@@ -215,3 +215,5 @@ class OperationService(object):
             protos_dot_ydb__operation__pb2.ListOperationsResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+# flake8: noqa

@@ -208,3 +208,5 @@ class CoordinationService(object):
             protos_dot_ydb__coordination__pb2.DescribeNodeResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+# flake8: noqa

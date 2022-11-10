@@ -578,3 +578,5 @@ DESCRIPTOR._options = None
 _EXECUTEYQLREQUEST_PARAMETERSENTRY._options = None
 _EXPLAINYQLRESULT_PARAMETERSTYPESENTRY._options = None
 # @@protoc_insertion_point(module_scope)
+
+# flake8: noqa

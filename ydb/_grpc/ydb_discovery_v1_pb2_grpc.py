@@ -97,3 +97,5 @@ class DiscoveryService(object):
             protos_dot_ydb__discovery__pb2.WhoAmIResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+# flake8: noqa

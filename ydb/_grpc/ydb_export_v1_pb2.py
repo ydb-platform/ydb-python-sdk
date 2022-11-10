@@ -67,3 +67,5 @@ _sym_db.RegisterServiceDescriptor(_EXPORTSERVICE)
 DESCRIPTOR.services_by_name['ExportService'] = _EXPORTSERVICE
 
 # @@protoc_insertion_point(module_scope)
+
+# flake8: noqa

@@ -67,3 +67,5 @@ _sym_db.RegisterServiceDescriptor(_DISCOVERYSERVICE)
 DESCRIPTOR.services_by_name['DiscoveryService'] = _DISCOVERYSERVICE
 
 # @@protoc_insertion_point(module_scope)
+
+# flake8: noqa

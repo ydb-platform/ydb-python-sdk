@@ -134,3 +134,5 @@ _sym_db.RegisterMessage(CostInfo)
 
 DESCRIPTOR._options = None
 # @@protoc_insertion_point(module_scope)
+
+# flake8: noqa

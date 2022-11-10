@@ -107,3 +107,5 @@ _sym_db.RegisterServiceDescriptor(_CMSSERVICE)
 DESCRIPTOR.services_by_name['CmsService'] = _CMSSERVICE
 
 # @@protoc_insertion_point(module_scope)
+
+# flake8: noqa

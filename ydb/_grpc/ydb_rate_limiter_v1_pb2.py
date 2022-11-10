@@ -107,3 +107,5 @@ _sym_db.RegisterServiceDescriptor(_RATELIMITERSERVICE)
 DESCRIPTOR.services_by_name['RateLimiterService'] = _RATELIMITERSERVICE
 
 # @@protoc_insertion_point(module_scope)
+
+# flake8: noqa

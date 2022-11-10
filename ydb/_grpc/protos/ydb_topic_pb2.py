@@ -3754,3 +3754,5 @@ _ALTERTOPICREQUEST.fields_by_name['add_consumers']._options = None
 _ALTERTOPICREQUEST.fields_by_name['drop_consumers']._options = None
 _ALTERTOPICREQUEST.fields_by_name['alter_consumers']._options = None
 # @@protoc_insertion_point(module_scope)
+
+# flake8: noqa

@@ -922,3 +922,5 @@ _EXPORTTOS3SETTINGS.fields_by_name['items']._options = None
 _EXPORTTOS3SETTINGS.fields_by_name['description']._options = None
 _EXPORTTOS3REQUEST.fields_by_name['settings']._options = None
 # @@protoc_insertion_point(module_scope)
+
+# flake8: noqa

@@ -250,3 +250,5 @@ class RateLimiterService(object):
             protos_dot_ydb__rate__limiter__pb2.AcquireResourceResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+# flake8: noqa

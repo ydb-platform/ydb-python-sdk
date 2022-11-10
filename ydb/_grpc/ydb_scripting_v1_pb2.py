@@ -77,3 +77,5 @@ _sym_db.RegisterServiceDescriptor(_SCRIPTINGSERVICE)
 DESCRIPTOR.services_by_name['ScriptingService'] = _SCRIPTINGSERVICE
 
 # @@protoc_insertion_point(module_scope)
+
+# flake8: noqa

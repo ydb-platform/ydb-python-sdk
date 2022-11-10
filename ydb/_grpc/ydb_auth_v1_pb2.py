@@ -57,3 +57,5 @@ _sym_db.RegisterServiceDescriptor(_AUTHSERVICE)
 DESCRIPTOR.services_by_name['AuthService'] = _AUTHSERVICE
 
 # @@protoc_insertion_point(module_scope)
+
+# flake8: noqa

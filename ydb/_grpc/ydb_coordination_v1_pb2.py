@@ -97,3 +97,5 @@ _sym_db.RegisterServiceDescriptor(_COORDINATIONSERVICE)
 DESCRIPTOR.services_by_name['CoordinationService'] = _COORDINATIONSERVICE
 
 # @@protoc_insertion_point(module_scope)
+
+# flake8: noqa

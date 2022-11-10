@@ -164,3 +164,5 @@ _sym_db.RegisterServiceDescriptor(_CLUSTERDISCOVERYSERVICE)
 DESCRIPTOR.services_by_name['ClusterDiscoveryService'] = _CLUSTERDISCOVERYSERVICE
 
 # @@protoc_insertion_point(module_scope)
+
+# flake8: noqa

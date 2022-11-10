@@ -18,8 +18,6 @@ def files_filter(dir, items: List[str]) -> List[str]:
             continue
         ignore.append(item)
 
-    print("items: ", items)
-    print("ignore: ", ignore)
     return ignore
 
 
@@ -38,6 +36,8 @@ def remove_protos(rootdirpath: str):
 
 
 def fiximports(rootdir: str):
+    flake_ignore_line = "# flake8: " + "noqa" # prevent ignore the file
+
     for dirpath, _, fnames in os.walk(rootdir):
         for fname in fnames:
             if not fname.endswith(".py"):
@@ -46,6 +46,7 @@ def fiximports(rootdir: str):
             with open(os.path.join(dirpath, fname), 'r+t') as f:
                 content = f.read()
                 content = content.replace("from protos", "from ydb._grpc.protos")
+                content += "\n" + flake_ignore_line + "\n"
                 f.seek(0)
                 f.write(content)
 

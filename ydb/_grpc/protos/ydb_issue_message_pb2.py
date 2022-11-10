@@ -161,3 +161,5 @@ _sym_db.RegisterMessage(IssueMessage.Position)
 
 DESCRIPTOR._options = None
 # @@protoc_insertion_point(module_scope)
+
+# flake8: noqa

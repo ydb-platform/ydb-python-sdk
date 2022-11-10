@@ -658,3 +658,5 @@ _CANCELOPERATIONREQUEST.fields_by_name['id']._options = None
 _FORGETOPERATIONREQUEST.fields_by_name['id']._options = None
 _LISTOPERATIONSREQUEST.fields_by_name['kind']._options = None
 # @@protoc_insertion_point(module_scope)
+
+# flake8: noqa

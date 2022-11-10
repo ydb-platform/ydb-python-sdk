@@ -97,3 +97,5 @@ _sym_db.RegisterServiceDescriptor(_SCHEMESERVICE)
 DESCRIPTOR.services_by_name['SchemeService'] = _SCHEMESERVICE
 
 # @@protoc_insertion_point(module_scope)
+
+# flake8: noqa

@@ -257,3 +257,5 @@ _sym_db.RegisterServiceDescriptor(_TABLESERVICE)
 DESCRIPTOR.services_by_name['TableService'] = _TABLESERVICE
 
 # @@protoc_insertion_point(module_scope)
+
+# flake8: noqa

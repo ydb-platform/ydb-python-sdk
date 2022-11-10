@@ -67,3 +67,5 @@ _sym_db.RegisterServiceDescriptor(_MONITORINGSERVICE)
 DESCRIPTOR.services_by_name['MonitoringService'] = _MONITORINGSERVICE
 
 # @@protoc_insertion_point(module_scope)
+
+# flake8: noqa
