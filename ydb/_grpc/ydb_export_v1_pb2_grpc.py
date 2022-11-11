@@ -101,5 +101,3 @@ class ExportService(object):
             protos_dot_ydb__export__pb2.ExportToS3Response.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
-
-# flake8: noqa

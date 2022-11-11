@@ -457,5 +457,3 @@ class ClusterDiscoveryService(object):
             protos_dot_ydb__persqueue__cluster__discovery__pb2.DiscoverClustersResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
-
-# flake8: noqa

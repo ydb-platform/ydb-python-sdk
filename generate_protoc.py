@@ -35,8 +35,8 @@ def remove_protos(rootdirpath: str):
                 os.remove(os.path.join(root, file))
 
 
-def fiximports(rootdir: str):
-    flake_ignore_line = "# flake8: " + "noqa" # prevent ignore the file
+def fix_file_contents(rootdir: str):
+    flake_ignore_line = "# flake8: " + "noqa"  # prevent ignore the file
 
     for dirpath, _, fnames in os.walk(rootdir):
         for fname in fnames:
@@ -45,8 +45,12 @@ def fiximports(rootdir: str):
 
             with open(os.path.join(dirpath, fname), 'r+t') as f:
                 content = f.read()
+
+                # Fix imports
                 content = content.replace("from protos", "from ydb._grpc.protos")
-                content += "\n" + flake_ignore_line + "\n"
+
+                # Add ignore style check
+                content = content.replace("# -*- coding: utf-8 -*-", "# -*- coding: utf-8 -*-\n" + flake_ignore_line)
                 f.seek(0)
                 f.write(content)
 
@@ -59,7 +63,7 @@ def generate_protobuf(src_proto_dir: str, dst_dir: str):
 
     command.build_package_protos(dst_dir)
     remove_protos(dst_dir)
-    fiximports(dst_dir)
+    fix_file_contents(dst_dir)
 
 
 if __name__ == '__main__':
