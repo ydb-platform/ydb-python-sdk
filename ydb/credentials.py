@@ -7,8 +7,8 @@ import threading
 from concurrent import futures
 import logging
 import time
-from ydb.public.api.protos import ydb_auth_pb2
-from ydb.public.api.grpc import ydb_auth_v1_pb2_grpc
+from ydb._grpc.protos import ydb_auth_pb2
+from ydb._grpc import ydb_auth_v1_pb2_grpc
 
 
 YDB_AUTH_TICKET_HEADER = "x-ydb-auth-ticket"

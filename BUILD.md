@@ -45,3 +45,11 @@ Use the command below to run unit tests.
 ```sh
 tox -epy38
 ```
+
+### Regenerate protobuf
+
+Use the command below for regenerate protobuf code.
+
+```sh
+make protobuf
+```
