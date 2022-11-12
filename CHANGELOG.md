@@ -1,3 +1,6 @@
+* Regenerate protobuf code from public api protos (some private protobufs was removed)
+* Remove internal S3 client code
+
 ## 2.11.0 ##
 
 * removed unused experimental client from ydb python sdk.
