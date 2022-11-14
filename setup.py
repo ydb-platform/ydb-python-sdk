@@ -24,7 +24,7 @@ setuptools.setup(
         "Programming Language :: Python :: 3.6",
     ],
     install_requires=(
-        "protobuf>=3.13.0,<4.0.0",
+        "protobuf>=3.13.0",
         "grpcio>=1.5.0",
         "enum-compat>=0.0.1",
     ),

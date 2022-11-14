@@ -1,20 +1,20 @@
 # -*- coding: utf-8 -*-
-from ydb._grpc import (
+from ydb._grpc.common import (
     ydb_cms_v1_pb2_grpc,
     ydb_discovery_v1_pb2_grpc,
     ydb_scheme_v1_pb2_grpc,
     ydb_table_v1_pb2_grpc,
 )
-from ydb._grpc.protos import (
+from ydb._grpc.common.protos import (
     ydb_status_codes_pb2,
     ydb_discovery_pb2,
     ydb_scheme_pb2,
     ydb_table_pb2,
     ydb_value_pb2,
 )
-from ydb._grpc.protos import ydb_operation_pb2
-from ydb._grpc.protos import ydb_common_pb2
-from ydb._grpc import ydb_operation_v1_pb2_grpc
+from ydb._grpc.common.protos import ydb_operation_pb2
+from ydb._grpc.common.protos import ydb_common_pb2
+from ydb._grpc.common import ydb_operation_v1_pb2_grpc
 
 
 StatusIds = ydb_status_codes_pb2.StatusIds

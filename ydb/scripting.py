@@ -1,5 +1,5 @@
-from ydb._grpc.protos import ydb_scripting_pb2
-from ydb._grpc import ydb_scripting_v1_pb2_grpc
+from ydb._grpc.common.protos import ydb_scripting_pb2
+from ydb._grpc.common import ydb_scripting_v1_pb2_grpc
 from . import issues, convert, settings
 
 
