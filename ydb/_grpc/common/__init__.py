@@ -1,14 +1,14 @@
 import sys
 
 import google.protobuf
-from distutils.version import LooseVersion
+from packaging.version import Version
 
 # generated files are incompatible between 3 and 4 protobuf versions
 # import right generated version for current protobuf lib
 # sdk code must always import from ydb._grpc.common
-protobuf_version = LooseVersion(google.protobuf.__version__)
+protobuf_version = Version(google.protobuf.__version__)
 
-if protobuf_version < LooseVersion("4.0"):
+if protobuf_version < Version("4.0"):
     from ydb._grpc.v3 import * # noqa
     from ydb._grpc.v3 import protos # noqa
     sys.modules["ydb._grpc.common"] = sys.modules["ydb._grpc.v3"]
