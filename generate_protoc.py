@@ -1,7 +1,9 @@
 import os
 import pathlib
 import shutil
+
 from typing import List
+from argparse import ArgumentParser
 
 from grpc_tools import command
 
@@ -35,8 +37,9 @@ def remove_protos(rootdirpath: str):
                 os.remove(os.path.join(root, file))
 
 
-def fix_file_contents(rootdir: str):
+def fix_file_contents(rootdir, protobuf_version: str):
     flake_ignore_line = "# flake8: " + "noqa"  # prevent ignore the file
+    package_path = "ydb._grpc." + protobuf_version + ".protos"
 
     for dirpath, _, fnames in os.walk(rootdir):
         for fname in fnames:
@@ -47,7 +50,7 @@ def fix_file_contents(rootdir: str):
                 content = f.read()
 
                 # Fix imports
-                content = content.replace("from protos", "from ydb._grpc.protos")
+                content = content.replace("from protos", "from " + package_path)
 
                 # Add ignore style check
                 content = content.replace("# -*- coding: utf-8 -*-", "# -*- coding: utf-8 -*-\n" + flake_ignore_line)
@@ -55,16 +58,22 @@ def fix_file_contents(rootdir: str):
                 f.write(content)
 
 
-def generate_protobuf(src_proto_dir: str, dst_dir: str):
+def generate_protobuf(src_proto_dir: str, dst_dir, protobuf_version: str):
     shutil.rmtree(dst_dir, ignore_errors=True)
 
     shutil.copytree(src_proto_dir, dst_dir, ignore=files_filter)
-    create_init_files(dst_dir)
 
     command.build_package_protos(dst_dir)
     remove_protos(dst_dir)
-    fix_file_contents(dst_dir)
+    create_init_files(dst_dir)
+    fix_file_contents(dst_dir, protobuf_version)
 
 
 if __name__ == '__main__':
-    generate_protobuf("ydb-api-protos", "ydb/_grpc")
+    parser = ArgumentParser()
+    parser.add_argument("--target-version", default="v4", help="Protobuf version")
+
+    args = parser.parse_args()
+
+    target_dir = "ydb/_grpc/" + args.target_version
+    generate_protobuf("ydb-api-protos", target_dir, args.target_version)
