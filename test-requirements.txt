@@ -1,7 +1,7 @@
 attrs==21.2.0
 bcrypt==3.2.0
 cached-property==1.5.2
-certifi==2021.5.30
+certifi==2022.12.7
 cffi==1.14.6
 charset-normalizer==2.0.1
 cryptography==3.4.7
