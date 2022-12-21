@@ -60,6 +60,11 @@ class TokenServiceCredentials(AbstractExpiringTokenCredentials):
             return {"access_token": response.iam_token, "expires_in": expires_in}
 
 
+# IamTokenCredentials need for backward compatibility
+# Deprecated
+IamTokenCredentials = TokenServiceCredentials
+
+
 class JWTIamCredentials(TokenServiceCredentials, auth.BaseJWTCredentials):
     def __init__(
         self,
