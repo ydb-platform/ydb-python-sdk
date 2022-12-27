@@ -2,8 +2,7 @@ name: Functional tests
 
 on:
   push:
-    - master
-  pull_request: []
+  pull_request:
 
 jobs:
   build:
