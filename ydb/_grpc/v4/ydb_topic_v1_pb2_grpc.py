@@ -34,6 +34,11 @@ class TopicServiceStub(object):
                 request_serializer=protos_dot_ydb__topic__pb2.DescribeTopicRequest.SerializeToString,
                 response_deserializer=protos_dot_ydb__topic__pb2.DescribeTopicResponse.FromString,
                 )
+        self.DescribeConsumer = channel.unary_unary(
+                '/Ydb.Topic.V1.TopicService/DescribeConsumer',
+                request_serializer=protos_dot_ydb__topic__pb2.DescribeConsumerRequest.SerializeToString,
+                response_deserializer=protos_dot_ydb__topic__pb2.DescribeConsumerResponse.FromString,
+                )
         self.AlterTopic = channel.unary_unary(
                 '/Ydb.Topic.V1.TopicService/AlterTopic',
                 request_serializer=protos_dot_ydb__topic__pb2.AlterTopicRequest.SerializeToString,
@@ -127,6 +132,13 @@ class TopicServiceServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def DescribeConsumer(self, request, context):
+        """Describe topic's consumer command.
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
     def AlterTopic(self, request, context):
         """Alter topic command.
         """
@@ -163,6 +175,11 @@ def add_TopicServiceServicer_to_server(servicer, server):
                     servicer.DescribeTopic,
                     request_deserializer=protos_dot_ydb__topic__pb2.DescribeTopicRequest.FromString,
                     response_serializer=protos_dot_ydb__topic__pb2.DescribeTopicResponse.SerializeToString,
+            ),
+            'DescribeConsumer': grpc.unary_unary_rpc_method_handler(
+                    servicer.DescribeConsumer,
+                    request_deserializer=protos_dot_ydb__topic__pb2.DescribeConsumerRequest.FromString,
+                    response_serializer=protos_dot_ydb__topic__pb2.DescribeConsumerResponse.SerializeToString,
             ),
             'AlterTopic': grpc.unary_unary_rpc_method_handler(
                     servicer.AlterTopic,
@@ -249,6 +266,23 @@ class TopicService(object):
         return grpc.experimental.unary_unary(request, target, '/Ydb.Topic.V1.TopicService/DescribeTopic',
             protos_dot_ydb__topic__pb2.DescribeTopicRequest.SerializeToString,
             protos_dot_ydb__topic__pb2.DescribeTopicResponse.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def DescribeConsumer(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/Ydb.Topic.V1.TopicService/DescribeConsumer',
+            protos_dot_ydb__topic__pb2.DescribeConsumerRequest.SerializeToString,
+            protos_dot_ydb__topic__pb2.DescribeConsumerResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 

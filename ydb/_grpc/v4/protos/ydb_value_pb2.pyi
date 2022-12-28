@@ -43,6 +43,16 @@ class OptionalType(_message.Message):
     item: Type
     def __init__(self, item: _Optional[_Union[Type, _Mapping]] = ...) -> None: ...
 
+class PgType(_message.Message):
+    __slots__ = ["oid", "typlen", "typmod"]
+    OID_FIELD_NUMBER: _ClassVar[int]
+    TYPLEN_FIELD_NUMBER: _ClassVar[int]
+    TYPMOD_FIELD_NUMBER: _ClassVar[int]
+    oid: int
+    typlen: int
+    typmod: int
+    def __init__(self, oid: _Optional[int] = ..., typlen: _Optional[int] = ..., typmod: _Optional[int] = ...) -> None: ...
+
 class ResultSet(_message.Message):
     __slots__ = ["columns", "rows", "truncated"]
     COLUMNS_FIELD_NUMBER: _ClassVar[int]
@@ -82,7 +92,7 @@ class TupleType(_message.Message):
     def __init__(self, elements: _Optional[_Iterable[_Union[Type, _Mapping]]] = ...) -> None: ...
 
 class Type(_message.Message):
-    __slots__ = ["decimal_type", "dict_type", "empty_dict_type", "empty_list_type", "list_type", "null_type", "optional_type", "struct_type", "tagged_type", "tuple_type", "type_id", "variant_type", "void_type"]
+    __slots__ = ["decimal_type", "dict_type", "empty_dict_type", "empty_list_type", "list_type", "null_type", "optional_type", "pg_type", "struct_type", "tagged_type", "tuple_type", "type_id", "variant_type", "void_type"]
     class PrimitiveTypeId(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
         __slots__ = []
     BOOL: Type.PrimitiveTypeId
@@ -105,6 +115,7 @@ class Type(_message.Message):
     LIST_TYPE_FIELD_NUMBER: _ClassVar[int]
     NULL_TYPE_FIELD_NUMBER: _ClassVar[int]
     OPTIONAL_TYPE_FIELD_NUMBER: _ClassVar[int]
+    PG_TYPE_FIELD_NUMBER: _ClassVar[int]
     PRIMITIVE_TYPE_ID_UNSPECIFIED: Type.PrimitiveTypeId
     STRING: Type.PrimitiveTypeId
     STRUCT_TYPE_FIELD_NUMBER: _ClassVar[int]
@@ -131,13 +142,14 @@ class Type(_message.Message):
     list_type: ListType
     null_type: _struct_pb2.NullValue
     optional_type: OptionalType
+    pg_type: PgType
     struct_type: StructType
     tagged_type: TaggedType
     tuple_type: TupleType
     type_id: Type.PrimitiveTypeId
     variant_type: VariantType
     void_type: _struct_pb2.NullValue
-    def __init__(self, type_id: _Optional[_Union[Type.PrimitiveTypeId, str]] = ..., decimal_type: _Optional[_Union[DecimalType, _Mapping]] = ..., optional_type: _Optional[_Union[OptionalType, _Mapping]] = ..., list_type: _Optional[_Union[ListType, _Mapping]] = ..., tuple_type: _Optional[_Union[TupleType, _Mapping]] = ..., struct_type: _Optional[_Union[StructType, _Mapping]] = ..., dict_type: _Optional[_Union[DictType, _Mapping]] = ..., variant_type: _Optional[_Union[VariantType, _Mapping]] = ..., tagged_type: _Optional[_Union[TaggedType, _Mapping]] = ..., void_type: _Optional[_Union[_struct_pb2.NullValue, str]] = ..., null_type: _Optional[_Union[_struct_pb2.NullValue, str]] = ..., empty_list_type: _Optional[_Union[_struct_pb2.NullValue, str]] = ..., empty_dict_type: _Optional[_Union[_struct_pb2.NullValue, str]] = ...) -> None: ...
+    def __init__(self, type_id: _Optional[_Union[Type.PrimitiveTypeId, str]] = ..., decimal_type: _Optional[_Union[DecimalType, _Mapping]] = ..., optional_type: _Optional[_Union[OptionalType, _Mapping]] = ..., list_type: _Optional[_Union[ListType, _Mapping]] = ..., tuple_type: _Optional[_Union[TupleType, _Mapping]] = ..., struct_type: _Optional[_Union[StructType, _Mapping]] = ..., dict_type: _Optional[_Union[DictType, _Mapping]] = ..., variant_type: _Optional[_Union[VariantType, _Mapping]] = ..., tagged_type: _Optional[_Union[TaggedType, _Mapping]] = ..., void_type: _Optional[_Union[_struct_pb2.NullValue, str]] = ..., null_type: _Optional[_Union[_struct_pb2.NullValue, str]] = ..., empty_list_type: _Optional[_Union[_struct_pb2.NullValue, str]] = ..., empty_dict_type: _Optional[_Union[_struct_pb2.NullValue, str]] = ..., pg_type: _Optional[_Union[PgType, _Mapping]] = ...) -> None: ...
 
 class TypedValue(_message.Message):
     __slots__ = ["type", "value"]

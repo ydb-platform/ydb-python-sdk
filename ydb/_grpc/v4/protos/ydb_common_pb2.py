@@ -14,7 +14,7 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x17protos/ydb_common.proto\x12\x03Ydb\"J\n\x0b\x46\x65\x61tureFlag\";\n\x06Status\x12\x16\n\x12STATUS_UNSPECIFIED\x10\x00\x12\x0b\n\x07\x45NABLED\x10\x01\x12\x0c\n\x08\x44ISABLED\x10\x02\"\"\n\x08\x43ostInfo\x12\x16\n\x0e\x63onsumed_units\x18\x01 \x01(\x01\x42V\n\x0ftech.ydb.commonB\x0c\x43ommonProtosZ2github.com/ydb-platform/ydb-go-genproto/protos/Ydb\xf8\x01\x01\x62\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x17protos/ydb_common.proto\x12\x03Ydb\"J\n\x0b\x46\x65\x61tureFlag\";\n\x06Status\x12\x16\n\x12STATUS_UNSPECIFIED\x10\x00\x12\x0b\n\x07\x45NABLED\x10\x01\x12\x0c\n\x08\x44ISABLED\x10\x02\"\"\n\x08\x43ostInfo\x12\x16\n\x0e\x63onsumed_units\x18\x01 \x01(\x01\"\x1d\n\rQuotaExceeded\x12\x0c\n\x04\x64isk\x18\x01 \x01(\x08\"4\n\x10VirtualTimestamp\x12\x11\n\tplan_step\x18\x01 \x01(\x04\x12\r\n\x05tx_id\x18\x02 \x01(\x04\x42V\n\x0ftech.ydb.commonB\x0c\x43ommonProtosZ2github.com/ydb-platform/ydb-go-genproto/protos/Ydb\xf8\x01\x01\x62\x06proto3')
 
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, globals())
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'protos.ydb_common_pb2', globals())
@@ -28,4 +28,8 @@ if _descriptor._USE_C_DESCRIPTORS == False:
   _FEATUREFLAG_STATUS._serialized_end=106
   _COSTINFO._serialized_start=108
   _COSTINFO._serialized_end=142
+  _QUOTAEXCEEDED._serialized_start=144
+  _QUOTAEXCEEDED._serialized_end=173
+  _VIRTUALTIMESTAMP._serialized_start=175
+  _VIRTUALTIMESTAMP._serialized_end=227
 # @@protoc_insertion_point(module_scope)

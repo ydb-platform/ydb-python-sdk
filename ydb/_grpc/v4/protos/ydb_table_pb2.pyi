@@ -8,6 +8,7 @@ from protos import ydb_scheme_pb2 as _ydb_scheme_pb2
 from protos import ydb_status_codes_pb2 as _ydb_status_codes_pb2
 from protos import ydb_formats_pb2 as _ydb_formats_pb2
 from google.protobuf import empty_pb2 as _empty_pb2
+from google.protobuf import duration_pb2 as _duration_pb2
 from google.protobuf import timestamp_pb2 as _timestamp_pb2
 from google.protobuf.internal import containers as _containers
 from google.protobuf.internal import enum_type_wrapper as _enum_type_wrapper
@@ -154,17 +155,21 @@ class CachingPolicyDescription(_message.Message):
     def __init__(self, name: _Optional[str] = ..., labels: _Optional[_Mapping[str, str]] = ...) -> None: ...
 
 class Changefeed(_message.Message):
-    __slots__ = ["format", "mode", "name"]
+    __slots__ = ["format", "mode", "name", "retention_period", "virtual_timestamps"]
     FORMAT_FIELD_NUMBER: _ClassVar[int]
     MODE_FIELD_NUMBER: _ClassVar[int]
     NAME_FIELD_NUMBER: _ClassVar[int]
+    RETENTION_PERIOD_FIELD_NUMBER: _ClassVar[int]
+    VIRTUAL_TIMESTAMPS_FIELD_NUMBER: _ClassVar[int]
     format: ChangefeedFormat.Format
     mode: ChangefeedMode.Mode
     name: str
-    def __init__(self, name: _Optional[str] = ..., mode: _Optional[_Union[ChangefeedMode.Mode, str]] = ..., format: _Optional[_Union[ChangefeedFormat.Format, str]] = ...) -> None: ...
+    retention_period: _duration_pb2.Duration
+    virtual_timestamps: bool
+    def __init__(self, name: _Optional[str] = ..., mode: _Optional[_Union[ChangefeedMode.Mode, str]] = ..., format: _Optional[_Union[ChangefeedFormat.Format, str]] = ..., retention_period: _Optional[_Union[_duration_pb2.Duration, _Mapping]] = ..., virtual_timestamps: bool = ...) -> None: ...
 
 class ChangefeedDescription(_message.Message):
-    __slots__ = ["format", "mode", "name", "state"]
+    __slots__ = ["format", "mode", "name", "state", "virtual_timestamps"]
     class State(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
         __slots__ = []
     FORMAT_FIELD_NUMBER: _ClassVar[int]
@@ -174,11 +179,13 @@ class ChangefeedDescription(_message.Message):
     STATE_ENABLED: ChangefeedDescription.State
     STATE_FIELD_NUMBER: _ClassVar[int]
     STATE_UNSPECIFIED: ChangefeedDescription.State
+    VIRTUAL_TIMESTAMPS_FIELD_NUMBER: _ClassVar[int]
     format: ChangefeedFormat.Format
     mode: ChangefeedMode.Mode
     name: str
     state: ChangefeedDescription.State
-    def __init__(self, name: _Optional[str] = ..., mode: _Optional[_Union[ChangefeedMode.Mode, str]] = ..., format: _Optional[_Union[ChangefeedFormat.Format, str]] = ..., state: _Optional[_Union[ChangefeedDescription.State, str]] = ...) -> None: ...
+    virtual_timestamps: bool
+    def __init__(self, name: _Optional[str] = ..., mode: _Optional[_Union[ChangefeedMode.Mode, str]] = ..., format: _Optional[_Union[ChangefeedFormat.Format, str]] = ..., state: _Optional[_Union[ChangefeedDescription.State, str]] = ..., virtual_timestamps: bool = ...) -> None: ...
 
 class ChangefeedFormat(_message.Message):
     __slots__ = []
@@ -817,18 +824,20 @@ class PartitioningPolicyDescription(_message.Message):
     def __init__(self, name: _Optional[str] = ..., labels: _Optional[_Mapping[str, str]] = ...) -> None: ...
 
 class PartitioningSettings(_message.Message):
-    __slots__ = ["max_partitions_count", "min_partitions_count", "partition_size_mb", "partitioning_by_load", "partitioning_by_size"]
+    __slots__ = ["max_partitions_count", "min_partitions_count", "partition_by", "partition_size_mb", "partitioning_by_load", "partitioning_by_size"]
     MAX_PARTITIONS_COUNT_FIELD_NUMBER: _ClassVar[int]
     MIN_PARTITIONS_COUNT_FIELD_NUMBER: _ClassVar[int]
     PARTITIONING_BY_LOAD_FIELD_NUMBER: _ClassVar[int]
     PARTITIONING_BY_SIZE_FIELD_NUMBER: _ClassVar[int]
+    PARTITION_BY_FIELD_NUMBER: _ClassVar[int]
     PARTITION_SIZE_MB_FIELD_NUMBER: _ClassVar[int]
     max_partitions_count: int
     min_partitions_count: int
+    partition_by: _containers.RepeatedScalarFieldContainer[str]
     partition_size_mb: int
     partitioning_by_load: _ydb_common_pb2.FeatureFlag.Status
     partitioning_by_size: _ydb_common_pb2.FeatureFlag.Status
-    def __init__(self, partitioning_by_size: _Optional[_Union[_ydb_common_pb2.FeatureFlag.Status, str]] = ..., partition_size_mb: _Optional[int] = ..., partitioning_by_load: _Optional[_Union[_ydb_common_pb2.FeatureFlag.Status, str]] = ..., min_partitions_count: _Optional[int] = ..., max_partitions_count: _Optional[int] = ...) -> None: ...
+    def __init__(self, partition_by: _Optional[_Iterable[str]] = ..., partitioning_by_size: _Optional[_Union[_ydb_common_pb2.FeatureFlag.Status, str]] = ..., partition_size_mb: _Optional[int] = ..., partitioning_by_load: _Optional[_Union[_ydb_common_pb2.FeatureFlag.Status, str]] = ..., min_partitions_count: _Optional[int] = ..., max_partitions_count: _Optional[int] = ...) -> None: ...
 
 class PrepareDataQueryRequest(_message.Message):
     __slots__ = ["operation_params", "session_id", "yql_text"]
@@ -928,14 +937,16 @@ class ReadTableRequest(_message.Message):
     def __init__(self, session_id: _Optional[str] = ..., path: _Optional[str] = ..., key_range: _Optional[_Union[KeyRange, _Mapping]] = ..., columns: _Optional[_Iterable[str]] = ..., ordered: bool = ..., row_limit: _Optional[int] = ..., use_snapshot: _Optional[_Union[_ydb_common_pb2.FeatureFlag.Status, str]] = ...) -> None: ...
 
 class ReadTableResponse(_message.Message):
-    __slots__ = ["issues", "result", "status"]
+    __slots__ = ["issues", "result", "snapshot", "status"]
     ISSUES_FIELD_NUMBER: _ClassVar[int]
     RESULT_FIELD_NUMBER: _ClassVar[int]
+    SNAPSHOT_FIELD_NUMBER: _ClassVar[int]
     STATUS_FIELD_NUMBER: _ClassVar[int]
     issues: _containers.RepeatedCompositeFieldContainer[_ydb_issue_message_pb2.IssueMessage]
     result: ReadTableResult
+    snapshot: _ydb_common_pb2.VirtualTimestamp
     status: _ydb_status_codes_pb2.StatusIds.StatusCode
-    def __init__(self, status: _Optional[_Union[_ydb_status_codes_pb2.StatusIds.StatusCode, str]] = ..., issues: _Optional[_Iterable[_Union[_ydb_issue_message_pb2.IssueMessage, _Mapping]]] = ..., result: _Optional[_Union[ReadTableResult, _Mapping]] = ...) -> None: ...
+    def __init__(self, status: _Optional[_Union[_ydb_status_codes_pb2.StatusIds.StatusCode, str]] = ..., issues: _Optional[_Iterable[_Union[_ydb_issue_message_pb2.IssueMessage, _Mapping]]] = ..., snapshot: _Optional[_Union[_ydb_common_pb2.VirtualTimestamp, _Mapping]] = ..., result: _Optional[_Union[ReadTableResult, _Mapping]] = ...) -> None: ...
 
 class ReadTableResult(_message.Message):
     __slots__ = ["result_set"]
