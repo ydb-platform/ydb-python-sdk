@@ -58,22 +58,26 @@ class DatabaseStatus(_message.Message):
     def __init__(self, name: _Optional[str] = ..., overall: _Optional[_Union[StatusFlag.Status, str]] = ..., storage: _Optional[_Union[StorageStatus, _Mapping]] = ..., compute: _Optional[_Union[ComputeStatus, _Mapping]] = ...) -> None: ...
 
 class IssueLog(_message.Message):
-    __slots__ = ["id", "level", "location", "message", "reason", "status", "type"]
+    __slots__ = ["count", "id", "level", "listed", "location", "message", "reason", "status", "type"]
+    COUNT_FIELD_NUMBER: _ClassVar[int]
     ID_FIELD_NUMBER: _ClassVar[int]
     LEVEL_FIELD_NUMBER: _ClassVar[int]
+    LISTED_FIELD_NUMBER: _ClassVar[int]
     LOCATION_FIELD_NUMBER: _ClassVar[int]
     MESSAGE_FIELD_NUMBER: _ClassVar[int]
     REASON_FIELD_NUMBER: _ClassVar[int]
     STATUS_FIELD_NUMBER: _ClassVar[int]
     TYPE_FIELD_NUMBER: _ClassVar[int]
+    count: int
     id: str
     level: int
+    listed: int
     location: Location
     message: str
     reason: _containers.RepeatedScalarFieldContainer[str]
     status: StatusFlag.Status
     type: str
-    def __init__(self, id: _Optional[str] = ..., status: _Optional[_Union[StatusFlag.Status, str]] = ..., message: _Optional[str] = ..., location: _Optional[_Union[Location, _Mapping]] = ..., reason: _Optional[_Iterable[str]] = ..., type: _Optional[str] = ..., level: _Optional[int] = ...) -> None: ...
+    def __init__(self, id: _Optional[str] = ..., status: _Optional[_Union[StatusFlag.Status, str]] = ..., message: _Optional[str] = ..., location: _Optional[_Union[Location, _Mapping]] = ..., reason: _Optional[_Iterable[str]] = ..., type: _Optional[str] = ..., level: _Optional[int] = ..., listed: _Optional[int] = ..., count: _Optional[int] = ...) -> None: ...
 
 class LoadAverageStatus(_message.Message):
     __slots__ = ["cores", "load", "overall"]
@@ -149,9 +153,9 @@ class LocationStorageGroup(_message.Message):
     __slots__ = ["id", "vdisk"]
     ID_FIELD_NUMBER: _ClassVar[int]
     VDISK_FIELD_NUMBER: _ClassVar[int]
-    id: str
+    id: _containers.RepeatedScalarFieldContainer[str]
     vdisk: LocationStorageVDisk
-    def __init__(self, id: _Optional[str] = ..., vdisk: _Optional[_Union[LocationStorageVDisk, _Mapping]] = ...) -> None: ...
+    def __init__(self, id: _Optional[_Iterable[str]] = ..., vdisk: _Optional[_Union[LocationStorageVDisk, _Mapping]] = ...) -> None: ...
 
 class LocationStoragePDisk(_message.Message):
     __slots__ = ["id", "path"]
@@ -173,9 +177,9 @@ class LocationStorageVDisk(_message.Message):
     __slots__ = ["id", "pdisk"]
     ID_FIELD_NUMBER: _ClassVar[int]
     PDISK_FIELD_NUMBER: _ClassVar[int]
-    id: str
-    pdisk: LocationStoragePDisk
-    def __init__(self, id: _Optional[str] = ..., pdisk: _Optional[_Union[LocationStoragePDisk, _Mapping]] = ...) -> None: ...
+    id: _containers.RepeatedScalarFieldContainer[str]
+    pdisk: _containers.RepeatedCompositeFieldContainer[LocationStoragePDisk]
+    def __init__(self, id: _Optional[_Iterable[str]] = ..., pdisk: _Optional[_Iterable[_Union[LocationStoragePDisk, _Mapping]]] = ...) -> None: ...
 
 class NodeCheckRequest(_message.Message):
     __slots__ = ["operation_params"]

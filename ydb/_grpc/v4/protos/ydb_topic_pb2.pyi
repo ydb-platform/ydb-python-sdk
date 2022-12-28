@@ -2,6 +2,7 @@ from protos import ydb_operation_pb2 as _ydb_operation_pb2
 from protos import ydb_scheme_pb2 as _ydb_scheme_pb2
 from protos import ydb_status_codes_pb2 as _ydb_status_codes_pb2
 from protos import ydb_issue_message_pb2 as _ydb_issue_message_pb2
+from protos import ydb_table_pb2 as _ydb_table_pb2
 from protos.annotations import validation_pb2 as _validation_pb2
 from google.protobuf import duration_pb2 as _duration_pb2
 from google.protobuf import timestamp_pb2 as _timestamp_pb2
@@ -21,6 +22,44 @@ DESCRIPTOR: _descriptor.FileDescriptor
 METERING_MODE_REQUEST_UNITS: MeteringMode
 METERING_MODE_RESERVED_CAPACITY: MeteringMode
 METERING_MODE_UNSPECIFIED: MeteringMode
+
+class AddOffsetsToTransactionRequest(_message.Message):
+    __slots__ = ["consumer", "operation_params", "session_id", "topics", "tx_control"]
+    class TopicOffsets(_message.Message):
+        __slots__ = ["partitions", "path"]
+        class PartitionOffsets(_message.Message):
+            __slots__ = ["partition_id", "partition_offsets"]
+            PARTITION_ID_FIELD_NUMBER: _ClassVar[int]
+            PARTITION_OFFSETS_FIELD_NUMBER: _ClassVar[int]
+            partition_id: int
+            partition_offsets: _containers.RepeatedCompositeFieldContainer[OffsetsRange]
+            def __init__(self, partition_id: _Optional[int] = ..., partition_offsets: _Optional[_Iterable[_Union[OffsetsRange, _Mapping]]] = ...) -> None: ...
+        PARTITIONS_FIELD_NUMBER: _ClassVar[int]
+        PATH_FIELD_NUMBER: _ClassVar[int]
+        partitions: _containers.RepeatedCompositeFieldContainer[AddOffsetsToTransactionRequest.TopicOffsets.PartitionOffsets]
+        path: str
+        def __init__(self, path: _Optional[str] = ..., partitions: _Optional[_Iterable[_Union[AddOffsetsToTransactionRequest.TopicOffsets.PartitionOffsets, _Mapping]]] = ...) -> None: ...
+    CONSUMER_FIELD_NUMBER: _ClassVar[int]
+    OPERATION_PARAMS_FIELD_NUMBER: _ClassVar[int]
+    SESSION_ID_FIELD_NUMBER: _ClassVar[int]
+    TOPICS_FIELD_NUMBER: _ClassVar[int]
+    TX_CONTROL_FIELD_NUMBER: _ClassVar[int]
+    consumer: str
+    operation_params: _ydb_operation_pb2.OperationParams
+    session_id: str
+    topics: _containers.RepeatedCompositeFieldContainer[AddOffsetsToTransactionRequest.TopicOffsets]
+    tx_control: _ydb_table_pb2.TransactionControl
+    def __init__(self, operation_params: _Optional[_Union[_ydb_operation_pb2.OperationParams, _Mapping]] = ..., session_id: _Optional[str] = ..., tx_control: _Optional[_Union[_ydb_table_pb2.TransactionControl, _Mapping]] = ..., topics: _Optional[_Iterable[_Union[AddOffsetsToTransactionRequest.TopicOffsets, _Mapping]]] = ..., consumer: _Optional[str] = ...) -> None: ...
+
+class AddOffsetsToTransactionResponse(_message.Message):
+    __slots__ = ["operation"]
+    OPERATION_FIELD_NUMBER: _ClassVar[int]
+    operation: _ydb_operation_pb2.Operation
+    def __init__(self, operation: _Optional[_Union[_ydb_operation_pb2.Operation, _Mapping]] = ...) -> None: ...
+
+class AddOffsetsToTransactionResult(_message.Message):
+    __slots__ = []
+    def __init__(self) -> None: ...
 
 class AlterConsumer(_message.Message):
     __slots__ = ["alter_attributes", "name", "set_important", "set_read_from", "set_supported_codecs"]
@@ -99,7 +138,7 @@ class AlterTopicResult(_message.Message):
     def __init__(self) -> None: ...
 
 class Consumer(_message.Message):
-    __slots__ = ["attributes", "important", "name", "read_from", "supported_codecs"]
+    __slots__ = ["attributes", "consumer_stats", "important", "name", "read_from", "supported_codecs"]
     class AttributesEntry(_message.Message):
         __slots__ = ["key", "value"]
         KEY_FIELD_NUMBER: _ClassVar[int]
@@ -107,17 +146,30 @@ class Consumer(_message.Message):
         key: str
         value: str
         def __init__(self, key: _Optional[str] = ..., value: _Optional[str] = ...) -> None: ...
+    class ConsumerStats(_message.Message):
+        __slots__ = ["bytes_read", "max_read_time_lag", "max_write_time_lag", "min_partitions_last_read_time"]
+        BYTES_READ_FIELD_NUMBER: _ClassVar[int]
+        MAX_READ_TIME_LAG_FIELD_NUMBER: _ClassVar[int]
+        MAX_WRITE_TIME_LAG_FIELD_NUMBER: _ClassVar[int]
+        MIN_PARTITIONS_LAST_READ_TIME_FIELD_NUMBER: _ClassVar[int]
+        bytes_read: MultipleWindowsStat
+        max_read_time_lag: _duration_pb2.Duration
+        max_write_time_lag: _duration_pb2.Duration
+        min_partitions_last_read_time: _timestamp_pb2.Timestamp
+        def __init__(self, min_partitions_last_read_time: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., max_read_time_lag: _Optional[_Union[_duration_pb2.Duration, _Mapping]] = ..., max_write_time_lag: _Optional[_Union[_duration_pb2.Duration, _Mapping]] = ..., bytes_read: _Optional[_Union[MultipleWindowsStat, _Mapping]] = ...) -> None: ...
     ATTRIBUTES_FIELD_NUMBER: _ClassVar[int]
+    CONSUMER_STATS_FIELD_NUMBER: _ClassVar[int]
     IMPORTANT_FIELD_NUMBER: _ClassVar[int]
     NAME_FIELD_NUMBER: _ClassVar[int]
     READ_FROM_FIELD_NUMBER: _ClassVar[int]
     SUPPORTED_CODECS_FIELD_NUMBER: _ClassVar[int]
     attributes: _containers.ScalarMap[str, str]
+    consumer_stats: Consumer.ConsumerStats
     important: bool
     name: str
     read_from: _timestamp_pb2.Timestamp
     supported_codecs: SupportedCodecs
-    def __init__(self, name: _Optional[str] = ..., important: bool = ..., read_from: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., supported_codecs: _Optional[_Union[SupportedCodecs, _Mapping]] = ..., attributes: _Optional[_Mapping[str, str]] = ...) -> None: ...
+    def __init__(self, name: _Optional[str] = ..., important: bool = ..., read_from: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., supported_codecs: _Optional[_Union[SupportedCodecs, _Mapping]] = ..., attributes: _Optional[_Mapping[str, str]] = ..., consumer_stats: _Optional[_Union[Consumer.ConsumerStats, _Mapping]] = ...) -> None: ...
 
 class CreateTopicRequest(_message.Message):
     __slots__ = ["attributes", "consumers", "metering_mode", "operation_params", "partition_write_burst_bytes", "partition_write_speed_bytes_per_second", "partitioning_settings", "path", "retention_period", "retention_storage_mb", "supported_codecs"]
@@ -162,13 +214,81 @@ class CreateTopicResult(_message.Message):
     __slots__ = []
     def __init__(self) -> None: ...
 
-class DescribeTopicRequest(_message.Message):
-    __slots__ = ["operation_params", "path"]
+class DescribeConsumerRequest(_message.Message):
+    __slots__ = ["consumer", "include_stats", "operation_params", "path"]
+    CONSUMER_FIELD_NUMBER: _ClassVar[int]
+    INCLUDE_STATS_FIELD_NUMBER: _ClassVar[int]
     OPERATION_PARAMS_FIELD_NUMBER: _ClassVar[int]
     PATH_FIELD_NUMBER: _ClassVar[int]
+    consumer: str
+    include_stats: bool
     operation_params: _ydb_operation_pb2.OperationParams
     path: str
-    def __init__(self, operation_params: _Optional[_Union[_ydb_operation_pb2.OperationParams, _Mapping]] = ..., path: _Optional[str] = ...) -> None: ...
+    def __init__(self, operation_params: _Optional[_Union[_ydb_operation_pb2.OperationParams, _Mapping]] = ..., path: _Optional[str] = ..., consumer: _Optional[str] = ..., include_stats: bool = ...) -> None: ...
+
+class DescribeConsumerResponse(_message.Message):
+    __slots__ = ["operation"]
+    OPERATION_FIELD_NUMBER: _ClassVar[int]
+    operation: _ydb_operation_pb2.Operation
+    def __init__(self, operation: _Optional[_Union[_ydb_operation_pb2.Operation, _Mapping]] = ...) -> None: ...
+
+class DescribeConsumerResult(_message.Message):
+    __slots__ = ["consumer", "partitions", "self"]
+    class PartitionConsumerStats(_message.Message):
+        __slots__ = ["bytes_read", "committed_offset", "connection_node_id", "last_read_offset", "last_read_time", "max_read_time_lag", "max_write_time_lag", "partition_read_session_create_time", "read_session_id", "reader_name"]
+        BYTES_READ_FIELD_NUMBER: _ClassVar[int]
+        COMMITTED_OFFSET_FIELD_NUMBER: _ClassVar[int]
+        CONNECTION_NODE_ID_FIELD_NUMBER: _ClassVar[int]
+        LAST_READ_OFFSET_FIELD_NUMBER: _ClassVar[int]
+        LAST_READ_TIME_FIELD_NUMBER: _ClassVar[int]
+        MAX_READ_TIME_LAG_FIELD_NUMBER: _ClassVar[int]
+        MAX_WRITE_TIME_LAG_FIELD_NUMBER: _ClassVar[int]
+        PARTITION_READ_SESSION_CREATE_TIME_FIELD_NUMBER: _ClassVar[int]
+        READER_NAME_FIELD_NUMBER: _ClassVar[int]
+        READ_SESSION_ID_FIELD_NUMBER: _ClassVar[int]
+        bytes_read: MultipleWindowsStat
+        committed_offset: int
+        connection_node_id: int
+        last_read_offset: int
+        last_read_time: _timestamp_pb2.Timestamp
+        max_read_time_lag: _duration_pb2.Duration
+        max_write_time_lag: _duration_pb2.Duration
+        partition_read_session_create_time: _timestamp_pb2.Timestamp
+        read_session_id: str
+        reader_name: str
+        def __init__(self, last_read_offset: _Optional[int] = ..., committed_offset: _Optional[int] = ..., read_session_id: _Optional[str] = ..., partition_read_session_create_time: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., last_read_time: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., max_read_time_lag: _Optional[_Union[_duration_pb2.Duration, _Mapping]] = ..., max_write_time_lag: _Optional[_Union[_duration_pb2.Duration, _Mapping]] = ..., bytes_read: _Optional[_Union[MultipleWindowsStat, _Mapping]] = ..., reader_name: _Optional[str] = ..., connection_node_id: _Optional[int] = ...) -> None: ...
+    class PartitionInfo(_message.Message):
+        __slots__ = ["active", "child_partition_ids", "parent_partition_ids", "partition_consumer_stats", "partition_id", "partition_stats"]
+        ACTIVE_FIELD_NUMBER: _ClassVar[int]
+        CHILD_PARTITION_IDS_FIELD_NUMBER: _ClassVar[int]
+        PARENT_PARTITION_IDS_FIELD_NUMBER: _ClassVar[int]
+        PARTITION_CONSUMER_STATS_FIELD_NUMBER: _ClassVar[int]
+        PARTITION_ID_FIELD_NUMBER: _ClassVar[int]
+        PARTITION_STATS_FIELD_NUMBER: _ClassVar[int]
+        active: bool
+        child_partition_ids: _containers.RepeatedScalarFieldContainer[int]
+        parent_partition_ids: _containers.RepeatedScalarFieldContainer[int]
+        partition_consumer_stats: DescribeConsumerResult.PartitionConsumerStats
+        partition_id: int
+        partition_stats: PartitionStats
+        def __init__(self, partition_id: _Optional[int] = ..., active: bool = ..., child_partition_ids: _Optional[_Iterable[int]] = ..., parent_partition_ids: _Optional[_Iterable[int]] = ..., partition_stats: _Optional[_Union[PartitionStats, _Mapping]] = ..., partition_consumer_stats: _Optional[_Union[DescribeConsumerResult.PartitionConsumerStats, _Mapping]] = ...) -> None: ...
+    CONSUMER_FIELD_NUMBER: _ClassVar[int]
+    PARTITIONS_FIELD_NUMBER: _ClassVar[int]
+    SELF_FIELD_NUMBER: _ClassVar[int]
+    consumer: Consumer
+    partitions: _containers.RepeatedCompositeFieldContainer[DescribeConsumerResult.PartitionInfo]
+    self: _ydb_scheme_pb2.Entry
+    def __init__(self, self_: _Optional[_Union[_ydb_scheme_pb2.Entry, _Mapping]] = ..., consumer: _Optional[_Union[Consumer, _Mapping]] = ..., partitions: _Optional[_Iterable[_Union[DescribeConsumerResult.PartitionInfo, _Mapping]]] = ...) -> None: ...
+
+class DescribeTopicRequest(_message.Message):
+    __slots__ = ["include_stats", "operation_params", "path"]
+    INCLUDE_STATS_FIELD_NUMBER: _ClassVar[int]
+    OPERATION_PARAMS_FIELD_NUMBER: _ClassVar[int]
+    PATH_FIELD_NUMBER: _ClassVar[int]
+    include_stats: bool
+    operation_params: _ydb_operation_pb2.OperationParams
+    path: str
+    def __init__(self, operation_params: _Optional[_Union[_ydb_operation_pb2.OperationParams, _Mapping]] = ..., path: _Optional[str] = ..., include_stats: bool = ...) -> None: ...
 
 class DescribeTopicResponse(_message.Message):
     __slots__ = ["operation"]
@@ -177,7 +297,7 @@ class DescribeTopicResponse(_message.Message):
     def __init__(self, operation: _Optional[_Union[_ydb_operation_pb2.Operation, _Mapping]] = ...) -> None: ...
 
 class DescribeTopicResult(_message.Message):
-    __slots__ = ["attributes", "consumers", "metering_mode", "partition_write_burst_bytes", "partition_write_speed_bytes_per_second", "partitioning_settings", "partitions", "retention_period", "retention_storage_mb", "self", "supported_codecs"]
+    __slots__ = ["attributes", "consumers", "metering_mode", "partition_write_burst_bytes", "partition_write_speed_bytes_per_second", "partitioning_settings", "partitions", "retention_period", "retention_storage_mb", "self", "supported_codecs", "topic_stats"]
     class AttributesEntry(_message.Message):
         __slots__ = ["key", "value"]
         KEY_FIELD_NUMBER: _ClassVar[int]
@@ -186,16 +306,29 @@ class DescribeTopicResult(_message.Message):
         value: str
         def __init__(self, key: _Optional[str] = ..., value: _Optional[str] = ...) -> None: ...
     class PartitionInfo(_message.Message):
-        __slots__ = ["active", "child_partition_ids", "parent_partition_ids", "partition_id"]
+        __slots__ = ["active", "child_partition_ids", "parent_partition_ids", "partition_id", "partition_stats"]
         ACTIVE_FIELD_NUMBER: _ClassVar[int]
         CHILD_PARTITION_IDS_FIELD_NUMBER: _ClassVar[int]
         PARENT_PARTITION_IDS_FIELD_NUMBER: _ClassVar[int]
         PARTITION_ID_FIELD_NUMBER: _ClassVar[int]
+        PARTITION_STATS_FIELD_NUMBER: _ClassVar[int]
         active: bool
         child_partition_ids: _containers.RepeatedScalarFieldContainer[int]
         parent_partition_ids: _containers.RepeatedScalarFieldContainer[int]
         partition_id: int
-        def __init__(self, partition_id: _Optional[int] = ..., active: bool = ..., child_partition_ids: _Optional[_Iterable[int]] = ..., parent_partition_ids: _Optional[_Iterable[int]] = ...) -> None: ...
+        partition_stats: PartitionStats
+        def __init__(self, partition_id: _Optional[int] = ..., active: bool = ..., child_partition_ids: _Optional[_Iterable[int]] = ..., parent_partition_ids: _Optional[_Iterable[int]] = ..., partition_stats: _Optional[_Union[PartitionStats, _Mapping]] = ...) -> None: ...
+    class TopicStats(_message.Message):
+        __slots__ = ["bytes_written", "max_write_time_lag", "min_last_write_time", "store_size_bytes"]
+        BYTES_WRITTEN_FIELD_NUMBER: _ClassVar[int]
+        MAX_WRITE_TIME_LAG_FIELD_NUMBER: _ClassVar[int]
+        MIN_LAST_WRITE_TIME_FIELD_NUMBER: _ClassVar[int]
+        STORE_SIZE_BYTES_FIELD_NUMBER: _ClassVar[int]
+        bytes_written: MultipleWindowsStat
+        max_write_time_lag: _duration_pb2.Duration
+        min_last_write_time: _timestamp_pb2.Timestamp
+        store_size_bytes: int
+        def __init__(self, store_size_bytes: _Optional[int] = ..., min_last_write_time: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., max_write_time_lag: _Optional[_Union[_duration_pb2.Duration, _Mapping]] = ..., bytes_written: _Optional[_Union[MultipleWindowsStat, _Mapping]] = ...) -> None: ...
     ATTRIBUTES_FIELD_NUMBER: _ClassVar[int]
     CONSUMERS_FIELD_NUMBER: _ClassVar[int]
     METERING_MODE_FIELD_NUMBER: _ClassVar[int]
@@ -207,6 +340,7 @@ class DescribeTopicResult(_message.Message):
     RETENTION_STORAGE_MB_FIELD_NUMBER: _ClassVar[int]
     SELF_FIELD_NUMBER: _ClassVar[int]
     SUPPORTED_CODECS_FIELD_NUMBER: _ClassVar[int]
+    TOPIC_STATS_FIELD_NUMBER: _ClassVar[int]
     attributes: _containers.ScalarMap[str, str]
     consumers: _containers.RepeatedCompositeFieldContainer[Consumer]
     metering_mode: MeteringMode
@@ -218,7 +352,8 @@ class DescribeTopicResult(_message.Message):
     retention_storage_mb: int
     self: _ydb_scheme_pb2.Entry
     supported_codecs: SupportedCodecs
-    def __init__(self, self_: _Optional[_Union[_ydb_scheme_pb2.Entry, _Mapping]] = ..., partitioning_settings: _Optional[_Union[PartitioningSettings, _Mapping]] = ..., partitions: _Optional[_Iterable[_Union[DescribeTopicResult.PartitionInfo, _Mapping]]] = ..., retention_period: _Optional[_Union[_duration_pb2.Duration, _Mapping]] = ..., retention_storage_mb: _Optional[int] = ..., supported_codecs: _Optional[_Union[SupportedCodecs, _Mapping]] = ..., partition_write_speed_bytes_per_second: _Optional[int] = ..., partition_write_burst_bytes: _Optional[int] = ..., attributes: _Optional[_Mapping[str, str]] = ..., consumers: _Optional[_Iterable[_Union[Consumer, _Mapping]]] = ..., metering_mode: _Optional[_Union[MeteringMode, str]] = ...) -> None: ...
+    topic_stats: DescribeTopicResult.TopicStats
+    def __init__(self, self_: _Optional[_Union[_ydb_scheme_pb2.Entry, _Mapping]] = ..., partitioning_settings: _Optional[_Union[PartitioningSettings, _Mapping]] = ..., partitions: _Optional[_Iterable[_Union[DescribeTopicResult.PartitionInfo, _Mapping]]] = ..., retention_period: _Optional[_Union[_duration_pb2.Duration, _Mapping]] = ..., retention_storage_mb: _Optional[int] = ..., supported_codecs: _Optional[_Union[SupportedCodecs, _Mapping]] = ..., partition_write_speed_bytes_per_second: _Optional[int] = ..., partition_write_burst_bytes: _Optional[int] = ..., attributes: _Optional[_Mapping[str, str]] = ..., consumers: _Optional[_Iterable[_Union[Consumer, _Mapping]]] = ..., metering_mode: _Optional[_Union[MeteringMode, str]] = ..., topic_stats: _Optional[_Union[DescribeTopicResult.TopicStats, _Mapping]] = ...) -> None: ...
 
 class DropTopicRequest(_message.Message):
     __slots__ = ["operation_params", "path"]
@@ -238,6 +373,16 @@ class DropTopicResult(_message.Message):
     __slots__ = []
     def __init__(self) -> None: ...
 
+class MultipleWindowsStat(_message.Message):
+    __slots__ = ["per_day", "per_hour", "per_minute"]
+    PER_DAY_FIELD_NUMBER: _ClassVar[int]
+    PER_HOUR_FIELD_NUMBER: _ClassVar[int]
+    PER_MINUTE_FIELD_NUMBER: _ClassVar[int]
+    per_day: int
+    per_hour: int
+    per_minute: int
+    def __init__(self, per_minute: _Optional[int] = ..., per_hour: _Optional[int] = ..., per_day: _Optional[int] = ...) -> None: ...
+
 class OffsetsRange(_message.Message):
     __slots__ = ["end", "start"]
     END_FIELD_NUMBER: _ClassVar[int]
@@ -245,6 +390,22 @@ class OffsetsRange(_message.Message):
     end: int
     start: int
     def __init__(self, start: _Optional[int] = ..., end: _Optional[int] = ...) -> None: ...
+
+class PartitionStats(_message.Message):
+    __slots__ = ["bytes_written", "last_write_time", "max_write_time_lag", "partition_node_id", "partition_offsets", "store_size_bytes"]
+    BYTES_WRITTEN_FIELD_NUMBER: _ClassVar[int]
+    LAST_WRITE_TIME_FIELD_NUMBER: _ClassVar[int]
+    MAX_WRITE_TIME_LAG_FIELD_NUMBER: _ClassVar[int]
+    PARTITION_NODE_ID_FIELD_NUMBER: _ClassVar[int]
+    PARTITION_OFFSETS_FIELD_NUMBER: _ClassVar[int]
+    STORE_SIZE_BYTES_FIELD_NUMBER: _ClassVar[int]
+    bytes_written: MultipleWindowsStat
+    last_write_time: _timestamp_pb2.Timestamp
+    max_write_time_lag: _duration_pb2.Duration
+    partition_node_id: int
+    partition_offsets: OffsetsRange
+    store_size_bytes: int
+    def __init__(self, partition_offsets: _Optional[_Union[OffsetsRange, _Mapping]] = ..., store_size_bytes: _Optional[int] = ..., last_write_time: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., max_write_time_lag: _Optional[_Union[_duration_pb2.Duration, _Mapping]] = ..., bytes_written: _Optional[_Union[MultipleWindowsStat, _Mapping]] = ..., partition_node_id: _Optional[int] = ...) -> None: ...
 
 class PartitioningSettings(_message.Message):
     __slots__ = ["min_active_partitions", "partition_count_limit"]
@@ -319,7 +480,7 @@ class StreamReadMessage(_message.Message):
         update_token_response: UpdateTokenResponse
         def __init__(self, status: _Optional[_Union[_ydb_status_codes_pb2.StatusIds.StatusCode, str]] = ..., issues: _Optional[_Iterable[_Union[_ydb_issue_message_pb2.IssueMessage, _Mapping]]] = ..., init_response: _Optional[_Union[StreamReadMessage.InitResponse, _Mapping]] = ..., read_response: _Optional[_Union[StreamReadMessage.ReadResponse, _Mapping]] = ..., commit_offset_response: _Optional[_Union[StreamReadMessage.CommitOffsetResponse, _Mapping]] = ..., partition_session_status_response: _Optional[_Union[StreamReadMessage.PartitionSessionStatusResponse, _Mapping]] = ..., update_token_response: _Optional[_Union[UpdateTokenResponse, _Mapping]] = ..., start_partition_session_request: _Optional[_Union[StreamReadMessage.StartPartitionSessionRequest, _Mapping]] = ..., stop_partition_session_request: _Optional[_Union[StreamReadMessage.StopPartitionSessionRequest, _Mapping]] = ...) -> None: ...
     class InitRequest(_message.Message):
-        __slots__ = ["consumer", "topics_read_settings"]
+        __slots__ = ["consumer", "reader_name", "topics_read_settings"]
         class TopicReadSettings(_message.Message):
             __slots__ = ["max_lag", "partition_ids", "path", "read_from"]
             MAX_LAG_FIELD_NUMBER: _ClassVar[int]
@@ -332,10 +493,12 @@ class StreamReadMessage(_message.Message):
             read_from: _timestamp_pb2.Timestamp
             def __init__(self, path: _Optional[str] = ..., partition_ids: _Optional[_Iterable[int]] = ..., max_lag: _Optional[_Union[_duration_pb2.Duration, _Mapping]] = ..., read_from: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ...) -> None: ...
         CONSUMER_FIELD_NUMBER: _ClassVar[int]
+        READER_NAME_FIELD_NUMBER: _ClassVar[int]
         TOPICS_READ_SETTINGS_FIELD_NUMBER: _ClassVar[int]
         consumer: str
+        reader_name: str
         topics_read_settings: _containers.RepeatedCompositeFieldContainer[StreamReadMessage.InitRequest.TopicReadSettings]
-        def __init__(self, topics_read_settings: _Optional[_Iterable[_Union[StreamReadMessage.InitRequest.TopicReadSettings, _Mapping]]] = ..., consumer: _Optional[str] = ...) -> None: ...
+        def __init__(self, topics_read_settings: _Optional[_Iterable[_Union[StreamReadMessage.InitRequest.TopicReadSettings, _Mapping]]] = ..., consumer: _Optional[str] = ..., reader_name: _Optional[str] = ...) -> None: ...
     class InitResponse(_message.Message):
         __slots__ = ["session_id"]
         SESSION_ID_FIELD_NUMBER: _ClassVar[int]

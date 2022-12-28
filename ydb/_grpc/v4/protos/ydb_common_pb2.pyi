@@ -19,3 +19,17 @@ class FeatureFlag(_message.Message):
     ENABLED: FeatureFlag.Status
     STATUS_UNSPECIFIED: FeatureFlag.Status
     def __init__(self) -> None: ...
+
+class QuotaExceeded(_message.Message):
+    __slots__ = ["disk"]
+    DISK_FIELD_NUMBER: _ClassVar[int]
+    disk: bool
+    def __init__(self, disk: bool = ...) -> None: ...
+
+class VirtualTimestamp(_message.Message):
+    __slots__ = ["plan_step", "tx_id"]
+    PLAN_STEP_FIELD_NUMBER: _ClassVar[int]
+    TX_ID_FIELD_NUMBER: _ClassVar[int]
+    plan_step: int
+    tx_id: int
+    def __init__(self, plan_step: _Optional[int] = ..., tx_id: _Optional[int] = ...) -> None: ...

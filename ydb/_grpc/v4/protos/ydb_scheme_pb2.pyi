@@ -1,3 +1,4 @@
+from protos import ydb_common_pb2 as _ydb_common_pb2
 from protos import ydb_operation_pb2 as _ydb_operation_pb2
 from google.protobuf.internal import containers as _containers
 from google.protobuf.internal import enum_type_wrapper as _enum_type_wrapper
@@ -28,11 +29,14 @@ class DescribePathResult(_message.Message):
     def __init__(self, self_: _Optional[_Union[Entry, _Mapping]] = ...) -> None: ...
 
 class Entry(_message.Message):
-    __slots__ = ["effective_permissions", "name", "owner", "permissions", "size_bytes", "type"]
+    __slots__ = ["created_at", "effective_permissions", "name", "owner", "permissions", "size_bytes", "type"]
     class Type(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
         __slots__ = []
     BLOCK_STORE_VOLUME: Entry.Type
+    COLUMN_STORE: Entry.Type
+    COLUMN_TABLE: Entry.Type
     COORDINATION_NODE: Entry.Type
+    CREATED_AT_FIELD_NUMBER: _ClassVar[int]
     DATABASE: Entry.Type
     DIRECTORY: Entry.Type
     EFFECTIVE_PERMISSIONS_FIELD_NUMBER: _ClassVar[int]
@@ -48,13 +52,14 @@ class Entry(_message.Message):
     TOPIC: Entry.Type
     TYPE_FIELD_NUMBER: _ClassVar[int]
     TYPE_UNSPECIFIED: Entry.Type
+    created_at: _ydb_common_pb2.VirtualTimestamp
     effective_permissions: _containers.RepeatedCompositeFieldContainer[Permissions]
     name: str
     owner: str
     permissions: _containers.RepeatedCompositeFieldContainer[Permissions]
     size_bytes: int
     type: Entry.Type
-    def __init__(self, name: _Optional[str] = ..., owner: _Optional[str] = ..., type: _Optional[_Union[Entry.Type, str]] = ..., effective_permissions: _Optional[_Iterable[_Union[Permissions, _Mapping]]] = ..., permissions: _Optional[_Iterable[_Union[Permissions, _Mapping]]] = ..., size_bytes: _Optional[int] = ...) -> None: ...
+    def __init__(self, name: _Optional[str] = ..., owner: _Optional[str] = ..., type: _Optional[_Union[Entry.Type, str]] = ..., effective_permissions: _Optional[_Iterable[_Union[Permissions, _Mapping]]] = ..., permissions: _Optional[_Iterable[_Union[Permissions, _Mapping]]] = ..., size_bytes: _Optional[int] = ..., created_at: _Optional[_Union[_ydb_common_pb2.VirtualTimestamp, _Mapping]] = ...) -> None: ...
 
 class ListDirectoryRequest(_message.Message):
     __slots__ = ["operation_params", "path"]
@@ -93,16 +98,18 @@ class MakeDirectoryResponse(_message.Message):
     def __init__(self, operation: _Optional[_Union[_ydb_operation_pb2.Operation, _Mapping]] = ...) -> None: ...
 
 class ModifyPermissionsRequest(_message.Message):
-    __slots__ = ["actions", "clear_permissions", "operation_params", "path"]
+    __slots__ = ["actions", "clear_permissions", "interrupt_inheritance", "operation_params", "path"]
     ACTIONS_FIELD_NUMBER: _ClassVar[int]
     CLEAR_PERMISSIONS_FIELD_NUMBER: _ClassVar[int]
+    INTERRUPT_INHERITANCE_FIELD_NUMBER: _ClassVar[int]
     OPERATION_PARAMS_FIELD_NUMBER: _ClassVar[int]
     PATH_FIELD_NUMBER: _ClassVar[int]
     actions: _containers.RepeatedCompositeFieldContainer[PermissionsAction]
     clear_permissions: bool
+    interrupt_inheritance: bool
     operation_params: _ydb_operation_pb2.OperationParams
     path: str
-    def __init__(self, operation_params: _Optional[_Union[_ydb_operation_pb2.OperationParams, _Mapping]] = ..., path: _Optional[str] = ..., actions: _Optional[_Iterable[_Union[PermissionsAction, _Mapping]]] = ..., clear_permissions: bool = ...) -> None: ...
+    def __init__(self, operation_params: _Optional[_Union[_ydb_operation_pb2.OperationParams, _Mapping]] = ..., path: _Optional[str] = ..., actions: _Optional[_Iterable[_Union[PermissionsAction, _Mapping]]] = ..., clear_permissions: bool = ..., interrupt_inheritance: bool = ...) -> None: ...
 
 class ModifyPermissionsResponse(_message.Message):
     __slots__ = ["operation"]
