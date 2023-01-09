@@ -1,4 +1,5 @@
 * Fixed error message while get token from metadata with asyncio iam
+* Add `SnapshotReadOnly` transaction mode support to `session.transaction`
 
 ## 2.11.1 ##
 * Regenerate protobuf code from public api protos (some private protobufs was removed)
