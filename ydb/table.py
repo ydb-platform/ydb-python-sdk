@@ -780,6 +780,22 @@ class AbstractTransactionModeBuilder(object):
         pass
 
 
+class SnapshotReadOnly(AbstractTransactionModeBuilder):
+    __slots__ = ("_pb", "_name")
+
+    def __init__(self):
+        self._pb = _apis.ydb_table.SnapshotModeSettings()
+        self._name = "snapshot_read_only"
+
+    @property
+    def settings(self):
+        return self._pb
+
+    @property
+    def name(self):
+        return self._name
+
+
 class SerializableReadWrite(AbstractTransactionModeBuilder):
     __slots__ = ("_pb", "_name")
 
