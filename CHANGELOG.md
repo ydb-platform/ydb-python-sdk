@@ -1,3 +1,4 @@
+## 2.11.1 ##
 * Regenerate protobuf code from public api protos (some private protobufs was removed)
 * Remove internal S3 client code
 
