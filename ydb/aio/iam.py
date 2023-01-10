@@ -126,7 +126,8 @@ class MetadataUrlCredentials(AbstractExpiringTokenCredentials):
             ) as response:
                 if not response.ok:
                     self.logger.error(
-                        "Error while getting token from metadata: %s" % response.text()
+                        "Error while getting token from metadata: %s"
+                        % await response.text()
                     )
                 response.raise_for_status()
                 return await response.json()
