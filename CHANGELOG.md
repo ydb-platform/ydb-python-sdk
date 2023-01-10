@@ -1,3 +1,5 @@
+* Fixed error message while get token from metadata with asyncio iam
+
 ## 2.11.1 ##
 * Regenerate protobuf code from public api protos (some private protobufs was removed)
 * Remove internal S3 client code
