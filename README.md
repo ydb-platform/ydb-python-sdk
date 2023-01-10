@@ -11,7 +11,7 @@ Officially supported Python client for YDB.
 
 ### Prerequisites
 
-- Python 3.5 or higher
+- Python 3.7 or higher
 - `pip` version 9.0.1 or higher
 
 If necessary, upgrade your version of `pip`:
