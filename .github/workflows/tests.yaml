@@ -13,7 +13,7 @@ jobs:
       max-parallel: 4
       matrix:
         python-version: [3.8]
-        environment: [py38, py38-tls, py38-proto3, py38-tls-proto3]
+        environment: [py, py-tls, py-proto3, py-tls-proto3]
 
     steps:
     - uses: actions/checkout@v1
