@@ -916,11 +916,23 @@ class YdbRetryOperationSleepOpt(object):
     def __init__(self, timeout):
         self.timeout = timeout
 
+    def __eq__(self, other):
+        return type(self) == type(other) and self.timeout == other.timeout
+
+    def __repr__(self):
+        return "YdbRetryOperationSleepOpt(%s)" % self.timeout
+
 
 class YdbRetryOperationFinalResult(object):
     def __init__(self, result):
         self.result = result
         self.exc = None
+
+    def __eq__(self, other):
+        return type(self) == type(other) and self.result == other.result and self.exc == other.exc
+
+    def __repr__(self):
+        return "YdbRetryOperationFinalResult(%s, exc=%s)" % (self.result, self.exc)
 
     def set_exception(self, exc):
         self.exc = exc
