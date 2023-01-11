@@ -930,7 +930,11 @@ class YdbRetryOperationFinalResult(object):
         self.exc = None
 
     def __eq__(self, other):
-        return type(self) == type(other) and self.result == other.result and self.exc == other.exc
+        return (
+            type(self) == type(other)
+            and self.result == other.result
+            and self.exc == other.exc
+        )
 
     def __repr__(self):
         return "YdbRetryOperationFinalResult(%s, exc=%s)" % (self.result, self.exc)
