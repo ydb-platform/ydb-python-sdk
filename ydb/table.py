@@ -21,6 +21,7 @@ from . import (
     _tx_ctx_impl,
     tracing,
 )
+from ._errors import check_retriable_error
 
 try:
     from . import interceptor
@@ -950,56 +951,28 @@ def retry_operation_impl(callee, retry_settings=None, *args, **kwargs):
             if result.exc is not None:
                 raise result.exc
 
-        except (
-            issues.Aborted,
-            issues.BadSession,
-            issues.NotFound,
-            issues.InternalError,
-        ) as e:
+        except issues.Error as e:
             status = e
             retry_settings.on_ydb_error_callback(e)
 
-            if isinstance(e, issues.NotFound) and not retry_settings.retry_not_found:
-                raise e
-
-            if (
-                isinstance(e, issues.InternalError)
-                and not retry_settings.retry_internal_error
-            ):
-                raise e
-
-        except (
-            issues.Overloaded,
-            issues.SessionPoolEmpty,
-            issues.ConnectionError,
-        ) as e:
-            status = e
-            retry_settings.on_ydb_error_callback(e)
-            yield YdbRetryOperationSleepOpt(
-                retry_settings.slow_backoff.calc_timeout(attempt)
-            )
-
-        except issues.Unavailable as e:
-            status = e
-            retry_settings.on_ydb_error_callback(e)
-            yield YdbRetryOperationSleepOpt(
-                retry_settings.fast_backoff.calc_timeout(attempt)
-            )
-
-        except issues.Undetermined as e:
-            status = e
-            retry_settings.on_ydb_error_callback(e)
-            if not retry_settings.idempotent:
-                # operation is not idempotent, so we cannot retry.
+            retriable_info = check_retriable_error(e, retry_settings, attempt)
+            if not retriable_info.is_retriable:
                 raise
 
-            yield YdbRetryOperationSleepOpt(
-                retry_settings.fast_backoff.calc_timeout(attempt)
-            )
+            skip_yield_error_types = [
+                issues.Aborted,
+                issues.BadSession,
+                issues.NotFound,
+                issues.InternalError,
+            ]
 
-        except issues.Error as e:
-            retry_settings.on_ydb_error_callback(e)
-            raise
+            yield_sleep = True
+            for t in skip_yield_error_types:
+                if isinstance(e, t):
+                    yield_sleep = False
+
+            if yield_sleep:
+                yield YdbRetryOperationSleepOpt(retriable_info.sleep_timeout_seconds)
 
         except Exception as e:
             # you should provide your own handler you want
