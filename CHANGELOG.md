@@ -1,3 +1,4 @@
+## 2.12.0 ##
 * Fixed error message while get token from metadata with asyncio iam
 * Add `SnapshotReadOnly` transaction mode support to `session.transaction`
 

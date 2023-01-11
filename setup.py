@@ -6,7 +6,7 @@ with open("README.md", "r") as r:
 
 setuptools.setup(
     name="ydb",
-    version="2.11.1",
+    version="2.12.0",
     description="YDB Python SDK",
     author="Yandex LLC",
     author_email="ydb@yandex-team.ru",
