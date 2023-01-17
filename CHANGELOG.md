@@ -1,4 +1,5 @@
-* Support `TYPE_UNSPECIFIED` item type to scheme ls
+* Supported `TYPE_UNSPECIFIED` item type to scheme ls
+* Fixed error while request iam token with bad content type in metadata
 
 ## 2.12.0 ##
 * Fixed error message while get token from metadata with asyncio iam
