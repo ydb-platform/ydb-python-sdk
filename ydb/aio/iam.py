@@ -130,7 +130,9 @@ class MetadataUrlCredentials(AbstractExpiringTokenCredentials):
                         % await response.text()
                     )
                 response.raise_for_status()
-                return await response.json()
+                # response from default metadata credentials provider
+                # contains text/plain content type.
+                return await response.json(content_type=None)
 
 
 class ServiceAccountCredentials(JWTIamCredentials):
