@@ -1,3 +1,5 @@
+* start 3.0 beta branch
+
 ## 2.12.1 ##
 * Supported `TYPE_UNSPECIFIED` item type to scheme ls
 * Fixed error while request iam token with bad content type in metadata
