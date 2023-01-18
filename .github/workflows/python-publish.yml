@@ -6,29 +6,108 @@
 # separate terms of service, privacy policy, and support
 # documentation.
 
-name: Upload Python Package
+name: Publish package release
 
 on:
-  release:
-    types: [published]
+  workflow_dispatch:
+    inputs:
+      version-change:
+        description: Version part
+        required: true
+        type: choice
+        options:
+          - patch
+          - minor
+      beta:
+        description: Is beta version
+        required: true
+        type: boolean
+        default: True
 
 jobs:
-  deploy:
+  publish:
+    env:
+      VERSION_CHANGE: ${{ github.event.inputs.version-change }}
+      WITH_BETA: ${{ github.event.inputs.beta }}
+      GITHUB_TOKEN: ${{ secrets.YDB_PLATFORM_BOT_TOKEN_REPO }}
+      CHANGELOG_FILE: CHANGELOG.md
+      SETUP_PY_PATH: setup.py
 
     runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v3
+      with:
+        token: ${{ secrets.YDB_PLATFORM_BOT_TOKEN_REPO }}
+
     - name: Set up Python
       uses: actions/setup-python@v3
       with:
-        python-version: '3.x'
+        python-version: '3.8'
+
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install build
+
+    - name: read changelog
+      id: read-changelog
+      run: |
+        CHANGELOG=$(cat $CHANGELOG_FILE | sed -e '/^## .*$/,$d')
+        echo "CHANGELOG<<CHANGELOGEOF_MARKER" >> $GITHUB_ENV
+        echo "$CHANGELOG" >> $GITHUB_ENV
+        echo "CHANGELOGEOF_MARKER" >> $GITHUB_ENV
+        echo "# Changelog" >> $GITHUB_STEP_SUMMARY
+        echo "$CHANGELOG" >> $GITHUB_STEP_SUMMARY
+        
+
+    - name: Increment version
+      id: increment-version
+      run: |
+        NEW_VERSION=$(python3 ./.github/scripts/increment_version.py --inc-type=$VERSION_CHANGE --beta=$WITH_BETA)
+        echo new version: $NEW_VERSION
+        echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_OUTPUT
+        echo "New version: $NEW_VERSION" >> $GITHUB_STEP_SUMMARY
+
+        git add $SETUP_PY_PATH
+        git add $CHANGELOG_FILE
+
     - name: Build package
       run: python -m build
+
+    - name: Publish release on github
+      run: |
+        if [[ -z "$CHANGELOG" ]]
+        then
+          echo "CHANGELOG empty"
+          exit 1;
+        fi;
+        
+        TAG="${{ steps.increment-version.outputs.NEW_VERSION }}"
+        
+        # Get previous version from changelog
+        # pre-incremented version not used for consistent changelog with release notes
+        # for example changelog may be rewrited when switch from beta to release
+        # and remove internal beta changes
+        LAST_TAG=$(cat $CHANGELOG_FILE | grep '^## .* ##$' | head -n 2 | tail -n 1 | cut -d ' ' -f 2)
+        
+        git config --global user.email "robot@umbrella";
+        git config --global user.name "robot";
+        git commit -m "Release: $NEW_VERSION";
+
+        git tag "$TAG"
+        git push && git push --tags
+        
+        CHANGELOG="$CHANGELOG
+        
+        Full Changelog: [$LAST_TAG...$TAG](https://github.com/ydb-platform/ydb-go-sdk/compare/$LAST_TAG...$TAG)"
+        if [ "$WITH_BETA" = true ]
+        then
+          gh release create -d $TAG -t "$TAG" --notes "$CHANGELOG"
+        else
+          gh release create $TAG -t "$TAG" --notes "$CHANGELOG"
+        fi;
+
     - name: Publish package
       uses: pypa/gh-action-pypi-publish@27b31702a0e7fc50959f5ad993c78deac1bdfc29
       with:
