@@ -93,7 +93,7 @@ jobs:
         
         git config --global user.email "robot@umbrella";
         git config --global user.name "robot";
-        git commit -m "Release: $NEW_VERSION";
+        git commit -m "Release: $TAG";
 
         git tag "$TAG"
         git push && git push --tags
