@@ -10,6 +10,7 @@ import six
 from . import connection as connection_impl, issues, resolver, _utilities, tracing
 from abc import abstractmethod, ABCMeta
 
+from .connection import Connection
 
 logger = logging.getLogger(__name__)
 
@@ -127,7 +128,7 @@ class ConnectionsCache(object):
             return subscription
 
     @tracing.with_trace()
-    def get(self, preferred_endpoint=None):
+    def get(self, preferred_endpoint=None) -> Connection:
         with self.lock:
             if (
                 preferred_endpoint is not None

@@ -16,6 +16,12 @@ from ydb._grpc.common.protos import ydb_operation_pb2
 from ydb._grpc.common.protos import ydb_common_pb2
 from ydb._grpc.common import ydb_operation_v1_pb2_grpc
 
+# Workaround for good IDE and universal runtime
+if False:
+    from ydb._grpc.v4 import ydb_topic_v1_pb2_grpc
+else:
+    from ydb._grpc.common import ydb_topic_v1_pb2_grpc
+
 
 StatusIds = ydb_status_codes_pb2.StatusIds
 FeatureFlag = ydb_common_pb2.FeatureFlag
@@ -74,3 +80,10 @@ class TableService(object):
     KeepAlive = "KeepAlive"
     StreamReadTable = "StreamReadTable"
     BulkUpsert = "BulkUpsert"
+
+
+class TopicService(object):
+    Stub = ydb_topic_v1_pb2_grpc.TopicServiceStub
+
+    StreamRead = "StreamRead"
+    StreamWrite = "StreamWrite"
