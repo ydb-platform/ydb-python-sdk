@@ -5,9 +5,22 @@ from typing import Dict, Awaitable, Deque, AsyncIterator
 
 import ydb
 from .topic_writer import *
-from .. import _apis, YDB_AUTH_TICKET_HEADER, issues, check_retriable_error, RetrySettings
-from .._topic_wrapper.common import UpdateTokenResponse, UpdateTokenRequest, QueueToIteratorAsyncIO, Codec, \
-    GrpcWrapperAsyncIO, IGrpcWrapperAsyncIO, SupportedDriverType
+from .. import (
+    _apis,
+    YDB_AUTH_TICKET_HEADER,
+    issues,
+    check_retriable_error,
+    RetrySettings,
+)
+from .._topic_wrapper.common import (
+    UpdateTokenResponse,
+    UpdateTokenRequest,
+    QueueToIteratorAsyncIO,
+    Codec,
+    GrpcWrapperAsyncIO,
+    IGrpcWrapperAsyncIO,
+    SupportedDriverType,
+)
 from .._topic_wrapper.writer import StreamWriteMessage, WriterMessagesFromServerToClient
 
 # Workaround for good autocomplete in IDE and universal import at runtime
@@ -31,7 +44,9 @@ class WriterAsyncIO:
     def __init__(self, driver: SupportedDriverType, settings: PublicWriterSettings):
         self._loop = asyncio.get_running_loop()
         self._closed = False
-        self._reconnector = WriterAsyncIOReconnector(driver=driver, settings=WriterSettings(settings))
+        self._reconnector = WriterAsyncIOReconnector(
+            driver=driver, settings=WriterSettings(settings)
+        )
 
     async def __aenter__(self):
         return self
@@ -53,10 +68,11 @@ class WriterAsyncIO:
 
         await self._reconnector.close()
 
-    async def write_with_ack(self,
-                             messages: Union[Writer.MessageType, List[Writer.MessageType]],
-                             *args: Optional[Writer.MessageType],
-                             ) -> Union[PublicWriteResult, List[PublicWriteResult]]:
+    async def write_with_ack(
+        self,
+        messages: Union[Writer.MessageType, List[Writer.MessageType]],
+        *args: Optional[Writer.MessageType],
+    ) -> Union[PublicWriteResult, List[PublicWriteResult]]:
         """
         IT IS SLOWLY WAY. IT IS BAD CHOISE IN MOST CASES.
         It is recommended to use write with optionally flush or write_with_ack_futures and receive acks by wait futures.
@@ -81,10 +97,11 @@ class WriterAsyncIO:
 
         raise NotImplementedError()
 
-    async def write_with_ack_future(self,
-                             messages: Union[Writer.MessageType, List[Writer.MessageType]],
-                             *args: Optional[Writer.MessageType],
-                             ) -> Union[asyncio.Future, List[asyncio.Future]]:
+    async def write_with_ack_future(
+        self,
+        messages: Union[Writer.MessageType, List[Writer.MessageType]],
+        *args: Optional[Writer.MessageType],
+    ) -> Union[asyncio.Future, List[asyncio.Future]]:
         """
         send one or number of messages to server.
         return feature, which can be waited for check send result.
@@ -103,10 +120,11 @@ class WriterAsyncIO:
             return await self._reconnector.write_with_ack(messages)
         raise NotImplementedError()
 
-    async def write(self,
-                    messages: Union[Writer.MessageType, List[Writer.MessageType]],
-                    *args: Optional[Writer.MessageType],
-                    ):
+    async def write(
+        self,
+        messages: Union[Writer.MessageType, List[Writer.MessageType]],
+        *args: Optional[Writer.MessageType],
+    ):
         """
         send one or number of messages to server.
         it put message to internal buffer
@@ -176,7 +194,9 @@ class WriterAsyncIOReconnector:
     async def wait_init(self) -> PublicWriterInitInfo:
         return await self._init_info
 
-    async def write_with_ack(self, messages: List[PublicMessage]) -> List[asyncio.Future]:
+    async def write_with_ack(
+        self, messages: List[PublicMessage]
+    ) -> List[asyncio.Future]:
         # todo check internal buffer limit
         await self._check_stop()
 
@@ -209,12 +229,18 @@ class WriterAsyncIOReconnector:
                     self._last_known_seq_no += 1
                     internal_message.seq_no = self._last_known_seq_no
                 else:
-                    raise TopicWriterError("Explicit seqno and auto_seq setting is mutual exclusive")
+                    raise TopicWriterError(
+                        "Explicit seqno and auto_seq setting is mutual exclusive"
+                    )
             else:
                 if internal_message.seq_no is None or internal_message.seq_no == 0:
-                    raise TopicWriterError("Empty seqno and auto_seq setting is disabled")
+                    raise TopicWriterError(
+                        "Empty seqno and auto_seq setting is disabled"
+                    )
                 elif internal_message.seq_no <= self._last_known_seq_no:
-                    raise TopicWriterError("Message seqno is duplicated: %s" % internal_message.seq_no)
+                    raise TopicWriterError(
+                        "Message seqno is duplicated: %s" % internal_message.seq_no
+                    )
                 else:
                     self._last_known_seq_no = internal_message.seq_no
 
@@ -236,7 +262,7 @@ class WriterAsyncIOReconnector:
                 raise self._stop_reason
 
     async def _connection_loop(self):
-        retry_settings = RetrySettings() # todo
+        retry_settings = RetrySettings()  # todo
 
         while True:
             attempt = 0  # todo calc and reset
@@ -250,22 +276,32 @@ class WriterAsyncIOReconnector:
 
             # noinspection PyBroadException
             try:
-                stream_writer = await WriterAsyncIOStream.create(self._driver, self._init_message, self._get_token)
+                stream_writer = await WriterAsyncIOStream.create(
+                    self._driver, self._init_message, self._get_token
+                )
                 try:
                     async with self._lock:
                         self._last_known_seq_no = stream_writer.last_seqno
-                        self._init_info.set_result(PublicWriterInitInfo(last_seqno=stream_writer.last_seqno))
+                        self._init_info.set_result(
+                            PublicWriterInitInfo(last_seqno=stream_writer.last_seqno)
+                        )
                 except asyncio.InvalidStateError:
                     pass
 
                 self._stream_connected.set()
 
-                send_loop = asyncio.create_task(self._send_loop(stream_writer), name="writer send loop")
-                receive_loop = asyncio.create_task(self._read_loop(stream_writer), name="writer receive loop")
+                send_loop = asyncio.create_task(
+                    self._send_loop(stream_writer), name="writer send loop"
+                )
+                receive_loop = asyncio.create_task(
+                    self._read_loop(stream_writer), name="writer receive loop"
+                )
 
                 pending = [send_loop, receive_loop]
 
-                done, pending = await asyncio.wait([send_loop, receive_loop], return_when=asyncio.FIRST_COMPLETED)
+                done, pending = await asyncio.wait(
+                    [send_loop, receive_loop], return_when=asyncio.FIRST_COMPLETED
+                )
                 done.pop().result()
             except issues.Error as err:
                 # todo log error
@@ -299,10 +335,12 @@ class WriterAsyncIOReconnector:
         message_future = self._messages_future.popleft()
         if current_message.seq_no != ack.seq_no:
             raise TopicWriterError(
-                "internal error - receive unexpected ack. Expected seqno: %s, received seqno: %s" %
-                (current_message.seq_no, ack.seq_no)
+                "internal error - receive unexpected ack. Expected seqno: %s, received seqno: %s"
+                % (current_message.seq_no, ack.seq_no)
             )
-        message_future.set_result(None)  # todo - return result with offset or skip status
+        message_future.set_result(
+            None
+        )  # todo - return result with offset or skip status
 
     async def _send_loop(self, writer: "WriterAsyncIOStream"):
         try:
@@ -350,42 +388,49 @@ class WriterAsyncIOStream:
     _requests: asyncio.Queue
     _responses: AsyncIterator
 
-    def __init__(self,
-                 token_getter: "TokenGetter",
-                 ):
+    def __init__(
+        self,
+        token_getter: "TokenGetter",
+    ):
         self._token_getter = token_getter
 
     @staticmethod
-    async def create(driver: SupportedDriverType, init_request: StreamWriteMessage.InitRequest, token_getter: "TokenGetter")\
-            -> "WriterAsyncIOStream":
+    async def create(
+        driver: SupportedDriverType,
+        init_request: StreamWriteMessage.InitRequest,
+        token_getter: "TokenGetter",
+    ) -> "WriterAsyncIOStream":
         stream = GrpcWrapperAsyncIO(StreamWriteMessage.FromServer.from_proto)
 
-        await stream.start(driver, _apis.TopicService.Stub, _apis.TopicService.StreamWrite)
+        await stream.start(
+            driver, _apis.TopicService.Stub, _apis.TopicService.StreamWrite
+        )
 
         writer = WriterAsyncIOStream(token_getter)
-        await writer._start(
-            stream,
-            init_request
-        )
+        await writer._start(stream, init_request)
         return writer
 
-
     @staticmethod
-    async def _create_stream_from_async(driver: ydb.aio.Driver, init_request: StreamWriteMessage.InitRequest, token_getter: "TokenGetter")\
-            -> "WriterAsyncIOStream":
+    async def _create_stream_from_async(
+        driver: ydb.aio.Driver,
+        init_request: StreamWriteMessage.InitRequest,
+        token_getter: "TokenGetter",
+    ) -> "WriterAsyncIOStream":
         return GrpcWrapperAsyncIO(StreamWriteMessage.FromServer.from_proto)
 
     @staticmethod
-    async def _create_from_sync(driver: ydb.Driver, init_request: StreamWriteMessage.InitRequest, token_getter: "TokenGetter")\
-            -> "WriterAsyncIOStream":
+    async def _create_from_sync(
+        driver: ydb.Driver,
+        init_request: StreamWriteMessage.InitRequest,
+        token_getter: "TokenGetter",
+    ) -> "WriterAsyncIOStream":
         stream = GrpcWrapperAsyncIO(StreamWriteMessage.FromServer.from_proto)
-        await stream.start(driver, _apis.TopicService.Stub, _apis.TopicService.StreamWrite)
+        await stream.start(
+            driver, _apis.TopicService.Stub, _apis.TopicService.StreamWrite
+        )
 
         writer = WriterAsyncIOStream(token_getter)
-        await writer._start(
-            stream,
-            init_request
-        )
+        await writer._start(stream, init_request)
         return writer
 
     async def receive(self) -> StreamWriteMessage.WriteResponse:
@@ -400,7 +445,9 @@ class WriterAsyncIOStream:
             # todo log unknown messages instead of raise exception
             raise Exception("Unknown message while read writer answers: %s" % item)
 
-    async def _start(self, stream: IGrpcWrapperAsyncIO, init_message: StreamWriteMessage.InitRequest):
+    async def _start(
+        self, stream: IGrpcWrapperAsyncIO, init_message: StreamWriteMessage.InitRequest
+    ):
         stream.write(StreamWriteMessage.FromClient(init_message))
 
         resp = await stream.receive()
@@ -415,7 +462,9 @@ class WriterAsyncIOStream:
     @staticmethod
     def _ensure_ok(message: WriterMessagesFromServerToClient):
         if not message.status.is_success():
-            raise TopicWriterError("status error from server in writer: %s", message.status)
+            raise TopicWriterError(
+                "status error from server in writer: %s", message.status
+            )
 
     def write(self, messages: List[InternalMessage]):
         for request in messages_to_proto_requests(messages):

@@ -11,10 +11,18 @@ import ydb.aio
 
 # Workaround for good autocomplete in IDE and universal import at runtime
 if False:
-    from ydb._grpc.v4.protos import ydb_status_codes_pb2, ydb_issue_message_pb2, ydb_topic_pb2
+    from ydb._grpc.v4.protos import (
+        ydb_status_codes_pb2,
+        ydb_issue_message_pb2,
+        ydb_topic_pb2,
+    )
 else:
     # noinspection PyUnresolvedReferences
-    from ydb._grpc.common.protos import ydb_status_codes_pb2, ydb_issue_message_pb2, ydb_topic_pb2
+    from ydb._grpc.common.protos import (
+        ydb_status_codes_pb2,
+        ydb_issue_message_pb2,
+        ydb_topic_pb2,
+    )
 
 
 class Codec(Enum):
@@ -32,7 +40,6 @@ class OffsetsRange:
 
 
 class IToProto(abc.ABC):
-
     @abc.abstractmethod
     def to_proto(self) -> Message:
         pass
@@ -81,14 +88,15 @@ class AsyncQueueToSyncIteratorAsyncIO:
 
     def __next__(self):
         try:
-            res = asyncio.run_coroutine_threadsafe(self._queue.get(), self._loop).result()
+            res = asyncio.run_coroutine_threadsafe(
+                self._queue.get(), self._loop
+            ).result()
             return res
         except asyncio.QueueEmpty:
             raise StopIteration()
 
 
 class SyncIteratorToAsyncIterator:
-
     def __init__(self, sync_iterator: typing.Iterator):
         self._sync_iterator = sync_iterator
 
@@ -118,10 +126,12 @@ class IteratorToQueueAsyncIO:
 
 class IGrpcWrapperAsyncIO(abc.ABC):
     @abc.abstractmethod
-    async def receive(self) -> typing.Any: ...
+    async def receive(self) -> typing.Any:
+        ...
 
     @abc.abstractmethod
-    def write(self, wrap_message: IToProto): ...
+    def write(self, wrap_message: IToProto):
+        ...
 
 
 SupportedDriverType = typing.Union[ydb.Driver, ydb.aio.Driver]
@@ -153,11 +163,12 @@ class GrpcWrapperAsyncIO(IGrpcWrapperAsyncIO):
 
     async def _start_sync_driver(self, driver: ydb.Driver, stub, method):
         requests_iterator = AsyncQueueToSyncIteratorAsyncIO(self.from_client_grpc)
-        stream_call = await asyncio.to_thread(driver,
-                                              requests_iterator,
-                                              stub,
-                                              method,
-                                              )
+        stream_call = await asyncio.to_thread(
+            driver,
+            requests_iterator,
+            stub,
+            method,
+        )
         self.from_server_grpc = SyncIteratorToAsyncIterator(stream_call.__iter__())
 
     async def receive(self) -> typing.Any:
@@ -173,9 +184,11 @@ class GrpcWrapperAsyncIO(IGrpcWrapperAsyncIO):
 class ServerStatus(IFromProto):
     __slots__ = ("status", "_issues")
 
-    def __init__(self,
-                 status: ydb_status_codes_pb2.StatusIds.StatusCode,
-                 issues: typing.Iterable[ydb_issue_message_pb2.IssueMessage]):
+    def __init__(
+        self,
+        status: ydb_status_codes_pb2.StatusIds.StatusCode,
+        issues: typing.Iterable[ydb_issue_message_pb2.IssueMessage],
+    ):
         self.status = status
         self._issues = issues
 
@@ -184,9 +197,7 @@ class ServerStatus(IFromProto):
 
     @staticmethod
     def from_proto(msg: Message) -> "ServerStatus":
-        return ServerStatus(
-            msg.status
-        )
+        return ServerStatus(msg.status)
 
     def is_success(self) -> bool:
         return self.status == ydb_status_codes_pb2.StatusIds.SUCCESS

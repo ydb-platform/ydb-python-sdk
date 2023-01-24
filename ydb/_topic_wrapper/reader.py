@@ -114,4 +114,3 @@ class StreamReadMessage:
     @dataclass
     class StopPartitionSessionResponse:
         partition_session_id: int
-

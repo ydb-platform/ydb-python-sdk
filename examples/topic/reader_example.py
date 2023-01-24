@@ -5,12 +5,17 @@ import ydb
 
 
 def connect():
-    db = ydb.Driver(connection_string="grpc://localhost:2135?database=/local", credentials=ydb.credentials.AnonymousCredentials())
+    db = ydb.Driver(
+        connection_string="grpc://localhost:2135?database=/local",
+        credentials=ydb.credentials.AnonymousCredentials(),
+    )
     reader = ydb.TopicClient(db).topic_reader("/local/topic", consumer="consumer")
 
 
 def create_reader_and_close_with_context_manager(db: ydb.Driver):
-    with ydb.TopicClient(db).topic_reader("/database/topic/path", consumer="consumer", buffer_size_bytes=123) as reader:
+    with ydb.TopicClient(db).topic_reader(
+        "/database/topic/path", consumer="consumer", buffer_size_bytes=123
+    ) as reader:
         for message in reader:
             pass
 
@@ -75,9 +80,13 @@ def get_one_batch_from_external_loop(reader: ydb.TopicReader):
 def auto_deserialize_message(db: ydb.Driver):
     # async, batch work similar to this
 
-    reader = ydb.TopicClient(db).topic_reader("/database/topic/path", consumer="asd", deserializer=json.loads)
+    reader = ydb.TopicClient(db).topic_reader(
+        "/database/topic/path", consumer="asd", deserializer=json.loads
+    )
     for message in reader.messages():
-        print(message.data.Name)  # message.data replaces by json.loads(message.data) of raw message
+        print(
+            message.data.Name
+        )  # message.data replaces by json.loads(message.data) of raw message
         reader.commit(message)
 
 
@@ -113,7 +122,12 @@ def handle_partition_stop_batch(reader: ydb.TopicReader):
 
 
 def connect_and_read_few_topics(db: ydb.Driver):
-    with ydb.TopicClient(db).topic_reader(["/database/topic/path", ydb.TopicSelector("/database/second-topic", partitions=3)]) as reader:
+    with ydb.TopicClient(db).topic_reader(
+        [
+            "/database/topic/path",
+            ydb.TopicSelector("/database/second-topic", partitions=3),
+        ]
+    ) as reader:
         for message in reader:
             _process(message)
             reader.commit(message)
@@ -131,24 +145,29 @@ def advanced_commit_notify(db: ydb.Driver):
         print(event.topic)
         print(event.offset)
 
-    with ydb.TopicClient(db).topic_reader("/local", consumer="consumer", commit_batch_time=4, on_commit=on_commit) as reader:
+    with ydb.TopicClient(db).topic_reader(
+        "/local", consumer="consumer", commit_batch_time=4, on_commit=on_commit
+    ) as reader:
         for message in reader:
             with reader.commit_on_exit(message):
                 _process(message)
 
 
 def advanced_read_with_own_progress_storage(db: ydb.TopicReader):
-    def on_get_partition_start_offset(req: ydb.TopicReaderEvents.OnPartitionGetStartOffsetRequest) -> \
-            ydb.TopicReaderEvents.OnPartitionGetStartOffsetResponse:
+    def on_get_partition_start_offset(
+        req: ydb.TopicReaderEvents.OnPartitionGetStartOffsetRequest,
+    ) -> ydb.TopicReaderEvents.OnPartitionGetStartOffsetResponse:
 
         # read current progress from database
         resp = ydb.TopicReaderEvents.OnPartitionGetStartOffsetResponse()
         resp.start_offset = 123
         return resp
 
-    with ydb.TopicClient(db).topic_reader("/local/test", consumer="consumer",
-                                              on_get_partition_start_offset=on_get_partition_start_offset
-                                          ) as reader:
+    with ydb.TopicClient(db).topic_reader(
+        "/local/test",
+        consumer="consumer",
+        on_get_partition_start_offset=on_get_partition_start_offset,
+    ) as reader:
         for mess in reader:
             _process(mess)
             # save progress to own database
@@ -170,4 +189,3 @@ def get_current_statistics(reader: ydb.TopicReader):
 
 def _process(msg):
     raise NotImplementedError()
-

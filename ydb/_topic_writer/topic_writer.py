@@ -33,8 +33,12 @@ class Writer:
 
     MessageType = typing.Union["PublicMessage", "Message.SimpleMessageSourceType"]
 
-    def write(self, message: Union[MessageType, List[MessageType]], *args: Optional[MessageType],
-              timeout: [float, None] = None):
+    def write(
+        self,
+        message: Union[MessageType, List[MessageType]],
+        *args: Optional[MessageType],
+        timeout: [float, None] = None,
+    ):
         """
         send one or number of messages to server.
         it fast put message to internal buffer, without wait message result
@@ -49,8 +53,12 @@ class Writer:
         """
         raise NotImplementedError()
 
-    def async_write_with_ack(self, message: Union[MessageType, List[MessageType]], *args: Optional[MessageType],
-                             timeout: [float, None] = None) -> concurrent.futures.Future:
+    def async_write_with_ack(
+        self,
+        message: Union[MessageType, List[MessageType]],
+        *args: Optional[MessageType],
+        timeout: [float, None] = None,
+    ) -> concurrent.futures.Future:
         """
         send one or number of messages to server.
         return feature, which can be waited for check send result: ack/duplicate/error
@@ -66,9 +74,12 @@ class Writer:
         """
         raise NotImplementedError()
 
-    def write_with_ack(self, message: Union[MessageType, List[MessageType]], *args: Optional[MessageType],
-                       buffer_timeout: [float, None] = None) -> Union[
-        "MessageWriteStatus", List["MessageWriteStatus"]]:
+    def write_with_ack(
+        self,
+        message: Union[MessageType, List[MessageType]],
+        *args: Optional[MessageType],
+        buffer_timeout: [float, None] = None,
+    ) -> Union["MessageWriteStatus", List["MessageWriteStatus"]]:
         """
         IT IS SLOWLY WAY. IT IS BAD CHOISE IN MOST CASES.
         It is recommended to use write with optionally flush or async_write_with_ack and receive acks by wait future.
@@ -148,9 +159,7 @@ class PublicWriterSettings:
 class PublicWriteResult:
     @dataclass(eq=True)
     class Written:
-        __slots__ = (
-            "offset"
-        )
+        __slots__ = "offset"
         offset: int
 
     @dataclass(eq=True)
@@ -174,7 +183,9 @@ class WriterSettings(PublicWriterSettings):
     def get_partitioning(self) -> StreamWriteMessage.PartitioningType:
         if self.partition_id is not None:
             return StreamWriteMessage.PartitioningPartitionID(self.partition_id)
-        return StreamWriteMessage.PartitioningMessageGroupID(self.producer_and_message_group_id)
+        return StreamWriteMessage.PartitioningMessageGroupID(
+            self.producer_and_message_group_id
+        )
 
 
 class SendMode(Enum):
@@ -184,9 +195,7 @@ class SendMode(Enum):
 
 @dataclass
 class PublicWriterInitInfo:
-    __slots__ = (
-        "last_seqno"
-    )
+    __slots__ = "last_seqno"
     last_seqno: Optional[int]
 
 
@@ -197,11 +206,13 @@ class PublicMessage:
 
     SimpleMessageSourceType = Union[str, bytes, TextIO, BinaryIO]
 
-    def __init__(self,
-                 data: SimpleMessageSourceType, *,
-                 seqno: Optional[int] = None,
-                 created_at: Optional[datetime.datetime] = None,
-                 ):
+    def __init__(
+        self,
+        data: SimpleMessageSourceType,
+        *,
+        seqno: Optional[int] = None,
+        created_at: Optional[datetime.datetime] = None,
+    ):
         self.seqno = seqno
         self.created_at = created_at
         self.data = data
@@ -215,7 +226,7 @@ class InternalMessage(StreamWriteMessage.WriteRequest.MessageData, IToProto):
             created_at=mess.created_at,
             data=mess.data,
             uncompressed_size=len(mess.data),
-            partitioning = None,
+            partitioning=None,
         )
 
     def get_bytes(self) -> bytes:
@@ -265,7 +276,9 @@ class TopicWriterRepeatableError(TopicWriterError):
 
 class TopicWriterStopped(TopicWriterError):
     def __init__(self):
-        super(TopicWriterStopped, self).__init__("topic writer was stopped by call close")
+        super(TopicWriterStopped, self).__init__(
+            "topic writer was stopped by call close"
+        )
 
 
 def default_serializer_message_content(data: Any) -> bytes:
@@ -276,11 +289,13 @@ def default_serializer_message_content(data: Any) -> bytes:
     if isinstance(data, bytearray):
         return bytes(data)
     if isinstance(data, str):
-        return data.encode(encoding='utf-8')
+        return data.encode(encoding="utf-8")
     raise ValueError("can't serialize type %s to bytes" % type(data))
 
 
-def messages_to_proto_requests(messages: List[InternalMessage]) -> List[StreamWriteMessage.FromClient]:
+def messages_to_proto_requests(
+    messages: List[InternalMessage],
+) -> List[StreamWriteMessage.FromClient]:
     # todo split by proto message size and codec
     res = []
     for msg in messages:

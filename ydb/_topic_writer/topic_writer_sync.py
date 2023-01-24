@@ -6,8 +6,14 @@ import threading
 from typing import Union, List, Optional, Coroutine
 
 from .._topic_wrapper.common import SupportedDriverType
-from .topic_writer import PublicWriterSettings, TopicWriterError, PublicWriterInitInfo, PublicMessage, Writer, \
-    PublicWriteResult
+from .topic_writer import (
+    PublicWriterSettings,
+    TopicWriterError,
+    PublicWriterInitInfo,
+    PublicMessage,
+    Writer,
+    PublicWriteResult,
+)
 
 from .topic_writer_asyncio import WriterAsyncIO
 
@@ -34,7 +40,11 @@ def _get_shared_event_loop() -> asyncio.AbstractEventLoop:
             asyncio.set_event_loop(_shared_event_loop)
             _shared_event_loop.run_forever()
 
-        t = threading.Thread(target=start_event_loop, name="Common ydb topic writer event loop", daemon=True)
+        t = threading.Thread(
+            target=start_event_loop,
+            name="Common ydb topic writer event loop",
+            daemon=True,
+        )
         t.start()
 
         event_loop_set_done.result()
@@ -46,11 +56,13 @@ class WriterSync:
     _async_writer: WriterAsyncIO
     _closed: bool
 
-    def __init__(self,
-                 driver: SupportedDriverType,
-                 settings: PublicWriterSettings,
-                 *,
-                 eventloop: asyncio.AbstractEventLoop = None):
+    def __init__(
+        self,
+        driver: SupportedDriverType,
+        settings: PublicWriterSettings,
+        *,
+        eventloop: asyncio.AbstractEventLoop = None,
+    ):
 
         self._closed = False
 
@@ -62,7 +74,9 @@ class WriterSync:
         async def create_async_writer():
             return WriterAsyncIO(driver, settings)
 
-        self._async_writer = asyncio.run_coroutine_threadsafe(create_async_writer(), self._loop).result()
+        self._async_writer = asyncio.run_coroutine_threadsafe(
+            create_async_writer(), self._loop
+        ).result()
 
     def _call(self, coro, *args, **kwargs):
         if self._closed:
@@ -82,7 +96,9 @@ class WriterSync:
         if self._closed:
             return
         self._closed = True
-        asyncio.run_coroutine_threadsafe(self._async_writer.close(), self._loop).result()
+        asyncio.run_coroutine_threadsafe(
+            self._async_writer.close(), self._loop
+        ).result()
 
     def async_flush(self) -> Future:
         if self._closed:
@@ -98,19 +114,27 @@ class WriterSync:
     def wait_init(self, timeout) -> PublicWriterInitInfo:
         return self._call_sync(self._async_writer.wait_init(), timeout)
 
-    def write(self, message: Union[PublicMessage, List[PublicMessage]], *args: Optional[PublicMessage],
-              timeout: Union[float, None] = None):
+    def write(
+        self,
+        message: Union[PublicMessage, List[PublicMessage]],
+        *args: Optional[PublicMessage],
+        timeout: Union[float, None] = None,
+    ):
         self._call_sync(self._async_writer.write(message, *args), timeout=timeout)
 
-    def async_write_with_ack(self,
-                             messages: Union[Writer.MessageType, List[Writer.MessageType]],
-                             *args: Optional[Writer.MessageType],
-                             ) -> Future[Union[PublicWriteResult, List[PublicWriteResult]]]:
+    def async_write_with_ack(
+        self,
+        messages: Union[Writer.MessageType, List[Writer.MessageType]],
+        *args: Optional[Writer.MessageType],
+    ) -> Future[Union[PublicWriteResult, List[PublicWriteResult]]]:
         return self._call(self._async_writer.write_with_ack(messages, *args))
 
-    def write_with_ack(self,
-                       messages: Union[Writer.MessageType, List[Writer.MessageType]],
-                       *args: Optional[Writer.MessageType],
-                       timeout: Union[float, None] = None,
-                       ) -> Union[PublicWriteResult, List[PublicWriteResult]]:
-        return self._call_sync(self._async_writer.write_with_ack(messages, *args), timeout=timeout)
+    def write_with_ack(
+        self,
+        messages: Union[Writer.MessageType, List[Writer.MessageType]],
+        *args: Optional[Writer.MessageType],
+        timeout: Union[float, None] = None,
+    ) -> Union[PublicWriteResult, List[PublicWriteResult]]:
+        return self._call_sync(
+            self._async_writer.write_with_ack(messages, *args), timeout=timeout
+        )

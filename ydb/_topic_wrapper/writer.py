@@ -7,8 +7,14 @@ from typing import Union
 
 from google.protobuf.message import Message
 
-from ydb._topic_wrapper.common import IToProto, IFromProto, ServerStatus, UpdateTokenRequest, UpdateTokenResponse, \
-    UnknownGrpcMessageError
+from ydb._topic_wrapper.common import (
+    IToProto,
+    IFromProto,
+    ServerStatus,
+    UpdateTokenRequest,
+    UpdateTokenResponse,
+    UnknownGrpcMessageError,
+)
 
 # Workaround for good autocomplete in IDE and universal import at runtime
 if False:
@@ -33,12 +39,18 @@ class StreamWriteMessage:
 
             if self.partitioning is None:
                 pass
-            elif isinstance(self.partitioning, StreamWriteMessage.PartitioningMessageGroupID):
+            elif isinstance(
+                self.partitioning, StreamWriteMessage.PartitioningMessageGroupID
+            ):
                 proto.message_group_id = self.partitioning.message_group_id
-            elif isinstance(self.partitioning, StreamWriteMessage.PartitioningPartitionID):
+            elif isinstance(
+                self.partitioning, StreamWriteMessage.PartitioningPartitionID
+            ):
                 proto.partition_id = self.partitioning.partition_id
             else:
-                raise Exception("Bad partitioning type at StreamWriteMessage.InitRequest")
+                raise Exception(
+                    "Bad partitioning type at StreamWriteMessage.InitRequest"
+                )
 
             if self.write_session_meta:
                 for key in self.write_session_meta:
@@ -56,7 +68,9 @@ class StreamWriteMessage:
         status: ServerStatus = None
 
         @staticmethod
-        def from_proto(msg: ydb_topic_pb2.StreamWriteMessage.InitResponse) -> "StreamWriteMessage.InitResponse":
+        def from_proto(
+            msg: ydb_topic_pb2.StreamWriteMessage.InitResponse,
+        ) -> "StreamWriteMessage.InitResponse":
             codecs = []  # type: typing.List[int]
             if msg.supported_codecs:
                 for codec in msg.supported_codecs.codecs:
@@ -66,7 +80,7 @@ class StreamWriteMessage:
                 last_seq_no=msg.last_seq_no,
                 session_id=msg.session_id,
                 partition_id=msg.partition_id,
-                supported_codecs=codecs
+                supported_codecs=codecs,
             )
 
     @dataclass
@@ -82,7 +96,9 @@ class StreamWriteMessage:
             uncompressed_size: int
             partitioning: "StreamWriteMessage.PartitioningType"
 
-            def to_proto(self) -> ydb_topic_pb2.StreamWriteMessage.WriteRequest.MessageData:
+            def to_proto(
+                self,
+            ) -> ydb_topic_pb2.StreamWriteMessage.WriteRequest.MessageData:
                 proto = ydb_topic_pb2.StreamWriteMessage.WriteRequest.MessageData()
                 proto.seq_no = self.seq_no
                 proto.created_at.FromDatetime(self.created_at)
@@ -91,12 +107,18 @@ class StreamWriteMessage:
 
                 if self.partitioning is None:
                     pass
-                elif isinstance(self.partitioning, StreamWriteMessage.PartitioningPartitionID):
+                elif isinstance(
+                    self.partitioning, StreamWriteMessage.PartitioningPartitionID
+                ):
                     proto.partition_id = self.partitioning.partition_id
-                elif isinstance(self.partitioning, StreamWriteMessage.PartitioningMessageGroupID):
+                elif isinstance(
+                    self.partitioning, StreamWriteMessage.PartitioningMessageGroupID
+                ):
                     proto.message_group_id = self.partitioning.message_group_id
                 else:
-                    raise Exception("Bad partition at StreamWriteMessage.WriteRequest.MessageData")
+                    raise Exception(
+                        "Bad partition at StreamWriteMessage.WriteRequest.MessageData"
+                    )
 
                 return proto
 
@@ -118,7 +140,9 @@ class StreamWriteMessage:
         status: ServerStatus = field(default=None)
 
         @staticmethod
-        def from_proto(msg: ydb_topic_pb2.StreamWriteMessage.WriteResponse) -> "StreamWriteMessage.WriteResponse":
+        def from_proto(
+            msg: ydb_topic_pb2.StreamWriteMessage.WriteResponse,
+        ) -> "StreamWriteMessage.WriteResponse":
             acks = []
             for proto_ack in msg.acks:
                 ack = StreamWriteMessage.WriteResponse.WriteAck.from_proto(proto_ack)
@@ -143,20 +167,26 @@ class StreamWriteMessage:
             message_write_status: Union[
                 "StreamWriteMessage.WriteResponse.WriteAck.StatusWritten",
                 "StreamWriteMessage.WriteResponse.WriteAck.StatusSkipped",
-                int
+                int,
             ]
 
             @classmethod
-            def from_proto(cls, proto_ack: ydb_topic_pb2.StreamWriteMessage.WriteResponse.WriteAck):
+            def from_proto(
+                cls, proto_ack: ydb_topic_pb2.StreamWriteMessage.WriteResponse.WriteAck
+            ):
                 if proto_ack.HasField("written"):
-                    message_write_status = StreamWriteMessage.WriteResponse.WriteAck.StatusWritten(
-                        proto_ack.written.offset
+                    message_write_status = (
+                        StreamWriteMessage.WriteResponse.WriteAck.StatusWritten(
+                            proto_ack.written.offset
+                        )
                     )
                 elif proto_ack.HasField("skipped"):
                     reason = proto_ack.skipped.reason
                     try:
                         message_write_status = StreamWriteMessage.WriteResponse.WriteAck.StatusSkipped(
-                            reason=StreamWriteMessage.WriteResponse.WriteAck.StatusSkipped.Reason.from_protobuf_code(reason)
+                            reason=StreamWriteMessage.WriteResponse.WriteAck.StatusSkipped.Reason.from_protobuf_code(
+                                reason
+                            )
                         )
                     except ValueError:
                         message_write_status = reason
@@ -181,12 +211,16 @@ class StreamWriteMessage:
                     ALREADY_WRITTEN = 1
 
                     @classmethod
-                    def from_protobuf_code(cls, code: int) -> Union[
+                    def from_protobuf_code(
+                        cls, code: int
+                    ) -> Union[
                         "StreamWriteMessage.WriteResponse.WriteAck.StatusSkipped.Reason",
-                        int
+                        int,
                     ]:
                         try:
-                            return StreamWriteMessage.WriteResponse.WriteAck.StatusSkipped.Reason(code)
+                            return StreamWriteMessage.WriteResponse.WriteAck.StatusSkipped.Reason(
+                                code
+                            )
                         except ValueError:
                             return code
 
@@ -250,5 +284,7 @@ WriterMessagesFromClientToServer = Union[
     StreamWriteMessage.InitRequest, StreamWriteMessage.WriteRequest, UpdateTokenRequest
 ]
 WriterMessagesFromServerToClient = Union[
-    StreamWriteMessage.InitResponse, StreamWriteMessage.WriteResponse, UpdateTokenResponse
+    StreamWriteMessage.InitResponse,
+    StreamWriteMessage.WriteResponse,
+    UpdateTokenResponse,
 ]

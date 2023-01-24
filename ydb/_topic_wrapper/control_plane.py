@@ -11,4 +11,3 @@ class CreateTopicRequest:
 @dataclass
 class Consumer:
     name: str
-

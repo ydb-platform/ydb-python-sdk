@@ -8,28 +8,37 @@ import ydb
 
 
 async def connect():
-    db = ydb.aio.Driver(connection_string="grpc://localhost:2135?database=/local", credentials=ydb.credentials.AnonymousCredentials())
-    reader = ydb.TopicClientAsyncIO(db).topic_writer("/local/topic", producer_and_message_group_id="producer-id", )
+    db = ydb.aio.Driver(
+        connection_string="grpc://localhost:2135?database=/local",
+        credentials=ydb.credentials.AnonymousCredentials(),
+    )
+    reader = ydb.TopicClientAsyncIO(db).topic_writer(
+        "/local/topic",
+        producer_and_message_group_id="producer-id",
+    )
 
 
 def create_writer(db: ydb.Driver):
-    with ydb.TopicClient(db).topic_writer("/database/topic/path",
-                                                   producer_and_message_group_id="producer-id",
-                                               ) as writer:
+    with ydb.TopicClient(db).topic_writer(
+        "/database/topic/path",
+        producer_and_message_group_id="producer-id",
+    ) as writer:
         pass
 
 
 def connect_and_wait(db: ydb.Driver):
-    with ydb.TopicClient(db).topic_writer("/database/topic/path",
-                                                   producer_and_message_group_id="producer-id",
-                                               ) as writer:
+    with ydb.TopicClient(db).topic_writer(
+        "/database/topic/path",
+        producer_and_message_group_id="producer-id",
+    ) as writer:
         writer.wait()
 
 
 def connect_without_context_manager(db: ydb.Driver):
-    writer = ydb.TopicClient(db).topic_writer("/database/topic/path",
-                                                       producer_and_message_group_id="producer-id",
-                                                   )
+    writer = ydb.TopicClient(db).topic_writer(
+        "/database/topic/path",
+        producer_and_message_group_id="producer-id",
+    )
     try:
         pass  # some code
     finally:
@@ -45,13 +54,17 @@ def send_messages(writer: ydb.TopicWriter):
     # full forms
     writer.write(ydb.TopicWriterMessage("mess"))  # send text
     writer.write(ydb.TopicWriterMessage(bytes([1, 2, 3])))  # send bytes
-    writer.write(ydb.TopicWriterMessage("mess-1"), ydb.TopicWriterMessage("mess-2"))  # send few messages by one call
+    writer.write(
+        ydb.TopicWriterMessage("mess-1"), ydb.TopicWriterMessage("mess-2")
+    )  # send few messages by one call
 
     # with meta
     writer.write(ydb.TopicWriterMessage("asd", seqno=123, created_at_ns=time.time_ns()))
 
 
-def send_message_without_block_if_internal_buffer_is_full(writer: ydb.TopicWriter, msg) -> bool:
+def send_message_without_block_if_internal_buffer_is_full(
+    writer: ydb.TopicWriter, msg
+) -> bool:
     try:
         # put message to internal queue for send, but if buffer is full - fast return
         # without wait
@@ -67,10 +80,14 @@ def send_messages_with_manual_seqno(writer: ydb.TopicWriter):
 
 def send_messages_with_wait_ack(writer: ydb.TopicWriter):
     # Explicit future wait
-    writer.async_write_with_ack(ydb.TopicWriterMessage("mess", seqno=1), ydb.TopicWriterMessage("mess", seqno=2)).result()
+    writer.async_write_with_ack(
+        ydb.TopicWriterMessage("mess", seqno=1), ydb.TopicWriterMessage("mess", seqno=2)
+    ).result()
 
     # implicit, by sync call
-    writer.write_with_ack(ydb.TopicWriterMessage("mess", seqno=1), ydb.TopicWriterMessage("mess", seqno=2))
+    writer.write_with_ack(
+        ydb.TopicWriterMessage("mess", seqno=1), ydb.TopicWriterMessage("mess", seqno=2)
+    )
     # write_with_ack
 
     # send with flush
@@ -79,7 +96,9 @@ def send_messages_with_wait_ack(writer: ydb.TopicWriter):
 
 
 def send_json_message(db: ydb.Driver):
-    with ydb.TopicClient(db).topic_writer("/database/path/topic", serializer=json.dumps) as writer:
+    with ydb.TopicClient(db).topic_writer(
+        "/database/path/topic", serializer=json.dumps
+    ) as writer:
         writer.write({"a": 123})
 
 
@@ -102,7 +121,9 @@ def send_messages_and_wait_all_commit_with_results(writer: ydb.TopicWriter):
             raise future.exception()
 
 
-def switch_messages_with_many_producers(writers: Dict[str, ydb.TopicWriter], messages: List[str]):
+def switch_messages_with_many_producers(
+    writers: Dict[str, ydb.TopicWriter], messages: List[str]
+):
     futures = []  # type:  List[Future]
 
     for msg in messages:

@@ -3,8 +3,17 @@ import concurrent.futures
 import enum
 import io
 import datetime
-from typing import Union, Optional, List, Mapping, Callable, Iterable, AsyncIterable, AsyncContextManager, \
-    Any
+from typing import (
+    Union,
+    Optional,
+    List,
+    Mapping,
+    Callable,
+    Iterable,
+    AsyncIterable,
+    AsyncContextManager,
+    Any,
+)
 
 
 class Selector:
@@ -33,7 +42,9 @@ class ReaderAsyncIO(object):
         """
         raise NotImplementedError()
 
-    def messages(self, *, timeout: Union[float, None] = None) -> AsyncIterable["Message"]:
+    def messages(
+        self, *, timeout: Union[float, None] = None
+    ) -> AsyncIterable["Message"]:
         """
         Block until receive new message
 
@@ -49,8 +60,13 @@ class ReaderAsyncIO(object):
         """
         raise NotImplementedError()
 
-    def batches(self, *, max_messages: Union[int, None] = None, max_bytes: Union[int, None] = None,
-                timeout: Union[float, None] = None) -> AsyncIterable["Batch"]:
+    def batches(
+        self,
+        *,
+        max_messages: Union[int, None] = None,
+        max_bytes: Union[int, None] = None,
+        timeout: Union[float, None] = None,
+    ) -> AsyncIterable["Batch"]:
         """
         Block until receive new batch.
         All messages in a batch from same partition.
@@ -59,7 +75,9 @@ class ReaderAsyncIO(object):
         """
         raise NotImplementedError()
 
-    async def receive_batch(self, *, max_messages: Union[int, None] = None, max_bytes: Union[int, None]) -> Union["Batch", None]:
+    async def receive_batch(
+        self, *, max_messages: Union[int, None] = None, max_bytes: Union[int, None]
+    ) -> Union["Batch", None]:
         """
         Get one messages batch from reader.
         All messages in a batch from same partition.
@@ -85,7 +103,9 @@ class ReaderAsyncIO(object):
         """
         raise NotImplementedError()
 
-    async def commit_with_ack(self, mess: "ICommittable") -> Union["CommitResult", List["CommitResult"]]:
+    async def commit_with_ack(
+        self, mess: "ICommittable"
+    ) -> Union["CommitResult", List["CommitResult"]]:
         """
         write commit message to a buffer and wait ack from the server.
 
@@ -152,8 +172,13 @@ class Reader(object):
         """
         raise NotImplementedError()
 
-    def batches(self, *, max_messages: Union[int, None] = None, max_bytes: Union[int, None] = None,
-                timeout: Union[float, None] = None) -> Iterable["Batch"]:
+    def batches(
+        self,
+        *,
+        max_messages: Union[int, None] = None,
+        max_bytes: Union[int, None] = None,
+        timeout: Union[float, None] = None,
+    ) -> Iterable["Batch"]:
         """
         Block until receive new batch.
         It has no async_ version for prevent lost messages, use async_wait_message as signal for new batches available.
@@ -163,8 +188,13 @@ class Reader(object):
         """
         raise NotImplementedError()
 
-    def receive_batch(self, *, max_messages: Union[int, None] = None, max_bytes: Union[int, None],
-                      timeout: Union[float, None] = None) -> Union["Batch", None]:
+    def receive_batch(
+        self,
+        *,
+        max_messages: Union[int, None] = None,
+        max_bytes: Union[int, None],
+        timeout: Union[float, None] = None,
+    ) -> Union["Batch", None]:
         """
         Get one messages batch from reader
         It has no async_ version for prevent lost messages, use async_wait_message as signal for new batches available.
@@ -183,7 +213,9 @@ class Reader(object):
         """
         raise NotImplementedError()
 
-    def commit_with_ack(self, mess: "ICommittable") -> Union["CommitResult", List["CommitResult"]]:
+    def commit_with_ack(
+        self, mess: "ICommittable"
+    ) -> Union["CommitResult", List["CommitResult"]]:
         """
         write commit message to a buffer and wait ack from the server.
 
@@ -191,7 +223,9 @@ class Reader(object):
         """
         raise NotImplementedError()
 
-    def async_commit_with_ack(self, mess: "ICommittable") -> Union["CommitResult", List["CommitResult"]]:
+    def async_commit_with_ack(
+        self, mess: "ICommittable"
+    ) -> Union["CommitResult", List["CommitResult"]]:
         """
         write commit message to a buffer and return Future for wait result.
         """
@@ -214,21 +248,24 @@ class Reader(object):
 
 
 class ReaderSettings:
-    def __init__(self, *,
-                 consumer: str,
-                 buffer_size_bytes: int = 50 * 1024 * 1024,
-                 on_commit: Callable[["OnCommitEvent"], None] = None,
-                 on_get_partition_start_offset: Callable[
-                     ["OnPartitionGetStartOffsetRequest"], "OnPartitionGetStartOffsetResponse"] = None,
-                 on_partition_session_start: Callable[["StubEvent"], None] = None,
-                 on_partition_session_stop: Callable[["StubEvent"], None] = None,
-                 on_partition_session_close: Callable[["StubEvent"], None] = None,  # todo?
-                 decoder: Union[Mapping[int, Callable[[bytes], bytes]], None] = None,
-                 deserializer: Union[Callable[[bytes], Any], None] = None,
-                 one_attempt_connection_timeout: Union[float, None] = 1,
-                 connection_timeout: Union[float, None] = None,
-                 retry_policy: Union["RetryPolicy", None] = None,
-                 ):
+    def __init__(
+        self,
+        *,
+        consumer: str,
+        buffer_size_bytes: int = 50 * 1024 * 1024,
+        on_commit: Callable[["OnCommitEvent"], None] = None,
+        on_get_partition_start_offset: Callable[
+            ["OnPartitionGetStartOffsetRequest"], "OnPartitionGetStartOffsetResponse"
+        ] = None,
+        on_partition_session_start: Callable[["StubEvent"], None] = None,
+        on_partition_session_stop: Callable[["StubEvent"], None] = None,
+        on_partition_session_close: Callable[["StubEvent"], None] = None,  # todo?
+        decoder: Union[Mapping[int, Callable[[bytes], bytes]], None] = None,
+        deserializer: Union[Callable[[bytes], Any], None] = None,
+        one_attempt_connection_timeout: Union[float, None] = 1,
+        connection_timeout: Union[float, None] = None,
+        retry_policy: Union["RetryPolicy", None] = None,
+    ):
         raise NotImplementedError()
 
 
@@ -259,7 +296,9 @@ class Message(ICommittable, ISessionAlive):
     offset: int
     written_at_ns: int
     producer_id: int
-    data: Union[bytes, Any]  # set as original decompressed bytes or deserialized object if deserializer set in reader
+    data: Union[
+        bytes, Any
+    ]  # set as original decompressed bytes or deserialized object if deserializer set in reader
 
     def __init__(self):
         self.seqno = -1
@@ -335,8 +374,8 @@ class CommitResult:
 
     class State(enum.Enum):
         UNSENT = 1  # commit didn't send to the server
-        SENT = 2    # commit was sent to server, but ack hasn't received
-        ACKED = 3   # ack from server is received
+        SENT = 2  # commit was sent to server, but ack hasn't received
+        ACKED = 3  # ack from server is received
 
 
 class SessionStat:

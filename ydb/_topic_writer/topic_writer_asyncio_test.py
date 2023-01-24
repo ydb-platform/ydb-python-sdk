@@ -15,12 +15,23 @@ import pytest
 from .. import aio
 from .. import StatusCode, issues
 from .._topic_wrapper.common import ServerStatus, IGrpcWrapperAsyncIO, IToProto, Codec
-from .topic_writer import InternalMessage, PublicMessage, WriterSettings, PublicWriterSettings, \
-    PublicWriterInitInfo, PublicWriteResult, TopicWriterError
+from .topic_writer import (
+    InternalMessage,
+    PublicMessage,
+    WriterSettings,
+    PublicWriterSettings,
+    PublicWriterInitInfo,
+    PublicWriteResult,
+    TopicWriterError,
+)
 
 from .._topic_wrapper.writer import StreamWriteMessage
-from .topic_writer_asyncio import WriterAsyncIOStream, WriterAsyncIOReconnector, TokenGetter, \
-    WriterAsyncIO
+from .topic_writer_asyncio import (
+    WriterAsyncIOStream,
+    WriterAsyncIOReconnector,
+    TokenGetter,
+    WriterAsyncIO,
+)
 
 
 @pytest.fixture
@@ -60,22 +71,29 @@ class TestWriterAsyncIOStream:
 
     @pytest.fixture
     async def writer_and_stream(self, stream) -> WriterWithMockedStream:
-        stream.from_server.put_nowait(StreamWriteMessage.InitResponse(
-            last_seq_no=4,
-            session_id="123",
-            partition_id=3,
-            supported_codecs=[Codec.CODEC_RAW.value, Codec.CODEC_GZIP.value],
-            status=ServerStatus(StatusCode.SUCCESS, [])
-        ))
+        stream.from_server.put_nowait(
+            StreamWriteMessage.InitResponse(
+                last_seq_no=4,
+                session_id="123",
+                partition_id=3,
+                supported_codecs=[Codec.CODEC_RAW.value, Codec.CODEC_GZIP.value],
+                status=ServerStatus(StatusCode.SUCCESS, []),
+            )
+        )
 
         writer = WriterAsyncIOStream(None)
-        await writer._start(stream, init_message=StreamWriteMessage.InitRequest(
-            path="/local/test",
-            producer_id="producer-id",
-            write_session_meta={"a": "b"},
-            partitioning=StreamWriteMessage.PartitioningMessageGroupID(message_group_id="message-group-id"),
-            get_last_seq_no=False,
-        ))
+        await writer._start(
+            stream,
+            init_message=StreamWriteMessage.InitRequest(
+                path="/local/test",
+                producer_id="producer-id",
+                write_session_meta={"a": "b"},
+                partitioning=StreamWriteMessage.PartitioningMessageGroupID(
+                    message_group_id="message-group-id"
+                ),
+                get_last_seq_no=False,
+            ),
+        )
         await stream.from_client.get()
 
         return TestWriterAsyncIOStream.WriterWithMockedStream(
@@ -89,16 +107,20 @@ class TestWriterAsyncIOStream:
             path="/local/test",
             producer_id="producer-id",
             write_session_meta={"a": "b"},
-            partitioning=StreamWriteMessage.PartitioningMessageGroupID(message_group_id="message-group-id"),
+            partitioning=StreamWriteMessage.PartitioningMessageGroupID(
+                message_group_id="message-group-id"
+            ),
             get_last_seq_no=False,
         )
-        stream.from_server.put_nowait(StreamWriteMessage.InitResponse(
-            last_seq_no=init_seqno,
-            session_id="123",
-            partition_id=0,
-            supported_codecs=[],
-            status=ServerStatus(StatusCode.SUCCESS, [])
-        ))
+        stream.from_server.put_nowait(
+            StreamWriteMessage.InitResponse(
+                last_seq_no=init_seqno,
+                session_id="123",
+                partition_id=0,
+                supported_codecs=[],
+                status=ServerStatus(StatusCode.SUCCESS, []),
+            )
+        )
 
         writer = WriterAsyncIOStream(None)
         await writer._start(stream, init_message)
@@ -112,26 +134,32 @@ class TestWriterAsyncIOStream:
     async def test_write_a_message(self, writer_and_stream: WriterWithMockedStream):
         data = "123".encode()
         now = datetime.datetime.now()
-        writer_and_stream.writer.write([InternalMessage(
-            PublicMessage(
-                seqno=1,
-                created_at=now,
-                data=data,
-            )
-        )])
-
-        expected_message = StreamWriteMessage.FromClient(StreamWriteMessage.WriteRequest(
-            codec=Codec.CODEC_RAW.value,
-            messages=[
-                StreamWriteMessage.WriteRequest.MessageData(
-                    seq_no=1,
-                    created_at=now,
-                    data=data,
-                    uncompressed_size=len(data),
-                    partitioning=None,
+        writer_and_stream.writer.write(
+            [
+                InternalMessage(
+                    PublicMessage(
+                        seqno=1,
+                        created_at=now,
+                        data=data,
+                    )
                 )
             ]
-        ))
+        )
+
+        expected_message = StreamWriteMessage.FromClient(
+            StreamWriteMessage.WriteRequest(
+                codec=Codec.CODEC_RAW.value,
+                messages=[
+                    StreamWriteMessage.WriteRequest.MessageData(
+                        seq_no=1,
+                        created_at=now,
+                        data=data,
+                        uncompressed_size=len(data),
+                        partitioning=None,
+                    )
+                ],
+            )
+        )
 
         sent_message = await writer_and_stream.stream.from_client.get()
         assert expected_message == sent_message
@@ -163,7 +191,6 @@ class TestWriterAsyncIOReconnector:
 
     @pytest.fixture(autouse=True)
     async def stream_writer_double_queue(self, monkeypatch):
-
         class DoubleQueueWriters:
             _first: Queue
             _second: Queue
@@ -201,20 +228,26 @@ class TestWriterAsyncIOReconnector:
         return res
 
     @pytest.fixture
-    def get_stream_writer(self, stream_writer_double_queue) -> typing.Callable[[], "TestWriterAsyncIOReconnector.StreamWriterMock"]:
+    def get_stream_writer(
+        self, stream_writer_double_queue
+    ) -> typing.Callable[[], "TestWriterAsyncIOReconnector.StreamWriterMock"]:
         return stream_writer_double_queue.get_second
 
     @pytest.fixture
     def default_settings(self) -> WriterSettings:
-        return WriterSettings(PublicWriterSettings(
-            topic="/local/topic",
-            producer_and_message_group_id="test-producer",
-            auto_seqno=False,
-            auto_created_at=False,
-        ))
+        return WriterSettings(
+            PublicWriterSettings(
+                topic="/local/topic",
+                producer_and_message_group_id="test-producer",
+                auto_seqno=False,
+                auto_created_at=False,
+            )
+        )
 
     @pytest.fixture
-    def default_write_statistic(self) -> StreamWriteMessage.WriteResponse.WriteStatistics:
+    def default_write_statistic(
+        self,
+    ) -> StreamWriteMessage.WriteResponse.WriteStatistics:
         return StreamWriteMessage.WriteResponse.WriteStatistics(
             persisting_time=datetime.timedelta(milliseconds=1),
             min_queue_wait_time=datetime.timedelta(milliseconds=2),
@@ -224,14 +257,16 @@ class TestWriterAsyncIOReconnector:
         )
 
     @pytest.fixture
-    async def reconnector(self, default_driver, default_settings) -> WriterAsyncIOReconnector:
+    async def reconnector(
+        self, default_driver, default_settings
+    ) -> WriterAsyncIOReconnector:
         return WriterAsyncIOReconnector(default_driver, default_settings)
 
     async def test_reconnect_and_resent_non_acked_messages_on_retriable_error(
-            self,
-            reconnector: WriterAsyncIOReconnector,
-            get_stream_writer,
-            default_write_statistic,
+        self,
+        reconnector: WriterAsyncIOReconnector,
+        get_stream_writer,
+        default_write_statistic,
     ):
         now = datetime.datetime.now()
         data = "123".encode()
@@ -257,18 +292,20 @@ class TestWriterAsyncIOReconnector:
         assert [InternalMessage(message2)] == messages
 
         # ack first message
-        stream_writer.from_server.put_nowait(StreamWriteMessage.WriteResponse(
-            partition_id=1,
-            acks=[
-                StreamWriteMessage.WriteResponse.WriteAck(
-                    seq_no=1,
-                    message_write_status=StreamWriteMessage.WriteResponse.WriteAck.StatusWritten(
-                        offset=1
+        stream_writer.from_server.put_nowait(
+            StreamWriteMessage.WriteResponse(
+                partition_id=1,
+                acks=[
+                    StreamWriteMessage.WriteResponse.WriteAck(
+                        seq_no=1,
+                        message_write_status=StreamWriteMessage.WriteResponse.WriteAck.StatusWritten(
+                            offset=1
+                        ),
                     )
-                )
-            ],
-            write_statistics=default_write_statistic,
-        ))
+                ],
+                write_statistics=default_write_statistic,
+            )
+        )
 
         stream_writer.from_server.put_nowait(issues.Overloaded("test"))
 
@@ -279,7 +316,9 @@ class TestWriterAsyncIOReconnector:
         assert second_sent_msg == expected_messages
         await reconnector.close()
 
-    async def test_stop_on_unexpected_exception(self, reconnector: WriterAsyncIOReconnector, get_stream_writer):
+    async def test_stop_on_unexpected_exception(
+        self, reconnector: WriterAsyncIOReconnector, get_stream_writer
+    ):
         class TestException(Exception):
             pass
 
@@ -292,6 +331,7 @@ class TestWriterAsyncIOReconnector:
         )
 
         with pytest.raises(TestException):
+
             async def wait_stop():
                 while True:
                     await reconnector.write_with_ack([message])
@@ -305,7 +345,9 @@ class TestWriterAsyncIOReconnector:
     async def test_wait_init(self, default_driver, default_settings, get_stream_writer):
         init_seqno = 100
         expected_init_info = PublicWriterInitInfo(init_seqno)
-        with mock.patch.object(TestWriterAsyncIOReconnector, "init_last_seqno", init_seqno):
+        with mock.patch.object(
+            TestWriterAsyncIOReconnector, "init_last_seqno", init_seqno
+        ):
             reconnector = WriterAsyncIOReconnector(default_driver, default_settings)
             info = await reconnector.wait_init()
             assert info == expected_init_info
@@ -313,9 +355,13 @@ class TestWriterAsyncIOReconnector:
         reconnector._stream_connected.clear()
 
         # force reconnect
-        with mock.patch.object(TestWriterAsyncIOReconnector, "init_last_seqno", init_seqno+1):
+        with mock.patch.object(
+            TestWriterAsyncIOReconnector, "init_last_seqno", init_seqno + 1
+        ):
             stream_writer = get_stream_writer()
-            stream_writer.from_server.put_nowait(issues.Overloaded("test"))  # some retriable error
+            stream_writer.from_server.put_nowait(
+                issues.Overloaded("test")
+            )  # some retriable error
             await reconnector._stream_connected.wait()
 
             info = await reconnector.wait_init()
@@ -323,7 +369,9 @@ class TestWriterAsyncIOReconnector:
 
         await reconnector.close()
 
-    async def test_write_message(self, reconnector: WriterAsyncIOReconnector, get_stream_writer):
+    async def test_write_message(
+        self, reconnector: WriterAsyncIOReconnector, get_stream_writer
+    ):
         stream_writer = get_stream_writer()
         message = PublicMessage(
             data="123",
@@ -336,9 +384,13 @@ class TestWriterAsyncIOReconnector:
 
         await reconnector.close()
 
-    async def test_auto_seq_no(self, default_driver, default_settings, get_stream_writer):
+    async def test_auto_seq_no(
+        self, default_driver, default_settings, get_stream_writer
+    ):
         last_seq_no = 100
-        with mock.patch.object(TestWriterAsyncIOReconnector, "init_last_seqno", last_seq_no):
+        with mock.patch.object(
+            TestWriterAsyncIOReconnector, "init_last_seqno", last_seq_no
+        ):
             settings = copy.deepcopy(default_settings)
             settings.auto_seqno = True
 
@@ -350,13 +402,19 @@ class TestWriterAsyncIOReconnector:
             stream_writer = get_stream_writer()
 
             sent = await stream_writer.from_client.get()
-            assert [InternalMessage(PublicMessage(seqno=last_seq_no+1, data="123"))] == sent
+            assert [
+                InternalMessage(PublicMessage(seqno=last_seq_no + 1, data="123"))
+            ] == sent
 
             sent = await stream_writer.from_client.get()
-            assert [InternalMessage(PublicMessage(seqno=last_seq_no+2, data="456"))] == sent
+            assert [
+                InternalMessage(PublicMessage(seqno=last_seq_no + 2, data="456"))
+            ] == sent
 
         with pytest.raises(TopicWriterError):
-            await reconnector.write_with_ack([PublicMessage(seqno=last_seq_no+3, data="123")])
+            await reconnector.write_with_ack(
+                [PublicMessage(seqno=last_seq_no + 3, data="123")]
+            )
 
         await reconnector.close()
 
@@ -374,7 +432,9 @@ class TestWriterAsyncIOReconnector:
         await reconnector.close()
 
     @freezegun.freeze_time("2022-01-13 20:50:00", tz_offset=0)
-    async def test_auto_created_at(self, default_driver, default_settings, get_stream_writer):
+    async def test_auto_created_at(
+        self, default_driver, default_settings, get_stream_writer
+    ):
         now = datetime.datetime.now()
 
         settings = copy.deepcopy(default_settings)
@@ -385,7 +445,9 @@ class TestWriterAsyncIOReconnector:
         stream_writer = get_stream_writer()
         sent = await stream_writer.from_client.get()
 
-        assert [InternalMessage(PublicMessage(seqno=4, data="123", created_at=now))] == sent
+        assert [
+            InternalMessage(PublicMessage(seqno=4, data="123", created_at=now))
+        ] == sent
         await reconnector.close()
 
 
@@ -425,6 +487,7 @@ class TestWriterAsyncIO:
     def mock_reconnector_init(self, monkeypatch, reconnector):
         def t(cls, driver, settings):
             return reconnector
+
         monkeypatch.setattr(WriterAsyncIOReconnector, "__new__", t)
 
     @pytest.fixture
@@ -457,6 +520,7 @@ class TestWriterAsyncIO:
             await reconnector.messages_writted.wait()
             async with reconnector.lock:
                 reconnector.futures[0].set_result(PublicWriteResult.Written(offset=1))
+
         asyncio.create_task(ack_first_message())
 
         m = PublicMessage(seqno=1, data="123")
@@ -474,8 +538,10 @@ class TestWriterAsyncIO:
             async with reconnector.lock:
                 reconnector.futures[0].set_result(PublicWriteResult.Written(offset=2))
                 reconnector.futures[1].set_result(PublicWriteResult.Skipped())
+
         asyncio.create_task(ack_next_messages())
 
-        res = await writer.write_with_ack([PublicMessage(seqno=2, data="123"), PublicMessage(seqno=3, data="123")])
+        res = await writer.write_with_ack(
+            [PublicMessage(seqno=2, data="123"), PublicMessage(seqno=3, data="123")]
+        )
         assert res == [PublicWriteResult.Written(offset=2), PublicWriteResult.Skipped()]
-
