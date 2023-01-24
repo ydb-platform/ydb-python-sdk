@@ -118,7 +118,7 @@ class IteratorToQueueAsyncIO:
 
     async def get(self) -> typing.Any:
         try:
-            return anext(self._iterator)
+            return self._iterator.__anext__()
         except StopAsyncIteration:
             raise asyncio.QueueEmpty()
 
