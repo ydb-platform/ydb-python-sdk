@@ -255,7 +255,8 @@ class ReaderSettings:
         buffer_size_bytes: int = 50 * 1024 * 1024,
         on_commit: Callable[["Events.OnCommit"], None] = None,
         on_get_partition_start_offset: Callable[
-            ["Events.OnPartitionGetStartOffsetRequest"], "Events.OnPartitionGetStartOffsetResponse"
+            ["Events.OnPartitionGetStartOffsetRequest"],
+            "Events.OnPartitionGetStartOffsetResponse",
         ] = None,
         on_partition_session_start: Callable[["StubEvent"], None] = None,
         on_partition_session_stop: Callable[["StubEvent"], None] = None,

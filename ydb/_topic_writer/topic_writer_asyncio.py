@@ -5,8 +5,18 @@ from collections import deque
 from typing import Deque, AsyncIterator, Union, List, Optional, Callable
 
 import ydb
-from .topic_writer import PublicWriterSettings, WriterSettings, Writer, PublicWriteResult, PublicMessage, \
-    PublicWriterInitInfo, InternalMessage, TopicWriterStopped, TopicWriterError, messages_to_proto_requests
+from .topic_writer import (
+    PublicWriterSettings,
+    WriterSettings,
+    Writer,
+    PublicWriteResult,
+    PublicMessage,
+    PublicWriterInitInfo,
+    InternalMessage,
+    TopicWriterStopped,
+    TopicWriterError,
+    messages_to_proto_requests,
+)
 from .. import (
     _apis,
     issues,
