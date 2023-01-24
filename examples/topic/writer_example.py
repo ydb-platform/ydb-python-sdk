@@ -5,6 +5,7 @@ from typing import Dict, List
 from concurrent.futures import Future, wait
 
 import ydb
+from ydb import TopicWriterMessage
 
 
 async def connect():
@@ -12,10 +13,11 @@ async def connect():
         connection_string="grpc://localhost:2135?database=/local",
         credentials=ydb.credentials.AnonymousCredentials(),
     )
-    reader = ydb.TopicClientAsyncIO(db).topic_writer(
+    writer = ydb.TopicClientAsyncIO(db).topic_writer(
         "/local/topic",
         producer_and_message_group_id="producer-id",
     )
+    await writer.write(TopicWriterMessage("asd"))
 
 
 def create_writer(db: ydb.Driver):
@@ -23,7 +25,7 @@ def create_writer(db: ydb.Driver):
         "/database/topic/path",
         producer_and_message_group_id="producer-id",
     ) as writer:
-        pass
+        writer.write(TopicWriterMessage("asd"))
 
 
 def connect_and_wait(db: ydb.Driver):

@@ -10,6 +10,7 @@ def connect():
         credentials=ydb.credentials.AnonymousCredentials(),
     )
     reader = ydb.TopicClient(db).topic_reader("/local/topic", consumer="consumer")
+    return reader
 
 
 def create_reader_and_close_with_context_manager(db: ydb.Driver):

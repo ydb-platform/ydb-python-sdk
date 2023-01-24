@@ -1,27 +1,31 @@
 from typing import List, Callable, Union, Mapping, Any
 
-import ydb._topic_writer
-
-from ydb._topic_reader import (
+from . import aio, Credentials
+from ._topic_reader.topic_reader import (
     Reader as TopicReader,
     ReaderAsyncIO as TopicReaderAsyncIO,
     Selector as TopicSelector,
+    Events as TopicReaderEvents,
+    RetryPolicy as TopicReaderRetryPolicy,
+    StubEvent as TopicReaderStubEvent,
 )
 
-from ydb._topic_writer.topic_writer import (
+
+from ._topic_writer.topic_writer import (  # noqa: F401
     Writer as TopicWriter,
     PublicWriterSettings as TopicWriterSettings,
     PublicMessage as TopicWriterMessage,
+    RetryPolicy as TopicWriterRetryPolicy,
 )
 
 from ydb._topic_writer.topic_writer_asyncio import WriterAsyncIO as TopicWriterAsyncIO
 
 
 class TopicClientAsyncIO:
-    _driver: ydb.aio.Driver
-    _credentials: Union[ydb.Credentials, None]
+    _driver: aio.Driver
+    _credentials: Union[Credentials, None]
 
-    def __init__(self, driver: ydb.aio.Driver, settings: "TopicClientSettings" = None):
+    def __init__(self, driver: aio.Driver, settings: "TopicClientSettings" = None):
         self._driver = driver
 
     def topic_reader(
@@ -32,18 +36,18 @@ class TopicClientAsyncIO:
         commit_batch_count: Union[int, None] = 1000,
         buffer_size_bytes: int = 50 * 1024 * 1024,
         sync_commit: bool = False,  # reader.commit(...) will wait commit ack from server
-        on_commit: Callable[["OnCommitEvent"], None] = None,
+        on_commit: Callable[["TopicReaderEvents.OnCommit"], None] = None,
         on_get_partition_start_offset: Callable[
-            ["ydb._topic_reader.Events.OnPartitionGetStartOffsetRequest"],
-            "ydb._topic_reader.Events.OnPartitionGetStartOffsetResponse",
+            ["TopicReaderEvents.OnPartitionGetStartOffsetRequest"],
+            "TopicReaderEvents.OnPartitionGetStartOffsetResponse",
         ] = None,
-        on_init_partition: Callable[["StubEvent"], None] = None,
-        on_shutdown_partition: Callable[["StubEvent"], None] = None,
+        on_init_partition: Callable[["TopicReaderStubEvent"], None] = None,
+        on_shutdown_partition: Callable[["TopicReaderStubEvent"], None] = None,
         decoder: Union[Mapping[int, Callable[[bytes], bytes]], None] = None,
         deserializer: Union[Callable[[bytes], Any], None] = None,
         one_attempt_connection_timeout: Union[float, None] = 1,
         connection_timeout: Union[float, None] = None,
-        retry_policy: Union["ydb._topic_reader.RetryPolicy", None] = None,
+        retry_policy: Union["TopicReaderRetryPolicy", None] = None,
     ) -> TopicReaderAsyncIO:
         raise NotImplementedError()
 
@@ -63,7 +67,7 @@ class TopicClientAsyncIO:
         auto_seqno: bool = True,
         auto_created_at: bool = True,
         get_last_seqno: bool = False,
-        retry_policy: Union["ydb._topic_writer.RetryPolicy", None] = None,
+        retry_policy: Union["TopicWriterRetryPolicy", None] = None,
     ) -> TopicWriterAsyncIO:
         args = locals()
         del args["self"]
@@ -83,10 +87,10 @@ class TopicClient:
         commit_batch_count: Union[int, None] = 1000,
         buffer_size_bytes: int = 50 * 1024 * 1024,
         sync_commit: bool = False,  # reader.commit(...) will wait commit ack from server
-        on_commit: Callable[["OnCommitEvent"], None] = None,
+        on_commit: Callable[["TopicReaderStubEvent"], None] = None,
         on_get_partition_start_offset: Callable[
-            ["ydb._topic_reader.Events.OnPartitionGetStartOffsetRequest"],
-            "ydb._topic_reader.Events.OnPartitionGetStartOffsetResponse",
+            ["TopicReaderEvents.OnPartitionGetStartOffsetRequest"],
+            "TopicReaderEvents.OnPartitionGetStartOffsetResponse",
         ] = None,
         on_init_partition: Callable[["StubEvent"], None] = None,
         on_shutdown_partition: Callable[["StubEvent"], None] = None,
@@ -94,7 +98,7 @@ class TopicClient:
         deserializer: Union[Callable[[bytes], Any], None] = None,
         one_attempt_connection_timeout: Union[float, None] = 1,
         connection_timeout: Union[float, None] = None,
-        retry_policy: Union["ydb._topic_reader.RetryPolicy", None] = None,
+        retry_policy: Union["TopicReaderRetryPolicy", None] = None,
     ) -> TopicReader:
         raise NotImplementedError()
 
@@ -113,7 +117,7 @@ class TopicClient:
         auto_seqno: bool = True,
         auto_created_at: bool = True,
         get_last_seqno: bool = False,
-        retry_policy: Union["ydb._topic_writer.RetryPolicy", None] = None,
+        retry_policy: Union["TopicWriterRetryPolicy", None] = None,
     ) -> TopicWriter:
         raise NotImplementedError()
 

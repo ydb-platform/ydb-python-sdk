@@ -29,7 +29,6 @@ from .._topic_wrapper.writer import StreamWriteMessage
 from .topic_writer_asyncio import (
     WriterAsyncIOStream,
     WriterAsyncIOReconnector,
-    TokenGetter,
     WriterAsyncIO,
 )
 

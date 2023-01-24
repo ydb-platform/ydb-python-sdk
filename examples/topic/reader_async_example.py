@@ -13,6 +13,7 @@ async def connect():
     reader = ydb.TopicClientAsyncIO(db).topic_reader(
         "/local/topic", consumer="consumer"
     )
+    return reader
 
 
 async def create_reader_and_close_with_context_manager(db: ydb.aio.Driver):

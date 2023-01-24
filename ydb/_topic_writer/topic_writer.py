@@ -1,8 +1,6 @@
-import asyncio
 import concurrent.futures
 import datetime
 import enum
-import time
 from dataclasses import dataclass
 from enum import Enum
 from typing import List, Union, TextIO, BinaryIO, Optional, Callable, Mapping, Any, Dict
@@ -17,7 +15,7 @@ from .._topic_wrapper.writer import StreamWriteMessage
 class Writer:
     @property
     def last_seqno(self) -> int:
-        raise NotImplemented()
+        raise NotImplementedError()
 
     def __init__(self, db: ydb.Driver):
         pass
@@ -31,7 +29,7 @@ class Writer:
     def close(self):
         pass
 
-    MessageType = typing.Union["PublicMessage", "Message.SimpleMessageSourceType"]
+    MessageType = typing.Union["PublicMessage", "PublicMessage.SimpleMessageSourceType"]
 
     def write(
         self,

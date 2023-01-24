@@ -1,11 +1,6 @@
-import abc
 import datetime
-import typing
-from codecs import Codec
 from dataclasses import dataclass, field
 from typing import List, Union, Dict
-
-from google.protobuf.message import Message
 
 from ydb._topic_wrapper.common import OffsetsRange
 
@@ -53,7 +48,7 @@ class StreamReadMessage:
 
         @dataclass
         class Batch:
-            message_data: List["MessageData"]
+            message_data: List["StreamReadMessage.ReadResponse.MessageData"]
             producer_id: str
             write_session_meta: Dict[str, str]
             codec: int
@@ -62,7 +57,7 @@ class StreamReadMessage:
         @dataclass
         class PartitionData:
             partition_session_id: int
-            batches: List["Batch"]
+            batches: List["StreamReadMessage.ReadResponse.Batch"]
 
     @dataclass
     class CommitOffsetRequest:
@@ -95,7 +90,7 @@ class StreamReadMessage:
 
     @dataclass
     class StartPartitionSessionRequest:
-        partition_session: "PartitionSession"
+        partition_session: "StreamReadMessage.PartitionSession"
         committed_offset: int
         partition_offsets: OffsetsRange
 

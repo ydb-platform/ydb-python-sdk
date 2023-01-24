@@ -1,9 +1,10 @@
 import asyncio
 import json
 import time
-from typing import Dict, List, Set
+from typing import Dict, List
 
 import ydb
+from ydb import TopicWriterMessage
 
 
 async def create_writer(db: ydb.aio.Driver):
@@ -11,7 +12,7 @@ async def create_writer(db: ydb.aio.Driver):
         "/database/topic/path",
         producer_and_message_group_id="producer-id",
     ) as writer:
-        pass
+        await writer.write(TopicWriterMessage("asd"))
 
 
 async def connect_and_wait(db: ydb.aio.Driver):

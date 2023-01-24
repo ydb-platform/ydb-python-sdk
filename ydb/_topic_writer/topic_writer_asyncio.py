@@ -1,34 +1,25 @@
 import asyncio
+import datetime
 import threading
 from collections import deque
-from typing import Dict, Awaitable, Deque, AsyncIterator
+from typing import Deque, AsyncIterator, Union, List, Optional, Callable
 
 import ydb
-from .topic_writer import *
+from .topic_writer import PublicWriterSettings, WriterSettings, Writer, PublicWriteResult, PublicMessage, \
+    PublicWriterInitInfo, InternalMessage, TopicWriterStopped, TopicWriterError, messages_to_proto_requests
 from .. import (
     _apis,
-    YDB_AUTH_TICKET_HEADER,
     issues,
     check_retriable_error,
     RetrySettings,
 )
 from .._topic_wrapper.common import (
     UpdateTokenResponse,
-    UpdateTokenRequest,
-    QueueToIteratorAsyncIO,
-    Codec,
     GrpcWrapperAsyncIO,
     IGrpcWrapperAsyncIO,
     SupportedDriverType,
 )
 from .._topic_wrapper.writer import StreamWriteMessage, WriterMessagesFromServerToClient
-
-# Workaround for good autocomplete in IDE and universal import at runtime
-if False:
-    from .._grpc.v4.protos import ydb_topic_pb2
-else:
-    # noinspection PyUnresolvedReferences
-    from .._grpc.common.protos import ydb_topic_pb2
 
 
 class WriterAsyncIO:
@@ -39,7 +30,7 @@ class WriterAsyncIO:
 
     @property
     def last_seqno(self) -> int:
-        raise NotImplemented()
+        raise NotImplementedError()
 
     def __init__(self, driver: SupportedDriverType, settings: PublicWriterSettings):
         self._loop = asyncio.get_running_loop()
@@ -268,7 +259,7 @@ class WriterAsyncIOReconnector:
             attempt = 0  # todo calc and reset
             pending = []
 
-            async def on_stop():
+            async def on_stop(e):
                 for t in pending:
                     self._background_tasks.append(t)
                 pending.clear()
@@ -309,13 +300,13 @@ class WriterAsyncIOReconnector:
 
                 err_info = check_retriable_error(err, retry_settings, attempt)
                 if not err_info.is_retriable:
-                    await on_stop()
+                    await on_stop(err)
                     return
 
                 await asyncio.sleep(err_info.sleep_timeout_seconds)
 
             except Exception as e:
-                await on_stop()
+                await on_stop(e)
                 return
             finally:
                 if len(pending) > 0:
