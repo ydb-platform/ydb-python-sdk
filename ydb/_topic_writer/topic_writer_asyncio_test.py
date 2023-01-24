@@ -12,26 +12,20 @@ import freezegun
 import pytest
 
 
-import ydb.aio
-from ydb import _apis, StatusCode, issues
-from ydb._topic_wrapper.common import QueueToIteratorAsyncIO, ServerStatus, IGrpcWrapperAsyncIO, IToProto, Codec
-from ydb._topic_writer import InternalMessage, PublicMessage, WriterSettings, PublicWriterSettings, \
+from .. import aio
+from .. import StatusCode, issues
+from .._topic_wrapper.common import ServerStatus, IGrpcWrapperAsyncIO, IToProto, Codec
+from .topic_writer import InternalMessage, PublicMessage, WriterSettings, PublicWriterSettings, \
     PublicWriterInitInfo, PublicWriteResult, TopicWriterError
 
-# Workaround for good IDE and universal runtime
-if False:
-    from ydb._grpc.v4.protos import ydb_topic_pb2, ydb_status_codes_pb2
-else:
-    from ydb._grpc.common.protos import ydb_topic_pb2, ydb_status_codes_pb2
-
 from .._topic_wrapper.writer import StreamWriteMessage
-from ydb._topic_writer.topic_writer_asyncio import WriterAsyncIOStream, WriterAsyncIOReconnector, TokenGetter, \
+from .topic_writer_asyncio import WriterAsyncIOStream, WriterAsyncIOReconnector, TokenGetter, \
     WriterAsyncIO
 
 
 @pytest.fixture
-def default_driver() -> ydb.aio.Driver:
-    driver = mock.Mock(spec=ydb.aio.Driver)
+def default_driver() -> aio.Driver:
+    driver = mock.Mock(spec=aio.Driver)
     driver._credentials = mock.Mock()
     return driver
 

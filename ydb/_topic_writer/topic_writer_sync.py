@@ -5,11 +5,11 @@ from concurrent.futures import Future
 import threading
 from typing import Union, List, Optional, Coroutine
 
-import ydb
 from .._topic_wrapper.common import SupportedDriverType
-from ydb._topic_writer import PublicWriterSettings, TopicWriterError, PublicWriterInitInfo, PublicMessage, Writer, \
+from .topic_writer import PublicWriterSettings, TopicWriterError, PublicWriterInitInfo, PublicMessage, Writer, \
     PublicWriteResult
-from ydb._topic_writer.topic_writer_asyncio import WriterAsyncIO
+
+from .topic_writer_asyncio import WriterAsyncIO
 
 _shared_event_loop_lock = threading.Lock()
 _shared_event_loop = None  # type: Optional[asyncio.AbstractEventLoop]

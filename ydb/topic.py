@@ -7,9 +7,10 @@ from ydb._topic_reader import (
     Selector as TopicSelector,
 )
 
-from ydb._topic_writer import (
+from ydb._topic_writer.topic_writer import (
     Writer as TopicWriter,
     PublicWriterSettings as TopicWriterSettings,
+    PublicMessage as TopicWriterMessage,
 )
 
 from ydb._topic_writer.topic_writer_asyncio import WriterAsyncIO as TopicWriterAsyncIO
