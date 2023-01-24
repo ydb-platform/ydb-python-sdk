@@ -1,3 +1,5 @@
+* Add initial topic writer
+
 ## 3.0.1b1 ##
 * start 3.0 beta branch
 
