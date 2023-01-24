@@ -2,7 +2,9 @@ import os
 
 from . import pool, scheme, table
 import ydb
+from .. import _utilities
 from ydb.driver import get_config
+from .. import topic
 
 
 def default_credentials(credentials=None):
@@ -56,7 +58,7 @@ class DriverConfig(ydb.DriverConfig):
     def default_from_connection_string(
         cls, connection_string, root_certificates=None, credentials=None, **kwargs
     ):
-        endpoint, database = ydb.parse_connection_string(connection_string)
+        endpoint, database = _utilities.parse_connection_string(connection_string)
         return cls(
             endpoint,
             database,
@@ -67,6 +69,8 @@ class DriverConfig(ydb.DriverConfig):
 
 
 class Driver(pool.ConnectionPool):
+    _credentials: ydb.Credentials  # used for topic clients
+
     def __init__(
         self,
         driver_config=None,
@@ -89,5 +93,8 @@ class Driver(pool.ConnectionPool):
 
         super(Driver, self).__init__(config)
 
+        self._credentials = config.credentials
+
         self.scheme_client = scheme.SchemeClient(self)
         self.table_client = table.TableClient(self, config.table_client_settings)
+        self.topic_client = topic.TopicClientAsyncIO(self, config.topic_client_settings)

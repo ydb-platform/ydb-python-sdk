@@ -24,11 +24,19 @@ from ydb.driver import DriverConfig
 from ydb.settings import BaseRequestSettings
 from ydb import issues
 
+# Workaround for good IDE and universal runtime
+if False:
+    from ydb._grpc.v4 import ydb_topic_v1_pb2_grpc
+else:
+    from ydb._grpc.common import ydb_topic_v1_pb2_grpc
+
+
 _stubs_list = (
     _apis.TableService.Stub,
     _apis.SchemeService.Stub,
     _apis.DiscoveryService.Stub,
     _apis.CmsService.Stub,
+    ydb_topic_v1_pb2_grpc.TopicServiceStub,
 )
 logger = logging.getLogger(__name__)
 

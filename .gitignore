@@ -4,3 +4,4 @@ ydb.egg-info/
 /tox
 /venv
 /ydb_certs
+/tmp
