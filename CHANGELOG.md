@@ -1,3 +1,4 @@
+## 3.0.1b2 ##
 * Add initial topic writer
 
 ## 3.0.1b1 ##
