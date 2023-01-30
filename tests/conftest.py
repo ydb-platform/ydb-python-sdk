@@ -1,7 +1,15 @@
 import os
+from unittest import mock
+
 import pytest
 import ydb
 import time
+
+
+@pytest.fixture(autouse=True, scope="session")
+def mock_settings_env_vars():
+    with mock.patch.dict(os.environ, {"YDB_ANONYMOUS_CREDENTIALS": "1"}):
+        yield
 
 
 @pytest.fixture(scope="module")
