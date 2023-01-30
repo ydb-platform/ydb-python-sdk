@@ -1,4 +1,8 @@
+import pytest
 
 
-def test_write_single_message(driver, topic_path):
-    print(topic_path)
+@pytest.mark.asyncio
+class TesttopicWriter:
+    async def test_send_message(self, driver):
+        pass
+
