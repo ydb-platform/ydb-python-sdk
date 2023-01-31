@@ -225,3 +225,6 @@ class UpdateTokenResponse(IFromProto):
     @staticmethod
     def from_proto(msg: ydb_topic_pb2.UpdateTokenResponse) -> typing.Any:
         return UpdateTokenResponse()
+
+
+TokenGetterFuncType = typing.Optional[typing.Callable[[], str]]

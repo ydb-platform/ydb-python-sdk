@@ -24,6 +24,7 @@ from .topic_writer import (
     PublicWriteResult,
     TopicWriterError,
 )
+from .._topic_wrapper.test_helpers import StreamMock
 
 from .._topic_wrapper.writer import StreamWriteMessage
 from .topic_writer_asyncio import (
@@ -42,31 +43,14 @@ def default_driver() -> aio.Driver:
 
 @pytest.mark.asyncio
 class TestWriterAsyncIOStream:
-    class StreamMock(IGrpcWrapperAsyncIO):
-        from_server: asyncio.Queue
-        from_client: asyncio.Queue
-
-        def __init__(self):
-            self.from_server = asyncio.Queue()
-            self.from_client = asyncio.Queue()
-
-        async def receive(self) -> typing.Any:
-            item = await self.from_server.get()
-            if isinstance(item, Exception):
-                raise item
-            return item
-
-        def write(self, wrap_message: IToProto):
-            self.from_client.put_nowait(wrap_message)
-
     @dataclasses.dataclass
     class WriterWithMockedStream:
         writer: WriterAsyncIOStream
-        stream: "TestWriterAsyncIOStream.StreamMock"
+        stream: StreamMock
 
     @pytest.fixture
     def stream(self):
-        return TestWriterAsyncIOStream.StreamMock()
+        return StreamMock()
 
     @pytest.fixture
     async def writer_and_stream(self, stream) -> WriterWithMockedStream:
