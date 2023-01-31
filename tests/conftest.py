@@ -57,9 +57,9 @@ def secure_endpoint(pytestconfig, session_scoped_container_getter):
     assert os.path.exists(ca_path)
     os.environ["YDB_SSL_ROOT_CERTIFICATES_FILE"] = ca_path
     with ydb.Driver(
-            endpoint="grpcs://localhost:2135",
-            database="/local",
-            root_certificates=ydb.load_ydb_root_certificate(),
+        endpoint="grpcs://localhost:2135",
+        database="/local",
+        root_certificates=ydb.load_ydb_root_certificate(),
     ) as driver:
         wait_container_ready(driver)
     yield "localhost:2135"
@@ -100,15 +100,18 @@ async def driver(endpoint, database, event_loop):
 
 
 @pytest.fixture()
-def topic_path() -> str:
+def topic_path(endpoint) -> str:
     subprocess.run(
-        """docker-compose exec ydb /ydb -e grpc://localhost:2136 -d /local topic drop /local/test-topic""",
+        """docker-compose exec -T ydb /ydb -e grpc://%s -d /local topic drop /local/test-topic"""
+        % endpoint,
         shell=True,
     )
     res = subprocess.run(
-        """exec ydb /ydb -e grpc://localhost:2136 -d /local topic create /local/test-topic""",
+        """docker-compose exec -T ydb /ydb -e grpc://%s -d /local topic create /local/test-topic"""
+        % endpoint,
         shell=True,
+        capture_output=True,
     )
-    assert res.returncode == 0
+    assert res.returncode == 0, res.stderr + res.stdout
 
     return "/local/test-topic"
