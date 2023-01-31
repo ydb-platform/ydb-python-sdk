@@ -165,6 +165,9 @@ class PublicWriteResult:
         pass
 
 
+PublicWriteResultTypes = Union[PublicWriteResult.Written, PublicWriteResult.Skipped]
+
+
 class WriterSettings(PublicWriterSettings):
     def __init__(self, settings: PublicWriterSettings):
         self.__dict__ = settings.__dict__.copy()

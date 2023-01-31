@@ -4,6 +4,7 @@ from unittest import mock
 import pytest
 import ydb
 import time
+import subprocess
 
 
 @pytest.fixture(autouse=True, scope="session")
@@ -96,3 +97,21 @@ async def driver(endpoint, database, event_loop):
     yield driver
 
     await driver.stop(timeout=10)
+
+
+@pytest.fixture()
+def topic_path(endpoint) -> str:
+    subprocess.run(
+        """docker-compose exec -T ydb /ydb -e grpc://%s -d /local topic drop /local/test-topic"""
+        % endpoint,
+        shell=True,
+    )
+    res = subprocess.run(
+        """docker-compose exec -T ydb /ydb -e grpc://%s -d /local topic create /local/test-topic"""
+        % endpoint,
+        shell=True,
+        capture_output=True,
+    )
+    assert res.returncode == 0, res.stderr + res.stdout
+
+    return "/local/test-topic"

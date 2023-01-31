@@ -1,6 +1,5 @@
 import asyncio
 import datetime
-import threading
 from collections import deque
 from typing import Deque, AsyncIterator, Union, List, Optional, Callable
 
@@ -9,13 +8,13 @@ from .topic_writer import (
     PublicWriterSettings,
     WriterSettings,
     Writer,
-    PublicWriteResult,
     PublicMessage,
     PublicWriterInitInfo,
     InternalMessage,
     TopicWriterStopped,
     TopicWriterError,
     messages_to_proto_requests,
+    PublicWriteResultTypes,
 )
 from .. import (
     _apis,
@@ -35,7 +34,7 @@ from .._topic_wrapper.writer import StreamWriteMessage, WriterMessagesFromServer
 class WriterAsyncIO:
     _loop: asyncio.AbstractEventLoop
     _reconnector: "WriterAsyncIOReconnector"
-    _lock: threading.Lock
+    _lock: asyncio.Lock
     _closed: bool
 
     @property
@@ -43,13 +42,14 @@ class WriterAsyncIO:
         raise NotImplementedError()
 
     def __init__(self, driver: SupportedDriverType, settings: PublicWriterSettings):
+        self._lock = asyncio.Lock()
         self._loop = asyncio.get_running_loop()
         self._closed = False
         self._reconnector = WriterAsyncIOReconnector(
             driver=driver, settings=WriterSettings(settings)
         )
 
-    async def __aenter__(self):
+    async def __aenter__(self) -> "WriterAsyncIO":
         return self
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):
@@ -62,7 +62,7 @@ class WriterAsyncIO:
         self._loop.call_soon(self.close)
 
     async def close(self):
-        with self._lock:
+        async with self._lock:
             if self._closed:
                 return
             self._closed = True
@@ -73,7 +73,7 @@ class WriterAsyncIO:
         self,
         messages: Union[Writer.MessageType, List[Writer.MessageType]],
         *args: Optional[Writer.MessageType],
-    ) -> Union[PublicWriteResult, List[PublicWriteResult]]:
+    ) -> Union[PublicWriteResultTypes, List[PublicWriteResultTypes]]:
         """
         IT IS SLOWLY WAY. IT IS BAD CHOISE IN MOST CASES.
         It is recommended to use write with optionally flush or write_with_ack_futures and receive acks by wait futures.
