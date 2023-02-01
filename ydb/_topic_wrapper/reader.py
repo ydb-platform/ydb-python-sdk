@@ -1,9 +1,6 @@
 import datetime
-import typing
 from dataclasses import dataclass, field
 from typing import List, Union, Dict
-
-from google.protobuf.message import Message
 
 from ydb._topic_wrapper.common import OffsetsRange, IToProto, UpdateTokenRequest, UpdateTokenResponse, IFromProto
 from google.protobuf.duration_pb2 import Duration as ProtoDuration

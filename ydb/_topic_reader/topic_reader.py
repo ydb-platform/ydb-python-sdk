@@ -3,6 +3,7 @@ import concurrent.futures
 import enum
 import io
 import datetime
+from dataclasses import dataclass
 from typing import (
     Union,
     Optional,
@@ -14,6 +15,8 @@ from typing import (
     AsyncContextManager,
     Any,
 )
+
+from ydb._topic_wrapper.common import OffsetsRange, TokenGetterFuncType
 
 
 class Selector:
@@ -247,27 +250,25 @@ class Reader(object):
         raise NotImplementedError()
 
 
-class ReaderSettings:
-    def __init__(
-        self,
-        *,
-        consumer: str,
-        buffer_size_bytes: int = 50 * 1024 * 1024,
-        on_commit: Callable[["Events.OnCommit"], None] = None,
-        on_get_partition_start_offset: Callable[
-            ["Events.OnPartitionGetStartOffsetRequest"],
-            "Events.OnPartitionGetStartOffsetResponse",
-        ] = None,
-        on_partition_session_start: Callable[["StubEvent"], None] = None,
-        on_partition_session_stop: Callable[["StubEvent"], None] = None,
-        on_partition_session_close: Callable[["StubEvent"], None] = None,  # todo?
-        decoder: Union[Mapping[int, Callable[[bytes], bytes]], None] = None,
-        deserializer: Union[Callable[[bytes], Any], None] = None,
-        one_attempt_connection_timeout: Union[float, None] = 1,
-        connection_timeout: Union[float, None] = None,
-        retry_policy: Union["RetryPolicy", None] = None,
-    ):
-        raise NotImplementedError()
+@dataclass
+class PublicReaderSettings:
+    consumer: str
+    topic: str
+    buffer_size_bytes: int = 50 * 1024 * 1024
+    _token_getter: Optional[TokenGetterFuncType] = None
+    # on_commit: Callable[["Events.OnCommit"], None] = None
+    # on_get_partition_start_offset: Callable[
+    #     ["Events.OnPartitionGetStartOffsetRequest"],
+    #     "Events.OnPartitionGetStartOffsetResponse",
+    # ] = None
+    # on_partition_session_start: Callable[["StubEvent"], None] = None
+    # on_partition_session_stop: Callable[["StubEvent"], None] = None
+    # on_partition_session_close: Callable[["StubEvent"], None] = None  # todo?
+    # decoder: Union[Mapping[int, Callable[[bytes], bytes]], None] = None
+    # deserializer: Union[Callable[[bytes], Any], None] = None
+    # one_attempt_connection_timeout: Union[float, None] = 1
+    # connection_timeout: Union[float, None] = None
+    # retry_policy: Union["RetryPolicy", None] = None
 
 
 class ICommittable(abc.ABC):
@@ -382,15 +383,10 @@ class CommitResult:
 class SessionStat:
     path: str
     partition_id: str
-    partition_offsets: "OffsetRange"
+    partition_offsets: OffsetsRange
     committed_offset: int
     write_time_high_watermark: datetime.datetime
     write_time_high_watermark_timestamp_nano: int
-
-
-class OffsetRange:
-    start: int
-    end: int
 
 
 class StubEvent:

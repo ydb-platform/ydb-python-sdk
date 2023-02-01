@@ -1,5 +1,8 @@
 import asyncio
+import time
 import typing
+
+import pytest
 
 from .common import IGrpcWrapperAsyncIO, IToProto
 
@@ -20,3 +23,19 @@ class StreamMock(IGrpcWrapperAsyncIO):
 
     def write(self, wrap_message: IToProto):
         self.from_client.put_nowait(wrap_message)
+
+
+async def wait_condition(f: typing.Callable[[], bool], timeout=1):
+    start = time.monotonic()
+    counter = 0
+    while (time.monotonic() - start < timeout) or counter < 1000:
+        counter += 1
+        if f():
+            return
+        await asyncio.sleep(0)
+
+    raise Exception("Bad condition in test")
+
+
+async def wait_for_fast(fut):
+    return await asyncio.wait_for(fut, 1)
