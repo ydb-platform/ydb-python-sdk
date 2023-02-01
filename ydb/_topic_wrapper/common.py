@@ -2,7 +2,7 @@ import abc
 import asyncio
 import typing
 from dataclasses import dataclass
-from enum import Enum
+from enum import IntEnum
 
 from google.protobuf.message import Message
 
@@ -24,7 +24,7 @@ else:
     )
 
 
-class Codec(Enum):
+class Codec(IntEnum):
     CODEC_UNSPECIFIED = 0
     CODEC_RAW = 1
     CODEC_GZIP = 2

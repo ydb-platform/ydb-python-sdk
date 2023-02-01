@@ -76,7 +76,9 @@ class ReaderStream:
             ))
             while True:
                 message = await stream.receive()  # type: StreamReadMessage.FromServer
-                if isinstance(message.server_message, StreamReadMessage.StartPartitionSessionRequest):
+                if isinstance(message.server_message, StreamReadMessage.ReadResponse):
+                    await self._on_read_response(message.server_message)
+                elif isinstance(message.server_message, StreamReadMessage.StartPartitionSessionRequest):
                     await self._on_start_partition_session_start(message.server_message)
                 elif isinstance(message.server_message, StreamReadMessage.StopPartitionSessionRequest):
                     await self._on_partition_session_stop(message.server_message)
@@ -129,6 +131,10 @@ class ReaderStream:
                         partition_session_id=message.partition_session_id,
                     ))
                 )
+
+    async def _on_read_response(self, message: StreamReadMessage.ReadResponse):
+        async with self._lock:
+            pass
 
     async def _set_first_error(self, err):
         async with self._lock:

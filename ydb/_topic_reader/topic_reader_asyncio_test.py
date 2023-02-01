@@ -1,4 +1,5 @@
 import asyncio
+import datetime
 from unittest import mock
 
 import pytest
@@ -6,7 +7,7 @@ import pytest
 from ydb import aio
 from ydb._topic_reader.topic_reader import PublicReaderSettings
 from ydb._topic_reader.topic_reader_asyncio import ReaderStream, PartitionSession
-from ydb._topic_wrapper.common import OffsetsRange
+from ydb._topic_wrapper.common import OffsetsRange, Codec
 from ydb._topic_wrapper.reader import StreamReadMessage
 from ydb._topic_wrapper.test_helpers import StreamMock, wait_condition, wait_for_fast
 
@@ -215,3 +216,40 @@ class TestReaderStream:
         with pytest.raises(asyncio.QueueEmpty):
             stream.from_client.get_nowait()
 
+    async def test_receive_one_raw_message_from_server(self, stream_reader, stream, partition_session):
+        bytes_size = 10
+        created_at = datetime.datetime(2020, 1, 1, 18, 12)
+        written_at = datetime.datetime(2023, 2, 1, 18, 12)
+        producer_id = "test-producer-id"
+        data = "123".encode()
+
+        message_group_id = "test-message-group-id"
+
+        stream.from_server.put_nowait(StreamReadMessage.FromServer(server_message=StreamReadMessage.ReadResponse(
+            bytes_size=bytes_size,
+            partition_data=[
+                StreamReadMessage.ReadResponse.PartitionData(
+                    partition_session_id=partition_session.id,
+                    batches=[
+                        StreamReadMessage.ReadResponse.Batch(
+                            message_data=[
+                                StreamReadMessage.ReadResponse.MessageData(
+                                    offset=1,
+                                    seq_no=2,
+                                    created_at=created_at,
+                                    data=data,
+                                    uncompresed_size=len(data),
+                                    message_group_id=message_group_id,
+                                )
+                            ],
+                            producer_id=producer_id,
+                            write_session_meta={"a": "b"},
+                            codec=Codec.CODEC_RAW,
+                            written_at=written_at,
+                        )
+                    ]
+                )
+            ]
+        ))),
+
+        raise NotImplementedError()

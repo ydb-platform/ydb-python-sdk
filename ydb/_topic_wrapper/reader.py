@@ -68,7 +68,7 @@ class StreamReadMessage:
         class MessageData:
             offset: int
             seq_no: int
-            created_at: float  # unix timestamp
+            created_at: datetime.datetime
             data: bytes
             uncompresed_size: int
             message_group_id: str
@@ -79,7 +79,7 @@ class StreamReadMessage:
             producer_id: str
             write_session_meta: Dict[str, str]
             codec: int
-            written_at: float  # unix timestamp
+            written_at: datetime.datetime
 
         @dataclass
         class PartitionData:
