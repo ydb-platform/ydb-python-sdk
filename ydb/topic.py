@@ -2,6 +2,7 @@ from typing import List, Callable, Union, Mapping, Any
 
 from . import aio, Credentials
 from ._topic_reader.topic_reader import (
+    PublicReaderSettings as TopicReaderSettings,
     Reader as TopicReader,
     ReaderAsyncIO as TopicReaderAsyncIO,
     Selector as TopicSelector,
@@ -17,6 +18,7 @@ from ._topic_writer.topic_writer import (  # noqa: F401
     PublicMessage as TopicWriterMessage,
     RetryPolicy as TopicWriterRetryPolicy,
 )
+
 
 from ydb._topic_writer.topic_writer_asyncio import WriterAsyncIO as TopicWriterAsyncIO
 

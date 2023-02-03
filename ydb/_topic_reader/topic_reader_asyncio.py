@@ -32,6 +32,12 @@ class PublicAsyncIOReader:
         self._loop = asyncio.get_running_loop()
         self._reconnector = ReaderReconnector(driver, settings)
 
+    async def wait_messages(self):
+        await self._reconnector.wait_message()
+
+    def receive_batch(self):
+        return self._reconnector.receive_batch_nowait()
+
 
 class ReaderReconnector:
     _settings: PublicReaderSettings
@@ -58,6 +64,7 @@ class ReaderReconnector:
         while True:
             if self._stream_reader is not None:
                 await self._stream_reader.wait_messages()
+                return
 
             await self._state_changed.wait()
             self._state_changed.clear()

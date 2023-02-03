@@ -227,8 +227,12 @@ class StreamReadMessage:
 
         def to_proto(self) -> ydb_topic_pb2.StreamReadMessage.FromClient:
             res = ydb_topic_pb2.StreamReadMessage.FromClient()
-            if isinstance(self.client_message, StreamReadMessage.InitRequest):
+            if isinstance(self.client_message, StreamReadMessage.ReadRequest):
+                res.read_request.CopyFrom(self.client_message.to_proto())
+            elif isinstance(self.client_message, StreamReadMessage.InitRequest):
                 res.init_request.CopyFrom(self.client_message.to_proto())
+            elif isinstance(self.client_message, StreamReadMessage.StartPartitionSessionResponse):
+                res.start_partition_session_response.CopyFrom(self.client_message.to_proto())
             else:
                 raise NotImplementedError()
             return res
@@ -242,11 +246,15 @@ class StreamReadMessage:
             mess_type = msg.WhichOneof("server_message")
             if mess_type == "read_response":
                 return StreamReadMessage.FromServer(
-                    server_message=StreamReadMessage.ReadResponse.from_proto(msg.init_response)
+                    server_message=StreamReadMessage.ReadResponse.from_proto(msg.read_response)
                 )
             elif mess_type == "init_response":
                 return StreamReadMessage.FromServer(
                     server_message=StreamReadMessage.InitResponse.from_proto(msg.init_response),
+                )
+            elif mess_type == "start_partition_session_request":
+                return StreamReadMessage.FromServer(
+                    server_message=StreamReadMessage.StartPartitionSessionRequest.from_proto(msg.start_partition_session_request)
                 )
 
             # todo replace exception to log

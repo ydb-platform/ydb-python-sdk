@@ -179,11 +179,14 @@ class GrpcWrapperAsyncIO(IGrpcWrapperAsyncIO):
 
     async def receive(self) -> typing.Any:
         # todo handle grpc exceptions and convert it to internal exceptions
-        grpc_item = await self.from_server_grpc.__anext__()
-        return self.convert_server_grpc_to_wrapper(grpc_item)
+        grpc_message = await self.from_server_grpc.__anext__()
+        # print("rekby, grpc, received", grpc_message)
+        return self.convert_server_grpc_to_wrapper(grpc_message)
 
     def write(self, wrap_message: IToProto):
-        self.from_client_grpc.put_nowait(wrap_message.to_proto())
+        grpc_message=wrap_message.to_proto()
+        # print("rekby, grpc, send", grpc_message)
+        self.from_client_grpc.put_nowait(grpc_message)
 
 
 @dataclass(init=False)
