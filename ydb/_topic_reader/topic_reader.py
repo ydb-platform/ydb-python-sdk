@@ -17,6 +17,7 @@ from typing import (
 )
 
 from ydb._topic_wrapper.common import OffsetsRange, TokenGetterFuncType
+from ydb._topic_wrapper.reader import StreamReadMessage
 
 
 class Selector:
@@ -269,6 +270,16 @@ class PublicReaderSettings:
     # one_attempt_connection_timeout: Union[float, None] = 1
     # connection_timeout: Union[float, None] = None
     # retry_policy: Union["RetryPolicy", None] = None
+
+    def _init_message(self) -> StreamReadMessage.InitRequest:
+        return StreamReadMessage.InitRequest(
+            topics_read_settings=[
+                StreamReadMessage.InitRequest.TopicReadSettings(
+                    path=self.topic,
+                )
+            ],
+            consumer=self.consumer,
+        )
 
 
 class Events:

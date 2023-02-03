@@ -33,9 +33,16 @@ class Codec(IntEnum):
 
 
 @dataclass
-class OffsetsRange:
+class OffsetsRange(IFromProto):
     start: int
     end: int
+
+    @staticmethod
+    def from_proto(msg: ydb_topic_pb2.OffsetsRange) -> "OffsetsRange":
+        return OffsetsRange(
+            start=msg.start,
+            end=msg.end,
+        )
 
 
 class IToProto(abc.ABC):

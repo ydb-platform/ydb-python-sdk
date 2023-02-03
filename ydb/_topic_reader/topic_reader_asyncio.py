@@ -2,13 +2,16 @@ from __future__ import annotations
 
 import asyncio
 import typing
+from asyncio import Task
 from collections import deque
 from typing import Optional, Set, Dict
 
+from .. import _apis
+from ..aio import Driver
 from ..issues import Error as YdbError
 from .datatypes import PartitionSession, PublicMessage, PublicBatch
 from .topic_reader import PublicReaderSettings
-from .._topic_wrapper.common import TokenGetterFuncType, IGrpcWrapperAsyncIO
+from .._topic_wrapper.common import TokenGetterFuncType, IGrpcWrapperAsyncIO, SupportedDriverType, GrpcWrapperAsyncIO
 from .._topic_wrapper.reader import StreamReadMessage
 
 
@@ -22,11 +25,52 @@ class TopicReaderStreamClosedError(TopicReaderError):
 
 
 class PublicAsyncIOReader:
-    pass
+    _loop: asyncio.AbstractEventLoop
+    _reconnector: ReaderReconnector
+
+    def __init__(self, driver: Driver, settings: PublicReaderSettings):
+        self._loop = asyncio.get_running_loop()
+        self._reconnector = ReaderReconnector(driver, settings)
 
 
 class ReaderReconnector:
-    pass
+    _settings: PublicReaderSettings
+    _driver: Driver
+    _background_tasks: Set[Task]
+
+    _state_changed: asyncio.Event
+    _stream_reader: Optional["ReaderStream"]
+
+    def __init__(self, driver: Driver, settings: PublicReaderSettings):
+        self._settings = settings
+        self._driver = driver
+        self._background_tasks = set()
+
+        self._state_changed = asyncio.Event()
+        self._stream_reader = None
+        self._background_tasks.add(asyncio.create_task(self.start()))
+
+    async def start(self):
+        self._stream_reader = await ReaderStream.create(self._driver, self._settings)
+        self._state_changed.set()
+
+    async def wait_message(self):
+        while True:
+            if self._stream_reader is not None:
+                await self._stream_reader.wait_messages()
+
+            await self._state_changed.wait()
+            self._state_changed.clear()
+
+    def receive_batch_nowait(self):
+        return self._stream_reader.receive_batch_nowait()
+
+    async def close(self):
+        await self._stream_reader.close()
+        for task in self._background_tasks:
+            task.cancel()
+
+        await asyncio.wait(self._background_tasks)
 
 
 class ReaderStream:
@@ -57,7 +101,22 @@ class ReaderStream:
         self._first_error = None
         self._message_batches = deque()
 
-    async def start(self, stream: IGrpcWrapperAsyncIO, init_message: StreamReadMessage.InitRequest):
+    @staticmethod
+    async def create(
+        driver: SupportedDriverType,
+        settings: PublicReaderSettings,
+    ) -> "ReaderStream":
+        stream = GrpcWrapperAsyncIO(StreamReadMessage.FromServer.from_proto)
+
+        await stream.start(
+            driver, _apis.TopicService.Stub, _apis.TopicService.StreamRead
+        )
+
+        reader = ReaderStream(settings)
+        await reader._start(stream, settings._init_message())
+        return reader
+
+    async def _start(self, stream: IGrpcWrapperAsyncIO, init_message: StreamReadMessage.InitRequest):
         if self._started:
             raise TopicReaderError("Double start ReaderStream")
 

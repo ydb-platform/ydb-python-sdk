@@ -1,6 +1,9 @@
 import datetime
+import typing
 from dataclasses import dataclass, field
 from typing import List, Union, Dict
+
+from google.protobuf.message import Message
 
 from ydb._topic_wrapper.common import OffsetsRange, IToProto, UpdateTokenRequest, UpdateTokenResponse, IFromProto
 from google.protobuf.duration_pb2 import Duration as ProtoDuration
@@ -14,10 +17,18 @@ else:
 
 class StreamReadMessage:
     @dataclass
-    class PartitionSession:
+    class PartitionSession(IFromProto):
         partition_session_id: int
         path: str
         partition_id: int
+
+        @staticmethod
+        def from_proto(msg: ydb_topic_pb2.StreamReadMessage.PartitionSession) -> "StreamReadMessage.PartitionSession":
+            return StreamReadMessage.PartitionSession(
+                partition_session_id=msg.partition_session_id,
+                path=msg.path,
+                partition_id=msg.partition_id,
+            )
 
     @dataclass
     class InitRequest(IToProto):
@@ -56,16 +67,31 @@ class StreamReadMessage:
             return StreamReadMessage.InitResponse(session_id=msg.session_id)
 
     @dataclass
-    class ReadRequest:
+    class ReadRequest(IToProto):
         bytes_size: int
 
+        def to_proto(self) -> ydb_topic_pb2.StreamReadMessage.ReadRequest:
+            res = ydb_topic_pb2.StreamReadMessage.ReadRequest()
+            res.bytes_size = self.bytes_size
+            return res
+
     @dataclass
-    class ReadResponse:
+    class ReadResponse(IFromProto):
         partition_data: List["StreamReadMessage.ReadResponse.PartitionData"]
         bytes_size: int
 
+        @staticmethod
+        def from_proto(msg: ydb_topic_pb2.StreamReadMessage.ReadResponse) -> "StreamReadMessage.ReadResponse":
+            partition_data = []
+            for proto_partition_data in msg.partition_data:
+                partition_data.append(StreamReadMessage.ReadResponse.PartitionData.from_proto(proto_partition_data))
+            return StreamReadMessage.ReadResponse(
+                partition_data=partition_data,
+                bytes_size=msg.bytes_size,
+            )
+
         @dataclass
-        class MessageData:
+        class MessageData(IFromProto):
             offset: int
             seq_no: int
             created_at: datetime.datetime
@@ -73,18 +99,57 @@ class StreamReadMessage:
             uncompresed_size: int
             message_group_id: str
 
+            @staticmethod
+            def from_proto(msg: ydb_topic_pb2.StreamReadMessage.ReadResponse.MessageData) ->\
+                    "StreamReadMessage.ReadResponse.MessageData":
+                return StreamReadMessage.ReadResponse.MessageData(
+                    offset=msg.offset,
+                    seq_no=msg.seq_no,
+                    created_at=msg.created_at.ToDatetime(),
+                    data=msg.data,
+                    uncompresed_size=msg.uncompressed_size,
+                    message_group_id=msg.message_group_id
+                )
+
         @dataclass
-        class Batch:
+        class Batch(IFromProto):
             message_data: List["StreamReadMessage.ReadResponse.MessageData"]
             producer_id: str
             write_session_meta: Dict[str, str]
             codec: int
             written_at: datetime.datetime
 
+            @staticmethod
+            def from_proto(msg: ydb_topic_pb2.StreamReadMessage.ReadResponse.Batch) -> \
+                    "StreamReadMessage.ReadResponse.Batch":
+                message_data = []
+                for message in msg.message_data:
+                    message_data.append(StreamReadMessage.ReadResponse.MessageData.from_proto(message))
+                return StreamReadMessage.ReadResponse.Batch(
+                    message_data=message_data,
+                    producer_id=msg.producer_id,
+                    write_session_meta=dict(msg.write_session_meta),
+                    codec=msg.codec,
+                    written_at=msg.written_at.ToDatetime(),
+                )
+
+
         @dataclass
-        class PartitionData:
+        class PartitionData(IFromProto):
             partition_session_id: int
             batches: List["StreamReadMessage.ReadResponse.Batch"]
+
+            @staticmethod
+            def from_proto(msg: ydb_topic_pb2.StreamReadMessage.ReadResponse.PartitionData) ->\
+                    "StreamReadMessage.ReadResponse.PartitionData":
+                batches = []
+                for proto_batch in msg.batches:
+                    batches.append(StreamReadMessage.ReadResponse.Batch.from_proto(proto_batch))
+                return StreamReadMessage.ReadResponse.PartitionData(
+                    partition_session_id=msg.partition_session_id,
+                    batches=batches,
+                )
+
 
     @dataclass
     class CommitOffsetRequest:
@@ -116,16 +181,32 @@ class StreamReadMessage:
         write_time_high_watermark: float
 
     @dataclass
-    class StartPartitionSessionRequest:
+    class StartPartitionSessionRequest(IFromProto):
         partition_session: "StreamReadMessage.PartitionSession"
         committed_offset: int
         partition_offsets: OffsetsRange
 
+        @staticmethod
+        def from_proto(msg: ydb_topic_pb2.StreamReadMessage.StartPartitionSessionRequest) -> \
+                "StreamReadMessage.StartPartitionSessionRequest":
+            return StreamReadMessage.StartPartitionSessionRequest(
+                partition_session=StreamReadMessage.PartitionSession.from_proto(msg.partition_session),
+                committed_offset=msg.committed_offset,
+                partition_offsets=OffsetsRange.from_proto(msg.partition_offsets)
+            )
+
     @dataclass
-    class StartPartitionSessionResponse:
+    class StartPartitionSessionResponse(IToProto):
         partition_session_id: int
         read_offset: int
         commit_offset: int
+
+        def to_proto(self) -> ydb_topic_pb2.StreamReadMessage.StartPartitionSessionResponse:
+            res = ydb_topic_pb2.StreamReadMessage.StartPartitionSessionResponse()
+            res.partition_session_id = self.partition_session_id
+            res.read_offset = self.read_offset
+            res.commit_offset = self.commit_offset
+            return res
 
     @dataclass
     class StopPartitionSessionRequest:
@@ -159,7 +240,11 @@ class StreamReadMessage:
         @staticmethod
         def from_proto(msg: ydb_topic_pb2.StreamReadMessage.FromServer) -> "StreamReadMessage.FromServer":
             mess_type = msg.WhichOneof("server_message")
-            if mess_type == "init_response":
+            if mess_type == "read_response":
+                return StreamReadMessage.FromServer(
+                    server_message=StreamReadMessage.ReadResponse.from_proto(msg.init_response)
+                )
+            elif mess_type == "init_response":
                 return StreamReadMessage.FromServer(
                     server_message=StreamReadMessage.InitResponse.from_proto(msg.init_response),
                 )

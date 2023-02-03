@@ -62,7 +62,7 @@ class TestReaderStream:
         init_message = object()
 
         # noinspection PyTypeChecker
-        start = asyncio.create_task(reader.start(stream, init_message))
+        start = asyncio.create_task(reader._start(stream, init_message))
 
         stream.from_server.put_nowait(StreamReadMessage.FromServer(
             StreamReadMessage.InitResponse(session_id="test-session")
@@ -178,7 +178,7 @@ class TestReaderStream:
                 read_from=None,
             )]
         )
-        start_task = asyncio.create_task(reader.start(stream, init_message))
+        start_task = asyncio.create_task(reader._start(stream, init_message))
 
         sent_message = await wait_for_fast(stream.from_client.get())
         expected_sent_init_message = StreamReadMessage.FromClient(client_message=init_message)
