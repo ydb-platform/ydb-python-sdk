@@ -2,7 +2,7 @@ import abc
 import enum
 from dataclasses import dataclass
 import datetime
-from typing import Mapping, Union, Any, List
+from typing import Mapping, Union, Any, List, Dict
 
 
 class ICommittable(abc.ABC):
@@ -29,7 +29,7 @@ class PublicMessage(ICommittable, ISessionAlive):
     seqno: int
     created_at: datetime.datetime
     message_group_id: str
-    session_metadata: Mapping[str, str]
+    session_metadata: Dict[str, str]
     offset: int
     written_at: datetime.datetime
     producer_id: str

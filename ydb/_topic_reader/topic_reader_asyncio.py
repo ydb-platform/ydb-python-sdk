@@ -1,21 +1,24 @@
 from __future__ import annotations
 
 import asyncio
-import enum
 import typing
 from collections import deque
-from dataclasses import dataclass
 from typing import Optional, Set, Dict
 
-import ydb
+from ..issues import Error as YdbError
 from .datatypes import PartitionSession, PublicMessage, PublicBatch
 from .topic_reader import PublicReaderSettings
 from .._topic_wrapper.common import TokenGetterFuncType, IGrpcWrapperAsyncIO
 from .._topic_wrapper.reader import StreamReadMessage
 
 
-class TopicReaderError(ydb.Error):
+class TopicReaderError(YdbError):
     pass
+
+
+class TopicReaderStreamClosedError(TopicReaderError):
+    def __init__(self):
+        super().__init__("Topic reader is closed")
 
 
 class PublicAsyncIOReader:
@@ -31,20 +34,22 @@ class ReaderStream:
     _session_id: str
     _init_completed: asyncio.Future[None]
     _stream: Optional[IGrpcWrapperAsyncIO]
+    _has_new_messages: asyncio.Event
 
     _lock: asyncio.Lock
     _started: bool
     _closed: bool
-    _first_error: Optional[ydb.Error]
+    _first_error: Optional[YdbError]
     _background_tasks: Set[asyncio.Task]
     _partition_sessions: Dict[int, PartitionSession]
     _buffer_size_bytes: int  # use for init request, then for debug purposes only
-    _message_batches: typing.Deque
+    _message_batches: typing.Deque[PublicBatch]
 
     def __init__(self, settings: PublicReaderSettings):
         self._token_getter = settings._token_getter
         self._session_id = "not initialized"
         self._stream = None
+        self._has_new_messages = asyncio.Event()
 
         self._lock = asyncio.Lock()
         self._started = False
@@ -59,6 +64,7 @@ class ReaderStream:
         async with self._lock:
             if self._started:
                 raise TopicReaderError("Double start ReaderStream")
+
             self._started = True
             self._stream = stream
 
@@ -71,6 +77,25 @@ class ReaderStream:
 
             read_messages_task = asyncio.create_task(self._read_messages(stream))
             self._background_tasks.add(read_messages_task)
+
+    async def wait_messages(self):
+        if self._closed:
+            raise TopicReaderStreamClosedError()
+
+        while len(self._message_batches) == 0:
+            await self._has_new_messages.wait()
+            self._has_new_messages.clear()
+
+    def receive_batch_nowait(self):
+        if self._closed:
+            raise TopicReaderStreamClosedError()
+
+        try:
+            batch = self._message_batches.popleft()
+            self._buffer_release_bytes(batch._bytes_size)
+            return batch
+        except IndexError:
+            return None
 
     async def _read_messages(self, stream: IGrpcWrapperAsyncIO):
         try:
@@ -116,7 +141,7 @@ class ReaderStream:
                         commit_offset=0,
                     )),
                 )
-            except ydb.Error as err:
+            except YdbError as err:
                 self._set_first_error_locked(err)
 
     async def _on_partition_session_stop(self, message: StreamReadMessage.StopPartitionSessionRequest):
@@ -142,7 +167,16 @@ class ReaderStream:
 
         async with self._lock:
             self._message_batches.extend(batches)
-            self._buffer_size_bytes -= message.bytes_size
+            self._buffer_consume_bytes(message.bytes_size)
+
+    def _buffer_consume_bytes(self, bytes_size):
+        self._buffer_size_bytes -= bytes_size
+
+    def _buffer_release_bytes(self, bytes_size):
+        self._buffer_size_bytes += bytes_size
+        self._stream.write(StreamReadMessage.FromClient(client_message=StreamReadMessage.ReadRequest(
+            bytes_size=bytes_size,
+        )))
 
     async def _read_response_to_batches(self, message: StreamReadMessage.ReadResponse) -> typing.List[PublicBatch]:
         batches = []

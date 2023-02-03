@@ -31,6 +31,7 @@ class StreamMockForReader(StreamMock):
 
 @pytest.mark.asyncio
 class TestReaderStream:
+    default_batch_size = 1
 
     @pytest.fixture()
     def stream(self):
@@ -118,6 +119,53 @@ class TestReaderStream:
         assert reader._first_error is None
 
         await reader.close()
+
+    @staticmethod
+    def create_message(partition_session: PartitionSession, seqno: int):
+        return PublicMessage(
+            seqno=seqno,
+            created_at=datetime.datetime(2023, 2, 3, 14, 15),
+            message_group_id="test-message-group",
+            session_metadata={},
+            offset=seqno+1,
+            written_at=datetime.datetime(2023, 2, 3, 14, 16),
+            producer_id="test-producer-id",
+            data=bytes(),
+            _partition_session=partition_session
+        )
+
+    async def send_message(self, stream_reader, message: PublicMessage):
+        def batch_count():
+            return len(stream_reader._message_batches)
+
+        initial_batches = batch_count()
+
+        stream = stream_reader._stream  # type: StreamMock
+        stream.from_server.put_nowait(StreamReadMessage.FromServer(server_message=StreamReadMessage.ReadResponse(
+            partition_data=[StreamReadMessage.ReadResponse.PartitionData(
+                partition_session_id=message._partition_session.id,
+                batches=[
+                    StreamReadMessage.ReadResponse.Batch(
+                        message_data=[
+                            StreamReadMessage.ReadResponse.MessageData(
+                                offset=message.offset,
+                                seq_no=message.seqno,
+                                created_at=message.created_at,
+                                data=message.data,
+                                uncompresed_size=len(message.data),
+                                message_group_id=message.message_group_id,
+                            )
+                        ],
+                        producer_id=message.producer_id,
+                        write_session_meta=message.session_metadata,
+                        codec=Codec.CODEC_RAW,
+                        written_at=message.written_at,
+                    )
+                ]
+            )],
+            bytes_size=self.default_batch_size,
+        )))
+        await wait_condition(lambda: batch_count() > initial_batches)
 
     async def test_init_reader(self, stream, default_reader_settings):
         reader = ReaderStream(default_reader_settings)
@@ -476,3 +524,42 @@ class TestReaderStream:
             _partition_session=second_partition_session,
             _bytes_size=1,
         )
+
+    async def test_receive_batch_nowait(self, stream, stream_reader, partition_session):
+        assert stream_reader.receive_batch_nowait() is None
+
+        mess1 = self.create_message(partition_session, 1)
+        await self.send_message(stream_reader, mess1)
+
+        mess2 = self.create_message(partition_session, 2)
+        await self.send_message(stream_reader, mess2)
+
+        initial_buffer_size = stream_reader._buffer_size_bytes
+
+        received = stream_reader.receive_batch_nowait()
+        assert received == PublicBatch(
+            mess1.session_metadata,
+            messages=[
+                mess1
+            ],
+            _partition_session=mess1._partition_session,
+            _bytes_size=self.default_batch_size,
+        )
+
+        received = stream_reader.receive_batch_nowait()
+        assert received == PublicBatch(
+            mess2.session_metadata,
+            messages=[
+                mess2
+            ],
+            _partition_session=mess2._partition_session,
+            _bytes_size=self.default_batch_size,
+        )
+
+        assert stream_reader._buffer_size_bytes == initial_buffer_size + 2 * self.default_batch_size
+
+        assert StreamReadMessage.ReadRequest(self.default_batch_size) == stream.from_client.get_nowait().client_message
+        assert StreamReadMessage.ReadRequest(self.default_batch_size) == stream.from_client.get_nowait().client_message
+
+        with pytest.raises(asyncio.QueueEmpty):
+            stream.from_client.get_nowait()
