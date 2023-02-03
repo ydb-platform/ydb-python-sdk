@@ -71,7 +71,7 @@ class ReaderStream:
         else:
             raise TopicReaderError("Unexpected message after InitRequest: %s", init_response)
 
-        read_messages_task = asyncio.create_task(self._read_messages(stream))
+        read_messages_task = asyncio.create_task(self._read_messages_loop(stream))
         self._background_tasks.add(read_messages_task)
 
     async def wait_messages(self):
@@ -93,7 +93,7 @@ class ReaderStream:
         except IndexError:
             return None
 
-    async def _read_messages(self, stream: IGrpcWrapperAsyncIO):
+    async def _read_messages_loop(self, stream: IGrpcWrapperAsyncIO):
         try:
             self._stream.write(StreamReadMessage.FromClient(
                 client_message=StreamReadMessage.ReadRequest(
