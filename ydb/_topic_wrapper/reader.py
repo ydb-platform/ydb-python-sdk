@@ -61,7 +61,7 @@ class StreamReadMessage:
 
     @dataclass
     class ReadResponse:
-        partition_data: List["PartitionData"]
+        partition_data: List["StreamReadMessage.ReadResponse.PartitionData"]
         bytes_size: int
 
         @dataclass

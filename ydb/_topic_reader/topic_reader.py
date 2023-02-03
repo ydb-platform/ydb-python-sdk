@@ -13,7 +13,7 @@ from typing import (
     Iterable,
     AsyncIterable,
     AsyncContextManager,
-    Any,
+    Any, Dict,
 )
 
 from ydb._topic_wrapper.common import OffsetsRange, TokenGetterFuncType
@@ -47,7 +47,7 @@ class ReaderAsyncIO(object):
 
     def messages(
         self, *, timeout: Union[float, None] = None
-    ) -> AsyncIterable["Message"]:
+    ) -> AsyncIterable["PublicMessage"]:
         """
         Block until receive new message
 
@@ -55,7 +55,7 @@ class ReaderAsyncIO(object):
         """
         raise NotImplementedError()
 
-    async def receive_message(self) -> Union["Message", None]:
+    async def receive_message(self) -> Union["PublicMessage", None]:
         """
         Block until receive new message
 
@@ -69,7 +69,7 @@ class ReaderAsyncIO(object):
         max_messages: Union[int, None] = None,
         max_bytes: Union[int, None] = None,
         timeout: Union[float, None] = None,
-    ) -> AsyncIterable["Batch"]:
+    ) -> AsyncIterable["PublicBatch"]:
         """
         Block until receive new batch.
         All messages in a batch from same partition.
@@ -80,7 +80,7 @@ class ReaderAsyncIO(object):
 
     async def receive_batch(
         self, *, max_messages: Union[int, None] = None, max_bytes: Union[int, None]
-    ) -> Union["Batch", None]:
+    ) -> Union["PublicBatch", None]:
         """
         Get one messages batch from reader.
         All messages in a batch from same partition.
@@ -143,7 +143,7 @@ class Reader(object):
         """
         raise NotImplementedError()
 
-    def messages(self, *, timeout: Union[float, None] = None) -> Iterable["Message"]:
+    def messages(self, *, timeout: Union[float, None] = None) -> Iterable["PublicMessage"]:
         """
         todo?
 
@@ -155,7 +155,7 @@ class Reader(object):
         """
         raise NotImplementedError()
 
-    def receive_message(self, *, timeout: Union[float, None] = None) -> "Message":
+    def receive_message(self, *, timeout: Union[float, None] = None) -> "PublicMessage":
         """
         Block until receive new message
         It has no async_ version for prevent lost messages, use async_wait_message as signal for new batches available.
@@ -181,7 +181,7 @@ class Reader(object):
         max_messages: Union[int, None] = None,
         max_bytes: Union[int, None] = None,
         timeout: Union[float, None] = None,
-    ) -> Iterable["Batch"]:
+    ) -> Iterable["PublicBatch"]:
         """
         Block until receive new batch.
         It has no async_ version for prevent lost messages, use async_wait_message as signal for new batches available.
@@ -197,7 +197,7 @@ class Reader(object):
         max_messages: Union[int, None] = None,
         max_bytes: Union[int, None],
         timeout: Union[float, None] = None,
-    ) -> Union["Batch", None]:
+    ) -> Union["PublicBatch", None]:
         """
         Get one messages batch from reader
         It has no async_ version for prevent lost messages, use async_wait_message as signal for new batches available.
@@ -269,77 +269,6 @@ class PublicReaderSettings:
     # one_attempt_connection_timeout: Union[float, None] = 1
     # connection_timeout: Union[float, None] = None
     # retry_policy: Union["RetryPolicy", None] = None
-
-
-class ICommittable(abc.ABC):
-    @property
-    @abc.abstractmethod
-    def start_offset(self) -> int:
-        pass
-
-    @property
-    @abc.abstractmethod
-    def end_offset(self) -> int:
-        pass
-
-
-class ISessionAlive(abc.ABC):
-    @property
-    @abc.abstractmethod
-    def is_alive(self) -> bool:
-        pass
-
-
-class Message(ICommittable, ISessionAlive):
-    seqno: int
-    created_at_ns: int
-    message_group_id: str
-    session_metadata: Mapping[str, str]
-    offset: int
-    written_at_ns: int
-    producer_id: int
-    data: Union[
-        bytes, Any
-    ]  # set as original decompressed bytes or deserialized object if deserializer set in reader
-
-    def __init__(self):
-        self.seqno = -1
-        self.created_at_ns = -1
-        self.data = io.BytesIO()
-
-    @property
-    def start_offset(self) -> int:
-        raise NotImplementedError()
-
-    @property
-    def end_offset(self) -> int:
-        raise NotImplementedError()
-
-    # ISessionAlive implementation
-    @property
-    def is_alive(self) -> bool:
-        raise NotImplementedError()
-
-
-class Batch(ICommittable, ISessionAlive):
-    session_metadata: Mapping[str, str]
-    messages: List[Message]
-
-    def __init__(self):
-        pass
-
-    @property
-    def start_offset(self) -> int:
-        raise NotImplementedError()
-
-    @property
-    def end_offset(self) -> int:
-        raise NotImplementedError()
-
-    # ISessionAlive implementation
-    @property
-    def is_alive(self) -> bool:
-        raise NotImplementedError()
 
 
 class Events:

@@ -2,10 +2,13 @@ from __future__ import annotations
 
 import asyncio
 import enum
+import typing
+from collections import deque
 from dataclasses import dataclass
 from typing import Optional, Set, Dict
 
 import ydb
+from .datatypes import PartitionSession, PublicMessage, PublicBatch
 from .topic_reader import PublicReaderSettings
 from .._topic_wrapper.common import TokenGetterFuncType, IGrpcWrapperAsyncIO
 from .._topic_wrapper.reader import StreamReadMessage
@@ -36,6 +39,7 @@ class ReaderStream:
     _background_tasks: Set[asyncio.Task]
     _partition_sessions: Dict[int, PartitionSession]
     _buffer_size_bytes: int  # use for init request, then for debug purposes only
+    _message_batches: typing.Deque
 
     def __init__(self, settings: PublicReaderSettings):
         self._token_getter = settings._token_getter
@@ -49,6 +53,7 @@ class ReaderStream:
         self._background_tasks = set()
         self._partition_sessions = dict()
         self._buffer_size_bytes = settings.buffer_size_bytes
+        self._message_batches = deque()
 
     async def start(self, stream: IGrpcWrapperAsyncIO, init_message: StreamReadMessage.InitRequest):
         async with self._lock:
@@ -133,8 +138,53 @@ class ReaderStream:
                 )
 
     async def _on_read_response(self, message: StreamReadMessage.ReadResponse):
+        batches = await self._read_response_to_batches(message)
+
         async with self._lock:
-            pass
+            self._message_batches.extend(batches)
+            self._buffer_size_bytes -= message.bytes_size
+
+    async def _read_response_to_batches(self, message: StreamReadMessage.ReadResponse) -> typing.List[PublicBatch]:
+        batches = []
+
+        batch_count = 0
+        for partition_data in message.partition_data:
+            batch_count += len(partition_data.batches)
+
+        if batch_count == 0:
+            return []
+
+        bytes_per_batch = message.bytes_size // batch_count
+        additional_bytes_to_last_batch = message.bytes_size - bytes_per_batch * batch_count
+
+        for partition_data in message.partition_data:
+            async with self._lock:
+                partition_session = self._partition_sessions[partition_data.partition_session_id]
+            for server_batch in partition_data.batches:
+                messages = []
+                for message_data in server_batch.message_data:
+                    mess = PublicMessage(
+                        seqno=message_data.seq_no,
+                        created_at=message_data.created_at,
+                        message_group_id=message_data.message_group_id,
+                        session_metadata=server_batch.write_session_meta,
+                        offset=message_data.offset,
+                        written_at=server_batch.written_at,
+                        producer_id=server_batch.producer_id,
+                        data=message_data.data,
+                        _partition_session=partition_session,
+                    )
+                    messages.append(mess)
+                batch = PublicBatch(
+                    session_metadata=server_batch.write_session_meta,
+                    messages=messages,
+                    _partition_session=partition_session,
+                    _bytes_size=bytes_per_batch,
+                )
+                batches.append(batch)
+
+        batches[-1]._bytes_size += additional_bytes_to_last_batch
+        return batches
 
     async def _set_first_error(self, err):
         async with self._lock:
@@ -155,19 +205,3 @@ class ReaderStream:
             task.cancel()
 
         await asyncio.wait(self._background_tasks)
-
-
-@dataclass
-class PartitionSession:
-    id: int
-    state: "PartitionSession.State"
-    topic_path: str
-    partition_id: int
-
-    def stop(self):
-        self.state = PartitionSession.State.Stopped
-
-    class State(enum.Enum):
-        Active = 1
-        GracefulShutdown = 2
-        Stopped = 3
