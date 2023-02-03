@@ -32,19 +32,6 @@ class Codec(IntEnum):
     CODEC_ZSTD = 4
 
 
-@dataclass
-class OffsetsRange(IFromProto):
-    start: int
-    end: int
-
-    @staticmethod
-    def from_proto(msg: ydb_topic_pb2.OffsetsRange) -> "OffsetsRange":
-        return OffsetsRange(
-            start=msg.start,
-            end=msg.end,
-        )
-
-
 class IToProto(abc.ABC):
     @abc.abstractmethod
     def to_proto(self) -> Message:
@@ -60,6 +47,19 @@ class IFromProto(abc.ABC):
     @abc.abstractmethod
     def from_proto(msg: Message) -> typing.Any:
         pass
+
+
+@dataclass
+class OffsetsRange(IFromProto):
+    start: int
+    end: int
+
+    @staticmethod
+    def from_proto(msg: ydb_topic_pb2.OffsetsRange) -> "OffsetsRange":
+        return OffsetsRange(
+            start=msg.start,
+            end=msg.end,
+        )
 
 
 class QueueToIteratorAsyncIO:
