@@ -381,7 +381,7 @@ class TestReaderStream:
         message_group_id = "test-message-group-id"
         message_group_id2 = "test-message-group-id-2"
 
-        batches = await stream_reader._read_response_to_batches(
+        batches = stream_reader._read_response_to_batches(
             StreamReadMessage.ReadResponse(
                 bytes_size=3,
                 partition_data=[
