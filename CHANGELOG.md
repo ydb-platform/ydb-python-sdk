@@ -1,3 +1,5 @@
+* Fix error of check retriable error for idempotent operations (error exist since 2.12.1)
+
 ## 2.12.1 ##
 * Supported `TYPE_UNSPECIFIED` item type to scheme ls
 * Fixed error while request iam token with bad content type in metadata
