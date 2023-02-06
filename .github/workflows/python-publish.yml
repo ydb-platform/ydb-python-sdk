@@ -103,9 +103,9 @@ jobs:
         Full Changelog: [$LAST_TAG...$TAG](https://github.com/ydb-platform/ydb-go-sdk/compare/$LAST_TAG...$TAG)"
         if [ "$WITH_BETA" = true ]
         then
-          gh release create -d $TAG -t "$TAG" --notes "$CHANGELOG"
+          gh release create --prerelease $TAG --title "$TAG" --notes "$CHANGELOG"
         else
-          gh release create $TAG -t "$TAG" --notes "$CHANGELOG"
+          gh release create $TAG --title "$TAG" --notes "$CHANGELOG"
         fi;
 
     - name: Publish package
