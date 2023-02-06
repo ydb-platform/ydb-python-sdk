@@ -29,7 +29,7 @@ from uuid import uuid4
         ('{"foo":"bar"}', "JsonDocument"),
         (uuid4(), "Uuid"),
         ([1, 2, 3], "List<Int8>"),
-        # ({1, 2, 3}, "Set<Int8>"),  # FIXME: AttributeError: 'set' object has no attribute 'items'
+        ({1: None, 2: None, 3: None}, "Set<Int8>"),
         ([b"a", b"b", b"c"], "List<String>"),
         ({"a": 1001, "b": 1002}, "Dict<Utf8, Int32>"),
         (("a", 1001), "Tuple<Utf8, Int32>"),
@@ -47,7 +47,6 @@ async def test_types(driver, database, value, ydb_type):
     prepared = await session.prepare(
         f"DECLARE $param as {ydb_type}; SELECT $param as value"
     )
-
     result = await session.transaction().execute(
         prepared, {"$param": value}, commit_tx=True
     )
