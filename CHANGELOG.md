@@ -1,3 +1,4 @@
+## 2.12.2 ##
 * Fix error of check retriable error for idempotent operations (error exist since 2.12.1)
 
 ## 2.12.1 ##
