@@ -8,7 +8,7 @@ from typing import Optional, Set, Dict
 
 import grpc
 
-from .. import _apis
+from .. import _apis, issues
 from ..aio import Driver
 from ..issues import Error as YdbError
 from .datatypes import PartitionSession, PublicMessage, PublicBatch
@@ -143,19 +143,19 @@ class ReaderStream:
         self._background_tasks.add(read_messages_task)
 
     async def wait_messages(self):
-        if self._closed:
-            raise TopicReaderStreamClosedError()
-
-        while len(self._message_batches) == 0:
+        while True:
             if self._first_error is not None:
                 raise self._first_error
+
+            if len(self._message_batches) > 0:
+                return
 
             await self._state_changed.wait()
             self._state_changed.clear()
 
     def receive_batch_nowait(self):
-        if self._closed:
-            raise TopicReaderStreamClosedError()
+        if self._first_error is not None:
+            raise self._first_error
 
         try:
             batch = self._message_batches.popleft()
@@ -185,8 +185,6 @@ class ReaderStream:
                     )
 
                 self._state_changed.set()
-        except grpc.RpcError as e:
-
         except Exception as e:
             self._set_first_error(e)
             raise e
@@ -296,7 +294,7 @@ class ReaderStream:
             raise TopicReaderError(message="Double closed ReaderStream")
 
         self._closed = True
-        self._set_first_error(TopicReaderError("Reader closed"))
+        self._set_first_error(TopicReaderStreamClosedError())
         self._state_changed.set()
 
         for task in self._background_tasks:

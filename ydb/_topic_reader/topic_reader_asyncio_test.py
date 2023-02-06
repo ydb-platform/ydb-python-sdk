@@ -5,14 +5,22 @@ from unittest import mock
 import grpc
 import pytest
 
+import ydb
 from ydb import aio
 from .datatypes import PublicBatch, PublicMessage
 from .topic_reader import PublicReaderSettings
 from .topic_reader_asyncio import ReaderStream, PartitionSession
-from .._topic_wrapper.common import OffsetsRange, Codec
+from .._topic_wrapper.common import OffsetsRange, Codec, ServerStatus
 from .._topic_wrapper.reader import StreamReadMessage
 from .._topic_wrapper.test_helpers import StreamMock, wait_condition, wait_for_fast
 from ..issues import Unavailable
+
+# Workaround for good autocomplete in IDE and universal import at runtime
+# noinspection PyUnreachableCode
+if False:
+    from .._grpc.v4.protos import ydb_status_codes_pb2
+else:
+    from .._grpc.common.protos import ydb_status_codes_pb2
 
 
 @pytest.fixture()
@@ -58,7 +66,7 @@ class TestReaderStream:
         )
 
     @pytest.fixture()
-    async def stream_reader(self, stream, default_reader_settings, partition_session,
+    async def stream_reader_started(self, stream, default_reader_settings, partition_session,
                             second_partition_session) -> ReaderStream:
         reader = ReaderStream(default_reader_settings)
         init_message = object()
@@ -67,7 +75,8 @@ class TestReaderStream:
         start = asyncio.create_task(reader._start(stream, init_message))
 
         stream.from_server.put_nowait(StreamReadMessage.FromServer(
-            StreamReadMessage.InitResponse(session_id="test-session")
+            server_status=ServerStatus(ydb_status_codes_pb2.StatusIds.SUCCESS, []),
+            server_message=StreamReadMessage.InitResponse(session_id="test-session"),
         ))
 
         init_request = await wait_for_fast(stream.from_client.get())
@@ -77,7 +86,9 @@ class TestReaderStream:
         assert isinstance(read_request.client_message, StreamReadMessage.ReadRequest)
 
         stream.from_server.put_nowait(
-            StreamReadMessage.FromServer(server_message=StreamReadMessage.StartPartitionSessionRequest(
+            StreamReadMessage.FromServer(
+                server_status=ServerStatus(ydb_status_codes_pb2.StatusIds.SUCCESS, []),
+                server_message=StreamReadMessage.StartPartitionSessionRequest(
                 partition_session=StreamReadMessage.PartitionSession(
                     partition_session_id=partition_session.id,
                     path=partition_session.topic_path,
@@ -96,7 +107,9 @@ class TestReaderStream:
         assert isinstance(start_partition_resp.client_message, StreamReadMessage.StartPartitionSessionResponse)
 
         stream.from_server.put_nowait(
-            StreamReadMessage.FromServer(server_message=StreamReadMessage.StartPartitionSessionRequest(
+            StreamReadMessage.FromServer(
+                server_status=ServerStatus(ydb_status_codes_pb2.StatusIds.SUCCESS, []),
+                server_message=StreamReadMessage.StartPartitionSessionRequest(
                 partition_session=StreamReadMessage.PartitionSession(
                     partition_session_id=second_partition_session.id,
                     path=second_partition_session.topic_path,
@@ -116,11 +129,22 @@ class TestReaderStream:
         with pytest.raises(asyncio.QueueEmpty):
             stream.from_client.get_nowait()
 
-        yield reader
+        return reader
 
-        assert reader._first_error is None
+    @pytest.fixture()
+    async def stream_reader(self, stream_reader_started: ReaderStream):
+        yield stream_reader_started
 
-        await reader.close()
+        assert stream_reader_started._first_error is None
+        await stream_reader_started.close()
+
+    @pytest.fixture()
+    async def stream_reader_finish_with_error(self, stream_reader_started: ReaderStream):
+        yield stream_reader_started
+
+        assert stream_reader_started._first_error is not None
+        await stream_reader_started.close()
+
 
     @staticmethod
     def create_message(partition_session: PartitionSession, seqno: int):
@@ -143,7 +167,9 @@ class TestReaderStream:
         initial_batches = batch_count()
 
         stream = stream_reader._stream  # type: StreamMock
-        stream.from_server.put_nowait(StreamReadMessage.FromServer(server_message=StreamReadMessage.ReadResponse(
+        stream.from_server.put_nowait(StreamReadMessage.FromServer(
+            server_status=ServerStatus(ydb_status_codes_pb2.StatusIds.SUCCESS, []),
+            server_message=StreamReadMessage.ReadResponse(
             partition_data=[StreamReadMessage.ReadResponse.PartitionData(
                 partition_session_id=message._partition_session.id,
                 batches=[
@@ -169,20 +195,25 @@ class TestReaderStream:
         )))
         await wait_condition(lambda: batch_count() > initial_batches)
 
-    async def test_convert_errors_to_ydb(self, stream, stream_reader):
-        class TestError(grpc.RpcError):
-            _code: grpc.StatusCode
-
-            def __init__(self, code: grpc.StatusCode):
-                self._code = code
+    async def test_first_error(self, stream, stream_reader_finish_with_error):
+        class TestError(grpc.RpcError, grpc.Call):
+            def __init__(self):
+                pass
 
             def code(self):
-                return self._code
+                return grpc.StatusCode.UNAUTHENTICATED
 
-        stream.from_server.put_nowait(TestError(grpc.StatusCode.UNAVAILABLE))
+            def details(self):
+                return "test error"
 
-        with pytest.raises(Unavailable):
-            await wait_for_fast(stream_reader.wait_messages())
+        test_err = TestError()
+        stream.from_server.put_nowait(test_err)
+
+        with pytest.raises(TestError):
+            await wait_for_fast(stream_reader_finish_with_error.wait_messages())
+
+        with pytest.raises(TestError):
+            stream_reader_finish_with_error.receive_batch_nowait()
 
     async def test_init_reader(self, stream, default_reader_settings):
         reader = ReaderStream(default_reader_settings)
@@ -202,6 +233,7 @@ class TestReaderStream:
         assert sent_message == expected_sent_init_message
 
         stream.from_server.put_nowait(StreamReadMessage.FromServer(
+            server_status=ServerStatus(ydb_status_codes_pb2.StatusIds.SUCCESS, []),
             server_message=StreamReadMessage.InitResponse(session_id="test"))
         )
 
@@ -231,6 +263,7 @@ class TestReaderStream:
         test_topic_path = default_reader_settings.topic + "-asd"
 
         stream.from_server.put_nowait(StreamReadMessage.FromServer(
+            server_status=ServerStatus(ydb_status_codes_pb2.StatusIds.SUCCESS, []),
             server_message=StreamReadMessage.StartPartitionSessionRequest(
                 partition_session=StreamReadMessage.PartitionSession(
                     partition_session_id=test_partition_session_id,
@@ -266,6 +299,7 @@ class TestReaderStream:
         initial_session_count = session_count()
 
         stream.from_server.put_nowait(StreamReadMessage.FromServer(
+            server_status=ServerStatus(ydb_status_codes_pb2.StatusIds.SUCCESS, []),
             server_message=StreamReadMessage.StopPartitionSessionRequest(
                 partition_session_id=partition_session.id,
                 graceful=False,
@@ -287,6 +321,7 @@ class TestReaderStream:
         initial_session_count = session_count()
 
         stream.from_server.put_nowait(StreamReadMessage.FromServer(
+            server_status=ServerStatus(ydb_status_codes_pb2.StatusIds.SUCCESS, []),
             server_message=StreamReadMessage.StopPartitionSessionRequest(
                 partition_session_id=partition_session.id,
                 graceful=True,
@@ -303,6 +338,7 @@ class TestReaderStream:
         )
 
         stream.from_server.put_nowait(StreamReadMessage.FromServer(
+            server_status=ServerStatus(ydb_status_codes_pb2.StatusIds.SUCCESS, []),
             server_message=StreamReadMessage.StopPartitionSessionRequest(
                 partition_session_id=partition_session.id,
                 graceful=False,
@@ -330,7 +366,9 @@ class TestReaderStream:
         session_meta = {"a": "b"}
         message_group_id = "test-message-group-id"
 
-        stream.from_server.put_nowait(StreamReadMessage.FromServer(server_message=StreamReadMessage.ReadResponse(
+        stream.from_server.put_nowait(StreamReadMessage.FromServer(
+            server_status=ServerStatus(ydb_status_codes_pb2.StatusIds.SUCCESS, []),
+            server_message=StreamReadMessage.ReadResponse(
             bytes_size=bytes_size,
             partition_data=[
                 StreamReadMessage.ReadResponse.PartitionData(

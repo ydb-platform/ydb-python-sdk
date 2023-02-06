@@ -5,10 +5,12 @@ from typing import List, Union, Dict
 
 from google.protobuf.message import Message
 
-from ydb._topic_wrapper.common import OffsetsRange, IToProto, UpdateTokenRequest, UpdateTokenResponse, IFromProto
+from ydb._topic_wrapper.common import OffsetsRange, IToProto, UpdateTokenRequest, UpdateTokenResponse, IFromProto, \
+    ServerStatus
 from google.protobuf.duration_pb2 import Duration as ProtoDuration
 
 # Workaround for good autocomplete in IDE and universal import at runtime
+# noinspection PyUnreachableCode
 if False:
     from ydb._grpc.v4.protos import ydb_topic_pb2
 else:
@@ -240,10 +242,12 @@ class StreamReadMessage:
     @dataclass
     class FromServer(IFromProto):
         server_message: "ReaderMessagesFromServerToClient"
+        server_status: ServerStatus
 
         @staticmethod
         def from_proto(msg: ydb_topic_pb2.StreamReadMessage.FromServer) -> "StreamReadMessage.FromServer":
             mess_type = msg.WhichOneof("server_message")
+            server_status = ServerStatus.from_proto(ms)
             if mess_type == "read_response":
                 return StreamReadMessage.FromServer(
                     server_message=StreamReadMessage.ReadResponse.from_proto(msg.read_response)
