@@ -6,11 +6,11 @@ import grpc
 import pytest
 
 import ydb
-from ydb import aio
+from ydb import aio, issues
 from .datatypes import PublicBatch, PublicMessage
 from .topic_reader import PublicReaderSettings
-from .topic_reader_asyncio import ReaderStream, PartitionSession
-from .._topic_wrapper.common import OffsetsRange, Codec, ServerStatus
+from .topic_reader_asyncio import ReaderStream, PartitionSession, ReaderReconnector
+from .._topic_wrapper.common import OffsetsRange, Codec, ServerStatus, UpdateTokenResponse
 from .._topic_wrapper.reader import StreamReadMessage
 from .._topic_wrapper.test_helpers import StreamMock, wait_condition, wait_for_fast
 from ..issues import Unavailable
@@ -135,14 +135,14 @@ class TestReaderStream:
     async def stream_reader(self, stream_reader_started: ReaderStream):
         yield stream_reader_started
 
-        assert stream_reader_started._first_error is None
+        assert stream_reader_started._get_first_error() is None
         await stream_reader_started.close()
 
     @pytest.fixture()
     async def stream_reader_finish_with_error(self, stream_reader_started: ReaderStream):
         yield stream_reader_started
 
-        assert stream_reader_started._first_error is not None
+        assert stream_reader_started._get_first_error() is not None
         await stream_reader_started.close()
 
 
@@ -195,16 +195,9 @@ class TestReaderStream:
         )))
         await wait_condition(lambda: batch_count() > initial_batches)
 
-    async def test_first_error(self, stream, stream_reader_finish_with_error):
-        class TestError(grpc.RpcError, grpc.Call):
-            def __init__(self):
-                pass
-
-            def code(self):
-                return grpc.StatusCode.UNAUTHENTICATED
-
-            def details(self):
-                return "test error"
+    async def test_unknown_error(self, stream, stream_reader_finish_with_error):
+        class TestError(Exception):
+            pass
 
         test_err = TestError()
         stream.from_server.put_nowait(test_err)
@@ -213,6 +206,24 @@ class TestReaderStream:
             await wait_for_fast(stream_reader_finish_with_error.wait_messages())
 
         with pytest.raises(TestError):
+            stream_reader_finish_with_error.receive_batch_nowait()
+
+    async def test_error_from_status_code(self, stream, stream_reader_finish_with_error):
+        # noinspection PyTypeChecker
+        stream.from_server.put_nowait(
+            StreamReadMessage.FromServer(
+                server_status=ServerStatus(
+                    status=issues.StatusCode.OVERLOADED,
+                    issues=[],
+                ),
+                server_message=None,
+            )
+        )
+
+        with pytest.raises(issues.Overloaded):
+            await wait_for_fast(stream_reader_finish_with_error.wait_messages())
+
+        with pytest.raises(issues.Overloaded):
             stream_reader_finish_with_error.receive_batch_nowait()
 
     async def test_init_reader(self, stream, default_reader_settings):
@@ -619,8 +630,15 @@ class TestReaderStream:
         with pytest.raises(asyncio.QueueEmpty):
             stream.from_client.get_nowait()
 
+
 @pytest.mark.asyncio
 class TestReaderReconnector:
-    async def test_start(self):
-        pass
+    async def test_reconnect_on_repeatable_error(self, monkeypatch):
+        def stream_create():
+            pass
 
+        with mock.patch.object(ReaderStream, "create", stream_create):
+            reconnector = ReaderReconnector(None, PublicReaderSettings("", ""))
+            await reconnector.wait_message()
+
+        raise NotImplementedError()

@@ -3,7 +3,7 @@ import asyncio
 import grpc
 import pytest
 
-from .common import callback_from_asyncio, GrpcWrapperAsyncIO
+from .common import callback_from_asyncio, GrpcWrapperAsyncIO, ServerStatus
 from .. import issues
 
 # Workaround for good autocomplete in IDE and universal import at runtime
@@ -89,4 +89,23 @@ class TestGrpcWrapperAsyncIO:
 
         with pytest.raises(issues.Overloaded):
             await wrapper.receive()
+
+
+class TestServerStatus:
+    def test_success(self):
+        status = ServerStatus(
+            status=ydb_status_codes_pb2.StatusIds.SUCCESS,
+            issues=[],
+        )
+        assert status.is_success()
+        assert issues._process_response(status) is None
+
+    def test_failed(self):
+        status = ServerStatus(
+            status=ydb_status_codes_pb2.StatusIds.OVERLOADED,
+            issues=[],
+        )
+        assert not status.is_success()
+        with pytest.raises(issues.Overloaded):
+            issues._process_response(status)
 

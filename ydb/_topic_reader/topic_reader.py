@@ -16,6 +16,7 @@ from typing import (
     Any, Dict,
 )
 
+from ydb import RetrySettings
 from ydb._topic_wrapper.common import OffsetsRange, TokenGetterFuncType
 from ydb._topic_wrapper.reader import StreamReadMessage
 
@@ -280,6 +281,9 @@ class PublicReaderSettings:
             ],
             consumer=self.consumer,
         )
+
+    def _retry_settings(self)->RetrySettings:
+        return RetrySettings(idempotent=True)
 
 
 class Events:

@@ -211,11 +211,11 @@ class ServerStatus(IFromProto):
 
     def __init__(
             self,
-            status_code: ydb_status_codes_pb2.StatusIds.StatusCode,
-            grpc_issues: typing.Iterable[ydb_issue_message_pb2.IssueMessage],
+            status: issues.StatusCode,
+            issues: typing.Iterable[typing.Any],
     ):
-        self._grpc_status_code = status_code
-        self._issues = grpc_issues
+        self.status = status
+        self.issues = issues
 
     def __str__(self):
         return self.__repr__()
@@ -228,7 +228,7 @@ class ServerStatus(IFromProto):
         return ServerStatus(msg.status, msg.issues)
 
     def is_success(self) -> bool:
-        return self._grpc_status_code == ydb_status_codes_pb2.StatusIds.SUCCESS
+        return self.status == issues.StatusCode.SUCCESS
 
     @classmethod
     def issue_to_str(cls, issue: ydb_issue_message_pb2.IssueMessage):

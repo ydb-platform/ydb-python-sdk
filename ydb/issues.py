@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+import abc
+
 from google.protobuf import text_format
 import enum
 from six.moves import queue

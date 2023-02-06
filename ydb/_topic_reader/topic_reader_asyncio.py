@@ -8,13 +8,18 @@ from typing import Optional, Set, Dict
 
 import grpc
 
-from .. import _apis, issues
+import ydb
+from .. import _apis, issues, RetrySettings
 from ..aio import Driver
-from ..issues import Error as YdbError
+from ..issues import (
+    Error as YdbError,
+    _process_response
+)
 from .datatypes import PartitionSession, PublicMessage, PublicBatch
 from .topic_reader import PublicReaderSettings
 from .._topic_wrapper.common import TokenGetterFuncType, IGrpcWrapperAsyncIO, SupportedDriverType, GrpcWrapperAsyncIO
 from .._topic_wrapper.reader import StreamReadMessage
+from .._errors import check_retriable_error
 
 
 class TopicReaderError(YdbError):
@@ -48,22 +53,42 @@ class ReaderReconnector:
 
     _state_changed: asyncio.Event
     _stream_reader: Optional["ReaderStream"]
+    _first_error: asyncio.Future[ydb.Error]
 
     def __init__(self, driver: Driver, settings: PublicReaderSettings):
         self._settings = settings
         self._driver = driver
         self._background_tasks = set()
+        self._retry_settins = RetrySettings(idempotent=True)  # get from settings
 
         self._state_changed = asyncio.Event()
         self._stream_reader = None
-        self._background_tasks.add(asyncio.create_task(self.start()))
+        self._background_tasks.add(asyncio.create_task(self._connection_loop()))
+        self._first_error = asyncio.get_running_loop().create_future()
 
-    async def start(self):
-        self._stream_reader = await ReaderStream.create(self._driver, self._settings)
-        self._state_changed.set()
+    async def _connection_loop(self):
+        attempt = 0
+        while True:
+            try:
+                self._stream_reader = await ReaderStream.create(self._driver, self._settings)
+                self._state_changed.set()
+                self._stream_reader._state_changed.wait()
+            except Exception as err:
+                # todo reset attempts when connection established
+
+                retry_info = check_retriable_error(err, self._settings._retry_settings(), attempt)
+                if not retry_info.is_retriable:
+                    self._set_first_error(err)
+                    return
+                await asyncio.sleep(retry_info.sleep_timeout_seconds)
+
+                attempt += 1
 
     async def wait_message(self):
         while True:
+            if self._first_error.done():
+                raise self._first_error.result()
+
             if self._stream_reader is not None:
                 await self._stream_reader.wait_messages()
                 return
@@ -81,6 +106,13 @@ class ReaderReconnector:
 
         await asyncio.wait(self._background_tasks)
 
+    def _set_first_error(self, err: issues.Error):
+        try:
+            self._first_error.set_result(err)
+            self._state_changed.set()
+        except asyncio.InvalidStateError:
+            # skip if already has result
+            pass
 
 class ReaderStream:
     _token_getter: Optional[TokenGetterFuncType]
@@ -93,8 +125,8 @@ class ReaderStream:
 
     _state_changed: asyncio.Event
     _closed: bool
-    _first_error: Optional[YdbError]
     _message_batches: typing.Deque[PublicBatch]
+    first_error: asyncio.Future[YdbError]
 
     def __init__(self, settings: PublicReaderSettings):
         self._token_getter = settings._token_getter
@@ -107,7 +139,7 @@ class ReaderStream:
 
         self._state_changed = asyncio.Event()
         self._closed = False
-        self._first_error = None
+        self.first_error = asyncio.get_running_loop().create_future()
         self._message_batches = deque()
 
     @staticmethod
@@ -144,8 +176,8 @@ class ReaderStream:
 
     async def wait_messages(self):
         while True:
-            if self._first_error is not None:
-                raise self._first_error
+            if self._get_first_error() is not None:
+                raise self._get_first_error()
 
             if len(self._message_batches) > 0:
                 return
@@ -154,8 +186,8 @@ class ReaderStream:
             self._state_changed.clear()
 
     def receive_batch_nowait(self):
-        if self._first_error is not None:
-            raise self._first_error
+        if self._get_first_error() is not None:
+            raise self._get_first_error()
 
         try:
             batch = self._message_batches.popleft()
@@ -173,6 +205,7 @@ class ReaderStream:
             ))
             while True:
                 message = await stream.receive()  # type: StreamReadMessage.FromServer
+                _process_response(message.server_status)
                 if isinstance(message.server_message, StreamReadMessage.ReadResponse):
                     self._on_read_response(message.server_message)
                 elif isinstance(message.server_message, StreamReadMessage.StartPartitionSessionRequest):
@@ -285,9 +318,18 @@ class ReaderStream:
         return batches
 
     def _set_first_error(self, err):
-        if self._first_error is None:
-            self._first_error = err
+        try:
+            self.first_error.set_result(err)
             self._state_changed.set()
+        except asyncio.InvalidStateError:
+            # skip later set errors
+            pass
+
+    def _get_first_error(self):
+        if self.first_error.done():
+            return self.first_error.result()
+        else:
+            return None
 
     async def close(self):
         if self._closed:

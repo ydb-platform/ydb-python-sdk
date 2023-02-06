@@ -247,17 +247,20 @@ class StreamReadMessage:
         @staticmethod
         def from_proto(msg: ydb_topic_pb2.StreamReadMessage.FromServer) -> "StreamReadMessage.FromServer":
             mess_type = msg.WhichOneof("server_message")
-            server_status = ServerStatus.from_proto(ms)
+            server_status = ServerStatus.from_proto(msg)
             if mess_type == "read_response":
                 return StreamReadMessage.FromServer(
-                    server_message=StreamReadMessage.ReadResponse.from_proto(msg.read_response)
+                    server_status=server_status,
+                    server_message=StreamReadMessage.ReadResponse.from_proto(msg.read_response),
                 )
             elif mess_type == "init_response":
                 return StreamReadMessage.FromServer(
+                    server_status=server_status,
                     server_message=StreamReadMessage.InitResponse.from_proto(msg.init_response),
                 )
             elif mess_type == "start_partition_session_request":
                 return StreamReadMessage.FromServer(
+                    server_status=server_status,
                     server_message=StreamReadMessage.StartPartitionSessionRequest.from_proto(msg.start_partition_session_request)
                 )
 
