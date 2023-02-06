@@ -238,3 +238,13 @@ class UpdateTokenResponse(IFromProto):
 
 
 TokenGetterFuncType = typing.Optional[typing.Callable[[], str]]
+
+
+def callback_from_asyncio(callback: typing.Union[typing.Callable, typing.Coroutine]) -> [asyncio.Future, asyncio.Task]:
+    loop = asyncio.get_running_loop()
+
+    if asyncio.iscoroutinefunction(callback):
+        return loop.create_task(callback())
+    else:
+        return loop.run_in_executor(None, callback)
+

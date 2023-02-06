@@ -6,6 +6,8 @@ from asyncio import Task
 from collections import deque
 from typing import Optional, Set, Dict
 
+import grpc
+
 from .. import _apis
 from ..aio import Driver
 from ..issues import Error as YdbError
@@ -145,6 +147,9 @@ class ReaderStream:
             raise TopicReaderStreamClosedError()
 
         while len(self._message_batches) == 0:
+            if self._first_error is not None:
+                raise self._first_error
+
             await self._state_changed.wait()
             self._state_changed.clear()
 
@@ -180,6 +185,8 @@ class ReaderStream:
                     )
 
                 self._state_changed.set()
+        except grpc.RpcError as e:
+
         except Exception as e:
             self._set_first_error(e)
             raise e

@@ -2,15 +2,17 @@ import asyncio
 import datetime
 from unittest import mock
 
+import grpc
 import pytest
 
 from ydb import aio
-from ydb._topic_reader.datatypes import PublicBatch, PublicMessage
-from ydb._topic_reader.topic_reader import PublicReaderSettings
-from ydb._topic_reader.topic_reader_asyncio import ReaderStream, PartitionSession
-from ydb._topic_wrapper.common import OffsetsRange, Codec
-from ydb._topic_wrapper.reader import StreamReadMessage
-from ydb._topic_wrapper.test_helpers import StreamMock, wait_condition, wait_for_fast
+from .datatypes import PublicBatch, PublicMessage
+from .topic_reader import PublicReaderSettings
+from .topic_reader_asyncio import ReaderStream, PartitionSession
+from .._topic_wrapper.common import OffsetsRange, Codec
+from .._topic_wrapper.reader import StreamReadMessage
+from .._topic_wrapper.test_helpers import StreamMock, wait_condition, wait_for_fast
+from ..issues import Unavailable
 
 
 @pytest.fixture()
@@ -166,6 +168,21 @@ class TestReaderStream:
             bytes_size=self.default_batch_size,
         )))
         await wait_condition(lambda: batch_count() > initial_batches)
+
+    async def test_convert_errors_to_ydb(self, stream, stream_reader):
+        class TestError(grpc.RpcError):
+            _code: grpc.StatusCode
+
+            def __init__(self, code: grpc.StatusCode):
+                self._code = code
+
+            def code(self):
+                return self._code
+
+        stream.from_server.put_nowait(TestError(grpc.StatusCode.UNAVAILABLE))
+
+        with pytest.raises(Unavailable):
+            await wait_for_fast(stream_reader.wait_messages())
 
     async def test_init_reader(self, stream, default_reader_settings):
         reader = ReaderStream(default_reader_settings)
@@ -563,3 +580,9 @@ class TestReaderStream:
 
         with pytest.raises(asyncio.QueueEmpty):
             stream.from_client.get_nowait()
+
+@pytest.mark.asyncio
+class TestReaderReconnector:
+    async def test_start(self):
+        pass
+
