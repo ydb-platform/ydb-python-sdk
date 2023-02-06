@@ -49,9 +49,10 @@ def check_retriable_error(err, retry_settings, attempt):
 
     if retry_settings.idempotent:
         for t in _errors_retriable_slow_backoff_idempotent_types:
-            return ErrorRetryInfo(
-                True, retry_settings.slow_backoff.calc_timeout(attempt)
-            )
+            if isinstance(err, t):
+                return ErrorRetryInfo(
+                    True, retry_settings.slow_backoff.calc_timeout(attempt)
+                )
 
     return ErrorRetryInfo(False, None)
 
