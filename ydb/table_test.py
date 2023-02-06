@@ -132,4 +132,9 @@ def test_retry_operation_impl(monkeypatch):
         check_retriable_error(issues.Unavailable, retry_once_settings.fast_backoff)
 
     check_unretriable_error(issues.Error, True)
+    with mock.patch.object(retry_once_settings, "idempotent", True):
+        check_unretriable_error(issues.Error, True)
+
     check_unretriable_error(TestException, False)
+    with mock.patch.object(retry_once_settings, "idempotent", True):
+        check_unretriable_error(TestException, False)
