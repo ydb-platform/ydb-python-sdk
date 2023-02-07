@@ -214,9 +214,10 @@ def _dict_to_pb(type_pb, value):
     for key, payload in value.items():
         kv_pair = value_pb.pairs.add()
         kv_pair.key.MergeFrom(_from_native_value(type_pb.dict_type.key, key))
-        kv_pair.payload.MergeFrom(
-            _from_native_value(type_pb.dict_type.payload, payload)
-        )
+        if payload:
+            kv_pair.payload.MergeFrom(
+                _from_native_value(type_pb.dict_type.payload, payload)
+            )
     return value_pb
 
 
