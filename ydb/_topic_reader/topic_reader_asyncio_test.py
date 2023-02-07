@@ -10,7 +10,7 @@ from ydb import aio, issues
 from .datatypes import PublicBatch, PublicMessage
 from .topic_reader import PublicReaderSettings
 from .topic_reader_asyncio import ReaderStream, PartitionSession, ReaderReconnector
-from .._topic_wrapper.common import OffsetsRange, Codec, ServerStatus, UpdateTokenResponse
+from .._topic_wrapper.common import OffsetsRange, Codec, ServerStatus, UpdateTokenResponse, SupportedDriverType
 from .._topic_wrapper.reader import StreamReadMessage
 from .._topic_wrapper.test_helpers import StreamMock, wait_condition, wait_for_fast
 from ..issues import Unavailable
@@ -21,6 +21,13 @@ if False:
     from .._grpc.v4.protos import ydb_status_codes_pb2
 else:
     from .._grpc.common.protos import ydb_status_codes_pb2
+
+
+@pytest.fixture(autouse=True)
+def handle_exceptions(event_loop):
+    def handler(loop, context):
+        print(context)
+    event_loop.set_exception_handler(handler)
 
 
 @pytest.fixture()
@@ -634,11 +641,38 @@ class TestReaderStream:
 @pytest.mark.asyncio
 class TestReaderReconnector:
     async def test_reconnect_on_repeatable_error(self, monkeypatch):
-        def stream_create():
-            pass
+        test_error = issues.Overloaded("test error")
+
+        async def wait_error():
+            raise test_error
+
+        reader_stream_mock_with_error = mock.Mock(ReaderStream)
+        reader_stream_mock_with_error.wait_error = mock.AsyncMock(side_effect=wait_error)
+
+        async def wait_messages():
+            raise test_error
+
+        reader_stream_mock_with_error.wait_messages = mock.AsyncMock(side_effect=wait_messages)
+
+        reader_stream_with_messages = mock.Mock(ReaderStream)
+        reader_stream_with_messages.wait_error.return_value = asyncio.Future()
+        reader_stream_with_messages.wait_messages.return_value = None
+
+        stream_index = 0
+
+        async def stream_create(driver: SupportedDriverType, settings: PublicReaderSettings,):
+            nonlocal stream_index
+            stream_index += 1
+            if stream_index == 1:
+                return reader_stream_mock_with_error
+            elif stream_index == 2:
+                return reader_stream_with_messages
+            else:
+                raise Exception("unexpected create stream")
 
         with mock.patch.object(ReaderStream, "create", stream_create):
-            reconnector = ReaderReconnector(None, PublicReaderSettings("", ""))
+            reconnector = ReaderReconnector(mock.Mock(), PublicReaderSettings("", ""))
             await reconnector.wait_message()
 
-        raise NotImplementedError()
+        reader_stream_mock_with_error.wait_error.assert_any_await()
+        reader_stream_mock_with_error.wait_messages.assert_any_await()

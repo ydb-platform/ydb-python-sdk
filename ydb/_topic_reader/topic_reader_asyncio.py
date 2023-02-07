@@ -6,9 +6,7 @@ from asyncio import Task
 from collections import deque
 from typing import Optional, Set, Dict
 
-import grpc
 
-import ydb
 from .. import _apis, issues, RetrySettings
 from ..aio import Driver
 from ..issues import (
@@ -53,7 +51,7 @@ class ReaderReconnector:
 
     _state_changed: asyncio.Event
     _stream_reader: Optional["ReaderStream"]
-    _first_error: asyncio.Future[ydb.Error]
+    _first_error: asyncio.Future[YdbError]
 
     def __init__(self, driver: Driver, settings: PublicReaderSettings):
         self._settings = settings
@@ -71,11 +69,10 @@ class ReaderReconnector:
         while True:
             try:
                 self._stream_reader = await ReaderStream.create(self._driver, self._settings)
+                attempt = 0
                 self._state_changed.set()
-                self._stream_reader._state_changed.wait()
-            except Exception as err:
-                # todo reset attempts when connection established
-
+                await self._stream_reader.wait_error()
+            except issues.Error as err:
                 retry_info = check_retriable_error(err, self._settings._retry_settings(), attempt)
                 if not retry_info.is_retriable:
                     self._set_first_error(err)
@@ -90,8 +87,11 @@ class ReaderReconnector:
                 raise self._first_error.result()
 
             if self._stream_reader is not None:
-                await self._stream_reader.wait_messages()
-                return
+                try:
+                    await self._stream_reader.wait_messages()
+                    return
+                except YdbError:
+                    pass  # handle errors in reconnection loop
 
             await self._state_changed.wait()
             self._state_changed.clear()
@@ -114,6 +114,7 @@ class ReaderReconnector:
             # skip if already has result
             pass
 
+
 class ReaderStream:
     _token_getter: Optional[TokenGetterFuncType]
     _session_id: str
@@ -126,7 +127,7 @@ class ReaderStream:
     _state_changed: asyncio.Event
     _closed: bool
     _message_batches: typing.Deque[PublicBatch]
-    first_error: asyncio.Future[YdbError]
+    _first_error: asyncio.Future[YdbError]
 
     def __init__(self, settings: PublicReaderSettings):
         self._token_getter = settings._token_getter
@@ -139,7 +140,7 @@ class ReaderStream:
 
         self._state_changed = asyncio.Event()
         self._closed = False
-        self.first_error = asyncio.get_running_loop().create_future()
+        self._first_error = asyncio.get_running_loop().create_future()
         self._message_batches = deque()
 
     @staticmethod
@@ -173,6 +174,9 @@ class ReaderStream:
 
         read_messages_task = asyncio.create_task(self._read_messages_loop(stream))
         self._background_tasks.add(read_messages_task)
+
+    async def wait_error(self):
+        raise await self._first_error
 
     async def wait_messages(self):
         while True:
@@ -317,17 +321,17 @@ class ReaderStream:
         batches[-1]._bytes_size += additional_bytes_to_last_batch
         return batches
 
-    def _set_first_error(self, err):
+    def _set_first_error(self, err: ydb.Error):
         try:
-            self.first_error.set_result(err)
+            self._first_error.set_result(err)
             self._state_changed.set()
         except asyncio.InvalidStateError:
             # skip later set errors
             pass
 
-    def _get_first_error(self):
-        if self.first_error.done():
-            return self.first_error.result()
+    def _get_first_error(self) -> Optional[ydb.Error]:
+        if self._first_error.done():
+            return self._first_error.result()
         else:
             return None
 
