@@ -11,6 +11,5 @@ class TestTopicWriterAsyncIO:
             consumer=topic_consumer,
             topic=topic_path,
         ))
-        await reader.wait_messages()
 
-        assert reader.receive_batch() is not None
+        assert await reader.receive_batch() is not None

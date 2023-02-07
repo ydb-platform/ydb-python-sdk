@@ -37,11 +37,102 @@ class PublicAsyncIOReader:
         self._loop = asyncio.get_running_loop()
         self._reconnector = ReaderReconnector(driver, settings)
 
-    async def wait_messages(self):
-        await self._reconnector.wait_message()
+    async def __aenter__(self):
+        raise NotImplementedError()
 
-    def receive_batch(self):
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        raise NotImplementedError()
+
+    async def sessions_stat(self) -> typing.List["SessionStat"]:
+        """
+        Receive stat from the server
+
+        use asyncio.wait_for for wait with timeout.
+        """
+        raise NotImplementedError()
+
+    def messages(
+        self, *, timeout: typing.Union[float, None] = None
+    ) -> typing.AsyncIterable["PublicMessage"]:
+        """
+        Block until receive new message
+
+        if no new messages in timeout seconds: stop iteration by raise StopAsyncIteration
+        """
+        raise NotImplementedError()
+
+    async def receive_message(self) -> typing.Union["PublicMessage", None]:
+        """
+        Block until receive new message
+
+        use asyncio.wait_for for wait with timeout.
+        """
+        raise NotImplementedError()
+
+    def batches(
+        self,
+        *,
+        max_messages: typing.Union[int, None] = None,
+        max_bytes: typing.Union[int, None] = None,
+        timeout: typing.Union[float, None] = None,
+    ) -> typing.AsyncIterable["PublicBatch"]:
+        """
+        Block until receive new batch.
+        All messages in a batch from same partition.
+
+        if no new message in timeout seconds (default - infinite): stop iterations by raise StopIteration
+        """
+        raise NotImplementedError()
+
+    async def receive_batch(
+        self, *, max_messages: typing.Union[int, None] = None, max_bytes: typing.Union[int, None] = None
+    ) -> typing.Union["PublicBatch", None]:
+        """
+        Get one messages batch from reader.
+        All messages in a batch from same partition.
+
+        use asyncio.wait_for for wait with timeout.
+        """
+        await self._reconnector.wait_message()
         return self._reconnector.receive_batch_nowait()
+
+    async def commit_on_exit(self, mess: "ICommittable") -> typing.AsyncContextManager:
+        """
+        commit the mess match/message if exit from context manager without exceptions
+
+        reader will close if exit from context manager with exception
+        """
+        raise NotImplementedError()
+
+    def commit(self, mess: "ICommittable"):
+        """
+        Write commit message to a buffer.
+
+        For the method no way check the commit result
+        (for example if lost connection - commits will not re-send and committed messages will receive again)
+        """
+        raise NotImplementedError()
+
+    async def commit_with_ack(
+        self, mess: "ICommittable"
+    ) -> typing.Union["CommitResult", typing.List["CommitResult"]]:
+        """
+        write commit message to a buffer and wait ack from the server.
+
+        use asyncio.wait_for for wait with timeout.
+        """
+        raise NotImplementedError()
+
+    async def flush(self):
+        """
+        force send all commit messages from internal buffers to server and wait acks for all of them.
+
+        use asyncio.wait_for for wait with timeout.
+        """
+        raise NotImplementedError()
+
+    async def close(self):
+        raise NotImplementedError()
 
 
 class ReaderReconnector:
