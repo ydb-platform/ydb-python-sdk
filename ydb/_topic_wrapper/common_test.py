@@ -11,16 +11,15 @@ from .. import issues
 if False:
     from ydb._grpc.v4.protos import (
         ydb_status_codes_pb2,
-        ydb_issue_message_pb2,
         ydb_topic_pb2,
     )
 else:
     # noinspection PyUnresolvedReferences
     from ydb._grpc.common.protos import (
         ydb_status_codes_pb2,
-        ydb_issue_message_pb2,
         ydb_topic_pb2,
     )
+
 
 @pytest.mark.asyncio
 class Test:
@@ -108,4 +107,3 @@ class TestServerStatus:
         assert not status.is_success()
         with pytest.raises(issues.Overloaded):
             issues._process_response(status)
-

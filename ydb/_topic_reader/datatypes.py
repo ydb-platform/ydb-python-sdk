@@ -87,4 +87,7 @@ class PublicBatch(ICommittable, ISessionAlive):
     @property
     def is_alive(self) -> bool:
         state = self._partition_session.state
-        return state == PartitionSession.State.Active or state == PartitionSession.State.GracefulShutdown
+        return (
+            state == PartitionSession.State.Active
+            or state == PartitionSession.State.GracefulShutdown
+        )

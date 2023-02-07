@@ -1,24 +1,18 @@
-import abc
 import concurrent.futures
 import enum
-import io
 import datetime
 from dataclasses import dataclass
 from typing import (
     Union,
     Optional,
     List,
-    Mapping,
-    Callable,
     Iterable,
-    AsyncIterable,
-    AsyncContextManager,
-    Any, Dict,
 )
 
-from ydb import RetrySettings
-from ydb._topic_wrapper.common import OffsetsRange, TokenGetterFuncType
-from ydb._topic_wrapper.reader import StreamReadMessage
+from ..table import RetrySettings
+from .datatypes import ICommittable, PublicBatch, PublicMessage
+from .._topic_wrapper.common import OffsetsRange, TokenGetterFuncType
+from .._topic_wrapper.reader import StreamReadMessage
 
 
 class Selector:
@@ -47,7 +41,9 @@ class Reader(object):
         """
         raise NotImplementedError()
 
-    def messages(self, *, timeout: Union[float, None] = None) -> Iterable["PublicMessage"]:
+    def messages(
+        self, *, timeout: Union[float, None] = None
+    ) -> Iterable[PublicMessage]:
         """
         todo?
 
@@ -59,7 +55,7 @@ class Reader(object):
         """
         raise NotImplementedError()
 
-    def receive_message(self, *, timeout: Union[float, None] = None) -> "PublicMessage":
+    def receive_message(self, *, timeout: Union[float, None] = None) -> PublicMessage:
         """
         Block until receive new message
         It has no async_ version for prevent lost messages, use async_wait_message as signal for new batches available.
@@ -85,7 +81,7 @@ class Reader(object):
         max_messages: Union[int, None] = None,
         max_bytes: Union[int, None] = None,
         timeout: Union[float, None] = None,
-    ) -> Iterable["PublicBatch"]:
+    ) -> Iterable[PublicBatch]:
         """
         Block until receive new batch.
         It has no async_ version for prevent lost messages, use async_wait_message as signal for new batches available.
@@ -101,7 +97,7 @@ class Reader(object):
         max_messages: Union[int, None] = None,
         max_bytes: Union[int, None],
         timeout: Union[float, None] = None,
-    ) -> Union["PublicBatch", None]:
+    ) -> Union[PublicBatch, None]:
         """
         Get one messages batch from reader
         It has no async_ version for prevent lost messages, use async_wait_message as signal for new batches available.
@@ -111,7 +107,7 @@ class Reader(object):
         """
         raise NotImplementedError()
 
-    def commit(self, mess: "ICommittable"):
+    def commit(self, mess: ICommittable):
         """
         Put commit message to internal buffer.
 
@@ -121,7 +117,7 @@ class Reader(object):
         raise NotImplementedError()
 
     def commit_with_ack(
-        self, mess: "ICommittable"
+        self, mess: ICommittable
     ) -> Union["CommitResult", List["CommitResult"]]:
         """
         write commit message to a buffer and wait ack from the server.
@@ -131,7 +127,7 @@ class Reader(object):
         raise NotImplementedError()
 
     def async_commit_with_ack(
-        self, mess: "ICommittable"
+        self, mess: ICommittable
     ) -> Union["CommitResult", List["CommitResult"]]:
         """
         write commit message to a buffer and return Future for wait result.
@@ -184,7 +180,7 @@ class PublicReaderSettings:
             consumer=self.consumer,
         )
 
-    def _retry_settings(self)->RetrySettings:
+    def _retry_settings(self) -> RetrySettings:
         return RetrySettings(idempotent=True)
 
 

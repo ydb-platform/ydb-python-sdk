@@ -9,13 +9,15 @@ from typing import Optional, Set, Dict
 
 from .. import _apis, issues, RetrySettings
 from ..aio import Driver
-from ..issues import (
-    Error as YdbError,
-    _process_response
+from ..issues import Error as YdbError, _process_response
+from .datatypes import PartitionSession, PublicMessage, PublicBatch, ICommittable
+from .topic_reader import PublicReaderSettings, CommitResult, SessionStat
+from .._topic_wrapper.common import (
+    TokenGetterFuncType,
+    IGrpcWrapperAsyncIO,
+    SupportedDriverType,
+    GrpcWrapperAsyncIO,
 )
-from .datatypes import PartitionSession, PublicMessage, PublicBatch
-from .topic_reader import PublicReaderSettings
-from .._topic_wrapper.common import TokenGetterFuncType, IGrpcWrapperAsyncIO, SupportedDriverType, GrpcWrapperAsyncIO
 from .._topic_wrapper.reader import StreamReadMessage
 from .._errors import check_retriable_error
 
@@ -96,7 +98,10 @@ class PublicAsyncIOReader:
         raise NotImplementedError()
 
     async def receive_batch(
-        self, *, max_messages: typing.Union[int, None] = None, max_bytes: typing.Union[int, None] = None
+        self,
+        *,
+        max_messages: typing.Union[int, None] = None,
+        max_bytes: typing.Union[int, None] = None,
     ) -> typing.Union["PublicBatch", None]:
         """
         Get one messages batch from reader.
@@ -107,7 +112,7 @@ class PublicAsyncIOReader:
         await self._reconnector.wait_message()
         return self._reconnector.receive_batch_nowait()
 
-    async def commit_on_exit(self, mess: "ICommittable") -> typing.AsyncContextManager:
+    async def commit_on_exit(self, mess: ICommittable) -> typing.AsyncContextManager:
         """
         commit the mess match/message if exit from context manager without exceptions
 
@@ -115,7 +120,7 @@ class PublicAsyncIOReader:
         """
         raise NotImplementedError()
 
-    def commit(self, mess: "ICommittable"):
+    def commit(self, mess: ICommittable):
         """
         Write commit message to a buffer.
 
@@ -125,8 +130,8 @@ class PublicAsyncIOReader:
         raise NotImplementedError()
 
     async def commit_with_ack(
-        self, mess: "ICommittable"
-    ) -> typing.Union["CommitResult", typing.List["CommitResult"]]:
+        self, mess: ICommittable
+    ) -> typing.Union[CommitResult, typing.List[CommitResult]]:
         """
         write commit message to a buffer and wait ack from the server.
 
@@ -174,12 +179,16 @@ class ReaderReconnector:
         attempt = 0
         while True:
             try:
-                self._stream_reader = await ReaderStream.create(self._driver, self._settings)
+                self._stream_reader = await ReaderStream.create(
+                    self._driver, self._settings
+                )
                 attempt = 0
                 self._state_changed.set()
                 await self._stream_reader.wait_error()
             except issues.Error as err:
-                retry_info = check_retriable_error(err, self._settings._retry_settings(), attempt)
+                retry_info = check_retriable_error(
+                    err, self._settings._retry_settings(), attempt
+                )
                 if not retry_info.is_retriable:
                     self._set_first_error(err)
                     return
@@ -264,7 +273,9 @@ class ReaderStream:
         await reader._start(stream, settings._init_message())
         return reader
 
-    async def _start(self, stream: IGrpcWrapperAsyncIO, init_message: StreamReadMessage.InitRequest):
+    async def _start(
+        self, stream: IGrpcWrapperAsyncIO, init_message: StreamReadMessage.InitRequest
+    ):
         if self._started:
             raise TopicReaderError("Double start ReaderStream")
 
@@ -276,7 +287,9 @@ class ReaderStream:
         if isinstance(init_response.server_message, StreamReadMessage.InitResponse):
             self._session_id = init_response.server_message.session_id
         else:
-            raise TopicReaderError("Unexpected message after InitRequest: %s", init_response)
+            raise TopicReaderError(
+                "Unexpected message after InitRequest: %s", init_response
+            )
 
         read_messages_task = asyncio.create_task(self._read_messages_loop(stream))
         self._background_tasks.add(read_messages_task)
@@ -308,23 +321,32 @@ class ReaderStream:
 
     async def _read_messages_loop(self, stream: IGrpcWrapperAsyncIO):
         try:
-            self._stream.write(StreamReadMessage.FromClient(
-                client_message=StreamReadMessage.ReadRequest(
-                    bytes_size=self._buffer_size_bytes,
-                ),
-            ))
+            self._stream.write(
+                StreamReadMessage.FromClient(
+                    client_message=StreamReadMessage.ReadRequest(
+                        bytes_size=self._buffer_size_bytes,
+                    ),
+                )
+            )
             while True:
                 message = await stream.receive()  # type: StreamReadMessage.FromServer
                 _process_response(message.server_status)
                 if isinstance(message.server_message, StreamReadMessage.ReadResponse):
                     self._on_read_response(message.server_message)
-                elif isinstance(message.server_message, StreamReadMessage.StartPartitionSessionRequest):
+                elif isinstance(
+                    message.server_message,
+                    StreamReadMessage.StartPartitionSessionRequest,
+                ):
                     self._on_start_partition_session_start(message.server_message)
-                elif isinstance(message.server_message, StreamReadMessage.StopPartitionSessionRequest):
+                elif isinstance(
+                    message.server_message,
+                    StreamReadMessage.StopPartitionSessionRequest,
+                ):
                     self._on_partition_session_stop(message.server_message)
                 else:
                     raise NotImplementedError(
-                        "Unexpected type of StreamReadMessage.FromServer message: %s" % message.server_message
+                        "Unexpected type of StreamReadMessage.FromServer message: %s"
+                        % message.server_message
                     )
 
                 self._state_changed.set()
@@ -332,30 +354,42 @@ class ReaderStream:
             self._set_first_error(e)
             raise e
 
-    def _on_start_partition_session_start(self, message: StreamReadMessage.StartPartitionSessionRequest):
+    def _on_start_partition_session_start(
+        self, message: StreamReadMessage.StartPartitionSessionRequest
+    ):
         try:
-            if message.partition_session.partition_session_id in self._partition_sessions:
+            if (
+                message.partition_session.partition_session_id
+                in self._partition_sessions
+            ):
                 raise TopicReaderError(
-                    "Double start partition session: %s" % message.partition_session.partition_session_id
+                    "Double start partition session: %s"
+                    % message.partition_session.partition_session_id
                 )
 
-            self._partition_sessions[message.partition_session.partition_session_id] = PartitionSession(
+            self._partition_sessions[
+                message.partition_session.partition_session_id
+            ] = PartitionSession(
                 id=message.partition_session.partition_session_id,
                 state=PartitionSession.State.Active,
                 topic_path=message.partition_session.path,
                 partition_id=message.partition_session.partition_id,
             )
-            self._stream.write(StreamReadMessage.FromClient(
-                client_message=StreamReadMessage.StartPartitionSessionResponse(
-                    partition_session_id=message.partition_session.partition_session_id,
-                    read_offset=0,
-                    commit_offset=0,
-                )),
+            self._stream.write(
+                StreamReadMessage.FromClient(
+                    client_message=StreamReadMessage.StartPartitionSessionResponse(
+                        partition_session_id=message.partition_session.partition_session_id,
+                        read_offset=0,
+                        commit_offset=0,
+                    )
+                ),
             )
         except YdbError as err:
             self._set_first_error(err)
 
-    def _on_partition_session_stop(self, message: StreamReadMessage.StopPartitionSessionRequest):
+    def _on_partition_session_stop(
+        self, message: StreamReadMessage.StopPartitionSessionRequest
+    ):
         partition = self._partition_sessions.get(message.partition_session_id)
         if partition is None:
             # may if receive stop partition with graceful=false after response on stop partition
@@ -366,10 +400,12 @@ class ReaderStream:
         partition.stop()
 
         if message.graceful:
-            self._stream.write(StreamReadMessage.FromClient(
-                client_message=StreamReadMessage.StopPartitionSessionResponse(
-                    partition_session_id=message.partition_session_id,
-                ))
+            self._stream.write(
+                StreamReadMessage.FromClient(
+                    client_message=StreamReadMessage.StopPartitionSessionResponse(
+                        partition_session_id=message.partition_session_id,
+                    )
+                )
             )
 
     def _on_read_response(self, message: StreamReadMessage.ReadResponse):
@@ -382,11 +418,17 @@ class ReaderStream:
 
     def _buffer_release_bytes(self, bytes_size):
         self._buffer_size_bytes += bytes_size
-        self._stream.write(StreamReadMessage.FromClient(client_message=StreamReadMessage.ReadRequest(
-            bytes_size=bytes_size,
-        )))
+        self._stream.write(
+            StreamReadMessage.FromClient(
+                client_message=StreamReadMessage.ReadRequest(
+                    bytes_size=bytes_size,
+                )
+            )
+        )
 
-    def _read_response_to_batches(self, message: StreamReadMessage.ReadResponse) -> typing.List[PublicBatch]:
+    def _read_response_to_batches(
+        self, message: StreamReadMessage.ReadResponse
+    ) -> typing.List[PublicBatch]:
         batches = []
 
         batch_count = 0
@@ -397,10 +439,14 @@ class ReaderStream:
             return []
 
         bytes_per_batch = message.bytes_size // batch_count
-        additional_bytes_to_last_batch = message.bytes_size - bytes_per_batch * batch_count
+        additional_bytes_to_last_batch = (
+            message.bytes_size - bytes_per_batch * batch_count
+        )
 
         for partition_data in message.partition_data:
-            partition_session = self._partition_sessions[partition_data.partition_session_id]
+            partition_session = self._partition_sessions[
+                partition_data.partition_session_id
+            ]
             for server_batch in partition_data.batches:
                 messages = []
                 for message_data in server_batch.message_data:
@@ -427,7 +473,7 @@ class ReaderStream:
         batches[-1]._bytes_size += additional_bytes_to_last_batch
         return batches
 
-    def _set_first_error(self, err: ydb.Error):
+    def _set_first_error(self, err: YdbError):
         try:
             self._first_error.set_result(err)
             self._state_changed.set()
@@ -435,7 +481,7 @@ class ReaderStream:
             # skip later set errors
             pass
 
-    def _get_first_error(self) -> Optional[ydb.Error]:
+    def _get_first_error(self) -> Optional[YdbError]:
         if self._first_error.done():
             return self._first_error.result()
         else:

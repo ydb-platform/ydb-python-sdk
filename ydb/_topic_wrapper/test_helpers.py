@@ -2,8 +2,6 @@ import asyncio
 import time
 import typing
 
-import pytest
-
 from .common import IGrpcWrapperAsyncIO, IToProto
 
 

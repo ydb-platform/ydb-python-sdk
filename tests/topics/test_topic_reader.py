@@ -1,12 +1,11 @@
 import pytest
 
-from ydb._topic_reader.topic_reader_asyncio import PublicAsyncIOReader
-from ydb import TopicReaderSettings
-
 
 @pytest.mark.asyncio
 class TestTopicWriterAsyncIO:
-    async def test_read_message(self, driver, topic_path, topic_with_messages, topic_consumer):
+    async def test_read_message(
+        self, driver, topic_path, topic_with_messages, topic_consumer
+    ):
         reader = driver.topic_client.topic_reader(topic_consumer, topic_path)
 
         assert await reader.receive_batch() is not None

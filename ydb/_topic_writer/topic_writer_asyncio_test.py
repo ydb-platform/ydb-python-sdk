@@ -14,7 +14,7 @@ import pytest
 
 from .. import aio
 from .. import StatusCode, issues
-from .._topic_wrapper.common import ServerStatus, IGrpcWrapperAsyncIO, IToProto, Codec
+from .._topic_wrapper.common import ServerStatus, Codec
 from .topic_writer import (
     InternalMessage,
     PublicMessage,

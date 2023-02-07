@@ -1,7 +1,7 @@
 import asyncio
 import datetime
 from collections import deque
-from typing import Deque, AsyncIterator, Union, List, Optional, Callable
+from typing import Deque, AsyncIterator, Union, List, Optional
 
 import ydb
 from .topic_writer import (
@@ -26,7 +26,8 @@ from .._topic_wrapper.common import (
     UpdateTokenResponse,
     GrpcWrapperAsyncIO,
     IGrpcWrapperAsyncIO,
-    SupportedDriverType, TokenGetterFuncType,
+    SupportedDriverType,
+    TokenGetterFuncType,
 )
 from .._topic_wrapper.writer import StreamWriteMessage, WriterMessagesFromServerToClient
 
@@ -470,5 +471,3 @@ class WriterAsyncIOStream:
     def write(self, messages: List[InternalMessage]):
         for request in messages_to_proto_requests(messages):
             self._stream.write(request)
-
-

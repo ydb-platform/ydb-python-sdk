@@ -15,14 +15,12 @@ from .. import issues, connection
 # noinspection PyUnreachableCode
 if False:
     from ydb._grpc.v4.protos import (
-        ydb_status_codes_pb2,
         ydb_issue_message_pb2,
         ydb_topic_pb2,
     )
 else:
     # noinspection PyUnresolvedReferences
     from ydb._grpc.common.protos import (
-        ydb_status_codes_pb2,
         ydb_issue_message_pb2,
         ydb_topic_pb2,
     )
@@ -210,9 +208,9 @@ class ServerStatus(IFromProto):
     __slots__ = ("_grpc_status_code", "_issues")
 
     def __init__(
-            self,
-            status: issues.StatusCode,
-            issues: typing.Iterable[typing.Any],
+        self,
+        status: issues.StatusCode,
+        issues: typing.Iterable[typing.Any],
     ):
         self.status = status
         self.issues = issues
@@ -221,10 +219,12 @@ class ServerStatus(IFromProto):
         return self.__repr__()
 
     @staticmethod
-    def from_proto(msg: typing.Union[
-        ydb_topic_pb2.StreamReadMessage.FromServer,
-        ydb_topic_pb2.StreamWriteMessage.FromServer,
-    ]) -> "ServerStatus":
+    def from_proto(
+        msg: typing.Union[
+            ydb_topic_pb2.StreamReadMessage.FromServer,
+            ydb_topic_pb2.StreamWriteMessage.FromServer,
+        ]
+    ) -> "ServerStatus":
         return ServerStatus(msg.status, msg.issues)
 
     def is_success(self) -> bool:
@@ -259,14 +259,12 @@ class UpdateTokenResponse(IFromProto):
 TokenGetterFuncType = typing.Optional[typing.Callable[[], str]]
 
 
-def callback_from_asyncio(callback: typing.Union[typing.Callable, typing.Coroutine]) -> [asyncio.Future, asyncio.Task]:
+def callback_from_asyncio(
+    callback: typing.Union[typing.Callable, typing.Coroutine]
+) -> [asyncio.Future, asyncio.Task]:
     loop = asyncio.get_running_loop()
 
     if asyncio.iscoroutinefunction(callback):
         return loop.create_task(callback())
     else:
         return loop.run_in_executor(None, callback)
-
-
-def ensure_success_or_raise_error(server_status: ServerStatus):
-    error = issues._process_response(server_status._grpc_status_code, server_status._issues)

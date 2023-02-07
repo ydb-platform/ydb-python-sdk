@@ -1,4 +1,4 @@
-from typing import List, Callable, Union, Mapping, Any, Optional
+from typing import List, Callable, Union, Mapping, Any
 
 from . import aio, Credentials
 from ._topic_reader.topic_reader import (
@@ -11,9 +11,8 @@ from ._topic_reader.topic_reader import (
 )
 
 from ._topic_reader.topic_reader_asyncio import (
-    PublicAsyncIOReader as TopicReaderAsyncIO
+    PublicAsyncIOReader as TopicReaderAsyncIO,
 )
-from ._topic_wrapper.common import TokenGetterFuncType
 
 from ._topic_writer.topic_writer import (  # noqa: F401
     Writer as TopicWriter,
