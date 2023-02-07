@@ -26,15 +26,22 @@ class TopicReaderError(YdbError):
 
 class TopicReaderStreamClosedError(TopicReaderError):
     def __init__(self):
-        super().__init__("Topic reader is closed")
+        super().__init__("Topic reader stream is closed")
+
+
+class TopicReaderClosedError(TopicReaderError):
+    def __init__(self):
+        super().__init__("Topic reader is closed already")
 
 
 class PublicAsyncIOReader:
     _loop: asyncio.AbstractEventLoop
+    _closed: bool
     _reconnector: ReaderReconnector
 
     def __init__(self, driver: Driver, settings: PublicReaderSettings):
         self._loop = asyncio.get_running_loop()
+        self._closed = False
         self._reconnector = ReaderReconnector(driver, settings)
 
     async def __aenter__(self):
@@ -42,6 +49,10 @@ class PublicAsyncIOReader:
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         raise NotImplementedError()
+
+    def __del__(self):
+        if not self._closed:
+            self._loop.create_task(self.close(), name="close reader")
 
     async def sessions_stat(self) -> typing.List["SessionStat"]:
         """
@@ -132,7 +143,11 @@ class PublicAsyncIOReader:
         raise NotImplementedError()
 
     async def close(self):
-        raise NotImplementedError()
+        if self._closed:
+            raise TopicReaderClosedError()
+
+        self._closed = True
+        await self._reconnector.close()
 
 
 class ReaderReconnector:
