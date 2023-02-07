@@ -1,7 +1,7 @@
 import asyncio
 import datetime
 from collections import deque
-from typing import Deque, AsyncIterator, Union, List, Optional, Callable
+from typing import Deque, AsyncIterator, Union, List, Optional
 
 import ydb
 from .topic_writer import (
@@ -27,6 +27,7 @@ from .._topic_wrapper.common import (
     GrpcWrapperAsyncIO,
     IGrpcWrapperAsyncIO,
     SupportedDriverType,
+    TokenGetterFuncType,
 )
 from .._topic_wrapper.writer import StreamWriteMessage, WriterMessagesFromServerToClient
 
@@ -156,7 +157,7 @@ class WriterAsyncIOReconnector:
     _credentials: Union[ydb.Credentials, None]
     _driver: ydb.aio.Driver
     _update_token_interval: int
-    _token_get_function: "TokenGetter"
+    _token_get_function: TokenGetterFuncType
     _init_message: StreamWriteMessage.InitRequest
     _new_messages: asyncio.Queue
     _init_info: asyncio.Future
@@ -385,13 +386,13 @@ class WriterAsyncIOStream:
     last_seqno: int
 
     _stream: IGrpcWrapperAsyncIO
-    _token_getter: "TokenGetter"
+    _token_getter: TokenGetterFuncType
     _requests: asyncio.Queue
     _responses: AsyncIterator
 
     def __init__(
         self,
-        token_getter: "TokenGetter",
+        token_getter: TokenGetterFuncType,
     ):
         self._token_getter = token_getter
 
@@ -399,7 +400,7 @@ class WriterAsyncIOStream:
     async def create(
         driver: SupportedDriverType,
         init_request: StreamWriteMessage.InitRequest,
-        token_getter: "TokenGetter",
+        token_getter: TokenGetterFuncType,
     ) -> "WriterAsyncIOStream":
         stream = GrpcWrapperAsyncIO(StreamWriteMessage.FromServer.from_proto)
 
@@ -415,7 +416,7 @@ class WriterAsyncIOStream:
     async def _create_stream_from_async(
         driver: ydb.aio.Driver,
         init_request: StreamWriteMessage.InitRequest,
-        token_getter: "TokenGetter",
+        token_getter: TokenGetterFuncType,
     ) -> "WriterAsyncIOStream":
         return GrpcWrapperAsyncIO(StreamWriteMessage.FromServer.from_proto)
 
@@ -423,7 +424,7 @@ class WriterAsyncIOStream:
     async def _create_from_sync(
         driver: ydb.Driver,
         init_request: StreamWriteMessage.InitRequest,
-        token_getter: "TokenGetter",
+        token_getter: TokenGetterFuncType,
     ) -> "WriterAsyncIOStream":
         stream = GrpcWrapperAsyncIO(StreamWriteMessage.FromServer.from_proto)
         await stream.start(
@@ -470,6 +471,3 @@ class WriterAsyncIOStream:
     def write(self, messages: List[InternalMessage]):
         for request in messages_to_proto_requests(messages):
             self._stream.write(request)
-
-
-TokenGetter = Optional[Callable[[], str]]

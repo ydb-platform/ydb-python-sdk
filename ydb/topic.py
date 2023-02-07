@@ -2,14 +2,17 @@ from typing import List, Callable, Union, Mapping, Any
 
 from . import aio, Credentials
 from ._topic_reader.topic_reader import (
+    PublicReaderSettings as TopicReaderSettings,
     Reader as TopicReader,
-    ReaderAsyncIO as TopicReaderAsyncIO,
     Selector as TopicSelector,
     Events as TopicReaderEvents,
     RetryPolicy as TopicReaderRetryPolicy,
     StubEvent as TopicReaderStubEvent,
 )
 
+from ._topic_reader.topic_reader_asyncio import (
+    PublicAsyncIOReader as TopicReaderAsyncIO,
+)
 
 from ._topic_writer.topic_writer import (  # noqa: F401
     Writer as TopicWriter,
@@ -17,6 +20,7 @@ from ._topic_writer.topic_writer import (  # noqa: F401
     PublicMessage as TopicWriterMessage,
     RetryPolicy as TopicWriterRetryPolicy,
 )
+
 
 from ydb._topic_writer.topic_writer_asyncio import WriterAsyncIO as TopicWriterAsyncIO
 
@@ -30,26 +34,27 @@ class TopicClientAsyncIO:
 
     def topic_reader(
         self,
-        topic: Union[str, TopicSelector, List[Union[str, TopicSelector]]],
         consumer: str,
-        commit_batch_time: Union[float, None] = 0.1,
-        commit_batch_count: Union[int, None] = 1000,
+        topic: str,
         buffer_size_bytes: int = 50 * 1024 * 1024,
-        sync_commit: bool = False,  # reader.commit(...) will wait commit ack from server
-        on_commit: Callable[["TopicReaderEvents.OnCommit"], None] = None,
-        on_get_partition_start_offset: Callable[
-            ["TopicReaderEvents.OnPartitionGetStartOffsetRequest"],
-            "TopicReaderEvents.OnPartitionGetStartOffsetResponse",
-        ] = None,
-        on_init_partition: Callable[["TopicReaderStubEvent"], None] = None,
-        on_shutdown_partition: Callable[["TopicReaderStubEvent"], None] = None,
-        decoder: Union[Mapping[int, Callable[[bytes], bytes]], None] = None,
-        deserializer: Union[Callable[[bytes], Any], None] = None,
-        one_attempt_connection_timeout: Union[float, None] = 1,
-        connection_timeout: Union[float, None] = None,
-        retry_policy: Union["TopicReaderRetryPolicy", None] = None,
+        # on_commit: Callable[["Events.OnCommit"], None] = None
+        # on_get_partition_start_offset: Callable[
+        #     ["Events.OnPartitionGetStartOffsetRequest"],
+        #     "Events.OnPartitionGetStartOffsetResponse",
+        # ] = None
+        # on_partition_session_start: Callable[["StubEvent"], None] = None
+        # on_partition_session_stop: Callable[["StubEvent"], None] = None
+        # on_partition_session_close: Callable[["StubEvent"], None] = None  # todo?
+        # decoder: Union[Mapping[int, Callable[[bytes], bytes]], None] = None
+        # deserializer: Union[Callable[[bytes], Any], None] = None
+        # one_attempt_connection_timeout: Union[float, None] = 1
+        # connection_timeout: Union[float, None] = None
+        # retry_policy: Union["RetryPolicy", None] = None
     ) -> TopicReaderAsyncIO:
-        raise NotImplementedError()
+        args = locals()
+        del args["self"]
+        settings = TopicReaderSettings(**args)
+        return TopicReaderAsyncIO(self._driver, settings)
 
     def topic_writer(
         self,

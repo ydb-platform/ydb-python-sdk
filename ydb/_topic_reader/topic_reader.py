@@ -1,19 +1,18 @@
-import abc
 import concurrent.futures
 import enum
-import io
 import datetime
+from dataclasses import dataclass
 from typing import (
     Union,
     Optional,
     List,
-    Mapping,
-    Callable,
     Iterable,
-    AsyncIterable,
-    AsyncContextManager,
-    Any,
 )
+
+from ..table import RetrySettings
+from .datatypes import ICommittable, PublicBatch, PublicMessage
+from .._topic_wrapper.common import OffsetsRange, TokenGetterFuncType
+from .._topic_wrapper.reader import StreamReadMessage
 
 
 class Selector:
@@ -25,104 +24,6 @@ class Selector:
     def __init__(self, path, *, partitions: Union[None, int, List[int]] = None):
         self.path = path
         self.partitions = partitions
-
-
-class ReaderAsyncIO(object):
-    async def __aenter__(self):
-        raise NotImplementedError()
-
-    async def __aexit__(self, exc_type, exc_val, exc_tb):
-        raise NotImplementedError()
-
-    async def sessions_stat(self) -> List["SessionStat"]:
-        """
-        Receive stat from the server
-
-        use asyncio.wait_for for wait with timeout.
-        """
-        raise NotImplementedError()
-
-    def messages(
-        self, *, timeout: Union[float, None] = None
-    ) -> AsyncIterable["Message"]:
-        """
-        Block until receive new message
-
-        if no new messages in timeout seconds: stop iteration by raise StopAsyncIteration
-        """
-        raise NotImplementedError()
-
-    async def receive_message(self) -> Union["Message", None]:
-        """
-        Block until receive new message
-
-        use asyncio.wait_for for wait with timeout.
-        """
-        raise NotImplementedError()
-
-    def batches(
-        self,
-        *,
-        max_messages: Union[int, None] = None,
-        max_bytes: Union[int, None] = None,
-        timeout: Union[float, None] = None,
-    ) -> AsyncIterable["Batch"]:
-        """
-        Block until receive new batch.
-        All messages in a batch from same partition.
-
-        if no new message in timeout seconds (default - infinite): stop iterations by raise StopIteration
-        """
-        raise NotImplementedError()
-
-    async def receive_batch(
-        self, *, max_messages: Union[int, None] = None, max_bytes: Union[int, None]
-    ) -> Union["Batch", None]:
-        """
-        Get one messages batch from reader.
-        All messages in a batch from same partition.
-
-        use asyncio.wait_for for wait with timeout.
-        """
-        raise NotImplementedError()
-
-    async def commit_on_exit(self, mess: "ICommittable") -> AsyncContextManager:
-        """
-        commit the mess match/message if exit from context manager without exceptions
-
-        reader will close if exit from context manager with exception
-        """
-        raise NotImplementedError()
-
-    def commit(self, mess: "ICommittable"):
-        """
-        Write commit message to a buffer.
-
-        For the method no way check the commit result
-        (for example if lost connection - commits will not re-send and committed messages will receive again)
-        """
-        raise NotImplementedError()
-
-    async def commit_with_ack(
-        self, mess: "ICommittable"
-    ) -> Union["CommitResult", List["CommitResult"]]:
-        """
-        write commit message to a buffer and wait ack from the server.
-
-        use asyncio.wait_for for wait with timeout.
-        """
-        raise NotImplementedError()
-
-    async def flush(self):
-        """
-        force send all commit messages from internal buffers to server and wait acks for all of them.
-
-        use asyncio.wait_for for wait with timeout.
-        """
-        raise NotImplementedError()
-
-    async def close(self):
-        raise NotImplementedError()
 
 
 class Reader(object):
@@ -140,7 +41,9 @@ class Reader(object):
         """
         raise NotImplementedError()
 
-    def messages(self, *, timeout: Union[float, None] = None) -> Iterable["Message"]:
+    def messages(
+        self, *, timeout: Union[float, None] = None
+    ) -> Iterable[PublicMessage]:
         """
         todo?
 
@@ -152,7 +55,7 @@ class Reader(object):
         """
         raise NotImplementedError()
 
-    def receive_message(self, *, timeout: Union[float, None] = None) -> "Message":
+    def receive_message(self, *, timeout: Union[float, None] = None) -> PublicMessage:
         """
         Block until receive new message
         It has no async_ version for prevent lost messages, use async_wait_message as signal for new batches available.
@@ -178,7 +81,7 @@ class Reader(object):
         max_messages: Union[int, None] = None,
         max_bytes: Union[int, None] = None,
         timeout: Union[float, None] = None,
-    ) -> Iterable["Batch"]:
+    ) -> Iterable[PublicBatch]:
         """
         Block until receive new batch.
         It has no async_ version for prevent lost messages, use async_wait_message as signal for new batches available.
@@ -194,7 +97,7 @@ class Reader(object):
         max_messages: Union[int, None] = None,
         max_bytes: Union[int, None],
         timeout: Union[float, None] = None,
-    ) -> Union["Batch", None]:
+    ) -> Union[PublicBatch, None]:
         """
         Get one messages batch from reader
         It has no async_ version for prevent lost messages, use async_wait_message as signal for new batches available.
@@ -204,7 +107,7 @@ class Reader(object):
         """
         raise NotImplementedError()
 
-    def commit(self, mess: "ICommittable"):
+    def commit(self, mess: ICommittable):
         """
         Put commit message to internal buffer.
 
@@ -214,7 +117,7 @@ class Reader(object):
         raise NotImplementedError()
 
     def commit_with_ack(
-        self, mess: "ICommittable"
+        self, mess: ICommittable
     ) -> Union["CommitResult", List["CommitResult"]]:
         """
         write commit message to a buffer and wait ack from the server.
@@ -224,7 +127,7 @@ class Reader(object):
         raise NotImplementedError()
 
     def async_commit_with_ack(
-        self, mess: "ICommittable"
+        self, mess: ICommittable
     ) -> Union["CommitResult", List["CommitResult"]]:
         """
         write commit message to a buffer and return Future for wait result.
@@ -247,98 +150,38 @@ class Reader(object):
         raise NotImplementedError()
 
 
-class ReaderSettings:
-    def __init__(
-        self,
-        *,
-        consumer: str,
-        buffer_size_bytes: int = 50 * 1024 * 1024,
-        on_commit: Callable[["Events.OnCommit"], None] = None,
-        on_get_partition_start_offset: Callable[
-            ["Events.OnPartitionGetStartOffsetRequest"],
-            "Events.OnPartitionGetStartOffsetResponse",
-        ] = None,
-        on_partition_session_start: Callable[["StubEvent"], None] = None,
-        on_partition_session_stop: Callable[["StubEvent"], None] = None,
-        on_partition_session_close: Callable[["StubEvent"], None] = None,  # todo?
-        decoder: Union[Mapping[int, Callable[[bytes], bytes]], None] = None,
-        deserializer: Union[Callable[[bytes], Any], None] = None,
-        one_attempt_connection_timeout: Union[float, None] = 1,
-        connection_timeout: Union[float, None] = None,
-        retry_policy: Union["RetryPolicy", None] = None,
-    ):
-        raise NotImplementedError()
+@dataclass
+class PublicReaderSettings:
+    consumer: str
+    topic: str
+    buffer_size_bytes: int = 50 * 1024 * 1024
+    _token_getter: Optional[TokenGetterFuncType] = None
+    # on_commit: Callable[["Events.OnCommit"], None] = None
+    # on_get_partition_start_offset: Callable[
+    #     ["Events.OnPartitionGetStartOffsetRequest"],
+    #     "Events.OnPartitionGetStartOffsetResponse",
+    # ] = None
+    # on_partition_session_start: Callable[["StubEvent"], None] = None
+    # on_partition_session_stop: Callable[["StubEvent"], None] = None
+    # on_partition_session_close: Callable[["StubEvent"], None] = None  # todo?
+    # decoder: Union[Mapping[int, Callable[[bytes], bytes]], None] = None
+    # deserializer: Union[Callable[[bytes], Any], None] = None
+    # one_attempt_connection_timeout: Union[float, None] = 1
+    # connection_timeout: Union[float, None] = None
+    # retry_policy: Union["RetryPolicy", None] = None
 
+    def _init_message(self) -> StreamReadMessage.InitRequest:
+        return StreamReadMessage.InitRequest(
+            topics_read_settings=[
+                StreamReadMessage.InitRequest.TopicReadSettings(
+                    path=self.topic,
+                )
+            ],
+            consumer=self.consumer,
+        )
 
-class ICommittable(abc.ABC):
-    @property
-    @abc.abstractmethod
-    def start_offset(self) -> int:
-        pass
-
-    @property
-    @abc.abstractmethod
-    def end_offset(self) -> int:
-        pass
-
-
-class ISessionAlive(abc.ABC):
-    @property
-    @abc.abstractmethod
-    def is_alive(self) -> bool:
-        pass
-
-
-class Message(ICommittable, ISessionAlive):
-    seqno: int
-    created_at_ns: int
-    message_group_id: str
-    session_metadata: Mapping[str, str]
-    offset: int
-    written_at_ns: int
-    producer_id: int
-    data: Union[
-        bytes, Any
-    ]  # set as original decompressed bytes or deserialized object if deserializer set in reader
-
-    def __init__(self):
-        self.seqno = -1
-        self.created_at_ns = -1
-        self.data = io.BytesIO()
-
-    @property
-    def start_offset(self) -> int:
-        raise NotImplementedError()
-
-    @property
-    def end_offset(self) -> int:
-        raise NotImplementedError()
-
-    # ISessionAlive implementation
-    @property
-    def is_alive(self) -> bool:
-        raise NotImplementedError()
-
-
-class Batch(ICommittable, ISessionAlive):
-    session_metadata: Mapping[str, str]
-    messages: List[Message]
-
-    def __init__(self):
-        pass
-
-    @property
-    def start_offset(self) -> int:
-        raise NotImplementedError()
-
-    @property
-    def end_offset(self) -> int:
-        raise NotImplementedError()
-
-    # ISessionAlive implementation
-    @property
-    def is_alive(self) -> bool:
-        raise NotImplementedError()
+    def _retry_settings(self) -> RetrySettings:
+        return RetrySettings(idempotent=True)
 
 
 class Events:
@@ -382,15 +225,10 @@ class CommitResult:
 class SessionStat:
     path: str
     partition_id: str
-    partition_offsets: "OffsetRange"
+    partition_offsets: OffsetsRange
     committed_offset: int
     write_time_high_watermark: datetime.datetime
     write_time_high_watermark_timestamp_nano: int
-
-
-class OffsetRange:
-    start: int
-    end: int
 
 
 class StubEvent:

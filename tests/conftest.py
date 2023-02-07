@@ -100,11 +100,17 @@ async def driver(endpoint, database, event_loop):
 
 
 @pytest.fixture()
-def topic_path(endpoint) -> str:
+def topic_consumer():
+    return "fixture-consumer"
+
+
+@pytest.fixture()
+def topic_path(endpoint, topic_consumer) -> str:
     subprocess.run(
         """docker-compose exec -T ydb /ydb -e grpc://%s -d /local topic drop /local/test-topic"""
         % endpoint,
         shell=True,
+        capture_output=True,
     )
     res = subprocess.run(
         """docker-compose exec -T ydb /ydb -e grpc://%s -d /local topic create /local/test-topic"""
@@ -114,4 +120,26 @@ def topic_path(endpoint) -> str:
     )
     assert res.returncode == 0, res.stderr + res.stdout
 
+    res = subprocess.run(
+        """docker-compose exec -T ydb /ydb -e grpc://%s -d /local topic consumer add --consumer %s /local/test-topic"""
+        % (endpoint, topic_consumer),
+        shell=True,
+        capture_output=True,
+    )
+    assert res.returncode == 0, res.stderr + res.stdout
+
     return "/local/test-topic"
+
+
+@pytest.fixture()
+@pytest.mark.asyncio()
+async def topic_with_messages(driver, topic_path):
+    pass
+    writer = driver.topic_client.topic_writer(
+        topic_path, producer_and_message_group_id="fixture-producer-id"
+    )
+    await writer.write_with_ack(
+        ydb.TopicWriterMessage(data="123".encode()),
+        ydb.TopicWriterMessage(data="456".encode()),
+    )
+    await writer.close()
