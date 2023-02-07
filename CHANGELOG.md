@@ -1,3 +1,4 @@
+## 3.0.1b4 ##
 * Initial implementation of topic reader
 
 ## 3.0.1b3 ##
