@@ -103,5 +103,8 @@ class TableService(object):
 class TopicService(object):
     Stub = ydb_topic_v1_pb2_grpc.TopicServiceStub
 
+    CreateTopic = "CreateTopic"
+    DescribeTopic = "DescribeTopic"
+    DropTopic = "DropTopic"
     StreamRead = "StreamRead"
     StreamWrite = "StreamWrite"

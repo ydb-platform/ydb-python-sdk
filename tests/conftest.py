@@ -4,7 +4,7 @@ from unittest import mock
 import pytest
 import ydb
 import time
-import subprocess
+from ydb import issues
 
 
 @pytest.fixture(autouse=True, scope="session")
@@ -105,30 +105,21 @@ def topic_consumer():
 
 
 @pytest.fixture()
-def topic_path(endpoint, topic_consumer) -> str:
-    subprocess.run(
-        """docker-compose exec -T ydb /ydb -e grpc://%s -d /local topic drop /local/test-topic"""
-        % endpoint,
-        shell=True,
-        capture_output=True,
-    )
-    res = subprocess.run(
-        """docker-compose exec -T ydb /ydb -e grpc://%s -d /local topic create /local/test-topic"""
-        % endpoint,
-        shell=True,
-        capture_output=True,
-    )
-    assert res.returncode == 0, res.stderr + res.stdout
+@pytest.mark.asyncio()
+async def topic_path(driver, topic_consumer, database) -> str:
+    topic_path = database + "/test-topic"
 
-    res = subprocess.run(
-        """docker-compose exec -T ydb /ydb -e grpc://%s -d /local topic consumer add --consumer %s /local/test-topic"""
-        % (endpoint, topic_consumer),
-        shell=True,
-        capture_output=True,
-    )
-    assert res.returncode == 0, res.stderr + res.stdout
+    try:
+        await driver.topic_client.drop_topic(topic_path)
+    except issues.SchemeError:
+        pass
 
-    return "/local/test-topic"
+    await driver.topic_client.create_topic(
+        path=topic_path,
+        consumers=[topic_consumer],
+    )
+
+    return topic_path
 
 
 @pytest.fixture()

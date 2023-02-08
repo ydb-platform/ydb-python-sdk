@@ -3,27 +3,68 @@ import enum
 import typing
 from dataclasses import dataclass, field
 from enum import IntEnum
-from typing import List, Union, Dict
+from typing import List, Union, Dict, Optional
 
-from google.protobuf.duration_pb2 import Duration as ProtoDuration
 from google.protobuf.message import Message
+
+from . import ydb_topic_public_types
+from ... import scheme
 
 # Workaround for good IDE and universal for runtime
 # noinspection PyUnreachableCode
 if False:
-    from ..v4.protos import ydb_topic_pb2
+    from ..v4.protos import ydb_scheme_pb2, ydb_topic_pb2
 else:
-    from ..common.protos import ydb_topic_pb2
+    from ..common.protos import ydb_scheme_pb2, ydb_topic_pb2
 
-from .common_utils import IFromProto, IToProto, ServerStatus, UnknownGrpcMessageError
+from .common_utils import (
+    IFromProto,
+    IFromProtoWithProtoType,
+    IToProto,
+    IToPublic,
+    IFromPublic,
+    ServerStatus,
+    UnknownGrpcMessageError,
+    proto_duration_from_timedelta,
+    proto_timestamp_from_datetime, datetime_from_proto_timestamp, timedelta_from_proto_duration,
+)
 
 
-class Codec(IntEnum):
+class Codec(int, IToPublic):
     CODEC_UNSPECIFIED = 0
     CODEC_RAW = 1
     CODEC_GZIP = 2
     CODEC_LZOP = 3
     CODEC_ZSTD = 4
+
+    @staticmethod
+    def from_proto_iterable(codecs: typing.Iterable[int]) -> List["Codec"]:
+        return [Codec(int(codec)) for codec in codecs]
+
+    def to_public(self) -> ydb_topic_public_types.PublicCodec:
+        return ydb_topic_public_types.PublicCodec(int(self))
+
+
+@dataclass
+class SupportedCodecs(IToProto, IFromProto, IToPublic):
+    codecs: List[Codec]
+
+    def to_proto(self) -> ydb_topic_pb2.SupportedCodecs:
+        return ydb_topic_pb2.SupportedCodecs(
+            codecs=self.codecs,
+        )
+
+    @staticmethod
+    def from_proto(msg: Optional[ydb_topic_pb2.SupportedCodecs]) -> "SupportedCodecs":
+        if msg is None:
+            return SupportedCodecs(codecs=[])
+
+        return SupportedCodecs(
+            codecs=Codec.from_proto_iterable(msg.codecs),
+        )
+
+    def to_public(self) -> List[ydb_topic_public_types.PublicCodec]:
+        return list(map(Codec.to_public, self.codecs))
 
 
 @dataclass
@@ -175,7 +216,7 @@ class StreamWriteMessage:
         partition_id: int
         acks: typing.List["StreamWriteMessage.WriteResponse.WriteAck"]
         write_statistics: "StreamWriteMessage.WriteResponse.WriteStatistics"
-        status: ServerStatus = field(default=None)
+        status: Optional[ServerStatus] = field(default=None)
 
         @staticmethod
         def from_proto(
@@ -376,8 +417,7 @@ class StreamReadMessage:
                 res.path = self.path
                 res.partition_ids.extend(self.partition_ids)
                 if self.max_lag_seconds is not None:
-                    res.max_lag = ProtoDuration()
-                    res.max_lag.FromTimedelta(self.max_lag_seconds)
+                    res.max_lag = proto_duration_from_timedelta(self.max_lag_seconds)
                 return res
 
     @dataclass
@@ -637,3 +677,367 @@ ReaderMessagesFromServerToClient = Union[
     StreamReadMessage.StartPartitionSessionRequest,
     StreamReadMessage.StopPartitionSessionRequest,
 ]
+
+
+@dataclass
+class MultipleWindowsStat(IFromProto, IToPublic):
+    per_minute: int
+    per_hour: int
+    per_day: int
+
+    @staticmethod
+    def from_proto(msg: Optional[ydb_topic_pb2.MultipleWindowsStat]) -> Optional["MultipleWindowsStat"]:
+        if msg is None:
+            return None
+        return MultipleWindowsStat(
+            per_minute=msg.per_minute,
+            per_hour=msg.per_hour,
+            per_day=msg.per_day,
+        )
+
+    def to_public(self) -> ydb_topic_public_types.PublicMultipleWindowsStat:
+        return ydb_topic_public_types.PublicMultipleWindowsStat(
+            per_minute=self.per_minute,
+            per_hour=self.per_hour,
+            per_day=self.per_day,
+        )
+
+@dataclass
+class Consumer(IToProto, IFromProto, IFromPublic, IToPublic):
+    name: str
+    important: bool
+    read_from: typing.Optional[datetime.datetime]
+    supported_codecs: SupportedCodecs
+    attributes: Dict[str, str]
+    consumer_stats: typing.Optional["Consumer.ConsumerStats"]
+
+    def to_proto(self) -> ydb_topic_pb2.Consumer:
+        return ydb_topic_pb2.Consumer(
+            name=self.name,
+            important=self.important,
+            read_from=proto_timestamp_from_datetime(self.read_from),
+            supported_codecs=self.supported_codecs.to_proto(),
+            attributes=self.attributes,
+            # consumer_stats - readonly field
+        )
+
+    @staticmethod
+    def from_proto(msg: Optional[ydb_topic_pb2.Consumer]) -> Optional["Consumer"]:
+        return Consumer(
+            name=msg.name,
+            important=msg.important,
+            read_from=datetime_from_proto_timestamp(msg.read_from),
+            supported_codecs=SupportedCodecs.from_proto(msg.supported_codecs),
+            attributes=dict(msg.attributes),
+            consumer_stats=Consumer.ConsumerStats.from_proto(msg.consumer_stats),
+        )
+
+    @staticmethod
+    def from_public(consumer: ydb_topic_public_types.PublicConsumer):
+        if consumer is None:
+            return None
+
+        supported_codecs = []
+        if consumer.supported_codecs is not None:
+            supported_codecs = consumer.supported_codecs
+
+        return Consumer(
+            name=consumer.name,
+            important=consumer.important,
+            read_from=consumer.read_from,
+            supported_codecs=SupportedCodecs(
+                codecs=supported_codecs
+            ),
+            attributes=consumer.attributes,
+            consumer_stats=None,
+        )
+
+    def to_public(self) -> ydb_topic_public_types.PublicConsumer:
+        return ydb_topic_public_types.PublicConsumer(
+            name=self.name,
+            important=self.important,
+            read_from=self.read_from,
+            supported_codecs=self.supported_codecs.to_public(),
+            attributes=self.attributes,
+        )
+
+    @dataclass
+    class ConsumerStats(IFromProto):
+        min_partitions_last_read_time: datetime.datetime
+        max_read_time_lag: datetime.timedelta
+        max_write_time_lag: datetime.timedelta
+        bytes_read: MultipleWindowsStat
+
+        @staticmethod
+        def from_proto(msg: ydb_topic_pb2.Consumer.ConsumerStats) -> "Consumer.ConsumerStats":
+            return Consumer.ConsumerStats(
+                min_partitions_last_read_time=datetime_from_proto_timestamp(msg.min_partitions_last_read_time),
+                max_read_time_lag=timedelta_from_proto_duration(msg.max_read_time_lag),
+                max_write_time_lag=timedelta_from_proto_duration(msg.max_write_time_lag),
+                bytes_read=MultipleWindowsStat.from_proto(msg.bytes_read),
+            )
+
+
+@dataclass
+class PartitioningSettings(IToProto, IFromProto):
+    min_active_partitions: int
+    partition_count_limit: int
+
+    @staticmethod
+    def from_proto(msg: ydb_topic_pb2.PartitioningSettings) -> "PartitioningSettings":
+        return PartitioningSettings(
+            min_active_partitions=msg.min_active_partitions,
+            partition_count_limit=msg.partition_count_limit,
+        )
+
+    def to_proto(self) -> ydb_topic_pb2.PartitioningSettings:
+        return ydb_topic_pb2.PartitioningSettings(
+            min_active_partitions=self.min_active_partitions,
+            partition_count_limit=self.partition_count_limit,
+        )
+
+
+class MeteringMode(int, IFromProto, IFromPublic, IToPublic):
+    UNSPECIFIED = 0
+    RESERVED_CAPACITY = 1
+    REQUEST_UNITS = 2
+
+    @staticmethod
+    def from_public(m: Optional[ydb_topic_public_types.PublicMeteringMode]) -> Optional["MeteringMode"]:
+        if m is None:
+            return None
+
+        return MeteringMode(m)
+
+    @staticmethod
+    def from_proto(code: Optional[int]) -> Optional["MeteringMode"]:
+        if code is None:
+            return None
+
+        return MeteringMode(code)
+
+    def to_public(self) -> ydb_topic_public_types.PublicMeteringMode:
+        try:
+            ydb_topic_public_types.PublicMeteringMode(int(self))
+        except KeyError:
+            return ydb_topic_public_types.PublicMeteringMode.UNSPECIFIED
+
+
+@dataclass
+class CreateTopicRequest(IToProto, IFromPublic):
+    path: str
+    partitioning_settings: "PartitioningSettings"
+    retention_period: typing.Optional[datetime.timedelta]
+    retention_storage_mb: typing.Optional[int]
+    supported_codecs: "SupportedCodecs"
+    partition_write_speed_bytes_per_second: typing.Optional[int]
+    partition_write_burst_bytes: typing.Optional[int]
+    attributes: Dict[str, str]
+    consumers: List["Consumer"]
+    metering_mode: "MeteringMode"
+
+    def to_proto(self) -> ydb_topic_pb2.CreateTopicRequest:
+        return ydb_topic_pb2.CreateTopicRequest(
+            path=self.path,
+            partitioning_settings=self.partitioning_settings.to_proto(),
+            retention_period=proto_duration_from_timedelta(self.retention_period),
+            retention_storage_mb=self.retention_storage_mb,
+            supported_codecs=self.supported_codecs.to_proto(),
+            partition_write_speed_bytes_per_second=self.partition_write_speed_bytes_per_second,
+            partition_write_burst_bytes=self.partition_write_burst_bytes,
+            attributes=self.attributes,
+            consumers=[consumer.to_proto() for consumer in self.consumers],
+            metering_mode=self.metering_mode,
+        )
+
+    @staticmethod
+    def from_public(req: ydb_topic_public_types.CreateTopicRequestParams):
+        supported_codecs = []
+
+        if req.supported_codecs is not None:
+            supported_codecs = req.supported_codecs
+
+        consumers = []
+        if req.consumers is not None:
+            for consumer in req.consumers:
+                if isinstance(consumer, str):
+                    consumer = ydb_topic_public_types.PublicConsumer(name=consumer)
+                consumers.append(Consumer.from_public(consumer))
+
+        return CreateTopicRequest(
+            path=req.path,
+            partitioning_settings=PartitioningSettings(
+                min_active_partitions=req.min_active_partitions,
+                partition_count_limit=req.partition_count_limit,
+            ),
+            retention_period=req.retention_period,
+            retention_storage_mb=req.retention_storage_mb,
+            supported_codecs=SupportedCodecs(
+                codecs=supported_codecs,
+            ),
+            partition_write_speed_bytes_per_second = req.partition_write_speed_bytes_per_second,
+            partition_write_burst_bytes=req.partition_write_burst_bytes,
+            attributes=req.attributes,
+            consumers=consumers,
+            metering_mode=MeteringMode.from_public(req.metering_mode),
+        )
+
+
+
+@dataclass
+class CreateTopicResult:
+    pass
+
+
+@dataclass
+class DescribeTopicRequest:
+    path: str
+    include_stats: bool
+
+
+@dataclass
+class DescribeTopicResult(IFromProtoWithProtoType, IToPublic):
+    self_proto: ydb_scheme_pb2.Entry
+    partitioning_settings: PartitioningSettings
+    partitions: List["DescribeTopicResult.PartitionInfo"]
+    retention_period: datetime.timedelta
+    retention_storage_mb: int
+    supported_codecs: SupportedCodecs
+    partition_write_speed_bytes_per_second: int
+    partition_write_burst_bytes: int
+    attributes: Dict[str, str]
+    consumers: List["Consumer"]
+    metering_mode: MeteringMode
+    topic_stats: "DescribeTopicResult.TopicStats"
+
+    @staticmethod
+    def from_proto(msg: ydb_topic_pb2.DescribeTopicResult) -> "DescribeTopicResult":
+        return DescribeTopicResult(
+            self_proto=msg.self,
+            partitioning_settings=PartitioningSettings.from_proto(msg.partitioning_settings),
+            partitions=list(map(DescribeTopicResult.PartitionInfo.from_proto, msg.partitions)),
+            retention_period=msg.retention_period,
+            retention_storage_mb=msg.retention_storage_mb,
+            supported_codecs=SupportedCodecs.from_proto(msg.supported_codecs),
+            partition_write_speed_bytes_per_second=msg.partition_write_speed_bytes_per_second,
+            partition_write_burst_bytes=msg.partition_write_burst_bytes,
+            attributes=dict(msg.attributes),
+            consumers=list(map(Consumer.from_proto, msg.consumers)),
+            metering_mode=MeteringMode.from_proto(msg.metering_mode),
+            topic_stats=DescribeTopicResult.TopicStats.from_proto(msg.topic_stats),
+        )
+
+    @staticmethod
+    def empty_proto_message() -> ydb_topic_pb2.DescribeTopicResult:
+        return ydb_topic_pb2.DescribeTopicResult()
+
+    def to_public(self) -> ydb_topic_public_types.PublicDescribeTopicResult:
+        return ydb_topic_public_types.PublicDescribeTopicResult(
+            self=scheme._wrap_scheme_entry(self.self_proto),
+            min_active_partitions=self.partitioning_settings.min_active_partitions,
+            partition_count_limit=self.partitioning_settings.partition_count_limit,
+            partitions=list(map(DescribeTopicResult.PartitionInfo.to_public, self.partitions)),
+            retention_period=self.retention_period,
+            retention_storage_mb=self.retention_storage_mb,
+            supported_codecs=self.supported_codecs.to_public(),
+            partition_write_speed_bytes_per_second=self.partition_write_speed_bytes_per_second,
+            partition_write_burst_bytes=self.partition_write_burst_bytes,
+            attributes=self.attributes,
+            consumers=list(map(Consumer.to_public, self.consumers)),
+            metering_mode=self.metering_mode.to_public(),
+            topic_stats=self.topic_stats.to_public(),
+        )
+
+    @dataclass
+    class PartitionInfo(IFromProto, IToPublic):
+        partition_id: int
+        active: bool
+        child_partition_ids: List[int]
+        parent_partition_ids: List[int]
+        partition_stats: "PartitionStats"
+
+        @staticmethod
+        def from_proto(msg: Optional[ydb_topic_pb2.DescribeTopicResult.PartitionInfo]) -> Optional["DescribeTopicResult.PartitionInfo"]:
+            if msg is None:
+                return None
+
+            return DescribeTopicResult.PartitionInfo(
+                partition_id=msg.partition_id,
+                active=msg.active,
+                child_partition_ids=list(msg.child_partition_ids),
+                parent_partition_ids=list(msg.parent_partition_ids),
+                partition_stats=PartitionStats.from_proto(msg.partition_stats)
+            )
+
+        def to_public(self) -> ydb_topic_public_types.PublicDescribeTopicResult.PartitionInfo:
+            partition_stats = None
+            if self.partition_stats is not None:
+                partition_stats = self.partition_stats.to_public()
+            return ydb_topic_public_types.PublicDescribeTopicResult.PartitionInfo(
+                partition_id=self.partition_id,
+                active=self.active,
+                child_partition_ids=self.child_partition_ids,
+                parent_partition_ids=self.parent_partition_ids,
+                partition_stats=partition_stats,
+            )
+
+    @dataclass
+    class TopicStats(IFromProto, IToPublic):
+        store_size_bytes: int
+        min_last_write_time: datetime.datetime
+        max_write_time_lag: datetime.timedelta
+        bytes_written: "MultipleWindowsStat"
+
+        @staticmethod
+        def from_proto(msg: Optional[ydb_topic_pb2.DescribeTopicResult.TopicStats]) -> Optional["DescribeTopicResult.TopicStats"]:
+            if msg is None:
+                return None
+
+            return DescribeTopicResult.TopicStats(
+                store_size_bytes=msg.store_size_bytes,
+                min_last_write_time=datetime_from_proto_timestamp(msg.min_last_write_time),
+                max_write_time_lag=timedelta_from_proto_duration(msg.max_write_time_lag),
+                bytes_written=MultipleWindowsStat.from_proto(msg.bytes_written),
+            )
+
+        def to_public(self) -> ydb_topic_public_types.PublicDescribeTopicResult.TopicStats:
+            return ydb_topic_public_types.PublicDescribeTopicResult.TopicStats(
+                store_size_bytes=self.store_size_bytes,
+                min_last_write_time=self.min_last_write_time,
+                max_write_time_lag=self.max_write_time_lag,
+                bytes_written=self.bytes_written.to_public(),
+            )
+
+
+@dataclass
+class PartitionStats(IFromProto, IToPublic):
+    partition_offsets: OffsetsRange
+    store_size_bytes: int
+    last_write_time: datetime.datetime
+    max_write_time_lag: datetime.timedelta
+    bytes_written: "MultipleWindowsStat"
+    partition_node_id: int
+
+    @staticmethod
+    def from_proto(msg: Optional[ydb_topic_pb2.PartitionStats]) -> Optional["PartitionStats"]:
+        if msg is None:
+            return None
+        return PartitionStats(
+            partition_offsets=OffsetsRange.from_proto(msg.partition_offsets),
+            store_size_bytes=msg.store_size_bytes,
+            last_write_time=datetime_from_proto_timestamp(msg.last_write_time),
+            max_write_time_lag=timedelta_from_proto_duration(msg.max_write_time_lag),
+            bytes_written=MultipleWindowsStat.from_proto(msg.bytes_written),
+            partition_node_id=msg.partition_node_id,
+        )
+
+    def to_public(self) -> ydb_topic_public_types.PublicPartitionStats:
+        return ydb_topic_public_types.PublicPartitionStats(
+            partition_start=self.partition_offsets.start,
+            partition_end=self.partition_offsets.end,
+            store_size_bytes=self.store_size_bytes,
+            last_write_time=self.last_write_time,
+            max_write_time_lag=self.max_write_time_lag,
+            bytes_written=self.bytes_written.to_public(),
+            partition_node_id=self.partition_node_id,
+        )

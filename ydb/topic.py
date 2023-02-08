@@ -1,6 +1,19 @@
-from typing import List, Callable, Union, Mapping, Any
+import datetime
+import warnings
+from typing import List, Callable, Union, Mapping, Any, Optional, Dict
 
-from . import aio, Credentials
+from . import aio, Credentials, _apis
+
+from . import scheme
+
+from ._grpc.grpcwrapper.ydb_topic_public_types import (
+    DropTopicRequestParams as _DropTopicRequestParams,
+    PublicCodec as TopicCodec,
+    PublicConsumer as TopicConsumer,
+    PublicMeteringMode as TopicMeteringMode,
+    DescribeTopicRequestParams as _DescribeTopicRequestParams,
+)
+
 from ._topic_reader.topic_reader import (
     PublicReaderSettings as TopicReaderSettings,
     Reader as TopicReader,
@@ -21,8 +34,15 @@ from ._topic_writer.topic_writer import (  # noqa: F401
     RetryPolicy as TopicWriterRetryPolicy,
 )
 
+from ._topic_common.common import (
+    wrap_operation as _wrap_operation,
+    create_result_wrapper as _create_result_wrapper,
+)
 
 from ydb._topic_writer.topic_writer_asyncio import WriterAsyncIO as TopicWriterAsyncIO
+
+from ._grpc.grpcwrapper import ydb_topic as _ydb_topic
+from ._grpc.grpcwrapper import ydb_topic_public_types as _ydb_topic_public_types
 
 
 class TopicClientAsyncIO:
@@ -31,6 +51,69 @@ class TopicClientAsyncIO:
 
     def __init__(self, driver: aio.Driver, settings: "TopicClientSettings" = None):
         self._driver = driver
+
+    async def create_topic(
+        self,
+        path: str,
+        min_active_partitions: Optional[
+            int
+        ] = None,  # Minimum partition count auto merge would stop working at.
+        partition_count_limit: Optional[
+            int
+        ] = None,  # Limit for total partition count, including active (open for write) and read-only partitions.
+        retention_period: Optional[
+            datetime.timedelta
+        ] = None,  # How long data in partition should be stored
+        retention_storage_mb: Optional[
+            int
+        ] = None,  # How much data in partition should be stored
+        # List of allowed codecs for writers.
+        # Writes with codec not from this list are forbidden.
+        supported_codecs: Optional[List[Union[TopicCodec, int]]] = None,
+        partition_write_speed_bytes_per_second: Optional[
+            int
+        ] = None,  # Partition write speed in bytes per second
+        partition_write_burst_bytes: Optional[
+            int
+        ] = None,  # Burst size for write in partition, in bytes
+        # User and server attributes of topic. Server attributes starts from "_" and will be validated by server.
+        attributes: Optional[Dict[str, str]] = None,
+        # List of consumers for this topic
+        consumers: Optional[List[Union[TopicConsumer, str]]] = None,
+        # Metering mode for the topic in a serverless database
+        metering_mode: Optional[TopicMeteringMode] = None,
+    ):
+        args = locals().copy()
+        del args["self"]
+        req = _ydb_topic_public_types.CreateTopicRequestParams(**args)
+        req = _ydb_topic.CreateTopicRequest.from_public(req)
+        await self._driver(
+            req.to_proto(),
+            _apis.TopicService.Stub,
+            _apis.TopicService.CreateTopic,
+            _wrap_operation,
+        )
+
+    async def describe(self, path: str, include_stats: bool = False):
+        args = locals().copy()
+        del args["self"]
+        req = _DescribeTopicRequestParams(**args)
+        res = await self._driver(
+            req.to_proto(),
+            _apis.TopicService.Stub,
+            _apis.TopicService.DescribeTopic,
+            _create_result_wrapper(_ydb_topic.DescribeTopicResult),
+        )  # type: _ydb_topic.DescribeTopicResult
+        return res.to_public()
+
+    async def drop_topic(self, path: str):
+        req = _DropTopicRequestParams(path=path)
+        await self._driver(
+            req.to_proto(),
+            _apis.TopicService.Stub,
+            _apis.TopicService.DropTopic,
+            _wrap_operation,
+        )
 
     def topic_reader(
         self,
