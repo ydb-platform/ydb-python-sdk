@@ -8,14 +8,9 @@ from ydb import issues
 from .datatypes import PublicBatch, PublicMessage
 from .topic_reader import PublicReaderSettings
 from .topic_reader_asyncio import ReaderStream, PartitionSession, ReaderReconnector
-from .._topic_wrapper.common import (
-    OffsetsRange,
-    Codec,
-    ServerStatus,
-    SupportedDriverType,
-)
-from .._topic_wrapper.reader import StreamReadMessage
-from .._topic_wrapper.test_helpers import StreamMock, wait_condition, wait_for_fast
+from .._grpc.grpcwrapper.common_utils import SupportedDriverType, ServerStatus
+from .._grpc.grpcwrapper.ydb_topic import StreamReadMessage, Codec, OffsetsRange
+from .._topic_common.test_helpers import StreamMock, wait_condition, wait_for_fast
 
 # Workaround for good autocomplete in IDE and universal import at runtime
 # noinspection PyUnreachableCode

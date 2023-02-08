@@ -14,7 +14,8 @@ import pytest
 
 from .. import aio
 from .. import StatusCode, issues
-from .._topic_wrapper.common import ServerStatus, Codec
+from .._grpc.grpcwrapper.ydb_topic import Codec, StreamWriteMessage
+from .._grpc.grpcwrapper.common_utils import ServerStatus
 from .topic_writer import (
     InternalMessage,
     PublicMessage,
@@ -24,9 +25,8 @@ from .topic_writer import (
     PublicWriteResult,
     TopicWriterError,
 )
-from .._topic_wrapper.test_helpers import StreamMock
+from .._topic_common.test_helpers import StreamMock
 
-from .._topic_wrapper.writer import StreamWriteMessage
 from .topic_writer_asyncio import (
     WriterAsyncIOStream,
     WriterAsyncIOReconnector,

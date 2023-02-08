@@ -8,8 +8,8 @@ from typing import List, Union, TextIO, BinaryIO, Optional, Callable, Mapping, A
 import typing
 
 import ydb.aio
-from .._topic_wrapper.common import IToProto, Codec
-from .._topic_wrapper.writer import StreamWriteMessage
+from .._grpc.grpcwrapper.ydb_topic import Codec, StreamWriteMessage
+from .._grpc.grpcwrapper.common_utils import IToProto
 
 
 class Writer:

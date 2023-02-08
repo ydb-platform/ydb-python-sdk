@@ -12,13 +12,15 @@ from ..aio import Driver
 from ..issues import Error as YdbError, _process_response
 from .datatypes import PartitionSession, PublicMessage, PublicBatch, ICommittable
 from .topic_reader import PublicReaderSettings, CommitResult, SessionStat
-from .._topic_wrapper.common import (
+from .._topic_common.common import (
     TokenGetterFuncType,
+)
+from .._grpc.grpcwrapper.common_utils import (
     IGrpcWrapperAsyncIO,
     SupportedDriverType,
     GrpcWrapperAsyncIO,
 )
-from .._topic_wrapper.reader import StreamReadMessage
+from .._grpc.grpcwrapper.ydb_topic import StreamReadMessage
 from .._errors import check_retriable_error
 
 

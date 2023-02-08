@@ -5,7 +5,7 @@ from concurrent.futures import Future
 import threading
 from typing import Union, List, Optional, Coroutine
 
-from .._topic_wrapper.common import SupportedDriverType
+from .._grpc.grpcwrapper.common_utils import SupportedDriverType
 from .topic_writer import (
     PublicWriterSettings,
     TopicWriterError,
