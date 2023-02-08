@@ -2,46 +2,20 @@ import abc
 import asyncio
 import typing
 from dataclasses import dataclass
-from enum import IntEnum
 
 import grpc
 from google.protobuf.message import Message
 
 import ydb.aio
 
-from .. import issues, connection
-
-# Workaround for good autocomplete in IDE and universal import at runtime
+# Workaround for good IDE and universal for runtime
 # noinspection PyUnreachableCode
 if False:
-    from ydb._grpc.v4.protos import (
-        ydb_issue_message_pb2,
-        ydb_topic_pb2,
-    )
+    from ..v4.protos import ydb_topic_pb2, ydb_issue_message_pb2
 else:
-    # noinspection PyUnresolvedReferences
-    from ydb._grpc.common.protos import (
-        ydb_issue_message_pb2,
-        ydb_topic_pb2,
-    )
+    from ..common.protos import ydb_topic_pb2, ydb_issue_message_pb2
 
-
-class Codec(IntEnum):
-    CODEC_UNSPECIFIED = 0
-    CODEC_RAW = 1
-    CODEC_GZIP = 2
-    CODEC_LZOP = 3
-    CODEC_ZSTD = 4
-
-
-class IToProto(abc.ABC):
-    @abc.abstractmethod
-    def to_proto(self) -> Message:
-        pass
-
-
-class UnknownGrpcMessageError(ydb.Error):
-    pass
+from ... import issues, connection
 
 
 class IFromProto(abc.ABC):
@@ -51,17 +25,14 @@ class IFromProto(abc.ABC):
         pass
 
 
-@dataclass
-class OffsetsRange(IFromProto):
-    start: int
-    end: int
+class IToProto(abc.ABC):
+    @abc.abstractmethod
+    def to_proto(self) -> Message:
+        pass
 
-    @staticmethod
-    def from_proto(msg: ydb_topic_pb2.OffsetsRange) -> "OffsetsRange":
-        return OffsetsRange(
-            start=msg.start,
-            end=msg.end,
-        )
+
+class UnknownGrpcMessageError(issues.Error):
+    pass
 
 
 class QueueToIteratorAsyncIO:
@@ -117,19 +88,6 @@ class SyncIteratorToAsyncIterator:
             return res
         except StopAsyncIteration:
             raise StopIteration()
-
-
-class IteratorToQueueAsyncIO:
-    __slots__ = ("_iterator",)
-
-    def __init__(self, iterator: typing.AsyncIterator[typing.Any]):
-        self._iterator = iterator
-
-    async def get(self) -> typing.Any:
-        try:
-            return self._iterator.__anext__()
-        except StopAsyncIteration:
-            raise asyncio.QueueEmpty()
 
 
 class IGrpcWrapperAsyncIO(abc.ABC):
@@ -237,26 +195,6 @@ class ServerStatus(IFromProto):
             d = ", "
             res += d + d.join(str(sub_issue) for sub_issue in issue.issues)
         return res
-
-
-@dataclass
-class UpdateTokenRequest(IToProto):
-    token: str
-
-    def to_proto(self) -> Message:
-        res = ydb_topic_pb2.UpdateTokenRequest()
-        res.token = self.token
-        return res
-
-
-@dataclass
-class UpdateTokenResponse(IFromProto):
-    @staticmethod
-    def from_proto(msg: ydb_topic_pb2.UpdateTokenResponse) -> typing.Any:
-        return UpdateTokenResponse()
-
-
-TokenGetterFuncType = typing.Optional[typing.Callable[[], str]]
 
 
 def callback_from_asyncio(

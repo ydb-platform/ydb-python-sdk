@@ -3,7 +3,11 @@ import asyncio
 import grpc
 import pytest
 
-from .common import callback_from_asyncio, GrpcWrapperAsyncIO, ServerStatus
+from .._grpc.grpcwrapper.common_utils import (
+    GrpcWrapperAsyncIO,
+    ServerStatus,
+    callback_from_asyncio,
+)
 from .. import issues
 
 # Workaround for good autocomplete in IDE and universal import at runtime

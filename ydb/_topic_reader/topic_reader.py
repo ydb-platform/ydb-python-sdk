@@ -11,8 +11,8 @@ from typing import (
 
 from ..table import RetrySettings
 from .datatypes import ICommittable, PublicBatch, PublicMessage
-from .._topic_wrapper.common import OffsetsRange, TokenGetterFuncType
-from .._topic_wrapper.reader import StreamReadMessage
+from .._topic_common.common import TokenGetterFuncType
+from .._grpc.grpcwrapper.ydb_topic import StreamReadMessage, OffsetsRange
 
 
 class Selector:

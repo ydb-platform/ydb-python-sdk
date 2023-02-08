@@ -22,14 +22,19 @@ from .. import (
     check_retriable_error,
     RetrySettings,
 )
-from .._topic_wrapper.common import (
-    UpdateTokenResponse,
-    GrpcWrapperAsyncIO,
-    IGrpcWrapperAsyncIO,
-    SupportedDriverType,
+from .._topic_common.common import (
     TokenGetterFuncType,
 )
-from .._topic_wrapper.writer import StreamWriteMessage, WriterMessagesFromServerToClient
+from .._grpc.grpcwrapper.ydb_topic import (
+    UpdateTokenResponse,
+    StreamWriteMessage,
+    WriterMessagesFromServerToClient,
+)
+from .._grpc.grpcwrapper.common_utils import (
+    IGrpcWrapperAsyncIO,
+    SupportedDriverType,
+    GrpcWrapperAsyncIO,
+)
 
 
 class WriterAsyncIO:
