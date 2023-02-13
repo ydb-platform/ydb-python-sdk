@@ -4,7 +4,6 @@ from . import pool, scheme, table
 import ydb
 from .. import _utilities
 from ydb.driver import get_config
-from .. import topic
 
 
 def default_credentials(credentials=None):
@@ -81,6 +80,8 @@ class Driver(pool.ConnectionPool):
         credentials=None,
         **kwargs
     ):
+        from .. import topic  # local import for prevent cycle import error
+
         config = get_config(
             driver_config,
             connection_string,

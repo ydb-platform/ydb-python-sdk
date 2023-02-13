@@ -59,7 +59,7 @@ class TestWriterAsyncIOStream:
                 last_seq_no=4,
                 session_id="123",
                 partition_id=3,
-                supported_codecs=[Codec.CODEC_RAW.value, Codec.CODEC_GZIP.value],
+                supported_codecs=[Codec.CODEC_RAW, Codec.CODEC_GZIP],
                 status=ServerStatus(StatusCode.SUCCESS, []),
             )
         )
@@ -131,7 +131,7 @@ class TestWriterAsyncIOStream:
 
         expected_message = StreamWriteMessage.FromClient(
             StreamWriteMessage.WriteRequest(
-                codec=Codec.CODEC_RAW.value,
+                codec=Codec.CODEC_RAW,
                 messages=[
                     StreamWriteMessage.WriteRequest.MessageData(
                         seq_no=1,

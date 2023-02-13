@@ -1,10 +1,25 @@
+from __future__ import annotations
+
 import abc
 import asyncio
+import datetime
 import typing
+from typing import (
+    Optional,
+    Any,
+    Iterator,
+    AsyncIterator,
+    Callable,
+    Iterable,
+    Union,
+    Coroutine,
+)
 from dataclasses import dataclass
 
 import grpc
 from google.protobuf.message import Message
+from google.protobuf.duration_pb2 import Duration as ProtoDuration
+from google.protobuf.timestamp_pb2 import Timestamp as ProtoTimeStamp
 
 import ydb.aio
 
@@ -21,14 +36,34 @@ from ... import issues, connection
 class IFromProto(abc.ABC):
     @staticmethod
     @abc.abstractmethod
-    def from_proto(msg: Message) -> typing.Any:
-        pass
+    def from_proto(msg: Message) -> Any:
+        ...
+
+
+class IFromProtoWithProtoType(IFromProto):
+    @staticmethod
+    @abc.abstractmethod
+    def empty_proto_message() -> Message:
+        ...
 
 
 class IToProto(abc.ABC):
     @abc.abstractmethod
     def to_proto(self) -> Message:
-        pass
+        ...
+
+
+class IFromPublic(abc.ABC):
+    @staticmethod
+    @abc.abstractmethod
+    def from_public(o: typing.Any) -> typing.Any:
+        ...
+
+
+class IToPublic(abc.ABC):
+    @abc.abstractmethod
+    def to_public(self) -> typing.Any:
+        ...
 
 
 class UnknownGrpcMessageError(issues.Error):
@@ -76,7 +111,7 @@ class AsyncQueueToSyncIteratorAsyncIO:
 
 
 class SyncIteratorToAsyncIterator:
-    def __init__(self, sync_iterator: typing.Iterator):
+    def __init__(self, sync_iterator: Iterator):
         self._sync_iterator = sync_iterator
 
     def __aiter__(self):
@@ -92,7 +127,7 @@ class SyncIteratorToAsyncIterator:
 
 class IGrpcWrapperAsyncIO(abc.ABC):
     @abc.abstractmethod
-    async def receive(self) -> typing.Any:
+    async def receive(self) -> Any:
         ...
 
     @abc.abstractmethod
@@ -100,13 +135,13 @@ class IGrpcWrapperAsyncIO(abc.ABC):
         ...
 
 
-SupportedDriverType = typing.Union[ydb.Driver, ydb.aio.Driver]
+SupportedDriverType = Union[ydb.Driver, ydb.aio.Driver]
 
 
 class GrpcWrapperAsyncIO(IGrpcWrapperAsyncIO):
     from_client_grpc: asyncio.Queue
-    from_server_grpc: typing.AsyncIterator
-    convert_server_grpc_to_wrapper: typing.Callable[[typing.Any], typing.Any]
+    from_server_grpc: AsyncIterator
+    convert_server_grpc_to_wrapper: Callable[[Any], Any]
     _connection_state: str
 
     def __init__(self, convert_server_grpc_to_wrapper):
@@ -140,7 +175,7 @@ class GrpcWrapperAsyncIO(IGrpcWrapperAsyncIO):
         )
         self.from_server_grpc = SyncIteratorToAsyncIterator(stream_call.__iter__())
 
-    async def receive(self) -> typing.Any:
+    async def receive(self) -> Any:
         # todo handle grpc exceptions and convert it to internal exceptions
         try:
             grpc_message = await self.from_server_grpc.__anext__()
@@ -168,7 +203,7 @@ class ServerStatus(IFromProto):
     def __init__(
         self,
         status: issues.StatusCode,
-        issues: typing.Iterable[typing.Any],
+        issues: Iterable[Any],
     ):
         self.status = status
         self.issues = issues
@@ -178,7 +213,7 @@ class ServerStatus(IFromProto):
 
     @staticmethod
     def from_proto(
-        msg: typing.Union[
+        msg: Union[
             ydb_topic_pb2.StreamReadMessage.FromServer,
             ydb_topic_pb2.StreamWriteMessage.FromServer,
         ]
@@ -198,7 +233,7 @@ class ServerStatus(IFromProto):
 
 
 def callback_from_asyncio(
-    callback: typing.Union[typing.Callable, typing.Coroutine]
+    callback: Union[Callable, Coroutine]
 ) -> [asyncio.Future, asyncio.Task]:
     loop = asyncio.get_running_loop()
 
@@ -206,3 +241,34 @@ def callback_from_asyncio(
         return loop.create_task(callback())
     else:
         return loop.run_in_executor(None, callback)
+
+
+def proto_duration_from_timedelta(t: Optional[datetime.timedelta]) -> ProtoDuration:
+    if t is None:
+        return None
+    res = ProtoDuration()
+    res.FromTimedelta(t)
+
+
+def proto_timestamp_from_datetime(t: Optional[datetime.datetime]) -> ProtoTimeStamp:
+    if t is None:
+        return None
+
+    res = ProtoTimeStamp()
+    res.FromDatetime(t)
+
+
+def datetime_from_proto_timestamp(
+    ts: Optional[ProtoTimeStamp],
+) -> Optional[datetime.datetime]:
+    if ts is None:
+        return None
+    return ts.ToDatetime()
+
+
+def timedelta_from_proto_duration(
+    d: Optional[ProtoDuration],
+) -> Optional[datetime.timedelta]:
+    if d is None:
+        return None
+    return d.ToTimedelta()
