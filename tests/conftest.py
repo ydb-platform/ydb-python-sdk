@@ -145,7 +145,7 @@ async def topic_with_messages(driver, topic_path):
     writer = driver.topic_client.topic_writer(
         topic_path, producer_and_message_group_id="fixture-producer-id"
     )
-    res = await writer.write_with_ack(
+    await writer.write_with_ack(
         ydb.TopicWriterMessage(data="123".encode()),
         ydb.TopicWriterMessage(data="456".encode()),
     )
