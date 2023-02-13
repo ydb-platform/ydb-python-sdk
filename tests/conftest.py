@@ -100,6 +100,23 @@ async def driver(endpoint, database, event_loop):
 
 
 @pytest.fixture()
+async def driver_sync(endpoint, database, event_loop):
+    driver_config = ydb.DriverConfig(
+        endpoint,
+        database,
+        credentials=ydb.construct_credentials_from_environ(),
+        root_certificates=ydb.load_ydb_root_certificate(),
+    )
+
+    driver = ydb.Driver(driver_config=driver_config)
+    driver.wait(timeout=15)
+
+    yield driver
+
+    driver.stop(timeout=10)
+
+
+@pytest.fixture()
 def topic_consumer():
     return "fixture-consumer"
 

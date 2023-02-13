@@ -231,6 +231,8 @@ class Driver(pool.ConnectionPool):
         :param database: A database path
         :param credentials: A credentials. If not specifed credentials constructed by default.
         """
+        from . import topic  # local import for prevent cycle import error
+
         driver_config = get_config(
             driver_config,
             connection_string,
@@ -246,3 +248,4 @@ class Driver(pool.ConnectionPool):
 
         self.scheme_client = scheme.SchemeClient(self)
         self.table_client = table.TableClient(self, driver_config.table_client_settings)
+        self.topic_client = topic.TopicClient(self, driver_config.topic_client_settings)

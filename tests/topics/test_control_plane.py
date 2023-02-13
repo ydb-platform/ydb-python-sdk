@@ -38,3 +38,37 @@ class TestTopicClientControlPlaneAsyncIO:
                 break
 
         assert has_consumer
+
+
+class TestTopicClientControlPlane:
+    def test_create_topic(self, driver_sync, database):
+        client = driver_sync.topic_client
+
+        topic_path = database + "/my-test-topic"
+
+        client.create_topic(topic_path)
+
+        with pytest.raises(issues.SchemeError):
+            # double create is ok - try create topic with bad path
+            client.create_topic(database)
+
+    def test_drop_topic(self, driver_sync, topic_path):
+        client = driver_sync.topic_client
+
+        client.drop_topic(topic_path)
+
+        with pytest.raises(issues.SchemeError):
+            client.drop_topic(topic_path)
+
+    def test_describe_topic(self, driver_sync, topic_path: str, topic_consumer):
+        res = driver_sync.topic_client.describe(topic_path)
+
+        assert res.self.name == os.path.basename(topic_path)
+
+        has_consumer = False
+        for consumer in res.consumers:
+            if consumer.name == topic_consumer:
+                has_consumer = True
+                break
+
+        assert has_consumer

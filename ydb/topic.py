@@ -5,6 +5,7 @@ from typing import List, Callable, Union, Mapping, Any, Optional, Dict
 from . import aio, Credentials, _apis
 
 from . import scheme
+from . import driver
 
 from ._grpc.grpcwrapper.ydb_topic_public_types import (
     DropTopicRequestParams as _DropTopicRequestParams,
@@ -43,6 +44,14 @@ from ydb._topic_writer.topic_writer_asyncio import WriterAsyncIO as TopicWriterA
 
 from ._grpc.grpcwrapper import ydb_topic as _ydb_topic
 from ._grpc.grpcwrapper import ydb_topic_public_types as _ydb_topic_public_types
+from ._grpc.grpcwrapper.ydb_topic_public_types import (
+    PublicDescribeTopicResult as TopicDescription,
+    PublicMultipleWindowsStat as TopicStatWindow,
+    PublicPartitionStats as TopicPartitionStats,
+    PublicCodec as TopicCodec,
+    PublicConsumer as TopicConsumer,
+    PublicMeteringMode as TopicMeteringMode,
+)
 
 
 class TopicClientAsyncIO:
@@ -94,7 +103,7 @@ class TopicClientAsyncIO:
             _wrap_operation,
         )
 
-    async def describe(self, path: str, include_stats: bool = False):
+    async def describe(self, path: str, include_stats: bool = False) -> TopicDescription:
         args = locals().copy()
         del args["self"]
         req = _DescribeTopicRequestParams(**args)
@@ -164,8 +173,74 @@ class TopicClientAsyncIO:
 
 
 class TopicClient:
-    def __init__(self, driver, topic_client_settings: "TopicClientSettings" = None):
-        pass
+    _driver: driver.Driver
+    _credentials: Union[Credentials, None]
+
+    def __init__(self, driver: driver.Driver, topic_client_settings: "TopicClientSettings" = None):
+        self._driver = driver
+
+    def create_topic(
+        self,
+        path: str,
+        min_active_partitions: Optional[
+            int
+        ] = None,  # Minimum partition count auto merge would stop working at.
+        partition_count_limit: Optional[
+            int
+        ] = None,  # Limit for total partition count, including active (open for write) and read-only partitions.
+        retention_period: Optional[
+            datetime.timedelta
+        ] = None,  # How long data in partition should be stored
+        retention_storage_mb: Optional[
+            int
+        ] = None,  # How much data in partition should be stored
+        # List of allowed codecs for writers.
+        # Writes with codec not from this list are forbidden.
+        supported_codecs: Optional[List[Union[TopicCodec, int]]] = None,
+        partition_write_speed_bytes_per_second: Optional[
+            int
+        ] = None,  # Partition write speed in bytes per second
+        partition_write_burst_bytes: Optional[
+            int
+        ] = None,  # Burst size for write in partition, in bytes
+        # User and server attributes of topic. Server attributes starts from "_" and will be validated by server.
+        attributes: Optional[Dict[str, str]] = None,
+        # List of consumers for this topic
+        consumers: Optional[List[Union[TopicConsumer, str]]] = None,
+        # Metering mode for the topic in a serverless database
+        metering_mode: Optional[TopicMeteringMode] = None,
+    ):
+        args = locals().copy()
+        del args["self"]
+        req = _ydb_topic_public_types.CreateTopicRequestParams(**args)
+        req = _ydb_topic.CreateTopicRequest.from_public(req)
+        self._driver(
+            req.to_proto(),
+            _apis.TopicService.Stub,
+            _apis.TopicService.CreateTopic,
+            _wrap_operation,
+        )
+
+    def describe(self, path: str, include_stats: bool = False) -> TopicDescription:
+        args = locals().copy()
+        del args["self"]
+        req = _DescribeTopicRequestParams(**args)
+        res = self._driver(
+            req.to_proto(),
+            _apis.TopicService.Stub,
+            _apis.TopicService.DescribeTopic,
+            _create_result_wrapper(_ydb_topic.DescribeTopicResult),
+        )  # type: _ydb_topic.DescribeTopicResult
+        return res.to_public()
+
+    def drop_topic(self, path: str):
+        req = _DropTopicRequestParams(path=path)
+        self._driver(
+            req.to_proto(),
+            _apis.TopicService.Stub,
+            _apis.TopicService.DropTopic,
+            _wrap_operation,
+        )
 
     def topic_reader(
         self,
