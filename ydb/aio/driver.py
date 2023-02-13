@@ -5,6 +5,7 @@ import ydb
 from .. import _utilities
 from ydb.driver import get_config
 
+
 def default_credentials(credentials=None):
     if credentials is not None:
         return credentials

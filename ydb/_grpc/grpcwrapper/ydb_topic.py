@@ -2,7 +2,6 @@ import datetime
 import enum
 import typing
 from dataclasses import dataclass, field
-from enum import IntEnum
 from typing import List, Union, Dict, Optional
 
 from google.protobuf.message import Message
@@ -26,7 +25,9 @@ from .common_utils import (
     ServerStatus,
     UnknownGrpcMessageError,
     proto_duration_from_timedelta,
-    proto_timestamp_from_datetime, datetime_from_proto_timestamp, timedelta_from_proto_duration,
+    proto_timestamp_from_datetime,
+    datetime_from_proto_timestamp,
+    timedelta_from_proto_duration,
 )
 
 
@@ -686,7 +687,9 @@ class MultipleWindowsStat(IFromProto, IToPublic):
     per_day: int
 
     @staticmethod
-    def from_proto(msg: Optional[ydb_topic_pb2.MultipleWindowsStat]) -> Optional["MultipleWindowsStat"]:
+    def from_proto(
+        msg: Optional[ydb_topic_pb2.MultipleWindowsStat],
+    ) -> Optional["MultipleWindowsStat"]:
         if msg is None:
             return None
         return MultipleWindowsStat(
@@ -701,6 +704,7 @@ class MultipleWindowsStat(IFromProto, IToPublic):
             per_hour=self.per_hour,
             per_day=self.per_day,
         )
+
 
 @dataclass
 class Consumer(IToProto, IFromProto, IFromPublic, IToPublic):
@@ -745,9 +749,7 @@ class Consumer(IToProto, IFromProto, IFromPublic, IToPublic):
             name=consumer.name,
             important=consumer.important,
             read_from=consumer.read_from,
-            supported_codecs=SupportedCodecs(
-                codecs=supported_codecs
-            ),
+            supported_codecs=SupportedCodecs(codecs=supported_codecs),
             attributes=consumer.attributes,
             consumer_stats=None,
         )
@@ -769,11 +771,17 @@ class Consumer(IToProto, IFromProto, IFromPublic, IToPublic):
         bytes_read: MultipleWindowsStat
 
         @staticmethod
-        def from_proto(msg: ydb_topic_pb2.Consumer.ConsumerStats) -> "Consumer.ConsumerStats":
+        def from_proto(
+            msg: ydb_topic_pb2.Consumer.ConsumerStats,
+        ) -> "Consumer.ConsumerStats":
             return Consumer.ConsumerStats(
-                min_partitions_last_read_time=datetime_from_proto_timestamp(msg.min_partitions_last_read_time),
+                min_partitions_last_read_time=datetime_from_proto_timestamp(
+                    msg.min_partitions_last_read_time
+                ),
                 max_read_time_lag=timedelta_from_proto_duration(msg.max_read_time_lag),
-                max_write_time_lag=timedelta_from_proto_duration(msg.max_write_time_lag),
+                max_write_time_lag=timedelta_from_proto_duration(
+                    msg.max_write_time_lag
+                ),
                 bytes_read=MultipleWindowsStat.from_proto(msg.bytes_read),
             )
 
@@ -803,7 +811,9 @@ class MeteringMode(int, IFromProto, IFromPublic, IToPublic):
     REQUEST_UNITS = 2
 
     @staticmethod
-    def from_public(m: Optional[ydb_topic_public_types.PublicMeteringMode]) -> Optional["MeteringMode"]:
+    def from_public(
+        m: Optional[ydb_topic_public_types.PublicMeteringMode],
+    ) -> Optional["MeteringMode"]:
         if m is None:
             return None
 
@@ -875,13 +885,12 @@ class CreateTopicRequest(IToProto, IFromPublic):
             supported_codecs=SupportedCodecs(
                 codecs=supported_codecs,
             ),
-            partition_write_speed_bytes_per_second = req.partition_write_speed_bytes_per_second,
+            partition_write_speed_bytes_per_second=req.partition_write_speed_bytes_per_second,
             partition_write_burst_bytes=req.partition_write_burst_bytes,
             attributes=req.attributes,
             consumers=consumers,
             metering_mode=MeteringMode.from_public(req.metering_mode),
         )
-
 
 
 @dataclass
@@ -914,8 +923,12 @@ class DescribeTopicResult(IFromProtoWithProtoType, IToPublic):
     def from_proto(msg: ydb_topic_pb2.DescribeTopicResult) -> "DescribeTopicResult":
         return DescribeTopicResult(
             self_proto=msg.self,
-            partitioning_settings=PartitioningSettings.from_proto(msg.partitioning_settings),
-            partitions=list(map(DescribeTopicResult.PartitionInfo.from_proto, msg.partitions)),
+            partitioning_settings=PartitioningSettings.from_proto(
+                msg.partitioning_settings
+            ),
+            partitions=list(
+                map(DescribeTopicResult.PartitionInfo.from_proto, msg.partitions)
+            ),
             retention_period=msg.retention_period,
             retention_storage_mb=msg.retention_storage_mb,
             supported_codecs=SupportedCodecs.from_proto(msg.supported_codecs),
@@ -936,7 +949,9 @@ class DescribeTopicResult(IFromProtoWithProtoType, IToPublic):
             self=scheme._wrap_scheme_entry(self.self_proto),
             min_active_partitions=self.partitioning_settings.min_active_partitions,
             partition_count_limit=self.partitioning_settings.partition_count_limit,
-            partitions=list(map(DescribeTopicResult.PartitionInfo.to_public, self.partitions)),
+            partitions=list(
+                map(DescribeTopicResult.PartitionInfo.to_public, self.partitions)
+            ),
             retention_period=self.retention_period,
             retention_storage_mb=self.retention_storage_mb,
             supported_codecs=self.supported_codecs.to_public(),
@@ -957,7 +972,9 @@ class DescribeTopicResult(IFromProtoWithProtoType, IToPublic):
         partition_stats: "PartitionStats"
 
         @staticmethod
-        def from_proto(msg: Optional[ydb_topic_pb2.DescribeTopicResult.PartitionInfo]) -> Optional["DescribeTopicResult.PartitionInfo"]:
+        def from_proto(
+            msg: Optional[ydb_topic_pb2.DescribeTopicResult.PartitionInfo],
+        ) -> Optional["DescribeTopicResult.PartitionInfo"]:
             if msg is None:
                 return None
 
@@ -966,10 +983,12 @@ class DescribeTopicResult(IFromProtoWithProtoType, IToPublic):
                 active=msg.active,
                 child_partition_ids=list(msg.child_partition_ids),
                 parent_partition_ids=list(msg.parent_partition_ids),
-                partition_stats=PartitionStats.from_proto(msg.partition_stats)
+                partition_stats=PartitionStats.from_proto(msg.partition_stats),
             )
 
-        def to_public(self) -> ydb_topic_public_types.PublicDescribeTopicResult.PartitionInfo:
+        def to_public(
+            self,
+        ) -> ydb_topic_public_types.PublicDescribeTopicResult.PartitionInfo:
             partition_stats = None
             if self.partition_stats is not None:
                 partition_stats = self.partition_stats.to_public()
@@ -989,18 +1008,26 @@ class DescribeTopicResult(IFromProtoWithProtoType, IToPublic):
         bytes_written: "MultipleWindowsStat"
 
         @staticmethod
-        def from_proto(msg: Optional[ydb_topic_pb2.DescribeTopicResult.TopicStats]) -> Optional["DescribeTopicResult.TopicStats"]:
+        def from_proto(
+            msg: Optional[ydb_topic_pb2.DescribeTopicResult.TopicStats],
+        ) -> Optional["DescribeTopicResult.TopicStats"]:
             if msg is None:
                 return None
 
             return DescribeTopicResult.TopicStats(
                 store_size_bytes=msg.store_size_bytes,
-                min_last_write_time=datetime_from_proto_timestamp(msg.min_last_write_time),
-                max_write_time_lag=timedelta_from_proto_duration(msg.max_write_time_lag),
+                min_last_write_time=datetime_from_proto_timestamp(
+                    msg.min_last_write_time
+                ),
+                max_write_time_lag=timedelta_from_proto_duration(
+                    msg.max_write_time_lag
+                ),
                 bytes_written=MultipleWindowsStat.from_proto(msg.bytes_written),
             )
 
-        def to_public(self) -> ydb_topic_public_types.PublicDescribeTopicResult.TopicStats:
+        def to_public(
+            self,
+        ) -> ydb_topic_public_types.PublicDescribeTopicResult.TopicStats:
             return ydb_topic_public_types.PublicDescribeTopicResult.TopicStats(
                 store_size_bytes=self.store_size_bytes,
                 min_last_write_time=self.min_last_write_time,
@@ -1019,7 +1046,9 @@ class PartitionStats(IFromProto, IToPublic):
     partition_node_id: int
 
     @staticmethod
-    def from_proto(msg: Optional[ydb_topic_pb2.PartitionStats]) -> Optional["PartitionStats"]:
+    def from_proto(
+        msg: Optional[ydb_topic_pb2.PartitionStats],
+    ) -> Optional["PartitionStats"]:
         if msg is None:
             return None
         return PartitionStats(

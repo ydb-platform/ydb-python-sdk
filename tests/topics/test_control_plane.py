@@ -62,6 +62,7 @@ class TestTopicClientControlPlane:
 
     def test_describe_topic(self, driver_sync, topic_path: str, topic_consumer):
         res = driver_sync.topic_client.describe(topic_path)
+        res.partition_count_limit
 
         assert res.self.name == os.path.basename(topic_path)
 

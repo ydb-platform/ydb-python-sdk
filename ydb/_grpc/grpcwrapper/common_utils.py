@@ -54,7 +54,6 @@ class IToProto(abc.ABC):
 
 
 class IFromPublic(abc.ABC):
-
     @staticmethod
     @abc.abstractmethod
     def from_public(o: typing.Any) -> typing.Any:
@@ -259,12 +258,17 @@ def proto_timestamp_from_datetime(t: Optional[datetime.datetime]) -> ProtoTimeSt
     res.FromDatetime(t)
 
 
-def datetime_from_proto_timestamp(ts: Optional[ProtoTimeStamp]) -> Optional[datetime.datetime]:
+def datetime_from_proto_timestamp(
+    ts: Optional[ProtoTimeStamp],
+) -> Optional[datetime.datetime]:
     if ts is None:
         return None
     return ts.ToDatetime()
 
-def timedelta_from_proto_duration(d: Optional[ProtoDuration]) -> Optional[datetime.timedelta]:
+
+def timedelta_from_proto_duration(
+    d: Optional[ProtoDuration],
+) -> Optional[datetime.timedelta]:
     if d is None:
         return None
     return d.ToTimedelta()

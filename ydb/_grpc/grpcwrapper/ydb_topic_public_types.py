@@ -10,8 +10,8 @@ if False:
 else:
     from ..common.protos import ydb_topic_pb2
 
-from .common_utils import IToProto, IFromProto, proto_timestamp_from_datetime
-from ...scheme import SchemeEntry, _wrap_scheme_entry
+from .common_utils import IToProto
+from ...scheme import SchemeEntry
 
 
 @dataclass
@@ -48,38 +48,22 @@ class PublicMeteringMode(IntEnum):
 class PublicConsumer:
     name: str
     important: bool = False
+    """
+    Consumer may be marked as 'important'. It means messages for this consumer will never expire due to retention.
+    User should take care that such consumer never stalls, to prevent running out of disk space.
+    """
+
     read_from: Optional[datetime.datetime] = None
-    supported_codecs: List[Union[PublicCodec, int]] = field(
-        default_factory=lambda: list()
-    )
+    "All messages with smaller server written_at timestamp will be skipped."
+
+    supported_codecs: List[PublicCodec] = field(default_factory=lambda: list())
+    """
+    List of supported codecs by this consumer.
+    supported_codecs on topic must be contained inside this list.
+    """
+
     attributes: Dict[str, str] = field(default_factory=lambda: dict())
-
-
-def consumers_to_proto(
-    consumers: Optional[List[Union[PublicConsumer, str]]]
-) -> List[ydb_topic_pb2.Consumer]:
-    res = []
-    if not consumers:
-        return res
-
-    for consumer in consumers:
-        if isinstance(consumer, str):
-            consumer = PublicConsumer(name=consumer)
-        res.append(consumer_to_proto(consumer))
-
-    return res
-
-
-def consumer_to_proto(consumer: PublicConsumer) -> ydb_topic_pb2.Consumer:
-    return ydb_topic_pb2.Consumer(
-        name=consumer.name,
-        important=consumer.important,
-        read_from=proto_timestamp_from_datetime(consumer.read_from),
-        supported_codecs=ydb_topic_pb2.SupportedCodecs(
-            codecs=consumer.supported_codecs,
-        ),
-        attributes=consumer.attributes,
-    )
+    "Attributes of consumer"
 
 
 @dataclass
@@ -97,8 +81,7 @@ class DescribeTopicRequestParams(IToProto):
 
     def to_proto(self) -> ydb_topic_pb2.DescribeTopicRequest:
         return ydb_topic_pb2.DescribeTopicRequest(
-            path=self.path,
-            include_stats=self.include_stats
+            path=self.path, include_stats=self.include_stats
         )
 
 
@@ -106,45 +89,101 @@ class DescribeTopicRequestParams(IToProto):
 # Need similar struct to CreateTopicRequestParams
 class PublicDescribeTopicResult:
     self: SchemeEntry
-    min_active_partitions: int  # Minimum partition count auto merge would stop working at
-    partition_count_limit: int  # Limit for total partition count, including active (open for write) and read-only partitions.
-    partitions: List["PublicDescribeTopicResult.PartitionInfo"]  # Partitions description
+    "Description of scheme object"
 
-    retention_period: datetime.timedelta  # How long data in partition should be stored
-    retention_storage_mb: int             # How much data in partition should be stored. Zero value means infinite limit.
-    supported_codecs: List[PublicCodec]   # List of allowed codecs for writers.
-    partition_write_speed_bytes_per_second: int  # Partition write speed in bytes per second
-    partition_write_burst_bytes: int             # Burst size for write in partition, in bytes
-    attributes: Dict[str, str]            # User and server attributes of topic. Server attributes starts from "_" and will be validated by server.
-    consumers: List[PublicConsumer]       # List of consumers for this topic
-    metering_mode: PublicMeteringMode     # Metering settings
-    topic_stats: "PublicDescribeTopicResult.TopicStats"  # Statistics of topic
+    min_active_partitions: int
+    "Minimum partition count auto merge would stop working at"
+
+    partition_count_limit: int
+    "Limit for total partition count, including active (open for write) and read-only partitions"
+
+    partitions: List["PublicDescribeTopicResult.PartitionInfo"]
+    "Partitions description"
+
+    retention_period: datetime.timedelta
+    "How long data in partition should be stored"
+
+    retention_storage_mb: int
+    "How much data in partition should be stored. Zero value means infinite limit"
+
+    supported_codecs: List[PublicCodec]
+    "List of allowed codecs for writers"
+
+    partition_write_speed_bytes_per_second: int
+    "Partition write speed in bytes per second"
+
+    partition_write_burst_bytes: int
+    "Burst size for write in partition, in bytes"
+
+    attributes: Dict[str, str]
+    """User and server attributes of topic. Server attributes starts from "_" and will be validated by server."""
+
+    consumers: List[PublicConsumer]
+    """List of consumers for this topic"""
+
+    metering_mode: PublicMeteringMode
+    "Metering settings"
+
+    topic_stats: "PublicDescribeTopicResult.TopicStats"
+    "Statistics of topic"
 
     @dataclass
     class PartitionInfo:
-        partition_id: int  # Partition identifier
-        active: bool  # Is partition open for write
-        child_partition_ids: List[int]   # Ids of partitions which was formed when this partition was split or merged
-        parent_partition_ids: List[int]  # Ids of partitions from which this partition was formed by split or merge
-        partition_stats: Optional["PublicPartitionStats"]  # Stats for partition, filled only when include_stats in request is true
+        partition_id: int
+        "Partition identifier"
+
+        active: bool
+        "Is partition open for write"
+
+        child_partition_ids: List[int]
+        "Ids of partitions which was formed when this partition was split or merged"
+
+        parent_partition_ids: List[int]
+        "Ids of partitions from which this partition was formed by split or merge"
+
+        partition_stats: Optional["PublicPartitionStats"]
+        "Stats for partition, filled only when include_stats in request is true"
 
     @dataclass
     class TopicStats:
-        store_size_bytes: int  # Approximate size of topic
-        min_last_write_time: datetime.datetime  # Minimum of timestamps of last write among all partitions.
-        max_write_time_lag: datetime.timedelta  # Maximum of differences between write timestamp and create timestamp for all messages, written during last minute.
-        bytes_written: "PublicMultipleWindowsStat"  # How much bytes were written statistics.
+        store_size_bytes: int
+        "Approximate size of topic"
+
+        min_last_write_time: datetime.datetime
+        "Minimum of timestamps of last write among all partitions."
+
+        max_write_time_lag: datetime.timedelta
+        """
+        Maximum of differences between write timestamp and create timestamp for all messages,
+        written during last minute.
+        """
+
+        bytes_written: "PublicMultipleWindowsStat"
+        "How much bytes were written statistics."
 
 
 @dataclass
 class PublicPartitionStats:
-    partition_start: int  # first message offset in the partition
-    partition_end: int    # last+1 message offset in the partition
-    store_size_bytes: int  # Approximate size of partition
-    last_write_time: datetime.datetime  # Timestamp of last write
-    max_write_time_lag: datetime.timedelta  # Maximum of differences between write timestamp and create timestamp for all messages, written during last minute.
-    bytes_written: "PublicMultipleWindowsStat"  # How much bytes were written during several windows in this partition.
-    partition_node_id: int  # Host where tablet for this partition works. Useful for debugging purposes.
+    partition_start: int
+    "first message offset in the partition"
+
+    partition_end: int
+    "offset after last stored message offset in the partition (last offset + 1)"
+
+    store_size_bytes: int
+    "Approximate size of partition"
+
+    last_write_time: datetime.datetime
+    "Timestamp of last write"
+
+    max_write_time_lag: datetime.timedelta
+    "Maximum of differences between write timestamp and create timestamp for all messages, written during last minute."
+
+    bytes_written: "PublicMultipleWindowsStat"
+    "How much bytes were written during several windows in this partition."
+
+    partition_node_id: int
+    "Host where tablet for this partition works. Useful for debugging purposes."
 
 
 @dataclass

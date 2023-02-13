@@ -5,7 +5,6 @@ from concurrent import futures
 import functools
 import hashlib
 import collections
-import warnings
 from . import ydb_version
 
 try:
