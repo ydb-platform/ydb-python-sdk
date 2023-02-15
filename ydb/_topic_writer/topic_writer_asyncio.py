@@ -208,7 +208,7 @@ class WriterAsyncIOReconnector:
         res = done.pop()  # type: asyncio.Future
         res_val = res.result()
 
-        if isinstance(res_val, Exception):
+        if isinstance(res_val, BaseException):
             raise res_val
 
         return res_val
