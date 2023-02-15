@@ -157,6 +157,7 @@ class WriterAsyncIO:
 
 
 class WriterAsyncIOReconnector:
+    _closed: bool
     _credentials: Union[ydb.Credentials, None]
     _driver: ydb.aio.Driver
     _update_token_interval: int
@@ -174,6 +175,7 @@ class WriterAsyncIOReconnector:
     _background_tasks: List[asyncio.Task]
 
     def __init__(self, driver: SupportedDriverType, settings: WriterSettings):
+        self._closed = False
         self._driver = driver
         self._credentials = driver._credentials
         self._init_message = settings.create_init_request()
@@ -191,7 +193,11 @@ class WriterAsyncIOReconnector:
         ]
 
     async def close(self):
-        self._check_stop()
+        if self._closed:
+            return
+
+        self._closed = True
+
         self._stop(TopicWriterStopped())
 
         background_tasks = self._background_tasks
