@@ -429,29 +429,6 @@ class WriterAsyncIOStream:
         await writer._start(stream, init_request)
         return writer
 
-    @staticmethod
-    async def _create_stream_from_async(
-        driver: ydb.aio.Driver,
-        init_request: StreamWriteMessage.InitRequest,
-        token_getter: TokenGetterFuncType,
-    ) -> "WriterAsyncIOStream":
-        return GrpcWrapperAsyncIO(StreamWriteMessage.FromServer.from_proto)
-
-    @staticmethod
-    async def _create_from_sync(
-        driver: ydb.Driver,
-        init_request: StreamWriteMessage.InitRequest,
-        token_getter: TokenGetterFuncType,
-    ) -> "WriterAsyncIOStream":
-        stream = GrpcWrapperAsyncIO(StreamWriteMessage.FromServer.from_proto)
-        await stream.start(
-            driver, _apis.TopicService.Stub, _apis.TopicService.StreamWrite
-        )
-
-        writer = WriterAsyncIOStream(token_getter)
-        await writer._start(stream, init_request)
-        return writer
-
     async def receive(self) -> StreamWriteMessage.WriteResponse:
         while True:
             item = await self._stream.receive()
