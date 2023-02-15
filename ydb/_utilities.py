@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import threading
 import codecs
 from concurrent import futures
 import functools
@@ -157,3 +158,17 @@ class SyncResponseIterator(object):
 
     def __next__(self):
         return self._next()
+
+
+class AtomicCounter:
+    _lock: threading.Lock
+    _value: int
+
+    def __init__(self, initial_value: int = 0):
+        self._lock = threading.Lock()
+        self._value = initial_value
+
+    def inc_and_get(self) -> int:
+        with self._lock:
+            self._value += 1
+            return self._value

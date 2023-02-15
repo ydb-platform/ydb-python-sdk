@@ -46,13 +46,19 @@ class TopicReaderSync:
     def __del__(self):
         self.close()
 
-    def _call(self, coro):
+    def _call(self, coro) -> concurrent.futures.Future:
+        """
+        Call async function and return future fow wait result
+        """
         if self._closed:
             raise TopicReaderClosedError()
 
         return asyncio.run_coroutine_threadsafe(coro, self._loop)
 
     def _call_sync(self, coro: Coroutine, timeout):
+        """
+        Call async function, wait and return result
+        """
         f = self._call(coro)
         try:
             return f.result(timeout)
@@ -162,15 +168,13 @@ class TopicReaderSync:
 
         if receive in timeout seconds (default - infinite): raise TimeoutError()
         """
-        raise NotImplementedError()
+        return self._call_sync(self._async_reader.commit_with_ack(mess), None)
 
-    def async_commit_with_ack(
-        self, mess: ICommittable
-    ) -> Union[CommitResult, List[CommitResult]]:
+    def async_commit_with_ack(self, mess: ICommittable) -> concurrent.futures.Future:
         """
         write commit message to a buffer and return Future for wait result.
         """
-        raise NotImplementedError()
+        return self._call(self._async_reader.commit_with_ack(mess), None)
 
     def async_flush(self) -> concurrent.futures.Future:
         """
