@@ -197,7 +197,6 @@ class WriterAsyncIOReconnector:
             return
 
         self._closed = True
-
         self._stop(TopicWriterStopped())
 
         background_tasks = self._background_tasks
@@ -206,6 +205,12 @@ class WriterAsyncIOReconnector:
             task.cancel()
 
         await asyncio.wait(self._background_tasks)
+
+        # if work was stopped before close by error - raise the error
+        try:
+            self._check_stop()
+        except TopicWriterStopped:
+            pass
 
     async def wait_init(self) -> PublicWriterInitInfo:
         done, _ = await asyncio.wait(
