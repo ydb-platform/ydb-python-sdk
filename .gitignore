@@ -4,4 +4,8 @@ ydb.egg-info/
 /tox
 /venv
 /ydb_certs
+/ydb_data
 /tmp
+.coverage
+/cov_html
+/build
