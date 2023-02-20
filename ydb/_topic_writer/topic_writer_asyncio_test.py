@@ -239,6 +239,20 @@ class TestWriterAsyncIOReconnector:
             topic_quota_wait_time=datetime.timedelta(milliseconds=5),
         )
 
+    def make_default_ack_message(self, seq_no=1) -> StreamWriteMessage.WriteResponse:
+        return StreamWriteMessage.WriteResponse(
+            partition_id=1,
+            acks=[
+                StreamWriteMessage.WriteResponse.WriteAck(
+                    seq_no=seq_no,
+                    message_write_status=StreamWriteMessage.WriteResponse.WriteAck.StatusWritten(
+                        offset=1
+                    ),
+                )
+            ],
+            write_statistics=self.default_write_statistic,
+        )
+
     @pytest.fixture
     async def reconnector(
         self, default_driver, default_settings
@@ -275,20 +289,7 @@ class TestWriterAsyncIOReconnector:
         assert [InternalMessage(message2)] == messages
 
         # ack first message
-        stream_writer.from_server.put_nowait(
-            StreamWriteMessage.WriteResponse(
-                partition_id=1,
-                acks=[
-                    StreamWriteMessage.WriteResponse.WriteAck(
-                        seq_no=1,
-                        message_write_status=StreamWriteMessage.WriteResponse.WriteAck.StatusWritten(
-                            offset=1
-                        ),
-                    )
-                ],
-                write_statistics=default_write_statistic,
-            )
-        )
+        stream_writer.from_server.put_nowait(self.make_default_ack_message(seq_no=1))
 
         stream_writer.from_server.put_nowait(issues.Overloaded("test"))
 
@@ -297,6 +298,8 @@ class TestWriterAsyncIOReconnector:
 
         expected_messages = [InternalMessage(message2)]
         assert second_sent_msg == expected_messages
+
+        second_writer.from_server.put_nowait(self.make_default_ack_message(seq_no=2))
         await reconnector.close()
 
     async def test_stop_on_unexpected_exception(
@@ -323,7 +326,7 @@ class TestWriterAsyncIOReconnector:
             await asyncio.wait_for(wait_stop(), 1)
 
         with pytest.raises(TestException):
-            await reconnector.close()
+            await reconnector.close(flush=False)
 
     async def test_wait_init(self, default_driver, default_settings, get_stream_writer):
         init_seqno = 100
@@ -350,7 +353,7 @@ class TestWriterAsyncIOReconnector:
             info = await reconnector.wait_init()
             assert info == expected_init_info
 
-        await reconnector.close()
+        await reconnector.close(flush=False)
 
     async def test_write_message(
         self, reconnector: WriterAsyncIOReconnector, get_stream_writer
@@ -365,7 +368,7 @@ class TestWriterAsyncIOReconnector:
         sent_messages = await asyncio.wait_for(stream_writer.from_client.get(), 1)
         assert sent_messages == [InternalMessage(message)]
 
-        await reconnector.close()
+        await reconnector.close(flush=False)
 
     async def test_auto_seq_no(
         self, default_driver, default_settings, get_stream_writer
@@ -399,7 +402,7 @@ class TestWriterAsyncIOReconnector:
                 [PublicMessage(seqno=last_seq_no + 3, data="123")]
             )
 
-        await reconnector.close()
+        await reconnector.close(flush=False)
 
     async def test_deny_double_seqno(self, reconnector: WriterAsyncIOReconnector):
         await reconnector.write_with_ack([PublicMessage(seqno=10, data="123")])
@@ -412,7 +415,7 @@ class TestWriterAsyncIOReconnector:
 
         await reconnector.write_with_ack([PublicMessage(seqno=11, data="123")])
 
-        await reconnector.close()
+        await reconnector.close(flush=False)
 
     @freezegun.freeze_time("2022-01-13 20:50:00", tz_offset=0)
     async def test_auto_created_at(
@@ -431,7 +434,7 @@ class TestWriterAsyncIOReconnector:
         assert [
             InternalMessage(PublicMessage(seqno=4, data="123", created_at=now))
         ] == sent
-        await reconnector.close()
+        await reconnector.close(flush=False)
 
 
 @pytest.mark.asyncio
