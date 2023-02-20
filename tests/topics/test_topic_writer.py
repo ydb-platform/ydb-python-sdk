@@ -9,7 +9,7 @@ class TestTopicWriterAsyncIO:
         writer = driver.topic_client.topic_writer(
             topic_path, producer_and_message_group_id="test"
         )
-        writer.write(ydb.TopicWriterMessage(data="123".encode()))
+        await writer.write(ydb.TopicWriterMessage(data="123".encode()))
 
         # todo check receive mess
 
