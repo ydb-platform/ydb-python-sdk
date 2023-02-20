@@ -2,7 +2,9 @@ from __future__ import annotations
 
 import abc
 import asyncio
+import contextvars
 import datetime
+import functools
 import typing
 from typing import (
     Optional,
@@ -167,7 +169,7 @@ class GrpcWrapperAsyncIO(IGrpcWrapperAsyncIO):
 
     async def _start_sync_driver(self, driver: ydb.Driver, stub, method):
         requests_iterator = AsyncQueueToSyncIteratorAsyncIO(self.from_client_grpc)
-        stream_call = await asyncio.to_thread(
+        stream_call = await to_thread(
             driver,
             requests_iterator,
             stub,
@@ -241,6 +243,24 @@ def callback_from_asyncio(
         return loop.create_task(callback())
     else:
         return loop.run_in_executor(None, callback)
+
+
+async def to_thread(func, /, *args, **kwargs):
+    """Asynchronously run function *func* in a separate thread.
+
+    Any *args and **kwargs supplied for this function are directly passed
+    to *func*. Also, the current :class:`contextvars.Context` is propagated,
+    allowing context variables from the main thread to be accessed in the
+    separate thread.
+
+    Return a coroutine that can be awaited to get the eventual result of *func*.
+    """
+    # copied from python 3.10 for compatible with old python since 3.8
+
+    loop = asyncio.get_running_loop()
+    ctx = contextvars.copy_context()
+    func_call = functools.partial(ctx.run, func, *args, **kwargs)
+    return await loop.run_in_executor(None, func_call)
 
 
 def proto_duration_from_timedelta(t: Optional[datetime.timedelta]) -> ProtoDuration:

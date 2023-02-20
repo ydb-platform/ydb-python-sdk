@@ -103,7 +103,7 @@ class PublicMessage:
         if isinstance(self.data, str):
             return self.data.encode()
 
-        raise ValueError("Bad data type: %s", type(self.data))
+        raise ValueError("Bad data type: %s" % type(self.data))
 
     @staticmethod
     def _to_message(data: "MessageType") -> PublicMessage:
