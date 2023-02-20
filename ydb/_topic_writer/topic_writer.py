@@ -1,4 +1,5 @@
-import concurrent.futures
+from __future__ import annotations
+
 import datetime
 import enum
 from dataclasses import dataclass
@@ -10,128 +11,6 @@ import typing
 import ydb.aio
 from .._grpc.grpcwrapper.ydb_topic import Codec, StreamWriteMessage
 from .._grpc.grpcwrapper.common_utils import IToProto
-
-
-class Writer:
-    @property
-    def last_seqno(self) -> int:
-        raise NotImplementedError()
-
-    def __init__(self, db: ydb.Driver):
-        pass
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        self.close()
-
-    def close(self):
-        pass
-
-    MessageType = typing.Union["PublicMessage", "PublicMessage.SimpleMessageSourceType"]
-
-    def write(
-        self,
-        message: Union[MessageType, List[MessageType]],
-        *args: Optional[MessageType],
-        timeout: [float, None] = None,
-    ):
-        """
-        send one or number of messages to server.
-        it fast put message to internal buffer, without wait message result
-        return None
-
-        message will send independent of wait/no wait result
-
-        timeout - time for waiting for put message into internal queue.
-            if 0 or negative - non block calls
-            if None or not set - infinite wait
-            It will raise TimeoutError() exception if it can't put message to internal queue by limits during timeout.
-        """
-        raise NotImplementedError()
-
-    def async_write_with_ack(
-        self,
-        message: Union[MessageType, List[MessageType]],
-        *args: Optional[MessageType],
-        timeout: [float, None] = None,
-    ) -> concurrent.futures.Future:
-        """
-        send one or number of messages to server.
-        return feature, which can be waited for check send result: ack/duplicate/error
-
-        Usually it is fast method, but can wait if internal buffer is full.
-
-        timeout - time for waiting for put message into internal queue.
-            The method can be blocked up to timeout seconds before return future.
-
-            if 0 or negative - non block calls
-            if None or not set - infinite wait
-            It will raise TimeoutError() exception if it can't put message to internal queue by limits during timeout.
-        """
-        raise NotImplementedError()
-
-    def write_with_ack(
-        self,
-        message: Union[MessageType, List[MessageType]],
-        *args: Optional[MessageType],
-        buffer_timeout: [float, None] = None,
-    ) -> Union["MessageWriteStatus", List["MessageWriteStatus"]]:
-        """
-        IT IS SLOWLY WAY. IT IS BAD CHOISE IN MOST CASES.
-        It is recommended to use write with optionally flush or async_write_with_ack and receive acks by wait future.
-
-        send one or number of messages to server.
-        blocked until receive server ack for the message/messages.
-
-        message will send independent of wait/no wait result
-
-        buffer_timeout - time for send message to server and receive ack.
-            if 0 or negative - non block calls
-            if None or not set - infinite wait
-            It will raise TimeoutError() exception if it isn't receive ack in timeout
-        """
-        raise NotImplementedError()
-
-    def async_flush(self):
-        """
-        Force send all messages from internal buffer and wait acks from server for all
-        messages.
-
-        flush starts of flush process, and return Future for wait result.
-        messages will be flushed independent of future waiting.
-        """
-        raise NotImplementedError()
-
-    def flush(self, timeout: Union[float, None] = None) -> concurrent.futures.Future:
-        """
-        Force send all messages from internal buffer and wait acks from server for all
-        messages.
-
-        timeout - time for waiting for send all messages and receive server ack.
-            if 0 or negative - non block calls
-            if None or not set - infinite wait
-            It will raise TimeoutError() exception if it isn't receive ack in timeout
-        """
-        raise NotImplementedError()
-
-    def async_wait_init(self) -> concurrent.futures.Future:
-        """
-        Return feature, which done when underling connection established
-        """
-        raise NotImplementedError()
-
-    def wait_init(self, timeout: Union[float, None] = None):
-        """
-        Wait until underling connection established
-
-        timeout - time for waiting for send all messages and receive server ack.
-            if 0 or negative - non block calls
-            if None or not set - infinite wait
-            It will raise TimeoutError() exception if it isn't receive ack in timeout
-        """
-        raise NotImplementedError()
 
 
 @dataclass
@@ -205,7 +84,7 @@ class PublicMessage:
     created_at: Optional[datetime.datetime]
     data: Union[str, bytes, TextIO, BinaryIO]
 
-    SimpleMessageSourceType = Union[str, bytes, TextIO, BinaryIO]
+    SimpleMessageSourceType = Union[str, bytes]
 
     def __init__(
         self,
@@ -218,6 +97,23 @@ class PublicMessage:
         self.created_at = created_at
         self.data = data
 
+    def _get_data_bytes(self) -> bytes:
+        if isinstance(self.data, bytes):
+            return self.data
+        if isinstance(self.data, str):
+            return self.data.encode()
+
+        raise ValueError("Bad data type: %s", type(self.data))
+
+    @staticmethod
+    def _to_message(data: "MessageType") -> PublicMessage:
+        if isinstance(data, PublicMessage):
+            return data
+        return PublicMessage(data)
+
+
+MessageType = typing.Union["PublicMessage", "PublicMessage.SimpleMessageSourceType"]
+
 
 class InternalMessage(StreamWriteMessage.WriteRequest.MessageData, IToProto):
     def __init__(self, mess: PublicMessage):
@@ -225,7 +121,7 @@ class InternalMessage(StreamWriteMessage.WriteRequest.MessageData, IToProto):
             self,
             seq_no=mess.seqno,
             created_at=mess.created_at,
-            data=mess.data,
+            data=mess._get_data_bytes(),
             uncompressed_size=len(mess.data),
             partitioning=None,
         )
@@ -240,7 +136,7 @@ class InternalMessage(StreamWriteMessage.WriteRequest.MessageData, IToProto):
         raise ValueError("Bad data type")
 
     def to_message_data(self) -> StreamWriteMessage.WriteRequest.MessageData:
-        data = self.get_bytes()
+        data = self.data
         return StreamWriteMessage.WriteRequest.MessageData(
             seq_no=self.seq_no,
             created_at=self.created_at,

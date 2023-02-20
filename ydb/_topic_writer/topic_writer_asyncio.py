@@ -4,10 +4,10 @@ from collections import deque
 from typing import Deque, AsyncIterator, Union, List, Optional
 
 import ydb
+from . import topic_writer
 from .topic_writer import (
     PublicWriterSettings,
     WriterSettings,
-    Writer,
     PublicMessage,
     PublicWriterInitInfo,
     InternalMessage,
@@ -75,8 +75,8 @@ class WriterAsyncIO:
 
     async def write_with_ack(
         self,
-        messages: Union[Writer.MessageType, List[Writer.MessageType]],
-        *args: Optional[Writer.MessageType],
+        messages: Union[topic_writer.MessageType, List[topic_writer.MessageType]],
+        *args: Optional[topic_writer.MessageType],
     ) -> Union[PublicWriteResultTypes, List[PublicWriteResultTypes]]:
         """
         IT IS SLOWLY WAY. IT IS BAD CHOISE IN MOST CASES.
@@ -104,8 +104,8 @@ class WriterAsyncIO:
 
     async def write_with_ack_future(
         self,
-        messages: Union[Writer.MessageType, List[Writer.MessageType]],
-        *args: Optional[Writer.MessageType],
+        messages: Union[topic_writer.MessageType, List[topic_writer.MessageType]],
+        *args: Optional[topic_writer.MessageType],
     ) -> Union[asyncio.Future, List[asyncio.Future]]:
         """
         send one or number of messages to server.
@@ -127,8 +127,8 @@ class WriterAsyncIO:
 
     async def write(
         self,
-        messages: Union[Writer.MessageType, List[Writer.MessageType]],
-        *args: Optional[Writer.MessageType],
+        messages: Union[topic_writer.MessageType, List[topic_writer.MessageType]],
+        *args: Optional[topic_writer.MessageType],
     ):
         """
         send one or number of messages to server.
