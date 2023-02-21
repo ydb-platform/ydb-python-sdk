@@ -45,7 +45,8 @@ def _get_default_event_loop() -> asyncio.AbstractEventLoop:
             event_loop_set_done.set_result(event_loop)
             asyncio.set_event_loop(event_loop)
 
-            # tmp create new thread every time
+            # todo: fix leak threads
+            # tmp create new eventloop and new thread every time
             # _shared_event_loop = event_loop
 
             event_loop.run_forever()
