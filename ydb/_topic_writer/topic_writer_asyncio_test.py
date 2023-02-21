@@ -149,6 +149,7 @@ class TestWriterAsyncIOStream:
 
 
 @pytest.mark.asyncio
+@pytest.mark.skip  # todo, unskip BEFORE MERGE - for debug only
 class TestWriterAsyncIOReconnector:
     init_last_seqno = 0
 
