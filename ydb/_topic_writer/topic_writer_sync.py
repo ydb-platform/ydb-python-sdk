@@ -37,9 +37,8 @@ def _get_shared_event_loop() -> asyncio.AbstractEventLoop:
         def start_event_loop():
             global _shared_event_loop
 
-            max_workers = min(32, (os.cpu_count() or 1) + 4)
-            max_workers = max(max_workers, 10)
-            executor = ThreadPoolExecutor(max_workers=max_workers)
+            # todo tune it
+            executor = ThreadPoolExecutor(max_workers=32)
 
             _shared_event_loop = asyncio.new_event_loop()
             _shared_event_loop.set_default_executor(executor)
