@@ -1,5 +1,6 @@
 import asyncio
 import datetime
+import itertools
 from collections import deque
 from typing import Deque, AsyncIterator, Union, List, Optional
 
@@ -39,6 +40,8 @@ from .._grpc.grpcwrapper.common_utils import (
 import logging
 
 LOGGER = logging.getLogger(__name__)
+
+_counter = itertools.count()
 
 
 class WriterAsyncIO:
@@ -154,6 +157,7 @@ class WriterAsyncIO:
 
 
 class WriterAsyncIOReconnector:
+    _id: int
     _closed: bool
     _credentials: Union[ydb.Credentials, None]
     _driver: ydb.aio.Driver
@@ -172,6 +176,7 @@ class WriterAsyncIOReconnector:
     _background_tasks: List[asyncio.Task]
 
     def __init__(self, driver: SupportedDriverType, settings: WriterSettings):
+        self._id = _counter.__next__()
         self._closed = False
         self._driver = driver
         self._credentials = driver._credentials
@@ -303,7 +308,7 @@ class WriterAsyncIOReconnector:
             # noinspection PyBroadException
             stream_writer = None
             try:
-                print("rekby: connecting %s" % len(self._messages))
+                print("rekby: connecting id:%s %s" % (self._id, len(self._messages)))
                 stream_writer = await WriterAsyncIOStream.create(
                     self._driver, self._init_message, self._get_token
                 )
@@ -333,7 +338,7 @@ class WriterAsyncIOReconnector:
                 done.pop().result()
             except issues.Error as err:
                 # todo log error
-                print("rekby: connection ydb error: (%s, %s)" % (len(self._messages), err))
+                print("rekby: connection ydb error: (id:%s, %s, %s)" % (self._id, len(self._messages), err))
 
                 err_info = check_retriable_error(err, retry_settings, attempt)
                 if not err_info.is_retriable:
@@ -343,12 +348,12 @@ class WriterAsyncIOReconnector:
                 await asyncio.sleep(err_info.sleep_timeout_seconds)
 
             except (asyncio.CancelledError, Exception) as err:
-                print("rekby: connection loop error: %s" % err)
+                print("rekby: connection loop error: (id:%s, %s)" % (self._id, err))
                 self._stop(err)
                 return
             finally:
                 if stream_writer is not None:
-                    print("rekby: before close: %s" % len(self._messages))
+                    print("rekby: before close: (id:%s, %s)" % (self._id, len(self._messages)))
                     stream_writer.close()
                 if len(pending) > 0:
                     for task in pending:
@@ -358,7 +363,7 @@ class WriterAsyncIOReconnector:
     async def _read_loop(self, writer: "WriterAsyncIOStream"):
         while True:
             resp = await writer.receive()
-            print('rekby: received: %s, %s' % (len(self._messages), resp))
+            print('rekby: received: id:%s, %s, %s' % (self._id, len(self._messages), resp))
 
             for ack in resp.acks:
                 self._handle_receive_ack(ack)
