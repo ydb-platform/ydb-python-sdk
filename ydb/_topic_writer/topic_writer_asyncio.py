@@ -316,7 +316,7 @@ class WriterAsyncIOReconnector:
                     pass
 
                 self._stream_connected.set()
-                print("rekby: connected")
+                print("rekby: connected %s" % len(self._messages))
 
                 send_loop = asyncio.create_task(
                     self._send_loop(stream_writer), name="writer send loop"
@@ -333,7 +333,7 @@ class WriterAsyncIOReconnector:
                 done.pop().result()
             except issues.Error as err:
                 # todo log error
-                print("rekby: connection ydb error: %s" % err)
+                print("rekby: connection ydb error: (%s, %s)" % (len(self._messages), err))
 
                 err_info = check_retriable_error(err, retry_settings, attempt)
                 if not err_info.is_retriable:
