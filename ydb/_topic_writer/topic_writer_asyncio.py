@@ -300,6 +300,7 @@ class WriterAsyncIOReconnector:
             pending = []
 
             # noinspection PyBroadException
+            stream_writer = None
             try:
                 print("rekby: connecting")
                 stream_writer = await WriterAsyncIOStream.create(
@@ -326,10 +327,8 @@ class WriterAsyncIOReconnector:
                 pending = [send_loop, receive_loop]
 
                 done, pending = await asyncio.wait(
-                    [send_loop, receive_loop], return_when=asyncio.FIRST_COMPLETED
+                    [send_loop, receive_loop], return_when=asyncio.FIRST_EXCEPTION
                 )
-                print("rekby: before close")
-                stream_writer.close()
                 done.pop().result()
             except issues.Error as err:
                 # todo log error
@@ -347,6 +346,9 @@ class WriterAsyncIOReconnector:
                 self._stop(err)
                 return
             finally:
+                if stream_writer is not None:
+                    print("rekby: before close: %s" % len(self._messages))
+                    stream_writer.close()
                 if len(pending) > 0:
                     for task in pending:
                         task.cancel()
@@ -355,6 +357,7 @@ class WriterAsyncIOReconnector:
     async def _read_loop(self, writer: "WriterAsyncIOStream"):
         while True:
             resp = await writer.receive()
+            print('rekby: received: %s' % resp)
 
             for ack in resp.acks:
                 self._handle_receive_ack(ack)
