@@ -121,7 +121,7 @@ class SyncIteratorToAsyncIterator:
 
     async def __anext__(self):
         try:
-            res = await asyncio.to_thread(self._sync_iterator.__next__)
+            res = await to_thread(self._sync_iterator.__next__)
             return res
         except StopAsyncIteration:
             raise StopIteration()
