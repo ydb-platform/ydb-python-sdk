@@ -364,8 +364,10 @@ class WriterAsyncIOReconnector:
                 self._handle_receive_ack(ack)
 
     def _handle_receive_ack(self, ack):
+        print("rekby: handle receive ack before: %s" % len(self._messages))
         current_message = self._messages.popleft()
         message_future = self._messages_future.popleft()
+        print("rekby: handle receive ack after: %s" % len(self._messages))
         if current_message.seq_no != ack.seq_no:
             raise TopicWriterError(
                 "internal error - receive unexpected ack. Expected seqno: %s, received seqno: %s"
@@ -376,6 +378,7 @@ class WriterAsyncIOReconnector:
         )  # todo - return result with offset or skip status
 
     async def _send_loop(self, writer: "WriterAsyncIOStream"):
+        print("rekby: send loop: %s" % len(self._messages))
         try:
             messages = list(self._messages)
             print("rekby: start send loop with %s messages" % len(messages))
