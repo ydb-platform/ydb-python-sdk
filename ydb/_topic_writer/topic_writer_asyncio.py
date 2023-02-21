@@ -333,7 +333,7 @@ class WriterAsyncIOReconnector:
                 done.pop().result()
             except issues.Error as err:
                 # todo log error
-                print(err)
+                print("rekby: connection ydb error: %s" % err)
 
                 err_info = check_retriable_error(err, retry_settings, attempt)
                 if not err_info.is_retriable:
@@ -343,6 +343,7 @@ class WriterAsyncIOReconnector:
                 await asyncio.sleep(err_info.sleep_timeout_seconds)
 
             except (asyncio.CancelledError, Exception) as err:
+                print("rekby: connection loop error: %s" % err)
                 self._stop(err)
                 return
             finally:
