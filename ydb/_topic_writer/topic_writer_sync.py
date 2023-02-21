@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 import asyncio
-from concurrent.futures import Future
+import os
+from concurrent.futures import Future, ThreadPoolExecutor
 import threading
 from typing import Union, List, Optional, Coroutine
 
@@ -20,7 +21,6 @@ from .topic_writer_asyncio import WriterAsyncIO
 _shared_event_loop_lock = threading.Lock()
 _shared_event_loop = None  # type: Optional[asyncio.AbstractEventLoop]
 
-
 def _get_shared_event_loop() -> asyncio.AbstractEventLoop:
     global _shared_event_loop
 
@@ -35,7 +35,13 @@ def _get_shared_event_loop() -> asyncio.AbstractEventLoop:
 
         def start_event_loop():
             global _shared_event_loop
+
+            max_workers = min(32, (os.cpu_count() or 1) + 4)
+            max_workers = max(max_workers, 10)
+            executor = ThreadPoolExecutor(max_workers=max_workers)
+
             _shared_event_loop = asyncio.new_event_loop()
+            _shared_event_loop.set_default_executor(executor)
             event_loop_set_done.set_result(None)
             asyncio.set_event_loop(_shared_event_loop)
             _shared_event_loop.run_forever()
