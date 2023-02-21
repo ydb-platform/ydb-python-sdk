@@ -3,17 +3,17 @@ import asyncio
 import pytest
 
 import ydb.aio
-from ydb._topic_common.test_helpers import wait_condition, wait_for_fast
 
 
 @pytest.mark.asyncio
 class TestTopicWriterAsyncIO:
-    async def test_send_message(self, driver: ydb.aio.Driver, topic_path, topic_consumer):
-        producer_id = "test-producer-id"
+    async def test_send_message(
+        self, driver: ydb.aio.Driver, topic_path, topic_consumer
+    ):
         seqno = 10
         writer = driver.topic_client.topic_writer(
             topic_path,
-            producer_and_message_group_id=producer_id,
+            producer_and_message_group_id="test-producer-id",
             auto_seqno=False,
         )
         await writer.write(ydb.TopicWriterMessage(seqno=seqno, data="123".encode()))
@@ -45,15 +45,14 @@ class TestTopicWriterAsyncIO:
 
 class TestTopicWriterSync:
     def test_send_message(self, driver_sync: ydb.Driver, topic_path, topic_consumer):
-        seqno=10
-        producer_id="test-producer-id"
+        seqno = 10
         writer = driver_sync.topic_client.topic_writer(
-            topic_path, producer_and_message_group_id=producer_id,
+            topic_path,
+            producer_and_message_group_id="test-producer-id",
             auto_seqno=False,
         )
-        writer.write(ydb.TopicWriterMessage(
-            seqno=seqno,
-            data="123".encode()),
+        writer.write(
+            ydb.TopicWriterMessage(seqno=seqno, data="123".encode()),
         )
 
         # todo check message by read
