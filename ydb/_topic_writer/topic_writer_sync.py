@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import asyncio
-import os
+import concurrent.futures
 from concurrent.futures import Future, ThreadPoolExecutor
 import threading
 from typing import Union, List, Optional, Coroutine
@@ -22,7 +22,7 @@ _shared_event_loop_lock = threading.Lock()
 _shared_event_loop = None  # type: Optional[asyncio.AbstractEventLoop]
 
 
-def _get_shared_event_loop() -> asyncio.AbstractEventLoop:
+def _get_default_event_loop() -> asyncio.AbstractEventLoop:
     global _shared_event_loop
 
     if _shared_event_loop is not None:
@@ -38,13 +38,17 @@ def _get_shared_event_loop() -> asyncio.AbstractEventLoop:
             global _shared_event_loop
 
             # todo tune it
-            executor = ThreadPoolExecutor(max_workers=32)
+            executor = ThreadPoolExecutor(max_workers=1)
 
-            _shared_event_loop = asyncio.new_event_loop()
-            _shared_event_loop.set_default_executor(executor)
-            event_loop_set_done.set_result(None)
-            asyncio.set_event_loop(_shared_event_loop)
-            _shared_event_loop.run_forever()
+            event_loop = asyncio.new_event_loop()
+            event_loop.set_default_executor(executor)
+            event_loop_set_done.set_result(event_loop)
+            asyncio.set_event_loop(event_loop)
+
+            # tmp create new thread every time
+            # _shared_event_loop = event_loop
+
+            event_loop.run_forever()
 
         t = threading.Thread(
             target=start_event_loop,
@@ -53,8 +57,8 @@ def _get_shared_event_loop() -> asyncio.AbstractEventLoop:
         )
         t.start()
 
-        event_loop_set_done.result()
-        return _shared_event_loop
+        loop = event_loop_set_done.result()
+        return loop
 
 
 class PublicWriterSync:
@@ -75,7 +79,7 @@ class PublicWriterSync:
         if eventloop:
             self._loop = eventloop
         else:
-            self._loop = _get_shared_event_loop()
+            self._loop = _get_default_event_loop()
 
         async def create_async_writer():
             return WriterAsyncIO(driver, settings)
