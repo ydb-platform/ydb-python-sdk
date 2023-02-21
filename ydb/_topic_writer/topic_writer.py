@@ -20,15 +20,15 @@ class PublicWriterSettings:
     session_metadata: Optional[Dict[str, str]] = None
     encoders: Union[Mapping[int, Callable[[bytes], bytes]], None] = None
     serializer: Union[Callable[[Any], bytes], None] = None
-    send_buffer_count: Union[int, None] = 10000
-    send_buffer_bytes: Union[int, None] = 100 * 1024 * 1024
+    send_buffer_count: Optional[int] = 10000
+    send_buffer_bytes: Optional[int] = 100 * 1024 * 1024
     partition_id: Optional[int] = None
-    codec: Union[int, None] = None
+    codec: Optional[int] = None
     codec_autoselect: bool = True
     auto_seqno: bool = True
     auto_created_at: bool = True
     get_last_seqno: bool = False
-    retry_policy: Union["RetryPolicy", None] = None
+    retry_policy: Optional["RetryPolicy"] = None
     update_token_interval: Union[int, float] = 3600
 
 
@@ -147,7 +147,7 @@ class InternalMessage(StreamWriteMessage.WriteRequest.MessageData, IToProto):
 
 
 class MessageSendResult:
-    offset: Union[None, int]
+    offset: Optional[int]
     write_status: "MessageWriteStatus"
 
 

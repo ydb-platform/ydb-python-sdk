@@ -42,6 +42,27 @@ class TestTopicWriterAsyncIO:
             init_info = await writer2.wait_init()
             assert init_info.last_seqno == 5
 
+    async def test_auto_flush_on_close(self, driver: ydb.aio.Driver, topic_path):
+        async with driver.topic_client.topic_writer(
+            topic_path,
+            producer_and_message_group_id="test",
+            auto_seqno=False,
+        ) as writer:
+            last_seqno = 0
+            for i in range(10):
+                last_seqno = i + 1
+                await writer.write(
+                    ydb.TopicWriterMessage(data=f"msg-{i}", seqno=last_seqno)
+                )
+
+        async with driver.topic_client.topic_writer(
+            topic_path,
+            producer_and_message_group_id="test",
+            get_last_seqno=True,
+        ) as writer:
+            init_info = await writer.wait_init()
+            assert init_info.last_seqno == last_seqno
+
 
 class TestTopicWriterSync:
     def test_send_message(self, driver_sync: ydb.Driver, topic_path, topic_consumer):
