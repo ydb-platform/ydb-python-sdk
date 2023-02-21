@@ -149,7 +149,6 @@ class TestWriterAsyncIOStream:
 
 
 @pytest.mark.asyncio
-@pytest.mark.skip  # todo, unskip BEFORE MERGE - for debug only
 class TestWriterAsyncIOReconnector:
     init_last_seqno = 0
 
@@ -262,6 +261,7 @@ class TestWriterAsyncIOReconnector:
     ) -> WriterAsyncIOReconnector:
         return WriterAsyncIOReconnector(default_driver, default_settings)
 
+    @pytest.mark.skip  # todo, unskip BEFORE MERGE - for debug only
     async def test_reconnect_and_resent_non_acked_messages_on_retriable_error(
         self,
         reconnector: WriterAsyncIOReconnector,
