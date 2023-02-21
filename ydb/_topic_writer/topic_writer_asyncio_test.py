@@ -307,7 +307,7 @@ class TestWriterAsyncIOReconnector:
         # ack first message
         stream_writer.from_server.put_nowait(self.make_default_ack_message(seq_no=1))
 
-        stream_writer.from_server.put_nowait(issues.Overloaded("test"))
+        stream_writer.from_server.put_nowait(issues.Overloaded("test overload"))
 
         second_writer = get_stream_writer()
         second_sent_msg = await wait_for_fast(second_writer.from_client.get())
