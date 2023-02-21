@@ -280,14 +280,14 @@ class TestWriterAsyncIOReconnector:
             seqno=2,
             created_at=now,
         )
-        await reconnector.write_with_ack([message1, message2])
+        await wait_for_fast(reconnector.write_with_ack([message1, message2]))
 
         # sent to first stream
         stream_writer = get_stream_writer()
 
         messages = await stream_writer.from_client.get()
         assert [InternalMessage(message1)] == messages
-        messages = await stream_writer.from_client.get()
+        messages = await wait_for_fast(stream_writer.from_client.get())
         assert [InternalMessage(message2)] == messages
 
         # ack first message
@@ -309,7 +309,7 @@ class TestWriterAsyncIOReconnector:
         stream_writer.from_server.put_nowait(issues.Overloaded("test"))
 
         second_writer = get_stream_writer()
-        second_sent_msg = await second_writer.from_client.get()
+        second_sent_msg = await wait_for_fast(second_writer.from_client.get())
 
         expected_messages = [InternalMessage(message2)]
         assert second_sent_msg == expected_messages
