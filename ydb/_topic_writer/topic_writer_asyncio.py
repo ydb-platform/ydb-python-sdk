@@ -36,6 +36,10 @@ from .._grpc.grpcwrapper.common_utils import (
     GrpcWrapperAsyncIO,
 )
 
+import logging
+
+LOGGER = logging.getLogger(__name__)
+
 
 class WriterAsyncIO:
     _loop: asyncio.AbstractEventLoop
@@ -297,6 +301,7 @@ class WriterAsyncIOReconnector:
 
             # noinspection PyBroadException
             try:
+                print("rekby: connecting")
                 stream_writer = await WriterAsyncIOStream.create(
                     self._driver, self._init_message, self._get_token
                 )
@@ -309,6 +314,7 @@ class WriterAsyncIOReconnector:
                     pass
 
                 self._stream_connected.set()
+                print("rekby: connected")
 
                 send_loop = asyncio.create_task(
                     self._send_loop(stream_writer), name="writer send loop"
@@ -322,6 +328,7 @@ class WriterAsyncIOReconnector:
                 done, pending = await asyncio.wait(
                     [send_loop, receive_loop], return_when=asyncio.FIRST_COMPLETED
                 )
+                print("rekby: before close")
                 stream_writer.close()
                 done.pop().result()
             except issues.Error as err:
@@ -366,6 +373,7 @@ class WriterAsyncIOReconnector:
     async def _send_loop(self, writer: "WriterAsyncIOStream"):
         try:
             messages = list(self._messages)
+            print("rekby: start send loop with %s messages" % len(messages))
 
             last_seq_no = 0
             for m in messages:
