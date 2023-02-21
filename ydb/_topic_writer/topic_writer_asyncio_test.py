@@ -184,8 +184,9 @@ class TestWriterAsyncIOReconnector:
             if self._closed:
                 return
 
-            self.from_server.put_nowait(Exception("waited message while StreamWriterMock closed"))
-
+            self.from_server.put_nowait(
+                Exception("waited message while StreamWriterMock closed")
+            )
 
     @pytest.fixture(autouse=True)
     async def stream_writer_double_queue(self, monkeypatch):

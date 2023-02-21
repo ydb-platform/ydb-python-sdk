@@ -89,7 +89,6 @@ class QueueToIteratorAsyncIO:
         return item
 
 
-
 class AsyncQueueToSyncIteratorAsyncIO:
     __slots__ = (
         "_loop",
@@ -105,9 +104,7 @@ class AsyncQueueToSyncIteratorAsyncIO:
         return self
 
     def __next__(self):
-        item = asyncio.run_coroutine_threadsafe(
-            self._queue.get(), self._loop
-        ).result()
+        item = asyncio.run_coroutine_threadsafe(self._queue.get(), self._loop).result()
         if item is None:
             raise StopIteration()
         return item
@@ -150,7 +147,9 @@ class GrpcWrapperAsyncIO(IGrpcWrapperAsyncIO):
     from_server_grpc: AsyncIterator
     convert_server_grpc_to_wrapper: Callable[[Any], Any]
     _connection_state: str
-    _stream_call: Optional[Union[grpc.aio.StreamStreamCall, "grpc._channel._MultiThreadedRendezvous"]]
+    _stream_call: Optional[
+        Union[grpc.aio.StreamStreamCall, "grpc._channel._MultiThreadedRendezvous"]
+    ]
 
     def __init__(self, convert_server_grpc_to_wrapper):
         self.from_client_grpc = asyncio.Queue()

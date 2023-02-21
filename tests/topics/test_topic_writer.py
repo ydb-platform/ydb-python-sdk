@@ -55,7 +55,6 @@ class TestTopicWriterSync:
             ydb.TopicWriterMessage(seqno=seqno, data="123".encode()),
         )
 
-
         # todo check message by read
 
     def test_wait_last_seqno(self, driver_sync: ydb.Driver, topic_path):
