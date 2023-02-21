@@ -250,7 +250,7 @@ class WriterAsyncIOReconnector:
         for m in internal_messages:
             self._new_messages.put_nowait(m)
 
-        print("rekby: writed messages: %s" % len(self._messages))
+        print_debug("rekby: writed messages: %s" % len(self._messages))
         return messages_future
 
     def _prepare_internal_messages(self, messages: List[PublicMessage]):
@@ -308,7 +308,7 @@ class WriterAsyncIOReconnector:
             # noinspection PyBroadException
             stream_writer = None
             try:
-                print("rekby: connecting id:%s %s" % (self._id, len(self._messages)))
+                print_debug("rekby: connecting id:%s %s" % (self._id, len(self._messages)))
                 stream_writer = await WriterAsyncIOStream.create(
                     self._driver, self._init_message, self._get_token
                 )
@@ -321,7 +321,7 @@ class WriterAsyncIOReconnector:
                     pass
 
                 self._stream_connected.set()
-                print("rekby: connected %s" % len(self._messages))
+                print_debug("rekby: connected %s" % len(self._messages))
 
                 send_loop = asyncio.create_task(
                     self._send_loop(stream_writer), name="writer send loop"
@@ -338,7 +338,7 @@ class WriterAsyncIOReconnector:
                 done.pop().result()
             except issues.Error as err:
                 # todo log error
-                print("rekby: connection ydb error: (id:%s, %s, %s)" % (self._id, len(self._messages), err))
+                print_debug("rekby: connection ydb error: (id:%s, %s, %s)" % (self._id, len(self._messages), err))
 
                 err_info = check_retriable_error(err, retry_settings, attempt)
                 if not err_info.is_retriable:
@@ -348,12 +348,12 @@ class WriterAsyncIOReconnector:
                 await asyncio.sleep(err_info.sleep_timeout_seconds)
 
             except (asyncio.CancelledError, Exception) as err:
-                print("rekby: connection loop error: (id:%s, %s)" % (self._id, err))
+                print_debug("rekby: connection loop error: (id:%s, %s)" % (self._id, err))
                 self._stop(err)
                 return
             finally:
                 if stream_writer is not None:
-                    print("rekby: before stream close: (id:%s, %s)" % (self._id, len(self._messages)))
+                    print_debug("rekby: before stream close: (id:%s, %s)" % (self._id, len(self._messages)))
                     stream_writer.close()
                 if len(pending) > 0:
                     for task in pending:
@@ -363,16 +363,16 @@ class WriterAsyncIOReconnector:
     async def _read_loop(self, writer: "WriterAsyncIOStream"):
         while True:
             resp = await writer.receive()
-            print('rekby: received: id:%s, %s, %s' % (self._id, len(self._messages), resp))
+            print_debug('rekby: received: id:%s, %s, %s' % (self._id, len(self._messages), resp))
 
             for ack in resp.acks:
                 self._handle_receive_ack(ack)
 
     def _handle_receive_ack(self, ack):
-        print("rekby: handle receive ack before: %s" % len(self._messages))
+        print_debug("rekby: handle receive ack before: %s" % len(self._messages))
         current_message = self._messages.popleft()
         message_future = self._messages_future.popleft()
-        print("rekby: handle receive ack after: %s" % len(self._messages))
+        print_debug("rekby: handle receive ack after: %s" % len(self._messages))
         if current_message.seq_no != ack.seq_no:
             raise TopicWriterError(
                 "internal error - receive unexpected ack. Expected seqno: %s, received seqno: %s"
@@ -383,10 +383,10 @@ class WriterAsyncIOReconnector:
         )  # todo - return result with offset or skip status
 
     async def _send_loop(self, writer: "WriterAsyncIOStream"):
-        print("rekby: send loop: %s" % len(self._messages))
+        print_debug("rekby: send loop: %s" % len(self._messages))
         try:
             messages = list(self._messages)
-            print("rekby: start send loop with %s messages" % len(messages))
+            print_debug("rekby: start send loop with %s messages" % len(messages))
 
             last_seq_no = 0
             for m in messages:
@@ -494,3 +494,8 @@ class WriterAsyncIOStream:
     def write(self, messages: List[InternalMessage]):
         for request in messages_to_proto_requests(messages):
             self._stream.write(request)
+
+
+def print_debug(*args):
+    import time
+    print(time.monotonic_ns(), *args)

@@ -30,7 +30,7 @@ from .._topic_common.test_helpers import StreamMock, wait_for_fast
 from .topic_writer_asyncio import (
     WriterAsyncIOStream,
     WriterAsyncIOReconnector,
-    WriterAsyncIO,
+    WriterAsyncIO, print_debug,
 )
 
 
@@ -281,7 +281,7 @@ class TestWriterAsyncIOReconnector:
         get_stream_writer,
         default_write_statistic,
     ):
-        print("rekby: reconnector id:%s" % (reconnector._id))
+        print_debug("rekby: reconnector id:%s" % (reconnector._id))
         now = datetime.datetime.now()
         data = "123".encode()
 
@@ -311,7 +311,7 @@ class TestWriterAsyncIOReconnector:
         stream_writer.from_server.put_nowait(issues.Overloaded("test overload"))
 
         second_writer = get_stream_writer()
-        print("rekby: reconnector before second get id:%s" % (reconnector._id))
+        print_debug("rekby: reconnector before second get", {"id": reconnector._id})
         second_sent_msg = await wait_for_fast(second_writer.from_client.get())
 
         expected_messages = [InternalMessage(message2)]
