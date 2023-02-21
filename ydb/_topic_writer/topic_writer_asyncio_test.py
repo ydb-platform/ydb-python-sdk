@@ -25,7 +25,7 @@ from .topic_writer import (
     PublicWriteResult,
     TopicWriterError,
 )
-from .._topic_common.test_helpers import StreamMock
+from .._topic_common.test_helpers import StreamMock, wait_for_fast
 
 from .topic_writer_asyncio import (
     WriterAsyncIOStream,
@@ -426,7 +426,7 @@ class TestWriterAsyncIOReconnector:
         await reconnector.write_with_ack([PublicMessage(seqno=4, data="123")])
 
         stream_writer = get_stream_writer()
-        sent = await stream_writer.from_client.get()
+        sent = await wait_for_fast(stream_writer.from_client.get())
 
         assert [
             InternalMessage(PublicMessage(seqno=4, data="123", created_at=now))
