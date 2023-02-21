@@ -9,6 +9,11 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+
+    concurrency:
+      group: unit-${{ github.ref }}-${{ matrix.environment }}-${{ matrix.python-version }}
+      cancel-in-progress: true
+
     strategy:
       max-parallel: 4
       matrix:
