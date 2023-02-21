@@ -62,9 +62,9 @@ test_dt_today = datetime.today()
 @pytest.mark.parametrize(
     "value,ydb_type,result_value",
     [
-        # FIXME: TypeError: 'datetime.date'/'datetime.datetime' object cannot be interpreted as an integer
-        # (test_today, 'Date', test_today),
+        # FIXME: TypeError: 'datetime.datetime' object cannot be interpreted as an integer
         # (test_dt_today, "Datetime", test_dt_today),
+        (test_today, "Date", test_today),
         (365, "Date", date(1971, 1, 1)),
         (3600 * 24 * 365, "Datetime", datetime(1971, 1, 1, 0, 0)),
         (test_td, "Interval", test_td),
