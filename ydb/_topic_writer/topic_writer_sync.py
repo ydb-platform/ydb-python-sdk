@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import asyncio
-import concurrent.futures
 from concurrent.futures import Future, ThreadPoolExecutor
 import threading
 from typing import Union, List, Optional, Coroutine
@@ -38,7 +37,7 @@ def _get_default_event_loop() -> asyncio.AbstractEventLoop:
             global _shared_event_loop
 
             # todo tune it
-            executor = ThreadPoolExecutor(max_workers=1)
+            executor = ThreadPoolExecutor(max_workers=32)
 
             event_loop = asyncio.new_event_loop()
             event_loop.set_default_executor(executor)
