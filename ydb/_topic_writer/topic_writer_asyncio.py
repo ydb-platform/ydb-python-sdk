@@ -245,6 +245,7 @@ class WriterAsyncIOReconnector:
         for m in internal_messages:
             self._new_messages.put_nowait(m)
 
+        print("rekby: writed messages: %s" % len(self._messages))
         return messages_future
 
     def _prepare_internal_messages(self, messages: List[PublicMessage]):
@@ -357,7 +358,7 @@ class WriterAsyncIOReconnector:
     async def _read_loop(self, writer: "WriterAsyncIOStream"):
         while True:
             resp = await writer.receive()
-            print('rekby: received: %s' % resp)
+            print('rekby: received: %s, %s' % (len(self._messages), resp))
 
             for ack in resp.acks:
                 self._handle_receive_ack(ack)
