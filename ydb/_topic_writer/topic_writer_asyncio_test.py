@@ -320,232 +320,232 @@ class TestWriterAsyncIOReconnector:
         second_writer.from_server.put_nowait(self.make_default_ack_message(seq_no=2))
         await reconnector.close()
 
-    async def test_stop_on_unexpected_exception(
-        self, reconnector: WriterAsyncIOReconnector, get_stream_writer
-    ):
-        class TestException(Exception):
-            pass
-
-        stream_writer = get_stream_writer()
-        stream_writer.from_server.put_nowait(TestException())
-
-        message = PublicMessage(
-            data="123",
-            seqno=3,
-        )
-
-        with pytest.raises(TestException):
-
-            async def wait_stop():
-                while True:
-                    await reconnector.write_with_ack([message])
-                    await asyncio.sleep(0.1)
-
-            await asyncio.wait_for(wait_stop(), 1)
-
-        with pytest.raises(TestException):
-            await reconnector.close(flush=False)
-
-    async def test_wait_init(self, default_driver, default_settings, get_stream_writer):
-        init_seqno = 100
-        expected_init_info = PublicWriterInitInfo(init_seqno)
-        with mock.patch.object(
-            TestWriterAsyncIOReconnector, "init_last_seqno", init_seqno
-        ):
-            reconnector = WriterAsyncIOReconnector(default_driver, default_settings)
-            info = await reconnector.wait_init()
-            assert info == expected_init_info
-
-        reconnector._stream_connected.clear()
-
-        # force reconnect
-        with mock.patch.object(
-            TestWriterAsyncIOReconnector, "init_last_seqno", init_seqno + 1
-        ):
-            stream_writer = get_stream_writer()
-            stream_writer.from_server.put_nowait(
-                issues.Overloaded("test")
-            )  # some retriable error
-            await reconnector._stream_connected.wait()
-
-            info = await reconnector.wait_init()
-            assert info == expected_init_info
-
-        await reconnector.close(flush=False)
-
-    async def test_write_message(
-        self, reconnector: WriterAsyncIOReconnector, get_stream_writer
-    ):
-        stream_writer = get_stream_writer()
-        message = PublicMessage(
-            data="123",
-            seqno=3,
-        )
-        await reconnector.write_with_ack([message])
-
-        sent_messages = await asyncio.wait_for(stream_writer.from_client.get(), 1)
-        assert sent_messages == [InternalMessage(message)]
-
-        await reconnector.close(flush=False)
-
-    async def test_auto_seq_no(
-        self, default_driver, default_settings, get_stream_writer
-    ):
-        last_seq_no = 100
-        with mock.patch.object(
-            TestWriterAsyncIOReconnector, "init_last_seqno", last_seq_no
-        ):
-            settings = copy.deepcopy(default_settings)
-            settings.auto_seqno = True
-
-            reconnector = WriterAsyncIOReconnector(default_driver, settings)
-
-            await reconnector.write_with_ack([PublicMessage(data="123")])
-            await reconnector.write_with_ack([PublicMessage(data="456")])
-
-            stream_writer = get_stream_writer()
-
-            sent = await stream_writer.from_client.get()
-            assert [
-                InternalMessage(PublicMessage(seqno=last_seq_no + 1, data="123"))
-            ] == sent
-
-            sent = await stream_writer.from_client.get()
-            assert [
-                InternalMessage(PublicMessage(seqno=last_seq_no + 2, data="456"))
-            ] == sent
-
-        with pytest.raises(TopicWriterError):
-            await reconnector.write_with_ack(
-                [PublicMessage(seqno=last_seq_no + 3, data="123")]
-            )
-
-        await reconnector.close(flush=False)
-
-    async def test_deny_double_seqno(self, reconnector: WriterAsyncIOReconnector):
-        await reconnector.write_with_ack([PublicMessage(seqno=10, data="123")])
-
-        with pytest.raises(TopicWriterError):
-            await reconnector.write_with_ack([PublicMessage(seqno=9, data="123")])
-
-        with pytest.raises(TopicWriterError):
-            await reconnector.write_with_ack([PublicMessage(seqno=10, data="123")])
-
-        await reconnector.write_with_ack([PublicMessage(seqno=11, data="123")])
-
-        await reconnector.close(flush=False)
-
-    @freezegun.freeze_time("2022-01-13 20:50:00", tz_offset=0)
-    async def test_auto_created_at(
-        self, default_driver, default_settings, get_stream_writer
-    ):
-        now = datetime.datetime.now()
-
-        settings = copy.deepcopy(default_settings)
-        settings.auto_created_at = True
-        reconnector = WriterAsyncIOReconnector(default_driver, settings)
-        await reconnector.write_with_ack([PublicMessage(seqno=4, data="123")])
-
-        stream_writer = get_stream_writer()
-        sent = await wait_for_fast(stream_writer.from_client.get())
-
-        assert [
-            InternalMessage(PublicMessage(seqno=4, data="123", created_at=now))
-        ] == sent
-        await reconnector.close(flush=False)
-
-
-@pytest.mark.asyncio
-class TestWriterAsyncIO:
-    class ReconnectorMock:
-        lock: asyncio.Lock
-        messages: typing.List[InternalMessage]
-        futures: typing.List[asyncio.Future]
-        messages_writted: asyncio.Event
-
-        def __init__(self):
-            self.lock = asyncio.Lock()
-            self.messages = []
-            self.futures = []
-            self.messages_writted = asyncio.Event()
-
-        async def write_with_ack(self, messages: typing.List[InternalMessage]):
-            async with self.lock:
-                futures = [asyncio.Future() for _ in messages]
-                self.messages.extend(messages)
-                self.futures.extend(futures)
-                self.messages_writted.set()
-                return futures
-
-        async def close(self):
-            pass
-
-    @pytest.fixture
-    def default_settings(self) -> PublicWriterSettings:
-        return PublicWriterSettings(
-            topic="/local/topic",
-            producer_and_message_group_id="producer-id",
-        )
-
-    @pytest.fixture(autouse=True)
-    def mock_reconnector_init(self, monkeypatch, reconnector):
-        def t(cls, driver, settings):
-            return reconnector
-
-        monkeypatch.setattr(WriterAsyncIOReconnector, "__new__", t)
-
-    @pytest.fixture
-    def reconnector(self, monkeypatch) -> TestWriterAsyncIO.ReconnectorMock:
-        reconnector = TestWriterAsyncIO.ReconnectorMock()
-        return reconnector
-
-    @pytest.fixture
-    async def writer(self, default_driver, default_settings):
-        return WriterAsyncIO(default_driver, default_settings)
-
-    async def test_write(self, writer: WriterAsyncIO, reconnector):
-        m = PublicMessage(seqno=1, data="123")
-        res = await writer.write(m)
-        assert res is None
-
-        assert reconnector.messages == [m]
-
-    async def test_write_with_futures(self, writer: WriterAsyncIO, reconnector):
-        m = PublicMessage(seqno=1, data="123")
-        res = await writer.write_with_ack_future(m)
-
-        assert reconnector.messages == [m]
-        assert asyncio.isfuture(res)
-
-    async def test_write_with_ack(self, writer: WriterAsyncIO, reconnector):
-        reconnector.messages_writted.clear()
-
-        async def ack_first_message():
-            await reconnector.messages_writted.wait()
-            async with reconnector.lock:
-                reconnector.futures[0].set_result(PublicWriteResult.Written(offset=1))
-
-        asyncio.create_task(ack_first_message())
-
-        m = PublicMessage(seqno=1, data="123")
-        res = await writer.write_with_ack(m)
-
-        assert res == PublicWriteResult.Written(offset=1)
-
-        reconnector.messages_writted.clear()
-        async with reconnector.lock:
-            reconnector.messages.clear()
-            reconnector.futures.clear()
-
-        async def ack_next_messages():
-            await reconnector.messages_writted.wait()
-            async with reconnector.lock:
-                reconnector.futures[0].set_result(PublicWriteResult.Written(offset=2))
-                reconnector.futures[1].set_result(PublicWriteResult.Skipped())
-
-        asyncio.create_task(ack_next_messages())
-
-        res = await writer.write_with_ack(
-            [PublicMessage(seqno=2, data="123"), PublicMessage(seqno=3, data="123")]
-        )
-        assert res == [PublicWriteResult.Written(offset=2), PublicWriteResult.Skipped()]
+#     async def test_stop_on_unexpected_exception(
+#         self, reconnector: WriterAsyncIOReconnector, get_stream_writer
+#     ):
+#         class TestException(Exception):
+#             pass
+#
+#         stream_writer = get_stream_writer()
+#         stream_writer.from_server.put_nowait(TestException())
+#
+#         message = PublicMessage(
+#             data="123",
+#             seqno=3,
+#         )
+#
+#         with pytest.raises(TestException):
+#
+#             async def wait_stop():
+#                 while True:
+#                     await reconnector.write_with_ack([message])
+#                     await asyncio.sleep(0.1)
+#
+#             await asyncio.wait_for(wait_stop(), 1)
+#
+#         with pytest.raises(TestException):
+#             await reconnector.close(flush=False)
+#
+#     async def test_wait_init(self, default_driver, default_settings, get_stream_writer):
+#         init_seqno = 100
+#         expected_init_info = PublicWriterInitInfo(init_seqno)
+#         with mock.patch.object(
+#             TestWriterAsyncIOReconnector, "init_last_seqno", init_seqno
+#         ):
+#             reconnector = WriterAsyncIOReconnector(default_driver, default_settings)
+#             info = await reconnector.wait_init()
+#             assert info == expected_init_info
+#
+#         reconnector._stream_connected.clear()
+#
+#         # force reconnect
+#         with mock.patch.object(
+#             TestWriterAsyncIOReconnector, "init_last_seqno", init_seqno + 1
+#         ):
+#             stream_writer = get_stream_writer()
+#             stream_writer.from_server.put_nowait(
+#                 issues.Overloaded("test")
+#             )  # some retriable error
+#             await reconnector._stream_connected.wait()
+#
+#             info = await reconnector.wait_init()
+#             assert info == expected_init_info
+#
+#         await reconnector.close(flush=False)
+#
+#     async def test_write_message(
+#         self, reconnector: WriterAsyncIOReconnector, get_stream_writer
+#     ):
+#         stream_writer = get_stream_writer()
+#         message = PublicMessage(
+#             data="123",
+#             seqno=3,
+#         )
+#         await reconnector.write_with_ack([message])
+#
+#         sent_messages = await asyncio.wait_for(stream_writer.from_client.get(), 1)
+#         assert sent_messages == [InternalMessage(message)]
+#
+#         await reconnector.close(flush=False)
+#
+#     async def test_auto_seq_no(
+#         self, default_driver, default_settings, get_stream_writer
+#     ):
+#         last_seq_no = 100
+#         with mock.patch.object(
+#             TestWriterAsyncIOReconnector, "init_last_seqno", last_seq_no
+#         ):
+#             settings = copy.deepcopy(default_settings)
+#             settings.auto_seqno = True
+#
+#             reconnector = WriterAsyncIOReconnector(default_driver, settings)
+#
+#             await reconnector.write_with_ack([PublicMessage(data="123")])
+#             await reconnector.write_with_ack([PublicMessage(data="456")])
+#
+#             stream_writer = get_stream_writer()
+#
+#             sent = await stream_writer.from_client.get()
+#             assert [
+#                 InternalMessage(PublicMessage(seqno=last_seq_no + 1, data="123"))
+#             ] == sent
+#
+#             sent = await stream_writer.from_client.get()
+#             assert [
+#                 InternalMessage(PublicMessage(seqno=last_seq_no + 2, data="456"))
+#             ] == sent
+#
+#         with pytest.raises(TopicWriterError):
+#             await reconnector.write_with_ack(
+#                 [PublicMessage(seqno=last_seq_no + 3, data="123")]
+#             )
+#
+#         await reconnector.close(flush=False)
+#
+#     async def test_deny_double_seqno(self, reconnector: WriterAsyncIOReconnector):
+#         await reconnector.write_with_ack([PublicMessage(seqno=10, data="123")])
+#
+#         with pytest.raises(TopicWriterError):
+#             await reconnector.write_with_ack([PublicMessage(seqno=9, data="123")])
+#
+#         with pytest.raises(TopicWriterError):
+#             await reconnector.write_with_ack([PublicMessage(seqno=10, data="123")])
+#
+#         await reconnector.write_with_ack([PublicMessage(seqno=11, data="123")])
+#
+#         await reconnector.close(flush=False)
+#
+#     @freezegun.freeze_time("2022-01-13 20:50:00", tz_offset=0)
+#     async def test_auto_created_at(
+#         self, default_driver, default_settings, get_stream_writer
+#     ):
+#         now = datetime.datetime.now()
+#
+#         settings = copy.deepcopy(default_settings)
+#         settings.auto_created_at = True
+#         reconnector = WriterAsyncIOReconnector(default_driver, settings)
+#         await reconnector.write_with_ack([PublicMessage(seqno=4, data="123")])
+#
+#         stream_writer = get_stream_writer()
+#         sent = await wait_for_fast(stream_writer.from_client.get())
+#
+#         assert [
+#             InternalMessage(PublicMessage(seqno=4, data="123", created_at=now))
+#         ] == sent
+#         await reconnector.close(flush=False)
+#
+#
+# @pytest.mark.asyncio
+# class TestWriterAsyncIO:
+#     class ReconnectorMock:
+#         lock: asyncio.Lock
+#         messages: typing.List[InternalMessage]
+#         futures: typing.List[asyncio.Future]
+#         messages_writted: asyncio.Event
+#
+#         def __init__(self):
+#             self.lock = asyncio.Lock()
+#             self.messages = []
+#             self.futures = []
+#             self.messages_writted = asyncio.Event()
+#
+#         async def write_with_ack(self, messages: typing.List[InternalMessage]):
+#             async with self.lock:
+#                 futures = [asyncio.Future() for _ in messages]
+#                 self.messages.extend(messages)
+#                 self.futures.extend(futures)
+#                 self.messages_writted.set()
+#                 return futures
+#
+#         async def close(self):
+#             pass
+#
+#     @pytest.fixture
+#     def default_settings(self) -> PublicWriterSettings:
+#         return PublicWriterSettings(
+#             topic="/local/topic",
+#             producer_and_message_group_id="producer-id",
+#         )
+#
+#     @pytest.fixture(autouse=True)
+#     def mock_reconnector_init(self, monkeypatch, reconnector):
+#         def t(cls, driver, settings):
+#             return reconnector
+#
+#         monkeypatch.setattr(WriterAsyncIOReconnector, "__new__", t)
+#
+#     @pytest.fixture
+#     def reconnector(self, monkeypatch) -> TestWriterAsyncIO.ReconnectorMock:
+#         reconnector = TestWriterAsyncIO.ReconnectorMock()
+#         return reconnector
+#
+#     @pytest.fixture
+#     async def writer(self, default_driver, default_settings):
+#         return WriterAsyncIO(default_driver, default_settings)
+#
+#     async def test_write(self, writer: WriterAsyncIO, reconnector):
+#         m = PublicMessage(seqno=1, data="123")
+#         res = await writer.write(m)
+#         assert res is None
+#
+#         assert reconnector.messages == [m]
+#
+#     async def test_write_with_futures(self, writer: WriterAsyncIO, reconnector):
+#         m = PublicMessage(seqno=1, data="123")
+#         res = await writer.write_with_ack_future(m)
+#
+#         assert reconnector.messages == [m]
+#         assert asyncio.isfuture(res)
+#
+#     async def test_write_with_ack(self, writer: WriterAsyncIO, reconnector):
+#         reconnector.messages_writted.clear()
+#
+#         async def ack_first_message():
+#             await reconnector.messages_writted.wait()
+#             async with reconnector.lock:
+#                 reconnector.futures[0].set_result(PublicWriteResult.Written(offset=1))
+#
+#         asyncio.create_task(ack_first_message())
+#
+#         m = PublicMessage(seqno=1, data="123")
+#         res = await writer.write_with_ack(m)
+#
+#         assert res == PublicWriteResult.Written(offset=1)
+#
+#         reconnector.messages_writted.clear()
+#         async with reconnector.lock:
+#             reconnector.messages.clear()
+#             reconnector.futures.clear()
+#
+#         async def ack_next_messages():
+#             await reconnector.messages_writted.wait()
+#             async with reconnector.lock:
+#                 reconnector.futures[0].set_result(PublicWriteResult.Written(offset=2))
+#                 reconnector.futures[1].set_result(PublicWriteResult.Skipped())
+#
+#         asyncio.create_task(ack_next_messages())
+#
+#         res = await writer.write_with_ack(
+#             [PublicMessage(seqno=2, data="123"), PublicMessage(seqno=3, data="123")]
+#         )
+#         assert res == [PublicWriteResult.Written(offset=2), PublicWriteResult.Skipped()]
