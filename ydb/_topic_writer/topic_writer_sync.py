@@ -21,6 +21,7 @@ from .topic_writer_asyncio import WriterAsyncIO
 _shared_event_loop_lock = threading.Lock()
 _shared_event_loop = None  # type: Optional[asyncio.AbstractEventLoop]
 
+
 def _get_shared_event_loop() -> asyncio.AbstractEventLoop:
     global _shared_event_loop
 
