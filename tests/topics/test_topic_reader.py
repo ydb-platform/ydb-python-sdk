@@ -2,7 +2,7 @@ import pytest
 
 
 @pytest.mark.asyncio
-class TestTopicWriterAsyncIO:
+class TestTopicReaderAsyncIO:
     async def test_read_message(
         self, driver, topic_path, topic_with_messages, topic_consumer
     ):

@@ -158,19 +158,34 @@ class TestWriterAsyncIOReconnector:
         from_client: asyncio.Queue
         from_server: asyncio.Queue
 
+        _closed: bool
+
         def __init__(self):
             self.last_seqno = 0
             self.from_server = asyncio.Queue()
             self.from_client = asyncio.Queue()
+            self._closed = False
 
         def write(self, messages: typing.List[InternalMessage]):
+            if self._closed:
+                raise Exception("write to closed StreamWriterMock")
             self.from_client.put_nowait(messages)
 
         async def receive(self) -> StreamWriteMessage.WriteResponse:
+            if self._closed:
+                raise Exception("read from closed StreamWriterMock")
+
             item = await self.from_server.get()
             if isinstance(item, Exception):
                 raise item
             return item
+
+        def close(self):
+            if self._closed:
+                return
+
+            self.from_server.put_nowait(Exception("waited message while StreamWriterMock closed"))
+
 
     @pytest.fixture(autouse=True)
     async def stream_writer_double_queue(self, monkeypatch):

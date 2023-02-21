@@ -27,7 +27,8 @@ import ydb.aio
 
 # Workaround for good IDE and universal for runtime
 # noinspection PyUnreachableCode
-if False:
+if typing.TYPE_CHECKING:
+    import grpc._channel
     from ..v4.protos import ydb_topic_pb2, ydb_issue_message_pb2
 else:
     from ..common.protos import ydb_topic_pb2, ydb_issue_message_pb2
@@ -82,10 +83,11 @@ class QueueToIteratorAsyncIO:
         return self
 
     async def __anext__(self):
-        try:
-            return await self._queue.get()
-        except asyncio.QueueEmpty:
+        item = await self._queue.get()
+        if item is None:
             raise StopAsyncIteration()
+        return item
+
 
 
 class AsyncQueueToSyncIteratorAsyncIO:
@@ -103,13 +105,12 @@ class AsyncQueueToSyncIteratorAsyncIO:
         return self
 
     def __next__(self):
-        try:
-            res = asyncio.run_coroutine_threadsafe(
-                self._queue.get(), self._loop
-            ).result()
-            return res
-        except asyncio.QueueEmpty:
+        item = asyncio.run_coroutine_threadsafe(
+            self._queue.get(), self._loop
+        ).result()
+        if item is None:
             raise StopIteration()
+        return item
 
 
 class SyncIteratorToAsyncIterator:
@@ -136,6 +137,10 @@ class IGrpcWrapperAsyncIO(abc.ABC):
     def write(self, wrap_message: IToProto):
         ...
 
+    @abc.abstractmethod
+    def close(self):
+        ...
+
 
 SupportedDriverType = Union[ydb.Driver, ydb.aio.Driver]
 
@@ -145,11 +150,13 @@ class GrpcWrapperAsyncIO(IGrpcWrapperAsyncIO):
     from_server_grpc: AsyncIterator
     convert_server_grpc_to_wrapper: Callable[[Any], Any]
     _connection_state: str
+    _stream_call: Optional[Union[grpc.aio.StreamStreamCall, "grpc._channel._MultiThreadedRendezvous"]]
 
     def __init__(self, convert_server_grpc_to_wrapper):
         self.from_client_grpc = asyncio.Queue()
         self.convert_server_grpc_to_wrapper = convert_server_grpc_to_wrapper
         self._connection_state = "new"
+        self._stream_call = None
 
     async def start(self, driver: SupportedDriverType, stub, method):
         if asyncio.iscoroutinefunction(driver.__call__):
@@ -158,6 +165,10 @@ class GrpcWrapperAsyncIO(IGrpcWrapperAsyncIO):
             await self._start_sync_driver(driver, stub, method)
         self._connection_state = "started"
 
+    def close(self):
+        self.from_client_grpc.put_nowait(None)
+        self._stream_call.cancel()
+
     async def _start_asyncio_driver(self, driver: ydb.aio.Driver, stub, method):
         requests_iterator = QueueToIteratorAsyncIO(self.from_client_grpc)
         stream_call = await driver(
@@ -165,6 +176,7 @@ class GrpcWrapperAsyncIO(IGrpcWrapperAsyncIO):
             stub,
             method,
         )
+        self._stream_call = stream_call
         self.from_server_grpc = stream_call.__aiter__()
 
     async def _start_sync_driver(self, driver: ydb.Driver, stub, method):
@@ -175,6 +187,7 @@ class GrpcWrapperAsyncIO(IGrpcWrapperAsyncIO):
             stub,
             method,
         )
+        self._stream_call = stream_call
         self.from_server_grpc = SyncIteratorToAsyncIterator(stream_call.__iter__())
 
     async def receive(self) -> Any:
