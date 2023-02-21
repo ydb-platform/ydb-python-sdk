@@ -1,17 +1,28 @@
+import asyncio
+
 import pytest
 
 import ydb.aio
+from ydb._topic_common.test_helpers import wait_condition, wait_for_fast
 
 
 @pytest.mark.asyncio
 class TestTopicWriterAsyncIO:
-    async def test_send_message(self, driver: ydb.aio.Driver, topic_path):
+    async def test_send_message(self, driver: ydb.aio.Driver, topic_path, topic_consumer):
+        producer_id = "test-producer-id"
+        seqno = 10
         writer = driver.topic_client.topic_writer(
-            topic_path, producer_and_message_group_id="test"
+            topic_path,
+            producer_and_message_group_id=producer_id,
+            auto_seqno=False,
         )
-        await writer.write(ydb.TopicWriterMessage(data="123".encode()))
+        await writer.write(ydb.TopicWriterMessage(seqno=seqno, data="123".encode()))
 
-        # todo check receive mess
+        reader = driver.topic_client.topic_reader(topic_consumer, topic_path)
+        batch = await asyncio.wait_for(reader.receive_batch(), timeout=60)
+        assert batch.messages[0].seqno == seqno
+
+        await writer.close()
 
     async def test_wait_last_seqno(self, driver: ydb.aio.Driver, topic_path):
         async with driver.topic_client.topic_writer(
@@ -33,13 +44,19 @@ class TestTopicWriterAsyncIO:
 
 
 class TestTopicWriterSync:
-    def test_send_message(self, driver_sync: ydb.Driver, topic_path):
+    def test_send_message(self, driver_sync: ydb.Driver, topic_path, topic_consumer):
+        seqno=10
+        producer_id="test-producer-id"
         writer = driver_sync.topic_client.topic_writer(
-            topic_path, producer_and_message_group_id="test"
+            topic_path, producer_and_message_group_id=producer_id,
+            auto_seqno=False,
         )
-        writer.write(ydb.TopicWriterMessage(data="123".encode()))
+        writer.write(ydb.TopicWriterMessage(
+            seqno=seqno,
+            data="123".encode()),
+        )
 
-        # todo check receive mess
+        # todo check message by read
 
     def test_wait_last_seqno(self, driver_sync: ydb.Driver, topic_path):
         with driver_sync.topic_client.topic_writer(
