@@ -303,7 +303,7 @@ class WriterAsyncIOReconnector:
             # noinspection PyBroadException
             stream_writer = None
             try:
-                print("rekby: connecting")
+                print("rekby: connecting %s" % len(self._messages))
                 stream_writer = await WriterAsyncIOStream.create(
                     self._driver, self._init_message, self._get_token
                 )
