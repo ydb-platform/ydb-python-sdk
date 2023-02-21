@@ -65,7 +65,7 @@ async def send_message_without_block_if_internal_buffer_is_full(
         return False
 
 
-def send_messages_with_manual_seqno(writer: ydb.TopicWriter):
+async def send_messages_with_manual_seqno(writer: ydb.TopicWriter):
     await writer.write(ydb.TopicWriterMessage("mess"))  # send text
 
 

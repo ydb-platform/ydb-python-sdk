@@ -86,21 +86,14 @@ class WriterAsyncIO:
 
         For wait with timeout use asyncio.wait_for.
         """
-        if isinstance(messages, PublicMessage):
-            futures = await self._reconnector.write_with_ack([messages])
-            return await futures[0]
-        if isinstance(messages, list):
-            for m in messages:
-                if not isinstance(m, PublicMessage):
-                    raise NotImplementedError()
+        futures = await self.write_with_ack_future(messages, *args)
+        if not isinstance(futures, list):
+            futures = [futures]
 
-            futures = await self._reconnector.write_with_ack(messages)
-            await asyncio.wait(futures)
+        await asyncio.wait(futures)
+        results = [f.result() for f in futures]
 
-            results = [f.result() for f in futures]
-            return results
-
-        raise NotImplementedError()
+        return results if isinstance(messages, list) else results[0]
 
     async def write_with_ack_future(
         self,
@@ -145,7 +138,7 @@ class WriterAsyncIO:
 
         For wait with timeout use asyncio.wait_for.
         """
-        raise NotImplementedError()
+        return await self._reconnector.flush()
 
     async def wait_init(self) -> PublicWriterInitInfo:
         """
@@ -192,9 +185,12 @@ class WriterAsyncIOReconnector:
             asyncio.create_task(self._connection_loop(), name="connection_loop")
         ]
 
-    async def close(self):
+    async def close(self, flush: bool = True):
         if self._closed:
             return
+
+        if flush:
+            await self.flush()
 
         self._closed = True
         self._stop(TopicWriterStopped())
@@ -395,6 +391,14 @@ class WriterAsyncIOReconnector:
 
     def _get_token(self) -> str:
         raise NotImplementedError()
+
+    async def flush(self):
+        self._check_stop()
+        if not self._messages_future:
+            return
+
+        # wait last message
+        await asyncio.wait((self._messages_future[-1],))
 
 
 class WriterAsyncIOStream:
