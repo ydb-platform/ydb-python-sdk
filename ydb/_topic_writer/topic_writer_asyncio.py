@@ -353,7 +353,7 @@ class WriterAsyncIOReconnector:
                 return
             finally:
                 if stream_writer is not None:
-                    print("rekby: before close: (id:%s, %s)" % (self._id, len(self._messages)))
+                    print("rekby: before stream close: (id:%s, %s)" % (self._id, len(self._messages)))
                     stream_writer.close()
                 if len(pending) > 0:
                     for task in pending:
