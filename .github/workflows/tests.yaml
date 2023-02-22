@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
 
     concurrency:
-      group: unit-${{ github.ref }}-${{ matrix.environment }}-${{ matrix.python-version }}
+      group: unit-${{ github.ref }}-${{ matrix.environment }}-${{ matrix.python-version }}-${{ matrix.folder }}
       cancel-in-progress: true
 
     strategy:
