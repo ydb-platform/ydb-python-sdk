@@ -20,6 +20,12 @@ jobs:
       matrix:
         python-version: [3.8]
         environment: [py, py-tls, py-proto3, py-tls-proto3]
+        folder: [ydb, tests]
+        exclude:
+          - environment: py-tls
+            folder: ydb
+          - environment: py-tls-proto3
+            folder: ydb
 
     steps:
     - uses: actions/checkout@v1
@@ -34,7 +40,4 @@ jobs:
         pip install tox==4.2.6
 
     - name: Run unit tests
-      run: tox -e ${{ matrix.environment }} -- ydb
-
-    - name: Run integration tests
-      run: tox -e ${{ matrix.environment }} -- tests
+      run: tox -e ${{ matrix.environment }} -- ${{ matrix.folder }}
