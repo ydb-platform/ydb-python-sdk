@@ -11,11 +11,11 @@ jobs:
     runs-on: ubuntu-latest
 
     concurrency:
-      fail-fast: false
       group: unit-${{ github.ref }}-${{ matrix.environment }}-${{ matrix.python-version }}
       cancel-in-progress: true
 
     strategy:
+      fail-fast: false
       max-parallel: 4
       matrix:
         python-version: [3.8]
