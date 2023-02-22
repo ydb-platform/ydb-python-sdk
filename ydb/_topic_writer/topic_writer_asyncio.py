@@ -345,6 +345,7 @@ class WriterAsyncIOReconnector:
                     self._stop(err)
                     return
 
+                print_debug("rekby: sleep_timeout", {"timeout": err_info.sleep_timeout_seconds})
                 await asyncio.sleep(err_info.sleep_timeout_seconds)
 
             except (asyncio.CancelledError, Exception) as err:

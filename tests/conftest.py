@@ -19,7 +19,7 @@ def docker_compose_file(pytestconfig):
 
 
 def wait_container_ready(driver):
-    driver.wait(timeout=10)
+    driver.wait(timeout=30)
 
     with ydb.SessionPool(driver) as pool:
 

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from dataclasses import dataclass
 from typing import Optional
 
@@ -18,7 +20,7 @@ _errors_retriable_slow_backoff_idempotent_types = [
 ]
 
 
-def check_retriable_error(err, retry_settings, attempt):
+def check_retriable_error(err, retry_settings, attempt) -> ErrorRetryInfo:
     if isinstance(err, issues.NotFound):
         if retry_settings.retry_not_found:
             return ErrorRetryInfo(

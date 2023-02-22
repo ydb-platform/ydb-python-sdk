@@ -39,6 +39,10 @@ class StreamMock(IGrpcWrapperAsyncIO):
         self.from_server.put_nowait(None)
 
 
+class BadCondition(Exception):
+    pass
+
+
 async def wait_condition(f: typing.Callable[[], bool], timeout=1):
     start = time.monotonic()
     counter = 0
@@ -48,8 +52,13 @@ async def wait_condition(f: typing.Callable[[], bool], timeout=1):
             return
         await asyncio.sleep(0)
 
-    raise Exception("Bad condition in test")
+    raise BadCondition("Bad condition in test")
 
 
-async def wait_for_fast(fut):
-    return await asyncio.wait_for(fut, 1)
+async def wait_for_fast(awaitable: typing.Awaitable, timeout=1):
+    fut = asyncio.ensure_future(awaitable)
+    try:
+        await wait_condition(fut.done, timeout)
+    except BadCondition:
+        return asyncio.TimeoutError()
+    return fut.result()

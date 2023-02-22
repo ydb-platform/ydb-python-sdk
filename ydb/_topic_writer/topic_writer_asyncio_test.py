@@ -312,7 +312,7 @@ class TestWriterAsyncIOReconnector:
 
         second_writer = get_stream_writer()
         print_debug("rekby: reconnector before second get", {"id": reconnector._id})
-        second_sent_msg = await wait_for_fast(second_writer.from_client.get())
+        second_sent_msg = await wait_for_fast(second_writer.from_client.get(), 1)
 
         expected_messages = [InternalMessage(message2)]
         assert second_sent_msg == expected_messages
