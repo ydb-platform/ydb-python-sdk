@@ -398,7 +398,7 @@ class WriterAsyncIOReconnector:
                 m = await self._new_messages.get()  # type: InternalMessage
                 if m.seq_no > last_seq_no:
                     writer.write([m])
-        except Exception as e:
+        except BaseException as e:
             self._stop(e)
         finally:
             pass
