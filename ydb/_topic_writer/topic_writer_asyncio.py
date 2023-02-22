@@ -360,6 +360,7 @@ class WriterAsyncIOReconnector:
                     for task in pending:
                         task.cancel()
                     await asyncio.wait(pending)
+                    print_debug("await finished", {"id": self._id})
 
     async def _read_loop(self, writer: "WriterAsyncIOStream"):
         while True:

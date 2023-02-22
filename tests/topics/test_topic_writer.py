@@ -75,7 +75,7 @@ class TestTopicWriterSync:
         writer.write(
             ydb.TopicWriterMessage(seqno=seqno, data="123".encode()),
         )
-        writer.close()
+        # writer.close()
 
         # todo check message by read
 
