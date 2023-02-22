@@ -80,8 +80,6 @@ async def driver(endpoint, database, event_loop):
     driver_config = ydb.DriverConfig(
         endpoint,
         database,
-        credentials=ydb.construct_credentials_from_environ(),
-        root_certificates=ydb.load_ydb_root_certificate(),
     )
 
     driver = ydb.aio.Driver(driver_config=driver_config)
@@ -97,8 +95,6 @@ async def driver_sync(endpoint, database, event_loop):
     driver_config = ydb.DriverConfig(
         endpoint,
         database,
-        credentials=ydb.construct_credentials_from_environ(),
-        root_certificates=ydb.load_ydb_root_certificate(),
     )
 
     driver = ydb.Driver(driver_config=driver_config)
