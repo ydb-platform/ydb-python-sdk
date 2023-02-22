@@ -34,7 +34,7 @@ jobs:
         pip install tox==4.2.6
 
     - name: Run unit tests
-      run: tox -e ${{ matrix.environment }} ydb
+      run: tox -e ${{ matrix.environment }} -- ydb
 
     - name: Run integration tests
-      run: tox -e ${{ matrix.environment }} tests
+      run: tox -e ${{ matrix.environment }} -- tests
