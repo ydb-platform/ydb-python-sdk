@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import asyncio
 from concurrent.futures import Future
-import threading
 from typing import Union, List, Optional, Coroutine
 
 from .._grpc.grpcwrapper.common_utils import SupportedDriverType
@@ -16,40 +15,7 @@ from .topic_writer import (
 )
 
 from .topic_writer_asyncio import WriterAsyncIO
-from .._topic_common.common import TimeoutType
-
-_shared_event_loop_lock = threading.Lock()
-_shared_event_loop = None  # type: Optional[asyncio.AbstractEventLoop]
-
-
-def _get_shared_event_loop() -> asyncio.AbstractEventLoop:
-    global _shared_event_loop
-
-    if _shared_event_loop is not None:
-        return _shared_event_loop
-
-    with _shared_event_loop_lock:
-        if _shared_event_loop is not None:
-            return _shared_event_loop
-
-        event_loop_set_done = Future()
-
-        def start_event_loop():
-            global _shared_event_loop
-            _shared_event_loop = asyncio.new_event_loop()
-            event_loop_set_done.set_result(None)
-            asyncio.set_event_loop(_shared_event_loop)
-            _shared_event_loop.run_forever()
-
-        t = threading.Thread(
-            target=start_event_loop,
-            name="Common ydb topic writer event loop",
-            daemon=True,
-        )
-        t.start()
-
-        event_loop_set_done.result()
-        return _shared_event_loop
+from .._topic_common.common import _get_shared_event_loop, TimeoutType
 
 
 class WriterSync:
@@ -62,7 +28,7 @@ class WriterSync:
         driver: SupportedDriverType,
         settings: PublicWriterSettings,
         *,
-        eventloop: asyncio.AbstractEventLoop = None,
+        eventloop: Optional[asyncio.AbstractEventLoop] = None,
     ):
 
         self._closed = False
@@ -85,26 +51,29 @@ class WriterSync:
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.close()
 
-    def _call(self, coro, *args, **kwargs):
+    def _call(self, coro):
         if self._closed:
             raise TopicWriterError("writer is closed")
 
         return asyncio.run_coroutine_threadsafe(coro, self._loop)
 
-    def _call_sync(self, coro: Coroutine, timeout, *args, **kwargs):
-        f = self._call(coro, *args, **kwargs)
+    def _call_sync(self, coro: Coroutine, timeout):
+        f = self._call(coro)
         try:
-            return f.result(timeout=timeout)
+            return f.result(timeout)
         except TimeoutError:
             f.cancel()
             raise
 
-    def close(self):
+    def close(self, flush: bool = True):
         if self._closed:
             return
+
         self._closed = True
+
+        # for no call self._call_sync on closed object
         asyncio.run_coroutine_threadsafe(
-            self._async_writer.close(), self._loop
+            self._async_writer.close(flush=flush), self._loop
         ).result()
 
     def async_flush(self) -> Future:

@@ -1,4 +1,3 @@
-import concurrent.futures
 import enum
 import datetime
 from dataclasses import dataclass
@@ -6,11 +5,9 @@ from typing import (
     Union,
     Optional,
     List,
-    Iterable,
 )
 
 from ..table import RetrySettings
-from .datatypes import ICommittable, PublicBatch, PublicMessage
 from .._topic_common.common import TokenGetterFuncType
 from .._grpc.grpcwrapper.ydb_topic import StreamReadMessage, OffsetsRange
 
@@ -24,130 +21,6 @@ class Selector:
     def __init__(self, path, *, partitions: Union[None, int, List[int]] = None):
         self.path = path
         self.partitions = partitions
-
-
-class Reader(object):
-    def async_sessions_stat(self) -> concurrent.futures.Future:
-        """
-        Receive stat from the server, return feature.
-        """
-        raise NotImplementedError()
-
-    async def sessions_stat(self) -> List["SessionStat"]:
-        """
-        Receive stat from the server
-
-        use async_sessions_stat for set explicit wait timeout
-        """
-        raise NotImplementedError()
-
-    def messages(
-        self, *, timeout: Union[float, None] = None
-    ) -> Iterable[PublicMessage]:
-        """
-        todo?
-
-        Block until receive new message
-        It has no async_ version for prevent lost messages, use async_wait_message as signal for new batches available.
-
-        if no new message in timeout seconds (default - infinite): stop iterations by raise StopIteration
-        if timeout <= 0 - it will fast non block method, get messages from internal buffer only.
-        """
-        raise NotImplementedError()
-
-    def receive_message(self, *, timeout: Union[float, None] = None) -> PublicMessage:
-        """
-        Block until receive new message
-        It has no async_ version for prevent lost messages, use async_wait_message as signal for new batches available.
-
-        if no new message in timeout seconds (default - infinite): raise TimeoutError()
-        if timeout <= 0 - it will fast non block method, get messages from internal buffer only.
-        """
-        raise NotImplementedError()
-
-    def async_wait_message(self) -> concurrent.futures.Future:
-        """
-        Return future, which will completed when the reader has least one message in queue.
-        If reader already has message - future will return completed.
-
-        Possible situation when receive signal about message available, but no messages when try to receive a message.
-        If message expired between send event and try to retrieve message (for example connection broken).
-        """
-        raise NotImplementedError()
-
-    def batches(
-        self,
-        *,
-        max_messages: Union[int, None] = None,
-        max_bytes: Union[int, None] = None,
-        timeout: Union[float, None] = None,
-    ) -> Iterable[PublicBatch]:
-        """
-        Block until receive new batch.
-        It has no async_ version for prevent lost messages, use async_wait_message as signal for new batches available.
-
-        if no new message in timeout seconds (default - infinite): stop iterations by raise StopIteration
-        if timeout <= 0 - it will fast non block method, get messages from internal buffer only.
-        """
-        raise NotImplementedError()
-
-    def receive_batch(
-        self,
-        *,
-        max_messages: Union[int, None] = None,
-        max_bytes: Union[int, None],
-        timeout: Union[float, None] = None,
-    ) -> Union[PublicBatch, None]:
-        """
-        Get one messages batch from reader
-        It has no async_ version for prevent lost messages, use async_wait_message as signal for new batches available.
-
-        if no new message in timeout seconds (default - infinite): raise TimeoutError()
-        if timeout <= 0 - it will fast non block method, get messages from internal buffer only.
-        """
-        raise NotImplementedError()
-
-    def commit(self, mess: ICommittable):
-        """
-        Put commit message to internal buffer.
-
-        For the method no way check the commit result
-        (for example if lost connection - commits will not re-send and committed messages will receive again)
-        """
-        raise NotImplementedError()
-
-    def commit_with_ack(
-        self, mess: ICommittable
-    ) -> Union["CommitResult", List["CommitResult"]]:
-        """
-        write commit message to a buffer and wait ack from the server.
-
-        if receive in timeout seconds (default - infinite): raise TimeoutError()
-        """
-        raise NotImplementedError()
-
-    def async_commit_with_ack(
-        self, mess: ICommittable
-    ) -> Union["CommitResult", List["CommitResult"]]:
-        """
-        write commit message to a buffer and return Future for wait result.
-        """
-        raise NotImplementedError()
-
-    def async_flush(self) -> concurrent.futures.Future:
-        """
-        force send all commit messages from internal buffers to server and return Future for wait server acks.
-        """
-        raise NotImplementedError()
-
-    def flush(self):
-        """
-        force send all commit messages from internal buffers to server and wait acks for all of them.
-        """
-        raise NotImplementedError()
-
-    def close(self):
-        raise NotImplementedError()
 
 
 @dataclass
