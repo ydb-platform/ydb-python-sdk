@@ -1,9 +1,6 @@
 # -*- coding: utf-8 -*-
 import os
 
-from . import credentials, tracing
-import warnings
-
 
 def read_bytes(f):
     with open(f, "rb") as fr:
@@ -15,4 +12,3 @@ def load_ydb_root_certificate():
     if path is not None and os.path.exists(path):
         return read_bytes(path)
     return None
-
