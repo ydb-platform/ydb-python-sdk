@@ -322,6 +322,7 @@ class WriterAsyncIOReconnector:
                 done, pending = await asyncio.wait(
                     [send_loop, receive_loop], return_when=asyncio.FIRST_COMPLETED
                 )
+                stream_writer.close()
                 done.pop().result()
             except issues.Error as err:
                 # todo log error
@@ -416,6 +417,9 @@ class WriterAsyncIOStream:
         token_getter: TokenGetterFuncType,
     ):
         self._token_getter = token_getter
+
+    def close(self):
+        self._stream.close()
 
     @staticmethod
     async def create(

@@ -1,3 +1,4 @@
+* Close grpc streams while closing readers/writers
 * Add control plane operations for topic api: create, drop
 
 ## 3.0.1b4 ##
