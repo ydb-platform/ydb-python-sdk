@@ -24,8 +24,7 @@ from google.protobuf.timestamp_pb2 import Timestamp as ProtoTimeStamp
 import ydb.aio
 
 # Workaround for good IDE and universal for runtime
-# noinspection PyUnreachableCode
-if False:
+if typing.TYPE_CHECKING:
     from ..v4.protos import ydb_topic_pb2, ydb_issue_message_pb2
 else:
     from ..common.protos import ydb_topic_pb2, ydb_issue_message_pb2

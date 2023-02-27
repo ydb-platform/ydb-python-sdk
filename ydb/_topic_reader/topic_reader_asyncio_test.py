@@ -1,5 +1,6 @@
 import asyncio
 import datetime
+import typing
 from unittest import mock
 
 import pytest
@@ -12,9 +13,8 @@ from .._grpc.grpcwrapper.common_utils import SupportedDriverType, ServerStatus
 from .._grpc.grpcwrapper.ydb_topic import StreamReadMessage, Codec, OffsetsRange
 from .._topic_common.test_helpers import StreamMock, wait_condition, wait_for_fast
 
-# Workaround for good autocomplete in IDE and universal import at runtime
-# noinspection PyUnreachableCode
-if False:
+# Workaround for good IDE and universal for runtime
+if typing.TYPE_CHECKING:
     from .._grpc.v4.protos import ydb_status_codes_pb2
 else:
     from .._grpc.common.protos import ydb_status_codes_pb2
