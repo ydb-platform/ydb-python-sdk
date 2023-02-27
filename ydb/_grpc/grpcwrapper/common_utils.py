@@ -69,6 +69,9 @@ class UnknownGrpcMessageError(issues.Error):
     pass
 
 
+_stop_grpc_connection_marker = object()
+
+
 class QueueToIteratorAsyncIO:
     __slots__ = ("_queue",)
 
@@ -80,7 +83,7 @@ class QueueToIteratorAsyncIO:
 
     async def __anext__(self):
         item = await self._queue.get()
-        if item is None:
+        if item is _stop_grpc_connection_marker:
             raise StopAsyncIteration()
         return item
 
@@ -101,7 +104,7 @@ class AsyncQueueToSyncIteratorAsyncIO:
 
     def __next__(self):
         item = asyncio.run_coroutine_threadsafe(self._queue.get(), self._loop).result()
-        if item is None:
+        if item is _stop_grpc_connection_marker:
             raise StopIteration()
         return item
 
@@ -161,8 +164,9 @@ class GrpcWrapperAsyncIO(IGrpcWrapperAsyncIO):
         self._connection_state = "started"
 
     def close(self):
-        self.from_client_grpc.put_nowait(None)
-        self._stream_call.cancel()
+        self.from_client_grpc.put_nowait(_stop_grpc_connection_marker)
+        if self._stream_call:
+            self._stream_call.cancel()
 
     async def _start_asyncio_driver(self, driver: ydb.aio.Driver, stub, method):
         requests_iterator = QueueToIteratorAsyncIO(self.from_client_grpc)

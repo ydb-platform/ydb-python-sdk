@@ -296,6 +296,7 @@ class WriterAsyncIOReconnector:
             pending = []
 
             # noinspection PyBroadException
+            stream_writer = None
             try:
                 stream_writer = await WriterAsyncIOStream.create(
                     self._driver, self._init_message, self._get_token
@@ -339,6 +340,8 @@ class WriterAsyncIOReconnector:
                 self._stop(err)
                 return
             finally:
+                if stream_writer:
+                    stream_writer.close()
                 if len(pending) > 0:
                     for task in pending:
                         task.cancel()
