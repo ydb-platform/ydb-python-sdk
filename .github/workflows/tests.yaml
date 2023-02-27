@@ -15,6 +15,7 @@ jobs:
       cancel-in-progress: true
 
     strategy:
+      fail-fast: false
       matrix:
         python-version: [3.8, 3.11]
         environment: [py, py-tls, py-proto3, py-tls-proto3]
