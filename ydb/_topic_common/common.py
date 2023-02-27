@@ -4,6 +4,7 @@ from .. import operation, issues
 from .._grpc.grpcwrapper.common_utils import IFromProtoWithProtoType
 
 TokenGetterFuncType = typing.Optional[typing.Callable[[], str]]
+TimeoutType = typing.Union[int, float]
 
 
 def wrap_operation(rpc_state, response_pb, driver=None):

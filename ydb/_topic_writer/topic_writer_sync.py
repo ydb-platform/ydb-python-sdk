@@ -11,11 +11,12 @@ from .topic_writer import (
     TopicWriterError,
     PublicWriterInitInfo,
     PublicMessage,
-    Writer,
     PublicWriteResult,
+    MessageType,
 )
 
 from .topic_writer_asyncio import WriterAsyncIO
+from .._topic_common.common import TimeoutType
 
 _shared_event_loop_lock = threading.Lock()
 _shared_event_loop = None  # type: Optional[asyncio.AbstractEventLoop]
@@ -78,6 +79,12 @@ class WriterSync:
             create_async_writer(), self._loop
         ).result()
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()
+
     def _call(self, coro, *args, **kwargs):
         if self._closed:
             raise TopicWriterError("writer is closed")
@@ -87,7 +94,7 @@ class WriterSync:
     def _call_sync(self, coro: Coroutine, timeout, *args, **kwargs):
         f = self._call(coro, *args, **kwargs)
         try:
-            return f.result()
+            return f.result(timeout=timeout)
         except TimeoutError:
             f.cancel()
             raise
@@ -111,7 +118,7 @@ class WriterSync:
     def async_wait_init(self) -> Future[PublicWriterInitInfo]:
         return self._call(self._async_writer.wait_init())
 
-    def wait_init(self, timeout) -> PublicWriterInitInfo:
+    def wait_init(self, timeout: Optional[TimeoutType] = None) -> PublicWriterInitInfo:
         return self._call_sync(self._async_writer.wait_init(), timeout)
 
     def write(
@@ -124,15 +131,15 @@ class WriterSync:
 
     def async_write_with_ack(
         self,
-        messages: Union[Writer.MessageType, List[Writer.MessageType]],
-        *args: Optional[Writer.MessageType],
+        messages: Union[MessageType, List[MessageType]],
+        *args: Optional[MessageType],
     ) -> Future[Union[PublicWriteResult, List[PublicWriteResult]]]:
         return self._call(self._async_writer.write_with_ack(messages, *args))
 
     def write_with_ack(
         self,
-        messages: Union[Writer.MessageType, List[Writer.MessageType]],
-        *args: Optional[Writer.MessageType],
+        messages: Union[MessageType, List[MessageType]],
+        *args: Optional[MessageType],
         timeout: Union[float, None] = None,
     ) -> Union[PublicWriteResult, List[PublicWriteResult]]:
         return self._call_sync(

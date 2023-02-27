@@ -7,7 +7,6 @@ import ydb
 from .topic_writer import (
     PublicWriterSettings,
     WriterSettings,
-    Writer,
     PublicMessage,
     PublicWriterInitInfo,
     InternalMessage,
@@ -15,6 +14,7 @@ from .topic_writer import (
     TopicWriterError,
     messages_to_proto_requests,
     PublicWriteResultTypes,
+    MessageType,
 )
 from .. import (
     _apis,
@@ -75,8 +75,8 @@ class WriterAsyncIO:
 
     async def write_with_ack(
         self,
-        messages: Union[Writer.MessageType, List[Writer.MessageType]],
-        *args: Optional[Writer.MessageType],
+        messages: Union[MessageType, List[MessageType]],
+        *args: Optional[MessageType],
     ) -> Union[PublicWriteResultTypes, List[PublicWriteResultTypes]]:
         """
         IT IS SLOWLY WAY. IT IS BAD CHOISE IN MOST CASES.
@@ -97,8 +97,8 @@ class WriterAsyncIO:
 
     async def write_with_ack_future(
         self,
-        messages: Union[Writer.MessageType, List[Writer.MessageType]],
-        *args: Optional[Writer.MessageType],
+        messages: Union[MessageType, List[MessageType]],
+        *args: Optional[MessageType],
     ) -> Union[asyncio.Future, List[asyncio.Future]]:
         """
         send one or number of messages to server.
@@ -120,8 +120,8 @@ class WriterAsyncIO:
 
     async def write(
         self,
-        messages: Union[Writer.MessageType, List[Writer.MessageType]],
-        *args: Optional[Writer.MessageType],
+        messages: Union[MessageType, List[MessageType]],
+        *args: Optional[MessageType],
     ):
         """
         send one or number of messages to server.
