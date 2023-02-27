@@ -496,6 +496,7 @@ class ReaderStream:
         self._closed = True
         self._set_first_error(TopicReaderStreamClosedError())
         self._state_changed.set()
+        self._stream.close()
 
         for task in self._background_tasks:
             task.cancel()

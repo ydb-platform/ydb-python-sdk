@@ -9,3 +9,4 @@ class TestTopicWriterAsyncIO:
         reader = driver.topic_client.topic_reader(topic_consumer, topic_path)
 
         assert await reader.receive_batch() is not None
+        await reader.close()
