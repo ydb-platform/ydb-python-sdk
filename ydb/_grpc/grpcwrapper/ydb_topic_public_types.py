@@ -1,11 +1,11 @@
 import datetime
+import typing
 from dataclasses import dataclass, field
 from enum import IntEnum
 from typing import Optional, List, Union, Dict
 
 # Workaround for good IDE and universal for runtime
-# noinspection PyUnreachableCode
-if False:
+if typing.TYPE_CHECKING:
     from ..v4.protos import ydb_topic_pb2
 else:
     from ..common.protos import ydb_topic_pb2

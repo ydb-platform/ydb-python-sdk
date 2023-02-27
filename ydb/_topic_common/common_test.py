@@ -1,4 +1,5 @@
 import asyncio
+import typing
 
 import grpc
 import pytest
@@ -10,9 +11,8 @@ from .._grpc.grpcwrapper.common_utils import (
 )
 from .. import issues
 
-# Workaround for good autocomplete in IDE and universal import at runtime
-# noinspection PyUnreachableCode
-if False:
+# Workaround for good IDE and universal for runtime
+if typing.TYPE_CHECKING:
     from ydb._grpc.v4.protos import (
         ydb_status_codes_pb2,
         ydb_topic_pb2,

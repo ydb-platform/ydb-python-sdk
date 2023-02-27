@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 import abc
+import typing
+
 import six
 from . import tracing, issues, connection
 from . import settings as settings_impl
@@ -9,8 +11,7 @@ import logging
 import time
 
 # Workaround for good IDE and universal for runtime
-# noinspection PyUnreachableCode
-if False:
+if typing.TYPE_CHECKING:
     from ._grpc.v4.protos import ydb_auth_pb2
     from ._grpc.v4 import ydb_auth_v1_pb2_grpc
 else:

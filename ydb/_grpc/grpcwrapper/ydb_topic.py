@@ -10,8 +10,7 @@ from . import ydb_topic_public_types
 from ... import scheme
 
 # Workaround for good IDE and universal for runtime
-# noinspection PyUnreachableCode
-if False:
+if typing.TYPE_CHECKING:
     from ..v4.protos import ydb_scheme_pb2, ydb_topic_pb2
 else:
     from ..common.protos import ydb_scheme_pb2, ydb_topic_pb2

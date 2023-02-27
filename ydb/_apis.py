@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
+import typing
+
 # Workaround for good IDE and universal for runtime
-# noinspection PyUnreachableCode
-if False:
+if typing.TYPE_CHECKING:
     from ._grpc.v4 import (
         ydb_cms_v1_pb2_grpc,
         ydb_discovery_v1_pb2_grpc,
