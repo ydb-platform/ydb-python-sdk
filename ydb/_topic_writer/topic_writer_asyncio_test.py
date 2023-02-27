@@ -295,7 +295,7 @@ class TestWriterAsyncIOReconnector:
             seqno=2,
             created_at=now,
         )
-        await reconnector.write_with_ack([message1, message2])
+        await reconnector.write_with_ack_future([message1, message2])
 
         # sent to first stream
         stream_writer = get_stream_writer()
@@ -317,7 +317,7 @@ class TestWriterAsyncIOReconnector:
         assert second_sent_msg == expected_messages
 
         second_writer.from_server.put_nowait(self.make_default_ack_message(seq_no=2))
-        await reconnector.close()
+        await reconnector.close(flush=True)
 
     async def test_stop_on_unexpected_exception(
         self, reconnector: WriterAsyncIOReconnector, get_stream_writer
@@ -337,7 +337,7 @@ class TestWriterAsyncIOReconnector:
 
             async def wait_stop():
                 while True:
-                    await reconnector.write_with_ack([message])
+                    await reconnector.write_with_ack_future([message])
                     await asyncio.sleep(0.1)
 
             await asyncio.wait_for(wait_stop(), 1)
@@ -380,7 +380,7 @@ class TestWriterAsyncIOReconnector:
             data="123",
             seqno=3,
         )
-        await reconnector.write_with_ack([message])
+        await reconnector.write_with_ack_future([message])
 
         sent_messages = await asyncio.wait_for(stream_writer.from_client.get(), 1)
         assert sent_messages == [InternalMessage(message)]
@@ -399,8 +399,8 @@ class TestWriterAsyncIOReconnector:
 
             reconnector = WriterAsyncIOReconnector(default_driver, settings)
 
-            await reconnector.write_with_ack([PublicMessage(data="123")])
-            await reconnector.write_with_ack([PublicMessage(data="456")])
+            await reconnector.write_with_ack_future([PublicMessage(data="123")])
+            await reconnector.write_with_ack_future([PublicMessage(data="456")])
 
             stream_writer = get_stream_writer()
 
@@ -415,22 +415,26 @@ class TestWriterAsyncIOReconnector:
             ] == sent
 
         with pytest.raises(TopicWriterError):
-            await reconnector.write_with_ack(
+            await reconnector.write_with_ack_future(
                 [PublicMessage(seqno=last_seq_no + 3, data="123")]
             )
 
         await reconnector.close(flush=False)
 
     async def test_deny_double_seqno(self, reconnector: WriterAsyncIOReconnector):
-        await reconnector.write_with_ack([PublicMessage(seqno=10, data="123")])
+        await reconnector.write_with_ack_future([PublicMessage(seqno=10, data="123")])
 
         with pytest.raises(TopicWriterError):
-            await reconnector.write_with_ack([PublicMessage(seqno=9, data="123")])
+            await reconnector.write_with_ack_future(
+                [PublicMessage(seqno=9, data="123")]
+            )
 
         with pytest.raises(TopicWriterError):
-            await reconnector.write_with_ack([PublicMessage(seqno=10, data="123")])
+            await reconnector.write_with_ack_future(
+                [PublicMessage(seqno=10, data="123")]
+            )
 
-        await reconnector.write_with_ack([PublicMessage(seqno=11, data="123")])
+        await reconnector.write_with_ack_future([PublicMessage(seqno=11, data="123")])
 
         await reconnector.close(flush=False)
 
@@ -443,7 +447,7 @@ class TestWriterAsyncIOReconnector:
         settings = copy.deepcopy(default_settings)
         settings.auto_created_at = True
         reconnector = WriterAsyncIOReconnector(default_driver, settings)
-        await reconnector.write_with_ack([PublicMessage(seqno=4, data="123")])
+        await reconnector.write_with_ack_future([PublicMessage(seqno=4, data="123")])
 
         stream_writer = get_stream_writer()
         sent = await stream_writer.from_client.get()
@@ -468,7 +472,7 @@ class TestWriterAsyncIO:
             self.futures = []
             self.messages_writted = asyncio.Event()
 
-        async def write_with_ack(self, messages: typing.List[InternalMessage]):
+        async def write_with_ack_future(self, messages: typing.List[InternalMessage]):
             async with self.lock:
                 futures = [asyncio.Future() for _ in messages]
                 self.messages.extend(messages)

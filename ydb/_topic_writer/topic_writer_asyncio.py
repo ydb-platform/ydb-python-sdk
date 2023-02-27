@@ -65,13 +65,13 @@ class WriterAsyncIO:
 
         self._loop.call_soon(self.close)
 
-    async def close(self):
+    async def close(self, *, flush: bool = True):
         if self._closed:
             return
 
         self._closed = True
 
-        await self._reconnector.close()
+        await self._reconnector.close(flush)
 
     async def write_with_ack(
         self,
@@ -109,13 +109,13 @@ class WriterAsyncIO:
         For wait with timeout use asyncio.wait_for.
         """
         if isinstance(messages, PublicMessage):
-            futures = await self._reconnector.write_with_ack([messages])
+            futures = await self._reconnector.write_with_ack_future([messages])
             return futures[0]
         if isinstance(messages, list):
             for m in messages:
                 if not isinstance(m, PublicMessage):
                     raise NotImplementedError()
-            return await self._reconnector.write_with_ack(messages)
+            return await self._reconnector.write_with_ack_future(messages)
         raise NotImplementedError()
 
     async def write(
@@ -185,7 +185,7 @@ class WriterAsyncIOReconnector:
             asyncio.create_task(self._connection_loop(), name="connection_loop")
         ]
 
-    async def close(self, flush: bool = True):
+    async def close(self, flush: bool):
         if self._closed:
             return
 
@@ -223,7 +223,7 @@ class WriterAsyncIOReconnector:
     async def wait_stop(self) -> Exception:
         return await self._stop_reason
 
-    async def write_with_ack(
+    async def write_with_ack_future(
         self, messages: List[PublicMessage]
     ) -> List[asyncio.Future]:
         # todo check internal buffer limit
