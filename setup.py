@@ -4,6 +4,13 @@ import setuptools
 with open("README.md", "r") as r:
     long_description = r.read()
 
+with open("requirements.txt") as r:
+    requirements = []
+    for line in r.readlines():
+        line = line.strip()
+        if line != "":
+            requirements.append(line)
+
 setuptools.setup(
     name="ydb",
     version="3.0.1b4",  # AUTOVERSION
@@ -23,12 +30,7 @@ setuptools.setup(
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.6",
     ],
-    install_requires=(
-        "protobuf>=3.13.0",
-        "grpcio>=1.5.0",
-        "enum-compat>=0.0.1",
-        "packaging"
-    ),
+    install_requires=requirements,  # requirements.txt
     options={"bdist_wheel": {"universal": True}},
     extras_require={
         "yc": ["yandexcloud", ],
