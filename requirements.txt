@@ -3,3 +3,4 @@ packaging
 protobuf>3.13.0,<5.0.0
 pytest==6.2.4
 aiohttp==3.7.4
+six<2

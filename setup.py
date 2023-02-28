@@ -27,7 +27,8 @@ setuptools.setup(
         "protobuf>=3.13.0",
         "grpcio>=1.5.0",
         "enum-compat>=0.0.1",
-        "packaging"
+        "packaging",
+        "six<2",
     ),
     options={"bdist_wheel": {"universal": True}},
     extras_require={
