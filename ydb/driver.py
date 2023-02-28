@@ -23,10 +23,17 @@ class RPCCompression:
 def default_credentials(credentials=None, tracer=None):
     tracer = tracer if tracer is not None else tracing.Tracer(None)
     with tracer.trace("Driver.default_credentials") as ctx:
-        if credentials is not None:
+        if credentials is None:
+            ctx.trace({"credentials.anonymous": True})
+            return credentials_impl.AnonymousCredentials()
+        else:
             ctx.trace({"credentials.prepared": True})
             return credentials
 
+
+def credentials_from_env_variables(tracer=None):
+    tracer = tracer if tracer is not None else tracing.Tracer(None)
+    with tracer.trace("Driver.credentials_from_env_variables") as ctx:
         service_account_key_file = os.getenv("YDB_SERVICE_ACCOUNT_KEY_FILE_CREDENTIALS")
         if service_account_key_file is not None:
             ctx.trace({"credentials.service_account_key_file": True})
@@ -51,9 +58,7 @@ def default_credentials(credentials=None, tracer=None):
             ctx.trace({"credentials.access_token": True})
             return credentials_impl.AuthTokenCredentials(access_token)
 
-        import ydb.iam
-
-        return ydb.iam.MetadataUrlCredentials(tracer=tracer)
+        return default_credentials(None, tracer)
 
 
 class DriverConfig(object):

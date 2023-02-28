@@ -14,7 +14,7 @@ class YDBClient:
         driver_config = ydb.DriverConfig(
             self.config.endpoint,
             self.config.database,
-            credentials=ydb.construct_credentials_from_environ(),
+            credentials=ydb.credentials_from_env_variables(),
             root_certificates=ydb.load_ydb_root_certificate(),
         )
 

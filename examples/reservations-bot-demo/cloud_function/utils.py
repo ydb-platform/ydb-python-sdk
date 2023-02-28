@@ -7,7 +7,7 @@ def make_driver_config(endpoint, database, path):
     return ydb.DriverConfig(
         endpoint,
         database,
-        credentials=ydb.construct_credentials_from_environ(),
+        credentials=ydb.credentials_from_env_variables(),
         root_certificates=ydb.load_ydb_root_certificate(),
     )
 

@@ -1,43 +1,7 @@
-import os
-
 from . import pool, scheme, table
 import ydb
 from .. import _utilities
-from ydb.driver import get_config
-
-
-def default_credentials(credentials=None):
-    if credentials is not None:
-        return credentials
-
-    service_account_key_file = os.getenv("YDB_SERVICE_ACCOUNT_KEY_FILE_CREDENTIALS")
-    if service_account_key_file is not None:
-        from .iam import ServiceAccountCredentials
-
-        return ServiceAccountCredentials.from_file(service_account_key_file)
-
-    anonymous_credetials = os.getenv("YDB_ANONYMOUS_CREDENTIALS", "0") == "1"
-    if anonymous_credetials:
-        return ydb.credentials.AnonymousCredentials()
-
-    metadata_credentials = os.getenv("YDB_METADATA_CREDENTIALS", "0") == "1"
-    if metadata_credentials:
-        from .iam import MetadataUrlCredentials
-
-        return MetadataUrlCredentials()
-
-    access_token = os.getenv("YDB_ACCESS_TOKEN_CREDENTIALS")
-    if access_token is not None:
-        return ydb.credentials.AccessTokenCredentials(access_token)
-
-    # (legacy instantiation)
-    creds = ydb.auth_helpers.construct_credentials_from_environ()
-    if creds is not None:
-        return creds
-
-    from .iam import MetadataUrlCredentials
-
-    return MetadataUrlCredentials()
+from ydb.driver import get_config, default_credentials
 
 
 class DriverConfig(ydb.DriverConfig):

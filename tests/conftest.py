@@ -1,16 +1,9 @@
 import os
-from unittest import mock
 
 import pytest
 import ydb
 import time
 from ydb import issues
-
-
-@pytest.fixture(autouse=True, scope="session")
-def mock_settings_env_vars():
-    with mock.patch.dict(os.environ, {"YDB_ANONYMOUS_CREDENTIALS": "1"}):
-        yield
 
 
 @pytest.fixture(scope="module")
@@ -87,8 +80,6 @@ async def driver(endpoint, database, event_loop):
     driver_config = ydb.DriverConfig(
         endpoint,
         database,
-        credentials=ydb.construct_credentials_from_environ(),
-        root_certificates=ydb.load_ydb_root_certificate(),
     )
 
     driver = ydb.aio.Driver(driver_config=driver_config)
@@ -104,8 +95,6 @@ async def driver_sync(endpoint, database, event_loop):
     driver_config = ydb.DriverConfig(
         endpoint,
         database,
-        credentials=ydb.construct_credentials_from_environ(),
-        root_certificates=ydb.load_ydb_root_certificate(),
     )
 
     driver = ydb.Driver(driver_config=driver_config)
