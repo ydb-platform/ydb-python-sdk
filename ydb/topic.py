@@ -19,11 +19,12 @@ from ._topic_reader.topic_reader_asyncio import (
 )
 
 from ._topic_writer.topic_writer import (  # noqa: F401
-    Writer as TopicWriter,
     PublicWriterSettings as TopicWriterSettings,
     PublicMessage as TopicWriterMessage,
     RetryPolicy as TopicWriterRetryPolicy,
 )
+
+from ._topic_writer.topic_writer_sync import WriterSync as TopicWriter
 
 from ._topic_common.common import (
     wrap_operation as _wrap_operation,
@@ -278,7 +279,10 @@ class TopicClient:
         get_last_seqno: bool = False,
         retry_policy: Union["TopicWriterRetryPolicy", None] = None,
     ) -> TopicWriter:
-        raise NotImplementedError()
+        args = locals()
+        del args["self"]
+        settings = TopicWriterSettings(**args)
+        return TopicWriter(self._driver, settings)
 
 
 class TopicClientSettings:
