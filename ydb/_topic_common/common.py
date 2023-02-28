@@ -1,4 +1,8 @@
+import asyncio
+import concurrent.futures
+import threading
 import typing
+from typing import Optional
 
 from .. import operation, issues
 from .._grpc.grpcwrapper.common_utils import IFromProtoWithProtoType
@@ -24,3 +28,36 @@ def create_result_wrapper(
         return result_type.from_proto(msg)
 
     return wrapper
+
+
+_shared_event_loop_lock = threading.Lock()
+_shared_event_loop = None  # type: Optional[asyncio.AbstractEventLoop]
+
+
+def _get_shared_event_loop() -> asyncio.AbstractEventLoop:
+    global _shared_event_loop
+
+    if _shared_event_loop is not None:
+        return _shared_event_loop
+
+    with _shared_event_loop_lock:
+        if _shared_event_loop is not None:
+            return _shared_event_loop
+
+        event_loop_set_done = concurrent.futures.Future()
+
+        def start_event_loop():
+            event_loop = asyncio.new_event_loop()
+            event_loop_set_done.set_result(event_loop)
+            asyncio.set_event_loop(event_loop)
+            event_loop.run_forever()
+
+        t = threading.Thread(
+            target=start_event_loop,
+            name="Common ydb topic event loop",
+            daemon=True,
+        )
+        t.start()
+
+        _shared_event_loop = event_loop_set_done.result()
+        return _shared_event_loop
