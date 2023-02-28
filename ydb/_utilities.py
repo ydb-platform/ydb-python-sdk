@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
-import six
 import codecs
 from concurrent import futures
 import functools
 import hashlib
 import collections
+import urllib.parse
 from . import ydb_version
 
 try:
@@ -55,8 +55,8 @@ def parse_connection_string(connection_string):
         # default is grpcs
         cs = _grpcs_protocol + cs
 
-    p = six.moves.urllib.parse.urlparse(connection_string)
-    b = six.moves.urllib.parse.parse_qs(p.query)
+    p = urllib.parse.urlparse(connection_string)
+    b = urllib.parse.parse_qs(p.query)
     database = b.get("database", [])
     assert len(database) > 0
 
@@ -77,11 +77,9 @@ def wrap_async_call_exceptions(f):
 
 def get_query_hash(yql_text):
     try:
-        return hashlib.sha256(
-            six.text_type(yql_text, "utf-8").encode("utf-8")
-        ).hexdigest()
+        return hashlib.sha256(str(yql_text, "utf-8").encode("utf-8")).hexdigest()
     except TypeError:
-        return hashlib.sha256(six.text_type(yql_text).encode("utf-8")).hexdigest()
+        return hashlib.sha256(str(yql_text).encode("utf-8")).hexdigest()
 
 
 class LRUCache(object):

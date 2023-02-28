@@ -1,13 +1,12 @@
 # -*- coding: utf-8 -*-
 from ydb import *  # noqa
 import sys
-import six
 import warnings
 
 warnings.warn("module kikimr.public.sdk.python.client is deprecated. please use ydb instead")
 
 
-for name, module in six.iteritems(sys.modules.copy()):
+for name, module in sys.modules.copy().items():
     if not name.startswith("ydb"):
         continue
 

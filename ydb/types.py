@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 import abc
 import enum
-import six
 import json
 from . import _utilities, _apis
 from datetime import date, datetime, timedelta
@@ -12,12 +11,8 @@ from google.protobuf import struct_pb2
 
 _SECONDS_IN_DAY = 60 * 60 * 24
 _EPOCH = datetime(1970, 1, 1)
-if six.PY3:
-    _from_bytes = None
-else:
 
-    def _from_bytes(x, table_client_settings):
-        return _utilities.from_bytes(x)
+_from_bytes = None
 
 
 def _from_date_number(x, table_client_settings):

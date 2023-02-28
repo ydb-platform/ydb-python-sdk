@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from google.protobuf import text_format
 import enum
-from six.moves import queue
+import queue
 
 from . import _apis
 

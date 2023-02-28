@@ -1,14 +1,13 @@
 # -*- coding: utf-8 -*-
+import abc
 import threading
 import logging
 from concurrent import futures
 import collections
 import random
 
-import six
-
 from . import connection as connection_impl, issues, resolver, _utilities, tracing
-from abc import abstractmethod, ABCMeta
+from abc import abstractmethod
 
 from .connection import Connection
 
@@ -296,8 +295,7 @@ class Discovery(threading.Thread):
         self.logger.info("Successfully terminated discovery process")
 
 
-@six.add_metaclass(ABCMeta)
-class IConnectionPool:
+class IConnectionPool(abc.ABC):
     @abstractmethod
     def __init__(self, driver_config):
         """

@@ -32,7 +32,6 @@ pytest-docker-compose==3.2.1
 python-dotenv==0.18.0
 PyYAML==5.4.1
 requests==2.26.0
-six==1.16.0
 texttable==1.6.4
 toml==0.10.2
 typing-extensions==3.10.0.0

@@ -3,7 +3,6 @@ from ydb import credentials, tracing
 import grpc
 import time
 import abc
-import six
 from datetime import datetime
 import json
 import os
@@ -45,8 +44,7 @@ def get_jwt(account_id, access_key_id, private_key, jwt_expiration_timeout):
     )
 
 
-@six.add_metaclass(abc.ABCMeta)
-class TokenServiceCredentials(credentials.AbstractExpiringTokenCredentials):
+class TokenServiceCredentials(credentials.AbstractExpiringTokenCredentials, abc.ABC):
     def __init__(self, iam_endpoint=None, iam_channel_credentials=None, tracer=None):
         super(TokenServiceCredentials, self).__init__(tracer)
         assert (
@@ -84,8 +82,7 @@ class TokenServiceCredentials(credentials.AbstractExpiringTokenCredentials):
             return {"access_token": response.iam_token, "expires_in": expires_in}
 
 
-@six.add_metaclass(abc.ABCMeta)
-class BaseJWTCredentials(object):
+class BaseJWTCredentials(abc.ABC):
     def __init__(self, account_id, access_key_id, private_key):
         self._account_id = account_id
         self._jwt_expiration_timeout = 60.0 * 60
