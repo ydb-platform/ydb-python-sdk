@@ -54,7 +54,7 @@ def _get_shared_event_loop() -> asyncio.AbstractEventLoop:
 
         t = threading.Thread(
             target=start_event_loop,
-            name="Common ydb topic writer event loop",
+            name="Common ydb topic event loop",
             daemon=True,
         )
         t.start()
