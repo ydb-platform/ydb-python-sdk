@@ -1,15 +1,11 @@
 # -*- coding: utf-8 -*-
 from . import credentials as credentials_impl, table, scheme, pool
 from . import tracing
-import six
 import os
 import grpc
 from . import _utilities
 
-if six.PY2:
-    Any = None
-else:
-    from typing import Any  # noqa
+from typing import Any  # noqa
 
 
 class RPCCompression:

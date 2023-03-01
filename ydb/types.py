@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 import abc
 import enum
-import six
 import json
 from . import _utilities, _apis
 from datetime import date, datetime, timedelta
@@ -12,12 +11,6 @@ from google.protobuf import struct_pb2
 
 _SECONDS_IN_DAY = 60 * 60 * 24
 _EPOCH = datetime(1970, 1, 1)
-if six.PY3:
-    _from_bytes = None
-else:
-
-    def _from_bytes(x, table_client_settings):
-        return _utilities.from_bytes(x)
 
 
 def _from_date_number(x, table_client_settings):
@@ -44,8 +37,6 @@ def _from_json(x, table_client_settings):
         and table_client_settings._native_json_in_result_sets
     ):
         return json.loads(x)
-    if _from_bytes is not None:
-        return _from_bytes(x, table_client_settings)
     return x
 
 
@@ -114,7 +105,7 @@ class PrimitiveType(enum.Enum):
     Float = _apis.primitive_types.FLOAT, "float_value"
 
     String = _apis.primitive_types.STRING, "bytes_value"
-    Utf8 = _apis.primitive_types.UTF8, "text_value", _from_bytes
+    Utf8 = _apis.primitive_types.UTF8, "text_value"
 
     Yson = _apis.primitive_types.YSON, "bytes_value"
     Json = _apis.primitive_types.JSON, "text_value", _from_json
@@ -143,7 +134,7 @@ class PrimitiveType(enum.Enum):
         _to_interval,
     )
 
-    DyNumber = _apis.primitive_types.DYNUMBER, "text_value", _from_bytes
+    DyNumber = _apis.primitive_types.DYNUMBER, "text_value"
 
     def __init__(self, idn, proto_field, to_obj=None, from_obj=None):
         self._idn_ = idn

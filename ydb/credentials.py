@@ -2,7 +2,6 @@
 import abc
 import typing
 
-import six
 from . import tracing, issues, connection
 from . import settings as settings_impl
 import threading
@@ -23,15 +22,13 @@ YDB_AUTH_TICKET_HEADER = "x-ydb-auth-ticket"
 logger = logging.getLogger(__name__)
 
 
-@six.add_metaclass(abc.ABCMeta)
-class AbstractCredentials(object):
+class AbstractCredentials(abc.ABC):
     """
     An abstract class that provides auth metadata
     """
 
 
-@six.add_metaclass(abc.ABCMeta)
-class Credentials(object):
+class Credentials(abc.ABC):
     def __init__(self, tracer=None):
         self.tracer = tracer if tracer is not None else tracing.Tracer(None)
 
@@ -88,7 +85,6 @@ class AtMostOneExecution(object):
             self._can_schedule = True
 
 
-@six.add_metaclass(abc.ABCMeta)
 class AbstractExpiringTokenCredentials(Credentials):
     def __init__(self, tracer=None):
         super(AbstractExpiringTokenCredentials, self).__init__(tracer)
