@@ -44,7 +44,7 @@ def get_jwt(account_id, access_key_id, private_key, jwt_expiration_timeout):
     )
 
 
-class TokenServiceCredentials(credentials.AbstractExpiringTokenCredentials, abc.ABC):
+class TokenServiceCredentials(credentials.AbstractExpiringTokenCredentials):
     def __init__(self, iam_endpoint=None, iam_channel_credentials=None, tracer=None):
         super(TokenServiceCredentials, self).__init__(tracer)
         assert (

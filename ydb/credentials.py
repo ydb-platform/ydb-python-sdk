@@ -85,7 +85,7 @@ class AtMostOneExecution(object):
             self._can_schedule = True
 
 
-class AbstractExpiringTokenCredentials(Credentials, abc.ABC):
+class AbstractExpiringTokenCredentials(Credentials):
     def __init__(self, tracer=None):
         super(AbstractExpiringTokenCredentials, self).__init__(tracer)
         self._expires_in = 0

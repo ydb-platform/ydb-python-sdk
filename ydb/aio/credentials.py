@@ -54,9 +54,7 @@ class _AtMostOneExecution(object):
             asyncio.ensure_future(self._wrapped_execution(callback))
 
 
-class AbstractExpiringTokenCredentials(
-    credentials.AbstractExpiringTokenCredentials, abc.ABC
-):
+class AbstractExpiringTokenCredentials(credentials.AbstractExpiringTokenCredentials):
     def __init__(self):
         super(AbstractExpiringTokenCredentials, self).__init__()
         self._tp = _AtMostOneExecution()

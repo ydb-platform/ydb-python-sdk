@@ -23,7 +23,7 @@ except ImportError:
     aiohttp = None
 
 
-class TokenServiceCredentials(AbstractExpiringTokenCredentials, abc.ABC):
+class TokenServiceCredentials(AbstractExpiringTokenCredentials):
     def __init__(self, iam_endpoint=None, iam_channel_credentials=None):
         super(TokenServiceCredentials, self).__init__()
         assert (
