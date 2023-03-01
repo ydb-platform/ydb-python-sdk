@@ -1,3 +1,4 @@
+## 3.0.1b5 ##
 * Remove six package from code and dependencies (remove support python2)
 * Use anonymous credentials by default instead of iam metadata (use ydb.driver.credentials_from_env_variables for creds by env var)
 * Close grpc streams while closing readers/writers
