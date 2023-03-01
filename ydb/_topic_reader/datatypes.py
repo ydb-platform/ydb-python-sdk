@@ -68,12 +68,6 @@ class PartitionSession:
     reader_reconnector_id: int
     reader_stream_id: int
     _next_message_start_commit_offset: int = field(init=False)
-    _send_commit_window_start: int = field(init=False)
-
-    # todo: check if deque is optimal
-    _pending_commits: Deque[OffsetsRange] = field(
-        init=False, default_factory=lambda: deque()
-    )
 
     # todo: check if deque is optimal
     _ack_waiters: Deque["PartitionSession.CommitAckWaiter"] = field(
@@ -89,45 +83,17 @@ class PartitionSession:
 
     def __post_init__(self):
         self._next_message_start_commit_offset = self.committed_offset
-        self._send_commit_window_start = self.committed_offset
 
         try:
             self._loop = asyncio.get_running_loop()
         except RuntimeError:
             self._loop = None
 
-    def add_commit(
-        self, new_commit: OffsetsRange
-    ) -> "PartitionSession.CommitAckWaiter":
-        self._ensure_not_closed()
-
-        self._add_to_commits(new_commit)
-        return self._add_waiter(new_commit.end)
-
-    def _add_to_commits(self, new_commit: OffsetsRange):
-        index = bisect.bisect_left(self._pending_commits, new_commit)
-
-        prev_commit = self._pending_commits[index - 1] if index > 0 else None
-        commit = (
-            self._pending_commits[index] if index < len(self._pending_commits) else None
-        )
-
-        for c in (prev_commit, commit):
-            if c is not None and new_commit.is_intersected_with(c):
-                raise ValueError(
-                    "new commit intersected with existed. New range: %s, existed: %s"
-                    % (new_commit, c)
-                )
-
-        if commit is not None and commit.start == new_commit.end:
-            commit.start = new_commit.start
-        elif prev_commit is not None and prev_commit.end == new_commit.start:
-            prev_commit.end = new_commit.end
-        else:
-            self._pending_commits.insert(index, new_commit)
-
-    def _add_waiter(self, end_offset: int) -> "PartitionSession.CommitAckWaiter":
+    def add_waiter(self, end_offset: int) -> "PartitionSession.CommitAckWaiter":
         waiter = PartitionSession.CommitAckWaiter(end_offset, self._create_future())
+        if end_offset <= self.committed_offset:
+            waiter._finish_ok()
+            return waiter
 
         # fast way
         if len(self._ack_waiters) > 0 and self._ack_waiters[-1].end_offset < end_offset:
@@ -143,26 +109,6 @@ class PartitionSession:
         else:
             return asyncio.Future()
 
-    def pop_commit_range(self) -> Optional[OffsetsRange]:
-        self._ensure_not_closed()
-
-        if len(self._pending_commits) == 0:
-            return None
-
-        if self._pending_commits[0].start != self._send_commit_window_start:
-            return None
-
-        res = self._pending_commits.popleft()
-        while (
-            len(self._pending_commits) > 0 and self._pending_commits[0].start == res.end
-        ):
-            commit = self._pending_commits.popleft()
-            res.end = commit.end
-
-        self._send_commit_window_start = res.end
-
-        return res
-
     def ack_notify(self, offset: int):
         self._ensure_not_closed()
 
@@ -176,7 +122,7 @@ class PartitionSession:
         while len(self._ack_waiters) > 0:
             if self._ack_waiters[0].end_offset <= offset:
                 waiter = self._ack_waiters.popleft()
-                waiter.future.set_result(None)
+                waiter._finish_ok()
             else:
                 break
 
@@ -189,7 +135,7 @@ class PartitionSession:
         self.state = PartitionSession.State.Stopped
         exception = topic_reader_asyncio.TopicReaderCommitToExpiredPartition()
         for waiter in self._ack_waiters:
-            waiter.future.set_exception(exception)
+            waiter._finish_error(exception)
 
     def _ensure_not_closed(self):
         if self.state == PartitionSession.State.Stopped:
@@ -204,6 +150,16 @@ class PartitionSession:
     class CommitAckWaiter:
         end_offset: int
         future: asyncio.Future = field(compare=False)
+        _done: bool = field(default=False, init=False)
+        _exception: Optional[Exception] = field(default=None, init=False)
+
+        def _finish_ok(self):
+            self._done = True
+            self.future.set_result(None)
+
+        def _finish_error(self, error: Exception):
+            self._exception = error
+            self.future.set_exception(error)
 
 
 @dataclass

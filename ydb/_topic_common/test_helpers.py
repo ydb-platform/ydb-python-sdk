@@ -39,7 +39,7 @@ class StreamMock(IGrpcWrapperAsyncIO):
         self.from_server.put_nowait(None)
 
 
-class WaitConditionException(Exception):
+class WaitConditionError(Exception):
     pass
 
 
@@ -62,7 +62,7 @@ async def wait_condition(
             return
         await asyncio.sleep(0)
 
-    raise WaitConditionException("Bad condition in test")
+    raise WaitConditionError("Bad condition in test")
 
 
 async def wait_for_fast(

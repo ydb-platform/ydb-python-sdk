@@ -377,15 +377,15 @@ class ReaderStream:
                 "commit messages after server stop the partition read session"
             )
 
-        waiter = partition_session.add_commit(batch._commit_get_offsets_range())
+        commit_range = batch._commit_get_offsets_range()
+        waiter = partition_session.add_waiter(commit_range.end)
 
-        send_range = partition_session.pop_commit_range()
-        if send_range:
+        if not waiter.future.done():
             client_message = StreamReadMessage.CommitOffsetRequest(
                 commit_offsets=[
                     StreamReadMessage.CommitOffsetRequest.PartitionCommitOffset(
                         partition_session_id=partition_session.id,
-                        offsets=[send_range],
+                        offsets=[commit_range],
                     )
                 ]
             )

@@ -1,9 +1,7 @@
 import asyncio
 import datetime
 import typing
-from collections import deque
 from dataclasses import dataclass
-from typing import List, Optional
 from unittest import mock
 
 import pytest
@@ -15,8 +13,12 @@ from .topic_reader import PublicReaderSettings
 from .topic_reader_asyncio import ReaderStream, ReaderReconnector
 from .._grpc.grpcwrapper.common_utils import SupportedDriverType, ServerStatus
 from .._grpc.grpcwrapper.ydb_topic import StreamReadMessage, Codec, OffsetsRange
-from .._topic_common import test_helpers
-from .._topic_common.test_helpers import StreamMock, wait_condition, wait_for_fast
+from .._topic_common.test_helpers import (
+    StreamMock,
+    wait_condition,
+    wait_for_fast,
+    WaitConditionError,
+)
 
 # Workaround for good IDE and universal for runtime
 if typing.TYPE_CHECKING:
@@ -234,124 +236,21 @@ class TestReaderStream:
             stream_reader_finish_with_error.receive_batch_nowait()
 
     @pytest.mark.parametrize(
-        "pending_ranges,commit,send_range,rest_ranges",
+        "commit,send_range",
         [
             (
-                [],
                 OffsetsRange(
                     partition_session_committed_offset,
                     partition_session_committed_offset + 1,
                 ),
-                OffsetsRange(
-                    partition_session_committed_offset,
-                    partition_session_committed_offset + 1,
-                ),
-                [],
+                True,
             ),
             (
-                [],
                 OffsetsRange(
-                    partition_session_committed_offset + 1,
-                    partition_session_committed_offset + 2,
-                ),
-                None,
-                [
-                    OffsetsRange(
-                        partition_session_committed_offset + 1,
-                        partition_session_committed_offset + 2,
-                    )
-                ],
-            ),
-            (
-                [
-                    OffsetsRange(
-                        partition_session_committed_offset + 5,
-                        partition_session_committed_offset + 10,
-                    )
-                ],
-                OffsetsRange(
-                    partition_session_committed_offset + 1,
-                    partition_session_committed_offset + 2,
-                ),
-                None,
-                [
-                    OffsetsRange(
-                        partition_session_committed_offset + 1,
-                        partition_session_committed_offset + 2,
-                    ),
-                    OffsetsRange(
-                        partition_session_committed_offset + 5,
-                        partition_session_committed_offset + 10,
-                    ),
-                ],
-            ),
-            (
-                [
-                    OffsetsRange(
-                        partition_session_committed_offset + 1,
-                        partition_session_committed_offset + 2,
-                    )
-                ],
-                OffsetsRange(
+                    partition_session_committed_offset - 1,
                     partition_session_committed_offset,
-                    partition_session_committed_offset + 1,
                 ),
-                OffsetsRange(
-                    partition_session_committed_offset,
-                    partition_session_committed_offset + 2,
-                ),
-                [],
-            ),
-            (
-                [
-                    OffsetsRange(
-                        partition_session_committed_offset + 1,
-                        partition_session_committed_offset + 2,
-                    ),
-                    OffsetsRange(
-                        partition_session_committed_offset + 2,
-                        partition_session_committed_offset + 3,
-                    ),
-                ],
-                OffsetsRange(
-                    partition_session_committed_offset,
-                    partition_session_committed_offset + 1,
-                ),
-                OffsetsRange(
-                    partition_session_committed_offset,
-                    partition_session_committed_offset + 3,
-                ),
-                [],
-            ),
-            (
-                [
-                    OffsetsRange(
-                        partition_session_committed_offset + 1,
-                        partition_session_committed_offset + 2,
-                    ),
-                    OffsetsRange(
-                        partition_session_committed_offset + 2,
-                        partition_session_committed_offset + 3,
-                    ),
-                    OffsetsRange(
-                        partition_session_committed_offset + 4,
-                        partition_session_committed_offset + 5,
-                    ),
-                ],
-                OffsetsRange(
-                    partition_session_committed_offset,
-                    partition_session_committed_offset + 1,
-                ),
-                OffsetsRange(
-                    partition_session_committed_offset,
-                    partition_session_committed_offset + 3,
-                ),
-                [
-                    OffsetsRange(
-                        partition_session_committed_offset + 4,
-                        partition_session_committed_offset + 5,
-                    )
-                ],
+                False,
             ),
         ],
     )
@@ -360,10 +259,8 @@ class TestReaderStream:
         stream,
         stream_reader: ReaderStream,
         partition_session,
-        pending_ranges: List[OffsetsRange],
         commit: OffsetsRange,
-        send_range: Optional[OffsetsRange],
-        rest_ranges: List[OffsetsRange],
+        send_range: bool,
     ):
         @dataclass
         class Commitable(datatypes.ICommittable):
@@ -376,9 +273,9 @@ class TestReaderStream:
             def _commit_get_offsets_range(self) -> OffsetsRange:
                 return OffsetsRange(self.start, self.end)
 
-        partition_session._pending_commits = deque(pending_ranges)
+        start_ack_waiters = partition_session._ack_waiters.copy()
 
-        stream_reader.commit(Commitable(commit.start, commit.end))
+        waiter = stream_reader.commit(Commitable(commit.start, commit.end))
 
         async def wait_message():
             return await wait_for_fast(stream.from_client.get(), timeout=0)
@@ -389,24 +286,27 @@ class TestReaderStream:
                 commit_offsets=[
                     StreamReadMessage.CommitOffsetRequest.PartitionCommitOffset(
                         partition_session_id=partition_session.id,
-                        offsets=[send_range],
+                        offsets=[commit],
                     )
                 ]
             )
+            assert partition_session._ack_waiters[-1].end_offset == commit.end
         else:
-            with pytest.raises(test_helpers.WaitConditionException):
-                await wait_message()
+            assert waiter.future.done()
 
-        assert partition_session._pending_commits == deque(rest_ranges)
+            with pytest.raises(WaitConditionError):
+                msg = await wait_message()
+                pass
+            assert start_ack_waiters == partition_session._ack_waiters
 
     async def test_commit_ack_received(
         self, stream_reader, stream, partition_session, second_partition_session
     ):
         offset1 = self.partition_session_committed_offset + 1
-        waiter1 = partition_session._add_waiter(offset1)
+        waiter1 = partition_session.add_waiter(offset1)
 
         offset2 = self.second_partition_session_offset + 2
-        waiter2 = second_partition_session._add_waiter(offset2)
+        waiter2 = second_partition_session.add_waiter(offset2)
 
         stream.from_server.put_nowait(
             StreamReadMessage.FromServer(
@@ -432,7 +332,7 @@ class TestReaderStream:
     async def test_close_ack_waiters_when_close_stream_reader(
         self, stream_reader_started: ReaderStream, partition_session
     ):
-        waiter = partition_session._add_waiter(
+        waiter = partition_session.add_waiter(
             self.partition_session_committed_offset + 1
         )
         await wait_for_fast(stream_reader_started.close())
