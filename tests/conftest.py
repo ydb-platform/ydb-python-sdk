@@ -97,6 +97,7 @@ async def driver(endpoint, database, event_loop):
 
     await driver.stop(timeout=10)
 
+
 @pytest.fixture()
 async def driver_sync(endpoint, database, event_loop):
     driver_config = ydb.DriverConfig(
