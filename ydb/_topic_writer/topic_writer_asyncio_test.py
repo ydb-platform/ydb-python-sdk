@@ -238,7 +238,7 @@ class TestWriterAsyncIOReconnector:
         return WriterSettings(
             PublicWriterSettings(
                 topic="/local/topic",
-                producer_and_message_group_id="test-producer",
+                producer_id="test-producer",
                 auto_seqno=False,
                 auto_created_at=False,
             )
@@ -487,7 +487,7 @@ class TestWriterAsyncIO:
     def default_settings(self) -> PublicWriterSettings:
         return PublicWriterSettings(
             topic="/local/topic",
-            producer_and_message_group_id="producer-id",
+            producer_id="producer-id",
         )
 
     @pytest.fixture(autouse=True)

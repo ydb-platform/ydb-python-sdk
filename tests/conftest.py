@@ -131,11 +131,24 @@ async def topic_path(driver, topic_consumer, database) -> str:
 @pytest.fixture()
 @pytest.mark.asyncio()
 async def topic_with_messages(driver, topic_path):
-    writer = driver.topic_client.writer(
-        topic_path, producer_and_message_group_id="fixture-producer-id"
-    )
+    writer = driver.topic_client.writer(topic_path, producer_id="fixture-producer-id")
     await writer.write_with_ack(
         ydb.TopicWriterMessage(data="123".encode()),
         ydb.TopicWriterMessage(data="456".encode()),
     )
     await writer.close()
+
+
+@pytest.fixture()
+@pytest.mark.asyncio()
+async def topic_reader(driver, topic_consumer, topic_path) -> ydb.TopicReaderAsyncIO:
+    reader = driver.topic_client.reader(topic=topic_path, consumer=topic_consumer)
+    yield reader
+    await reader.close()
+
+
+@pytest.fixture()
+def topic_reader_sync(driver_sync, topic_consumer, topic_path) -> ydb.TopicReader:
+    reader = driver_sync.topic_client.reader(topic=topic_path, consumer=topic_consumer)
+    yield reader
+    reader.close()

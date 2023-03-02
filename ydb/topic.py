@@ -1,5 +1,5 @@
 import datetime
-from typing import List, Callable, Union, Mapping, Any, Optional, Dict
+from typing import List, Union, Mapping, Optional, Dict
 
 from . import aio, Credentials, _apis
 
@@ -143,19 +143,11 @@ class TopicClientAsyncIO:
         self,
         topic,
         *,
-        producer_and_message_group_id: str,
+        producer_id: Optional[str] = None,  # default - random
         session_metadata: Mapping[str, str] = None,
-        encoders: Union[Mapping[int, Callable[[bytes], bytes]], None] = None,
-        serializer: Union[Callable[[Any], bytes], None] = None,
-        send_buffer_count: Union[int, None] = 10000,
-        send_buffer_bytes: Union[int, None] = 100 * 1024 * 1024,
         partition_id: Union[int, None] = None,
-        codec: Union[int, None] = None,
-        codec_autoselect: bool = True,
         auto_seqno: bool = True,
         auto_created_at: bool = True,
-        get_last_seqno: bool = False,
-        retry_policy: Union["TopicWriterRetryPolicy", None] = None,
     ) -> TopicWriterAsyncIO:
         args = locals()
         del args["self"]
@@ -265,19 +257,12 @@ class TopicClient:
     def writer(
         self,
         topic,
-        producer_and_message_group_id: str,
+        *,
+        producer_id: Optional[str] = None,  # default - random
         session_metadata: Mapping[str, str] = None,
-        encoders: Union[Mapping[int, Callable[[bytes], bytes]], None] = None,
-        serializer: Union[Callable[[Any], bytes], None] = None,
-        send_buffer_count: Union[int, None] = 10000,
-        send_buffer_bytes: Union[int, None] = 100 * 1024 * 1024,
         partition_id: Union[int, None] = None,
-        codec: Union[int, None] = None,
-        codec_autoselect: bool = True,
         auto_seqno: bool = True,
         auto_created_at: bool = True,
-        get_last_seqno: bool = False,
-        retry_policy: Union["TopicWriterRetryPolicy", None] = None,
     ) -> TopicWriter:
         args = locals()
         del args["self"]

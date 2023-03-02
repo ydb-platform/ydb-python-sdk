@@ -10,7 +10,7 @@ from ydb import TopicWriterMessage
 async def create_writer(db: ydb.aio.Driver):
     async with ydb.TopicClientAsyncIO(db).writer(
         "/database/topic/path",
-        producer_and_message_group_id="producer-id",
+        producer_id="producer-id",
     ) as writer:
         await writer.write(TopicWriterMessage("asd"))
 
@@ -18,7 +18,7 @@ async def create_writer(db: ydb.aio.Driver):
 async def connect_and_wait(db: ydb.aio.Driver):
     async with ydb.TopicClientAsyncIO(db).writer(
         "/database/topic/path",
-        producer_and_message_group_id="producer-id",
+        producer_id="producer-id",
     ) as writer:
         writer.wait_init()
 
@@ -26,7 +26,7 @@ async def connect_and_wait(db: ydb.aio.Driver):
 async def connect_without_context_manager(db: ydb.aio.Driver):
     writer = ydb.TopicClientAsyncIO(db).writer(
         "/database/topic/path",
-        producer_and_message_group_id="producer-id",
+        producer_id="producer-id",
     )
     try:
         pass  # some code
