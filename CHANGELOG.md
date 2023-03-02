@@ -1,4 +1,6 @@
 * BROKEN CHANGES: change names of public method in topic client
+* BROKEN CHANGES: rename parameter producer_and_message_group_id to producer_id
+* producer_id is optional now
 
 ## 3.0.1b5 ##
 * Remove six package from code and dependencies (remove support python2)

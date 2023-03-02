@@ -1,8 +1,9 @@
 import datetime
 import enum
+import uuid
 from dataclasses import dataclass
 from enum import Enum
-from typing import List, Union, TextIO, BinaryIO, Optional, Callable, Mapping, Any, Dict
+from typing import List, Union, TextIO, BinaryIO, Optional, Any, Dict
 
 import typing
 
@@ -16,21 +17,31 @@ MessageType = typing.Union["PublicMessage", "PublicMessage.SimpleMessageSourceTy
 
 @dataclass
 class PublicWriterSettings:
+    """
+    Settings for topic writer.
+
+    order of fields IS NOT stable, use keywords only
+    """
+
     topic: str
-    producer_and_message_group_id: str
+    producer_id: Optional[str] = None
     session_metadata: Optional[Dict[str, str]] = None
-    encoders: Union[Mapping[int, Callable[[bytes], bytes]], None] = None
-    serializer: Union[Callable[[Any], bytes], None] = None
-    send_buffer_count: Optional[int] = 10000
-    send_buffer_bytes: Optional[int] = 100 * 1024 * 1024
     partition_id: Optional[int] = None
-    codec: Optional[int] = None
-    codec_autoselect: bool = True
     auto_seqno: bool = True
     auto_created_at: bool = True
-    get_last_seqno: bool = False
-    retry_policy: Optional["RetryPolicy"] = None
-    update_token_interval: Union[int, float] = 3600
+    # get_last_seqno: bool = False
+    # encoders: Union[Mapping[int, Callable[[bytes], bytes]], None] = None
+    # serializer: Union[Callable[[Any], bytes], None] = None
+    # send_buffer_count: Optional[int] = 10000
+    # send_buffer_bytes: Optional[int] = 100 * 1024 * 1024
+    # codec: Optional[int] = None
+    # codec_autoselect: bool = True
+    # retry_policy: Optional["RetryPolicy"] = None
+    # update_token_interval: Union[int, float] = 3600
+
+    def __post_init__(self):
+        if self.producer_id is None:
+            self.producer_id = uuid.uuid4().hex
 
 
 @dataclass
@@ -55,18 +66,16 @@ class WriterSettings(PublicWriterSettings):
     def create_init_request(self) -> StreamWriteMessage.InitRequest:
         return StreamWriteMessage.InitRequest(
             path=self.topic,
-            producer_id=self.producer_and_message_group_id,
+            producer_id=self.producer_id,
             write_session_meta=self.session_metadata,
             partitioning=self.get_partitioning(),
-            get_last_seq_no=self.get_last_seqno,
+            get_last_seq_no=True,
         )
 
     def get_partitioning(self) -> StreamWriteMessage.PartitioningType:
         if self.partition_id is not None:
             return StreamWriteMessage.PartitioningPartitionID(self.partition_id)
-        return StreamWriteMessage.PartitioningMessageGroupID(
-            self.producer_and_message_group_id
-        )
+        return StreamWriteMessage.PartitioningMessageGroupID(self.producer_id)
 
 
 class SendMode(Enum):
