@@ -1,3 +1,5 @@
+* BROKEN CHANGES: change names of public method in topic client
+
 ## 3.0.1b5 ##
 * Remove six package from code and dependencies (remove support python2)
 * Use anonymous credentials by default instead of iam metadata (use ydb.driver.credentials_from_env_variables for creds by env var)

@@ -27,7 +27,7 @@ class TestTopicClientControlPlaneAsyncIO:
             await client.drop_topic(topic_path)
 
     async def test_describe_topic(self, driver, topic_path: str, topic_consumer):
-        res = await driver.topic_client.describe(topic_path)
+        res = await driver.topic_client.describe_topic(topic_path)
 
         assert res.self.name == os.path.basename(topic_path)
 
@@ -61,8 +61,7 @@ class TestTopicClientControlPlane:
             client.drop_topic(topic_path)
 
     def test_describe_topic(self, driver_sync, topic_path: str, topic_consumer):
-        res = driver_sync.topic_client.describe(topic_path)
-        res.partition_count_limit
+        res = driver_sync.topic_client.describe_topic(topic_path)
 
         assert res.self.name == os.path.basename(topic_path)
 

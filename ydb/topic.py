@@ -92,7 +92,7 @@ class TopicClientAsyncIO:
             _wrap_operation,
         )
 
-    async def describe(
+    async def describe_topic(
         self, path: str, include_stats: bool = False
     ) -> TopicDescription:
         args = locals().copy()
@@ -115,7 +115,7 @@ class TopicClientAsyncIO:
             _wrap_operation,
         )
 
-    def topic_reader(
+    def reader(
         self,
         consumer: str,
         topic: str,
@@ -139,7 +139,7 @@ class TopicClientAsyncIO:
         settings = TopicReaderSettings(**args)
         return TopicReaderAsyncIO(self._driver, settings)
 
-    def topic_writer(
+    def writer(
         self,
         topic,
         *,
@@ -215,7 +215,9 @@ class TopicClient:
             _wrap_operation,
         )
 
-    def describe(self, path: str, include_stats: bool = False) -> TopicDescription:
+    def describe_topic(
+        self, path: str, include_stats: bool = False
+    ) -> TopicDescription:
         args = locals().copy()
         del args["self"]
         req = _ydb_topic_public_types.DescribeTopicRequestParams(**args)
@@ -236,7 +238,7 @@ class TopicClient:
             _wrap_operation,
         )
 
-    def topic_reader(
+    def reader(
         self,
         consumer: str,
         topic: str,
@@ -260,7 +262,7 @@ class TopicClient:
         settings = TopicReaderSettings(**args)
         return TopicReader(self._driver, settings)
 
-    def topic_writer(
+    def writer(
         self,
         topic,
         producer_and_message_group_id: str,

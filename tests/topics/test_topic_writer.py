@@ -6,14 +6,14 @@ import ydb.aio
 @pytest.mark.asyncio
 class TestTopicWriterAsyncIO:
     async def test_send_message(self, driver: ydb.aio.Driver, topic_path):
-        writer = driver.topic_client.topic_writer(
+        writer = driver.topic_client.writer(
             topic_path, producer_and_message_group_id="test"
         )
         await writer.write(ydb.TopicWriterMessage(data="123".encode()))
         await writer.close()
 
     async def test_wait_last_seqno(self, driver: ydb.aio.Driver, topic_path):
-        async with driver.topic_client.topic_writer(
+        async with driver.topic_client.writer(
             topic_path,
             producer_and_message_group_id="test",
             auto_seqno=False,
@@ -22,7 +22,7 @@ class TestTopicWriterAsyncIO:
                 ydb.TopicWriterMessage(data="123".encode(), seqno=5)
             )
 
-        async with driver.topic_client.topic_writer(
+        async with driver.topic_client.writer(
             topic_path,
             producer_and_message_group_id="test",
             get_last_seqno=True,
@@ -31,7 +31,7 @@ class TestTopicWriterAsyncIO:
             assert init_info.last_seqno == 5
 
     async def test_auto_flush_on_close(self, driver: ydb.aio.Driver, topic_path):
-        async with driver.topic_client.topic_writer(
+        async with driver.topic_client.writer(
             topic_path,
             producer_and_message_group_id="test",
             auto_seqno=False,
@@ -43,7 +43,7 @@ class TestTopicWriterAsyncIO:
                     ydb.TopicWriterMessage(data=f"msg-{i}", seqno=last_seqno)
                 )
 
-        async with driver.topic_client.topic_writer(
+        async with driver.topic_client.writer(
             topic_path,
             producer_and_message_group_id="test",
             get_last_seqno=True,
@@ -54,21 +54,21 @@ class TestTopicWriterAsyncIO:
 
 class TestTopicWriterSync:
     def test_send_message(self, driver_sync: ydb.Driver, topic_path):
-        writer = driver_sync.topic_client.topic_writer(
+        writer = driver_sync.topic_client.writer(
             topic_path, producer_and_message_group_id="test"
         )
         writer.write(ydb.TopicWriterMessage(data="123".encode()))
         writer.close()
 
     def test_wait_last_seqno(self, driver_sync: ydb.Driver, topic_path):
-        with driver_sync.topic_client.topic_writer(
+        with driver_sync.topic_client.writer(
             topic_path,
             producer_and_message_group_id="test",
             auto_seqno=False,
         ) as writer:
             writer.write_with_ack(ydb.TopicWriterMessage(data="123".encode(), seqno=5))
 
-        with driver_sync.topic_client.topic_writer(
+        with driver_sync.topic_client.writer(
             topic_path,
             producer_and_message_group_id="test",
             get_last_seqno=True,
@@ -77,7 +77,7 @@ class TestTopicWriterSync:
             assert init_info.last_seqno == 5
 
     def test_auto_flush_on_close(self, driver_sync: ydb.Driver, topic_path):
-        with driver_sync.topic_client.topic_writer(
+        with driver_sync.topic_client.writer(
             topic_path,
             producer_and_message_group_id="test",
             auto_seqno=False,
@@ -87,7 +87,7 @@ class TestTopicWriterSync:
                 last_seqno = i + 1
                 writer.write(ydb.TopicWriterMessage(data=f"msg-{i}", seqno=last_seqno))
 
-        with driver_sync.topic_client.topic_writer(
+        with driver_sync.topic_client.writer(
             topic_path,
             producer_and_message_group_id="test",
             get_last_seqno=True,

@@ -13,7 +13,7 @@ async def connect():
         connection_string="grpc://localhost:2135?database=/local",
         credentials=ydb.credentials.AnonymousCredentials(),
     )
-    writer = ydb.TopicClientAsyncIO(db).topic_writer(
+    writer = ydb.TopicClientAsyncIO(db).writer(
         "/local/topic",
         producer_and_message_group_id="producer-id",
     )
@@ -21,7 +21,7 @@ async def connect():
 
 
 def create_writer(db: ydb.Driver):
-    with ydb.TopicClient(db).topic_writer(
+    with ydb.TopicClient(db).writer(
         "/database/topic/path",
         producer_and_message_group_id="producer-id",
     ) as writer:
@@ -29,7 +29,7 @@ def create_writer(db: ydb.Driver):
 
 
 def connect_and_wait(db: ydb.Driver):
-    with ydb.TopicClient(db).topic_writer(
+    with ydb.TopicClient(db).writer(
         "/database/topic/path",
         producer_and_message_group_id="producer-id",
     ) as writer:
@@ -37,7 +37,7 @@ def connect_and_wait(db: ydb.Driver):
 
 
 def connect_without_context_manager(db: ydb.Driver):
-    writer = ydb.TopicClient(db).topic_writer(
+    writer = ydb.TopicClient(db).writer(
         "/database/topic/path",
         producer_and_message_group_id="producer-id",
     )
@@ -98,7 +98,7 @@ def send_messages_with_wait_ack(writer: ydb.TopicWriter):
 
 
 def send_json_message(db: ydb.Driver):
-    with ydb.TopicClient(db).topic_writer(
+    with ydb.TopicClient(db).writer(
         "/database/path/topic", serializer=json.dumps
     ) as writer:
         writer.write({"a": 123})

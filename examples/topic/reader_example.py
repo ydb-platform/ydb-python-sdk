@@ -9,12 +9,12 @@ def connect():
         connection_string="grpc://localhost:2135?database=/local",
         credentials=ydb.credentials.AnonymousCredentials(),
     )
-    reader = ydb.TopicClient(db).topic_reader("/local/topic", consumer="consumer")
+    reader = ydb.TopicClient(db).reader("/local/topic", consumer="consumer")
     return reader
 
 
 def create_reader_and_close_with_context_manager(db: ydb.Driver):
-    with ydb.TopicClient(db).topic_reader(
+    with ydb.TopicClient(db).reader(
         "/database/topic/path", consumer="consumer", buffer_size_bytes=123
     ) as reader:
         for message in reader:
@@ -81,7 +81,7 @@ def get_one_batch_from_external_loop(reader: ydb.TopicReader):
 def auto_deserialize_message(db: ydb.Driver):
     # async, batch work similar to this
 
-    reader = ydb.TopicClient(db).topic_reader(
+    reader = ydb.TopicClient(db).reader(
         "/database/topic/path", consumer="asd", deserializer=json.loads
     )
     for message in reader.messages():
@@ -123,7 +123,7 @@ def handle_partition_stop_batch(reader: ydb.TopicReader):
 
 
 def connect_and_read_few_topics(db: ydb.Driver):
-    with ydb.TopicClient(db).topic_reader(
+    with ydb.TopicClient(db).reader(
         [
             "/database/topic/path",
             ydb.TopicSelector("/database/second-topic", partitions=3),
@@ -146,7 +146,7 @@ def advanced_commit_notify(db: ydb.Driver):
         print(event.topic)
         print(event.offset)
 
-    with ydb.TopicClient(db).topic_reader(
+    with ydb.TopicClient(db).reader(
         "/local", consumer="consumer", commit_batch_time=4, on_commit=on_commit
     ) as reader:
         for message in reader:
@@ -164,7 +164,7 @@ def advanced_read_with_own_progress_storage(db: ydb.TopicReader):
         resp.start_offset = 123
         return resp
 
-    with ydb.TopicClient(db).topic_reader(
+    with ydb.TopicClient(db).reader(
         "/local/test",
         consumer="consumer",
         on_get_partition_start_offset=on_get_partition_start_offset,
