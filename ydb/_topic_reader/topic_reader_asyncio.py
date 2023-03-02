@@ -495,7 +495,9 @@ class ReaderStream:
 
     def _on_commit_response(self, message: StreamReadMessage.CommitOffsetResponse):
         for partition_offset in message.partitions_committed_offsets:
-            session = self._partition_sessions.get(partition_offset.partition_session_id)
+            session = self._partition_sessions.get(
+                partition_offset.partition_session_id
+            )
             if session is None:
                 continue
             session.ack_notify(partition_offset.committed_offset)
