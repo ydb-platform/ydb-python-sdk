@@ -361,10 +361,7 @@ class ReaderStream:
     ) -> datatypes.PartitionSession.CommitAckWaiter:
         partition_session = batch._commit_get_partition_session()
 
-        if (
-            partition_session.reader_reconnector_id
-            != partition_session.reader_reconnector_id
-        ):
+        if partition_session.reader_reconnector_id != self._reader_reconnector_id:
             raise TopicReaderError("reader can commit only self-produced messages")
 
         if partition_session.reader_stream_id != self._id:
@@ -498,11 +495,8 @@ class ReaderStream:
 
     def _on_commit_response(self, message: StreamReadMessage.CommitOffsetResponse):
         for partition_offset in message.partitions_committed_offsets:
-            try:
-                session = self._partition_sessions[
-                    partition_offset.partition_session_id
-                ]
-            except KeyError:
+            session = self._partition_sessions.get(partition_offset.partition_session_id)
+            if session is None:
                 continue
             session.ack_notify(partition_offset.committed_offset)
 

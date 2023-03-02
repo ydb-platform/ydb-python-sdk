@@ -54,9 +54,11 @@ async def wait_condition(
     if timeout is None:
         timeout = 1
 
+    minimal_loop_count_for_wait = 1000
+
     start = time.monotonic()
     counter = 0
-    while (time.monotonic() - start < timeout) or counter < 1000:
+    while (time.monotonic() - start < timeout) or counter < minimal_loop_count_for_wait:
         counter += 1
         if f():
             return
