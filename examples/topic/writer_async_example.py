@@ -8,7 +8,7 @@ from ydb import TopicWriterMessage
 
 
 async def create_writer(db: ydb.aio.Driver):
-    async with ydb.TopicClientAsyncIO(db).topic_writer(
+    async with ydb.TopicClientAsyncIO(db).writer(
         "/database/topic/path",
         producer_and_message_group_id="producer-id",
     ) as writer:
@@ -16,7 +16,7 @@ async def create_writer(db: ydb.aio.Driver):
 
 
 async def connect_and_wait(db: ydb.aio.Driver):
-    async with ydb.TopicClientAsyncIO(db).topic_writer(
+    async with ydb.TopicClientAsyncIO(db).writer(
         "/database/topic/path",
         producer_and_message_group_id="producer-id",
     ) as writer:
@@ -24,7 +24,7 @@ async def connect_and_wait(db: ydb.aio.Driver):
 
 
 async def connect_without_context_manager(db: ydb.aio.Driver):
-    writer = ydb.TopicClientAsyncIO(db).topic_writer(
+    writer = ydb.TopicClientAsyncIO(db).writer(
         "/database/topic/path",
         producer_and_message_group_id="producer-id",
     )
@@ -81,7 +81,7 @@ async def send_messages_with_wait_ack(writer: ydb.TopicWriterAsyncIO):
 
 
 async def send_json_message(db: ydb.aio.Driver):
-    async with ydb.TopicClientAsyncIO(db).topic_writer(
+    async with ydb.TopicClientAsyncIO(db).writer(
         "/database/path/topic", serializer=json.dumps
     ) as writer:
         writer.write({"a": 123})
