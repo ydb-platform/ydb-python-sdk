@@ -1,7 +1,7 @@
 import asyncio
 import datetime
 from collections import deque
-from typing import Deque, AsyncIterator, Union, List, Optional
+from typing import Deque, AsyncIterator, Union, List, Optional, Callable
 
 import ydb
 from .topic_writer import (
@@ -22,10 +22,9 @@ from .. import (
     check_retriable_error,
     RetrySettings,
 )
-from .._topic_common.common import (
-    TokenGetterFuncType,
-)
+
 from .._grpc.grpcwrapper.ydb_topic import (
+    UpdateTokenRequest,
     UpdateTokenResponse,
     StreamWriteMessage,
     WriterMessagesFromServerToClient,
@@ -151,10 +150,9 @@ class WriterAsyncIO:
 
 class WriterAsyncIOReconnector:
     _closed: bool
+    _loop: asyncio.AbstractEventLoop
     _credentials: Union[ydb.Credentials, None]
     _driver: ydb.aio.Driver
-    _update_token_interval: int
-    _token_get_function: TokenGetterFuncType
     _init_message: StreamWriteMessage.InitRequest
     _init_info: asyncio.Future
     _stream_connected: asyncio.Event
@@ -169,18 +167,19 @@ class WriterAsyncIOReconnector:
 
     def __init__(self, driver: SupportedDriverType, settings: WriterSettings):
         self._closed = False
+        self._loop = asyncio.get_running_loop()
         self._driver = driver
         self._credentials = driver._credentials
         self._init_message = settings.create_init_request()
-        self._init_info = asyncio.Future()
+        self._new_messages = asyncio.Queue()
+        self._init_info = self._loop.create_future()
         self._stream_connected = asyncio.Event()
         self._settings = settings
-
         self._last_known_seq_no = 0
         self._messages = deque()
         self._messages_future = deque()
         self._new_messages = asyncio.Queue()
-        self._stop_reason = asyncio.Future()
+        self._stop_reason = self._loop.create_future()
         self._background_tasks = [
             asyncio.create_task(self._connection_loop(), name="connection_loop")
         ]
@@ -195,9 +194,7 @@ class WriterAsyncIOReconnector:
         self._closed = True
         self._stop(TopicWriterStopped())
 
-        background_tasks = self._background_tasks
-
-        for task in background_tasks:
+        for task in self._background_tasks:
             task.cancel()
 
         await asyncio.wait(self._background_tasks)
@@ -233,7 +230,7 @@ class WriterAsyncIOReconnector:
             await self.wait_init()
 
         internal_messages = self._prepare_internal_messages(messages)
-        messages_future = [asyncio.Future() for _ in internal_messages]
+        messages_future = [self._loop.create_future() for _ in internal_messages]
 
         self._messages.extend(internal_messages)
         self._messages_future.extend(messages_future)
@@ -299,7 +296,10 @@ class WriterAsyncIOReconnector:
             stream_writer = None
             try:
                 stream_writer = await WriterAsyncIOStream.create(
-                    self._driver, self._init_message, self._get_token
+                    self._driver,
+                    self._init_message,
+                    3
+                    # self._settings.update_token_interval
                 )
                 try:
                     self._last_known_seq_no = stream_writer.last_seqno
@@ -318,10 +318,9 @@ class WriterAsyncIOReconnector:
                     self._read_loop(stream_writer), name="writer receive loop"
                 )
 
-                pending = [send_loop, receive_loop]
-
                 done, pending = await asyncio.wait(
-                    [send_loop, receive_loop], return_when=asyncio.FIRST_COMPLETED
+                    [send_loop, receive_loop],
+                    return_when=asyncio.FIRST_COMPLETED,
                 )
                 stream_writer.close()
                 done.pop().result()
@@ -393,9 +392,6 @@ class WriterAsyncIOReconnector:
 
         self._stop_reason.set_result(reason)
 
-    def _get_token(self) -> str:
-        raise NotImplementedError()
-
     async def flush(self):
         self._check_stop()
         if not self._messages_future:
@@ -411,32 +407,50 @@ class WriterAsyncIOStream:
     last_seqno: int
 
     _stream: IGrpcWrapperAsyncIO
-    _token_getter: TokenGetterFuncType
     _requests: asyncio.Queue
     _responses: AsyncIterator
 
+    _update_token_interval: int
+    _update_token_task: asyncio.Task
+    _update_token_event: asyncio.Event
+    _get_token_function: Callable[[], str]
+
     def __init__(
-        self,
-        token_getter: TokenGetterFuncType,
+        self, update_token_interval: int, get_token_function: Callable[[], str]
     ):
-        self._token_getter = token_getter
+        self._update_token_interval = update_token_interval
+        self._get_token_function = get_token_function
+
+        self._update_token_event = asyncio.Event()
+        self._update_token_event.set()
+
+        self._update_token_task = asyncio.create_task(
+            self._update_token_loop(), name="update_token_loop"
+        )
+
+    async def _update_token_loop(self):
+        while True:
+            await asyncio.sleep(self._update_token_interval)
+            await self.update_token(token=self._get_token_function())
 
     def close(self):
+        self._update_token_task.cancel()
         self._stream.close()
 
     @staticmethod
     async def create(
         driver: SupportedDriverType,
         init_request: StreamWriteMessage.InitRequest,
-        token_getter: TokenGetterFuncType,
+        update_token_interval: int,
     ) -> "WriterAsyncIOStream":
         stream = GrpcWrapperAsyncIO(StreamWriteMessage.FromServer.from_proto)
-
         await stream.start(
             driver, _apis.TopicService.Stub, _apis.TopicService.StreamWrite
         )
-
-        writer = WriterAsyncIOStream(token_getter)
+        writer = WriterAsyncIOStream(
+            update_token_interval=update_token_interval,
+            get_token_function=driver._credentials.get_auth_token,
+        )
         await writer._start(stream, init_request)
         return writer
 
@@ -447,6 +461,7 @@ class WriterAsyncIOStream:
             if isinstance(item, StreamWriteMessage.WriteResponse):
                 return item
             if isinstance(item, UpdateTokenResponse):
+                self._update_token_event.set()
                 continue
 
             # todo log unknown messages instead of raise exception
@@ -476,3 +491,11 @@ class WriterAsyncIOStream:
     def write(self, messages: List[InternalMessage]):
         for request in messages_to_proto_requests(messages):
             self._stream.write(request)
+
+    async def update_token(self, token: str):
+        await self._update_token_event.wait()
+        try:
+            msg = StreamWriteMessage.FromClient(UpdateTokenRequest(token))
+            self._stream.write(msg)
+        finally:
+            self._update_token_event.clear()

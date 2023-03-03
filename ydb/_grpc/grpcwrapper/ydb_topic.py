@@ -67,16 +67,43 @@ class SupportedCodecs(IToProto, IFromProto, IToPublic):
         return list(map(Codec.to_public, self.codecs))
 
 
-@dataclass
-class OffsetsRange(IFromProto):
-    start: int
-    end: int
+@dataclass(order=True)
+class OffsetsRange(IFromProto, IToProto):
+    """
+    half-opened interval, include [start, end) offsets
+    """
+
+    __slots__ = ("start", "end")
+
+    start: int  # first offset
+    end: int  # offset after last, included to range
+
+    def __post_init__(self):
+        if self.end < self.start:
+            raise ValueError(
+                "offset end must be not less then start. Got start=%s end=%s"
+                % (self.start, self.end)
+            )
 
     @staticmethod
     def from_proto(msg: ydb_topic_pb2.OffsetsRange) -> "OffsetsRange":
         return OffsetsRange(
             start=msg.start,
             end=msg.end,
+        )
+
+    def to_proto(self) -> ydb_topic_pb2.OffsetsRange:
+        return ydb_topic_pb2.OffsetsRange(
+            start=self.start,
+            end=self.end,
+        )
+
+    def is_intersected_with(self, other: "OffsetsRange") -> bool:
+        return (
+            self.start <= other.start < self.end
+            or self.start < other.end <= self.end
+            or other.start <= self.start < other.end
+            or other.start < self.end <= other.end
         )
 
 
@@ -527,22 +554,66 @@ class StreamReadMessage:
                 )
 
     @dataclass
-    class CommitOffsetRequest:
+    class CommitOffsetRequest(IToProto):
         commit_offsets: List["PartitionCommitOffset"]
 
+        def to_proto(self) -> ydb_topic_pb2.StreamReadMessage.CommitOffsetRequest:
+            res = ydb_topic_pb2.StreamReadMessage.CommitOffsetRequest(
+                commit_offsets=list(
+                    map(
+                        StreamReadMessage.CommitOffsetRequest.PartitionCommitOffset.to_proto,
+                        self.commit_offsets,
+                    )
+                ),
+            )
+            return res
+
         @dataclass
-        class PartitionCommitOffset:
+        class PartitionCommitOffset(IToProto):
             partition_session_id: int
             offsets: List["OffsetsRange"]
 
+            def to_proto(
+                self,
+            ) -> ydb_topic_pb2.StreamReadMessage.CommitOffsetRequest.PartitionCommitOffset:
+                res = ydb_topic_pb2.StreamReadMessage.CommitOffsetRequest.PartitionCommitOffset(
+                    partition_session_id=self.partition_session_id,
+                    offsets=list(map(OffsetsRange.to_proto, self.offsets)),
+                )
+                return res
+
     @dataclass
-    class CommitOffsetResponse:
-        partitions_committed_offsets: List["PartitionCommittedOffset"]
+    class CommitOffsetResponse(IFromProto):
+        partitions_committed_offsets: List[
+            "StreamReadMessage.CommitOffsetResponse.PartitionCommittedOffset"
+        ]
+
+        @staticmethod
+        def from_proto(
+            msg: ydb_topic_pb2.StreamReadMessage.CommitOffsetResponse,
+        ) -> "StreamReadMessage.CommitOffsetResponse":
+            return StreamReadMessage.CommitOffsetResponse(
+                partitions_committed_offsets=list(
+                    map(
+                        StreamReadMessage.CommitOffsetResponse.PartitionCommittedOffset.from_proto,
+                        msg.partitions_committed_offsets,
+                    )
+                )
+            )
 
         @dataclass
-        class PartitionCommittedOffset:
+        class PartitionCommittedOffset(IFromProto):
             partition_session_id: int
             committed_offset: int
+
+            @staticmethod
+            def from_proto(
+                msg: ydb_topic_pb2.StreamReadMessage.CommitOffsetResponse.PartitionCommittedOffset,
+            ) -> "StreamReadMessage.CommitOffsetResponse.PartitionCommittedOffset":
+                return StreamReadMessage.CommitOffsetResponse.PartitionCommittedOffset(
+                    partition_session_id=msg.partition_session_id,
+                    committed_offset=msg.committed_offset,
+                )
 
     @dataclass
     class PartitionSessionStatusRequest:
@@ -576,16 +647,18 @@ class StreamReadMessage:
     @dataclass
     class StartPartitionSessionResponse(IToProto):
         partition_session_id: int
-        read_offset: int
-        commit_offset: int
+        read_offset: Optional[int]
+        commit_offset: Optional[int]
 
         def to_proto(
             self,
         ) -> ydb_topic_pb2.StreamReadMessage.StartPartitionSessionResponse:
             res = ydb_topic_pb2.StreamReadMessage.StartPartitionSessionResponse()
             res.partition_session_id = self.partition_session_id
-            res.read_offset = self.read_offset
-            res.commit_offset = self.commit_offset
+            if self.read_offset is not None:
+                res.read_offset = self.read_offset
+            if self.commit_offset is not None:
+                res.commit_offset = self.commit_offset
             return res
 
     @dataclass
@@ -609,6 +682,8 @@ class StreamReadMessage:
             res = ydb_topic_pb2.StreamReadMessage.FromClient()
             if isinstance(self.client_message, StreamReadMessage.ReadRequest):
                 res.read_request.CopyFrom(self.client_message.to_proto())
+            elif isinstance(self.client_message, StreamReadMessage.CommitOffsetRequest):
+                res.commit_offset_request.CopyFrom(self.client_message.to_proto())
             elif isinstance(self.client_message, StreamReadMessage.InitRequest):
                 res.init_request.CopyFrom(self.client_message.to_proto())
             elif isinstance(
@@ -618,7 +693,9 @@ class StreamReadMessage:
                     self.client_message.to_proto()
                 )
             else:
-                raise NotImplementedError()
+                raise NotImplementedError(
+                    "Unknown message type: %s" % type(self.client_message)
+                )
             return res
 
     @dataclass
@@ -637,6 +714,13 @@ class StreamReadMessage:
                     server_status=server_status,
                     server_message=StreamReadMessage.ReadResponse.from_proto(
                         msg.read_response
+                    ),
+                )
+            elif mess_type == "commit_offset_response":
+                return StreamReadMessage.FromServer(
+                    server_status=server_status,
+                    server_message=StreamReadMessage.CommitOffsetResponse.from_proto(
+                        msg.commit_offset_response
                     ),
                 )
             elif mess_type == "init_response":

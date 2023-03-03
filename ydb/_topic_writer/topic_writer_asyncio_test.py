@@ -14,7 +14,12 @@ import pytest
 
 from .. import aio
 from .. import StatusCode, issues
-from .._grpc.grpcwrapper.ydb_topic import Codec, StreamWriteMessage
+from .._grpc.grpcwrapper.ydb_topic import (
+    Codec,
+    StreamWriteMessage,
+    UpdateTokenRequest,
+    UpdateTokenResponse,
+)
 from .._grpc.grpcwrapper.common_utils import ServerStatus
 from .topic_writer import (
     InternalMessage,
@@ -33,11 +38,13 @@ from .topic_writer_asyncio import (
     WriterAsyncIO,
 )
 
+from ..credentials import AnonymousCredentials
+
 
 @pytest.fixture
 def default_driver() -> aio.Driver:
     driver = mock.Mock(spec=aio.Driver)
-    driver._credentials = mock.Mock()
+    driver._credentials = AnonymousCredentials()
     return driver
 
 
@@ -64,7 +71,7 @@ class TestWriterAsyncIOStream:
             )
         )
 
-        writer = WriterAsyncIOStream(None)
+        writer = WriterAsyncIOStream()
         await writer._start(
             stream,
             init_message=StreamWriteMessage.InitRequest(
@@ -105,7 +112,7 @@ class TestWriterAsyncIOStream:
             )
         )
 
-        writer = WriterAsyncIOStream(None)
+        writer = WriterAsyncIOStream()
         await writer._start(stream, init_message)
 
         sent_message = await stream.from_client.get()
@@ -175,19 +182,25 @@ class TestWriterAsyncIOReconnector:
         async def receive(self) -> StreamWriteMessage.WriteResponse:
             if self._closed:
                 raise Exception("read from closed StreamWriterMock")
-
-            item = await self.from_server.get()
-            if isinstance(item, Exception):
-                raise item
-            return item
+            while True:
+                item = await self.from_server.get()
+                if isinstance(item, UpdateTokenResponse):
+                    continue
+                if isinstance(item, Exception):
+                    raise item
+                return item
 
         def close(self):
             if self._closed:
                 return
-
             self.from_server.put_nowait(
                 Exception("waited message while StreamWriterMock closed")
             )
+
+        async def update_token(self, token: str):
+            if self._closed:
+                raise Exception("write to closed StreamWriterMock")
+            self.from_client.put_nowait(UpdateTokenRequest(token))
 
     @pytest.fixture(autouse=True)
     async def stream_writer_double_queue(self, monkeypatch):
@@ -221,7 +234,7 @@ class TestWriterAsyncIOReconnector:
 
         res = DoubleQueueWriters()
 
-        async def async_create(driver, init_message, token_getter):
+        async def async_create(driver, init_message):
             return res.get_first()
 
         monkeypatch.setattr(WriterAsyncIOStream, "create", async_create)
@@ -344,6 +357,23 @@ class TestWriterAsyncIOReconnector:
 
         with pytest.raises(TestException):
             await reconnector.close(flush=False)
+
+    async def test_token_update(
+        self, default_driver, default_settings, get_stream_writer
+    ):
+        default_settings.update_token_interval = 0.1
+        reconnector = WriterAsyncIOReconnector(default_driver, default_settings)
+
+        stream_writer = get_stream_writer()
+        message = await stream_writer.from_client.get()
+        assert message == UpdateTokenRequest("")
+
+        stream_writer.from_server.put_nowait(UpdateTokenResponse())
+
+        message = await stream_writer.from_client.get()
+        assert message == UpdateTokenRequest("")
+
+        await reconnector.close(flush=False)
 
     async def test_wait_init(self, default_driver, default_settings, get_stream_writer):
         init_seqno = 100
