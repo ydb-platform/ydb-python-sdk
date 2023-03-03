@@ -471,7 +471,7 @@ class ReaderStream:
         self, message: StreamReadMessage.StopPartitionSessionRequest
     ):
         try:
-            partition = self._partition_sessions.get(message.partition_session_id)
+            partition = self._partition_sessions[message.partition_session_id]
         except KeyError:
             # may if receive stop partition with graceful=false after response on stop partition
             # with graceful=true and remove partition from internal dictionary
