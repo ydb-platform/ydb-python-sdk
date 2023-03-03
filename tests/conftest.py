@@ -136,6 +136,10 @@ async def topic_with_messages(driver, topic_path):
         ydb.TopicWriterMessage(data="123".encode()),
         ydb.TopicWriterMessage(data="456".encode()),
     )
+    await writer.write_with_ack(
+        ydb.TopicWriterMessage(data="789".encode()),
+        ydb.TopicWriterMessage(data="0".encode()),
+    )
     await writer.close()
 
 

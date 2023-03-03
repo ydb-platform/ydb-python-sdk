@@ -151,6 +151,7 @@ class WriterAsyncIO:
 
 class WriterAsyncIOReconnector:
     _closed: bool
+    _loop: asyncio.AbstractEventLoop
     _credentials: Union[ydb.Credentials, None]
     _driver: ydb.aio.Driver
     _update_token_interval: int
@@ -169,10 +170,12 @@ class WriterAsyncIOReconnector:
 
     def __init__(self, driver: SupportedDriverType, settings: WriterSettings):
         self._closed = False
+        self._loop = asyncio.get_running_loop()
         self._driver = driver
         self._credentials = driver._credentials
         self._init_message = settings.create_init_request()
-        self._init_info = asyncio.Future()
+        self._new_messages = asyncio.Queue()
+        self._init_info = self._loop.create_future()
         self._stream_connected = asyncio.Event()
         self._settings = settings
 
@@ -180,7 +183,7 @@ class WriterAsyncIOReconnector:
         self._messages = deque()
         self._messages_future = deque()
         self._new_messages = asyncio.Queue()
-        self._stop_reason = asyncio.Future()
+        self._stop_reason = self._loop.create_future()
         self._background_tasks = [
             asyncio.create_task(self._connection_loop(), name="connection_loop")
         ]
@@ -233,7 +236,7 @@ class WriterAsyncIOReconnector:
             await self.wait_init()
 
         internal_messages = self._prepare_internal_messages(messages)
-        messages_future = [asyncio.Future() for _ in internal_messages]
+        messages_future = [self._loop.create_future() for _ in internal_messages]
 
         self._messages.extend(internal_messages)
         self._messages_future.extend(messages_future)
