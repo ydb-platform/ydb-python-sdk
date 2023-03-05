@@ -43,9 +43,9 @@ async def send_messages(writer: ydb.TopicWriterAsyncIO):
     # full forms
     await writer.write(ydb.TopicWriterMessage("mess"))  # send text
     await writer.write(ydb.TopicWriterMessage(bytes([1, 2, 3])))  # send bytes
-    await writer.write([
-        ydb.TopicWriterMessage("mess-1"), ydb.TopicWriterMessage("mess-2")
-    ])  # send few messages by one call
+    await writer.write(
+        [ydb.TopicWriterMessage("mess-1"), ydb.TopicWriterMessage("mess-2")]
+    )  # send few messages by one call
 
     # with meta
     await writer.write(
@@ -71,9 +71,12 @@ async def send_messages_with_manual_seqno(writer: ydb.TopicWriter):
 
 async def send_messages_with_wait_ack(writer: ydb.TopicWriterAsyncIO):
     # future wait
-    await writer.write_with_result([
-        ydb.TopicWriterMessage("mess", seqno=1), ydb.TopicWriterMessage("mess", seqno=2)
-    ])
+    await writer.write_with_result(
+        [
+            ydb.TopicWriterMessage("mess", seqno=1),
+            ydb.TopicWriterMessage("mess", seqno=2),
+        ]
+    )
 
     # send with flush
     await writer.write(["1", "2", "3"])

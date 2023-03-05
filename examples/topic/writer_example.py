@@ -56,9 +56,9 @@ def send_messages(writer: ydb.TopicWriter):
     # full forms
     writer.write(ydb.TopicWriterMessage("mess"))  # send text
     writer.write(ydb.TopicWriterMessage(bytes([1, 2, 3])))  # send bytes
-    writer.write([
-        ydb.TopicWriterMessage("mess-1"), ydb.TopicWriterMessage("mess-2")
-    ])  # send few messages by one call
+    writer.write(
+        [ydb.TopicWriterMessage("mess-1"), ydb.TopicWriterMessage("mess-2")]
+    )  # send few messages by one call
 
     # with meta
     writer.write(ydb.TopicWriterMessage("asd", seqno=123, created_at_ns=time.time_ns()))
@@ -87,9 +87,12 @@ def send_messages_with_wait_ack(writer: ydb.TopicWriter):
     ).result()
 
     # implicit, by sync call
-    writer.write_with_ack([
-        ydb.TopicWriterMessage("mess", seqno=1), ydb.TopicWriterMessage("mess", seqno=2)
-    ])
+    writer.write_with_ack(
+        [
+            ydb.TopicWriterMessage("mess", seqno=1),
+            ydb.TopicWriterMessage("mess", seqno=2),
+        ]
+    )
     # write_with_ack
 
     # send with flush
