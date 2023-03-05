@@ -48,3 +48,4 @@ cython
 freezegun==1.2.2
 grpcio-tools
 pytest-cov
+-e .

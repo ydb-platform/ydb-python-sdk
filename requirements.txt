@@ -2,5 +2,5 @@ aiohttp>=3.7.4,<4.0.0
 enum-compat>=0.0.1
 grpcio>=1.42.0
 packaging
-protobuf>3.13.0,<5.0.0
+protobuf>=3.13.0,<5.0.0
 six<2
