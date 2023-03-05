@@ -123,8 +123,8 @@ async def handle_partition_stop_batch(reader: ydb.TopicReaderAsyncIO):
                 # no reason work with expired batch
                 # go read next - good batch
                 return
-            await _process(message)
-        await reader.commit(batch)
+            _process(message)
+        reader.commit(batch)
 
     async for batch in reader.batches():
         process_batch(batch)
