@@ -37,15 +37,15 @@ async def connect_without_context_manager(db: ydb.aio.Driver):
 async def send_messages(writer: ydb.TopicWriterAsyncIO):
     # simple str/bytes without additional metadata
     await writer.write("mess")  # send text
-    await writer.write(bytes([1, 2, 3]))  # send bytes
-    await writer.write("mess-1", "mess-2")  # send two messages
+    await writer.write(bytes([1, 2, 3]))  # send single message with bytes 1,2,3
+    await writer.write(["mess-1", "mess-2"])  # send two messages
 
     # full forms
     await writer.write(ydb.TopicWriterMessage("mess"))  # send text
     await writer.write(ydb.TopicWriterMessage(bytes([1, 2, 3])))  # send bytes
-    await writer.write(
+    await writer.write([
         ydb.TopicWriterMessage("mess-1"), ydb.TopicWriterMessage("mess-2")
-    )  # send few messages by one call
+    ])  # send few messages by one call
 
     # with meta
     await writer.write(
@@ -71,12 +71,12 @@ async def send_messages_with_manual_seqno(writer: ydb.TopicWriter):
 
 async def send_messages_with_wait_ack(writer: ydb.TopicWriterAsyncIO):
     # future wait
-    await writer.write_with_result(
+    await writer.write_with_result([
         ydb.TopicWriterMessage("mess", seqno=1), ydb.TopicWriterMessage("mess", seqno=2)
-    )
+    ])
 
     # send with flush
-    await writer.write("1", "2", "3")
+    await writer.write(["1", "2", "3"])
     await writer.flush()
 
 

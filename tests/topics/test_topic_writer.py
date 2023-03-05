@@ -60,6 +60,30 @@ class TestTopicWriterAsyncIO:
             init_info = await writer.wait_init()
             assert init_info.last_seqno == last_seqno
 
+    async def test_write_multi_message_with_ack(
+        self, driver: ydb.aio.Driver, topic_path, topic_reader: ydb.TopicReaderAsyncIO
+    ):
+        async with driver.topic_client.writer(topic_path) as writer:
+            await writer.write_with_ack(
+                [
+                    ydb.TopicWriterMessage(data="123".encode()),
+                    ydb.TopicWriterMessage(data="456".encode()),
+                ]
+            )
+
+        batch = await topic_reader.receive_batch()
+
+        assert batch.messages[0].offset == 0
+        assert batch.messages[0].seqno == 1
+        assert batch.messages[0].data == "123".encode()
+
+        # remove second recieve batch when implement batching
+        # https://github.com/ydb-platform/ydb-python-sdk/issues/142
+        batch = await topic_reader.receive_batch()
+        assert batch.messages[0].offset == 1
+        assert batch.messages[0].seqno == 2
+        assert batch.messages[0].data == "456".encode()
+
 
 class TestTopicWriterSync:
     def test_send_message(self, driver_sync: ydb.Driver, topic_path):
@@ -115,3 +139,27 @@ class TestTopicWriterSync:
         batch2 = topic_reader_sync.receive_batch()
 
         assert batch1.messages[0].producer_id != batch2.messages[0].producer_id
+
+    def test_write_multi_message_with_ack(
+        self, driver_sync: ydb.Driver, topic_path, topic_reader_sync: ydb.TopicReader
+    ):
+        with driver_sync.topic_client.writer(topic_path) as writer:
+            writer.write_with_ack(
+                [
+                    ydb.TopicWriterMessage(data="123".encode()),
+                    ydb.TopicWriterMessage(data="456".encode()),
+                ]
+            )
+
+        batch = topic_reader_sync.receive_batch()
+
+        assert batch.messages[0].offset == 0
+        assert batch.messages[0].seqno == 1
+        assert batch.messages[0].data == "123".encode()
+
+        # remove second recieve batch when implement batching
+        # https://github.com/ydb-platform/ydb-python-sdk/issues/142
+        batch = topic_reader_sync.receive_batch()
+        assert batch.messages[0].offset == 1
+        assert batch.messages[0].seqno == 2
+        assert batch.messages[0].data == "456".encode()

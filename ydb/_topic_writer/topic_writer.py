@@ -3,7 +3,7 @@ import enum
 import uuid
 from dataclasses import dataclass
 from enum import Enum
-from typing import List, Union, TextIO, BinaryIO, Optional, Any, Dict
+from typing import List, Union, Optional, Any, Dict
 
 import typing
 
@@ -92,9 +92,9 @@ class PublicWriterInitInfo:
 class PublicMessage:
     seqno: Optional[int]
     created_at: Optional[datetime.datetime]
-    data: Union[str, bytes, TextIO, BinaryIO]
+    data: "PublicMessage.SimpleMessageSourceType"
 
-    SimpleMessageSourceType = Union[str, bytes, TextIO, BinaryIO]
+    SimpleMessageSourceType = Union[str, bytes]  # Will be extend
 
     def __init__(
         self,
@@ -106,6 +106,14 @@ class PublicMessage:
         self.seqno = seqno
         self.created_at = created_at
         self.data = data
+
+    @staticmethod
+    def _create_message(
+        data: Union["PublicMessage", "PublicMessage.SimpleMessageSourceType"]
+    ) -> "PublicMessage":
+        if isinstance(data, PublicMessage):
+            return data
+        return PublicMessage(data=data)
 
 
 class InternalMessage(StreamWriteMessage.WriteRequest.MessageData, IToProto):

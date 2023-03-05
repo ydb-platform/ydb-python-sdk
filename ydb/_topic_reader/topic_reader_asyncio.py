@@ -115,7 +115,7 @@ class PublicAsyncIOReader:
         *,
         max_messages: typing.Union[int, None] = None,
         max_bytes: typing.Union[int, None] = None,
-    ) -> typing.Union[topic_reader.PublicBatch, None]:
+    ) -> typing.Union[datatypes.PublicBatch, None]:
         """
         Get one messages batch from reader.
         All messages in a batch from same partition.
@@ -243,7 +243,8 @@ class ReaderReconnector:
         return self._stream_reader.commit(batch)
 
     async def close(self):
-        await self._stream_reader.close()
+        if self._stream_reader:
+            await self._stream_reader.close()
         for task in self._background_tasks:
             task.cancel()
 
