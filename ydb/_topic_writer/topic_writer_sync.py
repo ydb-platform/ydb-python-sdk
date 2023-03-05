@@ -92,25 +92,22 @@ class WriterSync:
 
     def write(
         self,
-        message: Union[PublicMessage, List[PublicMessage]],
-        *args: Optional[PublicMessage],
+        messages: Union[PublicMessage, List[PublicMessage]],
         timeout: Union[float, None] = None,
     ):
-        self._call_sync(self._async_writer.write(message, *args), timeout=timeout)
+        self._call_sync(self._async_writer.write(messages), timeout=timeout)
 
     def async_write_with_ack(
         self,
         messages: Union[MessageType, List[MessageType]],
-        *args: Optional[MessageType],
     ) -> Future[Union[PublicWriteResult, List[PublicWriteResult]]]:
-        return self._call(self._async_writer.write_with_ack(messages, *args))
+        return self._call(self._async_writer.write_with_ack(messages))
 
     def write_with_ack(
         self,
         messages: Union[MessageType, List[MessageType]],
-        *args: Optional[MessageType],
         timeout: Union[float, None] = None,
     ) -> Union[PublicWriteResult, List[PublicWriteResult]]:
         return self._call_sync(
-            self._async_writer.write_with_ack(messages, *args), timeout=timeout
+            self._async_writer.write_with_ack(messages), timeout=timeout
         )
