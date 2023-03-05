@@ -1,6 +1,7 @@
 __pycache__
 ydb.egg-info/
 /.idea
+/.vscode
 /tox
 /venv
 /ydb_certs
