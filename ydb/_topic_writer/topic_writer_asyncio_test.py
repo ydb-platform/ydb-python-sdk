@@ -4,13 +4,14 @@ import asyncio
 import copy
 import dataclasses
 import datetime
+import gzip
 import typing
 from queue import Queue, Empty
+from typing import List
 from unittest import mock
 
 import freezegun
 import pytest
-
 
 from .. import aio
 from .. import StatusCode, issues
@@ -25,6 +26,7 @@ from .topic_writer import (
     PublicWriteResult,
     TopicWriterError,
 )
+from .._grpc.grpcwrapper.ydb_topic_public_types import PublicCodec
 from .._topic_common.test_helpers import StreamMock
 
 from .topic_writer_asyncio import (
@@ -151,9 +153,11 @@ class TestWriterAsyncIOStream:
 @pytest.mark.asyncio
 class TestWriterAsyncIOReconnector:
     init_last_seqno = 0
+    time_for_mocks = 1678046714.639387
 
     class StreamWriterMock:
         last_seqno: int
+        supported_codecs: List[PublicCodec]
 
         from_client: asyncio.Queue
         from_server: asyncio.Queue
@@ -165,6 +169,7 @@ class TestWriterAsyncIOReconnector:
             self.from_server = asyncio.Queue()
             self.from_client = asyncio.Queue()
             self._closed = False
+            self.supported_codecs = []
 
         def write(self, messages: typing.List[InternalMessage]):
             if self._closed:
@@ -184,10 +189,7 @@ class TestWriterAsyncIOReconnector:
         def close(self):
             if self._closed:
                 return
-
-            self.from_server.put_nowait(
-                Exception("waited message while StreamWriterMock closed")
-            )
+            self._closed = True
 
     @pytest.fixture(autouse=True)
     async def stream_writer_double_queue(self, monkeypatch):
@@ -241,6 +243,7 @@ class TestWriterAsyncIOReconnector:
                 producer_id="test-producer",
                 auto_seqno=False,
                 auto_created_at=False,
+                codec=PublicCodec.RAW,
             )
         )
 
@@ -347,7 +350,9 @@ class TestWriterAsyncIOReconnector:
 
     async def test_wait_init(self, default_driver, default_settings, get_stream_writer):
         init_seqno = 100
-        expected_init_info = PublicWriterInitInfo(init_seqno)
+        expected_init_info = PublicWriterInitInfo(
+            last_seqno=init_seqno, supported_codecs=[]
+        )
         with mock.patch.object(
             TestWriterAsyncIOReconnector, "init_last_seqno", init_seqno
         ):
@@ -456,6 +461,116 @@ class TestWriterAsyncIOReconnector:
             InternalMessage(PublicMessage(seqno=4, data="123", created_at=now))
         ] == sent
         await reconnector.close(flush=False)
+
+    @pytest.mark.parametrize(
+        "codec,write_datas,expected_codecs,expected_datas",
+        [
+            (
+                PublicCodec.RAW,
+                [b"123"],
+                [PublicCodec.RAW],
+                [b"123"],
+            ),
+            (
+                PublicCodec.GZIP,
+                [b"123"],
+                [PublicCodec.GZIP],
+                [gzip.compress(b"123", mtime=time_for_mocks)],
+            ),
+            (
+                None,
+                [b"123", b"456", b"789", b"0" * 1000],
+                [PublicCodec.RAW, PublicCodec.GZIP, PublicCodec.RAW, PublicCodec.RAW],
+                [
+                    b"123",
+                    gzip.compress(b"456", mtime=time_for_mocks),
+                    b"789",
+                    b"0" * 1000,
+                ],
+            ),
+            (
+                None,
+                [b"123", b"456", b"789" * 1000, b"0"],
+                [PublicCodec.RAW, PublicCodec.GZIP, PublicCodec.GZIP, PublicCodec.GZIP],
+                [
+                    b"123",
+                    gzip.compress(b"456", mtime=time_for_mocks),
+                    gzip.compress(b"789" * 1000, mtime=time_for_mocks),
+                    gzip.compress(b"0", mtime=time_for_mocks),
+                ],
+            ),
+        ],
+    )
+    async def test_select_codecs(
+        self,
+        default_driver: aio.Driver,
+        default_settings: WriterSettings,
+        monkeypatch,
+        write_datas: List[typing.Optional[bytes]],
+        codec: typing.Optional[PublicCodec],
+        expected_codecs: List[PublicCodec],
+        expected_datas: List[bytes],
+    ):
+        assert len(write_datas) == len(expected_datas)
+        assert len(expected_codecs) == len(expected_datas)
+
+        settings = copy.copy(default_settings)
+        settings.codec = codec
+        settings.auto_seqno = True
+        reconnector = WriterAsyncIOReconnector(default_driver, settings)
+
+        added_messages = asyncio.Queue()  # type: asyncio.Queue[List[InternalMessage]]
+
+        def add_messages(_self, messages: typing.List[InternalMessage]):
+            added_messages.put_nowait(messages)
+
+        monkeypatch.setattr(
+            WriterAsyncIOReconnector, "_add_messages_to_send_queue", add_messages
+        )
+        monkeypatch.setattr(
+            "time.time", lambda: TestWriterAsyncIOReconnector.time_for_mocks
+        )
+
+        for i in range(len(expected_datas)):
+            await reconnector.write_with_ack_future(
+                [PublicMessage(data=write_datas[i])]
+            )
+            mess = await asyncio.wait_for(added_messages.get(), timeout=600)
+            mess = mess[0]
+
+            assert mess.codec == expected_codecs[i]
+            assert mess.get_bytes() == expected_datas[i]
+
+        await reconnector.close(flush=False)
+
+    @pytest.mark.parametrize(
+        "codec,datas",
+        [
+            (
+                PublicCodec.RAW,
+                [b"123", b"456", b"789", b"0"],
+            ),
+            (
+                PublicCodec.GZIP,
+                [b"123", b"456", b"789", b"0"],
+            ),
+        ],
+    )
+    async def test_encode_data_inplace(
+        self,
+        reconnector: WriterAsyncIOReconnector,
+        codec: PublicCodec,
+        datas: List[bytes],
+    ):
+        f = reconnector._codec_functions[codec]
+        expected_datas = [f(data) for data in datas]
+
+        messages = [InternalMessage(PublicMessage(data)) for data in datas]
+        await reconnector._encode_data_inplace(codec, messages)
+
+        for index, mess in enumerate(messages):
+            assert mess.codec == codec
+            assert mess.get_bytes() == expected_datas[index]
 
 
 @pytest.mark.asyncio

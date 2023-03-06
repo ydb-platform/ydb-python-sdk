@@ -1,3 +1,4 @@
+import concurrent.futures
 import datetime
 import enum
 import uuid
@@ -10,7 +11,7 @@ import typing
 import ydb.aio
 from .._grpc.grpcwrapper.ydb_topic import Codec, StreamWriteMessage
 from .._grpc.grpcwrapper.common_utils import IToProto
-
+from .._grpc.grpcwrapper.ydb_topic_public_types import PublicCodec
 
 MessageType = typing.Union["PublicMessage", "PublicMessage.SimpleMessageSourceType"]
 
@@ -29,6 +30,10 @@ class PublicWriterSettings:
     partition_id: Optional[int] = None
     auto_seqno: bool = True
     auto_created_at: bool = True
+    codec: Optional[PublicCodec] = None  # default mean auto-select
+    encoder_executor: Optional[
+        concurrent.futures.Executor
+    ] = None  # default shared client executor pool
     # get_last_seqno: bool = False
     # encoders: Union[Mapping[int, Callable[[bytes], bytes]], None] = None
     # serializer: Union[Callable[[Any], bytes], None] = None
@@ -85,8 +90,9 @@ class SendMode(Enum):
 
 @dataclass
 class PublicWriterInitInfo:
-    __slots__ = "last_seqno"
+    __slots__ = ("last_seqno", "supported_codecs")
     last_seqno: Optional[int]
+    supported_codecs: List[PublicCodec]
 
 
 class PublicMessage:
@@ -117,15 +123,17 @@ class PublicMessage:
 
 
 class InternalMessage(StreamWriteMessage.WriteRequest.MessageData, IToProto):
+    codec: PublicCodec
+
     def __init__(self, mess: PublicMessage):
-        StreamWriteMessage.WriteRequest.MessageData.__init__(
-            self,
+        super().__init__(
             seq_no=mess.seqno,
             created_at=mess.created_at,
             data=mess.data,
             uncompressed_size=len(mess.data),
             partitioning=None,
         )
+        self.codec = PublicCodec.RAW
 
     def get_bytes(self) -> bytes:
         if self.data is None:

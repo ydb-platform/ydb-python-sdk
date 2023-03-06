@@ -9,7 +9,6 @@ from .topic_writer import (
     PublicWriterSettings,
     TopicWriterError,
     PublicWriterInitInfo,
-    PublicMessage,
     PublicWriteResult,
     MessageType,
 )
@@ -92,7 +91,7 @@ class WriterSync:
 
     def write(
         self,
-        messages: Union[PublicMessage, List[PublicMessage]],
+        messages: Union[MessageType, List[MessageType]],
         timeout: Union[float, None] = None,
     ):
         self._call_sync(self._async_writer.write(messages), timeout=timeout)
