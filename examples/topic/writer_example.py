@@ -44,20 +44,20 @@ def connect_without_context_manager(db: ydb.Driver):
     try:
         pass  # some code
     finally:
-        await writer.close()
+        writer.close()
 
 
 def send_messages(writer: ydb.TopicWriter):
     # simple str/bytes without additional metadata
     writer.write("mess")  # send text
-    writer.write(bytes([1, 2, 3]))  # send bytes
-    writer.write("mess-1", "mess-2")  # send two messages
+    writer.write(bytes([1, 2, 3]))  # send single message with bytes 1,2,3
+    writer.write(["mess-1", "mess-2"])  # send two messages
 
     # full forms
     writer.write(ydb.TopicWriterMessage("mess"))  # send text
     writer.write(ydb.TopicWriterMessage(bytes([1, 2, 3])))  # send bytes
     writer.write(
-        ydb.TopicWriterMessage("mess-1"), ydb.TopicWriterMessage("mess-2")
+        [ydb.TopicWriterMessage("mess-1"), ydb.TopicWriterMessage("mess-2")]
     )  # send few messages by one call
 
     # with meta
@@ -88,12 +88,15 @@ def send_messages_with_wait_ack(writer: ydb.TopicWriter):
 
     # implicit, by sync call
     writer.write_with_ack(
-        ydb.TopicWriterMessage("mess", seqno=1), ydb.TopicWriterMessage("mess", seqno=2)
+        [
+            ydb.TopicWriterMessage("mess", seqno=1),
+            ydb.TopicWriterMessage("mess", seqno=2),
+        ]
     )
     # write_with_ack
 
     # send with flush
-    writer.write("1", "2", "3")
+    writer.write(["1", "2", "3"])
     writer.flush()
 
 

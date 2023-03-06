@@ -12,7 +12,7 @@ def docker_compose_file(pytestconfig):
 
 
 def wait_container_ready(driver):
-    driver.wait(timeout=10)
+    driver.wait(timeout=30)
 
     with ydb.SessionPool(driver) as pool:
 
@@ -133,12 +133,16 @@ async def topic_path(driver, topic_consumer, database) -> str:
 async def topic_with_messages(driver, topic_path):
     writer = driver.topic_client.writer(topic_path, producer_id="fixture-producer-id")
     await writer.write_with_ack(
-        ydb.TopicWriterMessage(data="123".encode()),
-        ydb.TopicWriterMessage(data="456".encode()),
+        [
+            ydb.TopicWriterMessage(data="123".encode()),
+            ydb.TopicWriterMessage(data="456".encode()),
+        ]
     )
     await writer.write_with_ack(
-        ydb.TopicWriterMessage(data="789".encode()),
-        ydb.TopicWriterMessage(data="0".encode()),
+        [
+            ydb.TopicWriterMessage(data="789".encode()),
+            ydb.TopicWriterMessage(data="0".encode()),
+        ]
     )
     await writer.close()
 

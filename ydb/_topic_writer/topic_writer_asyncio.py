@@ -1,7 +1,7 @@
 import asyncio
 import datetime
 from collections import deque
-from typing import Deque, AsyncIterator, Union, List, Optional
+from typing import Deque, AsyncIterator, Union, List
 
 import ydb
 from .topic_writer import (
@@ -76,7 +76,6 @@ class WriterAsyncIO:
     async def write_with_ack(
         self,
         messages: Union[MessageType, List[MessageType]],
-        *args: Optional[MessageType],
     ) -> Union[PublicWriteResultTypes, List[PublicWriteResultTypes]]:
         """
         IT IS SLOWLY WAY. IT IS BAD CHOISE IN MOST CASES.
@@ -86,7 +85,7 @@ class WriterAsyncIO:
 
         For wait with timeout use asyncio.wait_for.
         """
-        futures = await self.write_with_ack_future(messages, *args)
+        futures = await self.write_with_ack_future(messages)
         if not isinstance(futures, list):
             futures = [futures]
 
@@ -98,7 +97,6 @@ class WriterAsyncIO:
     async def write_with_ack_future(
         self,
         messages: Union[MessageType, List[MessageType]],
-        *args: Optional[MessageType],
     ) -> Union[asyncio.Future, List[asyncio.Future]]:
         """
         send one or number of messages to server.
@@ -108,20 +106,22 @@ class WriterAsyncIO:
 
         For wait with timeout use asyncio.wait_for.
         """
+        input_single_message = not isinstance(messages, list)
         if isinstance(messages, PublicMessage):
-            futures = await self._reconnector.write_with_ack_future([messages])
-            return futures[0]
+            messages = [PublicMessage._create_message(messages)]
         if isinstance(messages, list):
-            for m in messages:
-                if not isinstance(m, PublicMessage):
-                    raise NotImplementedError()
-            return await self._reconnector.write_with_ack_future(messages)
-        raise NotImplementedError()
+            for index, m in enumerate(messages):
+                messages[index] = PublicMessage._create_message(m)
+
+        futures = await self._reconnector.write_with_ack_future(messages)
+        if input_single_message:
+            return futures[0]
+        else:
+            return futures
 
     async def write(
         self,
         messages: Union[MessageType, List[MessageType]],
-        *args: Optional[MessageType],
     ):
         """
         send one or number of messages to server.
