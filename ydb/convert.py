@@ -496,5 +496,13 @@ class ResultSets(list):
             _ResultSet.from_message if not make_lazy else _ResultSet.lazy_from_message
         )
         for result_set in result_sets_pb:
-            result_sets.append(initializer(result_set, table_client_settings))
+            result_set = initializer(result_set, table_client_settings)
+            if (
+                result_set.truncated
+                and not table_client_settings._allow_truncated_result
+            ):
+                raise issues.TruncatedResponseError(
+                    "Response for the request was truncated by server"
+                )
+            result_sets.append(result_set)
         super(ResultSets, self).__init__(result_sets)

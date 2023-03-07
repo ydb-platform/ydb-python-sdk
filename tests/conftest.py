@@ -138,3 +138,8 @@ PRIMARY KEY(id)
 
         pool.retry_operation_sync(create_table)
     return table_name
+
+
+@pytest.fixture()
+def table_path(database, table_name) -> str:
+    return database + "/" + table_name
