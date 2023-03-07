@@ -133,6 +133,11 @@ PRIMARY KEY(id)
 
 
 @pytest.fixture()
+def table_path(database, table_name) -> str:
+    return database + "/" + table_name
+
+
+@pytest.fixture()
 def topic_consumer():
     return "fixture-consumer"
 
