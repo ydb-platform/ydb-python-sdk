@@ -31,11 +31,18 @@ class CreateTopicRequestParams:
 
 
 class PublicCodec(int):
+    """
+    Codec value may contain any int number.
+
+    Values below is only well-known predefined values,
+    but protocol support custom codecs.
+    """
+
     UNSPECIFIED = 0
     RAW = 1
     GZIP = 2
-    LZOP = 3
-    ZSTD = 4
+    LZOP = 3  # Has not supported codec in standard library
+    ZSTD = 4  # Has not supported codec in standard library
 
 
 class PublicMeteringMode(IntEnum):

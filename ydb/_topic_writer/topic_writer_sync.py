@@ -9,9 +9,8 @@ from .topic_writer import (
     PublicWriterSettings,
     TopicWriterError,
     PublicWriterInitInfo,
-    PublicMessage,
     PublicWriteResult,
-    MessageType,
+    Message,
 )
 
 from .topic_writer_asyncio import WriterAsyncIO
@@ -92,20 +91,20 @@ class WriterSync:
 
     def write(
         self,
-        messages: Union[PublicMessage, List[PublicMessage]],
+        messages: Union[Message, List[Message]],
         timeout: Union[float, None] = None,
     ):
         self._call_sync(self._async_writer.write(messages), timeout=timeout)
 
     def async_write_with_ack(
         self,
-        messages: Union[MessageType, List[MessageType]],
+        messages: Union[Message, List[Message]],
     ) -> Future[Union[PublicWriteResult, List[PublicWriteResult]]]:
         return self._call(self._async_writer.write_with_ack(messages))
 
     def write_with_ack(
         self,
-        messages: Union[MessageType, List[MessageType]],
+        messages: Union[Message, List[Message]],
         timeout: Union[float, None] = None,
     ) -> Union[PublicWriteResult, List[PublicWriteResult]]:
         return self._call_sync(

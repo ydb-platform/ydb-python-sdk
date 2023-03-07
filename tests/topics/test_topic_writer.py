@@ -84,6 +84,20 @@ class TestTopicWriterAsyncIO:
         assert batch.messages[0].seqno == 2
         assert batch.messages[0].data == "456".encode()
 
+    @pytest.mark.parametrize(
+        "codec",
+        [
+            ydb.TopicCodec.RAW,
+            ydb.TopicCodec.GZIP,
+            None,
+        ],
+    )
+    async def test_write_encoded(self, driver: ydb.Driver, topic_path: str, codec):
+        async with driver.topic_client.writer(topic_path, codec=codec) as writer:
+            writer.write("a" * 1000)
+            writer.write("b" * 1000)
+            writer.write("c" * 1000)
+
 
 class TestTopicWriterSync:
     def test_send_message(self, driver_sync: ydb.Driver, topic_path):
@@ -163,3 +177,17 @@ class TestTopicWriterSync:
         assert batch.messages[0].offset == 1
         assert batch.messages[0].seqno == 2
         assert batch.messages[0].data == "456".encode()
+
+    @pytest.mark.parametrize(
+        "codec",
+        [
+            ydb.TopicCodec.RAW,
+            ydb.TopicCodec.GZIP,
+            None,
+        ],
+    )
+    def test_write_encoded(self, driver_sync: ydb.Driver, topic_path: str, codec):
+        with driver_sync.topic_client.writer(topic_path, codec=codec) as writer:
+            writer.write("a" * 1000)
+            writer.write("b" * 1000)
+            writer.write("c" * 1000)

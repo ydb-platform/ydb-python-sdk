@@ -1,7 +1,11 @@
-import datetime
-from typing import List, Union, Mapping, Optional, Dict
+from __future__ import annotations
 
-from . import aio, Credentials, _apis
+import concurrent.futures
+import datetime
+from dataclasses import dataclass
+from typing import List, Union, Mapping, Optional, Dict, Callable
+
+from . import aio, Credentials, _apis, issues
 
 from . import driver
 
@@ -43,11 +47,27 @@ from ._grpc.grpcwrapper.ydb_topic_public_types import (  # noqa: F401
 
 
 class TopicClientAsyncIO:
+    _closed: bool
     _driver: aio.Driver
     _credentials: Union[Credentials, None]
+    _settings: TopicClientSettings
+    _executor: concurrent.futures.Executor
 
-    def __init__(self, driver: aio.Driver, settings: "TopicClientSettings" = None):
+    def __init__(
+        self, driver: aio.Driver, settings: Optional[TopicClientSettings] = None
+    ):
+        if not settings:
+            settings = TopicClientSettings()
+        self._closed = False
         self._driver = driver
+        self._settings = settings
+        self._executor = concurrent.futures.ThreadPoolExecutor(
+            max_workers=settings.encode_decode_threads_count,
+            thread_name_prefix="topic_asyncio_executor",
+        )
+
+    def __del__(self):
+        self.close()
 
     async def create_topic(
         self,
@@ -148,21 +168,59 @@ class TopicClientAsyncIO:
         partition_id: Union[int, None] = None,
         auto_seqno: bool = True,
         auto_created_at: bool = True,
+        codec: Optional[TopicCodec] = None,  # default mean auto-select
+        encoders: Optional[
+            Mapping[_ydb_topic_public_types.PublicCodec, Callable[[bytes], bytes]]
+        ] = None,
+        encoder_executor: Optional[
+            concurrent.futures.Executor
+        ] = None,  # default shared client executor pool
     ) -> TopicWriterAsyncIO:
         args = locals()
         del args["self"]
+
         settings = TopicWriterSettings(**args)
+
+        if not settings.encoder_executor:
+            settings.encoder_executor = self._executor
+
         return TopicWriterAsyncIO(self._driver, settings)
+
+    def close(self):
+        if self._closed:
+            return
+
+        self._closed = True
+        self._executor.shutdown(wait=False, cancel_futures=True)
+
+    def _check_closed(self):
+        if not self._closed:
+            return
+
+        raise RuntimeError("Topic client closed")
 
 
 class TopicClient:
+    _closed: bool
     _driver: driver.Driver
     _credentials: Union[Credentials, None]
+    _settings: TopicClientSettings
+    _executor: concurrent.futures.Executor
 
-    def __init__(
-        self, driver: driver.Driver, topic_client_settings: "TopicClientSettings" = None
-    ):
+    def __init__(self, driver: driver.Driver, settings: Optional[TopicClientSettings]):
+        if not settings:
+            settings = TopicClientSettings()
+
+        self._closed = False
         self._driver = driver
+        self._settings = settings
+        self._executor = concurrent.futures.ThreadPoolExecutor(
+            max_workers=settings.encode_decode_threads_count,
+            thread_name_prefix="topic_asyncio_executor",
+        )
+
+    def __del__(self):
+        self.close()
 
     def create_topic(
         self,
@@ -198,6 +256,8 @@ class TopicClient:
         """
         args = locals().copy()
         del args["self"]
+        self._check_closed()
+
         req = _ydb_topic_public_types.CreateTopicRequestParams(**args)
         req = _ydb_topic.CreateTopicRequest.from_public(req)
         self._driver(
@@ -212,6 +272,8 @@ class TopicClient:
     ) -> TopicDescription:
         args = locals().copy()
         del args["self"]
+        self._check_closed()
+
         req = _ydb_topic_public_types.DescribeTopicRequestParams(**args)
         res = self._driver(
             req.to_proto(),
@@ -222,6 +284,8 @@ class TopicClient:
         return res.to_public()
 
     def drop_topic(self, path: str):
+        self._check_closed()
+
         req = _ydb_topic_public_types.DropTopicRequestParams(path=path)
         self._driver(
             req.to_proto(),
@@ -251,6 +315,8 @@ class TopicClient:
     ) -> TopicReader:
         args = locals()
         del args["self"]
+        self._check_closed()
+
         settings = TopicReaderSettings(**args)
         return TopicReader(self._driver, settings)
 
@@ -263,16 +329,43 @@ class TopicClient:
         partition_id: Union[int, None] = None,
         auto_seqno: bool = True,
         auto_created_at: bool = True,
+        codec: Optional[TopicCodec] = None,  # default mean auto-select
+        encoders: Optional[
+            Mapping[_ydb_topic_public_types.PublicCodec, Callable[[bytes], bytes]]
+        ] = None,
+        encoder_executor: Optional[
+            concurrent.futures.Executor
+        ] = None,  # default shared client executor pool
     ) -> TopicWriter:
         args = locals()
         del args["self"]
+        self._check_closed()
+
         settings = TopicWriterSettings(**args)
+
+        if not settings.encoder_executor:
+            settings.encoder_executor = self._executor
+
         return TopicWriter(self._driver, settings)
 
+    def close(self):
+        if self._closed:
+            return
 
+        self._closed = True
+        self._executor.shutdown(wait=False, cancel_futures=True)
+
+    def _check_closed(self):
+        if not self._closed:
+            return
+
+        raise RuntimeError("Topic client closed")
+
+
+@dataclass
 class TopicClientSettings:
-    pass
+    encode_decode_threads_count: int = 4
 
 
-class StubEvent:
+class TopicError(issues.Error):
     pass

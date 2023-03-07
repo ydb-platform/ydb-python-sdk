@@ -1,7 +1,10 @@
 import asyncio
+import concurrent.futures
 import datetime
+import gzip
+import typing
 from collections import deque
-from typing import Deque, AsyncIterator, Union, List
+from typing import Deque, AsyncIterator, Union, List, Optional, Dict, Callable
 
 import ydb
 from .topic_writer import (
@@ -14,7 +17,7 @@ from .topic_writer import (
     TopicWriterError,
     messages_to_proto_requests,
     PublicWriteResultTypes,
-    MessageType,
+    Message,
 )
 from .. import (
     _apis,
@@ -22,6 +25,7 @@ from .. import (
     check_retriable_error,
     RetrySettings,
 )
+from .._grpc.grpcwrapper.ydb_topic_public_types import PublicCodec
 from .._topic_common.common import (
     TokenGetterFuncType,
 )
@@ -75,7 +79,7 @@ class WriterAsyncIO:
 
     async def write_with_ack(
         self,
-        messages: Union[MessageType, List[MessageType]],
+        messages: Union[Message, List[Message]],
     ) -> Union[PublicWriteResultTypes, List[PublicWriteResultTypes]]:
         """
         IT IS SLOWLY WAY. IT IS BAD CHOISE IN MOST CASES.
@@ -96,7 +100,7 @@ class WriterAsyncIO:
 
     async def write_with_ack_future(
         self,
-        messages: Union[MessageType, List[MessageType]],
+        messages: Union[Message, List[Message]],
     ) -> Union[asyncio.Future, List[asyncio.Future]]:
         """
         send one or number of messages to server.
@@ -107,13 +111,14 @@ class WriterAsyncIO:
         For wait with timeout use asyncio.wait_for.
         """
         input_single_message = not isinstance(messages, list)
-        if isinstance(messages, PublicMessage):
-            messages = [PublicMessage._create_message(messages)]
+        converted_messages = []
         if isinstance(messages, list):
-            for index, m in enumerate(messages):
-                messages[index] = PublicMessage._create_message(m)
+            for m in messages:
+                converted_messages.append(PublicMessage._create_message(m))
+        else:
+            converted_messages = [PublicMessage._create_message(messages)]
 
-        futures = await self._reconnector.write_with_ack_future(messages)
+        futures = await self._reconnector.write_with_ack_future(converted_messages)
         if input_single_message:
             return futures[0]
         else:
@@ -121,7 +126,7 @@ class WriterAsyncIO:
 
     async def write(
         self,
-        messages: Union[MessageType, List[MessageType]],
+        messages: Union[Message, List[Message]],
     ):
         """
         send one or number of messages to server.
@@ -152,7 +157,7 @@ class WriterAsyncIO:
 class WriterAsyncIOReconnector:
     _closed: bool
     _loop: asyncio.AbstractEventLoop
-    _credentials: Union[ydb.Credentials, None]
+    _credentials: Union[ydb.credentials.Credentials, None]
     _driver: ydb.aio.Driver
     _update_token_interval: int
     _token_get_function: TokenGetterFuncType
@@ -160,8 +165,18 @@ class WriterAsyncIOReconnector:
     _init_info: asyncio.Future
     _stream_connected: asyncio.Event
     _settings: WriterSettings
+    _codec: PublicCodec
+    _codec_functions: Dict[PublicCodec, Callable[[bytes], bytes]]
+    _encode_executor: Optional[concurrent.futures.Executor]
+    _codec_selector_batch_num: int
+    _codec_selector_last_codec: Optional[PublicCodec]
+    _codec_selector_check_batches_interval: int
 
     _last_known_seq_no: int
+    if typing.TYPE_CHECKING:
+        _messages_for_encode: asyncio.Queue[List[InternalMessage]]
+    else:
+        _messages_for_encode: asyncio.Queue
     _messages: Deque[InternalMessage]
     _messages_future: Deque[asyncio.Future]
     _new_messages: asyncio.Queue
@@ -179,13 +194,37 @@ class WriterAsyncIOReconnector:
         self._stream_connected = asyncio.Event()
         self._settings = settings
 
+        self._codec_functions = {
+            PublicCodec.RAW: lambda data: data,
+            PublicCodec.GZIP: gzip.compress,
+        }
+
+        if settings.encoders:
+            self._codec_functions.update(settings.encoders)
+
+        self._encode_executor = settings.encoder_executor
+
+        self._codec_selector_batch_num = 0
+        self._codec_selector_last_codec = None
+        self._codec_selector_check_batches_interval = 10000
+
+        self._codec = self._settings.codec
+        if self._codec and self._codec not in self._codec_functions:
+            known_codecs = sorted(self._codec_functions.keys())
+            raise ValueError(
+                "Unknown codec for writer: %s, supported codecs: %s"
+                % (self._codec, known_codecs)
+            )
+
         self._last_known_seq_no = 0
+        self._messages_for_encode = asyncio.Queue()
         self._messages = deque()
         self._messages_future = deque()
         self._new_messages = asyncio.Queue()
         self._stop_reason = self._loop.create_future()
         self._background_tasks = [
-            asyncio.create_task(self._connection_loop(), name="connection_loop")
+            asyncio.create_task(self._connection_loop(), name="connection_loop"),
+            asyncio.create_task(self._encode_loop(), name="encode_loop"),
         ]
 
     async def close(self, flush: bool):
@@ -238,15 +277,23 @@ class WriterAsyncIOReconnector:
         internal_messages = self._prepare_internal_messages(messages)
         messages_future = [self._loop.create_future() for _ in internal_messages]
 
-        self._messages.extend(internal_messages)
         self._messages_future.extend(messages_future)
 
-        for m in internal_messages:
-            self._new_messages.put_nowait(m)
+        if self._codec == PublicCodec.RAW:
+            self._add_messages_to_send_queue(internal_messages)
+        else:
+            self._messages_for_encode.put_nowait(internal_messages)
 
         return messages_future
 
-    def _prepare_internal_messages(self, messages: List[PublicMessage]):
+    def _add_messages_to_send_queue(self, internal_messages: List[InternalMessage]):
+        self._messages.extend(internal_messages)
+        for m in internal_messages:
+            self._new_messages.put_nowait(m)
+
+    def _prepare_internal_messages(
+        self, messages: List[PublicMessage]
+    ) -> List[InternalMessage]:
         if self._settings.auto_created_at:
             now = datetime.datetime.now()
         else:
@@ -307,7 +354,10 @@ class WriterAsyncIOReconnector:
                 try:
                     self._last_known_seq_no = stream_writer.last_seqno
                     self._init_info.set_result(
-                        PublicWriterInitInfo(last_seqno=stream_writer.last_seqno)
+                        PublicWriterInitInfo(
+                            last_seqno=stream_writer.last_seqno,
+                            supported_codecs=stream_writer.supported_codecs,
+                        )
                     )
                 except asyncio.InvalidStateError:
                     pass
@@ -349,6 +399,121 @@ class WriterAsyncIOReconnector:
                     for task in pending:
                         task.cancel()
                     await asyncio.wait(pending)
+
+    async def _encode_loop(self):
+        while True:
+            messages = await self._messages_for_encode.get()
+            while not self._messages_for_encode.empty():
+                messages.extend(self._messages_for_encode.get_nowait())
+
+            batch_codec = await self._codec_selector(messages)
+            await self._encode_data_inplace(batch_codec, messages)
+            self._add_messages_to_send_queue(messages)
+
+    async def _encode_data_inplace(
+        self, codec: PublicCodec, messages: List[InternalMessage]
+    ):
+        if codec == PublicCodec.RAW:
+            return
+
+        eventloop = asyncio.get_running_loop()
+        encode_waiters = []
+        encoder_function = self._codec_functions[codec]
+
+        for message in messages:
+            encoded_data_futures = eventloop.run_in_executor(
+                self._encode_executor, encoder_function, message.get_bytes()
+            )
+            encode_waiters.append(encoded_data_futures)
+
+        encoded_datas = await asyncio.gather(*encode_waiters)
+
+        for index, data in enumerate(encoded_datas):
+            message = messages[index]
+            message.codec = codec
+            message.data = data
+
+    async def _codec_selector(self, messages: List[InternalMessage]) -> PublicCodec:
+        if self._codec is not None:
+            return self._codec
+
+        if self._codec_selector_last_codec is None:
+            available_codecs = await self._get_available_codecs()
+
+            # use every of available encoders at start for prevent problems
+            # with rare used encoders (on writer or reader side)
+            if self._codec_selector_batch_num < len(available_codecs):
+                codec = available_codecs[self._codec_selector_batch_num]
+            else:
+                codec = await self._codec_selector_by_check_compress(messages)
+                self._codec_selector_last_codec = codec
+        else:
+            if (
+                self._codec_selector_batch_num
+                % self._codec_selector_check_batches_interval
+                == 0
+            ):
+                self._codec_selector_last_codec = (
+                    await self._codec_selector_by_check_compress(messages)
+                )
+            codec = self._codec_selector_last_codec
+        self._codec_selector_batch_num += 1
+        return codec
+
+    async def _get_available_codecs(self) -> List[PublicCodec]:
+        info = await self.wait_init()
+        topic_supported_codecs = info.supported_codecs
+        if not topic_supported_codecs:
+            topic_supported_codecs = [PublicCodec.RAW, PublicCodec.GZIP]
+
+        res = []
+        for codec in topic_supported_codecs:
+            if codec in self._codec_functions:
+                res.append(codec)
+
+        if not res:
+            raise TopicWriterError("Writer does not support topic's codecs")
+
+        res.sort()
+
+        return res
+
+    async def _codec_selector_by_check_compress(
+        self, messages: List[InternalMessage]
+    ) -> PublicCodec:
+        """
+        Try to compress messages and choose codec with the smallest result size.
+        """
+
+        test_messages = messages[:10]
+
+        available_codecs = await self._get_available_codecs()
+        if len(available_codecs) == 1:
+            return available_codecs[0]
+
+        def get_compressed_size(codec) -> int:
+            s = 0
+            f = self._codec_functions[codec]
+
+            for m in test_messages:
+                encoded = f(m.get_bytes())
+                s += len(encoded)
+
+            return s
+
+        def select_codec() -> PublicCodec:
+            min_codec = available_codecs[0]
+            min_size = get_compressed_size(min_codec)
+            for codec in available_codecs[1:]:
+                size = get_compressed_size(codec)
+                if size < min_size:
+                    min_codec = codec
+                    min_size = size
+            return min_codec
+
+        loop = asyncio.get_running_loop()
+        codec = await loop.run_in_executor(self._encode_executor, select_codec)
+        return codec
 
     async def _read_loop(self, writer: "WriterAsyncIOStream"):
         while True:
@@ -412,6 +577,7 @@ class WriterAsyncIOStream:
     # todo slots
 
     last_seqno: int
+    supported_codecs: Optional[List[PublicCodec]]
 
     _stream: IGrpcWrapperAsyncIO
     _token_getter: TokenGetterFuncType
@@ -466,6 +632,7 @@ class WriterAsyncIOStream:
             raise TopicWriterError("Unexpected answer for init request: %s" % resp)
 
         self.last_seqno = resp.last_seq_no
+        self.supported_codecs = [PublicCodec(codec) for codec in resp.supported_codecs]
 
         self._stream = stream
 
