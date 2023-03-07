@@ -442,6 +442,8 @@ class WriterAsyncIOReconnector:
         if self._codec_selector_last_codec is None:
             available_codecs = await self._get_available_codecs()
 
+            # use every of available encoders at start for prevent problems
+            # with rare used encoders (on writer or reader side)
             if self._codec_selector_batch_num < len(available_codecs):
                 codec_index = self._codec_selector_batch_num % len(available_codecs)
                 codec = available_codecs[codec_index]
@@ -482,6 +484,10 @@ class WriterAsyncIOReconnector:
     async def _codec_selector_by_check_compress(
         self, messages: List[InternalMessage]
     ) -> PublicCodec:
+        """
+        Try to compress messages and choose codec with the smallest result size.
+        """
+
         test_messages = messages
         if len(test_messages) > 10:
             test_messages = test_messages[:10]
