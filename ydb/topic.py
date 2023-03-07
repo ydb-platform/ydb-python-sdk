@@ -3,7 +3,7 @@ from __future__ import annotations
 import concurrent.futures
 import datetime
 from dataclasses import dataclass
-from typing import List, Union, Mapping, Optional, Dict
+from typing import List, Union, Mapping, Optional, Dict, Callable
 
 from . import aio, Credentials, _apis, issues
 
@@ -167,6 +167,9 @@ class TopicClientAsyncIO:
         auto_seqno: bool = True,
         auto_created_at: bool = True,
         codec: Optional[TopicCodec] = None,  # default mean auto-select
+        encoders: Optional[
+            Mapping[_ydb_topic_public_types.PublicCodec, Callable[[bytes], bytes]]
+        ] = None,
         encoder_executor: Optional[
             concurrent.futures.Executor
         ] = None,  # default shared client executor pool
@@ -325,6 +328,9 @@ class TopicClient:
         auto_seqno: bool = True,
         auto_created_at: bool = True,
         codec: Optional[TopicCodec] = None,  # default mean auto-select
+        encoders: Optional[
+            Mapping[_ydb_topic_public_types.PublicCodec, Callable[[bytes], bytes]]
+        ] = None,
         encoder_executor: Optional[
             concurrent.futures.Executor
         ] = None,  # default shared client executor pool

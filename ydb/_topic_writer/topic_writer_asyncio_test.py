@@ -27,7 +27,7 @@ from .topic_writer import (
     TopicWriterError,
 )
 from .._grpc.grpcwrapper.ydb_topic_public_types import PublicCodec
-from .._topic_common.test_helpers import StreamMock
+from .._topic_common.test_helpers import StreamMock, wait_for_fast
 
 from .topic_writer_asyncio import (
     WriterAsyncIOStream,
@@ -571,6 +571,35 @@ class TestWriterAsyncIOReconnector:
         for index, mess in enumerate(messages):
             assert mess.codec == codec
             assert mess.get_bytes() == expected_datas[index]
+
+    async def test_custom_encoder(
+        self, default_driver, default_settings, get_stream_writer
+    ):
+        codec = 10001
+
+        settings = copy.copy(default_settings)
+        settings.encoders = {codec: lambda x: bytes(reversed(x))}
+        settings.codec = codec
+        reconnector = WriterAsyncIOReconnector(default_driver, settings)
+
+        now = datetime.datetime.now()
+        seqno = self.init_last_seqno + 1
+
+        await reconnector.write_with_ack_future(
+            [PublicMessage(data=b"123", seqno=seqno, created_at=now)]
+        )
+
+        stream_writer = get_stream_writer()
+        sent_messages = await wait_for_fast(stream_writer.from_client.get())
+
+        expected_mess = InternalMessage(
+            PublicMessage(data=b"321", seqno=seqno, created_at=now)
+        )
+        expected_mess.codec = codec
+
+        assert sent_messages == [expected_mess]
+
+        await reconnector.close(flush=False)
 
 
 @pytest.mark.asyncio

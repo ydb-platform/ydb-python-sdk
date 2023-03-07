@@ -198,6 +198,11 @@ class WriterAsyncIOReconnector:
             PublicCodec.RAW: lambda data: data,
             PublicCodec.GZIP: gzip.compress,
         }
+
+        if settings.encoders:
+            for codec, encoder in settings.encoders.items():
+                self._codec_functions[codec] = encoder
+
         self._encode_executor = settings.encoder_executor
 
         self._codec_selector_batch_num = 0

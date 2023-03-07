@@ -34,8 +34,10 @@ class PublicWriterSettings:
     encoder_executor: Optional[
         concurrent.futures.Executor
     ] = None  # default shared client executor pool
+    encoders: Optional[
+        typing.Mapping[PublicCodec, typing.Callable[[bytes], bytes]]
+    ] = None
     # get_last_seqno: bool = False
-    # encoders: Union[Mapping[int, Callable[[bytes], bytes]], None] = None
     # serializer: Union[Callable[[Any], bytes], None] = None
     # send_buffer_count: Optional[int] = 10000
     # send_buffer_bytes: Optional[int] = 100 * 1024 * 1024
