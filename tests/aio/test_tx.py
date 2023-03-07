@@ -153,3 +153,48 @@ async def test_split_transactions_default(driver, table_name):
                 assert rs[0].rows[0].cnt == 2
 
         await pool.retry_operation(check_transaction)
+
+
+@pytest.mark.asyncio
+async def test_truncated_response(driver, table_name, table_path):
+    column_types = ydb.BulkUpsertColumns().add_column("id", ydb.PrimitiveType.Int64)
+
+    rows = []
+
+    rows_count = 1100
+    for i in range(rows_count):
+        rows.append({"id": i})
+
+    await driver.table_client.bulk_upsert(table_path, rows, column_types)
+
+    table_client = driver.table_client  # default table client with driver's settings
+    s = table_client.session()
+    await s.create()
+    t = s.transaction()
+
+    result = await t.execute("SELECT * FROM %s" % table_name)
+    assert result[0].truncated
+    assert len(result[0].rows) == 1000
+
+
+@pytest.mark.asyncio
+async def test_truncated_response_deny(driver, table_name, table_path):
+    column_types = ydb.BulkUpsertColumns().add_column("id", ydb.PrimitiveType.Int64)
+
+    rows = []
+
+    rows_count = 1100
+    for i in range(rows_count):
+        rows.append({"id": i})
+
+    await driver.table_client.bulk_upsert(table_path, rows, column_types)
+
+    table_client = ydb.TableClient(
+        driver, ydb.TableClientSettings().with_allow_truncated_result(False)
+    )
+    s = table_client.session()
+    await s.create()
+    t = s.transaction()
+
+    with pytest.raises(ydb.TruncatedResponseError):
+        await t.execute("SELECT * FROM %s" % table_name)
