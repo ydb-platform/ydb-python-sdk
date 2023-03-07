@@ -85,7 +85,6 @@ async def test_tx_snapshot_ro(driver, database):
 
     await ro_tx.commit()
 
-    ro_tx = session.transaction(tx_mode=ydb.SnapshotReadOnly())
     with pytest.raises(ydb.issues.GenericError) as exc_info:
         await ro_tx.execute("UPDATE `test` SET value = value + 1")
     assert "read only transaction" in exc_info.value.message

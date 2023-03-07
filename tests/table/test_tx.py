@@ -80,7 +80,6 @@ def test_tx_snapshot_ro(driver_sync, database):
 
     ro_tx.commit()
 
-    ro_tx = session.transaction(tx_mode=ydb.SnapshotReadOnly())
     with pytest.raises(ydb.issues.GenericError) as exc_info:
         ro_tx.execute("UPDATE `test` SET value = value + 1")
     assert "read only transaction" in exc_info.value.message
