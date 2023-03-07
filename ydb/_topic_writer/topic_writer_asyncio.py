@@ -45,7 +45,6 @@ class WriterAsyncIO:
     _loop: asyncio.AbstractEventLoop
     _reconnector: "WriterAsyncIOReconnector"
     _closed: bool
-    _compressor_thread_pool: concurrent.futures.Executor
 
     @property
     def last_seqno(self) -> int:
@@ -112,13 +111,14 @@ class WriterAsyncIO:
         For wait with timeout use asyncio.wait_for.
         """
         input_single_message = not isinstance(messages, list)
+        converted_messages = []
         if isinstance(messages, list):
-            for index, m in enumerate(messages):
-                messages[index] = PublicMessage._create_message(m)
+            for m in messages:
+                converted_messages.append(PublicMessage._create_message(m))
         else:
-            messages = [PublicMessage._create_message(messages)]
+            converted_messages = [PublicMessage._create_message(messages)]
 
-        futures = await self._reconnector.write_with_ack_future(messages)
+        futures = await self._reconnector.write_with_ack_future(converted_messages)
         if input_single_message:
             return futures[0]
         else:
@@ -200,8 +200,7 @@ class WriterAsyncIOReconnector:
         }
 
         if settings.encoders:
-            for codec, encoder in settings.encoders.items():
-                self._codec_functions[codec] = encoder
+            self._codec_functions.update(settings.encoders)
 
         self._encode_executor = settings.encoder_executor
 
@@ -211,8 +210,7 @@ class WriterAsyncIOReconnector:
 
         self._codec = self._settings.codec
         if self._codec and self._codec not in self._codec_functions:
-            known_codecs = [key for key in self._codec_functions]
-            known_codecs.sort()
+            known_codecs = sorted(self._codec_functions.keys())
             raise ValueError(
                 "Unknown codec for writer: %s, supported codecs: %s"
                 % (self._codec, known_codecs)
@@ -445,8 +443,7 @@ class WriterAsyncIOReconnector:
             # use every of available encoders at start for prevent problems
             # with rare used encoders (on writer or reader side)
             if self._codec_selector_batch_num < len(available_codecs):
-                codec_index = self._codec_selector_batch_num % len(available_codecs)
-                codec = available_codecs[codec_index]
+                codec = available_codecs[self._codec_selector_batch_num]
             else:
                 codec = await self._codec_selector_by_check_compress(messages)
                 self._codec_selector_last_codec = codec
@@ -488,9 +485,7 @@ class WriterAsyncIOReconnector:
         Try to compress messages and choose codec with the smallest result size.
         """
 
-        test_messages = messages
-        if len(test_messages) > 10:
-            test_messages = test_messages[:10]
+        test_messages = messages[:10]
 
         available_codecs = await self._get_available_codecs()
         if len(available_codecs) == 1:

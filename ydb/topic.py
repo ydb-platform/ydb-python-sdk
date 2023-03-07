@@ -53,7 +53,9 @@ class TopicClientAsyncIO:
     _settings: TopicClientSettings
     _executor: concurrent.futures.Executor
 
-    def __init__(self, driver: aio.Driver, settings: Optional[TopicClientSettings]):
+    def __init__(
+        self, driver: aio.Driver, settings: Optional[TopicClientSettings] = None
+    ):
         if not settings:
             settings = TopicClientSettings()
         self._closed = False
