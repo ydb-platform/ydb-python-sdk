@@ -13,7 +13,7 @@ from .._grpc.grpcwrapper.ydb_topic import Codec, StreamWriteMessage
 from .._grpc.grpcwrapper.common_utils import IToProto
 from .._grpc.grpcwrapper.ydb_topic_public_types import PublicCodec
 
-MessageType = typing.Union["PublicMessage", "PublicMessage.SimpleMessageSourceType"]
+Message = typing.Union["PublicMessage", "PublicMessage.SimpleMessageSourceType"]
 
 
 @dataclass
@@ -116,9 +116,7 @@ class PublicMessage:
         self.data = data
 
     @staticmethod
-    def _create_message(
-        data: Union["PublicMessage", "PublicMessage.SimpleMessageSourceType"]
-    ) -> "PublicMessage":
+    def _create_message(data: Message) -> "PublicMessage":
         if isinstance(data, PublicMessage):
             return data
         return PublicMessage(data=data)

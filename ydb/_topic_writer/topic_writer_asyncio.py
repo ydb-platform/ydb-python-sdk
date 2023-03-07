@@ -17,7 +17,7 @@ from .topic_writer import (
     TopicWriterError,
     messages_to_proto_requests,
     PublicWriteResultTypes,
-    MessageType,
+    Message,
 )
 from .. import (
     _apis,
@@ -79,7 +79,7 @@ class WriterAsyncIO:
 
     async def write_with_ack(
         self,
-        messages: Union[MessageType, List[MessageType]],
+        messages: Union[Message, List[Message]],
     ) -> Union[PublicWriteResultTypes, List[PublicWriteResultTypes]]:
         """
         IT IS SLOWLY WAY. IT IS BAD CHOISE IN MOST CASES.
@@ -100,7 +100,7 @@ class WriterAsyncIO:
 
     async def write_with_ack_future(
         self,
-        messages: Union[MessageType, List[MessageType]],
+        messages: Union[Message, List[Message]],
     ) -> Union[asyncio.Future, List[asyncio.Future]]:
         """
         send one or number of messages to server.
@@ -126,7 +126,7 @@ class WriterAsyncIO:
 
     async def write(
         self,
-        messages: Union[MessageType, List[MessageType]],
+        messages: Union[Message, List[Message]],
     ):
         """
         send one or number of messages to server.
