@@ -120,8 +120,14 @@ class Session(BaseSession):
             set_read_replicas_settings,
         )
 
-    def transaction(self, tx_mode=None):
-        return TxContext(self._driver, self._state, self, tx_mode)
+    def transaction(self, tx_mode=None, *, deny_split_transactions=False):
+        return TxContext(
+            self._driver,
+            self._state,
+            self,
+            tx_mode,
+            deny_split_transactions=deny_split_transactions,
+        )
 
     async def describe_table(self, path, settings=None):  # pylint: disable=W0236
         return await super().describe_table(path, settings)
@@ -184,6 +190,9 @@ class TxContext(BaseTxContext):
     async def execute(
         self, query, parameters=None, commit_tx=False, settings=None
     ):  # pylint: disable=W0236
+
+        self._check_split()
+
         return await super().execute(query, parameters, commit_tx, settings)
 
     async def commit(self, settings=None):  # pylint: disable=W0236
