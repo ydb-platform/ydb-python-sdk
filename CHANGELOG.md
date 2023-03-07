@@ -1,3 +1,5 @@
+* BROKEN CHANGE: deny any action in transaction after commit/rollback
+
 ## 3.0.1b6 ##
 * BROKEN CHANGES: remove writer.write(mess1, mess2) variant, use list instead: writer.write([mess1, mess2])
 * BROKEN CHANGES: change names of public method in topic client

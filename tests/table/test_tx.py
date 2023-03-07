@@ -80,6 +80,7 @@ def test_tx_snapshot_ro(driver_sync, database):
 
     ro_tx.commit()
 
+    ro_tx = session.transaction(tx_mode=ydb.SnapshotReadOnly())
     with pytest.raises(ydb.issues.GenericError) as exc_info:
         ro_tx.execute("UPDATE `test` SET value = value + 1")
     assert "read only transaction" in exc_info.value.message
@@ -89,3 +90,61 @@ def test_tx_snapshot_ro(driver_sync, database):
         commit_tx=True,
     )
     assert data[0].rows == [{"value": 2}]
+
+
+def test_split_transactions_deny_split(driver_sync, table_name):
+    with ydb.SessionPool(driver_sync, 1) as pool:
+
+        def check_transaction(s: ydb.table.Session):
+            with s.transaction(deny_split_transactions=True) as tx:
+                tx.execute("INSERT INTO %s (id) VALUES (1)" % table_name)
+                tx.commit()
+
+                with pytest.raises(RuntimeError):
+                    tx.execute("INSERT INTO %s (id) VALUES (2)" % table_name)
+
+                tx.commit()
+
+            with s.transaction() as tx:
+                rs = tx.execute("SELECT COUNT(*) as cnt FROM %s" % table_name)
+                assert rs[0].rows[0].cnt == 1
+
+        pool.retry_operation_sync(check_transaction)
+
+
+def test_split_transactions_allow_split(driver_sync, table_name):
+    with ydb.SessionPool(driver_sync, 1) as pool:
+
+        def check_transaction(s: ydb.table.Session):
+            with s.transaction(deny_split_transactions=False) as tx:
+                tx.execute("INSERT INTO %s (id) VALUES (1)" % table_name)
+                tx.commit()
+
+                tx.execute("INSERT INTO %s (id) VALUES (2)" % table_name)
+                tx.commit()
+
+            with s.transaction() as tx:
+                rs = tx.execute("SELECT COUNT(*) as cnt FROM %s" % table_name)
+                assert rs[0].rows[0].cnt == 2
+
+        pool.retry_operation_sync(check_transaction)
+
+
+def test_split_transactions_default(driver_sync, table_name):
+    with ydb.SessionPool(driver_sync, 1) as pool:
+
+        def check_transaction(s: ydb.table.Session):
+            with s.transaction() as tx:
+                tx.execute("INSERT INTO %s (id) VALUES (1)" % table_name)
+                tx.commit()
+
+                with pytest.raises(RuntimeError):
+                    tx.execute("INSERT INTO %s (id) VALUES (2)" % table_name)
+
+                tx.commit()
+
+            with s.transaction() as tx:
+                rs = tx.execute("SELECT COUNT(*) as cnt FROM %s" % table_name)
+                assert rs[0].rows[0].cnt == 1
+
+        pool.retry_operation_sync(check_transaction)

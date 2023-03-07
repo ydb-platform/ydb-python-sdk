@@ -106,6 +106,33 @@ async def driver_sync(endpoint, database, event_loop):
 
 
 @pytest.fixture()
+def table_name(driver_sync, database):
+    table_name = "table"
+
+    with ydb.SessionPool(driver_sync) as pool:
+
+        def create_table(s):
+            try:
+                s.drop_table(database + "/" + table_name)
+            except ydb.SchemeError:
+                pass
+
+            s.execute_scheme(
+                """
+CREATE TABLE %s (
+id Int64 NOT NULL,
+i64Val Int64,
+PRIMARY KEY(id)
+)
+"""
+                % table_name
+            )
+
+        pool.retry_operation_sync(create_table)
+    return table_name
+
+
+@pytest.fixture()
 def topic_consumer():
     return "fixture-consumer"
 

@@ -85,6 +85,7 @@ async def test_tx_snapshot_ro(driver, database):
 
     await ro_tx.commit()
 
+    ro_tx = session.transaction(tx_mode=ydb.SnapshotReadOnly())
     with pytest.raises(ydb.issues.GenericError) as exc_info:
         await ro_tx.execute("UPDATE `test` SET value = value + 1")
     assert "read only transaction" in exc_info.value.message
@@ -94,3 +95,64 @@ async def test_tx_snapshot_ro(driver, database):
         commit_tx=True,
     )
     assert data[0].rows == [{"value": 2}]
+
+
+@pytest.mark.asyncio
+async def test_split_transactions_deny_split(driver, table_name):
+    async with ydb.aio.SessionPool(driver, 1) as pool:
+
+        async def check_transaction(s: ydb.aio.table.Session):
+            async with s.transaction(deny_split_transactions=True) as tx:
+                await tx.execute("INSERT INTO %s (id) VALUES (1)" % table_name)
+                await tx.commit()
+
+                with pytest.raises(RuntimeError):
+                    await tx.execute("INSERT INTO %s (id) VALUES (2)" % table_name)
+
+                await tx.commit()
+
+            async with s.transaction() as tx:
+                rs = await tx.execute("SELECT COUNT(*) as cnt FROM %s" % table_name)
+                assert rs[0].rows[0].cnt == 1
+
+        await pool.retry_operation(check_transaction)
+
+
+@pytest.mark.asyncio
+async def test_split_transactions_allow_split(driver, table_name):
+    async with ydb.aio.SessionPool(driver, 1) as pool:
+
+        async def check_transaction(s: ydb.aio.table.Session):
+            async with s.transaction(deny_split_transactions=False) as tx:
+                await tx.execute("INSERT INTO %s (id) VALUES (1)" % table_name)
+                await tx.commit()
+
+                await tx.execute("INSERT INTO %s (id) VALUES (2)" % table_name)
+                await tx.commit()
+
+            async with s.transaction() as tx:
+                rs = await tx.execute("SELECT COUNT(*) as cnt FROM %s" % table_name)
+                assert rs[0].rows[0].cnt == 2
+
+        await pool.retry_operation(check_transaction)
+
+
+@pytest.mark.asyncio
+async def test_split_transactions_default(driver, table_name):
+    async with ydb.aio.SessionPool(driver, 1) as pool:
+
+        async def check_transaction(s: ydb.aio.table.Session):
+            async with s.transaction() as tx:
+                await tx.execute("INSERT INTO %s (id) VALUES (1)" % table_name)
+                await tx.commit()
+
+                with pytest.raises(RuntimeError):
+                    await tx.execute("INSERT INTO %s (id) VALUES (2)" % table_name)
+
+                await tx.commit()
+
+            async with s.transaction() as tx:
+                rs = await tx.execute("SELECT COUNT(*) as cnt FROM %s" % table_name)
+                assert rs[0].rows[0].cnt == 1
+
+        await pool.retry_operation(check_transaction)
