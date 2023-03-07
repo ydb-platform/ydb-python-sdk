@@ -149,7 +149,7 @@ async def test_split_transactions_default(driver, table_name):
                 with pytest.raises(RuntimeError):
                     await tx.execute("INSERT INTO %s (id) VALUES (2)" % table_name)
 
-                tx.commit()
+                await tx.commit()
 
             async with s.transaction() as tx:
                 rs = await tx.execute("SELECT COUNT(*) as cnt FROM %s" % table_name)

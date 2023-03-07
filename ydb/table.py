@@ -2454,8 +2454,7 @@ class TxContext(BaseTxContext):
 
         :return: A future of commit call
         """
-        self._check_split()
-        self._finished = True
+        self._set_finish(self._COMMIT)
 
         if self._tx_state.tx_id is None and not self._tx_state.dead:
             return _utilities.wrap_result_in_future(self)
@@ -2480,8 +2479,7 @@ class TxContext(BaseTxContext):
 
         :return: A future of rollback call
         """
-        self._check_split()
-        self._finished = True
+        self._set_finish(self._ROLLBACK)
 
         if self._tx_state.tx_id is None and not self._tx_state.dead:
             return _utilities.wrap_result_in_future(self)
