@@ -8,7 +8,6 @@ from typing import (
 )
 
 from ..table import RetrySettings
-from .._topic_common.common import TokenGetterFuncType
 from .._grpc.grpcwrapper.ydb_topic import StreamReadMessage, OffsetsRange
 
 
@@ -28,7 +27,6 @@ class PublicReaderSettings:
     consumer: str
     topic: str
     buffer_size_bytes: int = 50 * 1024 * 1024
-    _token_getter: Optional[TokenGetterFuncType] = None
     # on_commit: Callable[["Events.OnCommit"], None] = None
     # on_get_partition_start_offset: Callable[
     #     ["Events.OnPartitionGetStartOffsetRequest"],

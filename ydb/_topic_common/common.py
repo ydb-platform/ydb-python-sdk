@@ -7,7 +7,6 @@ from typing import Optional
 from .. import operation, issues
 from .._grpc.grpcwrapper.common_utils import IFromProtoWithProtoType
 
-TokenGetterFuncType = typing.Optional[typing.Callable[[], str]]
 TimeoutType = typing.Union[int, float]
 
 

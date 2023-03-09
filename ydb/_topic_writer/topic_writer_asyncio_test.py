@@ -15,7 +15,12 @@ import pytest
 
 from .. import aio
 from .. import StatusCode, issues
-from .._grpc.grpcwrapper.ydb_topic import Codec, StreamWriteMessage
+from .._grpc.grpcwrapper.ydb_topic import (
+    Codec,
+    StreamWriteMessage,
+    UpdateTokenRequest,
+    UpdateTokenResponse,
+)
 from .._grpc.grpcwrapper.common_utils import ServerStatus
 from .topic_writer import (
     InternalMessage,
@@ -35,11 +40,13 @@ from .topic_writer_asyncio import (
     WriterAsyncIO,
 )
 
+from ..credentials import AnonymousCredentials
+
 
 @pytest.fixture
 def default_driver() -> aio.Driver:
     driver = mock.Mock(spec=aio.Driver)
-    driver._credentials = mock.Mock()
+    driver._credentials = AnonymousCredentials()
     return driver
 
 
@@ -66,7 +73,7 @@ class TestWriterAsyncIOStream:
             )
         )
 
-        writer = WriterAsyncIOStream(None)
+        writer = WriterAsyncIOStream(1, lambda: "")
         await writer._start(
             stream,
             init_message=StreamWriteMessage.InitRequest(
@@ -107,7 +114,7 @@ class TestWriterAsyncIOStream:
             )
         )
 
-        writer = WriterAsyncIOStream(None)
+        writer = WriterAsyncIOStream(1, lambda: "")
         await writer._start(stream, init_message)
 
         sent_message = await stream.from_client.get()

@@ -94,9 +94,9 @@ class TestTopicWriterAsyncIO:
     )
     async def test_write_encoded(self, driver: ydb.Driver, topic_path: str, codec):
         async with driver.topic_client.writer(topic_path, codec=codec) as writer:
-            writer.write("a" * 1000)
-            writer.write("b" * 1000)
-            writer.write("c" * 1000)
+            await writer.write("a" * 1000)
+            await writer.write("b" * 1000)
+            await writer.write("c" * 1000)
 
 
 class TestTopicWriterSync:
