@@ -1,5 +1,8 @@
 ## 3.0.1b7 ##
 * BROKEN CHANGE: deny any action in transaction after commit/rollback
+* BROKEN CHANGE: raise exception for truncated response by default
+* Compatible protobaf detection for arcadia
+* Add codecs support for topic writer
 
 ## 3.0.1b6 ##
 * BROKEN CHANGES: remove writer.write(mess1, mess2) variant, use list instead: writer.write([mess1, mess2])
