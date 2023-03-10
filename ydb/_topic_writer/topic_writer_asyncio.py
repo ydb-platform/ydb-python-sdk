@@ -336,7 +336,7 @@ class WriterAsyncIOReconnector:
 
         while True:
             attempt = 0  # todo calc and reset
-            pending = []
+            tasks = []
 
             # noinspection PyBroadException
             stream_writer = None
@@ -367,7 +367,8 @@ class WriterAsyncIOReconnector:
                     self._read_loop(stream_writer), name="writer receive loop"
                 )
 
-                done, pending = await asyncio.wait(
+                tasks = [send_loop, receive_loop]
+                done, _ = await asyncio.wait(
                     [send_loop, receive_loop], return_when=asyncio.FIRST_COMPLETED
                 )
                 await stream_writer.close()
@@ -389,10 +390,9 @@ class WriterAsyncIOReconnector:
             finally:
                 if stream_writer:
                     await stream_writer.close()
-                if len(pending) > 0:
-                    for task in pending:
-                        task.cancel()
-                    await asyncio.wait(pending)
+                for task in tasks:
+                    task.cancel()
+                await asyncio.wait(tasks)
 
     async def _encode_loop(self):
         while True:
@@ -595,7 +595,7 @@ class WriterAsyncIOStream:
         self._closed = True
 
         self._update_token_task.cancel()
-        await self._update_token_task
+        await asyncio.wait([self._update_token_task])
         self._stream.close()
 
     @staticmethod
