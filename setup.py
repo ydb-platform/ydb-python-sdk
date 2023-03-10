@@ -13,7 +13,7 @@ with open("requirements.txt") as r:
 
 setuptools.setup(
     name="ydb",
-    version="3.0.1b6",  # AUTOVERSION
+    version="3.0.1b7",  # AUTOVERSION
     description="YDB Python SDK",
     author="Yandex LLC",
     author_email="ydb@yandex-team.ru",

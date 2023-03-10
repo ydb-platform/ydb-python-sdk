@@ -1,3 +1,4 @@
+## 3.0.1b7 ##
 * BROKEN CHANGE: deny any action in transaction after commit/rollback
 
 ## 3.0.1b6 ##
