@@ -344,8 +344,7 @@ class WriterAsyncIOReconnector:
                 stream_writer = await WriterAsyncIOStream.create(
                     self._driver,
                     self._init_message,
-                    3,
-                    # self._settings.update_token_interval,
+                    self._settings.update_token_interval,
                 )
                 try:
                     self._last_known_seq_no = stream_writer.last_seqno
@@ -575,34 +574,39 @@ class WriterAsyncIOStream:
     _requests: asyncio.Queue
     _responses: AsyncIterator
 
-    _update_token_interval: int
-    _update_token_task: asyncio.Task
+    _update_token_interval: Optional[Union[int, float]]
+    _update_token_task: Optional[asyncio.Task]
     _update_token_event: asyncio.Event
-    _get_token_function: Callable[[], str]
+    _get_token_function: Optional[Callable[[], str]]
 
     def __init__(
-        self, update_token_interval: int, get_token_function: Callable[[], str]
+        self,
+        update_token_interval: Optional[Union[int, float]] = None,
+        get_token_function: Optional[Callable[[], str]] = None,
     ):
         self._closed = False
 
         self._update_token_interval = update_token_interval
         self._get_token_function = get_token_function
         self._update_token_event = asyncio.Event()
+        self._update_token_task = None
 
     async def close(self):
         if self._closed:
             return
         self._closed = True
 
-        self._update_token_task.cancel()
-        await asyncio.wait([self._update_token_task])
+        if self._update_token_task:
+            self._update_token_task.cancel()
+            await asyncio.wait([self._update_token_task])
+
         self._stream.close()
 
     @staticmethod
     async def create(
         driver: SupportedDriverType,
         init_request: StreamWriteMessage.InitRequest,
-        update_token_interval: int,
+        update_token_interval: Optional[Union[int, float]] = None,
     ) -> "WriterAsyncIOStream":
         stream = GrpcWrapperAsyncIO(StreamWriteMessage.FromServer.from_proto)
 
@@ -646,10 +650,11 @@ class WriterAsyncIOStream:
 
         self._stream = stream
 
-        self._update_token_event.set()
-        self._update_token_task = asyncio.create_task(
-            self._update_token_loop(), name="update_token_loop"
-        )
+        if self._update_token_interval is not None:
+            self._update_token_event.set()
+            self._update_token_task = asyncio.create_task(
+                self._update_token_loop(), name="update_token_loop"
+            )
 
     @staticmethod
     def _ensure_ok(message: WriterMessagesFromServerToClient):

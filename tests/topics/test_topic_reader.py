@@ -23,6 +23,8 @@ class TestTopicReaderAsyncIO:
         batch2 = await reader.receive_batch()
         assert batch.messages[0] != batch2.messages[0]
 
+        await reader.close()
+
 
 class TestTopicReaderSync:
     def test_read_message(
