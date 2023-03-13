@@ -49,6 +49,7 @@ class PublicReaderSettings:
     # one_attempt_connection_timeout: Union[float, None] = 1
     # connection_timeout: Union[float, None] = None
     # retry_policy: Union["RetryPolicy", None] = None
+    update_token_interval: Union[int, float] = 3600
 
     def _init_message(self) -> StreamReadMessage.InitRequest:
         return StreamReadMessage.InitRequest(

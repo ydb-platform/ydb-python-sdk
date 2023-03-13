@@ -15,7 +15,13 @@ from .datatypes import PublicBatch, PublicMessage
 from .topic_reader import PublicReaderSettings
 from .topic_reader_asyncio import ReaderStream, ReaderReconnector
 from .._grpc.grpcwrapper.common_utils import SupportedDriverType, ServerStatus
-from .._grpc.grpcwrapper.ydb_topic import StreamReadMessage, Codec, OffsetsRange
+from .._grpc.grpcwrapper.ydb_topic import (
+    StreamReadMessage,
+    Codec,
+    OffsetsRange,
+    UpdateTokenRequest,
+    UpdateTokenResponse,
+)
 from .._topic_common.test_helpers import (
     StreamMock,
     wait_condition,
@@ -121,12 +127,14 @@ class TestReaderStream:
 
     @pytest.fixture()
     async def stream_reader_started(
-        self,
-        stream,
-        default_reader_settings,
+        self, stream, default_reader_settings, request
     ) -> ReaderStream:
+
+        settings, token_getter = getattr(
+            request, "param", (default_reader_settings, None)
+        )
         reader = ReaderStream(
-            self.default_reader_reconnector_id, default_reader_settings
+            self.default_reader_reconnector_id, settings, token_getter
         )
         init_message = object()
 
@@ -1003,6 +1011,42 @@ class TestReaderStream:
 
         with pytest.raises(asyncio.QueueEmpty):
             stream.from_client.get_nowait()
+
+    @pytest.mark.parametrize(
+        "stream_reader_started",
+        [
+            (
+                PublicReaderSettings(
+                    consumer="test-consumer",
+                    topic="test-topic",
+                    update_token_interval=0.1,
+                ),
+                lambda: "foo-bar",
+            )
+        ],
+        indirect=True,
+    )
+    async def test_update_token(self, stream, stream_reader_started: ReaderStream):
+        assert stream.from_client.empty()
+
+        expected = StreamReadMessage.FromClient(UpdateTokenRequest(token="foo-bar"))
+        got = await wait_for_fast(stream.from_client.get())
+        assert expected == got, "send update token request"
+
+        await asyncio.sleep(0.2)
+        assert stream.from_client.empty(), "no answer - no new update request"
+
+        await stream.from_server.put(
+            StreamReadMessage.FromServer(
+                server_status=ServerStatus(ydb_status_codes_pb2.StatusIds.SUCCESS, []),
+                server_message=UpdateTokenResponse(),
+            )
+        )
+
+        got = await wait_for_fast(stream.from_client.get())
+        assert expected == got
+
+        await stream_reader_started.close()
 
 
 @pytest.mark.asyncio

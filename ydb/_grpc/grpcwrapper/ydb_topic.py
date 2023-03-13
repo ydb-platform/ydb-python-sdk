@@ -686,6 +686,8 @@ class StreamReadMessage:
                 res.commit_offset_request.CopyFrom(self.client_message.to_proto())
             elif isinstance(self.client_message, StreamReadMessage.InitRequest):
                 res.init_request.CopyFrom(self.client_message.to_proto())
+            elif isinstance(self.client_message, UpdateTokenRequest):
+                res.update_token_request.CopyFrom(self.client_message.to_proto())
             elif isinstance(
                 self.client_message, StreamReadMessage.StartPartitionSessionResponse
             ):
@@ -735,6 +737,13 @@ class StreamReadMessage:
                     server_status=server_status,
                     server_message=StreamReadMessage.StartPartitionSessionRequest.from_proto(
                         msg.start_partition_session_request
+                    ),
+                )
+            elif mess_type == "update_token_response":
+                return StreamReadMessage.FromServer(
+                    server_status=server_status,
+                    server_message=UpdateTokenResponse.from_proto(
+                        msg.update_token_response
                     ),
                 )
 

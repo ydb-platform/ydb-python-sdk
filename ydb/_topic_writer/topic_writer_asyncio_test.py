@@ -259,7 +259,7 @@ class TestWriterAsyncIOReconnector:
                     return self.get_second()
 
             def _create(self):
-                writer = TestWriterAsyncIOReconnector.StreamWriterMock(1, lambda: "")
+                writer = TestWriterAsyncIOReconnector.StreamWriterMock()
                 writer.last_seqno = TestWriterAsyncIOReconnector.init_last_seqno
                 self._first.put_nowait(writer)
                 self._second.put_nowait(writer)
