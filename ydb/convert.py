@@ -13,6 +13,7 @@ _DecimalNanRepr = 10**35 + 1
 _DecimalInfRepr = 10**35
 _DecimalSignedInfRepr = -(10**35)
 _primitive_type_by_id = {}
+_default_allow_truncated_result = True
 
 
 def _initialize():
@@ -491,16 +492,18 @@ class ResultSets(list):
             if table_client_settings is None
             else table_client_settings._make_result_sets_lazy
         )
+
+        allow_truncated_result = _default_allow_truncated_result
+        if table_client_settings:
+            allow_truncated_result = table_client_settings._allow_truncated_result
+
         result_sets = []
         initializer = (
             _ResultSet.from_message if not make_lazy else _ResultSet.lazy_from_message
         )
         for result_set in result_sets_pb:
             result_set = initializer(result_set, table_client_settings)
-            if (
-                result_set.truncated
-                and not table_client_settings._allow_truncated_result
-            ):
+            if result_set.truncated and not allow_truncated_result:
                 raise issues.TruncatedResponseError(
                     "Response for the request was truncated by server"
                 )
