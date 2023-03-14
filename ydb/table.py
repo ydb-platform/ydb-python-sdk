@@ -1004,7 +1004,7 @@ class TableClientSettings(object):
         self._native_json_in_result_sets = False
         self._native_interval_in_result_sets = False
         self._native_timestamp_in_result_sets = False
-        self._allow_truncated_result = True
+        self._allow_truncated_result = convert._default_allow_truncated_result
 
     def with_native_timestamp_in_result_sets(self, enabled):
         # type:(bool) -> ydb.TableClientSettings
