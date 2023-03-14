@@ -1,3 +1,5 @@
+* Fixed exception while create ResultSet with None table_settings
+
 ## 3.0.1b7 ##
 * BROKEN CHANGE: deny any action in transaction after commit/rollback
 * BROKEN CHANGE: raise exception for truncated response by default
