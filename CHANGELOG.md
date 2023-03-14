@@ -1,3 +1,4 @@
+## 3.0.1b8 ##
 * Fixed exception while create ResultSet with None table_settings
 
 ## 3.0.1b7 ##
