@@ -13,6 +13,7 @@ from ydb.table import (
     _scan_query_request_factory,
     _wrap_scan_query_response,
     BaseTxContext,
+    _allow_split_transaction,
 )
 from . import _utilities
 from ydb import _apis, _session_impl
@@ -120,13 +121,15 @@ class Session(BaseSession):
             set_read_replicas_settings,
         )
 
-    def transaction(self, tx_mode=None, *, deny_split_transactions=False):
+    def transaction(
+        self, tx_mode=None, *, allow_split_transactions=_allow_split_transaction
+    ):
         return TxContext(
             self._driver,
             self._state,
             self,
             tx_mode,
-            deny_split_transactions=deny_split_transactions,
+            allow_split_transactions=allow_split_transactions,
         )
 
     async def describe_table(self, path, settings=None):  # pylint: disable=W0236

@@ -1,6 +1,7 @@
 * Flag for deny split transaction
 
 ## 2.12.3 ##
+* Flag for deny split transaction
 * Add six package to requirements
 * Fixed error while passing date parameter in execute
 
