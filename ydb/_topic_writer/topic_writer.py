@@ -208,7 +208,7 @@ def messages_to_proto_requests(
         req = StreamWriteMessage.FromClient(
             StreamWriteMessage.WriteRequest(
                 messages=[msg.to_message_data()],
-                codec=Codec.CODEC_RAW,
+                codec=msg.codec,
             )
         )
         res.append(req)

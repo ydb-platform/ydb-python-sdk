@@ -9,7 +9,7 @@ from dataclasses import dataclass, field
 import datetime
 from typing import Mapping, Union, Any, List, Dict, Deque, Optional
 
-from ydb._grpc.grpcwrapper.ydb_topic import OffsetsRange
+from ydb._grpc.grpcwrapper.ydb_topic import OffsetsRange, Codec
 from ydb._topic_reader import topic_reader_asyncio
 
 
@@ -168,6 +168,7 @@ class PublicBatch(ICommittable, ISessionAlive):
     messages: List[PublicMessage]
     _partition_session: PartitionSession
     _bytes_size: int
+    _codec: Codec
 
     def _commit_get_partition_session(self) -> PartitionSession:
         return self.messages[0]._commit_get_partition_session()

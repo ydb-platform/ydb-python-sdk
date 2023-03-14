@@ -1,5 +1,8 @@
 import asyncio
+import concurrent.futures
+import copy
 import datetime
+import gzip
 import typing
 from dataclasses import dataclass
 from unittest import mock
@@ -36,10 +39,18 @@ def handle_exceptions(event_loop):
 
 
 @pytest.fixture()
-def default_reader_settings():
+def default_executor():
+    executor = concurrent.futures.ThreadPoolExecutor(max_workers=2, thread_name_prefix="decoder_executor")
+    yield executor
+    executor.shutdown(cancel_futures=True)
+
+
+@pytest.fixture()
+def default_reader_settings(default_executor):
     return PublicReaderSettings(
         consumer="test-consumer",
         topic="test-topic",
+        decoder_executor=default_executor,
     )
 
 
@@ -66,7 +77,7 @@ class TestReaderStream:
 
     @pytest.fixture()
     def partition_session(
-        self, default_reader_settings, stream_reader_started: ReaderStream
+            self, default_reader_settings, stream_reader_started: ReaderStream
     ) -> datatypes.PartitionSession:
         partition_session = datatypes.PartitionSession(
             id=2,
@@ -87,7 +98,7 @@ class TestReaderStream:
 
     @pytest.fixture()
     def second_partition_session(
-        self, default_reader_settings, stream_reader_started: ReaderStream
+            self, default_reader_settings, stream_reader_started: ReaderStream
     ):
         partition_session = datatypes.PartitionSession(
             id=12,
@@ -108,9 +119,9 @@ class TestReaderStream:
 
     @pytest.fixture()
     async def stream_reader_started(
-        self,
-        stream,
-        default_reader_settings,
+            self,
+            stream,
+            default_reader_settings,
     ) -> ReaderStream:
         reader = ReaderStream(
             self.default_reader_reconnector_id, default_reader_settings
@@ -152,7 +163,7 @@ class TestReaderStream:
 
     @pytest.fixture()
     async def stream_reader_finish_with_error(
-        self, stream_reader_started: ReaderStream
+            self, stream_reader_started: ReaderStream
     ):
         yield stream_reader_started
 
@@ -161,7 +172,7 @@ class TestReaderStream:
 
     @staticmethod
     def create_message(
-        partition_session: datatypes.PartitionSession, seqno: int, offset_delta: int
+            partition_session: datatypes.PartitionSession, seqno: int, offset_delta: int
     ):
         return PublicMessage(
             seqno=seqno,
@@ -169,17 +180,17 @@ class TestReaderStream:
             message_group_id="test-message-group",
             session_metadata={},
             offset=partition_session._next_message_start_commit_offset
-            + offset_delta
-            - 1,
+                   + offset_delta
+                   - 1,
             written_at=datetime.datetime(2023, 2, 3, 14, 16),
             producer_id="test-producer-id",
             data=bytes(),
             _partition_session=partition_session,
             _commit_start_offset=partition_session._next_message_start_commit_offset
-            + offset_delta
-            - 1,
+                                 + offset_delta
+                                 - 1,
             _commit_end_offset=partition_session._next_message_start_commit_offset
-            + offset_delta,
+                               + offset_delta,
         )
 
     async def send_message(self, stream_reader, message: PublicMessage):
@@ -239,28 +250,28 @@ class TestReaderStream:
         "commit,send_range",
         [
             (
-                OffsetsRange(
-                    partition_session_committed_offset,
-                    partition_session_committed_offset + 1,
-                ),
-                True,
+                    OffsetsRange(
+                        partition_session_committed_offset,
+                        partition_session_committed_offset + 1,
+                    ),
+                    True,
             ),
             (
-                OffsetsRange(
-                    partition_session_committed_offset - 1,
-                    partition_session_committed_offset,
-                ),
-                False,
+                    OffsetsRange(
+                        partition_session_committed_offset - 1,
+                        partition_session_committed_offset,
+                    ),
+                    False,
             ),
         ],
     )
     async def test_send_commit_messages(
-        self,
-        stream,
-        stream_reader: ReaderStream,
-        partition_session,
-        commit: OffsetsRange,
-        send_range: bool,
+            self,
+            stream,
+            stream_reader: ReaderStream,
+            partition_session,
+            commit: OffsetsRange,
+            send_range: bool,
     ):
         @dataclass
         class Commitable(datatypes.ICommittable):
@@ -300,7 +311,7 @@ class TestReaderStream:
             assert start_ack_waiters == partition_session._ack_waiters
 
     async def test_commit_ack_received(
-        self, stream_reader, stream, partition_session, second_partition_session
+            self, stream_reader, stream, partition_session, second_partition_session
     ):
         offset1 = self.partition_session_committed_offset + 1
         waiter1 = partition_session.add_waiter(offset1)
@@ -330,7 +341,7 @@ class TestReaderStream:
         await wait_for_fast(waiter2.future)
 
     async def test_close_ack_waiters_when_close_stream_reader(
-        self, stream_reader_started: ReaderStream, partition_session
+            self, stream_reader_started: ReaderStream, partition_session
     ):
         waiter = partition_session.add_waiter(
             self.partition_session_committed_offset + 1
@@ -341,7 +352,7 @@ class TestReaderStream:
             waiter.future.result()
 
     async def test_commit_ranges_for_received_messages(
-        self, stream, stream_reader_started: ReaderStream, partition_session
+            self, stream, stream_reader_started: ReaderStream, partition_session
     ):
         m1 = self.create_message(partition_session, 1, 1)
         m2 = self.create_message(partition_session, 2, 10)
@@ -358,8 +369,149 @@ class TestReaderStream:
         received = stream_reader_started.receive_batch_nowait().messages
         assert received == [m2]
 
+    # noinspection PyTypeChecker
+    @pytest.mark.parametrize(
+        "batch,data_out",
+        [
+            (
+                    PublicBatch(
+                        session_metadata={},
+                        messages=[
+                            PublicMessage(
+                                seqno=1,
+                                created_at=datetime.datetime(2023, 3, 14, 15, 41),
+                                message_group_id="",
+                                session_metadata={},
+                                offset=1,
+                                written_at=datetime.datetime(2023, 3, 14, 15, 42),
+                                producer_id="asd",
+                                data=rb"123",
+                                _partition_session=None,
+                                _commit_start_offset=5,
+                                _commit_end_offset=15,
+                            )
+                        ],
+                        _partition_session=None,
+                        _bytes_size=0,
+                        _codec=Codec.CODEC_RAW,
+                    ),
+                    [bytes(rb"123")]
+            ),
+            (
+                    PublicBatch(
+                        session_metadata={},
+                        messages=[
+                            PublicMessage(
+                                seqno=1,
+                                created_at=datetime.datetime(2023, 3, 14, 15, 41),
+                                message_group_id="",
+                                session_metadata={},
+                                offset=1,
+                                written_at=datetime.datetime(2023, 3, 14, 15, 42),
+                                producer_id="asd",
+                                data=gzip.compress(rb"123"),
+                                _partition_session=None,
+                                _commit_start_offset=5,
+                                _commit_end_offset=15,
+                            )
+                        ],
+                        _partition_session=None,
+                        _bytes_size=0,
+                        _codec=Codec.CODEC_GZIP,
+                    ),
+                    [bytes(rb"123")]
+            ),
+            (
+                    PublicBatch(
+                        session_metadata={},
+                        messages=[
+                            PublicMessage(
+                                seqno=1,
+                                created_at=datetime.datetime(2023, 3, 14, 15, 41),
+                                message_group_id="",
+                                session_metadata={},
+                                offset=1,
+                                written_at=datetime.datetime(2023, 3, 14, 15, 42),
+                                producer_id="asd",
+                                data=rb"123",
+                                _partition_session=None,
+                                _commit_start_offset=5,
+                                _commit_end_offset=15,
+                            ),
+                            PublicMessage(
+                                seqno=1,
+                                created_at=datetime.datetime(2023, 3, 14, 15, 41),
+                                message_group_id="",
+                                session_metadata={},
+                                offset=1,
+                                written_at=datetime.datetime(2023, 3, 14, 15, 42),
+                                producer_id="asd",
+                                data=rb"456",
+                                _partition_session=None,
+                                _commit_start_offset=5,
+                                _commit_end_offset=15,
+                            ),
+                        ],
+                        _partition_session=None,
+                        _bytes_size=0,
+                        _codec=Codec.CODEC_RAW,
+                    ),
+                    [bytes(rb"123"), bytes(rb'456')]
+            ),
+            (
+                    PublicBatch(
+                        session_metadata={},
+                        messages=[
+                            PublicMessage(
+                                seqno=1,
+                                created_at=datetime.datetime(2023, 3, 14, 15, 41),
+                                message_group_id="",
+                                session_metadata={},
+                                offset=1,
+                                written_at=datetime.datetime(2023, 3, 14, 15, 42),
+                                producer_id="asd",
+                                data=gzip.compress(rb"123"),
+                                _partition_session=None,
+                                _commit_start_offset=5,
+                                _commit_end_offset=15,
+                            ),
+                            PublicMessage(
+                                seqno=1,
+                                created_at=datetime.datetime(2023, 3, 14, 15, 41),
+                                message_group_id="",
+                                session_metadata={},
+                                offset=1,
+                                written_at=datetime.datetime(2023, 3, 14, 15, 42),
+                                producer_id="asd",
+                                data=gzip.compress(rb"456"),
+                                _partition_session=None,
+                                _commit_start_offset=5,
+                                _commit_end_offset=15,
+                            ),
+                        ],
+                        _partition_session=None,
+                        _bytes_size=0,
+                        _codec=Codec.CODEC_GZIP,
+                    ),
+                    [bytes(rb"123"), bytes(rb'456')]
+            ),
+        ]
+    )
+    async def test_decode_loop(self, stream_reader, batch: PublicBatch, data_out: typing.List[bytes]):
+        assert len(batch.messages) == len(data_out)
+
+        expected = copy.deepcopy(batch)
+        expected._codec = Codec.CODEC_RAW
+
+        for index, data in enumerate(data_out):
+            expected.messages[index].data = data
+
+        await wait_for_fast(stream_reader._decode_batch_inplace(batch))
+
+        assert batch == expected
+
     async def test_error_from_status_code(
-        self, stream, stream_reader_finish_with_error
+            self, stream, stream_reader_finish_with_error
     ):
         # noinspection PyTypeChecker
         stream.from_server.put_nowait(
@@ -419,11 +571,11 @@ class TestReaderStream:
         await reader.close()
 
     async def test_start_partition(
-        self,
-        stream_reader: ReaderStream,
-        stream,
-        default_reader_settings,
-        partition_session,
+            self,
+            stream_reader: ReaderStream,
+            stream,
+            default_reader_settings,
+            partition_session,
     ):
         def session_count():
             return len(stream_reader._partition_sessions)
@@ -463,8 +615,8 @@ class TestReaderStream:
 
         assert len(stream_reader._partition_sessions) == initial_session_count + 1
         assert stream_reader._partition_sessions[
-            test_partition_session_id
-        ] == datatypes.PartitionSession(
+                   test_partition_session_id
+               ] == datatypes.PartitionSession(
             id=test_partition_session_id,
             state=datatypes.PartitionSession.State.Active,
             topic_path=test_topic_path,
@@ -499,7 +651,7 @@ class TestReaderStream:
         assert partition_session.id not in stream_reader._partition_sessions
 
     async def test_partition_stop_graceful(
-        self, stream, stream_reader, partition_session
+            self, stream, stream_reader, partition_session
     ):
         def session_count():
             return len(stream_reader._partition_sessions)
@@ -542,11 +694,11 @@ class TestReaderStream:
             stream.from_client.get_nowait()
 
     async def test_receive_message_from_server(
-        self,
-        stream_reader,
-        stream,
-        partition_session: datatypes.PartitionSession,
-        second_partition_session,
+            self,
+            stream_reader,
+            stream,
+            partition_session: datatypes.PartitionSession,
+            second_partition_session,
     ):
         def reader_batch_count():
             return len(stream_reader._message_batches)
@@ -620,10 +772,11 @@ class TestReaderStream:
             ],
             _partition_session=partition_session,
             _bytes_size=bytes_size,
+            _codec=Codec.CODEC_RAW,
         )
 
     async def test_read_batches(
-        self, stream_reader, partition_session, second_partition_session
+            self, stream_reader, partition_session, second_partition_session
     ):
         created_at = datetime.datetime(2020, 2, 1, 18, 12)
         created_at2 = datetime.datetime(2020, 2, 2, 18, 12)
@@ -743,6 +896,7 @@ class TestReaderStream:
             ],
             _partition_session=partition_session,
             _bytes_size=1,
+            _codec=Codec.CODEC_RAW,
         )
         assert last1 == PublicBatch(
             session_metadata=session_meta,
@@ -763,6 +917,7 @@ class TestReaderStream:
             ],
             _partition_session=second_partition_session,
             _bytes_size=1,
+            _codec=Codec.CODEC_RAW,
         )
         assert last2 == PublicBatch(
             session_metadata=session_meta2,
@@ -796,6 +951,7 @@ class TestReaderStream:
             ],
             _partition_session=second_partition_session,
             _bytes_size=1,
+            _codec=Codec.CODEC_RAW,
         )
 
     async def test_receive_batch_nowait(self, stream, stream_reader, partition_session):
@@ -815,6 +971,7 @@ class TestReaderStream:
             messages=[mess1],
             _partition_session=mess1._partition_session,
             _bytes_size=self.default_batch_size,
+            _codec=Codec.CODEC_RAW,
         )
 
         received = stream_reader.receive_batch_nowait()
@@ -823,20 +980,21 @@ class TestReaderStream:
             messages=[mess2],
             _partition_session=mess2._partition_session,
             _bytes_size=self.default_batch_size,
+            _codec=Codec.CODEC_RAW,
         )
 
         assert (
-            stream_reader._buffer_size_bytes
-            == initial_buffer_size + 2 * self.default_batch_size
+                stream_reader._buffer_size_bytes
+                == initial_buffer_size + 2 * self.default_batch_size
         )
 
         assert (
-            StreamReadMessage.ReadRequest(self.default_batch_size)
-            == stream.from_client.get_nowait().client_message
+                StreamReadMessage.ReadRequest(self.default_batch_size)
+                == stream.from_client.get_nowait().client_message
         )
         assert (
-            StreamReadMessage.ReadRequest(self.default_batch_size)
-            == stream.from_client.get_nowait().client_message
+                StreamReadMessage.ReadRequest(self.default_batch_size)
+                == stream.from_client.get_nowait().client_message
         )
 
         with pytest.raises(asyncio.QueueEmpty):
@@ -870,9 +1028,9 @@ class TestReaderReconnector:
         stream_index = 0
 
         async def stream_create(
-            reader_reconnector_id: int,
-            driver: SupportedDriverType,
-            settings: PublicReaderSettings,
+                reader_reconnector_id: int,
+                driver: SupportedDriverType,
+                settings: PublicReaderSettings,
         ):
             nonlocal stream_index
             stream_index += 1
