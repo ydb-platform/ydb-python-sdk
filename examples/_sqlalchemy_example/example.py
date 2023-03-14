@@ -24,9 +24,7 @@ def simple_select(conn):
 
 
 def simple_insert(conn):
-    stm = Episodes.__table__.insert().values(
-        series_id=3, season_id=6, episode_id=1, title="TBD"
-    )
+    stm = Episodes.__table__.insert().values(series_id=3, season_id=6, episode_id=1, title="TBD")
     conn.execute(stm)
 
 
@@ -51,9 +49,7 @@ def test_types(conn):
     conn.execute(stm)
 
     # GROUP BY
-    stm = sa.select(types_tb.c.str, sa.func.max(types_tb.c.num)).group_by(
-        types_tb.c.str
-    )
+    stm = sa.select(types_tb.c.str, sa.func.max(types_tb.c.num)).group_by(types_tb.c.str)
     rs = conn.execute(stm)
     for x in rs:
         print(x)
@@ -171,9 +167,9 @@ def run_example_core(engine):
         simple_insert(conn)
 
         # simple join
-        stm = sa.select(
-            [Episodes.__table__.join(Series, Episodes.series_id == Series.series_id)]
-        ).where(sa.and_(Series.series_id == 1, Episodes.season_id == 1))
+        stm = sa.select([Episodes.__table__.join(Series, Episodes.series_id == Series.series_id)]).where(
+            sa.and_(Series.series_id == 1, Episodes.season_id == 1)
+        )
         rs = conn.execute(stm)
         for row in rs:
             print(f"{row.series_title}({row.episode_id}): {row.title}")

@@ -29,9 +29,7 @@ def test_dbapi(endpoint, database):
         {"id1": 2, "text1": "", "id2": 3, "text2": "bar"},
     )
 
-    cur.execute(
-        "UPDATE test SET text = %(t)s WHERE id = %(id)s", {"id": 2, "t": "foo2"}
-    )
+    cur.execute("UPDATE test SET text = %(t)s WHERE id = %(id)s", {"id": 2, "t": "foo2"})
 
     cur.execute("SELECT id FROM test")
     assert cur.fetchall() == [(1,), (2,), (3,)], "fetchall is ok"
@@ -48,9 +46,7 @@ def test_dbapi(endpoint, database):
     # assert cur.fetchall() == [(1,), (2,)], "limit clause with params is ok"
 
     cur2 = conn.cursor()
-    cur2.execute(
-        "INSERT INTO test(id) VALUES (%(id1)s), (%(id2)s)", {"id1": 5, "id2": 6}
-    )
+    cur2.execute("INSERT INTO test(id) VALUES (%(id1)s), (%(id2)s)", {"id1": 5, "id2": 6})
 
     cur.execute("SELECT id FROM test ORDER BY id")
     assert cur.fetchall() == [(1,), (2,), (3,), (5,), (6,)], "cursor2 commit changes"

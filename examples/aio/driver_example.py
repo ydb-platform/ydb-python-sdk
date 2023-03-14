@@ -6,9 +6,7 @@ import asyncio
 async def describe_database():
     endpoint = os.getenv("YDB_ENDPOINT")
     database = os.getenv("YDB_DATABASE")
-    driver = ydb.aio.Driver(
-        endpoint=endpoint, database=database
-    )  # Creating new database driver to execute queries
+    driver = ydb.aio.Driver(endpoint=endpoint, database=database)  # Creating new database driver to execute queries
 
     await driver.wait(timeout=10)  # Wait until driver can execute calls
 

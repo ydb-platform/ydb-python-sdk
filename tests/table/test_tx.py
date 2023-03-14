@@ -71,9 +71,7 @@ def test_tx_snapshot_ro(driver_sync, database):
     ro_tx = session.transaction(tx_mode=ydb.SnapshotReadOnly())
     data1 = ro_tx.execute("SELECT value FROM `test` WHERE key = 1")
 
-    session.transaction(ydb.SerializableReadWrite()).execute(
-        "UPDATE `test` SET value = value + 1", commit_tx=True
-    )
+    session.transaction(ydb.SerializableReadWrite()).execute("UPDATE `test` SET value = value + 1", commit_tx=True)
 
     data2 = ro_tx.execute("SELECT value FROM `test` WHERE key = 1")
     assert data1[0].rows == data2[0].rows == [{"value": 1}]
@@ -117,9 +115,7 @@ def test_split_transactions_deny_split_flag_commit(driver_sync, table_name):
 
         def check_transaction(s: ydb.table.Session):
             with s.transaction(allow_split_transactions=False) as tx:
-                tx.execute(
-                    "INSERT INTO %s (id) VALUES (1)" % table_name, commit_tx=True
-                )
+                tx.execute("INSERT INTO %s (id) VALUES (1)" % table_name, commit_tx=True)
 
                 with pytest.raises(RuntimeError):
                     tx.execute("INSERT INTO %s (id) VALUES (2)" % table_name)
@@ -182,9 +178,7 @@ def test_truncated_response(driver_sync, table_name, table_path):
 
     driver_sync.table_client.bulk_upsert(table_path, rows, column_types)
 
-    table_client = (
-        driver_sync.table_client
-    )  # default table client with driver's settings
+    table_client = driver_sync.table_client  # default table client with driver's settings
     s = table_client.session()
     s.create()
     t = s.transaction()
@@ -203,9 +197,7 @@ def test_truncated_response_allow(driver_sync, table_name, table_path):
 
     driver_sync.table_client.bulk_upsert(table_path, rows, column_types)
 
-    table_client = ydb.TableClient(
-        driver_sync, ydb.TableClientSettings().with_allow_truncated_result(True)
-    )
+    table_client = ydb.TableClient(driver_sync, ydb.TableClientSettings().with_allow_truncated_result(True))
     s = table_client.session()
     s.create()
     t = s.transaction()

@@ -5,9 +5,7 @@ import ydb
 
 @pytest.mark.asyncio
 class TestTopicReaderAsyncIO:
-    async def test_read_batch(
-        self, driver, topic_path, topic_with_messages, topic_consumer
-    ):
+    async def test_read_batch(self, driver, topic_path, topic_with_messages, topic_consumer):
         reader = driver.topic_client.reader(topic_path, topic_consumer)
         batch = await reader.receive_batch()
 
@@ -20,9 +18,7 @@ class TestTopicReaderAsyncIO:
         reader = driver.topic_client.reader(topic_path, topic_consumer)
         assert reader._parent is driver.topic_client
 
-    async def test_read_message(
-        self, driver, topic_path, topic_with_messages, topic_consumer
-    ):
+    async def test_read_message(self, driver, topic_path, topic_with_messages, topic_consumer):
         reader = driver.topic_client.reader(topic_path, topic_consumer)
         msg = await reader.receive_message()
 
@@ -31,9 +27,7 @@ class TestTopicReaderAsyncIO:
 
         await reader.close()
 
-    async def test_read_and_commit_with_close_reader(
-        self, driver, topic_path, topic_with_messages, topic_consumer
-    ):
+    async def test_read_and_commit_with_close_reader(self, driver, topic_path, topic_with_messages, topic_consumer):
         async with driver.topic_client.reader(topic_path, topic_consumer) as reader:
             message = await reader.receive_message()
             reader.commit(message)
@@ -42,10 +36,7 @@ class TestTopicReaderAsyncIO:
             message2 = await reader.receive_message()
             assert message != message2
 
-    async def test_read_and_commit_with_ack(
-        self, driver, topic_path, topic_with_messages, topic_consumer
-    ):
-
+    async def test_read_and_commit_with_ack(self, driver, topic_path, topic_with_messages, topic_consumer):
         reader = driver.topic_client.reader(topic_path, topic_consumer)
         batch = await reader.receive_batch()
         await reader.commit_with_ack(batch)
@@ -57,9 +48,7 @@ class TestTopicReaderAsyncIO:
         await reader.close()
 
     async def test_read_compressed_messages(self, driver, topic_path, topic_consumer):
-        async with driver.topic_client.writer(
-            topic_path, codec=ydb.TopicCodec.GZIP
-        ) as writer:
+        async with driver.topic_client.writer(topic_path, codec=ydb.TopicCodec.GZIP) as writer:
             await writer.write("123")
 
         async with driver.topic_client.reader(topic_path, topic_consumer) as reader:
@@ -75,22 +64,16 @@ class TestTopicReaderAsyncIO:
         def decode(b: bytes):
             return bytes(reversed(b))
 
-        async with driver.topic_client.writer(
-            topic_path, codec=codec, encoders={codec: encode}
-        ) as writer:
+        async with driver.topic_client.writer(topic_path, codec=codec, encoders={codec: encode}) as writer:
             await writer.write("123")
 
-        async with driver.topic_client.reader(
-            topic_path, topic_consumer, decoders={codec: decode}
-        ) as reader:
+        async with driver.topic_client.reader(topic_path, topic_consumer, decoders={codec: decode}) as reader:
             batch = await reader.receive_batch()
             assert batch.messages[0].data.decode() == "123"
 
 
 class TestTopicReaderSync:
-    def test_read_batch(
-        self, driver_sync, topic_path, topic_with_messages, topic_consumer
-    ):
+    def test_read_batch(self, driver_sync, topic_path, topic_with_messages, topic_consumer):
         reader = driver_sync.topic_client.reader(topic_path, topic_consumer)
         batch = reader.receive_batch()
 
@@ -103,9 +86,7 @@ class TestTopicReaderSync:
         reader = driver_sync.topic_client.reader(topic_path, topic_consumer)
         assert reader._parent is driver_sync.topic_client
 
-    def test_read_message(
-        self, driver_sync, topic_path, topic_with_messages, topic_consumer
-    ):
+    def test_read_message(self, driver_sync, topic_path, topic_with_messages, topic_consumer):
         reader = driver_sync.topic_client.reader(topic_path, topic_consumer)
         msg = reader.receive_message()
 
@@ -114,9 +95,7 @@ class TestTopicReaderSync:
 
         reader.close()
 
-    def test_read_and_commit_with_close_reader(
-        self, driver_sync, topic_path, topic_with_messages, topic_consumer
-    ):
+    def test_read_and_commit_with_close_reader(self, driver_sync, topic_path, topic_with_messages, topic_consumer):
         with driver_sync.topic_client.reader(topic_path, topic_consumer) as reader:
             message = reader.receive_message()
             reader.commit(message)
@@ -125,9 +104,7 @@ class TestTopicReaderSync:
             message2 = reader.receive_message()
             assert message != message2
 
-    def test_read_and_commit_with_ack(
-        self, driver_sync, topic_path, topic_with_messages, topic_consumer
-    ):
+    def test_read_and_commit_with_ack(self, driver_sync, topic_path, topic_with_messages, topic_consumer):
         reader = driver_sync.topic_client.reader(topic_path, topic_consumer)
         batch = reader.receive_batch()
         reader.commit_with_ack(batch)
@@ -137,9 +114,7 @@ class TestTopicReaderSync:
         assert batch.messages[0] != batch2.messages[0]
 
     def test_read_compressed_messages(self, driver_sync, topic_path, topic_consumer):
-        with driver_sync.topic_client.writer(
-            topic_path, codec=ydb.TopicCodec.GZIP
-        ) as writer:
+        with driver_sync.topic_client.writer(topic_path, codec=ydb.TopicCodec.GZIP) as writer:
             writer.write("123")
 
         with driver_sync.topic_client.reader(topic_path, topic_consumer) as reader:
@@ -155,13 +130,9 @@ class TestTopicReaderSync:
         def decode(b: bytes):
             return bytes(reversed(b))
 
-        with driver_sync.topic_client.writer(
-            topic_path, codec=codec, encoders={codec: encode}
-        ) as writer:
+        with driver_sync.topic_client.writer(topic_path, codec=codec, encoders={codec: encode}) as writer:
             writer.write("123")
 
-        with driver_sync.topic_client.reader(
-            topic_path, topic_consumer, decoders={codec: decode}
-        ) as reader:
+        with driver_sync.topic_client.reader(topic_path, topic_consumer, decoders={codec: decode}) as reader:
             batch = reader.receive_batch()
             assert batch.messages[0].data.decode() == "123"

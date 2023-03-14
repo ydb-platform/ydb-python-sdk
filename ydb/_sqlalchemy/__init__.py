@@ -37,9 +37,7 @@ class YqlIdentifierPreparer(IdentifierPreparer):
 
     def _requires_quotes(self, value):
         # Force all identifiers to get quoted unless already quoted.
-        return not (
-            value.startswith(self.initial_quote) and value.endswith(self.final_quote)
-        )
+        return not (value.startswith(self.initial_quote) and value.endswith(self.final_quote))
 
 
 class YqlTypeCompiler(GenericTypeCompiler):
@@ -84,9 +82,7 @@ class ParametrizedFunction(functions.Function):
         super(ParametrizedFunction, self).__init__(name, *args, **kwargs)
         self._func_name = name
         self._func_params = params
-        self.params_expr = ClauseList(
-            operator=functions.operators.comma_op, group_contents=True, *params
-        ).self_group()
+        self.params_expr = ClauseList(operator=functions.operators.comma_op, group_contents=True, *params).self_group()
 
 
 class YqlCompiler(SQLCompiler):
@@ -123,8 +119,7 @@ class YqlCompiler(SQLCompiler):
         for name in name.split("::"):
             fname = (
                 self.preparer.quote(name)
-                if self.preparer._requires_quotes_illegal_chars(name)
-                or isinstance(name, sa.sql.elements.quoted_name)
+                if self.preparer._requires_quotes_illegal_chars(name) or isinstance(name, sa.sql.elements.quoted_name)
                 else name
             )
 

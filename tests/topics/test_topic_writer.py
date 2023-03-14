@@ -16,9 +16,7 @@ class TestTopicWriterAsyncIO:
             producer_id="test",
             auto_seqno=False,
         ) as writer:
-            await writer.write_with_ack(
-                ydb.TopicWriterMessage(data="123".encode(), seqno=5)
-            )
+            await writer.write_with_ack(ydb.TopicWriterMessage(data="123".encode(), seqno=5))
 
         async with driver.topic_client.writer(
             topic_path,
@@ -31,9 +29,7 @@ class TestTopicWriterAsyncIO:
         writer = driver.topic_client.writer(topic_path)
         assert writer._parent is driver.topic_client
 
-    async def test_random_producer_id(
-        self, driver: ydb.aio.Driver, topic_path, topic_reader: ydb.TopicReaderAsyncIO
-    ):
+    async def test_random_producer_id(self, driver: ydb.aio.Driver, topic_path, topic_reader: ydb.TopicReaderAsyncIO):
         async with driver.topic_client.writer(topic_path) as writer:
             await writer.write(ydb.TopicWriterMessage(data="123".encode()))
         async with driver.topic_client.writer(topic_path) as writer:
@@ -53,9 +49,7 @@ class TestTopicWriterAsyncIO:
             last_seqno = 0
             for i in range(10):
                 last_seqno = i + 1
-                await writer.write(
-                    ydb.TopicWriterMessage(data=f"msg-{i}", seqno=last_seqno)
-                )
+                await writer.write(ydb.TopicWriterMessage(data=f"msg-{i}", seqno=last_seqno))
 
         async with driver.topic_client.writer(
             topic_path,

@@ -6,9 +6,7 @@ def reset_tx_id_handler(func):
     @functools.wraps(func)
     def decorator(rpc_state, response_pb, session_state, tx_state, *args, **kwargs):
         try:
-            return func(
-                rpc_state, response_pb, session_state, tx_state, *args, **kwargs
-            )
+            return func(rpc_state, response_pb, session_state, tx_state, *args, **kwargs)
         except issues.Error:
             tx_state.tx_id = None
             tx_state.dead = True
@@ -19,13 +17,9 @@ def reset_tx_id_handler(func):
 
 def not_found_handler(func):
     @functools.wraps(func)
-    def decorator(
-        rpc_state, response_pb, session_state, tx_state, query, *args, **kwargs
-    ):
+    def decorator(rpc_state, response_pb, session_state, tx_state, query, *args, **kwargs):
         try:
-            return func(
-                rpc_state, response_pb, session_state, tx_state, query, *args, **kwargs
-            )
+            return func(rpc_state, response_pb, session_state, tx_state, query, *args, **kwargs)
         except issues.NotFound:
             session_state.erase(query)
             raise
@@ -37,9 +31,7 @@ def wrap_tx_factory_handler(func):
     @functools.wraps(func)
     def decorator(session_state, tx_state, *args, **kwargs):
         if tx_state.dead:
-            raise issues.PreconditionFailed(
-                "Failed to perform action on broken transaction context!"
-            )
+            raise issues.PreconditionFailed("Failed to perform action on broken transaction context!")
         return func(session_state, tx_state, *args, **kwargs)
 
     return decorator
@@ -47,9 +39,7 @@ def wrap_tx_factory_handler(func):
 
 @_session_impl.bad_session_handler
 @reset_tx_id_handler
-def wrap_result_on_rollback_or_commit_tx(
-    rpc_state, response_pb, session_state, tx_state, tx
-):
+def wrap_result_on_rollback_or_commit_tx(rpc_state, response_pb, session_state, tx_state, tx):
     session_state.complete_query()
     issues._process_response(response_pb.operation)
     # transaction successfully committed or rolled back
@@ -116,9 +106,7 @@ def _construct_tx_settings(tx_state):
 
 
 @wrap_tx_factory_handler
-def execute_request_factory(
-    session_state, tx_state, query, parameters, commit_tx, settings
-):
+def execute_request_factory(session_state, tx_state, query, parameters, commit_tx, settings):
     data_query, query_id = session_state.lookup(query)
     parameters_types = {}
     keep_in_cache = False
@@ -142,9 +130,7 @@ def execute_request_factory(
         else:
             yql_text = query
         query_pb = _apis.ydb_table.Query(yql_text=yql_text)
-    request = _apis.ydb_table.ExecuteDataQueryRequest(
-        parameters=convert.parameters_to_pb(parameters_types, parameters)
-    )
+    request = _apis.ydb_table.ExecuteDataQueryRequest(parameters=convert.parameters_to_pb(parameters_types, parameters))
     if keep_in_cache:
         request.query_cache_policy.keep_in_cache = True
     request.query.MergeFrom(query_pb)

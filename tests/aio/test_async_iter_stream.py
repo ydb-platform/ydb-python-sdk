@@ -25,9 +25,7 @@ async def test_read_table(driver, database):
     expected_res = [[{"key1": 1, "value": "hello_world"}], [{"key1": 2, "value": "2"}]]
 
     i = 0
-    async for resp in await session.read_table(
-        database + "/test_read_table", row_limit=1
-    ):
+    async for resp in await session.read_table(database + "/test_read_table", row_limit=1):
         assert resp.rows == expected_res[i]
         i += 1
 
@@ -44,9 +42,7 @@ async def test_scan_query_with_query_stats(driver, database):
     )
 
     session = await driver.table_client.session().create()
-    await session.create_table(
-        database + "/test_scan_query_with_query_stats", description
-    )
+    await session.create_table(database + "/test_scan_query_with_query_stats", description)
     await session.transaction(ydb.SerializableReadWrite()).execute(
         """INSERT INTO `test_scan_query_with_query_stats` (`key1`, `value`) VALUES (1, "hello_world"), (2, "2")""",
         commit_tx=True,
@@ -62,9 +58,7 @@ async def test_scan_query_with_query_stats(driver, database):
             i += 1
 
     i = 0
-    settings = ydb.ScanQuerySettings().with_collect_stats(
-        ydb.QueryStatsCollectionMode.FULL
-    )
+    settings = ydb.ScanQuerySettings().with_collect_stats(ydb.QueryStatsCollectionMode.FULL)
     last_response = None
     async for resp in await driver.table_client.scan_query(
         "select * from `test_scan_query_with_query_stats` order by key1",
@@ -93,11 +87,7 @@ async def test_read_shard_table(driver, database):
             ydb.Column("Key2", ydb.OptionalType(ydb.PrimitiveType.Uint64)),
             ydb.Column("Value", ydb.OptionalType(ydb.PrimitiveType.Utf8)),
         )
-        .with_profile(
-            ydb.TableProfile().with_partitioning_policy(
-                ydb.PartitioningPolicy().with_uniform_partitions(8)
-            )
-        ),
+        .with_profile(ydb.TableProfile().with_partitioning_policy(ydb.PartitioningPolicy().with_uniform_partitions(8))),
     )
 
     prepared = await session.prepare(
@@ -130,6 +120,4 @@ async def test_read_shard_table(driver, database):
 
     iter = await session.read_table(table_name)
     read_data = [item async for t in iter for item in t.rows]
-    assert sorted(read_data, key=lambda x: (x["Key1"], x["Key2"])) == sorted(
-        data, key=lambda x: (x["Key1"], x["Key2"])
-    )
+    assert sorted(read_data, key=lambda x: (x["Key1"], x["Key2"])) == sorted(data, key=lambda x: (x["Key1"], x["Key2"]))

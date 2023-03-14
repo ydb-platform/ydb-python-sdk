@@ -14,9 +14,7 @@ async def connect():
 
 
 async def create_reader_and_close_with_context_manager(db: ydb.aio.Driver):
-    async with db.topic_client.reader(
-        "/database/topic/path", consumer="consumer"
-    ) as reader:  # noqa
+    async with db.topic_client.reader("/database/topic/path", consumer="consumer") as reader:  # noqa
         ...
 
 

@@ -45,8 +45,6 @@ from .topic_writer import _split_messages_by_size
         ),
     ],
 )
-def test_split_messages_by_size(
-    messages: List[int], split_size: int, expected: List[List[int]]
-):
+def test_split_messages_by_size(messages: List[int], split_size: int, expected: List[List[int]]):
     res = _split_messages_by_size(messages, split_size, lambda x: x)  # noqa
     assert res == expected

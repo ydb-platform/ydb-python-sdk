@@ -136,11 +136,7 @@ def create_tables(table_client, path):
         .with_profile(
             ydb.TableProfile()
             # Partition Documents table by DocId
-            .with_partitioning_policy(
-                ydb.PartitioningPolicy().with_uniform_partitions(
-                    DOC_TABLE_PARTITION_COUNT
-                )
-            )
+            .with_partitioning_policy(ydb.PartitioningPolicy().with_uniform_partitions(DOC_TABLE_PARTITION_COUNT))
         ),
     )
 
@@ -203,12 +199,8 @@ def read_document(session, path, url):
         print(" Not found")
 
 
-def read_expired_document(
-    session, path, expiration_queue, timestamp, last_timestamp, last_doc_id
-):
-    prepared = session.prepare(
-        READ_EXPIRED_BATCH_TRANSACTION % (path, expiration_queue, expiration_queue)
-    )
+def read_expired_document(session, path, expiration_queue, timestamp, last_timestamp, last_doc_id):
+    prepared = session.prepare(READ_EXPIRED_BATCH_TRANSACTION % (path, expiration_queue, expiration_queue))
     result_sets = session.transaction().execute(
         prepared,
         {
@@ -235,9 +227,7 @@ def delete_expired(session, path, expiration_queue, timestamp):
     last_timestamp = 0
     last_doc_id = 0
     while True:
-        result_set = read_expired_document(
-            session, path, expiration_queue, timestamp, last_timestamp, last_doc_id
-        )
+        result_set = read_expired_document(session, path, expiration_queue, timestamp, last_timestamp, last_doc_id)
 
         if not result_set.rows:
             break
@@ -246,9 +236,7 @@ def delete_expired(session, path, expiration_queue, timestamp):
             last_doc_id = document.doc_id
             last_timestamp = document.timestamp
             print(" DocId: %s Timestamp: %d" % (last_doc_id, timestamp))
-            delete_expired_document(
-                session, path, expiration_queue, last_doc_id, last_timestamp
-            )
+            delete_expired_document(session, path, expiration_queue, last_doc_id, last_timestamp)
 
 
 def _run(driver, database, path):
@@ -306,9 +294,7 @@ def _run(driver, database, path):
 
 
 def run(endpoint, database, path):
-    driver_config = ydb.DriverConfig(
-        endpoint, database, credentials=ydb.credentials_from_env_variables()
-    )
+    driver_config = ydb.DriverConfig(endpoint, database, credentials=ydb.credentials_from_env_variables())
     with ydb.Driver(driver_config) as driver:
         try:
             driver.wait(timeout=5)

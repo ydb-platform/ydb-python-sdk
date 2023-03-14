@@ -48,17 +48,13 @@ def _generate_type_str(value):
         stype = f"Set<{nested_type}>"
 
     if stype is None:
-        raise ProgrammingError(
-            "Cannot translate python type to ydb type.", tvalue, value
-        )
+        raise ProgrammingError("Cannot translate python type to ydb type.", tvalue, value)
 
     return stype
 
 
 def _generate_declare_stms(params: dict) -> str:
-    return "".join(
-        f"DECLARE {k} AS {_generate_type_str(t)}; " for k, t in params.items()
-    )
+    return "".join(f"DECLARE {k} AS {_generate_type_str(t)}; " for k, t in params.items())
 
 
 class Cursor(object):
@@ -87,9 +83,7 @@ class Cursor(object):
                     return cli.execute_scheme(sql)
                 else:
                     prepared_query = cli.prepare(sql)
-                    return cli.transaction().execute(
-                        prepared_query, sql_params, commit_tx=True
-                    )
+                    return cli.transaction().execute(prepared_query, sql_params, commit_tx=True)
             except ydb.Error as e:
                 raise DatabaseError(e.message, e.issues, e.status)
 

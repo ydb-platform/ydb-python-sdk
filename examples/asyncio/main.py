@@ -10,9 +10,7 @@ async def execute_query(pool):
     with pool.async_checkout() as session_holder:
         try:
             # wait for the session checkout to complete.
-            session = await asyncio.wait_for(
-                asyncio.wrap_future(session_holder), timeout=5
-            )
+            session = await asyncio.wait_for(asyncio.wrap_future(session_holder), timeout=5)
         except asyncio.TimeoutError:
             raise ydb.SessionPoolEmpty()
 
@@ -20,21 +18,15 @@ async def execute_query(pool):
             session.transaction().async_execute(
                 "select 1 as cnt;",
                 commit_tx=True,
-                settings=ydb.BaseRequestSettings()
-                .with_timeout(3)
-                .with_operation_timeout(2),
+                settings=ydb.BaseRequestSettings().with_timeout(3).with_operation_timeout(2),
             )
         )
 
 
 async def main():
-    with ydb.Driver(
-        endpoint=os.getenv("YDB_ENDPOINT"), database=os.getenv("YDB_DATABASE")
-    ) as driver:
+    with ydb.Driver(endpoint=os.getenv("YDB_ENDPOINT"), database=os.getenv("YDB_DATABASE")) as driver:
         # Wait for the driver to become active for requests.
-        await asyncio.wait_for(
-            asyncio.wrap_future(driver.async_wait(fail_fast=True)), timeout=5
-        )
+        await asyncio.wait_for(asyncio.wrap_future(driver.async_wait(fail_fast=True)), timeout=5)
 
         # Create the session pool instance to manage YDB session.
         session_pool = ydb.SessionPool(driver)
