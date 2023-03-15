@@ -5,11 +5,12 @@ from dataclasses import dataclass
 from typing import (
     Union,
     Optional,
-    List, Mapping, Callable,
+    List,
+    Mapping,
+    Callable,
 )
 
 from ..table import RetrySettings
-from .._topic_common.common import TokenGetterFuncType
 from .._grpc.grpcwrapper.ydb_topic import StreamReadMessage, OffsetsRange
 
 
@@ -29,7 +30,6 @@ class PublicReaderSettings:
     consumer: str
     topic: str
     buffer_size_bytes: int = 50 * 1024 * 1024
-    _token_getter: Optional[TokenGetterFuncType] = None
 
     decoders: Union[Mapping[int, Callable[[bytes], bytes]], None] = None
     """decoders: map[codec_code] func(encoded_bytes)->decoded_bytes"""

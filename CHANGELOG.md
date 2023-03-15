@@ -1,3 +1,6 @@
+* Add function for global revert broken behaviour: ydb.global_allow_truncated_result, ydb.global_allow_split_transactions
+* Change argument names from deny_split_transactions to allow_split_transactions (with reverse value
+
 ## 3.0.1b8 ##
 * Fixed exception while create ResultSet with None table_settings
 

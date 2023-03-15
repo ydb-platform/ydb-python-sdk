@@ -96,7 +96,7 @@ def test_split_transactions_deny_split(driver_sync, table_name):
     with ydb.SessionPool(driver_sync, 1) as pool:
 
         def check_transaction(s: ydb.table.Session):
-            with s.transaction(deny_split_transactions=True) as tx:
+            with s.transaction(allow_split_transactions=False) as tx:
                 tx.execute("INSERT INTO %s (id) VALUES (1)" % table_name)
                 tx.commit()
 
@@ -116,7 +116,7 @@ def test_split_transactions_allow_split(driver_sync, table_name):
     with ydb.SessionPool(driver_sync, 1) as pool:
 
         def check_transaction(s: ydb.table.Session):
-            with s.transaction(deny_split_transactions=False) as tx:
+            with s.transaction(allow_split_transactions=True) as tx:
                 tx.execute("INSERT INTO %s (id) VALUES (1)" % table_name)
                 tx.commit()
 

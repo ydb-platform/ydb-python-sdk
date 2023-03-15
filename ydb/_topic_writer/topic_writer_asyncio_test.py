@@ -7,7 +7,7 @@ import datetime
 import gzip
 import typing
 from queue import Queue, Empty
-from typing import List
+from typing import List, Callable, Optional
 from unittest import mock
 
 import freezegun
@@ -15,7 +15,12 @@ import pytest
 
 from .. import aio
 from .. import StatusCode, issues
-from .._grpc.grpcwrapper.ydb_topic import Codec, StreamWriteMessage
+from .._grpc.grpcwrapper.ydb_topic import (
+    Codec,
+    StreamWriteMessage,
+    UpdateTokenRequest,
+    UpdateTokenResponse,
+)
 from .._grpc.grpcwrapper.common_utils import ServerStatus
 from .topic_writer import (
     InternalMessage,
@@ -35,11 +40,13 @@ from .topic_writer_asyncio import (
     WriterAsyncIO,
 )
 
+from ..credentials import AnonymousCredentials
+
 
 @pytest.fixture
 def default_driver() -> aio.Driver:
     driver = mock.Mock(spec=aio.Driver)
-    driver._credentials = mock.Mock()
+    driver._credentials = AnonymousCredentials()
     return driver
 
 
@@ -52,10 +59,12 @@ class TestWriterAsyncIOStream:
 
     @pytest.fixture
     def stream(self):
-        return StreamMock()
+        stream = StreamMock()
+        yield stream
+        stream.close()
 
     @pytest.fixture
-    async def writer_and_stream(self, stream) -> WriterWithMockedStream:
+    async def writer_and_stream(self, stream, request) -> WriterWithMockedStream:
         stream.from_server.put_nowait(
             StreamWriteMessage.InitResponse(
                 last_seq_no=4,
@@ -66,7 +75,9 @@ class TestWriterAsyncIOStream:
             )
         )
 
-        writer = WriterAsyncIOStream(None)
+        params = getattr(request, "param", ())
+        writer = WriterAsyncIOStream(*params)
+
         await writer._start(
             stream,
             init_message=StreamWriteMessage.InitRequest(
@@ -81,10 +92,12 @@ class TestWriterAsyncIOStream:
         )
         await stream.from_client.get()
 
-        return TestWriterAsyncIOStream.WriterWithMockedStream(
+        yield TestWriterAsyncIOStream.WriterWithMockedStream(
             stream=stream,
             writer=writer,
         )
+
+        await writer.close()
 
     async def test_init_writer(self, stream):
         init_seqno = 4
@@ -107,7 +120,7 @@ class TestWriterAsyncIOStream:
             )
         )
 
-        writer = WriterAsyncIOStream(None)
+        writer = WriterAsyncIOStream()
         await writer._start(stream, init_message)
 
         sent_message = await stream.from_client.get()
@@ -115,6 +128,8 @@ class TestWriterAsyncIOStream:
 
         assert expected_message == sent_message
         assert writer.last_seqno == init_seqno
+
+        await writer.close()
 
     async def test_write_a_message(self, writer_and_stream: WriterWithMockedStream):
         data = "123".encode()
@@ -149,6 +164,30 @@ class TestWriterAsyncIOStream:
         sent_message = await writer_and_stream.stream.from_client.get()
         assert expected_message == sent_message
 
+    @pytest.mark.parametrize(
+        "writer_and_stream", [(0.1, lambda: "foo-bar")], indirect=True
+    )
+    async def test_update_token(self, writer_and_stream: WriterWithMockedStream):
+        assert writer_and_stream.stream.from_client.empty()
+
+        expected = StreamWriteMessage.FromClient(UpdateTokenRequest(token="foo-bar"))
+        got = await wait_for_fast(writer_and_stream.stream.from_client.get())
+        assert expected == got, "send update token request"
+
+        await asyncio.sleep(0.2)
+        assert (
+            writer_and_stream.stream.from_client.empty()
+        ), "no answer - no new update request"
+
+        await writer_and_stream.stream.from_server.put(UpdateTokenResponse())
+        receive_task = asyncio.create_task(writer_and_stream.writer.receive())
+
+        got = await wait_for_fast(writer_and_stream.stream.from_client.get())
+        assert expected == got
+
+        receive_task.cancel()
+        await asyncio.wait([receive_task])
+
 
 @pytest.mark.asyncio
 class TestWriterAsyncIOReconnector:
@@ -164,7 +203,11 @@ class TestWriterAsyncIOReconnector:
 
         _closed: bool
 
-        def __init__(self):
+        def __init__(
+            self,
+            update_token_interval: Optional[int, float] = None,
+            get_token_function: Optional[Callable[[], str]] = None,
+        ):
             self.last_seqno = 0
             self.from_server = asyncio.Queue()
             self.from_client = asyncio.Queue()
@@ -186,7 +229,7 @@ class TestWriterAsyncIOReconnector:
                 raise item
             return item
 
-        def close(self):
+        async def close(self):
             if self._closed:
                 return
             self._closed = True
@@ -244,6 +287,7 @@ class TestWriterAsyncIOReconnector:
                 auto_seqno=False,
                 auto_created_at=False,
                 codec=PublicCodec.RAW,
+                update_token_interval=3600,
             )
         )
 

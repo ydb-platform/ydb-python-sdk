@@ -9,7 +9,7 @@ from typing import List, Union, Optional, Any, Dict
 import typing
 
 import ydb.aio
-from .._grpc.grpcwrapper.ydb_topic import Codec, StreamWriteMessage
+from .._grpc.grpcwrapper.ydb_topic import StreamWriteMessage
 from .._grpc.grpcwrapper.common_utils import IToProto
 from .._grpc.grpcwrapper.ydb_topic_public_types import PublicCodec
 
@@ -44,7 +44,7 @@ class PublicWriterSettings:
     # codec: Optional[int] = None
     # codec_autoselect: bool = True
     # retry_policy: Optional["RetryPolicy"] = None
-    # update_token_interval: Union[int, float] = 3600
+    update_token_interval: Union[int, float] = 3600
 
     def __post_init__(self):
         if self.producer_id is None:

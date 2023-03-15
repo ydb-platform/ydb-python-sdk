@@ -26,10 +26,8 @@ from .. import (
     RetrySettings,
 )
 from .._grpc.grpcwrapper.ydb_topic_public_types import PublicCodec
-from .._topic_common.common import (
-    TokenGetterFuncType,
-)
 from .._grpc.grpcwrapper.ydb_topic import (
+    UpdateTokenRequest,
     UpdateTokenResponse,
     StreamWriteMessage,
     WriterMessagesFromServerToClient,
@@ -159,8 +157,6 @@ class WriterAsyncIOReconnector:
     _loop: asyncio.AbstractEventLoop
     _credentials: Union[ydb.credentials.Credentials, None]
     _driver: ydb.aio.Driver
-    _update_token_interval: int
-    _token_get_function: TokenGetterFuncType
     _init_message: StreamWriteMessage.InitRequest
     _init_info: asyncio.Future
     _stream_connected: asyncio.Event
@@ -237,11 +233,8 @@ class WriterAsyncIOReconnector:
         self._closed = True
         self._stop(TopicWriterStopped())
 
-        background_tasks = self._background_tasks
-
-        for task in background_tasks:
+        for task in self._background_tasks:
             task.cancel()
-
         await asyncio.wait(self._background_tasks)
 
         # if work was stopped before close by error - raise the error
@@ -343,13 +336,15 @@ class WriterAsyncIOReconnector:
 
         while True:
             attempt = 0  # todo calc and reset
-            pending = []
+            tasks = []
 
             # noinspection PyBroadException
             stream_writer = None
             try:
                 stream_writer = await WriterAsyncIOStream.create(
-                    self._driver, self._init_message, self._get_token
+                    self._driver,
+                    self._init_message,
+                    self._settings.update_token_interval,
                 )
                 try:
                     self._last_known_seq_no = stream_writer.last_seqno
@@ -371,12 +366,11 @@ class WriterAsyncIOReconnector:
                     self._read_loop(stream_writer), name="writer receive loop"
                 )
 
-                pending = [send_loop, receive_loop]
-
-                done, pending = await asyncio.wait(
+                tasks = [send_loop, receive_loop]
+                done, _ = await asyncio.wait(
                     [send_loop, receive_loop], return_when=asyncio.FIRST_COMPLETED
                 )
-                stream_writer.close()
+                await stream_writer.close()
                 done.pop().result()
             except issues.Error as err:
                 # todo log error
@@ -394,11 +388,10 @@ class WriterAsyncIOReconnector:
                 return
             finally:
                 if stream_writer:
-                    stream_writer.close()
-                if len(pending) > 0:
-                    for task in pending:
-                        task.cancel()
-                    await asyncio.wait(pending)
+                    await stream_writer.close()
+                for task in tasks:
+                    task.cancel()
+                await asyncio.wait(tasks)
 
     async def _encode_loop(self):
         while True:
@@ -561,9 +554,6 @@ class WriterAsyncIOReconnector:
 
         self._stop_reason.set_result(reason)
 
-    def _get_token(self) -> str:
-        raise NotImplementedError()
-
     async def flush(self):
         self._check_stop()
         if not self._messages_future:
@@ -575,29 +565,48 @@ class WriterAsyncIOReconnector:
 
 class WriterAsyncIOStream:
     # todo slots
+    _closed: bool
 
     last_seqno: int
     supported_codecs: Optional[List[PublicCodec]]
 
     _stream: IGrpcWrapperAsyncIO
-    _token_getter: TokenGetterFuncType
     _requests: asyncio.Queue
     _responses: AsyncIterator
 
+    _update_token_interval: Optional[Union[int, float]]
+    _update_token_task: Optional[asyncio.Task]
+    _update_token_event: asyncio.Event
+    _get_token_function: Optional[Callable[[], str]]
+
     def __init__(
         self,
-        token_getter: TokenGetterFuncType,
+        update_token_interval: Optional[Union[int, float]] = None,
+        get_token_function: Optional[Callable[[], str]] = None,
     ):
-        self._token_getter = token_getter
+        self._closed = False
 
-    def close(self):
+        self._update_token_interval = update_token_interval
+        self._get_token_function = get_token_function
+        self._update_token_event = asyncio.Event()
+        self._update_token_task = None
+
+    async def close(self):
+        if self._closed:
+            return
+        self._closed = True
+
+        if self._update_token_task:
+            self._update_token_task.cancel()
+            await asyncio.wait([self._update_token_task])
+
         self._stream.close()
 
     @staticmethod
     async def create(
         driver: SupportedDriverType,
         init_request: StreamWriteMessage.InitRequest,
-        token_getter: TokenGetterFuncType,
+        update_token_interval: Optional[Union[int, float]] = None,
     ) -> "WriterAsyncIOStream":
         stream = GrpcWrapperAsyncIO(StreamWriteMessage.FromServer.from_proto)
 
@@ -605,7 +614,11 @@ class WriterAsyncIOStream:
             driver, _apis.TopicService.Stub, _apis.TopicService.StreamWrite
         )
 
-        writer = WriterAsyncIOStream(token_getter)
+        creds = driver._credentials
+        writer = WriterAsyncIOStream(
+            update_token_interval=update_token_interval,
+            get_token_function=creds.get_auth_token if creds else lambda: "",
+        )
         await writer._start(stream, init_request)
         return writer
 
@@ -616,6 +629,7 @@ class WriterAsyncIOStream:
             if isinstance(item, StreamWriteMessage.WriteResponse):
                 return item
             if isinstance(item, UpdateTokenResponse):
+                self._update_token_event.set()
                 continue
 
             # todo log unknown messages instead of raise exception
@@ -636,6 +650,12 @@ class WriterAsyncIOStream:
 
         self._stream = stream
 
+        if self._update_token_interval is not None:
+            self._update_token_event.set()
+            self._update_token_task = asyncio.create_task(
+                self._update_token_loop(), name="update_token_loop"
+            )
+
     @staticmethod
     def _ensure_ok(message: WriterMessagesFromServerToClient):
         if not message.status.is_success():
@@ -644,5 +664,21 @@ class WriterAsyncIOStream:
             )
 
     def write(self, messages: List[InternalMessage]):
+        if self._closed:
+            raise RuntimeError("Can not write on closed stream.")
+
         for request in messages_to_proto_requests(messages):
             self._stream.write(request)
+
+    async def _update_token_loop(self):
+        while True:
+            await asyncio.sleep(self._update_token_interval)
+            await self._update_token(token=self._get_token_function())
+
+    async def _update_token(self, token: str):
+        await self._update_token_event.wait()
+        try:
+            msg = StreamWriteMessage.FromClient(UpdateTokenRequest(token))
+            self._stream.write(msg)
+        finally:
+            self._update_token_event.clear()

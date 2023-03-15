@@ -140,14 +140,11 @@ class TopicClientAsyncIO:
         consumer: str,
         topic: str,
         buffer_size_bytes: int = 50 * 1024 * 1024,
-
         # decoders: map[codec_code] func(encoded_bytes)->decoded_bytes
         decoders: Union[Mapping[int, Callable[[bytes], bytes]], None] = None,
-
         decoder_executor: Optional[
             concurrent.futures.Executor
         ] = None,  # default shared client executor pool
-
         # on_commit: Callable[["Events.OnCommit"], None] = None
         # on_get_partition_start_offset: Callable[
         #     ["Events.OnPartitionGetStartOffsetRequest"],
@@ -312,14 +309,11 @@ class TopicClient:
         consumer: str,
         topic: str,
         buffer_size_bytes: int = 50 * 1024 * 1024,
-
         # decoders: map[codec_code] func(encoded_bytes)->decoded_bytes
         decoders: Union[Mapping[int, Callable[[bytes], bytes]], None] = None,
-
         decoder_executor: Optional[
             concurrent.futures.Executor
         ] = None,  # default shared client executor pool
-
         # on_commit: Callable[["Events.OnCommit"], None] = None
         # on_get_partition_start_offset: Callable[
         #     ["Events.OnPartitionGetStartOffsetRequest"],

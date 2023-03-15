@@ -39,6 +39,12 @@ class Credentials(abc.ABC):
         """
         pass
 
+    def get_auth_token(self) -> str:
+        for header, token in self.auth_metadata():
+            if header == YDB_AUTH_TICKET_HEADER:
+                return token
+        return ""
+
 
 class OneToManyValue(object):
     def __init__(self):

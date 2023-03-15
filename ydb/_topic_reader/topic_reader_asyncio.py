@@ -14,9 +14,6 @@ from ..aio import Driver
 from ..issues import Error as YdbError, _process_response
 from . import datatypes
 from . import topic_reader
-from .._topic_common.common import (
-    TokenGetterFuncType,
-)
 from .._grpc.grpcwrapper.common_utils import (
     IGrpcWrapperAsyncIO,
     SupportedDriverType,
@@ -32,6 +29,7 @@ class TopicReaderError(YdbError):
 
 class TopicReaderUnexpectedCodec(YdbError):
     pass
+
 
 class TopicReaderCommitToExpiredPartition(TopicReaderError):
     """
@@ -270,7 +268,6 @@ class ReaderStream:
     _loop: asyncio.AbstractEventLoop
     _id: int
     _reader_reconnector_id: int
-    _token_getter: Optional[TokenGetterFuncType]
     _session_id: str
     _stream: Optional[IGrpcWrapperAsyncIO]
     _started: bool
@@ -278,7 +275,9 @@ class ReaderStream:
     _partition_sessions: Dict[int, datatypes.PartitionSession]
     _buffer_size_bytes: int  # use for init request, then for debug purposes only
     _decode_executor: concurrent.futures.Executor
-    _decoders: Dict[int, typing.Callable[[bytes], bytes]]  # dict[codec_code] func(encoded_bytes)->decoded_bytes
+    _decoders: Dict[
+        int, typing.Callable[[bytes], bytes]
+    ]  # dict[codec_code] func(encoded_bytes)->decoded_bytes
 
     if typing.TYPE_CHECKING:
         _batches_to_decode: asyncio.Queue[datatypes.PublicBatch]
@@ -296,7 +295,6 @@ class ReaderStream:
         self._loop = asyncio.get_running_loop()
         self._id = ReaderStream._static_id_counter.inc_and_get()
         self._reader_reconnector_id = reader_reconnector_id
-        self._token_getter = settings._token_getter
         self._session_id = "not initialized"
         self._stream = None
         self._started = False
@@ -305,9 +303,7 @@ class ReaderStream:
         self._buffer_size_bytes = settings.buffer_size_bytes
         self._decode_executor = settings.decoder_executor
 
-        self._decoders = {
-            Codec.CODEC_GZIP: gzip.decompress
-        }
+        self._decoders = {Codec.CODEC_GZIP: gzip.decompress}
         if settings.decoders:
             self._decoders.update(settings.decoders)
 
@@ -351,7 +347,9 @@ class ReaderStream:
                 "Unexpected message after InitRequest: %s", init_response
             )
 
-        self._background_tasks.add(asyncio.create_task(self._read_messages_loop(stream)))
+        self._background_tasks.add(
+            asyncio.create_task(self._read_messages_loop(stream))
+        )
         self._background_tasks.add(asyncio.create_task(self._decode_batches_loop()))
 
     async def wait_error(self):
@@ -611,11 +609,15 @@ class ReaderStream:
         try:
             decode_func = self._decoders[batch._codec]
         except KeyError:
-            raise TopicReaderUnexpectedCodec("Receive message with unexpected codec: %s" % batch._codec)
+            raise TopicReaderUnexpectedCodec(
+                "Receive message with unexpected codec: %s" % batch._codec
+            )
 
         decode_data_futures = []
         for message in batch.messages:
-            future = self._loop.run_in_executor(self._decode_executor, decode_func, message.data)
+            future = self._loop.run_in_executor(
+                self._decode_executor, decode_func, message.data
+            )
             decode_data_futures.append(future)
 
         decoded_data = await asyncio.gather(*decode_data_futures)
