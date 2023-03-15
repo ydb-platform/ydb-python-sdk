@@ -44,7 +44,7 @@ def default_executor():
         max_workers=2, thread_name_prefix="decoder_executor"
     )
     yield executor
-    executor.shutdown(cancel_futures=True)
+    executor.shutdown()
 
 
 @pytest.fixture()
