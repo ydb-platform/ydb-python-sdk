@@ -101,7 +101,7 @@ async def test_split_transactions_deny_split(driver, table_name):
     async with ydb.aio.SessionPool(driver, 1) as pool:
 
         async def check_transaction(s: ydb.aio.table.Session):
-            async with s.transaction(deny_split_transactions=True) as tx:
+            async with s.transaction(allow_split_transactions=False) as tx:
                 await tx.execute("INSERT INTO %s (id) VALUES (1)" % table_name)
                 await tx.commit()
 
@@ -122,7 +122,7 @@ async def test_split_transactions_allow_split(driver, table_name):
     async with ydb.aio.SessionPool(driver, 1) as pool:
 
         async def check_transaction(s: ydb.aio.table.Session):
-            async with s.transaction(deny_split_transactions=False) as tx:
+            async with s.transaction(allow_split_transactions=True) as tx:
                 await tx.execute("INSERT INTO %s (id) VALUES (1)" % table_name)
                 await tx.commit()
 

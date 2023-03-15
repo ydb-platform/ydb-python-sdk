@@ -28,6 +28,8 @@ try:
 except ImportError:
     interceptor = None
 
+_allow_split_transaction = True
+
 logger = logging.getLogger(__name__)
 
 ##################################################################
@@ -1182,7 +1184,9 @@ class ISession:
         pass
 
     @abstractmethod
-    def transaction(self, tx_mode=None, deny_split_transactions=False):
+    def transaction(
+        self, tx_mode=None, allow_split_transactions=_allow_split_transaction
+    ):
         pass
 
     @abstractmethod
@@ -1687,13 +1691,15 @@ class BaseSession(ISession):
             self._state.endpoint,
         )
 
-    def transaction(self, tx_mode=None, deny_split_transactions=False):
+    def transaction(
+        self, tx_mode=None, allow_split_transactions=_allow_split_transaction
+    ):
         return TxContext(
             self._driver,
             self._state,
             self,
             tx_mode,
-            deny_split_transactions=deny_split_transactions,
+            allow_split_transactions=allow_split_transactions,
         )
 
     def has_prepared(self, query):
@@ -2212,7 +2218,7 @@ class BaseTxContext(ITxContext):
         "_driver",
         "session",
         "_finished",
-        "_deny_split_transactions",
+        "_allow_split_transactions",
     )
 
     _COMMIT = "commit"
@@ -2225,7 +2231,7 @@ class BaseTxContext(ITxContext):
         session,
         tx_mode=None,
         *,
-        deny_split_transactions=False
+        allow_split_transactions=_allow_split_transaction
     ):
         """
         An object that provides a simple transaction context manager that allows statements execution
@@ -2250,7 +2256,7 @@ class BaseTxContext(ITxContext):
         self._session_state = session_state
         self.session = session
         self._finished = ""
-        self._deny_split_transactions = deny_split_transactions
+        self._allow_split_transactions = allow_split_transactions
 
     def __enter__(self):
         """
@@ -2410,7 +2416,7 @@ class BaseTxContext(ITxContext):
         Deny all operaions with transaction after commit/rollback.
         Exception: double commit and double rollbacks, because it is safe
         """
-        if not self._deny_split_transactions:
+        if self._allow_split_transactions:
             return
 
         if self._finished != "" and self._finished != allow:
