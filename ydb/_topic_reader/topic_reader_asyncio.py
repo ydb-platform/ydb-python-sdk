@@ -12,9 +12,6 @@ from ..aio import Driver
 from ..issues import Error as YdbError, _process_response
 from . import datatypes
 from . import topic_reader
-from .._topic_common.common import (
-    TokenGetterFuncType,
-)
 from .._grpc.grpcwrapper.common_utils import (
     IGrpcWrapperAsyncIO,
     SupportedDriverType,
@@ -264,7 +261,6 @@ class ReaderStream:
 
     _id: int
     _reader_reconnector_id: int
-    _token_getter: Optional[TokenGetterFuncType]
     _session_id: str
     _stream: Optional[IGrpcWrapperAsyncIO]
     _started: bool
@@ -282,7 +278,6 @@ class ReaderStream:
     ):
         self._id = ReaderStream._static_id_counter.inc_and_get()
         self._reader_reconnector_id = reader_reconnector_id
-        self._token_getter = settings._token_getter
         self._session_id = "not initialized"
         self._stream = None
         self._started = False

@@ -44,7 +44,7 @@ class PublicWriterSettings:
     # codec: Optional[int] = None
     # codec_autoselect: bool = True
     # retry_policy: Optional["RetryPolicy"] = None
-    # update_token_interval: Union[int, float] = 3600
+    update_token_interval: Union[int, float] = 3600
 
     def __post_init__(self):
         if self.producer_id is None:
