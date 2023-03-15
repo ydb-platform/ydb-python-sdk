@@ -1,4 +1,4 @@
-* Flag for deny split transaction
+* Added functions for global change behaviour for compatible with future sdk version: ydb.global_allow_truncated_result and global_allow_split_transactions
 
 ## 2.12.3 ##
 * Flag for deny split transaction
