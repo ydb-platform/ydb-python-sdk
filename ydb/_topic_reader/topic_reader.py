@@ -1,3 +1,4 @@
+import concurrent.futures
 import enum
 import datetime
 from dataclasses import dataclass
@@ -5,6 +6,8 @@ from typing import (
     Union,
     Optional,
     List,
+    Mapping,
+    Callable,
 )
 
 from ..table import RetrySettings
@@ -27,6 +30,13 @@ class PublicReaderSettings:
     consumer: str
     topic: str
     buffer_size_bytes: int = 50 * 1024 * 1024
+
+    decoders: Union[Mapping[int, Callable[[bytes], bytes]], None] = None
+    """decoders: map[codec_code] func(encoded_bytes)->decoded_bytes"""
+
+    # decoder_executor, must be set for handle non raw messages
+    decoder_executor: Optional[concurrent.futures.Executor] = None
+
     # on_commit: Callable[["Events.OnCommit"], None] = None
     # on_get_partition_start_offset: Callable[
     #     ["Events.OnPartitionGetStartOffsetRequest"],
@@ -35,7 +45,6 @@ class PublicReaderSettings:
     # on_partition_session_start: Callable[["StubEvent"], None] = None
     # on_partition_session_stop: Callable[["StubEvent"], None] = None
     # on_partition_session_close: Callable[["StubEvent"], None] = None  # todo?
-    # decoder: Union[Mapping[int, Callable[[bytes], bytes]], None] = None
     # deserializer: Union[Callable[[bytes], Any], None] = None
     # one_attempt_connection_timeout: Union[float, None] = 1
     # connection_timeout: Union[float, None] = None

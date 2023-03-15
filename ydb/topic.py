@@ -140,6 +140,11 @@ class TopicClientAsyncIO:
         consumer: str,
         topic: str,
         buffer_size_bytes: int = 50 * 1024 * 1024,
+        # decoders: map[codec_code] func(encoded_bytes)->decoded_bytes
+        decoders: Union[Mapping[int, Callable[[bytes], bytes]], None] = None,
+        decoder_executor: Optional[
+            concurrent.futures.Executor
+        ] = None,  # default shared client executor pool
         # on_commit: Callable[["Events.OnCommit"], None] = None
         # on_get_partition_start_offset: Callable[
         #     ["Events.OnPartitionGetStartOffsetRequest"],
@@ -148,15 +153,20 @@ class TopicClientAsyncIO:
         # on_partition_session_start: Callable[["StubEvent"], None] = None
         # on_partition_session_stop: Callable[["StubEvent"], None] = None
         # on_partition_session_close: Callable[["StubEvent"], None] = None  # todo?
-        # decoder: Union[Mapping[int, Callable[[bytes], bytes]], None] = None
         # deserializer: Union[Callable[[bytes], Any], None] = None
         # one_attempt_connection_timeout: Union[float, None] = 1
         # connection_timeout: Union[float, None] = None
         # retry_policy: Union["RetryPolicy", None] = None
     ) -> TopicReaderAsyncIO:
+
+        if not decoder_executor:
+            decoder_executor = self._executor
+
         args = locals()
         del args["self"]
+
         settings = TopicReaderSettings(**args)
+
         return TopicReaderAsyncIO(self._driver, settings)
 
     def writer(
@@ -299,6 +309,11 @@ class TopicClient:
         consumer: str,
         topic: str,
         buffer_size_bytes: int = 50 * 1024 * 1024,
+        # decoders: map[codec_code] func(encoded_bytes)->decoded_bytes
+        decoders: Union[Mapping[int, Callable[[bytes], bytes]], None] = None,
+        decoder_executor: Optional[
+            concurrent.futures.Executor
+        ] = None,  # default shared client executor pool
         # on_commit: Callable[["Events.OnCommit"], None] = None
         # on_get_partition_start_offset: Callable[
         #     ["Events.OnPartitionGetStartOffsetRequest"],
@@ -307,17 +322,20 @@ class TopicClient:
         # on_partition_session_start: Callable[["StubEvent"], None] = None
         # on_partition_session_stop: Callable[["StubEvent"], None] = None
         # on_partition_session_close: Callable[["StubEvent"], None] = None  # todo?
-        # decoder: Union[Mapping[int, Callable[[bytes], bytes]], None] = None
         # deserializer: Union[Callable[[bytes], Any], None] = None
         # one_attempt_connection_timeout: Union[float, None] = 1
         # connection_timeout: Union[float, None] = None
         # retry_policy: Union["RetryPolicy", None] = None
     ) -> TopicReader:
+        if not decoder_executor:
+            decoder_executor = self._executor
+
         args = locals()
         del args["self"]
         self._check_closed()
 
         settings = TopicReaderSettings(**args)
+
         return TopicReader(self._driver, settings)
 
     def writer(

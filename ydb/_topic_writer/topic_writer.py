@@ -9,7 +9,7 @@ from typing import List, Union, Optional, Any, Dict
 import typing
 
 import ydb.aio
-from .._grpc.grpcwrapper.ydb_topic import Codec, StreamWriteMessage
+from .._grpc.grpcwrapper.ydb_topic import StreamWriteMessage
 from .._grpc.grpcwrapper.common_utils import IToProto
 from .._grpc.grpcwrapper.ydb_topic_public_types import PublicCodec
 
@@ -208,7 +208,7 @@ def messages_to_proto_requests(
         req = StreamWriteMessage.FromClient(
             StreamWriteMessage.WriteRequest(
                 messages=[msg.to_message_data()],
-                codec=Codec.CODEC_RAW,
+                codec=msg.codec,
             )
         )
         res.append(req)

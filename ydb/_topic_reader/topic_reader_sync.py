@@ -46,6 +46,12 @@ class TopicReaderSync:
     def __del__(self):
         self.close()
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()
+
     def _call(self, coro) -> concurrent.futures.Future:
         """
         Call async function and return future fow wait result
