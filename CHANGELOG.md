@@ -1,3 +1,4 @@
+## 2.13.2 ##
 * fix snapshot attribute in class _ResultSet
 
 ## 2.13.1 ##
