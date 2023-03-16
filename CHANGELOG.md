@@ -1,3 +1,5 @@
+* fix snapshot attribute in class _ResultSet
+
 ## 2.13.1 ##
 * fixed set version in ydb_version file
 
