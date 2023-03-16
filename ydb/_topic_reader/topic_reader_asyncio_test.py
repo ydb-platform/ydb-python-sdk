@@ -125,17 +125,8 @@ class TestReaderStream:
 
         return stream_reader_started._partition_sessions[partition_session.id]
 
-    @pytest.fixture()
-    async def stream_reader_started(
-        self, stream, default_reader_settings, request
-    ) -> ReaderStream:
-
-        settings, token_getter = getattr(
-            request, "param", (default_reader_settings, None)
-        )
-        reader = ReaderStream(
-            self.default_reader_reconnector_id, settings, token_getter
-        )
+    async def get_started_reader(self, stream, *args, **kwargs) -> ReaderStream:
+        reader = ReaderStream(self.default_reader_reconnector_id, *args, **kwargs)
         init_message = object()
 
         # noinspection PyTypeChecker
@@ -163,6 +154,12 @@ class TestReaderStream:
             stream.from_client.get_nowait()
 
         return reader
+
+    @pytest.fixture()
+    async def stream_reader_started(
+        self, stream, default_reader_settings
+    ) -> ReaderStream:
+        return await self.get_started_reader(stream, default_reader_settings)
 
     @pytest.fixture()
     async def stream_reader(self, stream_reader_started: ReaderStream):
@@ -1012,21 +1009,16 @@ class TestReaderStream:
         with pytest.raises(asyncio.QueueEmpty):
             stream.from_client.get_nowait()
 
-    @pytest.mark.parametrize(
-        "stream_reader_started",
-        [
-            (
-                PublicReaderSettings(
-                    consumer="test-consumer",
-                    topic="test-topic",
-                    update_token_interval=0.1,
-                ),
-                lambda: "foo-bar",
-            )
-        ],
-        indirect=True,
-    )
-    async def test_update_token(self, stream, stream_reader_started: ReaderStream):
+    async def test_update_token(self, stream):
+        settings = PublicReaderSettings(
+            consumer="test-consumer",
+            topic="test-topic",
+            update_token_interval=0.1,
+        )
+        reader = await self.get_started_reader(
+            stream, settings, get_token_function=lambda: "foo-bar"
+        )
+
         assert stream.from_client.empty()
 
         expected = StreamReadMessage.FromClient(UpdateTokenRequest(token="foo-bar"))
@@ -1046,7 +1038,7 @@ class TestReaderStream:
         got = await wait_for_fast(stream.from_client.get())
         assert expected == got
 
-        await stream_reader_started.close()
+        await reader.close()
 
 
 @pytest.mark.asyncio

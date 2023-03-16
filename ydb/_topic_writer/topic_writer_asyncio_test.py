@@ -63,8 +63,8 @@ class TestWriterAsyncIOStream:
         yield stream
         stream.close()
 
-    @pytest.fixture
-    async def writer_and_stream(self, stream, request) -> WriterWithMockedStream:
+    @staticmethod
+    async def get_started_writer(stream, *args, **kwargs) -> WriterAsyncIOStream:
         stream.from_server.put_nowait(
             StreamWriteMessage.InitResponse(
                 last_seq_no=4,
@@ -75,9 +75,7 @@ class TestWriterAsyncIOStream:
             )
         )
 
-        params = getattr(request, "param", ())
-        writer = WriterAsyncIOStream(*params)
-
+        writer = WriterAsyncIOStream(*args, **kwargs)
         await writer._start(
             stream,
             init_message=StreamWriteMessage.InitRequest(
@@ -91,6 +89,11 @@ class TestWriterAsyncIOStream:
             ),
         )
         await stream.from_client.get()
+        return writer
+
+    @pytest.fixture
+    async def writer_and_stream(self, stream) -> WriterWithMockedStream:
+        writer = await self.get_started_writer(stream)
 
         yield TestWriterAsyncIOStream.WriterWithMockedStream(
             stream=stream,
@@ -164,25 +167,23 @@ class TestWriterAsyncIOStream:
         sent_message = await writer_and_stream.stream.from_client.get()
         assert expected_message == sent_message
 
-    @pytest.mark.parametrize(
-        "writer_and_stream", [(0.1, lambda: "foo-bar")], indirect=True
-    )
-    async def test_update_token(self, writer_and_stream: WriterWithMockedStream):
-        assert writer_and_stream.stream.from_client.empty()
+    async def test_update_token(self, stream: StreamMock):
+        writer = await self.get_started_writer(
+            stream, update_token_interval=0.1, get_token_function=lambda: "foo-bar"
+        )
+        assert stream.from_client.empty()
 
         expected = StreamWriteMessage.FromClient(UpdateTokenRequest(token="foo-bar"))
-        got = await wait_for_fast(writer_and_stream.stream.from_client.get())
+        got = await wait_for_fast(stream.from_client.get())
         assert expected == got, "send update token request"
 
         await asyncio.sleep(0.2)
-        assert (
-            writer_and_stream.stream.from_client.empty()
-        ), "no answer - no new update request"
+        assert stream.from_client.empty(), "no answer - no new update request"
 
-        await writer_and_stream.stream.from_server.put(UpdateTokenResponse())
-        receive_task = asyncio.create_task(writer_and_stream.writer.receive())
+        await stream.from_server.put(UpdateTokenResponse())
+        receive_task = asyncio.create_task(writer.receive())
 
-        got = await wait_for_fast(writer_and_stream.stream.from_client.get())
+        got = await wait_for_fast(stream.from_client.get())
         assert expected == got
 
         receive_task.cancel()
