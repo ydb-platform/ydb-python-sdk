@@ -15,7 +15,13 @@ from .datatypes import PublicBatch, PublicMessage
 from .topic_reader import PublicReaderSettings
 from .topic_reader_asyncio import ReaderStream, ReaderReconnector
 from .._grpc.grpcwrapper.common_utils import SupportedDriverType, ServerStatus
-from .._grpc.grpcwrapper.ydb_topic import StreamReadMessage, Codec, OffsetsRange
+from .._grpc.grpcwrapper.ydb_topic import (
+    StreamReadMessage,
+    Codec,
+    OffsetsRange,
+    UpdateTokenRequest,
+    UpdateTokenResponse,
+)
 from .._topic_common.test_helpers import (
     StreamMock,
     wait_condition,
@@ -119,15 +125,8 @@ class TestReaderStream:
 
         return stream_reader_started._partition_sessions[partition_session.id]
 
-    @pytest.fixture()
-    async def stream_reader_started(
-        self,
-        stream,
-        default_reader_settings,
-    ) -> ReaderStream:
-        reader = ReaderStream(
-            self.default_reader_reconnector_id, default_reader_settings
-        )
+    async def get_started_reader(self, stream, *args, **kwargs) -> ReaderStream:
+        reader = ReaderStream(self.default_reader_reconnector_id, *args, **kwargs)
         init_message = object()
 
         # noinspection PyTypeChecker
@@ -155,6 +154,12 @@ class TestReaderStream:
             stream.from_client.get_nowait()
 
         return reader
+
+    @pytest.fixture()
+    async def stream_reader_started(
+        self, stream, default_reader_settings
+    ) -> ReaderStream:
+        return await self.get_started_reader(stream, default_reader_settings)
 
     @pytest.fixture()
     async def stream_reader(self, stream_reader_started: ReaderStream):
@@ -1003,6 +1008,37 @@ class TestReaderStream:
 
         with pytest.raises(asyncio.QueueEmpty):
             stream.from_client.get_nowait()
+
+    async def test_update_token(self, stream):
+        settings = PublicReaderSettings(
+            consumer="test-consumer",
+            topic="test-topic",
+            update_token_interval=0.1,
+        )
+        reader = await self.get_started_reader(
+            stream, settings, get_token_function=lambda: "foo-bar"
+        )
+
+        assert stream.from_client.empty()
+
+        expected = StreamReadMessage.FromClient(UpdateTokenRequest(token="foo-bar"))
+        got = await wait_for_fast(stream.from_client.get())
+        assert expected == got, "send update token request"
+
+        await asyncio.sleep(0.2)
+        assert stream.from_client.empty(), "no answer - no new update request"
+
+        await stream.from_server.put(
+            StreamReadMessage.FromServer(
+                server_status=ServerStatus(ydb_status_codes_pb2.StatusIds.SUCCESS, []),
+                server_message=UpdateTokenResponse(),
+            )
+        )
+
+        got = await wait_for_fast(stream.from_client.get())
+        assert expected == got
+
+        await reader.close()
 
 
 @pytest.mark.asyncio
