@@ -1,3 +1,6 @@
+## 2.13.4 ##
+* fixed sqlalchemy get_columns method with not null columns
+
 ## 2.13.3 ##
 * fixed use transaction object when commit with flag
 
