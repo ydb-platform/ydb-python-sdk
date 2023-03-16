@@ -1,3 +1,6 @@
+* fixed in to make compressed backups possible
+* Add snapshot to read table responses
+
 ## 2.12.4 ##
 * Added functions for global change behaviour for compatible with future sdk version: ydb.global_allow_truncated_result and global_allow_split_transactions
 
