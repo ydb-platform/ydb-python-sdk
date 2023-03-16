@@ -159,9 +159,7 @@ class SessionPoolEmpty(Error, queue.Empty):
 def _format_issues(issues):
     if not issues:
         return ""
-    return " ,".join(
-        [text_format.MessageToString(issue, False, True) for issue in issues]
-    )
+    return " ,".join([text_format.MessageToString(issue, False, True) for issue in issues])
 
 
 _success_status_codes = {StatusCode.STATUS_CODE_UNSPECIFIED, StatusCode.SUCCESS}

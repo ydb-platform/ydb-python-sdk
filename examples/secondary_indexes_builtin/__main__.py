@@ -13,9 +13,7 @@ if __name__ == "__main__":
         formatter_class=argparse.RawDescriptionHelpFormatter,
         description="""\033[92mYandex.Database examples binary.\x1b[0m\n""",
     )
-    parser.add_argument(
-        "-d", "--database", required=True, help="Name of the database to use"
-    )
+    parser.add_argument("-d", "--database", required=True, help="Name of the database to use")
     parser.add_argument("-e", "--endpoint", required=True, help="Endpoint url to use")
     parser.add_argument("-p", "--path", default="")
     parser.add_argument("-v", "--verbose", default=False, action="store_true")

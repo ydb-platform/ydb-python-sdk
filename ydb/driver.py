@@ -149,9 +149,7 @@ class DriverConfig(object):
         return self
 
     @classmethod
-    def default_from_endpoint_and_database(
-        cls, endpoint, database, root_certificates=None, credentials=None, **kwargs
-    ):
+    def default_from_endpoint_and_database(cls, endpoint, database, root_certificates=None, credentials=None, **kwargs):
         return cls(
             endpoint,
             database,
@@ -161,9 +159,7 @@ class DriverConfig(object):
         )
 
     @classmethod
-    def default_from_connection_string(
-        cls, connection_string, root_certificates=None, credentials=None, **kwargs
-    ):
+    def default_from_connection_string(cls, connection_string, root_certificates=None, credentials=None, **kwargs):
         endpoint, database = _utilities.parse_connection_string(connection_string)
         return cls(
             endpoint,

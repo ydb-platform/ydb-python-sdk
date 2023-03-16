@@ -77,9 +77,7 @@ def wrap_async_call_exceptions(f):
 
 def get_query_hash(yql_text):
     try:
-        return hashlib.sha256(
-            six.text_type(yql_text, "utf-8").encode("utf-8")
-        ).hexdigest()
+        return hashlib.sha256(six.text_type(yql_text, "utf-8").encode("utf-8")).hexdigest()
     except TypeError:
         return hashlib.sha256(six.text_type(yql_text).encode("utf-8")).hexdigest()
 

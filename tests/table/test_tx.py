@@ -71,9 +71,7 @@ def test_tx_snapshot_ro(driver_sync, database):
     ro_tx = session.transaction(tx_mode=ydb.SnapshotReadOnly())
     data1 = ro_tx.execute("SELECT value FROM `test` WHERE key = 1")
 
-    session.transaction(ydb.SerializableReadWrite()).execute(
-        "UPDATE `test` SET value = value + 1", commit_tx=True
-    )
+    session.transaction(ydb.SerializableReadWrite()).execute("UPDATE `test` SET value = value + 1", commit_tx=True)
 
     data2 = ro_tx.execute("SELECT value FROM `test` WHERE key = 1")
     assert data1[0].rows == data2[0].rows == [{"value": 1}]
@@ -158,9 +156,7 @@ def test_truncated_response(driver_sync, table_name, table_path):
 
     driver_sync.table_client.bulk_upsert(table_path, rows, column_types)
 
-    table_client = (
-        driver_sync.table_client
-    )  # default table client with driver's settings
+    table_client = driver_sync.table_client  # default table client with driver's settings
     s = table_client.session()
     s.create()
     t = s.transaction()
@@ -182,9 +178,7 @@ async def test_truncated_response_deny(driver_sync, table_name, table_path):
 
     driver_sync.table_client.bulk_upsert(table_path, rows, column_types)
 
-    table_client = ydb.TableClient(
-        driver_sync, ydb.TableClientSettings().with_allow_truncated_result(False)
-    )
+    table_client = ydb.TableClient(driver_sync, ydb.TableClientSettings().with_allow_truncated_result(False))
     s = table_client.session()
     s.create()
     t = s.transaction()

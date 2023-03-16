@@ -26,10 +26,7 @@ def construct_credentials_from_environ(tracer=None):
     )
 
     # dynamically import required authentication libraries
-    if (
-        os.getenv("USE_METADATA_CREDENTIALS") is not None
-        and int(os.getenv("USE_METADATA_CREDENTIALS")) == 1
-    ):
+    if os.getenv("USE_METADATA_CREDENTIALS") is not None and int(os.getenv("USE_METADATA_CREDENTIALS")) == 1:
         import ydb.iam
 
         tracing.trace(tracer, {"credentials.metadata": True})
@@ -47,9 +44,7 @@ def construct_credentials_from_environ(tracer=None):
         root_certificates_file = os.getenv("SSL_ROOT_CERTIFICATES_FILE", None)
         iam_channel_credentials = {}
         if root_certificates_file is not None:
-            iam_channel_credentials = {
-                "root_certificates": read_bytes(root_certificates_file)
-            }
+            iam_channel_credentials = {"root_certificates": read_bytes(root_certificates_file)}
         return ydb.iam.ServiceAccountCredentials.from_file(
             os.getenv("SA_KEY_FILE"),
             iam_channel_credentials=iam_channel_credentials,

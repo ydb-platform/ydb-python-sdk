@@ -48,9 +48,7 @@ def test_retry_operation_impl(monkeypatch):
         retry_once_settings.on_ydb_error_callback.reset_mock()
         retry_once_settings.unknown_error_handler.reset_mock()
 
-        results = get_results(
-            mock.Mock(side_effect=[err_type("test1"), err_type("test2")])
-        )
+        results = get_results(mock.Mock(side_effect=[err_type("test1"), err_type("test2")]))
         yields = results[0]
         exc = results[1]
 
@@ -59,25 +57,19 @@ def test_retry_operation_impl(monkeypatch):
 
         if call_ydb_handler:
             assert retry_once_settings.on_ydb_error_callback.call_count == 1
-            retry_once_settings.on_ydb_error_callback.assert_called_with(
-                err_type("test1")
-            )
+            retry_once_settings.on_ydb_error_callback.assert_called_with(err_type("test1"))
 
             assert retry_once_settings.unknown_error_handler.call_count == 0
         else:
             assert retry_once_settings.on_ydb_error_callback.call_count == 0
 
             assert retry_once_settings.unknown_error_handler.call_count == 1
-            retry_once_settings.unknown_error_handler.assert_called_with(
-                err_type("test1")
-            )
+            retry_once_settings.unknown_error_handler.assert_called_with(err_type("test1"))
 
     def check_retriable_error(err_type, backoff):
         retry_once_settings.on_ydb_error_callback.reset_mock()
 
-        results = get_results(
-            mock.Mock(side_effect=[err_type("test1"), err_type("test2")])
-        )
+        results = get_results(mock.Mock(side_effect=[err_type("test1"), err_type("test2")]))
         yields = results[0]
         exc = results[1]
 

@@ -9,9 +9,7 @@ class Response:
     body = {}
 
     def as_dict(self):
-        return dict(
-            status=self.status, headers=self.headers, body=json.dumps(self.body)
-        )
+        return dict(status=self.status, headers=self.headers, body=json.dumps(self.body))
 
 
 class Ok(Response):

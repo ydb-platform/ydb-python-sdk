@@ -41,9 +41,7 @@ def default_credentials(credentials=None):
 
 class DriverConfig(ydb.DriverConfig):
     @classmethod
-    def default_from_endpoint_and_database(
-        cls, endpoint, database, root_certificates=None, credentials=None, **kwargs
-    ):
+    def default_from_endpoint_and_database(cls, endpoint, database, root_certificates=None, credentials=None, **kwargs):
         return cls(
             endpoint,
             database,
@@ -53,9 +51,7 @@ class DriverConfig(ydb.DriverConfig):
         )
 
     @classmethod
-    def default_from_connection_string(
-        cls, connection_string, root_certificates=None, credentials=None, **kwargs
-    ):
+    def default_from_connection_string(cls, connection_string, root_certificates=None, credentials=None, **kwargs):
         endpoint, database = ydb.parse_connection_string(connection_string)
         return cls(
             endpoint,

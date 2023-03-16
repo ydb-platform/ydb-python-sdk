@@ -2,9 +2,7 @@ import os
 import ydb
 
 # create driver in global space.
-driver = ydb.Driver(
-    endpoint=os.getenv("YDB_ENDPOINT"), database=os.getenv("YDB_DATABASE")
-)
+driver = ydb.Driver(endpoint=os.getenv("YDB_ENDPOINT"), database=os.getenv("YDB_DATABASE"))
 # Wait for the driver to become active for requests.
 driver.wait(fail_fast=True, timeout=5)
 # Create the session pool instance to manage YDB sessions.

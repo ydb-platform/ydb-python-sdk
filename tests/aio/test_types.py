@@ -44,12 +44,8 @@ from uuid import uuid4
 @pytest.mark.asyncio
 async def test_types(driver, database, value, ydb_type):
     session = await driver.table_client.session().create()
-    prepared = await session.prepare(
-        f"DECLARE $param as {ydb_type}; SELECT $param as value"
-    )
-    result = await session.transaction().execute(
-        prepared, {"$param": value}, commit_tx=True
-    )
+    prepared = await session.prepare(f"DECLARE $param as {ydb_type}; SELECT $param as value")
+    result = await session.transaction().execute(prepared, {"$param": value}, commit_tx=True)
     assert result[0].rows[0].value == value
 
 
@@ -92,11 +88,7 @@ async def test_types_native(driver, database, value, ydb_type, result_value):
     client = ydb.TableClient(driver, settings)
     session = await client.session().create()
 
-    prepared = await session.prepare(
-        f"DECLARE $param as {ydb_type}; SELECT $param as value"
-    )
+    prepared = await session.prepare(f"DECLARE $param as {ydb_type}; SELECT $param as value")
 
-    result = await session.transaction().execute(
-        prepared, {"$param": value}, commit_tx=True
-    )
+    result = await session.transaction().execute(prepared, {"$param": value}, commit_tx=True)
     assert result[0].rows[0].value == result_value

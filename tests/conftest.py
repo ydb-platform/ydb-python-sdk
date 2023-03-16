@@ -26,9 +26,7 @@ def wait_container_ready(driver):
         while time.time() - started_at < 30:
             try:
                 with pool.checkout() as session:
-                    session.execute_scheme(
-                        "create table `.sys_health/test_table` (A int32, primary key(A));"
-                    )
+                    session.execute_scheme("create table `.sys_health/test_table` (A int32, primary key(A));")
 
                 return True
 

@@ -26,9 +26,7 @@ class Storage(object):
             tables = session_pool.retry_operation_sync(transaction)
             return list(map(lambda x: getattr(x, "table_id"), tables))
 
-    def find_reserved_table_ids(
-        self, *, cnt: int, dt: datetime.datetime
-    ) -> typing.List[int]:
+    def find_reserved_table_ids(self, *, cnt: int, dt: datetime.datetime) -> typing.List[int]:
         query = f"""PRAGMA TablePathPrefix("{self._database}");
         DECLARE $dt AS DateTime;
         DECLARE $reservation_period_minutes AS Int32;

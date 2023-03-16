@@ -23,9 +23,7 @@ def as_tornado_future(foreign_future, timeout=None):
             timeout_timer.clear()
             foreign_future.cancel()
 
-        timeout_timer.add(
-            tornado.ioloop.IOLoop.current().call_later(timeout, on_timeout)
-        )
+        timeout_timer.add(tornado.ioloop.IOLoop.current().call_later(timeout, on_timeout))
 
     def copy_to_result_future(foreign_future):
         try:
