@@ -1,3 +1,4 @@
+## 2.13.0 ##
 * fixed in to make compressed backups possible
 * Add snapshot to read table responses
 
