@@ -1,15 +1,9 @@
 import os
-from unittest import mock
 
 import pytest
 import ydb
 import time
-
-
-@pytest.fixture(autouse=True, scope="session")
-def mock_settings_env_vars():
-    with mock.patch.dict(os.environ, {"YDB_ANONYMOUS_CREDENTIALS": "1"}):
-        yield
+from ydb import issues
 
 
 @pytest.fixture(scope="module")
@@ -18,7 +12,7 @@ def docker_compose_file(pytestconfig):
 
 
 def wait_container_ready(driver):
-    driver.wait(timeout=10)
+    driver.wait(timeout=30)
 
     with ydb.SessionPool(driver) as pool:
 
@@ -86,8 +80,6 @@ async def driver(endpoint, database, event_loop):
     driver_config = ydb.DriverConfig(
         endpoint,
         database,
-        credentials=ydb.construct_credentials_from_environ(),
-        root_certificates=ydb.load_ydb_root_certificate(),
     )
 
     driver = ydb.aio.Driver(driver_config=driver_config)
@@ -143,3 +135,62 @@ PRIMARY KEY(id)
 @pytest.fixture()
 def table_path(database, table_name) -> str:
     return database + "/" + table_name
+
+
+@pytest.fixture()
+def topic_consumer():
+    return "fixture-consumer"
+
+
+@pytest.fixture()
+@pytest.mark.asyncio()
+async def topic_path(driver, topic_consumer, database) -> str:
+    topic_path = database + "/test-topic"
+
+    try:
+        await driver.topic_client.drop_topic(topic_path)
+    except issues.SchemeError:
+        pass
+
+    await driver.topic_client.create_topic(
+        path=topic_path,
+        consumers=[topic_consumer],
+    )
+
+    return topic_path
+
+
+@pytest.fixture()
+@pytest.mark.asyncio()
+async def topic_with_messages(driver, topic_path):
+    writer = driver.topic_client.writer(
+        topic_path, producer_id="fixture-producer-id", codec=ydb.TopicCodec.RAW
+    )
+    await writer.write_with_ack(
+        [
+            ydb.TopicWriterMessage(data="123".encode()),
+            ydb.TopicWriterMessage(data="456".encode()),
+        ]
+    )
+    await writer.write_with_ack(
+        [
+            ydb.TopicWriterMessage(data="789".encode()),
+            ydb.TopicWriterMessage(data="0".encode()),
+        ]
+    )
+    await writer.close()
+
+
+@pytest.fixture()
+@pytest.mark.asyncio()
+async def topic_reader(driver, topic_consumer, topic_path) -> ydb.TopicReaderAsyncIO:
+    reader = driver.topic_client.reader(topic=topic_path, consumer=topic_consumer)
+    yield reader
+    await reader.close()
+
+
+@pytest.fixture()
+def topic_reader_sync(driver_sync, topic_consumer, topic_path) -> ydb.TopicReader:
+    reader = driver_sync.topic_client.reader(topic=topic_path, consumer=topic_consumer)
+    yield reader
+    reader.close()

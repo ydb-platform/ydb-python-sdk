@@ -7,7 +7,6 @@ import time
 import random
 import enum
 
-import six
 from . import (
     issues,
     convert,
@@ -28,7 +27,7 @@ try:
 except ImportError:
     interceptor = None
 
-_allow_split_transaction = True
+_allow_split_transaction = False
 
 logger = logging.getLogger(__name__)
 
@@ -770,8 +769,7 @@ class TableDescription(object):
         return self
 
 
-@six.add_metaclass(abc.ABCMeta)
-class AbstractTransactionModeBuilder(object):
+class AbstractTransactionModeBuilder(abc.ABC):
     @property
     @abc.abstractmethod
     def name(self):
@@ -949,7 +947,7 @@ def retry_operation_impl(callee, retry_settings=None, *args, **kwargs):
     retry_settings = RetrySettings() if retry_settings is None else retry_settings
     status = None
 
-    for attempt in six.moves.range(retry_settings.max_retries + 1):
+    for attempt in range(retry_settings.max_retries + 1):
         try:
             result = YdbRetryOperationFinalResult(callee(*args, **kwargs))
             yield result
@@ -1103,8 +1101,7 @@ def _scan_query_request_factory(query, parameters=None, settings=None):
     )
 
 
-@six.add_metaclass(abc.ABCMeta)
-class ISession:
+class ISession(abc.ABC):
     @abstractmethod
     def __init__(self, driver, table_client_settings):
         pass
@@ -1268,8 +1265,7 @@ class ISession:
         pass
 
 
-@six.add_metaclass(abc.ABCMeta)
-class ITableClient:
+class ITableClient(abc.ABC):
     def __init__(self, driver, table_client_settings=None):
         pass
 
@@ -2100,8 +2096,7 @@ class Session(BaseSession):
         )
 
 
-@six.add_metaclass(abc.ABCMeta)
-class ITxContext:
+class ITxContext(abc.ABC):
     @abstractmethod
     def __init__(self, driver, session_state, session, tx_mode=None):
         """
