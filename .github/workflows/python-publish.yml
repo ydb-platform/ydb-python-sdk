@@ -69,9 +69,6 @@ jobs:
         echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_OUTPUT
         echo "New version: $NEW_VERSION" >> $GITHUB_STEP_SUMMARY
 
-        git add $SETUP_PY_PATH
-        git add $CHANGELOG_FILE
-
     - name: Build package
       run: python -m build
 
@@ -93,7 +90,7 @@ jobs:
         
         git config --global user.email "robot@umbrella";
         git config --global user.name "robot";
-        git commit -m "Release: $TAG";
+        git commit -am "Release: $TAG";
 
         git tag "$TAG"
         git push && git push --tags

@@ -112,6 +112,27 @@ def test_split_transactions_deny_split(driver_sync, table_name):
         pool.retry_operation_sync(check_transaction)
 
 
+def test_split_transactions_deny_split_flag_commit(driver_sync, table_name):
+    with ydb.SessionPool(driver_sync, 1) as pool:
+
+        def check_transaction(s: ydb.table.Session):
+            with s.transaction(allow_split_transactions=False) as tx:
+                tx.execute(
+                    "INSERT INTO %s (id) VALUES (1)" % table_name, commit_tx=True
+                )
+
+                with pytest.raises(RuntimeError):
+                    tx.execute("INSERT INTO %s (id) VALUES (2)" % table_name)
+
+                tx.commit()
+
+            with s.transaction() as tx:
+                rs = tx.execute("SELECT COUNT(*) as cnt FROM %s" % table_name)
+                assert rs[0].rows[0].cnt == 1
+
+        pool.retry_operation_sync(check_transaction)
+
+
 def test_split_transactions_allow_split(driver_sync, table_name):
     with ydb.SessionPool(driver_sync, 1) as pool:
 

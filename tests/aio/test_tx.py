@@ -98,13 +98,35 @@ async def test_tx_snapshot_ro(driver, database):
 
 
 @pytest.mark.asyncio
-async def test_split_transactions_deny_split(driver, table_name):
+async def test_split_transactions_deny_split_explicit_commit(driver, table_name):
     async with ydb.aio.SessionPool(driver, 1) as pool:
 
         async def check_transaction(s: ydb.aio.table.Session):
             async with s.transaction(allow_split_transactions=False) as tx:
                 await tx.execute("INSERT INTO %s (id) VALUES (1)" % table_name)
                 await tx.commit()
+
+                with pytest.raises(RuntimeError):
+                    await tx.execute("INSERT INTO %s (id) VALUES (2)" % table_name)
+
+                await tx.commit()
+
+            async with s.transaction() as tx:
+                rs = await tx.execute("SELECT COUNT(*) as cnt FROM %s" % table_name)
+                assert rs[0].rows[0].cnt == 1
+
+        await pool.retry_operation(check_transaction)
+
+
+@pytest.mark.asyncio
+async def test_split_transactions_deny_split_flag_commit(driver, table_name):
+    async with ydb.aio.SessionPool(driver, 1) as pool:
+
+        async def check_transaction(s: ydb.aio.table.Session):
+            async with s.transaction(allow_split_transactions=False) as tx:
+                await tx.execute(
+                    "INSERT INTO %s (id) VALUES (1)" % table_name, commit_tx=True
+                )
 
                 with pytest.raises(RuntimeError):
                     await tx.execute("INSERT INTO %s (id) VALUES (2)" % table_name)

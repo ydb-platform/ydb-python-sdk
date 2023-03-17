@@ -6,6 +6,7 @@ from packaging.version import Version
 
 SETUP_PY_PATH = "setup.py"
 DEFAULT_CHANGELOG_PATH = "CHANGELOG.md"
+DEFAULT_YDB_VERSION_FILE = "ydb/ydb_version.py"
 MARKER = "# AUTOVERSION"
 
 
@@ -125,6 +126,10 @@ def add_changelog_version(changelog_path, version: str):
         f.write(content)
 
 
+def set_version_in_ydb_version_file(file_path: str, version: str):
+    with open(file_path, "w") as f:
+        f.write('VERSION = "%s"\n' % version)
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -147,6 +152,7 @@ def main():
 
     new_version = increment_version_at_setup_py(args.setup_py_path, args.inc_type, is_beta)
     add_changelog_version(args.changelog_path, new_version)
+    set_version_in_ydb_version_file(DEFAULT_YDB_VERSION_FILE, new_version)
     print(new_version)
 
 

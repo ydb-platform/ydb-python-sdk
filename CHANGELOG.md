@@ -35,6 +35,30 @@
 ## 3.0.1b1 ##
 * start 3.0 beta branch
 
+## 2.13.3 ##
+* fixed use transaction object when commit with flag
+
+## 2.13.2 ##
+* fix snapshot attribute in class _ResultSet
+
+## 2.13.1 ##
+* fixed set version in ydb_version file
+
+## 2.13.0 ##
+* fixed in to make compressed backups possible
+* Add snapshot to read table responses
+
+## 2.12.4 ##
+* Added functions for global change behaviour for compatible with future sdk version: ydb.global_allow_truncated_result and global_allow_split_transactions
+
+## 2.12.3 ##
+* Flag for deny split transaction
+* Add six package to requirements
+* Fixed error while passing date parameter in execute
+
+## 2.12.2 ##
+* Fix error of check retriable error for idempotent operations (error exist since 2.12.1)
+
 ## 2.12.1 ##
 * Supported `TYPE_UNSPECIFIED` item type to scheme ls
 * Fixed error while request iam token with bad content type in metadata
