@@ -35,6 +35,9 @@
 ## 3.0.1b1 ##
 * start 3.0 beta branch
 
+## 2.13.4 ##
+* fixed sqlalchemy get_columns method with not null columns
+
 ## 2.13.3 ##
 * fixed use transaction object when commit with flag
 
