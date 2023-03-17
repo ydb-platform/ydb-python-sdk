@@ -201,7 +201,7 @@ class TopicClientAsyncIO:
             return
 
         self._closed = True
-        self._executor.shutdown(wait=False, cancel_futures=True)
+        self._executor.shutdown(wait=False)
 
     def _check_closed(self):
         if not self._closed:
@@ -371,7 +371,7 @@ class TopicClient:
             return
 
         self._closed = True
-        self._executor.shutdown(wait=False, cancel_futures=True)
+        self._executor.shutdown(wait=False)
 
     def _check_closed(self):
         if not self._closed:
