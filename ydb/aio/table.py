@@ -194,8 +194,6 @@ class TxContext(BaseTxContext):
         self, query, parameters=None, commit_tx=False, settings=None
     ):  # pylint: disable=W0236
 
-        self._check_split()
-
         return await super().execute(query, parameters, commit_tx, settings)
 
     async def commit(self, settings=None):  # pylint: disable=W0236

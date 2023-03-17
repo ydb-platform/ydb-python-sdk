@@ -13,13 +13,20 @@ _SECONDS_IN_DAY = 60 * 60 * 24
 _EPOCH = datetime(1970, 1, 1)
 
 
-def _from_date_number(x, table_client_settings):
+def _from_date(x, table_client_settings):
     if (
         table_client_settings is not None
         and table_client_settings._native_date_in_result_sets
     ):
-        return date.fromordinal(x + date(1970, 1, 1).toordinal())
-    return x
+        return _EPOCH.date() + timedelta(days=x.uint32_value)
+    return x.uint32_value
+
+
+def _to_date(pb, value):
+    if isinstance(value, date):
+        pb.uint32_value = (value - _EPOCH.date()).days
+    else:
+        pb.uint32_value = value
 
 
 def _from_datetime_number(x, table_client_settings):
@@ -113,8 +120,9 @@ class PrimitiveType(enum.Enum):
     UUID = (_apis.primitive_types.UUID, None, _to_uuid, _from_uuid)
     Date = (
         _apis.primitive_types.DATE,
-        "uint32_value",
-        _from_date_number,
+        None,
+        _from_date,
+        _to_date,
     )
     Datetime = (
         _apis.primitive_types.DATETIME,
