@@ -2316,6 +2316,8 @@ class BaseTxContext(ITxContext):
         """
 
         self._check_split()
+        if commit_tx:
+            self._set_finish(self._COMMIT)
 
         return self._driver(
             _tx_ctx_impl.execute_request_factory(
