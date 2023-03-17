@@ -1,3 +1,5 @@
+* fixed use transaction object when commit with flag
+
 ## 2.13.2 ##
 * fix snapshot attribute in class _ResultSet
 
