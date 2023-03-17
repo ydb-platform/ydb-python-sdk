@@ -1,3 +1,15 @@
+## 2.13.4 ##
+* fixed sqlalchemy get_columns method with not null columns
+
+## 2.13.3 ##
+* fixed use transaction object when commit with flag
+
+## 2.13.2 ##
+* fix snapshot attribute in class _ResultSet
+
+## 2.13.1 ##
+* fixed set version in ydb_version file
+
 ## 2.13.0 ##
 * fixed in to make compressed backups possible
 * Add snapshot to read table responses

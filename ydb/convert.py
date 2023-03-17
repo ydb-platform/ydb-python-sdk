@@ -291,6 +291,7 @@ class _ResultSet(object):
         self.columns = columns
         self.rows = rows
         self.truncated = truncated
+        self.snapshot = snapshot
 
     @classmethod
     def from_message(cls, message, table_client_settings=None, snapshot=None):
