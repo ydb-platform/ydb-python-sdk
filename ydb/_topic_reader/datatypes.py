@@ -179,6 +179,9 @@ class PublicBatch(ICommittable, ISessionAlive):
             self.messages[-1]._commit_get_offsets_range().end,
         )
 
+    def is_empty(self) -> bool:
+        return len(self.messages) == 0
+
     # ISessionAlive implementation
     @property
     def is_alive(self) -> bool:
@@ -187,3 +190,11 @@ class PublicBatch(ICommittable, ISessionAlive):
             state == PartitionSession.State.Active
             or state == PartitionSession.State.GracefulShutdown
         )
+
+    def pop_message(self) -> PublicMessage:
+        if len(self.messages) == 0:
+            raise IndexError()
+
+        res = self.messages[0]
+        self.messages = self.messages[1:]
+        return res

@@ -5,6 +5,7 @@ from typing import List, Union, Iterable, Optional, Coroutine
 
 from ydb._grpc.grpcwrapper.common_utils import SupportedDriverType
 from ydb._topic_common.common import _get_shared_event_loop
+from ydb._topic_reader import datatypes
 from ydb._topic_reader.datatypes import PublicMessage, PublicBatch, ICommittable
 from ydb._topic_reader.topic_reader import (
     PublicReaderSettings,
@@ -72,6 +73,19 @@ class TopicReaderSync:
             f.cancel()
             raise
 
+    def _call_nowait(self, callback: typing.Callable[[], typing.Any]) -> typing.Any:
+        res = concurrent.futures.Future()
+
+        def call():
+            try:
+                res.set_result(call())
+            except BaseException as err:
+                res.set_exception(err)
+
+        self._loop.call_soon_threadsafe(call)
+
+        return res.result()
+
     def async_sessions_stat(self) -> concurrent.futures.Future:
         """
         Receive stat from the server, return feature.
@@ -100,15 +114,23 @@ class TopicReaderSync:
         """
         raise NotImplementedError()
 
-    def receive_message(self, *, timeout: Union[float, None] = None) -> PublicMessage:
+    def receive_message(self, *, timeout: Union[float, None] = None) -> datatypes.PublicMessage:
         """
         Block until receive new message
         It has no async_ version for prevent lost messages, use async_wait_message as signal for new batches available.
+        receive_message(timeout=0) may return None even right after async_wait_message() is ok - because lost of partition
+        or connection to server lost
 
         if no new message in timeout seconds (default - infinite): raise TimeoutError()
         if timeout <= 0 - it will fast non block method, get messages from internal buffer only.
         """
-        raise NotImplementedError()
+        if timeout <= 0:
+            return self._receive_message_nowait()
+
+        return self._call_sync(self._async_reader.receive_message(), timeout)
+
+    def _receive_message_nowait(self) -> Optional[datatypes.PublicMessage]:
+        return self._call_nowait(lambda: self._async_reader._reconnector.receive_message_nowait())
 
     def async_wait_message(self) -> concurrent.futures.Future:
         """
@@ -118,7 +140,7 @@ class TopicReaderSync:
         Possible situation when receive signal about message available, but no messages when try to receive a message.
         If message expired between send event and try to retrieve message (for example connection broken).
         """
-        raise NotImplementedError()
+        return self._call(self._async_reader._reconnector.wait_message())
 
     def batches(
         self,
@@ -156,6 +178,9 @@ class TopicReaderSync:
             ),
             timeout,
         )
+
+    def _receive_batch_nowait(self) -> Optional[PublicBatch]:
+        return self._call_nowait(lambda: self._async_reader._reconnector.receive_batch_nowait())
 
     def commit(self, mess: ICommittable):
         """
