@@ -5,12 +5,26 @@ import ydb
 
 @pytest.mark.asyncio
 class TestTopicReaderAsyncIO:
+    async def test_read_batch(
+        self, driver, topic_path, topic_with_messages, topic_consumer
+    ):
+        reader = driver.topic_client.reader(topic_consumer, topic_path)
+        batch = await reader.receive_batch()
+
+        assert batch is not None
+        assert len(batch.messages) > 0
+
+        await reader.close()
+
     async def test_read_message(
         self, driver, topic_path, topic_with_messages, topic_consumer
     ):
         reader = driver.topic_client.reader(topic_consumer, topic_path)
+        msg = await reader.receive_message()
 
-        assert await reader.receive_batch() is not None
+        assert msg is not None
+        assert msg.seqno
+
         await reader.close()
 
     async def test_read_and_commit_message(
@@ -59,12 +73,26 @@ class TestTopicReaderAsyncIO:
 
 
 class TestTopicReaderSync:
+    def test_read_batch(
+        self, driver_sync, topic_path, topic_with_messages, topic_consumer
+    ):
+        reader = driver_sync.topic_client.reader(topic_consumer, topic_path)
+        batch = reader.receive_batch()
+
+        assert batch is not None
+        assert len(batch.messages) > 0
+
+        reader.close()
+
     def test_read_message(
         self, driver_sync, topic_path, topic_with_messages, topic_consumer
     ):
         reader = driver_sync.topic_client.reader(topic_consumer, topic_path)
+        msg = reader.receive_message()
 
-        assert reader.receive_batch() is not None
+        assert msg is not None
+        assert msg.seqno
+
         reader.close()
 
     def test_read_and_commit_message(
