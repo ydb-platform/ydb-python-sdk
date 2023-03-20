@@ -10,7 +10,7 @@ from ydb._topic_common.common import (
     TimeoutType,
 )
 from ydb._topic_reader import datatypes
-from ydb._topic_reader.datatypes import PublicMessage, PublicBatch, ICommittable
+from ydb._topic_reader.datatypes import PublicMessage, PublicBatch
 from ydb._topic_reader.topic_reader import (
     PublicReaderSettings,
     SessionStat,
@@ -160,7 +160,9 @@ class TopicReaderSync:
         self._caller.call_sync(self._async_reader.commit(mess))
 
     def commit_with_ack(
-        self, mess: ICommittable, timeout: TimeoutType = None
+        self,
+        mess: typing.Union[datatypes.PublicMessage, datatypes.PublicBatch],
+        timeout: TimeoutType = None,
     ) -> Union[CommitResult, List[CommitResult]]:
         """
         write commit message to a buffer and wait ack from the server.
