@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import typing
 from concurrent.futures import Future
 from typing import Union, List, Optional, Coroutine
 
@@ -10,15 +11,15 @@ from .topic_writer import (
     TopicWriterError,
     PublicWriterInitInfo,
     PublicWriteResult,
-    Message,
+    Message, TopicWriterClosedError,
 )
 
 from .topic_writer_asyncio import WriterAsyncIO
-from .._topic_common.common import _get_shared_event_loop, TimeoutType
+from .._topic_common.common import _get_shared_event_loop, TimeoutType, CallFromSyncToAsync
 
 
 class WriterSync:
-    _loop: asyncio.AbstractEventLoop
+    _caller: CallFromSyncToAsync
     _async_writer: WriterAsyncIO
     _closed: bool
 
@@ -33,16 +34,16 @@ class WriterSync:
         self._closed = False
 
         if eventloop:
-            self._loop = eventloop
+            loop = eventloop
         else:
-            self._loop = _get_shared_event_loop()
+            loop = _get_shared_event_loop()
+
+        self._caller = CallFromSyncToAsync(loop)
 
         async def create_async_writer():
             return WriterAsyncIO(driver, settings)
 
-        self._async_writer = asyncio.run_coroutine_threadsafe(
-            create_async_writer(), self._loop
-        ).result()
+        self._async_writer = self._caller.safe_call_with_result(create_async_writer(), None)
 
     def __enter__(self):
         return self
@@ -50,63 +51,62 @@ class WriterSync:
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.close()
 
-    def _call(self, coro):
-        if self._closed:
-            raise TopicWriterError("writer is closed")
-
-        return asyncio.run_coroutine_threadsafe(coro, self._loop)
-
-    def _call_sync(self, coro: Coroutine, timeout):
-        f = self._call(coro)
-        try:
-            return f.result(timeout)
-        except TimeoutError:
-            f.cancel()
-            raise
-
-    def close(self, flush: bool = True):
+    def close(self, *, flush: bool = True, timeout: typing.Union[int, float, None] = None):
         if self._closed:
             return
 
         self._closed = True
 
-        # for no call self._call_sync on closed object
-        asyncio.run_coroutine_threadsafe(
-            self._async_writer.close(flush=flush), self._loop
-        ).result()
+        self._caller.safe_call_with_result(self._async_writer.close(flush=flush), timeout)
+
+    def _check_closed(self):
+        if self._closed:
+            raise TopicWriterClosedError()
 
     def async_flush(self) -> Future:
-        if self._closed:
-            raise TopicWriterError("writer is closed")
-        return self._call(self._async_writer.flush())
+        self._check_closed()
 
-    def flush(self, timeout=None):
-        self._call_sync(self._async_writer.flush(), timeout)
+        return self._caller.unsafe_call_with_future(self._async_writer.flush())
+
+    def flush(self, *, timeout=None):
+        self._check_closed()
+
+        return self._caller.unsafe_call_with_result(self._async_writer.flush(), timeout)
 
     def async_wait_init(self) -> Future[PublicWriterInitInfo]:
-        return self._call(self._async_writer.wait_init())
+        self._check_closed()
 
-    def wait_init(self, timeout: Optional[TimeoutType] = None) -> PublicWriterInitInfo:
-        return self._call_sync(self._async_writer.wait_init(), timeout)
+        return self._caller.unsafe_call_with_future(self._async_writer.wait_init())
+
+    def wait_init(self, *, timeout: TimeoutType = None) -> PublicWriterInitInfo:
+        self._check_closed()
+
+        return self._caller.unsafe_call_with_result(self._async_writer.wait_init(), timeout)
 
     def write(
         self,
         messages: Union[Message, List[Message]],
-        timeout: Union[float, None] = None,
+        timeout: TimeoutType = None,
     ):
-        self._call_sync(self._async_writer.write(messages), timeout=timeout)
+        self._check_closed()
+
+        self._caller.safe_call_with_result(self._async_writer.write(messages), timeout)
 
     def async_write_with_ack(
         self,
         messages: Union[Message, List[Message]],
     ) -> Future[Union[PublicWriteResult, List[PublicWriteResult]]]:
-        return self._call(self._async_writer.write_with_ack(messages))
+        self._check_closed()
+
+        return self._caller.unsafe_call_with_future(self._async_writer.write_with_ack(messages))
 
     def write_with_ack(
         self,
         messages: Union[Message, List[Message]],
         timeout: Union[float, None] = None,
     ) -> Union[PublicWriteResult, List[PublicWriteResult]]:
-        return self._call_sync(
+        self._check_closed()
+
+        return self._caller.unsafe_call_with_result(
             self._async_writer.write_with_ack(messages), timeout=timeout
         )

@@ -7,7 +7,7 @@ from typing import Optional
 from .. import operation, issues
 from .._grpc.grpcwrapper.common_utils import IFromProtoWithProtoType
 
-TimeoutType = typing.Union[int, float]
+TimeoutType = typing.Union[int, float, None]
 
 
 def wrap_operation(rpc_state, response_pb, driver=None):
@@ -86,7 +86,7 @@ class CallFromSyncToAsync:
         finally:
             f.cancel()
 
-    def safe_call_with_result(self, coro: typing.Coroutine, timeout: typing.Union[int, float]):
+    def safe_call_with_result(self, coro: typing.Coroutine, timeout: TimeoutType):
         """
         no lost returned value from coro, but may be slower especially timeout latency - it wait coroutine cancelation.
         """
