@@ -217,11 +217,8 @@ class TestCallFromSyncToAsync:
             caller.safe_call_with_result(callback(), timeout)
         finished = time.monotonic()
 
-        async def sleep0():
-            await asyncio.sleep(0)
-
         # wait one loop for handle task cancelation
-        asyncio.run_coroutine_threadsafe(sleep0(), separate_loop)
+        asyncio.run_coroutine_threadsafe(asyncio.sleep(0), separate_loop)
 
         assert callback_loop is separate_loop
         assert finished - start > timeout

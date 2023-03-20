@@ -86,7 +86,8 @@ class CallFromSyncToAsync:
         except concurrent.futures.TimeoutError:
             raise TimeoutError()
         finally:
-            f.cancel()
+            if not f.done():
+                f.cancel()
 
     def safe_call_with_result(self, coro: typing.Coroutine, timeout: TimeoutType):
         """
@@ -126,11 +127,8 @@ class CallFromSyncToAsync:
             except asyncio.CancelledError:
                 res.set_exception(TimeoutError())
 
-        async def sleep0():
-            await asyncio.sleep(0)
-
         coro_future = asyncio.run_coroutine_threadsafe(call_coro(), self._loop)
-        asyncio.run_coroutine_threadsafe(sleep0(), self._loop).result()
+        asyncio.run_coroutine_threadsafe(asyncio.sleep(0), self._loop).result()
         coro_future.cancel()
         return res.result()
 

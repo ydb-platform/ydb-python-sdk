@@ -178,7 +178,7 @@ class TopicWriterError(ydb.Error):
 
 class TopicWriterClosedError(ydb.Error):
     def __init__(self):
-        super(TopicWriterClosedError, self).__init__("Topic writer already closed")
+        super().__init__("Topic writer already closed")
 
 
 class TopicWriterRepeatableError(TopicWriterError):
