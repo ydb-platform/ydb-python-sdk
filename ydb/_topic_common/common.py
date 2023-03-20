@@ -30,7 +30,7 @@ def create_result_wrapper(
 
 
 _shared_event_loop_lock = threading.Lock()
-_shared_event_loop = None  # type: Optional[asyncio.AbstractEventLoop]
+_shared_event_loop: Optional[asyncio.AbstractEventLoop] = None
 
 
 def _get_shared_event_loop() -> asyncio.AbstractEventLoop:
