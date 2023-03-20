@@ -91,7 +91,7 @@ class CallFromSyncToAsync:
         no lost returned value from coro, but may be slower especially timeout latency - it wait coroutine cancelation.
         """
 
-        if timeout <= 0:
+        if timeout is not None and timeout <= 0:
             return self._safe_call_fast(coro)
 
         async def call_coro():
