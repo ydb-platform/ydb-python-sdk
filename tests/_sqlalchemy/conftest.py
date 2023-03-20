@@ -1,11 +1,11 @@
 import pytest
 import sqlalchemy as sa
 
-from ydb.sqlalchemy import register_dialect
+from ydb._sqlalchemy import register_dialect
 
 
-@pytest.fixture
-def sa_engine(endpoint, database):
+@pytest.fixture(scope="module")
+def engine(endpoint, database):
     register_dialect()
     engine = sa.create_engine(
         "yql:///ydb/",
@@ -14,3 +14,9 @@ def sa_engine(endpoint, database):
 
     yield engine
     engine.dispose()
+
+
+@pytest.fixture(scope="module")
+def connection(engine):
+    with engine.connect() as conn:
+        yield conn
