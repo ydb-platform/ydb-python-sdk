@@ -1,5 +1,9 @@
 * Add function for global revert broken behaviour: ydb.global_allow_truncated_result, ydb.global_allow_split_transactions
 * Change argument names from deny_split_transactions to allow_split_transactions (with reverse value
+* Fixed check retriable for idempotent error
+* Reader codecs
+* Read one message
+* fixed sqlalchemy get_columns method with not null columns
 
 ## 3.0.1b8 ##
 * Fixed exception while create ResultSet with None table_settings
