@@ -206,14 +206,16 @@ COLUMN_TYPES = {
 }
 
 
-def _get_column_type(t):
+def _get_column_info(t):
+    nullable = False
     if isinstance(t, ydb.OptionalType):
+        nullable = True
         t = t.item
 
     if isinstance(t, ydb.DecimalType):
-        return sa.DECIMAL(precision=t.item.precision, scale=t.item.scale)
+        return sa.DECIMAL(precision=t.precision, scale=t.scale), nullable
 
-    return COLUMN_TYPES[t]
+    return COLUMN_TYPES[t], nullable
 
 
 class YqlDialect(DefaultDialect):
@@ -268,11 +270,12 @@ class YqlDialect(DefaultDialect):
         columns = raw_conn.describe(qt)
         as_compatible = []
         for column in columns:
+            col_type, nullable = _get_column_info(column.type)
             as_compatible.append(
                 {
                     "name": column.name,
-                    "type": _get_column_type(column.type),
-                    "nullable": True,
+                    "type": col_type,
+                    "nullable": nullable,
                 }
             )
 
