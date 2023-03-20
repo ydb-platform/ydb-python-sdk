@@ -196,7 +196,7 @@ def run_example_core(engine):
 def main():
     parser = argparse.ArgumentParser(
         formatter_class=argparse.RawDescriptionHelpFormatter,
-        description="""\033[92mYandex.Database examples sqlalchemy usage.\x1b[0m\n""",
+        description="""\033[92mYandex.Database examples _sqlalchemy usage.\x1b[0m\n""",
     )
     parser.add_argument(
         "-d",
@@ -219,7 +219,7 @@ def main():
     )
 
     logging.basicConfig(level=logging.INFO)
-    logging.getLogger("sqlalchemy.engine").setLevel(logging.INFO)
+    logging.getLogger("_sqlalchemy.engine").setLevel(logging.INFO)
 
     run_example_core(engine)
     # run_example_orm(engine)
