@@ -1,3 +1,4 @@
+## 3.0.1b9 ##
 * Add function for global revert broken behaviour: ydb.global_allow_truncated_result, ydb.global_allow_split_transactions
 * Change argument names from deny_split_transactions to allow_split_transactions (with reverse value
 * Fixed check retriable for idempotent error
