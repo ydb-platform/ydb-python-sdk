@@ -4,7 +4,11 @@ import typing
 from typing import List, Union, Iterable, Optional
 
 from ydb._grpc.grpcwrapper.common_utils import SupportedDriverType
-from ydb._topic_common.common import _get_shared_event_loop, CallFromSyncToAsync
+from ydb._topic_common.common import (
+    _get_shared_event_loop,
+    CallFromSyncToAsync,
+    TimeoutType,
+)
 from ydb._topic_reader import datatypes
 from ydb._topic_reader.datatypes import PublicMessage, PublicBatch, ICommittable
 from ydb._topic_reader.topic_reader import (
@@ -156,7 +160,7 @@ class TopicReaderSync:
         self._caller.call_sync(self._async_reader.commit(mess))
 
     def commit_with_ack(
-        self, mess: ICommittable, timeout: typing.Union[int, float, None] = None
+        self, mess: ICommittable, timeout: TimeoutType = None
     ) -> Union[CommitResult, List[CommitResult]]:
         """
         write commit message to a buffer and wait ack from the server.
@@ -193,7 +197,7 @@ class TopicReaderSync:
         """
         raise NotImplementedError()
 
-    def close(self, *, timeout: typing.Union[int, float, None] = None):
+    def close(self, *, timeout: TimeoutType = None):
         if self._closed:
             return
 

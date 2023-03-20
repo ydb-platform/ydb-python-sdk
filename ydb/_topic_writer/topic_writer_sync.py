@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import asyncio
-import typing
 from concurrent.futures import Future
 from typing import Union, List, Optional
 
@@ -57,9 +56,7 @@ class WriterSync:
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.close()
 
-    def close(
-        self, *, flush: bool = True, timeout: typing.Union[int, float, None] = None
-    ):
+    def close(self, *, flush: bool = True, timeout: TimeoutType = None):
         if self._closed:
             return
 

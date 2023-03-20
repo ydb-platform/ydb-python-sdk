@@ -76,9 +76,7 @@ class CallFromSyncToAsync:
         """
         return asyncio.run_coroutine_threadsafe(coro, self._loop)
 
-    def unsafe_call_with_result(
-        self, coro: typing.Coroutine, timeout: typing.Union[int, float, None]
-    ):
+    def unsafe_call_with_result(self, coro: typing.Coroutine, timeout: TimeoutType):
         """
         returned result from coro may be lost by race future cancel by timeout and return value from coroutine
         """
