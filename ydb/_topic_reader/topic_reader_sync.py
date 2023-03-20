@@ -1,7 +1,7 @@
 import asyncio
 import concurrent.futures
 import typing
-from typing import List, Union, Iterable, Optional, Coroutine
+from typing import List, Union, Iterable, Optional
 
 from ydb._grpc.grpcwrapper.common_utils import SupportedDriverType
 from ydb._topic_common.common import _get_shared_event_loop, CallFromSyncToAsync
@@ -24,11 +24,11 @@ class TopicReaderSync:
     _closed: bool
 
     def __init__(
-            self,
-            driver: SupportedDriverType,
-            settings: PublicReaderSettings,
-            *,
-            eventloop: Optional[asyncio.AbstractEventLoop] = None,
+        self,
+        driver: SupportedDriverType,
+        settings: PublicReaderSettings,
+        *,
+        eventloop: Optional[asyncio.AbstractEventLoop] = None,
     ):
         self._closed = False
 
@@ -70,7 +70,7 @@ class TopicReaderSync:
         raise NotImplementedError()
 
     def messages(
-            self, *, timeout: Union[float, None] = None
+        self, *, timeout: Union[float, None] = None
     ) -> Iterable[PublicMessage]:
         """
         todo?
@@ -104,11 +104,11 @@ class TopicReaderSync:
         raise NotImplementedError()
 
     def batches(
-            self,
-            *,
-            max_messages: Union[int, None] = None,
-            max_bytes: Union[int, None] = None,
-            timeout: Union[float, None] = None,
+        self,
+        *,
+        max_messages: Union[int, None] = None,
+        max_bytes: Union[int, None] = None,
+        timeout: Union[float, None] = None,
     ) -> Iterable[PublicBatch]:
         """
         Block until receive new batch.
@@ -120,11 +120,11 @@ class TopicReaderSync:
         raise NotImplementedError()
 
     def receive_batch(
-            self,
-            *,
-            max_messages: typing.Union[int, None] = None,
-            max_bytes: typing.Union[int, None] = None,
-            timeout: Union[float, None] = None,
+        self,
+        *,
+        max_messages: typing.Union[int, None] = None,
+        max_bytes: typing.Union[int, None] = None,
+        timeout: Union[float, None] = None,
     ) -> Union[PublicBatch, None]:
         """
         Get one messages batch from reader
@@ -136,10 +136,15 @@ class TopicReaderSync:
         self._check_closed()
 
         return self._caller.safe_call_with_result(
-            self._async_reader.receive_batch(max_messages=max_messages, max_bytes=max_bytes),
-            timeout)
+            self._async_reader.receive_batch(
+                max_messages=max_messages, max_bytes=max_bytes
+            ),
+            timeout,
+        )
 
-    def commit(self, mess: typing.Union[datatypes.PublicMessage, datatypes.PublicBatch]):
+    def commit(
+        self, mess: typing.Union[datatypes.PublicMessage, datatypes.PublicBatch]
+    ):
         """
         Put commit message to internal buffer.
 
@@ -151,7 +156,7 @@ class TopicReaderSync:
         self._caller.call_sync(self._async_reader.commit(mess))
 
     def commit_with_ack(
-            self, mess: ICommittable, timeout: typing.Union[int, float, None] = None
+        self, mess: ICommittable, timeout: typing.Union[int, float, None] = None
     ) -> Union[CommitResult, List[CommitResult]]:
         """
         write commit message to a buffer and wait ack from the server.
@@ -160,15 +165,21 @@ class TopicReaderSync:
         """
         self._check_closed()
 
-        return self._caller.unsafe_call_with_result(self._async_reader.commit_with_ack(mess), timeout)
+        return self._caller.unsafe_call_with_result(
+            self._async_reader.commit_with_ack(mess), timeout
+        )
 
-    def async_commit_with_ack(self, mess: typing.Union[datatypes.PublicMessage, datatypes.PublicBatch]) -> concurrent.futures.Future:
+    def async_commit_with_ack(
+        self, mess: typing.Union[datatypes.PublicMessage, datatypes.PublicBatch]
+    ) -> concurrent.futures.Future:
         """
         write commit message to a buffer and return Future for wait result.
         """
         self._check_closed()
 
-        return self._caller.unsafe_call_with_future(self._async_reader.commit_with_ack(mess))
+        return self._caller.unsafe_call_with_future(
+            self._async_reader.commit_with_ack(mess)
+        )
 
     def async_flush(self) -> concurrent.futures.Future:
         """

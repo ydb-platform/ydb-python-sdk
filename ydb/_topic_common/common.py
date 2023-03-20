@@ -68,13 +68,17 @@ class CallFromSyncToAsync:
     def __init__(self, loop: asyncio.AbstractEventLoop):
         self._loop = loop
 
-    def unsafe_call_with_future(self, coro: typing.Coroutine) -> concurrent.futures.Future:
+    def unsafe_call_with_future(
+        self, coro: typing.Coroutine
+    ) -> concurrent.futures.Future:
         """
         returned result from coro may be lost
         """
         return asyncio.run_coroutine_threadsafe(coro, self._loop)
 
-    def unsafe_call_with_result(self, coro: typing.Coroutine, timeout: typing.Union[int, float, None]):
+    def unsafe_call_with_result(
+        self, coro: typing.Coroutine, timeout: typing.Union[int, float, None]
+    ):
         """
         returned result from coro may be lost by race future cancel by timeout and return value from coroutine
         """
@@ -99,7 +103,7 @@ class CallFromSyncToAsync:
             try:
                 res = await asyncio.wait_for(task, timeout)
                 return res
-            except BaseException as err:
+            except asyncio.TimeoutError:
                 try:
                     res = await task
                     return res
@@ -108,7 +112,6 @@ class CallFromSyncToAsync:
 
                 # return builtin TimeoutError instead of asyncio.TimeoutError
                 raise TimeoutError()
-
 
         return asyncio.run_coroutine_threadsafe(call_coro(), self._loop).result()
 
