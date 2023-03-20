@@ -87,7 +87,9 @@ class TopicReaderSync:
         """
         raise NotImplementedError()
 
-    def receive_message(self, *, timeout: Union[float, None] = None) -> datatypes.PublicMessage:
+    def receive_message(
+        self, *, timeout: Union[float, None] = None
+    ) -> datatypes.PublicMessage:
         """
         Block until receive new message
         It has no async_ version for prevent lost messages, use async_wait_message as signal for new batches available.
@@ -103,7 +105,9 @@ class TopicReaderSync:
         return self._call_sync(self._async_reader.receive_message(), timeout)
 
     def _receive_message_nowait(self) -> Optional[datatypes.PublicMessage]:
-        return self._call_nowait(lambda: self._async_reader._reconnector.receive_message_nowait())
+        return self._call_nowait(
+            lambda: self._async_reader._reconnector.receive_message_nowait()
+        )
 
     def async_wait_message(self) -> concurrent.futures.Future:
         """
@@ -155,8 +159,9 @@ class TopicReaderSync:
         )
 
     def _receive_batch_nowait(self) -> Optional[PublicBatch]:
-        return self._caller.call_sync(lambda: self._async_reader._reconnector.receive_batch_nowait())
-
+        return self._caller.call_sync(
+            lambda: self._async_reader._reconnector.receive_batch_nowait()
+        )
 
     def commit(
         self, mess: typing.Union[datatypes.PublicMessage, datatypes.PublicBatch]

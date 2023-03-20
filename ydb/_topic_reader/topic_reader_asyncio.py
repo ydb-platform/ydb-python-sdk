@@ -419,7 +419,6 @@ class ReaderStream:
 
         return message
 
-
     def commit(
         self, batch: datatypes.ICommittable
     ) -> datatypes.PartitionSession.CommitAckWaiter:
