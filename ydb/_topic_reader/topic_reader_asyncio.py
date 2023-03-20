@@ -120,12 +120,20 @@ class PublicAsyncIOReader:
         waiter = self._reconnector.commit(batch)
         await waiter.future
 
-    async def close(self):
+    async def flush(self):
+        """
+        force send all commit messages from internal buffers to server and wait acks for all of them.
+
+        use asyncio.wait_for for wait with timeout.
+        """
+        await self._reconnector.flush()
+
+    async def close(self, flush: bool = True):
         if self._closed:
             raise TopicReaderClosedError()
 
         self._closed = True
-        await self._reconnector.close()
+        await self._reconnector.close(flush)
 
 
 class ReaderReconnector:
@@ -199,13 +207,19 @@ class ReaderReconnector:
     ) -> datatypes.PartitionSession.CommitAckWaiter:
         return self._stream_reader.commit(batch)
 
-    async def close(self):
+    async def close(self, flush: bool):
         if self._stream_reader:
+            if flush:
+                await self.flush()
             await self._stream_reader.close()
         for task in self._background_tasks:
             task.cancel()
 
         await asyncio.wait(self._background_tasks)
+
+    async def flush(self):
+        if self._stream_reader:
+            await self._stream_reader.flush()
 
     def _set_first_error(self, err: issues.Error):
         try:
@@ -640,6 +654,16 @@ class ReaderStream:
     def _get_first_error(self) -> Optional[YdbError]:
         if self._first_error.done():
             return self._first_error.result()
+
+    async def flush(self):
+        if self._closed:
+            raise RuntimeError("Flush on closed Stream")
+
+        futures = []
+        for session in self._partition_sessions.values():
+            futures.extend(w.future for w in session._ack_waiters)
+
+        await asyncio.gather(*futures)
 
     async def close(self):
         if self._closed:
