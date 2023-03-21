@@ -1,5 +1,6 @@
 * Fixed global_allow_split_transactions
 * Added reader.receive_message() method
+* Swap topic_path and consumer arguments in topic_client.reader method
 
 ## 3.0.1b10 ##
 * fixed sqlalchemy get_columns method with not null columns
