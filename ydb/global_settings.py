@@ -5,6 +5,9 @@ from . import table
 
 
 def global_allow_truncated_result(enabled: bool = True):
+    if convert._default_allow_truncated_result == enabled:
+        return
+
     if enabled:
         warnings.warn("Global allow truncated response is deprecated behaviour.")
 
@@ -12,7 +15,10 @@ def global_allow_truncated_result(enabled: bool = True):
 
 
 def global_allow_split_transactions(enabled: bool):
-    if enabled:
-        warnings.warn("Global allow truncated response is deprecated behaviour.")
+    if table._default_allow_split_transaction == enabled:
+        return
 
-    table._allow_split_transaction = enabled
+    if enabled:
+        warnings.warn("Global allow split transaction is deprecated behaviour.")
+
+    table._default_allow_split_transaction = enabled

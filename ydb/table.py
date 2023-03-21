@@ -27,7 +27,7 @@ try:
 except ImportError:
     interceptor = None
 
-_allow_split_transaction = False
+_default_allow_split_transaction = False
 
 logger = logging.getLogger(__name__)
 
@@ -1181,9 +1181,7 @@ class ISession(abc.ABC):
         pass
 
     @abstractmethod
-    def transaction(
-        self, tx_mode=None, allow_split_transactions=_allow_split_transaction
-    ):
+    def transaction(self, tx_mode=None, allow_split_transactions=None):
         pass
 
     @abstractmethod
@@ -1687,9 +1685,7 @@ class BaseSession(ISession):
             self._state.endpoint,
         )
 
-    def transaction(
-        self, tx_mode=None, allow_split_transactions=_allow_split_transaction
-    ):
+    def transaction(self, tx_mode=None, allow_split_transactions=None):
         return TxContext(
             self._driver,
             self._state,
@@ -2226,7 +2222,7 @@ class BaseTxContext(ITxContext):
         session,
         tx_mode=None,
         *,
-        allow_split_transactions=_allow_split_transaction
+        allow_split_transactions=None
     ):
         """
         An object that provides a simple transaction context manager that allows statements execution
@@ -2413,7 +2409,13 @@ class BaseTxContext(ITxContext):
         Deny all operaions with transaction after commit/rollback.
         Exception: double commit and double rollbacks, because it is safe
         """
-        if self._allow_split_transactions:
+        allow_split_transaction = (
+            self._allow_split_transactions
+            if self._allow_split_transactions is not None
+            else _default_allow_split_transaction
+        )
+
+        if allow_split_transaction:
             return
 
         if self._finished != "" and self._finished != allow:
