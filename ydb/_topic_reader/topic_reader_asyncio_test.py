@@ -4,6 +4,7 @@ import copy
 import datetime
 import gzip
 import typing
+from collections import deque
 from dataclasses import dataclass
 from unittest import mock
 
@@ -51,6 +52,34 @@ def default_executor():
     )
     yield executor
     executor.shutdown()
+
+
+def stub_partition_session():
+    return datatypes.PartitionSession(
+        id=0,
+        state=datatypes.PartitionSession.State.Active,
+        topic_path="asd",
+        partition_id=1,
+        committed_offset=0,
+        reader_reconnector_id=415,
+        reader_stream_id=513,
+    )
+
+
+def stub_message(id: int):
+    return PublicMessage(
+        seqno=id,
+        created_at=datetime.datetime(2023, 3, 18, 14, 15),
+        message_group_id="",
+        session_metadata={},
+        offset=0,
+        written_at=datetime.datetime(2023, 3, 18, 14, 15),
+        producer_id="",
+        data=bytes(),
+        _partition_session=stub_partition_session(),
+        _commit_start_offset=0,
+        _commit_end_offset=1,
+    )
 
 
 @pytest.fixture()
@@ -179,7 +208,9 @@ class TestReaderStream:
 
     @staticmethod
     def create_message(
-        partition_session: datatypes.PartitionSession, seqno: int, offset_delta: int
+        partition_session: typing.Optional[datatypes.PartitionSession],
+        seqno: int,
+        offset_delta: int,
     ):
         return PublicMessage(
             seqno=seqno,
@@ -962,6 +993,101 @@ class TestReaderStream:
             _bytes_size=1,
             _codec=Codec.CODEC_RAW,
         )
+
+    @pytest.mark.parametrize(
+        "batches_before,expected_message,batches_after",
+        [
+            ([], None, []),
+            (
+                [
+                    PublicBatch(
+                        session_metadata={},
+                        messages=[stub_message(1)],
+                        _partition_session=stub_partition_session(),
+                        _bytes_size=0,
+                        _codec=Codec.CODEC_RAW,
+                    )
+                ],
+                stub_message(1),
+                [],
+            ),
+            (
+                [
+                    PublicBatch(
+                        session_metadata={},
+                        messages=[stub_message(1), stub_message(2)],
+                        _partition_session=stub_partition_session(),
+                        _bytes_size=0,
+                        _codec=Codec.CODEC_RAW,
+                    ),
+                    PublicBatch(
+                        session_metadata={},
+                        messages=[stub_message(3), stub_message(4)],
+                        _partition_session=stub_partition_session(),
+                        _bytes_size=0,
+                        _codec=Codec.CODEC_RAW,
+                    ),
+                ],
+                stub_message(1),
+                [
+                    PublicBatch(
+                        session_metadata={},
+                        messages=[stub_message(2)],
+                        _partition_session=stub_partition_session(),
+                        _bytes_size=0,
+                        _codec=Codec.CODEC_RAW,
+                    ),
+                    PublicBatch(
+                        session_metadata={},
+                        messages=[stub_message(3), stub_message(4)],
+                        _partition_session=stub_partition_session(),
+                        _bytes_size=0,
+                        _codec=Codec.CODEC_RAW,
+                    ),
+                ],
+            ),
+            (
+                [
+                    PublicBatch(
+                        session_metadata={},
+                        messages=[stub_message(1)],
+                        _partition_session=stub_partition_session(),
+                        _bytes_size=0,
+                        _codec=Codec.CODEC_RAW,
+                    ),
+                    PublicBatch(
+                        session_metadata={},
+                        messages=[stub_message(2), stub_message(3)],
+                        _partition_session=stub_partition_session(),
+                        _bytes_size=0,
+                        _codec=Codec.CODEC_RAW,
+                    ),
+                ],
+                stub_message(1),
+                [
+                    PublicBatch(
+                        session_metadata={},
+                        messages=[stub_message(2), stub_message(3)],
+                        _partition_session=stub_partition_session(),
+                        _bytes_size=0,
+                        _codec=Codec.CODEC_RAW,
+                    )
+                ],
+            ),
+        ],
+    )
+    async def test_read_message(
+        self,
+        stream_reader,
+        batches_before: typing.List[datatypes.PublicBatch],
+        expected_message: PublicMessage,
+        batches_after: typing.List[datatypes.PublicBatch],
+    ):
+        stream_reader._message_batches = deque(batches_before)
+        mess = stream_reader.receive_message_nowait()
+
+        assert mess == expected_message
+        assert list(stream_reader._message_batches) == batches_after
 
     async def test_receive_batch_nowait(self, stream, stream_reader, partition_session):
         assert stream_reader.receive_batch_nowait() is None
