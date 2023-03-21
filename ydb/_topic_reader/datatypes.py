@@ -192,4 +192,4 @@ class PublicBatch(ICommittable, ISessionAlive):
         )
 
     def pop_message(self) -> PublicMessage:
-        return self.messages.pop()
+        return self.messages.pop(0)
