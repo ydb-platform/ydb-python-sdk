@@ -1,6 +1,6 @@
 import asyncio
+import datetime
 import json
-import time
 from typing import Dict, List
 
 import ydb
@@ -8,7 +8,7 @@ from ydb import TopicWriterMessage
 
 
 async def create_writer(db: ydb.aio.Driver):
-    async with ydb.TopicClientAsyncIO(db).writer(
+    async with db.topic_client.writer(
         "/database/topic/path",
         producer_id="producer-id",
     ) as writer:
@@ -16,15 +16,16 @@ async def create_writer(db: ydb.aio.Driver):
 
 
 async def connect_and_wait(db: ydb.aio.Driver):
-    async with ydb.TopicClientAsyncIO(db).writer(
+    async with db.topic_client.writer(
         "/database/topic/path",
         producer_id="producer-id",
     ) as writer:
-        writer.wait_init()
+        info = await writer.wait_init()  # noqa
+        ...
 
 
 async def connect_without_context_manager(db: ydb.aio.Driver):
-    writer = ydb.TopicClientAsyncIO(db).writer(
+    writer = db.topic_client.writer(
         "/database/topic/path",
         producer_id="producer-id",
     )
@@ -49,7 +50,7 @@ async def send_messages(writer: ydb.TopicWriterAsyncIO):
 
     # with meta
     await writer.write(
-        ydb.TopicWriterMessage("asd", seqno=123, created_at_ns=time.time_ns())
+        ydb.TopicWriterMessage("asd", seqno=123, created_at=datetime.datetime.now())
     )
 
 
@@ -71,7 +72,7 @@ async def send_messages_with_manual_seqno(writer: ydb.TopicWriter):
 
 async def send_messages_with_wait_ack(writer: ydb.TopicWriterAsyncIO):
     # future wait
-    await writer.write_with_result(
+    await writer.write_with_ack(
         [
             ydb.TopicWriterMessage("mess", seqno=1),
             ydb.TopicWriterMessage("mess", seqno=2),
@@ -84,10 +85,10 @@ async def send_messages_with_wait_ack(writer: ydb.TopicWriterAsyncIO):
 
 
 async def send_json_message(db: ydb.aio.Driver):
-    async with ydb.TopicClientAsyncIO(db).writer(
+    async with db.topic_client.writer(
         "/database/path/topic", serializer=json.dumps
     ) as writer:
-        writer.write({"a": 123})
+        await writer.write({"a": 123})
 
 
 async def send_messages_and_wait_all_commit_with_flush(writer: ydb.TopicWriterAsyncIO):
@@ -99,14 +100,11 @@ async def send_messages_and_wait_all_commit_with_flush(writer: ydb.TopicWriterAs
 async def send_messages_and_wait_all_commit_with_results(
     writer: ydb.TopicWriterAsyncIO,
 ):
-    last_future = None
     for i in range(10):
         content = "%s" % i
-        last_future = await writer.write_with_ack(content)
+        await writer.write(content)
 
-    await asyncio.wait(last_future)
-    if last_future.exception() is not None:
-        raise last_future.exception()
+    await writer.flush()
 
 
 async def switch_messages_with_many_producers(
@@ -118,7 +116,7 @@ async def switch_messages_with_many_producers(
         # select writer for the msg
         writer_idx = msg[:1]
         writer = writers[writer_idx]
-        future = await writer.write_with_ack(msg)
+        future = await writer.write_with_ack_future(msg)
         futures.append(future)
 
     # wait acks from all writes

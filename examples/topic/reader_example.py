@@ -9,33 +9,37 @@ def connect():
         connection_string="grpc://localhost:2135?database=/local",
         credentials=ydb.credentials.AnonymousCredentials(),
     )
-    reader = ydb.TopicClient(db).reader("/local/topic", consumer="consumer")
+    reader = db.topic_client.reader("/local/topic", consumer="consumer")
     return reader
 
 
 def create_reader_and_close_with_context_manager(db: ydb.Driver):
-    with ydb.TopicClient(db).reader(
+    with db.topic_client.reader(
         "/database/topic/path", consumer="consumer", buffer_size_bytes=123
     ) as reader:
-        for message in reader:
+        while True:
+            message = reader.receive_message()  # noqa
             pass
 
 
 def print_message_content(reader: ydb.TopicReader):
-    for message in reader.messages():
+    while True:
+        message = reader.receive_message()
         print("text", message.data.read().decode("utf-8"))
         reader.commit(message)
 
 
 def process_messages_batch_explicit_commit(reader: ydb.TopicReader):
-    for batch in reader.batches(max_messages=100, timeout=2):
+    while True:
+        batch = reader.receive_batch()
         for message in batch.messages:
             _process(message)
         reader.commit(batch)
 
 
 def process_messages_batch_context_manager_commit(reader: ydb.TopicReader):
-    for batch in reader.batches(max_messages=100, timeout=2):
+    while True:
+        batch = reader.receive_batch()
         with reader.commit_on_exit(batch):
             for message in batch.messages:
                 _process(message)
@@ -52,9 +56,12 @@ def get_message_with_timeout(reader: ydb.TopicReader):
 
 
 def get_all_messages_with_small_wait(reader: ydb.TopicReader):
-    for message in reader.messages(timeout=1):
-        _process(message)
-    print("Have no new messages in a second")
+    while True:
+        try:
+            message = reader.receive_message(timeout=1)
+            _process(message)
+        except TimeoutError:
+            print("Have no new messages in a second")
 
 
 def get_a_message_from_external_loop(reader: ydb.TopicReader):
@@ -81,30 +88,23 @@ def get_one_batch_from_external_loop(reader: ydb.TopicReader):
 def auto_deserialize_message(db: ydb.Driver):
     # async, batch work similar to this
 
-    reader = ydb.TopicClient(db).reader(
+    reader = db.topic_client.reader(
         "/database/topic/path", consumer="asd", deserializer=json.loads
     )
-    for message in reader.messages():
+    while True:
+        message = reader.receive_message()
         print(
             message.data.Name
         )  # message.data replaces by json.loads(message.data) of raw message
         reader.commit(message)
 
 
-def commit_batch_with_context(reader: ydb.TopicReader):
-    for batch in reader.batches():
-        with reader.commit_on_exit(batch):
-            for message in batch.messages:
-                if not batch.is_alive:
-                    break
-                _process(message)
-
-
 def handle_partition_stop(reader: ydb.TopicReader):
-    for message in reader.messages():
-        time.sleep(1)  # some work
+    while True:
+        message = reader.receive_message()
+        time.sleep(123)  # some work
         if message.is_alive:
-            time.sleep(123)  # some other work
+            time.sleep(1)  # some other work
             reader.commit(message)
 
 
@@ -118,25 +118,28 @@ def handle_partition_stop_batch(reader: ydb.TopicReader):
             _process(message)
         reader.commit(batch)
 
-    for batch in reader.batches():
+    while True:
+        batch = reader.receive_batch()
         process_batch(batch)
 
 
 def connect_and_read_few_topics(db: ydb.Driver):
-    with ydb.TopicClient(db).reader(
+    with db.topic_client.reader(
         [
             "/database/topic/path",
             ydb.TopicSelector("/database/second-topic", partitions=3),
         ]
     ) as reader:
-        for message in reader:
+        while True:
+            message = reader.receive_message()
             _process(message)
             reader.commit(message)
 
 
 def handle_partition_graceful_stop_batch(reader: ydb.TopicReader):
     # no special handle, but batch will contain less than prefer count messages
-    for batch in reader.batches():
+    while True:
+        batch = reader.receive_batch()
         _process(batch)
         reader.commit(batch)
 
@@ -146,10 +149,11 @@ def advanced_commit_notify(db: ydb.Driver):
         print(event.topic)
         print(event.offset)
 
-    with ydb.TopicClient(db).reader(
+    with db.topic_client.reader(
         "/local", consumer="consumer", commit_batch_time=4, on_commit=on_commit
     ) as reader:
-        for message in reader:
+        while True:
+            message = reader.receive_message()
             with reader.commit_on_exit(message):
                 _process(message)
 
@@ -164,12 +168,13 @@ def advanced_read_with_own_progress_storage(db: ydb.TopicReader):
         resp.start_offset = 123
         return resp
 
-    with ydb.TopicClient(db).reader(
+    with db.topic_client.reader(
         "/local/test",
         consumer="consumer",
         on_get_partition_start_offset=on_get_partition_start_offset,
     ) as reader:
-        for mess in reader:
+        while True:
+            mess = reader.receive_message()
             _process(mess)
             # save progress to own database
 
