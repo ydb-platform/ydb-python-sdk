@@ -10,14 +10,14 @@ async def connect():
         connection_string="grpc://localhost:2135?database=/local",
         credentials=ydb.credentials.AnonymousCredentials(),
     )
-    reader = ydb.TopicClientAsyncIO(db).reader("/local/topic", consumer="consumer")
+    reader = db.topic_client.reader("/local/topic", consumer="consumer")
     return reader
 
 
 async def create_reader_and_close_with_context_manager(db: ydb.aio.Driver):
-    async with ydb.TopicClientAsyncIO(db).reader(
+    async with db.topic_client.reader(
         "/database/topic/path", consumer="consumer"
-    ) as reader:
+    ) as reader:  # noqa
         ...
 
 
@@ -80,7 +80,7 @@ async def get_one_batch_from_external_loop_async(reader: ydb.TopicReaderAsyncIO)
 async def auto_deserialize_message(db: ydb.aio.Driver):
     # async, batch work similar to this
 
-    async with ydb.TopicClientAsyncIO(db).reader(
+    async with db.topic_client.reader(
         "/database/topic/path", consumer="asd", deserializer=json.loads
     ) as reader:
         while True:
@@ -116,7 +116,7 @@ async def handle_partition_stop_batch(reader: ydb.TopicReaderAsyncIO):
 
 
 async def connect_and_read_few_topics(db: ydb.aio.Driver):
-    with ydb.TopicClientAsyncIO(db).reader(
+    with db.topic_client.reader(
         [
             "/database/topic/path",
             ydb.TopicSelector("/database/second-topic", partitions=3),
@@ -133,7 +133,7 @@ async def advanced_commit_notify(db: ydb.aio.Driver):
         print(event.topic)
         print(event.offset)
 
-    async with ydb.TopicClientAsyncIO(db).reader(
+    async with db.topic_client.reader(
         "/local", consumer="consumer", commit_batch_time=4, on_commit=on_commit
     ) as reader:
         while True:
@@ -151,12 +151,13 @@ async def advanced_read_with_own_progress_storage(db: ydb.TopicReaderAsyncIO):
         resp.start_offset = 123
         return resp
 
-    async with ydb.TopicClient(db).reader(
+    async with db.topic_client.reader(
         "/local/test",
         consumer="consumer",
         on_get_partition_start_offset=on_get_partition_start_offset,
     ) as reader:
-        async for mess in reader.messages():
+        while True:
+            mess = reader.receive_message()
             await _process(mess)
             # save progress to own database
 

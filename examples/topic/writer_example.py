@@ -1,6 +1,6 @@
 import concurrent.futures
+import datetime
 import json
-import time
 from typing import Dict, List
 from concurrent.futures import Future, wait
 
@@ -8,20 +8,20 @@ import ydb
 from ydb import TopicWriterMessage
 
 
-async def connect():
-    db = ydb.aio.Driver(
+def connect():
+    db = ydb.Driver(
         connection_string="grpc://localhost:2135?database=/local",
         credentials=ydb.credentials.AnonymousCredentials(),
     )
-    writer = ydb.TopicClientAsyncIO(db).writer(
+    writer = db.topic_client.writer(
         "/local/topic",
         producer_id="producer-id",
     )
-    await writer.write(TopicWriterMessage("asd"))
+    writer.write(TopicWriterMessage("asd"))
 
 
 def create_writer(db: ydb.Driver):
-    with ydb.TopicClient(db).writer(
+    with db.topic_client.writer(
         "/database/topic/path",
         producer_id="producer-id",
     ) as writer:
@@ -29,15 +29,15 @@ def create_writer(db: ydb.Driver):
 
 
 def connect_and_wait(db: ydb.Driver):
-    with ydb.TopicClient(db).writer(
+    with db.topic_client.writer(
         "/database/topic/path",
         producer_id="producer-id",
     ) as writer:
-        writer.wait()
+        info = writer.wait_init()  # noqa
 
 
 def connect_without_context_manager(db: ydb.Driver):
-    writer = ydb.TopicClient(db).writer(
+    writer = db.topic_client.writer(
         "/database/topic/path",
         producer_id="producer-id",
     )
@@ -61,7 +61,9 @@ def send_messages(writer: ydb.TopicWriter):
     )  # send few messages by one call
 
     # with meta
-    writer.write(ydb.TopicWriterMessage("asd", seqno=123, created_at_ns=time.time_ns()))
+    writer.write(
+        ydb.TopicWriterMessage("asd", seqno=123, created_at=datetime.datetime.now())
+    )
 
 
 def send_message_without_block_if_internal_buffer_is_full(
@@ -101,7 +103,7 @@ def send_messages_with_wait_ack(writer: ydb.TopicWriter):
 
 
 def send_json_message(db: ydb.Driver):
-    with ydb.TopicClient(db).writer(
+    with db.topic_client.writer(
         "/database/path/topic", serializer=json.dumps
     ) as writer:
         writer.write({"a": 123})
