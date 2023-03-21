@@ -179,7 +179,7 @@ class PublicBatch(ICommittable, ISessionAlive):
             self.messages[-1]._commit_get_offsets_range().end,
         )
 
-    def is_empty(self) -> bool:
+    def empty(self) -> bool:
         return len(self.messages) == 0
 
     # ISessionAlive implementation
@@ -192,9 +192,4 @@ class PublicBatch(ICommittable, ISessionAlive):
         )
 
     def pop_message(self) -> PublicMessage:
-        if len(self.messages) == 0:
-            raise IndexError()
-
-        res = self.messages[0]
-        self.messages = self.messages[1:]
-        return res
+        return self.messages.pop()

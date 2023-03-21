@@ -125,7 +125,7 @@ class PublicAsyncIOReader:
         await self._reconnector.wait_message()
         return self._reconnector.receive_batch_nowait()
 
-    async def receive_message(self) -> typing.Union[datatypes.PublicMessage, None]:
+    async def receive_message(self) -> typing.Optional[datatypes.PublicMessage]:
         """
         Block until receive new message
 
@@ -414,7 +414,7 @@ class ReaderStream:
         except IndexError:
             return None
 
-        if batch.is_empty():
+        if batch.empty():
             self._message_batches.popleft()
 
         return message
