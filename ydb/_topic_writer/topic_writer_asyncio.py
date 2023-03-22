@@ -384,17 +384,21 @@ class WriterAsyncIOReconnector:
                     await stream_writer.close()
                 for task in tasks:
                     task.cancel()
-                await asyncio.wait(tasks)
+                if tasks:
+                    await asyncio.wait(tasks)
 
     async def _encode_loop(self):
-        while True:
-            messages = await self._messages_for_encode.get()
-            while not self._messages_for_encode.empty():
-                messages.extend(self._messages_for_encode.get_nowait())
+        try:
+            while True:
+                messages = await self._messages_for_encode.get()
+                while not self._messages_for_encode.empty():
+                    messages.extend(self._messages_for_encode.get_nowait())
 
-            batch_codec = await self._codec_selector(messages)
-            await self._encode_data_inplace(batch_codec, messages)
-            self._add_messages_to_send_queue(messages)
+                batch_codec = await self._codec_selector(messages)
+                await self._encode_data_inplace(batch_codec, messages)
+                self._add_messages_to_send_queue(messages)
+        except BaseException as err:
+            self._stop(err)
 
     async def _encode_data_inplace(self, codec: PublicCodec, messages: List[InternalMessage]):
         if codec == PublicCodec.RAW:
@@ -531,10 +535,9 @@ class WriterAsyncIOReconnector:
                     writer.write([m])
         except Exception as e:
             self._stop(e)
-        finally:
-            pass
+            raise
 
-    def _stop(self, reason: Exception):
+    def _stop(self, reason: BaseException):
         if reason is None:
             raise Exception("writer stop reason can not be None")
 
@@ -554,7 +557,7 @@ class WriterAsyncIOReconnector:
             return
 
         # wait last message
-        await asyncio.wait((self._messages_future[-1],))
+        await asyncio.wait(self._messages_future)
 
 
 class WriterAsyncIOStream:
@@ -647,7 +650,7 @@ class WriterAsyncIOStream:
     @staticmethod
     def _ensure_ok(message: WriterMessagesFromServerToClient):
         if not message.status.is_success():
-            raise TopicWriterError("status error from server in writer: %s", message.status)
+            raise TopicWriterError(f"status error from server in writer: {message.status}")
 
     def write(self, messages: List[InternalMessage]):
         if self._closed:

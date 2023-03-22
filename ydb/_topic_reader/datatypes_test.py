@@ -175,7 +175,7 @@ class TestPartitionSession:
             ),
         ],
     )
-    def test_add_waiter(
+    async def test_add_waiter(
         self,
         session,
         original: List[PartitionSession.CommitAckWaiter],
@@ -188,13 +188,13 @@ class TestPartitionSession:
         assert result == session._ack_waiters
         assert res.future.done() == is_done
 
-    def test_close_notify_waiters(self, session):
+    async def test_close_notify_waiters(self, session):
         waiter = session.add_waiter(session.committed_offset + 1)
         session.close()
 
         with pytest.raises(topic_reader_asyncio.TopicReaderCommitToExpiredPartition):
             waiter.future.result()
 
-    def test_close_twice(self, session):
+    async def test_close_twice(self, session):
         session.close()
         session.close()

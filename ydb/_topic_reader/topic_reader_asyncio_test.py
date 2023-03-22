@@ -411,6 +411,8 @@ class TestReaderStream:
         received = stream_reader_started.receive_batch_nowait().messages
         assert received == [m2]
 
+        await stream_reader_started.close()
+
     # noinspection PyTypeChecker
     @pytest.mark.parametrize(
         "batch,data_out",
