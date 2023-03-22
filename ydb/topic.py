@@ -1,22 +1,22 @@
 from __future__ import annotations
 
 __all__ = [
-    'TopicClient',
-    'TopicClientAsyncIO',
-    'TopicClientSettings',
-    'TopicCodec',
-    'TopicConsumer',
-    'TopicDescription',
-    'TopicError',
-    'TopicMeteringMode',
-    'TopicReader',
-    'TopicReaderAsyncIO',
-    'TopicReaderSettings',
-    'TopicStatWindow',
-    'TopicWriter',
-    'TopicWriterAsyncIO',
-    'TopicWriterMessage',
-    'TopicWriterSettings',
+    "TopicClient",
+    "TopicClientAsyncIO",
+    "TopicClientSettings",
+    "TopicCodec",
+    "TopicConsumer",
+    "TopicDescription",
+    "TopicError",
+    "TopicMeteringMode",
+    "TopicReader",
+    "TopicReaderAsyncIO",
+    "TopicReaderSettings",
+    "TopicStatWindow",
+    "TopicWriter",
+    "TopicWriterAsyncIO",
+    "TopicWriterMessage",
+    "TopicWriterSettings",
 ]
 
 import concurrent.futures
