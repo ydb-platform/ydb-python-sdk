@@ -44,10 +44,6 @@ class WriterAsyncIO:
     _reconnector: "WriterAsyncIOReconnector"
     _closed: bool
 
-    @property
-    def last_seqno(self) -> int:
-        raise NotImplementedError()
-
     def __init__(self, driver: SupportedDriverType, settings: PublicWriterSettings):
         self._loop = asyncio.get_running_loop()
         self._closed = False

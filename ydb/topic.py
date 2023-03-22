@@ -1,5 +1,24 @@
 from __future__ import annotations
 
+__all__ = [
+    "TopicClient",
+    "TopicClientAsyncIO",
+    "TopicClientSettings",
+    "TopicCodec",
+    "TopicConsumer",
+    "TopicDescription",
+    "TopicError",
+    "TopicMeteringMode",
+    "TopicReader",
+    "TopicReaderAsyncIO",
+    "TopicReaderSettings",
+    "TopicStatWindow",
+    "TopicWriter",
+    "TopicWriterAsyncIO",
+    "TopicWriterMessage",
+    "TopicWriterSettings",
+]
+
 import concurrent.futures
 import datetime
 from dataclasses import dataclass
@@ -145,18 +164,6 @@ class TopicClientAsyncIO:
         decoder_executor: Optional[
             concurrent.futures.Executor
         ] = None,  # default shared client executor pool
-        # on_commit: Callable[["Events.OnCommit"], None] = None
-        # on_get_partition_start_offset: Callable[
-        #     ["Events.OnPartitionGetStartOffsetRequest"],
-        #     "Events.OnPartitionGetStartOffsetResponse",
-        # ] = None
-        # on_partition_session_start: Callable[["StubEvent"], None] = None
-        # on_partition_session_stop: Callable[["StubEvent"], None] = None
-        # on_partition_session_close: Callable[["StubEvent"], None] = None  # todo?
-        # deserializer: Union[Callable[[bytes], Any], None] = None
-        # one_attempt_connection_timeout: Union[float, None] = 1
-        # connection_timeout: Union[float, None] = None
-        # retry_policy: Union["RetryPolicy", None] = None
     ) -> TopicReaderAsyncIO:
 
         if not decoder_executor:
@@ -314,18 +321,6 @@ class TopicClient:
         decoder_executor: Optional[
             concurrent.futures.Executor
         ] = None,  # default shared client executor pool
-        # on_commit: Callable[["Events.OnCommit"], None] = None
-        # on_get_partition_start_offset: Callable[
-        #     ["Events.OnPartitionGetStartOffsetRequest"],
-        #     "Events.OnPartitionGetStartOffsetResponse",
-        # ] = None
-        # on_partition_session_start: Callable[["StubEvent"], None] = None
-        # on_partition_session_stop: Callable[["StubEvent"], None] = None
-        # on_partition_session_close: Callable[["StubEvent"], None] = None  # todo?
-        # deserializer: Union[Callable[[bytes], Any], None] = None
-        # one_attempt_connection_timeout: Union[float, None] = 1
-        # connection_timeout: Union[float, None] = None
-        # retry_policy: Union["RetryPolicy", None] = None
     ) -> TopicReader:
         if not decoder_executor:
             decoder_executor = self._executor

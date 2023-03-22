@@ -1,6 +1,5 @@
 import asyncio
 import datetime
-import json
 from typing import Dict, List
 
 import ydb
@@ -84,13 +83,6 @@ async def send_messages_with_wait_ack(writer: ydb.TopicWriterAsyncIO):
     await writer.flush()
 
 
-async def send_json_message(db: ydb.aio.Driver):
-    async with db.topic_client.writer(
-        "/database/path/topic", serializer=json.dumps
-    ) as writer:
-        await writer.write({"a": 123})
-
-
 async def send_messages_and_wait_all_commit_with_flush(writer: ydb.TopicWriterAsyncIO):
     for i in range(10):
         await writer.write(ydb.TopicWriterMessage("%s" % i))
@@ -127,8 +119,3 @@ async def switch_messages_with_many_producers(
 
     # all ok, explicit return - for better
     return
-
-
-async def get_current_statistics(reader: ydb.TopicReaderAsyncIO):
-    stat = await reader.sessions_stat()
-    print(stat)
