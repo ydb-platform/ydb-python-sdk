@@ -1,3 +1,4 @@
+## 3.0.1b12 ##
 * Added flush reader commits on reader close
 * Fix stop executor in python 3.8
 * Fix handle background errors
