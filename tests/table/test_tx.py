@@ -80,6 +80,7 @@ def test_tx_snapshot_ro(driver_sync, database):
 
     ro_tx.commit()
 
+    ro_tx = session.transaction(tx_mode=ydb.SnapshotReadOnly())
     with pytest.raises(ydb.issues.GenericError) as exc_info:
         ro_tx.execute("UPDATE `test` SET value = value + 1")
     assert "read only transaction" in exc_info.value.message
@@ -91,7 +92,7 @@ def test_tx_snapshot_ro(driver_sync, database):
     assert data[0].rows == [{"value": 2}]
 
 
-def test_split_transactions_deny_split_explicit_commit(driver_sync, table_name):
+def test_split_transactions_deny_split(driver_sync, table_name):
     with ydb.SessionPool(driver_sync, 1) as pool:
 
         def check_transaction(s: ydb.table.Session):
@@ -158,12 +159,14 @@ def test_split_transactions_default(driver_sync, table_name):
                 tx.execute("INSERT INTO %s (id) VALUES (1)" % table_name)
                 tx.commit()
 
-                tx.execute("INSERT INTO %s (id) VALUES (2)" % table_name)
+                with pytest.raises(RuntimeError):
+                    tx.execute("INSERT INTO %s (id) VALUES (2)" % table_name)
+
                 tx.commit()
 
             with s.transaction() as tx:
                 rs = tx.execute("SELECT COUNT(*) as cnt FROM %s" % table_name)
-                assert rs[0].rows[0].cnt == 2
+                assert rs[0].rows[0].cnt == 1
 
         pool.retry_operation_sync(check_transaction)
 
@@ -185,14 +188,11 @@ def test_truncated_response(driver_sync, table_name, table_path):
     s = table_client.session()
     s.create()
     t = s.transaction()
-
-    result = t.execute("SELECT * FROM %s" % table_name)
-    assert result[0].truncated
-    assert len(result[0].rows) == 1000
+    with pytest.raises(ydb.TruncatedResponseError):
+        t.execute("SELECT * FROM %s" % table_name)
 
 
-@pytest.mark.asyncio
-async def test_truncated_response_deny(driver_sync, table_name, table_path):
+def test_truncated_response_allow(driver_sync, table_name, table_path):
     column_types = ydb.BulkUpsertColumns().add_column("id", ydb.PrimitiveType.Int64)
 
     rows = []
@@ -204,11 +204,11 @@ async def test_truncated_response_deny(driver_sync, table_name, table_path):
     driver_sync.table_client.bulk_upsert(table_path, rows, column_types)
 
     table_client = ydb.TableClient(
-        driver_sync, ydb.TableClientSettings().with_allow_truncated_result(False)
+        driver_sync, ydb.TableClientSettings().with_allow_truncated_result(True)
     )
     s = table_client.session()
     s.create()
     t = s.transaction()
-
-    with pytest.raises(ydb.TruncatedResponseError):
-        t.execute("SELECT * FROM %s" % table_name)
+    result = t.execute("SELECT * FROM %s" % table_name)
+    assert result[0].truncated
+    assert len(result[0].rows) == 1000

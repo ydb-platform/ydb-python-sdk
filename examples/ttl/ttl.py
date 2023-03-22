@@ -307,7 +307,7 @@ def _run(driver, database, path):
 
 def run(endpoint, database, path):
     driver_config = ydb.DriverConfig(
-        endpoint, database, credentials=ydb.construct_credentials_from_environ()
+        endpoint, database, credentials=ydb.credentials_from_env_variables()
     )
     with ydb.Driver(driver_config) as driver:
         try:

@@ -1,3 +1,54 @@
+## 3.0.1b11 ##
+* Fixed global_allow_split_transactions
+* Added reader.receive_message() method
+* Swap topic_path and consumer arguments in topic_client.reader method
+
+## 3.0.1b10 ##
+* fixed sqlalchemy get_columns method with not null columns
+* fixed requirements.txt
+
+## 3.0.1b9 ##
+* Add function for global revert broken behaviour: ydb.global_allow_truncated_result, ydb.global_allow_split_transactions
+* Change argument names from deny_split_transactions to allow_split_transactions (with reverse value
+* Fixed check retriable for idempotent error
+* Reader codecs
+* Read one message
+* fixed sqlalchemy get_columns method with not null columns
+
+## 3.0.1b8 ##
+* Fixed exception while create ResultSet with None table_settings
+
+## 3.0.1b7 ##
+* BROKEN CHANGE: deny any action in transaction after commit/rollback
+* BROKEN CHANGE: raise exception for truncated response by default
+* Compatible protobaf detection for arcadia
+* Add codecs support for topic writer
+
+## 3.0.1b6 ##
+* BROKEN CHANGES: remove writer.write(mess1, mess2) variant, use list instead: writer.write([mess1, mess2])
+* BROKEN CHANGES: change names of public method in topic client
+* BROKEN CHANGES: rename parameter producer_and_message_group_id to producer_id
+* producer_id is optional now
+
+## 3.0.1b5 ##
+* Remove six package from code and dependencies (remove support python2)
+* Use anonymous credentials by default instead of iam metadata (use ydb.driver.credentials_from_env_variables for creds by env var)
+* Close grpc streams while closing readers/writers
+* Add control plane operations for topic api: create, drop
+* Add six package to requirements
+
+## 3.0.1b4 ##
+* Initial implementation of topic reader
+
+## 3.0.1b3 ##
+* Fix error of check retriable error for idempotent operations (error exist since 2.12.1)
+
+## 3.0.1b2 ##
+* Add initial topic writer
+
+## 3.0.1b1 ##
+* start 3.0 beta branch
+
 ## 2.13.4 ##
 * fixed sqlalchemy get_columns method with not null columns
 

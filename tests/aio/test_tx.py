@@ -85,6 +85,7 @@ async def test_tx_snapshot_ro(driver, database):
 
     await ro_tx.commit()
 
+    ro_tx = session.transaction(tx_mode=ydb.SnapshotReadOnly())
     with pytest.raises(ydb.issues.GenericError) as exc_info:
         await ro_tx.execute("UPDATE `test` SET value = value + 1")
     assert "read only transaction" in exc_info.value.message
@@ -167,12 +168,14 @@ async def test_split_transactions_default(driver, table_name):
                 await tx.execute("INSERT INTO %s (id) VALUES (1)" % table_name)
                 await tx.commit()
 
-                await tx.execute("INSERT INTO %s (id) VALUES (2)" % table_name)
+                with pytest.raises(RuntimeError):
+                    await tx.execute("INSERT INTO %s (id) VALUES (2)" % table_name)
+
                 await tx.commit()
 
             async with s.transaction() as tx:
                 rs = await tx.execute("SELECT COUNT(*) as cnt FROM %s" % table_name)
-                assert rs[0].rows[0].cnt == 2
+                assert rs[0].rows[0].cnt == 1
 
         await pool.retry_operation(check_transaction)
 
@@ -193,14 +196,12 @@ async def test_truncated_response(driver, table_name, table_path):
     s = table_client.session()
     await s.create()
     t = s.transaction()
-
-    result = await t.execute("SELECT * FROM %s" % table_name)
-    assert result[0].truncated
-    assert len(result[0].rows) == 1000
+    with pytest.raises(ydb.TruncatedResponseError):
+        await t.execute("SELECT * FROM %s" % table_name)
 
 
 @pytest.mark.asyncio
-async def test_truncated_response_deny(driver, table_name, table_path):
+async def test_truncated_response_allow(driver, table_name, table_path):
     column_types = ydb.BulkUpsertColumns().add_column("id", ydb.PrimitiveType.Int64)
 
     rows = []
@@ -212,11 +213,11 @@ async def test_truncated_response_deny(driver, table_name, table_path):
     await driver.table_client.bulk_upsert(table_path, rows, column_types)
 
     table_client = ydb.TableClient(
-        driver, ydb.TableClientSettings().with_allow_truncated_result(False)
+        driver, ydb.TableClientSettings().with_allow_truncated_result(True)
     )
     s = table_client.session()
     await s.create()
     t = s.transaction()
-
-    with pytest.raises(ydb.TruncatedResponseError):
-        await t.execute("SELECT * FROM %s" % table_name)
+    result = await t.execute("SELECT * FROM %s" % table_name)
+    assert result[0].truncated
+    assert len(result[0].rows) == 1000

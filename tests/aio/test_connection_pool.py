@@ -11,8 +11,6 @@ async def test_async_call(endpoint, database):
     driver_config = ydb.DriverConfig(
         endpoint,
         database,
-        credentials=ydb.construct_credentials_from_environ(),
-        root_certificates=ydb.load_ydb_root_certificate(),
     )
 
     driver = Driver(driver_config=driver_config)
@@ -26,8 +24,6 @@ async def test_gzip_compression(endpoint, database):
     driver_config = ydb.DriverConfig(
         endpoint,
         database,
-        credentials=ydb.construct_credentials_from_environ(),
-        root_certificates=ydb.load_ydb_root_certificate(),
         compression=ydb.RPCCompression.Gzip,
     )
 
@@ -53,8 +49,6 @@ async def test_session(endpoint, database):
     driver_config = ydb.DriverConfig(
         endpoint,
         database,
-        credentials=ydb.construct_credentials_from_environ(),
-        root_certificates=ydb.load_ydb_root_certificate(),
     )
 
     driver = Driver(driver_config=driver_config)
@@ -98,8 +92,6 @@ async def test_raises_when_disconnect(endpoint, database, docker_project):
     driver_config = ydb.DriverConfig(
         endpoint,
         database,
-        credentials=ydb.construct_credentials_from_environ(),
-        root_certificates=ydb.load_ydb_root_certificate(),
     )
 
     driver = Driver(driver_config=driver_config)
@@ -124,8 +116,6 @@ async def test_disconnect_by_call(endpoint, database, docker_project):
     driver_config = ydb.DriverConfig(
         endpoint,
         database,
-        credentials=ydb.construct_credentials_from_environ(),
-        root_certificates=ydb.load_ydb_root_certificate(),
     )
 
     driver = Driver(driver_config=driver_config)
