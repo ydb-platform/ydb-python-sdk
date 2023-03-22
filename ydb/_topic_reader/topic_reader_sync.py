@@ -126,7 +126,7 @@ class TopicReaderSync:
         """
         self._check_closed()
 
-        self._caller.call_sync(self._async_reader.commit(mess))
+        self._caller.call_sync(lambda: self._async_reader.commit(mess))
 
     def commit_with_ack(
         self,
