@@ -120,14 +120,6 @@ class PublicAsyncIOReader:
         waiter = self._reconnector.commit(batch)
         await waiter.future
 
-    async def flush(self):
-        """
-        force send all commit messages from internal buffers to server and wait acks for all of them.
-
-        use asyncio.wait_for for wait with timeout.
-        """
-        await self._reconnector.flush()
-
     async def close(self, flush: bool = True):
         if self._closed:
             raise TopicReaderClosedError()
