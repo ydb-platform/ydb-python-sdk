@@ -7,7 +7,7 @@ import enum
 from collections import deque
 from dataclasses import dataclass, field
 import datetime
-from typing import Mapping, Union, Any, List, Dict, Deque, Optional
+from typing import Union, Any, List, Dict, Deque, Optional
 
 from ydb._grpc.grpcwrapper.ydb_topic import OffsetsRange, Codec
 from ydb._topic_reader import topic_reader_asyncio
@@ -26,7 +26,7 @@ class ICommittable(abc.ABC):
 class ISessionAlive(abc.ABC):
     @property
     @abc.abstractmethod
-    def is_alive(self) -> bool:
+    def alive(self) -> bool:
         pass
 
 
@@ -54,8 +54,8 @@ class PublicMessage(ICommittable, ISessionAlive):
 
     # ISessionAlive implementation
     @property
-    def is_alive(self) -> bool:
-        raise NotImplementedError()
+    def alive(self) -> bool:
+        return not self._partition_session.closed
 
 
 @dataclass
@@ -127,15 +127,17 @@ class PartitionSession:
                 break
 
     def close(self):
-        try:
-            self._ensure_not_closed()
-        except topic_reader_asyncio.TopicReaderCommitToExpiredPartition:
+        if self.closed:
             return
 
         self.state = PartitionSession.State.Stopped
         exception = topic_reader_asyncio.TopicReaderCommitToExpiredPartition()
         for waiter in self._ack_waiters:
             waiter._finish_error(exception)
+
+    @property
+    def closed(self):
+        return self.state == PartitionSession.State.Stopped
 
     def _ensure_not_closed(self):
         if self.state == PartitionSession.State.Stopped:
@@ -164,7 +166,6 @@ class PartitionSession:
 
 @dataclass
 class PublicBatch(ICommittable, ISessionAlive):
-    session_metadata: Mapping[str, str]
     messages: List[PublicMessage]
     _partition_session: PartitionSession
     _bytes_size: int
@@ -184,12 +185,8 @@ class PublicBatch(ICommittable, ISessionAlive):
 
     # ISessionAlive implementation
     @property
-    def is_alive(self) -> bool:
-        state = self._partition_session.state
-        return (
-            state == PartitionSession.State.Active
-            or state == PartitionSession.State.GracefulShutdown
-        )
+    def alive(self) -> bool:
+        return not self._partition_session.closed
 
     def pop_message(self) -> PublicMessage:
         return self.messages.pop(0)

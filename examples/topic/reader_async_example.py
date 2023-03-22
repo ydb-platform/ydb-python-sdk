@@ -1,5 +1,4 @@
 import asyncio
-import json
 import time
 
 import ydb
@@ -77,25 +76,11 @@ async def get_one_batch_from_external_loop_async(reader: ydb.TopicReaderAsyncIO)
         await reader.commit(batch)
 
 
-async def auto_deserialize_message(db: ydb.aio.Driver):
-    # async, batch work similar to this
-
-    async with db.topic_client.reader(
-        "/database/topic/path", consumer="asd", deserializer=json.loads
-    ) as reader:
-        while True:
-            message = await reader.receive_message()
-            print(
-                message.data.Name
-            )  # message.data replaces by json.loads(message.data) of raw message
-            reader.commit(message)
-
-
 async def handle_partition_stop(reader: ydb.TopicReaderAsyncIO):
     while True:
         message = await reader.receive_message()
         time.sleep(123)  # some work
-        if message.is_alive:
+        if message.alive:
             time.sleep(1)  # some other work
             await reader.commit(message)
 
@@ -103,7 +88,7 @@ async def handle_partition_stop(reader: ydb.TopicReaderAsyncIO):
 async def handle_partition_stop_batch(reader: ydb.TopicReaderAsyncIO):
     def process_batch(batch):
         for message in batch.messages:
-            if not batch.is_alive:
+            if not batch.alive:
                 # no reason work with expired batch
                 # go read next - good batch
                 return
@@ -113,56 +98,6 @@ async def handle_partition_stop_batch(reader: ydb.TopicReaderAsyncIO):
     while True:
         batch = await reader.receive_batch()
         process_batch(batch)
-
-
-async def connect_and_read_few_topics(db: ydb.aio.Driver):
-    with db.topic_client.reader(
-        [
-            "/database/topic/path",
-            ydb.TopicSelector("/database/second-topic", partitions=3),
-        ]
-    ) as reader:
-        while True:
-            message = await reader.receive_message()
-            await _process(message)
-            await reader.commit(message)
-
-
-async def advanced_commit_notify(db: ydb.aio.Driver):
-    def on_commit(event: ydb.TopicReaderEvents.OnCommit) -> None:
-        print(event.topic)
-        print(event.offset)
-
-    async with db.topic_client.reader(
-        "/local", consumer="consumer", commit_batch_time=4, on_commit=on_commit
-    ) as reader:
-        while True:
-            message = await reader.receive_message()
-            await _process(message)
-            await reader.commit(message)
-
-
-async def advanced_read_with_own_progress_storage(db: ydb.TopicReaderAsyncIO):
-    async def on_get_partition_start_offset(
-        req: ydb.TopicReaderEvents.OnPartitionGetStartOffsetRequest,
-    ) -> ydb.TopicReaderEvents.OnPartitionGetStartOffsetResponse:
-        # read current progress from database
-        resp = ydb.TopicReaderEvents.OnPartitionGetStartOffsetResponse()
-        resp.start_offset = 123
-        return resp
-
-    async with db.topic_client.reader(
-        "/local/test",
-        consumer="consumer",
-        on_get_partition_start_offset=on_get_partition_start_offset,
-    ) as reader:
-        while True:
-            mess = reader.receive_message()
-            await _process(mess)
-            # save progress to own database
-
-            # no commit progress to topic service
-            # reader.commit(mess)
 
 
 async def _process(msg):

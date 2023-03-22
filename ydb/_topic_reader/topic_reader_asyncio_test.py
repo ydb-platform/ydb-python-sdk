@@ -413,7 +413,6 @@ class TestReaderStream:
         [
             (
                 PublicBatch(
-                    session_metadata={},
                     messages=[
                         PublicMessage(
                             seqno=1,
@@ -437,7 +436,6 @@ class TestReaderStream:
             ),
             (
                 PublicBatch(
-                    session_metadata={},
                     messages=[
                         PublicMessage(
                             seqno=1,
@@ -461,7 +459,6 @@ class TestReaderStream:
             ),
             (
                 PublicBatch(
-                    session_metadata={},
                     messages=[
                         PublicMessage(
                             seqno=1,
@@ -498,7 +495,6 @@ class TestReaderStream:
             ),
             (
                 PublicBatch(
-                    session_metadata={},
                     messages=[
                         PublicMessage(
                             seqno=1,
@@ -794,7 +790,6 @@ class TestReaderStream:
 
         last_batch = stream_reader._message_batches[-1]
         assert last_batch == PublicBatch(
-            session_metadata=session_meta,
             messages=[
                 PublicMessage(
                     seqno=2,
@@ -918,7 +913,6 @@ class TestReaderStream:
         last2 = batches[2]
 
         assert last0 == PublicBatch(
-            session_metadata=session_meta,
             messages=[
                 PublicMessage(
                     seqno=3,
@@ -939,7 +933,6 @@ class TestReaderStream:
             _codec=Codec.CODEC_RAW,
         )
         assert last1 == PublicBatch(
-            session_metadata=session_meta,
             messages=[
                 PublicMessage(
                     seqno=2,
@@ -960,7 +953,6 @@ class TestReaderStream:
             _codec=Codec.CODEC_RAW,
         )
         assert last2 == PublicBatch(
-            session_metadata=session_meta2,
             messages=[
                 PublicMessage(
                     seqno=3,
@@ -1001,7 +993,6 @@ class TestReaderStream:
             (
                 [
                     PublicBatch(
-                        session_metadata={},
                         messages=[stub_message(1)],
                         _partition_session=stub_partition_session(),
                         _bytes_size=0,
@@ -1014,14 +1005,12 @@ class TestReaderStream:
             (
                 [
                     PublicBatch(
-                        session_metadata={},
                         messages=[stub_message(1), stub_message(2)],
                         _partition_session=stub_partition_session(),
                         _bytes_size=0,
                         _codec=Codec.CODEC_RAW,
                     ),
                     PublicBatch(
-                        session_metadata={},
                         messages=[stub_message(3), stub_message(4)],
                         _partition_session=stub_partition_session(),
                         _bytes_size=0,
@@ -1031,14 +1020,12 @@ class TestReaderStream:
                 stub_message(1),
                 [
                     PublicBatch(
-                        session_metadata={},
                         messages=[stub_message(2)],
                         _partition_session=stub_partition_session(),
                         _bytes_size=0,
                         _codec=Codec.CODEC_RAW,
                     ),
                     PublicBatch(
-                        session_metadata={},
                         messages=[stub_message(3), stub_message(4)],
                         _partition_session=stub_partition_session(),
                         _bytes_size=0,
@@ -1049,14 +1036,12 @@ class TestReaderStream:
             (
                 [
                     PublicBatch(
-                        session_metadata={},
                         messages=[stub_message(1)],
                         _partition_session=stub_partition_session(),
                         _bytes_size=0,
                         _codec=Codec.CODEC_RAW,
                     ),
                     PublicBatch(
-                        session_metadata={},
                         messages=[stub_message(2), stub_message(3)],
                         _partition_session=stub_partition_session(),
                         _bytes_size=0,
@@ -1066,7 +1051,6 @@ class TestReaderStream:
                 stub_message(1),
                 [
                     PublicBatch(
-                        session_metadata={},
                         messages=[stub_message(2), stub_message(3)],
                         _partition_session=stub_partition_session(),
                         _bytes_size=0,
@@ -1102,7 +1086,6 @@ class TestReaderStream:
 
         received = stream_reader.receive_batch_nowait()
         assert received == PublicBatch(
-            session_metadata=mess1.session_metadata,
             messages=[mess1],
             _partition_session=mess1._partition_session,
             _bytes_size=self.default_batch_size,
@@ -1111,7 +1094,6 @@ class TestReaderStream:
 
         received = stream_reader.receive_batch_nowait()
         assert received == PublicBatch(
-            mess2.session_metadata,
             messages=[mess2],
             _partition_session=mess2._partition_session,
             _bytes_size=self.default_batch_size,

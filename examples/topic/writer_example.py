@@ -1,6 +1,5 @@
 import concurrent.futures
 import datetime
-import json
 from typing import Dict, List
 from concurrent.futures import Future, wait
 
@@ -85,7 +84,10 @@ def send_messages_with_manual_seqno(writer: ydb.TopicWriter):
 def send_messages_with_wait_ack(writer: ydb.TopicWriter):
     # Explicit future wait
     writer.async_write_with_ack(
-        ydb.TopicWriterMessage("mess", seqno=1), ydb.TopicWriterMessage("mess", seqno=2)
+        [
+            ydb.TopicWriterMessage("mess", seqno=1),
+            ydb.TopicWriterMessage("mess", seqno=2),
+        ]
     ).result()
 
     # implicit, by sync call
@@ -100,13 +102,6 @@ def send_messages_with_wait_ack(writer: ydb.TopicWriter):
     # send with flush
     writer.write(["1", "2", "3"])
     writer.flush()
-
-
-def send_json_message(db: ydb.Driver):
-    with db.topic_client.writer(
-        "/database/path/topic", serializer=json.dumps
-    ) as writer:
-        writer.write({"a": 123})
 
 
 def send_messages_and_wait_all_commit_with_flush(writer: ydb.TopicWriter):
