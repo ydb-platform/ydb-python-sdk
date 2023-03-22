@@ -1,3 +1,7 @@
+* Added flush reader commits on reader close
+* Fix stop executor in python 3.8
+* Fix handle background errors
+
 ## 3.0.1b11 ##
 * Fixed global_allow_split_transactions
 * Added reader.receive_message() method
