@@ -75,7 +75,7 @@ class PublicAsyncIOReader:
 
     def __del__(self):
         if not self._closed:
-            self._loop.create_task(self.close(), name="close reader")
+            self._loop.create_task(self.close(flush=False), name="close reader")
 
     async def receive_batch(
         self,

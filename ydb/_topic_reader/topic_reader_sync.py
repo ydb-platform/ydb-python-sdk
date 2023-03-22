@@ -50,7 +50,7 @@ class TopicReaderSync:
         ).result()
 
     def __del__(self):
-        self.close()
+        self.close(flush=False)
 
     def __enter__(self):
         return self
@@ -152,13 +152,13 @@ class TopicReaderSync:
             self._async_reader.commit_with_ack(mess)
         )
 
-    def close(self, *, timeout: TimeoutType = None):
+    def close(self, *, flush: bool = True, timeout: TimeoutType = None):
         if self._closed:
             return
 
         self._closed = True
 
-        self._caller.safe_call_with_result(self._async_reader.close(), timeout)
+        self._caller.safe_call_with_result(self._async_reader.close(flush), timeout)
 
     def _check_closed(self):
         if self._closed:
