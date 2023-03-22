@@ -418,6 +418,15 @@ class TestReaderStream:
 
         await wait_for_fast(stream_reader_started.close())
 
+    async def test_del_without_flush(
+        self, stream, stream_reader_started: ReaderStream, partition_session
+    ):
+        offset = self.partition_session_committed_offset + 1
+        waiter = partition_session.add_waiter(offset)
+
+        del stream_reader_started
+        assert waiter.future.done() is False
+
     async def test_commit_ranges_for_received_messages(
         self, stream, stream_reader_started: ReaderStream, partition_session
     ):
