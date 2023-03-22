@@ -16,6 +16,10 @@ class TestTopicReaderAsyncIO:
 
         await reader.close()
 
+    async def test_link_to_client(self, driver, topic_path, topic_consumer):
+        reader = driver.topic_client.reader(topic_path, topic_consumer)
+        assert reader._parent is driver.topic_client
+
     async def test_read_message(
         self, driver, topic_path, topic_with_messages, topic_consumer
     ):
@@ -83,6 +87,10 @@ class TestTopicReaderSync:
         assert len(batch.messages) > 0
 
         reader.close()
+
+    def test_link_to_client(self, driver_sync, topic_path, topic_consumer):
+        reader = driver_sync.topic_client.reader(topic_path, topic_consumer)
+        assert reader._parent is driver_sync.topic_client
 
     def test_read_message(
         self, driver_sync, topic_path, topic_with_messages, topic_consumer

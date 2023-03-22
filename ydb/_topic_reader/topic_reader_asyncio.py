@@ -26,6 +26,7 @@ from .._grpc.grpcwrapper.ydb_topic import (
     Codec,
 )
 from .._errors import check_retriable_error
+from .. import topic
 
 
 class TopicReaderError(YdbError):
@@ -61,11 +62,19 @@ class PublicAsyncIOReader:
     _loop: asyncio.AbstractEventLoop
     _closed: bool
     _reconnector: ReaderReconnector
+    _parent: typing.Any  # need for prevent close parent client by GC
 
-    def __init__(self, driver: Driver, settings: topic_reader.PublicReaderSettings):
+    def __init__(
+            self,
+            driver: Driver,
+            settings: topic_reader.PublicReaderSettings,
+            *,
+            _parent=None,
+    ):
         self._loop = asyncio.get_running_loop()
         self._closed = False
         self._reconnector = ReaderReconnector(driver, settings)
+        self._parent = _parent
 
     async def __aenter__(self):
         return self
@@ -78,7 +87,7 @@ class PublicAsyncIOReader:
             self._loop.create_task(self.close(flush=False), name="close reader")
 
     async def receive_batch(
-        self,
+            self,
     ) -> typing.Union[datatypes.PublicBatch, None]:
         """
         Get one messages batch from reader.
@@ -99,7 +108,7 @@ class PublicAsyncIOReader:
         return self._reconnector.receive_message_nowait()
 
     def commit(
-        self, batch: typing.Union[datatypes.PublicMessage, datatypes.PublicBatch]
+            self, batch: typing.Union[datatypes.PublicMessage, datatypes.PublicBatch]
     ):
         """
         Write commit message to a buffer.
@@ -110,7 +119,7 @@ class PublicAsyncIOReader:
         self._reconnector.commit(batch)
 
     async def commit_with_ack(
-        self, batch: typing.Union[datatypes.PublicMessage, datatypes.PublicBatch]
+            self, batch: typing.Union[datatypes.PublicMessage, datatypes.PublicBatch]
     ):
         """
         write commit message to a buffer and wait ack from the server.
@@ -195,7 +204,7 @@ class ReaderReconnector:
         return self._stream_reader.receive_message_nowait()
 
     def commit(
-        self, batch: datatypes.ICommittable
+            self, batch: datatypes.ICommittable
     ) -> datatypes.PartitionSession.CommitAckWaiter:
         return self._stream_reader.commit(batch)
 
@@ -254,10 +263,10 @@ class ReaderStream:
     _get_token_function: Callable[[], str]
 
     def __init__(
-        self,
-        reader_reconnector_id: int,
-        settings: topic_reader.PublicReaderSettings,
-        get_token_function: Optional[Callable[[], str]] = None,
+            self,
+            reader_reconnector_id: int,
+            settings: topic_reader.PublicReaderSettings,
+            get_token_function: Optional[Callable[[], str]] = None,
     ):
         self._loop = asyncio.get_running_loop()
         self._id = ReaderStream._static_id_counter.inc_and_get()
@@ -286,9 +295,9 @@ class ReaderStream:
 
     @staticmethod
     async def create(
-        reader_reconnector_id: int,
-        driver: SupportedDriverType,
-        settings: topic_reader.PublicReaderSettings,
+            reader_reconnector_id: int,
+            driver: SupportedDriverType,
+            settings: topic_reader.PublicReaderSettings,
     ) -> "ReaderStream":
         stream = GrpcWrapperAsyncIO(StreamReadMessage.FromServer.from_proto)
 
@@ -306,7 +315,7 @@ class ReaderStream:
         return reader
 
     async def _start(
-        self, stream: IGrpcWrapperAsyncIO, init_message: StreamReadMessage.InitRequest
+            self, stream: IGrpcWrapperAsyncIO, init_message: StreamReadMessage.InitRequest
     ):
         if self._started:
             raise TopicReaderError("Double start ReaderStream")
@@ -372,7 +381,7 @@ class ReaderStream:
         return message
 
     def commit(
-        self, batch: datatypes.ICommittable
+            self, batch: datatypes.ICommittable
     ) -> datatypes.PartitionSession.CommitAckWaiter:
         partition_session = batch._commit_get_partition_session()
 
@@ -426,19 +435,19 @@ class ReaderStream:
                     self._on_read_response(message.server_message)
 
                 elif isinstance(
-                    message.server_message, StreamReadMessage.CommitOffsetResponse
+                        message.server_message, StreamReadMessage.CommitOffsetResponse
                 ):
                     self._on_commit_response(message.server_message)
 
                 elif isinstance(
-                    message.server_message,
-                    StreamReadMessage.StartPartitionSessionRequest,
+                        message.server_message,
+                        StreamReadMessage.StartPartitionSessionRequest,
                 ):
                     self._on_start_partition_session(message.server_message)
 
                 elif isinstance(
-                    message.server_message,
-                    StreamReadMessage.StopPartitionSessionRequest,
+                        message.server_message,
+                        StreamReadMessage.StopPartitionSessionRequest,
                 ):
                     self._on_partition_session_stop(message.server_message)
 
@@ -470,12 +479,12 @@ class ReaderStream:
             self._update_token_event.clear()
 
     def _on_start_partition_session(
-        self, message: StreamReadMessage.StartPartitionSessionRequest
+            self, message: StreamReadMessage.StartPartitionSessionRequest
     ):
         try:
             if (
-                message.partition_session.partition_session_id
-                in self._partition_sessions
+                    message.partition_session.partition_session_id
+                    in self._partition_sessions
             ):
                 raise TopicReaderError(
                     "Double start partition session: %s"
@@ -506,7 +515,7 @@ class ReaderStream:
             self._set_first_error(err)
 
     def _on_partition_session_stop(
-        self, message: StreamReadMessage.StopPartitionSessionRequest
+            self, message: StreamReadMessage.StopPartitionSessionRequest
     ):
         if message.partition_session_id not in self._partition_sessions:
             # may if receive stop partition with graceful=false after response on stop partition
@@ -554,7 +563,7 @@ class ReaderStream:
         )
 
     def _read_response_to_batches(
-        self, message: StreamReadMessage.ReadResponse
+            self, message: StreamReadMessage.ReadResponse
     ) -> typing.List[datatypes.PublicBatch]:
         batches = []
 
@@ -564,7 +573,7 @@ class ReaderStream:
 
         bytes_per_batch = message.bytes_size // batch_count
         additional_bytes_to_last_batch = (
-            message.bytes_size - bytes_per_batch * batch_count
+                message.bytes_size - bytes_per_batch * batch_count
         )
 
         for partition_data in message.partition_data:
