@@ -96,7 +96,7 @@ class PartitionSession:
             return waiter
 
         # fast way
-        if len(self._ack_waiters) > 0 and self._ack_waiters[-1].end_offset < end_offset:
+        if self._ack_waiters and self._ack_waiters[-1].end_offset < end_offset:
             self._ack_waiters.append(waiter)
         else:
             bisect.insort(self._ack_waiters, waiter)
@@ -106,25 +106,23 @@ class PartitionSession:
     def _create_future(self) -> asyncio.Future:
         if self._loop:
             return self._loop.create_future()
-        else:
-            return asyncio.Future()
+        return asyncio.Future()
 
     def ack_notify(self, offset: int):
         self._ensure_not_closed()
 
         self.committed_offset = offset
 
-        if len(self._ack_waiters) == 0:
+        if not self._ack_waiters:
             # todo log warning
             # must be never receive ack for not sended request
             return
 
-        while len(self._ack_waiters) > 0:
-            if self._ack_waiters[0].end_offset <= offset:
-                waiter = self._ack_waiters.popleft()
-                waiter._finish_ok()
-            else:
+        while self._ack_waiters:
+            if self._ack_waiters[0].end_offset > offset:
                 break
+            waiter = self._ack_waiters.popleft()
+            waiter._finish_ok()
 
     def close(self):
         if self.closed:

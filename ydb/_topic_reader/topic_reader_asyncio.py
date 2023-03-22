@@ -75,7 +75,7 @@ class PublicAsyncIOReader:
 
     def __del__(self):
         if not self._closed:
-            self._loop.create_task(self.close(), name="close reader")
+            self._loop.create_task(self.close(flush=False), name="close reader")
 
     async def receive_batch(
         self,
@@ -120,12 +120,12 @@ class PublicAsyncIOReader:
         waiter = self._reconnector.commit(batch)
         await waiter.future
 
-    async def close(self):
+    async def close(self, flush: bool = True):
         if self._closed:
             raise TopicReaderClosedError()
 
         self._closed = True
-        await self._reconnector.close()
+        await self._reconnector.close(flush)
 
 
 class ReaderReconnector:
@@ -199,13 +199,19 @@ class ReaderReconnector:
     ) -> datatypes.PartitionSession.CommitAckWaiter:
         return self._stream_reader.commit(batch)
 
-    async def close(self):
+    async def close(self, flush: bool):
         if self._stream_reader:
+            if flush:
+                await self.flush()
             await self._stream_reader.close()
         for task in self._background_tasks:
             task.cancel()
 
         await asyncio.wait(self._background_tasks)
+
+    async def flush(self):
+        if self._stream_reader:
+            await self._stream_reader.flush()
 
     def _set_first_error(self, err: issues.Error):
         try:
@@ -640,6 +646,16 @@ class ReaderStream:
     def _get_first_error(self) -> Optional[YdbError]:
         if self._first_error.done():
             return self._first_error.result()
+
+    async def flush(self):
+        if self._closed:
+            raise RuntimeError("Flush on closed Stream")
+
+        futures = []
+        for session in self._partition_sessions.values():
+            futures.extend(w.future for w in session._ack_waiters)
+
+        await asyncio.gather(*futures)
 
     async def close(self):
         if self._closed:

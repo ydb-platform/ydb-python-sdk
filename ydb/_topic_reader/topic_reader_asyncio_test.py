@@ -389,6 +389,35 @@ class TestReaderStream:
         with pytest.raises(topic_reader_asyncio.TopicReaderCommitToExpiredPartition):
             waiter.future.result()
 
+    async def test_flush(
+        self, stream, stream_reader_started: ReaderStream, partition_session
+    ):
+        offset = self.partition_session_committed_offset + 1
+        waiter = partition_session.add_waiter(offset)
+
+        with pytest.raises(WaitConditionError):
+            await wait_for_fast(stream_reader_started.flush(), timeout=0.1)
+
+        stream.from_server.put_nowait(
+            StreamReadMessage.FromServer(
+                server_status=ServerStatus(ydb_status_codes_pb2.StatusIds.SUCCESS, []),
+                server_message=StreamReadMessage.CommitOffsetResponse(
+                    partitions_committed_offsets=[
+                        StreamReadMessage.CommitOffsetResponse.PartitionCommittedOffset(
+                            partition_session_id=partition_session.id,
+                            committed_offset=offset,
+                        ),
+                    ]
+                ),
+            )
+        )
+
+        await stream_reader_started.flush()
+        # don't raises
+        assert waiter.future.result() is None
+
+        await wait_for_fast(stream_reader_started.close())
+
     async def test_commit_ranges_for_received_messages(
         self, stream, stream_reader_started: ReaderStream, partition_session
     ):
