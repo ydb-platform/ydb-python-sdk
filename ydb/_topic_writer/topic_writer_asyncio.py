@@ -65,7 +65,7 @@ class WriterAsyncIO:
         if self._closed or self._loop.is_closed():
             return
 
-        self._loop.call_soon(self.close)
+        self._loop.call_soon(self.close, False)
 
     async def close(self, *, flush: bool = True):
         if self._closed:
