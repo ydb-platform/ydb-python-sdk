@@ -1,3 +1,4 @@
+## 3.0.1b13 ##
 * Fixed commit for sync reader
 * Group messages while send to server
 * Prevent stop topic client by GC while reader/writer alived
