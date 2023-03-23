@@ -27,6 +27,10 @@ class TestTopicWriterAsyncIO:
             init_info = await writer2.wait_init()
             assert init_info.last_seqno == 5
 
+    async def test_link_to_client(self, driver, topic_path, topic_consumer):
+        writer = driver.topic_client.writer(topic_path)
+        assert writer._parent is driver.topic_client
+
     async def test_random_producer_id(
         self, driver: ydb.aio.Driver, topic_path, topic_reader: ydb.TopicReaderAsyncIO
     ):
@@ -137,6 +141,10 @@ class TestTopicWriterSync:
         ) as writer:
             init_info = writer.wait_init()
             assert init_info.last_seqno == last_seqno
+
+    def test_link_to_client(self, driver_sync, topic_path, topic_consumer):
+        writer = driver_sync.topic_client.writer(topic_path)
+        assert writer._parent is driver_sync.topic_client
 
     def test_random_producer_id(
         self,

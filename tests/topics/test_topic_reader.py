@@ -16,6 +16,10 @@ class TestTopicReaderAsyncIO:
 
         await reader.close()
 
+    async def test_link_to_client(self, driver, topic_path, topic_consumer):
+        reader = driver.topic_client.reader(topic_path, topic_consumer)
+        assert reader._parent is driver.topic_client
+
     async def test_read_message(
         self, driver, topic_path, topic_with_messages, topic_consumer
     ):
@@ -27,7 +31,18 @@ class TestTopicReaderAsyncIO:
 
         await reader.close()
 
-    async def test_read_and_commit_message(
+    async def test_read_and_commit_with_close_reader(
+        self, driver, topic_path, topic_with_messages, topic_consumer
+    ):
+        async with driver.topic_client.reader(topic_path, topic_consumer) as reader:
+            message = await reader.receive_message()
+            reader.commit(message)
+
+        async with driver.topic_client.reader(topic_path, topic_consumer) as reader:
+            message2 = await reader.receive_message()
+            assert message != message2
+
+    async def test_read_and_commit_with_ack(
         self, driver, topic_path, topic_with_messages, topic_consumer
     ):
 
@@ -84,6 +99,10 @@ class TestTopicReaderSync:
 
         reader.close()
 
+    def test_link_to_client(self, driver_sync, topic_path, topic_consumer):
+        reader = driver_sync.topic_client.reader(topic_path, topic_consumer)
+        assert reader._parent is driver_sync.topic_client
+
     def test_read_message(
         self, driver_sync, topic_path, topic_with_messages, topic_consumer
     ):
@@ -95,7 +114,18 @@ class TestTopicReaderSync:
 
         reader.close()
 
-    def test_read_and_commit_message(
+    def test_read_and_commit_with_close_reader(
+        self, driver_sync, topic_path, topic_with_messages, topic_consumer
+    ):
+        with driver_sync.topic_client.reader(topic_path, topic_consumer) as reader:
+            message = reader.receive_message()
+            reader.commit(message)
+
+        with driver_sync.topic_client.reader(topic_path, topic_consumer) as reader:
+            message2 = reader.receive_message()
+            assert message != message2
+
+    def test_read_and_commit_with_ack(
         self, driver_sync, topic_path, topic_with_messages, topic_consumer
     ):
         reader = driver_sync.topic_client.reader(topic_path, topic_consumer)
