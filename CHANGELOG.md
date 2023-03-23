@@ -1,3 +1,5 @@
+* Fixed bug with ModuleNotFoundError while import ydb
+
 ## 3.1.0 ##
 COMPLETE CHANGELOG FROM v2:
 * Add api for topic service
