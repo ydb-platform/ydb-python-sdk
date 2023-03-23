@@ -105,11 +105,7 @@ def create_tables(session_pool, path):
             .with_profile(
                 ydb.TableProfile()
                 # Partition Documents table by DocId
-                .with_partitioning_policy(
-                    ydb.PartitioningPolicy().with_uniform_partitions(
-                        DOC_TABLE_PARTITION_COUNT
-                    )
-                )
+                .with_partitioning_policy(ydb.PartitioningPolicy().with_uniform_partitions(DOC_TABLE_PARTITION_COUNT))
             ),
         )
 
@@ -144,9 +140,7 @@ def read_document(session_pool, path, url):
     def callee(session):
         prepared = session.prepare(READ_DOCUMENT_TRANSACTION % path)
         print("> ReadDocument %s:" % url)
-        result_sets = session.transaction().execute(
-            prepared, {"$url": url}, commit_tx=True
-        )
+        result_sets = session.transaction().execute(prepared, {"$url": url}, commit_tx=True)
         result_set = result_sets[0]
         if len(result_set.rows) < 1:
             print(" Not found")
@@ -171,10 +165,7 @@ def read_document(session_pool, path, url):
 
 def delete_expired_documents(session_pool, path, expired_documents, timestamp):
     def callee(session):
-        print(
-            "> DeleteExpiredDocuments: %s"
-            % ", ".join(str(document.doc_id) for document in expired_documents)
-        )
+        print("> DeleteExpiredDocuments: %s" % ", ".join(str(document.doc_id) for document in expired_documents))
         prepared = session.prepare(DELETE_EXPIRED_DOCUMENTS % path)
         session.transaction().execute(
             prepared,
@@ -190,15 +181,10 @@ def delete_expired_documents(session_pool, path, expired_documents, timestamp):
 
 def delete_expired_range(session_pool, path, key_range, timestamp):
     def callee(session):
-        print(
-            "> DeleteExpiredRange, From: %s, To %s"
-            % (str(key_range.from_bound), str(key_range.to_bound))
-        )
+        print("> DeleteExpiredRange, From: %s, To %s" % (str(key_range.from_bound), str(key_range.to_bound)))
         # As single key range usually represents a single shard, so we batch deletions here
         # without introducing distributed transactions.
-        return session.read_table(
-            os.path.join(path, "documents"), key_range, columns=("doc_id", "timestamp")
-        )
+        return session.read_table(os.path.join(path, "documents"), key_range, columns=("doc_id", "timestamp"))
 
     table_iterator = session_pool.retry_operation_sync(callee)
     expired_documents = []
@@ -213,9 +199,7 @@ def delete_expired_range(session_pool, path, key_range, timestamp):
                 expired_documents.append(document)
 
             if len(expired_documents) >= DELETE_BATCH_SIZE:
-                delete_expired_documents(
-                    session_pool, path, expired_documents, timestamp
-                )
+                delete_expired_documents(session_pool, path, expired_documents, timestamp)
                 expired_documents = []
 
     if len(expired_documents) > 0:
@@ -225,9 +209,7 @@ def delete_expired_range(session_pool, path, key_range, timestamp):
 def delete_expired(session_pool, path, timestamp):
     print("> DeleteExpired, timestamp %s" % str(timestamp))
     table_description = session_pool.retry_operation_sync(
-        lambda session: session.describe_table(
-            path, ydb.DescribeTableSettings().with_include_shard_key_bounds(True)
-        )
+        lambda session: session.describe_table(path, ydb.DescribeTableSettings().with_include_shard_key_bounds(True))
     )
 
     for key_range in table_description.shard_key_ranges:
@@ -287,9 +269,7 @@ def _run(driver, session_pool, database, path):
 
 
 def run(endpoint, database, path):
-    driver_config = ydb.DriverConfig(
-        endpoint, database, credentials=ydb.credentials_from_env_variables()
-    )
+    driver_config = ydb.DriverConfig(endpoint, database, credentials=ydb.credentials_from_env_variables())
     with ydb.Driver(driver_config) as driver:
         try:
             driver.wait(timeout=5)

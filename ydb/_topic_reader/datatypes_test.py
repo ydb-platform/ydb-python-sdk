@@ -59,10 +59,7 @@ class TestPartitionSession:
 
         session.ack_notify(notify_offset)
         assert session._ack_waiters == deque(
-            [
-                PartitionSession.CommitAckWaiter(offset, asyncio.Future())
-                for offset in offsets_waited_rest
-            ]
+            [PartitionSession.CommitAckWaiter(offset, asyncio.Future()) for offset in offsets_waited_rest]
         )
 
         await wait_condition(lambda: len(notified) == len(offsets_notified))
@@ -121,28 +118,20 @@ class TestPartitionSession:
                 False,
                 [
                     PartitionSession.CommitAckWaiter(session_comitted_offset + 5, None),
-                    PartitionSession.CommitAckWaiter(
-                        session_comitted_offset + 100, None
-                    ),
+                    PartitionSession.CommitAckWaiter(session_comitted_offset + 100, None),
                 ],
             ),
             (
                 [
                     PartitionSession.CommitAckWaiter(session_comitted_offset + 5, None),
-                    PartitionSession.CommitAckWaiter(
-                        session_comitted_offset + 100, None
-                    ),
+                    PartitionSession.CommitAckWaiter(session_comitted_offset + 100, None),
                 ],
                 session_comitted_offset + 50,
                 False,
                 [
                     PartitionSession.CommitAckWaiter(session_comitted_offset + 5, None),
-                    PartitionSession.CommitAckWaiter(
-                        session_comitted_offset + 50, None
-                    ),
-                    PartitionSession.CommitAckWaiter(
-                        session_comitted_offset + 100, None
-                    ),
+                    PartitionSession.CommitAckWaiter(session_comitted_offset + 50, None),
+                    PartitionSession.CommitAckWaiter(session_comitted_offset + 100, None),
                 ],
             ),
             (
@@ -161,37 +150,27 @@ class TestPartitionSession:
             (
                 [
                     PartitionSession.CommitAckWaiter(session_comitted_offset + 5, None),
-                    PartitionSession.CommitAckWaiter(
-                        session_comitted_offset + 100, None
-                    ),
+                    PartitionSession.CommitAckWaiter(session_comitted_offset + 100, None),
                 ],
                 session_comitted_offset + 6,
                 False,
                 [
                     PartitionSession.CommitAckWaiter(session_comitted_offset + 5, None),
                     PartitionSession.CommitAckWaiter(session_comitted_offset + 6, None),
-                    PartitionSession.CommitAckWaiter(
-                        session_comitted_offset + 100, None
-                    ),
+                    PartitionSession.CommitAckWaiter(session_comitted_offset + 100, None),
                 ],
             ),
             (
                 [
                     PartitionSession.CommitAckWaiter(session_comitted_offset + 5, None),
-                    PartitionSession.CommitAckWaiter(
-                        session_comitted_offset + 100, None
-                    ),
+                    PartitionSession.CommitAckWaiter(session_comitted_offset + 100, None),
                 ],
                 session_comitted_offset + 99,
                 False,
                 [
                     PartitionSession.CommitAckWaiter(session_comitted_offset + 5, None),
-                    PartitionSession.CommitAckWaiter(
-                        session_comitted_offset + 99, None
-                    ),
-                    PartitionSession.CommitAckWaiter(
-                        session_comitted_offset + 100, None
-                    ),
+                    PartitionSession.CommitAckWaiter(session_comitted_offset + 99, None),
+                    PartitionSession.CommitAckWaiter(session_comitted_offset + 100, None),
                 ],
             ),
         ],

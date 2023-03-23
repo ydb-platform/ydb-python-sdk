@@ -82,9 +82,7 @@ class TestWriterAsyncIOStream:
                 path="/local/test",
                 producer_id="producer-id",
                 write_session_meta={"a": "b"},
-                partitioning=StreamWriteMessage.PartitioningMessageGroupID(
-                    message_group_id="message-group-id"
-                ),
+                partitioning=StreamWriteMessage.PartitioningMessageGroupID(message_group_id="message-group-id"),
                 get_last_seq_no=False,
             ),
         )
@@ -108,9 +106,7 @@ class TestWriterAsyncIOStream:
             path="/local/test",
             producer_id="producer-id",
             write_session_meta={"a": "b"},
-            partitioning=StreamWriteMessage.PartitioningMessageGroupID(
-                message_group_id="message-group-id"
-            ),
+            partitioning=StreamWriteMessage.PartitioningMessageGroupID(message_group_id="message-group-id"),
             get_last_seq_no=False,
         )
         stream.from_server.put_nowait(
@@ -168,9 +164,7 @@ class TestWriterAsyncIOStream:
         assert expected_message == sent_message
 
     async def test_update_token(self, stream: StreamMock):
-        writer = await self.get_started_writer(
-            stream, update_token_interval=0.1, get_token_function=lambda: "foo-bar"
-        )
+        writer = await self.get_started_writer(stream, update_token_interval=0.1, get_token_function=lambda: "foo-bar")
         assert stream.from_client.empty()
 
         expected = StreamWriteMessage.FromClient(UpdateTokenRequest(token="foo-bar"))
@@ -310,18 +304,14 @@ class TestWriterAsyncIOReconnector:
             acks=[
                 StreamWriteMessage.WriteResponse.WriteAck(
                     seq_no=seq_no,
-                    message_write_status=StreamWriteMessage.WriteResponse.WriteAck.StatusWritten(
-                        offset=1
-                    ),
+                    message_write_status=StreamWriteMessage.WriteResponse.WriteAck.StatusWritten(offset=1),
                 )
             ],
             write_statistics=self.default_write_statistic,
         )
 
     @pytest.fixture
-    async def reconnector(
-        self, default_driver, default_settings
-    ) -> WriterAsyncIOReconnector:
+    async def reconnector(self, default_driver, default_settings) -> WriterAsyncIOReconnector:
         return WriterAsyncIOReconnector(default_driver, default_settings)
 
     async def test_reconnect_and_resent_non_acked_messages_on_retriable_error(
@@ -367,9 +357,7 @@ class TestWriterAsyncIOReconnector:
         second_writer.from_server.put_nowait(self.make_default_ack_message(seq_no=2))
         await reconnector.close(flush=True)
 
-    async def test_stop_on_unexpected_exception(
-        self, reconnector: WriterAsyncIOReconnector, get_stream_writer
-    ):
+    async def test_stop_on_unexpected_exception(self, reconnector: WriterAsyncIOReconnector, get_stream_writer):
         class TestException(Exception):
             pass
 
@@ -395,12 +383,8 @@ class TestWriterAsyncIOReconnector:
 
     async def test_wait_init(self, default_driver, default_settings, get_stream_writer):
         init_seqno = 100
-        expected_init_info = PublicWriterInitInfo(
-            last_seqno=init_seqno, supported_codecs=[]
-        )
-        with mock.patch.object(
-            TestWriterAsyncIOReconnector, "init_last_seqno", init_seqno
-        ):
+        expected_init_info = PublicWriterInitInfo(last_seqno=init_seqno, supported_codecs=[])
+        with mock.patch.object(TestWriterAsyncIOReconnector, "init_last_seqno", init_seqno):
             reconnector = WriterAsyncIOReconnector(default_driver, default_settings)
             info = await reconnector.wait_init()
             assert info == expected_init_info
@@ -408,13 +392,9 @@ class TestWriterAsyncIOReconnector:
         reconnector._stream_connected.clear()
 
         # force reconnect
-        with mock.patch.object(
-            TestWriterAsyncIOReconnector, "init_last_seqno", init_seqno + 1
-        ):
+        with mock.patch.object(TestWriterAsyncIOReconnector, "init_last_seqno", init_seqno + 1):
             stream_writer = get_stream_writer()
-            stream_writer.from_server.put_nowait(
-                issues.Overloaded("test")
-            )  # some retriable error
+            stream_writer.from_server.put_nowait(issues.Overloaded("test"))  # some retriable error
             await reconnector._stream_connected.wait()
 
             info = await reconnector.wait_init()
@@ -422,9 +402,7 @@ class TestWriterAsyncIOReconnector:
 
         await reconnector.close(flush=False)
 
-    async def test_write_message(
-        self, reconnector: WriterAsyncIOReconnector, get_stream_writer
-    ):
+    async def test_write_message(self, reconnector: WriterAsyncIOReconnector, get_stream_writer):
         stream_writer = get_stream_writer()
         message = PublicMessage(
             data="123",
@@ -437,13 +415,9 @@ class TestWriterAsyncIOReconnector:
 
         await reconnector.close(flush=False)
 
-    async def test_auto_seq_no(
-        self, default_driver, default_settings, get_stream_writer
-    ):
+    async def test_auto_seq_no(self, default_driver, default_settings, get_stream_writer):
         last_seq_no = 100
-        with mock.patch.object(
-            TestWriterAsyncIOReconnector, "init_last_seqno", last_seq_no
-        ):
+        with mock.patch.object(TestWriterAsyncIOReconnector, "init_last_seqno", last_seq_no):
             settings = copy.deepcopy(default_settings)
             settings.auto_seqno = True
 
@@ -455,19 +429,13 @@ class TestWriterAsyncIOReconnector:
             stream_writer = get_stream_writer()
 
             sent = await stream_writer.from_client.get()
-            assert [
-                InternalMessage(PublicMessage(seqno=last_seq_no + 1, data="123"))
-            ] == sent
+            assert [InternalMessage(PublicMessage(seqno=last_seq_no + 1, data="123"))] == sent
 
             sent = await stream_writer.from_client.get()
-            assert [
-                InternalMessage(PublicMessage(seqno=last_seq_no + 2, data="456"))
-            ] == sent
+            assert [InternalMessage(PublicMessage(seqno=last_seq_no + 2, data="456"))] == sent
 
         with pytest.raises(TopicWriterError):
-            await reconnector.write_with_ack_future(
-                [PublicMessage(seqno=last_seq_no + 3, data="123")]
-            )
+            await reconnector.write_with_ack_future([PublicMessage(seqno=last_seq_no + 3, data="123")])
 
         await reconnector.close(flush=False)
 
@@ -475,23 +443,17 @@ class TestWriterAsyncIOReconnector:
         await reconnector.write_with_ack_future([PublicMessage(seqno=10, data="123")])
 
         with pytest.raises(TopicWriterError):
-            await reconnector.write_with_ack_future(
-                [PublicMessage(seqno=9, data="123")]
-            )
+            await reconnector.write_with_ack_future([PublicMessage(seqno=9, data="123")])
 
         with pytest.raises(TopicWriterError):
-            await reconnector.write_with_ack_future(
-                [PublicMessage(seqno=10, data="123")]
-            )
+            await reconnector.write_with_ack_future([PublicMessage(seqno=10, data="123")])
 
         await reconnector.write_with_ack_future([PublicMessage(seqno=11, data="123")])
 
         await reconnector.close(flush=False)
 
     @freezegun.freeze_time("2022-01-13 20:50:00", tz_offset=0)
-    async def test_auto_created_at(
-        self, default_driver, default_settings, get_stream_writer
-    ):
+    async def test_auto_created_at(self, default_driver, default_settings, get_stream_writer):
         now = datetime.datetime.now()
 
         settings = copy.deepcopy(default_settings)
@@ -502,9 +464,7 @@ class TestWriterAsyncIOReconnector:
         stream_writer = get_stream_writer()
         sent = await stream_writer.from_client.get()
 
-        assert [
-            InternalMessage(PublicMessage(seqno=4, data="123", created_at=now))
-        ] == sent
+        assert [InternalMessage(PublicMessage(seqno=4, data="123", created_at=now))] == sent
         await reconnector.close(flush=False)
 
     @pytest.mark.parametrize(
@@ -569,17 +529,11 @@ class TestWriterAsyncIOReconnector:
         def add_messages(_self, messages: typing.List[InternalMessage]):
             added_messages.put_nowait(messages)
 
-        monkeypatch.setattr(
-            WriterAsyncIOReconnector, "_add_messages_to_send_queue", add_messages
-        )
-        monkeypatch.setattr(
-            "time.time", lambda: TestWriterAsyncIOReconnector.time_for_mocks
-        )
+        monkeypatch.setattr(WriterAsyncIOReconnector, "_add_messages_to_send_queue", add_messages)
+        monkeypatch.setattr("time.time", lambda: TestWriterAsyncIOReconnector.time_for_mocks)
 
         for i in range(len(expected_datas)):
-            await reconnector.write_with_ack_future(
-                [PublicMessage(data=write_datas[i])]
-            )
+            await reconnector.write_with_ack_future([PublicMessage(data=write_datas[i])])
             mess = await asyncio.wait_for(added_messages.get(), timeout=600)
             mess = mess[0]
 
@@ -617,9 +571,7 @@ class TestWriterAsyncIOReconnector:
             assert mess.codec == codec
             assert mess.get_bytes() == expected_datas[index]
 
-    async def test_custom_encoder(
-        self, default_driver, default_settings, get_stream_writer
-    ):
+    async def test_custom_encoder(self, default_driver, default_settings, get_stream_writer):
         codec = 10001
 
         settings = copy.copy(default_settings)
@@ -630,16 +582,12 @@ class TestWriterAsyncIOReconnector:
         now = datetime.datetime.now()
         seqno = self.init_last_seqno + 1
 
-        await reconnector.write_with_ack_future(
-            [PublicMessage(data=b"123", seqno=seqno, created_at=now)]
-        )
+        await reconnector.write_with_ack_future([PublicMessage(data=b"123", seqno=seqno, created_at=now)])
 
         stream_writer = get_stream_writer()
         sent_messages = await wait_for_fast(stream_writer.from_client.get())
 
-        expected_mess = InternalMessage(
-            PublicMessage(data=b"321", seqno=seqno, created_at=now)
-        )
+        expected_mess = InternalMessage(PublicMessage(data=b"321", seqno=seqno, created_at=now))
         expected_mess.codec = codec
 
         assert sent_messages == [expected_mess]
@@ -737,7 +685,5 @@ class TestWriterAsyncIO:
 
         asyncio.create_task(ack_next_messages())
 
-        res = await writer.write_with_ack(
-            [PublicMessage(seqno=2, data="123"), PublicMessage(seqno=3, data="123")]
-        )
+        res = await writer.write_with_ack([PublicMessage(seqno=2, data="123"), PublicMessage(seqno=3, data="123")])
         assert res == [PublicWriteResult.Written(offset=2), PublicWriteResult.Skipped()]

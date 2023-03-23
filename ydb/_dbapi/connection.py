@@ -18,9 +18,7 @@ class Connection:
     def describe(self, table_path):
         full_path = posixpath.join(self.database, table_path)
         try:
-            res = self.pool.retry_operation_sync(
-                lambda cli: cli.describe_table(full_path)
-            )
+            res = self.pool.retry_operation_sync(lambda cli: cli.describe_table(full_path))
             return res.columns
         except ydb.Error as e:
             raise DatabaseError(e.message, e.issues, e.status)
@@ -67,7 +65,5 @@ class Connection:
             raise DatabaseError(e.message, e.issues, e.status)
         except Exception:
             driver.stop()
-            raise DatabaseError(
-                f"Failed to connect to YDB, details {driver.discovery_debug_details()}"
-            )
+            raise DatabaseError(f"Failed to connect to YDB, details {driver.discovery_debug_details()}")
         return driver

@@ -148,9 +148,7 @@ class GrpcWrapperAsyncIO(IGrpcWrapperAsyncIO):
     from_server_grpc: AsyncIterator
     convert_server_grpc_to_wrapper: Callable[[Any], Any]
     _connection_state: str
-    _stream_call: Optional[
-        Union[grpc.aio.StreamStreamCall, "grpc._channel._MultiThreadedRendezvous"]
-    ]
+    _stream_call: Optional[Union[grpc.aio.StreamStreamCall, "grpc._channel._MultiThreadedRendezvous"]]
 
     def __init__(self, convert_server_grpc_to_wrapper):
         self.from_client_grpc = asyncio.Queue()
@@ -248,9 +246,7 @@ class ServerStatus(IFromProto):
         return res
 
 
-def callback_from_asyncio(
-    callback: Union[Callable, Coroutine]
-) -> [asyncio.Future, asyncio.Task]:
+def callback_from_asyncio(callback: Union[Callable, Coroutine]) -> [asyncio.Future, asyncio.Task]:
     loop = asyncio.get_running_loop()
 
     if asyncio.iscoroutinefunction(callback):

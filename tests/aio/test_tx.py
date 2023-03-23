@@ -124,9 +124,7 @@ async def test_split_transactions_deny_split_flag_commit(driver, table_name):
 
         async def check_transaction(s: ydb.aio.table.Session):
             async with s.transaction(allow_split_transactions=False) as tx:
-                await tx.execute(
-                    "INSERT INTO %s (id) VALUES (1)" % table_name, commit_tx=True
-                )
+                await tx.execute("INSERT INTO %s (id) VALUES (1)" % table_name, commit_tx=True)
 
                 with pytest.raises(RuntimeError):
                     await tx.execute("INSERT INTO %s (id) VALUES (2)" % table_name)
@@ -212,9 +210,7 @@ async def test_truncated_response_allow(driver, table_name, table_path):
 
     await driver.table_client.bulk_upsert(table_path, rows, column_types)
 
-    table_client = ydb.TableClient(
-        driver, ydb.TableClientSettings().with_allow_truncated_result(True)
-    )
+    table_client = ydb.TableClient(driver, ydb.TableClientSettings().with_allow_truncated_result(True))
     s = table_client.session()
     await s.create()
     t = s.transaction()

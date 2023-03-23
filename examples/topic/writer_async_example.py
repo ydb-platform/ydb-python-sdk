@@ -48,14 +48,10 @@ async def send_messages(writer: ydb.TopicWriterAsyncIO):
     )  # send few messages by one call
 
     # with meta
-    await writer.write(
-        ydb.TopicWriterMessage("asd", seqno=123, created_at=datetime.datetime.now())
-    )
+    await writer.write(ydb.TopicWriterMessage("asd", seqno=123, created_at=datetime.datetime.now()))
 
 
-async def send_message_without_block_if_internal_buffer_is_full(
-    writer: ydb.TopicWriterAsyncIO, msg
-) -> bool:
+async def send_message_without_block_if_internal_buffer_is_full(writer: ydb.TopicWriterAsyncIO, msg) -> bool:
     try:
         # put message to internal queue for send, but if buffer is full - fast return
         # without wait
@@ -99,9 +95,7 @@ async def send_messages_and_wait_all_commit_with_results(
     await writer.flush()
 
 
-async def switch_messages_with_many_producers(
-    writers: Dict[str, ydb.TopicWriterAsyncIO], messages: List[str]
-):
+async def switch_messages_with_many_producers(writers: Dict[str, ydb.TopicWriterAsyncIO], messages: List[str]):
     futures = []  # type:  List[asyncio.Future]
 
     for msg in messages:

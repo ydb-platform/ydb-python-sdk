@@ -13,9 +13,7 @@ def connect():
 
 
 def create_reader_and_close_with_context_manager(db: ydb.Driver):
-    with db.topic_client.reader(
-        "/database/topic/path", consumer="consumer", buffer_size_bytes=123
-    ) as reader:
+    with db.topic_client.reader("/database/topic/path", consumer="consumer", buffer_size_bytes=123) as reader:
         while True:
             message = reader.receive_message()  # noqa
             pass

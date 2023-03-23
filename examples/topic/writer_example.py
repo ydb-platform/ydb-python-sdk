@@ -55,19 +55,13 @@ def send_messages(writer: ydb.TopicWriter):
     # full forms
     writer.write(ydb.TopicWriterMessage("mess"))  # send text
     writer.write(ydb.TopicWriterMessage(bytes([1, 2, 3])))  # send bytes
-    writer.write(
-        [ydb.TopicWriterMessage("mess-1"), ydb.TopicWriterMessage("mess-2")]
-    )  # send few messages by one call
+    writer.write([ydb.TopicWriterMessage("mess-1"), ydb.TopicWriterMessage("mess-2")])  # send few messages by one call
 
     # with meta
-    writer.write(
-        ydb.TopicWriterMessage("asd", seqno=123, created_at=datetime.datetime.now())
-    )
+    writer.write(ydb.TopicWriterMessage("asd", seqno=123, created_at=datetime.datetime.now()))
 
 
-def send_message_without_block_if_internal_buffer_is_full(
-    writer: ydb.TopicWriter, msg
-) -> bool:
+def send_message_without_block_if_internal_buffer_is_full(writer: ydb.TopicWriter, msg) -> bool:
     try:
         # put message to internal queue for send, but if buffer is full - fast return
         # without wait
@@ -123,9 +117,7 @@ def send_messages_and_wait_all_commit_with_results(writer: ydb.TopicWriter):
             raise future.exception()
 
 
-def switch_messages_with_many_producers(
-    writers: Dict[str, ydb.TopicWriter], messages: List[str]
-):
+def switch_messages_with_many_producers(writers: Dict[str, ydb.TopicWriter], messages: List[str]):
     futures = []  # type:  List[Future]
 
     for msg in messages:

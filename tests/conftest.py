@@ -20,9 +20,7 @@ def wait_container_ready(driver):
         while time.time() - started_at < 30:
             try:
                 with pool.checkout() as session:
-                    session.execute_scheme(
-                        "create table `.sys_health/test_table` (A int32, primary key(A));"
-                    )
+                    session.execute_scheme("create table `.sys_health/test_table` (A int32, primary key(A));")
 
                 return True
 
@@ -163,9 +161,7 @@ async def topic_path(driver, topic_consumer, database) -> str:
 @pytest.fixture()
 @pytest.mark.asyncio()
 async def topic_with_messages(driver, topic_path):
-    writer = driver.topic_client.writer(
-        topic_path, producer_id="fixture-producer-id", codec=ydb.TopicCodec.RAW
-    )
+    writer = driver.topic_client.writer(topic_path, producer_id="fixture-producer-id", codec=ydb.TopicCodec.RAW)
     await writer.write_with_ack(
         [
             ydb.TopicWriterMessage(data="123".encode()),

@@ -24,9 +24,7 @@ def main():
     driver = ydb.Driver(
         endpoint=os.getenv("YDB_ENDPOINT"),
         database=os.getenv("YDB_DATABASE"),
-        credentials=ydb.AccessTokenCredentials(
-            os.getenv("YDB_ACCESS_TOKEN_CREDENTIALS")
-        ),
+        credentials=ydb.AccessTokenCredentials(os.getenv("YDB_ACCESS_TOKEN_CREDENTIALS")),
     )
 
     # Start driver context manager.

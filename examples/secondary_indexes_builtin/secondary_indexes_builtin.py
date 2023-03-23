@@ -73,9 +73,7 @@ class Series(object):
     def __init__(self, series_id, title, release_date, info, views, uploaded_user_id):
         self.series_id = series_id
         self.title = title
-        self.release_date = (
-            to_days(release_date) if isinstance(release_date, str) else release_date
-        )
+        self.release_date = to_days(release_date) if isinstance(release_date, str) else release_date
         self.info = info
         self.views = views
         self.uploaded_user_id = uploaded_user_id
@@ -138,17 +136,11 @@ def create_tables(session_pool, path):
                 ydb.Column("series_id", ydb.OptionalType(ydb.PrimitiveType.Uint64)),
                 ydb.Column("title", ydb.OptionalType(ydb.PrimitiveType.Utf8)),
                 ydb.Column("info", ydb.OptionalType(ydb.PrimitiveType.Utf8)),
-                ydb.Column(
-                    "release_date", ydb.OptionalType(ydb.PrimitiveType.Datetime)
-                ),
+                ydb.Column("release_date", ydb.OptionalType(ydb.PrimitiveType.Datetime)),
                 ydb.Column("views", ydb.OptionalType(ydb.PrimitiveType.Uint64)),
-                ydb.Column(
-                    "uploaded_user_id", ydb.OptionalType(ydb.PrimitiveType.Uint64)
-                ),
+                ydb.Column("uploaded_user_id", ydb.OptionalType(ydb.PrimitiveType.Uint64)),
             )
-            .with_indexes(
-                ydb.TableIndex("users_index").with_index_columns("uploaded_user_id")
-            ),
+            .with_indexes(ydb.TableIndex("users_index").with_index_columns("uploaded_user_id")),
         )
 
         session.create_table(
@@ -188,9 +180,7 @@ def get_series_data():
         ),
         Series(5, "Fifth episode", "2006-05-01", "Cercei is not good person.", 5000, 1),
         Series(6, "Sixth episode", "2006-06-01", "Tyrion is not big.", 6000, 2),
-        Series(
-            7, "Seventh episode", "2006-07-01", "Tywin should close the door.", 7000, 2
-        ),
+        Series(7, "Seventh episode", "2006-07-01", "Tywin should close the door.", 7000, 2),
         Series(
             8,
             "Eighth episode",
@@ -244,9 +234,7 @@ def select_by_username(session_pool, path, username):
 
 
 def run(endpoint, database, path):
-    driver_config = ydb.DriverConfig(
-        endpoint, database, credentials=ydb.credentials_from_env_variables()
-    )
+    driver_config = ydb.DriverConfig(endpoint, database, credentials=ydb.credentials_from_env_variables())
     with ydb.Driver(driver_config) as driver:
         try:
             driver.wait(timeout=5)

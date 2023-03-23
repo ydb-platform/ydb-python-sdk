@@ -57,9 +57,7 @@ class WriterAsyncIO:
     ):
         self._loop = asyncio.get_running_loop()
         self._closed = False
-        self._reconnector = WriterAsyncIOReconnector(
-            driver=driver, settings=WriterSettings(settings)
-        )
+        self._reconnector = WriterAsyncIOReconnector(driver=driver, settings=WriterSettings(settings))
         self._parent = _client
 
     async def __aenter__(self) -> "WriterAsyncIO":
@@ -218,10 +216,7 @@ class WriterAsyncIOReconnector:
         self._codec = self._settings.codec
         if self._codec and self._codec not in self._codec_functions:
             known_codecs = sorted(self._codec_functions.keys())
-            raise ValueError(
-                "Unknown codec for writer: %s, supported codecs: %s"
-                % (self._codec, known_codecs)
-            )
+            raise ValueError("Unknown codec for writer: %s, supported codecs: %s" % (self._codec, known_codecs))
 
         self._last_known_seq_no = 0
         self._messages_for_encode = asyncio.Queue()
@@ -273,9 +268,7 @@ class WriterAsyncIOReconnector:
         except BaseException as stop_reason:
             return stop_reason
 
-    async def write_with_ack_future(
-        self, messages: List[PublicMessage]
-    ) -> List[asyncio.Future]:
+    async def write_with_ack_future(self, messages: List[PublicMessage]) -> List[asyncio.Future]:
         # todo check internal buffer limit
         self._check_stop()
 
@@ -299,9 +292,7 @@ class WriterAsyncIOReconnector:
         for m in internal_messages:
             self._new_messages.put_nowait(m)
 
-    def _prepare_internal_messages(
-        self, messages: List[PublicMessage]
-    ) -> List[InternalMessage]:
+    def _prepare_internal_messages(self, messages: List[PublicMessage]) -> List[InternalMessage]:
         if self._settings.auto_created_at:
             now = datetime.datetime.now()
         else:
@@ -315,18 +306,12 @@ class WriterAsyncIOReconnector:
                     self._last_known_seq_no += 1
                     internal_message.seq_no = self._last_known_seq_no
                 else:
-                    raise TopicWriterError(
-                        "Explicit seqno and auto_seq setting is mutual exclusive"
-                    )
+                    raise TopicWriterError("Explicit seqno and auto_seq setting is mutual exclusive")
             else:
                 if internal_message.seq_no is None or internal_message.seq_no == 0:
-                    raise TopicWriterError(
-                        "Empty seqno and auto_seq setting is disabled"
-                    )
+                    raise TopicWriterError("Empty seqno and auto_seq setting is disabled")
                 elif internal_message.seq_no <= self._last_known_seq_no:
-                    raise TopicWriterError(
-                        "Message seqno is duplicated: %s" % internal_message.seq_no
-                    )
+                    raise TopicWriterError("Message seqno is duplicated: %s" % internal_message.seq_no)
                 else:
                     self._last_known_seq_no = internal_message.seq_no
 
@@ -375,17 +360,11 @@ class WriterAsyncIOReconnector:
 
                 self._stream_connected.set()
 
-                send_loop = asyncio.create_task(
-                    self._send_loop(stream_writer), name="writer send loop"
-                )
-                receive_loop = asyncio.create_task(
-                    self._read_loop(stream_writer), name="writer receive loop"
-                )
+                send_loop = asyncio.create_task(self._send_loop(stream_writer), name="writer send loop")
+                receive_loop = asyncio.create_task(self._read_loop(stream_writer), name="writer receive loop")
 
                 tasks = [send_loop, receive_loop]
-                done, _ = await asyncio.wait(
-                    [send_loop, receive_loop], return_when=asyncio.FIRST_COMPLETED
-                )
+                done, _ = await asyncio.wait([send_loop, receive_loop], return_when=asyncio.FIRST_COMPLETED)
                 await stream_writer.close()
                 done.pop().result()
             except issues.Error as err:
@@ -416,9 +395,7 @@ class WriterAsyncIOReconnector:
             await self._encode_data_inplace(batch_codec, messages)
             self._add_messages_to_send_queue(messages)
 
-    async def _encode_data_inplace(
-        self, codec: PublicCodec, messages: List[InternalMessage]
-    ):
+    async def _encode_data_inplace(self, codec: PublicCodec, messages: List[InternalMessage]):
         if codec == PublicCodec.RAW:
             return
 
@@ -454,14 +431,8 @@ class WriterAsyncIOReconnector:
                 codec = await self._codec_selector_by_check_compress(messages)
                 self._codec_selector_last_codec = codec
         else:
-            if (
-                self._codec_selector_batch_num
-                % self._codec_selector_check_batches_interval
-                == 0
-            ):
-                self._codec_selector_last_codec = (
-                    await self._codec_selector_by_check_compress(messages)
-                )
+            if self._codec_selector_batch_num % self._codec_selector_check_batches_interval == 0:
+                self._codec_selector_last_codec = await self._codec_selector_by_check_compress(messages)
             codec = self._codec_selector_last_codec
         self._codec_selector_batch_num += 1
         return codec
@@ -484,9 +455,7 @@ class WriterAsyncIOReconnector:
 
         return res
 
-    async def _codec_selector_by_check_compress(
-        self, messages: List[InternalMessage]
-    ) -> PublicCodec:
+    async def _codec_selector_by_check_compress(self, messages: List[InternalMessage]) -> PublicCodec:
         """
         Try to compress messages and choose codec with the smallest result size.
         """
@@ -536,9 +505,7 @@ class WriterAsyncIOReconnector:
                 "internal error - receive unexpected ack. Expected seqno: %s, received seqno: %s"
                 % (current_message.seq_no, ack.seq_no)
             )
-        message_future.set_result(
-            None
-        )  # todo - return result with offset or skip status
+        message_future.set_result(None)  # todo - return result with offset or skip status
 
     async def _send_loop(self, writer: "WriterAsyncIOStream"):
         try:
@@ -628,9 +595,7 @@ class WriterAsyncIOStream:
     ) -> "WriterAsyncIOStream":
         stream = GrpcWrapperAsyncIO(StreamWriteMessage.FromServer.from_proto)
 
-        await stream.start(
-            driver, _apis.TopicService.Stub, _apis.TopicService.StreamWrite
-        )
+        await stream.start(driver, _apis.TopicService.Stub, _apis.TopicService.StreamWrite)
 
         creds = driver._credentials
         writer = WriterAsyncIOStream(
@@ -653,9 +618,7 @@ class WriterAsyncIOStream:
             # todo log unknown messages instead of raise exception
             raise Exception("Unknown message while read writer answers: %s" % item)
 
-    async def _start(
-        self, stream: IGrpcWrapperAsyncIO, init_message: StreamWriteMessage.InitRequest
-    ):
+    async def _start(self, stream: IGrpcWrapperAsyncIO, init_message: StreamWriteMessage.InitRequest):
         stream.write(StreamWriteMessage.FromClient(init_message))
 
         resp = await stream.receive()
@@ -670,16 +633,12 @@ class WriterAsyncIOStream:
 
         if self._update_token_interval is not None:
             self._update_token_event.set()
-            self._update_token_task = asyncio.create_task(
-                self._update_token_loop(), name="update_token_loop"
-            )
+            self._update_token_task = asyncio.create_task(self._update_token_loop(), name="update_token_loop")
 
     @staticmethod
     def _ensure_ok(message: WriterMessagesFromServerToClient):
         if not message.status.is_success():
-            raise TopicWriterError(
-                "status error from server in writer: %s", message.status
-            )
+            raise TopicWriterError("status error from server in writer: %s", message.status)
 
     def write(self, messages: List[InternalMessage]):
         if self._closed:
