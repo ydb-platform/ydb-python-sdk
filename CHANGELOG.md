@@ -1,11 +1,6 @@
-COMPLETE CHANGELOG FROM v2:
-* Add api for topic service
-
-BROKEN CHANGES:
-* deny any action in transaction after commit/rollback (switch to old behaviour with ydb.global_allow_split_transactions(True))
-* raise exception for truncated response by default (switch to old behavior with ydb.global_allow_truncated_result(True))
-* drop support python 2
-* Use anonymous credentials for auth by default instead of iam metadata (use ydb.driver.credentials_from_env_variables for creds by env var)
+* Fixed commit for sync reader
+* Group messages while send to server
+* Prevent stop topic client by GC while reader/writer alived
 
 ## 3.0.1b12 ##
 * Added flush reader commits on reader close
