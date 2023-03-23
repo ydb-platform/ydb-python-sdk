@@ -5,7 +5,6 @@ import typing
 from concurrent.futures import Future
 from typing import Union, List, Optional
 
-from .. import topic
 from .._grpc.grpcwrapper.common_utils import SupportedDriverType
 from .topic_writer import (
     PublicWriterSettings,
@@ -30,12 +29,12 @@ class WriterSync:
     _parent: typing.Any  # need for prevent close parent client by GC
 
     def __init__(
-            self,
-            driver: SupportedDriverType,
-            settings: PublicWriterSettings,
-            *,
-            eventloop: Optional[asyncio.AbstractEventLoop] = None,
-            _parent=None
+        self,
+        driver: SupportedDriverType,
+        settings: PublicWriterSettings,
+        *,
+        eventloop: Optional[asyncio.AbstractEventLoop] = None,
+        _parent=None,
     ):
 
         self._closed = False
@@ -101,17 +100,17 @@ class WriterSync:
         )
 
     def write(
-            self,
-            messages: Union[Message, List[Message]],
-            timeout: TimeoutType = None,
+        self,
+        messages: Union[Message, List[Message]],
+        timeout: TimeoutType = None,
     ):
         self._check_closed()
 
         self._caller.safe_call_with_result(self._async_writer.write(messages), timeout)
 
     def async_write_with_ack(
-            self,
-            messages: Union[Message, List[Message]],
+        self,
+        messages: Union[Message, List[Message]],
     ) -> Future[Union[PublicWriteResult, List[PublicWriteResult]]]:
         self._check_closed()
 
@@ -120,9 +119,9 @@ class WriterSync:
         )
 
     def write_with_ack(
-            self,
-            messages: Union[Message, List[Message]],
-            timeout: Union[float, None] = None,
+        self,
+        messages: Union[Message, List[Message]],
+        timeout: Union[float, None] = None,
     ) -> Union[PublicWriteResult, List[PublicWriteResult]]:
         self._check_closed()
 

@@ -40,8 +40,6 @@ from .._grpc.grpcwrapper.common_utils import (
     GrpcWrapperAsyncIO,
 )
 
-from .. import topic
-
 logger = logging.getLogger(__name__)
 
 
@@ -52,10 +50,10 @@ class WriterAsyncIO:
     _parent: typing.Any  # need for prevent close parent client by GC
 
     def __init__(
-            self,
-            driver: SupportedDriverType,
-            settings: PublicWriterSettings,
-            _client=None,
+        self,
+        driver: SupportedDriverType,
+        settings: PublicWriterSettings,
+        _client=None,
     ):
         self._loop = asyncio.get_running_loop()
         self._closed = False
