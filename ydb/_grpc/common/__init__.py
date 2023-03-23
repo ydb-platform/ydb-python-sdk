@@ -1,8 +1,8 @@
 import sys
-import importlib.util
 
 import google.protobuf
 from packaging.version import Version
+from ... import _utilities
 
 # generated files are incompatible between 3 and 4 protobuf versions
 # import right generated version for current protobuf lib
@@ -10,7 +10,7 @@ from packaging.version import Version
 protobuf_version = Version(google.protobuf.__version__)
 
 # for compatible with arcadia
-if importlib.util.find_spec("ydb.public.api"):
+if _utilities.check_module_exists("ydb.public.api"):
     from ydb.public.api.grpc import *  # noqa
 
     sys.modules["ydb._grpc.common"] = sys.modules["ydb.public.api.grpc"]
