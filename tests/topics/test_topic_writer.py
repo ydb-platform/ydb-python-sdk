@@ -16,7 +16,8 @@ class TestTopicWriterAsyncIO:
             producer_id="test",
             auto_seqno=False,
         ) as writer:
-            await writer.write_with_ack(ydb.TopicWriterMessage(data="123".encode(), seqno=5))
+            ret = await writer.write_with_ack(ydb.TopicWriterMessage(data="123".encode(), seqno=5))
+            assert ret.offset == 0
 
         async with driver.topic_client.writer(
             topic_path,
@@ -62,12 +63,14 @@ class TestTopicWriterAsyncIO:
         self, driver: ydb.aio.Driver, topic_path, topic_reader: ydb.TopicReaderAsyncIO
     ):
         async with driver.topic_client.writer(topic_path) as writer:
-            await writer.write_with_ack(
+            res1, res2 = await writer.write_with_ack(
                 [
                     ydb.TopicWriterMessage(data="123".encode()),
                     ydb.TopicWriterMessage(data="456".encode()),
                 ]
             )
+            assert res1.offset == 0
+            assert res2.offset == 1
 
         batch = await topic_reader.receive_batch()
 

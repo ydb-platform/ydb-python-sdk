@@ -18,6 +18,7 @@ from .topic_writer import (
     TopicWriterStopped,
     TopicWriterError,
     messages_to_proto_requests,
+    PublicWriteResult,
     PublicWriteResultTypes,
     Message,
 )
@@ -505,7 +506,15 @@ class WriterAsyncIOReconnector:
                 "internal error - receive unexpected ack. Expected seqno: %s, received seqno: %s"
                 % (current_message.seq_no, ack.seq_no)
             )
-        message_future.set_result(None)  # todo - return result with offset or skip status
+        write_ack_msg = StreamWriteMessage.WriteResponse.WriteAck
+        status = ack.message_write_status
+        if isinstance(status, write_ack_msg.StatusSkipped):
+            result = PublicWriteResult.Skipped()
+        elif isinstance(status, write_ack_msg.StatusWritten):
+            result = PublicWriteResult.Written(offset=status.offset)
+        else:
+            raise TopicWriterError("internal error - receive unexpected ack message.")
+        message_future.set_result(result)
 
     async def _send_loop(self, writer: "WriterAsyncIOStream"):
         try:
