@@ -312,7 +312,7 @@ def ensure_path_exists(driver, database, path):
 
 
 def run(endpoint, database, path):
-    with ydb.Driver(endpoint=endpoint, database=database) as driver:
+    with ydb.Driver(endpoint=endpoint, database=database, credentials=ydb.credentials_from_env_variables()) as driver:
         driver.wait(timeout=5, fail_fast=True)
 
         with ydb.SessionPool(driver) as pool:
