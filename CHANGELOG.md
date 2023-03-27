@@ -1,3 +1,5 @@
+* Added return result for topic writer.write_with_ack
+
 ## 3.1.1 ##
 * Fixed bug with ModuleNotFoundError while import ydb
 
