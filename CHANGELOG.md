@@ -1,3 +1,4 @@
+## 3.2.0 ##
 * Added return result for topic writer.write_with_ack
 
 ## 3.1.1 ##
