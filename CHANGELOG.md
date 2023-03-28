@@ -8,7 +8,7 @@
 COMPLETE CHANGELOG FROM v2:
 * Add api for topic service
 
-BROKEN CHANGES:
+BREAKING CHANGES:
 * deny any action in transaction after commit/rollback (switch to old behaviour with ydb.global_allow_split_transactions(True))
 * raise exception for truncated response by default (switch to old behavior with ydb.global_allow_truncated_result(True))
 * drop support python 2
