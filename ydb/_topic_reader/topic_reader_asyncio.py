@@ -606,7 +606,8 @@ class ReaderStream:
         for session in self._partition_sessions.values():
             futures.extend(w.future for w in session._ack_waiters)
 
-        await asyncio.gather(*futures)
+        if futures:
+            await asyncio.wait(futures)
 
     async def close(self):
         if self._closed:
@@ -622,4 +623,6 @@ class ReaderStream:
 
         for task in self._background_tasks:
             task.cancel()
-        await asyncio.wait(self._background_tasks)
+
+        if self._background_tasks:
+            await asyncio.wait(self._background_tasks)

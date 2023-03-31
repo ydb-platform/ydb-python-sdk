@@ -183,6 +183,8 @@ class TestWriterAsyncIOStream:
         receive_task.cancel()
         await asyncio.wait([receive_task])
 
+        await writer.close()
+
 
 @pytest.mark.asyncio
 class TestWriterAsyncIOReconnector:
@@ -439,8 +441,11 @@ class TestWriterAsyncIOReconnector:
 
         await reconnector.close(flush=False)
 
-    async def test_deny_double_seqno(self, reconnector: WriterAsyncIOReconnector):
+    async def test_deny_double_seqno(self, reconnector: WriterAsyncIOReconnector, get_stream_writer):
+        writer = get_stream_writer()
+
         await reconnector.write_with_ack_future([PublicMessage(seqno=10, data="123")])
+        writer.from_server.put_nowait(self.make_default_ack_message(seq_no=10))
 
         with pytest.raises(TopicWriterError):
             await reconnector.write_with_ack_future([PublicMessage(seqno=9, data="123")])
@@ -449,8 +454,9 @@ class TestWriterAsyncIOReconnector:
             await reconnector.write_with_ack_future([PublicMessage(seqno=10, data="123")])
 
         await reconnector.write_with_ack_future([PublicMessage(seqno=11, data="123")])
+        writer.from_server.put_nowait(self.make_default_ack_message(seq_no=11))
 
-        await reconnector.close(flush=False)
+        await reconnector.close(flush=True)
 
     @freezegun.freeze_time("2022-01-13 20:50:00", tz_offset=0)
     async def test_auto_created_at(self, default_driver, default_settings, get_stream_writer):
@@ -570,6 +576,8 @@ class TestWriterAsyncIOReconnector:
         for index, mess in enumerate(messages):
             assert mess.codec == codec
             assert mess.get_bytes() == expected_datas[index]
+
+        await reconnector.close(flush=True)
 
     async def test_custom_encoder(self, default_driver, default_settings, get_stream_writer):
         codec = 10001
