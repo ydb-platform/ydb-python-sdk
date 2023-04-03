@@ -54,10 +54,12 @@ def credentials_from_env_variables(tracer=None):
             ctx.trace({"credentials.access_token": True})
             return credentials_impl.AuthTokenCredentials(access_token)
 
-        ctx.trace({
-            "credentials.env_default": True,
-            "credentials.metadata": True,
-        })
+        ctx.trace(
+            {
+                "credentials.env_default": True,
+                "credentials.metadata": True,
+            }
+        )
         return iam.MetadataUrlCredentials(tracer=tracer)
 
 
