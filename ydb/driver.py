@@ -3,6 +3,7 @@ from . import credentials as credentials_impl, table, scheme, pool
 from . import tracing
 import os
 import grpc
+from . import iam
 from . import _utilities
 
 from typing import Any  # noqa
@@ -45,16 +46,19 @@ def credentials_from_env_variables(tracer=None):
         metadata_credentials = os.getenv("YDB_METADATA_CREDENTIALS", "0") == "1"
         if metadata_credentials:
             ctx.trace({"credentials.metadata": True})
-            import ydb.iam
 
-            return ydb.iam.MetadataUrlCredentials(tracer=tracer)
+            return iam.MetadataUrlCredentials(tracer=tracer)
 
         access_token = os.getenv("YDB_ACCESS_TOKEN_CREDENTIALS")
         if access_token is not None:
             ctx.trace({"credentials.access_token": True})
             return credentials_impl.AuthTokenCredentials(access_token)
 
-        return default_credentials(None, tracer)
+        ctx.trace({
+            "credentials.env_default": True,
+            "credentials.metadata": True,
+        })
+        return iam.MetadataUrlCredentials(tracer=tracer)
 
 
 class DriverConfig(object):
