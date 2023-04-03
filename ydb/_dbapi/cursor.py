@@ -3,12 +3,24 @@ import itertools
 import logging
 import uuid
 import decimal
+import string
 
 import ydb
 from .errors import DatabaseError, ProgrammingError
 
 
 logger = logging.getLogger(__name__)
+
+
+identifier_starts = {x for x in itertools.chain(string.ascii_letters, "_")}
+valid_identifier_chars = {x for x in itertools.chain(identifier_starts, string.digits)}
+
+
+def check_identifier_valid(idt: str):
+    valid = idt and idt[0] in identifier_starts and all(c in valid_identifier_chars for c in idt)
+    if not valid:
+        raise ProgrammingError(f"Invalid identifier {idt}")
+    return valid
 
 
 def get_column_type(type_obj):
@@ -48,7 +60,7 @@ def _generate_type_str(value):
         stype = f"Set<{nested_type}>"
 
     if stype is None:
-        raise ProgrammingError("Cannot translate python type to ydb type.", tvalue, value)
+        raise ProgrammingError(f"Cannot translate value {value} (type {tvalue}) to ydb type.")
 
     return stype
 
@@ -70,6 +82,8 @@ class Cursor(object):
         sql_params = None
 
         if parameters:
+            for name in parameters.keys():
+                check_identifier_valid(name)
             sql = sql % {k: f"${k}" for k, v in parameters.items()}
             sql_params = {f"${k}": v for k, v in parameters.items()}
             declare_stms = _generate_declare_stms(sql_params)
@@ -137,13 +151,10 @@ class Cursor(object):
         return self.execute(script)
 
     def fetchone(self):
-        if self.rows is None:
-            return None
-        return next(self.rows, None)
+        return next(self.rows or [], None)
 
     def fetchmany(self, size=None):
-        size = self.arraysize if size is None else size
-        return list(itertools.islice(self.rows, size))
+        return list(itertools.islice(self.rows, size or self.arraysize))
 
     def fetchall(self):
         return list(self.rows)
