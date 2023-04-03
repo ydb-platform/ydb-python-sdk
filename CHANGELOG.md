@@ -1,3 +1,5 @@
+* Fixed ydb.credentials_from_env_variables, now it will use Metadata credentials by default (instead of anonymous).
+
 ## 3.2.0 ##
 * Added return result for topic writer.write_with_ack
 
