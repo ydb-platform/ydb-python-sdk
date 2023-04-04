@@ -576,7 +576,7 @@ class TestReaderStream:
                 StreamReadMessage.InitRequest.TopicReadSettings(
                     path="/local/test-topic",
                     partition_ids=[],
-                    max_lag_seconds=None,
+                    max_lag=None,
                     read_from=None,
                 )
             ],

@@ -274,14 +274,15 @@ async def to_thread(func, /, *args, **kwargs):
     return await loop.run_in_executor(None, func_call)
 
 
-def proto_duration_from_timedelta(t: Optional[datetime.timedelta]) -> ProtoDuration:
+def proto_duration_from_timedelta(t: Optional[datetime.timedelta]) -> Optional[ProtoDuration]:
     if t is None:
         return None
+
     res = ProtoDuration()
     res.FromTimedelta(t)
 
 
-def proto_timestamp_from_datetime(t: Optional[datetime.datetime]) -> ProtoTimeStamp:
+def proto_timestamp_from_datetime(t: Optional[datetime.datetime]) -> Optional[ProtoTimeStamp]:
     if t is None:
         return None
 
