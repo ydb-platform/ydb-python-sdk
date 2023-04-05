@@ -121,7 +121,7 @@ def execute_request_factory(
 ):
     data_query, query_id = session_state.lookup(query)
     parameters_types = {}
-    keep_in_cache = False
+
     if query_id is not None:
         query_pb = _apis.ydb_table.Query(id=query_id)
         parameters_types = data_query.parameters_types
@@ -131,12 +131,6 @@ def execute_request_factory(
             yql_text = data_query.yql_text
             parameters_types = data_query.parameters_types
         elif isinstance(query, types.DataQuery):
-            if settings is not None and hasattr(settings, "keep_in_cache"):
-                keep_in_cache = settings.keep_in_cache
-            else:
-                # that is an instance of a data query and we don't know query id for id.
-                # so let's prepare it to keep in cache
-                keep_in_cache = True
             yql_text = query.yql_text
             parameters_types = query.parameters_types
         else:
@@ -145,6 +139,17 @@ def execute_request_factory(
     request = _apis.ydb_table.ExecuteDataQueryRequest(
         parameters=convert.parameters_to_pb(parameters_types, parameters)
     )
+
+    if query_id is not None:
+        # SDK not send query text and nothing save to cache
+        keep_in_cache = False
+    elif settings is not None and hasattr(settings, "keep_in_cache"):
+        keep_in_cache = settings.keep_in_cache
+    elif parameters:
+        keep_in_cache = True
+    else:
+        keep_in_cache = False
+
     if keep_in_cache:
         request.query_cache_policy.keep_in_cache = True
     request.query.MergeFrom(query_pb)
