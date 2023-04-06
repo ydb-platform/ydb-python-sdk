@@ -1,3 +1,5 @@
+* Fixed set keep_in_cache algorithm
+
 ## 2.13.4 ##
 * fixed sqlalchemy get_columns method with not null columns
 
