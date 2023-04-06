@@ -1,3 +1,4 @@
+## 3.2.2 ##
 * Fixed set keep_in_cache algorithm
 
 ## 3.2.1 ##
