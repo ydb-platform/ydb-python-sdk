@@ -1,3 +1,5 @@
+* Fixed set keep_in_cache algorithm
+
 ## 3.2.1 ##
 * Fixed ydb.credentials_from_env_variables, now it will use Metadata credentials by default (instead of anonymous).
 
