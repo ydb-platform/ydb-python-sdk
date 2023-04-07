@@ -17,7 +17,7 @@ from .._grpc.grpcwrapper.ydb_topic import StreamReadMessage, OffsetsRange
 @dataclass
 class PublicTopicSelector:
     path: str
-    partitions: Union[None, int, List[int]] = None
+    partitions: Optional[Union[int, List[int]]] = None
     read_from: Optional[datetime.datetime] = None
     max_lag: Optional[datetime.timedelta] = None
 
