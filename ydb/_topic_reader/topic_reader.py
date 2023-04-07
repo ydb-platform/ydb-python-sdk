@@ -54,6 +54,9 @@ class PublicReaderSettings:
     update_token_interval: Union[int, float] = 3600
 
     def _init_message(self) -> StreamReadMessage.InitRequest:
+        if not isinstance(self.consumer, str):
+            raise TypeError("Unsupported type for customer field: '%s'" % type(self.consumer))
+
         if isinstance(self.topic, list):
             selectors = self.topic
         else:
@@ -65,7 +68,7 @@ class PublicReaderSettings:
             elif isinstance(selector, PublicTopicSelector):
                 pass
             else:
-                raise TypeError("Value of %s not supported as topic selector" % type(selector))
+                raise TypeError("Unsupported type for topic field: '%s'" % type(selector))
 
         return StreamReadMessage.InitRequest(
             topics_read_settings=list(map(PublicTopicSelector._to_topic_read_settings, selectors)),  # type: ignore
