@@ -3,7 +3,7 @@ name: Functional tests
 on:
   push:
     branches:
-      - master
+      - main
   pull_request:
 
 jobs:
