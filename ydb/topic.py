@@ -13,8 +13,10 @@ __all__ = [
     "TopicReaderAsyncIO",
     "TopicReaderSettings",
     "TopicStatWindow",
+    "TopicWriteResult",
     "TopicWriter",
     "TopicWriterAsyncIO",
+    "TopicWriterInitInfo",
     "TopicWriterMessage",
     "TopicWriterSettings",
 ]
@@ -42,6 +44,8 @@ from ._topic_writer.topic_writer import (  # noqa: F401
     PublicWriterSettings as TopicWriterSettings,
     PublicMessage as TopicWriterMessage,
     RetryPolicy as TopicWriterRetryPolicy,
+    PublicWriterInitInfo as TopicWriterInitInfo,
+    PublicWriteResult as TopicWriteResult,
 )
 
 from ydb._topic_writer.topic_writer_asyncio import WriterAsyncIO as TopicWriterAsyncIO

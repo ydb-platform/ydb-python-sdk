@@ -38,6 +38,10 @@ class PublicReaderSettings:
     decoder_executor: Optional[concurrent.futures.Executor] = None
     update_token_interval: Union[int, float] = 3600
 
+    def __post_init__(self):
+        if not isinstance(self.consumer, str):
+            raise TypeError("Unsupported type for consumer: '%s'" % type(self.consumer))
+
     def _init_message(self) -> StreamReadMessage.InitRequest:
         return StreamReadMessage.InitRequest(
             topics_read_settings=[
