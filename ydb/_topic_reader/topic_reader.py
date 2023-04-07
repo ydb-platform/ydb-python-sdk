@@ -14,17 +14,14 @@ from ..table import RetrySettings
 from .._grpc.grpcwrapper.ydb_topic import StreamReadMessage, OffsetsRange
 
 
+@dataclass
 class PublicTopicSelector:
     path: str
-    partitions: Union[None, int, List[int]]
-    read_from: Optional[datetime.datetime]
-    max_lag: Optional[datetime.timedelta]
+    partitions: Union[None, int, List[int]] = None
+    read_from: Optional[datetime.datetime] = None
+    max_lag: Optional[datetime.timedelta] = None
 
-    def __init__(self, path, *, partitions: Union[None, int, List[int]] = None):
-        self.path = path
-        self.partitions = partitions
-
-    def _to_topic_read_settings(self)->StreamReadMessage.InitRequest.TopicReadSettings:
+    def _to_topic_read_settings(self) -> StreamReadMessage.InitRequest.TopicReadSettings:
         partitions = self.partitions
         if partitions is None:
             partitions = []
@@ -71,7 +68,7 @@ class PublicReaderSettings:
                 raise TypeError("Value of %s not supported as topic selector" % type(selector))
 
         return StreamReadMessage.InitRequest(
-            topics_read_settings=list(map(PublicTopicSelector._to_topic_read_settings, selectors)), # type: ignore
+            topics_read_settings=list(map(PublicTopicSelector._to_topic_read_settings, selectors)),  # type: ignore
             consumer=self.consumer,
         )
 

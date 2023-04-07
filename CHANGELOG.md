@@ -1,3 +1,5 @@
+* Added support to set many topics and topic reader settings for read in one reader
+
 ## 3.2.2 ##
 * Fixed set keep_in_cache algorithm
 

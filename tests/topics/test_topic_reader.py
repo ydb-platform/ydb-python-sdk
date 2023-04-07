@@ -71,6 +71,31 @@ class TestTopicReaderAsyncIO:
             batch = await reader.receive_batch()
             assert batch.messages[0].data.decode() == "123"
 
+    async def test_read_from_two_topics(self, driver, topic_path, topic2_path, topic_consumer):
+        async with driver.topic_client.writer(topic_path) as writer:
+            await writer.write("1")
+            await writer.flush()
+
+        async with driver.topic_client.writer(topic2_path) as writer:
+            await writer.write("2")
+            await writer.flush()
+
+        messages = []
+        async with driver.topic_client.reader(
+            [
+                topic_path,
+                ydb.TopicReaderSelector(path=topic2_path),
+            ],
+            consumer=topic_consumer,
+        ) as reader:
+            for _ in range(2):
+                message = await reader.receive_message()
+                messages.append(message)
+
+        messages = [message.data.decode() for message in messages]
+        messages.sort()
+        assert messages == ["1", "2"]
+
 
 class TestTopicReaderSync:
     def test_read_batch(self, driver_sync, topic_with_messages, topic_consumer):

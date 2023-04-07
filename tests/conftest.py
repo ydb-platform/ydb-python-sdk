@@ -160,6 +160,24 @@ async def topic_path(driver, topic_consumer, database) -> str:
 
 @pytest.fixture()
 @pytest.mark.asyncio()
+async def topic2_path(driver, topic_consumer, database) -> str:
+    topic_path = database + "/test-topic2"
+
+    try:
+        await driver.topic_client.drop_topic(topic_path)
+    except issues.SchemeError:
+        pass
+
+    await driver.topic_client.create_topic(
+        path=topic_path,
+        consumers=[topic_consumer],
+    )
+
+    return topic_path
+
+
+@pytest.fixture()
+@pytest.mark.asyncio()
 async def topic_with_messages(driver, topic_consumer, database):
     topic_path = database + "/test-topic-with-messages"
     try:
