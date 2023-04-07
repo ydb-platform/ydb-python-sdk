@@ -11,6 +11,7 @@ __all__ = [
     "TopicMeteringMode",
     "TopicReader",
     "TopicReaderAsyncIO",
+    "TopicReaderSelector",
     "TopicReaderSettings",
     "TopicStatWindow",
     "TopicWriteResult",
@@ -32,6 +33,7 @@ from . import driver
 
 from ._topic_reader.topic_reader import (
     PublicReaderSettings as TopicReaderSettings,
+    PublicTopicSelector as TopicReaderSelector,
 )
 
 from ._topic_reader.topic_reader_sync import TopicReaderSync as TopicReader
@@ -155,7 +157,7 @@ class TopicClientAsyncIO:
 
     def reader(
         self,
-        topic: str,
+        topic: Union[str, TopicReaderSelector, List[Union[str, TopicReaderSelector]]],
         consumer: str,
         buffer_size_bytes: int = 50 * 1024 * 1024,
         # decoders: map[codec_code] func(encoded_bytes)->decoded_bytes
@@ -304,7 +306,7 @@ class TopicClient:
 
     def reader(
         self,
-        topic: str,
+        topic: Union[str, TopicReaderSelector, List[Union[str, TopicReaderSelector]]],
         consumer: str,
         buffer_size_bytes: int = 50 * 1024 * 1024,
         # decoders: map[codec_code] func(encoded_bytes)->decoded_bytes

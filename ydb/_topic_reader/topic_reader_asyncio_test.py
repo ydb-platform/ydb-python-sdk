@@ -576,7 +576,7 @@ class TestReaderStream:
                 StreamReadMessage.InitRequest.TopicReadSettings(
                     path="/local/test-topic",
                     partition_ids=[],
-                    max_lag_seconds=None,
+                    max_lag=None,
                     read_from=None,
                 )
             ],
@@ -1139,13 +1139,17 @@ class TestReaderReconnector:
         reader_stream_mock_with_error = mock.Mock(ReaderStream)
         reader_stream_mock_with_error.wait_error = mock.AsyncMock(side_effect=wait_error)
 
-        async def wait_messages():
+        async def wait_messages_with_error():
             raise test_error
 
-        reader_stream_mock_with_error.wait_messages = mock.AsyncMock(side_effect=wait_messages)
+        reader_stream_mock_with_error.wait_messages = mock.AsyncMock(side_effect=wait_messages_with_error)
+
+        async def wait_forever():
+            f = asyncio.Future()
+            await f
 
         reader_stream_with_messages = mock.Mock(ReaderStream)
-        reader_stream_with_messages.wait_error.return_value = asyncio.Future()
+        reader_stream_with_messages.wait_error = mock.AsyncMock(side_effect=wait_forever)
         reader_stream_with_messages.wait_messages.return_value = None
 
         stream_index = 0

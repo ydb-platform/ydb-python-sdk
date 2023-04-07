@@ -410,8 +410,8 @@ class StreamReadMessage:
         class TopicReadSettings(IToProto):
             path: str
             partition_ids: List[int] = field(default_factory=list)
-            max_lag_seconds: Union[datetime.timedelta, None] = None
-            read_from: Union[int, float, datetime.datetime, None] = None
+            max_lag: Optional[datetime.timedelta] = None
+            read_from: Optional[datetime.datetime] = None
 
             def to_proto(
                 self,
@@ -419,8 +419,14 @@ class StreamReadMessage:
                 res = ydb_topic_pb2.StreamReadMessage.InitRequest.TopicReadSettings()
                 res.path = self.path
                 res.partition_ids.extend(self.partition_ids)
-                if self.max_lag_seconds is not None:
-                    res.max_lag = proto_duration_from_timedelta(self.max_lag_seconds)
+                max_lag = proto_duration_from_timedelta(self.max_lag)
+                if max_lag is not None:
+                    res.max_lag = max_lag
+
+                read_from = proto_timestamp_from_datetime(self.read_from)
+                if read_from is not None:
+                    res.read_from = read_from
+
                 return res
 
     @dataclass

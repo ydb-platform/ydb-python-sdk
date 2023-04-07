@@ -164,7 +164,7 @@ class ReaderReconnector:
                 attempt = 0
                 self._state_changed.set()
                 await self._stream_reader.wait_error()
-            except issues.Error as err:
+            except BaseException as err:
                 retry_info = check_retriable_error(err, self._settings._retry_settings(), attempt)
                 if not retry_info.is_retriable:
                     self._set_first_error(err)

@@ -160,7 +160,36 @@ async def topic_path(driver, topic_consumer, database) -> str:
 
 @pytest.fixture()
 @pytest.mark.asyncio()
-async def topic_with_messages(driver, topic_path):
+async def topic2_path(driver, topic_consumer, database) -> str:
+    topic_path = database + "/test-topic2"
+
+    try:
+        await driver.topic_client.drop_topic(topic_path)
+    except issues.SchemeError:
+        pass
+
+    await driver.topic_client.create_topic(
+        path=topic_path,
+        consumers=[topic_consumer],
+    )
+
+    return topic_path
+
+
+@pytest.fixture()
+@pytest.mark.asyncio()
+async def topic_with_messages(driver, topic_consumer, database):
+    topic_path = database + "/test-topic-with-messages"
+    try:
+        await driver.topic_client.drop_topic(topic_path)
+    except issues.SchemeError:
+        pass
+
+    await driver.topic_client.create_topic(
+        path=topic_path,
+        consumers=[topic_consumer],
+    )
+
     writer = driver.topic_client.writer(topic_path, producer_id="fixture-producer-id", codec=ydb.TopicCodec.RAW)
     await writer.write_with_ack(
         [
@@ -175,6 +204,7 @@ async def topic_with_messages(driver, topic_path):
         ]
     )
     await writer.close()
+    return topic_path
 
 
 @pytest.fixture()
