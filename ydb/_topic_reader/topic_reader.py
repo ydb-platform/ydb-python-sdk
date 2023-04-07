@@ -39,8 +39,8 @@ class PublicReaderSettings:
     update_token_interval: Union[int, float] = 3600
 
     def __post_init__(self):
-        if not isinstance(self.consumer, str):
-            raise TypeError("Unsupported type for consumer: '%s'" % type(self.consumer))
+        # check possible create init message
+        _ = self._init_message()
 
     def _init_message(self) -> StreamReadMessage.InitRequest:
         return StreamReadMessage.InitRequest(
