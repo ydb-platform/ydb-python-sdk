@@ -335,6 +335,10 @@ class SessionPoolImpl(object):
             self._destroy(session, "keep-alive-error")
 
     def acquire(self, blocking=True, timeout=None):
+        if self._should_stop.is_set():
+            self._logger.debug("Acquired not inited session")
+            raise ValueError("Take session from closed session pool.")
+
         waiter = self.subscribe()
         has_result = False
         if blocking:

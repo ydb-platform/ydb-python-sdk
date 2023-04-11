@@ -342,7 +342,7 @@ class SessionPool:
 
         if self._should_stop.is_set():
             self._logger.debug("Acquired not inited session")
-            return self._create()
+            raise ValueError("Take session from closed session pool.")
 
         if retry_timeout is None:
             retry_timeout = timeout
