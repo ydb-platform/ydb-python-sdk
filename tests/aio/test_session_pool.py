@@ -62,14 +62,14 @@ async def test_close_basic_logic_case_1(driver):
     waiter = asyncio.ensure_future(pool.acquire())
 
     await pool.stop()
-    waiter_sess = waiter.result()
-    assert not waiter_sess.initialized()
-    after_stop = await pool.acquire()
-    assert not after_stop.initialized()
+
+    with pytest.raises(ValueError):
+        waiter.result()
+
+    with pytest.raises(ValueError):
+        await pool.acquire()
 
     await pool.release(s)
-    await pool.release(after_stop)
-    await pool.release(waiter_sess)
     assert pool._active_count == 0
 
 
@@ -106,9 +106,9 @@ async def test_close_basic_logic_case_2(driver):
 
     assert pool._active_count == 0
 
-    sess = await pool.acquire()
+    with pytest.raises(ValueError):
+        await pool.acquire()
 
-    assert not sess.initialized()
     await pool.stop()
 
 
