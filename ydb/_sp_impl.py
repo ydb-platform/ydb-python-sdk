@@ -336,7 +336,7 @@ class SessionPoolImpl(object):
 
     def acquire(self, blocking=True, timeout=None):
         if self._should_stop.is_set():
-            self._logger.debug("Acquired not inited session")
+            self._logger.error("Take session from closed session pool")
             raise ValueError("Take session from closed session pool.")
 
         waiter = self.subscribe()

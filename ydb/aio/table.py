@@ -341,7 +341,7 @@ class SessionPool:
     async def acquire(self, timeout: float = None, retry_timeout: float = None, retry_num: int = None) -> ydb.ISession:
 
         if self._should_stop.is_set():
-            self._logger.debug("Acquired not inited session")
+            self._logger.error("Take session from closed session pool")
             raise ValueError("Take session from closed session pool.")
 
         if retry_timeout is None:
