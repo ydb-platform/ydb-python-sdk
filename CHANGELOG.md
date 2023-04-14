@@ -1,4 +1,8 @@
 * Added support to set many topics and topic reader settings for read in one reader
+* Added ydb.TopicWriterInitInfo, ydb.TopicWriteResult as public types
+* Check possible of create init message on create reader (faster fail with some bad params)
+* Raise exception for get session from stopped session pool
+* Add extend path for ydb (allow install other packages with names in ydb namespace
 
 ## 3.2.2 ##
 * Fixed set keep_in_cache algorithm
