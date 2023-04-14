@@ -1,3 +1,4 @@
+import decimal
 import ydb
 
 
@@ -27,3 +28,13 @@ class TestTable:
 
         res = driver_sync.scheme_client.describe_path(table_path)
         assert res.type == ydb.scheme.SchemeEntryType.TABLE
+
+    def test_select_text_query_with_params(self, driver_sync):
+        def select(session: ydb.Session):
+            text_query = "DECLARE $v AS Int64; SELECT $v"
+            session.prepare(text_query)
+            with session.transaction() as tx:
+                tx.execute(text_query, {"$v": 1})
+
+        pool = ydb.SessionPool(driver=driver_sync)
+        pool.retry_operation_sync(select)
