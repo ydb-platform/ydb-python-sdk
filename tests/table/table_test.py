@@ -1,4 +1,14 @@
+import pytest
 import ydb
+
+
+class TestSessionPool:
+    def test_checkout_from_stopped_pool(self, driver_sync):
+        pool = ydb.SessionPool(driver_sync, 1)
+        pool.stop()
+
+        with pytest.raises(ValueError):
+            pool.acquire()
 
 
 class TestTable:
