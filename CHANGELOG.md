@@ -1,3 +1,4 @@
+## 3.3.0 ##
 * Added support to set many topics and topic reader settings for read in one reader
 * Added ydb.TopicWriterInitInfo, ydb.TopicWriteResult as public types
 * Check possible of create init message on create reader (faster fail with some bad params)
