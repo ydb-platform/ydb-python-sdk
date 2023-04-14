@@ -159,7 +159,5 @@ def wrap_result_and_tx_id(rpc_state, response_pb, session_state, tx_state, query
     issues._process_response(response_pb.operation)
     message = _apis.ydb_table.ExecuteQueryResult()
     response_pb.operation.result.Unpack(message)
-    if message.query_meta.id:
-        session_state.keep(query, message.query_meta.id)
     tx_state.tx_id = None if not message.tx_meta.id else message.tx_meta.id
     return convert.ResultSets(message.result_sets, session_state.table_client_settings)
