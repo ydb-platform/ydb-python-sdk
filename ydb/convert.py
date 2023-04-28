@@ -106,6 +106,8 @@ _to_native_map = {
     "dict_type": _pb_to_dict,
     "struct_type": _pb_to_struct,
     "void_type": _pb_to_void,
+    "empty_list_type": _pb_to_list,
+    "empty_dict_type": _pb_to_dict,
 }
 
 
@@ -295,7 +297,7 @@ class _ResultSet(object):
     @classmethod
     def from_message(cls, message, table_client_settings=None, snapshot=None):
         rows = []
-        # prepare columnn parsers before actuall parsing
+        # prepare column parsers before actuall parsing
         column_parsers = []
         if len(message.rows) > 0:
             for column in message.columns:
