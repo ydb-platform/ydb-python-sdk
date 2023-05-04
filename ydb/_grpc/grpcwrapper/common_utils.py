@@ -112,7 +112,7 @@ class AsyncQueueToSyncIteratorAsyncIO:
         return item
 
 
-class SyncIteratorToAsyncIterator:
+class SyncToAsyncIterator:
     def __init__(self, sync_iterator: Iterator, executor: concurrent.futures.Executor):
         self._sync_iterator = sync_iterator
         self._executor = executor
@@ -124,8 +124,8 @@ class SyncIteratorToAsyncIterator:
         try:
             res = await to_thread(self._sync_iterator.__next__, executor=self._executor)
             return res
-        except StopAsyncIteration:
-            raise StopIteration()
+        except StopIteration:
+            raise StopAsyncIteration()
 
 
 class IGrpcWrapperAsyncIO(abc.ABC):
@@ -197,7 +197,7 @@ class GrpcWrapperAsyncIO(IGrpcWrapperAsyncIO):
 
         stream_call = await to_thread(driver, requests_iterator, stub, method, executor=self._wait_executor)
         self._stream_call = stream_call
-        self.from_server_grpc = SyncIteratorToAsyncIterator(stream_call.__iter__(), self._wait_executor)
+        self.from_server_grpc = SyncToAsyncIterator(stream_call.__iter__(), self._wait_executor)
 
     async def receive(self) -> Any:
         # todo handle grpc exceptions and convert it to internal exceptions
