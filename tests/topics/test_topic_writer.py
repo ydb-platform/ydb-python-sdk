@@ -1,3 +1,6 @@
+from __future__ import annotations
+from typing import List
+
 import pytest
 
 import ydb.aio
@@ -196,3 +199,16 @@ class TestTopicWriterSync:
             writer.write("a" * 1000)
             writer.write("b" * 1000)
             writer.write("c" * 1000)
+
+    def test_start_many_sync_writers_in_parallel(self, driver_sync: ydb.Driver, topic_path):
+        target_count = 100
+        writers = []  # type: List[ydb.TopicWriter]
+        for i in range(target_count):
+            writer = driver_sync.topic_client.writer(topic_path)
+            writers.append(writer)
+
+        for i, writer in enumerate(writers):
+            writer.write(str(i))
+
+        for writer in writers:
+            writer.close()
