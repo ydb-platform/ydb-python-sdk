@@ -1,3 +1,4 @@
+## 3.3.1 ##
 * Fix exception for convert sync to async iterator
 * Fixed start many sync writers/readers in parallel
 
