@@ -1,3 +1,5 @@
+* Fixed start many sync writers/readers in parallel
+
 ## 3.3.0 ##
 * Added support to set many topics and topic reader settings for read in one reader
 * Added ydb.TopicWriterInitInfo, ydb.TopicWriteResult as public types
