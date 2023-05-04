@@ -161,7 +161,7 @@ class GrpcWrapperAsyncIO(IGrpcWrapperAsyncIO):
         self._wait_executor = None
 
     def __del__(self):
-        self._wait_executor.shutdown(wait=False)
+        self._clean_executor(wait=False)
 
     async def start(self, driver: SupportedDriverType, stub, method):
         if asyncio.iscoroutinefunction(driver.__call__):
@@ -175,11 +175,11 @@ class GrpcWrapperAsyncIO(IGrpcWrapperAsyncIO):
         if self._stream_call:
             self._stream_call.cancel()
 
-        self._clean_executor()
+        self._clean_executor(wait=True)
 
-    def _clean_executor(self):
+    def _clean_executor(self, wait: bool):
         if self._wait_executor:
-            self._wait_executor.shutdown()
+            self._wait_executor.shutdown(wait)
 
     async def _start_asyncio_driver(self, driver: ydb.aio.Driver, stub, method):
         requests_iterator = QueueToIteratorAsyncIO(self.from_client_grpc)
