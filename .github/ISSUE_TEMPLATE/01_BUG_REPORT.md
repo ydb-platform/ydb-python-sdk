@@ -9,7 +9,7 @@ assignees: ""
 
 # Bug Report
 
-**YDB GO Python version:**
+**YDB Python SDK version:**
 
 <!-- Please specify commit or tag version. -->
 
