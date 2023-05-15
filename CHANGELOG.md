@@ -1,3 +1,5 @@
+* Fix keep DataQuery in local cache and set flag keep_in_cache for server
+
 ## 3.3.1 ##
 * Fix exception for convert sync to async iterator
 * Fixed start many sync writers/readers in parallel
