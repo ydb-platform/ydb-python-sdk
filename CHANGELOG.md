@@ -1,3 +1,4 @@
+## 3.3.2 ##
 * Fix keep DataQuery in local cache and set flag keep_in_cache for server
 
 ## 3.3.1 ##
