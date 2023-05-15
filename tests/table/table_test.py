@@ -2,6 +2,20 @@ import pytest
 import ydb
 
 
+class TestSession:
+    def test_keep_in_cache_dataquery(self, driver_sync):
+        # Keep prepared query for keep_in_cache only, not store query_id if client query cache disabled
+        tc_settings = ydb.TableClientSettings().with_client_query_cache(enabled=False)
+        table_client = ydb.TableClient(driver_sync, tc_settings)
+        data_query = ydb.DataQuery("select 1", {})
+        session = ydb.retry_operation_sync(lambda: table_client.session().create())
+        session.transaction().execute(data_query, commit_tx=True)
+        assert session.has_prepared("select 1")
+        assert session._state.lookup("select 1")[1] is None
+        assert session.has_prepared(data_query)
+        assert session._state.lookup(data_query)[1] is None
+
+
 class TestSessionPool:
     def test_checkout_from_stopped_pool(self, driver_sync):
         pool = ydb.SessionPool(driver_sync, 1)

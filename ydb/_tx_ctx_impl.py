@@ -110,6 +110,8 @@ def execute_request_factory(session_state, tx_state, query, parameters, commit_t
     data_query, query_id = session_state.lookup(query)
     parameters_types = {}
 
+    is_data_query = False
+
     if query_id is not None:
         query_pb = _apis.ydb_table.Query(id=query_id)
         parameters_types = data_query.parameters_types
@@ -118,9 +120,11 @@ def execute_request_factory(session_state, tx_state, query, parameters, commit_t
             # client cache disabled for send query text every time
             yql_text = data_query.yql_text
             parameters_types = data_query.parameters_types
+            is_data_query = True
         elif isinstance(query, types.DataQuery):
             yql_text = query.yql_text
             parameters_types = query.parameters_types
+            is_data_query = True
         else:
             yql_text = query
         query_pb = _apis.ydb_table.Query(yql_text=yql_text)
@@ -132,6 +136,8 @@ def execute_request_factory(session_state, tx_state, query, parameters, commit_t
     elif settings is not None and hasattr(settings, "keep_in_cache"):
         keep_in_cache = settings.keep_in_cache
     elif parameters:
+        keep_in_cache = True
+    elif is_data_query:
         keep_in_cache = True
     else:
         keep_in_cache = False
@@ -159,5 +165,7 @@ def wrap_result_and_tx_id(rpc_state, response_pb, session_state, tx_state, query
     issues._process_response(response_pb.operation)
     message = _apis.ydb_table.ExecuteQueryResult()
     response_pb.operation.result.Unpack(message)
+    if message.query_meta.id and isinstance(query, types.DataQuery):
+        session_state.keep(query, message.query_meta.id)
     tx_state.tx_id = None if not message.tx_meta.id else message.tx_meta.id
     return convert.ResultSets(message.result_sets, session_state.table_client_settings)
