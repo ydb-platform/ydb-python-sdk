@@ -5,6 +5,7 @@ import typing
 from concurrent.futures import Future
 from typing import Union, List, Optional
 
+import ydb
 from .._grpc.grpcwrapper.common_utils import SupportedDriverType
 from .topic_writer import (
     PublicWriterSettings,
@@ -56,7 +57,12 @@ class WriterSync:
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        self.close()
+        try:
+            self.close()
+        except ydb.Error:
+            if exc_val:
+                raise exc_val
+            raise
 
     def __del__(self):
         self.close(flush=False)

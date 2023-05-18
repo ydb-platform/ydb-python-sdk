@@ -330,7 +330,7 @@ class WriterAsyncIOReconnector:
 
     def _check_stop(self):
         if self._stop_reason.done():
-            raise self._stop_reason.result()
+            raise self._stop_reason.exception()
 
     async def _connection_loop(self):
         retry_settings = RetrySettings()  # todo
@@ -543,7 +543,7 @@ class WriterAsyncIOReconnector:
         if self._stop_reason.done():
             return
 
-        self._stop_reason.set_result(reason)
+        self._stop_reason.set_exception(reason)
 
         for f in self._messages_future:
             f.set_exception(reason)
