@@ -1,4 +1,5 @@
-* Fix hang while write messages to closed driver
+* Fixed hang while write messages to closed driver
+* Removed fixed version of aiohttp
 
 ## 3.3.2 ##
 * Fix keep DataQuery in local cache and set flag keep_in_cache for server
