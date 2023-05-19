@@ -5,7 +5,6 @@ import typing
 from concurrent.futures import Future
 from typing import Union, List, Optional
 
-import ydb
 from .._grpc.grpcwrapper.common_utils import SupportedDriverType
 from .topic_writer import (
     PublicWriterSettings,
@@ -59,7 +58,7 @@ class WriterSync:
     def __exit__(self, exc_type, exc_val, exc_tb):
         try:
             self.close()
-        except BaseException as e:
+        except BaseException:
             if exc_val is None:
                 raise
 

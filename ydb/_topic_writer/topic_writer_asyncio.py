@@ -67,7 +67,7 @@ class WriterAsyncIO:
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         try:
             await self.close()
-        except BaseException as e:
+        except BaseException:
             if exc_val is None:
                 raise
 
