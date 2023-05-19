@@ -65,7 +65,11 @@ class WriterAsyncIO:
         return self
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):
-        await self.close()
+        try:
+            await self.close()
+        except BaseException as e:
+            if exc_val is None:
+                raise
 
     def __del__(self):
         if self._closed or self._loop.is_closed():

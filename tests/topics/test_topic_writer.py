@@ -1,4 +1,6 @@
 from __future__ import annotations
+
+import asyncio
 from typing import List
 
 import pytest
@@ -120,11 +122,12 @@ class TestTopicWriterAsyncIO:
 
         with pytest.raises(TestException):
             async with driver.topic_client.writer(topic_path) as writer:
-                driver.stop()  # will raise exception on topic writer __exit__
-                try:
-                    writer.write("123")
-                except ydb.Error:
-                    pass
+                await writer.wait_init()
+                await driver.stop()  # will raise exception on topic writer __exit__
+
+                # ensure writer has exception internally
+                with pytest.raises((ydb.Error, asyncio.CancelledError)):
+                    await writer.write_with_ack("123")
 
                 raise TestException()
 
@@ -257,10 +260,11 @@ class TestTopicWriterSync:
 
         with pytest.raises(TestException):
             with driver_sync.topic_client.writer(topic_path) as writer:
+                writer.wait_init()
                 driver_sync.stop()  # will raise exception on topic writer __exit__
-                try:
-                    writer.write("123")
-                except ydb.Error:
-                    pass
+
+                # ensure writer has exception internally
+                with pytest.raises(ydb.Error):
+                    writer.write_with_ack("123")
 
                 raise TestException()
