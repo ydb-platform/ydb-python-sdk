@@ -1,4 +1,6 @@
 from __future__ import annotations
+
+import asyncio
 from typing import List
 
 import pytest
@@ -96,11 +98,38 @@ class TestTopicWriterAsyncIO:
             None,
         ],
     )
-    async def test_write_encoded(self, driver: ydb.Driver, topic_path: str, codec):
+    async def test_write_encoded(self, driver: ydb.aio.Driver, topic_path: str, codec):
         async with driver.topic_client.writer(topic_path, codec=codec) as writer:
             await writer.write("a" * 1000)
             await writer.write("b" * 1000)
             await writer.write("c" * 1000)
+
+    async def test_create_writer_after_stop(self, driver: ydb.aio.Driver, topic_path: str):
+        await driver.stop()
+        with pytest.raises(ydb.Error):
+            async with driver.topic_client.writer(topic_path) as writer:
+                await writer.write_with_ack("123")
+
+    async def test_send_message_after_stop(self, driver: ydb.aio.Driver, topic_path: str):
+        writer = driver.topic_client.writer(topic_path)
+        await driver.stop()
+        with pytest.raises(ydb.Error):
+            await writer.write_with_ack("123")
+
+    async def test_preserve_exception_on_cm_close(self, driver: ydb.aio.Driver, topic_path: str):
+        class TestException(Exception):
+            pass
+
+        with pytest.raises(TestException):
+            async with driver.topic_client.writer(topic_path) as writer:
+                await writer.wait_init()
+                await driver.stop()  # will raise exception on topic writer __exit__
+
+                # ensure writer has exception internally
+                with pytest.raises((ydb.Error, asyncio.CancelledError)):
+                    await writer.write_with_ack("123")
+
+                raise TestException()
 
 
 class TestTopicWriterSync:
@@ -212,3 +241,30 @@ class TestTopicWriterSync:
 
         for writer in writers:
             writer.close()
+
+    def test_create_writer_after_stop(self, driver_sync: ydb.Driver, topic_path: str):
+        driver_sync.stop()
+        with pytest.raises(ydb.Error):
+            with driver_sync.topic_client.writer(topic_path) as writer:
+                writer.write_with_ack("123")
+
+    def test_send_message_after_stop(self, driver_sync: ydb.Driver, topic_path: str):
+        writer = driver_sync.topic_client.writer(topic_path)
+        driver_sync.stop()
+        with pytest.raises(ydb.Error):
+            writer.write_with_ack("123")
+
+    def test_preserve_exception_on_cm_close(self, driver_sync: ydb.Driver, topic_path: str):
+        class TestException(Exception):
+            pass
+
+        with pytest.raises(TestException):
+            with driver_sync.topic_client.writer(topic_path) as writer:
+                writer.wait_init()
+                driver_sync.stop()  # will raise exception on topic writer __exit__
+
+                # ensure writer has exception internally
+                with pytest.raises(ydb.Error):
+                    writer.write_with_ack("123")
+
+                raise TestException()
