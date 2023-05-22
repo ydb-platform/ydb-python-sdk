@@ -592,11 +592,21 @@ class StreamReadMessage:
         partition_session_id: int
 
     @dataclass
-    class PartitionSessionStatusResponse:
+    class PartitionSessionStatusResponse(IFromProto):
         partition_session_id: int
         partition_offsets: "OffsetsRange"
         committed_offset: int
         write_time_high_watermark: float
+
+        @staticmethod
+        def from_proto(msg: ydb_topic_pb2.StreamReadMessage.PartitionSessionStatusResponse) -> "StreamReadMessage.PartitionSessionStatusResponse":
+            return StreamReadMessage.PartitionSessionStatusResponse(
+                partition_session_id=msg.partition_session_id,
+                partition_offsets=OffsetsRange.from_proto(msg.partition_offsets),
+                committed_offset=msg.committed_offset,
+                write_time_high_watermark=msg.write_time_high_watermark,
+            )
+
 
     @dataclass
     class StartPartitionSessionRequest(IFromProto):
@@ -694,13 +704,20 @@ class StreamReadMessage:
                 return StreamReadMessage.FromServer(
                     server_status=server_status,
                     server_message=StreamReadMessage.StartPartitionSessionRequest.from_proto(
-                        msg.start_partition_session_request
+                        msg.start_partition_session_request,
                     ),
                 )
             elif mess_type == "update_token_response":
                 return StreamReadMessage.FromServer(
                     server_status=server_status,
                     server_message=UpdateTokenResponse.from_proto(msg.update_token_response),
+                )
+            elif mess_type == "partition_session_status_response":
+                return StreamReadMessage.FromServer(
+                    server_status=server_status,
+                    server_message=StreamReadMessage.PartitionSessionStatusResponse.from_proto(
+                        msg.partition_session_status_response
+                    )
                 )
 
             # todo replace exception to log
