@@ -451,7 +451,7 @@ class ReaderStream:
                 self._state_changed.set()
         except Exception as e:
             self._set_first_error(e)
-            raise
+            return
 
     async def _update_token_loop(self):
         while True:
