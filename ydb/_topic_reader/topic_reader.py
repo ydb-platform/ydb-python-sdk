@@ -1,6 +1,7 @@
 import concurrent.futures
 import enum
 import datetime
+import logging
 from dataclasses import dataclass
 from typing import (
     Union,
@@ -52,6 +53,7 @@ class PublicReaderSettings:
     # decoder_executor, must be set for handle non raw messages
     decoder_executor: Optional[concurrent.futures.Executor] = None
     update_token_interval: Union[int, float] = 3600
+    logger: Optional[logging.Logger] = None
 
     def __post_init__(self):
         # check possible create init message

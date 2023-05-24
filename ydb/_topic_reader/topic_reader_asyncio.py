@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import concurrent.futures
+import copy
 import gzip
 import typing
 from asyncio import Task
@@ -26,7 +27,9 @@ from .._grpc.grpcwrapper.ydb_topic import (
     Codec,
 )
 from .._errors import check_retriable_error
+import logging
 
+_module_logger = logging.getLogger(__name__)
 
 class TopicReaderError(YdbError):
     pass
@@ -62,6 +65,7 @@ class PublicAsyncIOReader:
     _closed: bool
     _reconnector: ReaderReconnector
     _parent: typing.Any  # need for prevent close parent client by GC
+    _logger: logging.Logger
 
     def __init__(
         self,
@@ -70,8 +74,14 @@ class PublicAsyncIOReader:
         *,
         _parent=None,
     ):
+        if settings.logger:
+            self._logger = settings.logger
+        else:
+            self._logger = _module_logger
+
         self._loop = asyncio.get_running_loop()
         self._closed = False
+        self._logger = settings.logger
         self._reconnector = ReaderReconnector(driver, settings)
         self._parent = _parent
 
@@ -139,14 +149,19 @@ class ReaderReconnector:
     _settings: topic_reader.PublicReaderSettings
     _driver: Driver
     _background_tasks: Set[Task]
+    _logger: logging.Logger
 
     _state_changed: asyncio.Event
     _stream_reader: Optional["ReaderStream"]
     _first_error: asyncio.Future[YdbError]
 
     def __init__(self, driver: Driver, settings: topic_reader.PublicReaderSettings):
-        self._id = self._static_reader_reconnector_counter.inc_and_get()
+        if settings.logger:
+            self._logger = settings.logger
+        else:
+            self._logger = _module_logger
 
+        self._id = self._static_reader_reconnector_counter.inc_and_get()
         self._settings = settings
         self._driver = driver
         self._background_tasks = set()
@@ -234,6 +249,7 @@ class ReaderStream:
     _buffer_size_bytes: int  # use for init request, then for debug purposes only
     _decode_executor: concurrent.futures.Executor
     _decoders: Dict[int, typing.Callable[[bytes], bytes]]  # dict[codec_code] func(encoded_bytes)->decoded_bytes
+    _logger: logging.Logger
 
     if typing.TYPE_CHECKING:
         _batches_to_decode: asyncio.Queue[datatypes.PublicBatch]
@@ -255,6 +271,11 @@ class ReaderStream:
         settings: topic_reader.PublicReaderSettings,
         get_token_function: Optional[Callable[[], str]] = None,
     ):
+        if settings.logger:
+            self._logger = settings.logger
+        else:
+            self._logger = _module_logger
+
         self._loop = asyncio.get_running_loop()
         self._id = ReaderStream._static_id_counter.inc_and_get()
         self._reader_reconnector_id = reader_reconnector_id
@@ -395,34 +416,37 @@ class ReaderStream:
                 )
             )
             while True:
-                message = await self._stream.receive()  # type: StreamReadMessage.FromServer
-                _process_response(message.server_status)
+                try:
+                    message = await self._stream.receive()  # type: StreamReadMessage.FromServer
+                    _process_response(message.server_status)
 
-                if isinstance(message.server_message, StreamReadMessage.ReadResponse):
-                    self._on_read_response(message.server_message)
+                    if isinstance(message.server_message, StreamReadMessage.ReadResponse):
+                        self._on_read_response(message.server_message)
 
-                elif isinstance(message.server_message, StreamReadMessage.CommitOffsetResponse):
-                    self._on_commit_response(message.server_message)
+                    elif isinstance(message.server_message, StreamReadMessage.CommitOffsetResponse):
+                        self._on_commit_response(message.server_message)
 
-                elif isinstance(
-                    message.server_message,
-                    StreamReadMessage.StartPartitionSessionRequest,
-                ):
-                    self._on_start_partition_session(message.server_message)
+                    elif isinstance(
+                        message.server_message,
+                        StreamReadMessage.StartPartitionSessionRequest,
+                    ):
+                        self._on_start_partition_session(message.server_message)
 
-                elif isinstance(
-                    message.server_message,
-                    StreamReadMessage.StopPartitionSessionRequest,
-                ):
-                    self._on_partition_session_stop(message.server_message)
+                    elif isinstance(
+                        message.server_message,
+                        StreamReadMessage.StopPartitionSessionRequest,
+                    ):
+                        self._on_partition_session_stop(message.server_message)
 
-                elif isinstance(message.server_message, UpdateTokenResponse):
-                    self._update_token_event.set()
+                    elif isinstance(message.server_message, UpdateTokenResponse):
+                        self._update_token_event.set()
 
-                else:
-                    raise NotImplementedError(
-                        "Unexpected type of StreamReadMessage.FromServer message: %s" % message.server_message
-                    )
+                    else:
+                        raise issues.UnexpectedGrpcMessage(
+                            "Unexpected message in _read_messages_loop: %s" % type(message.server_message)
+                        )
+                except issues.UnexpectedGrpcMessage:
+                    self._logger.exception("unexpected message in stream reader")
 
                 self._state_changed.set()
         except Exception as e:

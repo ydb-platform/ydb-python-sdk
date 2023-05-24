@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import datetime
 import enum
 import typing
@@ -642,10 +644,19 @@ class StreamReadMessage:
             return res
 
     @dataclass
-    class StopPartitionSessionRequest:
+    class StopPartitionSessionRequest(IFromProto):
         partition_session_id: int
         graceful: bool
         committed_offset: int
+
+        @staticmethod
+        def from_proto(msg: ydb_topic_pb2.StreamReadMessage.StopPartitionSessionRequest) -> StreamReadMessage.StopPartitionSessionRequest:
+            return StreamReadMessage.StopPartitionSessionRequest(
+                partition_session_id=msg.partition_session_id,
+                graceful=msg.graceful,
+                committed_offset=msg.committed_offset,
+            )
+
 
     @dataclass
     class StopPartitionSessionResponse:
@@ -707,6 +718,13 @@ class StreamReadMessage:
                         msg.start_partition_session_request,
                     ),
                 )
+            elif mess_type == "stop_partition_session_request":
+                return StreamReadMessage.FromServer(
+                    server_status=server_status,
+                    server_message=StreamReadMessage.StopPartitionSessionRequest.from_proto(
+                        msg.stop_partition_session_request
+                    )
+                )
             elif mess_type == "update_token_response":
                 return StreamReadMessage.FromServer(
                     server_status=server_status,
@@ -719,9 +737,6 @@ class StreamReadMessage:
                         msg.partition_session_status_response
                     )
                 )
-
-            # todo replace exception to log
-            raise NotImplementedError()
 
 
 ReaderMessagesFromClientToServer = Union[
