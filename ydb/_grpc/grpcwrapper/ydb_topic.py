@@ -10,6 +10,7 @@ from google.protobuf.message import Message
 
 from . import ydb_topic_public_types
 from ... import scheme
+from ... import issues
 
 # Workaround for good IDE and universal for runtime
 if typing.TYPE_CHECKING:
@@ -738,6 +739,10 @@ class StreamReadMessage:
                     server_message=StreamReadMessage.PartitionSessionStatusResponse.from_proto(
                         msg.partition_session_status_response
                     ),
+                )
+            else:
+                raise issues.UnexpectedGrpcMessage(
+                    "Unexpected message while parse ReaderMessagesFromServerToClient: '%s'" % mess_type
                 )
 
 
