@@ -31,6 +31,7 @@ import logging
 
 _module_logger = logging.getLogger(__name__)
 
+
 class TopicReaderError(YdbError):
     pass
 

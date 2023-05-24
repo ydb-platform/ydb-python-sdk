@@ -168,8 +168,9 @@ class TestTopicReaderSync:
 @pytest.mark.asyncio
 class TestBugFixesAsync:
     @pytest.mark.skip("LOGBROKER-8319")
-    async def test_issue_297_bad_handle_stop_partition(self, driver, topic_consumer, topic_with_two_partitions_path: str):
-
+    async def test_issue_297_bad_handle_stop_partition(
+        self, driver, topic_consumer, topic_with_two_partitions_path: str
+    ):
         async def wait(fut):
             return await asyncio.wait_for(fut, timeout=10)
 
@@ -187,10 +188,13 @@ class TestBugFixesAsync:
         await wait(reader0.receive_message())
 
         # Start second reader for same topic, same consumer, partition 1
-        reader1 = driver.topic_client.reader(ydb.TopicReaderSelector(
-            path=topic,
-            partitions=1,
-        ), consumer=topic_consumer)
+        reader1 = driver.topic_client.reader(
+            ydb.TopicReaderSelector(
+                path=topic,
+                partitions=1,
+            ),
+            consumer=topic_consumer,
+        )
 
         await asyncio.sleep(0.1)
 

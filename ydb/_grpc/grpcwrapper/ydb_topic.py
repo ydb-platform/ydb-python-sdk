@@ -601,14 +601,15 @@ class StreamReadMessage:
         write_time_high_watermark: float
 
         @staticmethod
-        def from_proto(msg: ydb_topic_pb2.StreamReadMessage.PartitionSessionStatusResponse) -> "StreamReadMessage.PartitionSessionStatusResponse":
+        def from_proto(
+            msg: ydb_topic_pb2.StreamReadMessage.PartitionSessionStatusResponse,
+        ) -> "StreamReadMessage.PartitionSessionStatusResponse":
             return StreamReadMessage.PartitionSessionStatusResponse(
                 partition_session_id=msg.partition_session_id,
                 partition_offsets=OffsetsRange.from_proto(msg.partition_offsets),
                 committed_offset=msg.committed_offset,
                 write_time_high_watermark=msg.write_time_high_watermark,
             )
-
 
     @dataclass
     class StartPartitionSessionRequest(IFromProto):
@@ -650,13 +651,14 @@ class StreamReadMessage:
         committed_offset: int
 
         @staticmethod
-        def from_proto(msg: ydb_topic_pb2.StreamReadMessage.StopPartitionSessionRequest) -> StreamReadMessage.StopPartitionSessionRequest:
+        def from_proto(
+            msg: ydb_topic_pb2.StreamReadMessage.StopPartitionSessionRequest,
+        ) -> StreamReadMessage.StopPartitionSessionRequest:
             return StreamReadMessage.StopPartitionSessionRequest(
                 partition_session_id=msg.partition_session_id,
                 graceful=msg.graceful,
                 committed_offset=msg.committed_offset,
             )
-
 
     @dataclass
     class StopPartitionSessionResponse:
@@ -723,7 +725,7 @@ class StreamReadMessage:
                     server_status=server_status,
                     server_message=StreamReadMessage.StopPartitionSessionRequest.from_proto(
                         msg.stop_partition_session_request
-                    )
+                    ),
                 )
             elif mess_type == "update_token_response":
                 return StreamReadMessage.FromServer(
@@ -735,7 +737,7 @@ class StreamReadMessage:
                     server_status=server_status,
                     server_message=StreamReadMessage.PartitionSessionStatusResponse.from_proto(
                         msg.partition_session_status_response
-                    )
+                    ),
                 )
 
 
