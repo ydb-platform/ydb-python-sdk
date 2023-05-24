@@ -189,6 +189,16 @@ class TestBugFixesAsync:
         # Start second reader for same topic, same consumer, partition 1
         reader1 = driver.topic_client.reader(topic, consumer=topic_consumer)
 
+        await asyncio.sleep(1)
+
+        async with driver.topic_client.writer(topic, partition_id=0) as writer:
+            await writer.write_with_ack("--")
+        async with driver.topic_client.writer(topic, partition_id=1) as writer:
+            await writer.write_with_ack("--")
+
+        await reader0.receive_message()
+        await reader0.receive_message()
+
         # receive uncommited message
         await reader1.receive_message()
 
