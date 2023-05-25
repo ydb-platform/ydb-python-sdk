@@ -1150,6 +1150,7 @@ class TestReaderStream:
 
         await wait_condition(logged)
 
+
 @pytest.mark.asyncio
 class TestReaderReconnector:
     async def test_reconnect_on_repeatable_error(self, monkeypatch):
