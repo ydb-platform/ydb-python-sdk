@@ -1127,6 +1127,29 @@ class TestReaderStream:
 
         await reader.close()
 
+    async def test_read_unknown_message(self, stream, stream_reader, caplog):
+        class TestMessage:
+            pass
+
+        # noinspection PyTypeChecker
+        stream.from_server.put_nowait(
+            StreamReadMessage.FromServer(
+                server_status=ServerStatus(
+                    status=issues.StatusCode.SUCCESS,
+                    issues=[],
+                ),
+                server_message=TestMessage(),
+            )
+        )
+
+        def logged():
+            for rec in caplog.records:
+                if TestMessage.__name__ in rec.message:
+                    return True
+            return False
+
+        await wait_condition(logged)
+
 
 @pytest.mark.asyncio
 class TestReaderReconnector:

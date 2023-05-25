@@ -178,6 +178,26 @@ async def topic2_path(driver, topic_consumer, database) -> str:
 
 @pytest.fixture()
 @pytest.mark.asyncio()
+async def topic_with_two_partitions_path(driver, topic_consumer, database) -> str:
+    topic_path = database + "/test-topic-two-partitions"
+
+    try:
+        await driver.topic_client.drop_topic(topic_path)
+    except issues.SchemeError:
+        pass
+
+    await driver.topic_client.create_topic(
+        path=topic_path,
+        consumers=[topic_consumer],
+        min_active_partitions=2,
+        partition_count_limit=2,
+    )
+
+    return topic_path
+
+
+@pytest.fixture()
+@pytest.mark.asyncio()
 async def topic_with_messages(driver, topic_consumer, database):
     topic_path = database + "/test-topic-with-messages"
     try:
