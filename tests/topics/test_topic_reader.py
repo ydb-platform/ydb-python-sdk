@@ -168,7 +168,7 @@ class TestTopicReaderSync:
 @pytest.mark.asyncio
 class TestBugFixesAsync:
     async def test_issue_297_bad_handle_stop_partition(
-            self, driver, topic_consumer, topic_with_two_partitions_path: str
+        self, driver, topic_consumer, topic_with_two_partitions_path: str
     ):
         async def wait(fut):
             return await asyncio.wait_for(fut, timeout=10)
@@ -189,29 +189,19 @@ class TestBugFixesAsync:
         # Start second reader for same topic, same consumer, partition 1
         reader1 = driver.topic_client.reader(topic, consumer=topic_consumer)
 
-        await asyncio.sleep(1)
-
-        async with driver.topic_client.writer(topic, partition_id=0) as writer:
-            await writer.write_with_ack("--")
-        async with driver.topic_client.writer(topic, partition_id=1) as writer:
-            await writer.write_with_ack("--")
-
-        await reader0.receive_message()
-        await reader0.receive_message()
-
         # receive uncommited message
         await reader1.receive_message()
 
         # write one message for every partition
         async with driver.topic_client.writer(topic, partition_id=0) as writer:
             await writer.write_with_ack("10")
-        async with driver.topic_client.writer(topic, partition_id=0) as writer:
+        async with driver.topic_client.writer(topic, partition_id=1) as writer:
             await writer.write_with_ack("11")
 
         msg0 = await wait(reader0.receive_message())
         msg1 = await wait(reader1.receive_message())
 
-        datas = [msg0.data.decode(), msg1.data.decode]
+        datas = [msg0.data.decode(), msg1.data.decode()]
         datas.sort()
 
         assert datas == ["10", "11"]

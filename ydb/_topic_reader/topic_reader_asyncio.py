@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import asyncio
 import concurrent.futures
-import copy
 import gzip
 import typing
 from asyncio import Task

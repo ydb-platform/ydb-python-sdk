@@ -591,8 +591,13 @@ class StreamReadMessage:
                 )
 
     @dataclass
-    class PartitionSessionStatusRequest:
+    class PartitionSessionStatusRequest(IToProto):
         partition_session_id: int
+
+        def to_proto(self) -> ydb_topic_pb2.StreamReadMessage.PartitionSessionStatusRequest:
+            return ydb_topic_pb2.StreamReadMessage.PartitionSessionStatusRequest(
+                partition_session_id=self.partition_session_id
+            )
 
     @dataclass
     class PartitionSessionStatusResponse(IFromProto):
@@ -662,8 +667,13 @@ class StreamReadMessage:
             )
 
     @dataclass
-    class StopPartitionSessionResponse:
+    class StopPartitionSessionResponse(IToProto):
         partition_session_id: int
+
+        def to_proto(self) -> ydb_topic_pb2.StreamReadMessage.StopPartitionSessionResponse:
+            return ydb_topic_pb2.StreamReadMessage.StopPartitionSessionResponse(
+                partition_session_id=self.partition_session_id,
+            )
 
     @dataclass
     class FromClient(IToProto):
@@ -683,6 +693,10 @@ class StreamReadMessage:
             elif isinstance(self.client_message, UpdateTokenRequest):
                 res.update_token_request.CopyFrom(self.client_message.to_proto())
             elif isinstance(self.client_message, StreamReadMessage.StartPartitionSessionResponse):
+                res.start_partition_session_response.CopyFrom(self.client_message.to_proto())
+            elif isinstance(self.client_message, StreamReadMessage.StopPartitionSessionResponse):
+                res.stop_partition_session_response.CopyFrom(self.client_message.to_proto())
+            elif isinstance(self.client_message, StreamReadMessage.PartitionSessionStatusRequest):
                 res.start_partition_session_response.CopyFrom(self.client_message.to_proto())
             else:
                 raise NotImplementedError("Unknown message type: %s" % type(self.client_message))
