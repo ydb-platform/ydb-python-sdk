@@ -1,3 +1,4 @@
+## 3.3.4 ##
 * Fixed handle stop partition request from server
 
 ## 3.3.3 ##
