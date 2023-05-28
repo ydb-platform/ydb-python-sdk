@@ -92,7 +92,8 @@ def run(endpoint, database, path):
     driver_config = ydb.DriverConfig(
         endpoint, database=database,
         credentials=ydb.credentials_from_env_variables(),
-        root_certificates=ydb.load_ydb_root_certificate())
+        root_certificates=ydb.load_ydb_root_certificate(),
+    )
     try:
         driver = ydb.Driver(driver_config)
         driver.wait(timeout=5)
@@ -109,7 +110,7 @@ def run(endpoint, database, path):
             page_num = page_num + 1
             print("-- page: {} --".format(page_num))
             for row in page.rows:
-                print('{} | {} | {}'.format(row.city, row.number, row.address))
+                print("{} | {} | {}".format(row.city, row.number, row.address))
 
     finally:
         driver.stop()
