@@ -90,7 +90,8 @@ class SchoolsPaginated(object):
 
 def run(endpoint, database, path):
     driver_config = ydb.DriverConfig(
-        endpoint, database=database,
+        endpoint=endpoint,
+        database=database,
         credentials=ydb.credentials_from_env_variables(),
         root_certificates=ydb.load_ydb_root_certificate(),
     )
