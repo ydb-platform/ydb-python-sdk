@@ -46,10 +46,10 @@ def fill_table(session, path):
     query = """
     PRAGMA TablePathPrefix("{path}");
 
-    DECLARE $schoolsData AS "List<Struct<
+    DECLARE $schoolsData AS List<Struct<
         city: Utf8,
         number: Uint32,
-        address: Utf8>>";
+        address: Utf8>>;
 
     REPLACE INTO schools
     SELECT

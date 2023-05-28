@@ -88,8 +88,11 @@ class SchoolsPaginated(object):
             yield result
 
 
-def run(endpoint, database, path, auth_token):
-    driver_config = ydb.DriverConfig(endpoint, database=database, auth_token=auth_token)
+def run(endpoint, database, path):
+    driver_config = ydb.DriverConfig(
+        endpoint, database=database,
+        credentials=ydb.credentials_from_env_variables(),
+        root_certificates=ydb.load_ydb_root_certificate())
     try:
         driver = ydb.Driver(driver_config)
         driver.wait(timeout=5)
@@ -106,7 +109,7 @@ def run(endpoint, database, path, auth_token):
             page_num = page_num + 1
             print("-- page: {} --".format(page_num))
             for row in page.rows:
-                print(row.city.encode("utf-8"), row.number, row.address.encode("utf-8"))
+                print('{} | {} | {}'.format(row.city, row.number, row.address))
 
     finally:
         driver.stop()

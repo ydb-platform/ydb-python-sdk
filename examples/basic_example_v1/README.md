@@ -54,5 +54,5 @@ export YDB_SERVICE_ACCOUNT_KEY_FILE_CREDENTIALS=$HOME/key-ydb-sa-0.json
 export YDB_ENDPOINT=grpcs://ydb.serverless.yandexcloud.net:2135
 export YDB_DATABASE=/ru-central1/b1gfvslmokutuvt2g019/etnvbffeqegu1ub2rg2o
 # Run the script
-python3 __main__.py -e $YDB_ENDPOINT -d $YDB_DATABASE
+python3 __main__.py -e $YDB_ENDPOINT -d $YDB_DATABASE -p python-examples/basic
 ```
