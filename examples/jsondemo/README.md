@@ -1,6 +1,6 @@
 # YDB Python SDK Example: jsondemo
 
-This example shows how to run the queries with iterative pagination.
+This example shows how to run the queries which read and write JSON data.
 
 ## Running the example
 
