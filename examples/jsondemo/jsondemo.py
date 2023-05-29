@@ -4,7 +4,6 @@ import random
 import json
 import base64
 import ydb
-from concurrent.futures import TimeoutError
 
 
 def create_table(pool: ydb.SessionPool, db_path: str, path: str) -> str:
