@@ -1,3 +1,7 @@
+# YDB Python SDK Example: time-series-serverless
+
+This example shows how to work with time series data stored in YDB using the Yandex Cloud Serverless Functions.
+
 # Prepare your cloud environment
 ## Create serverless DB
 
