@@ -213,6 +213,16 @@ class TestReaderStream:
         )
 
     async def send_message(self, stream_reader, message: PublicMessage):
+        await self.send_batch(stream_reader, [message])
+
+    async def send_batch(self, stream_reader, batch: typing.List[PublicMessage]):
+        if len(batch) == 0:
+            return
+
+        first_message = batch[0]
+        for message in batch:
+            assert message._partition_session is first_message._partition_session
+
         def batch_count():
             return len(stream_reader._message_batches)
 
@@ -225,7 +235,7 @@ class TestReaderStream:
                 server_message=StreamReadMessage.ReadResponse(
                     partition_data=[
                         StreamReadMessage.ReadResponse.PartitionData(
-                            partition_session_id=message._partition_session.id,
+                            partition_session_id=first_message._partition_session.id,
                             batches=[
                                 StreamReadMessage.ReadResponse.Batch(
                                     message_data=[
@@ -237,11 +247,12 @@ class TestReaderStream:
                                             uncompresed_size=len(message.data),
                                             message_group_id=message.message_group_id,
                                         )
+                                        for message in batch
                                     ],
-                                    producer_id=message.producer_id,
-                                    write_session_meta=message.session_metadata,
+                                    producer_id=first_message.producer_id,
+                                    write_session_meta=first_message.session_metadata,
                                     codec=Codec.CODEC_RAW,
-                                    written_at=message.written_at,
+                                    written_at=first_message.written_at,
                                 )
                             ],
                         )
@@ -1066,13 +1077,15 @@ class TestReaderStream:
     async def test_receive_batch_nowait(self, stream, stream_reader, partition_session):
         assert stream_reader.receive_batch_nowait() is None
 
+        initial_buffer_size = stream_reader._buffer_size_bytes
+
         mess1 = self.create_message(partition_session, 1, 1)
         await self.send_message(stream_reader, mess1)
 
         mess2 = self.create_message(partition_session, 2, 1)
         await self.send_message(stream_reader, mess2)
 
-        initial_buffer_size = stream_reader._buffer_size_bytes
+        assert stream_reader._buffer_size_bytes == initial_buffer_size - 2 * self.default_batch_size
 
         received = stream_reader.receive_batch_nowait()
         assert received == PublicBatch(
@@ -1090,13 +1103,36 @@ class TestReaderStream:
             _codec=Codec.CODEC_RAW,
         )
 
-        assert stream_reader._buffer_size_bytes == initial_buffer_size + 2 * self.default_batch_size
+        assert stream_reader._buffer_size_bytes == initial_buffer_size
 
         assert StreamReadMessage.ReadRequest(self.default_batch_size) == stream.from_client.get_nowait().client_message
         assert StreamReadMessage.ReadRequest(self.default_batch_size) == stream.from_client.get_nowait().client_message
 
         with pytest.raises(asyncio.QueueEmpty):
             stream.from_client.get_nowait()
+
+    async def test_receive_message_nowait(self, stream, stream_reader, partition_session):
+        assert stream_reader.receive_batch_nowait() is None
+
+        initial_buffer_size = stream_reader._buffer_size_bytes
+
+        await self.send_batch(
+            stream_reader, [self.create_message(partition_session, 1, 1), self.create_message(partition_session, 2, 1)]
+        )
+        await self.send_batch(
+            stream_reader,
+            [
+                self.create_message(partition_session, 10, 1),
+            ],
+        )
+
+        assert stream_reader._buffer_size_bytes == initial_buffer_size - 2 * self.default_batch_size
+
+        for expected_seqno in [1, 2, 10]:
+            mess = stream_reader.receive_message_nowait()
+            assert mess.seqno == expected_seqno
+
+        assert stream_reader._buffer_size_bytes == initial_buffer_size
 
     async def test_update_token(self, stream):
         settings = PublicReaderSettings(

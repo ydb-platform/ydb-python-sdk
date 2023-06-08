@@ -348,6 +348,9 @@ class ReaderStream:
         return batch
 
     def receive_message_nowait(self):
+        if self._get_first_error():
+            raise self._get_first_error()
+
         try:
             batch = self._message_batches[0]
             message = batch.pop_message()
@@ -355,7 +358,7 @@ class ReaderStream:
             return None
 
         if batch.empty():
-            self._message_batches.popleft()
+            self.receive_batch_nowait()
 
         return message
 
