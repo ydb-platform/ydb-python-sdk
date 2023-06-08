@@ -363,7 +363,7 @@ class TestReaderStream:
         waiter = partition_session.add_waiter(self.partition_session_committed_offset + 1)
         await wait_for_fast(stream_reader_started.close())
 
-        with pytest.raises(topic_reader_asyncio.TopicReaderCommitToExpiredPartition):
+        with pytest.raises(topic_reader_asyncio.PublicTopicReaderPartitionExpiredError):
             waiter.future.result()
 
     async def test_flush(self, stream, stream_reader_started: ReaderStream, partition_session):
