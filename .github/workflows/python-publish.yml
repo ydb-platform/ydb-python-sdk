@@ -23,6 +23,10 @@ on:
         required: true
         type: boolean
         default: False
+      changelog:
+        description: will add to begin of changelog file before set number
+        required: false
+        type: string
 
 jobs:
   publish:
