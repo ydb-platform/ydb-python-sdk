@@ -625,7 +625,7 @@ class TestWriterAsyncIO:
                 self.messages_writted.set()
                 return futures
 
-        async def close(self):
+        async def close(self, flush: bool):
             pass
 
     @pytest.fixture
