@@ -1,3 +1,7 @@
+* Fixed use positional argument instead of named in WriterAsyncIO.__del__
+* Fixed release buffer while read topic by one messages 
+* Fixed race condition between commit_with_ack and reconnect in topic writer
+
 ## 3.3.4 ##
 * Fixed handle stop partition request from server
 
