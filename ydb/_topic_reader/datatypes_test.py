@@ -192,9 +192,15 @@ class TestPartitionSession:
         waiter = session.add_waiter(session.committed_offset + 1)
         session.close()
 
-        with pytest.raises(topic_reader_asyncio.TopicReaderCommitToExpiredPartition):
+        with pytest.raises(topic_reader_asyncio.PublicTopicReaderPartitionExpiredError):
             waiter.future.result()
 
     async def test_close_twice(self, session):
         session.close()
         session.close()
+
+    async def test_commit_after_close(self, session):
+        session.close()
+
+        with pytest.raises(topic_reader_asyncio.PublicTopicReaderPartitionExpiredError):
+            session.add_waiter(session.committed_offset + 1)
