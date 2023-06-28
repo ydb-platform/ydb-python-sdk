@@ -1,3 +1,5 @@
+* Fixed list type as field result in sqlalchemy
+
 ## 3.3.5 ##
 * Fixed use positional argument instead of named in WriterAsyncIO.__del__
 * Fixed release buffer while read topic by one messages 
