@@ -1,3 +1,5 @@
+from sqlalchemy import text
+
 import ydb
 
 import sqlalchemy as sa
@@ -18,3 +20,10 @@ def test_get_columns(driver_sync, sa_engine):
     ]
 
     session.execute_scheme("DROP TABLE test")
+
+
+def test_query_list(sa_engine):
+    with sa_engine.connect() as connection:
+        result = connection.execute(text("SELECT AsList(1, 2, 3, 4) as c"))
+        row = next(result)
+        assert row["c"] == [1, 2, 3, 4]

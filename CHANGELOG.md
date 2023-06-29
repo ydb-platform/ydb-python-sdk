@@ -1,3 +1,5 @@
+* Add list type to converter from result to native type (fix problem with get list result in dbapi/sqlalchemy)
+
 ## 3.3.5 ##
 * Fixed use positional argument instead of named in WriterAsyncIO.__del__
 * Fixed release buffer while read topic by one messages 
