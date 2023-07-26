@@ -44,7 +44,7 @@ def make_run_parser(subparsers, name="run"):
     run_parser.add_argument("--shutdown-time", default=10, type=int, help="Graceful shutdown time in seconds")
 
     run_parser.add_argument("--prom-pgw", default="localhost:9091", type=str, help="Prometheus push gateway")
-    run_parser.add_argument("--report-period", default=1000, type=int, help="Prometheus push period in [ms]")
+    run_parser.add_argument("--report-period", default=1000, type=int, help="Prometheus push period [ms]")
 
     run_parser.add_argument("--read-threads", default=8, type=int, help="Number of threads to use for write")
     run_parser.add_argument("--write-threads", default=4, type=int, help="Number of threads to use for read")
