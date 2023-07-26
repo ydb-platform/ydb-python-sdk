@@ -1,3 +1,5 @@
+test
+
 ## 3.3.6 ##
 * Add list type to converter from result to native type (fix problem with get list result in dbapi/sqlalchemy)
 
