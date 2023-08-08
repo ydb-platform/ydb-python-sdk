@@ -25,6 +25,9 @@ jobs:
 
       - name: Run SLO
         uses: ydb-platform/slo-tests@js-version
+        if: env.DOCKER_REPO != null
+        env:
+          DOCKER_REPO: ${{ secrets.SLO_DOCKER_REPO }}
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           KUBECONFIG_B64: ${{ secrets.SLO_KUBE_CONFIG }}
