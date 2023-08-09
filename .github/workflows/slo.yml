@@ -22,9 +22,15 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
+        if: env.DOCKER_REPO != null
+        env:
+          DOCKER_REPO: ${{ secrets.SLO_DOCKER_REPO }}
 
       - name: Run SLO
         uses: ydb-platform/slo-tests@js-version
+        if: env.DOCKER_REPO != null
+        env:
+          DOCKER_REPO: ${{ secrets.SLO_DOCKER_REPO }}
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           KUBECONFIG_B64: ${{ secrets.SLO_KUBE_CONFIG }}
@@ -49,7 +55,9 @@ jobs:
           workload_build_options0: -f Dockerfile
 
       - uses: actions/upload-artifact@v3
-        if: always()
+        if: env.DOCKER_REPO != null
+        env:
+          DOCKER_REPO: ${{ secrets.SLO_DOCKER_REPO }}
         with:
           name: slo-logs
           path: logs/
