@@ -1,4 +1,4 @@
-requests==2.28.2
+requests==2.31.0
 ratelimiter==1.2.0.post0
 prometheus-client==0.17.0
 quantile-estimator==0.1.2
