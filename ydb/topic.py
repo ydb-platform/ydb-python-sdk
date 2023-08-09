@@ -11,6 +11,7 @@ __all__ = [
     "TopicMeteringMode",
     "TopicReader",
     "TopicReaderAsyncIO",
+    "TopicReaderMessage",
     "TopicReaderSelector",
     "TopicReaderSettings",
     "TopicReaderPartitionExpiredError",
@@ -31,6 +32,8 @@ from typing import List, Union, Mapping, Optional, Dict, Callable
 from . import aio, Credentials, _apis, issues
 
 from . import driver
+
+from ._topic_reader.datatypes import PublicMessage as TopicReaderMessage
 
 from ._topic_reader.topic_reader import (
     PublicReaderSettings as TopicReaderSettings,
