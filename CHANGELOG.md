@@ -1,5 +1,7 @@
+* Added copy of locals() dicts at internals
+
 ## 3.3.6 ##
-* Add list type to converter from result to native type (fix problem with get list result in dbapi/sqlalchemy)
+* Added list type to converter from result to native type (fix problem with get list result in dbapi/sqlalchemy)
 
 ## 3.3.5 ##
 * Fixed use positional argument instead of named in WriterAsyncIO.__del__
