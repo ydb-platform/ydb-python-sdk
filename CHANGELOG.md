@@ -1,3 +1,4 @@
+## 3.4.0 ##
 * Add to public topic reader api: TopicReaderBatch, wait_message
 
 ## 3.3.7 ##
