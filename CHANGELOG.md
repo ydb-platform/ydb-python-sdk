@@ -1,3 +1,6 @@
+* Add to public topic reader api: TopicReaderBatch, wait_message. Make PartitionSession pickable.
+
+## 3.3.7 ##
 * Added copy of locals() dicts at internals
 
 ## 3.3.6 ##

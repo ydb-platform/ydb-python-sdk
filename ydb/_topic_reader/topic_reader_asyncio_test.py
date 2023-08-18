@@ -5,7 +5,7 @@ import datetime
 import gzip
 import typing
 from collections import deque
-from dataclasses import dataclass
+from dataclasses import dataclass, asdict
 from unittest import mock
 
 import pytest
@@ -123,6 +123,8 @@ class TestReaderStream:
             reader_reconnector_id=self.default_reader_reconnector_id,
             reader_stream_id=stream_reader_started._id,
         )
+
+        assert asdict(partition_session)
 
         assert partition_session.id not in stream_reader_started._partition_sessions
         stream_reader_started._partition_sessions[partition_session.id] = partition_session
