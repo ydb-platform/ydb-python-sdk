@@ -22,6 +22,7 @@ class TestTopicReaderAsyncIO:
 
     async def test_read_message(self, driver, topic_with_messages, topic_consumer):
         reader = driver.topic_client.reader(topic_with_messages, topic_consumer)
+        await reader.wait_message()
         msg = await reader.receive_message()
 
         assert msg is not None

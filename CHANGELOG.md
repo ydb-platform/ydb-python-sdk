@@ -1,3 +1,5 @@
+* Add to public topic reader api: TopicReaderBatch, wait_message
+
 ## 3.3.7 ##
 * Added copy of locals() dicts at internals
 
