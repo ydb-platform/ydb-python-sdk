@@ -32,7 +32,31 @@ class SchemeEntryType(enum.IntEnum):
     def is_table(entry):
         """
         :param entry: A scheme entry to check
-        :return: True if scheme entry is a table and False otherwise
+        :return: True if scheme entry is a row table and False otherwise  (same as is_row_table)
+        """
+        return entry == SchemeEntryType.TABLE
+
+    @staticmethod
+    def is_any_table(entry):
+        """
+        :param entry: A scheme entry to check
+        :return: True if scheme entry is table of any type and False otherwise
+        """
+        return entry in [SchemeEntryType.TABLE, SchemeEntryType.COLUMN_TABLE]
+
+    @staticmethod
+    def is_column_table(entry):
+        """
+        :param entry: A scheme entry to check
+        :return: True if scheme entry is a column table and False otherwise
+        """
+        return entry == SchemeEntryType.COLUMN_TABLE
+
+    @staticmethod
+    def is_row_table(entry):
+        """
+        :param entry: A scheme entry to check
+        :return: True if scheme entry is a row table and False otherwise (same as is_table)
         """
         return entry == SchemeEntryType.TABLE
 

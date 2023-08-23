@@ -1,3 +1,5 @@
+* Added functions for check column table type table of any type of scheme entry
+
 ## 3.4.0 ##
 * Add to public topic reader api: TopicReaderBatch, wait_message
 
