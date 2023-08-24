@@ -155,14 +155,16 @@ i64Val Int64,
 PRIMARY KEY(id)
 )
 PARTITION BY HASH(id)
-WITH ( 
+WITH (
     STORE = COLUMN
 )
 """
                 % table_name
             )
+
         pool.retry_operation_sync(create_table)
     return table_name
+
 
 @pytest.fixture()
 def column_table_path(database, column_table_name) -> str:
