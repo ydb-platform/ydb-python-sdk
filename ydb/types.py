@@ -9,7 +9,7 @@ import uuid
 import struct
 from google.protobuf import struct_pb2
 
-from .table import TableClientSettings
+from . import table
 
 
 if typing.TYPE_CHECKING:
@@ -22,7 +22,7 @@ _EPOCH = datetime(1970, 1, 1)
 
 def _from_date(
         x: ydb_value_pb2.Value,
-        table_client_settings: TableClientSettings
+        table_client_settings: table.TableClientSettings
 ) -> typing.Union[date, int]:
     if table_client_settings is not None and table_client_settings._native_date_in_result_sets:
         return _EPOCH.date() + timedelta(days=x.uint32_value)
@@ -38,7 +38,7 @@ def _to_date(pb: ydb_value_pb2.Value, value: typing.Union[date, int]) -> None:
 
 def _from_datetime_number(
         x: typing.Union[float, datetime],
-        table_client_settings: TableClientSettings
+        table_client_settings: table.TableClientSettings
 ) -> datetime:
     if table_client_settings is not None and table_client_settings._native_datetime_in_result_sets:
         return datetime.utcfromtimestamp(x)
@@ -47,7 +47,7 @@ def _from_datetime_number(
 
 def _from_json(
         x: typing.Union[str, bytearray, bytes],
-        table_client_settings: TableClientSettings
+        table_client_settings: table.TableClientSettings
 ):
     if table_client_settings is not None and table_client_settings._native_json_in_result_sets:
         return json.loads(x)
@@ -56,7 +56,7 @@ def _from_json(
 
 def _to_uuid(
         value_pb: ydb_value_pb2.Value,
-        table_client_settings: TableClientSettings
+        table_client_settings: table.TableClientSettings
 ) -> uuid.UUID:
     return uuid.UUID(bytes_le=struct.pack("QQ", value_pb.low_128, value_pb.high_128))
 
@@ -68,7 +68,7 @@ def _from_uuid(pb: ydb_value_pb2.Value, value: uuid.UUID):
 
 def _from_interval(
         value_pb: ydb_value_pb2.Value,
-        table_client_settings: TableClientSettings
+        table_client_settings: table.TableClientSettings
 ) -> typing.Union[timedelta, int]:
     if table_client_settings is not None and table_client_settings._native_interval_in_result_sets:
         return timedelta(microseconds=value_pb.int64_value)
@@ -88,7 +88,7 @@ def _to_interval(pb: ydb_value_pb2.Value, value: typing.Union[timedelta, int]) -
 
 def _from_timestamp(
         value_pb: ydb_value_pb2.Value,
-        table_client_settings: TableClientSettings
+        table_client_settings: table.TableClientSettings
 ) -> typing.Union[datetime, int]:
     if table_client_settings is not None and table_client_settings._native_timestamp_in_result_sets:
         return _EPOCH + timedelta(microseconds=value_pb.uint64_value)
@@ -172,7 +172,7 @@ class PrimitiveType(enum.Enum):
     def get_value(
             self,
             value_pb: ydb_value_pb2.Value,
-            table_client_settings: TableClientSettings
+            table_client_settings: table.TableClientSettings
     ):
         """
         Extracts value from protocol buffer
