@@ -42,7 +42,7 @@ class SchemeEntryType(enum.IntEnum):
         :param entry: A scheme entry to check
         :return: True if scheme entry is table (independent of table type) and False otherwise
         """
-        return entry in [SchemeEntryType.TABLE, SchemeEntryType.COLUMN_TABLE]
+        return entry in (SchemeEntryType.TABLE, SchemeEntryType.COLUMN_TABLE)
 
     @staticmethod
     def is_column_table(entry):
