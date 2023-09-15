@@ -69,7 +69,7 @@ class Error(Exception):
     def __init__(
             self,
             message: str,
-            issues: typing.Optional[typing.Interable[_IssueMessage]] = None
+            issues: typing.Optional[typing.Iterable[_IssueMessage]] = None
     ):
         super(Error, self).__init__(message)
         self.issues = issues
