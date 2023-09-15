@@ -31,6 +31,8 @@ class SchemeEntryType(enum.IntEnum):
     @staticmethod
     def is_table(entry):
         """
+        Deprecated, use is_row_table instead of this.
+
         :param entry: A scheme entry to check
         :return: True if scheme entry is a row table and False otherwise  (same as is_row_table)
         """
