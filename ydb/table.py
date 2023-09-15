@@ -286,6 +286,7 @@ class TableIndex(object):
         self.index_columns = []
         # output only.
         self.status = None
+        self.type = None
 
     def with_global_index(self):
         self._pb.global_index.SetInParent()
@@ -300,6 +301,12 @@ class TableIndex(object):
     def to_pb(self):
         return self._pb
 
+
+@enum.unique
+class IndexType(enum.IntEnum):
+    SYNCHRONOUS = 0
+    ASYNCHRONOUS = 1
+    
 
 class ReplicationPolicy(object):
     def __init__(self):
@@ -1337,6 +1344,10 @@ class TableClient(BaseTableClient):
 def _make_index_description(index):
     result = TableIndex(index.name).with_index_columns(*tuple(col for col in index.index_columns))
     result.status = IndexStatus(index.status)
+    if index.HasField("global_async_index"):
+        result.type = IndexType(IndexType.ASYNCHRONOUS)
+    else:
+        result.type = IndexType(IndexType.SYNCHRONOUS)
     return result
 
 
