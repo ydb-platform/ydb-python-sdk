@@ -1,3 +1,4 @@
+## 3.5.0 ##
 * Added functions for check column table type table of any type of scheme entry
 
 ## 3.4.0 ##
