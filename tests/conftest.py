@@ -135,6 +135,42 @@ def table_path(database, table_name) -> str:
     return database + "/" + table_name
 
 
+@pytest.fixture
+def column_table_name(driver_sync, database):
+    table_name = "column_table"
+
+    with ydb.SessionPool(driver_sync) as pool:
+
+        def create_table(s):
+            try:
+                s.drop_table(database + "/" + table_name)
+            except ydb.SchemeError:
+                pass
+
+            s.execute_scheme(
+                """
+CREATE TABLE %s (
+id Int64 NOT NULL,
+i64Val Int64,
+PRIMARY KEY(id)
+)
+PARTITION BY HASH(id)
+WITH (
+    STORE = COLUMN
+)
+"""
+                % table_name
+            )
+
+        pool.retry_operation_sync(create_table)
+    return table_name
+
+
+@pytest.fixture()
+def column_table_path(database, column_table_name) -> str:
+    return database + "/" + column_table_name
+
+
 @pytest.fixture()
 def topic_consumer():
     return "fixture-consumer"
