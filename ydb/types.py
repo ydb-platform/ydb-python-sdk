@@ -12,8 +12,11 @@ from google.protobuf import struct_pb2
 from . import table
 
 
+# Workaround for good IDE and universal for runtime
 if typing.TYPE_CHECKING:
     from ._grpc.v4.protos import ydb_value_pb2
+else:
+    from ._grpc.common.protos import ydb_value_pb2
 
 
 _SECONDS_IN_DAY = 60 * 60 * 24
