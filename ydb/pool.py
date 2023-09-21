@@ -129,7 +129,7 @@ class ConnectionsCache(object):
                 return self.connections_by_node_id[preferred_endpoint.node_id]
 
             if preferred_endpoint is not None and preferred_endpoint.endpoint in self.connections:
-                return self.connections[preferred_endpoint]
+                return self.connections[preferred_endpoint.endpoint]
 
             for conn_lst in self.conn_lst_order:
                 try:
