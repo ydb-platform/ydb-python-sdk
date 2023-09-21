@@ -9,7 +9,7 @@ import random
 from . import connection as connection_impl, issues, resolver, _utilities, tracing
 from abc import abstractmethod
 
-from .connection import Connection
+from .connection import Connection, EndpointKey
 
 logger = logging.getLogger(__name__)
 
@@ -123,7 +123,7 @@ class ConnectionsCache(object):
             return subscription
 
     @tracing.with_trace()
-    def get(self, preferred_endpoint=None) -> Connection:
+    def get(self, preferred_endpoint: Optional[EndpointKey] = None) -> Connection:
         with self.lock:
             if preferred_endpoint is not None and preferred_endpoint.node_id in self.connections_by_node_id:
                 return self.connections_by_node_id[preferred_endpoint.node_id]
