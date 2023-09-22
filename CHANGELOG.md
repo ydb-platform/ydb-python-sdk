@@ -1,4 +1,3 @@
-## 3.5.1 ##
 * Fixed access to connection if connection cannot be found by node id
 
 ## 3.5.0 ##
