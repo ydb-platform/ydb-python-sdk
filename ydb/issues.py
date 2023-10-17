@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
+
 from google.protobuf import text_format
 import enum
 import queue
@@ -52,14 +54,7 @@ class StatusCode(enum.IntEnum):
 
 # TODO: convert from proto IssueMessage
 class _IssueMessage:
-
-    def __init__(
-        self,
-        message: str,
-        issue_code: int,
-        severity: int,
-        issues
-    ) -> None:
+    def __init__(self, message: str, issue_code: int, severity: int, issues) -> None:
         self.message = message
         self.issue_code = issue_code
         self.severity = severity
@@ -69,11 +64,7 @@ class _IssueMessage:
 class Error(Exception):
     status = None
 
-    def __init__(
-            self,
-            message: str,
-            issues: typing.Optional[typing.Iterable[_IssueMessage]] = None
-    ):
+    def __init__(self, message: str, issues: typing.Optional[typing.Iterable[_IssueMessage]] = None):
         super(Error, self).__init__(message)
         self.issues = issues
         self.message = message
