@@ -34,7 +34,7 @@ requests==2.31.0
 texttable==1.6.4
 toml==0.10.2
 typing-extensions==3.10.0.0
-urllib3==1.26.6
+urllib3==1.26.18
 websocket-client==0.59.0
 zipp==3.5.0
 aiohttp==3.7.4
