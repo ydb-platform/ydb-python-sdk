@@ -387,7 +387,11 @@ class TopicClient:
 
 @dataclass
 class TopicClientSettings:
-    encode_decode_threads_count: int = 4
+    # ATTENTION
+    # When set the encode_decode_threads_count - all custom encoders/decoders for topic reader/writer
+    # MUST be thread-safe
+    # because they will be called from parallel threads
+    encode_decode_threads_count: int = 1
 
 
 class TopicError(issues.Error):
