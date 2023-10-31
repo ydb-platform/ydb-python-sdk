@@ -1,3 +1,4 @@
+* Set 1 thread as default for encode/decode messages, was 4
 * Added comments about calls encoders/decoders in parallel from multiply threads
 
 ## 3.5.1 ##
