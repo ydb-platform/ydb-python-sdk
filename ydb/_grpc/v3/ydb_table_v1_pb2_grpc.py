@@ -109,6 +109,11 @@ class TableServiceStub(object):
                 request_serializer=protos_dot_ydb__table__pb2.ReadTableRequest.SerializeToString,
                 response_deserializer=protos_dot_ydb__table__pb2.ReadTableResponse.FromString,
                 )
+        self.ReadRows = channel.unary_unary(
+                '/Ydb.Table.V1.TableService/ReadRows',
+                request_serializer=protos_dot_ydb__table__pb2.ReadRowsRequest.SerializeToString,
+                response_deserializer=protos_dot_ydb__table__pb2.ReadRowsResponse.FromString,
+                )
         self.BulkUpsert = channel.unary_unary(
                 '/Ydb.Table.V1.TableService/BulkUpsert',
                 request_serializer=protos_dot_ydb__table__pb2.BulkUpsertRequest.SerializeToString,
@@ -267,6 +272,13 @@ class TableServiceServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def ReadRows(self, request, context):
+        """Reads specified keys non-transactionally from a single table
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
     def BulkUpsert(self, request, context):
         """Upserts a batch of rows non-transactionally.
         Returns success only when all rows were successfully upserted. In case of an error some rows might
@@ -380,6 +392,11 @@ def add_TableServiceServicer_to_server(servicer, server):
                     servicer.StreamReadTable,
                     request_deserializer=protos_dot_ydb__table__pb2.ReadTableRequest.FromString,
                     response_serializer=protos_dot_ydb__table__pb2.ReadTableResponse.SerializeToString,
+            ),
+            'ReadRows': grpc.unary_unary_rpc_method_handler(
+                    servicer.ReadRows,
+                    request_deserializer=protos_dot_ydb__table__pb2.ReadRowsRequest.FromString,
+                    response_serializer=protos_dot_ydb__table__pb2.ReadRowsResponse.SerializeToString,
             ),
             'BulkUpsert': grpc.unary_unary_rpc_method_handler(
                     servicer.BulkUpsert,
@@ -721,6 +738,23 @@ class TableService(object):
         return grpc.experimental.unary_stream(request, target, '/Ydb.Table.V1.TableService/StreamReadTable',
             protos_dot_ydb__table__pb2.ReadTableRequest.SerializeToString,
             protos_dot_ydb__table__pb2.ReadTableResponse.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def ReadRows(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/Ydb.Table.V1.TableService/ReadRows',
+            protos_dot_ydb__table__pb2.ReadRowsRequest.SerializeToString,
+            protos_dot_ydb__table__pb2.ReadRowsResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 

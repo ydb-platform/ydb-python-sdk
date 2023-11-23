@@ -18,9 +18,9 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='protos/ydb_formats.proto',
   package='Ydb.Formats',
   syntax='proto3',
-  serialized_options=b'\n\020tech.ydb.formatsZ:github.com/ydb-platform/ydb-go-genproto/protos/Ydb_Formats\370\001\001',
+  serialized_options=b'\n\026tech.ydb.proto.formatsZ:github.com/ydb-platform/ydb-go-genproto/protos/Ydb_Formats\370\001\001',
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n\x18protos/ydb_formats.proto\x12\x0bYdb.Formats\"$\n\x12\x41rrowBatchSettings\x12\x0e\n\x06schema\x18\x01 \x01(\x0c\"W\n\x0b\x43svSettings\x12\x11\n\tskip_rows\x18\x01 \x01(\r\x12\x11\n\tdelimiter\x18\x02 \x01(\x0c\x12\x12\n\nnull_value\x18\x03 \x01(\x0c\x12\x0e\n\x06header\x18\x04 \x01(\x08\x42Q\n\x10tech.ydb.formatsZ:github.com/ydb-platform/ydb-go-genproto/protos/Ydb_Formats\xf8\x01\x01\x62\x06proto3'
+  serialized_pb=b'\n\x18protos/ydb_formats.proto\x12\x0bYdb.Formats\"$\n\x12\x41rrowBatchSettings\x12\x0e\n\x06schema\x18\x01 \x01(\x0c\"W\n\x0b\x43svSettings\x12\x11\n\tskip_rows\x18\x01 \x01(\r\x12\x11\n\tdelimiter\x18\x02 \x01(\x0c\x12\x12\n\nnull_value\x18\x03 \x01(\x0c\x12\x0e\n\x06header\x18\x04 \x01(\x08\x42W\n\x16tech.ydb.proto.formatsZ:github.com/ydb-platform/ydb-go-genproto/protos/Ydb_Formats\xf8\x01\x01\x62\x06proto3'
 )
 
 

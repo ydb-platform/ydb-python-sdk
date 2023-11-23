@@ -19,9 +19,9 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='ydb_monitoring_v1.proto',
   package='Ydb.Monitoring.V1',
   syntax='proto3',
-  serialized_options=b'\n\026tech.ydb.monitoring.v1Z9github.com/ydb-platform/ydb-go-genproto/Ydb_Monitoring_V1',
+  serialized_options=b'\n\034tech.ydb.proto.monitoring.v1Z9github.com/ydb-platform/ydb-go-genproto/Ydb_Monitoring_V1',
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n\x17ydb_monitoring_v1.proto\x12\x11Ydb.Monitoring.V1\x1a\x1bprotos/ydb_monitoring.proto2\xb7\x01\n\x11MonitoringService\x12P\n\tSelfCheck\x12 .Ydb.Monitoring.SelfCheckRequest\x1a!.Ydb.Monitoring.SelfCheckResponse\x12P\n\tNodeCheck\x12 .Ydb.Monitoring.NodeCheckRequest\x1a!.Ydb.Monitoring.NodeCheckResponseBS\n\x16tech.ydb.monitoring.v1Z9github.com/ydb-platform/ydb-go-genproto/Ydb_Monitoring_V1b\x06proto3'
+  serialized_pb=b'\n\x17ydb_monitoring_v1.proto\x12\x11Ydb.Monitoring.V1\x1a\x1bprotos/ydb_monitoring.proto2\xb7\x01\n\x11MonitoringService\x12P\n\tSelfCheck\x12 .Ydb.Monitoring.SelfCheckRequest\x1a!.Ydb.Monitoring.SelfCheckResponse\x12P\n\tNodeCheck\x12 .Ydb.Monitoring.NodeCheckRequest\x1a!.Ydb.Monitoring.NodeCheckResponseBY\n\x1ctech.ydb.proto.monitoring.v1Z9github.com/ydb-platform/ydb-go-genproto/Ydb_Monitoring_V1b\x06proto3'
   ,
   dependencies=[protos_dot_ydb__monitoring__pb2.DESCRIPTOR,])
 

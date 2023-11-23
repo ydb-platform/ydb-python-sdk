@@ -15,14 +15,14 @@ _sym_db = _symbol_database.Default()
 from ydb._grpc.v4.protos import ydb_monitoring_pb2 as protos_dot_ydb__monitoring__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x17ydb_monitoring_v1.proto\x12\x11Ydb.Monitoring.V1\x1a\x1bprotos/ydb_monitoring.proto2\xb7\x01\n\x11MonitoringService\x12P\n\tSelfCheck\x12 .Ydb.Monitoring.SelfCheckRequest\x1a!.Ydb.Monitoring.SelfCheckResponse\x12P\n\tNodeCheck\x12 .Ydb.Monitoring.NodeCheckRequest\x1a!.Ydb.Monitoring.NodeCheckResponseBS\n\x16tech.ydb.monitoring.v1Z9github.com/ydb-platform/ydb-go-genproto/Ydb_Monitoring_V1b\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x17ydb_monitoring_v1.proto\x12\x11Ydb.Monitoring.V1\x1a\x1bprotos/ydb_monitoring.proto2\xb7\x01\n\x11MonitoringService\x12P\n\tSelfCheck\x12 .Ydb.Monitoring.SelfCheckRequest\x1a!.Ydb.Monitoring.SelfCheckResponse\x12P\n\tNodeCheck\x12 .Ydb.Monitoring.NodeCheckRequest\x1a!.Ydb.Monitoring.NodeCheckResponseBY\n\x1ctech.ydb.proto.monitoring.v1Z9github.com/ydb-platform/ydb-go-genproto/Ydb_Monitoring_V1b\x06proto3')
 
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, globals())
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'ydb_monitoring_v1_pb2', globals())
 if _descriptor._USE_C_DESCRIPTORS == False:
 
   DESCRIPTOR._options = None
-  DESCRIPTOR._serialized_options = b'\n\026tech.ydb.monitoring.v1Z9github.com/ydb-platform/ydb-go-genproto/Ydb_Monitoring_V1'
+  DESCRIPTOR._serialized_options = b'\n\034tech.ydb.proto.monitoring.v1Z9github.com/ydb-platform/ydb-go-genproto/Ydb_Monitoring_V1'
   _MONITORINGSERVICE._serialized_start=76
   _MONITORINGSERVICE._serialized_end=259
 # @@protoc_insertion_point(module_scope)

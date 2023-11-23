@@ -14,6 +14,7 @@ class StatusIds(_message.Message):
     BAD_REQUEST: StatusIds.StatusCode
     BAD_SESSION: StatusIds.StatusCode
     CANCELLED: StatusIds.StatusCode
+    EXTERNAL_ERROR: StatusIds.StatusCode
     GENERIC_ERROR: StatusIds.StatusCode
     INTERNAL_ERROR: StatusIds.StatusCode
     NOT_FOUND: StatusIds.StatusCode
