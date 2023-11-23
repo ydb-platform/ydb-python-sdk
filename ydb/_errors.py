@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from typing import Optional
 
 from . import issues
 
@@ -59,5 +58,6 @@ def check_retriable_error(err, retry_settings, attempt):
 
 @dataclass
 class ErrorRetryInfo:
-    is_retriable: bool
-    sleep_timeout_seconds: Optional[float]
+    def __init__(self, is_retriable, sleep_timeout_seconds=None):
+        self.is_retriable = is_retriable
+        self.sleep_timeout_seconds = sleep_timeout_seconds

@@ -168,7 +168,7 @@ def _format_issues(issues):
 
 def _format_response(response):
     fmt_issues = _format_issues(response.issues)
-    return f"{fmt_issues} (server_code: {response.status})"
+    return "{0} (server_code: {1})".format(fmt_issues, response.status)
 
 
 _success_status_codes = {StatusCode.STATUS_CODE_UNSPECIFIED, StatusCode.SUCCESS}
