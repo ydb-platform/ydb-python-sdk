@@ -14,14 +14,14 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x18protos/ydb_formats.proto\x12\x0bYdb.Formats\"$\n\x12\x41rrowBatchSettings\x12\x0e\n\x06schema\x18\x01 \x01(\x0c\"W\n\x0b\x43svSettings\x12\x11\n\tskip_rows\x18\x01 \x01(\r\x12\x11\n\tdelimiter\x18\x02 \x01(\x0c\x12\x12\n\nnull_value\x18\x03 \x01(\x0c\x12\x0e\n\x06header\x18\x04 \x01(\x08\x42Q\n\x10tech.ydb.formatsZ:github.com/ydb-platform/ydb-go-genproto/protos/Ydb_Formats\xf8\x01\x01\x62\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x18protos/ydb_formats.proto\x12\x0bYdb.Formats\"$\n\x12\x41rrowBatchSettings\x12\x0e\n\x06schema\x18\x01 \x01(\x0c\"W\n\x0b\x43svSettings\x12\x11\n\tskip_rows\x18\x01 \x01(\r\x12\x11\n\tdelimiter\x18\x02 \x01(\x0c\x12\x12\n\nnull_value\x18\x03 \x01(\x0c\x12\x0e\n\x06header\x18\x04 \x01(\x08\x42W\n\x16tech.ydb.proto.formatsZ:github.com/ydb-platform/ydb-go-genproto/protos/Ydb_Formats\xf8\x01\x01\x62\x06proto3')
 
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, globals())
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'protos.ydb_formats_pb2', globals())
 if _descriptor._USE_C_DESCRIPTORS == False:
 
   DESCRIPTOR._options = None
-  DESCRIPTOR._serialized_options = b'\n\020tech.ydb.formatsZ:github.com/ydb-platform/ydb-go-genproto/protos/Ydb_Formats\370\001\001'
+  DESCRIPTOR._serialized_options = b'\n\026tech.ydb.proto.formatsZ:github.com/ydb-platform/ydb-go-genproto/protos/Ydb_Formats\370\001\001'
   _ARROWBATCHSETTINGS._serialized_start=41
   _ARROWBATCHSETTINGS._serialized_end=77
   _CSVSETTINGS._serialized_start=79

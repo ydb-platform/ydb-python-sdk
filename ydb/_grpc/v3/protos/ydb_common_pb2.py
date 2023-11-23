@@ -18,9 +18,9 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='protos/ydb_common.proto',
   package='Ydb',
   syntax='proto3',
-  serialized_options=b'\n\017tech.ydb.commonB\014CommonProtosZ2github.com/ydb-platform/ydb-go-genproto/protos/Ydb\370\001\001',
+  serialized_options=b'\n\025tech.ydb.proto.commonB\014CommonProtosZ2github.com/ydb-platform/ydb-go-genproto/protos/Ydb\370\001\001',
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n\x17protos/ydb_common.proto\x12\x03Ydb\"J\n\x0b\x46\x65\x61tureFlag\";\n\x06Status\x12\x16\n\x12STATUS_UNSPECIFIED\x10\x00\x12\x0b\n\x07\x45NABLED\x10\x01\x12\x0c\n\x08\x44ISABLED\x10\x02\"\"\n\x08\x43ostInfo\x12\x16\n\x0e\x63onsumed_units\x18\x01 \x01(\x01\"\x1d\n\rQuotaExceeded\x12\x0c\n\x04\x64isk\x18\x01 \x01(\x08\"4\n\x10VirtualTimestamp\x12\x11\n\tplan_step\x18\x01 \x01(\x04\x12\r\n\x05tx_id\x18\x02 \x01(\x04\x42V\n\x0ftech.ydb.commonB\x0c\x43ommonProtosZ2github.com/ydb-platform/ydb-go-genproto/protos/Ydb\xf8\x01\x01\x62\x06proto3'
+  serialized_pb=b'\n\x17protos/ydb_common.proto\x12\x03Ydb\"J\n\x0b\x46\x65\x61tureFlag\";\n\x06Status\x12\x16\n\x12STATUS_UNSPECIFIED\x10\x00\x12\x0b\n\x07\x45NABLED\x10\x01\x12\x0c\n\x08\x44ISABLED\x10\x02\"\"\n\x08\x43ostInfo\x12\x16\n\x0e\x63onsumed_units\x18\x01 \x01(\x01\"\x1d\n\rQuotaExceeded\x12\x0c\n\x04\x64isk\x18\x01 \x01(\x08\"4\n\x10VirtualTimestamp\x12\x11\n\tplan_step\x18\x01 \x01(\x04\x12\r\n\x05tx_id\x18\x02 \x01(\x04\x42\\\n\x15tech.ydb.proto.commonB\x0c\x43ommonProtosZ2github.com/ydb-platform/ydb-go-genproto/protos/Ydb\xf8\x01\x01\x62\x06proto3'
 )
 
 

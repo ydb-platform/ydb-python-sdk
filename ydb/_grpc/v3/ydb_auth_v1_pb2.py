@@ -19,9 +19,9 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='ydb_auth_v1.proto',
   package='Ydb.Auth.V1',
   syntax='proto3',
-  serialized_options=b'\n\020tech.ydb.auth.v1Z3github.com/ydb-platform/ydb-go-genproto/Ydb_Auth_V1',
+  serialized_options=b'\n\026tech.ydb.proto.auth.v1Z3github.com/ydb-platform/ydb-go-genproto/Ydb_Auth_V1',
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n\x11ydb_auth_v1.proto\x12\x0bYdb.Auth.V1\x1a\x15protos/ydb_auth.proto2G\n\x0b\x41uthService\x12\x38\n\x05Login\x12\x16.Ydb.Auth.LoginRequest\x1a\x17.Ydb.Auth.LoginResponseBG\n\x10tech.ydb.auth.v1Z3github.com/ydb-platform/ydb-go-genproto/Ydb_Auth_V1b\x06proto3'
+  serialized_pb=b'\n\x11ydb_auth_v1.proto\x12\x0bYdb.Auth.V1\x1a\x15protos/ydb_auth.proto2G\n\x0b\x41uthService\x12\x38\n\x05Login\x12\x16.Ydb.Auth.LoginRequest\x1a\x17.Ydb.Auth.LoginResponseBM\n\x16tech.ydb.proto.auth.v1Z3github.com/ydb-platform/ydb-go-genproto/Ydb_Auth_V1b\x06proto3'
   ,
   dependencies=[protos_dot_ydb__auth__pb2.DESCRIPTOR,])
 

@@ -19,9 +19,9 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='ydb_discovery_v1.proto',
   package='Ydb.Discovery.V1',
   syntax='proto3',
-  serialized_options=b'\n\025tech.ydb.discovery.v1Z8github.com/ydb-platform/ydb-go-genproto/Ydb_Discovery_V1',
+  serialized_options=b'\n\033tech.ydb.proto.discovery.v1Z8github.com/ydb-platform/ydb-go-genproto/Ydb_Discovery_V1',
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n\x16ydb_discovery_v1.proto\x12\x10Ydb.Discovery.V1\x1a\x1aprotos/ydb_discovery.proto2\xb5\x01\n\x10\x44iscoveryService\x12Z\n\rListEndpoints\x12#.Ydb.Discovery.ListEndpointsRequest\x1a$.Ydb.Discovery.ListEndpointsResponse\x12\x45\n\x06WhoAmI\x12\x1c.Ydb.Discovery.WhoAmIRequest\x1a\x1d.Ydb.Discovery.WhoAmIResponseBQ\n\x15tech.ydb.discovery.v1Z8github.com/ydb-platform/ydb-go-genproto/Ydb_Discovery_V1b\x06proto3'
+  serialized_pb=b'\n\x16ydb_discovery_v1.proto\x12\x10Ydb.Discovery.V1\x1a\x1aprotos/ydb_discovery.proto2\xb5\x01\n\x10\x44iscoveryService\x12Z\n\rListEndpoints\x12#.Ydb.Discovery.ListEndpointsRequest\x1a$.Ydb.Discovery.ListEndpointsResponse\x12\x45\n\x06WhoAmI\x12\x1c.Ydb.Discovery.WhoAmIRequest\x1a\x1d.Ydb.Discovery.WhoAmIResponseBW\n\x1btech.ydb.proto.discovery.v1Z8github.com/ydb-platform/ydb-go-genproto/Ydb_Discovery_V1b\x06proto3'
   ,
   dependencies=[protos_dot_ydb__discovery__pb2.DESCRIPTOR,])
 

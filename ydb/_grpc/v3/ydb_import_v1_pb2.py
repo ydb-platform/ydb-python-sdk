@@ -19,9 +19,9 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='ydb_import_v1.proto',
   package='Ydb.Import.V1',
   syntax='proto3',
-  serialized_options=b'\n\023tech.ydb.import_.v1Z5github.com/ydb-platform/ydb-go-genproto/Ydb_Import_V1',
+  serialized_options=b'\n\031tech.ydb.proto.import_.v1Z5github.com/ydb-platform/ydb-go-genproto/Ydb_Import_V1',
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n\x13ydb_import_v1.proto\x12\rYdb.Import.V1\x1a\x17protos/ydb_import.proto2\xaf\x01\n\rImportService\x12Q\n\x0cImportFromS3\x12\x1f.Ydb.Import.ImportFromS3Request\x1a .Ydb.Import.ImportFromS3Response\x12K\n\nImportData\x12\x1d.Ydb.Import.ImportDataRequest\x1a\x1e.Ydb.Import.ImportDataResponseBL\n\x13tech.ydb.import_.v1Z5github.com/ydb-platform/ydb-go-genproto/Ydb_Import_V1b\x06proto3'
+  serialized_pb=b'\n\x13ydb_import_v1.proto\x12\rYdb.Import.V1\x1a\x17protos/ydb_import.proto2\xaf\x01\n\rImportService\x12Q\n\x0cImportFromS3\x12\x1f.Ydb.Import.ImportFromS3Request\x1a .Ydb.Import.ImportFromS3Response\x12K\n\nImportData\x12\x1d.Ydb.Import.ImportDataRequest\x1a\x1e.Ydb.Import.ImportDataResponseBR\n\x19tech.ydb.proto.import_.v1Z5github.com/ydb-platform/ydb-go-genproto/Ydb_Import_V1b\x06proto3'
   ,
   dependencies=[protos_dot_ydb__import__pb2.DESCRIPTOR,])
 

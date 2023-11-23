@@ -19,7 +19,7 @@ from typing import ClassVar as _ClassVar, Iterable as _Iterable, Mapping as _Map
 DESCRIPTOR: _descriptor.FileDescriptor
 
 class AlterTableRequest(_message.Message):
-    __slots__ = ["add_changefeeds", "add_column_families", "add_columns", "add_indexes", "alter_attributes", "alter_column_families", "alter_columns", "alter_partitioning_settings", "alter_storage_settings", "drop_changefeeds", "drop_columns", "drop_indexes", "drop_ttl_settings", "operation_params", "path", "rename_indexes", "session_id", "set_compaction_policy", "set_key_bloom_filter", "set_read_replicas_settings", "set_ttl_settings"]
+    __slots__ = ["add_changefeeds", "add_column_families", "add_columns", "add_indexes", "alter_attributes", "alter_column_families", "alter_columns", "alter_partitioning_settings", "alter_storage_settings", "drop_changefeeds", "drop_columns", "drop_indexes", "drop_tiering", "drop_ttl_settings", "operation_params", "path", "rename_indexes", "session_id", "set_compaction_policy", "set_key_bloom_filter", "set_read_replicas_settings", "set_tiering", "set_ttl_settings"]
     class AlterAttributesEntry(_message.Message):
         __slots__ = ["key", "value"]
         KEY_FIELD_NUMBER: _ClassVar[int]
@@ -39,6 +39,7 @@ class AlterTableRequest(_message.Message):
     DROP_CHANGEFEEDS_FIELD_NUMBER: _ClassVar[int]
     DROP_COLUMNS_FIELD_NUMBER: _ClassVar[int]
     DROP_INDEXES_FIELD_NUMBER: _ClassVar[int]
+    DROP_TIERING_FIELD_NUMBER: _ClassVar[int]
     DROP_TTL_SETTINGS_FIELD_NUMBER: _ClassVar[int]
     OPERATION_PARAMS_FIELD_NUMBER: _ClassVar[int]
     PATH_FIELD_NUMBER: _ClassVar[int]
@@ -47,6 +48,7 @@ class AlterTableRequest(_message.Message):
     SET_COMPACTION_POLICY_FIELD_NUMBER: _ClassVar[int]
     SET_KEY_BLOOM_FILTER_FIELD_NUMBER: _ClassVar[int]
     SET_READ_REPLICAS_SETTINGS_FIELD_NUMBER: _ClassVar[int]
+    SET_TIERING_FIELD_NUMBER: _ClassVar[int]
     SET_TTL_SETTINGS_FIELD_NUMBER: _ClassVar[int]
     add_changefeeds: _containers.RepeatedCompositeFieldContainer[Changefeed]
     add_column_families: _containers.RepeatedCompositeFieldContainer[ColumnFamily]
@@ -60,6 +62,7 @@ class AlterTableRequest(_message.Message):
     drop_changefeeds: _containers.RepeatedScalarFieldContainer[str]
     drop_columns: _containers.RepeatedScalarFieldContainer[str]
     drop_indexes: _containers.RepeatedScalarFieldContainer[str]
+    drop_tiering: _empty_pb2.Empty
     drop_ttl_settings: _empty_pb2.Empty
     operation_params: _ydb_operation_pb2.OperationParams
     path: str
@@ -68,8 +71,9 @@ class AlterTableRequest(_message.Message):
     set_compaction_policy: str
     set_key_bloom_filter: _ydb_common_pb2.FeatureFlag.Status
     set_read_replicas_settings: ReadReplicasSettings
+    set_tiering: str
     set_ttl_settings: TtlSettings
-    def __init__(self, session_id: _Optional[str] = ..., path: _Optional[str] = ..., add_columns: _Optional[_Iterable[_Union[ColumnMeta, _Mapping]]] = ..., drop_columns: _Optional[_Iterable[str]] = ..., operation_params: _Optional[_Union[_ydb_operation_pb2.OperationParams, _Mapping]] = ..., alter_columns: _Optional[_Iterable[_Union[ColumnMeta, _Mapping]]] = ..., set_ttl_settings: _Optional[_Union[TtlSettings, _Mapping]] = ..., drop_ttl_settings: _Optional[_Union[_empty_pb2.Empty, _Mapping]] = ..., add_indexes: _Optional[_Iterable[_Union[TableIndex, _Mapping]]] = ..., drop_indexes: _Optional[_Iterable[str]] = ..., alter_storage_settings: _Optional[_Union[StorageSettings, _Mapping]] = ..., add_column_families: _Optional[_Iterable[_Union[ColumnFamily, _Mapping]]] = ..., alter_column_families: _Optional[_Iterable[_Union[ColumnFamily, _Mapping]]] = ..., alter_attributes: _Optional[_Mapping[str, str]] = ..., set_compaction_policy: _Optional[str] = ..., alter_partitioning_settings: _Optional[_Union[PartitioningSettings, _Mapping]] = ..., set_key_bloom_filter: _Optional[_Union[_ydb_common_pb2.FeatureFlag.Status, str]] = ..., set_read_replicas_settings: _Optional[_Union[ReadReplicasSettings, _Mapping]] = ..., add_changefeeds: _Optional[_Iterable[_Union[Changefeed, _Mapping]]] = ..., drop_changefeeds: _Optional[_Iterable[str]] = ..., rename_indexes: _Optional[_Iterable[_Union[RenameIndexItem, _Mapping]]] = ...) -> None: ...
+    def __init__(self, session_id: _Optional[str] = ..., path: _Optional[str] = ..., add_columns: _Optional[_Iterable[_Union[ColumnMeta, _Mapping]]] = ..., drop_columns: _Optional[_Iterable[str]] = ..., operation_params: _Optional[_Union[_ydb_operation_pb2.OperationParams, _Mapping]] = ..., alter_columns: _Optional[_Iterable[_Union[ColumnMeta, _Mapping]]] = ..., set_ttl_settings: _Optional[_Union[TtlSettings, _Mapping]] = ..., drop_ttl_settings: _Optional[_Union[_empty_pb2.Empty, _Mapping]] = ..., add_indexes: _Optional[_Iterable[_Union[TableIndex, _Mapping]]] = ..., drop_indexes: _Optional[_Iterable[str]] = ..., alter_storage_settings: _Optional[_Union[StorageSettings, _Mapping]] = ..., add_column_families: _Optional[_Iterable[_Union[ColumnFamily, _Mapping]]] = ..., alter_column_families: _Optional[_Iterable[_Union[ColumnFamily, _Mapping]]] = ..., alter_attributes: _Optional[_Mapping[str, str]] = ..., set_compaction_policy: _Optional[str] = ..., alter_partitioning_settings: _Optional[_Union[PartitioningSettings, _Mapping]] = ..., set_key_bloom_filter: _Optional[_Union[_ydb_common_pb2.FeatureFlag.Status, str]] = ..., set_read_replicas_settings: _Optional[_Union[ReadReplicasSettings, _Mapping]] = ..., add_changefeeds: _Optional[_Iterable[_Union[Changefeed, _Mapping]]] = ..., drop_changefeeds: _Optional[_Iterable[str]] = ..., rename_indexes: _Optional[_Iterable[_Union[RenameIndexItem, _Mapping]]] = ..., set_tiering: _Optional[str] = ..., drop_tiering: _Optional[_Union[_empty_pb2.Empty, _Mapping]] = ...) -> None: ...
 
 class AlterTableResponse(_message.Message):
     __slots__ = ["operation"]
@@ -155,42 +159,64 @@ class CachingPolicyDescription(_message.Message):
     def __init__(self, name: _Optional[str] = ..., labels: _Optional[_Mapping[str, str]] = ...) -> None: ...
 
 class Changefeed(_message.Message):
-    __slots__ = ["format", "mode", "name", "retention_period", "virtual_timestamps"]
+    __slots__ = ["attributes", "format", "initial_scan", "mode", "name", "retention_period", "virtual_timestamps"]
+    class AttributesEntry(_message.Message):
+        __slots__ = ["key", "value"]
+        KEY_FIELD_NUMBER: _ClassVar[int]
+        VALUE_FIELD_NUMBER: _ClassVar[int]
+        key: str
+        value: str
+        def __init__(self, key: _Optional[str] = ..., value: _Optional[str] = ...) -> None: ...
+    ATTRIBUTES_FIELD_NUMBER: _ClassVar[int]
     FORMAT_FIELD_NUMBER: _ClassVar[int]
+    INITIAL_SCAN_FIELD_NUMBER: _ClassVar[int]
     MODE_FIELD_NUMBER: _ClassVar[int]
     NAME_FIELD_NUMBER: _ClassVar[int]
     RETENTION_PERIOD_FIELD_NUMBER: _ClassVar[int]
     VIRTUAL_TIMESTAMPS_FIELD_NUMBER: _ClassVar[int]
+    attributes: _containers.ScalarMap[str, str]
     format: ChangefeedFormat.Format
+    initial_scan: bool
     mode: ChangefeedMode.Mode
     name: str
     retention_period: _duration_pb2.Duration
     virtual_timestamps: bool
-    def __init__(self, name: _Optional[str] = ..., mode: _Optional[_Union[ChangefeedMode.Mode, str]] = ..., format: _Optional[_Union[ChangefeedFormat.Format, str]] = ..., retention_period: _Optional[_Union[_duration_pb2.Duration, _Mapping]] = ..., virtual_timestamps: bool = ...) -> None: ...
+    def __init__(self, name: _Optional[str] = ..., mode: _Optional[_Union[ChangefeedMode.Mode, str]] = ..., format: _Optional[_Union[ChangefeedFormat.Format, str]] = ..., retention_period: _Optional[_Union[_duration_pb2.Duration, _Mapping]] = ..., virtual_timestamps: bool = ..., initial_scan: bool = ..., attributes: _Optional[_Mapping[str, str]] = ...) -> None: ...
 
 class ChangefeedDescription(_message.Message):
-    __slots__ = ["format", "mode", "name", "state", "virtual_timestamps"]
+    __slots__ = ["attributes", "format", "mode", "name", "state", "virtual_timestamps"]
     class State(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
         __slots__ = []
+    class AttributesEntry(_message.Message):
+        __slots__ = ["key", "value"]
+        KEY_FIELD_NUMBER: _ClassVar[int]
+        VALUE_FIELD_NUMBER: _ClassVar[int]
+        key: str
+        value: str
+        def __init__(self, key: _Optional[str] = ..., value: _Optional[str] = ...) -> None: ...
+    ATTRIBUTES_FIELD_NUMBER: _ClassVar[int]
     FORMAT_FIELD_NUMBER: _ClassVar[int]
     MODE_FIELD_NUMBER: _ClassVar[int]
     NAME_FIELD_NUMBER: _ClassVar[int]
     STATE_DISABLED: ChangefeedDescription.State
     STATE_ENABLED: ChangefeedDescription.State
     STATE_FIELD_NUMBER: _ClassVar[int]
+    STATE_INITIAL_SCAN: ChangefeedDescription.State
     STATE_UNSPECIFIED: ChangefeedDescription.State
     VIRTUAL_TIMESTAMPS_FIELD_NUMBER: _ClassVar[int]
+    attributes: _containers.ScalarMap[str, str]
     format: ChangefeedFormat.Format
     mode: ChangefeedMode.Mode
     name: str
     state: ChangefeedDescription.State
     virtual_timestamps: bool
-    def __init__(self, name: _Optional[str] = ..., mode: _Optional[_Union[ChangefeedMode.Mode, str]] = ..., format: _Optional[_Union[ChangefeedFormat.Format, str]] = ..., state: _Optional[_Union[ChangefeedDescription.State, str]] = ..., virtual_timestamps: bool = ...) -> None: ...
+    def __init__(self, name: _Optional[str] = ..., mode: _Optional[_Union[ChangefeedMode.Mode, str]] = ..., format: _Optional[_Union[ChangefeedFormat.Format, str]] = ..., state: _Optional[_Union[ChangefeedDescription.State, str]] = ..., virtual_timestamps: bool = ..., attributes: _Optional[_Mapping[str, str]] = ...) -> None: ...
 
 class ChangefeedFormat(_message.Message):
     __slots__ = []
     class Format(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
         __slots__ = []
+    FORMAT_DYNAMODB_STREAMS_JSON: ChangefeedFormat.Format
     FORMAT_JSON: ChangefeedFormat.Format
     FORMAT_UNSPECIFIED: ChangefeedFormat.Format
     def __init__(self) -> None: ...
@@ -367,7 +393,7 @@ class CreateSessionResult(_message.Message):
     def __init__(self, session_id: _Optional[str] = ...) -> None: ...
 
 class CreateTableRequest(_message.Message):
-    __slots__ = ["attributes", "column_families", "columns", "compaction_policy", "indexes", "key_bloom_filter", "operation_params", "partition_at_keys", "partitioning_settings", "path", "primary_key", "profile", "read_replicas_settings", "session_id", "storage_settings", "ttl_settings", "uniform_partitions"]
+    __slots__ = ["attributes", "column_families", "columns", "compaction_policy", "indexes", "key_bloom_filter", "operation_params", "partition_at_keys", "partitioning_settings", "path", "primary_key", "profile", "read_replicas_settings", "session_id", "storage_settings", "tiering", "ttl_settings", "uniform_partitions"]
     class AttributesEntry(_message.Message):
         __slots__ = ["key", "value"]
         KEY_FIELD_NUMBER: _ClassVar[int]
@@ -390,6 +416,7 @@ class CreateTableRequest(_message.Message):
     READ_REPLICAS_SETTINGS_FIELD_NUMBER: _ClassVar[int]
     SESSION_ID_FIELD_NUMBER: _ClassVar[int]
     STORAGE_SETTINGS_FIELD_NUMBER: _ClassVar[int]
+    TIERING_FIELD_NUMBER: _ClassVar[int]
     TTL_SETTINGS_FIELD_NUMBER: _ClassVar[int]
     UNIFORM_PARTITIONS_FIELD_NUMBER: _ClassVar[int]
     attributes: _containers.ScalarMap[str, str]
@@ -407,9 +434,10 @@ class CreateTableRequest(_message.Message):
     read_replicas_settings: ReadReplicasSettings
     session_id: str
     storage_settings: StorageSettings
+    tiering: str
     ttl_settings: TtlSettings
     uniform_partitions: int
-    def __init__(self, session_id: _Optional[str] = ..., path: _Optional[str] = ..., columns: _Optional[_Iterable[_Union[ColumnMeta, _Mapping]]] = ..., primary_key: _Optional[_Iterable[str]] = ..., profile: _Optional[_Union[TableProfile, _Mapping]] = ..., operation_params: _Optional[_Union[_ydb_operation_pb2.OperationParams, _Mapping]] = ..., indexes: _Optional[_Iterable[_Union[TableIndex, _Mapping]]] = ..., ttl_settings: _Optional[_Union[TtlSettings, _Mapping]] = ..., storage_settings: _Optional[_Union[StorageSettings, _Mapping]] = ..., column_families: _Optional[_Iterable[_Union[ColumnFamily, _Mapping]]] = ..., attributes: _Optional[_Mapping[str, str]] = ..., compaction_policy: _Optional[str] = ..., uniform_partitions: _Optional[int] = ..., partition_at_keys: _Optional[_Union[ExplicitPartitions, _Mapping]] = ..., partitioning_settings: _Optional[_Union[PartitioningSettings, _Mapping]] = ..., key_bloom_filter: _Optional[_Union[_ydb_common_pb2.FeatureFlag.Status, str]] = ..., read_replicas_settings: _Optional[_Union[ReadReplicasSettings, _Mapping]] = ...) -> None: ...
+    def __init__(self, session_id: _Optional[str] = ..., path: _Optional[str] = ..., columns: _Optional[_Iterable[_Union[ColumnMeta, _Mapping]]] = ..., primary_key: _Optional[_Iterable[str]] = ..., profile: _Optional[_Union[TableProfile, _Mapping]] = ..., operation_params: _Optional[_Union[_ydb_operation_pb2.OperationParams, _Mapping]] = ..., indexes: _Optional[_Iterable[_Union[TableIndex, _Mapping]]] = ..., ttl_settings: _Optional[_Union[TtlSettings, _Mapping]] = ..., storage_settings: _Optional[_Union[StorageSettings, _Mapping]] = ..., column_families: _Optional[_Iterable[_Union[ColumnFamily, _Mapping]]] = ..., attributes: _Optional[_Mapping[str, str]] = ..., compaction_policy: _Optional[str] = ..., uniform_partitions: _Optional[int] = ..., partition_at_keys: _Optional[_Union[ExplicitPartitions, _Mapping]] = ..., partitioning_settings: _Optional[_Union[PartitioningSettings, _Mapping]] = ..., key_bloom_filter: _Optional[_Union[_ydb_common_pb2.FeatureFlag.Status, str]] = ..., read_replicas_settings: _Optional[_Union[ReadReplicasSettings, _Mapping]] = ..., tiering: _Optional[str] = ...) -> None: ...
 
 class CreateTableResponse(_message.Message):
     __slots__ = ["operation"]
@@ -492,7 +520,7 @@ class DescribeTableResponse(_message.Message):
     def __init__(self, operation: _Optional[_Union[_ydb_operation_pb2.Operation, _Mapping]] = ...) -> None: ...
 
 class DescribeTableResult(_message.Message):
-    __slots__ = ["attributes", "changefeeds", "column_families", "columns", "indexes", "key_bloom_filter", "partitioning_settings", "primary_key", "read_replicas_settings", "self", "shard_key_bounds", "storage_settings", "table_stats", "ttl_settings"]
+    __slots__ = ["attributes", "changefeeds", "column_families", "columns", "indexes", "key_bloom_filter", "partitioning_settings", "primary_key", "read_replicas_settings", "self", "shard_key_bounds", "storage_settings", "table_stats", "tiering", "ttl_settings"]
     class AttributesEntry(_message.Message):
         __slots__ = ["key", "value"]
         KEY_FIELD_NUMBER: _ClassVar[int]
@@ -513,6 +541,7 @@ class DescribeTableResult(_message.Message):
     SHARD_KEY_BOUNDS_FIELD_NUMBER: _ClassVar[int]
     STORAGE_SETTINGS_FIELD_NUMBER: _ClassVar[int]
     TABLE_STATS_FIELD_NUMBER: _ClassVar[int]
+    TIERING_FIELD_NUMBER: _ClassVar[int]
     TTL_SETTINGS_FIELD_NUMBER: _ClassVar[int]
     attributes: _containers.ScalarMap[str, str]
     changefeeds: _containers.RepeatedCompositeFieldContainer[ChangefeedDescription]
@@ -527,8 +556,9 @@ class DescribeTableResult(_message.Message):
     shard_key_bounds: _containers.RepeatedCompositeFieldContainer[_ydb_value_pb2.TypedValue]
     storage_settings: StorageSettings
     table_stats: TableStats
+    tiering: str
     ttl_settings: TtlSettings
-    def __init__(self, self_: _Optional[_Union[_ydb_scheme_pb2.Entry, _Mapping]] = ..., columns: _Optional[_Iterable[_Union[ColumnMeta, _Mapping]]] = ..., primary_key: _Optional[_Iterable[str]] = ..., shard_key_bounds: _Optional[_Iterable[_Union[_ydb_value_pb2.TypedValue, _Mapping]]] = ..., indexes: _Optional[_Iterable[_Union[TableIndexDescription, _Mapping]]] = ..., table_stats: _Optional[_Union[TableStats, _Mapping]] = ..., ttl_settings: _Optional[_Union[TtlSettings, _Mapping]] = ..., storage_settings: _Optional[_Union[StorageSettings, _Mapping]] = ..., column_families: _Optional[_Iterable[_Union[ColumnFamily, _Mapping]]] = ..., attributes: _Optional[_Mapping[str, str]] = ..., partitioning_settings: _Optional[_Union[PartitioningSettings, _Mapping]] = ..., key_bloom_filter: _Optional[_Union[_ydb_common_pb2.FeatureFlag.Status, str]] = ..., read_replicas_settings: _Optional[_Union[ReadReplicasSettings, _Mapping]] = ..., changefeeds: _Optional[_Iterable[_Union[ChangefeedDescription, _Mapping]]] = ...) -> None: ...
+    def __init__(self, self_: _Optional[_Union[_ydb_scheme_pb2.Entry, _Mapping]] = ..., columns: _Optional[_Iterable[_Union[ColumnMeta, _Mapping]]] = ..., primary_key: _Optional[_Iterable[str]] = ..., shard_key_bounds: _Optional[_Iterable[_Union[_ydb_value_pb2.TypedValue, _Mapping]]] = ..., indexes: _Optional[_Iterable[_Union[TableIndexDescription, _Mapping]]] = ..., table_stats: _Optional[_Union[TableStats, _Mapping]] = ..., ttl_settings: _Optional[_Union[TtlSettings, _Mapping]] = ..., storage_settings: _Optional[_Union[StorageSettings, _Mapping]] = ..., column_families: _Optional[_Iterable[_Union[ColumnFamily, _Mapping]]] = ..., attributes: _Optional[_Mapping[str, str]] = ..., partitioning_settings: _Optional[_Union[PartitioningSettings, _Mapping]] = ..., key_bloom_filter: _Optional[_Union[_ydb_common_pb2.FeatureFlag.Status, str]] = ..., read_replicas_settings: _Optional[_Union[ReadReplicasSettings, _Mapping]] = ..., changefeeds: _Optional[_Iterable[_Union[ChangefeedDescription, _Mapping]]] = ..., tiering: _Optional[str] = ...) -> None: ...
 
 class DropTableRequest(_message.Message):
     __slots__ = ["operation_params", "path", "session_id"]
@@ -917,6 +947,28 @@ class ReadReplicasSettings(_message.Message):
     any_az_read_replicas_count: int
     per_az_read_replicas_count: int
     def __init__(self, per_az_read_replicas_count: _Optional[int] = ..., any_az_read_replicas_count: _Optional[int] = ...) -> None: ...
+
+class ReadRowsRequest(_message.Message):
+    __slots__ = ["columns", "keys", "path", "session_id"]
+    COLUMNS_FIELD_NUMBER: _ClassVar[int]
+    KEYS_FIELD_NUMBER: _ClassVar[int]
+    PATH_FIELD_NUMBER: _ClassVar[int]
+    SESSION_ID_FIELD_NUMBER: _ClassVar[int]
+    columns: _containers.RepeatedScalarFieldContainer[str]
+    keys: _ydb_value_pb2.TypedValue
+    path: str
+    session_id: str
+    def __init__(self, session_id: _Optional[str] = ..., path: _Optional[str] = ..., keys: _Optional[_Union[_ydb_value_pb2.TypedValue, _Mapping]] = ..., columns: _Optional[_Iterable[str]] = ...) -> None: ...
+
+class ReadRowsResponse(_message.Message):
+    __slots__ = ["issues", "result_set", "status"]
+    ISSUES_FIELD_NUMBER: _ClassVar[int]
+    RESULT_SET_FIELD_NUMBER: _ClassVar[int]
+    STATUS_FIELD_NUMBER: _ClassVar[int]
+    issues: _containers.RepeatedCompositeFieldContainer[_ydb_issue_message_pb2.IssueMessage]
+    result_set: _ydb_value_pb2.ResultSet
+    status: _ydb_status_codes_pb2.StatusIds.StatusCode
+    def __init__(self, status: _Optional[_Union[_ydb_status_codes_pb2.StatusIds.StatusCode, str]] = ..., issues: _Optional[_Iterable[_Union[_ydb_issue_message_pb2.IssueMessage, _Mapping]]] = ..., result_set: _Optional[_Union[_ydb_value_pb2.ResultSet, _Mapping]] = ...) -> None: ...
 
 class ReadTableRequest(_message.Message):
     __slots__ = ["columns", "key_range", "ordered", "path", "row_limit", "session_id", "use_snapshot"]
