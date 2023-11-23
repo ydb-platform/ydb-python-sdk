@@ -2230,8 +2230,7 @@ class BaseTxContext(ITxContext):
         session_state,
         session,
         tx_mode=None,
-        *,
-        allow_split_transactions=_allow_split_transaction
+        allow_split_transactions=_allow_split_transaction,
     ):
         """
         An object that provides a simple transaction context manager that allows statements execution
