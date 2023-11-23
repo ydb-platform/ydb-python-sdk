@@ -1,3 +1,5 @@
+* Fixed python2 compatibility
+
 ## 2.14.0 ##
 * Added YDB convert support EmptyDict, EmptyList types
 * Added EXTERNAL_ERROR status code and issue ExternalError
