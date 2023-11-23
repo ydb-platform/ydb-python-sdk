@@ -152,6 +152,7 @@ def execute_request_factory(
 
     if keep_in_cache:
         request.query_cache_policy.keep_in_cache = True
+
     request.query.MergeFrom(query_pb)
     tx_control = _apis.ydb_table.TransactionControl()
     tx_control.commit_tx = commit_tx
