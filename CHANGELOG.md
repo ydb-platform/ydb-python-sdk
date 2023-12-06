@@ -1,3 +1,4 @@
+## 3.6.0 ##
 * Added with_use_type_v3 to ExportToS3Settings
 
 ## 3.5.2 ##
