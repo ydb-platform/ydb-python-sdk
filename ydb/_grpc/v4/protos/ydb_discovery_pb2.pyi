@@ -52,6 +52,28 @@ class ListEndpointsResult(_message.Message):
     self_location: str
     def __init__(self, endpoints: _Optional[_Iterable[_Union[EndpointInfo, _Mapping]]] = ..., self_location: _Optional[str] = ...) -> None: ...
 
+class NodeLocation(_message.Message):
+    __slots__ = ["body", "body_num", "data_center", "data_center_num", "module", "rack", "rack_num", "room_num", "unit"]
+    BODY_FIELD_NUMBER: _ClassVar[int]
+    BODY_NUM_FIELD_NUMBER: _ClassVar[int]
+    DATA_CENTER_FIELD_NUMBER: _ClassVar[int]
+    DATA_CENTER_NUM_FIELD_NUMBER: _ClassVar[int]
+    MODULE_FIELD_NUMBER: _ClassVar[int]
+    RACK_FIELD_NUMBER: _ClassVar[int]
+    RACK_NUM_FIELD_NUMBER: _ClassVar[int]
+    ROOM_NUM_FIELD_NUMBER: _ClassVar[int]
+    UNIT_FIELD_NUMBER: _ClassVar[int]
+    body: int
+    body_num: int
+    data_center: str
+    data_center_num: int
+    module: str
+    rack: str
+    rack_num: int
+    room_num: int
+    unit: str
+    def __init__(self, data_center_num: _Optional[int] = ..., room_num: _Optional[int] = ..., rack_num: _Optional[int] = ..., body_num: _Optional[int] = ..., body: _Optional[int] = ..., data_center: _Optional[str] = ..., module: _Optional[str] = ..., rack: _Optional[str] = ..., unit: _Optional[str] = ...) -> None: ...
+
 class WhoAmIRequest(_message.Message):
     __slots__ = ["include_groups"]
     INCLUDE_GROUPS_FIELD_NUMBER: _ClassVar[int]

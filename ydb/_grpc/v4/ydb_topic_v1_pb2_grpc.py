@@ -24,6 +24,11 @@ class TopicServiceStub(object):
                 request_serializer=protos_dot_ydb__topic__pb2.StreamReadMessage.FromClient.SerializeToString,
                 response_deserializer=protos_dot_ydb__topic__pb2.StreamReadMessage.FromServer.FromString,
                 )
+        self.CommitOffset = channel.unary_unary(
+                '/Ydb.Topic.V1.TopicService/CommitOffset',
+                request_serializer=protos_dot_ydb__topic__pb2.CommitOffsetRequest.SerializeToString,
+                response_deserializer=protos_dot_ydb__topic__pb2.CommitOffsetResponse.FromString,
+                )
         self.CreateTopic = channel.unary_unary(
                 '/Ydb.Topic.V1.TopicService/CreateTopic',
                 request_serializer=protos_dot_ydb__topic__pb2.CreateTopicRequest.SerializeToString,
@@ -118,6 +123,13 @@ class TopicServiceServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def CommitOffset(self, request, context):
+        """Single commit offset request.
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
     def CreateTopic(self, request, context):
         """Create topic command.
         """
@@ -165,6 +177,11 @@ def add_TopicServiceServicer_to_server(servicer, server):
                     servicer.StreamRead,
                     request_deserializer=protos_dot_ydb__topic__pb2.StreamReadMessage.FromClient.FromString,
                     response_serializer=protos_dot_ydb__topic__pb2.StreamReadMessage.FromServer.SerializeToString,
+            ),
+            'CommitOffset': grpc.unary_unary_rpc_method_handler(
+                    servicer.CommitOffset,
+                    request_deserializer=protos_dot_ydb__topic__pb2.CommitOffsetRequest.FromString,
+                    response_serializer=protos_dot_ydb__topic__pb2.CommitOffsetResponse.SerializeToString,
             ),
             'CreateTopic': grpc.unary_unary_rpc_method_handler(
                     servicer.CreateTopic,
@@ -232,6 +249,23 @@ class TopicService(object):
         return grpc.experimental.stream_stream(request_iterator, target, '/Ydb.Topic.V1.TopicService/StreamRead',
             protos_dot_ydb__topic__pb2.StreamReadMessage.FromClient.SerializeToString,
             protos_dot_ydb__topic__pb2.StreamReadMessage.FromServer.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def CommitOffset(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/Ydb.Topic.V1.TopicService/CommitOffset',
+            protos_dot_ydb__topic__pb2.CommitOffsetRequest.SerializeToString,
+            protos_dot_ydb__topic__pb2.CommitOffsetResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 

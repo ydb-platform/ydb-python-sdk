@@ -15,14 +15,14 @@ _sym_db = _symbol_database.Default()
 from ydb._grpc.v4.protos import ydb_cms_pb2 as protos_dot_ydb__cms__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x10ydb_cms_v1.proto\x12\nYdb.Cms.V1\x1a\x14protos/ydb_cms.proto2\x9c\x04\n\nCmsService\x12Q\n\x0e\x43reateDatabase\x12\x1e.Ydb.Cms.CreateDatabaseRequest\x1a\x1f.Ydb.Cms.CreateDatabaseResponse\x12Z\n\x11GetDatabaseStatus\x12!.Ydb.Cms.GetDatabaseStatusRequest\x1a\".Ydb.Cms.GetDatabaseStatusResponse\x12N\n\rAlterDatabase\x12\x1d.Ydb.Cms.AlterDatabaseRequest\x1a\x1e.Ydb.Cms.AlterDatabaseResponse\x12N\n\rListDatabases\x12\x1d.Ydb.Cms.ListDatabasesRequest\x1a\x1e.Ydb.Cms.ListDatabasesResponse\x12Q\n\x0eRemoveDatabase\x12\x1e.Ydb.Cms.RemoveDatabaseRequest\x1a\x1f.Ydb.Cms.RemoveDatabaseResponse\x12l\n\x17\x44\x65scribeDatabaseOptions\x12\'.Ydb.Cms.DescribeDatabaseOptionsRequest\x1a(.Ydb.Cms.DescribeDatabaseOptionsResponseBE\n\x0ftech.ydb.cms.v1Z2github.com/ydb-platform/ydb-go-genproto/Ydb_Cms_V1b\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x10ydb_cms_v1.proto\x12\nYdb.Cms.V1\x1a\x14protos/ydb_cms.proto2\x9c\x04\n\nCmsService\x12Q\n\x0e\x43reateDatabase\x12\x1e.Ydb.Cms.CreateDatabaseRequest\x1a\x1f.Ydb.Cms.CreateDatabaseResponse\x12Z\n\x11GetDatabaseStatus\x12!.Ydb.Cms.GetDatabaseStatusRequest\x1a\".Ydb.Cms.GetDatabaseStatusResponse\x12N\n\rAlterDatabase\x12\x1d.Ydb.Cms.AlterDatabaseRequest\x1a\x1e.Ydb.Cms.AlterDatabaseResponse\x12N\n\rListDatabases\x12\x1d.Ydb.Cms.ListDatabasesRequest\x1a\x1e.Ydb.Cms.ListDatabasesResponse\x12Q\n\x0eRemoveDatabase\x12\x1e.Ydb.Cms.RemoveDatabaseRequest\x1a\x1f.Ydb.Cms.RemoveDatabaseResponse\x12l\n\x17\x44\x65scribeDatabaseOptions\x12\'.Ydb.Cms.DescribeDatabaseOptionsRequest\x1a(.Ydb.Cms.DescribeDatabaseOptionsResponseBK\n\x15tech.ydb.proto.cms.v1Z2github.com/ydb-platform/ydb-go-genproto/Ydb_Cms_V1b\x06proto3')
 
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, globals())
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'ydb_cms_v1_pb2', globals())
 if _descriptor._USE_C_DESCRIPTORS == False:
 
   DESCRIPTOR._options = None
-  DESCRIPTOR._serialized_options = b'\n\017tech.ydb.cms.v1Z2github.com/ydb-platform/ydb-go-genproto/Ydb_Cms_V1'
+  DESCRIPTOR._serialized_options = b'\n\025tech.ydb.proto.cms.v1Z2github.com/ydb-platform/ydb-go-genproto/Ydb_Cms_V1'
   _CMSSERVICE._serialized_start=55
   _CMSSERVICE._serialized_end=595
 # @@protoc_insertion_point(module_scope)

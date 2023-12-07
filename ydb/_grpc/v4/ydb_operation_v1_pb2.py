@@ -15,14 +15,14 @@ _sym_db = _symbol_database.Default()
 from ydb._grpc.v4.protos import ydb_operation_pb2 as protos_dot_ydb__operation__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x16ydb_operation_v1.proto\x12\x10Ydb.Operation.V1\x1a\x1aprotos/ydb_operation.proto2\x96\x03\n\x10OperationService\x12Y\n\x0cGetOperation\x12#.Ydb.Operations.GetOperationRequest\x1a$.Ydb.Operations.GetOperationResponse\x12\x62\n\x0f\x43\x61ncelOperation\x12&.Ydb.Operations.CancelOperationRequest\x1a\'.Ydb.Operations.CancelOperationResponse\x12\x62\n\x0f\x46orgetOperation\x12&.Ydb.Operations.ForgetOperationRequest\x1a\'.Ydb.Operations.ForgetOperationResponse\x12_\n\x0eListOperations\x12%.Ydb.Operations.ListOperationsRequest\x1a&.Ydb.Operations.ListOperationsResponseBQ\n\x15tech.ydb.operation.v1Z8github.com/ydb-platform/ydb-go-genproto/Ydb_Operation_V1b\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x16ydb_operation_v1.proto\x12\x10Ydb.Operation.V1\x1a\x1aprotos/ydb_operation.proto2\x96\x03\n\x10OperationService\x12Y\n\x0cGetOperation\x12#.Ydb.Operations.GetOperationRequest\x1a$.Ydb.Operations.GetOperationResponse\x12\x62\n\x0f\x43\x61ncelOperation\x12&.Ydb.Operations.CancelOperationRequest\x1a\'.Ydb.Operations.CancelOperationResponse\x12\x62\n\x0f\x46orgetOperation\x12&.Ydb.Operations.ForgetOperationRequest\x1a\'.Ydb.Operations.ForgetOperationResponse\x12_\n\x0eListOperations\x12%.Ydb.Operations.ListOperationsRequest\x1a&.Ydb.Operations.ListOperationsResponseBW\n\x1btech.ydb.proto.operation.v1Z8github.com/ydb-platform/ydb-go-genproto/Ydb_Operation_V1b\x06proto3')
 
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, globals())
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'ydb_operation_v1_pb2', globals())
 if _descriptor._USE_C_DESCRIPTORS == False:
 
   DESCRIPTOR._options = None
-  DESCRIPTOR._serialized_options = b'\n\025tech.ydb.operation.v1Z8github.com/ydb-platform/ydb-go-genproto/Ydb_Operation_V1'
+  DESCRIPTOR._serialized_options = b'\n\033tech.ydb.proto.operation.v1Z8github.com/ydb-platform/ydb-go-genproto/Ydb_Operation_V1'
   _OPERATIONSERVICE._serialized_start=73
   _OPERATIONSERVICE._serialized_end=479
 # @@protoc_insertion_point(module_scope)

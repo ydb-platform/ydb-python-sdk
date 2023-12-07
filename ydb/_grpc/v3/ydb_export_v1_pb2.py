@@ -19,9 +19,9 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='ydb_export_v1.proto',
   package='Ydb.Export.V1',
   syntax='proto3',
-  serialized_options=b'\n\022tech.ydb.export.v1Z5github.com/ydb-platform/ydb-go-genproto/Ydb_Export_V1',
+  serialized_options=b'\n\030tech.ydb.proto.export.v1Z5github.com/ydb-platform/ydb-go-genproto/Ydb_Export_V1',
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n\x13ydb_export_v1.proto\x12\rYdb.Export.V1\x1a\x17protos/ydb_export.proto2\xa9\x01\n\rExportService\x12K\n\nExportToYt\x12\x1d.Ydb.Export.ExportToYtRequest\x1a\x1e.Ydb.Export.ExportToYtResponse\x12K\n\nExportToS3\x12\x1d.Ydb.Export.ExportToS3Request\x1a\x1e.Ydb.Export.ExportToS3ResponseBK\n\x12tech.ydb.export.v1Z5github.com/ydb-platform/ydb-go-genproto/Ydb_Export_V1b\x06proto3'
+  serialized_pb=b'\n\x13ydb_export_v1.proto\x12\rYdb.Export.V1\x1a\x17protos/ydb_export.proto2\xa9\x01\n\rExportService\x12K\n\nExportToYt\x12\x1d.Ydb.Export.ExportToYtRequest\x1a\x1e.Ydb.Export.ExportToYtResponse\x12K\n\nExportToS3\x12\x1d.Ydb.Export.ExportToS3Request\x1a\x1e.Ydb.Export.ExportToS3ResponseBQ\n\x18tech.ydb.proto.export.v1Z5github.com/ydb-platform/ydb-go-genproto/Ydb_Export_V1b\x06proto3'
   ,
   dependencies=[protos_dot_ydb__export__pb2.DESCRIPTOR,])
 

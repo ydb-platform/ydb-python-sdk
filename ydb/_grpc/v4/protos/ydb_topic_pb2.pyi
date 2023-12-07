@@ -137,6 +137,30 @@ class AlterTopicResult(_message.Message):
     __slots__ = []
     def __init__(self) -> None: ...
 
+class CommitOffsetRequest(_message.Message):
+    __slots__ = ["consumer", "offset", "operation_params", "partition_id", "path"]
+    CONSUMER_FIELD_NUMBER: _ClassVar[int]
+    OFFSET_FIELD_NUMBER: _ClassVar[int]
+    OPERATION_PARAMS_FIELD_NUMBER: _ClassVar[int]
+    PARTITION_ID_FIELD_NUMBER: _ClassVar[int]
+    PATH_FIELD_NUMBER: _ClassVar[int]
+    consumer: str
+    offset: int
+    operation_params: _ydb_operation_pb2.OperationParams
+    partition_id: int
+    path: str
+    def __init__(self, operation_params: _Optional[_Union[_ydb_operation_pb2.OperationParams, _Mapping]] = ..., path: _Optional[str] = ..., partition_id: _Optional[int] = ..., consumer: _Optional[str] = ..., offset: _Optional[int] = ...) -> None: ...
+
+class CommitOffsetResponse(_message.Message):
+    __slots__ = ["operation"]
+    OPERATION_FIELD_NUMBER: _ClassVar[int]
+    operation: _ydb_operation_pb2.Operation
+    def __init__(self, operation: _Optional[_Union[_ydb_operation_pb2.Operation, _Mapping]] = ...) -> None: ...
+
+class CommitOffsetResult(_message.Message):
+    __slots__ = []
+    def __init__(self) -> None: ...
+
 class Consumer(_message.Message):
     __slots__ = ["attributes", "consumer_stats", "important", "name", "read_from", "supported_codecs"]
     class AttributesEntry(_message.Message):

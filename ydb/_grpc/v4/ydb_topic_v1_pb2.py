@@ -15,14 +15,14 @@ _sym_db = _symbol_database.Default()
 from ydb._grpc.v4.protos import ydb_topic_pb2 as protos_dot_ydb__topic__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x12ydb_topic_v1.proto\x12\x0cYdb.Topic.V1\x1a\x16protos/ydb_topic.proto2\xeb\x04\n\x0cTopicService\x12\x65\n\x0bStreamWrite\x12(.Ydb.Topic.StreamWriteMessage.FromClient\x1a(.Ydb.Topic.StreamWriteMessage.FromServer(\x01\x30\x01\x12\x62\n\nStreamRead\x12\'.Ydb.Topic.StreamReadMessage.FromClient\x1a\'.Ydb.Topic.StreamReadMessage.FromServer(\x01\x30\x01\x12L\n\x0b\x43reateTopic\x12\x1d.Ydb.Topic.CreateTopicRequest\x1a\x1e.Ydb.Topic.CreateTopicResponse\x12R\n\rDescribeTopic\x12\x1f.Ydb.Topic.DescribeTopicRequest\x1a .Ydb.Topic.DescribeTopicResponse\x12[\n\x10\x44\x65scribeConsumer\x12\".Ydb.Topic.DescribeConsumerRequest\x1a#.Ydb.Topic.DescribeConsumerResponse\x12I\n\nAlterTopic\x12\x1c.Ydb.Topic.AlterTopicRequest\x1a\x1d.Ydb.Topic.AlterTopicResponse\x12\x46\n\tDropTopic\x12\x1b.Ydb.Topic.DropTopicRequest\x1a\x1c.Ydb.Topic.DropTopicResponseBL\n\x11tech.ydb.topic.v1Z4github.com/ydb-platform/ydb-go-genproto/Ydb_Topic_V1\xf8\x01\x01\x62\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x12ydb_topic_v1.proto\x12\x0cYdb.Topic.V1\x1a\x16protos/ydb_topic.proto2\xbc\x05\n\x0cTopicService\x12\x65\n\x0bStreamWrite\x12(.Ydb.Topic.StreamWriteMessage.FromClient\x1a(.Ydb.Topic.StreamWriteMessage.FromServer(\x01\x30\x01\x12\x62\n\nStreamRead\x12\'.Ydb.Topic.StreamReadMessage.FromClient\x1a\'.Ydb.Topic.StreamReadMessage.FromServer(\x01\x30\x01\x12O\n\x0c\x43ommitOffset\x12\x1e.Ydb.Topic.CommitOffsetRequest\x1a\x1f.Ydb.Topic.CommitOffsetResponse\x12L\n\x0b\x43reateTopic\x12\x1d.Ydb.Topic.CreateTopicRequest\x1a\x1e.Ydb.Topic.CreateTopicResponse\x12R\n\rDescribeTopic\x12\x1f.Ydb.Topic.DescribeTopicRequest\x1a .Ydb.Topic.DescribeTopicResponse\x12[\n\x10\x44\x65scribeConsumer\x12\".Ydb.Topic.DescribeConsumerRequest\x1a#.Ydb.Topic.DescribeConsumerResponse\x12I\n\nAlterTopic\x12\x1c.Ydb.Topic.AlterTopicRequest\x1a\x1d.Ydb.Topic.AlterTopicResponse\x12\x46\n\tDropTopic\x12\x1b.Ydb.Topic.DropTopicRequest\x1a\x1c.Ydb.Topic.DropTopicResponseBR\n\x17tech.ydb.proto.topic.v1Z4github.com/ydb-platform/ydb-go-genproto/Ydb_Topic_V1\xf8\x01\x01\x62\x06proto3')
 
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, globals())
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'ydb_topic_v1_pb2', globals())
 if _descriptor._USE_C_DESCRIPTORS == False:
 
   DESCRIPTOR._options = None
-  DESCRIPTOR._serialized_options = b'\n\021tech.ydb.topic.v1Z4github.com/ydb-platform/ydb-go-genproto/Ydb_Topic_V1\370\001\001'
+  DESCRIPTOR._serialized_options = b'\n\027tech.ydb.proto.topic.v1Z4github.com/ydb-platform/ydb-go-genproto/Ydb_Topic_V1\370\001\001'
   _TOPICSERVICE._serialized_start=61
-  _TOPICSERVICE._serialized_end=680
+  _TOPICSERVICE._serialized_end=761
 # @@protoc_insertion_point(module_scope)

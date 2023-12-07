@@ -15,14 +15,14 @@ _sym_db = _symbol_database.Default()
 from ydb._grpc.v4.protos import ydb_auth_pb2 as protos_dot_ydb__auth__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x11ydb_auth_v1.proto\x12\x0bYdb.Auth.V1\x1a\x15protos/ydb_auth.proto2G\n\x0b\x41uthService\x12\x38\n\x05Login\x12\x16.Ydb.Auth.LoginRequest\x1a\x17.Ydb.Auth.LoginResponseBG\n\x10tech.ydb.auth.v1Z3github.com/ydb-platform/ydb-go-genproto/Ydb_Auth_V1b\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x11ydb_auth_v1.proto\x12\x0bYdb.Auth.V1\x1a\x15protos/ydb_auth.proto2G\n\x0b\x41uthService\x12\x38\n\x05Login\x12\x16.Ydb.Auth.LoginRequest\x1a\x17.Ydb.Auth.LoginResponseBM\n\x16tech.ydb.proto.auth.v1Z3github.com/ydb-platform/ydb-go-genproto/Ydb_Auth_V1b\x06proto3')
 
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, globals())
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'ydb_auth_v1_pb2', globals())
 if _descriptor._USE_C_DESCRIPTORS == False:
 
   DESCRIPTOR._options = None
-  DESCRIPTOR._serialized_options = b'\n\020tech.ydb.auth.v1Z3github.com/ydb-platform/ydb-go-genproto/Ydb_Auth_V1'
+  DESCRIPTOR._serialized_options = b'\n\026tech.ydb.proto.auth.v1Z3github.com/ydb-platform/ydb-go-genproto/Ydb_Auth_V1'
   _AUTHSERVICE._serialized_start=57
   _AUTHSERVICE._serialized_end=128
 # @@protoc_insertion_point(module_scope)
