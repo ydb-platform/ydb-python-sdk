@@ -1,3 +1,4 @@
+## 3.7.0 ##
 * Added ExternalError issue
 
 ## 3.6.0 ##
