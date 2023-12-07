@@ -19,9 +19,9 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='ydb_scripting_v1.proto',
   package='Ydb.Scripting.V1',
   syntax='proto3',
-  serialized_options=b'\n\025tech.ydb.scripting.v1Z8github.com/ydb-platform/ydb-go-genproto/Ydb_Scripting_V1',
+  serialized_options=b'\n\033tech.ydb.proto.scripting.v1Z8github.com/ydb-platform/ydb-go-genproto/Ydb_Scripting_V1',
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n\x16ydb_scripting_v1.proto\x12\x10Ydb.Scripting.V1\x1a\x1aprotos/ydb_scripting.proto2\x9a\x02\n\x10ScriptingService\x12Q\n\nExecuteYql\x12 .Ydb.Scripting.ExecuteYqlRequest\x1a!.Ydb.Scripting.ExecuteYqlResponse\x12`\n\x10StreamExecuteYql\x12 .Ydb.Scripting.ExecuteYqlRequest\x1a(.Ydb.Scripting.ExecuteYqlPartialResponse0\x01\x12Q\n\nExplainYql\x12 .Ydb.Scripting.ExplainYqlRequest\x1a!.Ydb.Scripting.ExplainYqlResponseBQ\n\x15tech.ydb.scripting.v1Z8github.com/ydb-platform/ydb-go-genproto/Ydb_Scripting_V1b\x06proto3'
+  serialized_pb=b'\n\x16ydb_scripting_v1.proto\x12\x10Ydb.Scripting.V1\x1a\x1aprotos/ydb_scripting.proto2\x9a\x02\n\x10ScriptingService\x12Q\n\nExecuteYql\x12 .Ydb.Scripting.ExecuteYqlRequest\x1a!.Ydb.Scripting.ExecuteYqlResponse\x12`\n\x10StreamExecuteYql\x12 .Ydb.Scripting.ExecuteYqlRequest\x1a(.Ydb.Scripting.ExecuteYqlPartialResponse0\x01\x12Q\n\nExplainYql\x12 .Ydb.Scripting.ExplainYqlRequest\x1a!.Ydb.Scripting.ExplainYqlResponseBW\n\x1btech.ydb.proto.scripting.v1Z8github.com/ydb-platform/ydb-go-genproto/Ydb_Scripting_V1b\x06proto3'
   ,
   dependencies=[protos_dot_ydb__scripting__pb2.DESCRIPTOR,])
 

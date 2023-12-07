@@ -19,9 +19,9 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='ydb_scheme_v1.proto',
   package='Ydb.Scheme.V1',
   syntax='proto3',
-  serialized_options=b'\n\022tech.ydb.scheme.v1Z5github.com/ydb-platform/ydb-go-genproto/Ydb_Scheme_V1',
+  serialized_options=b'\n\030tech.ydb.proto.scheme.v1Z5github.com/ydb-platform/ydb-go-genproto/Ydb_Scheme_V1',
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n\x13ydb_scheme_v1.proto\x12\rYdb.Scheme.V1\x1a\x17protos/ydb_scheme.proto2\xcc\x03\n\rSchemeService\x12T\n\rMakeDirectory\x12 .Ydb.Scheme.MakeDirectoryRequest\x1a!.Ydb.Scheme.MakeDirectoryResponse\x12Z\n\x0fRemoveDirectory\x12\".Ydb.Scheme.RemoveDirectoryRequest\x1a#.Ydb.Scheme.RemoveDirectoryResponse\x12T\n\rListDirectory\x12 .Ydb.Scheme.ListDirectoryRequest\x1a!.Ydb.Scheme.ListDirectoryResponse\x12Q\n\x0c\x44\x65scribePath\x12\x1f.Ydb.Scheme.DescribePathRequest\x1a .Ydb.Scheme.DescribePathResponse\x12`\n\x11ModifyPermissions\x12$.Ydb.Scheme.ModifyPermissionsRequest\x1a%.Ydb.Scheme.ModifyPermissionsResponseBK\n\x12tech.ydb.scheme.v1Z5github.com/ydb-platform/ydb-go-genproto/Ydb_Scheme_V1b\x06proto3'
+  serialized_pb=b'\n\x13ydb_scheme_v1.proto\x12\rYdb.Scheme.V1\x1a\x17protos/ydb_scheme.proto2\xcc\x03\n\rSchemeService\x12T\n\rMakeDirectory\x12 .Ydb.Scheme.MakeDirectoryRequest\x1a!.Ydb.Scheme.MakeDirectoryResponse\x12Z\n\x0fRemoveDirectory\x12\".Ydb.Scheme.RemoveDirectoryRequest\x1a#.Ydb.Scheme.RemoveDirectoryResponse\x12T\n\rListDirectory\x12 .Ydb.Scheme.ListDirectoryRequest\x1a!.Ydb.Scheme.ListDirectoryResponse\x12Q\n\x0c\x44\x65scribePath\x12\x1f.Ydb.Scheme.DescribePathRequest\x1a .Ydb.Scheme.DescribePathResponse\x12`\n\x11ModifyPermissions\x12$.Ydb.Scheme.ModifyPermissionsRequest\x1a%.Ydb.Scheme.ModifyPermissionsResponseBQ\n\x18tech.ydb.proto.scheme.v1Z5github.com/ydb-platform/ydb-go-genproto/Ydb_Scheme_V1b\x06proto3'
   ,
   dependencies=[protos_dot_ydb__scheme__pb2.DESCRIPTOR,])
 

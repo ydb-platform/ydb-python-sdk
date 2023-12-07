@@ -18,9 +18,9 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='protos/ydb_status_codes.proto',
   package='Ydb',
   syntax='proto3',
-  serialized_options=b'\n\010tech.ydbB\021StatusCodesProtosZ2github.com/ydb-platform/ydb-go-genproto/protos/Ydb',
+  serialized_options=b'\n\016tech.ydb.protoB\021StatusCodesProtosZ2github.com/ydb-platform/ydb-go-genproto/protos/Ydb',
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n\x1dprotos/ydb_status_codes.proto\x12\x03Ydb\"\xa7\x03\n\tStatusIds\"\x99\x03\n\nStatusCode\x12\x1b\n\x17STATUS_CODE_UNSPECIFIED\x10\x00\x12\r\n\x07SUCCESS\x10\x80\xb5\x18\x12\x11\n\x0b\x42\x41\x44_REQUEST\x10\x8a\xb5\x18\x12\x12\n\x0cUNAUTHORIZED\x10\x94\xb5\x18\x12\x14\n\x0eINTERNAL_ERROR\x10\x9e\xb5\x18\x12\r\n\x07\x41\x42ORTED\x10\xa8\xb5\x18\x12\x11\n\x0bUNAVAILABLE\x10\xb2\xb5\x18\x12\x10\n\nOVERLOADED\x10\xbc\xb5\x18\x12\x12\n\x0cSCHEME_ERROR\x10\xc6\xb5\x18\x12\x13\n\rGENERIC_ERROR\x10\xd0\xb5\x18\x12\r\n\x07TIMEOUT\x10\xda\xb5\x18\x12\x11\n\x0b\x42\x41\x44_SESSION\x10\xe4\xb5\x18\x12\x19\n\x13PRECONDITION_FAILED\x10\xf8\xb5\x18\x12\x14\n\x0e\x41LREADY_EXISTS\x10\x82\xb6\x18\x12\x0f\n\tNOT_FOUND\x10\x8c\xb6\x18\x12\x15\n\x0fSESSION_EXPIRED\x10\x96\xb6\x18\x12\x0f\n\tCANCELLED\x10\xa0\xb6\x18\x12\x12\n\x0cUNDETERMINED\x10\xaa\xb6\x18\x12\x11\n\x0bUNSUPPORTED\x10\xb4\xb6\x18\x12\x12\n\x0cSESSION_BUSY\x10\xbe\xb6\x18\x42Q\n\x08tech.ydbB\x11StatusCodesProtosZ2github.com/ydb-platform/ydb-go-genproto/protos/Ydbb\x06proto3'
+  serialized_pb=b'\n\x1dprotos/ydb_status_codes.proto\x12\x03Ydb\"\xbd\x03\n\tStatusIds\"\xaf\x03\n\nStatusCode\x12\x1b\n\x17STATUS_CODE_UNSPECIFIED\x10\x00\x12\r\n\x07SUCCESS\x10\x80\xb5\x18\x12\x11\n\x0b\x42\x41\x44_REQUEST\x10\x8a\xb5\x18\x12\x12\n\x0cUNAUTHORIZED\x10\x94\xb5\x18\x12\x14\n\x0eINTERNAL_ERROR\x10\x9e\xb5\x18\x12\r\n\x07\x41\x42ORTED\x10\xa8\xb5\x18\x12\x11\n\x0bUNAVAILABLE\x10\xb2\xb5\x18\x12\x10\n\nOVERLOADED\x10\xbc\xb5\x18\x12\x12\n\x0cSCHEME_ERROR\x10\xc6\xb5\x18\x12\x13\n\rGENERIC_ERROR\x10\xd0\xb5\x18\x12\r\n\x07TIMEOUT\x10\xda\xb5\x18\x12\x11\n\x0b\x42\x41\x44_SESSION\x10\xe4\xb5\x18\x12\x19\n\x13PRECONDITION_FAILED\x10\xf8\xb5\x18\x12\x14\n\x0e\x41LREADY_EXISTS\x10\x82\xb6\x18\x12\x0f\n\tNOT_FOUND\x10\x8c\xb6\x18\x12\x15\n\x0fSESSION_EXPIRED\x10\x96\xb6\x18\x12\x0f\n\tCANCELLED\x10\xa0\xb6\x18\x12\x12\n\x0cUNDETERMINED\x10\xaa\xb6\x18\x12\x11\n\x0bUNSUPPORTED\x10\xb4\xb6\x18\x12\x12\n\x0cSESSION_BUSY\x10\xbe\xb6\x18\x12\x14\n\x0e\x45XTERNAL_ERROR\x10\xc8\xb6\x18\x42W\n\x0etech.ydb.protoB\x11StatusCodesProtosZ2github.com/ydb-platform/ydb-go-genproto/protos/Ydbb\x06proto3'
 )
 
 
@@ -132,11 +132,16 @@ _STATUSIDS_STATUSCODE = _descriptor.EnumDescriptor(
       serialized_options=None,
       type=None,
       create_key=_descriptor._internal_create_key),
+    _descriptor.EnumValueDescriptor(
+      name='EXTERNAL_ERROR', index=20, number=400200,
+      serialized_options=None,
+      type=None,
+      create_key=_descriptor._internal_create_key),
   ],
   containing_type=None,
   serialized_options=None,
   serialized_start=53,
-  serialized_end=462,
+  serialized_end=484,
 )
 _sym_db.RegisterEnumDescriptor(_STATUSIDS_STATUSCODE)
 
@@ -163,7 +168,7 @@ _STATUSIDS = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=39,
-  serialized_end=462,
+  serialized_end=484,
 )
 
 _STATUSIDS_STATUSCODE.containing_type = _STATUSIDS

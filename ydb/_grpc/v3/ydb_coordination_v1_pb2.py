@@ -19,9 +19,9 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='ydb_coordination_v1.proto',
   package='Ydb.Coordination.V1',
   syntax='proto3',
-  serialized_options=b'\n\030tech.ydb.coordination.v1B\020CoordinationGrpcP\001Z;github.com/ydb-platform/ydb-go-genproto/Ydb_Coordination_V1',
+  serialized_options=b'\n\036tech.ydb.proto.coordination.v1B\020CoordinationGrpcP\001Z;github.com/ydb-platform/ydb-go-genproto/Ydb_Coordination_V1',
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n\x19ydb_coordination_v1.proto\x12\x13Ydb.Coordination.V1\x1a\x1dprotos/ydb_coordination.proto2\xca\x03\n\x13\x43oordinationService\x12R\n\x07Session\x12 .Ydb.Coordination.SessionRequest\x1a!.Ydb.Coordination.SessionResponse(\x01\x30\x01\x12W\n\nCreateNode\x12#.Ydb.Coordination.CreateNodeRequest\x1a$.Ydb.Coordination.CreateNodeResponse\x12T\n\tAlterNode\x12\".Ydb.Coordination.AlterNodeRequest\x1a#.Ydb.Coordination.AlterNodeResponse\x12Q\n\x08\x44ropNode\x12!.Ydb.Coordination.DropNodeRequest\x1a\".Ydb.Coordination.DropNodeResponse\x12]\n\x0c\x44\x65scribeNode\x12%.Ydb.Coordination.DescribeNodeRequest\x1a&.Ydb.Coordination.DescribeNodeResponseBk\n\x18tech.ydb.coordination.v1B\x10\x43oordinationGrpcP\x01Z;github.com/ydb-platform/ydb-go-genproto/Ydb_Coordination_V1b\x06proto3'
+  serialized_pb=b'\n\x19ydb_coordination_v1.proto\x12\x13Ydb.Coordination.V1\x1a\x1dprotos/ydb_coordination.proto2\xca\x03\n\x13\x43oordinationService\x12R\n\x07Session\x12 .Ydb.Coordination.SessionRequest\x1a!.Ydb.Coordination.SessionResponse(\x01\x30\x01\x12W\n\nCreateNode\x12#.Ydb.Coordination.CreateNodeRequest\x1a$.Ydb.Coordination.CreateNodeResponse\x12T\n\tAlterNode\x12\".Ydb.Coordination.AlterNodeRequest\x1a#.Ydb.Coordination.AlterNodeResponse\x12Q\n\x08\x44ropNode\x12!.Ydb.Coordination.DropNodeRequest\x1a\".Ydb.Coordination.DropNodeResponse\x12]\n\x0c\x44\x65scribeNode\x12%.Ydb.Coordination.DescribeNodeRequest\x1a&.Ydb.Coordination.DescribeNodeResponseBq\n\x1etech.ydb.proto.coordination.v1B\x10\x43oordinationGrpcP\x01Z;github.com/ydb-platform/ydb-go-genproto/Ydb_Coordination_V1b\x06proto3'
   ,
   dependencies=[protos_dot_ydb__coordination__pb2.DESCRIPTOR,])
 
