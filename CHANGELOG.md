@@ -1,3 +1,5 @@
+* Added ExternalError issue
+
 ## 3.6.0 ##
 * Added with_use_type_v3 to ExportToS3Settings
 
