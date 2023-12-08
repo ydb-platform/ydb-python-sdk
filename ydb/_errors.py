@@ -1,5 +1,3 @@
-from dataclasses import dataclass
-
 from . import issues
 
 _errors_retriable_fast_backoff_types = [
@@ -56,7 +54,6 @@ def check_retriable_error(err, retry_settings, attempt):
     return ErrorRetryInfo(False, None)
 
 
-@dataclass
 class ErrorRetryInfo:
     def __init__(self, is_retriable, sleep_timeout_seconds=None):
         self.is_retriable = is_retriable

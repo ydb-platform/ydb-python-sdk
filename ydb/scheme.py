@@ -25,10 +25,6 @@ class SchemeEntryType(enum.IntEnum):
     REPLICATION = 16
     TOPIC = 17
 
-    @classmethod
-    def _missing_(cls, value):
-        return cls.TYPE_UNSPECIFIED
-
     @staticmethod
     def is_table(entry):
         """

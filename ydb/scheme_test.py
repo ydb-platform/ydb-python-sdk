@@ -15,14 +15,6 @@ def test_wrap_scheme_entry():
     assert (
         _wrap_scheme_entry(ydb_scheme.Entry()).type is SchemeEntryType.TYPE_UNSPECIFIED
     )
-    assert (
-        _wrap_scheme_entry(ydb_scheme.Entry(type=10)).type
-        is SchemeEntryType.TYPE_UNSPECIFIED
-    )
-    assert (
-        _wrap_scheme_entry(ydb_scheme.Entry(type=1001)).type
-        is SchemeEntryType.TYPE_UNSPECIFIED
-    )
 
 
 def test_wrap_list_directory_response():
