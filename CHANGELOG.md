@@ -1,3 +1,4 @@
+## 2.15.1 ##
 * Fixed python2 compatibility 
 
 ## 2.15.0 ##
