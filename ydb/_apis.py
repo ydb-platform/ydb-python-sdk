@@ -12,6 +12,10 @@ if typing.TYPE_CHECKING:
         ydb_topic_v1_pb2_grpc,
     )
 
+    from ._grpc.v4.draft import (
+        ydb_dynamic_config_v1_pb2_grpc,
+    )
+
     from ._grpc.v4.protos import (
         ydb_status_codes_pb2,
         ydb_discovery_pb2,
@@ -21,6 +25,10 @@ if typing.TYPE_CHECKING:
         ydb_operation_pb2,
         ydb_common_pb2,
     )
+
+    from ._grpc.v4.draft.protos import (
+        ydb_dynamic_config_pb2,
+    )
 else:
     from ._grpc.common import (
         ydb_cms_v1_pb2_grpc,
@@ -29,6 +37,10 @@ else:
         ydb_table_v1_pb2_grpc,
         ydb_operation_v1_pb2_grpc,
         ydb_topic_v1_pb2_grpc,
+    )
+
+    from ._grpc.common.draft import (
+        ydb_dynamic_config_v1_pb2_grpc,
     )
 
     from ._grpc.common.protos import (
@@ -41,6 +53,10 @@ else:
         ydb_common_pb2,
     )
 
+    from ._grpc.common.draft.protos import (
+        ydb_dynamic_config_pb2,
+    )
+
 
 StatusIds = ydb_status_codes_pb2.StatusIds
 FeatureFlag = ydb_common_pb2.FeatureFlag
@@ -50,6 +66,7 @@ ydb_scheme = ydb_scheme_pb2
 ydb_table = ydb_table_pb2
 ydb_discovery = ydb_discovery_pb2
 ydb_operation = ydb_operation_pb2
+ydb_dynamic_config = ydb_dynamic_config_pb2
 
 
 class CmsService(object):
@@ -109,3 +126,12 @@ class TopicService(object):
     DropTopic = "DropTopic"
     StreamRead = "StreamRead"
     StreamWrite = "StreamWrite"
+
+
+class DynamicConfigService(object):
+    Stub = ydb_dynamic_config_v1_pb2_grpc.DynamicConfigServiceStub
+
+    ReplaceConfig = "ReplaceConfig"
+    SetConfig = "SetConfig"
+    GetConfig = "GetConfig"
+    GetNodeLabels = "GetNodeLabels"
