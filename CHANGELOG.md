@@ -1,3 +1,4 @@
+## 3.7.1 ##
 * Updated protobuf generated code
 
 ## 3.7.0 ##
