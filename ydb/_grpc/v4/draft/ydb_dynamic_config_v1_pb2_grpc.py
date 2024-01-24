@@ -2,7 +2,7 @@
 """Client and server classes corresponding to protobuf-defined services."""
 import grpc
 
-from draft.protos import ydb_dynamic_config_pb2 as draft_dot_protos_dot_ydb__dynamic__config__pb2
+from ydb._grpc.v4.draft.protos import ydb_dynamic_config_pb2 as draft_dot_protos_dot_ydb__dynamic__config__pb2
 
 
 class DynamicConfigServiceStub(object):

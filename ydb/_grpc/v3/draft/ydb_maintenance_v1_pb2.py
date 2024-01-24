@@ -12,7 +12,7 @@ from google.protobuf import symbol_database as _symbol_database
 _sym_db = _symbol_database.Default()
 
 
-from draft.protos import ydb_maintenance_pb2 as draft_dot_protos_dot_ydb__maintenance__pb2
+from ydb._grpc.v3.draft.protos import ydb_maintenance_pb2 as draft_dot_protos_dot_ydb__maintenance__pb2
 
 
 DESCRIPTOR = _descriptor.FileDescriptor(
