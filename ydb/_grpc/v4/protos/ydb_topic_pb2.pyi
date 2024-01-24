@@ -397,6 +397,14 @@ class DropTopicResult(_message.Message):
     __slots__ = []
     def __init__(self) -> None: ...
 
+class MetadataItem(_message.Message):
+    __slots__ = ["key", "value"]
+    KEY_FIELD_NUMBER: _ClassVar[int]
+    VALUE_FIELD_NUMBER: _ClassVar[int]
+    key: str
+    value: bytes
+    def __init__(self, key: _Optional[str] = ..., value: _Optional[bytes] = ...) -> None: ...
+
 class MultipleWindowsStat(_message.Message):
     __slots__ = ["per_day", "per_hour", "per_minute"]
     PER_DAY_FIELD_NUMBER: _ClassVar[int]
@@ -581,20 +589,22 @@ class StreamReadMessage(_message.Message):
             written_at: _timestamp_pb2.Timestamp
             def __init__(self, message_data: _Optional[_Iterable[_Union[StreamReadMessage.ReadResponse.MessageData, _Mapping]]] = ..., producer_id: _Optional[str] = ..., write_session_meta: _Optional[_Mapping[str, str]] = ..., codec: _Optional[int] = ..., written_at: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ...) -> None: ...
         class MessageData(_message.Message):
-            __slots__ = ["created_at", "data", "message_group_id", "offset", "seq_no", "uncompressed_size"]
+            __slots__ = ["created_at", "data", "message_group_id", "metadata_items", "offset", "seq_no", "uncompressed_size"]
             CREATED_AT_FIELD_NUMBER: _ClassVar[int]
             DATA_FIELD_NUMBER: _ClassVar[int]
             MESSAGE_GROUP_ID_FIELD_NUMBER: _ClassVar[int]
+            METADATA_ITEMS_FIELD_NUMBER: _ClassVar[int]
             OFFSET_FIELD_NUMBER: _ClassVar[int]
             SEQ_NO_FIELD_NUMBER: _ClassVar[int]
             UNCOMPRESSED_SIZE_FIELD_NUMBER: _ClassVar[int]
             created_at: _timestamp_pb2.Timestamp
             data: bytes
             message_group_id: str
+            metadata_items: _containers.RepeatedCompositeFieldContainer[MetadataItem]
             offset: int
             seq_no: int
             uncompressed_size: int
-            def __init__(self, offset: _Optional[int] = ..., seq_no: _Optional[int] = ..., created_at: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., data: _Optional[bytes] = ..., uncompressed_size: _Optional[int] = ..., message_group_id: _Optional[str] = ...) -> None: ...
+            def __init__(self, offset: _Optional[int] = ..., seq_no: _Optional[int] = ..., created_at: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., data: _Optional[bytes] = ..., uncompressed_size: _Optional[int] = ..., message_group_id: _Optional[str] = ..., metadata_items: _Optional[_Iterable[_Union[MetadataItem, _Mapping]]] = ...) -> None: ...
         class PartitionData(_message.Message):
             __slots__ = ["batches", "partition_session_id"]
             BATCHES_FIELD_NUMBER: _ClassVar[int]
@@ -701,20 +711,22 @@ class StreamWriteMessage(_message.Message):
     class WriteRequest(_message.Message):
         __slots__ = ["codec", "messages"]
         class MessageData(_message.Message):
-            __slots__ = ["created_at", "data", "message_group_id", "partition_id", "seq_no", "uncompressed_size"]
+            __slots__ = ["created_at", "data", "message_group_id", "metadata_items", "partition_id", "seq_no", "uncompressed_size"]
             CREATED_AT_FIELD_NUMBER: _ClassVar[int]
             DATA_FIELD_NUMBER: _ClassVar[int]
             MESSAGE_GROUP_ID_FIELD_NUMBER: _ClassVar[int]
+            METADATA_ITEMS_FIELD_NUMBER: _ClassVar[int]
             PARTITION_ID_FIELD_NUMBER: _ClassVar[int]
             SEQ_NO_FIELD_NUMBER: _ClassVar[int]
             UNCOMPRESSED_SIZE_FIELD_NUMBER: _ClassVar[int]
             created_at: _timestamp_pb2.Timestamp
             data: bytes
             message_group_id: str
+            metadata_items: _containers.RepeatedCompositeFieldContainer[MetadataItem]
             partition_id: int
             seq_no: int
             uncompressed_size: int
-            def __init__(self, seq_no: _Optional[int] = ..., created_at: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., data: _Optional[bytes] = ..., uncompressed_size: _Optional[int] = ..., message_group_id: _Optional[str] = ..., partition_id: _Optional[int] = ...) -> None: ...
+            def __init__(self, seq_no: _Optional[int] = ..., created_at: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., data: _Optional[bytes] = ..., uncompressed_size: _Optional[int] = ..., message_group_id: _Optional[str] = ..., partition_id: _Optional[int] = ..., metadata_items: _Optional[_Iterable[_Union[MetadataItem, _Mapping]]] = ...) -> None: ...
         CODEC_FIELD_NUMBER: _ClassVar[int]
         MESSAGES_FIELD_NUMBER: _ClassVar[int]
         codec: int

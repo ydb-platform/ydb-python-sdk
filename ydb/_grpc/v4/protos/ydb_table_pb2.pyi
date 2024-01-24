@@ -971,7 +971,9 @@ class ReadRowsResponse(_message.Message):
     def __init__(self, status: _Optional[_Union[_ydb_status_codes_pb2.StatusIds.StatusCode, str]] = ..., issues: _Optional[_Iterable[_Union[_ydb_issue_message_pb2.IssueMessage, _Mapping]]] = ..., result_set: _Optional[_Union[_ydb_value_pb2.ResultSet, _Mapping]] = ...) -> None: ...
 
 class ReadTableRequest(_message.Message):
-    __slots__ = ["columns", "key_range", "ordered", "path", "row_limit", "session_id", "use_snapshot"]
+    __slots__ = ["batch_limit_bytes", "batch_limit_rows", "columns", "key_range", "ordered", "path", "row_limit", "session_id", "use_snapshot"]
+    BATCH_LIMIT_BYTES_FIELD_NUMBER: _ClassVar[int]
+    BATCH_LIMIT_ROWS_FIELD_NUMBER: _ClassVar[int]
     COLUMNS_FIELD_NUMBER: _ClassVar[int]
     KEY_RANGE_FIELD_NUMBER: _ClassVar[int]
     ORDERED_FIELD_NUMBER: _ClassVar[int]
@@ -979,6 +981,8 @@ class ReadTableRequest(_message.Message):
     ROW_LIMIT_FIELD_NUMBER: _ClassVar[int]
     SESSION_ID_FIELD_NUMBER: _ClassVar[int]
     USE_SNAPSHOT_FIELD_NUMBER: _ClassVar[int]
+    batch_limit_bytes: int
+    batch_limit_rows: int
     columns: _containers.RepeatedScalarFieldContainer[str]
     key_range: KeyRange
     ordered: bool
@@ -986,7 +990,7 @@ class ReadTableRequest(_message.Message):
     row_limit: int
     session_id: str
     use_snapshot: _ydb_common_pb2.FeatureFlag.Status
-    def __init__(self, session_id: _Optional[str] = ..., path: _Optional[str] = ..., key_range: _Optional[_Union[KeyRange, _Mapping]] = ..., columns: _Optional[_Iterable[str]] = ..., ordered: bool = ..., row_limit: _Optional[int] = ..., use_snapshot: _Optional[_Union[_ydb_common_pb2.FeatureFlag.Status, str]] = ...) -> None: ...
+    def __init__(self, session_id: _Optional[str] = ..., path: _Optional[str] = ..., key_range: _Optional[_Union[KeyRange, _Mapping]] = ..., columns: _Optional[_Iterable[str]] = ..., ordered: bool = ..., row_limit: _Optional[int] = ..., use_snapshot: _Optional[_Union[_ydb_common_pb2.FeatureFlag.Status, str]] = ..., batch_limit_bytes: _Optional[int] = ..., batch_limit_rows: _Optional[int] = ...) -> None: ...
 
 class ReadTableResponse(_message.Message):
     __slots__ = ["issues", "result", "snapshot", "status"]
