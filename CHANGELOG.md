@@ -1,3 +1,5 @@
+* Updated protobuf generated code
+
 ## 3.7.0 ##
 * Added ExternalError issue
 
