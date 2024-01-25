@@ -18,7 +18,7 @@ from .scripting import *  # noqa
 from .import_client import *  # noqa
 from .tracing import *  # noqa
 from .topic import *  # noqa
-import ydb.draft  # noqa
+from .draft import *  # noqa
 
 try:
     import ydb.aio as aio  # noqa
