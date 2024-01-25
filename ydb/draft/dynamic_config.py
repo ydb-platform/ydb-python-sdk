@@ -36,7 +36,7 @@ class DynamicConfig(object):
 
 
 class NodeLabels(object):
-    __slots__ = ("labels")
+    __slots__ = "labels"
 
     def __init__(self, labels, *args, **kwargs):
         self.labels = labels
@@ -71,13 +71,7 @@ def _get_node_labels_request_factory(node_id):
 
 def _wrap_dynamic_config(config_pb, dynamic_config_cls=None, *args, **kwargs):
     dynamic_config_cls = DynamicConfig if dynamic_config_cls is None else dynamic_config_cls
-    return dynamic_config_cls(
-        config_pb.identity.version,
-        config_pb.identity.cluster,
-        config_pb.config,
-        *args,
-        **kwargs
-    )
+    return dynamic_config_cls(config_pb.identity.version, config_pb.identity.cluster, config_pb.config, *args, **kwargs)
 
 
 def _wrap_get_config_response(rpc_state, response):
@@ -89,11 +83,7 @@ def _wrap_get_config_response(rpc_state, response):
 
 def _wrap_node_labels(labels_pb, node_labels_cls=None, *args, **kwargs):
     node_labels_cls = NodeLabels if node_labels_cls is None else node_labels_cls
-    return node_labels_cls(
-        dict([(entry.label, entry.value) for entry in labels_pb.labels]),
-        *args,
-        **kwargs
-    )
+    return node_labels_cls(dict([(entry.label, entry.value) for entry in labels_pb.labels]), *args, **kwargs)
 
 
 def _wrap_get_node_labels_response(rpc_state, response):
