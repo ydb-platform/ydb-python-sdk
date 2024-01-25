@@ -1,3 +1,5 @@
+* Added clients for draft.BaseDynamicConfig service
+
 ## 3.7.1 ##
 * Updated protobuf generated code
 
