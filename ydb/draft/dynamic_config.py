@@ -1,7 +1,6 @@
 import abc
-import enum
 from abc import abstractmethod
-from .. import issues, operation, settings as settings_impl, _apis
+from .. import issues, operation, _apis
 
 
 class IDynamicConfigClient(abc.ABC):
