@@ -1,3 +1,4 @@
+## 3.8.0 ##
 * Added clients for draft.BaseDynamicConfig service
 
 ## 3.7.1 ##
