@@ -63,9 +63,10 @@ def _log_request(rpc_state, request):
 
 
 def _rpc_error_handler(
-        rpc_state,
-        rpc_error: typing.Union[grpc.RpcError, grpc.aio.AioRpcError, grpc.Call, grpc.aio.Call],
-        on_disconnected: typing.Callable[[], None] = None):
+    rpc_state,
+    rpc_error: typing.Union[grpc.RpcError, grpc.aio.AioRpcError, grpc.Call, grpc.aio.Call],
+    on_disconnected: typing.Callable[[], None] = None,
+):
     """
     RPC call error handler, that translates gRPC error into YDB issue
     :param rpc_state: A state of rpc
