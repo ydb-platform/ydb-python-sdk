@@ -96,7 +96,7 @@ jobs:
         
         CHANGELOG="$CHANGELOG
         
-        Full Changelog: [$LAST_TAG...$TAG](https://github.com/ydb-platform/ydb-go-sdk/compare/$LAST_TAG...$TAG)"
+        Full Changelog: [$LAST_TAG...$TAG](https://github.com/ydb-platform/ydb-python-sdk/compare/$LAST_TAG...$TAG)"
         if [ "$WITH_BETA" = true ]
         then
           gh release create --prerelease $TAG --title "$TAG" --notes "$CHANGELOG"
