@@ -65,17 +65,10 @@ class JWTIamCredentials(TokenServiceCredentials, auth.BaseJWTCredentials):
         iam_channel_credentials=None,
     ):
         TokenServiceCredentials.__init__(self, iam_endpoint, iam_channel_credentials)
-        auth.BaseJWTCredentials.__init__(self, account_id, access_key_id, private_key)
+        auth.BaseJWTCredentials.__init__(self, account_id, access_key_id, private_key, "PS256", auth.YANDEX_CLOUD_IAM_TOKEN_SERVICE_URL)
 
     def _get_token_request(self):
-        return iam_token_service_pb2.CreateIamTokenRequest(
-            jwt=auth.get_jwt(
-                self._account_id,
-                self._access_key_id,
-                self._private_key,
-                self._jwt_expiration_timeout,
-            )
-        )
+        return iam_token_service_pb2.CreateIamTokenRequest(jwt=self._get_jwt())
 
 
 class YandexPassportOAuthIamCredentials(TokenServiceCredentials):
