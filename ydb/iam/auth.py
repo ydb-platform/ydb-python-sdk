@@ -127,7 +127,7 @@ class OAuth2JwtTokenExchangeCredentials(credentials.AbstractExpiringTokenCredent
         assert requests is not None, "Install requests library to use OAuth 2.0 token exchange credentials provider"
         self._token_exchange_url = token_exchange_url
 
-    def _process_response(self, response):
+    def _process_response_status_code(self, response):
         if response.status_code == 403:
             raise issues.Unauthenticated(response.content)
         if response.status_code >= 500:
@@ -136,6 +136,13 @@ class OAuth2JwtTokenExchangeCredentials(credentials.AbstractExpiringTokenCredent
             raise issues.BadRequest(response.content)
         if response.status_code != 200:
             raise issues.Error(response.content)
+
+    def _process_response(self, response):
+        self._process_response_status_code(response)
+        response_json = json.loads(response.content)
+        access_token = response_json["access_token"]
+        expires_in = response_json["expires_in"]
+        return {"access_token": access_token, "expires_in": expires_in}
 
     @tracing.with_trace()
     def _make_token_request(self):
@@ -147,8 +154,7 @@ class OAuth2JwtTokenExchangeCredentials(credentials.AbstractExpiringTokenCredent
         }
         headers = {"Content-Type": "application/x-www-form-urlencoded"}
         response = requests.post(self._token_exchange_url, data=params, headers=headers)
-        self._process_response(response)
-        return {"access_token": response.content, "expires_in": 3600}  # TODO
+        return self._process_response(response)
 
 
 class JWTIamCredentials(TokenServiceCredentials, BaseJWTCredentials):
@@ -173,10 +179,12 @@ def NebiusJWTIamCredentials(OAuth2JwtTokenExchangeCredentials):
         account_id,
         access_key_id,
         private_key,
-        iam_endpoint=None,
-        iam_channel_credentials=None,
+        token_exchange_url=None,
     ):
-        OAuth2JwtTokenExchangeCredentials.__init__(self, iam_endpoint, account_id, access_key_id, private_key, "RS256", NEBIUS_CLOUD_IAM_TOKEN_SERVICE_URL, account_id)
+        url = token_exchange_url
+        if url is None:
+            url = "https://auth.new.nebiuscloud.net/oauth2/token/exchange"
+        OAuth2JwtTokenExchangeCredentials.__init__(self, url, account_id, access_key_id, private_key, "RS256", NEBIUS_CLOUD_IAM_TOKEN_SERVICE_URL, account_id)
 
 
 class YandexPassportOAuthIamCredentials(TokenServiceCredentials):
@@ -231,4 +239,21 @@ class ServiceAccountCredentials(JWTIamCredentials):
             private_key,
             iam_endpoint,
             iam_channel_credentials,
+        )
+
+
+class NebiusServiceAccountCredentials(NebiusJWTIamCredentials):
+    def __init__(
+        self,
+        service_account_id,
+        access_key_id,
+        private_key,
+        iam_endpoint=None,
+        iam_channel_credentials=None,
+    ):
+        super(NebiusServiceAccountCredentials, self).__init__(
+            service_account_id,
+            access_key_id,
+            private_key,
+            iam_endpoint,
         )
