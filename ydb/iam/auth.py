@@ -88,7 +88,6 @@ class BaseJWTCredentials(abc.ABC):
         self._token_service_url = token_service_url
         self._subject = subject
 
-
     def set_token_expiration_timeout(self, value):
         self._token_expiration_timeout = value
         return self
@@ -173,7 +172,7 @@ class JWTIamCredentials(TokenServiceCredentials, BaseJWTCredentials):
         return self._iam_token_service_pb2.CreateIamTokenRequest(jwt=self._get_jwt())
 
 
-def NebiusJWTIamCredentials(OAuth2JwtTokenExchangeCredentials):
+class NebiusJWTIamCredentials(OAuth2JwtTokenExchangeCredentials):
     def __init__(
         self,
         account_id,
