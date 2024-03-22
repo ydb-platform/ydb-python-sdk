@@ -115,12 +115,22 @@ class BaseJWTCredentials(abc.ABC):
             self._jwt_expiration_timeout,
             self._algorithm,
             self._token_service_url,
-            self._subject
+            self._subject,
         )
 
 
 class OAuth2JwtTokenExchangeCredentials(credentials.AbstractExpiringTokenCredentials, BaseJWTCredentials):
-    def __init__(self, token_exchange_url, account_id, access_key_id, private_key, algorithm, token_service_url, subject=None, tracer=None):
+    def __init__(
+        self,
+        token_exchange_url,
+        account_id,
+        access_key_id,
+        private_key,
+        algorithm,
+        token_service_url,
+        subject=None,
+        tracer=None,
+    ):
         BaseJWTCredentials.__init__(self, account_id, access_key_id, private_key, algorithm, token_service_url, subject)
         super(OAuth2JwtTokenExchangeCredentials, self).__init__(tracer)
         assert requests is not None, "Install requests library to use OAuth 2.0 token exchange credentials provider"
@@ -166,7 +176,9 @@ class JWTIamCredentials(TokenServiceCredentials, BaseJWTCredentials):
         iam_channel_credentials=None,
     ):
         TokenServiceCredentials.__init__(self, iam_endpoint, iam_channel_credentials)
-        BaseJWTCredentials.__init__(self, account_id, access_key_id, private_key, "PS256", YANDEX_CLOUD_IAM_TOKEN_SERVICE_URL)
+        BaseJWTCredentials.__init__(
+            self, account_id, access_key_id, private_key, "PS256", YANDEX_CLOUD_IAM_TOKEN_SERVICE_URL
+        )
 
     def _get_token_request(self):
         return self._iam_token_service_pb2.CreateIamTokenRequest(jwt=self._get_jwt())
@@ -183,7 +195,9 @@ class NebiusJWTIamCredentials(OAuth2JwtTokenExchangeCredentials):
         url = token_exchange_url
         if url is None:
             url = "https://auth.new.nebiuscloud.net/oauth2/token/exchange"
-        OAuth2JwtTokenExchangeCredentials.__init__(self, url, account_id, access_key_id, private_key, "RS256", NEBIUS_CLOUD_IAM_TOKEN_SERVICE_URL, account_id)
+        OAuth2JwtTokenExchangeCredentials.__init__(
+            self, url, account_id, access_key_id, private_key, "RS256", NEBIUS_CLOUD_IAM_TOKEN_SERVICE_URL, account_id
+        )
 
 
 class YandexPassportOAuthIamCredentials(TokenServiceCredentials):
