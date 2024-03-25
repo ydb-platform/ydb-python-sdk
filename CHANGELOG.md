@@ -1,5 +1,5 @@
 ## 3.8.1 ##
-* Fixed to handle deadline on topic stream in async driver
+* Fixed to handle deadline on topic stream in async driver.
 
 ## 3.8.0 ##
 * Added clients for draft.BaseDynamicConfig service
