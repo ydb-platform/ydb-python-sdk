@@ -8,11 +8,14 @@ import json
 import os
 
 try:
-    from yandex.cloud.iam.v1 import iam_token_service_pb2_grpc
-    from yandex.cloud.iam.v1 import iam_token_service_pb2
     import jwt
 except ImportError:
     jwt = None
+
+try:
+    from yandex.cloud.iam.v1 import iam_token_service_pb2_grpc
+    from yandex.cloud.iam.v1 import iam_token_service_pb2
+except ImportError:
     iam_token_service_pb2_grpc = None
     iam_token_service_pb2 = None
 
@@ -24,10 +27,15 @@ except ImportError:
 
 DEFAULT_METADATA_URL = "http://169.254.169.254/computeMetadata/v1/instance/service-accounts/default/token"
 YANDEX_CLOUD_IAM_TOKEN_SERVICE_URL = "https://iam.api.cloud.yandex.net/iam/v1/tokens"
-NEBIUS_CLOUD_IAM_TOKEN_SERVICE_URL = "https://token-service.iam.new.nebiuscloud.net"
+NEBIUS_CLOUD_IAM_TOKEN_SERVICE_AUDIENCE = "token-service.iam.new.nebiuscloud.net"
+NEBIUS_CLOUD_IAM_TOKEN_EXCHANGE_URL = "https://auth.new.nebiuscloud.net/oauth2/token/exchange"
+
+YANDEX_CLOUD_JWT_ALGORITHM = "PS256"
+NEBIUS_CLOUD_JWT_ALGORITHM = "RS256"
 
 
 def get_jwt(account_id, access_key_id, private_key, jwt_expiration_timeout, algorithm, token_service_url, subject=None):
+    assert jwt is not None, "Install pyjwt library to use jwt tokens"
     now = time.time()
     now_utc = datetime.utcfromtimestamp(now)
     exp_utc = datetime.utcfromtimestamp(now + jwt_expiration_timeout)
@@ -177,7 +185,7 @@ class JWTIamCredentials(TokenServiceCredentials, BaseJWTCredentials):
     ):
         TokenServiceCredentials.__init__(self, iam_endpoint, iam_channel_credentials)
         BaseJWTCredentials.__init__(
-            self, account_id, access_key_id, private_key, "PS256", YANDEX_CLOUD_IAM_TOKEN_SERVICE_URL
+            self, account_id, access_key_id, private_key, YANDEX_CLOUD_JWT_ALGORITHM, YANDEX_CLOUD_IAM_TOKEN_SERVICE_URL
         )
 
     def _get_token_request(self):
@@ -194,9 +202,9 @@ class NebiusJWTIamCredentials(OAuth2JwtTokenExchangeCredentials):
     ):
         url = token_exchange_url
         if url is None:
-            url = "https://auth.new.nebiuscloud.net/oauth2/token/exchange"
+            url = NEBIUS_CLOUD_IAM_TOKEN_EXCHANGE_URL
         OAuth2JwtTokenExchangeCredentials.__init__(
-            self, url, account_id, access_key_id, private_key, "RS256", NEBIUS_CLOUD_IAM_TOKEN_SERVICE_URL, account_id
+            self, url, account_id, access_key_id, private_key, NEBIUS_CLOUD_JWT_ALGORITHM, NEBIUS_CLOUD_IAM_TOKEN_SERVICE_AUDIENCE, account_id
         )
 
 
