@@ -6,6 +6,7 @@ import abc
 import logging
 from ydb.iam import auth
 from .credentials import AbstractExpiringTokenCredentials
+from ydb import issues
 
 logger = logging.getLogger(__name__)
 
@@ -75,23 +76,6 @@ class OAuth2JwtTokenExchangeCredentials(AbstractExpiringTokenCredentials, auth.B
         assert aiohttp is not None, "Install aiohttp library to use OAuth 2.0 token exchange credentials provider"
         self._token_exchange_url = token_exchange_url
 
-    def _process_response_status_code(self, response):
-        if response.status_code == 403:
-            raise issues.Unauthenticated(response.content)
-        if response.status_code >= 500:
-            raise issues.Unavailable(response.content)
-        if response.status_code >= 400:
-            raise issues.BadRequest(response.content)
-        if response.status_code != 200:
-            raise issues.Error(response.content)
-
-    def _process_response(self, response):
-        self._process_response_status_code(response)
-        response_json = json.loads(response.content)
-        access_token = response_json["access_token"]
-        expires_in = response_json["expires_in"]
-        return {"access_token": access_token, "expires_in": expires_in}
-
     async def _make_token_request(self):
         params = {
             "grant_type": "urn:ietf:params:oauth:grant-type:token-exchange",
@@ -104,7 +88,19 @@ class OAuth2JwtTokenExchangeCredentials(AbstractExpiringTokenCredentials, auth.B
         timeout = aiohttp.ClientTimeout(total=2)
         async with aiohttp.ClientSession(timeout=timeout) as session:
             async with session.post(self._token_exchange_url, data=params, headers=headers) as response:
-                return self._process_response(response)
+                if response.status == 403:
+                    raise issues.Unauthenticated(await response.text())
+                if response.status >= 500:
+                    raise issues.Unavailable(await response.text())
+                if response.status >= 400:
+                    raise issues.BadRequest(await response.text())
+                if response.status != 200:
+                    raise issues.Error(await response.text())
+
+                response_json = await response.json()
+                access_token = response_json["access_token"]
+                expires_in = response_json["expires_in"]
+                return {"access_token": access_token, "expires_in": expires_in}
 
 
 class JWTIamCredentials(TokenServiceCredentials, auth.BaseJWTCredentials):
