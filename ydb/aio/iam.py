@@ -1,6 +1,5 @@
 import grpc.aio
 import time
-import json
 
 import abc
 import logging
@@ -72,7 +71,9 @@ class OAuth2JwtTokenExchangeCredentials(AbstractExpiringTokenCredentials, auth.B
         subject=None,
     ):
         super(OAuth2JwtTokenExchangeCredentials, self).__init__()
-        auth.BaseJWTCredentials.__init__(self, account_id, access_key_id, private_key, algorithm, token_service_url, subject)
+        auth.BaseJWTCredentials.__init__(
+            self, account_id, access_key_id, private_key, algorithm, token_service_url, subject
+        )
         assert aiohttp is not None, "Install aiohttp library to use OAuth 2.0 token exchange credentials provider"
         self._token_exchange_url = token_exchange_url
 
@@ -114,7 +115,12 @@ class JWTIamCredentials(TokenServiceCredentials, auth.BaseJWTCredentials):
     ):
         TokenServiceCredentials.__init__(self, iam_endpoint, iam_channel_credentials)
         auth.BaseJWTCredentials.__init__(
-            self, account_id, access_key_id, private_key, auth.YANDEX_CLOUD_JWT_ALGORITHM, auth.YANDEX_CLOUD_IAM_TOKEN_SERVICE_URL
+            self,
+            account_id,
+            access_key_id,
+            private_key,
+            auth.YANDEX_CLOUD_JWT_ALGORITHM,
+            auth.YANDEX_CLOUD_IAM_TOKEN_SERVICE_URL,
         )
 
     def _get_token_request(self):
@@ -133,7 +139,14 @@ class NebiusJWTIamCredentials(OAuth2JwtTokenExchangeCredentials):
         if url is None:
             url = auth.NEBIUS_CLOUD_IAM_TOKEN_EXCHANGE_URL
         OAuth2JwtTokenExchangeCredentials.__init__(
-            self, url, account_id, access_key_id, private_key, auth.NEBIUS_CLOUD_JWT_ALGORITHM, auth.NEBIUS_CLOUD_IAM_TOKEN_SERVICE_AUDIENCE, account_id
+            self,
+            url,
+            account_id,
+            access_key_id,
+            private_key,
+            auth.NEBIUS_CLOUD_JWT_ALGORITHM,
+            auth.NEBIUS_CLOUD_IAM_TOKEN_SERVICE_AUDIENCE,
+            account_id,
         )
 
 

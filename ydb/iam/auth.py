@@ -204,7 +204,14 @@ class NebiusJWTIamCredentials(OAuth2JwtTokenExchangeCredentials):
         if url is None:
             url = NEBIUS_CLOUD_IAM_TOKEN_EXCHANGE_URL
         OAuth2JwtTokenExchangeCredentials.__init__(
-            self, url, account_id, access_key_id, private_key, NEBIUS_CLOUD_JWT_ALGORITHM, NEBIUS_CLOUD_IAM_TOKEN_SERVICE_AUDIENCE, account_id
+            self,
+            url,
+            account_id,
+            access_key_id,
+            private_key,
+            NEBIUS_CLOUD_JWT_ALGORITHM,
+            NEBIUS_CLOUD_IAM_TOKEN_SERVICE_AUDIENCE,
+            account_id,
         )
 
 
