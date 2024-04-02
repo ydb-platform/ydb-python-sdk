@@ -2,6 +2,10 @@ import jwt
 import concurrent.futures
 import grpc
 import time
+import http.server
+import urllib
+import threading
+import json
 
 import ydb.iam
 
@@ -14,7 +18,7 @@ PRIVATE_KEY = "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgw
 PUBLIC_KEY = "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAu+fyUt6zHCycbxYKTsxe\nftoB/mIoN0RNjE5fbsAtAWSgL+n6GK+8csEMliCvltXAYc/EeC3xZmaNozNGgr3U\nZjQXVtBA0k5xy8QrBYaEFi1avmyOX+Y85HKIoqFLWhKQAz6sIFVC1bTf55zyYmev\n3VN9At45kevi1IBJ7VLVrd3qt8UCJ+ZRt8wtZJQWPx8bXx+R7vMQb8EUEyZ4d1KT\ny4/F8Epq4g4Ha4Ue6OrplslbhqzCpSx5nor5X842LX8ztTDiDBvLdv88RkfsW+Fc\nJLO97B9Sq7h/9PyTF1Pe56cKXvlJvrl4aZXT8oBhKxImu2m8mQdoDKV6q1mCjKNN\njQIDAQAB\n-----END PUBLIC KEY-----\n"
 
 
-def test_credentials():
+def test_metadata_credentials():
     credentials = ydb.iam.MetadataUrlCredentials()
     raised = False
     try:
@@ -48,6 +52,7 @@ class IamTokenServiceTestServer(object):
         self.server.start()
 
     def stop(self):
+        self.server.stop(1)
         self.server.wait_for_termination()
 
     def get_endpoint(self):
@@ -55,22 +60,6 @@ class IamTokenServiceTestServer(object):
 
 
 class TestServiceAccountCredentials(ydb.iam.ServiceAccountCredentials):
-    def __init__(
-        self,
-        service_account_id,
-        access_key_id,
-        private_key,
-        iam_endpoint=None,
-        iam_channel_credentials=None,
-    ):
-        super(TestServiceAccountCredentials, self).__init__(
-            service_account_id,
-            access_key_id,
-            private_key,
-            iam_endpoint,
-            iam_channel_credentials,
-        )
-
     def _channel_factory(self):
         return grpc.insecure_channel(
             self._iam_endpoint
@@ -80,12 +69,80 @@ class TestServiceAccountCredentials(ydb.iam.ServiceAccountCredentials):
         return self._expires_in - time.time()
 
 
-def test_service_account_credentials():
+class TestNebiusServiceAccountCredentials(ydb.iam.NebiusServiceAccountCredentials):
+    def get_expire_time(self):
+        return self._expires_in - time.time()
+
+
+class NebiusTokenServiceHandler(http.server.BaseHTTPRequestHandler):
+    def do_POST(self):
+        assert self.headers["Content-Type"] == "application/x-www-form-urlencoded"
+        assert self.path == "/token/exchange"
+        content_length = int(self.headers["Content-Length"])
+        post_data = self.rfile.read(content_length).decode("utf8")
+        print("NebiusTokenServiceHandler.POST data: {}".format(post_data))
+        parsed_request = urllib.parse.parse_qs(str(post_data))
+        assert len(parsed_request["grant_type"]) == 1
+        assert parsed_request["grant_type"][0] == "urn:ietf:params:oauth:grant-type:token-exchange"
+
+        assert len(parsed_request["requested_token_type"]) == 1
+        assert parsed_request["requested_token_type"][0] == "urn:ietf:params:oauth:token-type:access_token"
+
+        assert len(parsed_request["subject_token_type"]) == 1
+        assert parsed_request["subject_token_type"][0] == "urn:ietf:params:oauth:token-type:jwt"
+
+        assert len(parsed_request["subject_token"]) == 1
+        jwt_token = parsed_request["subject_token"][0]
+        decoded = jwt.decode(jwt_token, key=PUBLIC_KEY, algorithms=["RS256"], audience="token-service.iam.new.nebiuscloud.net")
+        assert decoded["iss"] == SERVICE_ACCOUNT_ID
+        assert decoded["sub"] == SERVICE_ACCOUNT_ID
+        assert decoded["aud"] == "token-service.iam.new.nebiuscloud.net"
+        assert abs(decoded["iat"] - time.time()) <= 60
+        assert abs(decoded["exp"] - time.time()) <= 3600
+
+        response = {
+            "access_token": "test_nebius_token",
+            "issued_token_type": "urn:ietf:params:oauth:token-type:access_token",
+            "token_type": "Bearer",
+            "expires_in": 42
+        }
+
+        self.send_response(200)
+        self.send_header("Content-type", "application/json")
+        self.end_headers()
+        self.wfile.write(json.dumps(response).encode("utf8"))
+
+
+class NebiusTokenServiceForTest(http.server.HTTPServer):
+    def __init__(self):
+        http.server.HTTPServer.__init__(self, ("localhost", 54322), NebiusTokenServiceHandler)
+
+    def endpoint(self):
+        return "http://localhost:54322/token/exchange"
+
+
+def test_yandex_service_account_credentials():
     server = IamTokenServiceTestServer()
-    iam_endpoint = server.get_endpoint()
-    grpc_channel_creds = grpc.local_channel_credentials()
-    credentials = TestServiceAccountCredentials(SERVICE_ACCOUNT_ID, ACCESS_KEY_ID, PRIVATE_KEY, iam_endpoint, grpc_channel_creds)
+    credentials = TestServiceAccountCredentials(SERVICE_ACCOUNT_ID, ACCESS_KEY_ID, PRIVATE_KEY, server.get_endpoint())
     credentials.set_token_expiration_timeout(1)
     t = credentials.get_auth_token()
     assert t == "test_token"
     assert credentials.get_expire_time() <= 42
+    server.stop()
+
+
+def test_nebius_service_account_credentials():
+    server = NebiusTokenServiceForTest()
+
+    def serve(s):
+        s.handle_request()
+
+    serve_thread = threading.Thread(target=serve, args=(server,))
+    serve_thread.start()
+
+    credentials = TestNebiusServiceAccountCredentials(SERVICE_ACCOUNT_ID, ACCESS_KEY_ID, PRIVATE_KEY, server.endpoint())
+    t = credentials.get_auth_token()
+    assert t == "test_nebius_token"
+    assert credentials.get_expire_time() <= 42
+
+    serve_thread.join()
