@@ -33,7 +33,9 @@ class IamTokenServiceForTest(iam_token_service_pb2_grpc.IamTokenServiceServicer)
     def Create(self, request, context):
         print("IAM token service request: {}".format(request))
         # Validate jwt:
-        decoded = jwt.decode(request.jwt, key=PUBLIC_KEY, algorithms=["PS256"], audience="https://iam.api.cloud.yandex.net/iam/v1/tokens")
+        decoded = jwt.decode(
+            request.jwt, key=PUBLIC_KEY, algorithms=["PS256"], audience="https://iam.api.cloud.yandex.net/iam/v1/tokens"
+        )
         assert decoded["iss"] == SERVICE_ACCOUNT_ID
         assert decoded["aud"] == "https://iam.api.cloud.yandex.net/iam/v1/tokens"
         assert abs(decoded["iat"] - time.time()) <= 60
@@ -61,9 +63,7 @@ class IamTokenServiceTestServer(object):
 
 class TestServiceAccountCredentials(ydb.iam.ServiceAccountCredentials):
     def _channel_factory(self):
-        return grpc.insecure_channel(
-            self._iam_endpoint
-        )
+        return grpc.insecure_channel(self._iam_endpoint)
 
     def get_expire_time(self):
         return self._expires_in - time.time()
@@ -93,7 +93,9 @@ class NebiusTokenServiceHandler(http.server.BaseHTTPRequestHandler):
 
         assert len(parsed_request["subject_token"]) == 1
         jwt_token = parsed_request["subject_token"][0]
-        decoded = jwt.decode(jwt_token, key=PUBLIC_KEY, algorithms=["RS256"], audience="token-service.iam.new.nebiuscloud.net")
+        decoded = jwt.decode(
+            jwt_token, key=PUBLIC_KEY, algorithms=["RS256"], audience="token-service.iam.new.nebiuscloud.net"
+        )
         assert decoded["iss"] == SERVICE_ACCOUNT_ID
         assert decoded["sub"] == SERVICE_ACCOUNT_ID
         assert decoded["aud"] == "token-service.iam.new.nebiuscloud.net"
@@ -104,7 +106,7 @@ class NebiusTokenServiceHandler(http.server.BaseHTTPRequestHandler):
             "access_token": "test_nebius_token",
             "issued_token_type": "urn:ietf:params:oauth:token-type:access_token",
             "token_type": "Bearer",
-            "expires_in": 42
+            "expires_in": 42,
         }
 
         self.send_response(200)
