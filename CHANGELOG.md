@@ -1,3 +1,4 @@
+## 3.9.0 ##
 * Supported nebius jwt credentials
 
 ## 3.8.1 ##
