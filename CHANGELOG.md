@@ -1,3 +1,5 @@
+* Supported nebius jwt credentials
+
 ## 3.8.1 ##
 * Fixed to handle deadline on topic stream in async driver.
 
