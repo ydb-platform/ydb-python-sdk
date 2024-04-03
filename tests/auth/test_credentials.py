@@ -58,7 +58,7 @@ class IamTokenServiceTestServer(object):
         self.server.wait_for_termination()
 
     def get_endpoint(self):
-        return "[::]:54321"
+        return "localhost:54321"
 
 
 class TestServiceAccountCredentials(ydb.iam.ServiceAccountCredentials):
