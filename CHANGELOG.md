@@ -1,3 +1,4 @@
+## 3.9.1 ##
 * Relaxed requirements for pyjwt version from exactly 2.8.0 to >= 2.0
 
 ## 3.9.0 ##
