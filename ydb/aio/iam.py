@@ -5,15 +5,14 @@ import abc
 import logging
 from ydb.iam import auth
 from .credentials import AbstractExpiringTokenCredentials
+from ydb import issues
 
 logger = logging.getLogger(__name__)
 
 try:
     from yandex.cloud.iam.v1 import iam_token_service_pb2_grpc
     from yandex.cloud.iam.v1 import iam_token_service_pb2
-    import jwt
 except ImportError:
-    jwt = None
     iam_token_service_pb2_grpc = None
     iam_token_service_pb2 = None
 
