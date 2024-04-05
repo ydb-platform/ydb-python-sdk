@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from ydb import credentials, tracing
+from ydb import credentials, tracing, issues
 import grpc
 import time
 import abc
@@ -8,11 +8,14 @@ import json
 import os
 
 try:
-    from yandex.cloud.iam.v1 import iam_token_service_pb2_grpc
-    from yandex.cloud.iam.v1 import iam_token_service_pb2
     import jwt
 except ImportError:
     jwt = None
+
+try:
+    from yandex.cloud.iam.v1 import iam_token_service_pb2_grpc
+    from yandex.cloud.iam.v1 import iam_token_service_pb2
+except ImportError:
     iam_token_service_pb2_grpc = None
     iam_token_service_pb2 = None
 
