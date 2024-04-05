@@ -47,4 +47,5 @@ pylint-protobuf
 cython
 freezegun==1.2.2
 pytest-cov
+yandexcloud
 -e .
