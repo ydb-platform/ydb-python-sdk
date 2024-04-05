@@ -37,8 +37,9 @@ def get_jwt(account_id, access_key_id, private_key, jwt_expiration_timeout, algo
         "aud": audience,
         "iat": now_utc,
         "exp": exp_utc,
-        "sub": subject,
     }
+    if subject is not None:
+        payload["sub"] = subject
     if algorithm is None:
         alg = DEFAULT_JWT_ALGORITHM
     else:
