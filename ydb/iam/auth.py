@@ -27,7 +27,9 @@ DEFAULT_YC_IAM_AUDIENCE = "https://iam.api.cloud.yandex.net/iam/v1/tokens"
 DEFAULT_JWT_ALGORITHM = "PS256"
 DEFAULT_OAUTH2_TOKEN_EXCHANGE_JWT_ALGORYTHM = "RS256"
 
-def get_jwt(account_id, access_key_id, private_key, jwt_expiration_timeout, algorithm=None, audience=None, subject=None):
+def get_jwt(
+    account_id, access_key_id, private_key, jwt_expiration_timeout, algorithm=None, audience=None, subject=None
+):
     assert jwt is not None, "Install pyjwt library to use jwt tokens"
     now = time.time()
     now_utc = datetime.utcfromtimestamp(now)
@@ -185,12 +187,11 @@ class JWTIamCredentials(TokenServiceCredentials, BaseJWTCredentials):
         iam_channel_credentials=None,
     ):
         TokenServiceCredentials.__init__(self, iam_endpoint, iam_channel_credentials)
-        BaseJWTCredentials.__init__(
-            self, account_id, access_key_id, private_key, audience = DEFAULT_YC_IAM_AUDIENCE
-        )
+        BaseJWTCredentials.__init__(self, account_id, access_key_id, private_key, audience=DEFAULT_YC_IAM_AUDIENCE)
 
     def _get_token_request(self):
         return self._iam_token_service_pb2.CreateIamTokenRequest(jwt=self._get_jwt())
+
 
 class YandexPassportOAuthIamCredentials(TokenServiceCredentials):
     def __init__(

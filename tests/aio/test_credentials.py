@@ -19,6 +19,7 @@ class TestOAuth2TokenExchangeCredentials(ydb.aio.iam.OAuth2JwtTokenExchangeCrede
     def get_expire_time(self):
         return self._expires_in - time.time()
 
+
 @pytest.mark.asyncio
 async def test_yandex_service_account_credentials():
     server = tests.auth.test_credentials.IamTokenServiceTestServer()

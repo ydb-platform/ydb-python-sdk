@@ -71,9 +71,7 @@ class OAuth2JwtTokenExchangeCredentials(AbstractExpiringTokenCredentials, auth.B
         if alg is None:
             alg = auth.DEFAULT_OAUTH2_TOKEN_EXCHANGE_JWT_ALGORYTHM
 
-        auth.BaseJWTCredentials.__init__(
-            self, account_id, access_key_id, private_key, alg, audience, subject
-        )
+        auth.BaseJWTCredentials.__init__(self, account_id, access_key_id, private_key, alg, audience, subject)
         assert aiohttp is not None, "Install aiohttp library to use OAuth 2.0 token exchange credentials provider"
         self._iam_endpoint = iam_endpoint
 
@@ -119,11 +117,12 @@ class JWTIamCredentials(TokenServiceCredentials, auth.BaseJWTCredentials):
             account_id,
             access_key_id,
             private_key,
-            audience = auth.DEFAULT_YC_IAM_AUDIENCE,
+            audience=auth.DEFAULT_YC_IAM_AUDIENCE,
         )
 
     def _get_token_request(self):
         return iam_token_service_pb2.CreateIamTokenRequest(jwt=self._get_jwt())
+
 
 class YandexPassportOAuthIamCredentials(TokenServiceCredentials):
     def __init__(
