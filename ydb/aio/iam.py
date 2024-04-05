@@ -58,7 +58,7 @@ IamTokenCredentials = TokenServiceCredentials
 class OAuth2JwtTokenExchangeCredentials(AbstractExpiringTokenCredentials, auth.BaseJWTCredentials):
     def __init__(
         self,
-        token_exchange_url,
+        iam_endpoint,
         account_id,
         access_key_id,
         private_key,
@@ -75,7 +75,7 @@ class OAuth2JwtTokenExchangeCredentials(AbstractExpiringTokenCredentials, auth.B
             self, account_id, access_key_id, private_key, alg, audience, subject
         )
         assert aiohttp is not None, "Install aiohttp library to use OAuth 2.0 token exchange credentials provider"
-        self._token_exchange_url = token_exchange_url
+        self._iam_endpoint = iam_endpoint
 
     async def _make_token_request(self):
         params = {
@@ -88,7 +88,7 @@ class OAuth2JwtTokenExchangeCredentials(AbstractExpiringTokenCredentials, auth.B
 
         timeout = aiohttp.ClientTimeout(total=2)
         async with aiohttp.ClientSession(timeout=timeout) as session:
-            async with session.post(self._token_exchange_url, data=params, headers=headers) as response:
+            async with session.post(self._iam_endpoint, data=params, headers=headers) as response:
                 if response.status == 403:
                     raise issues.Unauthenticated(await response.text())
                 if response.status >= 500:

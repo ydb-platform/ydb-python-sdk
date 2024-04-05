@@ -127,7 +127,7 @@ class BaseJWTCredentials(abc.ABC):
 class OAuth2JwtTokenExchangeCredentials(credentials.AbstractExpiringTokenCredentials, BaseJWTCredentials):
     def __init__(
         self,
-        token_exchange_url,
+        iam_endpoint,
         account_id,
         access_key_id,
         private_key,
@@ -142,7 +142,7 @@ class OAuth2JwtTokenExchangeCredentials(credentials.AbstractExpiringTokenCredent
         BaseJWTCredentials.__init__(self, account_id, access_key_id, private_key, alg, audience, subject)
         super(OAuth2JwtTokenExchangeCredentials, self).__init__(tracer)
         assert requests is not None, "Install requests library to use OAuth 2.0 token exchange credentials provider"
-        self._token_exchange_url = token_exchange_url
+        self._iam_endpoint = iam_endpoint
 
     def _process_response_status_code(self, response):
         if response.status_code == 403:
@@ -170,7 +170,7 @@ class OAuth2JwtTokenExchangeCredentials(credentials.AbstractExpiringTokenCredent
             "subject_token_type": "urn:ietf:params:oauth:token-type:jwt",
         }
         headers = {"Content-Type": "application/x-www-form-urlencoded"}
-        response = requests.post(self._token_exchange_url, data=params, headers=headers)
+        response = requests.post(self._iam_endpoint, data=params, headers=headers)
         return self._process_response(response)
 
 
