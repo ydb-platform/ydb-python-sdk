@@ -38,6 +38,17 @@ def test_tx_begin(driver_sync, database):
     tx.rollback()
 
 
+def test_credentials():
+    credentials = ydb.iam.MetadataUrlCredentials()
+    raised = False
+    try:
+        credentials.auth_metadata()
+    except Exception:
+        raised = True
+
+    assert raised
+
+
 def test_tx_snapshot_ro(driver_sync, database):
     session = driver_sync.table_client.session().create()
     description = (
