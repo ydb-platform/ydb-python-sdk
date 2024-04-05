@@ -15,10 +15,9 @@ class TestServiceAccountCredentials(ydb.aio.iam.ServiceAccountCredentials):
         return self._expires_in - time.time()
 
 
-class TestNebiusServiceAccountCredentials(ydb.aio.iam.NebiusServiceAccountCredentials):
+class TestOAuth2TokenExchangeCredentials(ydb.aio.iam.OAuth2JwtTokenExchangeCredentials):
     def get_expire_time(self):
         return self._expires_in - time.time()
-
 
 @pytest.mark.asyncio
 async def test_yandex_service_account_credentials():
@@ -36,8 +35,8 @@ async def test_yandex_service_account_credentials():
 
 
 @pytest.mark.asyncio
-async def test_nebius_service_account_credentials():
-    server = tests.auth.test_credentials.NebiusTokenServiceForTest()
+async def test_oauth2_token_exchange_credentials():
+    server = tests.auth.test_credentials.OAuth2TokenExchangeServiceForTest()
 
     def serve(s):
         s.handle_request()
@@ -45,14 +44,14 @@ async def test_nebius_service_account_credentials():
     serve_thread = threading.Thread(target=serve, args=(server,))
     serve_thread.start()
 
-    credentials = TestNebiusServiceAccountCredentials(
+    credentials = TestOAuth2TokenExchangeCredentials(
+        server.endpoint(),
         tests.auth.test_credentials.SERVICE_ACCOUNT_ID,
         tests.auth.test_credentials.ACCESS_KEY_ID,
         tests.auth.test_credentials.PRIVATE_KEY,
-        server.endpoint(),
     )
     t = (await credentials.auth_metadata())[0][1]
-    assert t == "test_nebius_token"
+    assert t == "test_oauth2_exchange_token"
     assert credentials.get_expire_time() <= 42
 
     serve_thread.join()

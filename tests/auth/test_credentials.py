@@ -69,18 +69,18 @@ class TestServiceAccountCredentials(ydb.iam.ServiceAccountCredentials):
         return self._expires_in - time.time()
 
 
-class TestNebiusServiceAccountCredentials(ydb.iam.NebiusServiceAccountCredentials):
+class TestOAuth2TokenExchangeCredentials(ydb.iam.OAuth2JwtTokenExchangeCredentials):
     def get_expire_time(self):
         return self._expires_in - time.time()
 
 
-class NebiusTokenServiceHandler(http.server.BaseHTTPRequestHandler):
+class OAuth2TokenExchangeServiceHandler(http.server.BaseHTTPRequestHandler):
     def do_POST(self):
         assert self.headers["Content-Type"] == "application/x-www-form-urlencoded"
         assert self.path == "/token/exchange"
         content_length = int(self.headers["Content-Length"])
         post_data = self.rfile.read(content_length).decode("utf8")
-        print("NebiusTokenServiceHandler.POST data: {}".format(post_data))
+        print("OAuth2TokenExchangeServiceHandler.POST data: {}".format(post_data))
         parsed_request = urllib.parse.parse_qs(str(post_data))
         assert len(parsed_request["grant_type"]) == 1
         assert parsed_request["grant_type"][0] == "urn:ietf:params:oauth:grant-type:token-exchange"
@@ -94,16 +94,16 @@ class NebiusTokenServiceHandler(http.server.BaseHTTPRequestHandler):
         assert len(parsed_request["subject_token"]) == 1
         jwt_token = parsed_request["subject_token"][0]
         decoded = jwt.decode(
-            jwt_token, key=PUBLIC_KEY, algorithms=["RS256"], audience="token-service.iam.new.nebiuscloud.net"
+            jwt_token, key=PUBLIC_KEY, algorithms=["RS256"], audience="test-audience"
         )
         assert decoded["iss"] == SERVICE_ACCOUNT_ID
         assert decoded["sub"] == SERVICE_ACCOUNT_ID
-        assert decoded["aud"] == "token-service.iam.new.nebiuscloud.net"
+        assert decoded["aud"] == "test-audience"
         assert abs(decoded["iat"] - time.time()) <= 60
         assert abs(decoded["exp"] - time.time()) <= 3600
 
         response = {
-            "access_token": "test_nebius_token",
+            "access_token": "test_oauth2_exchange_token",
             "issued_token_type": "urn:ietf:params:oauth:token-type:access_token",
             "token_type": "Bearer",
             "expires_in": 42,
@@ -115,9 +115,9 @@ class NebiusTokenServiceHandler(http.server.BaseHTTPRequestHandler):
         self.wfile.write(json.dumps(response).encode("utf8"))
 
 
-class NebiusTokenServiceForTest(http.server.HTTPServer):
+class OAuth2TokenExchangeServiceForTest(http.server.HTTPServer):
     def __init__(self):
-        http.server.HTTPServer.__init__(self, ("localhost", 54322), NebiusTokenServiceHandler)
+        http.server.HTTPServer.__init__(self, ("localhost", 54322), OAuth2TokenExchangeServiceHandler)
 
     def endpoint(self):
         return "http://localhost:54322/token/exchange"
@@ -132,8 +132,8 @@ def test_yandex_service_account_credentials():
     server.stop()
 
 
-def test_nebius_service_account_credentials():
-    server = NebiusTokenServiceForTest()
+def test_oauth2_token_exchange_credentials():
+    server = OAuth2TokenExchangeServiceForTest()
 
     def serve(s):
         s.handle_request()
@@ -141,9 +141,16 @@ def test_nebius_service_account_credentials():
     serve_thread = threading.Thread(target=serve, args=(server,))
     serve_thread.start()
 
-    credentials = TestNebiusServiceAccountCredentials(SERVICE_ACCOUNT_ID, ACCESS_KEY_ID, PRIVATE_KEY, server.endpoint())
+    credentials = TestOAuth2TokenExchangeCredentials(
+        server.endpoint(), 
+        SERVICE_ACCOUNT_ID, 
+        ACCESS_KEY_ID, 
+        PRIVATE_KEY,
+        audience = "test-audience", 
+        subject = SERVICE_ACCOUNT_ID
+    )
     t = credentials.get_auth_token()
-    assert t == "test_nebius_token"
+    assert t == "test_oauth2_exchange_token"
     assert credentials.get_expire_time() <= 42
 
     serve_thread.join()

@@ -26,31 +26,31 @@ except ImportError:
 
 
 DEFAULT_METADATA_URL = "http://169.254.169.254/computeMetadata/v1/instance/service-accounts/default/token"
-YANDEX_CLOUD_IAM_TOKEN_SERVICE_URL = "https://iam.api.cloud.yandex.net/iam/v1/tokens"
-NEBIUS_CLOUD_IAM_TOKEN_SERVICE_AUDIENCE = "token-service.iam.new.nebiuscloud.net"
-NEBIUS_CLOUD_IAM_TOKEN_EXCHANGE_URL = "https://auth.new.nebiuscloud.net/oauth2/token/exchange"
+DEFAULT_YC_IAM_AUDIENCE = "https://iam.api.cloud.yandex.net/iam/v1/tokens"
+DEFAULT_JWT_ALGORITHM = "PS256"
+DEFAULT_OAUTH2_TOKEN_EXCHANGE_JWT_ALGORYTHM = "RS256"
 
-YANDEX_CLOUD_JWT_ALGORITHM = "PS256"
-NEBIUS_CLOUD_JWT_ALGORITHM = "RS256"
-
-
-def get_jwt(account_id, access_key_id, private_key, jwt_expiration_timeout, algorithm, token_service_url, subject=None):
+def get_jwt(account_id, access_key_id, private_key, jwt_expiration_timeout, algorithm=None, audience=None, subject=None):
     assert jwt is not None, "Install pyjwt library to use jwt tokens"
     now = time.time()
     now_utc = datetime.utcfromtimestamp(now)
     exp_utc = datetime.utcfromtimestamp(now + jwt_expiration_timeout)
     payload = {
         "iss": account_id,
-        "aud": token_service_url,
+        "aud": audience,
         "iat": now_utc,
         "exp": exp_utc,
+        "sub": subject,
     }
-    if subject is not None:
-        payload["sub"] = subject
+    if algorithm is None:
+        alg = DEFAULT_JWT_ALGORITHM
+    else:
+        alg = algorithm
+
     return jwt.encode(
         key=private_key,
-        algorithm=algorithm,
-        headers={"typ": "JWT", "alg": algorithm, "kid": access_key_id},
+        algorithm=alg,
+        headers={"typ": "JWT", "alg": alg, "kid": access_key_id},
         payload=payload,
     )
 
@@ -86,14 +86,14 @@ class TokenServiceCredentials(credentials.AbstractExpiringTokenCredentials):
 
 
 class BaseJWTCredentials(abc.ABC):
-    def __init__(self, account_id, access_key_id, private_key, algorithm, token_service_url, subject=None):
+    def __init__(self, account_id, access_key_id, private_key, algorithm=None, audience=None, subject=None):
         self._account_id = account_id
         self._jwt_expiration_timeout = 60.0 * 60
         self._token_expiration_timeout = 120
         self._access_key_id = access_key_id
         self._private_key = private_key
         self._algorithm = algorithm
-        self._token_service_url = token_service_url
+        self._audience = audience
         self._subject = subject
 
     def set_token_expiration_timeout(self, value):
@@ -122,7 +122,7 @@ class BaseJWTCredentials(abc.ABC):
             self._private_key,
             self._jwt_expiration_timeout,
             self._algorithm,
-            self._token_service_url,
+            self._audience,
             self._subject,
         )
 
@@ -134,12 +134,15 @@ class OAuth2JwtTokenExchangeCredentials(credentials.AbstractExpiringTokenCredent
         account_id,
         access_key_id,
         private_key,
-        algorithm,
-        token_service_url,
+        algorithm=None,
+        audience=None,
         subject=None,
         tracer=None,
     ):
-        BaseJWTCredentials.__init__(self, account_id, access_key_id, private_key, algorithm, token_service_url, subject)
+        alg = algorithm
+        if alg is None:
+            alg = DEFAULT_OAUTH2_TOKEN_EXCHANGE_JWT_ALGORYTHM
+        BaseJWTCredentials.__init__(self, account_id, access_key_id, private_key, alg, audience, subject)
         super(OAuth2JwtTokenExchangeCredentials, self).__init__(tracer)
         assert requests is not None, "Install requests library to use OAuth 2.0 token exchange credentials provider"
         self._token_exchange_url = token_exchange_url
@@ -185,35 +188,11 @@ class JWTIamCredentials(TokenServiceCredentials, BaseJWTCredentials):
     ):
         TokenServiceCredentials.__init__(self, iam_endpoint, iam_channel_credentials)
         BaseJWTCredentials.__init__(
-            self, account_id, access_key_id, private_key, YANDEX_CLOUD_JWT_ALGORITHM, YANDEX_CLOUD_IAM_TOKEN_SERVICE_URL
+            self, account_id, access_key_id, private_key, audience = DEFAULT_YC_IAM_AUDIENCE
         )
 
     def _get_token_request(self):
         return self._iam_token_service_pb2.CreateIamTokenRequest(jwt=self._get_jwt())
-
-
-class NebiusJWTIamCredentials(OAuth2JwtTokenExchangeCredentials):
-    def __init__(
-        self,
-        account_id,
-        access_key_id,
-        private_key,
-        token_exchange_url=None,
-    ):
-        url = token_exchange_url
-        if url is None:
-            url = NEBIUS_CLOUD_IAM_TOKEN_EXCHANGE_URL
-        OAuth2JwtTokenExchangeCredentials.__init__(
-            self,
-            url,
-            account_id,
-            access_key_id,
-            private_key,
-            NEBIUS_CLOUD_JWT_ALGORITHM,
-            NEBIUS_CLOUD_IAM_TOKEN_SERVICE_AUDIENCE,
-            account_id,
-        )
-
 
 class YandexPassportOAuthIamCredentials(TokenServiceCredentials):
     def __init__(
@@ -267,21 +246,4 @@ class ServiceAccountCredentials(JWTIamCredentials):
             private_key,
             iam_endpoint,
             iam_channel_credentials,
-        )
-
-
-class NebiusServiceAccountCredentials(NebiusJWTIamCredentials):
-    def __init__(
-        self,
-        service_account_id,
-        access_key_id,
-        private_key,
-        iam_endpoint=None,
-        iam_channel_credentials=None,
-    ):
-        super(NebiusServiceAccountCredentials, self).__init__(
-            service_account_id,
-            access_key_id,
-            private_key,
-            iam_endpoint,
         )

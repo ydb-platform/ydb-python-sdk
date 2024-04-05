@@ -66,13 +66,17 @@ class OAuth2JwtTokenExchangeCredentials(AbstractExpiringTokenCredentials, auth.B
         account_id,
         access_key_id,
         private_key,
-        algorithm,
-        token_service_url,
+        algorithm=None,
+        audience=None,
         subject=None,
     ):
         super(OAuth2JwtTokenExchangeCredentials, self).__init__()
+        alg = algorithm
+        if alg is None:
+            alg = auth.DEFAULT_OAUTH2_TOKEN_EXCHANGE_JWT_ALGORYTHM
+
         auth.BaseJWTCredentials.__init__(
-            self, account_id, access_key_id, private_key, algorithm, token_service_url, subject
+            self, account_id, access_key_id, private_key, alg, audience, subject
         )
         assert aiohttp is not None, "Install aiohttp library to use OAuth 2.0 token exchange credentials provider"
         self._token_exchange_url = token_exchange_url
@@ -119,36 +123,11 @@ class JWTIamCredentials(TokenServiceCredentials, auth.BaseJWTCredentials):
             account_id,
             access_key_id,
             private_key,
-            auth.YANDEX_CLOUD_JWT_ALGORITHM,
-            auth.YANDEX_CLOUD_IAM_TOKEN_SERVICE_URL,
+            audience = auth.DEFAULT_YC_IAM_AUDIENCE,
         )
 
     def _get_token_request(self):
         return iam_token_service_pb2.CreateIamTokenRequest(jwt=self._get_jwt())
-
-
-class NebiusJWTIamCredentials(OAuth2JwtTokenExchangeCredentials):
-    def __init__(
-        self,
-        account_id,
-        access_key_id,
-        private_key,
-        token_exchange_url=None,
-    ):
-        url = token_exchange_url
-        if url is None:
-            url = auth.NEBIUS_CLOUD_IAM_TOKEN_EXCHANGE_URL
-        OAuth2JwtTokenExchangeCredentials.__init__(
-            self,
-            url,
-            account_id,
-            access_key_id,
-            private_key,
-            auth.NEBIUS_CLOUD_JWT_ALGORITHM,
-            auth.NEBIUS_CLOUD_IAM_TOKEN_SERVICE_AUDIENCE,
-            account_id,
-        )
-
 
 class YandexPassportOAuthIamCredentials(TokenServiceCredentials):
     def __init__(
@@ -203,19 +182,3 @@ class ServiceAccountCredentials(JWTIamCredentials):
             iam_channel_credentials,
         )
 
-
-class NebiusServiceAccountCredentials(NebiusJWTIamCredentials):
-    def __init__(
-        self,
-        service_account_id,
-        access_key_id,
-        private_key,
-        iam_endpoint=None,
-        iam_channel_credentials=None,
-    ):
-        super(NebiusServiceAccountCredentials, self).__init__(
-            service_account_id,
-            access_key_id,
-            private_key,
-            iam_endpoint,
-        )
