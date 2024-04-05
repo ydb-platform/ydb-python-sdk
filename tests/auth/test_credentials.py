@@ -91,9 +91,7 @@ class OAuth2TokenExchangeServiceHandler(http.server.BaseHTTPRequestHandler):
 
         assert len(parsed_request["subject_token"]) == 1
         jwt_token = parsed_request["subject_token"][0]
-        decoded = jwt.decode(
-            jwt_token, key=PUBLIC_KEY, algorithms=["RS256"], audience="test-audience"
-        )
+        decoded = jwt.decode(jwt_token, key=PUBLIC_KEY, algorithms=["RS256"], audience="test-audience")
         assert decoded["iss"] == SERVICE_ACCOUNT_ID
         assert decoded["sub"] == SERVICE_ACCOUNT_ID
         assert decoded["aud"] == "test-audience"
@@ -144,8 +142,8 @@ def test_oauth2_token_exchange_credentials():
         SERVICE_ACCOUNT_ID,
         ACCESS_KEY_ID,
         PRIVATE_KEY,
-        audience="test-audience", 
-        subject=SERVICE_ACCOUNT_ID
+        audience="test-audience",
+        subject=SERVICE_ACCOUNT_ID,
     )
     t = credentials.get_auth_token()
     assert t == "test_oauth2_exchange_token"

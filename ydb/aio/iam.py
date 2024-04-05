@@ -176,4 +176,3 @@ class ServiceAccountCredentials(JWTIamCredentials):
             iam_endpoint,
             iam_channel_credentials,
         )
-

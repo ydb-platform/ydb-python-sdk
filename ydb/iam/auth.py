@@ -27,6 +27,7 @@ DEFAULT_YC_IAM_AUDIENCE = "https://iam.api.cloud.yandex.net/iam/v1/tokens"
 DEFAULT_JWT_ALGORITHM = "PS256"
 DEFAULT_OAUTH2_TOKEN_EXCHANGE_JWT_ALGORYTHM = "RS256"
 
+
 def get_jwt(
     account_id, access_key_id, private_key, jwt_expiration_timeout, algorithm=None, audience=None, subject=None
 ):
