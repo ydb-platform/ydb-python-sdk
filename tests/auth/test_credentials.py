@@ -33,9 +33,9 @@ class IamTokenServiceForTest(iam_token_service_pb2_grpc.IamTokenServiceServicer)
     def Create(self, request, context):
         print("IAM token service request: {}".format(request))
         # Validate jwt:
-        decoded = jwt.decode(jwt_token, key=PUBLIC_KEY, algorithms=["RS256"], audience="test-audience")
+        decoded = jwt.decode(request.jwt, key=PUBLIC_KEY, algorithms=["PS256"], audience="test-audience")
         assert decoded["iss"] == SERVICE_ACCOUNT_ID
-        assert decoded["aud"] == "https://iam.api.cloud.yandex.net/iam/v1/tokens"
+        assert decoded["aud"] == "test-audience"
         assert abs(decoded["iat"] - time.time()) <= 60
         assert abs(decoded["exp"] - time.time()) <= 3600
 
