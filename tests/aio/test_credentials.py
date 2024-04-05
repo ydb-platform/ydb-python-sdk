@@ -50,6 +50,8 @@ async def test_oauth2_token_exchange_credentials():
         tests.auth.test_credentials.SERVICE_ACCOUNT_ID,
         tests.auth.test_credentials.ACCESS_KEY_ID,
         tests.auth.test_credentials.PRIVATE_KEY,
+        audience="test-audience",
+        subject=tests.auth.test_credentials.SERVICE_ACCOUNT_ID,
     )
     t = (await credentials.auth_metadata())[0][1]
     assert t == "test_oauth2_exchange_token"
