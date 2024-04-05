@@ -55,6 +55,55 @@ class TokenServiceCredentials(AbstractExpiringTokenCredentials):
 IamTokenCredentials = TokenServiceCredentials
 
 
+class OAuth2JwtTokenExchangeCredentials(AbstractExpiringTokenCredentials, auth.BaseJWTCredentials):
+    def __init__(
+        self,
+        token_exchange_url,
+        account_id,
+        access_key_id,
+        private_key,
+        algorithm=None,
+        audience=None,
+        subject=None,
+    ):
+        super(OAuth2JwtTokenExchangeCredentials, self).__init__()
+        alg = algorithm
+        if alg is None:
+            alg = auth.DEFAULT_OAUTH2_TOKEN_EXCHANGE_JWT_ALGORYTHM
+
+        auth.BaseJWTCredentials.__init__(
+            self, account_id, access_key_id, private_key, alg, audience, subject
+        )
+        assert aiohttp is not None, "Install aiohttp library to use OAuth 2.0 token exchange credentials provider"
+        self._token_exchange_url = token_exchange_url
+
+    async def _make_token_request(self):
+        params = {
+            "grant_type": "urn:ietf:params:oauth:grant-type:token-exchange",
+            "requested_token_type": "urn:ietf:params:oauth:token-type:access_token",
+            "subject_token": self._get_jwt(),
+            "subject_token_type": "urn:ietf:params:oauth:token-type:jwt",
+        }
+        headers = {"Content-Type": "application/x-www-form-urlencoded"}
+
+        timeout = aiohttp.ClientTimeout(total=2)
+        async with aiohttp.ClientSession(timeout=timeout) as session:
+            async with session.post(self._token_exchange_url, data=params, headers=headers) as response:
+                if response.status == 403:
+                    raise issues.Unauthenticated(await response.text())
+                if response.status >= 500:
+                    raise issues.Unavailable(await response.text())
+                if response.status >= 400:
+                    raise issues.BadRequest(await response.text())
+                if response.status != 200:
+                    raise issues.Error(await response.text())
+
+                response_json = await response.json()
+                access_token = response_json["access_token"]
+                expires_in = response_json["expires_in"]
+                return {"access_token": access_token, "expires_in": expires_in}
+
+
 class JWTIamCredentials(TokenServiceCredentials, auth.BaseJWTCredentials):
     def __init__(
         self,
@@ -65,18 +114,16 @@ class JWTIamCredentials(TokenServiceCredentials, auth.BaseJWTCredentials):
         iam_channel_credentials=None,
     ):
         TokenServiceCredentials.__init__(self, iam_endpoint, iam_channel_credentials)
-        auth.BaseJWTCredentials.__init__(self, account_id, access_key_id, private_key)
-
-    def _get_token_request(self):
-        return iam_token_service_pb2.CreateIamTokenRequest(
-            jwt=auth.get_jwt(
-                self._account_id,
-                self._access_key_id,
-                self._private_key,
-                self._jwt_expiration_timeout,
-            )
+        auth.BaseJWTCredentials.__init__(
+            self,
+            account_id,
+            access_key_id,
+            private_key,
+            audience = auth.DEFAULT_YC_IAM_AUDIENCE,
         )
 
+    def _get_token_request(self):
+        return iam_token_service_pb2.CreateIamTokenRequest(jwt=self._get_jwt())
 
 class YandexPassportOAuthIamCredentials(TokenServiceCredentials):
     def __init__(
@@ -130,3 +177,4 @@ class ServiceAccountCredentials(JWTIamCredentials):
             iam_endpoint,
             iam_channel_credentials,
         )
+
