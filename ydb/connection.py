@@ -475,7 +475,7 @@ class Connection(object):
         try:
             ready_future.result(timeout=ready_timeout)
             return candidate
-        except grpc.FutureTimeoutError:
+        except grpc.FutureTimeoutError as e:
             ready_future.cancel()
             candidate.close()
             return None
