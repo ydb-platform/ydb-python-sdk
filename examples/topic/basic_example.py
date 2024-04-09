@@ -50,10 +50,16 @@ async def main():
     )
     parser.add_argument("-d", "--database", default="/local", help="Name of the database to use")
     parser.add_argument("-e", "--endpoint", default="grpc://localhost:2136", help="Endpoint url to use")
-    parser.add_argument("-p", "--path",  default="test-topic", help="Topic name")
+    parser.add_argument("-p", "--path", default="test-topic", help="Topic name")
     parser.add_argument("-c", "--consumer", default="consumer", help="Consumer name")
     parser.add_argument("-v", "--verbose", default=False, action="store_true")
-    parser.add_argument("-s", "--skip-drop-and-create-topic", default=False, action="store_true", help="Use existed topic, skip remove it and re-create")
+    parser.add_argument(
+        "-s",
+        "--skip-drop-and-create-topic",
+        default=False,
+        action="store_true",
+        help="Use existed topic, skip remove it and re-create",
+    )
 
     args = parser.parse_args()
 
@@ -72,5 +78,5 @@ async def main():
     )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     asyncio.run(main())

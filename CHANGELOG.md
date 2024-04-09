@@ -1,8 +1,8 @@
 ## 3.9.1 ##
-* Relaxed requirements for pyjwt version from exactly 2.8.0 to >= 2.0
+yanked bad api release
 
 ## 3.9.0 ##
-* Supported nebius jwt credentials, added requirements for pyjwt==2.8.0
+yanked bad api release
 
 ## 3.8.1 ##
 * Fixed to handle deadline on topic stream in async driver.
