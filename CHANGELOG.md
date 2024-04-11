@@ -1,3 +1,4 @@
+## 3.10.0 ##
 * Added is_column_store to SchemeEntryType and SchemeEntry classes
 
 ## 3.9.1 ##
