@@ -1,3 +1,4 @@
+## 3.11.0 ##
 * Implemented OAuth 2.0 Token Exchange credentials provider
 
 ## 3.10.0 ##
