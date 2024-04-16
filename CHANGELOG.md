@@ -1,3 +1,5 @@
+* Implemented OAuth 2.0 Token Exchange credentials provider
+
 ## 3.10.0 ##
 * Added is_column_store to SchemeEntryType and SchemeEntry classes
 
