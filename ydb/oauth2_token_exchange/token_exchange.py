@@ -1,8 +1,12 @@
 # -*- coding: utf-8 -*-
 import typing
-import requests
 import json
 import abc
+
+try:
+    import requests
+except ImportError:
+    requests = None
 
 from ydb import credentials, tracing, issues
 from .token_source import TokenSource
@@ -119,6 +123,10 @@ class Oauth2TokenExchangeCredentials(credentials.AbstractExpiringTokenCredential
 
     @tracing.with_trace()
     def _make_token_request(self):
+        assert (
+            requests is not None
+        ), "Install requests library to use Oauth2TokenExchangeCredentials credentials provider"
+
         params = self._make_token_request_params()
         headers = {"Content-Type": "application/x-www-form-urlencoded"}
         response = requests.post(self._token_endpoint, data=params, headers=headers)
