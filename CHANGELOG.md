@@ -1,3 +1,4 @@
+## 3.11.1 ##
 * fixed unexpected require requests module on import
 
 ## 3.11.0 ##
