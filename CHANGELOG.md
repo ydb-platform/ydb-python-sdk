@@ -1,3 +1,4 @@
+## 3.11.2 ##
 * Fixed hungup topic reader on unknown codec
 
 ## 3.11.1 ##
