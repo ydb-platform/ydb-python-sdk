@@ -183,14 +183,14 @@ class TestReaderStream:
         yield stream_reader_started
 
         assert stream_reader_started._get_first_error() is None
-        await stream_reader_started.close()
+        await stream_reader_started.close(False)
 
     @pytest.fixture()
     async def stream_reader_finish_with_error(self, stream_reader_started: ReaderStream):
         yield stream_reader_started
 
         assert stream_reader_started._get_first_error() is not None
-        await stream_reader_started.close()
+        await stream_reader_started.close(False)
 
     @staticmethod
     def create_message(
@@ -372,7 +372,7 @@ class TestReaderStream:
         self, stream_reader_started: ReaderStream, partition_session
     ):
         waiter = partition_session.add_waiter(self.partition_session_committed_offset + 1)
-        await wait_for_fast(stream_reader_started.close())
+        await wait_for_fast(stream_reader_started.close(False))
 
         with pytest.raises(topic_reader_asyncio.PublicTopicReaderPartitionExpiredError):
             waiter.future.result()
@@ -402,7 +402,7 @@ class TestReaderStream:
         # don't raises
         assert waiter.future.result() is None
 
-        await wait_for_fast(stream_reader_started.close())
+        await wait_for_fast(stream_reader_started.close(False))
 
     async def test_commit_ranges_for_received_messages(
         self, stream, stream_reader_started: ReaderStream, partition_session
@@ -422,7 +422,7 @@ class TestReaderStream:
         received = stream_reader_started.receive_batch_nowait().messages
         assert received == [m2]
 
-        await stream_reader_started.close()
+        await stream_reader_started.close(False)
 
     # noinspection PyTypeChecker
     @pytest.mark.parametrize(
@@ -613,7 +613,7 @@ class TestReaderStream:
         )
 
         assert reader._session_id == "test"
-        await reader.close()
+        await reader.close(False)
 
     async def test_start_partition(
         self,
@@ -1230,7 +1230,7 @@ class TestReaderStream:
         got = await wait_for_fast(stream.from_client.get())
         assert expected == got
 
-        await reader.close()
+        await reader.close(False)
 
     async def test_read_unknown_message(self, stream, stream_reader, caplog):
         class TestMessage:

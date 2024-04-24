@@ -1,3 +1,5 @@
+* Fixed hungup topic reader on unknown codec
+
 ## 3.11.1 ##
 * fixed unexpected require requests module on import
 

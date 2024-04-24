@@ -74,6 +74,19 @@ class TestTopicReaderAsyncIO:
             batch = await reader.receive_batch()
             assert batch.messages[0].data.decode() == "123"
 
+    async def test_error_unknown_codec(self, driver, topic_path, topic_consumer):
+        codec = 10001
+
+        def encode(b: bytes):
+            return bytes(reversed(b))
+
+        async with driver.topic_client.writer(topic_path, codec=codec, encoders={codec: encode}) as writer:
+            await writer.write("123")
+
+        async with driver.topic_client.reader(topic_path, topic_consumer) as reader:
+            with pytest.raises(ydb.TopicReaderUnexpectedCodecError):
+                await asyncio.wait_for(reader.receive_batch(), timeout=5)
+
     async def test_read_from_two_topics(self, driver, topic_path, topic2_path, topic_consumer):
         async with driver.topic_client.writer(topic_path) as writer:
             await writer.write("1")
