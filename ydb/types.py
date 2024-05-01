@@ -5,7 +5,7 @@ import abc
 import enum
 import json
 from . import _utilities, _apis
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, timedelta, timezone
 import typing
 import uuid
 import struct
@@ -90,7 +90,11 @@ def _from_timestamp(
 
 def _to_timestamp(pb: ydb_value_pb2.Value, value: typing.Union[datetime, int]):
     if isinstance(value, datetime):
-        pb.uint64_value = _timedelta_to_microseconds(value - _EPOCH)
+        if value.tzinfo:
+            epoch = _EPOCH.replace(tzinfo=timezone.utc)
+        else:
+            epoch = _EPOCH
+        pb.uint64_value = _timedelta_to_microseconds(value - epoch)
     else:
         pb.uint64_value = value
 
