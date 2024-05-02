@@ -1,3 +1,5 @@
+* Fixed datetime timezone aware usage
+
 ## 3.11.2 ##
 * Fixed hungup topic reader on unknown codec
 
