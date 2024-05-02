@@ -1,7 +1,7 @@
 import pytest
 import ydb
 
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, timedelta, timezone
 from decimal import Decimal
 from uuid import uuid4
 
@@ -51,8 +51,9 @@ async def test_types(driver, database, value, ydb_type):
 
 test_td = timedelta(microseconds=-100)
 test_now = datetime.utcnow()
-test_today = date.today()
+test_today = test_now.date()
 test_dt_today = datetime.today()
+tz4h = timezone(timedelta(hours=4))
 
 
 @pytest.mark.parametrize(
@@ -63,6 +64,7 @@ test_dt_today = datetime.today()
         (test_today, "Date", test_today),
         (365, "Date", date(1971, 1, 1)),
         (3600 * 24 * 365, "Datetime", datetime(1971, 1, 1, 0, 0)),
+        (datetime(1970, 1, 1, 4, 0, tzinfo=tz4h), "Timestamp", datetime(1970, 1, 1, 0, 0)),
         (test_td, "Interval", test_td),
         (test_now, "Timestamp", test_now),
         (
