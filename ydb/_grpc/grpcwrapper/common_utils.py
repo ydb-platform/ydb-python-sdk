@@ -290,6 +290,7 @@ def proto_duration_from_timedelta(t: Optional[datetime.timedelta]) -> Optional[P
 
     res = ProtoDuration()
     res.FromTimedelta(t)
+    return res
 
 
 def proto_timestamp_from_datetime(t: Optional[datetime.datetime]) -> Optional[ProtoTimeStamp]:
@@ -298,6 +299,7 @@ def proto_timestamp_from_datetime(t: Optional[datetime.datetime]) -> Optional[Pr
 
     res = ProtoTimeStamp()
     res.FromDatetime(t)
+    return res
 
 
 def datetime_from_proto_timestamp(
