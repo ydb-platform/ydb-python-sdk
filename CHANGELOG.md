@@ -1,3 +1,5 @@
+* Added missing returns to time converters for topic options
+
 ## 3.11.3 ##
 * Fixed datetime timezone aware usage
 
