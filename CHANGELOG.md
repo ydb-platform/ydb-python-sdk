@@ -1,3 +1,4 @@
+## 3.11.4 ##
 * Added missing returns to time converters for topic options
 
 ## 3.11.3 ##
