@@ -102,10 +102,7 @@ class BaseJWTCredentials(abc.ABC):
             key = r.read()
 
         return BaseJWTCredentials.from_content(
-            cls,
-            key,
-            iam_endpoint=iam_endpoint,
-            iam_channel_credentials=iam_channel_credentials
+            cls, key, iam_endpoint=iam_endpoint, iam_channel_credentials=iam_channel_credentials
         )
 
     @classmethod
