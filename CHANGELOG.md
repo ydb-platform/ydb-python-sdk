@@ -1,3 +1,6 @@
+## 3.11.5 ##
+* Added support for max_messages and max_bytes parameters, when reading a batch through a sync topic reader
+
 ## 3.11.4 ##
 * Added missing returns to time converters for topic options
 
