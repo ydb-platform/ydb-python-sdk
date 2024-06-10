@@ -1,3 +1,4 @@
+## 3.12.0 ##
 * Supported service account key from memory, additional to file path
 
 ## 3.11.4 ##
