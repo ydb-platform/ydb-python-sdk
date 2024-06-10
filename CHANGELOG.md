@@ -1,3 +1,5 @@
+* Supported service account key from memory, additional to file path
+
 ## 3.11.4 ##
 * Added missing returns to time converters for topic options
 
