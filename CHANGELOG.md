@@ -1,3 +1,5 @@
+* Fixed leak sessions on asyncio timeout
+
 ## 3.12.1b1 ##
 * Fixed error while read the account key from a file
 

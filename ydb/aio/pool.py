@@ -170,7 +170,7 @@ class Discovery:
         while True:
             try:
                 successful = await self.execute_discovery()
-            except Exception:
+            except BaseException:
                 successful = False
             if successful:
                 self._cache.complete_discovery(None)
@@ -247,7 +247,7 @@ class ConnectionPool(IConnectionPool):
         wait_timeout = settings.timeout if settings else 10
         try:
             connection = await self._store.get(preferred_endpoint, fast_fail=fast_fail, wait_timeout=wait_timeout)
-        except Exception:
+        except BaseException:
             self._discovery.notify_disconnected()
             raise
 
