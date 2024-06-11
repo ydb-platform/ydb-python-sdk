@@ -1,3 +1,5 @@
+* Fixed error while read the account key from a file
+
 ## 3.12.0 ##
 * Supported service account key from memory, additional to file path
 
