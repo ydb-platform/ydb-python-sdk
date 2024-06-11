@@ -101,8 +101,8 @@ class BaseJWTCredentials(abc.ABC):
         with open(os.path.expanduser(key_file), "r") as r:
             key = r.read()
 
-        return BaseJWTCredentials.from_content(
-            cls, key, iam_endpoint=iam_endpoint, iam_channel_credentials=iam_channel_credentials
+        return cls.from_content(
+            key, iam_endpoint=iam_endpoint, iam_channel_credentials=iam_channel_credentials
         )
 
     @classmethod
