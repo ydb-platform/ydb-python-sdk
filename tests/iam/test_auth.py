@@ -29,7 +29,7 @@ def test_auth_from_file(mock_file):
         "key_id": "123",
         "private_key": "pppp",
         "iam_endpoint": "my_iam_address",
-        "iam_channel_credentials": "my_creds"
+        "iam_channel_credentials": "my_creds",
     }
 
     r3 = FakeAuth.from_content(CONTENT2)
@@ -39,5 +39,5 @@ def test_auth_from_file(mock_file):
         "key_id": "123",
         "private_key": "pppp",
         "iam_endpoint": None,
-        "iam_channel_credentials": None
+        "iam_channel_credentials": None,
     }
