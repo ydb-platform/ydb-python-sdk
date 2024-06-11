@@ -1,3 +1,4 @@
+## 3.12.1b1 ##
 * Fixed error while read the account key from a file
 
 ## 3.12.0 ##
