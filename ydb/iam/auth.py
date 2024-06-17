@@ -23,8 +23,6 @@ except ImportError:
     except ImportError:
         iam_token_service_pb2_grpc = None
         iam_token_service_pb2 = None
-    iam_token_service_pb2_grpc = None
-    iam_token_service_pb2 = None
 
 try:
     import requests
