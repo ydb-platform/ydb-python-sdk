@@ -1,3 +1,5 @@
+* Fixed error while read the account key from a file (release version)
+
 ## 3.12.1b1 ##
 * Fixed error while read the account key from a file
 
