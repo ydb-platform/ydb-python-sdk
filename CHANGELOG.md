@@ -1,3 +1,4 @@
+## 3.12.2 ##
 * Added support ydb github repo with own auth protobuf
 
 ## 3.12.1 ##
