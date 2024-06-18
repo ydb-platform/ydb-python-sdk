@@ -1,3 +1,5 @@
+* Added support ydb github repo with own auth protobuf
+
 ## 3.12.1 ##
 * Fixed error while read the account key from a file (release version)
 
