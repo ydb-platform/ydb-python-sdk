@@ -539,7 +539,8 @@ class WriterAsyncIOReconnector:
                     writer.write([m])
         except asyncio.CancelledError:
             # the loop task cancelled be parent code, for example for reconnection
-            pass
+            # no need to stop all work.
+            raise
         except BaseException as e:
             self._stop(e)
             raise

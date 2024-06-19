@@ -170,7 +170,7 @@ class Discovery:
         while True:
             try:
                 successful = await self.execute_discovery()
-            except BaseException:
+            except Exception:
                 successful = False
             if successful:
                 self._cache.complete_discovery(None)

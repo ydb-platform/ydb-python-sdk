@@ -18,7 +18,7 @@ class _OneToManyValue(object):
             if self._value is None:
                 try:
                     await asyncio.wait_for(self._condition.wait(), timeout=timeout)
-                except BaseException:
+                except Exception:
                     return self._value
             return self._value
 
@@ -41,7 +41,7 @@ class _AtMostOneExecution(object):
             res = callback()
             if asyncio.iscoroutine(res):
                 await res
-        except BaseException:
+        except Exception:
             pass
 
         finally:
@@ -81,10 +81,14 @@ class AbstractExpiringTokenCredentials(credentials.AbstractExpiringTokenCredenti
         except (KeyboardInterrupt, SystemExit):
             return
 
-        except BaseException as e:
+        except Exception as e:
             self.last_error = str(e)
             await asyncio.sleep(1)
             self._tp.submit(self._refresh)
+
+        except BaseException as e:
+            self.last_error = str(e)
+            raise
 
     async def token(self):
         current_time = time.time()
