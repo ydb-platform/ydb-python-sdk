@@ -6,7 +6,7 @@ import gzip
 import typing
 from asyncio import Task
 from collections import deque
-from typing import Optional, Set, Dict, Union, Callable
+from typing import Any, Callable, Deque, Dict, Optional, Set, Union
 
 import ydb
 from .. import _apis, issues
@@ -65,7 +65,7 @@ class PublicAsyncIOReader:
     _loop: asyncio.AbstractEventLoop
     _closed: bool
     _reconnector: ReaderReconnector
-    _parent: typing.Any  # need for prevent close parent client by GC
+    _parent: Any  # need for prevent close parent client by GC
 
     def __init__(
         self,
@@ -97,7 +97,7 @@ class PublicAsyncIOReader:
 
     async def receive_batch(
         self,
-    ) -> typing.Union[datatypes.PublicBatch, None]:
+    ) -> Union[datatypes.PublicBatch, None]:
         """
         Get one messages batch from reader.
         All messages in a batch from same partition.
@@ -107,7 +107,7 @@ class PublicAsyncIOReader:
         await self._reconnector.wait_message()
         return self._reconnector.receive_batch_nowait()
 
-    async def receive_message(self) -> typing.Optional[datatypes.PublicMessage]:
+    async def receive_message(self) -> Optional[datatypes.PublicMessage]:
         """
         Block until receive new message
 
@@ -116,7 +116,7 @@ class PublicAsyncIOReader:
         await self._reconnector.wait_message()
         return self._reconnector.receive_message_nowait()
 
-    def commit(self, batch: typing.Union[datatypes.PublicMessage, datatypes.PublicBatch]):
+    def commit(self, batch: Union[datatypes.PublicMessage, datatypes.PublicBatch]):
         """
         Write commit message to a buffer.
 
@@ -128,7 +128,7 @@ class PublicAsyncIOReader:
         except PublicTopicReaderPartitionExpiredError:
             pass
 
-    async def commit_with_ack(self, batch: typing.Union[datatypes.PublicMessage, datatypes.PublicBatch]):
+    async def commit_with_ack(self, batch: Union[datatypes.PublicMessage, datatypes.PublicBatch]):
         """
         write commit message to a buffer and wait ack from the server.
 
@@ -255,7 +255,7 @@ class ReaderStream:
     _partition_sessions: Dict[int, datatypes.PartitionSession]
     _buffer_size_bytes: int  # use for init request, then for debug purposes only
     _decode_executor: concurrent.futures.Executor
-    _decoders: Dict[int, typing.Callable[[bytes], bytes]]  # dict[codec_code] func(encoded_bytes)->decoded_bytes
+    _decoders: Dict[int, Callable[[bytes], bytes]]  # dict[codec_code] func(encoded_bytes)->decoded_bytes
 
     if typing.TYPE_CHECKING:
         _batches_to_decode: asyncio.Queue[datatypes.PublicBatch]
@@ -264,7 +264,7 @@ class ReaderStream:
 
     _state_changed: asyncio.Event
     _closed: bool
-    _message_batches: typing.Deque[datatypes.PublicBatch]
+    _message_batches: Deque[datatypes.PublicBatch]
     _first_error: asyncio.Future[YdbError]
 
     _update_token_interval: Union[int, float]
@@ -558,7 +558,7 @@ class ReaderStream:
             )
         )
 
-    def _read_response_to_batches(self, message: StreamReadMessage.ReadResponse) -> typing.List[datatypes.PublicBatch]:
+    def _read_response_to_batches(self, message: StreamReadMessage.ReadResponse) -> List[datatypes.PublicBatch]:
         batches = []
 
         batch_count = sum(len(p.batches) for p in message.partition_data)

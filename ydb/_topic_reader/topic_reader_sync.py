@@ -1,7 +1,6 @@
 import asyncio
 import concurrent.futures
-import typing
-from typing import List, Union, Optional
+from typing import Any, List, Optional, Union
 
 from ydb._grpc.grpcwrapper.common_utils import SupportedDriverType
 from ydb._topic_common.common import (
@@ -10,7 +9,6 @@ from ydb._topic_common.common import (
     TimeoutType,
 )
 from ydb._topic_reader import datatypes
-from ydb._topic_reader.datatypes import PublicBatch
 from ydb._topic_reader.topic_reader import (
     PublicReaderSettings,
     CommitResult,
@@ -25,7 +23,7 @@ class TopicReaderSync:
     _caller: CallFromSyncToAsync
     _async_reader: PublicAsyncIOReader
     _closed: bool
-    _parent: typing.Any  # need for prevent stop the client by GC
+    _parent: Any  # need for prevent stop the client by GC
 
     def __init__(
         self,
@@ -60,7 +58,7 @@ class TopicReaderSync:
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.close()
 
-    def receive_message(self, *, timeout: TimeoutType = None) -> datatypes.PublicMessage:
+    def receive_message(self, *, timeout: TimeoutType = None) -> Union[datatypes.PublicMessage, None]:
         """
         Block until receive new message
         It has no async_ version for prevent lost messages, use async_wait_message as signal for new batches available.
@@ -89,10 +87,10 @@ class TopicReaderSync:
     def receive_batch(
         self,
         *,
-        max_messages: typing.Union[int, None] = None,
-        max_bytes: typing.Union[int, None] = None,
+        max_messages: Union[int, None] = None,
+        max_bytes: Union[int, None] = None,
         timeout: Union[float, None] = None,
-    ) -> Union[PublicBatch, None]:
+    ) -> Union[datatypes.PublicBatch, None]:
         """
         Get one messages batch from reader
         It has no async_ version for prevent lost messages, use async_wait_message as signal for new batches available.
@@ -107,7 +105,7 @@ class TopicReaderSync:
             timeout,
         )
 
-    def commit(self, mess: typing.Union[datatypes.PublicMessage, datatypes.PublicBatch]):
+    def commit(self, mess: Union[datatypes.PublicMessage, datatypes.PublicBatch]):
         """
         Put commit message to internal buffer.
 
@@ -120,7 +118,7 @@ class TopicReaderSync:
 
     def commit_with_ack(
         self,
-        mess: typing.Union[datatypes.PublicMessage, datatypes.PublicBatch],
+        mess: Union[datatypes.PublicMessage, datatypes.PublicBatch],
         timeout: TimeoutType = None,
     ) -> Union[CommitResult, List[CommitResult]]:
         """
@@ -133,7 +131,7 @@ class TopicReaderSync:
         return self._caller.unsafe_call_with_result(self._async_reader.commit_with_ack(mess), timeout)
 
     def async_commit_with_ack(
-        self, mess: typing.Union[datatypes.PublicMessage, datatypes.PublicBatch]
+        self, mess: Union[datatypes.PublicMessage, datatypes.PublicBatch]
     ) -> concurrent.futures.Future:
         """
         write commit message to a buffer and return Future for wait result.
