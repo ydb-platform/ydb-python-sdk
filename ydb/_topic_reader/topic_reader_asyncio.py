@@ -6,7 +6,7 @@ import gzip
 import typing
 from asyncio import Task
 from collections import deque
-from typing import Any, Callable, Deque, Dict, Optional, Set, Union
+from typing import Any, Callable, Deque, Dict, List, Optional, Set, Union
 
 import ydb
 from .. import _apis, issues
