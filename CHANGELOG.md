@@ -1,4 +1,5 @@
 * Fixed leak sessions on asyncio timeout
+* Fixed missed parameter in internal stream_reader.close() - reader hungs up
 
 ## 3.12.2 ##
 * Added support ydb github repo with own auth protobuf
