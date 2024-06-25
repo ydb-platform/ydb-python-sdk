@@ -12,7 +12,7 @@ docker-compose==1.29.2
 dockerpty==0.4.1
 docopt==0.6.2
 grpcio==1.42.0
-idna==3.2
+idna==3.7
 importlib-metadata==4.6.1
 iniconfig==1.1.1
 jsonschema==3.2.0
