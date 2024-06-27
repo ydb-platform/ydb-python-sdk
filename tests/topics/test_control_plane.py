@@ -39,6 +39,14 @@ class TestTopicClientControlPlaneAsyncIO:
 
         assert has_consumer
 
+    async def test_alter_topic(self, driver, topic_path):
+        client = driver.topic_client
+
+        await client.alter_topic(topic_path)
+
+        with pytest.raises(issues.SchemeError):
+            await client.alter_topic(topic_path + "-not-exist")
+
 
 class TestTopicClientControlPlane:
     def test_create_topic(self, driver_sync, database):
@@ -72,3 +80,11 @@ class TestTopicClientControlPlane:
                 break
 
         assert has_consumer
+
+    def test_alter_topic(self, driver_sync, topic_path):
+        client = driver_sync.topic_client
+
+        client.alter_topic(topic_path)
+
+        with pytest.raises(issues.SchemeError):
+            client.alter_topic(topic_path + "-not-exist")
