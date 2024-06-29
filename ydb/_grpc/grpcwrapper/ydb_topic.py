@@ -1063,13 +1063,15 @@ class AlterTopicRequest(IToProto, IFromPublic):
     set_metering_mode: "MeteringMode"
 
     def to_proto(self) -> ydb_topic_pb2.AlterTopicRequest:
+        supported_codecs = self.set_supported_codecs.to_proto() if self.set_supported_codecs.codecs else None
+
         return ydb_topic_pb2.AlterTopicRequest(
             path=self.path,
             add_consumers=[consumer.to_proto() for consumer in self.add_consumers],
             alter_partitioning_settings=self.alter_partitioning_settings.to_proto(),
             set_retention_period=proto_duration_from_timedelta(self.set_retention_period),
             set_retention_storage_mb=self.set_retention_storage_mb,
-            set_supported_codecs=self.set_supported_codecs.to_proto(),
+            set_supported_codecs=supported_codecs,
             set_partition_write_burst_bytes=self.set_partition_write_burst_bytes,
             set_partition_write_speed_bytes_per_second=self.set_partition_write_speed_bytes_per_second,
             alter_attributes=self.alter_attributes,

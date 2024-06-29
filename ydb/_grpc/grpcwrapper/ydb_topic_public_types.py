@@ -37,7 +37,7 @@ class AlterTopicRequestParams:
     set_partition_count_limit: Optional[int]
     add_consumers: Optional[List[Union["PublicConsumer", str]]]
     alter_consumers: Optional[List[Union["PublicAlterConsumer", str]]]
-    drop_consumers: Optional[List[str]]  # TODO: clarify
+    drop_consumers: Optional[List[str]]
     alter_attributes: Optional[Dict[str, str]]
     set_metering_mode: Optional["PublicMeteringMode"]
     set_partition_write_speed_bytes_per_second: Optional[int]
