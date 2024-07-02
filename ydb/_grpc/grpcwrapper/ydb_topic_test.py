@@ -60,27 +60,25 @@ def test_alter_topic_request_from_public_to_proto():
 
     msg_dict = MessageToDict(request_proto, preserving_proto_field_name=True)
 
-    assert msg_dict["path"] == params["path"]
-    assert len(msg_dict["add_consumers"]) == len(params["add_consumers"])
-    assert len(msg_dict["alter_consumers"]) == len(params["alter_consumers"])
-    assert len(msg_dict["drop_consumers"]) == len(params["drop_consumers"])
-    assert msg_dict["alter_attributes"] == params["alter_attributes"]
+    expected_dict = {
+        "path": "topic_name",
+        "alter_partitioning_settings": {"set_min_active_partitions": "2", "set_partition_count_limit": "4"},
+        "set_retention_period": "2419200s",
+        "set_retention_storage_mb": "4",
+        "set_supported_codecs": {"codecs": [1, 2]},
+        "set_partition_write_speed_bytes_per_second": "15",
+        "set_partition_write_burst_bytes": "8",
+        "alter_attributes": {"key": "value"},
+        "add_consumers": [
+            {"name": "new_consumer_1", "supported_codecs": {}},
+            {"name": "new_consumer_2", "supported_codecs": {}},
+        ],
+        "drop_consumers": ["redundant_consumer"],
+        "alter_consumers": [
+            {"name": "old_consumer_1"},
+            {"name": "old_consumer_2"},
+        ],
+        "set_metering_mode": "METERING_MODE_RESERVED_CAPACITY",
+    }
 
-    assert (
-        int(msg_dict["alter_partitioning_settings"]["set_min_active_partitions"]) == params["set_min_active_partitions"]
-    )
-    assert (
-        int(msg_dict["alter_partitioning_settings"]["set_partition_count_limit"]) == params["set_partition_count_limit"]
-    )
-
-    assert int(msg_dict["set_partition_write_burst_bytes"]) == params["set_partition_write_burst_bytes"]
-    assert (
-        int(msg_dict["set_partition_write_speed_bytes_per_second"])
-        == params["set_partition_write_speed_bytes_per_second"]
-    )
-    assert msg_dict["set_retention_period"] == str(int(params["set_retention_period"].total_seconds())) + "s"
-    assert int(msg_dict["set_retention_storage_mb"]) == params["set_retention_storage_mb"]
-
-    assert msg_dict["set_metering_mode"] == "METERING_MODE_RESERVED_CAPACITY"
-
-    assert msg_dict["set_supported_codecs"]["codecs"] == params["set_supported_codecs"]
+    assert msg_dict == expected_dict

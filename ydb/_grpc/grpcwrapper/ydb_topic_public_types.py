@@ -93,7 +93,7 @@ class PublicConsumer:
 @dataclass
 class PublicAlterConsumer:
     name: str
-    set_important: bool = False
+    set_important: Optional[bool] = None
     """
     Consumer may be marked as 'important'. It means messages for this consumer will never expire due to retention.
     User should take care that such consumer never stalls, to prevent running out of disk space.
@@ -102,13 +102,13 @@ class PublicAlterConsumer:
     set_read_from: Optional[datetime.datetime] = None
     "All messages with smaller server written_at timestamp will be skipped."
 
-    set_supported_codecs: List[PublicCodec] = field(default_factory=lambda: list())
+    set_supported_codecs: Optional[List[PublicCodec]] = None
     """
     List of supported codecs by this consumer.
     supported_codecs on topic must be contained inside this list.
     """
 
-    alter_attributes: Dict[str, str] = field(default_factory=lambda: dict())
+    alter_attributes: Optional[Dict[str, str]] = None
     "Attributes of consumer"
 
 
