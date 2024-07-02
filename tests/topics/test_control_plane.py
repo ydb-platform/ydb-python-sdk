@@ -39,6 +39,23 @@ class TestTopicClientControlPlaneAsyncIO:
 
         assert has_consumer
 
+    async def test_alter_not_existed_topic(self, driver, topic_path):
+        client = driver.topic_client
+
+        with pytest.raises(issues.SchemeError):
+            await client.alter_topic(topic_path + "-not-exist")
+
+    async def test_alter_existed_topic(self, driver, topic_path):
+        client = driver.topic_client
+
+        topic_before = await client.describe_topic(topic_path)
+
+        target_min_active_partitions = topic_before.min_active_partitions + 1
+        await client.alter_topic(topic_path, set_min_active_partitions=target_min_active_partitions)
+
+        topic_after = await client.describe_topic(topic_path)
+        assert topic_after.min_active_partitions == target_min_active_partitions
+
 
 class TestTopicClientControlPlane:
     def test_create_topic(self, driver_sync, database):
@@ -72,3 +89,20 @@ class TestTopicClientControlPlane:
                 break
 
         assert has_consumer
+
+    def test_alter_not_existed_topic(self, driver_sync, topic_path):
+        client = driver_sync.topic_client
+
+        with pytest.raises(issues.SchemeError):
+            client.alter_topic(topic_path + "-not-exist")
+
+    def test_alter_existed_topic(self, driver_sync, topic_path):
+        client = driver_sync.topic_client
+
+        topic_before = client.describe_topic(topic_path)
+
+        target_min_active_partitions = topic_before.min_active_partitions + 1
+        client.alter_topic(topic_path, set_min_active_partitions=target_min_active_partitions)
+
+        topic_after = client.describe_topic(topic_path)
+        assert topic_after.min_active_partitions == target_min_active_partitions
