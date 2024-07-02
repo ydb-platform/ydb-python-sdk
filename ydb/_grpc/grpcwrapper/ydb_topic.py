@@ -886,17 +886,19 @@ class Consumer(IToProto, IFromProto, IFromPublic, IToPublic):
 @dataclass
 class AlterConsumer(IToProto, IFromPublic):
     name: str
-    set_important: bool
-    set_read_from: datetime.datetime
-    set_supported_codecs: SupportedCodecs
-    alter_attributes: Dict[str, str]
+    set_important: Optional[bool]
+    set_read_from: Optional[datetime.datetime]
+    set_supported_codecs: Optional[SupportedCodecs]
+    alter_attributes: Optional[Dict[str, str]]
 
     def to_proto(self) -> ydb_topic_pb2.AlterConsumer:
+        supported_codecs = self.set_supported_codecs.to_proto() if self.set_supported_codecs else None
+
         return ydb_topic_pb2.AlterConsumer(
             name=self.name,
             set_important=self.set_important,
             set_read_from=proto_timestamp_from_datetime(self.set_read_from),
-            set_supported_codecs=self.set_supported_codecs.to_proto(),
+            set_supported_codecs=supported_codecs,
             alter_attributes=self.alter_attributes,
         )
 
@@ -905,13 +907,16 @@ class AlterConsumer(IToProto, IFromPublic):
         if not alter_consumer:
             return None
 
-        supported_codecs = alter_consumer.set_supported_codecs if alter_consumer.set_supported_codecs else []
+        supported_codecs = None
+        if alter_consumer.set_supported_codecs is not None:
+            supported_codecs = SupportedCodecs(alter_consumer.set_supported_codecs)
+
 
         return AlterConsumer(
             name=alter_consumer.name,
             set_important=alter_consumer.set_important,
             set_read_from=alter_consumer.set_read_from,
-            set_supported_codecs=SupportedCodecs(codecs=supported_codecs),
+            set_supported_codecs=supported_codecs,
             alter_attributes=alter_consumer.alter_attributes,
         )
 
@@ -937,8 +942,8 @@ class PartitioningSettings(IToProto, IFromProto):
 
 @dataclass
 class AlterPartitioningSettings(IToProto, IFromProto):
-    set_min_active_partitions: int
-    set_partition_count_limit: int
+    set_min_active_partitions: Optional[int]
+    set_partition_count_limit: Optional[int]
 
     @staticmethod
     def from_proto(msg: ydb_topic_pb2.AlterPartitioningSettings) -> "AlterPartitioningSettings":
@@ -1053,17 +1058,17 @@ class AlterTopicRequest(IToProto, IFromPublic):
     add_consumers: List["Consumer"]
     alter_partitioning_settings: AlterPartitioningSettings
     set_retention_period: datetime.timedelta
-    set_retention_storage_mb: int
-    set_supported_codecs: SupportedCodecs
-    set_partition_write_burst_bytes: typing.Optional[int]
-    set_partition_write_speed_bytes_per_second: typing.Optional[int]
+    set_retention_storage_mb: Optional[int]
+    set_supported_codecs: Optional[SupportedCodecs]
+    set_partition_write_burst_bytes: Optional[int]
+    set_partition_write_speed_bytes_per_second: Optional[int]
     alter_attributes: Dict[str, str]
     alter_consumers: List[AlterConsumer]
     drop_consumers: List[str]
     set_metering_mode: "MeteringMode"
 
     def to_proto(self) -> ydb_topic_pb2.AlterTopicRequest:
-        supported_codecs = self.set_supported_codecs.to_proto() if self.set_supported_codecs.codecs else None
+        supported_codecs = self.set_supported_codecs.to_proto() if self.set_supported_codecs else None
 
         return ydb_topic_pb2.AlterTopicRequest(
             path=self.path,
@@ -1098,7 +1103,9 @@ class AlterTopicRequest(IToProto, IFromPublic):
 
         drop_consumers = req.drop_consumers if req.drop_consumers else []
 
-        supported_codecs = req.set_supported_codecs if req.set_supported_codecs else []
+        supported_codecs = None
+        if req.set_supported_codecs is not None:
+            supported_codecs = SupportedCodecs(req.set_supported_codecs)
 
         return AlterTopicRequest(
             path=req.path,
@@ -1109,9 +1116,7 @@ class AlterTopicRequest(IToProto, IFromPublic):
             add_consumers=add_consumers,
             set_retention_period=req.set_retention_period,
             set_retention_storage_mb=req.set_retention_storage_mb,
-            set_supported_codecs=SupportedCodecs(
-                codecs=supported_codecs,
-            ),
+            set_supported_codecs=supported_codecs,
             set_partition_write_burst_bytes=req.set_partition_write_burst_bytes,
             set_partition_write_speed_bytes_per_second=req.set_partition_write_speed_bytes_per_second,
             alter_attributes=req.alter_attributes,
