@@ -1,3 +1,5 @@
+* Added alter topic method
+
 ## 3.12.3 ##
 * Fixed leak sessions on asyncio timeout
 * Fixed missed parameter in internal stream_reader.close() - reader hungs up
