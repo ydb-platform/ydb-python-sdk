@@ -51,7 +51,6 @@ ydb_scheme = ydb_scheme_pb2
 ydb_table = ydb_table_pb2
 ydb_discovery = ydb_discovery_pb2
 ydb_operation = ydb_operation_pb2
-ydb_dynamic_config = ydb_dynamic_config_pb2
 
 
 class CmsService(object):
