@@ -1,3 +1,4 @@
+## 3.13.0 ##
 * Added alter topic method
 
 ## 3.12.3 ##
