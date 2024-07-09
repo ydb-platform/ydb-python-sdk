@@ -39,7 +39,7 @@ from .._grpc.grpcwrapper.ydb_topic import (
 from .._grpc.grpcwrapper.common_utils import (
     IGrpcWrapperAsyncIO,
     SupportedDriverType,
-    GrpcWrapperAsyncIO,
+    GrpcWrapperStreamStreamAsyncIO,
 )
 
 logger = logging.getLogger(__name__)
@@ -613,7 +613,7 @@ class WriterAsyncIOStream:
         init_request: StreamWriteMessage.InitRequest,
         update_token_interval: Optional[Union[int, float]] = None,
     ) -> "WriterAsyncIOStream":
-        stream = GrpcWrapperAsyncIO(StreamWriteMessage.FromServer.from_proto)
+        stream = GrpcWrapperStreamStreamAsyncIO(StreamWriteMessage.FromServer.from_proto)
 
         await stream.start(driver, _apis.TopicService.Stub, _apis.TopicService.StreamWrite)
 
