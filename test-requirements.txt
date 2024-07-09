@@ -37,7 +37,7 @@ toml==0.10.2
 typing-extensions==3.10.0.0
 urllib3==1.26.6
 websocket-client==0.59.0
-zipp==3.5.0
+zipp==3.19.1
 aiohttp==3.7.4
 pytest-pep8
 pytest-flake8
