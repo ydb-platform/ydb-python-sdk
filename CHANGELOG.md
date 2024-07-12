@@ -1,3 +1,4 @@
+## 3.14.0 ##
 * Added load OAuth 2.0 token exchange credentials provider from config file
 
 ## 3.13.1 ##
