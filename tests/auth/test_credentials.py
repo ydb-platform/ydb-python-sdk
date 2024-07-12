@@ -57,7 +57,7 @@ class IamTokenServiceTestServer(object):
         return "localhost:54321"
 
 
-class TestServiceAccountCredentials(ydb.iam.ServiceAccountCredentials):
+class ServiceAccountCredentialsForTest(ydb.iam.ServiceAccountCredentials):
     def _channel_factory(self):
         return grpc.insecure_channel(self._iam_endpoint)
 
@@ -67,7 +67,9 @@ class TestServiceAccountCredentials(ydb.iam.ServiceAccountCredentials):
 
 def test_yandex_service_account_credentials():
     server = IamTokenServiceTestServer()
-    credentials = TestServiceAccountCredentials(SERVICE_ACCOUNT_ID, ACCESS_KEY_ID, PRIVATE_KEY, server.get_endpoint())
+    credentials = ServiceAccountCredentialsForTest(
+        SERVICE_ACCOUNT_ID, ACCESS_KEY_ID, PRIVATE_KEY, server.get_endpoint()
+    )
     t = credentials.get_auth_token()
     assert t == "test_token"
     assert credentials.get_expire_time() <= 42
