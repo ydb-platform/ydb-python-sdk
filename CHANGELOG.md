@@ -1,3 +1,5 @@
+* Added load OAuth 2.0 token exchange credentials provider from config file
+
 ## 3.13.1 ##
 * Moved grpc draft imports to draft folder
 
