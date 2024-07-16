@@ -128,18 +128,20 @@ class ExecuteQueryRequest(_message.Message):
     def __init__(self, session_id: _Optional[str] = ..., exec_mode: _Optional[_Union[ExecMode, str]] = ..., tx_control: _Optional[_Union[TransactionControl, _Mapping]] = ..., query_content: _Optional[_Union[QueryContent, _Mapping]] = ..., parameters: _Optional[_Mapping[str, _ydb_value_pb2.TypedValue]] = ..., stats_mode: _Optional[_Union[StatsMode, str]] = ..., concurrent_result_sets: bool = ...) -> None: ...
 
 class ExecuteQueryResponsePart(_message.Message):
-    __slots__ = ["exec_stats", "issues", "result_set", "result_set_index", "status"]
+    __slots__ = ["exec_stats", "issues", "result_set", "result_set_index", "status", "tx_meta"]
     EXEC_STATS_FIELD_NUMBER: _ClassVar[int]
     ISSUES_FIELD_NUMBER: _ClassVar[int]
     RESULT_SET_FIELD_NUMBER: _ClassVar[int]
     RESULT_SET_INDEX_FIELD_NUMBER: _ClassVar[int]
     STATUS_FIELD_NUMBER: _ClassVar[int]
+    TX_META_FIELD_NUMBER: _ClassVar[int]
     exec_stats: _ydb_query_stats_pb2.QueryStats
     issues: _containers.RepeatedCompositeFieldContainer[_ydb_issue_message_pb2.IssueMessage]
     result_set: _ydb_value_pb2.ResultSet
     result_set_index: int
     status: _ydb_status_codes_pb2.StatusIds.StatusCode
-    def __init__(self, status: _Optional[_Union[_ydb_status_codes_pb2.StatusIds.StatusCode, str]] = ..., issues: _Optional[_Iterable[_Union[_ydb_issue_message_pb2.IssueMessage, _Mapping]]] = ..., result_set_index: _Optional[int] = ..., result_set: _Optional[_Union[_ydb_value_pb2.ResultSet, _Mapping]] = ..., exec_stats: _Optional[_Union[_ydb_query_stats_pb2.QueryStats, _Mapping]] = ...) -> None: ...
+    tx_meta: TransactionMeta
+    def __init__(self, status: _Optional[_Union[_ydb_status_codes_pb2.StatusIds.StatusCode, str]] = ..., issues: _Optional[_Iterable[_Union[_ydb_issue_message_pb2.IssueMessage, _Mapping]]] = ..., result_set_index: _Optional[int] = ..., result_set: _Optional[_Union[_ydb_value_pb2.ResultSet, _Mapping]] = ..., exec_stats: _Optional[_Union[_ydb_query_stats_pb2.QueryStats, _Mapping]] = ..., tx_meta: _Optional[_Union[TransactionMeta, _Mapping]] = ...) -> None: ...
 
 class ExecuteScriptMetadata(_message.Message):
     __slots__ = ["exec_mode", "exec_stats", "exec_status", "execution_id", "result_sets_meta", "script_content"]
