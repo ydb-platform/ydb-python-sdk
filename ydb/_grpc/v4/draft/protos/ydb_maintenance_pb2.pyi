@@ -233,7 +233,7 @@ class ManageMaintenanceTaskResponse(_message.Message):
     def __init__(self, operation: _Optional[_Union[_ydb_operation_pb2.Operation, _Mapping]] = ...) -> None: ...
 
 class Node(_message.Message):
-    __slots__ = ["dynamic", "host", "location", "node_id", "port", "state", "storage"]
+    __slots__ = ["dynamic", "host", "location", "node_id", "port", "start_time", "state", "storage", "version"]
     class DynamicNode(_message.Message):
         __slots__ = ["tenant"]
         TENANT_FIELD_NUMBER: _ClassVar[int]
@@ -247,16 +247,20 @@ class Node(_message.Message):
     LOCATION_FIELD_NUMBER: _ClassVar[int]
     NODE_ID_FIELD_NUMBER: _ClassVar[int]
     PORT_FIELD_NUMBER: _ClassVar[int]
+    START_TIME_FIELD_NUMBER: _ClassVar[int]
     STATE_FIELD_NUMBER: _ClassVar[int]
     STORAGE_FIELD_NUMBER: _ClassVar[int]
+    VERSION_FIELD_NUMBER: _ClassVar[int]
     dynamic: Node.DynamicNode
     host: str
     location: _ydb_discovery_pb2.NodeLocation
     node_id: int
     port: int
+    start_time: _timestamp_pb2.Timestamp
     state: ItemState
     storage: Node.StorageNode
-    def __init__(self, node_id: _Optional[int] = ..., host: _Optional[str] = ..., port: _Optional[int] = ..., location: _Optional[_Union[_ydb_discovery_pb2.NodeLocation, _Mapping]] = ..., state: _Optional[_Union[ItemState, str]] = ..., storage: _Optional[_Union[Node.StorageNode, _Mapping]] = ..., dynamic: _Optional[_Union[Node.DynamicNode, _Mapping]] = ...) -> None: ...
+    version: str
+    def __init__(self, node_id: _Optional[int] = ..., host: _Optional[str] = ..., port: _Optional[int] = ..., location: _Optional[_Union[_ydb_discovery_pb2.NodeLocation, _Mapping]] = ..., state: _Optional[_Union[ItemState, str]] = ..., storage: _Optional[_Union[Node.StorageNode, _Mapping]] = ..., dynamic: _Optional[_Union[Node.DynamicNode, _Mapping]] = ..., start_time: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., version: _Optional[str] = ...) -> None: ...
 
 class RefreshMaintenanceTaskRequest(_message.Message):
     __slots__ = ["operation_params", "task_uid"]

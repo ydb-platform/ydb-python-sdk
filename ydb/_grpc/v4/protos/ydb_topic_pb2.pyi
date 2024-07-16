@@ -2,7 +2,6 @@ from protos import ydb_operation_pb2 as _ydb_operation_pb2
 from protos import ydb_scheme_pb2 as _ydb_scheme_pb2
 from protos import ydb_status_codes_pb2 as _ydb_status_codes_pb2
 from protos import ydb_issue_message_pb2 as _ydb_issue_message_pb2
-from protos import ydb_table_pb2 as _ydb_table_pb2
 from protos.annotations import validation_pb2 as _validation_pb2
 from google.protobuf import duration_pb2 as _duration_pb2
 from google.protobuf import timestamp_pb2 as _timestamp_pb2
@@ -22,44 +21,6 @@ DESCRIPTOR: _descriptor.FileDescriptor
 METERING_MODE_REQUEST_UNITS: MeteringMode
 METERING_MODE_RESERVED_CAPACITY: MeteringMode
 METERING_MODE_UNSPECIFIED: MeteringMode
-
-class AddOffsetsToTransactionRequest(_message.Message):
-    __slots__ = ["consumer", "operation_params", "session_id", "topics", "tx_control"]
-    class TopicOffsets(_message.Message):
-        __slots__ = ["partitions", "path"]
-        class PartitionOffsets(_message.Message):
-            __slots__ = ["partition_id", "partition_offsets"]
-            PARTITION_ID_FIELD_NUMBER: _ClassVar[int]
-            PARTITION_OFFSETS_FIELD_NUMBER: _ClassVar[int]
-            partition_id: int
-            partition_offsets: _containers.RepeatedCompositeFieldContainer[OffsetsRange]
-            def __init__(self, partition_id: _Optional[int] = ..., partition_offsets: _Optional[_Iterable[_Union[OffsetsRange, _Mapping]]] = ...) -> None: ...
-        PARTITIONS_FIELD_NUMBER: _ClassVar[int]
-        PATH_FIELD_NUMBER: _ClassVar[int]
-        partitions: _containers.RepeatedCompositeFieldContainer[AddOffsetsToTransactionRequest.TopicOffsets.PartitionOffsets]
-        path: str
-        def __init__(self, path: _Optional[str] = ..., partitions: _Optional[_Iterable[_Union[AddOffsetsToTransactionRequest.TopicOffsets.PartitionOffsets, _Mapping]]] = ...) -> None: ...
-    CONSUMER_FIELD_NUMBER: _ClassVar[int]
-    OPERATION_PARAMS_FIELD_NUMBER: _ClassVar[int]
-    SESSION_ID_FIELD_NUMBER: _ClassVar[int]
-    TOPICS_FIELD_NUMBER: _ClassVar[int]
-    TX_CONTROL_FIELD_NUMBER: _ClassVar[int]
-    consumer: str
-    operation_params: _ydb_operation_pb2.OperationParams
-    session_id: str
-    topics: _containers.RepeatedCompositeFieldContainer[AddOffsetsToTransactionRequest.TopicOffsets]
-    tx_control: _ydb_table_pb2.TransactionControl
-    def __init__(self, operation_params: _Optional[_Union[_ydb_operation_pb2.OperationParams, _Mapping]] = ..., session_id: _Optional[str] = ..., tx_control: _Optional[_Union[_ydb_table_pb2.TransactionControl, _Mapping]] = ..., topics: _Optional[_Iterable[_Union[AddOffsetsToTransactionRequest.TopicOffsets, _Mapping]]] = ..., consumer: _Optional[str] = ...) -> None: ...
-
-class AddOffsetsToTransactionResponse(_message.Message):
-    __slots__ = ["operation"]
-    OPERATION_FIELD_NUMBER: _ClassVar[int]
-    operation: _ydb_operation_pb2.Operation
-    def __init__(self, operation: _Optional[_Union[_ydb_operation_pb2.Operation, _Mapping]] = ...) -> None: ...
-
-class AddOffsetsToTransactionResult(_message.Message):
-    __slots__ = []
-    def __init__(self) -> None: ...
 
 class AlterConsumer(_message.Message):
     __slots__ = ["alter_attributes", "name", "set_important", "set_read_from", "set_supported_codecs"]
@@ -709,7 +670,7 @@ class StreamWriteMessage(_message.Message):
         supported_codecs: SupportedCodecs
         def __init__(self, last_seq_no: _Optional[int] = ..., session_id: _Optional[str] = ..., partition_id: _Optional[int] = ..., supported_codecs: _Optional[_Union[SupportedCodecs, _Mapping]] = ...) -> None: ...
     class WriteRequest(_message.Message):
-        __slots__ = ["codec", "messages"]
+        __slots__ = ["codec", "messages", "tx"]
         class MessageData(_message.Message):
             __slots__ = ["created_at", "data", "message_group_id", "metadata_items", "partition_id", "seq_no", "uncompressed_size"]
             CREATED_AT_FIELD_NUMBER: _ClassVar[int]
@@ -729,9 +690,11 @@ class StreamWriteMessage(_message.Message):
             def __init__(self, seq_no: _Optional[int] = ..., created_at: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., data: _Optional[bytes] = ..., uncompressed_size: _Optional[int] = ..., message_group_id: _Optional[str] = ..., partition_id: _Optional[int] = ..., metadata_items: _Optional[_Iterable[_Union[MetadataItem, _Mapping]]] = ...) -> None: ...
         CODEC_FIELD_NUMBER: _ClassVar[int]
         MESSAGES_FIELD_NUMBER: _ClassVar[int]
+        TX_FIELD_NUMBER: _ClassVar[int]
         codec: int
         messages: _containers.RepeatedCompositeFieldContainer[StreamWriteMessage.WriteRequest.MessageData]
-        def __init__(self, messages: _Optional[_Iterable[_Union[StreamWriteMessage.WriteRequest.MessageData, _Mapping]]] = ..., codec: _Optional[int] = ...) -> None: ...
+        tx: TransactionIdentity
+        def __init__(self, messages: _Optional[_Iterable[_Union[StreamWriteMessage.WriteRequest.MessageData, _Mapping]]] = ..., codec: _Optional[int] = ..., tx: _Optional[_Union[TransactionIdentity, _Mapping]] = ...) -> None: ...
     class WriteResponse(_message.Message):
         __slots__ = ["acks", "partition_id", "write_statistics"]
         class WriteAck(_message.Message):
@@ -784,6 +747,50 @@ class SupportedCodecs(_message.Message):
     CODECS_FIELD_NUMBER: _ClassVar[int]
     codecs: _containers.RepeatedScalarFieldContainer[int]
     def __init__(self, codecs: _Optional[_Iterable[int]] = ...) -> None: ...
+
+class TransactionIdentity(_message.Message):
+    __slots__ = ["id", "session"]
+    ID_FIELD_NUMBER: _ClassVar[int]
+    SESSION_FIELD_NUMBER: _ClassVar[int]
+    id: str
+    session: str
+    def __init__(self, id: _Optional[str] = ..., session: _Optional[str] = ...) -> None: ...
+
+class UpdateOffsetsInTransactionRequest(_message.Message):
+    __slots__ = ["consumer", "operation_params", "topics", "tx"]
+    class TopicOffsets(_message.Message):
+        __slots__ = ["partitions", "path"]
+        class PartitionOffsets(_message.Message):
+            __slots__ = ["partition_id", "partition_offsets"]
+            PARTITION_ID_FIELD_NUMBER: _ClassVar[int]
+            PARTITION_OFFSETS_FIELD_NUMBER: _ClassVar[int]
+            partition_id: int
+            partition_offsets: _containers.RepeatedCompositeFieldContainer[OffsetsRange]
+            def __init__(self, partition_id: _Optional[int] = ..., partition_offsets: _Optional[_Iterable[_Union[OffsetsRange, _Mapping]]] = ...) -> None: ...
+        PARTITIONS_FIELD_NUMBER: _ClassVar[int]
+        PATH_FIELD_NUMBER: _ClassVar[int]
+        partitions: _containers.RepeatedCompositeFieldContainer[UpdateOffsetsInTransactionRequest.TopicOffsets.PartitionOffsets]
+        path: str
+        def __init__(self, path: _Optional[str] = ..., partitions: _Optional[_Iterable[_Union[UpdateOffsetsInTransactionRequest.TopicOffsets.PartitionOffsets, _Mapping]]] = ...) -> None: ...
+    CONSUMER_FIELD_NUMBER: _ClassVar[int]
+    OPERATION_PARAMS_FIELD_NUMBER: _ClassVar[int]
+    TOPICS_FIELD_NUMBER: _ClassVar[int]
+    TX_FIELD_NUMBER: _ClassVar[int]
+    consumer: str
+    operation_params: _ydb_operation_pb2.OperationParams
+    topics: _containers.RepeatedCompositeFieldContainer[UpdateOffsetsInTransactionRequest.TopicOffsets]
+    tx: TransactionIdentity
+    def __init__(self, operation_params: _Optional[_Union[_ydb_operation_pb2.OperationParams, _Mapping]] = ..., tx: _Optional[_Union[TransactionIdentity, _Mapping]] = ..., topics: _Optional[_Iterable[_Union[UpdateOffsetsInTransactionRequest.TopicOffsets, _Mapping]]] = ..., consumer: _Optional[str] = ...) -> None: ...
+
+class UpdateOffsetsInTransactionResponse(_message.Message):
+    __slots__ = ["operation"]
+    OPERATION_FIELD_NUMBER: _ClassVar[int]
+    operation: _ydb_operation_pb2.Operation
+    def __init__(self, operation: _Optional[_Union[_ydb_operation_pb2.Operation, _Mapping]] = ...) -> None: ...
+
+class UpdateOffsetsInTransactionResult(_message.Message):
+    __slots__ = []
+    def __init__(self) -> None: ...
 
 class UpdateTokenRequest(_message.Message):
     __slots__ = ["token"]

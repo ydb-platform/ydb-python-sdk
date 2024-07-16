@@ -21,7 +21,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   syntax='proto3',
   serialized_options=b'\n\027tech.ydb.proto.topic.v1Z4github.com/ydb-platform/ydb-go-genproto/Ydb_Topic_V1\370\001\001',
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n\x12ydb_topic_v1.proto\x12\x0cYdb.Topic.V1\x1a\x16protos/ydb_topic.proto2\xbc\x05\n\x0cTopicService\x12\x65\n\x0bStreamWrite\x12(.Ydb.Topic.StreamWriteMessage.FromClient\x1a(.Ydb.Topic.StreamWriteMessage.FromServer(\x01\x30\x01\x12\x62\n\nStreamRead\x12\'.Ydb.Topic.StreamReadMessage.FromClient\x1a\'.Ydb.Topic.StreamReadMessage.FromServer(\x01\x30\x01\x12O\n\x0c\x43ommitOffset\x12\x1e.Ydb.Topic.CommitOffsetRequest\x1a\x1f.Ydb.Topic.CommitOffsetResponse\x12L\n\x0b\x43reateTopic\x12\x1d.Ydb.Topic.CreateTopicRequest\x1a\x1e.Ydb.Topic.CreateTopicResponse\x12R\n\rDescribeTopic\x12\x1f.Ydb.Topic.DescribeTopicRequest\x1a .Ydb.Topic.DescribeTopicResponse\x12[\n\x10\x44\x65scribeConsumer\x12\".Ydb.Topic.DescribeConsumerRequest\x1a#.Ydb.Topic.DescribeConsumerResponse\x12I\n\nAlterTopic\x12\x1c.Ydb.Topic.AlterTopicRequest\x1a\x1d.Ydb.Topic.AlterTopicResponse\x12\x46\n\tDropTopic\x12\x1b.Ydb.Topic.DropTopicRequest\x1a\x1c.Ydb.Topic.DropTopicResponseBR\n\x17tech.ydb.proto.topic.v1Z4github.com/ydb-platform/ydb-go-genproto/Ydb_Topic_V1\xf8\x01\x01\x62\x06proto3'
+  serialized_pb=b'\n\x12ydb_topic_v1.proto\x12\x0cYdb.Topic.V1\x1a\x16protos/ydb_topic.proto2\xb7\x06\n\x0cTopicService\x12\x65\n\x0bStreamWrite\x12(.Ydb.Topic.StreamWriteMessage.FromClient\x1a(.Ydb.Topic.StreamWriteMessage.FromServer(\x01\x30\x01\x12\x62\n\nStreamRead\x12\'.Ydb.Topic.StreamReadMessage.FromClient\x1a\'.Ydb.Topic.StreamReadMessage.FromServer(\x01\x30\x01\x12O\n\x0c\x43ommitOffset\x12\x1e.Ydb.Topic.CommitOffsetRequest\x1a\x1f.Ydb.Topic.CommitOffsetResponse\x12y\n\x1aUpdateOffsetsInTransaction\x12,.Ydb.Topic.UpdateOffsetsInTransactionRequest\x1a-.Ydb.Topic.UpdateOffsetsInTransactionResponse\x12L\n\x0b\x43reateTopic\x12\x1d.Ydb.Topic.CreateTopicRequest\x1a\x1e.Ydb.Topic.CreateTopicResponse\x12R\n\rDescribeTopic\x12\x1f.Ydb.Topic.DescribeTopicRequest\x1a .Ydb.Topic.DescribeTopicResponse\x12[\n\x10\x44\x65scribeConsumer\x12\".Ydb.Topic.DescribeConsumerRequest\x1a#.Ydb.Topic.DescribeConsumerResponse\x12I\n\nAlterTopic\x12\x1c.Ydb.Topic.AlterTopicRequest\x1a\x1d.Ydb.Topic.AlterTopicResponse\x12\x46\n\tDropTopic\x12\x1b.Ydb.Topic.DropTopicRequest\x1a\x1c.Ydb.Topic.DropTopicResponseBR\n\x17tech.ydb.proto.topic.v1Z4github.com/ydb-platform/ydb-go-genproto/Ydb_Topic_V1\xf8\x01\x01\x62\x06proto3'
   ,
   dependencies=[protos_dot_ydb__topic__pb2.DESCRIPTOR,])
 
@@ -40,7 +40,7 @@ _TOPICSERVICE = _descriptor.ServiceDescriptor(
   serialized_options=None,
   create_key=_descriptor._internal_create_key,
   serialized_start=61,
-  serialized_end=761,
+  serialized_end=884,
   methods=[
   _descriptor.MethodDescriptor(
     name='StreamWrite',
@@ -73,9 +73,19 @@ _TOPICSERVICE = _descriptor.ServiceDescriptor(
     create_key=_descriptor._internal_create_key,
   ),
   _descriptor.MethodDescriptor(
+    name='UpdateOffsetsInTransaction',
+    full_name='Ydb.Topic.V1.TopicService.UpdateOffsetsInTransaction',
+    index=3,
+    containing_service=None,
+    input_type=protos_dot_ydb__topic__pb2._UPDATEOFFSETSINTRANSACTIONREQUEST,
+    output_type=protos_dot_ydb__topic__pb2._UPDATEOFFSETSINTRANSACTIONRESPONSE,
+    serialized_options=None,
+    create_key=_descriptor._internal_create_key,
+  ),
+  _descriptor.MethodDescriptor(
     name='CreateTopic',
     full_name='Ydb.Topic.V1.TopicService.CreateTopic',
-    index=3,
+    index=4,
     containing_service=None,
     input_type=protos_dot_ydb__topic__pb2._CREATETOPICREQUEST,
     output_type=protos_dot_ydb__topic__pb2._CREATETOPICRESPONSE,
@@ -85,7 +95,7 @@ _TOPICSERVICE = _descriptor.ServiceDescriptor(
   _descriptor.MethodDescriptor(
     name='DescribeTopic',
     full_name='Ydb.Topic.V1.TopicService.DescribeTopic',
-    index=4,
+    index=5,
     containing_service=None,
     input_type=protos_dot_ydb__topic__pb2._DESCRIBETOPICREQUEST,
     output_type=protos_dot_ydb__topic__pb2._DESCRIBETOPICRESPONSE,
@@ -95,7 +105,7 @@ _TOPICSERVICE = _descriptor.ServiceDescriptor(
   _descriptor.MethodDescriptor(
     name='DescribeConsumer',
     full_name='Ydb.Topic.V1.TopicService.DescribeConsumer',
-    index=5,
+    index=6,
     containing_service=None,
     input_type=protos_dot_ydb__topic__pb2._DESCRIBECONSUMERREQUEST,
     output_type=protos_dot_ydb__topic__pb2._DESCRIBECONSUMERRESPONSE,
@@ -105,7 +115,7 @@ _TOPICSERVICE = _descriptor.ServiceDescriptor(
   _descriptor.MethodDescriptor(
     name='AlterTopic',
     full_name='Ydb.Topic.V1.TopicService.AlterTopic',
-    index=6,
+    index=7,
     containing_service=None,
     input_type=protos_dot_ydb__topic__pb2._ALTERTOPICREQUEST,
     output_type=protos_dot_ydb__topic__pb2._ALTERTOPICRESPONSE,
@@ -115,7 +125,7 @@ _TOPICSERVICE = _descriptor.ServiceDescriptor(
   _descriptor.MethodDescriptor(
     name='DropTopic',
     full_name='Ydb.Topic.V1.TopicService.DropTopic',
-    index=7,
+    index=8,
     containing_service=None,
     input_type=protos_dot_ydb__topic__pb2._DROPTOPICREQUEST,
     output_type=protos_dot_ydb__topic__pb2._DROPTOPICRESPONSE,
