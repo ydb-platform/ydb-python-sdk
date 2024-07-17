@@ -256,6 +256,19 @@ class ServerStatus(IFromProto):
         return res
 
 
+ResultType = typing.TypeVar("ResultType", bound=IFromProtoWithProtoType)
+
+
+def create_result_wrapper(
+    result_type: typing.Type[ResultType],
+) -> typing.Callable[[typing.Any, typing.Any, typing.Any], ResultType]:
+    def wrapper(rpc_state, response_pb, driver=None):
+        # issues._process_response(response_pb.operation)
+        return result_type.from_proto(response_pb)
+
+    return wrapper
+
+
 def callback_from_asyncio(callback: Union[Callable, Coroutine]) -> [asyncio.Future, asyncio.Task]:
     loop = asyncio.get_running_loop()
 
