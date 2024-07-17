@@ -1,5 +1,7 @@
 import abc
 import logging
+import enum
+import functools
 
 from .. import (
     _apis,
@@ -9,8 +11,6 @@ from .. import (
 from .._grpc.grpcwrapper import ydb_query as _ydb_query
 from .._grpc.grpcwrapper import ydb_query_public_types as _ydb_query_public
 
-from .._tx_ctx_impl import TxState, reset_tx_id_handler
-from .._session_impl import bad_session_handler
 from . import base
 
 logger = logging.getLogger(__name__)
@@ -30,6 +30,38 @@ logger = logging.getLogger(__name__)
 #     return tx_mode
 
 
+def reset_tx_id_handler(func):
+    @functools.wraps(func)
+    def decorator(rpc_state, response_pb, session_state, tx_state, *args, **kwargs):
+        try:
+            return func(rpc_state, response_pb, session_state, tx_state, *args, **kwargs)
+        except issues.Error:
+            tx_state.change_state(base.QueryTxStateEnum.DEAD)
+            tx_state.tx_id = None
+            raise
+
+    return decorator
+
+
+class QueryTxState:
+    def __init__(self, tx_mode: base.BaseQueryTxMode):
+        """
+        Holds transaction context manager info
+        :param tx_mode: A mode of transaction
+        """
+        self.tx_id = None
+        self.tx_mode = tx_mode
+        self._state = base.QueryTxStateEnum.NOT_INITIALIZED
+
+    def check_invalid_transition(self, target: base.QueryTxStateEnum):
+        if not base.QueryTxStateHelper.is_valid_transition(self._state, target):
+            raise RuntimeError(f"Transaction could not be moved from {self._state.value} to {target.value}")
+
+    def change_state(self, target: base.QueryTxStateEnum):
+        self.check_invalid_transition(target)
+        self._state = target
+
+
 def _construct_tx_settings(tx_state):
     tx_settings = _ydb_query.TransactionSettings.from_public(tx_state.tx_mode)
     return tx_settings
@@ -40,8 +72,6 @@ def _create_begin_transaction_request(session_state, tx_state):
         session_id=session_state.session_id,
         tx_settings=_construct_tx_settings(tx_state),
     ).to_proto()
-
-    print(request)
 
     return request
 
@@ -59,32 +89,35 @@ def _create_rollback_transaction_request(session_state, tx_state):
     return request
 
 
-@bad_session_handler
+@base.bad_session_handler
 def wrap_tx_begin_response(rpc_state, response_pb, session_state, tx_state, tx):
-    # session_state.complete_query()
-    # issues._process_response(response_pb.operation)
-    print("wrap result")
     message = _ydb_query.BeginTransactionResponse.from_proto(response_pb)
-
+    issues._process_response(message.status)
+    tx_state.change_state(base.QueryTxStateEnum.BEGINED)
     tx_state.tx_id = message.tx_meta.tx_id
     return tx
 
 
-@bad_session_handler
+@base.bad_session_handler
 @reset_tx_id_handler
-def wrap_result_on_rollback_or_commit_tx(rpc_state, response_pb, session_state, tx_state, tx):
-
-    # issues._process_response(response_pb.operation)
-    # transaction successfully committed or rolled back
+def wrap_tx_commit_response(rpc_state, response_pb, session_state, tx_state, tx):
+    message = _ydb_query.CommitTransactionResponse(response_pb)
+    issues._process_response(message.status)
     tx_state.tx_id = None
+    tx_state.change_state(base.QueryTxStateEnum.COMMITTED)
+    return tx
+
+@base.bad_session_handler
+@reset_tx_id_handler
+def wrap_tx_rollback_response(rpc_state, response_pb, session_state, tx_state, tx):
+    message = _ydb_query.RollbackTransactionResponse(response_pb)
+    issues._process_response(message.status)
+    tx_state.tx_id = None
+    tx_state.change_state(base.QueryTxStateEnum.ROLLBACKED)
     return tx
 
 
 class BaseTxContext(base.IQueryTxContext):
-
-    _COMMIT = "commit"
-    _ROLLBACK = "rollback"
-
     def __init__(self, driver, session_state, session, tx_mode=None):
         """
         An object that provides a simple transaction context manager that allows statements execution
@@ -106,7 +139,7 @@ class BaseTxContext(base.IQueryTxContext):
         self._driver = driver
         if tx_mode is None:
             tx_mode = _ydb_query_public.QuerySerializableReadWrite()
-        self._tx_state = TxState(tx_mode)
+        self._tx_state = QueryTxState(tx_mode)
         self._session_state = session_state
         self.session = session
         self._finished = ""
@@ -163,17 +196,15 @@ class BaseTxContext(base.IQueryTxContext):
 
         :return: An open transaction
         """
-        if self._tx_state.tx_id is not None:
-            return self
-
-        print('try to begin tx')
+        self._tx_state.check_invalid_transition(base.QueryTxStateEnum.BEGINED)
 
         return self._driver(
             _create_begin_transaction_request(self._session_state, self._tx_state),
             _apis.QueryService.Stub,
             _apis.QueryService.BeginTransaction,
-            wrap_result=wrap_tx_begin_response,
-            wrap_args=(self._session_state, self._tx_state, self),
+            wrap_tx_begin_response,
+            settings,
+            (self._session_state, self._tx_state, self),
         )
 
     def commit(self, settings=None):
@@ -186,22 +217,28 @@ class BaseTxContext(base.IQueryTxContext):
         :return: A committed transaction or exception if commit is failed
         """
 
-        self._set_finish(self._COMMIT)
-
-        if self._tx_state.tx_id is None and not self._tx_state.dead:
-            return self
+        self._tx_state.check_invalid_transition(base.QueryTxStateEnum.COMMITTED)
 
         return self._driver(
             _create_commit_transaction_request(self._session_state, self._tx_state),
             _apis.QueryService.Stub,
             _apis.QueryService.CommitTransaction,
-            wrap_result_on_rollback_or_commit_tx,
+            wrap_tx_commit_response,
             settings,
             (self._session_state, self._tx_state, self),
         )
 
     def rollback(self, settings=None):
-        pass
+        self._tx_state.check_invalid_transition(base.QueryTxStateEnum.ROLLBACKED)
+
+        return self._driver(
+            _create_rollback_transaction_request(self._session_state, self._tx_state),
+            _apis.QueryService.Stub,
+            _apis.QueryService.RollbackTransaction,
+            wrap_tx_rollback_response,
+            settings,
+            (self._session_state, self._tx_state, self),
+        )
 
     def execute(self, query, parameters=None, commit_tx=False, settings=None):
         pass

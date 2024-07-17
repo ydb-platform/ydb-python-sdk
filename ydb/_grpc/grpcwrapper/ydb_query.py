@@ -116,6 +116,29 @@ class BeginTransactionResponse(IFromProto):
             tx_meta=TransactionMeta.from_proto(msg.tx_meta),
         )
 
+
+@dataclass
+class CommitTransactionResponse(IFromProto):
+    status: Optional[ServerStatus]
+
+    @staticmethod
+    def from_proto(msg: ydb_query_pb2.CommitTransactionResponse) -> "CommitTransactionResponse":
+        return CommitTransactionResponse(
+            status=ServerStatus(msg.status, msg.issues),
+        )
+
+
+@dataclass
+class RollbackTransactionResponse(IFromProto):
+    status: Optional[ServerStatus]
+
+    @staticmethod
+    def from_proto(msg: ydb_query_pb2.RollbackTransactionResponse) -> "RollbackTransactionResponse":
+        return RollbackTransactionResponse(
+            status=ServerStatus(msg.status, msg.issues),
+        )
+
+
 @dataclass
 class QueryContent(IFromPublic, IToProto):
     text: str
