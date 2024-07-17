@@ -116,3 +116,46 @@ class BeginTransactionResponse(IFromProto):
             status=ServerStatus(msg.status, msg.issues),
             tx_meta=TransactionMeta.from_proto(msg.tx_meta),
         )
+
+@dataclass
+class QueryContent(IFromPublic, IToProto):
+    text: str
+    syntax: Optional[str]
+
+    @staticmethod
+    def from_public(query: str) -> "QueryContent":
+        return QueryContent(text=query)
+
+    def to_proto(self) -> ydb_query_pb2.QueryContent:
+        return ydb_query_pb2.QueryContent(text=self.text, syntax=self.syntax)
+
+
+@dataclass
+class TransactionControl(IToProto):
+    begin_tx: Optional[TransactionSettings]
+    commit_tx: Optional[bool]
+    tx_id: Optional[str]
+
+    def to_proto(self) -> ydb_query_pb2.TransactionControl:
+        if self.tx_id:
+            return ydb_query_pb2.TransactionControl(
+                tx_id=self.tx_id,
+                commit_tx=self.commit_tx,
+            )
+        return ydb_query_pb2.TransactionControl(
+            begin_tx=self.begin_tx,
+            commit_tx=self.commit_tx
+        )
+
+
+@dataclass
+class ExecuteQueryRequest:
+    exec_mode: Optional[str]
+    concurrent_result_sets: bool = False
+    parameters: Optional[dict]
+    query_content: QueryContent
+    session_id: str
+    stats_mode: Optional[str]
+    tx_control: TransactionControl
+
+
