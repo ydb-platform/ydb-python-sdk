@@ -77,6 +77,7 @@ class BaseQuerySession(base.IQuerySession):
             session_id=self._state.session_id,
             commit_tx=commit_tx
         )
+        print(request)
         return self._driver(
             request,
             _apis.QueryService.Stub,

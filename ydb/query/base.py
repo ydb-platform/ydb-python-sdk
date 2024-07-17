@@ -17,9 +17,6 @@ from .. import convert
 class QueryClientSettings: ...
 
 
-class IQueryTxContext: ...
-
-
 class QuerySessionState:
     _session_id: Optional[str]
     _node_id: Optional[int]
@@ -60,6 +57,7 @@ class QuerySessionState:
 
 
 class IQuerySession(abc.ABC):
+    @abc.abstractmethod
     def __init__(self, driver: SupportedDriverType, settings: QueryClientSettings = None):
         pass
 
@@ -72,7 +70,48 @@ class IQuerySession(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def transaction(self, tx_mode: BaseQueryTxMode) -> IQueryTxContext:
+    def transaction(self, tx_mode: BaseQueryTxMode) -> "IQueryTxContext":
+        pass
+
+
+class IQueryTxContext(abc.ABC):
+
+    @abc.abstractmethod
+    def __init__(self, driver: SupportedDriverType, session_state: QuerySessionState, session: IQuerySession, tx_mode: BaseQueryTxMode = None):
+        pass
+
+    @abc.abstractmethod
+    def __enter__(self):
+        pass
+
+    @abc.abstractmethod
+    def __exit__(self, *args, **kwargs):
+        pass
+
+    @property
+    @abc.abstractmethod
+    def session_id(self):
+        pass
+
+    @property
+    @abc.abstractmethod
+    def tx_id(self):
+        pass
+
+    @abc.abstractmethod
+    def begin():
+        pass
+
+    @abc.abstractmethod
+    def commit():
+        pass
+
+    @abc.abstractmethod
+    def rollback():
+        pass
+
+    @abc.abstractmethod
+    def execute(query: str):
         pass
 
 
@@ -103,6 +142,9 @@ def create_execute_query_request(query: str, session_id: str, commit_tx: bool):
 
 def wrap_execute_query_response(rpc_state, response_pb):
 
-    print(response_pb)
+    # print("RESP:")
+    # print(f"meta: {response_pb.tx_meta}")
+    # print(response_pb)
+
 
     return convert.ResultSet.from_message(response_pb.result_set)

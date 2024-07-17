@@ -11,27 +11,23 @@ from .._grpc.grpcwrapper import ydb_query_public_types as _ydb_query_public
 
 from .._tx_ctx_impl import TxState, reset_tx_id_handler
 from .._session_impl import bad_session_handler
-from ..table import (
-    AbstractTransactionModeBuilder,
-    ITxContext,
-    SerializableReadWrite
-)
+from . import base
 
 logger = logging.getLogger(__name__)
 
-def patch_table_service_tx_mode_to_query_service(tx_mode: AbstractTransactionModeBuilder):
-    if tx_mode.name == 'snapshot_read_only':
-        tx_mode = _ydb_query_public.QuerySnapshotReadOnly()
-    elif tx_mode.name == 'serializable_read_write':
-        tx_mode = _ydb_query_public.QuerySerializableReadWrite()
-    elif tx_mode.name =='online_read_only':
-        tx_mode = _ydb_query_public.QueryOnlineReadOnly()
-    elif tx_mode.name == 'stale_read_only':
-        tx_mode = _ydb_query_public.QueryStaleReadOnly()
-    else:
-        raise issues.YDBInvalidArgumentError(f'Unknown transaction mode: {tx_mode.name}')
+# def patch_table_service_tx_mode_to_query_service(tx_mode: AbstractTransactionModeBuilder):
+#     if tx_mode.name == 'snapshot_read_only':
+#         tx_mode = _ydb_query_public.QuerySnapshotReadOnly()
+#     elif tx_mode.name == 'serializable_read_write':
+#         tx_mode = _ydb_query_public.QuerySerializableReadWrite()
+#     elif tx_mode.name =='online_read_only':
+#         tx_mode = _ydb_query_public.QueryOnlineReadOnly()
+#     elif tx_mode.name == 'stale_read_only':
+#         tx_mode = _ydb_query_public.QueryStaleReadOnly()
+#     else:
+#         raise issues.YDBInvalidArgumentError(f'Unknown transaction mode: {tx_mode.name}')
 
-    return tx_mode
+#     return tx_mode
 
 
 def _construct_tx_settings(tx_state):
@@ -69,7 +65,8 @@ def wrap_tx_begin_response(rpc_state, response_pb, session_state, tx_state, tx):
     # issues._process_response(response_pb.operation)
     print("wrap result")
     message = _ydb_query.BeginTransactionResponse.from_proto(response_pb)
-    tx_state.tx_id = message.tx_meta.id
+
+    tx_state.tx_id = message.tx_meta.tx_id
     return tx
 
 
@@ -83,7 +80,7 @@ def wrap_result_on_rollback_or_commit_tx(rpc_state, response_pb, session_state, 
     return tx
 
 
-class BaseTxContext(ITxContext):
+class BaseTxContext(base.IQueryTxContext):
 
     _COMMIT = "commit"
     _ROLLBACK = "rollback"
@@ -108,9 +105,7 @@ class BaseTxContext(ITxContext):
         """
         self._driver = driver
         if tx_mode is None:
-            tx_mode = patch_table_service_tx_mode_to_query_service(SerializableReadWrite())
-        else:
-            tx_mode = patch_table_service_tx_mode_to_query_service(tx_mode)
+            tx_mode = _ydb_query_public.QuerySerializableReadWrite()
         self._tx_state = TxState(tx_mode)
         self._session_state = session_state
         self.session = session

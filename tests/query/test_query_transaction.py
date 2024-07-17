@@ -10,8 +10,8 @@ class TestQuerySession:
 
         tx = session.transaction()
 
-        assert tx._tx_state.tx_id == None
+        assert tx.tx_id == None
 
         tx.begin()
 
-        assert tx._tx_state.tx_id != None
+        assert tx.tx_id != None

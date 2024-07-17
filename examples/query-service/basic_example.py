@@ -21,9 +21,9 @@ def main():
 
     it = session.execute("select 1; select 2;", commit_tx=False)
     for result_set in it:
-        pass
-        # print(f"columns: {str(result_set.columns)}")
-        # print(f"rows: {str(result_set.rows)}")
+        # pass
+        print(f"columns: {str(result_set.columns)}")
+        print(f"rows: {str(result_set.rows)}")
 
 
 
