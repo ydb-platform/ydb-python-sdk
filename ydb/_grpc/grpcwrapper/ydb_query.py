@@ -38,3 +38,19 @@ class CreateSessionResponse(IFromProto):
             node_id=msg.node_id,
         )
 
+
+@dataclass
+class DeleteSessionRequest(IToProto):
+    session_id: str
+
+    def to_proto(self) -> ydb_query_pb2.DeleteSessionRequest:
+        return ydb_query_pb2.DeleteSessionRequest(session_id=self.session_id)
+
+
+@dataclass
+class DeleteSessionResponse(IFromProto):
+    status: Optional[ServerStatus]
+
+    @staticmethod
+    def from_proto(msg: ydb_query_pb2.DeleteSessionResponse) -> "DeleteSessionResponse":
+        return DeleteSessionResponse(status=ServerStatus(msg.status, msg.issues))

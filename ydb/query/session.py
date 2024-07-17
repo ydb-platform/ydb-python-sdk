@@ -1,9 +1,13 @@
 import abc
 from abc import abstractmethod
+import logging
 
 from .. import _apis, issues
 from .._grpc.grpcwrapper import common_utils
 from .._grpc.grpcwrapper import ydb_query as _ydb_query
+
+
+logger = logging.getLogger(__name__)
 
 
 class ISession(abc.ABC):
@@ -24,9 +28,12 @@ class ISession(abc.ABC):
 class SessionState(object):
     def __init__(self, settings=None):
         self._settings = settings
+        self.reset()
+
+    def reset(self):
         self._session_id = None
         self._node_id = None
-        self._is_closed = False
+        self._is_attached = False
 
     @property
     def session_id(self):
@@ -44,6 +51,9 @@ class SessionState(object):
         self._node_id = node_id
         return self
 
+    def attached(self):
+        return self._is_attached
+
 
 
 class QuerySession(ISession):
@@ -54,6 +64,10 @@ class QuerySession(ISession):
     @property
     def session_id(self):
         return self._state.session_id
+
+    @property
+    def node_id(self):
+        return self._state.node_id
 
     def create(self):
         if self._state.session_id is not None:
@@ -68,12 +82,29 @@ class QuerySession(ISession):
             common_utils.create_result_wrapper(_ydb_query.CreateSessionResponse),
         )
 
+        logging.info("session.create: success")
+
         self._state.set_id(res.session_id).set_node_id(res.node_id)
 
         return None
 
     def delete(self):
-        pass
+
+        if self._state.session_id is None:
+            return None
+
+        res = self._driver(
+            _apis.ydb_query.DeleteSessionRequest(session_id=self._state.session_id),
+            _apis.QueryService.Stub,
+            _apis.QueryService.DeleteSession,
+            common_utils.create_result_wrapper(_ydb_query.DeleteSessionResponse),
+        )
+        logging.info("session.delete: success")
+
+        self._state.reset()
+
+        return None
+
 
 
 if __name__ == "__main__":
@@ -87,7 +118,15 @@ if __name__ == "__main__":
         driver.wait(timeout=5)
         session = QuerySession(driver)
         print(session.session_id)
+        print(session.node_id)
 
         session.create()
 
         print(session.session_id)
+        print(session.node_id)
+
+        session.delete()
+
+        print(session.session_id)
+        print(session.node_id)
+
