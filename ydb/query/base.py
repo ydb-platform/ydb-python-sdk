@@ -8,6 +8,8 @@ from .._grpc.grpcwrapper.common_utils import (
     SupportedDriverType,
 )
 
+from .._grpc.grpcwrapper.ydb_query_public_types import BaseQueryTxMode
+
 
 class QueryClientSettings: ...
 
@@ -67,31 +69,8 @@ class IQuerySession(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def transaction(self) -> IQueryTxContext:
+    def transaction(self, tx_mode: BaseQueryTxMode) -> IQueryTxContext:
         pass
-
-
-# class BaseQuerySession(IQuerySession):
-#     _driver: SupportedDriverType
-#     _session_state: QuerySessionState
-#     _settings = QueryClientSettings
-
-#     def __init__(self, driver: SupportedDriverType, settings: QueryClientSettings = None):
-#         self._driver = driver
-#         self._session_state = QuerySessionState(settings)
-#         self._settings = settings
-
-#     @abc.abstractmethod
-#     def create(self) -> None:
-#         pass
-
-#     @abc.abstractmethod
-#     def delete(self) -> None:
-#         pass
-
-#     @abc.abstractmethod
-#     def transaction(self) -> IQueryTxContext:
-#         pass
 
 
 class IQueryClient(abc.ABC):
