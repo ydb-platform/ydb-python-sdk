@@ -1,14 +1,17 @@
 import pytest
 
+
 def _check_session_state_empty(session):
-    assert session._state.session_id == None
-    assert session._state.node_id == None
-    assert session._state.attached == False
+    assert session._state.session_id is None
+    assert session._state.node_id is None
+    assert not session._state.attached
+
 
 def _check_session_state_full(session):
-    assert session._state.session_id != None
-    assert session._state.node_id != None
-    assert session._state.attached == True
+    assert session._state.session_id is not None
+    assert session._state.node_id is not None
+    assert session._state.attached
+
 
 class TestQuerySession:
     def test_session_normal_lifecycle(self, session):

@@ -26,6 +26,5 @@ def main():
         print(f"rows: {str(result_set.rows)}")
 
 
-
 if __name__ == '__main__':
     main()

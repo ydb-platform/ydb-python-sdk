@@ -1,5 +1,4 @@
 import abc
-import enum
 import functools
 
 from typing import (
@@ -17,7 +16,9 @@ from .._grpc.grpcwrapper.ydb_query_public_types import (
 from .. import convert
 from .. import issues
 
-class QueryClientSettings: ...
+
+class QueryClientSettings:
+    pass
 
 
 class IQuerySessionState(abc.ABC):
@@ -152,6 +153,7 @@ def create_execute_query_request(query: str, session_id: str, tx_id: str = None,
         )
 
     return req.to_proto()
+
 
 def wrap_execute_query_response(rpc_state, response_pb):
     return convert.ResultSet.from_message(response_pb.result_set)

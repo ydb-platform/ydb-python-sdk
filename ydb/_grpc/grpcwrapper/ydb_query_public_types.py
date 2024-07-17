@@ -1,8 +1,6 @@
 import abc
 import typing
 
-from google.protobuf.message import Message
-
 from .common_utils import IToProto
 
 # Workaround for good IDE and universal for runtime

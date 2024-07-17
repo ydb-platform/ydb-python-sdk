@@ -107,6 +107,7 @@ def _create_commit_transaction_request(session_state, tx_state):
     request.session_id = session_state.session_id
     return request
 
+
 def _create_rollback_transaction_request(session_state, tx_state):
     request = _apis.ydb_query.RollbackTransactionRequest()
     request.tx_id = tx_state.tx_id
@@ -131,6 +132,7 @@ def wrap_tx_commit_response(rpc_state, response_pb, session_state, tx_state, tx)
     tx_state.tx_id = None
     tx_state._change_state(QueryTxStateEnum.COMMITTED)
     return tx
+
 
 @base.bad_session_handler
 @reset_tx_id_handler

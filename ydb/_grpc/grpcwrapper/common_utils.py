@@ -247,7 +247,6 @@ class GrpcWrapperUnaryStreamAsyncIO(AbstractGrpcWrapperAsyncIO):
         self.from_server_grpc = SyncToAsyncIterator(stream_call.__iter__(), self._wait_executor)
 
 
-
 @dataclass(init=False)
 class ServerStatus(IFromProto):
     __slots__ = ("_grpc_status_code", "_issues")

@@ -1,14 +1,9 @@
 import abc
-from abc import abstractmethod
-import asyncio
-import concurrent
 import enum
 import logging
 import threading
 from typing import (
-    Any,
     Optional,
-    Set,
 )
 
 from . import base
@@ -167,6 +162,7 @@ class BaseQuerySession(base.IQuerySession):
             _apis.QueryService.Stub,
             _apis.QueryService.ExecuteQuery,
         )
+
 
 class QuerySessionSync(BaseQuerySession):
     _stream = None

@@ -13,6 +13,7 @@ def session(driver_sync):
     except BaseException:
         pass
 
+
 @pytest.fixture
 def tx(session):
     session.create()
@@ -24,4 +25,3 @@ def tx(session):
         transaction.rollback()
     except BaseException:
         pass
-

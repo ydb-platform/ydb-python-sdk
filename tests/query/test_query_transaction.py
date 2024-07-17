@@ -2,10 +2,10 @@ import pytest
 
 class TestQueryTransaction:
     def test_tx_begin(self, tx):
-        assert tx.tx_id == None
+        assert tx.tx_id is None
 
         tx.begin()
-        assert tx.tx_id != None
+        assert tx.tx_id is not None
 
     def test_tx_allow_double_commit(self, tx):
         tx.begin()
@@ -40,5 +40,3 @@ class TestQueryTransaction:
         tx.rollback()
         with pytest.raises(RuntimeError):
             tx.execute("select 1;")
-
-

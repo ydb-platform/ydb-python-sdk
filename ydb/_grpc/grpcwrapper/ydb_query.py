@@ -2,7 +2,6 @@ from dataclasses import dataclass
 import typing
 from typing import Optional
 
-from google.protobuf.message import Message
 
 # Workaround for good IDE and universal for runtime
 if typing.TYPE_CHECKING:
@@ -14,16 +13,9 @@ from . import ydb_query_public_types as public_types
 
 from .common_utils import (
     IFromProto,
-    IFromProtoWithProtoType,
     IToProto,
-    IToPublic,
     IFromPublic,
     ServerStatus,
-    UnknownGrpcMessageError,
-    proto_duration_from_timedelta,
-    proto_timestamp_from_datetime,
-    datetime_from_proto_timestamp,
-    timedelta_from_proto_duration,
 )
 
 @dataclass
@@ -57,14 +49,6 @@ class AttachSessionRequest(IToProto):
     def to_proto(self) -> ydb_query_pb2.AttachSessionRequest:
         return ydb_query_pb2.AttachSessionRequest(session_id=self.session_id)
 
-# @dataclass
-# class SessionState(IFromProto):
-#     status: Optional[ServerStatus]
-
-#     @staticmethod
-#     def from_proto(msg: ydb_query_pb2.SessionState) -> "SessionState":
-#         return SessionState(status=ServerStatus(msg.status, msg.issues))
-
 
 @dataclass
 class TransactionMeta(IFromProto):
@@ -93,6 +77,7 @@ class TransactionSettings(IFromPublic, IToProto):
         if self.tx_mode.name == 'stale_read_only':
             return ydb_query_pb2.TransactionSettings(stale_read_only=self.tx_mode.to_proto())
 
+
 @dataclass
 class BeginTransactionRequest(IToProto):
     session_id: str
@@ -103,6 +88,7 @@ class BeginTransactionRequest(IToProto):
             session_id=self.session_id,
             tx_settings=self.tx_settings.to_proto(),
             )
+
 
 @dataclass
 class BeginTransactionResponse(IFromProto):
