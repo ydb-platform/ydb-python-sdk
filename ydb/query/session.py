@@ -1,6 +1,10 @@
 import abc
 from abc import abstractmethod
+import asyncio
 import logging
+from typing import (
+    Set,
+)
 
 from .. import _apis, issues, _utilities
 from .._grpc.grpcwrapper import common_utils
@@ -25,7 +29,7 @@ class ISession(abc.ABC):
     def session_id(self):
         pass
 
-class SessionState(object):
+class SessionState:
     def __init__(self, settings=None):
         self._settings = settings
         self.reset()
@@ -51,6 +55,10 @@ class SessionState(object):
         self._node_id = node_id
         return self
 
+    def set_attached(self, is_attached):
+        self._is_attached = is_attached
+
+    @property
     def attached(self):
         return self._is_attached
 
@@ -69,13 +77,13 @@ class QuerySession(ISession):
     def node_id(self):
         return self._state.node_id
 
-    def create(self):
+    async def create(self):
         if self._state.session_id is not None:
             return self
 
         # TODO: check what is settings
 
-        res = self._driver(
+        res = await self._driver(
             _apis.ydb_query.CreateSessionRequest(),
             _apis.QueryService.Stub,
             _apis.QueryService.CreateSession,
@@ -88,12 +96,12 @@ class QuerySession(ISession):
 
         return None
 
-    def delete(self):
+    async def delete(self):
 
         if self._state.session_id is None:
             return None
 
-        res = self._driver(
+        res = await self._driver(
             _apis.ydb_query.DeleteSessionRequest(session_id=self._state.session_id),
             _apis.QueryService.Stub,
             _apis.QueryService.DeleteSession,
@@ -102,48 +110,113 @@ class QuerySession(ISession):
         logging.info("session.delete: success")
 
         self._state.reset()
+        if self._stream is not None:
+            await self._stream.close()
+            self._stream = None
 
         return None
 
-    # def attach(self):
-    #     if self._state.attached():
-    #         return self
+    async def attach(self):
+        self._stream = await SessionStateReaderStream.create(self._driver, self._state)
 
-    #     stream_it = self._driver(
-    #         _apis.ydb_query.AttachSessionRequest(session_id=self._state.session_id),
-    #         _apis.QueryService.Stub,
-    #         _apis.QueryService.AttachSession,
-    #         common_utils.create_result_wrapper(_ydb_query.AttachSessionResponse),
-    #     )
-
-        # it = _utilities.SyncResponseIterator(
-
-    #     )
-
-    #     return None
+        print(self._state.attached)
 
 
 
-if __name__ == "__main__":
 
-    from ..driver import Driver
+class SessionStateReaderStream:
+    _started: bool
+    _stream: common_utils.IGrpcWrapperAsyncIO
+    _session: QuerySession
+    _background_tasks: Set[asyncio.Task]
+
+    def __init__(self, session_state: SessionState):
+        self._session_state = session_state
+        self._background_tasks = set()
+        self._started = False
+
+
+    @staticmethod
+    async def create(driver: common_utils.SupportedDriverType, session_state: SessionState):
+        stream = common_utils.GrpcWrapperUnaryStreamAsyncIO(common_utils.ServerStatus.from_proto)
+        await stream.start(
+            driver,
+            _ydb_query.AttachSessionRequest(session_id=session_state.session_id).to_proto(),
+            _apis.QueryService.Stub,
+            _apis.QueryService.AttachSession
+        )
+
+        reader = SessionStateReaderStream(session_state)
+
+        await reader._start(stream)
+
+        return reader
+
+    async def _start(self, stream: common_utils.IGrpcWrapperAsyncIO):
+        if self._started:
+            return # TODO: error
+
+        self._started = True
+        self._stream = stream
+
+        response = await self._stream.receive()
+
+        if response.is_success():
+            self._session_state.set_attached(True)
+        else:
+            raise common_utils.YdbError(response.error)
+
+        self._background_tasks.add(asyncio.create_task(self._update_session_state_loop(), name="update_session_state_loop"))
+
+        return response
+
+    async def _update_session_state_loop(self):
+        while True:
+            response = await self._stream.receive()
+
+            if response.is_success():
+                pass
+            else:
+                self._session_state.set_attached(False)
+
+    async def close(self):
+        self._stream.close()
+        for task in self._background_tasks:
+            task.cancel()
+
+        if self._background_tasks:
+            await asyncio.wait(self._background_tasks)
+
+
+async def main():
+    from ..aio.driver import Driver
 
     endpoint = "grpc://localhost:2136"
     database = "/local"
 
-    with Driver(endpoint=endpoint, database=database) as driver:
-        driver.wait(timeout=5)
-        session = QuerySession(driver)
-        print(session.session_id)
-        print(session.node_id)
+    driver = Driver(endpoint=endpoint, database=database)  # Creating new database driver to execute queries
 
-        session.create()
+    await driver.wait(timeout=10)  # Wait until driver can execute calls
 
-        print(session.session_id)
-        print(session.node_id)
+    session = QuerySession(driver)
 
-        session.delete()
+    print(session.session_id)
+    print(session.node_id)
 
-        print(session.session_id)
-        print(session.node_id)
+    await session.create()
+
+    print(session.session_id)
+    print(session.node_id)
+
+
+    await session.attach()
+
+    await session.delete()
+
+    print(session.session_id)
+    print(session.node_id)
+
+if __name__ == "__main__":
+    import asyncio
+    asyncio.run(main())
 

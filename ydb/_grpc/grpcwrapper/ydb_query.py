@@ -54,3 +54,19 @@ class DeleteSessionResponse(IFromProto):
     @staticmethod
     def from_proto(msg: ydb_query_pb2.DeleteSessionResponse) -> "DeleteSessionResponse":
         return DeleteSessionResponse(status=ServerStatus(msg.status, msg.issues))
+
+
+@dataclass
+class AttachSessionRequest(IToProto):
+    session_id: str
+
+    def to_proto(self) -> ydb_query_pb2.AttachSessionRequest:
+        return ydb_query_pb2.AttachSessionRequest(session_id=self.session_id)
+
+# @dataclass
+# class SessionState(IFromProto):
+#     status: Optional[ServerStatus]
+
+#     @staticmethod
+#     def from_proto(msg: ydb_query_pb2.SessionState) -> "SessionState":
+#         return SessionState(status=ServerStatus(msg.status, msg.issues))
