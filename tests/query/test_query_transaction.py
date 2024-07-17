@@ -1,17 +1,44 @@
 import pytest
 
-import ydb.query.session
-
-class TestQuerySession:
-    def test_transaction_begin(self, driver_sync):
-        session = ydb.query.session.QuerySessionSync(driver_sync)
-
-        session.create()
-
-        tx = session.transaction()
-
+class TestQueryTransaction:
+    def test_tx_begin(self, tx):
         assert tx.tx_id == None
 
         tx.begin()
-
         assert tx.tx_id != None
+
+    def test_tx_allow_double_commit(self, tx):
+        tx.begin()
+        tx.commit()
+        tx.commit()
+
+    def test_tx_allow_double_rollback(self, tx):
+        tx.begin()
+        tx.rollback()
+        tx.rollback()
+
+    def test_tx_commit_raises_before_begin(self, tx):
+        with pytest.raises(RuntimeError):
+            tx.commit()
+
+    def test_tx_rollback_raises_before_begin(self, tx):
+        with pytest.raises(RuntimeError):
+            tx.rollback()
+
+    # def test_tx_execute_raises_before_begin(self, tx):
+    #     with pytest.raises(RuntimeError):
+    #         tx.execute("select 1;")
+
+    def text_tx_execute_raises_after_commit(self, tx):
+        tx.begin()
+        tx.commit()
+        with pytest.raises(RuntimeError):
+            tx.execute("select 1;")
+
+    def text_tx_execute_raises_after_rollback(self, tx):
+        tx.begin()
+        tx.rollback()
+        with pytest.raises(RuntimeError):
+            tx.execute("select 1;")
+
+

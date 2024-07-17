@@ -15,19 +15,37 @@ from . import base
 
 logger = logging.getLogger(__name__)
 
-# def patch_table_service_tx_mode_to_query_service(tx_mode: AbstractTransactionModeBuilder):
-#     if tx_mode.name == 'snapshot_read_only':
-#         tx_mode = _ydb_query_public.QuerySnapshotReadOnly()
-#     elif tx_mode.name == 'serializable_read_write':
-#         tx_mode = _ydb_query_public.QuerySerializableReadWrite()
-#     elif tx_mode.name =='online_read_only':
-#         tx_mode = _ydb_query_public.QueryOnlineReadOnly()
-#     elif tx_mode.name == 'stale_read_only':
-#         tx_mode = _ydb_query_public.QueryStaleReadOnly()
-#     else:
-#         raise issues.YDBInvalidArgumentError(f'Unknown transaction mode: {tx_mode.name}')
 
-#     return tx_mode
+class QueryTxStateEnum(enum.Enum):
+    NOT_INITIALIZED = "NOT_INITIALIZED"
+    BEGINED = "BEGINED"
+    COMMITTED = "COMMITTED"
+    ROLLBACKED = "ROLLBACKED"
+    DEAD = "DEAD"
+
+
+class QueryTxStateHelper(abc.ABC):
+    _VALID_TRANSITIONS = {
+        QueryTxStateEnum.NOT_INITIALIZED: [QueryTxStateEnum.BEGINED, QueryTxStateEnum.DEAD],
+        QueryTxStateEnum.BEGINED: [QueryTxStateEnum.COMMITTED, QueryTxStateEnum.ROLLBACKED, QueryTxStateEnum.DEAD],
+        QueryTxStateEnum.COMMITTED: [],
+        QueryTxStateEnum.ROLLBACKED: [],
+        QueryTxStateEnum.DEAD: [],
+    }
+
+    _TERMINAL_STATES = [
+        QueryTxStateEnum.COMMITTED,
+        QueryTxStateEnum.ROLLBACKED,
+        QueryTxStateEnum.DEAD,
+    ]
+
+    @classmethod
+    def valid_transition(cls, before: QueryTxStateEnum, after: QueryTxStateEnum) -> bool:
+        return after in cls._VALID_TRANSITIONS[before]
+
+    @classmethod
+    def terminal(cls, state: QueryTxStateEnum) -> bool:
+        return state in cls._TERMINAL_STATES
 
 
 def reset_tx_id_handler(func):
@@ -36,7 +54,7 @@ def reset_tx_id_handler(func):
         try:
             return func(rpc_state, response_pb, session_state, tx_state, *args, **kwargs)
         except issues.Error:
-            tx_state.change_state(base.QueryTxStateEnum.DEAD)
+            tx_state._change_state(QueryTxStateEnum.DEAD)
             tx_state.tx_id = None
             raise
 
@@ -51,15 +69,22 @@ class QueryTxState:
         """
         self.tx_id = None
         self.tx_mode = tx_mode
-        self._state = base.QueryTxStateEnum.NOT_INITIALIZED
+        self._state = QueryTxStateEnum.NOT_INITIALIZED
 
-    def check_invalid_transition(self, target: base.QueryTxStateEnum):
-        if not base.QueryTxStateHelper.is_valid_transition(self._state, target):
+    def _check_invalid_transition(self, target: QueryTxStateEnum):
+        if not QueryTxStateHelper.valid_transition(self._state, target):
             raise RuntimeError(f"Transaction could not be moved from {self._state.value} to {target.value}")
 
-    def change_state(self, target: base.QueryTxStateEnum):
-        self.check_invalid_transition(target)
+    def _change_state(self, target: QueryTxStateEnum):
+        self._check_invalid_transition(target)
         self._state = target
+
+    def _check_tx_not_terminal(self):
+        if QueryTxStateHelper.terminal(self._state):
+            raise RuntimeError(f"Transaction is in terminal state: {self._state.value}")
+
+    def _already_in(self, target: QueryTxStateEnum):
+        return self._state == target
 
 
 def _construct_tx_settings(tx_state):
@@ -93,7 +118,7 @@ def _create_rollback_transaction_request(session_state, tx_state):
 def wrap_tx_begin_response(rpc_state, response_pb, session_state, tx_state, tx):
     message = _ydb_query.BeginTransactionResponse.from_proto(response_pb)
     issues._process_response(message.status)
-    tx_state.change_state(base.QueryTxStateEnum.BEGINED)
+    tx_state._change_state(QueryTxStateEnum.BEGINED)
     tx_state.tx_id = message.tx_meta.tx_id
     return tx
 
@@ -104,7 +129,7 @@ def wrap_tx_commit_response(rpc_state, response_pb, session_state, tx_state, tx)
     message = _ydb_query.CommitTransactionResponse(response_pb)
     issues._process_response(message.status)
     tx_state.tx_id = None
-    tx_state.change_state(base.QueryTxStateEnum.COMMITTED)
+    tx_state._change_state(QueryTxStateEnum.COMMITTED)
     return tx
 
 @base.bad_session_handler
@@ -113,7 +138,7 @@ def wrap_tx_rollback_response(rpc_state, response_pb, session_state, tx_state, t
     message = _ydb_query.RollbackTransactionResponse(response_pb)
     issues._process_response(message.status)
     tx_state.tx_id = None
-    tx_state.change_state(base.QueryTxStateEnum.ROLLBACKED)
+    tx_state._change_state(QueryTxStateEnum.ROLLBACKED)
     return tx
 
 
@@ -196,7 +221,7 @@ class BaseTxContext(base.IQueryTxContext):
 
         :return: An open transaction
         """
-        self._tx_state.check_invalid_transition(base.QueryTxStateEnum.BEGINED)
+        self._tx_state._check_invalid_transition(QueryTxStateEnum.BEGINED)
 
         return self._driver(
             _create_begin_transaction_request(self._session_state, self._tx_state),
@@ -216,8 +241,9 @@ class BaseTxContext(base.IQueryTxContext):
 
         :return: A committed transaction or exception if commit is failed
         """
-
-        self._tx_state.check_invalid_transition(base.QueryTxStateEnum.COMMITTED)
+        if self._tx_state._already_in(QueryTxStateEnum.COMMITTED):
+            return
+        self._tx_state._check_invalid_transition(QueryTxStateEnum.COMMITTED)
 
         return self._driver(
             _create_commit_transaction_request(self._session_state, self._tx_state),
@@ -229,7 +255,10 @@ class BaseTxContext(base.IQueryTxContext):
         )
 
     def rollback(self, settings=None):
-        self._tx_state.check_invalid_transition(base.QueryTxStateEnum.ROLLBACKED)
+        if self._tx_state._already_in(QueryTxStateEnum.ROLLBACKED):
+            return
+
+        self._tx_state._check_invalid_transition(QueryTxStateEnum.ROLLBACKED)
 
         return self._driver(
             _create_rollback_transaction_request(self._session_state, self._tx_state),
@@ -240,5 +269,24 @@ class BaseTxContext(base.IQueryTxContext):
             (self._session_state, self._tx_state, self),
         )
 
+    def _execute_call(self, query: str, commit_tx: bool):
+        request = base.create_execute_query_request(
+            query=query,
+            session_id=self._session_state.session_id,
+            commit_tx=commit_tx
+        )
+        return self._driver(
+            request,
+            _apis.QueryService.Stub,
+            _apis.QueryService.ExecuteQuery,
+        )
+
     def execute(self, query, parameters=None, commit_tx=False, settings=None):
-        pass
+        self._tx_state._check_tx_not_terminal()
+
+        stream_it = self._execute_call(query, commit_tx)
+
+        return _utilities.SyncResponseIterator(
+            stream_it,
+            lambda resp: base.wrap_execute_query_response(rpc_state=None, response_pb=resp),
+        )

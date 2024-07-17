@@ -14,7 +14,7 @@ def session(driver_sync):
         pass
 
 @pytest.fixture
-def transaction(session):
+def tx(session):
     session.create()
     transaction = session.transaction()
 

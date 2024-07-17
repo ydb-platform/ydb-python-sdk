@@ -124,19 +124,32 @@ class IQueryClient(abc.ABC):
         pass
 
 
-def create_execute_query_request(query: str, session_id: str, commit_tx: bool):
-    req = ydb_query.ExecuteQueryRequest(
-        session_id=session_id,
-        query_content=ydb_query.QueryContent.from_public(
-            query=query,
-        ),
-        tx_control=ydb_query.TransactionControl(
-            begin_tx=ydb_query.TransactionSettings(
-                tx_mode=QuerySerializableReadWrite(),
+def create_execute_query_request(query: str, session_id: str, tx_id: str = None, commit_tx: bool = False, tx_mode: BaseQueryTxMode = None):
+    if tx_id:
+        req = ydb_query.ExecuteQueryRequest(
+            session_id=session_id,
+            query_content=ydb_query.QueryContent.from_public(
+                query=query,
             ),
-            commit_tx=commit_tx
-        ),
-    )
+            tx_control=ydb_query.TransactionControl(
+                tx_id=tx_id,
+                commit_tx=commit_tx
+            ),
+        )
+    else:
+        tx_mode = tx_mode if tx_mode is not None else QuerySerializableReadWrite()
+        req = ydb_query.ExecuteQueryRequest(
+            session_id=session_id,
+            query_content=ydb_query.QueryContent.from_public(
+                query=query,
+            ),
+            tx_control=ydb_query.TransactionControl(
+                begin_tx=ydb_query.TransactionSettings(
+                    tx_mode=tx_mode,
+                ),
+                commit_tx=commit_tx
+            ),
+        )
 
     return req.to_proto()
 
@@ -148,17 +161,17 @@ X_YDB_SERVER_HINTS = "x-ydb-server-hints"
 X_YDB_SESSION_CLOSE = "session-close"
 
 
-def _check_session_is_closing(rpc_state, session_state):
-    metadata = rpc_state.trailing_metadata()
-    if X_YDB_SESSION_CLOSE in metadata.get(X_YDB_SERVER_HINTS, []):
-        session_state.set_closing() # TODO: clarify & implement
+# def _check_session_is_closing(rpc_state, session_state):
+#     metadata = rpc_state.trailing_metadata()
+#     if X_YDB_SESSION_CLOSE in metadata.get(X_YDB_SERVER_HINTS, []):
+#         session_state.set_closing() # TODO: clarify & implement
 
 
 def bad_session_handler(func):
     @functools.wraps(func)
     def decorator(rpc_state, response_pb, session_state, *args, **kwargs):
         try:
-            _check_session_is_closing(rpc_state, session_state)
+            # _check_session_is_closing(rpc_state, session_state)
             return func(rpc_state, response_pb, session_state, *args, **kwargs)
         except issues.BadSession:
             session_state.reset()
