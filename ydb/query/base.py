@@ -76,7 +76,6 @@ class IQuerySession(abc.ABC):
 
 
 class IQueryTxContext(abc.ABC):
-
     @abc.abstractmethod
     def __init__(
         self,

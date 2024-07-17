@@ -194,9 +194,8 @@ class QuerySessionSync(BaseQuerySession):
                 if status.status != issues.StatusCode.SUCCESS:
                     self._state.reset()
                     self._state._change_state(QuerySessionStateEnum.CLOSED)
-        except Exception as e:
+        except Exception:
             pass
-
 
     def delete(self) -> None:
         if self._state._already_in(QuerySessionStateEnum.CLOSED):
