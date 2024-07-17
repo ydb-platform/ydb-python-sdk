@@ -18,7 +18,7 @@ from . import topic_reader
 from .._grpc.grpcwrapper.common_utils import (
     IGrpcWrapperAsyncIO,
     SupportedDriverType,
-    GrpcWrapperAsyncIO,
+    GrpcWrapperStreamStreamAsyncIO,
 )
 from .._grpc.grpcwrapper.ydb_topic import (
     StreamReadMessage,
@@ -308,7 +308,7 @@ class ReaderStream:
         driver: SupportedDriverType,
         settings: topic_reader.PublicReaderSettings,
     ) -> "ReaderStream":
-        stream = GrpcWrapperAsyncIO(StreamReadMessage.FromServer.from_proto)
+        stream = GrpcWrapperStreamStreamAsyncIO(StreamReadMessage.FromServer.from_proto)
 
         await stream.start(driver, _apis.TopicService.Stub, _apis.TopicService.StreamRead)
 
