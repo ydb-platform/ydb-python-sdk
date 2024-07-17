@@ -2,7 +2,7 @@ import abc
 from abc import abstractmethod
 import logging
 
-from .. import _apis, issues
+from .. import _apis, issues, _utilities
 from .._grpc.grpcwrapper import common_utils
 from .._grpc.grpcwrapper import ydb_query as _ydb_query
 
@@ -104,6 +104,23 @@ class QuerySession(ISession):
         self._state.reset()
 
         return None
+
+    # def attach(self):
+    #     if self._state.attached():
+    #         return self
+
+    #     stream_it = self._driver(
+    #         _apis.ydb_query.AttachSessionRequest(session_id=self._state.session_id),
+    #         _apis.QueryService.Stub,
+    #         _apis.QueryService.AttachSession,
+    #         common_utils.create_result_wrapper(_ydb_query.AttachSessionResponse),
+    #     )
+
+        # it = _utilities.SyncResponseIterator(
+
+    #     )
+
+    #     return None
 
 
 

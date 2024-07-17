@@ -39,12 +39,12 @@ class CreateSessionResponse(IFromProto):
         )
 
 
-@dataclass
-class DeleteSessionRequest(IToProto):
-    session_id: str
+# @dataclass
+# class DeleteSessionRequest(IToProto):
+#     session_id: str
 
-    def to_proto(self) -> ydb_query_pb2.DeleteSessionRequest:
-        return ydb_query_pb2.DeleteSessionRequest(session_id=self.session_id)
+#     def to_proto(self) -> ydb_query_pb2.DeleteSessionRequest:
+#         return ydb_query_pb2.DeleteSessionRequest(session_id=self.session_id)
 
 
 @dataclass
