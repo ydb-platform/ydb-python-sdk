@@ -28,7 +28,7 @@ class QuerySessionStateHelper(abc.ABC):
     _VALID_TRANSITIONS = {
         QuerySessionStateEnum.NOT_INITIALIZED: [QuerySessionStateEnum.CREATED],
         QuerySessionStateEnum.CREATED: [QuerySessionStateEnum.CLOSED],
-        QuerySessionStateEnum.CLOSED: []
+        QuerySessionStateEnum.CLOSED: [],
     }
 
     _READY_TO_USE = [

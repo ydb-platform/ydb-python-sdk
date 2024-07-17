@@ -83,7 +83,7 @@ class IQueryTxContext(abc.ABC):
         driver: SupportedDriverType,
         session_state: IQuerySessionState,
         session: IQuerySession,
-        tx_mode: BaseQueryTxMode = None
+        tx_mode: BaseQueryTxMode = None,
     ):
         pass
 
@@ -132,7 +132,7 @@ class IQueryClient(abc.ABC):
 
 
 def create_execute_query_request(
-        query: str, session_id: str, tx_id: str = None, commit_tx: bool = False, tx_mode: BaseQueryTxMode = None
+    query: str, session_id: str, tx_id: str = None, commit_tx: bool = False, tx_mode: BaseQueryTxMode = None
 ):
     if tx_id:
         req = ydb_query.ExecuteQueryRequest(

@@ -147,8 +147,14 @@ class TransactionControl(IToProto):
 
     def to_proto(self) -> ydb_query_pb2.TransactionControl:
         if self.tx_id:
-            return ydb_query_pb2.TransactionControl(tx_id=self.tx_id,commit_tx=self.commit_tx)
-        return ydb_query_pb2.TransactionControl(begin_tx=self.begin_tx.to_proto(), commit_tx=self.commit_tx)
+            return ydb_query_pb2.TransactionControl(
+                tx_id=self.tx_id,
+                commit_tx=self.commit_tx,
+            )
+        return ydb_query_pb2.TransactionControl(
+            begin_tx=self.begin_tx.to_proto(),
+            commit_tx=self.commit_tx,
+        )
 
 
 @dataclass
