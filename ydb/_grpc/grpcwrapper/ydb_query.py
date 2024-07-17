@@ -18,6 +18,7 @@ from .common_utils import (
     ServerStatus,
 )
 
+
 @dataclass
 class CreateSessionResponse(IFromProto):
     status: Optional[ServerStatus]
@@ -68,13 +69,13 @@ class TransactionSettings(IFromPublic, IToProto):
         return TransactionSettings(tx_mode=tx_mode)
 
     def to_proto(self) -> ydb_query_pb2.TransactionSettings:
-        if self.tx_mode.name == 'snapshot_read_only':
+        if self.tx_mode.name == "snapshot_read_only":
             return ydb_query_pb2.TransactionSettings(snapshot_read_only=self.tx_mode.to_proto())
-        if self.tx_mode.name == 'serializable_read_write':
+        if self.tx_mode.name == "serializable_read_write":
             return ydb_query_pb2.TransactionSettings(serializable_read_write=self.tx_mode.to_proto())
-        if self.tx_mode.name == 'online_read_only':
+        if self.tx_mode.name == "online_read_only":
             return ydb_query_pb2.TransactionSettings(online_read_only=self.tx_mode.to_proto())
-        if self.tx_mode.name == 'stale_read_only':
+        if self.tx_mode.name == "stale_read_only":
             return ydb_query_pb2.TransactionSettings(stale_read_only=self.tx_mode.to_proto())
 
 
@@ -87,7 +88,7 @@ class BeginTransactionRequest(IToProto):
         return ydb_query_pb2.BeginTransactionRequest(
             session_id=self.session_id,
             tx_settings=self.tx_settings.to_proto(),
-            )
+        )
 
 
 @dataclass
@@ -146,14 +147,8 @@ class TransactionControl(IToProto):
 
     def to_proto(self) -> ydb_query_pb2.TransactionControl:
         if self.tx_id:
-            return ydb_query_pb2.TransactionControl(
-                tx_id=self.tx_id,
-                commit_tx=self.commit_tx,
-            )
-        return ydb_query_pb2.TransactionControl(
-            begin_tx=self.begin_tx.to_proto(),
-            commit_tx=self.commit_tx
-        )
+            return ydb_query_pb2.TransactionControl(tx_id=self.tx_id,commit_tx=self.commit_tx)
+        return ydb_query_pb2.TransactionControl(begin_tx=self.begin_tx.to_proto(), commit_tx=self.commit_tx)
 
 
 @dataclass

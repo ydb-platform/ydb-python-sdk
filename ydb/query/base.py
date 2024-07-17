@@ -11,7 +11,7 @@ from .._grpc.grpcwrapper.common_utils import (
 from .._grpc.grpcwrapper import ydb_query
 from .._grpc.grpcwrapper.ydb_query_public_types import (
     BaseQueryTxMode,
-    QuerySerializableReadWrite
+    QuerySerializableReadWrite,
 )
 from .. import convert
 from .. import issues
@@ -78,7 +78,13 @@ class IQuerySession(abc.ABC):
 class IQueryTxContext(abc.ABC):
 
     @abc.abstractmethod
-    def __init__(self, driver: SupportedDriverType, session_state: IQuerySessionState, session: IQuerySession, tx_mode: BaseQueryTxMode = None):
+    def __init__(
+        self,
+        driver: SupportedDriverType,
+        session_state: IQuerySessionState,
+        session: IQuerySession,
+        tx_mode: BaseQueryTxMode = None
+    ):
         pass
 
     @abc.abstractmethod
@@ -125,7 +131,9 @@ class IQueryClient(abc.ABC):
         pass
 
 
-def create_execute_query_request(query: str, session_id: str, tx_id: str = None, commit_tx: bool = False, tx_mode: BaseQueryTxMode = None):
+def create_execute_query_request(
+        query: str, session_id: str, tx_id: str = None, commit_tx: bool = False, tx_mode: BaseQueryTxMode = None
+):
     if tx_id:
         req = ydb_query.ExecuteQueryRequest(
             session_id=session_id,
@@ -134,7 +142,7 @@ def create_execute_query_request(query: str, session_id: str, tx_id: str = None,
             ),
             tx_control=ydb_query.TransactionControl(
                 tx_id=tx_id,
-                commit_tx=commit_tx
+                commit_tx=commit_tx,
             ),
         )
     else:
@@ -148,7 +156,7 @@ def create_execute_query_request(query: str, session_id: str, tx_id: str = None,
                 begin_tx=ydb_query.TransactionSettings(
                     tx_mode=tx_mode,
                 ),
-                commit_tx=commit_tx
+                commit_tx=commit_tx,
             ),
         )
 

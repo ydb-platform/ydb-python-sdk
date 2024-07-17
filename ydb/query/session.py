@@ -32,7 +32,7 @@ class QuerySessionStateHelper(abc.ABC):
     }
 
     _READY_TO_USE = [
-        QuerySessionStateEnum.CREATED
+        QuerySessionStateEnum.CREATED,
     ]
 
     @classmethod
@@ -154,7 +154,7 @@ class BaseQuerySession(base.IQuerySession):
         request = base.create_execute_query_request(
             query=query,
             session_id=self._state.session_id,
-            commit_tx=commit_tx
+            commit_tx=commit_tx,
         )
 
         return self._driver(
@@ -189,13 +189,13 @@ class QuerySessionSync(BaseQuerySession):
         ).start()
 
     def _chech_session_status_loop(self, status_stream):
-            try:
-                for status in status_stream:
-                    if status.status != issues.StatusCode.SUCCESS:
-                        self._state.reset()
-                        self._state._change_state(QuerySessionStateEnum.CLOSED)
-            except Exception as e:
-                pass
+        try:
+            for status in status_stream:
+                if status.status != issues.StatusCode.SUCCESS:
+                    self._state.reset()
+                    self._state._change_state(QuerySessionStateEnum.CLOSED)
+        except Exception as e:
+            pass
 
 
     def delete(self) -> None:

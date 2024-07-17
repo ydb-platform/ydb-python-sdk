@@ -275,7 +275,7 @@ class BaseTxContext(base.IQueryTxContext):
         request = base.create_execute_query_request(
             query=query,
             session_id=self._session_state.session_id,
-            commit_tx=commit_tx
+            commit_tx=commit_tx,
         )
         return self._driver(
             request,

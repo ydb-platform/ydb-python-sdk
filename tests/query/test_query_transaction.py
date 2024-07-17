@@ -1,5 +1,6 @@
 import pytest
 
+
 class TestQueryTransaction:
     def test_tx_begin(self, tx):
         assert tx.tx_id is None
