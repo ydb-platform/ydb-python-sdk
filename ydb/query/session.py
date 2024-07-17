@@ -22,14 +22,14 @@ from .transaction import BaseTxContext
 logger = logging.getLogger(__name__)
 
 
-def wrapper_create_session(rpc_state, response_pb, session_state, session):
+def wrapper_create_session(rpc_state, response_pb, session_state: base.QuerySessionState, session):
     #TODO: process response
     message = _ydb_query.CreateSessionResponse.from_proto(response_pb)
-    session_state.set_id(message.session_id).set_node_id(message.node_id)
+    session_state.set_session_id(message.session_id).set_node_id(message.node_id)
     return session
 
 
-def wrapper_delete_session(rpc_state, response_pb, session_state, session):
+def wrapper_delete_session(rpc_state, response_pb, session_state: base.QuerySessionState, session):
     #TODO: process response
     message = _ydb_query.DeleteSessionResponse.from_proto(response_pb)
     session_state.reset()
