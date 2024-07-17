@@ -19,10 +19,11 @@ def main():
     session = QuerySessionSync(driver)
     session.create()
 
-    it = session.execute("select 1; select 2;")
+    it = session.execute("select 1; select 2;", commit_tx=False)
     for result_set in it:
-        print(f"columns: {str(result_set.columns)}")
-        print(f"rows: {str(result_set.rows)}")
+        pass
+        # print(f"columns: {str(result_set.columns)}")
+        # print(f"rows: {str(result_set.rows)}")
 
 
 

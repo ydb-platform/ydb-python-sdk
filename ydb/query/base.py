@@ -103,4 +103,6 @@ def create_execute_query_request(query: str, session_id: str, commit_tx: bool):
 
 def wrap_execute_query_response(rpc_state, response_pb):
 
+    print(response_pb)
+
     return convert.ResultSet.from_message(response_pb.result_set)
