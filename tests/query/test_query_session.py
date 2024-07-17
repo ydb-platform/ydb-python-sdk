@@ -22,3 +22,17 @@ class TestQuerySession:
 
         session.delete()
         _check_session_state_empty(session)
+
+    def test_second_create_do_nothing(self, driver_sync):
+        session = ydb.query.session.QuerySessionSync(driver_sync)
+        session.create()
+        _check_session_state_full(session)
+
+        session_id_before = session._state.session_id
+        node_id_before = session._state.node_id
+
+        session.create()
+        _check_session_state_full(session)
+
+        assert session._state.session_id == session_id_before
+        assert session._state.node_id == node_id_before
