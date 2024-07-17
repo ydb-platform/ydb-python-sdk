@@ -71,6 +71,19 @@ class BaseQuerySession(base.IQuerySession):
             _apis.QueryService.AttachSession,
         )
 
+    def _execute_call(self, query: str, commit_tx: bool):
+        request = base.create_execute_query_request(
+            query=query,
+            session_id=self._state.session_id,
+            commit_tx=commit_tx
+        )
+        return self._driver(
+            request,
+            _apis.QueryService.Stub,
+            _apis.QueryService.ExecuteQuery,
+            # base.wrap_execute_query_response
+        )
+
 class QuerySessionSync(BaseQuerySession):
     _stream = None
 
@@ -96,7 +109,6 @@ class QuerySessionSync(BaseQuerySession):
         ).start()
 
     def _chech_session_status_loop(self, status_stream):
-            print("CHECK STATUS")
             try:
                 for status in status_stream:
                     if status.status != issues.StatusCode.SUCCESS:
@@ -104,7 +116,6 @@ class QuerySessionSync(BaseQuerySession):
                         self._state.reset(False)
             except Exception as e:
                 pass
-            print("CHECK STATUS STOP")
 
 
     def delete(self) -> None:
@@ -119,7 +130,20 @@ class QuerySessionSync(BaseQuerySession):
         self._create_call()
         self._attach()
 
-    def transaction(self, tx_mode: base.BaseQueryTxMode) -> base.IQueryTxContext:
+    def transaction(self, tx_mode: base.BaseQueryTxMode = None) -> base.IQueryTxContext:
         if not self._state.session_id:
             return
-        return BaseTxContext(tx_mode)
+        return BaseTxContext(
+            self._driver,
+            self._state,
+            self,
+            tx_mode,
+        )
+
+    def execute(self, query: str, commit_tx: bool = True):
+        stream_it = self._execute_call(query, commit_tx)
+
+        return _utilities.SyncResponseIterator(
+            stream_it,
+            lambda resp: base.wrap_execute_query_response(rpc_state=None, response_pb=resp),
+        )

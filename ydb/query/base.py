@@ -7,9 +7,12 @@ from typing import (
 from .._grpc.grpcwrapper.common_utils import (
     SupportedDriverType,
 )
-
-from .._grpc.grpcwrapper.ydb_query_public_types import BaseQueryTxMode
-
+from .._grpc.grpcwrapper import ydb_query
+from .._grpc.grpcwrapper.ydb_query_public_types import (
+    BaseQueryTxMode,
+    QuerySerializableReadWrite
+)
+from .. import convert
 
 class QueryClientSettings: ...
 
@@ -82,4 +85,22 @@ class IQueryClient(abc.ABC):
         pass
 
 
+def create_execute_query_request(query: str, session_id: str, commit_tx: bool):
+    req = ydb_query.ExecuteQueryRequest(
+        session_id=session_id,
+        query_content=ydb_query.QueryContent.from_public(
+            query=query,
+        ),
+        tx_control=ydb_query.TransactionControl(
+            begin_tx=ydb_query.TransactionSettings(
+                tx_mode=QuerySerializableReadWrite(),
+            ),
+            commit_tx=commit_tx
+        ),
+    )
 
+    return req.to_proto()
+
+def wrap_execute_query_response(rpc_state, response_pb):
+
+    return convert.ResultSet.from_message(response_pb.result_set)

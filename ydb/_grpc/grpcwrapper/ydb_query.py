@@ -92,7 +92,6 @@ class TransactionSettings(IFromPublic, IToProto):
             return ydb_query_pb2.TransactionSettings(online_read_only=self.tx_mode.to_proto())
         if self.tx_mode.name == 'stale_read_only':
             return ydb_query_pb2.TransactionSettings(stale_read_only=self.tx_mode.to_proto())
-        # TODO: add exception
 
 @dataclass
 class BeginTransactionRequest(IToProto):
@@ -102,7 +101,7 @@ class BeginTransactionRequest(IToProto):
     def to_proto(self) -> ydb_query_pb2.BeginTransactionRequest:
         return ydb_query_pb2.BeginTransactionRequest(
             session_id=self.session_id,
-            tx_settings=self.tx_settings
+            tx_settings=self.tx_settings.to_proto(),
             )
 
 @dataclass
@@ -120,7 +119,7 @@ class BeginTransactionResponse(IFromProto):
 @dataclass
 class QueryContent(IFromPublic, IToProto):
     text: str
-    syntax: Optional[str]
+    syntax: Optional[str] = None
 
     @staticmethod
     def from_public(query: str) -> "QueryContent":
@@ -132,9 +131,9 @@ class QueryContent(IFromPublic, IToProto):
 
 @dataclass
 class TransactionControl(IToProto):
-    begin_tx: Optional[TransactionSettings]
-    commit_tx: Optional[bool]
-    tx_id: Optional[str]
+    begin_tx: Optional[TransactionSettings] = None
+    commit_tx: Optional[bool] = None
+    tx_id: Optional[str] = None
 
     def to_proto(self) -> ydb_query_pb2.TransactionControl:
         if self.tx_id:
@@ -143,19 +142,28 @@ class TransactionControl(IToProto):
                 commit_tx=self.commit_tx,
             )
         return ydb_query_pb2.TransactionControl(
-            begin_tx=self.begin_tx,
+            begin_tx=self.begin_tx.to_proto(),
             commit_tx=self.commit_tx
         )
 
 
 @dataclass
-class ExecuteQueryRequest:
-    exec_mode: Optional[str]
-    concurrent_result_sets: bool = False
-    parameters: Optional[dict]
-    query_content: QueryContent
+class ExecuteQueryRequest(IToProto):
     session_id: str
-    stats_mode: Optional[str]
+    query_content: QueryContent
     tx_control: TransactionControl
+    concurrent_result_sets: Optional[bool] = False
+    exec_mode: Optional[str] = None
+    parameters: Optional[dict] = None
+    stats_mode: Optional[str] = None
 
-
+    def to_proto(self) -> ydb_query_pb2.ExecuteQueryRequest:
+        return ydb_query_pb2.ExecuteQueryRequest(
+            session_id=self.session_id,
+            tx_control=self.tx_control.to_proto(),
+            query_content=self.query_content.to_proto(),
+            exec_mode=ydb_query_pb2.EXEC_MODE_EXECUTE,
+            stats_mode=self.stats_mode,
+            concurrent_result_sets=self.concurrent_result_sets,
+            parameters=self.parameters,
+        )
