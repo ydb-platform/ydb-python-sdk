@@ -19,13 +19,13 @@ def main():
     pool = ydb.QuerySessionPool(driver)
     # with pool.checkout() as session:
     def callee(session):
-        print("="*50)
+        print("=" * 50)
         print("BEFORE ACTION")
         it = session.execute("""SELECT COUNT(*) FROM example;""")
         for result_set in it:
             print(f"rows: {str(result_set.rows)}")
 
-        print("="*50)
+        print("=" * 50)
         print("INSERT WITH COMMIT TX")
         tx = session.transaction()
 
@@ -38,13 +38,13 @@ def main():
 
         tx.commit()
 
-        print("="*50)
+        print("=" * 50)
         print("AFTER COMMIT TX")
 
         for result_set in session.execute("""SELECT COUNT(*) FROM example;"""):
             print(f"rows: {str(result_set.rows)}")
 
-        print("="*50)
+        print("=" * 50)
         print("INSERT WITH ROLLBACK TX")
 
         tx = session.transaction()
@@ -58,7 +58,7 @@ def main():
 
         tx.rollback()
 
-        print("="*50)
+        print("=" * 50)
         print("AFTER ROLLBACK TX")
 
         for result_set in session.execute("""SELECT COUNT(*) FROM example;"""):

@@ -155,7 +155,6 @@ def create_execute_query_request(
     exec_mode: QueryExecMode = None,
     parameters: dict = None,
     concurrent_result_sets: bool = False,
-
 ):
     syntax = QuerySyntax.YQL_V1 if not syntax else syntax
     exec_mode = QueryExecMode.EXECUTE if not exec_mode else exec_mode
