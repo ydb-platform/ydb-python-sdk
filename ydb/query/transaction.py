@@ -97,7 +97,6 @@ def _create_begin_transaction_request(session_state, tx_state):
         session_id=session_state.session_id,
         tx_settings=_construct_tx_settings(tx_state),
     ).to_proto()
-
     return request
 
 
@@ -127,7 +126,7 @@ def wrap_tx_begin_response(rpc_state, response_pb, session_state, tx_state, tx):
 @base.bad_session_handler
 @reset_tx_id_handler
 def wrap_tx_commit_response(rpc_state, response_pb, session_state, tx_state, tx):
-    message = _ydb_query.CommitTransactionResponse(response_pb)
+    message = _ydb_query.CommitTransactionResponse.from_proto(response_pb)
     issues._process_response(message.status)
     tx_state.tx_id = None
     tx_state._change_state(QueryTxStateEnum.COMMITTED)
@@ -137,7 +136,7 @@ def wrap_tx_commit_response(rpc_state, response_pb, session_state, tx_state, tx)
 @base.bad_session_handler
 @reset_tx_id_handler
 def wrap_tx_rollback_response(rpc_state, response_pb, session_state, tx_state, tx):
-    message = _ydb_query.RollbackTransactionResponse(response_pb)
+    message = _ydb_query.RollbackTransactionResponse.from_proto(response_pb)
     issues._process_response(message.status)
     tx_state.tx_id = None
     tx_state._change_state(QueryTxStateEnum.ROLLBACKED)
@@ -170,6 +169,7 @@ class BaseTxContext(base.IQueryTxContext):
         self._session_state = session_state
         self.session = session
         self._finished = ""
+        self._prev_stream = None
 
     def __enter__(self):
         """
@@ -247,6 +247,8 @@ class BaseTxContext(base.IQueryTxContext):
             return
         self._tx_state._check_invalid_transition(QueryTxStateEnum.COMMITTED)
 
+        self._ensure_prev_stream_finished()
+
         return self._driver(
             _create_commit_transaction_request(self._session_state, self._tx_state),
             _apis.QueryService.Stub,
@@ -262,6 +264,8 @@ class BaseTxContext(base.IQueryTxContext):
 
         self._tx_state._check_invalid_transition(QueryTxStateEnum.ROLLBACKED)
 
+        self._ensure_prev_stream_finished()
+
         return self._driver(
             _create_rollback_transaction_request(self._session_state, self._tx_state),
             _apis.QueryService.Stub,
@@ -271,24 +275,64 @@ class BaseTxContext(base.IQueryTxContext):
             (self._session_state, self._tx_state, self),
         )
 
-    def _execute_call(self, query: str, commit_tx: bool):
+    def _execute_call(
+        self,
+        query: str,
+        commit_tx: bool = False,
+        tx_mode: base.BaseQueryTxMode = None,
+        syntax: base.QuerySyntax = None,
+        exec_mode: base.QueryExecMode = None,
+        parameters: dict = None,
+        concurrent_result_sets: bool = False,
+    ):
         request = base.create_execute_query_request(
             query=query,
             session_id=self._session_state.session_id,
             commit_tx=commit_tx,
+            tx_id=self._tx_state.tx_id,
+            tx_mode=tx_mode,
+            syntax=syntax,
+            exec_mode=exec_mode,
+            parameters=parameters,
+            concurrent_result_sets=concurrent_result_sets,
         )
+
         return self._driver(
             request,
             _apis.QueryService.Stub,
             _apis.QueryService.ExecuteQuery,
         )
 
-    def execute(self, query, parameters=None, commit_tx=False, settings=None):
+    def _ensure_prev_stream_finished(self):
+        if self._prev_stream is not None:
+            for _ in self._prev_stream:
+                pass
+            self._prev_stream = None
+
+    def execute(
+        self,
+        query: str,
+        commit_tx: bool = False,
+        tx_mode: base.BaseQueryTxMode = None,
+        syntax: base.QuerySyntax = None,
+        exec_mode: base.QueryExecMode = None,
+        parameters: dict = None,
+        concurrent_result_sets: bool = False,
+    ):
         self._tx_state._check_tx_not_terminal()
+        self._ensure_prev_stream_finished()
 
-        stream_it = self._execute_call(query, commit_tx)
-
-        return _utilities.SyncResponseIterator(
+        stream_it = self._execute_call(
+            query=query,
+            commit_tx=commit_tx,
+            tx_mode=tx_mode,
+            syntax=syntax,
+            exec_mode=exec_mode,
+            parameters=parameters,
+            concurrent_result_sets=concurrent_result_sets,
+        )
+        self._prev_stream = _utilities.SyncResponseIterator(
             stream_it,
             lambda resp: base.wrap_execute_query_response(rpc_state=None, response_pb=resp),
         )
+        return self._prev_stream

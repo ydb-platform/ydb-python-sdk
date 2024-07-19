@@ -1,4 +1,5 @@
 import abc
+import enum
 import functools
 
 from typing import (
@@ -63,7 +64,7 @@ class IQuerySession(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def create(self) -> None:
+    def create(self) -> "IQuerySession":
         pass
 
     @abc.abstractmethod
@@ -117,7 +118,7 @@ class IQueryTxContext(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def execute(query: str):
+    def execute(query: str, commit_tx=False):
         pass
 
 
@@ -130,19 +131,48 @@ class IQueryClient(abc.ABC):
         pass
 
 
+class QuerySyntax(enum.IntEnum):
+    UNSPECIFIED = 0
+    YQL_V1 = 1
+    PG = 2
+
+
+class QueryExecMode(enum.IntEnum):
+    UNSPECIFIED = 0
+    PARSE = 10
+    VALIDATE = 20
+    EXPLAIN = 30
+    EXECUTE = 50
+
+
 def create_execute_query_request(
-    query: str, session_id: str, tx_id: str = None, commit_tx: bool = False, tx_mode: BaseQueryTxMode = None
+    query: str,
+    session_id: str,
+    tx_id: str = None,
+    commit_tx: bool = False,
+    tx_mode: BaseQueryTxMode = None,
+    syntax: QuerySyntax = None,
+    exec_mode: QueryExecMode = None,
+    parameters: dict = None,
+    concurrent_result_sets: bool = False,
+
 ):
+    syntax = QuerySyntax.YQL_V1 if not syntax else syntax
+    exec_mode = QueryExecMode.EXECUTE if not exec_mode else exec_mode
     if tx_id:
         req = ydb_query.ExecuteQueryRequest(
             session_id=session_id,
             query_content=ydb_query.QueryContent.from_public(
                 query=query,
+                syntax=syntax,
             ),
             tx_control=ydb_query.TransactionControl(
                 tx_id=tx_id,
                 commit_tx=commit_tx,
             ),
+            exec_mode=exec_mode,
+            parameters=parameters,
+            concurrent_result_sets=concurrent_result_sets,
         )
     else:
         tx_mode = tx_mode if tx_mode is not None else QuerySerializableReadWrite()
@@ -150,6 +180,7 @@ def create_execute_query_request(
             session_id=session_id,
             query_content=ydb_query.QueryContent.from_public(
                 query=query,
+                syntax=syntax,
             ),
             tx_control=ydb_query.TransactionControl(
                 begin_tx=ydb_query.TransactionSettings(
@@ -157,12 +188,16 @@ def create_execute_query_request(
                 ),
                 commit_tx=commit_tx,
             ),
+            exec_mode=exec_mode,
+            parameters=parameters,
+            concurrent_result_sets=concurrent_result_sets,
         )
 
     return req.to_proto()
 
 
 def wrap_execute_query_response(rpc_state, response_pb):
+    issues._process_response(response_pb)
     return convert.ResultSet.from_message(response_pb.result_set)
 
 

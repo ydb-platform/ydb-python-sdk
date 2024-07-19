@@ -129,11 +129,11 @@ class RollbackTransactionResponse(IFromProto):
 @dataclass
 class QueryContent(IFromPublic, IToProto):
     text: str
-    syntax: Optional[str] = None
+    syntax: Optional[int] = None
 
     @staticmethod
-    def from_public(query: str) -> "QueryContent":
-        return QueryContent(text=query)
+    def from_public(query: str, syntax: int = None) -> "QueryContent":
+        return QueryContent(text=query, syntax=syntax)
 
     def to_proto(self) -> ydb_query_pb2.QueryContent:
         return ydb_query_pb2.QueryContent(text=self.text, syntax=self.syntax)
@@ -163,16 +163,16 @@ class ExecuteQueryRequest(IToProto):
     query_content: QueryContent
     tx_control: TransactionControl
     concurrent_result_sets: Optional[bool] = False
-    exec_mode: Optional[str] = None
+    exec_mode: Optional[int] = None
     parameters: Optional[dict] = None
-    stats_mode: Optional[str] = None
+    stats_mode: Optional[int] = None
 
     def to_proto(self) -> ydb_query_pb2.ExecuteQueryRequest:
         return ydb_query_pb2.ExecuteQueryRequest(
             session_id=self.session_id,
             tx_control=self.tx_control.to_proto(),
             query_content=self.query_content.to_proto(),
-            exec_mode=ydb_query_pb2.EXEC_MODE_EXECUTE,
+            exec_mode=self.exec_mode,
             stats_mode=self.stats_mode,
             concurrent_result_sets=self.concurrent_result_sets,
             parameters=self.parameters,

@@ -205,13 +205,15 @@ class QuerySessionSync(BaseQuerySession):
         self._delete_call()
         self._stream.cancel()
 
-    def create(self) -> None:
+    def create(self) -> "QuerySessionSync":
         if self._state._already_in(QuerySessionStateEnum.CREATED):
             return
 
         self._state._check_invalid_transition(QuerySessionStateEnum.CREATED)
         self._create_call()
         self._attach()
+
+        return self
 
     def transaction(self, tx_mode: base.BaseQueryTxMode = None) -> base.IQueryTxContext:
         self._state._check_session_ready_to_use()
