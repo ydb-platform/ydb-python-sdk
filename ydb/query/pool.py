@@ -1,11 +1,9 @@
-import abc
 import time
 from typing import Callable
 
 from . import base
 from .session import (
     QuerySessionSync,
-    BaseQuerySession,
 )
 from .. import issues
 from .._errors import check_retriable_error

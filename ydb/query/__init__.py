@@ -7,13 +7,13 @@ from .base import (
 from .session import QuerySessionSync
 
 from .._grpc.grpcwrapper.ydb_query_public_types import (
-    QueryOnlineReadOnly,
-    QuerySerializableReadWrite,
-    QuerySnapshotReadOnly,
-    QueryStaleReadOnly,
+    QueryOnlineReadOnly,  # noqa
+    QuerySerializableReadWrite,  # noqa
+    QuerySnapshotReadOnly,  # noqa
+    QueryStaleReadOnly,  # noqa
 )
 
-from .pool import QuerySessionPool
+from .pool import QuerySessionPool  # noqa
 
 
 class QueryClientSync(IQueryClient):
