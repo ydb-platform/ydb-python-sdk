@@ -18,7 +18,7 @@ def main():
     # session = client.session().create()
     pool = ydb.QuerySessionPool(driver)
     # with pool.checkout() as session:
-    
+
     def callee(session):
         print("=" * 50)
         print("BEFORE ACTION")
