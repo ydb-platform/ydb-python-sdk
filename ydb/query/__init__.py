@@ -4,7 +4,7 @@ __all__ = [
     "QuerySnapshotReadOnly",
     "QueryStaleReadOnly",
     "QuerySessionPool",
-    "QueryClientSync"
+    "QueryClientSync",
 ]
 
 from .base import (
