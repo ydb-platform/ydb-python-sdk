@@ -32,7 +32,7 @@ def main():
 
         tx.begin()
 
-        tx.execute("""INSERT INTO example (key, value) VALUES (0033, "onepieceisreal");""")
+        tx.execute("""INSERT INTO example (key, value) VALUES (0055, "onepieceisreal");""")
 
         for result_set in tx.execute("""SELECT COUNT(*) FROM example;"""):
             print(f"rows: {str(result_set.rows)}")
@@ -52,7 +52,7 @@ def main():
 
         tx.begin()
 
-        tx.execute("""INSERT INTO example (key, value) VALUES (0044, "onepieceisreal");""")
+        tx.execute("""INSERT INTO example (key, value) VALUES (0066, "onepieceisreal");""")
 
         for result_set in tx.execute("""SELECT COUNT(*) FROM example;"""):
             print(f"rows: {str(result_set.rows)}")
