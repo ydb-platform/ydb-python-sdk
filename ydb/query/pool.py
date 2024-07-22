@@ -123,10 +123,10 @@ class QuerySessionPool:
         with self.checkout() as session:
 
             def wrapped_callee():
-                it = session.execute(query, empty_tx_control=True)
+                it = session.execute(query, empty_tx_control=True, *args, **kwargs)
                 return [result_set for result_set in it]
 
-            opt_generator = retry_operation_impl(wrapped_callee, retry_settings, *args, **kwargs)
+            opt_generator = retry_operation_impl(wrapped_callee, retry_settings)
             for next_opt in opt_generator:
                 if isinstance(next_opt, YdbRetryOperationSleepOpt):
                     time.sleep(next_opt.timeout)
