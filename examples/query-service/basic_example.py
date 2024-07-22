@@ -26,7 +26,6 @@ def main():
 
     pool.execute_with_retries("INSERT INTO example (key, value) VALUES (1, 'onepieceisreal');")
 
-
     def callee(session):
         print("=" * 50)
         for _ in session.execute("""delete from example;"""):

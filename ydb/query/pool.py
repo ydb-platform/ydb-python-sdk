@@ -117,7 +117,7 @@ class QuerySessionPool:
                 return next_opt.result
 
     def execute_with_retries(
-            self, query: str, ddl: bool = False, retry_settings: RetrySettings = None, *args, **kwargs
+        self, query: str, ddl: bool = False, retry_settings: RetrySettings = None, *args, **kwargs
     ):
         retry_settings = RetrySettings() if retry_settings is None else retry_settings
         with self.checkout() as session:
