@@ -8,7 +8,7 @@ import pytest
 
 from .common import CallFromSyncToAsync
 from .._grpc.grpcwrapper.common_utils import (
-    GrpcWrapperStreamStreamAsyncIO,
+    GrpcWrapperAsyncIO,
     ServerStatus,
     callback_from_asyncio,
 )
@@ -77,7 +77,7 @@ class Test:
 
 
 @pytest.mark.asyncio
-class TestGrpcWrapperStreamStreamAsyncIO:
+class TestGrpcWrapperAsyncIO:
     async def test_convert_grpc_errors_to_ydb(self):
         class TestError(grpc.RpcError, grpc.Call):
             def __init__(self):
@@ -93,7 +93,7 @@ class TestGrpcWrapperStreamStreamAsyncIO:
             async def __anext__(self):
                 raise TestError()
 
-        wrapper = GrpcWrapperStreamStreamAsyncIO(lambda: None)
+        wrapper = GrpcWrapperAsyncIO(lambda: None)
         wrapper.from_server_grpc = FromServerMock()
 
         with pytest.raises(issues.Unauthenticated):
@@ -107,7 +107,7 @@ class TestGrpcWrapperStreamStreamAsyncIO:
                     issues=[],
                 )
 
-        wrapper = GrpcWrapperStreamStreamAsyncIO(lambda: None)
+        wrapper = GrpcWrapperAsyncIO(lambda: None)
         wrapper.from_server_grpc = FromServerMock()
 
         with pytest.raises(issues.Overloaded):
