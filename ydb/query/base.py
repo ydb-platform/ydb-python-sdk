@@ -155,42 +155,39 @@ def create_execute_query_request(
     exec_mode: QueryExecMode = None,
     parameters: dict = None,
     concurrent_result_sets: bool = False,
+    empty_tx_control: bool = False,
 ):
     syntax = QuerySyntax.YQL_V1 if not syntax else syntax
     exec_mode = QueryExecMode.EXECUTE if not exec_mode else exec_mode
-    if tx_id:
-        req = ydb_query.ExecuteQueryRequest(
-            session_id=session_id,
-            query_content=ydb_query.QueryContent.from_public(
-                query=query,
-                syntax=syntax,
-            ),
-            tx_control=ydb_query.TransactionControl(
-                tx_id=tx_id,
-                commit_tx=commit_tx,
-            ),
-            exec_mode=exec_mode,
-            parameters=parameters,
-            concurrent_result_sets=concurrent_result_sets,
+
+    tx_control = None
+    if empty_tx_control:
+        tx_control = None
+    elif tx_id:
+        tx_control = ydb_query.TransactionControl(
+            tx_id=tx_id,
+            commit_tx=commit_tx,
         )
     else:
         tx_mode = tx_mode if tx_mode is not None else QuerySerializableReadWrite()
-        req = ydb_query.ExecuteQueryRequest(
-            session_id=session_id,
-            query_content=ydb_query.QueryContent.from_public(
-                query=query,
-                syntax=syntax,
+        tx_control = ydb_query.TransactionControl(
+            begin_tx=ydb_query.TransactionSettings(
+                tx_mode=tx_mode,
             ),
-            tx_control=ydb_query.TransactionControl(
-                begin_tx=ydb_query.TransactionSettings(
-                    tx_mode=tx_mode,
-                ),
-                commit_tx=commit_tx,
-            ),
-            exec_mode=exec_mode,
-            parameters=parameters,
-            concurrent_result_sets=concurrent_result_sets,
+            commit_tx=commit_tx,
         )
+
+    req = ydb_query.ExecuteQueryRequest(
+        session_id=session_id,
+        query_content=ydb_query.QueryContent.from_public(
+            query=query,
+            syntax=syntax,
+        ),
+        tx_control=tx_control,
+        exec_mode=exec_mode,
+        parameters=parameters,
+        concurrent_result_sets=concurrent_result_sets,
+    )
 
     return req.to_proto()
 

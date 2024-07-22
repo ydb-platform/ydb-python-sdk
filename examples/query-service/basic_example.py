@@ -14,15 +14,22 @@ def main():
     except TimeoutError:
         raise RuntimeError("Connect failed to YDB")
 
-    # client = ydb.QueryClientSync(driver)
-    # session = client.session().create()
     pool = ydb.QuerySessionPool(driver)
-    # with pool.checkout() as session:
+
+    print("=" * 50)
+    print("DELETE TABLE IF EXISTS")
+    pool.execute_with_retries("drop table if exists example;", ddl=True)
+
+    print("=" * 50)
+    print("CREATE TABLE")
+    pool.execute_with_retries("CREATE TABLE example(key UInt64, value String, PRIMARY KEY (key));", ddl=True)
 
     def callee(session):
         print("=" * 50)
+        session.execute("""delete from example;""")
+
         print("BEFORE ACTION")
-        it = session.execute("""SELECT COUNT(*) FROM example;""")
+        it = session.execute("""SELECT COUNT(*) as rows_count FROM example;""")
         for result_set in it:
             print(f"rows: {str(result_set.rows)}")
 
@@ -34,7 +41,7 @@ def main():
 
         tx.execute("""INSERT INTO example (key, value) VALUES (0055, "onepieceisreal");""")
 
-        for result_set in tx.execute("""SELECT COUNT(*) FROM example;"""):
+        for result_set in tx.execute("""SELECT COUNT(*) as rows_count FROM example;"""):
             print(f"rows: {str(result_set.rows)}")
 
         tx.commit()
@@ -42,7 +49,7 @@ def main():
         print("=" * 50)
         print("AFTER COMMIT TX")
 
-        for result_set in session.execute("""SELECT COUNT(*) FROM example;"""):
+        for result_set in session.execute("""SELECT COUNT(*) as rows_count FROM example;"""):
             print(f"rows: {str(result_set.rows)}")
 
         print("=" * 50)
@@ -54,7 +61,7 @@ def main():
 
         tx.execute("""INSERT INTO example (key, value) VALUES (0066, "onepieceisreal");""")
 
-        for result_set in tx.execute("""SELECT COUNT(*) FROM example;"""):
+        for result_set in tx.execute("""SELECT COUNT(*) as rows_count FROM example;"""):
             print(f"rows: {str(result_set.rows)}")
 
         tx.rollback()
@@ -62,7 +69,7 @@ def main():
         print("=" * 50)
         print("AFTER ROLLBACK TX")
 
-        for result_set in session.execute("""SELECT COUNT(*) FROM example;"""):
+        for result_set in session.execute("""SELECT COUNT(*) as rows_count FROM example;"""):
             print(f"rows: {str(result_set.rows)}")
 
     pool.retry_operation_sync(callee)

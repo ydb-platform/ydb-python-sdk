@@ -91,8 +91,8 @@ def retry_operation_impl(callee: Callable, retry_settings: RetrySettings = None,
             # you should provide your own handler you want
             retry_settings.unknown_error_handler(e)
             raise
-
-    raise status
+    if status:
+        raise status
 
 
 class QuerySessionPool:
@@ -115,6 +115,20 @@ class QuerySessionPool:
                 time.sleep(next_opt.timeout)
             else:
                 return next_opt.result
+
+    def execute_with_retries(self, query: str, ddl: bool = False, retry_settings: RetrySettings = None, *args, **kwargs):
+        retry_settings = RetrySettings() if retry_settings is None else retry_settings
+        with self.checkout() as session:
+            def wrapped_callee():
+                it = session.execute(query, empty_tx_control=ddl)
+                return [result_set for result_set in it]
+
+            opt_generator = retry_operation_impl(wrapped_callee, retry_settings, *args, **kwargs)
+            for next_opt in opt_generator:
+                if isinstance(next_opt, YdbRetryOperationSleepOpt):
+                    time.sleep(next_opt.timeout)
+                else:
+                    return next_opt.result
 
 
 class SimpleQuerySessionCheckout:

@@ -150,11 +150,27 @@ class BaseQuerySession(base.IQuerySession):
             _apis.QueryService.AttachSession,
         )
 
-    def _execute_call(self, query: str, commit_tx: bool):
+    def _execute_call(
+        self,
+        query: str,
+        commit_tx: bool = False,
+        tx_mode: base.BaseQueryTxMode = None,
+        syntax: base.QuerySyntax = None,
+        exec_mode: base.QueryExecMode = None,
+        parameters: dict = None,
+        concurrent_result_sets: bool = False,
+        empty_tx_control: bool = False,
+    ):
         request = base.create_execute_query_request(
             query=query,
             session_id=self._state.session_id,
             commit_tx=commit_tx,
+            tx_mode=tx_mode,
+            syntax=syntax,
+            exec_mode=exec_mode,
+            parameters=parameters,
+            concurrent_result_sets=concurrent_result_sets,
+            empty_tx_control=empty_tx_control,
         )
 
         return self._driver(
@@ -225,10 +241,28 @@ class QuerySessionSync(BaseQuerySession):
             tx_mode,
         )
 
-    def execute(self, query: str, parameters=None):
+    def execute(
+        self,
+        query: str,
+        tx_mode: base.BaseQueryTxMode = None,
+        syntax: base.QuerySyntax = None,
+        exec_mode: base.QueryExecMode = None,
+        parameters: dict = None,
+        concurrent_result_sets: bool = False,
+        empty_tx_control: bool = False
+    ):
         self._state._check_session_ready_to_use()
 
-        stream_it = self._execute_call(query, commit_tx=True)
+        stream_it = self._execute_call(
+            query=query,
+            commit_tx=True,
+            tx_mode=tx_mode,
+            syntax=syntax,
+            exec_mode=exec_mode,
+            parameters=parameters,
+            concurrent_result_sets=concurrent_result_sets,
+            empty_tx_control=empty_tx_control,
+        )
 
         return _utilities.SyncResponseIterator(
             stream_it,

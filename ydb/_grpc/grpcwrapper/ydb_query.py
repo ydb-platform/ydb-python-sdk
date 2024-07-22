@@ -161,16 +161,17 @@ class TransactionControl(IToProto):
 class ExecuteQueryRequest(IToProto):
     session_id: str
     query_content: QueryContent
-    tx_control: TransactionControl
+    tx_control: Optional[TransactionControl] = None
     concurrent_result_sets: Optional[bool] = False
     exec_mode: Optional[int] = None
     parameters: Optional[dict] = None
     stats_mode: Optional[int] = None
 
     def to_proto(self) -> ydb_query_pb2.ExecuteQueryRequest:
+        tx_control = self.tx_control.to_proto() if self.tx_control is not None else self.tx_control
         return ydb_query_pb2.ExecuteQueryRequest(
             session_id=self.session_id,
-            tx_control=self.tx_control.to_proto(),
+            tx_control=tx_control,
             query_content=self.query_content.to_proto(),
             exec_mode=self.exec_mode,
             stats_mode=self.stats_mode,
