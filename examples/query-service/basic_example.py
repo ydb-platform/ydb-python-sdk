@@ -24,9 +24,13 @@ def main():
     print("CREATE TABLE")
     pool.execute_with_retries("CREATE TABLE example(key UInt64, value String, PRIMARY KEY (key));", ddl=True)
 
+    pool.execute_with_retries("INSERT INTO example (key, value) VALUES (1, 'onepieceisreal');")
+
+
     def callee(session):
         print("=" * 50)
-        session.execute("""delete from example;""")
+        for _ in session.execute("""delete from example;"""):
+            pass
 
         print("BEFORE ACTION")
         it = session.execute("""SELECT COUNT(*) as rows_count FROM example;""")
@@ -39,7 +43,7 @@ def main():
 
         tx.begin()
 
-        tx.execute("""INSERT INTO example (key, value) VALUES (0055, "onepieceisreal");""")
+        tx.execute("""INSERT INTO example (key, value) VALUES (1, "onepieceisreal");""")
 
         for result_set in tx.execute("""SELECT COUNT(*) as rows_count FROM example;"""):
             print(f"rows: {str(result_set.rows)}")
@@ -59,7 +63,7 @@ def main():
 
         tx.begin()
 
-        tx.execute("""INSERT INTO example (key, value) VALUES (0066, "onepieceisreal");""")
+        tx.execute("""INSERT INTO example (key, value) VALUES (2, "onepieceisreal");""")
 
         for result_set in tx.execute("""SELECT COUNT(*) as rows_count FROM example;"""):
             print(f"rows: {str(result_set.rows)}")
