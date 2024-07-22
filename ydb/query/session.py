@@ -249,7 +249,7 @@ class QuerySessionSync(BaseQuerySession):
         exec_mode: base.QueryExecMode = None,
         parameters: dict = None,
         concurrent_result_sets: bool = False,
-        empty_tx_control: bool = False
+        empty_tx_control: bool = False,
     ):
         self._state._check_session_ready_to_use()
 

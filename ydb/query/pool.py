@@ -116,9 +116,12 @@ class QuerySessionPool:
             else:
                 return next_opt.result
 
-    def execute_with_retries(self, query: str, ddl: bool = False, retry_settings: RetrySettings = None, *args, **kwargs):
+    def execute_with_retries(
+            self, query: str, ddl: bool = False, retry_settings: RetrySettings = None, *args, **kwargs
+    ):
         retry_settings = RetrySettings() if retry_settings is None else retry_settings
         with self.checkout() as session:
+
             def wrapped_callee():
                 it = session.execute(query, empty_tx_control=ddl)
                 return [result_set for result_set in it]
