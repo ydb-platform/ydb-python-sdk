@@ -18,11 +18,11 @@ def main():
 
     print("=" * 50)
     print("DELETE TABLE IF EXISTS")
-    pool.execute_with_retries("drop table if exists example;", ddl=True)
+    pool.execute_with_retries("drop table if exists example;")
 
     print("=" * 50)
     print("CREATE TABLE")
-    pool.execute_with_retries("CREATE TABLE example(key UInt64, value String, PRIMARY KEY (key));", ddl=True)
+    pool.execute_with_retries("CREATE TABLE example(key UInt64, value String, PRIMARY KEY (key));")
 
     pool.execute_with_retries("INSERT INTO example (key, value) VALUES (1, 'onepieceisreal');")
 
