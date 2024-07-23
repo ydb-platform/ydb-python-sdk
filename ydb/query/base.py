@@ -192,8 +192,12 @@ def create_execute_query_request(
     return req.to_proto()
 
 
-def wrap_execute_query_response(rpc_state, response_pb):
+def wrap_execute_query_response(rpc_state, response_pb, tx, commit_tx=False):
     issues._process_response(response_pb)
+    if response_pb.tx_meta and not tx.tx_id:
+        tx._handle_tx_meta(response_pb.tx_meta)
+    if commit_tx:
+        tx._move_to_commited()
     return convert.ResultSet.from_message(response_pb.result_set)
 
 
@@ -201,17 +205,10 @@ X_YDB_SERVER_HINTS = "x-ydb-server-hints"
 X_YDB_SESSION_CLOSE = "session-close"
 
 
-# def _check_session_is_closing(rpc_state, session_state):
-#     metadata = rpc_state.trailing_metadata()
-#     if X_YDB_SESSION_CLOSE in metadata.get(X_YDB_SERVER_HINTS, []):
-#         session_state.set_closing() # TODO: clarify & implement
-
-
 def bad_session_handler(func):
     @functools.wraps(func)
     def decorator(rpc_state, response_pb, session_state, *args, **kwargs):
         try:
-            # _check_session_is_closing(rpc_state, session_state)
             return func(rpc_state, response_pb, session_state, *args, **kwargs)
         except issues.BadSession:
             session_state.reset()

@@ -245,9 +245,8 @@ class BaseTxContext(base.IQueryTxContext):
         """
         if self._tx_state._already_in(QueryTxStateEnum.COMMITTED):
             return
-        self._tx_state._check_invalid_transition(QueryTxStateEnum.COMMITTED)
-
         self._ensure_prev_stream_finished()
+        self._tx_state._check_invalid_transition(QueryTxStateEnum.COMMITTED)
 
         return self._driver(
             _create_commit_transaction_request(self._session_state, self._tx_state),
@@ -262,9 +261,8 @@ class BaseTxContext(base.IQueryTxContext):
         if self._tx_state._already_in(QueryTxStateEnum.ROLLBACKED):
             return
 
-        self._tx_state._check_invalid_transition(QueryTxStateEnum.ROLLBACKED)
-
         self._ensure_prev_stream_finished()
+        self._tx_state._check_invalid_transition(QueryTxStateEnum.ROLLBACKED)
 
         return self._driver(
             _create_rollback_transaction_request(self._session_state, self._tx_state),
@@ -309,6 +307,16 @@ class BaseTxContext(base.IQueryTxContext):
                 pass
             self._prev_stream = None
 
+    def _handle_tx_meta(self, tx_meta=None):
+        if not self.tx_id:
+            self._tx_state._change_state(QueryTxStateEnum.BEGINED)
+            self._tx_state.tx_id = tx_meta.id
+
+    def _move_to_commited(self):
+        if self._tx_state._already_in(QueryTxStateEnum.COMMITTED):
+            return
+        self._tx_state._change_state(QueryTxStateEnum.COMMITTED)
+
     def execute(
         self,
         query: str,
@@ -319,8 +327,8 @@ class BaseTxContext(base.IQueryTxContext):
         parameters: dict = None,
         concurrent_result_sets: bool = False,
     ):
-        self._tx_state._check_tx_not_terminal()
         self._ensure_prev_stream_finished()
+        self._tx_state._check_tx_not_terminal()
 
         stream_it = self._execute_call(
             query=query,
@@ -333,6 +341,11 @@ class BaseTxContext(base.IQueryTxContext):
         )
         self._prev_stream = _utilities.SyncResponseIterator(
             stream_it,
-            lambda resp: base.wrap_execute_query_response(rpc_state=None, response_pb=resp),
+            lambda resp: base.wrap_execute_query_response(
+                rpc_state=None,
+                response_pb=resp,
+                tx=self,
+                commit_tx=commit_tx,
+            ),
         )
         return self._prev_stream

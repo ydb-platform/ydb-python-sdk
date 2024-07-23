@@ -26,9 +26,14 @@ class TestQueryTransaction:
         with pytest.raises(RuntimeError):
             tx.rollback()
 
-    # def test_tx_execute_raises_before_begin(self, tx):
-    #     with pytest.raises(RuntimeError):
-    #         tx.execute("select 1;")
+    def test_tx_first_execute_begins_tx(self, tx):
+        tx.execute("select 1;")
+        tx.commit()
+
+    def test_interactive_tx_commit(self, tx):
+        tx.execute("select 1;", commit_tx=True)
+        with pytest.raises(RuntimeError):
+            tx.execute("select 1;")
 
     def text_tx_execute_raises_after_commit(self, tx):
         tx.begin()
