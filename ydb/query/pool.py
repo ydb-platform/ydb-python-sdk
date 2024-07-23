@@ -96,13 +96,26 @@ def retry_operation_impl(callee: Callable, retry_settings: RetrySettings = None,
 
 
 class QuerySessionPool:
+    """QuerySessionPool is an object to simplify operations with sessions of Query Service."""
+
     def __init__(self, driver: base.SupportedDriverType):
+        """
+        :param driver: A driver instance
+        """
         self._driver = driver
 
     def checkout(self):
+        """Return a Session context manager, that opens session on enter and closes session on exit."""
         return SimpleQuerySessionCheckout(self)
 
     def retry_operation_sync(self, callee: Callable, retry_settings: RetrySettings = None, *args, **kwargs):
+        """Special interface to execute a bunch of commands with session in a safe, retriable way.
+
+        :param callee: A function, that works with session.
+        :param retry_settings: RetrySettings object.
+
+        :return: Result sets or exception in case of execution errors.
+        """
         retry_settings = RetrySettings() if retry_settings is None else retry_settings
 
         def wrapped_callee():
@@ -117,6 +130,13 @@ class QuerySessionPool:
                 return next_opt.result
 
     def execute_with_retries(self, query: str, retry_settings: RetrySettings = None, *args, **kwargs):
+        """Special interface to execute a one-shot queries in a safe, retriable way.
+
+        :param query: A query, yql or sql text.
+        :param retry_settings: RetrySettings object.
+
+        :return: Result sets or exception in case of execution errors.
+        """
         retry_settings = RetrySettings() if retry_settings is None else retry_settings
         with self.checkout() as session:
 
