@@ -192,11 +192,11 @@ def create_execute_query_request(
     return req.to_proto()
 
 
-def wrap_execute_query_response(rpc_state, response_pb, tx, commit_tx=False):
+def wrap_execute_query_response(rpc_state, response_pb, tx=None, commit_tx=False):
     issues._process_response(response_pb)
-    if response_pb.tx_meta and not tx.tx_id:
+    if tx and response_pb.tx_meta and not tx.tx_id:
         tx._handle_tx_meta(response_pb.tx_meta)
-    if commit_tx:
+    if tx and commit_tx:
         tx._move_to_commited()
     return convert.ResultSet.from_message(response_pb.result_set)
 
