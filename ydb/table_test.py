@@ -1,8 +1,9 @@
 from unittest import mock
-from . import (
+from . import issues
+
+from ._retries import (
     retry_operation_impl,
     YdbRetryOperationFinalResult,
-    issues,
     YdbRetryOperationSleepOpt,
     RetrySettings,
 )

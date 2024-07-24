@@ -15,7 +15,7 @@ from ydb.table import (
     BaseTxContext,
 )
 from . import _utilities
-from ydb import _apis, _session_impl
+from ydb import _apis, _session_impl, _retries
 
 logger = logging.getLogger(__name__)
 
@@ -214,9 +214,9 @@ async def retry_operation(callee, retry_settings=None, *args, **kwargs):  # pyli
     Returns awaitable result of coroutine. If retries are not succussful exception is raised.
     """
 
-    opt_generator = ydb.retry_operation_impl(callee, retry_settings, *args, **kwargs)
+    opt_generator = _retries.retry_operation_impl(callee, retry_settings, *args, **kwargs)
     for next_opt in opt_generator:
-        if isinstance(next_opt, ydb.YdbRetryOperationSleepOpt):
+        if isinstance(next_opt, _retries.YdbRetryOperationSleepOpt):
             await asyncio.sleep(next_opt.timeout)
         else:
             try:

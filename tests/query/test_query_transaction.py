@@ -65,6 +65,6 @@ class TestQueryTransaction:
         assert tx._tx_state._state == QueryTxStateEnum.COMMITTED
 
     def test_context_manager_does_not_hide_exceptions(self, tx: BaseTxContext):
-        with pytest.raises(RuntimeError):
+        with pytest.raises(Exception):
             with tx:
-                tx.commit()
+                raise Exception()
