@@ -198,13 +198,13 @@ class QuerySessionSync(BaseQuerySession):
         self._state._change_state(QuerySessionStateEnum.CREATED)
 
         threading.Thread(
-            target=self._chech_session_status_loop,
+            target=self._check_session_status_loop,
             args=(status_stream,),
             name="check session status thread",
             daemon=True,
         ).start()
 
-    def _chech_session_status_loop(self, status_stream):
+    def _check_session_status_loop(self, status_stream):
         try:
             for status in status_stream:
                 if status.status != issues.StatusCode.SUCCESS:

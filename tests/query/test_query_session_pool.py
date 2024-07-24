@@ -26,6 +26,7 @@ class TestQuerySessionPool:
     def test_retry_op_uses_created_session(self, pool: QuerySessionPool):
         def callee(session: QuerySessionSync):
             assert session._state._state == QuerySessionStateEnum.CREATED
+
         pool.retry_operation_sync(callee)
 
     def test_retry_op_normal(self, pool: QuerySessionPool):

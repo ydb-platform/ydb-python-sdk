@@ -202,10 +202,6 @@ def wrap_execute_query_response(rpc_state, response_pb, tx=None, commit_tx=False
     return convert.ResultSet.from_message(response_pb.result_set)
 
 
-X_YDB_SERVER_HINTS = "x-ydb-server-hints"
-X_YDB_SESSION_CLOSE = "session-close"
-
-
 def bad_session_handler(func):
     @functools.wraps(func)
     def decorator(rpc_state, response_pb, session_state, *args, **kwargs):
