@@ -68,3 +68,11 @@ class TestQueryTransaction:
         with pytest.raises(Exception):
             with tx:
                 raise Exception()
+
+    def test_execute_as_context_manager(self, tx: BaseTxContext):
+        tx.begin()
+
+        with tx.execute("select 1;") as results:
+            res = [result_set for result_set in results]
+
+        assert len(res) == 1

@@ -38,39 +38,40 @@ def main():
 
         print("=" * 50)
         print("INSERT WITH COMMIT TX")
-        tx = session.transaction()
 
-        tx.begin()
+        with session.transaction() as tx:
+            tx.begin()
 
-        tx.execute("""INSERT INTO example (key, value) VALUES (1, "onepieceisreal");""")
+            with tx.execute("""INSERT INTO example (key, value) VALUES (1, "onepieceisreal");""") as results:
+                pass
 
-        for result_set in tx.execute("""SELECT COUNT(*) as rows_count FROM example;"""):
-            print(f"rows: {str(result_set.rows)}")
+            with tx.execute("""SELECT COUNT(*) as rows_count FROM example;""") as results:
+                for result_set in results:
+                    print(f"rows: {str(result_set.rows)}")
 
-        tx.commit()
+            tx.commit()
 
-        print("=" * 50)
-        print("AFTER COMMIT TX")
+            print("=" * 50)
+            print("AFTER COMMIT TX")
 
-        for result_set in session.execute("""SELECT COUNT(*) as rows_count FROM example;"""):
-            print(f"rows: {str(result_set.rows)}")
+            for result_set in session.execute("""SELECT COUNT(*) as rows_count FROM example;"""):
+                print(f"rows: {str(result_set.rows)}")
 
         print("=" * 50)
         print("INSERT WITH ROLLBACK TX")
 
-        tx = session.transaction()
+        with session.transaction() as tx:
+            tx.begin()
 
-        tx.begin()
+            tx.execute("""INSERT INTO example (key, value) VALUES (2, "onepieceisreal");""")
 
-        tx.execute("""INSERT INTO example (key, value) VALUES (2, "onepieceisreal");""")
+            for result_set in tx.execute("""SELECT COUNT(*) as rows_count FROM example;"""):
+                print(f"rows: {str(result_set.rows)}")
 
-        for result_set in tx.execute("""SELECT COUNT(*) as rows_count FROM example;"""):
-            print(f"rows: {str(result_set.rows)}")
+            tx.rollback()
 
-        tx.rollback()
-
-        print("=" * 50)
-        print("AFTER ROLLBACK TX")
+            print("=" * 50)
+            print("AFTER ROLLBACK TX")
 
         for result_set in session.execute("""SELECT COUNT(*) as rows_count FROM example;"""):
             print(f"rows: {str(result_set.rows)}")

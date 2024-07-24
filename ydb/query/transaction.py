@@ -6,7 +6,6 @@ import functools
 from .. import (
     _apis,
     issues,
-    _utilities,
 )
 from .._grpc.grpcwrapper import ydb_query as _ydb_query
 from .._grpc.grpcwrapper import ydb_query_public_types as _ydb_query_public
@@ -340,7 +339,7 @@ class BaseTxContext(base.IQueryTxContext):
             parameters=parameters,
             concurrent_result_sets=concurrent_result_sets,
         )
-        self._prev_stream = _utilities.SyncResponseIterator(
+        self._prev_stream = base.SyncResponseContextIterator(
             stream_it,
             lambda resp: base.wrap_execute_query_response(
                 rpc_state=None,

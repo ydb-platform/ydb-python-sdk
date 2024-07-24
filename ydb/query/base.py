@@ -16,6 +16,7 @@ from .._grpc.grpcwrapper.ydb_query_public_types import (
 )
 from .. import convert
 from .. import issues
+from .. import _utilities
 
 
 class QueryClientSettings:
@@ -215,3 +216,12 @@ def bad_session_handler(func):
             raise
 
     return decorator
+
+
+class SyncResponseContextIterator(_utilities.SyncResponseIterator):
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        for _ in self.it:
+            pass
