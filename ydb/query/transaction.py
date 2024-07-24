@@ -184,6 +184,7 @@ class BaseTxContext(base.IQueryTxContext):
         Closes a transaction context manager and rollbacks transaction if
         it is not rolled back explicitly
         """
+        self._ensure_prev_stream_finished()
         if self._tx_state.tx_id is not None:
             # It's strictly recommended to close transactions directly
             # by using commit_tx=True flag while executing statement or by
