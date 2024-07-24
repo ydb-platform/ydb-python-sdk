@@ -1,5 +1,6 @@
 import pytest
 from ydb.query.session import QuerySessionSync
+from ydb.query.pool import QuerySessionPool
 
 
 @pytest.fixture
@@ -25,3 +26,9 @@ def tx(session):
         transaction.rollback()
     except BaseException:
         pass
+
+
+@pytest.fixture
+def pool(driver_sync):
+    pool = QuerySessionPool(driver_sync)
+    yield pool

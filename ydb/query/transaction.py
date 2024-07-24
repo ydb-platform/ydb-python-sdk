@@ -316,6 +316,7 @@ class BaseTxContext(base.IQueryTxContext):
         if self._tx_state._already_in(QueryTxStateEnum.COMMITTED):
             return
         self._tx_state._change_state(QueryTxStateEnum.COMMITTED)
+        self._tx_state.tx_id = None
 
     def execute(
         self,
