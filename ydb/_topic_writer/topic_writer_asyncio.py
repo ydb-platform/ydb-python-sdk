@@ -28,7 +28,7 @@ from .. import (
     issues,
 )
 from .._errors import check_retriable_error
-from .._retries import RetrySettings
+from ..retries import RetrySettings
 from .._grpc.grpcwrapper.ydb_topic_public_types import PublicCodec
 from .._grpc.grpcwrapper.ydb_topic import (
     UpdateTokenRequest,

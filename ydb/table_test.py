@@ -1,7 +1,7 @@
 from unittest import mock
 from . import issues
 
-from ._retries import (
+from .retries import (
     retry_operation_impl,
     YdbRetryOperationFinalResult,
     YdbRetryOperationSleepOpt,

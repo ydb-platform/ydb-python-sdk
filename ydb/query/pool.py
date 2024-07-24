@@ -4,7 +4,7 @@ from . import base
 from .session import (
     QuerySessionSync,
 )
-from .._retries import (
+from ..retries import (
     RetrySettings,
     retry_operation_sync,
 )

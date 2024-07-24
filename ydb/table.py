@@ -19,7 +19,7 @@ from . import (
     tracing,
 )
 
-from ._retries import (
+from .retries import (
     retry_operation_sync,
     RetrySettings,
 )
