@@ -3,6 +3,7 @@ import pytest
 from ydb.query.transaction import BaseTxContext
 from ydb.query.transaction import QueryTxStateEnum
 
+
 class TestQueryTransaction:
     def test_tx_begin(self, tx: BaseTxContext):
         assert tx.tx_id is None
