@@ -21,15 +21,13 @@ class TestQueryTransaction:
         tx.rollback()
         tx.rollback()
 
-    @pytest.mark.skip(reason="Not sure should we keep this behavior or not")
-    def test_tx_commit_raises_before_begin(self, tx: BaseTxContext):
-        with pytest.raises(RuntimeError):
-            tx.commit()
+    def test_tx_commit_before_begin(self, tx: BaseTxContext):
+        tx.commit()
+        assert tx._tx_state._state == QueryTxStateEnum.COMMITTED
 
-    @pytest.mark.skip(reason="Not sure should we keep this behavior or not")
-    def test_tx_rollback_raises_before_begin(self, tx: BaseTxContext):
-        with pytest.raises(RuntimeError):
-            tx.rollback()
+    def test_tx_rollback_before_begin(self, tx: BaseTxContext):
+        tx.rollback()
+        assert tx._tx_state._state == QueryTxStateEnum.ROLLBACKED
 
     def test_tx_first_execute_begins_tx(self, tx: BaseTxContext):
         tx.execute("select 1;")
@@ -67,9 +65,12 @@ class TestQueryTransaction:
         assert tx._tx_state._state == QueryTxStateEnum.COMMITTED
 
     def test_context_manager_does_not_hide_exceptions(self, tx: BaseTxContext):
-        with pytest.raises(Exception):
+        class CustomException(Exception):
+            pass
+
+        with pytest.raises(CustomException):
             with tx:
-                raise Exception()
+                raise CustomException()
 
     def test_execute_as_context_manager(self, tx: BaseTxContext):
         tx.begin()

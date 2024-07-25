@@ -253,7 +253,6 @@ class BaseTxContext(base.IQueryTxContext):
         self._ensure_prev_stream_finished()
 
         if self._tx_state._state == QueryTxStateEnum.NOT_INITIALIZED:
-            # TODO(vgvoleg): Discuss should we raise before begin or not
             self._tx_state._change_state(QueryTxStateEnum.COMMITTED)
             self._tx_state.tx_id = None
             return
@@ -276,7 +275,6 @@ class BaseTxContext(base.IQueryTxContext):
         self._ensure_prev_stream_finished()
 
         if self._tx_state._state == QueryTxStateEnum.NOT_INITIALIZED:
-            # TODO(vgvoleg): Discuss should we raise before begin or not
             self._tx_state._change_state(QueryTxStateEnum.ROLLBACKED)
             self._tx_state.tx_id = None
             return

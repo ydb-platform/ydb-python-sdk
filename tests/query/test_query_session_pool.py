@@ -39,9 +39,11 @@ class TestQuerySessionPool:
         assert len(res) == 1
 
     def test_retry_op_raises(self, pool: QuerySessionPool):
-        def callee(session: QuerySessionSync):
-            with session.execute("Caught in a landslide, no escape from reality"):
-                pass
+        class CustomException(Exception):
+            pass
 
-        with pytest.raises(ydb.GenericError):
+        def callee(session: QuerySessionSync):
+            raise CustomException()
+
+        with pytest.raises(CustomException):
             pool.retry_operation_sync(callee)
