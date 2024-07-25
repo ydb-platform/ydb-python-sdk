@@ -328,5 +328,5 @@ class SyncResponseContextIterator(_utilities.SyncResponseIterator):
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        for _ in self.it:
+        for _ in self:
             pass

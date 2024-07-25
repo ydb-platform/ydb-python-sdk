@@ -25,7 +25,12 @@ class QueryTxStateEnum(enum.Enum):
 
 class QueryTxStateHelper(abc.ABC):
     _VALID_TRANSITIONS = {
-        QueryTxStateEnum.NOT_INITIALIZED: [QueryTxStateEnum.BEGINED, QueryTxStateEnum.DEAD],
+        QueryTxStateEnum.NOT_INITIALIZED: [
+            QueryTxStateEnum.BEGINED,
+            QueryTxStateEnum.DEAD,
+            QueryTxStateEnum.COMMITTED,
+            QueryTxStateEnum.ROLLBACKED,
+        ],
         QueryTxStateEnum.BEGINED: [QueryTxStateEnum.COMMITTED, QueryTxStateEnum.ROLLBACKED, QueryTxStateEnum.DEAD],
         QueryTxStateEnum.COMMITTED: [],
         QueryTxStateEnum.ROLLBACKED: [],
@@ -246,6 +251,13 @@ class BaseTxContext(base.IQueryTxContext):
         if self._tx_state._already_in(QueryTxStateEnum.COMMITTED):
             return
         self._ensure_prev_stream_finished()
+
+        if self._tx_state._state == QueryTxStateEnum.NOT_INITIALIZED:
+            # TODO(vgvoleg): Discuss should we raise before begin or not
+            self._tx_state._change_state(QueryTxStateEnum.COMMITTED)
+            self._tx_state.tx_id = None
+            return
+
         self._tx_state._check_invalid_transition(QueryTxStateEnum.COMMITTED)
 
         return self._driver(
@@ -262,6 +274,13 @@ class BaseTxContext(base.IQueryTxContext):
             return
 
         self._ensure_prev_stream_finished()
+
+        if self._tx_state._state == QueryTxStateEnum.NOT_INITIALIZED:
+            # TODO(vgvoleg): Discuss should we raise before begin or not
+            self._tx_state._change_state(QueryTxStateEnum.ROLLBACKED)
+            self._tx_state.tx_id = None
+            return
+
         self._tx_state._check_invalid_transition(QueryTxStateEnum.ROLLBACKED)
 
         return self._driver(

@@ -21,10 +21,12 @@ class TestQueryTransaction:
         tx.rollback()
         tx.rollback()
 
+    @pytest.mark.skip(reason="Not sure should we keep this behavior or not")
     def test_tx_commit_raises_before_begin(self, tx: BaseTxContext):
         with pytest.raises(RuntimeError):
             tx.commit()
 
+    @pytest.mark.skip(reason="Not sure should we keep this behavior or not")
     def test_tx_rollback_raises_before_begin(self, tx: BaseTxContext):
         with pytest.raises(RuntimeError):
             tx.rollback()

@@ -1,5 +1,5 @@
 import pytest
-
+import ydb
 from ydb.query.pool import QuerySessionPool
 from ydb.query.session import QuerySessionSync, QuerySessionStateEnum
 
@@ -20,7 +20,7 @@ class TestQuerySessionPool:
         pool.execute_with_retries("drop table Queen;")
 
     def test_oneshot_query_raises(self, pool: QuerySessionPool):
-        with pytest.raises(Exception):
+        with pytest.raises(ydb.GenericError):
             pool.execute_with_retries("Is this the real life? Is this just fantasy?")
 
     def test_retry_op_uses_created_session(self, pool: QuerySessionPool):
@@ -40,9 +40,8 @@ class TestQuerySessionPool:
 
     def test_retry_op_raises(self, pool: QuerySessionPool):
         def callee(session: QuerySessionSync):
-            res = session.execute("Caught in a landslide, no escape from reality")
-            for _ in res:
+            with session.execute("Caught in a landslide, no escape from reality"):
                 pass
 
-        with pytest.raises(Exception):
+        with pytest.raises(ydb.GenericError):
             pool.retry_operation_sync(callee)
