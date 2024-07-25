@@ -1,3 +1,4 @@
+import logging
 from typing import Callable
 
 from . import base
@@ -9,6 +10,8 @@ from ..retries import (
     retry_operation_sync,
 )
 
+logger = logging.getLogger(__name__)
+
 
 class QuerySessionPool:
     """QuerySessionPool is an object to simplify operations with sessions of Query Service."""
@@ -18,6 +21,7 @@ class QuerySessionPool:
         :param driver: A driver instance
         """
 
+        logger.warning("QuerySessionPool is an experimental API, which could be changed.")
         self._driver = driver
 
     def checkout(self):

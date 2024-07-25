@@ -7,6 +7,8 @@ __all__ = [
     "QueryClientSync",
 ]
 
+import logging
+
 from .base import (
     IQueryClient,
     SupportedDriverType,
@@ -24,9 +26,12 @@ from .._grpc.grpcwrapper.ydb_query_public_types import (
 
 from .pool import QuerySessionPool
 
+logger = logging.getLogger(__name__)
+
 
 class QueryClientSync(IQueryClient):
     def __init__(self, driver: SupportedDriverType, query_client_settings: QueryClientSettings = None):
+        logger.warning("QueryClientSync is an experimental API, which could be changed.")
         self._driver = driver
         self._settings = query_client_settings
 
