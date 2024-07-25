@@ -181,6 +181,10 @@ class BaseQuerySession(base.IQuerySession):
 
 
 class QuerySessionSync(BaseQuerySession):
+    """Session object for Query Service. It is not recommended to control
+    session's lifecycle manually - use a QuerySessionPool is always a better choise.
+    """
+
     _stream = None
 
     def _attach(self):
@@ -214,6 +218,11 @@ class QuerySessionSync(BaseQuerySession):
             pass
 
     def delete(self) -> None:
+        """
+        Deletes a Session of Query Service on server side and releases resources.
+
+        :return: None
+        """
         if self._state._already_in(QuerySessionStateEnum.CLOSED):
             return
 
@@ -222,6 +231,11 @@ class QuerySessionSync(BaseQuerySession):
         self._stream.cancel()
 
     def create(self) -> "QuerySessionSync":
+        """
+        Creates a Session of Query Service on server side and attaches it.
+
+        :return: QuerySessionSync object.
+        """
         if self._state._already_in(QuerySessionStateEnum.CREATED):
             return
 
@@ -232,6 +246,17 @@ class QuerySessionSync(BaseQuerySession):
         return self
 
     def transaction(self, tx_mode: base.BaseQueryTxMode = None) -> base.IQueryTxContext:
+        """
+        Creates a transaction context manager with specified transaction mode.
+        :param tx_mode: Transaction mode, which is a one from the following choises:
+         1) QuerySerializableReadWrite() which is default mode;
+         2) QueryOnlineReadOnly(allow_inconsistent_reads=False);
+         3) QuerySnapshotReadOnly();
+         4) QueryStaleReadOnly().
+
+        :return transaction context manager.
+
+        """
         self._state._check_session_ready_to_use()
 
         return BaseTxContext(
@@ -251,6 +276,22 @@ class QuerySessionSync(BaseQuerySession):
         concurrent_result_sets: bool = False,
         empty_tx_control: bool = False,
     ):
+        """
+        Sends a query to Query Service
+        :param query: (YQL or SQL text) to be executed.
+        :param tx_mode: Transaction mode, which is a one from the following choises:
+         1) QuerySerializableReadWrite() which is default mode;
+         2) QueryOnlineReadOnly(allow_inconsistent_reads=False);
+         3) QuerySnapshotReadOnly();
+         4) QueryStaleReadOnly().
+        :param syntax: Syntax of the query, which is a one from the following choises:
+         1) QuerySyntax.YQL_V1, which is default;
+         2) QuerySyntax.PG.
+        :param parameters: dict with parameters and YDB types;
+        :param concurrent_result_sets: A flag to allow YDB mix parts of different result sets. Default is False;
+
+        :return: Iterator with result sets
+        """
         self._state._check_session_ready_to_use()
 
         stream_it = self._execute_call(

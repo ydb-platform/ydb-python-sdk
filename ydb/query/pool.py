@@ -17,10 +17,12 @@ class QuerySessionPool:
         """
         :param driver: A driver instance
         """
+
         self._driver = driver
 
     def checkout(self):
         """Return a Session context manager, that opens session on enter and closes session on exit."""
+
         return SimpleQuerySessionCheckout(self)
 
     def retry_operation_sync(self, callee: Callable, retry_settings: RetrySettings = None, *args, **kwargs):
@@ -31,6 +33,7 @@ class QuerySessionPool:
 
         :return: Result sets or exception in case of execution errors.
         """
+
         retry_settings = RetrySettings() if retry_settings is None else retry_settings
 
         def wrapped_callee():
@@ -47,6 +50,7 @@ class QuerySessionPool:
 
         :return: Result sets or exception in case of execution errors.
         """
+
         retry_settings = RetrySettings() if retry_settings is None else retry_settings
         with self.checkout() as session:
 

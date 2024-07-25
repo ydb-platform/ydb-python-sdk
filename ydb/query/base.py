@@ -19,6 +19,20 @@ from .. import issues
 from .. import _utilities
 
 
+class QuerySyntax(enum.IntEnum):
+    UNSPECIFIED = 0
+    YQL_V1 = 1
+    PG = 2
+
+
+class QueryExecMode(enum.IntEnum):
+    UNSPECIFIED = 0
+    PARSE = 10
+    VALIDATE = 20
+    EXPLAIN = 30
+    EXECUTE = 50
+
+
 class QueryClientSettings:
     pass
 
@@ -60,24 +74,60 @@ class IQuerySessionState(abc.ABC):
 
 
 class IQuerySession(abc.ABC):
+    """Session object for Query Service. It is not recommended to control
+    session's lifecycle manually - use a QuerySessionPool is always a better choise.
+    """
+
     @abc.abstractmethod
     def __init__(self, driver: SupportedDriverType, settings: QueryClientSettings = None):
         pass
 
     @abc.abstractmethod
     def create(self) -> "IQuerySession":
+        """
+        Creates a Session of Query Service on server side and attaches it.
+
+        :return: Session object.
+        """
         pass
 
     @abc.abstractmethod
     def delete(self) -> None:
+        """
+        Deletes a Session of Query Service on server side and releases resources.
+
+        :return: None
+        """
         pass
 
     @abc.abstractmethod
     def transaction(self, tx_mode: BaseQueryTxMode) -> "IQueryTxContext":
+        """
+        Creates a transaction context manager with specified transaction mode.
+
+        :param tx_mode: Transaction mode, which is a one from the following choises:
+         1) QuerySerializableReadWrite() which is default mode;
+         2) QueryOnlineReadOnly(allow_inconsistent_reads=False);
+         3) QuerySnapshotReadOnly();
+         4) QueryStaleReadOnly().
+
+        :return: transaction context manager.
+        """
         pass
 
 
 class IQueryTxContext(abc.ABC):
+    """
+    An object that provides a simple transaction context manager that allows statements execution
+    in a transaction. You don't have to open transaction explicitly, because context manager encapsulates
+    transaction control logic, and opens new transaction if:
+     1) By explicit .begin();
+     2) On execution of a first statement, which is strictly recommended method, because that avoids
+     useless round trip
+
+    This context manager is not thread-safe, so you should not manipulate on it concurrently.
+    """
+
     @abc.abstractmethod
     def __init__(
         self,
@@ -90,36 +140,109 @@ class IQueryTxContext(abc.ABC):
 
     @abc.abstractmethod
     def __enter__(self):
+        """
+        Enters a context manager and returns a transaction
+
+        :return: A transaction instance
+        """
         pass
 
     @abc.abstractmethod
     def __exit__(self, *args, **kwargs):
+        """
+        Closes a transaction context manager and rollbacks transaction if
+        it is not rolled back explicitly
+        """
         pass
 
     @property
     @abc.abstractmethod
     def session_id(self):
+        """
+        A transaction's session id
+
+        :return: A transaction's session id
+        """
         pass
 
     @property
     @abc.abstractmethod
     def tx_id(self):
+        """
+        Returns a id of open transaction or None otherwise
+
+        :return: A id of open transaction or None otherwise
+        """
         pass
 
     @abc.abstractmethod
     def begin(settings: QueryClientSettings = None):
+        """
+        Explicitly begins a transaction
+
+        :param settings: A request settings
+
+        :return: None
+        """
         pass
 
     @abc.abstractmethod
     def commit(settings: QueryClientSettings = None):
+        """
+        Calls commit on a transaction if it is open. If transaction execution
+        failed then this method raises PreconditionFailed.
+
+        :param settings: A request settings
+
+        :return: A committed transaction or exception if commit is failed
+        """
         pass
 
     @abc.abstractmethod
     def rollback(settings: QueryClientSettings = None):
+        """
+        Calls rollback on a transaction if it is open. If transaction execution
+        failed then this method raises PreconditionFailed.
+
+        :param settings: A request settings
+
+        :return: A rolled back transaction or exception if rollback is failed
+        """
         pass
 
     @abc.abstractmethod
-    def execute(query: str, commit_tx=False):
+    def execute(
+        self,
+        query: str,
+        commit_tx: bool = False,
+        tx_mode: BaseQueryTxMode = None,
+        syntax: QuerySyntax = None,
+        exec_mode: QueryExecMode = None,
+        parameters: dict = None,
+        concurrent_result_sets: bool = False,
+    ):
+        """
+        Sends a query to Query Service
+        :param query: (YQL or SQL text) to be executed.
+        :param commit_tx: A special flag that allows transaction commit.
+        :param tx_mode: Transaction mode, which is a one from the following choises:
+         1) QuerySerializableReadWrite() which is default mode;
+         2) QueryOnlineReadOnly(allow_inconsistent_reads=False);
+         3) QuerySnapshotReadOnly();
+         4) QueryStaleReadOnly().
+        :param syntax: Syntax of the query, which is a one from the following choises:
+         1) QuerySyntax.YQL_V1, which is default;
+         2) QuerySyntax.PG.
+        :param exec_mode: Exec mode of the query, which is a one from the following choises:
+         1) QueryExecMode.EXECUTE, which is default;
+         2) QueryExecMode.EXPLAIN;
+         3) QueryExecMode.VALIDATE;
+         4) QueryExecMode.PARSE.
+        :param parameters: dict with parameters and YDB types;
+        :param concurrent_result_sets: A flag to allow YDB mix parts of different result sets. Default is False;
+
+        :return: Iterator with result sets
+        """
         pass
 
 
@@ -130,20 +253,6 @@ class IQueryClient(abc.ABC):
     @abc.abstractmethod
     def session(self) -> IQuerySession:
         pass
-
-
-class QuerySyntax(enum.IntEnum):
-    UNSPECIFIED = 0
-    YQL_V1 = 1
-    PG = 2
-
-
-class QueryExecMode(enum.IntEnum):
-    UNSPECIFIED = 0
-    PARSE = 10
-    VALIDATE = 20
-    EXPLAIN = 30
-    EXECUTE = 50
 
 
 def create_execute_query_request(
