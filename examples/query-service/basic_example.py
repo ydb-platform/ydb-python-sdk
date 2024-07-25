@@ -18,23 +18,23 @@ def main():
 
     print("=" * 50)
     print("DELETE TABLE IF EXISTS")
-    pool.execute_with_retries("drop table if exists example;")
+    pool.execute_with_retries("drop table if exists example")
 
     print("=" * 50)
     print("CREATE TABLE")
-    pool.execute_with_retries("CREATE TABLE example(key UInt64, value String, PRIMARY KEY (key));")
+    pool.execute_with_retries("CREATE TABLE example(key UInt64, value String, PRIMARY KEY (key))")
 
-    pool.execute_with_retries("INSERT INTO example (key, value) VALUES (1, 'onepieceisreal');")
+    pool.execute_with_retries("INSERT INTO example (key, value) VALUES (1, 'onepieceisreal')")
 
     def callee(session):
         print("=" * 50)
-        for _ in session.execute("""delete from example;"""):
+        with session.execute("delete from example"):
             pass
 
         print("BEFORE ACTION")
-        it = session.execute("""SELECT COUNT(*) as rows_count FROM example;""")
-        for result_set in it:
-            print(f"rows: {str(result_set.rows)}")
+        with session.execute("SELECT COUNT(*) as rows_count FROM example") as results:
+            for result_set in results:
+                print(f"rows: {str(result_set.rows)}")
 
         print("=" * 50)
         print("INSERT WITH COMMIT TX")
@@ -42,19 +42,20 @@ def main():
         with session.transaction() as tx:
             tx.begin()
 
-            with tx.execute("""INSERT INTO example (key, value) VALUES (1, "onepieceisreal");""") as results:
+            with tx.execute("INSERT INTO example (key, value) VALUES (1, 'onepieceisreal')"):
                 pass
 
-            with tx.execute("""SELECT COUNT(*) as rows_count FROM example;""") as results:
+            with tx.execute("SELECT COUNT(*) as rows_count FROM example") as results:
                 for result_set in results:
                     print(f"rows: {str(result_set.rows)}")
 
             tx.commit()
 
-            print("=" * 50)
-            print("AFTER COMMIT TX")
+        print("=" * 50)
+        print("AFTER COMMIT TX")
 
-            for result_set in session.execute("""SELECT COUNT(*) as rows_count FROM example;"""):
+        with session.execute("SELECT COUNT(*) as rows_count FROM example") as results:
+            for result_set in results:
                 print(f"rows: {str(result_set.rows)}")
 
         print("=" * 50)
@@ -63,18 +64,21 @@ def main():
         with session.transaction() as tx:
             tx.begin()
 
-            tx.execute("""INSERT INTO example (key, value) VALUES (2, "onepieceisreal");""")
+            with tx.execute("INSERT INTO example (key, value) VALUES (2, 'onepieceisreal')"):
+                pass
 
-            for result_set in tx.execute("""SELECT COUNT(*) as rows_count FROM example;"""):
-                print(f"rows: {str(result_set.rows)}")
+            with tx.execute("SELECT COUNT(*) as rows_count FROM example") as results:
+                for result_set in results:
+                    print(f"rows: {str(result_set.rows)}")
 
             tx.rollback()
 
-            print("=" * 50)
-            print("AFTER ROLLBACK TX")
+        print("=" * 50)
+        print("AFTER ROLLBACK TX")
 
-        for result_set in session.execute("""SELECT COUNT(*) as rows_count FROM example;"""):
-            print(f"rows: {str(result_set.rows)}")
+        with session.execute("SELECT COUNT(*) as rows_count FROM example") as results:
+            for result_set in results:
+                print(f"rows: {str(result_set.rows)}")
 
     pool.retry_operation_sync(callee)
 

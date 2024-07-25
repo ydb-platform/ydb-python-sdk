@@ -305,7 +305,7 @@ class QuerySessionSync(BaseQuerySession):
             empty_tx_control=empty_tx_control,
         )
 
-        return _utilities.SyncResponseIterator(
+        return base.SyncResponseContextIterator(
             stream_it,
             lambda resp: base.wrap_execute_query_response(rpc_state=None, response_pb=resp),
         )
