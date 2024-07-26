@@ -52,7 +52,9 @@ class QueryTxStateHelper(abc.ABC):
 
 def reset_tx_id_handler(func):
     @functools.wraps(func)
-    def decorator(rpc_state, response_pb, session_state: base.IQuerySessionState, tx_state: QueryTxState, *args, **kwargs):
+    def decorator(
+        rpc_state, response_pb, session_state: base.IQuerySessionState, tx_state: QueryTxState, *args, **kwargs
+    ):
         try:
             return func(rpc_state, response_pb, session_state, tx_state, *args, **kwargs)
         except issues.Error:

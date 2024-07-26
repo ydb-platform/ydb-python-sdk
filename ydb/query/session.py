@@ -105,7 +105,7 @@ def wrapper_create_session(
     rpc_state: RpcState,
     response_pb: _apis.ydb_query.CreateSessionResponse,
     session_state: QuerySessionState,
-    session: "BaseQuerySession"
+    session: "BaseQuerySession",
 ) -> "BaseQuerySession":
     message = _ydb_query.CreateSessionResponse.from_proto(response_pb)
     issues._process_response(message.status)
@@ -117,7 +117,7 @@ def wrapper_delete_session(
     rpc_state: RpcState,
     response_pb: _apis.ydb_query.DeleteSessionResponse,
     session_state: QuerySessionState,
-    session: "BaseQuerySession"
+    session: "BaseQuerySession",
 ) -> "BaseQuerySession":
     message = _ydb_query.DeleteSessionResponse.from_proto(response_pb)
     issues._process_response(message.status)
