@@ -3,6 +3,7 @@ import logging
 import enum
 import functools
 from typing import (
+    Iterable,
     Optional,
 )
 
@@ -11,6 +12,7 @@ from .. import (
     issues,
 )
 from .._grpc.grpcwrapper import ydb_query as _ydb_query
+from ..connection import _RpcState as RpcState
 
 from . import base
 
@@ -50,7 +52,7 @@ class QueryTxStateHelper(abc.ABC):
 
 def reset_tx_id_handler(func):
     @functools.wraps(func)
-    def decorator(rpc_state, response_pb, session_state, tx_state, *args, **kwargs):
+    def decorator(rpc_state, response_pb, session_state: base.IQuerySessionState, tx_state: QueryTxState, *args, **kwargs):
         try:
             return func(rpc_state, response_pb, session_state, tx_state, *args, **kwargs)
         except issues.Error:
@@ -87,12 +89,14 @@ class QueryTxState:
         return self._state == target
 
 
-def _construct_tx_settings(tx_state):
+def _construct_tx_settings(tx_state: QueryTxState) -> _ydb_query.TransactionSettings:
     tx_settings = _ydb_query.TransactionSettings.from_public(tx_state.tx_mode)
     return tx_settings
 
 
-def _create_begin_transaction_request(session_state, tx_state):
+def _create_begin_transaction_request(
+    session_state: base.IQuerySessionState, tx_state: QueryTxState
+) -> _apis.ydb_query.BeginTransactionRequest:
     request = _ydb_query.BeginTransactionRequest(
         session_id=session_state.session_id,
         tx_settings=_construct_tx_settings(tx_state),
@@ -100,14 +104,18 @@ def _create_begin_transaction_request(session_state, tx_state):
     return request
 
 
-def _create_commit_transaction_request(session_state, tx_state):
+def _create_commit_transaction_request(
+    session_state: base.IQuerySessionState, tx_state: QueryTxState
+) -> _apis.ydb_query.CommitTransactionRequest:
     request = _apis.ydb_query.CommitTransactionRequest()
     request.tx_id = tx_state.tx_id
     request.session_id = session_state.session_id
     return request
 
 
-def _create_rollback_transaction_request(session_state, tx_state):
+def _create_rollback_transaction_request(
+    session_state: base.IQuerySessionState, tx_state: QueryTxState
+) -> _apis.ydb_query.RollbackTransactionRequest:
     request = _apis.ydb_query.RollbackTransactionRequest()
     request.tx_id = tx_state.tx_id
     request.session_id = session_state.session_id
@@ -115,7 +123,13 @@ def _create_rollback_transaction_request(session_state, tx_state):
 
 
 @base.bad_session_handler
-def wrap_tx_begin_response(rpc_state, response_pb, session_state, tx_state, tx):
+def wrap_tx_begin_response(
+    rpc_state: RpcState,
+    response_pb: _apis.ydb_query.BeginTransactionResponse,
+    session_state: base.IQuerySessionState,
+    tx_state: QueryTxState,
+    tx: "BaseQueryTxContext",
+) -> "BaseQueryTxContext":
     message = _ydb_query.BeginTransactionResponse.from_proto(response_pb)
     issues._process_response(message.status)
     tx_state._change_state(QueryTxStateEnum.BEGINED)
@@ -125,7 +139,13 @@ def wrap_tx_begin_response(rpc_state, response_pb, session_state, tx_state, tx):
 
 @base.bad_session_handler
 @reset_tx_id_handler
-def wrap_tx_commit_response(rpc_state, response_pb, session_state, tx_state, tx):
+def wrap_tx_commit_response(
+    rpc_state: RpcState,
+    response_pb: _apis.ydb_query.CommitTransactionResponse,
+    session_state: base.IQuerySessionState,
+    tx_state: QueryTxState,
+    tx: "BaseQueryTxContext",
+) -> "BaseQueryTxContext":
     message = _ydb_query.CommitTransactionResponse.from_proto(response_pb)
     issues._process_response(message.status)
     tx_state._change_state(QueryTxStateEnum.COMMITTED)
@@ -134,7 +154,13 @@ def wrap_tx_commit_response(rpc_state, response_pb, session_state, tx_state, tx)
 
 @base.bad_session_handler
 @reset_tx_id_handler
-def wrap_tx_rollback_response(rpc_state, response_pb, session_state, tx_state, tx):
+def wrap_tx_rollback_response(
+    rpc_state: RpcState,
+    response_pb: _apis.ydb_query.RollbackTransactionResponse,
+    session_state: base.IQuerySessionState,
+    tx_state: QueryTxState,
+    tx: "BaseQueryTxContext",
+) -> "BaseQueryTxContext":
     message = _ydb_query.RollbackTransactionResponse.from_proto(response_pb)
     issues._process_response(message.status)
     tx_state._change_state(QueryTxStateEnum.ROLLBACKED)
@@ -211,7 +237,7 @@ class BaseQueryTxContext(base.IQueryTxContext):
         """
         return self._tx_state.tx_id
 
-    def _begin_call(self, settings: Optional[base.QueryClientSettings]):
+    def _begin_call(self, settings: Optional[base.QueryClientSettings]) -> "BaseQueryTxContext":
         return self._driver(
             _create_begin_transaction_request(self._session_state, self._tx_state),
             _apis.QueryService.Stub,
@@ -221,7 +247,7 @@ class BaseQueryTxContext(base.IQueryTxContext):
             (self._session_state, self._tx_state, self),
         )
 
-    def _commit_call(self, settings: Optional[base.QueryClientSettings]):
+    def _commit_call(self, settings: Optional[base.QueryClientSettings]) -> "BaseQueryTxContext":
         return self._driver(
             _create_commit_transaction_request(self._session_state, self._tx_state),
             _apis.QueryService.Stub,
@@ -231,7 +257,7 @@ class BaseQueryTxContext(base.IQueryTxContext):
             (self._session_state, self._tx_state, self),
         )
 
-    def _rollback_call(self, settings: Optional[base.QueryClientSettings]):
+    def _rollback_call(self, settings: Optional[base.QueryClientSettings]) -> "BaseQueryTxContext":
         return self._driver(
             _create_rollback_transaction_request(self._session_state, self._tx_state),
             _apis.QueryService.Stub,
@@ -249,7 +275,7 @@ class BaseQueryTxContext(base.IQueryTxContext):
         exec_mode: base.QueryExecMode = None,
         parameters: dict = None,
         concurrent_result_sets: bool = False,
-    ):
+    ) -> Iterable[_apis.ydb_query.ExecuteQueryResponsePart]:
         request = base.create_execute_query_request(
             query=query,
             session_id=self._session_state.session_id,
@@ -263,23 +289,24 @@ class BaseQueryTxContext(base.IQueryTxContext):
         )
 
         return self._driver(
-            request,
+            request.to_proto(),
             _apis.QueryService.Stub,
             _apis.QueryService.ExecuteQuery,
         )
 
-    def _ensure_prev_stream_finished(self):
+    def _ensure_prev_stream_finished(self) -> None:
         if self._prev_stream is not None:
             for _ in self._prev_stream:
                 pass
             self._prev_stream = None
 
-    def _handle_tx_meta(self, tx_meta=None):
-        if not self.tx_id and tx_meta:
-            self._tx_state._change_state(QueryTxStateEnum.BEGINED)
-            self._tx_state.tx_id = tx_meta.id
+    def _move_to_beginned(self, tx_id: str) -> None:
+        if self._tx_state._already_in(QueryTxStateEnum.BEGINED):
+            return
+        self._tx_state._change_state(QueryTxStateEnum.BEGINED)
+        self._tx_state.tx_id = tx_id
 
-    def _move_to_commited(self):
+    def _move_to_commited(self) -> None:
         if self._tx_state._already_in(QueryTxStateEnum.COMMITTED):
             return
         self._tx_state._change_state(QueryTxStateEnum.COMMITTED)

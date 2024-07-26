@@ -3,12 +3,14 @@ import enum
 import logging
 import threading
 from typing import (
+    Iterable,
     Optional,
 )
 
 from . import base
 
 from .. import _apis, issues, _utilities
+from ..connection import _RpcState as RpcState
 from .._grpc.grpcwrapper import common_utils
 from .._grpc.grpcwrapper import ydb_query as _ydb_query
 from .._grpc.grpcwrapper import ydb_query_public_types as _ydb_query_public
@@ -99,14 +101,24 @@ class QuerySessionState(base.IQuerySessionState):
         return self._state == target
 
 
-def wrapper_create_session(rpc_state, response_pb, session_state: QuerySessionState, session):
+def wrapper_create_session(
+    rpc_state: RpcState,
+    response_pb: _apis.ydb_query.CreateSessionResponse,
+    session_state: QuerySessionState,
+    session: "BaseQuerySession"
+) -> "BaseQuerySession":
     message = _ydb_query.CreateSessionResponse.from_proto(response_pb)
     issues._process_response(message.status)
     session_state.set_session_id(message.session_id).set_node_id(message.node_id)
     return session
 
 
-def wrapper_delete_session(rpc_state, response_pb, session_state: QuerySessionState, session):
+def wrapper_delete_session(
+    rpc_state: RpcState,
+    response_pb: _apis.ydb_query.DeleteSessionResponse,
+    session_state: QuerySessionState,
+    session: "BaseQuerySession"
+) -> "BaseQuerySession":
     message = _ydb_query.DeleteSessionResponse.from_proto(response_pb)
     issues._process_response(message.status)
     session_state.reset()
@@ -124,7 +136,7 @@ class BaseQuerySession(base.IQuerySession):
         self._settings = settings if settings is not None else base.QueryClientSettings()
         self._state = QuerySessionState(settings)
 
-    def _create_call(self):
+    def _create_call(self) -> "BaseQuerySession":
         return self._driver(
             _apis.ydb_query.CreateSessionRequest(),
             _apis.QueryService.Stub,
@@ -133,7 +145,7 @@ class BaseQuerySession(base.IQuerySession):
             wrap_args=(self._state, self),
         )
 
-    def _delete_call(self):
+    def _delete_call(self) -> "BaseQuerySession":
         return self._driver(
             _apis.ydb_query.DeleteSessionRequest(session_id=self._state.session_id),
             _apis.QueryService.Stub,
@@ -142,7 +154,7 @@ class BaseQuerySession(base.IQuerySession):
             wrap_args=(self._state, self),
         )
 
-    def _attach_call(self):
+    def _attach_call(self) -> Iterable[_apis.ydb_query.SessionState]:
         return self._driver(
             _apis.ydb_query.AttachSessionRequest(session_id=self._state.session_id),
             _apis.QueryService.Stub,
@@ -157,7 +169,7 @@ class BaseQuerySession(base.IQuerySession):
         exec_mode: base.QueryExecMode = None,
         parameters: dict = None,
         concurrent_result_sets: bool = False,
-    ):
+    ) -> Iterable[_apis.ydb_query.ExecuteQueryResponsePart]:
         request = base.create_execute_query_request(
             query=query,
             session_id=self._state.session_id,
@@ -171,7 +183,7 @@ class BaseQuerySession(base.IQuerySession):
         )
 
         return self._driver(
-            request,
+            request.to_proto(),
             _apis.QueryService.Stub,
             _apis.QueryService.ExecuteQuery,
         )
@@ -184,7 +196,7 @@ class QuerySessionSync(BaseQuerySession):
 
     _stream = None
 
-    def _attach(self):
+    def _attach(self) -> None:
         self._stream = self._attach_call()
         status_stream = _utilities.SyncResponseIterator(
             self._stream,
@@ -205,7 +217,7 @@ class QuerySessionSync(BaseQuerySession):
             daemon=True,
         ).start()
 
-    def _check_session_status_loop(self, status_stream):
+    def _check_session_status_loop(self, status_stream: _utilities.SyncResponseIterator) -> None:
         try:
             for status in status_stream:
                 if status.status != issues.StatusCode.SUCCESS:

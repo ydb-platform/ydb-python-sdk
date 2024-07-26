@@ -14,9 +14,11 @@ from .._grpc.grpcwrapper import ydb_query
 from .._grpc.grpcwrapper.ydb_query_public_types import (
     BaseQueryTxMode,
 )
+from ..connection import _RpcState as RpcState
 from .. import convert
 from .. import issues
 from .. import _utilities
+from .. import _apis
 
 
 class QuerySyntax(enum.IntEnum):
@@ -42,7 +44,7 @@ class StatsMode(enum.IntEnum):
 
 
 class SyncResponseContextIterator(_utilities.SyncResponseIterator):
-    def __enter__(self):
+    def __enter__(self) -> "SyncResponseContextIterator":
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
@@ -315,7 +317,7 @@ def create_execute_query_request(
     exec_mode: Optional[QueryExecMode],
     parameters: Optional[dict],
     concurrent_result_sets: Optional[bool],
-):
+) -> ydb_query.ExecuteQueryRequest:
     syntax = QuerySyntax.YQL_V1 if not syntax else syntax
     exec_mode = QueryExecMode.EXECUTE if not exec_mode else exec_mode
     stats_mode = StatsMode.NONE  # TODO: choise is not supported yet
@@ -338,7 +340,7 @@ def create_execute_query_request(
             tx_id=None,
         )
 
-    req = ydb_query.ExecuteQueryRequest(
+    return ydb_query.ExecuteQueryRequest(
         session_id=session_id,
         query_content=ydb_query.QueryContent.from_public(
             query=query,
@@ -351,13 +353,16 @@ def create_execute_query_request(
         stats_mode=stats_mode,
     )
 
-    return req.to_proto()
 
-
-def wrap_execute_query_response(rpc_state, response_pb, tx=None, commit_tx=False):
+def wrap_execute_query_response(
+    rpc_state: RpcState,
+    response_pb: _apis.ydb_query.ExecuteQueryResponsePart,
+    tx: Optional[IQueryTxContext] = None,
+    commit_tx: Optional[bool] = False,
+) -> convert.ResultSet:
     issues._process_response(response_pb)
     if tx and response_pb.tx_meta and not tx.tx_id:
-        tx._handle_tx_meta(response_pb.tx_meta)
+        tx._move_to_beginned(response_pb.tx_meta.id)
     if tx and commit_tx:
         tx._move_to_commited()
     return convert.ResultSet.from_message(response_pb.result_set)
@@ -365,7 +370,7 @@ def wrap_execute_query_response(rpc_state, response_pb, tx=None, commit_tx=False
 
 def bad_session_handler(func):
     @functools.wraps(func)
-    def decorator(rpc_state, response_pb, session_state, *args, **kwargs):
+    def decorator(rpc_state, response_pb, session_state: IQuerySessionState, *args, **kwargs):
         try:
             return func(rpc_state, response_pb, session_state, *args, **kwargs)
         except issues.BadSession:
