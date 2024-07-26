@@ -2,13 +2,15 @@ import abc
 import logging
 import enum
 import functools
+from typing import (
+    Optional,
+)
 
 from .. import (
     _apis,
     issues,
 )
 from .._grpc.grpcwrapper import ydb_query as _ydb_query
-from .._grpc.grpcwrapper import ydb_query_public_types as _ydb_query_public
 
 from . import base
 
@@ -37,19 +39,13 @@ class QueryTxStateHelper(abc.ABC):
         QueryTxStateEnum.DEAD: [],
     }
 
-    _TERMINAL_STATES = [
-        QueryTxStateEnum.COMMITTED,
-        QueryTxStateEnum.ROLLBACKED,
-        QueryTxStateEnum.DEAD,
-    ]
-
     @classmethod
     def valid_transition(cls, before: QueryTxStateEnum, after: QueryTxStateEnum) -> bool:
         return after in cls._VALID_TRANSITIONS[before]
 
     @classmethod
     def terminal(cls, state: QueryTxStateEnum) -> bool:
-        return state in cls._TERMINAL_STATES
+        return len(cls._VALID_TRANSITIONS[state]) == 0
 
 
 def reset_tx_id_handler(func):
@@ -75,19 +71,19 @@ class QueryTxState:
         self.tx_mode = tx_mode
         self._state = QueryTxStateEnum.NOT_INITIALIZED
 
-    def _check_invalid_transition(self, target: QueryTxStateEnum):
+    def _check_invalid_transition(self, target: QueryTxStateEnum) -> None:
         if not QueryTxStateHelper.valid_transition(self._state, target):
             raise RuntimeError(f"Transaction could not be moved from {self._state.value} to {target.value}")
 
-    def _change_state(self, target: QueryTxStateEnum):
+    def _change_state(self, target: QueryTxStateEnum) -> None:
         self._check_invalid_transition(target)
         self._state = target
 
-    def _check_tx_not_terminal(self):
+    def _check_tx_not_terminal(self) -> None:
         if QueryTxStateHelper.terminal(self._state):
             raise RuntimeError(f"Transaction is in terminal state: {self._state.value}")
 
-    def _already_in(self, target: QueryTxStateEnum):
+    def _already_in(self, target: QueryTxStateEnum) -> bool:
         return self._state == target
 
 
@@ -132,7 +128,6 @@ def wrap_tx_begin_response(rpc_state, response_pb, session_state, tx_state, tx):
 def wrap_tx_commit_response(rpc_state, response_pb, session_state, tx_state, tx):
     message = _ydb_query.CommitTransactionResponse.from_proto(response_pb)
     issues._process_response(message.status)
-    tx_state.tx_id = None
     tx_state._change_state(QueryTxStateEnum.COMMITTED)
     return tx
 
@@ -142,54 +137,52 @@ def wrap_tx_commit_response(rpc_state, response_pb, session_state, tx_state, tx)
 def wrap_tx_rollback_response(rpc_state, response_pb, session_state, tx_state, tx):
     message = _ydb_query.RollbackTransactionResponse.from_proto(response_pb)
     issues._process_response(message.status)
-    tx_state.tx_id = None
     tx_state._change_state(QueryTxStateEnum.ROLLBACKED)
     return tx
 
 
-class BaseTxContext(base.IQueryTxContext):
-    def __init__(self, driver, session_state, session, tx_mode=None):
+class BaseQueryTxContext(base.IQueryTxContext):
+    def __init__(self, driver, session_state, session, tx_mode):
         """
         An object that provides a simple transaction context manager that allows statements execution
         in a transaction. You don't have to open transaction explicitly, because context manager encapsulates
         transaction control logic, and opens new transaction if:
 
-        1) By explicit .begin() and .async_begin() methods;
+        1) By explicit .begin() method;
         2) On execution of a first statement, which is strictly recommended method, because that avoids useless round trip
 
         This context manager is not thread-safe, so you should not manipulate on it concurrently.
 
         :param driver: A driver instance
         :param session_state: A state of session
-        :param tx_mode: A transaction mode, which is a one from the following choices:
-         1) SerializableReadWrite() which is default mode;
-         2) OnlineReadOnly();
-         3) StaleReadOnly().
+        :param tx_mode: Transaction mode, which is a one from the following choises:
+         1) QuerySerializableReadWrite() which is default mode;
+         2) QueryOnlineReadOnly(allow_inconsistent_reads=False);
+         3) QuerySnapshotReadOnly();
+         4) QueryStaleReadOnly().
         """
+
         self._driver = driver
-        if tx_mode is None:
-            tx_mode = _ydb_query_public.QuerySerializableReadWrite()
         self._tx_state = QueryTxState(tx_mode)
         self._session_state = session_state
         self.session = session
-        self._finished = ""
         self._prev_stream = None
 
-    def __enter__(self):
+    def __enter__(self) -> "BaseQueryTxContext":
         """
-        Enters a context manager and returns a session
+        Enters a context manager and returns a transaction
 
-        :return: A session instance
+        :return: A transaction instance
         """
         return self
 
     def __exit__(self, *args, **kwargs):
         """
         Closes a transaction context manager and rollbacks transaction if
-        it is not rolled back explicitly
+        it is not finished explicitly
         """
         self._ensure_prev_stream_finished()
-        if self._tx_state.tx_id is not None:
+        if self._tx_state._state == QueryTxStateEnum.BEGINED:
             # It's strictly recommended to close transactions directly
             # by using commit_tx=True flag while executing statement or by
             # .commit() or .rollback() methods, but here we trying to do best
@@ -200,10 +193,8 @@ class BaseTxContext(base.IQueryTxContext):
             except issues.Error:
                 logger.warning("Failed to rollback leaked tx: %s", self._tx_state.tx_id)
 
-            self._tx_state.tx_id = None
-
     @property
-    def session_id(self):
+    def session_id(self) -> str:
         """
         A transaction's session id
 
@@ -212,7 +203,7 @@ class BaseTxContext(base.IQueryTxContext):
         return self._session_state.session_id
 
     @property
-    def tx_id(self):
+    def tx_id(self) -> Optional[str]:
         """
         Returns a id of open transaction or None otherwise
 
@@ -220,16 +211,7 @@ class BaseTxContext(base.IQueryTxContext):
         """
         return self._tx_state.tx_id
 
-    def begin(self, settings=None):
-        """
-        Explicitly begins a transaction
-
-        :param settings: A request settings
-
-        :return: An open transaction
-        """
-        self._tx_state._check_invalid_transition(QueryTxStateEnum.BEGINED)
-
+    def _begin_call(self, settings: Optional[base.QueryClientSettings]):
         return self._driver(
             _create_begin_transaction_request(self._session_state, self._tx_state),
             _apis.QueryService.Stub,
@@ -239,26 +221,7 @@ class BaseTxContext(base.IQueryTxContext):
             (self._session_state, self._tx_state, self),
         )
 
-    def commit(self, settings=None):
-        """
-        Calls commit on a transaction if it is open otherwise is no-op. If transaction execution
-        failed then this method raises PreconditionFailed.
-
-        :param settings: A request settings
-
-        :return: A committed transaction or exception if commit is failed
-        """
-        if self._tx_state._already_in(QueryTxStateEnum.COMMITTED):
-            return
-        self._ensure_prev_stream_finished()
-
-        if self._tx_state._state == QueryTxStateEnum.NOT_INITIALIZED:
-            self._tx_state._change_state(QueryTxStateEnum.COMMITTED)
-            self._tx_state.tx_id = None
-            return
-
-        self._tx_state._check_invalid_transition(QueryTxStateEnum.COMMITTED)
-
+    def _commit_call(self, settings: Optional[base.QueryClientSettings]):
         return self._driver(
             _create_commit_transaction_request(self._session_state, self._tx_state),
             _apis.QueryService.Stub,
@@ -268,19 +231,7 @@ class BaseTxContext(base.IQueryTxContext):
             (self._session_state, self._tx_state, self),
         )
 
-    def rollback(self, settings=None):
-        if self._tx_state._already_in(QueryTxStateEnum.ROLLBACKED):
-            return
-
-        self._ensure_prev_stream_finished()
-
-        if self._tx_state._state == QueryTxStateEnum.NOT_INITIALIZED:
-            self._tx_state._change_state(QueryTxStateEnum.ROLLBACKED)
-            self._tx_state.tx_id = None
-            return
-
-        self._tx_state._check_invalid_transition(QueryTxStateEnum.ROLLBACKED)
-
+    def _rollback_call(self, settings: Optional[base.QueryClientSettings]):
         return self._driver(
             _create_rollback_transaction_request(self._session_state, self._tx_state),
             _apis.QueryService.Stub,
@@ -294,7 +245,6 @@ class BaseTxContext(base.IQueryTxContext):
         self,
         query: str,
         commit_tx: bool = False,
-        tx_mode: base.BaseQueryTxMode = None,
         syntax: base.QuerySyntax = None,
         exec_mode: base.QueryExecMode = None,
         parameters: dict = None,
@@ -305,7 +255,7 @@ class BaseTxContext(base.IQueryTxContext):
             session_id=self._session_state.session_id,
             commit_tx=commit_tx,
             tx_id=self._tx_state.tx_id,
-            tx_mode=tx_mode,
+            tx_mode=self._tx_state.tx_mode,
             syntax=syntax,
             exec_mode=exec_mode,
             parameters=parameters,
@@ -325,7 +275,7 @@ class BaseTxContext(base.IQueryTxContext):
             self._prev_stream = None
 
     def _handle_tx_meta(self, tx_meta=None):
-        if not self.tx_id:
+        if not self.tx_id and tx_meta:
             self._tx_state._change_state(QueryTxStateEnum.BEGINED)
             self._tx_state.tx_id = tx_meta.id
 
@@ -333,25 +283,70 @@ class BaseTxContext(base.IQueryTxContext):
         if self._tx_state._already_in(QueryTxStateEnum.COMMITTED):
             return
         self._tx_state._change_state(QueryTxStateEnum.COMMITTED)
-        self._tx_state.tx_id = None
+
+    def begin(self, settings: Optional[base.QueryClientSettings] = None) -> None:
+        """
+        Explicitly begins a transaction
+
+        :param settings: A request settings
+
+        :return: None or exception if begin is failed
+        """
+        self._tx_state._check_invalid_transition(QueryTxStateEnum.BEGINED)
+
+        self._begin_call(settings)
+
+    def commit(self, settings: Optional[base.QueryClientSettings] = None) -> None:
+        """
+        Calls commit on a transaction if it is open otherwise is no-op. If transaction execution
+        failed then this method raises PreconditionFailed.
+
+        :param settings: A request settings
+
+        :return: A committed transaction or exception if commit is failed
+        """
+        if self._tx_state._already_in(QueryTxStateEnum.COMMITTED):
+            return
+        self._ensure_prev_stream_finished()
+
+        if self._tx_state._state == QueryTxStateEnum.NOT_INITIALIZED:
+            self._tx_state._change_state(QueryTxStateEnum.COMMITTED)
+            return
+
+        self._tx_state._check_invalid_transition(QueryTxStateEnum.COMMITTED)
+
+        self._commit_call(settings)
+
+    def rollback(self, settings: Optional[base.QueryClientSettings] = None) -> None:
+        if self._tx_state._already_in(QueryTxStateEnum.ROLLBACKED):
+            return
+
+        self._ensure_prev_stream_finished()
+
+        if self._tx_state._state == QueryTxStateEnum.NOT_INITIALIZED:
+            self._tx_state._change_state(QueryTxStateEnum.ROLLBACKED)
+            return
+
+        self._tx_state._check_invalid_transition(QueryTxStateEnum.ROLLBACKED)
+
+        self._rollback_call(settings)
 
     def execute(
         self,
         query: str,
-        commit_tx: bool = False,
-        tx_mode: base.BaseQueryTxMode = None,
-        syntax: base.QuerySyntax = None,
-        exec_mode: base.QueryExecMode = None,
-        parameters: dict = None,
-        concurrent_result_sets: bool = False,
-    ):
+        commit_tx: Optional[bool] = False,
+        syntax: Optional[base.QuerySyntax] = None,
+        exec_mode: Optional[base.QueryExecMode] = None,
+        parameters: Optional[dict] = None,
+        concurrent_result_sets: Optional[bool] = False,
+    ) -> base.SyncResponseContextIterator:
+
         self._ensure_prev_stream_finished()
         self._tx_state._check_tx_not_terminal()
 
         stream_it = self._execute_call(
             query=query,
             commit_tx=commit_tx,
-            tx_mode=tx_mode,
             syntax=syntax,
             exec_mode=exec_mode,
             parameters=parameters,

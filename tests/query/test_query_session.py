@@ -89,3 +89,13 @@ class TestQuerySession:
         assert len(result_sets[0].rows) == 1
         assert len(result_sets[0].columns) == 1
         assert list(result_sets[0].rows[0].values()) == [1]
+
+    def test_two_results(self, session: QuerySessionSync):
+        session.create()
+        res = []
+        with session.execute("select 1; select 2") as results:
+            for result_set in results:
+                if len(result_set.rows) > 0:
+                    res.extend(list(result_set.rows[0].values()))
+
+        assert res == [1, 2]

@@ -20,8 +20,12 @@ from . import (
 )
 
 from .retries import (
-    retry_operation_sync,
+    YdbRetryOperationFinalResult,  # noqa
+    YdbRetryOperationSleepOpt,  # noqa
+    BackoffSettings,  # noqa
+    retry_operation_impl,  # noqa
     RetrySettings,
+    retry_operation_sync,
 )
 
 try:

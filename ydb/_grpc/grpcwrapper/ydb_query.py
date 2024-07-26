@@ -21,7 +21,7 @@ from .common_utils import (
 
 @dataclass
 class CreateSessionResponse(IFromProto):
-    status: Optional[ServerStatus]
+    status: ServerStatus
     session_id: str
     node_id: int
 
@@ -36,7 +36,7 @@ class CreateSessionResponse(IFromProto):
 
 @dataclass
 class DeleteSessionResponse(IFromProto):
-    status: Optional[ServerStatus]
+    status: ServerStatus
 
     @staticmethod
     def from_proto(msg: ydb_query_pb2.DeleteSessionResponse) -> "DeleteSessionResponse":
@@ -129,10 +129,10 @@ class RollbackTransactionResponse(IFromProto):
 @dataclass
 class QueryContent(IFromPublic, IToProto):
     text: str
-    syntax: Optional[int] = None
+    syntax: int
 
     @staticmethod
-    def from_public(query: str, syntax: int = None) -> "QueryContent":
+    def from_public(query: str, syntax: int) -> "QueryContent":
         return QueryContent(text=query, syntax=syntax)
 
     def to_proto(self) -> ydb_query_pb2.QueryContent:
@@ -141,9 +141,9 @@ class QueryContent(IFromPublic, IToProto):
 
 @dataclass
 class TransactionControl(IToProto):
-    begin_tx: Optional[TransactionSettings] = None
-    commit_tx: Optional[bool] = None
-    tx_id: Optional[str] = None
+    begin_tx: Optional[TransactionSettings]
+    commit_tx: Optional[bool]
+    tx_id: Optional[str]
 
     def to_proto(self) -> ydb_query_pb2.TransactionControl:
         if self.tx_id:
@@ -161,11 +161,11 @@ class TransactionControl(IToProto):
 class ExecuteQueryRequest(IToProto):
     session_id: str
     query_content: QueryContent
-    tx_control: Optional[TransactionControl] = None
-    concurrent_result_sets: Optional[bool] = False
-    exec_mode: Optional[int] = None
-    parameters: Optional[dict] = None
-    stats_mode: Optional[int] = None
+    tx_control: TransactionControl
+    concurrent_result_sets: bool
+    exec_mode: int
+    parameters: dict
+    stats_mode: int
 
     def to_proto(self) -> ydb_query_pb2.ExecuteQueryRequest:
         tx_control = self.tx_control.to_proto() if self.tx_control is not None else self.tx_control

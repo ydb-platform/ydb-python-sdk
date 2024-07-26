@@ -1,5 +1,8 @@
 import logging
-from typing import Callable
+from typing import (
+    Callable,
+    Optional,
+)
 
 from . import base
 from .session import (
@@ -24,12 +27,12 @@ class QuerySessionPool:
         logger.warning("QuerySessionPool is an experimental API, which could be changed.")
         self._driver = driver
 
-    def checkout(self):
+    def checkout(self) -> "SimpleQuerySessionCheckout":
         """Return a Session context manager, that opens session on enter and closes session on exit."""
 
         return SimpleQuerySessionCheckout(self)
 
-    def retry_operation_sync(self, callee: Callable, retry_settings: RetrySettings = None, *args, **kwargs):
+    def retry_operation_sync(self, callee: Callable, retry_settings: Optional[RetrySettings] = None, *args, **kwargs):
         """Special interface to execute a bunch of commands with session in a safe, retriable way.
 
         :param callee: A function, that works with session.
@@ -46,7 +49,7 @@ class QuerySessionPool:
 
         return retry_operation_sync(wrapped_callee, retry_settings)
 
-    def execute_with_retries(self, query: str, retry_settings: RetrySettings = None, *args, **kwargs):
+    def execute_with_retries(self, query: str, retry_settings: Optional[RetrySettings] = None, *args, **kwargs):
         """Special interface to execute a one-shot queries in a safe, retriable way.
 
         :param query: A query, yql or sql text.
@@ -56,13 +59,13 @@ class QuerySessionPool:
         """
 
         retry_settings = RetrySettings() if retry_settings is None else retry_settings
-        with self.checkout() as session:
 
-            def wrapped_callee():
-                it = session.execute(query, empty_tx_control=True, *args, **kwargs)
+        def wrapped_callee():
+            with self.checkout() as session:
+                it = session.execute(query, *args, **kwargs)
                 return [result_set for result_set in it]
 
-            return retry_operation_sync(wrapped_callee, retry_settings)
+        return retry_operation_sync(wrapped_callee, retry_settings)
 
 
 class SimpleQuerySessionCheckout:
@@ -70,7 +73,7 @@ class SimpleQuerySessionCheckout:
         self._pool = pool
         self._session = QuerySessionSync(pool._driver)
 
-    def __enter__(self):
+    def __enter__(self) -> base.IQuerySession:
         self._session.create()
         return self._session
 

@@ -11,8 +11,9 @@ from . import base
 from .. import _apis, issues, _utilities
 from .._grpc.grpcwrapper import common_utils
 from .._grpc.grpcwrapper import ydb_query as _ydb_query
+from .._grpc.grpcwrapper import ydb_query_public_types as _ydb_query_public
 
-from .transaction import BaseTxContext
+from .transaction import BaseQueryTxContext
 
 
 logger = logging.getLogger(__name__)
@@ -45,16 +46,14 @@ class QuerySessionStateHelper(abc.ABC):
 
 
 class QuerySessionState(base.IQuerySessionState):
-    _session_id: Optional[str]
-    _node_id: Optional[int]
+    _session_id: Optional[str] = None
+    _node_id: Optional[int] = None
     _attached: bool = False
-    _settings: Optional[base.QueryClientSettings]
-    _state: QuerySessionStateEnum
+    _settings: Optional[base.QueryClientSettings] = None
+    _state: QuerySessionStateEnum = QuerySessionStateEnum.NOT_INITIALIZED
 
     def __init__(self, settings: base.QueryClientSettings = None):
         self._settings = settings
-        self._state = QuerySessionStateEnum.NOT_INITIALIZED
-        self.reset()
 
     def reset(self) -> None:
         self._session_id = None
@@ -84,19 +83,19 @@ class QuerySessionState(base.IQuerySessionState):
     def set_attached(self, attached: bool) -> "QuerySessionState":
         self._attached = attached
 
-    def _check_invalid_transition(self, target: QuerySessionStateEnum):
+    def _check_invalid_transition(self, target: QuerySessionStateEnum) -> None:
         if not QuerySessionStateHelper.valid_transition(self._state, target):
             raise RuntimeError(f"Session could not be moved from {self._state.value} to {target.value}")
 
-    def _change_state(self, target: QuerySessionStateEnum):
+    def _change_state(self, target: QuerySessionStateEnum) -> None:
         self._check_invalid_transition(target)
         self._state = target
 
-    def _check_session_ready_to_use(self):
+    def _check_session_ready_to_use(self) -> None:
         if not QuerySessionStateHelper.ready_to_use(self._state):
             raise RuntimeError(f"Session is not ready to use, current state: {self._state.value}")
 
-    def _already_in(self, target):
+    def _already_in(self, target) -> bool:
         return self._state == target
 
 
@@ -117,12 +116,12 @@ def wrapper_delete_session(rpc_state, response_pb, session_state: QuerySessionSt
 
 class BaseQuerySession(base.IQuerySession):
     _driver: base.SupportedDriverType
-    _settings: Optional[base.QueryClientSettings]
+    _settings: base.QueryClientSettings
     _state: QuerySessionState
 
-    def __init__(self, driver: base.SupportedDriverType, settings: base.QueryClientSettings = None):
+    def __init__(self, driver: base.SupportedDriverType, settings: Optional[base.QueryClientSettings] = None):
         self._driver = driver
-        self._settings = settings
+        self._settings = settings if settings is not None else base.QueryClientSettings()
         self._state = QuerySessionState(settings)
 
     def _create_call(self):
@@ -154,23 +153,21 @@ class BaseQuerySession(base.IQuerySession):
         self,
         query: str,
         commit_tx: bool = False,
-        tx_mode: base.BaseQueryTxMode = None,
         syntax: base.QuerySyntax = None,
         exec_mode: base.QueryExecMode = None,
         parameters: dict = None,
         concurrent_result_sets: bool = False,
-        empty_tx_control: bool = False,
     ):
         request = base.create_execute_query_request(
             query=query,
             session_id=self._state.session_id,
             commit_tx=commit_tx,
-            tx_mode=tx_mode,
+            tx_mode=None,
+            tx_id=None,
             syntax=syntax,
             exec_mode=exec_mode,
             parameters=parameters,
             concurrent_result_sets=concurrent_result_sets,
-            empty_tx_control=empty_tx_control,
         )
 
         return self._driver(
@@ -245,7 +242,7 @@ class QuerySessionSync(BaseQuerySession):
 
         return self
 
-    def transaction(self, tx_mode: base.BaseQueryTxMode = None) -> base.IQueryTxContext:
+    def transaction(self, tx_mode: Optional[base.BaseQueryTxMode] = None) -> base.IQueryTxContext:
         """
         Creates a transaction context manager with specified transaction mode.
         :param tx_mode: Transaction mode, which is a one from the following choises:
@@ -259,7 +256,9 @@ class QuerySessionSync(BaseQuerySession):
         """
         self._state._check_session_ready_to_use()
 
-        return BaseTxContext(
+        tx_mode = tx_mode if tx_mode else _ydb_query_public.QuerySerializableReadWrite()
+
+        return BaseQueryTxContext(
             self._driver,
             self._state,
             self,
@@ -269,21 +268,14 @@ class QuerySessionSync(BaseQuerySession):
     def execute(
         self,
         query: str,
-        tx_mode: base.BaseQueryTxMode = None,
         syntax: base.QuerySyntax = None,
         exec_mode: base.QueryExecMode = None,
         parameters: dict = None,
         concurrent_result_sets: bool = False,
-        empty_tx_control: bool = False,
-    ):
+    ) -> base.SyncResponseContextIterator:
         """
         Sends a query to Query Service
         :param query: (YQL or SQL text) to be executed.
-        :param tx_mode: Transaction mode, which is a one from the following choises:
-         1) QuerySerializableReadWrite() which is default mode;
-         2) QueryOnlineReadOnly(allow_inconsistent_reads=False);
-         3) QuerySnapshotReadOnly();
-         4) QueryStaleReadOnly().
         :param syntax: Syntax of the query, which is a one from the following choises:
          1) QuerySyntax.YQL_V1, which is default;
          2) QuerySyntax.PG.
@@ -297,12 +289,10 @@ class QuerySessionSync(BaseQuerySession):
         stream_it = self._execute_call(
             query=query,
             commit_tx=True,
-            tx_mode=tx_mode,
             syntax=syntax,
             exec_mode=exec_mode,
             parameters=parameters,
             concurrent_result_sets=concurrent_result_sets,
-            empty_tx_control=empty_tx_control,
         )
 
         return base.SyncResponseContextIterator(

@@ -5,6 +5,7 @@ __all__ = [
     "QueryStaleReadOnly",
     "QuerySessionPool",
     "QueryClientSync",
+    "QuerySessionSync",
 ]
 
 import logging
