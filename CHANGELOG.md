@@ -1,3 +1,5 @@
+* OAuth 2.0 token exchange. Allow multiple resource parameters in according to https://www.rfc-editor.org/rfc/rfc8693
+
 ## 3.14.0 ##
 * Added load OAuth 2.0 token exchange credentials provider from config file
 
@@ -83,7 +85,7 @@ yanked bad api release
 
 ## 3.3.5 ##
 * Fixed use positional argument instead of named in WriterAsyncIO.__del__
-* Fixed release buffer while read topic by one messages 
+* Fixed release buffer while read topic by one messages
 * Fixed race condition between commit_with_ack and reconnect in topic writer
 
 ## 3.3.4 ##

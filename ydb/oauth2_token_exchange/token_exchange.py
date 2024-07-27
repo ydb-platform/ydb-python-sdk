@@ -39,7 +39,7 @@ class Oauth2TokenExchangeCredentialsBase(abc.ABC):
         actor_token_source: typing.Optional[TokenSource] = None,
         audience: typing.Union[typing.List[str], str, None] = None,
         scope: typing.Union[typing.List[str], str, None] = None,
-        resource: typing.Optional[str] = None,
+        resource: typing.Union[typing.List[str], str, None] = None,
         grant_type: str = "urn:ietf:params:oauth:grant-type:token-exchange",
         requested_token_type: str = "urn:ietf:params:oauth:token-type:access_token",
     ):
@@ -224,6 +224,42 @@ class Oauth2TokenExchangeCredentialsBase(abc.ABC):
 
     @classmethod
     def from_file(cls, cfg_file, iam_endpoint=None):
+        """
+        Create OAuth 2.0 token exchange protocol credentials from config file.
+
+        https://www.rfc-editor.org/rfc/rfc8693
+        Config file must be a valid json file
+
+        Fields of json file
+            grant-type:           [string] Grant type option (default: "urn:ietf:params:oauth:grant-type:token-exchange")
+            res:                  [string | list of strings] Resource option (optional)
+            aud:                  [string | list of strings] Audience option for token exchange request (optional)
+            scope:                [string | list of strings] Scope option (optional)
+            requested-token-type: [string] Requested token type option (default: "urn:ietf:params:oauth:token-type:access_token")
+            subject-credentials:  [creds_json] Subject credentials options (optional)
+            actor-credentials:    [creds_json] Actor credentials options (optional)
+            token-endpoint:       [string] Token endpoint
+
+        Fields of creds_json (JWT):
+            type:                 [string] Token source type. Set JWT
+            alg:                  [string] Algorithm for JWT signature.
+                                        Supported algorithms can be listed
+                                        with GetSupportedOauth2TokenExchangeJwtAlgorithms()
+            private-key:          [string] (Private) key in PEM format (RSA, EC) or Base64 format (HMAC) for JWT signature
+            kid:                  [string] Key id JWT standard claim (optional)
+            iss:                  [string] Issuer JWT standard claim (optional)
+            sub:                  [string] Subject JWT standard claim (optional)
+            aud:                  [string | list of strings] Audience JWT standard claim (optional)
+            jti:                  [string] JWT ID JWT standard claim (optional)
+            ttl:                  [string] Token TTL (default: 1h)
+
+        Fields of creds_json (FIXED):
+            type:                 [string] Token source type. Set FIXED
+            token:                [string] Token value
+            token-type:           [string] Token type value. It will become
+                                        subject_token_type/actor_token_type parameter
+                                        in token exchange request (https://www.rfc-editor.org/rfc/rfc8693)
+        """
         with open(os.path.expanduser(cfg_file), "r") as r:
             cfg = r.read()
 
@@ -245,7 +281,7 @@ class Oauth2TokenExchangeCredentialsBase(abc.ABC):
         actor_token_source = cls._token_source_from_config(cfg_json, "actor-credentials")
         audience = cls._list_of_strings_or_single_from_config(cfg_json, "aud")
         scope = cls._list_of_strings_or_single_from_config(cfg_json, "scope")
-        resource = cls._string_with_default_from_config(cfg_json, "res", None)
+        resource = cls._list_of_strings_or_single_from_config(cfg_json, "res")
         grant_type = cls._string_with_default_from_config(
             cfg_json, "grant-type", "urn:ietf:params:oauth:grant-type:token-exchange"
         )
@@ -273,7 +309,7 @@ class Oauth2TokenExchangeCredentials(credentials.AbstractExpiringTokenCredential
         actor_token_source: typing.Optional[TokenSource] = None,
         audience: typing.Union[typing.List[str], str, None] = None,
         scope: typing.Union[typing.List[str], str, None] = None,
-        resource: typing.Optional[str] = None,
+        resource: typing.Union[typing.List[str], str, None] = None,
         grant_type: str = "urn:ietf:params:oauth:grant-type:token-exchange",
         requested_token_type: str = "urn:ietf:params:oauth:token-type:access_token",
         tracer=None,
