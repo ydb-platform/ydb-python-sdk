@@ -227,9 +227,9 @@ class IQueryTxContext(abc.ABC):
     @abc.abstractmethod
     def tx_id(self) -> Optional[str]:
         """
-        Returns a id of open transaction or None otherwise
+        Returns an id of open transaction or None otherwise
 
-        :return: A id of open transaction or None otherwise
+        :return: An id of open transaction or None otherwise
         """
         pass
 

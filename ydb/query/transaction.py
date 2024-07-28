@@ -83,7 +83,7 @@ class QueryTxState:
         self._check_invalid_transition(target)
         self._state = target
 
-    def _check_tx_not_terminal(self) -> None:
+    def _check_tx_ready_to_use(self) -> None:
         if QueryTxStateHelper.terminal(self._state):
             raise RuntimeError(f"Transaction is in terminal state: {self._state.value}")
 
@@ -233,9 +233,9 @@ class BaseQueryTxContext(base.IQueryTxContext):
     @property
     def tx_id(self) -> Optional[str]:
         """
-        Returns a id of open transaction or None otherwise
+        Returns an id of open transaction or None otherwise
 
-        :return: A id of open transaction or None otherwise
+        :return: An id of open transaction or None otherwise
         """
         return self._tx_state.tx_id
 
@@ -371,7 +371,7 @@ class BaseQueryTxContext(base.IQueryTxContext):
     ) -> base.SyncResponseContextIterator:
 
         self._ensure_prev_stream_finished()
-        self._tx_state._check_tx_not_terminal()
+        self._tx_state._check_tx_ready_to_use()
 
         stream_it = self._execute_call(
             query=query,
