@@ -181,11 +181,12 @@ class Oauth2ExchangeServiceChecker:
             assert len(parsed_request.get("scope", [])) == 1
             assert parsed_request["scope"][0] == " ".join(self.scope)
 
-        if self.resource is None or self.resource == "":
+        if self.resource is None or len(self.resource) == 0:
             assert len(parsed_request.get("resource", [])) == 0
         else:
-            assert len(parsed_request.get("resource", [])) == 1
-            assert parsed_request["resource"][0] == self.resource
+            assert len(parsed_request["resource"]) == len(self.resource)
+            for i in range(len(self.resource)):
+                assert parsed_request["resource"][i] == self.resource[i]
 
         if self.subject_token_source is None:
             assert len(parsed_request.get("subject_token", [])) == 0
@@ -478,7 +479,7 @@ def test_oauth2_token_exchange_credentials_file():
                 ),
                 grant_type="grant",
                 requested_token_type="access_token",
-                resource="tEst",
+                resource=["tEst"],
             ),
             response=Oauth2TokenExchangeResponse(
                 200,
@@ -498,6 +499,7 @@ def test_oauth2_token_exchange_credentials_file():
                     "s1",
                     "s2",
                 ],
+                "res": ["r1", "r2"],
                 "unknown-field": [123],
                 "actor-credentials": {
                     "type": "fixed",
@@ -512,6 +514,7 @@ def test_oauth2_token_exchange_credentials_file():
                 ),
                 audience=["test-aud"],
                 scope=["s1", "s2"],
+                resource=["r1", "r2"],
             ),
             response=Oauth2TokenExchangeResponse(
                 200,
