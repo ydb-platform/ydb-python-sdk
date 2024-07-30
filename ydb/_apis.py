@@ -10,6 +10,7 @@ if typing.TYPE_CHECKING:
         ydb_table_v1_pb2_grpc,
         ydb_operation_v1_pb2_grpc,
         ydb_topic_v1_pb2_grpc,
+        ydb_query_v1_pb2_grpc,
     )
 
     from ._grpc.v4.protos import (
@@ -20,6 +21,7 @@ if typing.TYPE_CHECKING:
         ydb_value_pb2,
         ydb_operation_pb2,
         ydb_common_pb2,
+        ydb_query_pb2,
     )
 
 else:
@@ -30,6 +32,7 @@ else:
         ydb_table_v1_pb2_grpc,
         ydb_operation_v1_pb2_grpc,
         ydb_topic_v1_pb2_grpc,
+        ydb_query_v1_pb2_grpc,
     )
 
     from ._grpc.common.protos import (
@@ -40,6 +43,7 @@ else:
         ydb_value_pb2,
         ydb_operation_pb2,
         ydb_common_pb2,
+        ydb_query_pb2,
     )
 
 
@@ -51,6 +55,7 @@ ydb_scheme = ydb_scheme_pb2
 ydb_table = ydb_table_pb2
 ydb_discovery = ydb_discovery_pb2
 ydb_operation = ydb_operation_pb2
+ydb_query = ydb_query_pb2
 
 
 class CmsService(object):
@@ -111,3 +116,19 @@ class TopicService(object):
     DropTopic = "DropTopic"
     StreamRead = "StreamRead"
     StreamWrite = "StreamWrite"
+
+
+class QueryService(object):
+    Stub = ydb_query_v1_pb2_grpc.QueryServiceStub
+
+    CreateSession = "CreateSession"
+    DeleteSession = "DeleteSession"
+    AttachSession = "AttachSession"
+
+    BeginTransaction = "BeginTransaction"
+    CommitTransaction = "CommitTransaction"
+    RollbackTransaction = "RollbackTransaction"
+
+    ExecuteQuery = "ExecuteQuery"
+    ExecuteScript = "ExecuteScript"
+    FetchScriptResults = "FetchScriptResults"
