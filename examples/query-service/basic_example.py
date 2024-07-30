@@ -18,7 +18,7 @@ def main():
 
     print("=" * 50)
     print("DELETE TABLE IF EXISTS")
-    pool.execute_with_retries("drop table if exists example")
+    pool.execute_with_retries("DROP TABLE IF EXISTS example")
 
     print("=" * 50)
     print("CREATE TABLE")
@@ -28,11 +28,11 @@ def main():
 
     def callee(session):
         print("=" * 50)
-        with session.execute("delete from example"):
+        with session.execute("DELETE FROM example"):
             pass
 
         print("BEFORE ACTION")
-        with session.execute("SELECT COUNT(*) as rows_count FROM example") as results:
+        with session.execute("SELECT COUNT(*) AS rows_count FROM example") as results:
             for result_set in results:
                 print(f"rows: {str(result_set.rows)}")
 
@@ -45,7 +45,7 @@ def main():
             with tx.execute("INSERT INTO example (key, value) VALUES (1, 'onepieceisreal')"):
                 pass
 
-            with tx.execute("SELECT COUNT(*) as rows_count FROM example") as results:
+            with tx.execute("SELECT COUNT(*) AS rows_count FROM example") as results:
                 for result_set in results:
                     print(f"rows: {str(result_set.rows)}")
 
@@ -54,7 +54,7 @@ def main():
         print("=" * 50)
         print("AFTER COMMIT TX")
 
-        with session.execute("SELECT COUNT(*) as rows_count FROM example") as results:
+        with session.execute("SELECT COUNT(*) AS rows_count FROM example") as results:
             for result_set in results:
                 print(f"rows: {str(result_set.rows)}")
 
@@ -67,7 +67,7 @@ def main():
             with tx.execute("INSERT INTO example (key, value) VALUES (2, 'onepieceisreal')"):
                 pass
 
-            with tx.execute("SELECT COUNT(*) as rows_count FROM example") as results:
+            with tx.execute("SELECT COUNT(*) AS rows_count FROM example") as results:
                 for result_set in results:
                     print(f"rows: {str(result_set.rows)}")
 
@@ -76,7 +76,7 @@ def main():
         print("=" * 50)
         print("AFTER ROLLBACK TX")
 
-        with session.execute("SELECT COUNT(*) as rows_count FROM example") as results:
+        with session.execute("SELECT COUNT(*) AS rows_count FROM example") as results:
             for result_set in results:
                 print(f"rows: {str(result_set.rows)}")
 

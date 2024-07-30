@@ -2,6 +2,7 @@ import logging
 from typing import (
     Callable,
     Optional,
+    List,
 )
 
 from . import base
@@ -12,6 +13,7 @@ from ..retries import (
     RetrySettings,
     retry_operation_sync,
 )
+from .. import convert
 
 logger = logging.getLogger(__name__)
 
@@ -49,8 +51,12 @@ class QuerySessionPool:
 
         return retry_operation_sync(wrapped_callee, retry_settings)
 
-    def execute_with_retries(self, query: str, retry_settings: Optional[RetrySettings] = None, *args, **kwargs):
+    def execute_with_retries(
+        self, query: str, retry_settings: Optional[RetrySettings] = None, *args, **kwargs
+    ) -> List[convert.ResultSet]:
         """Special interface to execute a one-shot queries in a safe, retriable way.
+        Note: this method loads all data from stream before return, do not use this
+        method with huge read queries.
 
         :param query: A query, yql or sql text.
         :param retry_settings: RetrySettings object.

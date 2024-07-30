@@ -93,9 +93,10 @@ class TestQuerySession:
     def test_two_results(self, session: QuerySessionSync):
         session.create()
         res = []
+
         with session.execute("select 1; select 2") as results:
             for result_set in results:
                 if len(result_set.rows) > 0:
-                    res.extend(list(result_set.rows[0].values()))
+                    res.append(list(result_set.rows[0].values()))
 
-        assert res == [1, 2]
+        assert res == [[1], [2]]
