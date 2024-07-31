@@ -30,12 +30,15 @@ class QuerySessionPool:
         self._driver = driver
 
     def checkout(self) -> "SimpleQuerySessionCheckout":
-        """Return a Session context manager, that opens session on enter and closes session on exit."""
+        """WARNING: This API is experimental and could be changed.
+        Return a Session context manager, that opens session on enter and closes session on exit.
+        """
 
         return SimpleQuerySessionCheckout(self)
 
     def retry_operation_sync(self, callee: Callable, retry_settings: Optional[RetrySettings] = None, *args, **kwargs):
-        """Special interface to execute a bunch of commands with session in a safe, retriable way.
+        """WARNING: This API is experimental and could be changed.
+        Special interface to execute a bunch of commands with session in a safe, retriable way.
 
         :param callee: A function, that works with session.
         :param retry_settings: RetrySettings object.
@@ -54,7 +57,8 @@ class QuerySessionPool:
     def execute_with_retries(
         self, query: str, retry_settings: Optional[RetrySettings] = None, *args, **kwargs
     ) -> List[convert.ResultSet]:
-        """Special interface to execute a one-shot queries in a safe, retriable way.
+        """WARNING: This API is experimental and could be changed.
+        Special interface to execute a one-shot queries in a safe, retriable way.
         Note: this method loads all data from stream before return, do not use this
         method with huge read queries.
 

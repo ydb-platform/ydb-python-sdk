@@ -103,7 +103,8 @@ class IQuerySession(abc.ABC):
 
     @abc.abstractmethod
     def create(self) -> "IQuerySession":
-        """
+        """WARNING: This API is experimental and could be changed.
+
         Creates a Session of Query Service on server side and attaches it.
 
         :return: Session object.
@@ -112,7 +113,8 @@ class IQuerySession(abc.ABC):
 
     @abc.abstractmethod
     def delete(self) -> None:
-        """
+        """WARNING: This API is experimental and could be changed.
+
         Deletes a Session of Query Service on server side and releases resources.
 
         :return: None
@@ -121,7 +123,8 @@ class IQuerySession(abc.ABC):
 
     @abc.abstractmethod
     def transaction(self, tx_mode: Optional[BaseQueryTxMode] = None) -> "IQueryTxContext":
-        """
+        """WARNING: This API is experimental and could be changed.
+
         Creates a transaction context manager with specified transaction mode.
 
         :param tx_mode: Transaction mode, which is a one from the following choises:
@@ -143,7 +146,8 @@ class IQuerySession(abc.ABC):
         parameters: Optional[dict] = None,
         concurrent_result_sets: Optional[bool] = False,
     ) -> Iterator:
-        """
+        """WARNING: This API is experimental and could be changed.
+
         Sends a query to Query Service
         :param query: (YQL or SQL text) to be executed.
         :param syntax: Syntax of the query, which is a one from the following choises:
@@ -235,7 +239,8 @@ class IQueryTxContext(abc.ABC):
 
     @abc.abstractmethod
     def begin(self, settings: Optional[QueryClientSettings] = None) -> None:
-        """
+        """WARNING: This API is experimental and could be changed.
+
         Explicitly begins a transaction
 
         :param settings: A request settings
@@ -246,7 +251,8 @@ class IQueryTxContext(abc.ABC):
 
     @abc.abstractmethod
     def commit(self, settings: Optional[QueryClientSettings] = None) -> None:
-        """
+        """WARNING: This API is experimental and could be changed.
+
         Calls commit on a transaction if it is open. If transaction execution
         failed then this method raises PreconditionFailed.
 
@@ -258,7 +264,8 @@ class IQueryTxContext(abc.ABC):
 
     @abc.abstractmethod
     def rollback(self, settings: Optional[QueryClientSettings] = None) -> None:
-        """
+        """WARNING: This API is experimental and could be changed.
+
         Calls rollback on a transaction if it is open. If transaction execution
         failed then this method raises PreconditionFailed.
 
@@ -278,7 +285,8 @@ class IQueryTxContext(abc.ABC):
         parameters: Optional[dict] = None,
         concurrent_result_sets: Optional[bool] = False,
     ) -> Iterator:
-        """
+        """WARNING: This API is experimental and could be changed.
+
         Sends a query to Query Service
         :param query: (YQL or SQL text) to be executed.
         :param commit_tx: A special flag that allows transaction commit.

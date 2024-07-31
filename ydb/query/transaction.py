@@ -314,7 +314,8 @@ class BaseQueryTxContext(base.IQueryTxContext):
         self._tx_state._change_state(QueryTxStateEnum.COMMITTED)
 
     def begin(self, settings: Optional[base.QueryClientSettings] = None) -> None:
-        """
+        """WARNING: This API is experimental and could be changed.
+
         Explicitly begins a transaction
 
         :param settings: A request settings
@@ -326,7 +327,8 @@ class BaseQueryTxContext(base.IQueryTxContext):
         self._begin_call(settings)
 
     def commit(self, settings: Optional[base.QueryClientSettings] = None) -> None:
-        """
+        """WARNING: This API is experimental and could be changed.
+
         Calls commit on a transaction if it is open otherwise is no-op. If transaction execution
         failed then this method raises PreconditionFailed.
 
@@ -369,7 +371,24 @@ class BaseQueryTxContext(base.IQueryTxContext):
         parameters: Optional[dict] = None,
         concurrent_result_sets: Optional[bool] = False,
     ) -> base.SyncResponseContextIterator:
+        """WARNING: This API is experimental and could be changed.
 
+        Sends a query to Query Service
+        :param query: (YQL or SQL text) to be executed.
+        :param commit_tx: A special flag that allows transaction commit.
+        :param syntax: Syntax of the query, which is a one from the following choises:
+         1) QuerySyntax.YQL_V1, which is default;
+         2) QuerySyntax.PG.
+        :param exec_mode: Exec mode of the query, which is a one from the following choises:
+         1) QueryExecMode.EXECUTE, which is default;
+         2) QueryExecMode.EXPLAIN;
+         3) QueryExecMode.VALIDATE;
+         4) QueryExecMode.PARSE.
+        :param parameters: dict with parameters and YDB types;
+        :param concurrent_result_sets: A flag to allow YDB mix parts of different result sets. Default is False;
+
+        :return: Iterator with result sets
+        """
         self._ensure_prev_stream_finished()
         self._tx_state._check_tx_ready_to_use()
 
