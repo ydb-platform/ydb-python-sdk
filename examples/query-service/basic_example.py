@@ -94,9 +94,7 @@ def main():
 
         for value in values:
             print(f"value: {value}")
-            with session.transaction().execute(
-                query=query_print, parameters={'$a': value}, commit_tx=True
-            ) as results:
+            with session.transaction().execute(query=query_print, parameters={'$a': value}, commit_tx=True) as results:
                 for result_set in results:
                     print(f"rows: {str(result_set.rows)}")
 
