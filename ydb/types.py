@@ -443,6 +443,7 @@ class BulkUpsertColumns(AbstractTypeBuilder):
     def __str__(self):
         return "BulkUpsertColumns<%s>" % ",".join(self.__columns_repr)
 
+
 @dataclass
 class TypedValue:
     value: typing.Any

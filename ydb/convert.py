@@ -337,8 +337,7 @@ def _primitive_type_from_python_native(value):
         return types.DictType(key_type, value_type)
 
     raise ValueError(
-        "Could not map value to any type, please specify "
-        "it manually by tuple(value, type) or ydb.TypedValue"
+        "Could not map value to any type, please specify it manually by tuple(value, type) or ydb.TypedValue"
     )
 
 

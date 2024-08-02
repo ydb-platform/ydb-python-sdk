@@ -136,6 +136,7 @@ def test_select_typedvalue_implicit_primitive(pool: ydb.QuerySessionPool):
     actual_value = res[0].rows[0]["value"]
     assert expected_value == actual_value
 
+
 def test_select_typevalue_custom_type_raises(pool: ydb.QuerySessionPool):
     class CustomClass:
         pass
