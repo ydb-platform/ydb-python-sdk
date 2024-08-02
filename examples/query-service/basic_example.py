@@ -18,7 +18,7 @@ def main():
 
     print("=" * 50)
     print("DELETE TABLE IF EXISTS")
-    pool.execute_with_retries("drop table if exists example")
+    pool.execute_with_retries("DROP TABLE IF EXISTS example")
 
     print("=" * 50)
     print("CREATE TABLE")
@@ -82,21 +82,58 @@ def main():
 
     pool.retry_operation_sync(callee)
 
-    query_print = """
-    select $a
-    """
-
     def callee(session: ydb.QuerySessionSync):
-        print("=" * 50)
-        print("Check typed parameters")
+        query_print = """select $a"""
 
-        values = [1, 1.0, True, "text"]
+        print("=" * 50)
+        print("Check implicit typed parameters")
+
+        values = [
+            1,
+            1.0,
+            True,
+            "text",
+            {"4": 8, "15": 16, "23": 42},
+            [{"name": "Michael"}, {"surname": "Scott"}],
+        ]
 
         for value in values:
             print(f"value: {value}")
-            with session.transaction().execute(query=query_print, parameters={"$a": value}, commit_tx=True) as results:
+            with session.transaction().execute(
+                query=query_print,
+                parameters={"$a": value},
+                commit_tx=True,
+            ) as results:
                 for result_set in results:
                     print(f"rows: {str(result_set.rows)}")
+
+        print("=" * 50)
+        print("Check typed parameters as tuple pair")
+
+        typed_value = ([1, 2, 3], ydb.ListType(ydb.PrimitiveType.Int64))
+        print(f"value: {typed_value}")
+
+        with session.transaction().execute(
+            query=query_print,
+            parameters={"$a": typed_value},
+            commit_tx=True,
+        ) as results:
+            for result_set in results:
+                print(f"rows: {str(result_set.rows)}")
+
+        print("=" * 50)
+        print("Check typed parameters as ydb.TypedValue")
+
+        typed_value = ydb.TypedValue(111, ydb.PrimitiveType.Int64)
+        print(f"value: {typed_value}")
+
+        with session.transaction().execute(
+            query=query_print,
+            parameters={"$a": typed_value},
+            commit_tx=True,
+        ) as results:
+            for result_set in results:
+                print(f"rows: {str(result_set.rows)}")
 
     pool.retry_operation_sync(callee)
 
