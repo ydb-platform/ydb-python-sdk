@@ -290,11 +290,11 @@ def query_parameters_to_pb(parameters):
     for name, value in parameters.items():
         if isinstance(value, types.TypedValue):
             if value.value_type is None:
-                value.value_type = _primitive_type_from_python_native(value.value)
+                value.value_type = _type_from_python_native(value.value)
         elif isinstance(value, tuple):
             value = types.TypedValue(*value)
         else:
-            value = types.TypedValue(value, _primitive_type_from_python_native(value))
+            value = types.TypedValue(value, _type_from_python_native(value))
 
         parameters_values[name] = value.value
         parameters_types[name] = value.value_type
@@ -310,7 +310,7 @@ _from_python_type_map = {
 }
 
 
-def _primitive_type_from_python_native(value):
+def _type_from_python_native(value):
     t = type(value)
 
     if t in _from_python_type_map:
@@ -322,7 +322,7 @@ def _primitive_type_from_python_native(value):
                 "Could not map empty list to any type, please specify "
                 "it manually by tuple(value, type) or ydb.TypedValue"
             )
-        entry_type = _primitive_type_from_python_native(value[0])
+        entry_type = _type_from_python_native(value[0])
         return types.ListType(entry_type)
 
     if t == dict:
@@ -332,8 +332,8 @@ def _primitive_type_from_python_native(value):
                 "it manually by tuple(value, type) or ydb.TypedValue"
             )
         entry = list(value.items())[0]
-        key_type = _primitive_type_from_python_native(entry[0])
-        value_type = _primitive_type_from_python_native(entry[1])
+        key_type = _type_from_python_native(entry[0])
+        value_type = _type_from_python_native(entry[1])
         return types.DictType(key_type, value_type)
 
     raise ValueError(
