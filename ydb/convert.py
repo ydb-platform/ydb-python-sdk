@@ -288,12 +288,16 @@ def query_parameters_to_pb(parameters):
     parameters_types = {}
     parameters_values = {}
     for name, value in parameters.items():
-        if isinstance(value, tuple):
-            parameters_values[name] = value[0]
-            parameters_types[name] = value[1]
+        if isinstance(value, types.TypedValue):
+            if value.value_type is None:
+                value.value_type = _primitive_type_from_python_native(value.value)
+        elif isinstance(value, tuple):
+            value = types.TypedValue(*value)
         else:
-            parameters_values[name] = value
-            parameters_types[name] = _primitive_type_from_python_native(value)
+            value = types.TypedValue(value, _primitive_type_from_python_native(value))
+
+        parameters_values[name] = value.value
+        parameters_types[name] = value.value_type
 
     return parameters_to_pb(parameters_types, parameters_values)
 
@@ -308,26 +312,34 @@ _from_python_type_map = {
 
 def _primitive_type_from_python_native(value):
     t = type(value)
-    default_type = types.PrimitiveType.Int64
 
     if t in _from_python_type_map:
         return _from_python_type_map[t]
 
     if t == list:
         if len(value) == 0:
-            return types.ListType(default_type)
+            raise ValueError(
+                "Could not map empty list to any type, please specify "
+                "it manually by tuple(value, type) or ydb.TypedValue"
+            )
         entry_type = _primitive_type_from_python_native(value[0])
         return types.ListType(entry_type)
 
     if t == dict:
         if len(value) == 0:
-            return types.DictType(default_type, default_type)
+            raise ValueError(
+                "Could not map empty dict to any type, please specify "
+                "it manually by tuple(value, type) or ydb.TypedValue"
+            )
         entry = list(value.items())[0]
         key_type = _primitive_type_from_python_native(entry[0])
         value_type = _primitive_type_from_python_native(entry[1])
         return types.DictType(key_type, value_type)
 
-    return default_type
+    raise ValueError(
+        "Could not map value to any type, please specify "
+        "it manually by tuple(value, type) or ydb.TypedValue"
+    )
 
 
 def _unwrap_optionality(column):
