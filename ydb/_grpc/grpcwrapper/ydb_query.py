@@ -18,6 +18,8 @@ from .common_utils import (
     ServerStatus,
 )
 
+from ... import convert
+
 
 @dataclass
 class CreateSessionResponse(IFromProto):
@@ -176,5 +178,5 @@ class ExecuteQueryRequest(IToProto):
             exec_mode=self.exec_mode,
             stats_mode=self.stats_mode,
             concurrent_result_sets=self.concurrent_result_sets,
-            parameters=self.parameters,
+            parameters=convert.query_parameters_to_pb(self.parameters),
         )

@@ -281,6 +281,39 @@ def parameters_to_pb(parameters_types, parameters_values):
     return param_values_pb
 
 
+def query_parameters_to_pb(parameters):
+    if parameters is None or not parameters:
+        return {}
+
+    parameters_types = {}
+    parameters_values = {}
+    for name, value in parameters.items():
+        if isinstance(value, tuple):
+            parameters_values[name] = value[0]
+            parameters_types[name] = value[1]
+        else:
+            parameters_values[name] = value
+            parameters_types[name] = _primitive_type_from_python_native(value)
+
+    return parameters_to_pb(parameters_types, parameters_values)
+
+
+_from_python_type_map = {
+    int: types.PrimitiveType.Int64,
+    float: types.PrimitiveType.Float,
+    dict: types.PrimitiveType.Json,
+    bool: types.PrimitiveType.Bool,
+    str: types.PrimitiveType.Utf8,
+}
+
+
+def _primitive_type_from_python_native(value):
+    t = type(value)
+    if t not in _from_python_type_map:
+        return types.PrimitiveType.Int64
+    return _from_python_type_map[t]
+
+
 def _unwrap_optionality(column):
     c_type = column.type
     current_type = c_type.WhichOneof("type")
