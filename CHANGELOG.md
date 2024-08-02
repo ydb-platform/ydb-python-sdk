@@ -1,4 +1,4 @@
-
+## 3.15.0 ##
 * Query service client support
 * Add dunder version to ydb package
 * OAuth 2.0 token exchange. Allow multiple resource parameters in according to https://www.rfc-editor.org/rfc/rfc8693
