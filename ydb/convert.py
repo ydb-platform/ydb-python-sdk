@@ -301,7 +301,6 @@ def query_parameters_to_pb(parameters):
 _from_python_type_map = {
     int: types.PrimitiveType.Int64,
     float: types.PrimitiveType.Float,
-    dict: types.PrimitiveType.Json,
     bool: types.PrimitiveType.Bool,
     str: types.PrimitiveType.Utf8,
 }
@@ -309,9 +308,26 @@ _from_python_type_map = {
 
 def _primitive_type_from_python_native(value):
     t = type(value)
-    if t not in _from_python_type_map:
-        return types.PrimitiveType.Int64
-    return _from_python_type_map[t]
+    default_type = types.PrimitiveType.Int64
+
+    if t in _from_python_type_map:
+        return _from_python_type_map[t]
+
+    if t == list:
+        if len(value) == 0:
+            return types.ListType(default_type)
+        entry_type = _primitive_type_from_python_native(value[0])
+        return types.ListType(entry_type)
+
+    if t == dict:
+        if len(value) == 0:
+            return types.DictType(default_type, default_type)
+        entry = list(value.items())[0]
+        key_type = _primitive_type_from_python_native(entry[0])
+        value_type = _primitive_type_from_python_native(entry[1])
+        return types.DictType(key_type, value_type)
+
+    return default_type
 
 
 def _unwrap_optionality(column):

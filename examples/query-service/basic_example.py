@@ -16,15 +16,15 @@ def main():
 
     pool = ydb.QuerySessionPool(driver)
 
-    # print("=" * 50)
-    # print("DELETE TABLE IF EXISTS")
-    # pool.execute_with_retries("drop table if exists example")
+    print("=" * 50)
+    print("DELETE TABLE IF EXISTS")
+    pool.execute_with_retries("drop table if exists example")
 
-    # print("=" * 50)
-    # print("CREATE TABLE")
-    # pool.execute_with_retries("CREATE TABLE example(key UInt64, value String, PRIMARY KEY (key))")
+    print("=" * 50)
+    print("CREATE TABLE")
+    pool.execute_with_retries("CREATE TABLE example(key UInt64, value String, PRIMARY KEY (key))")
 
-    # pool.execute_with_retries("INSERT INTO example (key, value) VALUES (1, 'onepieceisreal')")
+    pool.execute_with_retries("INSERT INTO example (key, value) VALUES (1, 'onepieceisreal')")
 
     def callee(session):
         print("=" * 50)
@@ -94,7 +94,7 @@ def main():
 
         for value in values:
             print(f"value: {value}")
-            with session.transaction().execute(query=query_print, parameters={'$a': value}, commit_tx=True) as results:
+            with session.transaction().execute(query=query_print, parameters={"$a": value}, commit_tx=True) as results:
                 for result_set in results:
                     print(f"rows: {str(result_set.rows)}")
 
