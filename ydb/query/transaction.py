@@ -370,6 +370,7 @@ class BaseQueryTxContext(base.IQueryTxContext):
         exec_mode: Optional[base.QueryExecMode] = None,
         parameters: Optional[dict] = None,
         concurrent_result_sets: Optional[bool] = False,
+        settings: dict = None,  # TODO: temporary hack
     ) -> base.SyncResponseContextIterator:
         """WARNING: This API is experimental and could be changed.
 
