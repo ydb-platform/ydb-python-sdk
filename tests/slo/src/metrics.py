@@ -13,7 +13,7 @@ from summary import Summary  # noqa: E402
 JOB_READ_LABEL, JOB_WRITE_LABEL = "read", "write"
 JOB_STATUS_OK, JOB_STATUS_ERR = "ok", "err"
 
-SDK_SERVICE_NAME = "sync-python-table"
+SDK_SERVICE_NAME = environ.get("SDK_SERVICE", "table-service")
 
 
 class Metrics:
