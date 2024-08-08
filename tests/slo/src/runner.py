@@ -91,13 +91,13 @@ def run_slo(args, driver, tb_name):
     logger.info("Max ID: %s", max_id)
 
     metrics = Metrics(args.prom_pgw)
-    if SDK_SERVICE_NAME == "table-service":
+    if SDK_SERVICE_NAME == "sync-python-table":
         futures = (
             *run_read_jobs(args, driver, tb_name, max_id, metrics),
             *run_write_jobs(args, driver, tb_name, max_id, metrics),
             run_metric_job(args, metrics),
         )
-    elif SDK_SERVICE_NAME == "query-service":
+    elif SDK_SERVICE_NAME == "sync-python-query":
         futures = (
             *run_read_jobs_query(args, driver, tb_name, max_id, metrics),
             *run_write_jobs_query(args, driver, tb_name, max_id, metrics),

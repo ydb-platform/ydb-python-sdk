@@ -52,13 +52,13 @@ jobs:
           language0: Python SDK over Table Service
           workload_path0: tests/slo
           workload_build_context0: ../..
-          workload_build_options0: -f Dockerfile --build-arg SDK_SERVICE=table-service
+          workload_build_options0: -f Dockerfile --build-arg SDK_SERVICE=sync-python-table
 
           language_id1: sync-python-query
           language1: Python SDK over Query Service
           workload_path1: tests/slo
           workload_build_context1: ../..
-          workload_build_options1: -f Dockerfile --build-arg SDK_SERVICE=query-service
+          workload_build_options1: -f Dockerfile --build-arg SDK_SERVICE=sync-python-query
 
       - uses: actions/upload-artifact@v3
         if: env.DOCKER_REPO != null
