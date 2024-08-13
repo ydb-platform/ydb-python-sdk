@@ -136,12 +136,6 @@ def upsert_simple(pool, path):
         with session.transaction().execute(
             """
             PRAGMA TablePathPrefix("{}");
-
-            DECLARE $seriesId AS Uint64;
-            DECLARE $seasonId AS Uint64;
-            DECLARE $episodeId AS Uint64;
-            DECLARE $title AS Utf8;
-
             UPSERT INTO episodes (series_id, season_id, episode_id, title) VALUES (2, 6, 1, "TBD");
             """.format(
                 path
@@ -157,11 +151,6 @@ def select_with_parameters(pool, path, series_id, season_id, episode_id):
     def callee(session):
         query = """
         PRAGMA TablePathPrefix("{}");
-
-        DECLARE $seriesId AS Uint64;
-        DECLARE $seasonId AS Uint64;
-        DECLARE $episodeId AS Uint64;
-
         $format = DateTime::Format("%Y-%m-%d");
         SELECT
             title,
@@ -175,7 +164,7 @@ def select_with_parameters(pool, path, series_id, season_id, episode_id):
         with session.transaction(ydb.QuerySerializableReadWrite()).execute(
             query,
             {
-                "$seriesId": series_id,  # could be defined implicit in case of int, str, bool
+                "$seriesId": (series_id, ydb.PrimitiveType.Uint64),
                 "$seasonId": (season_id, ydb.PrimitiveType.Uint64),  # could be defined via tuple
                 "$episodeId": ydb.TypedValue(
                     episode_id, ydb.PrimitiveType.Uint64
@@ -201,11 +190,6 @@ def explicit_tcl(pool, path, series_id, season_id, episode_id):
     def callee(session):
         query = """
         PRAGMA TablePathPrefix("{}");
-
-        DECLARE $seriesId AS Uint64;
-        DECLARE $seasonId AS Uint64;
-        DECLARE $episodeId AS Uint64;
-
         UPDATE episodes
         SET air_date = CAST(CurrentUtcDate() AS Uint64)
         WHERE series_id = $seriesId AND season_id = $seasonId AND episode_id = $episodeId;
@@ -220,7 +204,11 @@ def explicit_tcl(pool, path, series_id, season_id, episode_id):
         # Transaction control settings continues active transaction (tx)
         with tx.execute(
             query,
-            {"$seriesId": series_id, "$seasonId": season_id, "$episodeId": episode_id},
+            {
+                "$seriesId": (series_id, ydb.PrimitiveType.Uint64),
+                "$seasonId": (season_id, ydb.PrimitiveType.Uint64),
+                "$episodeId": (episode_id, ydb.PrimitiveType.Uint64),
+            },
         ) as _:
             pass
 
