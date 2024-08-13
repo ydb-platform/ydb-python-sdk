@@ -283,9 +283,9 @@ class QuerySessionSync(BaseQuerySession):
     def execute(
         self,
         query: str,
+        parameters: dict = None,
         syntax: base.QuerySyntax = None,
         exec_mode: base.QueryExecMode = None,
-        parameters: dict = None,
         concurrent_result_sets: bool = False,
     ) -> base.SyncResponseContextIterator:
         """WARNING: This API is experimental and could be changed.
