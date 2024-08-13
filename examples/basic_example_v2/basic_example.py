@@ -178,8 +178,7 @@ def select_with_parameters(pool, path, series_id, season_id, episode_id):
                 "$seriesId": series_id,  # could be defined implicit in case of int, str, bool
                 "$seasonId": (season_id, ydb.PrimitiveType.Uint64),  # could be defined via tuple
                 "$episodeId": ydb.TypedValue(
-                    episode_id,
-                    ydb.PrimitiveType.Uint64
+                    episode_id, ydb.PrimitiveType.Uint64
                 ),  # could be defined via special class
             },
             commit_tx=True,
