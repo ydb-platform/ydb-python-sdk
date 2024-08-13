@@ -313,18 +313,20 @@ class BaseQueryTxContext(base.IQueryTxContext):
             return
         self._tx_state._change_state(QueryTxStateEnum.COMMITTED)
 
-    def begin(self, settings: Optional[base.QueryClientSettings] = None) -> None:
+    def begin(self, settings: Optional[base.QueryClientSettings] = None) -> "BaseQueryTxContext":
         """WARNING: This API is experimental and could be changed.
 
         Explicitly begins a transaction
 
         :param settings: A request settings
 
-        :return: None or exception if begin is failed
+        :return: Transaction object or exception if begin is failed
         """
         self._tx_state._check_invalid_transition(QueryTxStateEnum.BEGINED)
 
         self._begin_call(settings)
+
+        return self
 
     def commit(self, settings: Optional[base.QueryClientSettings] = None) -> None:
         """WARNING: This API is experimental and could be changed.
@@ -365,10 +367,10 @@ class BaseQueryTxContext(base.IQueryTxContext):
     def execute(
         self,
         query: str,
+        parameters: Optional[dict] = None,
         commit_tx: Optional[bool] = False,
         syntax: Optional[base.QuerySyntax] = None,
         exec_mode: Optional[base.QueryExecMode] = None,
-        parameters: Optional[dict] = None,
         concurrent_result_sets: Optional[bool] = False,
     ) -> base.SyncResponseContextIterator:
         """WARNING: This API is experimental and could be changed.
