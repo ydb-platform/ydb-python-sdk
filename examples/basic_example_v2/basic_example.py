@@ -177,7 +177,10 @@ def select_with_parameters(pool, path, series_id, season_id, episode_id):
             {
                 "$seriesId": series_id,  # could be defined implicit in case of int, str, bool
                 "$seasonId": (season_id, ydb.PrimitiveType.Uint64),  # could be defined via tuple
-                "$episodeId": ydb.TypedValue(episode_id, ydb.PrimitiveType.Uint64),  # could be defined via special class
+                "$episodeId": ydb.TypedValue(
+                    episode_id,
+                    ydb.PrimitiveType.Uint64
+                ),  # could be defined via special class
             },
             commit_tx=True,
         ) as result_sets:
@@ -282,7 +285,7 @@ def create_tables(pool, path):
                 PRIMARY KEY (`series_id`, `season_id`, `episode_id`)
             )
             """.format(
-                path
+            path
         )
     )
 
