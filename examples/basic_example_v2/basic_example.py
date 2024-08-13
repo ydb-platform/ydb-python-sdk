@@ -85,7 +85,7 @@ def fill_tables_with_data(pool, path):
                 "$episodesData": (basic_example_data.get_episodes_data(), basic_example_data.get_episodes_data_type()),
             },
             commit_tx=True,
-        ) as result_sets:
+        ) as _:
             pass
 
     return pool.retry_operation_sync(callee)
@@ -130,7 +130,7 @@ def select_simple(pool, path):
 
 
 def upsert_simple(pool, path):
-    print(f"\nPerforming UPSERT into episodes...")
+    print("\nPerforming UPSERT into episodes...")
 
     def callee(session):
         with session.transaction().execute(
@@ -147,7 +147,7 @@ def upsert_simple(pool, path):
                 path
             ),
             commit_tx=True,
-        ) as result_sets:
+        ) as _:
             pass
 
     return pool.retry_operation_sync(callee)
@@ -221,7 +221,7 @@ def explicit_tcl(pool, path, series_id, season_id, episode_id):
         with tx.execute(
             query,
             {"$seriesId": series_id, "$seasonId": season_id, "$episodeId": episode_id},
-        ) as result_sets:
+        ) as _:
             pass
 
         print("\n> explicit TCL call")
