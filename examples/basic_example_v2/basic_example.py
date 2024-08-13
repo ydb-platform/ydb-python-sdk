@@ -303,7 +303,7 @@ def run(endpoint, database, path):
     with ydb.Driver(
         endpoint=endpoint,
         database=database,
-        # credentials=ydb.credentials_from_env_variables()
+        credentials=ydb.credentials_from_env_variables()
     ) as driver:
         driver.wait(timeout=5, fail_fast=True)
 

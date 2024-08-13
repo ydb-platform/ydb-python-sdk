@@ -118,21 +118,6 @@ def get_episodes_data():
         Episode(1, 4, 4, "Italian For Beginners", "2010-07-16"),
         Episode(1, 4, 5, "Bad Boys", "2010-07-23"),
         Episode(1, 4, 6, "Reynholm vs Reynholm", "2010-07-30"),
-    ]
-
-
-def get_episodes_data_type():
-    struct_type = ydb.StructType()
-    struct_type.add_member("series_id", ydb.PrimitiveType.Uint64)
-    struct_type.add_member("season_id", ydb.PrimitiveType.Uint64)
-    struct_type.add_member("episode_id", ydb.PrimitiveType.Uint64)
-    struct_type.add_member("title", ydb.PrimitiveType.Utf8)
-    struct_type.add_member("air_date", ydb.PrimitiveType.Date)
-    return ydb.ListType(struct_type)
-
-
-def get_episodes_data_for_bulk_upsert():
-    return [
         Episode(2, 1, 1, "Minimum Viable Product", "2014-04-06"),
         Episode(2, 1, 2, "The Cap Table", "2014-04-13"),
         Episode(2, 1, 3, "Articles of Incorporation", "2014-04-20"),
@@ -180,3 +165,13 @@ def get_episodes_data_for_bulk_upsert():
         Episode(2, 5, 7, "Initial Coin Offering", "2018-05-06"),
         Episode(2, 5, 8, "Fifty-One Percent", "2018-05-13"),
     ]
+
+
+def get_episodes_data_type():
+    struct_type = ydb.StructType()
+    struct_type.add_member("series_id", ydb.PrimitiveType.Uint64)
+    struct_type.add_member("season_id", ydb.PrimitiveType.Uint64)
+    struct_type.add_member("episode_id", ydb.PrimitiveType.Uint64)
+    struct_type.add_member("title", ydb.PrimitiveType.Utf8)
+    struct_type.add_member("air_date", ydb.PrimitiveType.Date)
+    return ydb.ListType(struct_type)
