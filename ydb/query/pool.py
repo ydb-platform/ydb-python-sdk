@@ -77,15 +77,6 @@ class QuerySessionPool:
 
         return retry_operation_sync(wrapped_callee, retry_settings)
 
-    def stop(self, timeout=None):
-        pass  # TODO: implement
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        self.stop()
-
 
 class SimpleQuerySessionCheckout:
     def __init__(self, pool: QuerySessionPool):

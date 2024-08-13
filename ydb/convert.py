@@ -303,7 +303,7 @@ def query_parameters_to_pb(parameters):
 
 
 _from_python_type_map = {
-    int: types.PrimitiveType.Uint64,
+    int: types.PrimitiveType.Int64,
     float: types.PrimitiveType.Float,
     bool: types.PrimitiveType.Bool,
     str: types.PrimitiveType.Utf8,

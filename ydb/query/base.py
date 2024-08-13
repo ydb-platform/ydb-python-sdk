@@ -238,14 +238,14 @@ class IQueryTxContext(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def begin(self, settings: Optional[QueryClientSettings] = None) -> "IQueryTxContext":
+    def begin(self, settings: Optional[QueryClientSettings] = None) -> None:
         """WARNING: This API is experimental and could be changed.
 
         Explicitly begins a transaction
 
         :param settings: A request settings
 
-        :return: Transaction object or exception if begin is failed
+        :return: None or exception if begin is failed
         """
         pass
 
