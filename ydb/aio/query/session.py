@@ -30,7 +30,7 @@ class QuerySessionAsync(BaseQuerySession):
         self,
         driver: base.SupportedDriverType,
         settings: Optional[base.QueryClientSettings] = None,
-        loop: asyncio.AbstractEventLoop = None
+        loop: asyncio.AbstractEventLoop = None,
     ):
         super(QuerySessionAsync, self).__init__(driver, settings)
         self._loop = loop if loop is not None else asyncio.get_running_loop()
@@ -99,7 +99,6 @@ class QuerySessionAsync(BaseQuerySession):
             self._state,
             self,
             tx_mode,
-            self._loop,
         )
 
     async def execute(

@@ -1,4 +1,3 @@
-import asyncio
 import logging
 from typing import (
     Optional,
@@ -16,36 +15,6 @@ logger = logging.getLogger(__name__)
 
 
 class QueryTxContextAsync(BaseQueryTxContext):
-    _loop: asyncio.AbstractEventLoop
-
-    def __init__(self, driver, session_state, session, tx_mode, loop):
-        """
-        An object that provides a simple transaction context manager that allows statements execution
-        in a transaction. You don't have to open transaction explicitly, because context manager encapsulates
-        transaction control logic, and opens new transaction if:
-
-        1) By explicit .begin() method;
-        2) On execution of a first statement, which is strictly recommended method, because that avoids useless round trip
-
-        This context manager is not thread-safe, so you should not manipulate on it concurrently.
-
-        :param driver: A driver instance
-        :param session_state: A state of session
-        :param tx_mode: Transaction mode, which is a one from the following choises:
-         1) QuerySerializableReadWrite() which is default mode;
-         2) QueryOnlineReadOnly(allow_inconsistent_reads=False);
-         3) QuerySnapshotReadOnly();
-         4) QueryStaleReadOnly().
-        """
-
-        super(QueryTxContextAsync, self).__init__(
-            driver,
-            session_state,
-            session,
-            tx_mode,
-        )
-        self._loop = loop
-
     async def __aenter__(self) -> "QueryTxContextAsync":
         """
         Enters a context manager and returns a transaction
