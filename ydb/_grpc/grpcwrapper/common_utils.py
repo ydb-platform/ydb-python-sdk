@@ -26,7 +26,6 @@ from google.protobuf.timestamp_pb2 import Timestamp as ProtoTimeStamp
 
 from ...driver import Driver
 from ...aio.driver import Driver as DriverIO
-import ydb.aio
 
 # Workaround for good IDE and universal for runtime
 if typing.TYPE_CHECKING:
@@ -183,7 +182,7 @@ class GrpcWrapperAsyncIO(IGrpcWrapperAsyncIO):
         if self._wait_executor:
             self._wait_executor.shutdown(wait)
 
-    async def _start_asyncio_driver(self, driver: ydb.aio.Driver, stub, method):
+    async def _start_asyncio_driver(self, driver: DriverIO, stub, method):
         requests_iterator = QueueToIteratorAsyncIO(self.from_client_grpc)
         stream_call = await driver(
             requests_iterator,
@@ -193,7 +192,7 @@ class GrpcWrapperAsyncIO(IGrpcWrapperAsyncIO):
         self._stream_call = stream_call
         self.from_server_grpc = stream_call.__aiter__()
 
-    async def _start_sync_driver(self, driver: ydb.Driver, stub, method):
+    async def _start_sync_driver(self, driver: Driver, stub, method):
         requests_iterator = AsyncQueueToSyncIteratorAsyncIO(self.from_client_grpc)
         self._wait_executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
 
