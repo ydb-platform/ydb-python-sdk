@@ -53,7 +53,32 @@ class SyncResponseContextIterator(_utilities.SyncResponseIterator):
 
 
 class QueryClientSettings:
-    pass
+    def __init__(self):
+        self._native_datetime_in_result_sets = True
+        self._native_date_in_result_sets = True
+        self._native_json_in_result_sets = True
+        self._native_interval_in_result_sets = True
+        self._native_timestamp_in_result_sets = True
+
+    def with_native_timestamp_in_result_sets(self, enabled: bool) -> "QueryClientSettings":
+        self._native_timestamp_in_result_sets = enabled
+        return self
+
+    def with_native_interval_in_result_sets(self, enabled: bool) -> "QueryClientSettings":
+        self._native_interval_in_result_sets = enabled
+        return self
+
+    def with_native_json_in_result_sets(self, enabled: bool) -> "QueryClientSettings":
+        self._native_json_in_result_sets = enabled
+        return self
+
+    def with_native_date_in_result_sets(self, enabled: bool) -> "QueryClientSettings":
+        self._native_date_in_result_sets = enabled
+        return self
+
+    def with_native_datetime_in_result_sets(self, enabled: bool) -> "QueryClientSettings":
+        self._native_datetime_in_result_sets = enabled
+        return self
 
 
 class IQuerySessionState(abc.ABC):
@@ -141,9 +166,9 @@ class IQuerySession(abc.ABC):
     def execute(
         self,
         query: str,
+        parameters: Optional[dict] = None,
         syntax: Optional[QuerySyntax] = None,
         exec_mode: Optional[QueryExecMode] = None,
-        parameters: Optional[dict] = None,
         concurrent_result_sets: Optional[bool] = False,
     ) -> Iterator:
         """WARNING: This API is experimental and could be changed.
@@ -238,14 +263,14 @@ class IQueryTxContext(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def begin(self, settings: Optional[QueryClientSettings] = None) -> None:
+    def begin(self, settings: Optional[QueryClientSettings] = None) -> "IQueryTxContext":
         """WARNING: This API is experimental and could be changed.
 
         Explicitly begins a transaction
 
         :param settings: A request settings
 
-        :return: None or exception if begin is failed
+        :return: Transaction object or exception if begin is failed
         """
         pass
 
@@ -284,6 +309,7 @@ class IQueryTxContext(abc.ABC):
         exec_mode: Optional[QueryExecMode] = None,
         parameters: Optional[dict] = None,
         concurrent_result_sets: Optional[bool] = False,
+        settings: Optional[QueryClientSettings] = None,
     ) -> Iterator:
         """WARNING: This API is experimental and could be changed.
 
@@ -300,6 +326,7 @@ class IQueryTxContext(abc.ABC):
          4) QueryExecMode.PARSE.
         :param parameters: dict with parameters and YDB types;
         :param concurrent_result_sets: A flag to allow YDB mix parts of different result sets. Default is False;
+        :param settings: An additional request settings QueryClientSettings;
 
         :return: Iterator with result sets
         """
@@ -367,13 +394,14 @@ def wrap_execute_query_response(
     response_pb: _apis.ydb_query.ExecuteQueryResponsePart,
     tx: Optional[IQueryTxContext] = None,
     commit_tx: Optional[bool] = False,
+    settings: Optional[QueryClientSettings] = None,
 ) -> convert.ResultSet:
     issues._process_response(response_pb)
     if tx and response_pb.tx_meta and not tx.tx_id:
         tx._move_to_beginned(response_pb.tx_meta.id)
     if tx and commit_tx:
         tx._move_to_commited()
-    return convert.ResultSet.from_message(response_pb.result_set)
+    return convert.ResultSet.from_message(response_pb.result_set, settings)
 
 
 def bad_session_handler(func):

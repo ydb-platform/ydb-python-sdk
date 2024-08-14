@@ -55,7 +55,12 @@ class QuerySessionPool:
         return retry_operation_sync(wrapped_callee, retry_settings)
 
     def execute_with_retries(
-        self, query: str, retry_settings: Optional[RetrySettings] = None, *args, **kwargs
+        self,
+        query: str,
+        parameters: Optional[dict] = None,
+        retry_settings: Optional[RetrySettings] = None,
+        *args,
+        **kwargs,
     ) -> List[convert.ResultSet]:
         """WARNING: This API is experimental and could be changed.
         Special interface to execute a one-shot queries in a safe, retriable way.
@@ -72,10 +77,19 @@ class QuerySessionPool:
 
         def wrapped_callee():
             with self.checkout() as session:
-                it = session.execute(query, *args, **kwargs)
+                it = session.execute(query, parameters, *args, **kwargs)
                 return [result_set for result_set in it]
 
         return retry_operation_sync(wrapped_callee, retry_settings)
+
+    def stop(self, timeout=None):
+        pass  # TODO: implement
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.stop()
 
 
 class SimpleQuerySessionCheckout:

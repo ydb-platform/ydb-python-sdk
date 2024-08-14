@@ -283,9 +283,9 @@ class QuerySessionSync(BaseQuerySession):
     def execute(
         self,
         query: str,
+        parameters: dict = None,
         syntax: base.QuerySyntax = None,
         exec_mode: base.QueryExecMode = None,
-        parameters: dict = None,
         concurrent_result_sets: bool = False,
     ) -> base.SyncResponseContextIterator:
         """WARNING: This API is experimental and could be changed.
@@ -313,5 +313,9 @@ class QuerySessionSync(BaseQuerySession):
 
         return base.SyncResponseContextIterator(
             stream_it,
-            lambda resp: base.wrap_execute_query_response(rpc_state=None, response_pb=resp),
+            lambda resp: base.wrap_execute_query_response(
+                rpc_state=None,
+                response_pb=resp,
+                settings=self._settings,
+            ),
         )
