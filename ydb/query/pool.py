@@ -5,7 +5,6 @@ from typing import (
     List,
 )
 
-from . import base
 from .session import (
     QuerySessionSync,
 )
