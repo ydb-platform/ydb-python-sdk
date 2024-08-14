@@ -26,9 +26,14 @@ class QuerySessionAsync(BaseQuerySession):
     _loop: asyncio.AbstractEventLoop
     _status_stream: _utilities.AsyncResponseIterator = None
 
-    def __init__(self, driver: base.SupportedDriverType, settings: Optional[base.QueryClientSettings] = None):
+    def __init__(
+        self,
+        driver: base.SupportedDriverType,
+        settings: Optional[base.QueryClientSettings] = None,
+        loop: asyncio.AbstractEventLoop = None
+    ):
         super(QuerySessionAsync, self).__init__(driver, settings)
-        self._loop = asyncio.get_running_loop()
+        self._loop = loop if loop is not None else asyncio.get_running_loop()
 
     async def _attach(self) -> None:
         self._stream = await self._attach_call()
@@ -94,6 +99,7 @@ class QuerySessionAsync(BaseQuerySession):
             self._state,
             self,
             tx_mode,
+            self._loop,
         )
 
     async def execute(

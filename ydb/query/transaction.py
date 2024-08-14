@@ -252,14 +252,6 @@ class BaseQueryTxContext(base.IQueryTxContext):
         )
 
     def _commit_call(self, settings: Optional[base.QueryClientSettings]) -> "BaseQueryTxContext":
-        if self._tx_state._already_in(QueryTxStateEnum.COMMITTED):
-            return
-        self._ensure_prev_stream_finished()
-
-        if self._tx_state._state == QueryTxStateEnum.NOT_INITIALIZED:
-            self._tx_state._change_state(QueryTxStateEnum.COMMITTED)
-            return
-
         self._tx_state._check_invalid_transition(QueryTxStateEnum.COMMITTED)
 
         return self._driver(
@@ -272,15 +264,6 @@ class BaseQueryTxContext(base.IQueryTxContext):
         )
 
     def _rollback_call(self, settings: Optional[base.QueryClientSettings]) -> "BaseQueryTxContext":
-        if self._tx_state._already_in(QueryTxStateEnum.ROLLBACKED):
-            return
-
-        self._ensure_prev_stream_finished()
-
-        if self._tx_state._state == QueryTxStateEnum.NOT_INITIALIZED:
-            self._tx_state._change_state(QueryTxStateEnum.ROLLBACKED)
-            return
-
         self._tx_state._check_invalid_transition(QueryTxStateEnum.ROLLBACKED)
 
         return self._driver(
@@ -301,7 +284,6 @@ class BaseQueryTxContext(base.IQueryTxContext):
         parameters: dict = None,
         concurrent_result_sets: bool = False,
     ) -> Iterable[_apis.ydb_query.ExecuteQueryResponsePart]:
-        self._ensure_prev_stream_finished()
         self._tx_state._check_tx_ready_to_use()
 
         request = base.create_execute_query_request(
@@ -362,9 +344,27 @@ class BaseQueryTxContext(base.IQueryTxContext):
 
         :return: A committed transaction or exception if commit is failed
         """
+        if self._tx_state._already_in(QueryTxStateEnum.COMMITTED):
+            return
+
+        if self._tx_state._state == QueryTxStateEnum.NOT_INITIALIZED:
+            self._tx_state._change_state(QueryTxStateEnum.COMMITTED)
+            return
+
+        self._ensure_prev_stream_finished()
+
         self._commit_call(settings)
 
     def rollback(self, settings: Optional[base.QueryClientSettings] = None) -> None:
+        if self._tx_state._already_in(QueryTxStateEnum.ROLLBACKED):
+            return
+
+        if self._tx_state._state == QueryTxStateEnum.NOT_INITIALIZED:
+            self._tx_state._change_state(QueryTxStateEnum.ROLLBACKED)
+            return
+
+        self._ensure_prev_stream_finished()
+
         self._rollback_call(settings)
 
     def execute(
@@ -396,6 +396,8 @@ class BaseQueryTxContext(base.IQueryTxContext):
 
         :return: Iterator with result sets
         """
+        self._ensure_prev_stream_finished()
+
         stream_it = self._execute_call(
             query=query,
             commit_tx=commit_tx,

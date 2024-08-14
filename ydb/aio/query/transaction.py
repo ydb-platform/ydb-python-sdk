@@ -1,3 +1,4 @@
+import asyncio
 import logging
 from typing import (
     Optional,
@@ -15,6 +16,36 @@ logger = logging.getLogger(__name__)
 
 
 class QueryTxContextAsync(BaseQueryTxContext):
+    _loop: asyncio.AbstractEventLoop
+
+    def __init__(self, driver, session_state, session, tx_mode, loop):
+        """
+        An object that provides a simple transaction context manager that allows statements execution
+        in a transaction. You don't have to open transaction explicitly, because context manager encapsulates
+        transaction control logic, and opens new transaction if:
+
+        1) By explicit .begin() method;
+        2) On execution of a first statement, which is strictly recommended method, because that avoids useless round trip
+
+        This context manager is not thread-safe, so you should not manipulate on it concurrently.
+
+        :param driver: A driver instance
+        :param session_state: A state of session
+        :param tx_mode: Transaction mode, which is a one from the following choises:
+         1) QuerySerializableReadWrite() which is default mode;
+         2) QueryOnlineReadOnly(allow_inconsistent_reads=False);
+         3) QuerySnapshotReadOnly();
+         4) QueryStaleReadOnly().
+        """
+
+        super(QueryTxContextAsync, self).__init__(
+            driver,
+            session_state,
+            session,
+            tx_mode,
+        )
+        self._loop = loop
+
     async def __aenter__(self) -> "QueryTxContextAsync":
         """
         Enters a context manager and returns a transaction
@@ -40,6 +71,12 @@ class QueryTxContextAsync(BaseQueryTxContext):
             except issues.Error:
                 logger.warning("Failed to rollback leaked tx: %s", self._tx_state.tx_id)
 
+    async def _ensure_prev_stream_finished(self) -> None:
+        if self._prev_stream is not None:
+            async for _ in self._prev_stream:
+                pass
+            self._prev_stream = None
+
     async def begin(self, settings: Optional[base.QueryClientSettings] = None) -> None:
         """WARNING: This API is experimental and could be changed.
 
@@ -61,9 +98,27 @@ class QueryTxContextAsync(BaseQueryTxContext):
 
         :return: A committed transaction or exception if commit is failed
         """
+        if self._tx_state._already_in(QueryTxStateEnum.COMMITTED):
+            return
+
+        if self._tx_state._state == QueryTxStateEnum.NOT_INITIALIZED:
+            self._tx_state._change_state(QueryTxStateEnum.COMMITTED)
+            return
+
+        await self._ensure_prev_stream_finished()
+
         await self._commit_call(settings)
 
     async def rollback(self, settings: Optional[base.QueryClientSettings] = None) -> None:
+        if self._tx_state._already_in(QueryTxStateEnum.ROLLBACKED):
+            return
+
+        if self._tx_state._state == QueryTxStateEnum.NOT_INITIALIZED:
+            self._tx_state._change_state(QueryTxStateEnum.ROLLBACKED)
+            return
+
+        await self._ensure_prev_stream_finished()
+
         await self._rollback_call(settings)
 
     async def execute(
@@ -93,6 +148,8 @@ class QueryTxContextAsync(BaseQueryTxContext):
 
         :return: Iterator with result sets
         """
+        await self._ensure_prev_stream_finished()
+
         stream_it = await self._execute_call(
             query=query,
             commit_tx=commit_tx,

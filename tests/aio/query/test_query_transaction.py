@@ -89,6 +89,6 @@ class TestAsyncQueryTransaction:
         await tx.begin()
 
         async with await tx.execute("select 1;") as results:
-            res = [result_set for result_set in results]
+            res = [result_set async for result_set in results]
 
         assert len(res) == 1
