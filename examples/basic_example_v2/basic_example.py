@@ -96,11 +96,10 @@ def select_simple(pool, path):
     result_sets = pool.execute_with_retries(
         """
         PRAGMA TablePathPrefix("{}");
-        $format = DateTime::Format("%Y-%m-%d");
         SELECT
             series_id,
             title,
-            $format(DateTime::FromSeconds(CAST(DateTime::ToSeconds(DateTime::IntervalFromDays(CAST(release_date AS Int16))) AS Uint32))) AS release_date
+            release_date
         FROM series
         WHERE series_id = 1;
         """.format(
@@ -143,10 +142,9 @@ def select_with_parameters(pool, path, series_id, season_id, episode_id):
     def callee(session):
         query = """
         PRAGMA TablePathPrefix("{}");
-        $format = DateTime::Format("%Y-%m-%d");
         SELECT
             title,
-            $format(DateTime::FromSeconds(CAST(DateTime::ToSeconds(DateTime::IntervalFromDays(CAST(air_date AS Int16))) AS Uint32))) AS air_date
+            air_date
         FROM episodes
         WHERE series_id = $seriesId AND season_id = $seasonId AND episode_id = $episodeId;
         """.format(

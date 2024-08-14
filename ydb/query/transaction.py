@@ -372,6 +372,7 @@ class BaseQueryTxContext(base.IQueryTxContext):
         syntax: Optional[base.QuerySyntax] = None,
         exec_mode: Optional[base.QueryExecMode] = None,
         concurrent_result_sets: Optional[bool] = False,
+        settings: Optional[base.QueryClientSettings] = None,
     ) -> base.SyncResponseContextIterator:
         """WARNING: This API is experimental and could be changed.
 
@@ -388,6 +389,7 @@ class BaseQueryTxContext(base.IQueryTxContext):
          4) QueryExecMode.PARSE.
         :param parameters: dict with parameters and YDB types;
         :param concurrent_result_sets: A flag to allow YDB mix parts of different result sets. Default is False;
+        :param settings: An additional request settings QueryClientSettings;
 
         :return: Iterator with result sets
         """
@@ -402,6 +404,8 @@ class BaseQueryTxContext(base.IQueryTxContext):
             parameters=parameters,
             concurrent_result_sets=concurrent_result_sets,
         )
+
+        settings = settings if settings is not None else self.session._settings
         self._prev_stream = base.SyncResponseContextIterator(
             stream_it,
             lambda resp: base.wrap_execute_query_response(
@@ -409,6 +413,7 @@ class BaseQueryTxContext(base.IQueryTxContext):
                 response_pb=resp,
                 tx=self,
                 commit_tx=commit_tx,
+                settings=settings
             ),
         )
         return self._prev_stream

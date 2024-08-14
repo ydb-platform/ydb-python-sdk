@@ -313,5 +313,9 @@ class QuerySessionSync(BaseQuerySession):
 
         return base.SyncResponseContextIterator(
             stream_it,
-            lambda resp: base.wrap_execute_query_response(rpc_state=None, response_pb=resp),
+            lambda resp: base.wrap_execute_query_response(
+                rpc_state=None,
+                response_pb=resp,
+                settings=self._settings
+            ),
         )
