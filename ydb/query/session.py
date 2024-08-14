@@ -316,6 +316,6 @@ class QuerySessionSync(BaseQuerySession):
             lambda resp: base.wrap_execute_query_response(
                 rpc_state=None,
                 response_pb=resp,
-                settings=self._settings
+                settings=self._settings,
             ),
         )

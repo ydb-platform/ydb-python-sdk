@@ -413,7 +413,7 @@ class BaseQueryTxContext(base.IQueryTxContext):
                 response_pb=resp,
                 tx=self,
                 commit_tx=commit_tx,
-                settings=settings
+                settings=settings,
             ),
         )
         return self._prev_stream
