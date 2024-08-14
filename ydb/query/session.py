@@ -126,12 +126,12 @@ def wrapper_delete_session(
     return session
 
 
-class BaseQuerySession(base.IQuerySession):
-    _driver: base.SupportedDriverType
+class BaseQuerySession:
+    _driver: common_utils.SupportedDriverType
     _settings: base.QueryClientSettings
     _state: QuerySessionState
 
-    def __init__(self, driver: base.SupportedDriverType, settings: Optional[base.QueryClientSettings] = None):
+    def __init__(self, driver: common_utils.SupportedDriverType, settings: Optional[base.QueryClientSettings] = None):
         self._driver = driver
         self._settings = settings if settings is not None else base.QueryClientSettings()
         self._state = QuerySessionState(settings)
@@ -256,7 +256,7 @@ class QuerySessionSync(BaseQuerySession):
 
         return self
 
-    def transaction(self, tx_mode: Optional[base.BaseQueryTxMode] = None) -> base.IQueryTxContext:
+    def transaction(self, tx_mode: Optional[base.BaseQueryTxMode] = None) -> QueryTxContextSync:
         """WARNING: This API is experimental and could be changed.
 
         Creates a transaction context manager with specified transaction mode.

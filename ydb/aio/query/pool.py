@@ -14,6 +14,7 @@ from ...retries import (
     retry_operation_async,
 )
 from ... import convert
+from ..._grpc.grpcwrapper import common_utils
 
 logger = logging.getLogger(__name__)
 
@@ -21,7 +22,7 @@ logger = logging.getLogger(__name__)
 class QuerySessionPoolAsync:
     """QuerySessionPoolAsync is an object to simplify operations with sessions of Query Service."""
 
-    def __init__(self, driver: base.SupportedDriverType):
+    def __init__(self, driver: common_utils.SupportedDriverType):
         """
         :param driver: A driver instance
         """
@@ -85,7 +86,7 @@ class SimpleQuerySessionCheckoutAsync:
         self._pool = pool
         self._session = QuerySessionAsync(pool._driver)
 
-    async def __aenter__(self) -> base.IQuerySession:
+    async def __aenter__(self) -> QuerySessionAsync:
         await self._session.create()
         return self._session
 

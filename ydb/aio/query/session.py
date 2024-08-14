@@ -28,7 +28,7 @@ class QuerySessionAsync(BaseQuerySession):
 
     def __init__(
         self,
-        driver: base.SupportedDriverType,
+        driver: common_utils.SupportedDriverType,
         settings: Optional[base.QueryClientSettings] = None,
         loop: asyncio.AbstractEventLoop = None,
     ):
@@ -90,7 +90,7 @@ class QuerySessionAsync(BaseQuerySession):
 
         return self
 
-    def transaction(self, tx_mode=None) -> base.IQueryTxContext:
+    def transaction(self, tx_mode=None) -> QueryTxContextAsync:
         self._state._check_session_ready_to_use()
         tx_mode = tx_mode if tx_mode else _ydb_query_public.QuerySerializableReadWrite()
 

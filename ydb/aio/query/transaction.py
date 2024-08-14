@@ -46,7 +46,7 @@ class QueryTxContextAsync(BaseQueryTxContext):
                 pass
             self._prev_stream = None
 
-    async def begin(self, settings: Optional[base.QueryClientSettings] = None) -> None:
+    async def begin(self, settings: Optional[base.QueryClientSettings] = None) -> "QueryTxContextAsync":
         """WARNING: This API is experimental and could be changed.
 
         Explicitly begins a transaction
@@ -79,6 +79,15 @@ class QueryTxContextAsync(BaseQueryTxContext):
         await self._commit_call(settings)
 
     async def rollback(self, settings: Optional[base.QueryClientSettings] = None) -> None:
+        """WARNING: This API is experimental and could be changed.
+
+        Calls rollback on a transaction if it is open otherwise is no-op. If transaction execution
+        failed then this method raises PreconditionFailed.
+
+        :param settings: A request settings
+
+        :return: A committed transaction or exception if commit is failed
+        """
         if self._tx_state._already_in(QueryTxStateEnum.ROLLBACKED):
             return
 
@@ -93,16 +102,18 @@ class QueryTxContextAsync(BaseQueryTxContext):
     async def execute(
         self,
         query: str,
+        parameters: Optional[dict] = None,
         commit_tx: Optional[bool] = False,
         syntax: Optional[base.QuerySyntax] = None,
         exec_mode: Optional[base.QueryExecMode] = None,
-        parameters: Optional[dict] = None,
         concurrent_result_sets: Optional[bool] = False,
+        settings: Optional[base.QueryClientSettings] = None,
     ) -> AsyncResponseContextIterator:
         """WARNING: This API is experimental and could be changed.
 
         Sends a query to Query Service
         :param query: (YQL or SQL text) to be executed.
+        :param parameters: dict with parameters and YDB types;
         :param commit_tx: A special flag that allows transaction commit.
         :param syntax: Syntax of the query, which is a one from the following choises:
          1) QuerySyntax.YQL_V1, which is default;
@@ -112,7 +123,6 @@ class QueryTxContextAsync(BaseQueryTxContext):
          2) QueryExecMode.EXPLAIN;
          3) QueryExecMode.VALIDATE;
          4) QueryExecMode.PARSE.
-        :param parameters: dict with parameters and YDB types;
         :param concurrent_result_sets: A flag to allow YDB mix parts of different result sets. Default is False;
 
         :return: Iterator with result sets
@@ -128,6 +138,7 @@ class QueryTxContextAsync(BaseQueryTxContext):
             concurrent_result_sets=concurrent_result_sets,
         )
 
+        settings = settings if settings is not None else self.session._settings
         self._prev_stream = AsyncResponseContextIterator(
             stream_it,
             lambda resp: base.wrap_execute_query_response(
