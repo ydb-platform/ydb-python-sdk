@@ -17,6 +17,7 @@ from ...query.session import (
     QuerySessionStateEnum,
 )
 
+
 class QuerySessionAsync(BaseQuerySession):
     """Session object for Query Service. It is not recommended to control
     session's lifecycle manually - use a QuerySessionPool is always a better choise.
@@ -44,7 +45,6 @@ class QuerySessionAsync(BaseQuerySession):
         self._state._change_state(QuerySessionStateEnum.CREATED)
 
         self._loop.create_task(self._check_session_status_loop(), name="check session status task")
-
 
     async def _check_session_status_loop(self) -> None:
         try:
@@ -85,7 +85,7 @@ class QuerySessionAsync(BaseQuerySession):
 
         return self
 
-    def transaction(self, tx_mode = None) -> base.IQueryTxContext:
+    def transaction(self, tx_mode=None) -> base.IQueryTxContext:
         self._state._check_session_ready_to_use()
         tx_mode = tx_mode if tx_mode else _ydb_query_public.QuerySerializableReadWrite()
 

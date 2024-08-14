@@ -1,5 +1,6 @@
 from .. import _utilities
 
+
 class AsyncResponseContextIterator(_utilities.AsyncResponseIterator):
     async def __aenter__(self) -> "AsyncResponseContextIterator":
         return self
