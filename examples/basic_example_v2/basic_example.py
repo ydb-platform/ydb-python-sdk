@@ -69,29 +69,22 @@ FROM AS_TABLE($episodesData);
 """
 
 
-def fill_tables_with_data(pool, path):
+def fill_tables_with_data(pool: ydb.QuerySessionPool, path: str):
     print("\nFilling tables with data...")
 
-    global FillDataQuery
+    query = FillDataQuery.format(path)
 
-    def callee(session):
-
-        query = FillDataQuery.format(path)
-        with session.transaction(ydb.QuerySerializableReadWrite()).execute(
-            query,
-            {
-                "$seriesData": (basic_example_data.get_series_data(), basic_example_data.get_series_data_type()),
-                "$seasonsData": (basic_example_data.get_seasons_data(), basic_example_data.get_seasons_data_type()),
-                "$episodesData": (basic_example_data.get_episodes_data(), basic_example_data.get_episodes_data_type()),
-            },
-            commit_tx=True,
-        ) as _:
-            pass
-
-    return pool.retry_operation_sync(callee)
+    pool.execute_with_retries(
+        query,
+        {
+            "$seriesData": (basic_example_data.get_series_data(), basic_example_data.get_series_data_type()),
+            "$seasonsData": (basic_example_data.get_seasons_data(), basic_example_data.get_seasons_data_type()),
+            "$episodesData": (basic_example_data.get_episodes_data(), basic_example_data.get_episodes_data_type()),
+        },
+    )
 
 
-def select_simple(pool, path):
+def select_simple(pool: ydb.QuerySessionSync, path):
     print("\nCheck series table...")
     result_sets = pool.execute_with_retries(
         """
@@ -120,27 +113,22 @@ def select_simple(pool, path):
     return first_set
 
 
-def upsert_simple(pool, path):
+def upsert_simple(pool: ydb.QuerySessionPool, path):
     print("\nPerforming UPSERT into episodes...")
 
-    def callee(session):
-        with session.transaction().execute(
-            """
-            PRAGMA TablePathPrefix("{}");
-            UPSERT INTO episodes (series_id, season_id, episode_id, title) VALUES (2, 6, 1, "TBD");
-            """.format(
-                path
-            ),
-            commit_tx=True,
-        ) as _:
-            pass
-
-    return pool.retry_operation_sync(callee)
+    pool.execute_with_retries(
+        """
+        PRAGMA TablePathPrefix("{}");
+        UPSERT INTO episodes (series_id, season_id, episode_id, title) VALUES (2, 6, 1, "TBD");
+        """.format(
+            path
+        )
+    )
 
 
 def select_with_parameters(pool, path, series_id, season_id, episode_id):
-    def callee(session):
-        query = """
+    result_sets = pool.execute_with_retries(
+        """
         PRAGMA TablePathPrefix("{}");
         SELECT
             title,
@@ -149,25 +137,20 @@ def select_with_parameters(pool, path, series_id, season_id, episode_id):
         WHERE series_id = $seriesId AND season_id = $seasonId AND episode_id = $episodeId;
         """.format(
             path
-        )
+        ),
+        {
+            "$seriesId": series_id,  # could be defined implicit
+            "$seasonId": (season_id, ydb.PrimitiveType.Int64),  # could be defined via tuple
+            "$episodeId": ydb.TypedValue(episode_id, ydb.PrimitiveType.Int64),  # could be defined via special class
+        }
+    )
 
-        with session.transaction(ydb.QuerySerializableReadWrite()).execute(
-            query,
-            {
-                "$seriesId": series_id,  # could be defined implicit
-                "$seasonId": (season_id, ydb.PrimitiveType.Int64),  # could be defined via tuple
-                "$episodeId": ydb.TypedValue(episode_id, ydb.PrimitiveType.Int64),  # could be defined via special class
-            },
-            commit_tx=True,
-        ) as result_sets:
-            print("\n> select_prepared_transaction:")
-            first_set = next(result_sets)
-            for row in first_set.rows:
-                print("episode title:", row.title, ", air date:", row.air_date)
+    print("\n> select_with_parameters:")
+    first_set = result_sets[0]
+    for row in first_set.rows:
+        print("episode title:", row.title, ", air date:", row.air_date)
 
-            return first_set
-
-    return pool.retry_operation_sync(callee)
+    return first_set
 
 
 # Show usage of explicit Begin/Commit transaction control calls.

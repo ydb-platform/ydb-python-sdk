@@ -166,9 +166,9 @@ class IQuerySession(abc.ABC):
     def execute(
         self,
         query: str,
+        parameters: Optional[dict] = None,
         syntax: Optional[QuerySyntax] = None,
         exec_mode: Optional[QueryExecMode] = None,
-        parameters: Optional[dict] = None,
         concurrent_result_sets: Optional[bool] = False,
     ) -> Iterator:
         """WARNING: This API is experimental and could be changed.
