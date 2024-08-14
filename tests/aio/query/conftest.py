@@ -1,5 +1,6 @@
 import pytest
 from ydb.aio.query.session import QuerySessionAsync
+from ydb.aio.query.pool import QuerySessionPoolAsync
 
 
 @pytest.fixture
@@ -25,3 +26,9 @@ async def tx(session):
         await transaction.rollback()
     except BaseException:
         pass
+
+
+@pytest.fixture
+def pool(driver):
+    pool = QuerySessionPoolAsync(driver)
+    yield pool
