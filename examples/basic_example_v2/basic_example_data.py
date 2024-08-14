@@ -61,7 +61,7 @@ def get_series_data():
 
 def get_series_data_type():
     struct_type = ydb.StructType()
-    struct_type.add_member("series_id", ydb.PrimitiveType.Uint64)
+    struct_type.add_member("series_id", ydb.PrimitiveType.Int64)
     struct_type.add_member("title", ydb.PrimitiveType.Utf8)
     struct_type.add_member("series_info", ydb.PrimitiveType.Utf8)
     struct_type.add_member("release_date", ydb.PrimitiveType.Date)
@@ -84,8 +84,8 @@ def get_seasons_data():
 
 def get_seasons_data_type():
     struct_type = ydb.StructType()
-    struct_type.add_member("series_id", ydb.PrimitiveType.Uint64)
-    struct_type.add_member("season_id", ydb.PrimitiveType.Uint64)
+    struct_type.add_member("series_id", ydb.PrimitiveType.Int64)
+    struct_type.add_member("season_id", ydb.PrimitiveType.Int64)
     struct_type.add_member("title", ydb.PrimitiveType.Utf8)
     struct_type.add_member("first_aired", ydb.PrimitiveType.Date)
     struct_type.add_member("last_aired", ydb.PrimitiveType.Date)
@@ -169,9 +169,9 @@ def get_episodes_data():
 
 def get_episodes_data_type():
     struct_type = ydb.StructType()
-    struct_type.add_member("series_id", ydb.PrimitiveType.Uint64)
-    struct_type.add_member("season_id", ydb.PrimitiveType.Uint64)
-    struct_type.add_member("episode_id", ydb.PrimitiveType.Uint64)
+    struct_type.add_member("series_id", ydb.PrimitiveType.Int64)
+    struct_type.add_member("season_id", ydb.PrimitiveType.Int64)
+    struct_type.add_member("episode_id", ydb.PrimitiveType.Int64)
     struct_type.add_member("title", ydb.PrimitiveType.Utf8)
     struct_type.add_member("air_date", ydb.PrimitiveType.Date)
     return ydb.ListType(struct_type)

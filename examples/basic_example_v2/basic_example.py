@@ -22,22 +22,22 @@ DROP TABLE IF EXISTS episodes;
 FillDataQuery = """PRAGMA TablePathPrefix("{}");
 
 DECLARE $seriesData AS List<Struct<
-    series_id: Uint64,
+    series_id: Int64,
     title: Utf8,
     series_info: Utf8,
     release_date: Date>>;
 
 DECLARE $seasonsData AS List<Struct<
-    series_id: Uint64,
-    season_id: Uint64,
+    series_id: Int64,
+    season_id: Int64,
     title: Utf8,
     first_aired: Date,
     last_aired: Date>>;
 
 DECLARE $episodesData AS List<Struct<
-    series_id: Uint64,
-    season_id: Uint64,
-    episode_id: Uint64,
+    series_id: Int64,
+    season_id: Int64,
+    episode_id: Int64,
     title: Utf8,
     air_date: Date>>;
 
@@ -46,7 +46,7 @@ SELECT
     series_id,
     title,
     series_info,
-    CAST(release_date AS Uint64) AS release_date
+    release_date
 FROM AS_TABLE($seriesData);
 
 REPLACE INTO seasons
@@ -54,8 +54,8 @@ SELECT
     series_id,
     season_id,
     title,
-    CAST(first_aired AS Uint64) AS first_aired,
-    CAST(last_aired AS Uint64) AS last_aired
+    first_aired,
+    last_aired
 FROM AS_TABLE($seasonsData);
 
 REPLACE INTO episodes
@@ -64,7 +64,7 @@ SELECT
     season_id,
     episode_id,
     title,
-    CAST(air_date AS Uint64) AS air_date
+    air_date
 FROM AS_TABLE($episodesData);
 """
 
@@ -76,9 +76,9 @@ def fill_tables_with_data(pool, path):
 
     def callee(session):
 
-        prepared_query = FillDataQuery.format(path)
+        query = FillDataQuery.format(path)
         with session.transaction(ydb.QuerySerializableReadWrite()).execute(
-            prepared_query,
+            query,
             {
                 "$seriesData": (basic_example_data.get_series_data(), basic_example_data.get_series_data_type()),
                 "$seasonsData": (basic_example_data.get_seasons_data(), basic_example_data.get_seasons_data_type()),
@@ -93,40 +93,31 @@ def fill_tables_with_data(pool, path):
 
 def select_simple(pool, path):
     print("\nCheck series table...")
+    result_sets = pool.execute_with_retries(
+        """
+        PRAGMA TablePathPrefix("{}");
+        SELECT
+            series_id,
+            title,
+            release_date
+        FROM series
+        WHERE series_id = 1;
+        """.format(
+            path
+        ),
+    )
+    first_set = result_sets[0]
+    for row in first_set.rows:
+        print(
+            "series, id: ",
+            row.series_id,
+            ", title: ",
+            row.title,
+            ", release date: ",
+            row.release_date,
+        )
 
-    def callee(session):
-        # new transaction in serializable read write mode
-        # if query successfully completed you will get result sets.
-        # otherwise exception will be raised
-        with session.transaction(ydb.QuerySerializableReadWrite()).execute(
-            """
-            PRAGMA TablePathPrefix("{}");
-            $format = DateTime::Format("%Y-%m-%d");
-            SELECT
-                series_id,
-                title,
-                $format(DateTime::FromSeconds(CAST(DateTime::ToSeconds(DateTime::IntervalFromDays(CAST(release_date AS Int16))) AS Uint32))) AS release_date
-            FROM series
-            WHERE series_id = 1;
-            """.format(
-                path
-            ),
-            commit_tx=True,
-        ) as result_sets:
-            first_set = next(result_sets)
-            for row in first_set.rows:
-                print(
-                    "series, id: ",
-                    row.series_id,
-                    ", title: ",
-                    row.title,
-                    ", release date: ",
-                    row.release_date,
-                )
-
-            return first_set
-
-    return pool.retry_operation_sync(callee)
+    return first_set
 
 
 def upsert_simple(pool, path):
@@ -151,10 +142,9 @@ def select_with_parameters(pool, path, series_id, season_id, episode_id):
     def callee(session):
         query = """
         PRAGMA TablePathPrefix("{}");
-        $format = DateTime::Format("%Y-%m-%d");
         SELECT
             title,
-            $format(DateTime::FromSeconds(CAST(DateTime::ToSeconds(DateTime::IntervalFromDays(CAST(air_date AS Int16))) AS Uint32))) AS air_date
+            air_date
         FROM episodes
         WHERE series_id = $seriesId AND season_id = $seasonId AND episode_id = $episodeId;
         """.format(
@@ -164,10 +154,10 @@ def select_with_parameters(pool, path, series_id, season_id, episode_id):
         with session.transaction(ydb.QuerySerializableReadWrite()).execute(
             query,
             {
-                "$seriesId": (series_id, ydb.PrimitiveType.Uint64),
-                "$seasonId": (season_id, ydb.PrimitiveType.Uint64),  # could be defined via tuple
+                "$seriesId": series_id,  # could be defined implicit
+                "$seasonId": (season_id, ydb.PrimitiveType.Int64),  # could be defined via tuple
                 "$episodeId": ydb.TypedValue(
-                    episode_id, ydb.PrimitiveType.Uint64
+                    episode_id, ydb.PrimitiveType.Int64
                 ),  # could be defined via special class
             },
             commit_tx=True,
@@ -186,12 +176,12 @@ def select_with_parameters(pool, path, series_id, season_id, episode_id):
 # In most cases it's better to use transaction control settings in session.transaction
 # calls instead to avoid additional hops to YDB cluster and allow more efficient
 # execution of queries.
-def explicit_tcl(pool, path, series_id, season_id, episode_id):
+def explicit_transaction_control(pool, path, series_id, season_id, episode_id):
     def callee(session):
         query = """
         PRAGMA TablePathPrefix("{}");
         UPDATE episodes
-        SET air_date = CAST(CurrentUtcDate() AS Uint64)
+        SET air_date = CurrentUtcDate()
         WHERE series_id = $seriesId AND season_id = $seasonId AND episode_id = $episodeId;
         """.format(
             path
@@ -205,9 +195,9 @@ def explicit_tcl(pool, path, series_id, season_id, episode_id):
         with tx.execute(
             query,
             {
-                "$seriesId": (series_id, ydb.PrimitiveType.Uint64),
-                "$seasonId": (season_id, ydb.PrimitiveType.Uint64),
-                "$episodeId": (episode_id, ydb.PrimitiveType.Uint64),
+                "$seriesId": (series_id, ydb.PrimitiveType.Int64),
+                "$seasonId": (season_id, ydb.PrimitiveType.Int64),
+                "$episodeId": (episode_id, ydb.PrimitiveType.Int64),
             },
         ) as _:
             pass
@@ -231,10 +221,10 @@ def create_tables(pool, path):
         """
             PRAGMA TablePathPrefix("{}");
             CREATE table `series` (
-                `series_id` Uint64,
+                `series_id` Int64,
                 `title` Utf8,
                 `series_info` Utf8,
-                `release_date` Uint64,
+                `release_date` Date,
                 PRIMARY KEY (`series_id`)
             )
             """.format(
@@ -247,11 +237,11 @@ def create_tables(pool, path):
         """
             PRAGMA TablePathPrefix("{}");
             CREATE table `seasons` (
-                `series_id` Uint64,
-                `season_id` Uint64,
+                `series_id` Int64,
+                `season_id` Int64,
                 `title` Utf8,
-                `first_aired` Uint64,
-                `last_aired` Uint64,
+                `first_aired` Date,
+                `last_aired` Date,
                 PRIMARY KEY (`series_id`, `season_id`)
             )
             """.format(
@@ -264,11 +254,11 @@ def create_tables(pool, path):
         """
             PRAGMA TablePathPrefix("{}");
             CREATE table `episodes` (
-                `series_id` Uint64,
-                `season_id` Uint64,
-                `episode_id` Uint64,
+                `series_id` Int64,
+                `season_id` Int64,
+                `episode_id` Int64,
                 `title` Utf8,
-                `air_date` Uint64,
+                `air_date` Date,
                 PRIMARY KEY (`series_id`, `season_id`, `episode_id`)
             )
             """.format(
@@ -328,5 +318,5 @@ def run(endpoint, database, path):
             select_with_parameters(pool, full_path, 2, 3, 7)
             select_with_parameters(pool, full_path, 2, 3, 8)
 
-            explicit_tcl(pool, full_path, 2, 6, 1)
+            explicit_transaction_control(pool, full_path, 2, 6, 1)
             select_with_parameters(pool, full_path, 2, 6, 1)
