@@ -84,7 +84,7 @@ def fill_tables_with_data(pool: ydb.QuerySessionPool, path: str):
     )
 
 
-def select_simple(pool: ydb.QuerySessionSync, path):
+def select_simple(pool: ydb.QuerySessionPool, path: str):
     print("\nCheck series table...")
     result_sets = pool.execute_with_retries(
         """
@@ -113,7 +113,7 @@ def select_simple(pool: ydb.QuerySessionSync, path):
     return first_set
 
 
-def upsert_simple(pool: ydb.QuerySessionPool, path):
+def upsert_simple(pool: ydb.QuerySessionPool, path: str):
     print("\nPerforming UPSERT into episodes...")
 
     pool.execute_with_retries(
@@ -126,7 +126,7 @@ def upsert_simple(pool: ydb.QuerySessionPool, path):
     )
 
 
-def select_with_parameters(pool, path, series_id, season_id, episode_id):
+def select_with_parameters(pool: ydb.QuerySessionPool, path: str, series_id, season_id, episode_id):
     result_sets = pool.execute_with_retries(
         """
         PRAGMA TablePathPrefix("{}");
@@ -142,7 +142,7 @@ def select_with_parameters(pool, path, series_id, season_id, episode_id):
             "$seriesId": series_id,  # could be defined implicit
             "$seasonId": (season_id, ydb.PrimitiveType.Int64),  # could be defined via tuple
             "$episodeId": ydb.TypedValue(episode_id, ydb.PrimitiveType.Int64),  # could be defined via special class
-        }
+        },
     )
 
     print("\n> select_with_parameters:")
@@ -157,8 +157,8 @@ def select_with_parameters(pool, path, series_id, season_id, episode_id):
 # In most cases it's better to use transaction control settings in session.transaction
 # calls instead to avoid additional hops to YDB cluster and allow more efficient
 # execution of queries.
-def explicit_transaction_control(pool, path, series_id, season_id, episode_id):
-    def callee(session):
+def explicit_transaction_control(pool: ydb.QuerySessionPool, path: str, series_id, season_id, episode_id):
+    def callee(session: ydb.QuerySessionSync):
         query = """
         PRAGMA TablePathPrefix("{}");
         UPDATE episodes
@@ -191,12 +191,12 @@ def explicit_transaction_control(pool, path, series_id, season_id, episode_id):
     return pool.retry_operation_sync(callee)
 
 
-def drop_tables(pool, path):
+def drop_tables(pool: ydb.QuerySessionPool, path: str):
     print("\nCleaning up existing tables...")
     pool.execute_with_retries(DropTablesQuery.format(path))
 
 
-def create_tables(pool, path):
+def create_tables(pool: ydb.QuerySessionPool, path: str):
     print("\nCreating table series...")
     pool.execute_with_retries(
         """
@@ -248,7 +248,7 @@ def create_tables(pool, path):
     )
 
 
-def is_directory_exists(driver, path):
+def is_directory_exists(driver: ydb.Driver, path: str):
     try:
         return driver.scheme_client.describe_path(path).is_directory()
     except ydb.SchemeError:
