@@ -24,6 +24,8 @@ from google.protobuf.message import Message
 from google.protobuf.duration_pb2 import Duration as ProtoDuration
 from google.protobuf.timestamp_pb2 import Timestamp as ProtoTimeStamp
 
+from ...driver import Driver
+from ...aio.driver import Driver as DriverIO
 import ydb.aio
 
 # Workaround for good IDE and universal for runtime
@@ -142,7 +144,7 @@ class IGrpcWrapperAsyncIO(abc.ABC):
         ...
 
 
-SupportedDriverType = Union[ydb.Driver, ydb.aio.Driver]
+SupportedDriverType = Union[Driver, DriverIO]
 
 
 class GrpcWrapperAsyncIO(IGrpcWrapperAsyncIO):
