@@ -36,7 +36,9 @@ class QuerySessionPoolAsync:
 
         return SimpleQuerySessionCheckoutAsync(self)
 
-    async def retry_operation_async(self, callee: Callable, retry_settings: Optional[RetrySettings] = None, *args, **kwargs):
+    async def retry_operation_async(
+        self, callee: Callable, retry_settings: Optional[RetrySettings] = None, *args, **kwargs
+    ):
         """WARNING: This API is experimental and could be changed.
         Special interface to execute a bunch of commands with session in a safe, retriable way.
 
