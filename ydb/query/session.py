@@ -15,7 +15,7 @@ from .._grpc.grpcwrapper import common_utils
 from .._grpc.grpcwrapper import ydb_query as _ydb_query
 from .._grpc.grpcwrapper import ydb_query_public_types as _ydb_query_public
 
-from .transaction import BaseQueryTxContext
+from .transaction import QueryTxContextSync
 
 
 logger = logging.getLogger(__name__)
@@ -273,7 +273,7 @@ class QuerySessionSync(BaseQuerySession):
 
         tx_mode = tx_mode if tx_mode else _ydb_query_public.QuerySerializableReadWrite()
 
-        return BaseQueryTxContext(
+        return QueryTxContextSync(
             self._driver,
             self._state,
             self,

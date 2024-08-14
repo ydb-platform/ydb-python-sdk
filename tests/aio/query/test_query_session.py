@@ -58,21 +58,23 @@ class TestAsyncQuerySession:
         with pytest.raises(RuntimeError):
             await session.create()
 
-    # def test_transaction_before_create_raises(self, session: QuerySessionAsync):
-    #     with pytest.raises(RuntimeError):
-    #         session.transaction()
+    def test_transaction_before_create_raises(self, session: QuerySessionAsync):
+        with pytest.raises(RuntimeError):
+            session.transaction()
 
-    # def test_transaction_after_delete_raises(self, session: QuerySessionAsync):
-    #     session.create()
+    @pytest.mark.asyncio
+    async def test_transaction_after_delete_raises(self, session: QuerySessionAsync):
+        await session.create()
 
-    #     session.delete()
+        await session.delete()
 
-    #     with pytest.raises(RuntimeError):
-    #         session.transaction()
+        with pytest.raises(RuntimeError):
+            session.transaction()
 
-    # def test_transaction_after_create_not_raises(self, session: QuerySessionAsync):
-    #     session.create()
-    #     session.transaction()
+    @pytest.mark.asyncio
+    async def test_transaction_after_create_not_raises(self, session: QuerySessionAsync):
+        await session.create()
+        session.transaction()
 
     @pytest.mark.asyncio
     async def test_execute_before_create_raises(self, session: QuerySessionAsync):

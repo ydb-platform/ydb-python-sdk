@@ -11,3 +11,16 @@ async def session(driver):
         await session.delete()
     except BaseException:
         pass
+
+
+@pytest.fixture
+async def tx(session):
+    await session.create()
+    transaction = session.transaction()
+
+    yield transaction
+
+    try:
+        await transaction.rollback()
+    except BaseException:
+        pass

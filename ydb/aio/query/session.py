@@ -4,24 +4,18 @@ from typing import (
     Optional,
 )
 
+from .base import AsyncResponseContextIterator
+from .transaction import QueryTxContextAsync
 from .. import _utilities
 from ... import issues
 from ..._grpc.grpcwrapper import common_utils
+from ..._grpc.grpcwrapper import ydb_query_public_types as _ydb_query_public
+
 from ...query import base
 from ...query.session import (
     BaseQuerySession,
     QuerySessionStateEnum,
 )
-
-
-class AsyncResponseContextIterator(_utilities.AsyncResponseIterator):
-    async def __aenter__(self) -> "AsyncResponseContextIterator":
-        return self
-
-    async def __aexit__(self, exc_type, exc_val, exc_tb):
-        async for _ in self:
-            pass
-
 
 class QuerySessionAsync(BaseQuerySession):
     """Session object for Query Service. It is not recommended to control
@@ -91,14 +85,21 @@ class QuerySessionAsync(BaseQuerySession):
 
         return self
 
-    async def transaction(self, tx_mode) -> base.IQueryTxContext:
-        return super().transaction(tx_mode)
+    def transaction(self, tx_mode = None) -> base.IQueryTxContext:
+        self._state._check_session_ready_to_use()
+        tx_mode = tx_mode if tx_mode else _ydb_query_public.QuerySerializableReadWrite()
+
+        return QueryTxContextAsync(
+            self._driver,
+            self._state,
+            self,
+            tx_mode,
+        )
 
     async def execute(
         self,
         query: str,
         parameters: dict = None,
-        commit_tx: bool = False,
         syntax: base.QuerySyntax = None,
         exec_mode: base.QueryExecMode = None,
         concurrent_result_sets: bool = False,
