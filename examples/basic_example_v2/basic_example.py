@@ -96,10 +96,11 @@ def select_simple(pool, path):
     result_sets = pool.execute_with_retries(
         """
         PRAGMA TablePathPrefix("{}");
+        $format = DateTime::Format("%Y-%m-%d");
         SELECT
             series_id,
             title,
-            release_date
+            $format(DateTime::FromSeconds(CAST(DateTime::ToSeconds(DateTime::IntervalFromDays(CAST(release_date AS Int16))) AS Uint32))) AS release_date
         FROM series
         WHERE series_id = 1;
         """.format(
@@ -142,9 +143,10 @@ def select_with_parameters(pool, path, series_id, season_id, episode_id):
     def callee(session):
         query = """
         PRAGMA TablePathPrefix("{}");
+        $format = DateTime::Format("%Y-%m-%d");
         SELECT
             title,
-            air_date
+            $format(DateTime::FromSeconds(CAST(DateTime::ToSeconds(DateTime::IntervalFromDays(CAST(air_date AS Int16))) AS Uint32))) AS air_date
         FROM episodes
         WHERE series_id = $seriesId AND season_id = $seasonId AND episode_id = $episodeId;
         """.format(
@@ -156,9 +158,7 @@ def select_with_parameters(pool, path, series_id, season_id, episode_id):
             {
                 "$seriesId": series_id,  # could be defined implicit
                 "$seasonId": (season_id, ydb.PrimitiveType.Int64),  # could be defined via tuple
-                "$episodeId": ydb.TypedValue(
-                    episode_id, ydb.PrimitiveType.Int64
-                ),  # could be defined via special class
+                "$episodeId": ydb.TypedValue(episode_id, ydb.PrimitiveType.Int64),  # could be defined via special class
             },
             commit_tx=True,
         ) as result_sets:
@@ -293,7 +293,7 @@ def run(endpoint, database, path):
     with ydb.Driver(
         endpoint=endpoint,
         database=database,
-        credentials=ydb.credentials_from_env_variables()
+        credentials=ydb.credentials_from_env_variables(),
     ) as driver:
         driver.wait(timeout=5, fail_fast=True)
 
