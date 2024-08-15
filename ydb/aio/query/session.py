@@ -136,5 +136,9 @@ class QuerySessionAsync(BaseQuerySession):
 
         return AsyncResponseContextIterator(
             stream_it,
-            lambda resp: base.wrap_execute_query_response(rpc_state=None, response_pb=resp),
+            lambda resp: base.wrap_execute_query_response(
+                rpc_state=None,
+                response_pb=resp,
+                settings=self._settings,
+            ),
         )

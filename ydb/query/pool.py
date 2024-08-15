@@ -69,6 +69,7 @@ class QuerySessionPool:
         method with huge read queries.
 
         :param query: A query, yql or sql text.
+        :param parameters: dict with parameters and YDB types;
         :param retry_settings: RetrySettings object.
 
         :return: Result sets or exception in case of execution errors.

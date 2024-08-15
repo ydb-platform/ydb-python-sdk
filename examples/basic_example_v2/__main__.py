@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 import argparse
-import basic_example
+import asyncio
+from basic_example import run as run_sync
+from basic_example_async import run as run_async
 import logging
 
 
@@ -13,6 +15,7 @@ if __name__ == "__main__":
     parser.add_argument("-e", "--endpoint", help="Endpoint url to use", default="grpc://localhost:2136")
     parser.add_argument("-p", "--path", default="")
     parser.add_argument("-v", "--verbose", default=False, action="store_true")
+    parser.add_argument("-m", "--mode", default="sync", help="Mode of example: sync or async")
 
     args = parser.parse_args()
 
@@ -20,9 +23,21 @@ if __name__ == "__main__":
         logger = logging.getLogger("ydb.pool.Discovery")
         logger.setLevel(logging.INFO)
         logger.addHandler(logging.StreamHandler())
-
-    basic_example.run(
-        args.endpoint,
-        args.database,
-        args.path,
-    )
+    if args.mode == "sync":
+        print("Running sync example")
+        run_sync(
+            args.endpoint,
+            args.database,
+            args.path,
+        )
+    elif args.mode == "async":
+        print("Running async example")
+        asyncio.run(
+            run_async(
+                args.endpoint,
+                args.database,
+                args.path,
+            )
+        )
+    else:
+        raise ValueError(f"Unsupported mode: {args.mode}, use one of sync|async")
