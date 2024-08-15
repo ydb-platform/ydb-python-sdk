@@ -5,7 +5,6 @@ from typing import (
     List,
 )
 
-from . import base
 from .session import (
     QuerySessionSync,
 )
@@ -14,6 +13,8 @@ from ..retries import (
     retry_operation_sync,
 )
 from .. import convert
+from .._grpc.grpcwrapper import common_utils
+
 
 logger = logging.getLogger(__name__)
 
@@ -21,7 +22,7 @@ logger = logging.getLogger(__name__)
 class QuerySessionPool:
     """QuerySessionPool is an object to simplify operations with sessions of Query Service."""
 
-    def __init__(self, driver: base.SupportedDriverType):
+    def __init__(self, driver: common_utils.SupportedDriverType):
         """
         :param driver: A driver instance
         """
@@ -97,7 +98,7 @@ class SimpleQuerySessionCheckout:
         self._pool = pool
         self._session = QuerySessionSync(pool._driver)
 
-    def __enter__(self) -> base.IQuerySession:
+    def __enter__(self) -> QuerySessionSync:
         self._session.create()
         return self._session
 
