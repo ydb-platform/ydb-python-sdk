@@ -48,6 +48,7 @@ class SyncResponseContextIterator(_utilities.SyncResponseIterator):
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
+        #  To close stream on YDB it is necessary to scroll through it to the end
         for _ in self:
             pass
 

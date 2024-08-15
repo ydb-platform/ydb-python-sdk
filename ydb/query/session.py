@@ -224,7 +224,9 @@ class QuerySessionSync(BaseQuerySession):
                     self._state.reset()
                     self._state._change_state(QuerySessionStateEnum.CLOSED)
         except Exception:
-            pass
+            if not self._state._already_in(QuerySessionStateEnum.CLOSED):
+                self._state.reset()
+                self._state._change_state(QuerySessionStateEnum.CLOSED)
 
     def delete(self) -> None:
         """WARNING: This API is experimental and could be changed.

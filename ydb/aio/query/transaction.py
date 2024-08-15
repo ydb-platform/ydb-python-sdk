@@ -28,7 +28,7 @@ class QueryTxContextAsync(BaseQueryTxContext):
         Closes a transaction context manager and rollbacks transaction if
         it is not finished explicitly
         """
-        self._ensure_prev_stream_finished()
+        await self._ensure_prev_stream_finished()
         if self._tx_state._state == QueryTxStateEnum.BEGINED:
             # It's strictly recommended to close transactions directly
             # by using commit_tx=True flag while executing statement or by
@@ -42,7 +42,7 @@ class QueryTxContextAsync(BaseQueryTxContext):
 
     async def _ensure_prev_stream_finished(self) -> None:
         if self._prev_stream is not None:
-            async for _ in self._prev_stream:
+            async with self._prev_stream:
                 pass
             self._prev_stream = None
 

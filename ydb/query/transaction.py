@@ -196,31 +196,6 @@ class BaseQueryTxContext:
         self.session = session
         self._prev_stream = None
 
-    def __enter__(self) -> "BaseQueryTxContext":
-        """
-        Enters a context manager and returns a transaction
-
-        :return: A transaction instance
-        """
-        return self
-
-    def __exit__(self, *args, **kwargs):
-        """
-        Closes a transaction context manager and rollbacks transaction if
-        it is not finished explicitly
-        """
-        self._ensure_prev_stream_finished()
-        if self._tx_state._state == QueryTxStateEnum.BEGINED:
-            # It's strictly recommended to close transactions directly
-            # by using commit_tx=True flag while executing statement or by
-            # .commit() or .rollback() methods, but here we trying to do best
-            # effort to avoid useless open transactions
-            logger.warning("Potentially leaked tx: %s", self._tx_state.tx_id)
-            try:
-                self.rollback()
-            except issues.Error:
-                logger.warning("Failed to rollback leaked tx: %s", self._tx_state.tx_id)
-
     @property
     def session_id(self) -> str:
         """
@@ -304,12 +279,6 @@ class BaseQueryTxContext:
             _apis.QueryService.ExecuteQuery,
         )
 
-    def _ensure_prev_stream_finished(self) -> None:
-        if self._prev_stream is not None:
-            for _ in self._prev_stream:
-                pass
-            self._prev_stream = None
-
     def _move_to_beginned(self, tx_id: str) -> None:
         if self._tx_state._already_in(QueryTxStateEnum.BEGINED):
             return
@@ -323,6 +292,37 @@ class BaseQueryTxContext:
 
 
 class QueryTxContextSync(BaseQueryTxContext):
+    def __enter__(self) -> "BaseQueryTxContext":
+        """
+        Enters a context manager and returns a transaction
+
+        :return: A transaction instance
+        """
+        return self
+
+    def __exit__(self, *args, **kwargs):
+        """
+        Closes a transaction context manager and rollbacks transaction if
+        it is not finished explicitly
+        """
+        self._ensure_prev_stream_finished()
+        if self._tx_state._state == QueryTxStateEnum.BEGINED:
+            # It's strictly recommended to close transactions directly
+            # by using commit_tx=True flag while executing statement or by
+            # .commit() or .rollback() methods, but here we trying to do best
+            # effort to avoid useless open transactions
+            logger.warning("Potentially leaked tx: %s", self._tx_state.tx_id)
+            try:
+                self.rollback()
+            except issues.Error:
+                logger.warning("Failed to rollback leaked tx: %s", self._tx_state.tx_id)
+
+    def _ensure_prev_stream_finished(self) -> None:
+        if self._prev_stream is not None:
+            with self._prev_stream:
+                pass
+            self._prev_stream = None
+
     def begin(self, settings: Optional[base.QueryClientSettings] = None) -> "QueryTxContextSync":
         """WARNING: This API is experimental and could be changed.
 

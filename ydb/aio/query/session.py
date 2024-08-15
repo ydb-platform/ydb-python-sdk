@@ -58,7 +58,9 @@ class QuerySessionAsync(BaseQuerySession):
                     self._state.reset()
                     self._state._change_state(QuerySessionStateEnum.CLOSED)
         except Exception:
-            pass
+            if not self._state._already_in(QuerySessionStateEnum.CLOSED):
+                self._state.reset()
+                self._state._change_state(QuerySessionStateEnum.CLOSED)
 
     async def delete(self) -> None:
         """WARNING: This API is experimental and could be changed.
