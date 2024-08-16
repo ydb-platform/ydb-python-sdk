@@ -56,6 +56,7 @@ class QueryTxContextAsync(BaseQueryTxContext):
         :return: None or exception if begin is failed
         """
         await self._begin_call(settings)
+        return self
 
     async def commit(self, settings: Optional[base.QueryClientSettings] = None) -> None:
         """WARNING: This API is experimental and could be changed.
@@ -146,6 +147,7 @@ class QueryTxContextAsync(BaseQueryTxContext):
                 response_pb=resp,
                 tx=self,
                 commit_tx=commit_tx,
+                settings=settings,
             ),
         )
         return self._prev_stream

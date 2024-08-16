@@ -57,7 +57,12 @@ class QuerySessionPoolAsync:
         return await retry_operation_async(wrapped_callee, retry_settings)
 
     async def execute_with_retries(
-        self, query: str, retry_settings: Optional[RetrySettings] = None, *args, **kwargs
+        self,
+        query: str,
+        parameters: Optional[dict] = None,
+        retry_settings: Optional[RetrySettings] = None,
+        *args,
+        **kwargs,
     ) -> List[convert.ResultSet]:
         """WARNING: This API is experimental and could be changed.
         Special interface to execute a one-shot queries in a safe, retriable way.
@@ -65,6 +70,7 @@ class QuerySessionPoolAsync:
         method with huge read queries.
 
         :param query: A query, yql or sql text.
+        :param parameters: dict with parameters and YDB types;
         :param retry_settings: RetrySettings object.
 
         :return: Result sets or exception in case of execution errors.
@@ -74,10 +80,19 @@ class QuerySessionPoolAsync:
 
         async def wrapped_callee():
             async with self.checkout() as session:
-                it = await session.execute(query, *args, **kwargs)
+                it = await session.execute(query, parameters, *args, **kwargs)
                 return [result_set async for result_set in it]
 
         return await retry_operation_async(wrapped_callee, retry_settings)
+
+    async def stop(self, timeout=None):
+        pass  # TODO: implement
+
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        await self.stop()
 
 
 class SimpleQuerySessionCheckoutAsync:
