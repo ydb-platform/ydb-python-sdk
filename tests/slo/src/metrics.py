@@ -109,6 +109,7 @@ class Metrics:
             grouping_key={
                 "sdk": SDK_SERVICE_NAME,
                 "sdkVersion": version("ydb"),
+                "jobName": SDK_SERVICE_NAME,
             },
         )
 
