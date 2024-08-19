@@ -13,6 +13,8 @@ from summary import Summary  # noqa: E402
 JOB_READ_LABEL, JOB_WRITE_LABEL = "read", "write"
 JOB_STATUS_OK, JOB_STATUS_ERR = "ok", "err"
 
+SDK_SERVICE_NAME = "sync-python-table"
+
 
 class Metrics:
     def __init__(self, push_gateway):
@@ -105,7 +107,7 @@ class Metrics:
             job="workload-sync",
             registry=self._registry,
             grouping_key={
-                "sdk": "python-sync",
+                "sdk": SDK_SERVICE_NAME,
                 "sdkVersion": version("ydb"),
             },
         )

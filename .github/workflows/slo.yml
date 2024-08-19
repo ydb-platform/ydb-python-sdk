@@ -48,13 +48,13 @@ jobs:
           timeBetweenPhases: 30
           shutdownTime: 30
 
-          language_id0: sync-table
+          language_id0: sync-python-table
           language0: Python SDK over Table Service
           workload_path0: tests/slo
           workload_build_context0: ../..
           workload_build_options0: -f Dockerfile --build-arg SDK_SERVICE=table-service
 
-          language_id1: sync-query
+          language_id1: sync-python-query
           language1: Python SDK over Query Service
           workload_path1: tests/slo
           workload_build_context1: ../..
