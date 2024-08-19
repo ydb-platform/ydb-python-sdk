@@ -7,7 +7,13 @@ from generator import batch_generator
 import concurrent.futures
 from concurrent.futures import ThreadPoolExecutor
 
-from jobs import run_read_jobs, run_write_jobs, run_metric_job
+from jobs import (
+    run_read_jobs,
+    run_write_jobs,
+    run_read_jobs_query,
+    run_write_jobs_query,
+    run_metric_job,
+)
 from metrics import Metrics, SDK_SERVICE_NAME
 
 logger = logging.getLogger(__name__)
@@ -93,8 +99,8 @@ def run_slo(args, driver, tb_name):
         )
     elif SDK_SERVICE_NAME == "query-service":
         futures = (
-            *run_read_jobs(args, driver, tb_name, max_id, metrics),
-            *run_write_jobs(args, driver, tb_name, max_id, metrics),
+            *run_read_jobs_query(args, driver, tb_name, max_id, metrics),
+            *run_write_jobs_query(args, driver, tb_name, max_id, metrics),
             run_metric_job(args, metrics),
         )
     else:
