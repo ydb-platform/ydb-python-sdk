@@ -8,7 +8,7 @@ import concurrent.futures
 from concurrent.futures import ThreadPoolExecutor
 
 from jobs import run_read_jobs, run_write_jobs, run_metric_job
-from metrics import Metrics
+from metrics import Metrics, SDK_SERVICE_NAME
 
 logger = logging.getLogger(__name__)
 
@@ -85,12 +85,20 @@ def run_slo(args, driver, tb_name):
     logger.info("Max ID: %s", max_id)
 
     metrics = Metrics(args.prom_pgw)
-
-    futures = (
-        *run_read_jobs(args, driver, tb_name, max_id, metrics),
-        *run_write_jobs(args, driver, tb_name, max_id, metrics),
-        run_metric_job(args, metrics),
-    )
+    if SDK_SERVICE_NAME == "table-service":
+        futures = (
+            *run_read_jobs(args, driver, tb_name, max_id, metrics),
+            *run_write_jobs(args, driver, tb_name, max_id, metrics),
+            run_metric_job(args, metrics),
+        )
+    elif SDK_SERVICE_NAME == "query-service":
+        futures = (
+            *run_read_jobs(args, driver, tb_name, max_id, metrics),
+            *run_write_jobs(args, driver, tb_name, max_id, metrics),
+            run_metric_job(args, metrics),
+        )
+    else:
+        raise ValueError(f"Unsupported service: {SDK_SERVICE_NAME}")
 
     for future in futures:
         future.join()
