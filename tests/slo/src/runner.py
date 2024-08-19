@@ -109,7 +109,7 @@ def run_slo(args, driver, tb_name):
     for future in futures:
         future.join()
 
-    metrics.reset()
+    # metrics.reset()
 
 
 def run_cleanup(args, driver, tb_name):
