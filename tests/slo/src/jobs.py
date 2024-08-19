@@ -31,6 +31,18 @@ UPSERT INTO `{}` (
 );
 """
 
+QUERY_READ_QUERY_TEMPLATE = """
+SELECT * FROM `{}` WHERE object_id = $object_id AND object_hash = Digest::NumericHash($object_id);
+"""
+
+QUERY_WRITE_QUERY_TEMPLATE = """
+UPSERT INTO `{}` (
+    object_id, object_hash, payload_str, payload_double, payload_timestamp
+) VALUES (
+    $object_id, Digest::NumericHash($object_id), $payload_str, $payload_double, $payload_timestamp
+);
+"""
+
 logger = logging.getLogger(__name__)
 
 
@@ -150,12 +162,12 @@ def run_reads_query(driver, query, max_id, metrics, limiter, runtime, timeout):
         logger.info("Session pool for read requests created")
 
         while time.time() - start_time < runtime:
-            params = {"$object_id": randint(1, max_id)}
+            params = {"$object_id": (randint(1, max_id), ydb.PrimitiveType.Uint64)}
             with limiter:
 
                 def check_result(result):
                     res = next(result)
-                    assert res[0].rows[0]
+                    assert res.rows[0]
 
                 params = RequestParams(
                     pool=pool,
@@ -175,7 +187,7 @@ def run_reads_query(driver, query, max_id, metrics, limiter, runtime, timeout):
 def run_read_jobs_query(args, driver, tb_name, max_id, metrics):
     logger.info("Start read jobs for query service")
 
-    read_q = READ_QUERY_TEMPLATE.format(tb_name)
+    read_q = QUERY_READ_QUERY_TEMPLATE.format(tb_name)
 
     read_limiter = RateLimiter(max_calls=args.read_rps, period=1)
     futures = []
@@ -213,10 +225,6 @@ def run_writes(driver, query, row_generator, metrics, limiter, runtime, timeout)
                 "$payload_timestamp": row.payload_timestamp,
             }
 
-            def check_result(result):
-                with result:
-                    pass
-
             with limiter:
                 params = RequestParams(
                     pool=pool,
@@ -226,7 +234,6 @@ def run_writes(driver, query, row_generator, metrics, limiter, runtime, timeout)
                     labels=(JOB_WRITE_LABEL,),
                     request_settings=request_settings,
                     retry_settings=retry_setting,
-                    check_result_cb=check_result,
                 )
                 execute_query(params)
 
@@ -272,11 +279,16 @@ def run_writes_query(driver, query, row_generator, metrics, limiter, runtime, ti
         while time.time() - start_time < runtime:
             row = row_generator.get()
             params = {
-                "$object_id": (row.object_id, ydb.PrimitiveType.Int64),
+                "$object_id": (row.object_id, ydb.PrimitiveType.Uint64),
                 "$payload_str": (row.payload_str, ydb.PrimitiveType.Utf8),
                 "$payload_double": (row.payload_double, ydb.PrimitiveType.Double),
                 "$payload_timestamp": (row.payload_timestamp, ydb.PrimitiveType.Timestamp),
             }
+
+            def check_result(result):
+                with result:
+                    pass
+
             with limiter:
                 params = RequestParams(
                     pool=pool,
@@ -286,6 +298,7 @@ def run_writes_query(driver, query, row_generator, metrics, limiter, runtime, ti
                     labels=(JOB_WRITE_LABEL,),
                     request_settings=request_settings,
                     retry_settings=retry_setting,
+                    check_result_cb=check_result,
                 )
                 execute_query(params)
 
@@ -295,7 +308,7 @@ def run_writes_query(driver, query, row_generator, metrics, limiter, runtime, ti
 def run_write_jobs_query(args, driver, tb_name, max_id, metrics):
     logger.info("Start write jobs for query service")
 
-    write_q = WRITE_QUERY_TEMPLATE.format(tb_name)
+    write_q = QUERY_WRITE_QUERY_TEMPLATE.format(tb_name)
 
     write_limiter = RateLimiter(max_calls=args.write_rps, period=1)
     row_generator = RowGenerator(max_id)
