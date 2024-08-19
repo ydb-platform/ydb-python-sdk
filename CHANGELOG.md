@@ -1,3 +1,4 @@
+## 3.16.0 ##
 * Async implementation of Query Service SDK
 * New basic example with Query Service SDK
 
