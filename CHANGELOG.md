@@ -1,3 +1,6 @@
+* Async implementation of Query Service SDK
+* New basic example with Query Service SDK
+
 ## 3.15.0 ##
 * Query service client support
 * Add dunder version to ydb package
