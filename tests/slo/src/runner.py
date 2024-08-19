@@ -128,7 +128,7 @@ def run_from_args(args):
     table_name = path.join(args.db, args.table_name)
 
     with ydb.Driver(driver_config) as driver:
-        driver.wait(timeout=60)
+        driver.wait(timeout=300)
         try:
             if args.subcommand == "create":
                 run_create(args, driver, table_name)
