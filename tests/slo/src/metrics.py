@@ -104,7 +104,7 @@ class Metrics:
     def push(self):
         push_to_gateway(
             self._push_gtw,
-            job="workload-sync",
+            job=f"workload-{SDK_SERVICE_NAME}",
             registry=self._registry,
             grouping_key={
                 "sdk": SDK_SERVICE_NAME,
