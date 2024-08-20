@@ -13,6 +13,8 @@ from summary import Summary  # noqa: E402
 JOB_READ_LABEL, JOB_WRITE_LABEL = "read", "write"
 JOB_STATUS_OK, JOB_STATUS_ERR = "ok", "err"
 
+SDK_SERVICE_NAME = environ.get("SDK_SERVICE", "sync-python-table")
+
 
 class Metrics:
     def __init__(self, push_gateway):
@@ -102,10 +104,10 @@ class Metrics:
     def push(self):
         push_to_gateway(
             self._push_gtw,
-            job="workload-sync",
+            job=f"workload-{SDK_SERVICE_NAME}",
             registry=self._registry,
             grouping_key={
-                "sdk": "python-sync",
+                "sdk": SDK_SERVICE_NAME,
                 "sdkVersion": version("ydb"),
             },
         )

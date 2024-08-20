@@ -7,8 +7,14 @@ from generator import batch_generator
 import concurrent.futures
 from concurrent.futures import ThreadPoolExecutor
 
-from jobs import run_read_jobs, run_write_jobs, run_metric_job
-from metrics import Metrics
+from jobs import (
+    run_read_jobs,
+    run_write_jobs,
+    run_read_jobs_query,
+    run_write_jobs_query,
+    run_metric_job,
+)
+from metrics import Metrics, SDK_SERVICE_NAME
 
 logger = logging.getLogger(__name__)
 
@@ -85,12 +91,20 @@ def run_slo(args, driver, tb_name):
     logger.info("Max ID: %s", max_id)
 
     metrics = Metrics(args.prom_pgw)
-
-    futures = (
-        *run_read_jobs(args, driver, tb_name, max_id, metrics),
-        *run_write_jobs(args, driver, tb_name, max_id, metrics),
-        run_metric_job(args, metrics),
-    )
+    if SDK_SERVICE_NAME == "sync-python-table":
+        futures = (
+            *run_read_jobs(args, driver, tb_name, max_id, metrics),
+            *run_write_jobs(args, driver, tb_name, max_id, metrics),
+            run_metric_job(args, metrics),
+        )
+    elif SDK_SERVICE_NAME == "sync-python-query":
+        futures = (
+            *run_read_jobs_query(args, driver, tb_name, max_id, metrics),
+            *run_write_jobs_query(args, driver, tb_name, max_id, metrics),
+            run_metric_job(args, metrics),
+        )
+    else:
+        raise ValueError(f"Unsupported service: {SDK_SERVICE_NAME}")
 
     for future in futures:
         future.join()
@@ -114,7 +128,7 @@ def run_from_args(args):
     table_name = path.join(args.db, args.table_name)
 
     with ydb.Driver(driver_config) as driver:
-        driver.wait(timeout=5)
+        driver.wait(timeout=300)
         try:
             if args.subcommand == "create":
                 run_create(args, driver, table_name)
