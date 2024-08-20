@@ -307,6 +307,7 @@ _from_python_type_map = {
     float: types.PrimitiveType.Double,
     bool: types.PrimitiveType.Bool,
     str: types.PrimitiveType.Utf8,
+    bytes: types.PrimitiveType.String,
 }
 
 
