@@ -33,6 +33,13 @@ def test_select_implicit_str(pool: ydb.QuerySessionPool):
     assert expected_value == actual_value
 
 
+def test_select_implicit_bytes(pool: ydb.QuerySessionPool):
+    expected_value = b"text"
+    res = pool.execute_with_retries(query, parameters={"$a": expected_value})
+    actual_value = res[0].rows[0]["value"]
+    assert expected_value == actual_value
+
+
 def test_select_implicit_list(pool: ydb.QuerySessionPool):
     expected_value = [1, 2, 3]
     res = pool.execute_with_retries(query, parameters={"$a": expected_value})
