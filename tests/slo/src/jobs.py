@@ -31,17 +31,17 @@ UPSERT INTO `{}` (
 );
 """
 
-QUERY_READ_QUERY_TEMPLATE = """
-SELECT * FROM `{}` WHERE object_id = $object_id AND object_hash = Digest::NumericHash($object_id);
-"""
+# QUERY_READ_QUERY_TEMPLATE = """
+# SELECT * FROM `{}` WHERE object_id = $object_id AND object_hash = Digest::NumericHash($object_id);
+# """
 
-QUERY_WRITE_QUERY_TEMPLATE = """
-UPSERT INTO `{}` (
-    object_id, object_hash, payload_str, payload_double, payload_timestamp
-) VALUES (
-    $object_id, Digest::NumericHash($object_id), $payload_str, $payload_double, $payload_timestamp
-);
-"""
+# QUERY_WRITE_QUERY_TEMPLATE = """
+# UPSERT INTO `{}` (
+#     object_id, object_hash, payload_str, payload_double, payload_timestamp
+# ) VALUES (
+#     $object_id, Digest::NumericHash($object_id), $payload_str, $payload_double, $payload_timestamp
+# );
+# """
 
 logger = logging.getLogger(__name__)
 
@@ -187,7 +187,7 @@ def run_reads_query(driver, query, max_id, metrics, limiter, runtime, timeout):
 def run_read_jobs_query(args, driver, tb_name, max_id, metrics):
     logger.info("Start read jobs over query service")
 
-    read_q = QUERY_READ_QUERY_TEMPLATE.format(tb_name)
+    read_q = READ_QUERY_TEMPLATE.format(tb_name)
 
     read_limiter = RateLimiter(max_calls=args.read_rps, period=1)
     futures = []
@@ -308,7 +308,7 @@ def run_writes_query(driver, query, row_generator, metrics, limiter, runtime, ti
 def run_write_jobs_query(args, driver, tb_name, max_id, metrics):
     logger.info("Start write jobs for query service")
 
-    write_q = QUERY_WRITE_QUERY_TEMPLATE.format(tb_name)
+    write_q = WRITE_QUERY_TEMPLATE.format(tb_name)
 
     write_limiter = RateLimiter(max_calls=args.write_rps, period=1)
     row_generator = RowGenerator(max_id)
