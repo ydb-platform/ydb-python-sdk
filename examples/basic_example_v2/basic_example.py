@@ -87,17 +87,15 @@ def fill_tables_with_data(pool: ydb.QuerySessionPool, path: str):
 def select_simple(pool: ydb.QuerySessionPool, path: str):
     print("\nCheck series table...")
     result_sets = pool.execute_with_retries(
-        """
-        PRAGMA TablePathPrefix("{}");
+        f"""
+        PRAGMA TablePathPrefix("{path}");
         SELECT
             series_id,
             title,
             release_date
         FROM series
         WHERE series_id = 1;
-        """.format(
-            path
-        ),
+        """,
     )
     first_set = result_sets[0]
     for row in first_set.rows:
@@ -117,27 +115,23 @@ def upsert_simple(pool: ydb.QuerySessionPool, path: str):
     print("\nPerforming UPSERT into episodes...")
 
     pool.execute_with_retries(
-        """
-        PRAGMA TablePathPrefix("{}");
+        f"""
+        PRAGMA TablePathPrefix("{path}");
         UPSERT INTO episodes (series_id, season_id, episode_id, title) VALUES (2, 6, 1, "TBD");
-        """.format(
-            path
-        )
+        """
     )
 
 
 def select_with_parameters(pool: ydb.QuerySessionPool, path: str, series_id, season_id, episode_id):
     result_sets = pool.execute_with_retries(
-        """
-        PRAGMA TablePathPrefix("{}");
+        f"""
+        PRAGMA TablePathPrefix("{path}");
         SELECT
             title,
             air_date
         FROM episodes
         WHERE series_id = $seriesId AND season_id = $seasonId AND episode_id = $episodeId;
-        """.format(
-            path
-        ),
+        """,
         {
             "$seriesId": series_id,  # could be defined implicit
             "$seasonId": (season_id, ydb.PrimitiveType.Int64),  # could be defined via tuple
@@ -159,14 +153,12 @@ def select_with_parameters(pool: ydb.QuerySessionPool, path: str, series_id, sea
 # execution of queries.
 def explicit_transaction_control(pool: ydb.QuerySessionPool, path: str, series_id, season_id, episode_id):
     def callee(session: ydb.QuerySessionSync):
-        query = """
-        PRAGMA TablePathPrefix("{}");
+        query = f"""
+        PRAGMA TablePathPrefix("{path}");
         UPDATE episodes
         SET air_date = CurrentUtcDate()
         WHERE series_id = $seriesId AND season_id = $seasonId AND episode_id = $episodeId;
-        """.format(
-            path
-        )
+        """
 
         # Get newly created transaction id
         tx = session.transaction(ydb.QuerySerializableReadWrite()).begin()
@@ -199,52 +191,46 @@ def drop_tables(pool: ydb.QuerySessionPool, path: str):
 def create_tables(pool: ydb.QuerySessionPool, path: str):
     print("\nCreating table series...")
     pool.execute_with_retries(
-        """
-            PRAGMA TablePathPrefix("{}");
-            CREATE table `series` (
-                `series_id` Int64,
-                `title` Utf8,
-                `series_info` Utf8,
-                `release_date` Date,
-                PRIMARY KEY (`series_id`)
-            )
-            """.format(
-            path
+        f"""
+        PRAGMA TablePathPrefix("{path}");
+        CREATE table `series` (
+            `series_id` Int64,
+            `title` Utf8,
+            `series_info` Utf8,
+            `release_date` Date,
+            PRIMARY KEY (`series_id`)
         )
+        """
     )
 
     print("\nCreating table seasons...")
     pool.execute_with_retries(
-        """
-            PRAGMA TablePathPrefix("{}");
-            CREATE table `seasons` (
-                `series_id` Int64,
-                `season_id` Int64,
-                `title` Utf8,
-                `first_aired` Date,
-                `last_aired` Date,
-                PRIMARY KEY (`series_id`, `season_id`)
-            )
-            """.format(
-            path
+        f"""
+        PRAGMA TablePathPrefix("{path}");
+        CREATE table `seasons` (
+            `series_id` Int64,
+            `season_id` Int64,
+            `title` Utf8,
+            `first_aired` Date,
+            `last_aired` Date,
+            PRIMARY KEY (`series_id`, `season_id`)
         )
+        """
     )
 
     print("\nCreating table episodes...")
     pool.execute_with_retries(
-        """
-            PRAGMA TablePathPrefix("{}");
-            CREATE table `episodes` (
-                `series_id` Int64,
-                `season_id` Int64,
-                `episode_id` Int64,
-                `title` Utf8,
-                `air_date` Date,
-                PRIMARY KEY (`series_id`, `season_id`, `episode_id`)
-            )
-            """.format(
-            path
+        f"""
+        PRAGMA TablePathPrefix("{path}");
+        CREATE table `episodes` (
+            `series_id` Int64,
+            `season_id` Int64,
+            `episode_id` Int64,
+            `title` Utf8,
+            `air_date` Date,
+            PRIMARY KEY (`series_id`, `season_id`, `episode_id`)
         )
+        """
     )
 
 
