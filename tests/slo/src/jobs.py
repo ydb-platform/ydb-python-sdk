@@ -94,7 +94,7 @@ def execute_query(params: RequestParams):
 def run_reads(driver, query, max_id, metrics, limiter, runtime, timeout):
     start_time = time.time()
 
-    logger.info("Start read workload")
+    logger.info("Start read workload over table service")
 
     request_settings = ydb.BaseRequestSettings().with_timeout(timeout)
     retry_setting = ydb.RetrySettings(
@@ -128,7 +128,7 @@ def run_reads(driver, query, max_id, metrics, limiter, runtime, timeout):
 
 
 def run_read_jobs(args, driver, tb_name, max_id, metrics):
-    logger.info("Start read jobs")
+    logger.info("Start read jobs over table service")
 
     session = ydb.retry_operation_sync(lambda: driver.table_client.session().create())
     read_q = session.prepare(READ_QUERY_TEMPLATE.format(tb_name))
@@ -150,7 +150,7 @@ def run_read_jobs(args, driver, tb_name, max_id, metrics):
 def run_reads_query(driver, query, max_id, metrics, limiter, runtime, timeout):
     start_time = time.time()
 
-    logger.info("Start read workload")
+    logger.info("Start read workload over query service")
 
     request_settings = ydb.BaseRequestSettings().with_timeout(timeout)
     retry_setting = ydb.RetrySettings(
@@ -185,7 +185,7 @@ def run_reads_query(driver, query, max_id, metrics, limiter, runtime, timeout):
 
 
 def run_read_jobs_query(args, driver, tb_name, max_id, metrics):
-    logger.info("Start read jobs for query service")
+    logger.info("Start read jobs over query service")
 
     read_q = QUERY_READ_QUERY_TEMPLATE.format(tb_name)
 
@@ -205,7 +205,7 @@ def run_read_jobs_query(args, driver, tb_name, max_id, metrics):
 def run_writes(driver, query, row_generator, metrics, limiter, runtime, timeout):
     start_time = time.time()
 
-    logger.info("Start write workload")
+    logger.info("Start write workload over table service")
 
     request_settings = ydb.BaseRequestSettings().with_timeout(timeout)
     retry_setting = ydb.RetrySettings(
@@ -241,7 +241,7 @@ def run_writes(driver, query, row_generator, metrics, limiter, runtime, timeout)
 
 
 def run_write_jobs(args, driver, tb_name, max_id, metrics):
-    logger.info("Start write jobs")
+    logger.info("Start write jobs over table service")
 
     session = ydb.retry_operation_sync(lambda: driver.table_client.session().create())
     write_q = session.prepare(WRITE_QUERY_TEMPLATE.format(tb_name))
@@ -265,7 +265,7 @@ def run_write_jobs(args, driver, tb_name, max_id, metrics):
 def run_writes_query(driver, query, row_generator, metrics, limiter, runtime, timeout):
     start_time = time.time()
 
-    logger.info("Start write workload")
+    logger.info("Start write workload over query service")
 
     request_settings = ydb.BaseRequestSettings().with_timeout(timeout)
     retry_setting = ydb.RetrySettings(
