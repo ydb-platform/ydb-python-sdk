@@ -31,17 +31,6 @@ UPSERT INTO `{}` (
 );
 """
 
-# QUERY_READ_QUERY_TEMPLATE = """
-# SELECT * FROM `{}` WHERE object_id = $object_id AND object_hash = Digest::NumericHash($object_id);
-# """
-
-# QUERY_WRITE_QUERY_TEMPLATE = """
-# UPSERT INTO `{}` (
-#     object_id, object_hash, payload_str, payload_double, payload_timestamp
-# ) VALUES (
-#     $object_id, Digest::NumericHash($object_id), $payload_str, $payload_double, $payload_timestamp
-# );
-# """
 
 logger = logging.getLogger(__name__)
 
@@ -286,6 +275,7 @@ def run_writes_query(driver, query, row_generator, metrics, limiter, runtime, ti
             }
 
             def check_result(result):
+                # we have to close stream by reading it till the end
                 with result:
                     pass
 
