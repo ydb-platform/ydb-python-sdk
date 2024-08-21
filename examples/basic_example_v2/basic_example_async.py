@@ -138,9 +138,7 @@ async def select_with_parameters(pool: ydb.aio.QuerySessionPoolAsync, series_id,
 # In most cases it's better to use transaction control settings in session.transaction
 # calls instead to avoid additional hops to YDB cluster and allow more efficient
 # execution of queries.
-async def explicit_transaction_control(
-    pool: ydb.aio.QuerySessionPoolAsync, series_id, season_id, episode_id
-):
+async def explicit_transaction_control(pool: ydb.aio.QuerySessionPoolAsync, series_id, season_id, episode_id):
     async def callee(session: ydb.aio.QuerySessionAsync):
         query = """
         DECLARE $seriesId AS Int64;
