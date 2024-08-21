@@ -185,6 +185,25 @@ async def explicit_transaction_control(
     return await pool.retry_operation_async(callee)
 
 
+async def huge_select(pool: ydb.aio.QuerySessionPoolAsync, path: str):
+    async def callee(session: ydb.aio.QuerySessionAsync):
+        query = f"""
+        PRAGMA TablePathPrefix("{path}");
+        SELECT * from episodes;
+        """
+
+        async with await session.transaction().execute(
+            query,
+            commit_tx=True,
+        ) as result_sets:
+            print("\n> Huge SELECT call")
+            async for result_set in result_sets:
+                for row in result_set.rows:
+                    print("episode title:", row.title, ", air date:", row.air_date)
+
+    return await pool.retry_operation_async(callee)
+
+
 async def drop_tables(pool: ydb.aio.QuerySessionPoolAsync, path: str):
     print("\nCleaning up existing tables...")
     await pool.execute_with_retries(DropTablesQuery.format(path))
@@ -289,3 +308,4 @@ async def run(endpoint, database, path):
 
             await explicit_transaction_control(pool, full_path, 2, 6, 1)
             await select_with_parameters(pool, full_path, 2, 6, 1)
+            await huge_select(pool, full_path)

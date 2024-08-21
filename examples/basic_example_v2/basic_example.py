@@ -183,6 +183,25 @@ def explicit_transaction_control(pool: ydb.QuerySessionPool, path: str, series_i
     return pool.retry_operation_sync(callee)
 
 
+def huge_select(pool: ydb.QuerySessionPool, path: str):
+    def callee(session: ydb.QuerySessionSync):
+        query = f"""
+        PRAGMA TablePathPrefix("{path}");
+        SELECT * from episodes;
+        """
+
+        with session.transaction().execute(
+            query,
+            commit_tx=True,
+        ) as result_sets:
+            print("\n> Huge SELECT call")
+            for result_set in result_sets:
+                for row in result_set.rows:
+                    print("episode title:", row.title, ", air date:", row.air_date)
+
+    return pool.retry_operation_sync(callee)
+
+
 def drop_tables(pool: ydb.QuerySessionPool, path: str):
     print("\nCleaning up existing tables...")
     pool.execute_with_retries(DropTablesQuery.format(path))
@@ -287,3 +306,4 @@ def run(endpoint, database, path):
 
             explicit_transaction_control(pool, full_path, 2, 6, 1)
             select_with_parameters(pool, full_path, 2, 6, 1)
+            huge_select(pool, full_path)
