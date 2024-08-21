@@ -1,26 +1,15 @@
 # -*- coding: utf-8 -*-
-import posixpath
 import ydb
 import basic_example_data
 
-# Table path prefix allows to put the working tables into the specific directory
-# inside the YDB database. Putting `PRAGMA TablePathPrefix("some/path")`
-# at the beginning of the query allows to reference the tables through
-# their names "under" the specified directory.
-#
-# TablePathPrefix has to be defined as an absolute path, which has to be started
-# with the current database location.
-#
-# https://ydb.tech/ru/docs/yql/reference/syntax/pragma#table-path-prefix
 
-DropTablesQuery = """PRAGMA TablePathPrefix("{}");
+DropTablesQuery = """
 DROP TABLE IF EXISTS series;
 DROP TABLE IF EXISTS seasons;
 DROP TABLE IF EXISTS episodes;
 """
 
-FillDataQuery = """PRAGMA TablePathPrefix("{}");
-
+FillDataQuery = """
 DECLARE $seriesData AS List<Struct<
     series_id: Int64,
     title: Utf8,
@@ -69,13 +58,11 @@ FROM AS_TABLE($episodesData);
 """
 
 
-def fill_tables_with_data(pool: ydb.QuerySessionPool, path: str):
+def fill_tables_with_data(pool: ydb.QuerySessionPool):
     print("\nFilling tables with data...")
 
-    query = FillDataQuery.format(path)
-
     pool.execute_with_retries(
-        query,
+        FillDataQuery,
         {
             "$seriesData": (basic_example_data.get_series_data(), basic_example_data.get_series_data_type()),
             "$seasonsData": (basic_example_data.get_seasons_data(), basic_example_data.get_seasons_data_type()),
@@ -84,11 +71,10 @@ def fill_tables_with_data(pool: ydb.QuerySessionPool, path: str):
     )
 
 
-def select_simple(pool: ydb.QuerySessionPool, path: str):
+def select_simple(pool: ydb.QuerySessionPool):
     print("\nCheck series table...")
     result_sets = pool.execute_with_retries(
-        f"""
-        PRAGMA TablePathPrefix("{path}");
+        """
         SELECT
             series_id,
             title,
@@ -111,21 +97,23 @@ def select_simple(pool: ydb.QuerySessionPool, path: str):
     return first_set
 
 
-def upsert_simple(pool: ydb.QuerySessionPool, path: str):
+def upsert_simple(pool: ydb.QuerySessionPool):
     print("\nPerforming UPSERT into episodes...")
 
     pool.execute_with_retries(
-        f"""
-        PRAGMA TablePathPrefix("{path}");
+        """
         UPSERT INTO episodes (series_id, season_id, episode_id, title) VALUES (2, 6, 1, "TBD");
         """
     )
 
 
-def select_with_parameters(pool: ydb.QuerySessionPool, path: str, series_id, season_id, episode_id):
+def select_with_parameters(pool: ydb.QuerySessionPool, series_id, season_id, episode_id):
     result_sets = pool.execute_with_retries(
-        f"""
-        PRAGMA TablePathPrefix("{path}");
+        """
+        DECLARE $seriesId AS Int64;
+        DECLARE $seasonId AS Int64;
+        DECLARE $episodeId AS Int64;
+
         SELECT
             title,
             air_date
@@ -151,10 +139,13 @@ def select_with_parameters(pool: ydb.QuerySessionPool, path: str, series_id, sea
 # In most cases it's better to use transaction control settings in session.transaction
 # calls instead to avoid additional hops to YDB cluster and allow more efficient
 # execution of queries.
-def explicit_transaction_control(pool: ydb.QuerySessionPool, path: str, series_id, season_id, episode_id):
+def explicit_transaction_control(pool: ydb.QuerySessionPool, series_id, season_id, episode_id):
     def callee(session: ydb.QuerySessionSync):
-        query = f"""
-        PRAGMA TablePathPrefix("{path}");
+        query = """
+        DECLARE $seriesId AS Int64;
+        DECLARE $seasonId AS Int64;
+        DECLARE $episodeId AS Int64;
+
         UPDATE episodes
         SET air_date = CurrentUtcDate()
         WHERE series_id = $seriesId AND season_id = $seasonId AND episode_id = $episodeId;
@@ -183,12 +174,9 @@ def explicit_transaction_control(pool: ydb.QuerySessionPool, path: str, series_i
     return pool.retry_operation_sync(callee)
 
 
-def huge_select(pool: ydb.QuerySessionPool, path: str):
+def huge_select(pool: ydb.QuerySessionPool):
     def callee(session: ydb.QuerySessionSync):
-        query = f"""
-        PRAGMA TablePathPrefix("{path}");
-        SELECT * from episodes;
-        """
+        query = """SELECT * from episodes;"""
 
         with session.transaction().execute(
             query,
@@ -202,16 +190,15 @@ def huge_select(pool: ydb.QuerySessionPool, path: str):
     return pool.retry_operation_sync(callee)
 
 
-def drop_tables(pool: ydb.QuerySessionPool, path: str):
+def drop_tables(pool: ydb.QuerySessionPool):
     print("\nCleaning up existing tables...")
-    pool.execute_with_retries(DropTablesQuery.format(path))
+    pool.execute_with_retries(DropTablesQuery)
 
 
-def create_tables(pool: ydb.QuerySessionPool, path: str):
+def create_tables(pool: ydb.QuerySessionPool):
     print("\nCreating table series...")
     pool.execute_with_retries(
-        f"""
-        PRAGMA TablePathPrefix("{path}");
+        """
         CREATE table `series` (
             `series_id` Int64,
             `title` Utf8,
@@ -224,8 +211,7 @@ def create_tables(pool: ydb.QuerySessionPool, path: str):
 
     print("\nCreating table seasons...")
     pool.execute_with_retries(
-        f"""
-        PRAGMA TablePathPrefix("{path}");
+        """
         CREATE table `seasons` (
             `series_id` Int64,
             `season_id` Int64,
@@ -239,8 +225,7 @@ def create_tables(pool: ydb.QuerySessionPool, path: str):
 
     print("\nCreating table episodes...")
     pool.execute_with_retries(
-        f"""
-        PRAGMA TablePathPrefix("{path}");
+        """
         CREATE table `episodes` (
             `series_id` Int64,
             `season_id` Int64,
@@ -253,29 +238,7 @@ def create_tables(pool: ydb.QuerySessionPool, path: str):
     )
 
 
-def is_directory_exists(driver: ydb.Driver, path: str):
-    try:
-        return driver.scheme_client.describe_path(path).is_directory()
-    except ydb.SchemeError:
-        return False
-
-
-def ensure_path_exists(driver, database, path):
-    paths_to_create = list()
-    path = path.rstrip("/")
-    while path not in ("", database):
-        full_path = posixpath.join(database, path)
-        if is_directory_exists(driver, full_path):
-            break
-        paths_to_create.append(full_path)
-        path = posixpath.dirname(path).rstrip("/")
-
-    while len(paths_to_create) > 0:
-        full_path = paths_to_create.pop(-1)
-        driver.scheme_client.make_directory(full_path)
-
-
-def run(endpoint, database, path):
+def run(endpoint, database):
     with ydb.Driver(
         endpoint=endpoint,
         database=database,
@@ -284,26 +247,19 @@ def run(endpoint, database, path):
         driver.wait(timeout=5, fail_fast=True)
 
         with ydb.QuerySessionPool(driver) as pool:
+            drop_tables(pool)
 
-            ensure_path_exists(driver, database, path)
+            create_tables(pool)
 
-            # absolute path - prefix to the table's names,
-            # including the database location
-            full_path = posixpath.join(database, path)
+            fill_tables_with_data(pool)
 
-            drop_tables(pool, full_path)
+            select_simple(pool)
 
-            create_tables(pool, full_path)
+            upsert_simple(pool)
 
-            fill_tables_with_data(pool, full_path)
+            select_with_parameters(pool, 2, 3, 7)
+            select_with_parameters(pool, 2, 3, 8)
 
-            select_simple(pool, full_path)
-
-            upsert_simple(pool, full_path)
-
-            select_with_parameters(pool, full_path, 2, 3, 7)
-            select_with_parameters(pool, full_path, 2, 3, 8)
-
-            explicit_transaction_control(pool, full_path, 2, 6, 1)
-            select_with_parameters(pool, full_path, 2, 6, 1)
-            huge_select(pool, full_path)
+            explicit_transaction_control(pool, 2, 6, 1)
+            select_with_parameters(pool, 2, 6, 1)
+            huge_select(pool)
