@@ -1,26 +1,15 @@
 # -*- coding: utf-8 -*-
-import posixpath
 import ydb
 import basic_example_data
 
-# Table path prefix allows to put the working tables into the specific directory
-# inside the YDB database. Putting `PRAGMA TablePathPrefix("some/path")`
-# at the beginning of the query allows to reference the tables through
-# their names "under" the specified directory.
-#
-# TablePathPrefix has to be defined as an absolute path, which has to be started
-# with the current database location.
-#
-# https://ydb.tech/ru/docs/yql/reference/syntax/pragma#table-path-prefix
 
-DropTablesQuery = """PRAGMA TablePathPrefix("{}");
+DropTablesQuery = """
 DROP TABLE IF EXISTS series;
 DROP TABLE IF EXISTS seasons;
 DROP TABLE IF EXISTS episodes;
 """
 
-FillDataQuery = """PRAGMA TablePathPrefix("{}");
-
+FillDataQuery = """
 DECLARE $seriesData AS List<Struct<
     series_id: Int64,
     title: Utf8,
@@ -69,13 +58,10 @@ FROM AS_TABLE($episodesData);
 """
 
 
-async def fill_tables_with_data(pool: ydb.aio.QuerySessionPoolAsync, path: str):
+async def fill_tables_with_data(pool: ydb.aio.QuerySessionPoolAsync):
     print("\nFilling tables with data...")
-
-    query = FillDataQuery.format(path)
-
     await pool.execute_with_retries(
-        query,
+        FillDataQuery,
         {
             "$seriesData": (basic_example_data.get_series_data(), basic_example_data.get_series_data_type()),
             "$seasonsData": (basic_example_data.get_seasons_data(), basic_example_data.get_seasons_data_type()),
@@ -84,11 +70,10 @@ async def fill_tables_with_data(pool: ydb.aio.QuerySessionPoolAsync, path: str):
     )
 
 
-async def select_simple(pool: ydb.aio.QuerySessionPoolAsync, path: str):
+async def select_simple(pool: ydb.aio.QuerySessionPoolAsync):
     print("\nCheck series table...")
     result_sets = await pool.execute_with_retries(
-        f"""
-        PRAGMA TablePathPrefix("{path}");
+        """
         SELECT
             series_id,
             title,
@@ -111,21 +96,23 @@ async def select_simple(pool: ydb.aio.QuerySessionPoolAsync, path: str):
     return first_set
 
 
-async def upsert_simple(pool: ydb.aio.QuerySessionPoolAsync, path: str):
+async def upsert_simple(pool: ydb.aio.QuerySessionPoolAsync):
     print("\nPerforming UPSERT into episodes...")
 
     await pool.execute_with_retries(
-        f"""
-        PRAGMA TablePathPrefix("{path}");
+        """
         UPSERT INTO episodes (series_id, season_id, episode_id, title) VALUES (2, 6, 1, "TBD");
         """
     )
 
 
-async def select_with_parameters(pool: ydb.aio.QuerySessionPoolAsync, path: str, series_id, season_id, episode_id):
+async def select_with_parameters(pool: ydb.aio.QuerySessionPoolAsync, series_id, season_id, episode_id):
     result_sets = await pool.execute_with_retries(
-        f"""
-        PRAGMA TablePathPrefix("{path}");
+        """
+        DECLARE $seriesId AS Int64;
+        DECLARE $seasonId AS Int64;
+        DECLARE $episodeId AS Int64;
+
         SELECT
             title,
             air_date
@@ -151,12 +138,13 @@ async def select_with_parameters(pool: ydb.aio.QuerySessionPoolAsync, path: str,
 # In most cases it's better to use transaction control settings in session.transaction
 # calls instead to avoid additional hops to YDB cluster and allow more efficient
 # execution of queries.
-async def explicit_transaction_control(
-    pool: ydb.aio.QuerySessionPoolAsync, path: str, series_id, season_id, episode_id
-):
+async def explicit_transaction_control(pool: ydb.aio.QuerySessionPoolAsync, series_id, season_id, episode_id):
     async def callee(session: ydb.aio.QuerySessionAsync):
-        query = f"""
-        PRAGMA TablePathPrefix("{path}");
+        query = """
+        DECLARE $seriesId AS Int64;
+        DECLARE $seasonId AS Int64;
+        DECLARE $episodeId AS Int64;
+
         UPDATE episodes
         SET air_date = CurrentUtcDate()
         WHERE series_id = $seriesId AND season_id = $seasonId AND episode_id = $episodeId;
@@ -185,16 +173,31 @@ async def explicit_transaction_control(
     return await pool.retry_operation_async(callee)
 
 
-async def drop_tables(pool: ydb.aio.QuerySessionPoolAsync, path: str):
+async def huge_select(pool: ydb.aio.QuerySessionPoolAsync):
+    async def callee(session: ydb.aio.QuerySessionAsync):
+        query = """SELECT * from episodes;"""
+
+        async with await session.transaction().execute(
+            query,
+            commit_tx=True,
+        ) as result_sets:
+            print("\n> Huge SELECT call")
+            async for result_set in result_sets:
+                for row in result_set.rows:
+                    print("episode title:", row.title, ", air date:", row.air_date)
+
+    return await pool.retry_operation_async(callee)
+
+
+async def drop_tables(pool: ydb.aio.QuerySessionPoolAsync):
     print("\nCleaning up existing tables...")
-    await pool.execute_with_retries(DropTablesQuery.format(path))
+    await pool.execute_with_retries(DropTablesQuery)
 
 
-async def create_tables(pool: ydb.aio.QuerySessionPoolAsync, path: str):
+async def create_tables(pool: ydb.aio.QuerySessionPoolAsync):
     print("\nCreating table series...")
     await pool.execute_with_retries(
-        f"""
-        PRAGMA TablePathPrefix("{path}");
+        """
         CREATE table `series` (
             `series_id` Int64,
             `title` Utf8,
@@ -207,8 +210,7 @@ async def create_tables(pool: ydb.aio.QuerySessionPoolAsync, path: str):
 
     print("\nCreating table seasons...")
     await pool.execute_with_retries(
-        f"""
-        PRAGMA TablePathPrefix("{path}");
+        """
         CREATE table `seasons` (
             `series_id` Int64,
             `season_id` Int64,
@@ -222,8 +224,7 @@ async def create_tables(pool: ydb.aio.QuerySessionPoolAsync, path: str):
 
     print("\nCreating table episodes...")
     await pool.execute_with_retries(
-        f"""
-        PRAGMA TablePathPrefix("{path}");
+        """
         CREATE table `episodes` (
             `series_id` Int64,
             `season_id` Int64,
@@ -236,29 +237,7 @@ async def create_tables(pool: ydb.aio.QuerySessionPoolAsync, path: str):
     )
 
 
-async def is_directory_exists(driver: ydb.aio.Driver, path: str):
-    try:
-        return await driver.scheme_client.describe_path(path).is_directory()
-    except ydb.SchemeError:
-        return False
-
-
-async def ensure_path_exists(driver: ydb.aio.Driver, database, path):
-    paths_to_create = list()
-    path = path.rstrip("/")
-    while path not in ("", database):
-        full_path = posixpath.join(database, path)
-        if await is_directory_exists(driver, full_path):
-            break
-        paths_to_create.append(full_path)
-        path = posixpath.dirname(path).rstrip("/")
-
-    while len(paths_to_create) > 0:
-        full_path = paths_to_create.pop(-1)
-        await driver.scheme_client.make_directory(full_path)
-
-
-async def run(endpoint, database, path):
+async def run(endpoint, database):
     async with ydb.aio.Driver(
         endpoint=endpoint,
         database=database,
@@ -267,25 +246,19 @@ async def run(endpoint, database, path):
         await driver.wait(timeout=5, fail_fast=True)
 
         async with ydb.aio.QuerySessionPoolAsync(driver) as pool:
+            await drop_tables(pool)
 
-            await ensure_path_exists(driver, database, path)
+            await create_tables(pool)
 
-            # absolute path - prefix to the table's names,
-            # including the database location
-            full_path = posixpath.join(database, path)
+            await fill_tables_with_data(pool)
 
-            await drop_tables(pool, full_path)
+            await select_simple(pool)
 
-            await create_tables(pool, full_path)
+            await upsert_simple(pool)
 
-            await fill_tables_with_data(pool, full_path)
+            await select_with_parameters(pool, 2, 3, 7)
+            await select_with_parameters(pool, 2, 3, 8)
 
-            await select_simple(pool, full_path)
-
-            await upsert_simple(pool, full_path)
-
-            await select_with_parameters(pool, full_path, 2, 3, 7)
-            await select_with_parameters(pool, full_path, 2, 3, 8)
-
-            await explicit_transaction_control(pool, full_path, 2, 6, 1)
-            await select_with_parameters(pool, full_path, 2, 6, 1)
+            await explicit_transaction_control(pool, 2, 6, 1)
+            await select_with_parameters(pool, 2, 6, 1)
+            await huge_select(pool)

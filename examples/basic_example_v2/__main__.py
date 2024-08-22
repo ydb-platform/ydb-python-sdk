@@ -11,9 +11,8 @@ if __name__ == "__main__":
         formatter_class=argparse.RawDescriptionHelpFormatter,
         description="""\033[92mYDB basic example.\x1b[0m\n""",
     )
-    parser.add_argument("-d", "--database", help="Name of the database to use", default="/local")
     parser.add_argument("-e", "--endpoint", help="Endpoint url to use", default="grpc://localhost:2136")
-    parser.add_argument("-p", "--path", default="")
+    parser.add_argument("-d", "--database", help="Name of the database to use", default="/local")
     parser.add_argument("-v", "--verbose", default=False, action="store_true")
     parser.add_argument("-m", "--mode", default="sync", help="Mode of example: sync or async")
 
@@ -28,7 +27,6 @@ if __name__ == "__main__":
         run_sync(
             args.endpoint,
             args.database,
-            args.path,
         )
     elif args.mode == "async":
         print("Running async example")
@@ -36,7 +34,6 @@ if __name__ == "__main__":
             run_async(
                 args.endpoint,
                 args.database,
-                args.path,
             )
         )
     else:
