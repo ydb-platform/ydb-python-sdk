@@ -155,10 +155,10 @@ def select_prepared(pool, path, series_id, season_id, episode_id):
         data_query = ydb.types.DataQuery(
             query,
             parameters_types={
-                '$seriesId': ydb.types.PrimitiveType.Uint64,
-                '$seasonId': ydb.types.PrimitiveType.Uint64,
-                '$episodeId': ydb.types.PrimitiveType.Uint64,
-            }
+                "$seriesId": ydb.types.PrimitiveType.Uint64,
+                "$seasonId": ydb.types.PrimitiveType.Uint64,
+                "$episodeId": ydb.types.PrimitiveType.Uint64,
+            },
         )
 
         result_sets = session.transaction(ydb.SerializableReadWrite()).execute(
