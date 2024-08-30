@@ -152,6 +152,54 @@ def select_prepared(pool, path, series_id, season_id, episode_id):
             path
         )
 
+        data_query = ydb.types.DataQuery(
+            query,
+            parameters_types={
+                '$seriesId': ydb.types.PrimitiveType.Uint64,
+                '$seasonId': ydb.types.PrimitiveType.Uint64,
+                '$episodeId': ydb.types.PrimitiveType.Uint64,
+            }
+        )
+
+        result_sets = session.transaction(ydb.SerializableReadWrite()).execute(
+            data_query,
+            {
+                "$seriesId": series_id,
+                "$seasonId": season_id,
+                "$episodeId": episode_id,
+            },
+            commit_tx=True,
+            settings=ydb.table.ExecDataQuerySettings().with_keep_in_cache(True),
+        )
+        print("\n> select_prepared_transaction:")
+        for row in result_sets[0].rows:
+            print("episode title:", row.title, ", air date:", row.air_date)
+
+        return result_sets[0]
+
+    return pool.retry_operation_sync(callee)
+
+
+# Prepared query with session-based cache (obsolete)
+def select_prepared_session_based(pool, path, series_id, season_id, episode_id):
+    def callee(session):
+        query = """
+        PRAGMA TablePathPrefix("{}");
+
+        DECLARE $seriesId AS Uint64;
+        DECLARE $seasonId AS Uint64;
+        DECLARE $episodeId AS Uint64;
+
+        $format = DateTime::Format("%Y-%m-%d");
+        SELECT
+            title,
+            $format(DateTime::FromSeconds(CAST(DateTime::ToSeconds(DateTime::IntervalFromDays(CAST(air_date AS Int16))) AS Uint32))) AS air_date
+        FROM episodes
+        WHERE series_id = $seriesId AND season_id = $seasonId AND episode_id = $episodeId;
+        """.format(
+            path
+        )
+
         prepared_query = session.prepare(query)
         result_sets = session.transaction(ydb.SerializableReadWrite()).execute(
             prepared_query,
