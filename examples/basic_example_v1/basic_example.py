@@ -133,7 +133,7 @@ def upsert_simple(pool, path):
     return pool.retry_operation_sync(callee)
 
 
-def select_prepared(pool, path, series_id, season_id, episode_id):
+def select_parametrized(pool, path, series_id, season_id, episode_id):
     def callee(session):
         query = """
         PRAGMA TablePathPrefix("{}");
@@ -171,7 +171,7 @@ def select_prepared(pool, path, series_id, season_id, episode_id):
             commit_tx=True,
             settings=ydb.table.ExecDataQuerySettings().with_keep_in_cache(True),
         )
-        print("\n> select_prepared_transaction:")
+        print("\n> select_parametrized_transaction:")
         for row in result_sets[0].rows:
             print("episode title:", row.title, ", air date:", row.air_date)
 
@@ -180,8 +180,8 @@ def select_prepared(pool, path, series_id, season_id, episode_id):
     return pool.retry_operation_sync(callee)
 
 
-# Prepared query with session-based cache (obsolete)
-def select_prepared_session_based(pool, path, series_id, season_id, episode_id):
+# Prepared query with session-based cache
+def select_prepared(pool, path, series_id, season_id, episode_id):
     def callee(session):
         query = """
         PRAGMA TablePathPrefix("{}");
@@ -386,5 +386,8 @@ def run(endpoint, database, path):
             select_prepared(pool, full_path, 2, 3, 7)
             select_prepared(pool, full_path, 2, 3, 8)
 
+            select_parametrized(pool, full_path, 2, 3, 9)
+            select_parametrized(pool, full_path, 2, 3, 10)
+
             explicit_tcl(pool, full_path, 2, 6, 1)
-            select_prepared(pool, full_path, 2, 6, 1)
+            select_parametrized(pool, full_path, 2, 6, 1)
