@@ -133,6 +133,54 @@ def upsert_simple(pool, path):
     return pool.retry_operation_sync(callee)
 
 
+def select_parametrized(pool, path, series_id, season_id, episode_id):
+    def callee(session):
+        query = """
+        PRAGMA TablePathPrefix("{}");
+
+        DECLARE $seriesId AS Uint64;
+        DECLARE $seasonId AS Uint64;
+        DECLARE $episodeId AS Uint64;
+
+        $format = DateTime::Format("%Y-%m-%d");
+        SELECT
+            title,
+            $format(DateTime::FromSeconds(CAST(DateTime::ToSeconds(DateTime::IntervalFromDays(CAST(air_date AS Int16))) AS Uint32))) AS air_date
+        FROM episodes
+        WHERE series_id = $seriesId AND season_id = $seasonId AND episode_id = $episodeId;
+        """.format(
+            path
+        )
+
+        data_query = ydb.types.DataQuery(
+            query,
+            parameters_types={
+                "$seriesId": ydb.types.PrimitiveType.Uint64,
+                "$seasonId": ydb.types.PrimitiveType.Uint64,
+                "$episodeId": ydb.types.PrimitiveType.Uint64,
+            },
+        )
+
+        result_sets = session.transaction(ydb.SerializableReadWrite()).execute(
+            data_query,
+            {
+                "$seriesId": series_id,
+                "$seasonId": season_id,
+                "$episodeId": episode_id,
+            },
+            commit_tx=True,
+            settings=ydb.table.ExecDataQuerySettings().with_keep_in_cache(True),
+        )
+        print("\n> select_parametrized_transaction:")
+        for row in result_sets[0].rows:
+            print("episode title:", row.title, ", air date:", row.air_date)
+
+        return result_sets[0]
+
+    return pool.retry_operation_sync(callee)
+
+
+# Prepared query with session-based cache
 def select_prepared(pool, path, series_id, season_id, episode_id):
     def callee(session):
         query = """
@@ -338,5 +386,8 @@ def run(endpoint, database, path):
             select_prepared(pool, full_path, 2, 3, 7)
             select_prepared(pool, full_path, 2, 3, 8)
 
+            select_parametrized(pool, full_path, 2, 3, 9)
+            select_parametrized(pool, full_path, 2, 3, 10)
+
             explicit_tcl(pool, full_path, 2, 6, 1)
-            select_prepared(pool, full_path, 2, 6, 1)
+            select_parametrized(pool, full_path, 2, 6, 1)
