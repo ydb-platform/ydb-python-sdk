@@ -52,19 +52,20 @@ class TestQuerySessionPool:
         ids = set()
 
         for i in range(1, target_size + 1):
-            session = pool.acquire(timeout=0.5)
+            session = pool.acquire(timeout=0.1)
             assert pool._current_size == i
             assert session._state.session_id not in ids
             ids.add(session._state.session_id)
 
         with pytest.raises(ydb.SessionPoolEmpty):
-            pool.acquire(timeout=0.5)
+            pool.acquire(timeout=0.1)
 
+        last_id = session._state.session_id
         pool.release(session)
 
-        session = pool.acquire(timeout=0.5)
+        session = pool.acquire(timeout=0.1)
+        assert session._state.session_id == last_id
         assert pool._current_size == target_size
-        assert session._state.session_id in ids
 
     def test_checkout_do_not_increase_size(self, pool: QuerySessionPool):
         session_id = None
@@ -93,7 +94,7 @@ class TestQuerySessionPool:
         pool = ydb.QuerySessionPool(driver_sync, 1)
         docker_project.stop()
         try:
-            pool.acquire(timeout=0.5)
+            pool.acquire(timeout=0.1)
         except ydb.Error:
             pass
         assert pool._current_size == 0

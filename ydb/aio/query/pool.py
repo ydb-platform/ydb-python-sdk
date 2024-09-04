@@ -32,7 +32,7 @@ class QuerySessionPoolAsync:
         self._driver = driver
         self._size = size
         self._should_stop = asyncio.Event()
-        self._queue = asyncio.PriorityQueue()
+        self._queue = asyncio.Queue()
         self._current_size = 0
         self._waiters = 0
 
@@ -49,7 +49,7 @@ class QuerySessionPoolAsync:
 
         session = None
         try:
-            _, session = self._queue.get_nowait()
+            session = self._queue.get_nowait()
         except asyncio.QueueEmpty:
             pass
 
@@ -59,8 +59,9 @@ class QuerySessionPoolAsync:
             done, _ = await asyncio.wait((queue_get, task_stop), return_when=asyncio.FIRST_COMPLETED)
             if task_stop in done:
                 queue_get.cancel()
-                return await self._create_new_session()  # TODO: not sure why
-            _, session = queue_get.result()
+                return await self._create_new_session()
+            task_stop.cancel()
+            session = queue_get.result()
 
         if session is not None:
             if session._state.attached:
@@ -76,15 +77,15 @@ class QuerySessionPoolAsync:
         return session
 
     async def release(self, session: QuerySessionAsync) -> None:
-        self._queue.put_nowait((1, session))
+        self._queue.put_nowait(session)
         logger.debug("Session returned to queue: %s", session._state.session_id)
 
-    def checkout(self, timeout: Optional[float] = None) -> "SimpleQuerySessionCheckoutAsync":
+    def checkout(self) -> "SimpleQuerySessionCheckoutAsync":
         """WARNING: This API is experimental and could be changed.
         Return a Session context manager, that opens session on enter and closes session on exit.
         """
 
-        return SimpleQuerySessionCheckoutAsync(self, timeout)
+        return SimpleQuerySessionCheckoutAsync(self)
 
     async def retry_operation_async(
         self, callee: Callable, retry_settings: Optional[RetrySettings] = None, *args, **kwargs
@@ -135,13 +136,13 @@ class QuerySessionPoolAsync:
 
         return await retry_operation_async(wrapped_callee, retry_settings)
 
-    async def stop(self, timeout=None):
+    async def stop(self):
         self._should_stop.set()
 
         tasks = []
         while True:
             try:
-                _, session = self._queue.get_nowait()
+                session = self._queue.get_nowait()
                 tasks.append(session.delete())
             except asyncio.QueueEmpty:
                 break
@@ -158,16 +159,12 @@ class QuerySessionPoolAsync:
 
 
 class SimpleQuerySessionCheckoutAsync:
-    def __init__(self, pool: QuerySessionPoolAsync, timeout: Optional[float] = None):
+    def __init__(self, pool: QuerySessionPoolAsync):
         self._pool = pool
-        self._timeout = timeout
         self._session = None
 
     async def __aenter__(self) -> QuerySessionAsync:
-        if self._timeout and self._timeout > 0:
-            self._session = await self._pool.acquire_with_timeout(self._timeout)
-        else:
-            self._session = await self._pool.acquire()
+        self._session = await self._pool.acquire()
         return self._session
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):

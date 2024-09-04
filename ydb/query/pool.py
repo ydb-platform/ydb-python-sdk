@@ -34,7 +34,7 @@ class QuerySessionPool:
 
         logger.warning("QuerySessionPool is an experimental API, which could be changed.")
         self._driver = driver
-        self._queue = queue.PriorityQueue()
+        self._queue = queue.Queue()
         self._current_size = 0
         self._size = size
         self._should_stop = threading.Event()
@@ -54,14 +54,14 @@ class QuerySessionPool:
 
             session = None
             try:
-                _, session = self._queue.get_nowait()
+                session = self._queue.get_nowait()
             except queue.Empty:
                 pass
 
             start = time.monotonic()
             if session is None and self._current_size == self._size:
                 try:
-                    _, session = self._queue.get(block=True, timeout=timeout)
+                    session = self._queue.get(block=True, timeout=timeout)
                 except queue.Empty:
                     raise issues.SessionPoolEmpty("Timeout on acquire session")
 
@@ -83,7 +83,7 @@ class QuerySessionPool:
 
     def release(self, session: QuerySessionSync) -> None:
         with self._lock:
-            self._queue.put_nowait((1, session))
+            self._queue.put_nowait(session)
             logger.debug("Session returned to queue: %s", session._state.session_id)
 
     def checkout(self, timeout: float = 10) -> "SimpleQuerySessionCheckout":
@@ -145,7 +145,7 @@ class QuerySessionPool:
             self._should_stop.set()
             while True:
                 try:
-                    _, session = self._queue.get_nowait()
+                    session = self._queue.get_nowait()
                     session.delete()
                 except queue.Empty:
                     break

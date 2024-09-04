@@ -68,13 +68,14 @@ class TestQuerySessionPoolAsync:
             ids.add(session._state.session_id)
 
         with pytest.raises(asyncio.TimeoutError):
-            await asyncio.wait_for(pool.acquire(), timeout=0.5)
+            await asyncio.wait_for(pool.acquire(), timeout=0.1)
 
+        last_id = session._state.session_id
         await pool.release(session)
 
         session = await pool.acquire()
+        assert session._state.session_id == last_id
         assert pool._current_size == target_size
-        assert session._state.session_id in ids
 
     @pytest.mark.asyncio
     async def test_checkout_do_not_increase_size(self, pool: QuerySessionPoolAsync):
@@ -106,14 +107,14 @@ class TestQuerySessionPoolAsync:
     async def test_acquire_with_timeout_from_closed_pool_raises(self, pool: QuerySessionPoolAsync):
         await pool.stop()
         with pytest.raises(RuntimeError):
-            await asyncio.wait_for(pool.acquire(), timeout=0.5)
+            await asyncio.wait_for(pool.acquire(), timeout=0.1)
 
     @pytest.mark.asyncio
     async def test_no_session_leak(self, driver, docker_project):
         pool = ydb.aio.QuerySessionPoolAsync(driver, 1)
         docker_project.stop()
         try:
-            await asyncio.wait_for(pool.acquire(), timeout=0.5)
+            await asyncio.wait_for(pool.acquire(), timeout=0.1)
         except ydb.Error:
             pass
         assert pool._current_size == 0
