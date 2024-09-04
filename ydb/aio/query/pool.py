@@ -55,7 +55,13 @@ class QuerySessionPoolAsync:
             pass
 
         if session is None and self._current_size == self._size:
-            _, session = await self._queue.get()
+            queue_get = asyncio.ensure_future(self._queue.get())
+            task_stop = asyncio.ensure_future(asyncio.ensure_future(self._should_stop.wait()))
+            done, _ = await asyncio.wait((queue_get, task_stop), return_when=asyncio.FIRST_COMPLETED)
+            if task_stop in done:
+                queue_get.cancel()
+                return await self._create_new_session()  # TODO: not sure why
+            _, session = queue_get.result()
 
         if session is not None:
             if session._state.attached:
@@ -69,23 +75,6 @@ class QuerySessionPoolAsync:
         session = await self._create_new_session()
         self._current_size += 1
         return session
-
-    async def acquire_wih_timeout(self, timeout: float):
-        if self._should_stop.is_set():
-            logger.error("An attempt to take session from closed session pool.")
-            raise RuntimeError("An attempt to take session from closed session pool.")
-
-        try:
-            task_wait = asyncio.ensure_future(asyncio.wait_for(self.acquire(), timeout=timeout))
-            task_stop = asyncio.ensure_future(asyncio.ensure_future(self._should_stop.wait()))
-            done, _ = await asyncio.wait((task_wait, task_stop), return_when=asyncio.FIRST_COMPLETED)
-            if task_stop in done:
-                task_wait.cancel()
-                return await self._create_new_session()  # TODO: not sure why
-            session = task_wait.result()
-            return session
-        except asyncio.TimeoutError:
-            raise issues.SessionPoolEmpty("Timeout on acquire session")
 
     async def release(self, session: QuerySessionAsync) -> None:
         self._queue.put_nowait((1, session))
@@ -170,14 +159,14 @@ class QuerySessionPoolAsync:
 
 
 class SimpleQuerySessionCheckoutAsync:
-    def __init__(self, pool: QuerySessionPoolAsync, timeout: Optional[float]):
+    def __init__(self, pool: QuerySessionPoolAsync, timeout: Optional[float] = None):
         self._pool = pool
         self._timeout = timeout
         self._session = None
 
     async def __aenter__(self) -> QuerySessionAsync:
         if self._timeout and self._timeout > 0:
-            self._session = await self._pool.acquire_wih_timeout(self._timeout)
+            self._session = await self._pool.acquire_with_timeout(self._timeout)
         else:
             self._session = await self._pool.acquire()
         return self._session
