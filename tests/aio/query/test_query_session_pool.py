@@ -54,7 +54,6 @@ class TestQuerySessionPoolAsync:
         with pytest.raises(CustomException):
             await pool.retry_operation_async(callee)
 
-
     @pytest.mark.asyncio
     async def test_pool_size_limit_logic(self, pool: QuerySessionPoolAsync):
         target_size = 5
