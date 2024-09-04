@@ -17,6 +17,7 @@ from ..retries import (
 )
 from .. import issues
 from .. import convert
+from ..settings import BaseRequestSettings
 from .._grpc.grpcwrapper import common_utils
 
 
@@ -39,9 +40,9 @@ class QuerySessionPool:
         self._should_stop = threading.Event()
         self._lock = threading.RLock()
 
-    def _create_new_session(self):
+    def _create_new_session(self, timeout: float):
         session = QuerySessionSync(self._driver)
-        session.create()
+        session.create(settings=BaseRequestSettings().with_timeout(timeout))
         logger.debug(f"New session was created for pool. Session id: {session._state.session_id}")
         return session
 
@@ -73,12 +74,9 @@ class QuerySessionPool:
                     logger.debug(f"Acquired dead session from queue: {session._state.session_id}")
 
             logger.debug(f"Session pool is not large enough: {self._current_size} < {self._size}, will create new one.")
-            session = self._create_new_session()
-
             finish = time.monotonic()
-            if finish - start > timeout:
-                session.delete()
-                raise issues.SessionPoolEmpty("Timeout on acquire session")
+            time_left = timeout - (finish - start)
+            session = self._create_new_session(time_left)
 
             self._current_size += 1
             return session

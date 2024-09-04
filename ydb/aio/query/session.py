@@ -8,6 +8,7 @@ from .base import AsyncResponseContextIterator
 from .transaction import QueryTxContextAsync
 from .. import _utilities
 from ... import issues
+from ...settings import BaseRequestSettings
 from ..._grpc.grpcwrapper import common_utils
 from ..._grpc.grpcwrapper import ydb_query_public_types as _ydb_query_public
 
@@ -62,7 +63,7 @@ class QuerySessionAsync(BaseQuerySession):
                 self._state.reset()
                 self._state._change_state(QuerySessionStateEnum.CLOSED)
 
-    async def delete(self) -> None:
+    async def delete(self, settings: Optional[BaseRequestSettings] = None) -> None:
         """WARNING: This API is experimental and could be changed.
 
         Deletes a Session of Query Service on server side and releases resources.
@@ -73,10 +74,10 @@ class QuerySessionAsync(BaseQuerySession):
             return
 
         self._state._check_invalid_transition(QuerySessionStateEnum.CLOSED)
-        await self._delete_call()
+        await self._delete_call(settings=settings)
         self._stream.cancel()
 
-    async def create(self) -> "QuerySessionAsync":
+    async def create(self, settings: Optional[BaseRequestSettings] = None) -> "QuerySessionAsync":
         """WARNING: This API is experimental and could be changed.
 
         Creates a Session of Query Service on server side and attaches it.
@@ -87,7 +88,7 @@ class QuerySessionAsync(BaseQuerySession):
             return
 
         self._state._check_invalid_transition(QuerySessionStateEnum.CREATED)
-        await self._create_call()
+        await self._create_call(settings=settings)
         await self._attach()
 
         return self
@@ -110,6 +111,7 @@ class QuerySessionAsync(BaseQuerySession):
         syntax: base.QuerySyntax = None,
         exec_mode: base.QueryExecMode = None,
         concurrent_result_sets: bool = False,
+        settings: Optional[BaseRequestSettings] = None,
     ) -> AsyncResponseContextIterator:
         """WARNING: This API is experimental and could be changed.
 
@@ -132,6 +134,7 @@ class QuerySessionAsync(BaseQuerySession):
             exec_mode=exec_mode,
             parameters=parameters,
             concurrent_result_sets=concurrent_result_sets,
+            settings=settings,
         )
 
         return AsyncResponseContextIterator(

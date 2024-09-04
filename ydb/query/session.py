@@ -1,6 +1,7 @@
 import abc
 import enum
 import logging
+import time
 import threading
 from typing import (
     Iterable,
@@ -10,6 +11,7 @@ from typing import (
 from . import base
 
 from .. import _apis, issues, _utilities
+from ..settings import BaseRequestSettings
 from ..connection import _RpcState as RpcState
 from .._grpc.grpcwrapper import common_utils
 from .._grpc.grpcwrapper import ydb_query as _ydb_query
@@ -136,29 +138,32 @@ class BaseQuerySession:
         self._settings = settings if settings is not None else base.QueryClientSettings()
         self._state = QuerySessionState(settings)
 
-    def _create_call(self) -> "BaseQuerySession":
+    def _create_call(self, settings: Optional[BaseRequestSettings] = None) -> "BaseQuerySession":
         return self._driver(
             _apis.ydb_query.CreateSessionRequest(),
             _apis.QueryService.Stub,
             _apis.QueryService.CreateSession,
             wrap_result=wrapper_create_session,
             wrap_args=(self._state, self),
+            settings=settings,
         )
 
-    def _delete_call(self) -> "BaseQuerySession":
+    def _delete_call(self, settings: Optional[BaseRequestSettings] = None) -> "BaseQuerySession":
         return self._driver(
             _apis.ydb_query.DeleteSessionRequest(session_id=self._state.session_id),
             _apis.QueryService.Stub,
             _apis.QueryService.DeleteSession,
             wrap_result=wrapper_delete_session,
             wrap_args=(self._state, self),
+            settings=settings,
         )
 
-    def _attach_call(self) -> Iterable[_apis.ydb_query.SessionState]:
+    def _attach_call(self, settings: Optional[BaseRequestSettings] = None) -> Iterable[_apis.ydb_query.SessionState]:
         return self._driver(
             _apis.ydb_query.AttachSessionRequest(session_id=self._state.session_id),
             _apis.QueryService.Stub,
             _apis.QueryService.AttachSession,
+            settings=settings,
         )
 
     def _execute_call(
@@ -169,6 +174,7 @@ class BaseQuerySession:
         exec_mode: base.QueryExecMode = None,
         parameters: dict = None,
         concurrent_result_sets: bool = False,
+        settings: Optional[BaseRequestSettings] = None,
     ) -> Iterable[_apis.ydb_query.ExecuteQueryResponsePart]:
         request = base.create_execute_query_request(
             query=query,
@@ -186,6 +192,7 @@ class BaseQuerySession:
             request.to_proto(),
             _apis.QueryService.Stub,
             _apis.QueryService.ExecuteQuery,
+            settings=settings,
         )
 
 
@@ -196,8 +203,8 @@ class QuerySessionSync(BaseQuerySession):
 
     _stream = None
 
-    def _attach(self) -> None:
-        self._stream = self._attach_call()
+    def _attach(self, settings: Optional[BaseRequestSettings] = None) -> None:
+        self._stream = self._attach_call(settings=settings)
         status_stream = _utilities.SyncResponseIterator(
             self._stream,
             lambda response: common_utils.ServerStatus.from_proto(response),
@@ -228,7 +235,7 @@ class QuerySessionSync(BaseQuerySession):
                 self._state.reset()
                 self._state._change_state(QuerySessionStateEnum.CLOSED)
 
-    def delete(self) -> None:
+    def delete(self, settings: Optional[BaseRequestSettings] = None) -> None:
         """WARNING: This API is experimental and could be changed.
 
         Deletes a Session of Query Service on server side and releases resources.
@@ -239,10 +246,10 @@ class QuerySessionSync(BaseQuerySession):
             return
 
         self._state._check_invalid_transition(QuerySessionStateEnum.CLOSED)
-        self._delete_call()
+        self._delete_call(settings=settings)
         self._stream.cancel()
 
-    def create(self) -> "QuerySessionSync":
+    def create(self, settings: Optional[BaseRequestSettings] = None) -> "QuerySessionSync":
         """WARNING: This API is experimental and could be changed.
 
         Creates a Session of Query Service on server side and attaches it.
@@ -253,7 +260,8 @@ class QuerySessionSync(BaseQuerySession):
             return
 
         self._state._check_invalid_transition(QuerySessionStateEnum.CREATED)
-        self._create_call()
+
+        self._create_call(settings=settings)
         self._attach()
 
         return self
@@ -289,6 +297,7 @@ class QuerySessionSync(BaseQuerySession):
         syntax: base.QuerySyntax = None,
         exec_mode: base.QueryExecMode = None,
         concurrent_result_sets: bool = False,
+        settings: Optional[BaseRequestSettings] = None,
     ) -> base.SyncResponseContextIterator:
         """WARNING: This API is experimental and could be changed.
 
@@ -311,6 +320,7 @@ class QuerySessionSync(BaseQuerySession):
             exec_mode=exec_mode,
             parameters=parameters,
             concurrent_result_sets=concurrent_result_sets,
+            settings=settings,
         )
 
         return base.SyncResponseContextIterator(
