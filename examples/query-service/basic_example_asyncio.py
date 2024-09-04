@@ -15,7 +15,7 @@ async def main():
     except TimeoutError:
         raise RuntimeError("Connect failed to YDB")
 
-    pool = ydb.aio.QuerySessionPoolAsync(driver)
+    pool = ydb.aio.QuerySessionPool(driver)
 
     print("=" * 50)
     print("DELETE TABLE IF EXISTS")
@@ -83,7 +83,7 @@ async def main():
 
     await pool.retry_operation_async(callee)
 
-    async def callee(session: ydb.aio.QuerySessionAsync):
+    async def callee(session: ydb.aio.QuerySession):
         query_print = """select $a"""
 
         print("=" * 50)

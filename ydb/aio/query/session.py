@@ -5,7 +5,7 @@ from typing import (
 )
 
 from .base import AsyncResponseContextIterator
-from .transaction import QueryTxContextAsync
+from .transaction import QueryTxContext
 from .. import _utilities
 from ... import issues
 from ...settings import BaseRequestSettings
@@ -19,7 +19,7 @@ from ...query.session import (
 )
 
 
-class QuerySessionAsync(BaseQuerySession):
+class QuerySession(BaseQuerySession):
     """Session object for Query Service. It is not recommended to control
     session's lifecycle manually - use a QuerySessionPool is always a better choise.
     """
@@ -33,7 +33,7 @@ class QuerySessionAsync(BaseQuerySession):
         settings: Optional[base.QueryClientSettings] = None,
         loop: asyncio.AbstractEventLoop = None,
     ):
-        super(QuerySessionAsync, self).__init__(driver, settings)
+        super(QuerySession, self).__init__(driver, settings)
         self._loop = loop if loop is not None else asyncio.get_running_loop()
 
     async def _attach(self) -> None:
@@ -77,12 +77,12 @@ class QuerySessionAsync(BaseQuerySession):
         await self._delete_call(settings=settings)
         self._stream.cancel()
 
-    async def create(self, settings: Optional[BaseRequestSettings] = None) -> "QuerySessionAsync":
+    async def create(self, settings: Optional[BaseRequestSettings] = None) -> "QuerySession":
         """WARNING: This API is experimental and could be changed.
 
         Creates a Session of Query Service on server side and attaches it.
 
-        :return: QuerySessionSync object.
+        :return: QuerySession object.
         """
         if self._state._already_in(QuerySessionStateEnum.CREATED):
             return
@@ -93,11 +93,11 @@ class QuerySessionAsync(BaseQuerySession):
 
         return self
 
-    def transaction(self, tx_mode=None) -> QueryTxContextAsync:
+    def transaction(self, tx_mode=None) -> QueryTxContext:
         self._state._check_session_ready_to_use()
         tx_mode = tx_mode if tx_mode else _ydb_query_public.QuerySerializableReadWrite()
 
-        return QueryTxContextAsync(
+        return QueryTxContext(
             self._driver,
             self._state,
             self,

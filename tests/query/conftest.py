@@ -1,11 +1,11 @@
 import pytest
-from ydb.query.session import QuerySessionSync
+from ydb.query.session import QuerySession
 from ydb.query.pool import QuerySessionPool
 
 
 @pytest.fixture
 def session(driver_sync):
-    session = QuerySessionSync(driver_sync)
+    session = QuerySession(driver_sync)
 
     yield session
 

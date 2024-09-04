@@ -82,7 +82,7 @@ def main():
 
     pool.retry_operation_sync(callee)
 
-    def callee(session: ydb.QuerySessionSync):
+    def callee(session: ydb.QuerySession):
         query_print = """select $a"""
 
         print("=" * 50)

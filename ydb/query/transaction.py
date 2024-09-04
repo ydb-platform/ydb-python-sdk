@@ -294,7 +294,7 @@ class BaseQueryTxContext:
         self._tx_state._change_state(QueryTxStateEnum.COMMITTED)
 
 
-class QueryTxContextSync(BaseQueryTxContext):
+class QueryTxContext(BaseQueryTxContext):
     def __enter__(self) -> "BaseQueryTxContext":
         """
         Enters a context manager and returns a transaction
@@ -326,7 +326,7 @@ class QueryTxContextSync(BaseQueryTxContext):
                 pass
             self._prev_stream = None
 
-    def begin(self, settings: Optional[BaseRequestSettings] = None) -> "QueryTxContextSync":
+    def begin(self, settings: Optional[BaseRequestSettings] = None) -> "QueryTxContext":
         """WARNING: This API is experimental and could be changed.
 
         Explicitly begins a transaction

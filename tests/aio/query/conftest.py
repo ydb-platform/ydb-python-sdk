@@ -1,11 +1,11 @@
 import pytest
-from ydb.aio.query.session import QuerySessionAsync
-from ydb.aio.query.pool import QuerySessionPoolAsync
+from ydb.aio.query.session import QuerySession
+from ydb.aio.query.pool import QuerySessionPool
 
 
 @pytest.fixture
 async def session(driver):
-    session = QuerySessionAsync(driver)
+    session = QuerySession(driver)
 
     yield session
 
@@ -30,5 +30,5 @@ async def tx(session):
 
 @pytest.fixture
 async def pool(driver):
-    async with QuerySessionPoolAsync(driver) as pool:
+    async with QuerySessionPool(driver) as pool:
         yield pool

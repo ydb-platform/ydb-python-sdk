@@ -1,7 +1,7 @@
 import pytest
 import ydb
 from ydb.query.pool import QuerySessionPool
-from ydb.query.session import QuerySessionSync, QuerySessionStateEnum
+from ydb.query.session import QuerySession, QuerySessionStateEnum
 
 
 class TestQuerySessionPool:
@@ -22,13 +22,13 @@ class TestQuerySessionPool:
             pool.execute_with_retries("Is this the real life? Is this just fantasy?")
 
     def test_retry_op_uses_created_session(self, pool: QuerySessionPool):
-        def callee(session: QuerySessionSync):
+        def callee(session: QuerySession):
             assert session._state._state == QuerySessionStateEnum.CREATED
 
         pool.retry_operation_sync(callee)
 
     def test_retry_op_normal(self, pool: QuerySessionPool):
-        def callee(session: QuerySessionSync):
+        def callee(session: QuerySession):
             with session.transaction() as tx:
                 iterator = tx.execute("select 1;", commit_tx=True)
                 return [result_set for result_set in iterator]
@@ -40,7 +40,7 @@ class TestQuerySessionPool:
         class CustomException(Exception):
             pass
 
-        def callee(session: QuerySessionSync):
+        def callee(session: QuerySession):
             raise CustomException()
 
         with pytest.raises(CustomException):

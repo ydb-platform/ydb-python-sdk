@@ -16,7 +16,7 @@ from .._grpc.grpcwrapper import common_utils
 from .._grpc.grpcwrapper import ydb_query as _ydb_query
 from .._grpc.grpcwrapper import ydb_query_public_types as _ydb_query_public
 
-from .transaction import QueryTxContextSync
+from .transaction import QueryTxContext
 
 
 logger = logging.getLogger(__name__)
@@ -195,7 +195,7 @@ class BaseQuerySession:
         )
 
 
-class QuerySessionSync(BaseQuerySession):
+class QuerySession(BaseQuerySession):
     """Session object for Query Service. It is not recommended to control
     session's lifecycle manually - use a QuerySessionPool is always a better choise.
     """
@@ -248,12 +248,12 @@ class QuerySessionSync(BaseQuerySession):
         self._delete_call(settings=settings)
         self._stream.cancel()
 
-    def create(self, settings: Optional[BaseRequestSettings] = None) -> "QuerySessionSync":
+    def create(self, settings: Optional[BaseRequestSettings] = None) -> "QuerySession":
         """WARNING: This API is experimental and could be changed.
 
         Creates a Session of Query Service on server side and attaches it.
 
-        :return: QuerySessionSync object.
+        :return: QuerySession object.
         """
         if self._state._already_in(QuerySessionStateEnum.CREATED):
             return
@@ -265,7 +265,7 @@ class QuerySessionSync(BaseQuerySession):
 
         return self
 
-    def transaction(self, tx_mode: Optional[base.BaseQueryTxMode] = None) -> QueryTxContextSync:
+    def transaction(self, tx_mode: Optional[base.BaseQueryTxMode] = None) -> QueryTxContext:
         """WARNING: This API is experimental and could be changed.
 
         Creates a transaction context manager with specified transaction mode.
@@ -282,7 +282,7 @@ class QuerySessionSync(BaseQuerySession):
 
         tx_mode = tx_mode if tx_mode else _ydb_query_public.QuerySerializableReadWrite()
 
-        return QueryTxContextSync(
+        return QueryTxContext(
             self._driver,
             self._state,
             self,

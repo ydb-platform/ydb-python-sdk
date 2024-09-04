@@ -8,7 +8,7 @@ from typing import (
 )
 
 from .session import (
-    QuerySessionAsync,
+    QuerySession,
 )
 from ...retries import (
     RetrySettings,
@@ -20,8 +20,8 @@ from ..._grpc.grpcwrapper import common_utils
 logger = logging.getLogger(__name__)
 
 
-class QuerySessionPoolAsync:
-    """QuerySessionPoolAsync is an object to simplify operations with sessions of Query Service."""
+class QuerySessionPool:
+    """QuerySessionPool is an object to simplify operations with sessions of Query Service."""
 
     def __init__(self, driver: common_utils.SupportedDriverType, size: int = 100):
         """
@@ -29,7 +29,7 @@ class QuerySessionPoolAsync:
         :param size: Size of session pool
         """
 
-        logger.warning("QuerySessionPoolAsync is an experimental API, which could be changed.")
+        logger.warning("QuerySessionPool is an experimental API, which could be changed.")
         self._driver = driver
         self._size = size
         self._should_stop = asyncio.Event()
@@ -39,12 +39,12 @@ class QuerySessionPoolAsync:
         self._loop = asyncio.get_running_loop()
 
     async def _create_new_session(self):
-        session = QuerySessionAsync(self._driver)
+        session = QuerySession(self._driver)
         await session.create()
         logger.debug(f"New session was created for pool. Session id: {session._state.session_id}")
         return session
 
-    async def acquire(self) -> QuerySessionAsync:
+    async def acquire(self) -> QuerySession:
         if self._should_stop.is_set():
             logger.error("An attempt to take session from closed session pool.")
             raise RuntimeError("An attempt to take session from closed session pool.")
@@ -78,7 +78,7 @@ class QuerySessionPoolAsync:
         self._current_size += 1
         return session
 
-    async def release(self, session: QuerySessionAsync) -> None:
+    async def release(self, session: QuerySession) -> None:
         self._queue.put_nowait(session)
         logger.debug("Session returned to queue: %s", session._state.session_id)
 
@@ -167,11 +167,11 @@ class QuerySessionPoolAsync:
 
 
 class SimpleQuerySessionCheckoutAsync:
-    def __init__(self, pool: QuerySessionPoolAsync):
+    def __init__(self, pool: QuerySessionPool):
         self._pool = pool
         self._session = None
 
-    async def __aenter__(self) -> QuerySessionAsync:
+    async def __aenter__(self) -> QuerySession:
         self._session = await self._pool.acquire()
         return self._session
 

@@ -9,7 +9,7 @@ import threading
 import queue
 
 from .session import (
-    QuerySessionSync,
+    QuerySession,
 )
 from ..retries import (
     RetrySettings,
@@ -41,12 +41,12 @@ class QuerySessionPool:
         self._lock = threading.RLock()
 
     def _create_new_session(self, timeout: float):
-        session = QuerySessionSync(self._driver)
+        session = QuerySession(self._driver)
         session.create(settings=BaseRequestSettings().with_timeout(timeout))
         logger.debug(f"New session was created for pool. Session id: {session._state.session_id}")
         return session
 
-    def acquire(self, timeout: float) -> QuerySessionSync:
+    def acquire(self, timeout: float) -> QuerySession:
         acquired = self._lock.acquire(timeout=timeout)
         try:
             if self._should_stop.is_set():
@@ -85,7 +85,7 @@ class QuerySessionPool:
             if acquired:
                 self._lock.release()
 
-    def release(self, session: QuerySessionSync) -> None:
+    def release(self, session: QuerySession) -> None:
         self._queue.put_nowait(session)
         logger.debug("Session returned to queue: %s", session._state.session_id)
 
@@ -175,7 +175,7 @@ class SimpleQuerySessionCheckout:
         self._timeout = timeout
         self._session = None
 
-    def __enter__(self) -> QuerySessionSync:
+    def __enter__(self) -> QuerySession:
         self._session = self._pool.acquire(self._timeout)
         return self._session
 

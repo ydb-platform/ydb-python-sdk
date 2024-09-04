@@ -5,7 +5,7 @@ __all__ = [
     "QueryStaleReadOnly",
     "QuerySessionPool",
     "QueryClientSync",
-    "QuerySessionSync",
+    "QuerySession",
 ]
 
 import logging
@@ -14,7 +14,7 @@ from .base import (
     QueryClientSettings,
 )
 
-from .session import QuerySessionSync
+from .session import QuerySession
 
 from .._grpc.grpcwrapper import common_utils
 from .._grpc.grpcwrapper.ydb_query_public_types import (
@@ -35,5 +35,5 @@ class QueryClientSync:
         self._driver = driver
         self._settings = query_client_settings
 
-    def session(self) -> QuerySessionSync:
-        return QuerySessionSync(self._driver, self._settings)
+    def session(self) -> QuerySession:
+        return QuerySession(self._driver, self._settings)
