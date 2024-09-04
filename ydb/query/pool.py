@@ -47,7 +47,8 @@ class QuerySessionPool:
         return session
 
     def acquire(self, timeout: float) -> QuerySessionSync:
-        with self._lock:
+        acquired = self._lock.acquire(timeout=timeout)
+        try:
             if self._should_stop.is_set():
                 logger.error("An attempt to take session from closed session pool.")
                 raise RuntimeError("An attempt to take session from closed session pool.")
@@ -80,11 +81,13 @@ class QuerySessionPool:
 
             self._current_size += 1
             return session
+        finally:
+            if acquired:
+                self._lock.release()
 
     def release(self, session: QuerySessionSync) -> None:
-        with self._lock:
-            self._queue.put_nowait(session)
-            logger.debug("Session returned to queue: %s", session._state.session_id)
+        self._queue.put_nowait(session)
+        logger.debug("Session returned to queue: %s", session._state.session_id)
 
     def checkout(self, timeout: float = 10) -> "SimpleQuerySessionCheckout":
         """WARNING: This API is experimental and could be changed.
@@ -140,8 +143,9 @@ class QuerySessionPool:
 
         return retry_operation_sync(wrapped_callee, retry_settings)
 
-    def stop(self, timeout=None):
-        with self._lock:
+    def stop(self, timeout=-1):
+        acquired = self._lock.acquire(timeout=timeout)
+        try:
             self._should_stop.set()
             while True:
                 try:
@@ -151,11 +155,17 @@ class QuerySessionPool:
                     break
 
             logger.debug("All session were deleted.")
+        finally:
+            if acquired:
+                self._lock.release()
 
     def __enter__(self):
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
+        self.stop()
+
+    def __del__(self):
         self.stop()
 
 

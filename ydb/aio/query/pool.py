@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import functools
 from typing import (
     Callable,
     Optional,
@@ -35,6 +36,7 @@ class QuerySessionPoolAsync:
         self._queue = asyncio.Queue()
         self._current_size = 0
         self._waiters = 0
+        self._loop = asyncio.get_running_loop()
 
     async def _create_new_session(self):
         session = QuerySessionAsync(self._driver)
@@ -156,6 +158,12 @@ class QuerySessionPoolAsync:
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         await self.stop()
+
+    def __del__(self):
+        if self._should_stop.is_set() or self._loop.is_closed():
+            return
+
+        self._loop.call_soon(functools.partial(self.stop))
 
 
 class SimpleQuerySessionCheckoutAsync:
