@@ -50,30 +50,30 @@ class QuerySessionPool:
                 logger.error("An attempt to take session from closed session pool.")
                 raise RuntimeError("An attempt to take session from closed session pool.")
 
+            session = None
             try:
                 _, session = self._queue.get_nowait()
+            except queue.Empty:
+                pass
+
+            if session is None and self._current_size == self._size:
+                try:
+                    _, session = self._queue.get(block=True, timeout=timeout)
+                except queue.Empty:
+                    raise issues.SessionPoolEmpty("Timeout on acquire session")
+
+            if session is not None:
                 if session._state.attached:
                     logger.debug(f"Acquired active session from queue: {session._state.session_id}")
                     return session
                 else:
                     self._current_size -= 1
                     logger.debug(f"Acquired dead session from queue: {session._state.session_id}")
-            except queue.Empty:
-                pass
 
-            if self._current_size < self._size:
-                logger.debug(
-                    f"Session pool is not large enough: {self._current_size} < {self._size}, will create new one."
-                )
-                session = self._create_new_session()
-                self._current_size += 1
-                return session
-
-            try:
-                _, session = self._queue.get(block=True, timeout=timeout)
-                return session if session._state.attached else self._create_new_session()
-            except queue.Empty:
-                raise issues.SessionPoolEmpty("Timeout on acquire session")
+            logger.debug(f"Session pool is not large enough: {self._current_size} < {self._size}, will create new one.")
+            session = self._create_new_session()
+            self._current_size += 1
+            return session
 
     def release(self, session: QuerySessionSync) -> None:
         with self._lock:
