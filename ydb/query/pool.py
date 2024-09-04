@@ -79,6 +79,7 @@ class QuerySessionPool:
             if finish - start > timeout:
                 session.delete()
                 raise issues.SessionPoolEmpty("Timeout on acquire session")
+
             self._current_size += 1
             return session
 

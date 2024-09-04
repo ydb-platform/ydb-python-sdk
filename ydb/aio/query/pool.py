@@ -85,7 +85,7 @@ class QuerySessionPoolAsync:
             session = task_wait.result()
             return session
         except asyncio.TimeoutError:
-                raise issues.SessionPoolEmpty("Timeout on acquire session")
+            raise issues.SessionPoolEmpty("Timeout on acquire session")
 
     async def release(self, session: QuerySessionAsync) -> None:
         self._queue.put_nowait((1, session))
