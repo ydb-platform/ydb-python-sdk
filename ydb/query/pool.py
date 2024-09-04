@@ -58,7 +58,9 @@ class QuerySessionPool:
                 pass
 
             if self._current_size < self._size:
-                logger.debug(f"Session pool is not large enough: {self._current_size} < {self._size}, will create new one.")
+                logger.debug(
+                    f"Session pool is not large enough: {self._current_size} < {self._size}, will create new one."
+                )
                 session = self._create_new_session()
                 self._current_size += 1
                 return session
@@ -139,7 +141,6 @@ class QuerySessionPool:
                     break
 
             logger.debug("All session were deleted.")
-
 
     def __enter__(self):
         return self
