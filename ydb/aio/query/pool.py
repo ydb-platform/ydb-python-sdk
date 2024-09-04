@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 class QuerySessionPoolAsync:
     """QuerySessionPoolAsync is an object to simplify operations with sessions of Query Service."""
 
-    def __init__(self, driver: common_utils.SupportedDriverType, size: int = 10):
+    def __init__(self, driver: common_utils.SupportedDriverType, size: int = 100):
         """
         :param driver: A driver instance
         :param size: Size of session pool
