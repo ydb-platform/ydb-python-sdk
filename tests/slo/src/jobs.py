@@ -182,7 +182,7 @@ def run_read_jobs_query(args, driver, tb_name, max_id, metrics):
     futures = []
     for _ in range(args.read_threads):
         future = threading.Thread(
-            name="slo_run_read",
+            name="slo_run_read_query",
             target=run_reads_query,
             args=(driver, read_q, max_id, metrics, read_limiter, args.time, args.read_timeout / 1000),
         )
@@ -306,7 +306,7 @@ def run_write_jobs_query(args, driver, tb_name, max_id, metrics):
     futures = []
     for _ in range(args.write_threads):
         future = threading.Thread(
-            name="slo_run_write",
+            name="slo_run_write_query",
             target=run_writes_query,
             args=(driver, write_q, row_generator, metrics, write_limiter, args.time, args.write_timeout / 1000),
         )
