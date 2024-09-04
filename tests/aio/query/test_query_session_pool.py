@@ -53,3 +53,45 @@ class TestQuerySessionPoolAsync:
 
         with pytest.raises(CustomException):
             await pool.retry_operation_async(callee)
+
+
+    @pytest.mark.asyncio
+    async def test_pool_size_limit_logic(self, pool: QuerySessionPoolAsync):
+        target_size = 5
+        pool._size = target_size
+        ids = set()
+
+        for i in range(1, target_size + 1):
+            session = await pool.acquire(timeout=0.5)
+            assert pool._current_size == i
+            assert session._state.session_id not in ids
+            ids.add(session._state.session_id)
+
+        with pytest.raises(ydb.SessionPoolEmpty):
+            await pool.acquire(timeout=0.5)
+
+        await pool.release(session)
+
+        session = await pool.acquire(timeout=0.5)
+        assert pool._current_size == target_size
+        assert session._state.session_id in ids
+
+    @pytest.mark.asyncio
+    async def test_checkout_do_not_increase_size(self, pool: QuerySessionPoolAsync):
+        session_id = None
+        for _ in range(10):
+            async with pool.checkout() as session:
+                if session_id is None:
+                    session_id = session._state.session_id
+                assert pool._current_size == 1
+                assert session_id == session._state.session_id
+
+    @pytest.mark.asyncio
+    async def test_pool_recreates_bad_sessions(self, pool: QuerySessionPoolAsync):
+        async with pool.checkout() as session:
+            session_id = session._state.session_id
+            await session.delete()
+
+        async with pool.checkout() as session:
+            assert session_id != session._state.session_id
+            assert pool._current_size == 1

@@ -51,7 +51,7 @@ class QuerySessionPoolAsync:
         try:
             _, session = self._queue.get_nowait()
             logger.debug(f"Acquired active session from queue: {session._state.session_id}")
-            return session
+            return session if session._state.attached else await self._create_new_session()
         except asyncio.QueueEmpty:
             pass
 
@@ -64,7 +64,7 @@ class QuerySessionPoolAsync:
         try:
             self._waiters += 1
             session = await self._get_session_with_timeout(timeout)
-            return session
+            return session if session._state.attached else await self._create_new_session()
         except asyncio.TimeoutError:
             raise issues.SessionPoolEmpty("Timeout on acquire session")
         finally:

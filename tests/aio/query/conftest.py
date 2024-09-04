@@ -29,6 +29,6 @@ async def tx(session):
 
 
 @pytest.fixture
-def pool(driver):
-    pool = QuerySessionPoolAsync(driver)
-    yield pool
+async def pool(driver):
+    async with QuerySessionPoolAsync(driver) as pool:
+        yield pool
