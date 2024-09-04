@@ -243,6 +243,7 @@ def run(endpoint, database):
         endpoint=endpoint,
         database=database,
         credentials=ydb.credentials_from_env_variables(),
+        root_certificates=ydb.load_ydb_root_certificate(),
     ) as driver:
         driver.wait(timeout=5, fail_fast=True)
 
