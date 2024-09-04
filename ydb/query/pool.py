@@ -4,6 +4,8 @@ from typing import (
     Optional,
     List,
 )
+import threading
+import queue
 
 from .session import (
     QuerySessionSync,
@@ -12,6 +14,7 @@ from ..retries import (
     RetrySettings,
     retry_operation_sync,
 )
+from .. import issues
 from .. import convert
 from .._grpc.grpcwrapper import common_utils
 
@@ -22,20 +25,61 @@ logger = logging.getLogger(__name__)
 class QuerySessionPool:
     """QuerySessionPool is an object to simplify operations with sessions of Query Service."""
 
-    def __init__(self, driver: common_utils.SupportedDriverType):
+    def __init__(self, driver: common_utils.SupportedDriverType, size: int = 10):
         """
         :param driver: A driver instance
         """
 
         logger.warning("QuerySessionPool is an experimental API, which could be changed.")
         self._driver = driver
+        self._queue = queue.PriorityQueue()
+        self._current_size = 0
+        self._size = size
+        self._should_stop = threading.Event()
+        self._lock = threading.RLock()
 
-    def checkout(self) -> "SimpleQuerySessionCheckout":
+    def _create_new_session(self):
+        session = QuerySessionSync(self._driver)
+        session.create()
+        logger.debug(f"New session was created for pool. Session id: {session._state.session_id}")
+        return session
+
+    def acquire(self, timeout: float) -> QuerySessionSync:
+        with self._lock:
+            if self._should_stop.is_set():
+                logger.error("An attempt to take session from closed session pool.")
+                raise RuntimeError("An attempt to take session from closed session pool.")
+
+            try:
+                _, session = self._queue.get_nowait()
+                logger.debug(f"Acquired active session from queue: {session._state.session_id}")
+                return session if session._state.attached else self._create_new_session()
+            except queue.Empty:
+                pass
+
+            if self._current_size < self._size:
+                logger.debug(f"Session pool is not large enough: {self._current_size} < {self._size}, will create new one.")
+                session = self._create_new_session()
+                self._current_size += 1
+                return session
+
+            try:
+                _, session = self._queue.get(block=True, timeout=timeout)
+                return session if session._state.attached else self._create_new_session()
+            except queue.Empty:
+                raise issues.SessionPoolEmpty("Timeout on acquire session")
+
+    def release(self, session: QuerySessionSync) -> None:
+        with self._lock:
+            self._queue.put_nowait((1, session))
+            logger.debug("Session returned to queue: %s", session._state.session_id)
+
+    def checkout(self, timeout: float = 10) -> "SimpleQuerySessionCheckout":
         """WARNING: This API is experimental and could be changed.
         Return a Session context manager, that opens session on enter and closes session on exit.
         """
 
-        return SimpleQuerySessionCheckout(self)
+        return SimpleQuerySessionCheckout(self, timeout)
 
     def retry_operation_sync(self, callee: Callable, retry_settings: Optional[RetrySettings] = None, *args, **kwargs):
         """WARNING: This API is experimental and could be changed.
@@ -85,7 +129,17 @@ class QuerySessionPool:
         return retry_operation_sync(wrapped_callee, retry_settings)
 
     def stop(self, timeout=None):
-        pass  # TODO: implement
+        with self._lock:
+            self._should_stop.set()
+            while True:
+                try:
+                    _, session = self._queue.get_nowait()
+                    session.delete()
+                except queue.Empty:
+                    break
+
+            logger.debug("All session were deleted.")
+
 
     def __enter__(self):
         return self
@@ -95,13 +149,14 @@ class QuerySessionPool:
 
 
 class SimpleQuerySessionCheckout:
-    def __init__(self, pool: QuerySessionPool):
+    def __init__(self, pool: QuerySessionPool, timeout: float):
         self._pool = pool
-        self._session = QuerySessionSync(pool._driver)
+        self._timeout = timeout
+        self._session = None
 
     def __enter__(self) -> QuerySessionSync:
-        self._session.create()
+        self._session = self._pool.acquire(self._timeout)
         return self._session
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        self._session.delete()
+        self._pool.release(self._session)
