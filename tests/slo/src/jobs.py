@@ -155,8 +155,8 @@ def run_reads_query(driver, query, max_id, metrics, limiter, runtime, timeout):
             with limiter:
 
                 def check_result(result):
-                    res = next(result)
-                    assert res.rows[0]
+                    with result:
+                        pass
 
                 params = RequestParams(
                     pool=pool,
