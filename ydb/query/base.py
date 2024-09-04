@@ -192,4 +192,3 @@ def wrap_execute_query_response(
     if tx and commit_tx:
         tx._move_to_commited()
     return convert.ResultSet.from_message(response_pb.result_set, settings)
-
