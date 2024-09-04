@@ -43,7 +43,7 @@ class QuerySessionPoolAsync:
         logger.debug(f"New session was created for pool. Session id: {session._state.session_id}")
         return session
 
-    async def acquire(self, timeout: float) -> QuerySessionAsync:
+    async def acquire(self) -> QuerySessionAsync:
         if self._should_stop.is_set():
             logger.error("An attempt to take session from closed session pool.")
             raise RuntimeError("An attempt to take session from closed session pool.")
@@ -55,13 +55,7 @@ class QuerySessionPoolAsync:
             pass
 
         if session is None and self._current_size == self._size:
-            try:
-                self._waiters += 1
-                session = await self._get_session_with_timeout(timeout)
-            except asyncio.TimeoutError:
-                raise issues.SessionPoolEmpty("Timeout on acquire session")
-            finally:
-                self._waiters -= 1
+            _, session = await self._queue.get()
 
         if session is not None:
             if session._state.attached:
@@ -76,21 +70,28 @@ class QuerySessionPoolAsync:
         self._current_size += 1
         return session
 
-    async def _get_session_with_timeout(self, timeout: float):
-        task_wait = asyncio.ensure_future(asyncio.wait_for(self._queue.get(), timeout=timeout))
-        task_stop = asyncio.ensure_future(asyncio.ensure_future(self._should_stop.wait()))
-        done, _ = await asyncio.wait((task_wait, task_stop), return_when=asyncio.FIRST_COMPLETED)
-        if task_stop in done:
-            task_wait.cancel()
-            return await self._create_new_session()  # TODO: not sure why
-        _, session = task_wait.result()
-        return session
+    async def acquire_wih_timeout(self, timeout: float):
+        if self._should_stop.is_set():
+            logger.error("An attempt to take session from closed session pool.")
+            raise RuntimeError("An attempt to take session from closed session pool.")
+
+        try:
+            task_wait = asyncio.ensure_future(asyncio.wait_for(self.acquire(), timeout=timeout))
+            task_stop = asyncio.ensure_future(asyncio.ensure_future(self._should_stop.wait()))
+            done, _ = await asyncio.wait((task_wait, task_stop), return_when=asyncio.FIRST_COMPLETED)
+            if task_stop in done:
+                task_wait.cancel()
+                return await self._create_new_session()  # TODO: not sure why
+            session = task_wait.result()
+            return session
+        except asyncio.TimeoutError:
+                raise issues.SessionPoolEmpty("Timeout on acquire session")
 
     async def release(self, session: QuerySessionAsync) -> None:
         self._queue.put_nowait((1, session))
         logger.debug("Session returned to queue: %s", session._state.session_id)
 
-    def checkout(self, timeout: float = 10) -> "SimpleQuerySessionCheckoutAsync":
+    def checkout(self, timeout: Optional[float] = None) -> "SimpleQuerySessionCheckoutAsync":
         """WARNING: This API is experimental and could be changed.
         Return a Session context manager, that opens session on enter and closes session on exit.
         """
@@ -169,13 +170,16 @@ class QuerySessionPoolAsync:
 
 
 class SimpleQuerySessionCheckoutAsync:
-    def __init__(self, pool: QuerySessionPoolAsync, timeout: float):
+    def __init__(self, pool: QuerySessionPoolAsync, timeout: Optional[float]):
         self._pool = pool
         self._timeout = timeout
         self._session = None
 
     async def __aenter__(self) -> QuerySessionAsync:
-        self._session = await self._pool.acquire(self._timeout)
+        if self._timeout and self._timeout > 0:
+            self._session = await self._pool.acquire_wih_timeout(self._timeout)
+        else:
+            self._session = await self._pool.acquire()
         return self._session
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):

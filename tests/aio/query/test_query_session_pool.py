@@ -61,17 +61,17 @@ class TestQuerySessionPoolAsync:
         ids = set()
 
         for i in range(1, target_size + 1):
-            session = await pool.acquire(timeout=0.5)
+            session = await pool.acquire_wih_timeout(timeout=0.5)
             assert pool._current_size == i
             assert session._state.session_id not in ids
             ids.add(session._state.session_id)
 
         with pytest.raises(ydb.SessionPoolEmpty):
-            await pool.acquire(timeout=0.5)
+            await pool.acquire_wih_timeout(timeout=0.5)
 
         await pool.release(session)
 
-        session = await pool.acquire(timeout=0.5)
+        session = await pool.acquire_wih_timeout(timeout=0.5)
         assert pool._current_size == target_size
         assert session._state.session_id in ids
 
@@ -99,14 +99,20 @@ class TestQuerySessionPoolAsync:
     async def test_acquire_from_closed_pool_raises(self, pool: QuerySessionPoolAsync):
         await pool.stop()
         with pytest.raises(RuntimeError):
-            await pool.acquire(1)
+            await pool.acquire()
+
+    @pytest.mark.asyncio
+    async def test_acquire_with_timeout_from_closed_pool_raises(self, pool: QuerySessionPoolAsync):
+        await pool.stop()
+        with pytest.raises(RuntimeError):
+            await pool.acquire_wih_timeout(timeout=0.5)
 
     @pytest.mark.asyncio
     async def test_no_session_leak(self, driver, docker_project):
         pool = ydb.aio.QuerySessionPoolAsync(driver, 1)
         docker_project.stop()
         try:
-            await pool.acquire(timeout=0.5)
+            await pool.acquire_wih_timeout(timeout=0.5)
         except ydb.Error:
             pass
         assert pool._current_size == 0
