@@ -1,3 +1,4 @@
+import asyncio
 import logging
 from typing import (
     Callable,
@@ -8,6 +9,7 @@ from typing import (
 from .session import (
     QuerySessionAsync,
 )
+from ... import issues
 from ...retries import (
     RetrySettings,
     retry_operation_async,
@@ -21,20 +23,73 @@ logger = logging.getLogger(__name__)
 class QuerySessionPoolAsync:
     """QuerySessionPoolAsync is an object to simplify operations with sessions of Query Service."""
 
-    def __init__(self, driver: common_utils.SupportedDriverType):
+    def __init__(self, driver: common_utils.SupportedDriverType, size: int = 10):
         """
         :param driver: A driver instance
+        :param size: Size of session pool
         """
 
         logger.warning("QuerySessionPoolAsync is an experimental API, which could be changed.")
         self._driver = driver
+        self._size = size
+        self._should_stop = asyncio.Event()
+        self._queue = asyncio.PriorityQueue()
+        self._current_size = 0
+        self._waiters = 0
 
-    def checkout(self) -> "SimpleQuerySessionCheckoutAsync":
+    async def _create_new_session(self):
+        session = QuerySessionAsync(self._driver)
+        await session.create()
+        logger.debug(f"New session was created for pool. Session id: {session._state.session_id}")
+        return session
+
+    async def acquire(self, timeout: float) -> QuerySessionAsync:
+        if self._should_stop.is_set():
+            logger.error("An attempt to take session from closed session pool.")
+            raise RuntimeError("An attempt to take session from closed session pool.")
+
+        try:
+            _, session = self._queue.get_nowait()
+            logger.debug(f"Acquired active session from queue: {session._state.session_id}")
+            return session
+        except asyncio.QueueEmpty:
+            pass
+
+        if self._current_size < self._size:
+            logger.debug(f"Session pool is not large enough: {self._current_size} < {self._size}, will create new one.")
+            session = await self._create_new_session()
+            self._current_size += 1
+            return session
+
+        try:
+            self._waiters += 1
+            session = await self._get_session_with_timeout(timeout)
+            return session
+        except asyncio.TimeoutError:
+            raise issues.SessionPoolEmpty("Timeout on acquire session")
+        finally:
+            self._waiters -= 1
+
+    async def _get_session_with_timeout(self, timeout: float):
+        task_wait = asyncio.ensure_future(asyncio.wait_for(self._queue.get(), timeout=timeout))
+        task_stop = asyncio.ensure_future(asyncio.ensure_future(self._should_stop.wait()))
+        done, _ = await asyncio.wait((task_wait, task_stop), return_when=asyncio.FIRST_COMPLETED)
+        if task_stop in done:
+            task_wait.cancel()
+            return await self._create_new_session()  # TODO: not sure why
+        _, session = task_wait.result()
+        return session
+
+    async def release(self, session: QuerySessionAsync) -> None:
+        self._queue.put_nowait((1, session))
+        logger.debug("Session returned to queue: %s", session._state.session_id)
+
+    def checkout(self, timeout: float = 10) -> "SimpleQuerySessionCheckoutAsync":
         """WARNING: This API is experimental and could be changed.
         Return a Session context manager, that opens session on enter and closes session on exit.
         """
 
-        return SimpleQuerySessionCheckoutAsync(self)
+        return SimpleQuerySessionCheckoutAsync(self, timeout)
 
     async def retry_operation_async(
         self, callee: Callable, retry_settings: Optional[RetrySettings] = None, *args, **kwargs
@@ -86,7 +141,19 @@ class QuerySessionPoolAsync:
         return await retry_operation_async(wrapped_callee, retry_settings)
 
     async def stop(self, timeout=None):
-        pass  # TODO: implement
+        self._should_stop.set()
+
+        tasks = []
+        while True:
+            try:
+                _, session = self._queue.get_nowait()
+                tasks.append(session.delete())
+            except asyncio.QueueEmpty:
+                break
+
+        await asyncio.gather(*tasks)
+
+        logger.debug("All session were deleted.")
 
     async def __aenter__(self):
         return self
@@ -96,13 +163,14 @@ class QuerySessionPoolAsync:
 
 
 class SimpleQuerySessionCheckoutAsync:
-    def __init__(self, pool: QuerySessionPoolAsync):
+    def __init__(self, pool: QuerySessionPoolAsync, timeout: float):
         self._pool = pool
-        self._session = QuerySessionAsync(pool._driver)
+        self._timeout = timeout
+        self._session = None
 
     async def __aenter__(self) -> QuerySessionAsync:
-        await self._session.create()
+        self._session = await self._pool.acquire(self._timeout)
         return self._session
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):
-        await self._session.delete()
+        await self._pool.release(self._session)
