@@ -9,7 +9,6 @@ from typing import (
 from .session import (
     QuerySessionAsync,
 )
-from ... import issues
 from ...retries import (
     RetrySettings,
     retry_operation_async,
