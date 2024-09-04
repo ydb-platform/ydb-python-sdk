@@ -94,3 +94,22 @@ class TestQuerySessionPoolAsync:
         async with pool.checkout() as session:
             assert session_id != session._state.session_id
             assert pool._current_size == 1
+
+    @pytest.mark.asyncio
+    async def test_acquire_from_closed_pool_raises(self, pool: QuerySessionPoolAsync):
+        await pool.stop()
+        with pytest.raises(RuntimeError):
+            await pool.acquire(1)
+
+    @pytest.mark.asyncio
+    async def test_no_session_leak(self, driver, docker_project):
+        pool = ydb.aio.QuerySessionPoolAsync(driver, 1)
+        docker_project.stop()
+        try:
+            await pool.acquire(timeout=0.5)
+        except ydb.Error:
+            pass
+        assert pool._current_size == 0
+
+        docker_project.start()
+        await pool.stop()
