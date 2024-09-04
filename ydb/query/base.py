@@ -187,8 +187,9 @@ def wrap_execute_query_response(
     settings: Optional[QueryClientSettings] = None,
 ) -> convert.ResultSet:
     issues._process_response(response_pb)
-    if tx and response_pb.tx_meta and not tx.tx_id:
-        tx._move_to_beginned(response_pb.tx_meta.id)
     if tx and commit_tx:
         tx._move_to_commited()
+    elif tx and response_pb.tx_meta and not tx.tx_id:
+        tx._move_to_beginned(response_pb.tx_meta.id)
+
     return convert.ResultSet.from_message(response_pb.result_set, settings)
