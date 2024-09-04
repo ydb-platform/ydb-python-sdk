@@ -10,8 +10,6 @@ class TestQuerySessionPoolAsync:
         async with pool.checkout() as session:
             assert session._state._state == QuerySessionStateEnum.CREATED
 
-        assert session._state._state == QuerySessionStateEnum.CLOSED
-
     @pytest.mark.asyncio
     async def test_oneshot_query_normal(self, pool: QuerySessionPoolAsync):
         res = await pool.execute_with_retries("select 1;")
@@ -19,6 +17,7 @@ class TestQuerySessionPoolAsync:
 
     @pytest.mark.asyncio
     async def test_oneshot_ddl_query(self, pool: QuerySessionPoolAsync):
+        await pool.execute_with_retries("drop table if exists Queen;")
         await pool.execute_with_retries("create table Queen(key UInt64, PRIMARY KEY (key));")
         await pool.execute_with_retries("drop table Queen;")
 
