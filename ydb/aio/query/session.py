@@ -139,6 +139,7 @@ class QuerySessionAsync(BaseQuerySession):
             lambda resp: base.wrap_execute_query_response(
                 rpc_state=None,
                 response_pb=resp,
+                session_state=self._state,
                 settings=self._settings,
             ),
         )

@@ -165,9 +165,23 @@ def create_execute_query_request(
     )
 
 
+def bad_session_handler(func):
+    @functools.wraps(func)
+    def decorator(rpc_state, response_pb, session_state: IQuerySessionState, *args, **kwargs):
+        try:
+            return func(rpc_state, response_pb, session_state, *args, **kwargs)
+        except issues.BadSession:
+            session_state.reset()
+            raise
+
+    return decorator
+
+
+@bad_session_handler
 def wrap_execute_query_response(
     rpc_state: RpcState,
     response_pb: _apis.ydb_query.ExecuteQueryResponsePart,
+    session_state: IQuerySessionState,
     tx: Optional["BaseQueryTxContext"] = None,
     commit_tx: Optional[bool] = False,
     settings: Optional[QueryClientSettings] = None,
@@ -179,14 +193,3 @@ def wrap_execute_query_response(
         tx._move_to_commited()
     return convert.ResultSet.from_message(response_pb.result_set, settings)
 
-
-def bad_session_handler(func):
-    @functools.wraps(func)
-    def decorator(rpc_state, response_pb, session_state: IQuerySessionState, *args, **kwargs):
-        try:
-            return func(rpc_state, response_pb, session_state, *args, **kwargs)
-        except issues.BadSession:
-            session_state.reset()
-            raise
-
-    return decorator

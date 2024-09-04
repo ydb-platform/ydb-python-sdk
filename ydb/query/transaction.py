@@ -427,6 +427,7 @@ class QueryTxContextSync(BaseQueryTxContext):
             lambda resp: base.wrap_execute_query_response(
                 rpc_state=None,
                 response_pb=resp,
+                session_state=self._session_state,
                 tx=self,
                 commit_tx=commit_tx,
                 settings=self.session._settings,
