@@ -52,8 +52,12 @@ class QuerySessionPool:
 
             try:
                 _, session = self._queue.get_nowait()
-                logger.debug(f"Acquired active session from queue: {session._state.session_id}")
-                return session if session._state.attached else self._create_new_session()
+                if session._state.attached:
+                    logger.debug(f"Acquired active session from queue: {session._state.session_id}")
+                    return session
+                else:
+                    self._current_size -= 1
+                    logger.debug(f"Acquired dead session from queue: {session._state.session_id}")
             except queue.Empty:
                 pass
 
