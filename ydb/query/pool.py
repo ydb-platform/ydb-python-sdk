@@ -4,6 +4,7 @@ from typing import (
     Optional,
     List,
 )
+import time
 import threading
 import queue
 
@@ -56,6 +57,7 @@ class QuerySessionPool:
             except queue.Empty:
                 pass
 
+            start = time.monotonic()
             if session is None and self._current_size == self._size:
                 try:
                     _, session = self._queue.get(block=True, timeout=timeout)
@@ -72,6 +74,11 @@ class QuerySessionPool:
 
             logger.debug(f"Session pool is not large enough: {self._current_size} < {self._size}, will create new one.")
             session = self._create_new_session()
+
+            finish = time.monotonic()
+            if finish - start > timeout:
+                session.delete()
+                raise issues.SessionPoolEmpty("Timeout on acquire session")
             self._current_size += 1
             return session
 
