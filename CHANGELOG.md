@@ -1,3 +1,6 @@
+* SLO tests for query service
+* Fix connection close mechanism
+
 ## 3.16.0 ##
 * Async implementation of Query Service SDK
 * New basic example with Query Service SDK
