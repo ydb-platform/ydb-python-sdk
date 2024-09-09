@@ -1,6 +1,5 @@
 import asyncio
 import logging
-import functools
 from typing import (
     Callable,
     Optional,
@@ -61,7 +60,8 @@ class QuerySessionPool:
             done, _ = await asyncio.wait((queue_get, task_stop), return_when=asyncio.FIRST_COMPLETED)
             if task_stop in done:
                 queue_get.cancel()
-                return await self._create_new_session()
+                raise RuntimeError("An attempt to take session from closed session pool.")
+
             task_stop.cancel()
             session = queue_get.result()
 
@@ -163,7 +163,7 @@ class QuerySessionPool:
         if self._should_stop.is_set() or self._loop.is_closed():
             return
 
-        self._loop.call_soon(functools.partial(self.stop))
+        self._loop.call_soon(self.stop)
 
 
 class SimpleQuerySessionCheckoutAsync:

@@ -47,6 +47,8 @@ class QuerySessionPool:
         return session
 
     def acquire(self, timeout: Optional[float] = None) -> QuerySession:
+        start = time.monotonic()
+
         lock_acquire_timeout = timeout if timeout is not None else -1
         acquired = self._lock.acquire(timeout=lock_acquire_timeout)
         try:
@@ -59,6 +61,9 @@ class QuerySessionPool:
                 session = self._queue.get_nowait()
             except queue.Empty:
                 pass
+
+            finish = time.monotonic()
+            timeout = timeout - (finish - start) if timeout is not None else None
 
             start = time.monotonic()
             if session is None and self._current_size == self._size:
