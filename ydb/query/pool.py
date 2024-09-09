@@ -40,14 +40,15 @@ class QuerySessionPool:
         self._should_stop = threading.Event()
         self._lock = threading.RLock()
 
-    def _create_new_session(self, timeout: float):
+    def _create_new_session(self, timeout: Optional[float]):
         session = QuerySession(self._driver)
         session.create(settings=BaseRequestSettings().with_timeout(timeout))
         logger.debug(f"New session was created for pool. Session id: {session._state.session_id}")
         return session
 
-    def acquire(self, timeout: float) -> QuerySession:
-        acquired = self._lock.acquire(timeout=timeout)
+    def acquire(self, timeout: Optional[float] = None) -> QuerySession:
+        lock_acquire_timeout = timeout if timeout is not None else -1
+        acquired = self._lock.acquire(timeout=lock_acquire_timeout)
         try:
             if self._should_stop.is_set():
                 logger.error("An attempt to take session from closed session pool.")
@@ -76,7 +77,7 @@ class QuerySessionPool:
 
             logger.debug(f"Session pool is not large enough: {self._current_size} < {self._size}, will create new one.")
             finish = time.monotonic()
-            time_left = timeout - (finish - start)
+            time_left = timeout - (finish - start) if timeout is not None else None
             session = self._create_new_session(time_left)
 
             self._current_size += 1
@@ -89,7 +90,7 @@ class QuerySessionPool:
         self._queue.put_nowait(session)
         logger.debug("Session returned to queue: %s", session._state.session_id)
 
-    def checkout(self, timeout: float = 10) -> "SimpleQuerySessionCheckout":
+    def checkout(self, timeout: Optional[float] = None) -> "SimpleQuerySessionCheckout":
         """WARNING: This API is experimental and could be changed.
         Return a Session context manager, that opens session on enter and closes session on exit.
         """
@@ -109,7 +110,7 @@ class QuerySessionPool:
         retry_settings = RetrySettings() if retry_settings is None else retry_settings
 
         def wrapped_callee():
-            with self.checkout() as session:
+            with self.checkout(timeout=retry_settings.max_session_acquire_timeout) as session:
                 return callee(session, *args, **kwargs)
 
         return retry_operation_sync(wrapped_callee, retry_settings)
@@ -137,14 +138,15 @@ class QuerySessionPool:
         retry_settings = RetrySettings() if retry_settings is None else retry_settings
 
         def wrapped_callee():
-            with self.checkout() as session:
+            with self.checkout(timeout=retry_settings.max_session_acquire_timeout) as session:
                 it = session.execute(query, parameters, *args, **kwargs)
                 return [result_set for result_set in it]
 
         return retry_operation_sync(wrapped_callee, retry_settings)
 
-    def stop(self, timeout=-1):
-        acquired = self._lock.acquire(timeout=timeout)
+    def stop(self, timeout=None):
+        acquire_timeout = timeout if timeout is not None else -1
+        acquired = self._lock.acquire(timeout=acquire_timeout)
         try:
             self._should_stop.set()
             while True:
@@ -170,7 +172,7 @@ class QuerySessionPool:
 
 
 class SimpleQuerySessionCheckout:
-    def __init__(self, pool: QuerySessionPool, timeout: float):
+    def __init__(self, pool: QuerySessionPool, timeout: Optional[float]):
         self._pool = pool
         self._timeout = timeout
         self._session = None
