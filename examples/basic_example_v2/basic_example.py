@@ -140,7 +140,7 @@ def select_with_parameters(pool: ydb.QuerySessionPool, series_id, season_id, epi
 # calls instead to avoid additional hops to YDB cluster and allow more efficient
 # execution of queries.
 def explicit_transaction_control(pool: ydb.QuerySessionPool, series_id, season_id, episode_id):
-    def callee(session: ydb.QuerySessionSync):
+    def callee(session: ydb.QuerySession):
         query = """
         DECLARE $seriesId AS Int64;
         DECLARE $seasonId AS Int64;
@@ -175,7 +175,7 @@ def explicit_transaction_control(pool: ydb.QuerySessionPool, series_id, season_i
 
 
 def huge_select(pool: ydb.QuerySessionPool):
-    def callee(session: ydb.QuerySessionSync):
+    def callee(session: ydb.QuerySession):
         query = """SELECT * from episodes;"""
 
         with session.transaction().execute(

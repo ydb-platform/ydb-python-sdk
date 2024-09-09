@@ -58,7 +58,7 @@ FROM AS_TABLE($episodesData);
 """
 
 
-async def fill_tables_with_data(pool: ydb.aio.QuerySessionPoolAsync):
+async def fill_tables_with_data(pool: ydb.aio.QuerySessionPool):
     print("\nFilling tables with data...")
     await pool.execute_with_retries(
         FillDataQuery,
@@ -70,7 +70,7 @@ async def fill_tables_with_data(pool: ydb.aio.QuerySessionPoolAsync):
     )
 
 
-async def select_simple(pool: ydb.aio.QuerySessionPoolAsync):
+async def select_simple(pool: ydb.aio.QuerySessionPool):
     print("\nCheck series table...")
     result_sets = await pool.execute_with_retries(
         """
@@ -96,7 +96,7 @@ async def select_simple(pool: ydb.aio.QuerySessionPoolAsync):
     return first_set
 
 
-async def upsert_simple(pool: ydb.aio.QuerySessionPoolAsync):
+async def upsert_simple(pool: ydb.aio.QuerySessionPool):
     print("\nPerforming UPSERT into episodes...")
 
     await pool.execute_with_retries(
@@ -106,7 +106,7 @@ async def upsert_simple(pool: ydb.aio.QuerySessionPoolAsync):
     )
 
 
-async def select_with_parameters(pool: ydb.aio.QuerySessionPoolAsync, series_id, season_id, episode_id):
+async def select_with_parameters(pool: ydb.aio.QuerySessionPool, series_id, season_id, episode_id):
     result_sets = await pool.execute_with_retries(
         """
         DECLARE $seriesId AS Int64;
@@ -138,8 +138,8 @@ async def select_with_parameters(pool: ydb.aio.QuerySessionPoolAsync, series_id,
 # In most cases it's better to use transaction control settings in session.transaction
 # calls instead to avoid additional hops to YDB cluster and allow more efficient
 # execution of queries.
-async def explicit_transaction_control(pool: ydb.aio.QuerySessionPoolAsync, series_id, season_id, episode_id):
-    async def callee(session: ydb.aio.QuerySessionAsync):
+async def explicit_transaction_control(pool: ydb.aio.QuerySessionPool, series_id, season_id, episode_id):
+    async def callee(session: ydb.aio.QuerySession):
         query = """
         DECLARE $seriesId AS Int64;
         DECLARE $seasonId AS Int64;
@@ -173,8 +173,8 @@ async def explicit_transaction_control(pool: ydb.aio.QuerySessionPoolAsync, seri
     return await pool.retry_operation_async(callee)
 
 
-async def huge_select(pool: ydb.aio.QuerySessionPoolAsync):
-    async def callee(session: ydb.aio.QuerySessionAsync):
+async def huge_select(pool: ydb.aio.QuerySessionPool):
+    async def callee(session: ydb.aio.QuerySession):
         query = """SELECT * from episodes;"""
 
         async with await session.transaction().execute(
@@ -189,12 +189,12 @@ async def huge_select(pool: ydb.aio.QuerySessionPoolAsync):
     return await pool.retry_operation_async(callee)
 
 
-async def drop_tables(pool: ydb.aio.QuerySessionPoolAsync):
+async def drop_tables(pool: ydb.aio.QuerySessionPool):
     print("\nCleaning up existing tables...")
     await pool.execute_with_retries(DropTablesQuery)
 
 
-async def create_tables(pool: ydb.aio.QuerySessionPoolAsync):
+async def create_tables(pool: ydb.aio.QuerySessionPool):
     print("\nCreating table series...")
     await pool.execute_with_retries(
         """
@@ -246,7 +246,7 @@ async def run(endpoint, database):
     ) as driver:
         await driver.wait(timeout=5, fail_fast=True)
 
-        async with ydb.aio.QuerySessionPoolAsync(driver) as pool:
+        async with ydb.aio.QuerySessionPool(driver) as pool:
             await drop_tables(pool)
 
             await create_tables(pool)

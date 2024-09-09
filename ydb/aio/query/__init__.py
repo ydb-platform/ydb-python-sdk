@@ -1,7 +1,7 @@
 __all__ = [
-    "QuerySessionPoolAsync",
-    "QuerySessionAsync",
+    "QuerySessionPool",
+    "QuerySession",
 ]
 
-from .pool import QuerySessionPoolAsync
-from .session import QuerySessionAsync
+from .pool import QuerySessionPool
+from .session import QuerySession
