@@ -1,5 +1,5 @@
-ydb
-===
+YDB API Reference
+=================
 
 .. toctree::
    :caption: Contents:

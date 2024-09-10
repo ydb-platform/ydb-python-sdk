@@ -7,11 +7,11 @@ YDB Python SDK
 ===============================
 
 .. toctree::
-   :maxdepth: 4
+   :maxdepth: 3
 
    overview
-   ydb.rst
-   examples.rst
+   examples
+   apireference
 
 
 Indices and tables
