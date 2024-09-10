@@ -133,14 +133,14 @@ Table Service
 -------------
 
 TableClient
-~~~~~~~~~~~
+^^^^^^^^^^^
 .. autoclass:: ydb.TableClient
     :members:
     :inherited-members:
     :undoc-members:
 
 TableClientSettings
-~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^
 
 .. autoclass:: ydb.TableClientSettings
     :members:
@@ -148,7 +148,7 @@ TableClientSettings
     :undoc-members:
 
 Session Pool
-~~~~~~~~~~~~
+^^^^^^^^^^^^
 
 .. autoclass:: ydb.SessionPool
    :members:
@@ -156,7 +156,7 @@ Session Pool
    :undoc-members:
 
 Session
-~~~~~~~
+^^^^^^^
 
 .. autoclass:: ydb.Session
    :members:
@@ -164,7 +164,7 @@ Session
    :undoc-members:
 
 Transaction Context
-~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^
 
 .. autoclass:: ydb.TxContext
    :members:
@@ -172,7 +172,7 @@ Transaction Context
    :undoc-members:
 
 DataQuery
----------
+^^^^^^^^^
 
 .. autoclass:: ydb.DataQuery
    :members:
@@ -185,7 +185,7 @@ Scheme
 ------
 
 SchemeClient
-~~~~~~~~~~~~
+^^^^^^^^^^^^
 
 .. autoclass:: ydb.SchemeClient
    :members:
