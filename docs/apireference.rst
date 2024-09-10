@@ -128,6 +128,44 @@ QueryTxContext (AsyncIO)
     :undoc-members:
 
 
+Query Tx Mode
+^^^^^^^^^^^^^
+
+.. autoclass:: ydb.BaseQueryTxMode
+    :members:
+    :inherited-members:
+    :undoc-members:
+    :exclude-members: name, to_proto
+
+
+.. autoclass:: ydb.QueryOnlineReadOnly
+    :members:
+    :inherited-members:
+    :undoc-members:
+    :exclude-members: name, to_proto
+
+
+.. autoclass:: ydb.QuerySerializableReadWrite
+    :members:
+    :inherited-members:
+    :undoc-members:
+    :exclude-members: name, to_proto
+
+
+.. autoclass:: ydb.QuerySnapshotReadOnly
+    :members:
+    :inherited-members:
+    :undoc-members:
+    :exclude-members: name, to_proto
+
+
+.. autoclass:: ydb.QueryStaleReadOnly
+    :members:
+    :inherited-members:
+    :undoc-members:
+    :exclude-members: name, to_proto
+
+
 ------------------------
 
 Table Service

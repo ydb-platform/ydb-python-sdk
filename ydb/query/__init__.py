@@ -1,10 +1,11 @@
 __all__ = [
+    "BaseQueryTxMode",
     "QueryOnlineReadOnly",
     "QuerySerializableReadWrite",
     "QuerySnapshotReadOnly",
     "QueryStaleReadOnly",
     "QuerySessionPool",
-    "QueryClientSync",
+    "QueryClientSettings",
     "QuerySession",
     "QueryTxContext",
 ]
@@ -20,6 +21,7 @@ from .transaction import QueryTxContext
 
 from .._grpc.grpcwrapper import common_utils
 from .._grpc.grpcwrapper.ydb_query_public_types import (
+    BaseQueryTxMode,
     QueryOnlineReadOnly,
     QuerySerializableReadWrite,
     QuerySnapshotReadOnly,
