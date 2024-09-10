@@ -10,6 +10,7 @@ YDB Python SDK
    :maxdepth: 3
 
    overview
+   quickstart
    examples
    apireference
 
