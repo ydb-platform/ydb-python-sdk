@@ -16,14 +16,12 @@ Prerequisites
 * Python 3.8 or higher;
 * `pip` version 9.0.1 or higher;
 
-If necessary, upgrade your version of `pip`:
+If necessary, upgrade your version of `pip`::
 
-::
     $ python -m pip install --upgrade pip
 
-If you cannot upgrade `pip` due to a system-owned installation, you can run the example in a virtualenv:
+If you cannot upgrade `pip` due to a system-owned installation, you can run the example in a virtualenv::
 
-::
     $ python -m pip install virtualenv
     $ virtualenv venv
     $ source venv/bin/activate
@@ -32,17 +30,17 @@ If you cannot upgrade `pip` due to a system-owned installation, you can run the 
 Installation via Pypi
 ---------------------
 
-To install YDB Python SDK through Pypi execute the following command:
-
-::
+To install YDB Python SDK through Pypi execute the following command::
+    
     $ pip install ydb
 
 Community
 =========
 
 You can ask your questions in official Telegram chats:
-**EN** `Official YDB chat <https://t.me/ydb_en>`_.
-**RU** `Official YDB chat <https://t.me/ydb_ru>`_.
+
+* **EN** `YDB chat <https://t.me/ydb_en>`_.
+* **RU** `YDB chat <https://t.me/ydb_ru>`_.
 
 
 Bugs and feature enhancements to YDB Python SDK should be reported on the `GitHub
