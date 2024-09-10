@@ -1,3 +1,4 @@
+## 3.17.0 ##
 * Query Session Pool redesign
 
 ## 3.16.1 ##
