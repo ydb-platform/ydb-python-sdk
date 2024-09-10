@@ -10,16 +10,20 @@ YDB API Reference
 Driver
 ------
 
-Driver object
-~~~~~~~~~~~~~
-
 .. autoclass:: ydb.Driver
     :members:
     :inherited-members:
     :undoc-members:
 
 
-Driver object (AsyncIO)
+.. autoclass:: ydb.DriverConfig
+    :members:
+    :inherited-members:
+    :undoc-members:
+    :exclude-members: database, ca_cert, channel_options, secure_channel, endpoint, endpoints, credentials, use_all_nodes, root_certificates, certificate_chain, private_key, grpc_keep_alive_timeout, table_client_settings, primary_user_agent
+
+
+AsyncIO
 ~~~~~~~~~~~~~
 
 .. autoclass:: ydb.aio.Driver
@@ -28,40 +32,53 @@ Driver object (AsyncIO)
     :undoc-members:
 
 
-DriverConfig
-~~~~~~~~~~~~
+------------------------
 
-.. autoclass:: ydb.DriverConfig
+Common
+-------------
+
+.. autoclass:: ydb.BaseRequestSettings
     :members:
     :inherited-members:
     :undoc-members:
-    :exclude-members: database, ca_cert, channel_options, secure_channel, endpoint, endpoints, credentials, use_all_nodes, root_certificates, certificate_chain, private_key, grpc_keep_alive_timeout, table_client_settings, primary_user_agent
 
 ------------------------
 
 Query Service
 -------------
 
-QuerySessionPool
-~~~~~~~~~~~~~~~~
-
 .. autoclass:: ydb.QuerySessionPool
     :members:
     :inherited-members:
     :undoc-members:
 
-QuerySession
-~~~~~~~~~~~~~~~~
 
 .. autoclass:: ydb.QuerySession
     :members:
     :inherited-members:
     :undoc-members:
 
-QueryTxContext
-~~~~~~~~~~~~~~~~~~
 
 .. autoclass:: ydb.QueryTxContext
+    :members:
+    :inherited-members:
+    :undoc-members:
+
+
+AsyncIO
+~~~~~~~
+
+.. autoclass:: ydb.aio.QuerySessionPool
+    :members:
+    :inherited-members:
+    :undoc-members:
+
+.. autoclass:: ydb.aio.QuerySession
+    :members:
+    :inherited-members:
+    :undoc-members:
+
+.. autoclass:: ydb.aio.QueryTxContext
     :members:
     :inherited-members:
     :undoc-members:
