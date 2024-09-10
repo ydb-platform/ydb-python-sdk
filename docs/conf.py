@@ -39,11 +39,11 @@ release = ''
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-            'sphinx.ext.autodoc',
-            'sphinx.ext.viewcode',
-            'sphinx.ext.todo',
-            'sphinx.ext.napoleon',
-            'sphinx.ext.coverage',
+    'sphinx.ext.autodoc',
+    'sphinx.ext.viewcode',
+    'sphinx.ext.todo',
+    'sphinx.ext.napoleon',
+    'sphinx.ext.coverage',
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -79,13 +79,13 @@ pygments_style = None
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = 'alabaster'
+html_theme = 'sphinx_rtd_theme'
 
 html_theme_options = {
-            'fixed_sidebar': True,
-            'page_width': '1140px',
-            'show_related': True,
-            'show_powered_by': False
+    'fixed_sidebar': True,
+    'page_width': '1140px',
+    'show_related': True,
+    'show_powered_by': False
 }
 
 # Theme options are theme-specific and customize the look and feel of a theme
