@@ -22,6 +22,15 @@ Driver object
     :undoc-members:
 
 
+Driver object (AsyncIO)
+~~~~~~~~~~~~~
+
+.. autoclass:: ydb.aio.Driver
+    :members:
+    :inherited-members:
+    :undoc-members:
+
+
 DriverConfig
 ~~~~~~~~~~~~
 
@@ -44,18 +53,18 @@ QuerySessionPool
     :inherited-members:
     :undoc-members:
 
-QuerySessionSync
+QuerySession
 ~~~~~~~~~~~~~~~~
 
-.. autoclass:: QuerySessionSync
+.. autoclass:: QuerySession
     :members:
     :inherited-members:
     :undoc-members:
 
-QueryTxContextSync
+QueryTxContext
 ~~~~~~~~~~~~~~~~~~
 
-.. autoclass:: QueryTxContextSync
+.. autoclass:: QueryTxContext
     :members:
     :inherited-members:
     :undoc-members:
