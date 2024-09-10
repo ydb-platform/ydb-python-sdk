@@ -20,7 +20,7 @@ sys.path.insert(0, os.path.abspath('..'))
 # -- Project information -----------------------------------------------------
 
 project = 'ydb'
-copyright = '2021, yandex'
+copyright = '2024, yandex'
 author = 'yandex'
 
 # The short X.Y version
