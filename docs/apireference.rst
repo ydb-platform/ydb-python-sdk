@@ -10,11 +10,8 @@ YDB API Reference
 Driver
 ------
 
-.. autoclass:: ydb.Driver
-    :members:
-    :inherited-members:
-    :undoc-members:
-
+DriverConfig
+^^^^^^^^^^^^
 
 .. autoclass:: ydb.DriverConfig
     :members:
@@ -23,35 +20,70 @@ Driver
     :exclude-members: database, ca_cert, channel_options, secure_channel, endpoint, endpoints, credentials, use_all_nodes, root_certificates, certificate_chain, private_key, grpc_keep_alive_timeout, table_client_settings, primary_user_agent
 
 
-AsyncIO
-~~~~~~~~~~~~~
+Driver
+^^^^^^
+
+.. autoclass:: ydb.Driver
+    :members:
+    :inherited-members:
+    :undoc-members:
+
+
+Driver (AsyncIO)
+^^^^^^^^^^^^^^^
 
 .. autoclass:: ydb.aio.Driver
     :members:
     :inherited-members:
     :undoc-members:
 
-
 ------------------------
 
 Common
 -------------
+
+BaseRequestSettings
+^^^^^^^^^^^^^^^^^^^
 
 .. autoclass:: ydb.BaseRequestSettings
     :members:
     :inherited-members:
     :undoc-members:
 
+
+Result Sets
+^^^^^^^^^^^
+
+.. autoclass:: ydb.convert._ResultSet
+   :members:
+   :inherited-members:
+   :undoc-members:
+
+
 ------------------------
 
 Query Service
 -------------
+
+QueryClientSettings
+^^^^^^^^^^^^^^^^^^^
+
+.. autoclass:: ydb.QueryClientSettings
+    :members:
+    :inherited-members:
+    :undoc-members:
+
+
+QuerySessionPool
+^^^^^^^^^^^^^^^^
 
 .. autoclass:: ydb.QuerySessionPool
     :members:
     :inherited-members:
     :undoc-members:
 
+QuerySession
+^^^^^^^^^^^^
 
 .. autoclass:: ydb.QuerySession
     :members:
@@ -59,29 +91,41 @@ Query Service
     :undoc-members:
 
 
+QueryTxContext
+^^^^^^^^^^^^^^
+
 .. autoclass:: ydb.QueryTxContext
     :members:
     :inherited-members:
     :undoc-members:
 
 
-AsyncIO
-~~~~~~~
+QuerySessionPool (AsyncIO)
+^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. autoclass:: ydb.aio.QuerySessionPool
     :members:
     :inherited-members:
     :undoc-members:
 
+
+QuerySession (AsyncIO)
+^^^^^^^^^^^^^^^^^^^^^^
+
 .. autoclass:: ydb.aio.QuerySession
     :members:
     :inherited-members:
     :undoc-members:
 
+
+QueryTxContext (AsyncIO)
+^^^^^^^^^^^^^^^^^^^^^^^^
+
 .. autoclass:: ydb.aio.QueryTxContext
     :members:
     :inherited-members:
     :undoc-members:
+
 
 ------------------------
 
@@ -150,12 +194,3 @@ SchemeClient
 
 ------------------
 
-Result Sets
------------
-
-.. autoclass:: ydb.convert._ResultSet
-   :members:
-   :inherited-members:
-   :undoc-members:
-
------------------------------
