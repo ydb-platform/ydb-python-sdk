@@ -49,6 +49,7 @@ BaseRequestSettings
     :members:
     :inherited-members:
     :undoc-members:
+    :exclude-members: trace_id, request_type, timeout, cancel_after, operation_timeout, compression, need_rpc_auth, headers, make_copy, tracer
 
 
 Result Sets
