@@ -50,3 +50,7 @@ Driver initialization:
         credentials=ydb.credentials_from_env_variables(),
     ) as driver:
         driver.wait(timeout=5, fail_fast=True)
+
+
+>>> print("hello world")
+hello world
