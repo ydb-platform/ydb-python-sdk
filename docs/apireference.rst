@@ -33,8 +33,38 @@ DriverConfig
 
 ------------------------
 
-Table
-^^^^^
+Query Service
+^^^^^^^^^^^^^
+
+QuerySessionPool
+~~~~~~~~~~~~~~~~
+
+.. autoclass:: QuerySessionPool
+    :members:
+    :inherited-members:
+    :undoc-members:
+
+QuerySessionSync
+~~~~~~~~~~~~~~~~
+
+.. autoclass:: QuerySessionSync
+    :members:
+    :inherited-members:
+    :undoc-members:
+
+QueryTxContextSync
+~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: QueryTxContextSync
+    :members:
+    :inherited-members:
+    :undoc-members:
+
+------------------------
+
+Table Service
+^^^^^^^^^^^^^
+
 TableClient
 ~~~~~~~~~~~
 .. autoclass:: TableClient
@@ -50,6 +80,14 @@ TableClientSettings
     :inherited-members:
     :undoc-members:
 
+Session Pool
+~~~~~~~~~~~~
+
+.. autoclass:: SessionPool
+   :members:
+   :inherited-members:
+   :undoc-members:
+
 Session
 ~~~~~~~
 
@@ -62,6 +100,14 @@ Transaction Context
 ~~~~~~~~~~~~~~~~~~~
 
 .. autoclass:: TxContext
+   :members:
+   :inherited-members:
+   :undoc-members:
+
+DataQuery
+^^^^^^^^^
+
+.. autoclass:: DataQuery
    :members:
    :inherited-members:
    :undoc-members:
@@ -81,17 +127,6 @@ SchemeClient
 
 ------------------
 
-Session Pool
-^^^^^^^^^^^^
-
-.. autoclass:: SessionPool
-   :members:
-   :inherited-members:
-   :undoc-members:
-
------------------------------
-
-
 Result Sets
 ^^^^^^^^^^^
 
@@ -101,11 +136,3 @@ Result Sets
    :undoc-members:
 
 -----------------------------
-
-DataQuery
-^^^^^^^^^
-
-.. autoclass:: DataQuery
-   :members:
-   :inherited-members:
-   :undoc-members:
