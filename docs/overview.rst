@@ -14,11 +14,7 @@ The most recent published version of this documentation should be at https://ydb
 Community
 ---------
 
-You can ask your questions in official Telegram chats:
-
-* **EN** `YDB chat <https://t.me/ydb_en>`_.
-* **RU** `YDB chat <https://t.me/ydb_ru>`_.
-
+You can ask your questions in official Telegram chats: `EN <https://t.me/ydb_en>`_ | `RU <https://t.me/ydb_ru>`_.
 
 Bugs and feature enhancements to YDB Python SDK should be reported on the `GitHub
 issue tracker

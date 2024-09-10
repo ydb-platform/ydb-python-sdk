@@ -12,6 +12,7 @@ else:
 
 class BaseQueryTxMode(IToProto):
     """Abstract class for Query Transaction Modes."""
+
     @property
     @abc.abstractmethod
     def name(self) -> str:
@@ -23,6 +24,7 @@ class QuerySnapshotReadOnly(BaseQueryTxMode):
     All the data reads are consistent. The snapshot is taken when the transaction begins,
     meaning the transaction sees all changes committed before it began.
     """
+
     def __init__(self):
         self._name = "snapshot_read_only"
 
@@ -38,6 +40,7 @@ class QuerySerializableReadWrite(BaseQueryTxMode):
     """This mode guarantees that the result of successful parallel transactions is equivalent
     to their serial execution, and there are no read anomalies for successful transactions.
     """
+
     def __init__(self):
         self._name = "serializable_read_write"
 
