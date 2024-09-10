@@ -7,11 +7,8 @@ YDB API Reference
 
 .. module:: ydb
 
-Module contents
----------------
-
 Driver
-^^^^^^
+------
 
 Driver object
 ~~~~~~~~~~~~~
@@ -43,7 +40,7 @@ DriverConfig
 ------------------------
 
 Query Service
-^^^^^^^^^^^^^
+-------------
 
 QuerySessionPool
 ~~~~~~~~~~~~~~~~
@@ -72,7 +69,7 @@ QueryTxContext
 ------------------------
 
 Table Service
-^^^^^^^^^^^^^
+-------------
 
 TableClient
 ~~~~~~~~~~~
@@ -114,7 +111,7 @@ Transaction Context
    :undoc-members:
 
 DataQuery
-^^^^^^^^^
+---------
 
 .. autoclass:: ydb.DataQuery
    :members:
@@ -124,7 +121,7 @@ DataQuery
 --------------------------
 
 Scheme
-^^^^^^
+------
 
 SchemeClient
 ~~~~~~~~~~~~
@@ -137,7 +134,7 @@ SchemeClient
 ------------------
 
 Result Sets
-^^^^^^^^^^^
+-----------
 
 .. autoclass:: ydb.convert._ResultSet
    :members:
