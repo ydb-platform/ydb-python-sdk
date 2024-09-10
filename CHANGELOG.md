@@ -1,3 +1,5 @@
+* Query Session Pool redesign
+
 ## 3.16.1 ##
 * SLO tests for query service
 * Fix connection close mechanism
