@@ -16,7 +16,7 @@ Driver
 Driver object
 ~~~~~~~~~~~~~
 
-.. autoclass:: Driver
+.. autoclass:: ydb.Driver
     :members:
     :inherited-members:
     :undoc-members:
@@ -34,7 +34,7 @@ Driver object (AsyncIO)
 DriverConfig
 ~~~~~~~~~~~~
 
-.. autoclass:: DriverConfig
+.. autoclass:: ydb.DriverConfig
     :members:
     :inherited-members:
     :undoc-members:
@@ -48,7 +48,7 @@ Query Service
 QuerySessionPool
 ~~~~~~~~~~~~~~~~
 
-.. autoclass:: QuerySessionPool
+.. autoclass:: ydb.QuerySessionPool
     :members:
     :inherited-members:
     :undoc-members:
@@ -56,7 +56,7 @@ QuerySessionPool
 QuerySession
 ~~~~~~~~~~~~~~~~
 
-.. autoclass:: QuerySession
+.. autoclass:: ydb.QuerySession
     :members:
     :inherited-members:
     :undoc-members:
@@ -64,7 +64,7 @@ QuerySession
 QueryTxContext
 ~~~~~~~~~~~~~~~~~~
 
-.. autoclass:: QueryTxContext
+.. autoclass:: ydb.QueryTxContext
     :members:
     :inherited-members:
     :undoc-members:
@@ -76,7 +76,7 @@ Table Service
 
 TableClient
 ~~~~~~~~~~~
-.. autoclass:: TableClient
+.. autoclass:: ydb.TableClient
     :members:
     :inherited-members:
     :undoc-members:
@@ -84,7 +84,7 @@ TableClient
 TableClientSettings
 ~~~~~~~~~~~~~~~~~~~
 
-.. autoclass:: TableClientSettings
+.. autoclass:: ydb.TableClientSettings
     :members:
     :inherited-members:
     :undoc-members:
@@ -92,7 +92,7 @@ TableClientSettings
 Session Pool
 ~~~~~~~~~~~~
 
-.. autoclass:: SessionPool
+.. autoclass:: ydb.SessionPool
    :members:
    :inherited-members:
    :undoc-members:
@@ -100,7 +100,7 @@ Session Pool
 Session
 ~~~~~~~
 
-.. autoclass:: Session
+.. autoclass:: ydb.Session
    :members:
    :inherited-members:
    :undoc-members:
@@ -108,7 +108,7 @@ Session
 Transaction Context
 ~~~~~~~~~~~~~~~~~~~
 
-.. autoclass:: TxContext
+.. autoclass:: ydb.TxContext
    :members:
    :inherited-members:
    :undoc-members:
@@ -116,7 +116,7 @@ Transaction Context
 DataQuery
 ^^^^^^^^^
 
-.. autoclass:: DataQuery
+.. autoclass:: ydb.DataQuery
    :members:
    :inherited-members:
    :undoc-members:
@@ -129,7 +129,7 @@ Scheme
 SchemeClient
 ~~~~~~~~~~~~
 
-.. autoclass:: SchemeClient
+.. autoclass:: ydb.SchemeClient
    :members:
    :inherited-members:
    :undoc-members:

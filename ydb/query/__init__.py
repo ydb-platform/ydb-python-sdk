@@ -6,6 +6,7 @@ __all__ = [
     "QuerySessionPool",
     "QueryClientSync",
     "QuerySession",
+    "QueryTxContext",
 ]
 
 import logging
@@ -15,6 +16,7 @@ from .base import (
 )
 
 from .session import QuerySession
+from .transaction import QueryTxContext
 
 from .._grpc.grpcwrapper import common_utils
 from .._grpc.grpcwrapper.ydb_query_public_types import (
