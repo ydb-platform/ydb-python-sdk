@@ -29,7 +29,8 @@ class QuerySessionPool:
 
     def __init__(self, driver: common_utils.SupportedDriverType, size: int = 100):
         """
-        :param driver: A driver instance
+        :param driver: A driver instance.
+        :param size: Max size of Session Pool.
         """
 
         logger.warning("QuerySessionPool is an experimental API, which could be changed.")
@@ -47,6 +48,15 @@ class QuerySessionPool:
         return session
 
     def acquire(self, timeout: Optional[float] = None) -> QuerySession:
+        """WARNING: This API is experimental and could be changed.
+
+        Acquire a session from Session Pool.
+
+        :param timeout: A timeout to wait in seconds.
+
+        :return A QuerySession object.
+        """
+
         start = time.monotonic()
 
         lock_acquire_timeout = timeout if timeout is not None else -1
@@ -92,18 +102,27 @@ class QuerySessionPool:
                 self._lock.release()
 
     def release(self, session: QuerySession) -> None:
+        """WARNING: This API is experimental and could be changed.
+
+        Release a session back to Session Pool.
+        """
+
         self._queue.put_nowait(session)
         logger.debug("Session returned to queue: %s", session._state.session_id)
 
     def checkout(self, timeout: Optional[float] = None) -> "SimpleQuerySessionCheckout":
         """WARNING: This API is experimental and could be changed.
-        Return a Session context manager, that opens session on enter and closes session on exit.
+
+        Return a Session context manager, that acquires session on enter and releases session on exit.
+
+        :param timeout: A timeout to wait in seconds.
         """
 
         return SimpleQuerySessionCheckout(self, timeout)
 
     def retry_operation_sync(self, callee: Callable, retry_settings: Optional[RetrySettings] = None, *args, **kwargs):
         """WARNING: This API is experimental and could be changed.
+
         Special interface to execute a bunch of commands with session in a safe, retriable way.
 
         :param callee: A function, that works with session.
@@ -129,6 +148,7 @@ class QuerySessionPool:
         **kwargs,
     ) -> List[convert.ResultSet]:
         """WARNING: This API is experimental and could be changed.
+
         Special interface to execute a one-shot queries in a safe, retriable way.
         Note: this method loads all data from stream before return, do not use this
         method with huge read queries.

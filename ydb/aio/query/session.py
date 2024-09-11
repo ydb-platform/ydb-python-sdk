@@ -116,6 +116,7 @@ class QuerySession(BaseQuerySession):
         """WARNING: This API is experimental and could be changed.
 
         Sends a query to Query Service
+
         :param query: (YQL or SQL text) to be executed.
         :param syntax: Syntax of the query, which is a one from the following choises:
          1) QuerySyntax.YQL_V1, which is default;

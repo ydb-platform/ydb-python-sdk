@@ -114,6 +114,7 @@ class QueryTxContext(BaseQueryTxContext):
         """WARNING: This API is experimental and could be changed.
 
         Sends a query to Query Service
+
         :param query: (YQL or SQL text) to be executed.
         :param parameters: dict with parameters and YDB types;
         :param commit_tx: A special flag that allows transaction commit.
