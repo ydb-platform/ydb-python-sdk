@@ -269,6 +269,7 @@ class QuerySession(BaseQuerySession):
         """WARNING: This API is experimental and could be changed.
 
         Creates a transaction context manager with specified transaction mode.
+
         :param tx_mode: Transaction mode, which is a one from the following choises:
          1) QuerySerializableReadWrite() which is default mode;
          2) QueryOnlineReadOnly(allow_inconsistent_reads=False);
@@ -301,6 +302,7 @@ class QuerySession(BaseQuerySession):
         """WARNING: This API is experimental and could be changed.
 
         Sends a query to Query Service
+
         :param query: (YQL or SQL text) to be executed.
         :param syntax: Syntax of the query, which is a one from the following choises:
          1) QuerySyntax.YQL_V1, which is default;
