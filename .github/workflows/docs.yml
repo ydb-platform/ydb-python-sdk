@@ -2,7 +2,7 @@ name: Deploy Sphinx documentation to Github Pages
 
 on:
   push:
-    branches: [master, autogenetated_docs] # branch to trigger deployment
+    branches: [main] # branch to trigger deployment
 
 jobs:
   pages:
