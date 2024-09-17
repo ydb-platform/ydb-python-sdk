@@ -1,3 +1,4 @@
+## 3.17.2 ##
 * Add data_columns support in TableIndex
 
 ## 3.17.1 ##
