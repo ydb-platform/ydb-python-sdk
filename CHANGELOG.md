@@ -1,3 +1,5 @@
+* Remove experimental warn from query service
+
 ## 3.17.2 ##
 * Add data_columns support in TableIndex
 
