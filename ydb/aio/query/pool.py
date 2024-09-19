@@ -83,15 +83,13 @@ class QuerySessionPool:
         return session
 
     async def release(self, session: QuerySession) -> None:
-        """Release a session back to Session Pool.
-        """
+        """Release a session back to Session Pool."""
 
         self._queue.put_nowait(session)
         logger.debug("Session returned to queue: %s", session._state.session_id)
 
     def checkout(self) -> "SimpleQuerySessionCheckoutAsync":
-        """Return a Session context manager, that acquires session on enter and releases session on exit.
-        """
+        """Return a Session context manager, that acquires session on enter and releases session on exit."""
 
         return SimpleQuerySessionCheckoutAsync(self)
 

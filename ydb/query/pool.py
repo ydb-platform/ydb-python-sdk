@@ -99,8 +99,7 @@ class QuerySessionPool:
                 self._lock.release()
 
     def release(self, session: QuerySession) -> None:
-        """Release a session back to Session Pool.
-        """
+        """Release a session back to Session Pool."""
 
         self._queue.put_nowait(session)
         logger.debug("Session returned to queue: %s", session._state.session_id)
