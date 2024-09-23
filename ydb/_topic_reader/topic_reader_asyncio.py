@@ -341,7 +341,7 @@ class ReaderStream:
         self._background_tasks.add(asyncio.create_task(self._decode_batches_loop()))
         if self._get_token_function:
             self._background_tasks.add(asyncio.create_task(self._update_token_loop()))
-        self._background_tasks.add(asyncio.create_task(self._handle_background_errors()))
+            self._background_tasks.add(asyncio.create_task(self._handle_background_errors()))
 
     async def wait_error(self):
         raise await self._first_error
