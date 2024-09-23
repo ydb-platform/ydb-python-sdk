@@ -231,8 +231,8 @@ class WriterAsyncIOReconnector:
         self._new_messages = asyncio.Queue()
         self._stop_reason = self._loop.create_future()
         self._background_tasks = [
-            asyncio.create_task(self._connection_loop(), name="connection_loop"),
-            asyncio.create_task(self._encode_loop(), name="encode_loop"),
+            asyncio.create_task(self._connection_loop()),
+            asyncio.create_task(self._encode_loop()),
         ]
 
         self._state_changed = asyncio.Event()
