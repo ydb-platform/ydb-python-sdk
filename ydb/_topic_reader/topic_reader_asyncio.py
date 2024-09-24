@@ -3,7 +3,6 @@ from __future__ import annotations
 import asyncio
 import concurrent.futures
 import gzip
-import random
 import typing
 from asyncio import Task
 from collections import OrderedDict
@@ -361,7 +360,7 @@ class ReaderStream:
             self._state_changed.clear()
 
     def _get_first_batch(self) -> typing.Tuple[int, datatypes.PublicBatch]:
-        first_id, batch = self._message_batches.popitem(last = False)
+        first_id, batch = self._message_batches.popitem(last=False)
         return first_id, batch
 
     def receive_batch_nowait(self):

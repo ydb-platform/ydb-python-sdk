@@ -7,8 +7,6 @@ import pytest
 
 import ydb.aio
 
-from ydb._topic_common.test_helpers import wait_condition
-
 
 @pytest.mark.asyncio
 class TestTopicWriterAsyncIO:

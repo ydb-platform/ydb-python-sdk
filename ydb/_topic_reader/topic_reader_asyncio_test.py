@@ -1171,7 +1171,9 @@ class TestReaderStream:
 
         assert stream_reader._buffer_size_bytes == initial_buffer_size
 
-        assert StreamReadMessage.ReadRequest(self.default_batch_size * 2) == stream.from_client.get_nowait().client_message
+        assert (
+            StreamReadMessage.ReadRequest(self.default_batch_size * 2) == stream.from_client.get_nowait().client_message
+        )
 
         with pytest.raises(asyncio.QueueEmpty):
             stream.from_client.get_nowait()
