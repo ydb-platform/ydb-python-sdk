@@ -6,6 +6,7 @@ import gzip
 import random
 import typing
 from asyncio import Task
+from collections import OrderedDict
 from typing import Optional, Set, Dict, Union, Callable
 
 import ydb
@@ -296,7 +297,7 @@ class ReaderStream:
         self._closed = False
         self._first_error = asyncio.get_running_loop().create_future()
         self._batches_to_decode = asyncio.Queue()
-        self._message_batches = dict()
+        self._message_batches = OrderedDict()
 
         self._update_token_interval = settings.update_token_interval
         self._get_token_function = get_token_function
@@ -359,9 +360,9 @@ class ReaderStream:
             await self._state_changed.wait()
             self._state_changed.clear()
 
-    def _get_random_batch(self):
-        rnd_id = random.choice(list(self._message_batches.keys()))
-        return rnd_id, self._message_batches[rnd_id]
+    def _get_first_batch(self) -> typing.Tuple[int, datatypes.PublicBatch]:
+        first_id, batch = self._message_batches.popitem(last = False)
+        return first_id, batch
 
     def receive_batch_nowait(self):
         if self._get_first_error():
@@ -370,9 +371,8 @@ class ReaderStream:
         if not self._message_batches:
             return None
 
-        part_sess_id, batch = self._get_random_batch()
+        _, batch = self._get_first_batch()
         self._buffer_release_bytes(batch._bytes_size)
-        del self._message_batches[part_sess_id]
 
         return batch
 
@@ -383,12 +383,15 @@ class ReaderStream:
         if not self._message_batches:
             return None
 
-        part_sess_id, batch = self._get_random_batch()
+        part_sess_id, batch = self._get_first_batch()
 
         message = batch.messages.pop(0)
+
         if len(batch.messages) == 0:
             self._buffer_release_bytes(batch._bytes_size)
-            del self._message_batches[part_sess_id]
+        else:
+            # TODO: we should somehow release bytes from single message as well
+            self._message_batches[part_sess_id] = batch
 
         return message
 

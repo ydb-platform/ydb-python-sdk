@@ -7,6 +7,8 @@ import pytest
 
 import ydb.aio
 
+from ydb._topic_common.test_helpers import wait_condition
+
 
 @pytest.mark.asyncio
 class TestTopicWriterAsyncIO:
@@ -42,6 +44,10 @@ class TestTopicWriterAsyncIO:
             await writer.write(ydb.TopicWriterMessage(data="123".encode()))
 
         batch = await topic_reader.receive_batch()
+
+        if len(batch.messages) == 1:
+            batch2 = await topic_reader.receive_batch()
+            batch.messages.extend(batch2.messages)
 
         assert batch.messages[0].producer_id != batch.messages[1].producer_id
 
@@ -201,14 +207,14 @@ class TestTopicWriterSync:
             )
 
         batch = topic_reader_sync.receive_batch()
+        if len(batch.messages) == 1:
+            batch2 = topic_reader_sync.receive_batch()
+            batch.messages.extend(batch2.messages)
 
         assert batch.messages[0].offset == 0
         assert batch.messages[0].seqno == 1
         assert batch.messages[0].data == "123".encode()
 
-        # remove second recieve batch when implement batching
-        # https://github.com/ydb-platform/ydb-python-sdk/issues/142
-        # batch = topic_reader_sync.receive_batch()
         assert batch.messages[1].offset == 1
         assert batch.messages[1].seqno == 2
         assert batch.messages[1].data == "456".encode()
