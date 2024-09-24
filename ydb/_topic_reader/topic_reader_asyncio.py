@@ -3,9 +3,9 @@ from __future__ import annotations
 import asyncio
 import concurrent.futures
 import gzip
+import random
 import typing
 from asyncio import Task
-from collections import deque
 from typing import Optional, Set, Dict, Union, Callable
 
 import ydb
@@ -264,7 +264,7 @@ class ReaderStream:
 
     _state_changed: asyncio.Event
     _closed: bool
-    _message_batches: typing.Deque[datatypes.PublicBatch]
+    _message_batches: typing.Dict[int, datatypes.PublicBatch]
     _first_error: asyncio.Future[YdbError]
 
     _update_token_interval: Union[int, float]
@@ -296,7 +296,7 @@ class ReaderStream:
         self._closed = False
         self._first_error = asyncio.get_running_loop().create_future()
         self._batches_to_decode = asyncio.Queue()
-        self._message_batches = deque()
+        self._message_batches = dict()
 
         self._update_token_interval = settings.update_token_interval
         self._get_token_function = get_token_function
@@ -359,6 +359,10 @@ class ReaderStream:
             await self._state_changed.wait()
             self._state_changed.clear()
 
+    def _get_random_batch(self):
+        rnd_id = random.choice(list(self._message_batches.keys()))
+        return rnd_id, self._message_batches[rnd_id]
+
     def receive_batch_nowait(self):
         if self._get_first_error():
             raise self._get_first_error()
@@ -366,22 +370,25 @@ class ReaderStream:
         if not self._message_batches:
             return None
 
-        batch = self._message_batches.popleft()
+        part_sess_id, batch = self._get_random_batch()
         self._buffer_release_bytes(batch._bytes_size)
+        del self._message_batches[part_sess_id]
+
         return batch
 
     def receive_message_nowait(self):
         if self._get_first_error():
             raise self._get_first_error()
 
-        try:
-            batch = self._message_batches[0]
-            message = batch.pop_message()
-        except IndexError:
+        if not self._message_batches:
             return None
 
-        if batch.empty():
-            self.receive_batch_nowait()
+        part_sess_id, batch = self._get_random_batch()
+
+        message = batch.messages.pop(0)
+        if len(batch.messages) == 0:
+            self._buffer_release_bytes(batch._bytes_size)
+            del self._message_batches[part_sess_id]
 
         return message
 
@@ -605,8 +612,17 @@ class ReaderStream:
         while True:
             batch = await self._batches_to_decode.get()
             await self._decode_batch_inplace(batch)
-            self._message_batches.append(batch)
+            self._add_batch_to_queue(batch)
             self._state_changed.set()
+
+    def _add_batch_to_queue(self, batch: datatypes.PublicBatch):
+        part_sess_id = batch._partition_session.id
+        if part_sess_id in self._message_batches:
+            self._message_batches[part_sess_id].messages.extend(batch.messages)
+            self._message_batches[part_sess_id]._bytes_size += batch._bytes_size
+            return
+
+        self._message_batches[part_sess_id] = batch
 
     async def _decode_batch_inplace(self, batch):
         if batch._codec == Codec.CODEC_RAW:
