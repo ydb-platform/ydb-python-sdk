@@ -1,5 +1,6 @@
 import asyncio
 import concurrent.futures
+import sys
 import threading
 import typing
 from typing import Optional
@@ -27,6 +28,12 @@ def create_result_wrapper(
         return result_type.from_proto(msg)
 
     return wrapper
+
+
+def wrap_create_asyncio_task(func: typing.Callable, *args, **kwargs, task_name: str):
+    if sys.hexversion < 0x03080000:
+        return asyncio.create_task(func(*args, **kwargs))
+    return asyncio.create_task(func(*args, **kwargs), task_name=loop_name)
 
 
 _shared_event_loop_lock = threading.Lock()

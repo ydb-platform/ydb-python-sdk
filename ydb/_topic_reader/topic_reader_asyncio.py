@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import concurrent.futures
 import gzip
+import sys
 import typing
 from asyncio import Task
 from collections import deque
@@ -10,6 +11,7 @@ from typing import Optional, Set, Dict, Union, Callable
 
 import ydb
 from .. import _apis, issues
+from .._topic_common import common as topic_common
 from .._utilities import AtomicCounter
 from ..aio import Driver
 from ..issues import Error as YdbError, _process_response
@@ -87,7 +89,10 @@ class PublicAsyncIOReader:
 
     def __del__(self):
         if not self._closed:
-            self._loop.create_task(self.close(flush=False))
+            if sys.hexversion < 0x03080000:
+                self._loop.create_task(self.close(flush=False))
+            else:
+                self._loop.create_task(self.close(flush=False), name="close reader")
 
     async def wait_message(self):
         """
@@ -337,11 +342,21 @@ class ReaderStream:
 
         self._update_token_event.set()
 
-        self._background_tasks.add(asyncio.create_task(self._read_messages_loop()))
-        self._background_tasks.add(asyncio.create_task(self._decode_batches_loop()))
+        self._background_tasks.add(
+            topic_common.wrap_create_asyncio_task(self._read_messages_loop, task_name="read_messages_loop"),
+            )
+        self._background_tasks.add(
+            topic_common.wrap_create_asyncio_task(self._decode_batches_loop, task_name="decode_batches"),
+            )
         if self._get_token_function:
-            self._background_tasks.add(asyncio.create_task(self._update_token_loop()))
-        self._background_tasks.add(asyncio.create_task(self._handle_background_errors()))
+            self._background_tasks.add(
+                topic_common.wrap_create_asyncio_task(self._update_token_loop, task_name="update_token_loop"),
+                )
+        self._background_tasks.add(
+            topic_common.wrap_create_asyncio_task(
+                self._handle_background_errors, task_name="handle_background_errors",
+                ),
+        )
 
     async def wait_error(self):
         raise await self._first_error
