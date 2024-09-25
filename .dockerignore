@@ -1,7 +1,0 @@
-*
-!tests/slo
-!ydb/
-!README.md
-!requirements.txt
-!pyproject.toml
-!setup.py
