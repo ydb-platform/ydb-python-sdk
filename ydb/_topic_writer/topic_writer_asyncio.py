@@ -658,7 +658,9 @@ class WriterAsyncIOStream:
 
         if self._update_token_interval is not None:
             self._update_token_event.set()
-            self._update_token_task = topic_common.wrap_create_asyncio_task(self._update_token_loop, "update_token_loop")
+            self._update_token_task = topic_common.wrap_create_asyncio_task(
+                self._update_token_loop, "update_token_loop",
+            )
 
     @staticmethod
     def _ensure_ok(message: WriterMessagesFromServerToClient):
