@@ -367,14 +367,10 @@ class WriterAsyncIOReconnector:
 
                 self._stream_connected.set()
 
-                send_loop = topic_common.wrap_create_asyncio_task(
-                    self._send_loop, 
-                    "writer send loop", 
-                    stream_writer,
-                )
+                send_loop = topic_common.wrap_create_asyncio_task(self._send_loop, "writer send loop", stream_writer)
                 receive_loop = topic_common.wrap_create_asyncio_task(
-                    self._read_loop, 
-                    "writer receive loop", 
+                    self._read_loop,
+                    "writer receive loop",
                     stream_writer,
                 )
 
@@ -662,10 +658,7 @@ class WriterAsyncIOStream:
 
         if self._update_token_interval is not None:
             self._update_token_event.set()
-            self._update_token_task = topic_common.wrap_create_asyncio_task(
-                self._update_token_loop, 
-                "update_token_loop",
-            )
+            self._update_token_task = topic_common.wrap_create_asyncio_task(self._update_token_loop, "update_token_loop")
 
     @staticmethod
     def _ensure_ok(message: WriterMessagesFromServerToClient):
