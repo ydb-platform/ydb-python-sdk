@@ -169,7 +169,7 @@ class ReaderReconnector:
 
         self._state_changed = asyncio.Event()
         self._stream_reader = None
-        self._background_tasks.add(asyncio.create_task(self._connection_loop() ))
+        self._background_tasks.add(asyncio.create_task(self._connection_loop()))
         self._first_error = asyncio.get_running_loop().create_future()
 
     async def _connection_loop(self):
