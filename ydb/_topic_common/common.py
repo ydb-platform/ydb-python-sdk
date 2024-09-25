@@ -30,10 +30,10 @@ def create_result_wrapper(
     return wrapper
 
 
-def wrap_create_asyncio_task(func: typing.Callable, *args, **kwargs, task_name: str):
+def wrap_create_asyncio_task(func: typing.Callable, task_name: str, *args, **kwargs):
     if sys.hexversion < 0x03080000:
         return asyncio.create_task(func(*args, **kwargs))
-    return asyncio.create_task(func(*args, **kwargs), task_name=loop_name)
+    return asyncio.create_task(func(*args, **kwargs), name=task_name)
 
 
 _shared_event_loop_lock = threading.Lock()

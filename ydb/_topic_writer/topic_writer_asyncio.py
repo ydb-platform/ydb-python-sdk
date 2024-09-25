@@ -368,10 +368,10 @@ class WriterAsyncIOReconnector:
                 self._stream_connected.set()
 
                 send_loop = topic_common.wrap_create_asyncio_task(
-                    self._send_loop, stream_writer, task_name="writer send loop",
+                    self._send_loop, task_name="writer send loop", stream_writer,
                     )
                 receive_loop = topic_common.wrap_create_asyncio_task(
-                    self._read_loop, stream_writer, task_name="writer receive loop",
+                    self._read_loop, task_name="writer receive loop", stream_writer,
                     )
 
                 tasks = [send_loop, receive_loop]
