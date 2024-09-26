@@ -31,10 +31,10 @@ def create_result_wrapper(
 
 if sys.hexversion < 0x03080000:
     def wrap_set_name_for_asyncio_task(task: asyncio.Task, task_name: str) -> asyncio.Task:
-        task.set_name(task_name)
         return task
 else:
     def wrap_set_name_for_asyncio_task(task: asyncio.Task, task_name: str) -> asyncio.Task:
+        task.set_name(task_name)
         return task
 
 

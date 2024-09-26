@@ -87,8 +87,7 @@ class Test:
         asyncio_task = loop.create_task(some_async_task())
         wrap_set_name_for_asyncio_task(asyncio_task, task_name=task_name)
 
-        if sys.hexversion >= 0x03080000:
-            assert asyncio_task.get_name() == task_name
+        assert asyncio_task.get_name() == task_name
 
 
 
