@@ -90,7 +90,6 @@ class Test:
         assert asyncio_task.get_name() == task_name
 
 
-
 @pytest.mark.asyncio
 class TestGrpcWrapperAsyncIO:
     async def test_convert_grpc_errors_to_ydb(self):
