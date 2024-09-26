@@ -1,4 +1,5 @@
 import asyncio
+import sys
 import threading
 import time
 import typing
@@ -6,7 +7,7 @@ import typing
 import grpc
 import pytest
 
-from .common import CallFromSyncToAsync
+from .common import CallFromSyncToAsync, wrap_set_name_for_asyncio_task
 from .._grpc.grpcwrapper.common_utils import (
     GrpcWrapperAsyncIO,
     ServerStatus,
@@ -74,6 +75,21 @@ class Test:
 
         with pytest.raises(TestError):
             await callback_from_asyncio(async_failed)
+
+    async def test_task_name_on_asyncio_task(self):
+        task_name = "asyncio task"
+        loop = asyncio.get_running_loop()
+
+        async def some_async_task():
+            await asyncio.sleep(0)
+            return 1
+
+        asyncio_task = loop.create_task(some_async_task())
+        wrap_set_name_for_asyncio_task(asyncio_task, task_name=task_name)
+
+        if sys.hexversion >= 0x03080000:
+            assert asyncio_task.get_name() == task_name
+
 
 
 @pytest.mark.asyncio

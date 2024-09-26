@@ -3,7 +3,6 @@ from __future__ import annotations
 import asyncio
 import concurrent.futures
 import gzip
-import sys
 import typing
 from asyncio import Task
 from collections import deque
@@ -89,10 +88,8 @@ class PublicAsyncIOReader:
 
     def __del__(self):
         if not self._closed:
-            if sys.hexversion < 0x03080000:
-                self._loop.create_task(self.close(flush=False))
-            else:
-                self._loop.create_task(self.close(flush=False), name="close reader")
+            task = self._loop.create_task(self.close(flush=False))
+            topic_common.wrap_set_name_for_asyncio_task(task, task_name="close reader")
 
     async def wait_message(self):
         """
@@ -343,17 +340,29 @@ class ReaderStream:
         self._update_token_event.set()
 
         self._background_tasks.add(
-            topic_common.wrap_create_asyncio_task(self._read_messages_loop, "read_messages_loop"),
+            topic_common.wrap_set_name_for_asyncio_task(
+                asyncio.create_task(self._read_messages_loop()),
+                task_name="read_messages_loop",
+            ),
         )
         self._background_tasks.add(
-            topic_common.wrap_create_asyncio_task(self._decode_batches_loop, "decode_batches"),
+            topic_common.wrap_set_name_for_asyncio_task(
+                asyncio.create_task(self._decode_batches_loop()),
+                task_name="decode_batches",
+            ),
         )
         if self._get_token_function:
             self._background_tasks.add(
-                topic_common.wrap_create_asyncio_task(self._update_token_loop, "update_token_loop"),
+                topic_common.wrap_set_name_for_asyncio_task(
+                    asyncio.create_task(self._update_token_loop()),
+                    task_name="update_token_loop",
+                ),
             )
         self._background_tasks.add(
-            topic_common.wrap_create_asyncio_task(self._handle_background_errors, "handle_background_errors"),
+            topic_common.wrap_set_name_for_asyncio_task(
+                asyncio.create_task(self._handle_background_errors()),
+                task_name="handle_background_errors",
+            ),
         )
 
     async def wait_error(self):

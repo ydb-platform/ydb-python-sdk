@@ -29,11 +29,13 @@ def create_result_wrapper(
 
     return wrapper
 
-
-def wrap_create_asyncio_task(func: typing.Callable, task_name: str, *args, **kwargs):
-    if sys.hexversion < 0x03080000:
-        return asyncio.create_task(func(*args, **kwargs))
-    return asyncio.create_task(func(*args, **kwargs), name=task_name)
+if sys.hexversion < 0x03080000:
+    def wrap_set_name_for_asyncio_task(task: asyncio.Task, task_name: str) -> asyncio.Task:
+        task.set_name(task_name)
+        return task
+else:
+    def wrap_set_name_for_asyncio_task(task: asyncio.Task, task_name: str) -> asyncio.Task:
+        return task
 
 
 _shared_event_loop_lock = threading.Lock()

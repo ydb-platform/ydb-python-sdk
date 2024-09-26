@@ -232,8 +232,14 @@ class WriterAsyncIOReconnector:
         self._new_messages = asyncio.Queue()
         self._stop_reason = self._loop.create_future()
         self._background_tasks = [
-            topic_common.wrap_create_asyncio_task(self._connection_loop, "connection_loop"),
-            topic_common.wrap_create_asyncio_task(self._encode_loop, "encode_loop"),
+            topic_common.wrap_set_name_for_asyncio_task(
+                asyncio.create_task(self._connection_loop()),
+                task_name="connection_loop",
+            ),
+            topic_common.wrap_set_name_for_asyncio_task(
+                asyncio.create_task(self._encode_loop()),
+                task_name="encode_loop",
+            ),
         ]
 
         self._state_changed = asyncio.Event()
@@ -367,11 +373,13 @@ class WriterAsyncIOReconnector:
 
                 self._stream_connected.set()
 
-                send_loop = topic_common.wrap_create_asyncio_task(self._send_loop, "writer send loop", stream_writer)
-                receive_loop = topic_common.wrap_create_asyncio_task(
-                    self._read_loop,
-                    "writer receive loop",
-                    stream_writer,
+                send_loop = topic_common.wrap_set_name_for_asyncio_task(
+                    asyncio.create_task(self._send_loop(stream_writer)),
+                    task_name="writer send loop",
+                )
+                receive_loop = topic_common.wrap_set_name_for_asyncio_task(
+                    asyncio.create_task(self._read_loop(stream_writer)),
+                    task_name="writer receive loop",
                 )
 
                 tasks = [send_loop, receive_loop]
@@ -658,9 +666,9 @@ class WriterAsyncIOStream:
 
         if self._update_token_interval is not None:
             self._update_token_event.set()
-            self._update_token_task = topic_common.wrap_create_asyncio_task(
-                self._update_token_loop,
-                "update_token_loop",
+            self._update_token_task = topic_common.wrap_set_name_for_asyncio_task(
+                asyncio.create_task(self._update_token_loop()),
+                task_name="update_token_loop",
             )
 
     @staticmethod
