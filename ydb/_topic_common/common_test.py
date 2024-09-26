@@ -81,7 +81,7 @@ class Test:
         loop = asyncio.get_running_loop()
 
         async def some_async_task():
-            await asyncio.sleep(0)
+            await asyncio.sleep(1)
             return 1
 
         asyncio_task = loop.create_task(some_async_task())
