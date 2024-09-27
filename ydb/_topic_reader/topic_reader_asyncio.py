@@ -421,9 +421,9 @@ class ReaderStream:
             self._buffer_release_bytes(batch._bytes_size)
             return batch
 
-        cutted_batch, remaining_batch = self._cut_batch_by_max_messages(batch, max_messages)
+        cutted_batch = batch._pop_batch(size=max_messages)
 
-        self._message_batches[part_sess_id] = remaining_batch
+        self._message_batches[part_sess_id] = batch
         self._buffer_release_bytes(cutted_batch._bytes_size)
 
         return cutted_batch

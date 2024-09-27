@@ -179,3 +179,19 @@ class PublicBatch(ICommittable, ISessionAlive):
     def _pop(self) -> Tuple[List[PublicMessage], bool]:
         msgs_left = True if len(self.messages) > 1 else False
         return self.messages.pop(0), msgs_left
+
+    def _pop_batch(self, size: int) -> PublicBatch:
+        initial_length = len(self.messages)
+        one_message_size = self._bytes_size // initial_length
+
+        new_batch = PublicBatch(
+            messages=self.messages[:size],
+            _partition_session=self._partition_session,
+            _bytes_size=one_message_size * size,
+            _codec=self._codec,
+        )
+
+        self.messages = self.messages[size:]
+        self._bytes_size = one_message_size * (initial_length - size)
+
+        return new_batch
