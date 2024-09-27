@@ -389,8 +389,8 @@ class ReaderStream:
         return partition_session_id, batch
 
     def _cut_batch_by_max_messages(
-            batch: datatypes.PublicBatch,
-            max_messages: int,
+        batch: datatypes.PublicBatch,
+        max_messages: int,
     ) -> typing.Tuple[datatypes.PublicBatch, datatypes.PublicBatch]:
         initial_length = len(batch.messages)
         one_message_size = batch._bytes_size // initial_length
@@ -398,7 +398,7 @@ class ReaderStream:
         new_batch = datatypes.PublicBatch(
             messages=batch.messages[:max_messages],
             _partition_session=batch._partition_session,
-            _bytes_size=one_message_size*max_messages,
+            _bytes_size=one_message_size * max_messages,
             _codec=batch._codec,
         )
 
