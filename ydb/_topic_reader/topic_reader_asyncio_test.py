@@ -4,7 +4,7 @@ import copy
 import datetime
 import gzip
 import typing
-from collections import deque
+from collections import OrderedDict
 from dataclasses import dataclass
 from unittest import mock
 
@@ -52,9 +52,9 @@ def default_executor():
     executor.shutdown()
 
 
-def stub_partition_session():
+def stub_partition_session(id: int = 0):
     return datatypes.PartitionSession(
-        id=0,
+        id=id,
         state=datatypes.PartitionSession.State.Active,
         topic_path="asd",
         partition_id=1,
@@ -212,10 +212,10 @@ class TestReaderStream:
             _commit_end_offset=partition_session._next_message_start_commit_offset + offset_delta,
         )
 
-    async def send_message(self, stream_reader, message: PublicMessage):
-        await self.send_batch(stream_reader, [message])
+    async def send_message(self, stream_reader, message: PublicMessage, new_batch=True):
+        await self.send_batch(stream_reader, [message], new_batch=new_batch)
 
-    async def send_batch(self, stream_reader, batch: typing.List[PublicMessage]):
+    async def send_batch(self, stream_reader, batch: typing.List[PublicMessage], new_batch=True):
         if len(batch) == 0:
             return
 
@@ -223,10 +223,16 @@ class TestReaderStream:
         for message in batch:
             assert message._partition_session is first_message._partition_session
 
+        partition_session_id = first_message._partition_session.id
+
         def batch_count():
             return len(stream_reader._message_batches)
 
+        def batch_size():
+            return len(stream_reader._message_batches[partition_session_id].messages)
+
         initial_batches = batch_count()
+        initial_batch_size = 0 if new_batch else batch_size()
 
         stream = stream_reader._stream  # type: StreamMock
         stream.from_server.put_nowait(
@@ -261,7 +267,10 @@ class TestReaderStream:
                 ),
             )
         )
-        await wait_condition(lambda: batch_count() > initial_batches)
+        if new_batch:
+            await wait_condition(lambda: batch_count() > initial_batches)
+        else:
+            await wait_condition(lambda: batch_size() > initial_batch_size)
 
     async def test_unknown_error(self, stream, stream_reader_finish_with_error):
         class TestError(Exception):
@@ -412,15 +421,11 @@ class TestReaderStream:
         m2._commit_start_offset = m1.offset + 1
 
         await self.send_message(stream_reader_started, m1)
-        await self.send_message(stream_reader_started, m2)
+        await self.send_message(stream_reader_started, m2, new_batch=False)
 
         await stream_reader_started.wait_messages()
         received = stream_reader_started.receive_batch_nowait().messages
-        assert received == [m1]
-
-        await stream_reader_started.wait_messages()
-        received = stream_reader_started.receive_batch_nowait().messages
-        assert received == [m2]
+        assert received == [m1, m2]
 
         await stream_reader_started.close(False)
 
@@ -860,7 +865,7 @@ class TestReaderStream:
 
         assert stream_reader._buffer_size_bytes == initial_buffer_size - bytes_size
 
-        last_batch = stream_reader._message_batches[-1]
+        _, last_batch = stream_reader._message_batches.popitem()
         assert last_batch == PublicBatch(
             messages=[
                 PublicMessage(
@@ -1059,74 +1064,74 @@ class TestReaderStream:
     @pytest.mark.parametrize(
         "batches_before,expected_message,batches_after",
         [
-            ([], None, []),
+            ({}, None, {}),
             (
-                [
-                    PublicBatch(
+                {
+                    0: PublicBatch(
                         messages=[stub_message(1)],
                         _partition_session=stub_partition_session(),
                         _bytes_size=0,
                         _codec=Codec.CODEC_RAW,
                     )
-                ],
+                },
                 stub_message(1),
-                [],
+                {},
             ),
             (
-                [
-                    PublicBatch(
+                {
+                    0: PublicBatch(
                         messages=[stub_message(1), stub_message(2)],
                         _partition_session=stub_partition_session(),
                         _bytes_size=0,
                         _codec=Codec.CODEC_RAW,
                     ),
-                    PublicBatch(
+                    1: PublicBatch(
                         messages=[stub_message(3), stub_message(4)],
-                        _partition_session=stub_partition_session(),
+                        _partition_session=stub_partition_session(1),
                         _bytes_size=0,
                         _codec=Codec.CODEC_RAW,
                     ),
-                ],
+                },
                 stub_message(1),
-                [
-                    PublicBatch(
+                {
+                    0: PublicBatch(
                         messages=[stub_message(2)],
                         _partition_session=stub_partition_session(),
                         _bytes_size=0,
                         _codec=Codec.CODEC_RAW,
                     ),
-                    PublicBatch(
+                    1: PublicBatch(
                         messages=[stub_message(3), stub_message(4)],
-                        _partition_session=stub_partition_session(),
+                        _partition_session=stub_partition_session(1),
                         _bytes_size=0,
                         _codec=Codec.CODEC_RAW,
                     ),
-                ],
+                },
             ),
             (
-                [
-                    PublicBatch(
+                {
+                    0: PublicBatch(
                         messages=[stub_message(1)],
                         _partition_session=stub_partition_session(),
                         _bytes_size=0,
                         _codec=Codec.CODEC_RAW,
                     ),
-                    PublicBatch(
+                    1: PublicBatch(
                         messages=[stub_message(2), stub_message(3)],
-                        _partition_session=stub_partition_session(),
+                        _partition_session=stub_partition_session(1),
                         _bytes_size=0,
                         _codec=Codec.CODEC_RAW,
                     ),
-                ],
+                },
                 stub_message(1),
-                [
-                    PublicBatch(
+                {
+                    1: PublicBatch(
                         messages=[stub_message(2), stub_message(3)],
-                        _partition_session=stub_partition_session(),
+                        _partition_session=stub_partition_session(1),
                         _bytes_size=0,
                         _codec=Codec.CODEC_RAW,
                     )
-                ],
+                },
             ),
         ],
     )
@@ -1137,11 +1142,11 @@ class TestReaderStream:
         expected_message: PublicMessage,
         batches_after: typing.List[datatypes.PublicBatch],
     ):
-        stream_reader._message_batches = deque(batches_before)
+        stream_reader._message_batches = OrderedDict(batches_before)
         mess = stream_reader.receive_message_nowait()
 
         assert mess == expected_message
-        assert list(stream_reader._message_batches) == batches_after
+        assert dict(stream_reader._message_batches) == batches_after
 
     async def test_receive_batch_nowait(self, stream, stream_reader, partition_session):
         assert stream_reader.receive_batch_nowait() is None
@@ -1152,30 +1157,23 @@ class TestReaderStream:
         await self.send_message(stream_reader, mess1)
 
         mess2 = self.create_message(partition_session, 2, 1)
-        await self.send_message(stream_reader, mess2)
+        await self.send_message(stream_reader, mess2, new_batch=False)
 
         assert stream_reader._buffer_size_bytes == initial_buffer_size - 2 * self.default_batch_size
 
         received = stream_reader.receive_batch_nowait()
         assert received == PublicBatch(
-            messages=[mess1],
+            messages=[mess1, mess2],
             _partition_session=mess1._partition_session,
-            _bytes_size=self.default_batch_size,
-            _codec=Codec.CODEC_RAW,
-        )
-
-        received = stream_reader.receive_batch_nowait()
-        assert received == PublicBatch(
-            messages=[mess2],
-            _partition_session=mess2._partition_session,
-            _bytes_size=self.default_batch_size,
+            _bytes_size=self.default_batch_size * 2,
             _codec=Codec.CODEC_RAW,
         )
 
         assert stream_reader._buffer_size_bytes == initial_buffer_size
 
-        assert StreamReadMessage.ReadRequest(self.default_batch_size) == stream.from_client.get_nowait().client_message
-        assert StreamReadMessage.ReadRequest(self.default_batch_size) == stream.from_client.get_nowait().client_message
+        assert (
+            StreamReadMessage.ReadRequest(self.default_batch_size * 2) == stream.from_client.get_nowait().client_message
+        )
 
         with pytest.raises(asyncio.QueueEmpty):
             stream.from_client.get_nowait()
@@ -1186,13 +1184,18 @@ class TestReaderStream:
         initial_buffer_size = stream_reader._buffer_size_bytes
 
         await self.send_batch(
-            stream_reader, [self.create_message(partition_session, 1, 1), self.create_message(partition_session, 2, 1)]
+            stream_reader,
+            [
+                self.create_message(partition_session, 1, 1),
+                self.create_message(partition_session, 2, 1),
+            ],
         )
         await self.send_batch(
             stream_reader,
             [
                 self.create_message(partition_session, 10, 1),
             ],
+            new_batch=False,
         )
 
         assert stream_reader._buffer_size_bytes == initial_buffer_size - 2 * self.default_batch_size

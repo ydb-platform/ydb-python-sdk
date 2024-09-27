@@ -40,15 +40,14 @@ class TestTopicReaderAsyncIO:
             assert message != message2
 
     async def test_read_and_commit_with_ack(self, driver, topic_with_messages, topic_consumer):
-        reader = driver.topic_client.reader(topic_with_messages, topic_consumer)
-        batch = await reader.receive_batch()
-        await reader.commit_with_ack(batch)
+        async with driver.topic_client.reader(topic_with_messages, topic_consumer) as reader:
+            message = await reader.receive_message()
+            await reader.commit_with_ack(message)
 
-        reader = driver.topic_client.reader(topic_with_messages, topic_consumer)
-        batch2 = await reader.receive_batch()
-        assert batch.messages[0] != batch2.messages[0]
+        async with driver.topic_client.reader(topic_with_messages, topic_consumer) as reader:
+            batch = await reader.receive_batch()
 
-        await reader.close()
+        assert message != batch.messages[0]
 
     async def test_read_compressed_messages(self, driver, topic_path, topic_consumer):
         async with driver.topic_client.writer(topic_path, codec=ydb.TopicCodec.GZIP) as writer:
@@ -147,12 +146,12 @@ class TestTopicReaderSync:
 
     def test_read_and_commit_with_ack(self, driver_sync, topic_with_messages, topic_consumer):
         reader = driver_sync.topic_client.reader(topic_with_messages, topic_consumer)
-        batch = reader.receive_batch()
-        reader.commit_with_ack(batch)
+        message = reader.receive_message()
+        reader.commit_with_ack(message)
 
         reader = driver_sync.topic_client.reader(topic_with_messages, topic_consumer)
-        batch2 = reader.receive_batch()
-        assert batch.messages[0] != batch2.messages[0]
+        batch = reader.receive_batch()
+        assert message != batch.messages[0]
 
     def test_read_compressed_messages(self, driver_sync, topic_path, topic_consumer):
         with driver_sync.topic_client.writer(topic_path, codec=ydb.TopicCodec.GZIP) as writer:

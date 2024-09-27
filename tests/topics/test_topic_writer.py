@@ -41,10 +41,10 @@ class TestTopicWriterAsyncIO:
         async with driver.topic_client.writer(topic_path) as writer:
             await writer.write(ydb.TopicWriterMessage(data="123".encode()))
 
-        batch1 = await topic_reader.receive_batch()
-        batch2 = await topic_reader.receive_batch()
+        msg1 = await topic_reader.receive_message()
+        msg2 = await topic_reader.receive_message()
 
-        assert batch1.messages[0].producer_id != batch2.messages[0].producer_id
+        assert msg1.producer_id != msg2.producer_id
 
     async def test_auto_flush_on_close(self, driver: ydb.aio.Driver, topic_path):
         async with driver.topic_client.writer(
@@ -77,18 +77,16 @@ class TestTopicWriterAsyncIO:
             assert res1.offset == 0
             assert res2.offset == 1
 
-        batch = await topic_reader.receive_batch()
+        msg1 = await topic_reader.receive_message()
+        msg2 = await topic_reader.receive_message()
 
-        assert batch.messages[0].offset == 0
-        assert batch.messages[0].seqno == 1
-        assert batch.messages[0].data == "123".encode()
+        assert msg1.offset == 0
+        assert msg1.seqno == 1
+        assert msg1.data == "123".encode()
 
-        # remove second recieve batch when implement batching
-        # https://github.com/ydb-platform/ydb-python-sdk/issues/142
-        batch = await topic_reader.receive_batch()
-        assert batch.messages[0].offset == 1
-        assert batch.messages[0].seqno == 2
-        assert batch.messages[0].data == "456".encode()
+        assert msg2.offset == 1
+        assert msg2.seqno == 2
+        assert msg2.data == "456".encode()
 
     @pytest.mark.parametrize(
         "codec",
@@ -186,10 +184,10 @@ class TestTopicWriterSync:
         with driver_sync.topic_client.writer(topic_path) as writer:
             writer.write(ydb.TopicWriterMessage(data="123".encode()))
 
-        batch1 = topic_reader_sync.receive_batch()
-        batch2 = topic_reader_sync.receive_batch()
+        msg1 = topic_reader_sync.receive_message()
+        msg2 = topic_reader_sync.receive_message()
 
-        assert batch1.messages[0].producer_id != batch2.messages[0].producer_id
+        assert msg1.producer_id != msg2.producer_id
 
     def test_write_multi_message_with_ack(
         self, driver_sync: ydb.Driver, topic_path, topic_reader_sync: ydb.TopicReader
@@ -202,18 +200,16 @@ class TestTopicWriterSync:
                 ]
             )
 
-        batch = topic_reader_sync.receive_batch()
+        msg1 = topic_reader_sync.receive_message()
+        msg2 = topic_reader_sync.receive_message()
 
-        assert batch.messages[0].offset == 0
-        assert batch.messages[0].seqno == 1
-        assert batch.messages[0].data == "123".encode()
+        assert msg1.offset == 0
+        assert msg1.seqno == 1
+        assert msg1.data == "123".encode()
 
-        # remove second recieve batch when implement batching
-        # https://github.com/ydb-platform/ydb-python-sdk/issues/142
-        batch = topic_reader_sync.receive_batch()
-        assert batch.messages[0].offset == 1
-        assert batch.messages[0].seqno == 2
-        assert batch.messages[0].data == "456".encode()
+        assert msg2.offset == 1
+        assert msg2.seqno == 2
+        assert msg2.data == "456".encode()
 
     @pytest.mark.parametrize(
         "codec",
