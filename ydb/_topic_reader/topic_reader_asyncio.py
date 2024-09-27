@@ -389,6 +389,7 @@ class ReaderStream:
         return partition_session_id, batch
 
     def _cut_batch_by_max_messages(
+        self,
         batch: datatypes.PublicBatch,
         max_messages: int,
     ) -> typing.Tuple[datatypes.PublicBatch, datatypes.PublicBatch]:
