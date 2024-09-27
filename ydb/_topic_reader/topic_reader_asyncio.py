@@ -384,9 +384,9 @@ class ReaderStream:
 
         part_sess_id, batch = self._get_first_batch()
 
-        message = batch.messages.pop(0)
+        message, msgs_left = batch._pop()
 
-        if len(batch.messages) == 0:
+        if not msgs_left:
             self._buffer_release_bytes(batch._bytes_size)
         else:
             # TODO: we should somehow release bytes from single message as well
@@ -620,8 +620,7 @@ class ReaderStream:
     def _add_batch_to_queue(self, batch: datatypes.PublicBatch):
         part_sess_id = batch._partition_session.id
         if part_sess_id in self._message_batches:
-            self._message_batches[part_sess_id].messages.extend(batch.messages)
-            self._message_batches[part_sess_id]._bytes_size += batch._bytes_size
+            self._message_batches[part_sess_id]._extend(batch)
             return
 
         self._message_batches[part_sess_id] = batch
