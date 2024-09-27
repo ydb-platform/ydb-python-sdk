@@ -264,7 +264,7 @@ class ReaderStream:
 
     _state_changed: asyncio.Event
     _closed: bool
-    _message_batches: typing.Dict[int, datatypes.PublicBatch]
+    _message_batches: typing.Dict[int, datatypes.PublicBatch]  # keys are partition session ID
     _first_error: asyncio.Future[YdbError]
 
     _update_token_interval: Union[int, float]
@@ -360,8 +360,8 @@ class ReaderStream:
             self._state_changed.clear()
 
     def _get_first_batch(self) -> typing.Tuple[int, datatypes.PublicBatch]:
-        first_id, batch = self._message_batches.popitem(last=False)
-        return first_id, batch
+        partition_session_id, batch = self._message_batches.popitem(last=False)
+        return partition_session_id, batch
 
     def receive_batch_nowait(self):
         if self._get_first_error():

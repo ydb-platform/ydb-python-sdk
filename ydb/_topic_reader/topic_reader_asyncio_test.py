@@ -232,7 +232,7 @@ class TestReaderStream:
             return len(stream_reader._message_batches[partition_session_id].messages)
 
         initial_batches = batch_count()
-        initial_batch_size = batch_size() if not new_batch else 0
+        initial_batch_size = 0 if new_batch else batch_size()
 
         stream = stream_reader._stream  # type: StreamMock
         stream.from_server.put_nowait(
