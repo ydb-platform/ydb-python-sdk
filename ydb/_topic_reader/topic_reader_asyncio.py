@@ -99,6 +99,7 @@ class PublicAsyncIOReader:
 
     async def receive_batch(
         self,
+        max_messages: typing.Union[int, None] = None,
     ) -> typing.Union[datatypes.PublicBatch, None]:
         """
         Get one messages batch from reader.
@@ -107,7 +108,9 @@ class PublicAsyncIOReader:
         use asyncio.wait_for for wait with timeout.
         """
         await self._reconnector.wait_message()
-        return self._reconnector.receive_batch_nowait()
+        return self._reconnector.receive_batch_nowait(
+            max_messages=max_messages,
+        )
 
     async def receive_message(self) -> typing.Optional[datatypes.PublicMessage]:
         """
@@ -214,8 +217,10 @@ class ReaderReconnector:
             await self._state_changed.wait()
             self._state_changed.clear()
 
-    def receive_batch_nowait(self):
-        return self._stream_reader.receive_batch_nowait()
+    def receive_batch_nowait(self, max_messages: Optional[int] = None):
+        return self._stream_reader.receive_batch_nowait(
+            max_messages=max_messages,
+        )
 
     def receive_message_nowait(self):
         return self._stream_reader.receive_message_nowait()
@@ -383,17 +388,44 @@ class ReaderStream:
         partition_session_id, batch = self._message_batches.popitem(last=False)
         return partition_session_id, batch
 
-    def receive_batch_nowait(self):
+    def _cut_batch_by_max_messages(
+            batch: datatypes.PublicBatch,
+            max_messages: int,
+    ) -> typing.Tuple[datatypes.PublicBatch, datatypes.PublicBatch]:
+        initial_length = len(batch.messages)
+        one_message_size = batch._bytes_size // initial_length
+
+        new_batch = datatypes.PublicBatch(
+            messages=batch.messages[:max_messages],
+            _partition_session=batch._partition_session,
+            _bytes_size=one_message_size*max_messages,
+            _codec=batch._codec,
+        )
+
+        batch.messages = batch.messages[max_messages:]
+        batch._bytes_size = one_message_size * (initial_length - max_messages)
+
+        return new_batch, batch
+
+    def receive_batch_nowait(self, max_messages: Optional[int] = None):
         if self._get_first_error():
             raise self._get_first_error()
 
         if not self._message_batches:
             return None
 
-        _, batch = self._get_first_batch()
-        self._buffer_release_bytes(batch._bytes_size)
+        part_sess_id, batch = self._get_first_batch()
 
-        return batch
+        if max_messages is None or len(batch.messages) <= max_messages:
+            self._buffer_release_bytes(batch._bytes_size)
+            return batch
+
+        cutted_batch, remaining_batch = self._cut_batch_by_max_messages(batch, max_messages)
+
+        self._message_batches[part_sess_id] = remaining_batch
+        self._buffer_release_bytes(cutted_batch._bytes_size)
+
+        return cutted_batch
 
     def receive_message_nowait(self):
         if self._get_first_error():
