@@ -1148,6 +1148,96 @@ class TestReaderStream:
         assert mess == expected_message
         assert dict(stream_reader._message_batches) == batches_after
 
+    @pytest.mark.parametrize(
+        "batches_before,max_messages,actual_messages,batches_after",
+        [
+            (
+                {
+                    0: PublicBatch(
+                        messages=[stub_message(1)],
+                        _partition_session=stub_partition_session(),
+                        _bytes_size=4,
+                        _codec=Codec.CODEC_RAW,
+                    )
+                },
+                None,
+                1,
+                {},
+            ),
+            (
+                {
+                    0: PublicBatch(
+                        messages=[stub_message(1), stub_message(2)],
+                        _partition_session=stub_partition_session(),
+                        _bytes_size=4,
+                        _codec=Codec.CODEC_RAW,
+                    ),
+                    1: PublicBatch(
+                        messages=[stub_message(3), stub_message(4)],
+                        _partition_session=stub_partition_session(1),
+                        _bytes_size=4,
+                        _codec=Codec.CODEC_RAW,
+                    ),
+                },
+                1,
+                1,
+                {
+                    1: PublicBatch(
+                        messages=[stub_message(3), stub_message(4)],
+                        _partition_session=stub_partition_session(1),
+                        _bytes_size=4,
+                        _codec=Codec.CODEC_RAW,
+                    ),
+                    0: PublicBatch(
+                        messages=[stub_message(2)],
+                        _partition_session=stub_partition_session(),
+                        _bytes_size=2,
+                        _codec=Codec.CODEC_RAW,
+                    ),
+                },
+            ),
+            (
+                {
+                    0: PublicBatch(
+                        messages=[stub_message(1)],
+                        _partition_session=stub_partition_session(),
+                        _bytes_size=4,
+                        _codec=Codec.CODEC_RAW,
+                    ),
+                    1: PublicBatch(
+                        messages=[stub_message(2), stub_message(3)],
+                        _partition_session=stub_partition_session(1),
+                        _bytes_size=4,
+                        _codec=Codec.CODEC_RAW,
+                    ),
+                },
+                100,
+                1,
+                {
+                    1: PublicBatch(
+                        messages=[stub_message(2), stub_message(3)],
+                        _partition_session=stub_partition_session(1),
+                        _bytes_size=4,
+                        _codec=Codec.CODEC_RAW,
+                    )
+                },
+            ),
+        ],
+    )
+    async def test_read_batch_max_messages(
+        self,
+        stream_reader,
+        batches_before: typing.List[datatypes.PublicBatch],
+        max_messages: typing.Optional[int],
+        actual_messages: int,
+        batches_after: typing.List[datatypes.PublicBatch],
+    ):
+        stream_reader._message_batches = OrderedDict(batches_before)
+        batch = stream_reader.receive_batch_nowait(max_messages=max_messages)
+
+        assert len(batch.messages) == actual_messages
+        assert stream_reader._message_batches == OrderedDict(batches_after)
+
     async def test_receive_batch_nowait(self, stream, stream_reader, partition_session):
         assert stream_reader.receive_batch_nowait() is None
 
