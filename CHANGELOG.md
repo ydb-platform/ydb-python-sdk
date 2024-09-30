@@ -1,4 +1,8 @@
+* Ability to batch messages in topic reader
+* Implement max_messages on recieve_batch
+* Added badge for API reference
 * Remove experimental warn from query service
+* Remove asyncio task names for python below 3.8
 
 ## 3.17.2 ##
 * Add data_columns support in TableIndex
