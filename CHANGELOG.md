@@ -1,3 +1,4 @@
+## 3.18.0 ##
 * Ability to batch messages in topic reader
 * Implement max_messages on recieve_batch
 * Added badge for API reference
