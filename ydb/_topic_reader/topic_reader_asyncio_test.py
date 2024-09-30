@@ -1156,7 +1156,7 @@ class TestReaderStream:
                     0: PublicBatch(
                         messages=[stub_message(1)],
                         _partition_session=stub_partition_session(),
-                        _bytes_size=0,
+                        _bytes_size=4,
                         _codec=Codec.CODEC_RAW,
                     )
                 },
@@ -1169,13 +1169,13 @@ class TestReaderStream:
                     0: PublicBatch(
                         messages=[stub_message(1), stub_message(2)],
                         _partition_session=stub_partition_session(),
-                        _bytes_size=0,
+                        _bytes_size=4,
                         _codec=Codec.CODEC_RAW,
                     ),
                     1: PublicBatch(
                         messages=[stub_message(3), stub_message(4)],
                         _partition_session=stub_partition_session(1),
-                        _bytes_size=0,
+                        _bytes_size=4,
                         _codec=Codec.CODEC_RAW,
                     ),
                 },
@@ -1185,13 +1185,13 @@ class TestReaderStream:
                     1: PublicBatch(
                         messages=[stub_message(3), stub_message(4)],
                         _partition_session=stub_partition_session(1),
-                        _bytes_size=0,
+                        _bytes_size=4,
                         _codec=Codec.CODEC_RAW,
                     ),
                     0: PublicBatch(
                         messages=[stub_message(2)],
                         _partition_session=stub_partition_session(),
-                        _bytes_size=0,
+                        _bytes_size=2,
                         _codec=Codec.CODEC_RAW,
                     ),
                 },
@@ -1201,13 +1201,13 @@ class TestReaderStream:
                     0: PublicBatch(
                         messages=[stub_message(1)],
                         _partition_session=stub_partition_session(),
-                        _bytes_size=0,
+                        _bytes_size=4,
                         _codec=Codec.CODEC_RAW,
                     ),
                     1: PublicBatch(
                         messages=[stub_message(2), stub_message(3)],
                         _partition_session=stub_partition_session(1),
-                        _bytes_size=0,
+                        _bytes_size=4,
                         _codec=Codec.CODEC_RAW,
                     ),
                 },
@@ -1217,7 +1217,7 @@ class TestReaderStream:
                     1: PublicBatch(
                         messages=[stub_message(2), stub_message(3)],
                         _partition_session=stub_partition_session(1),
-                        _bytes_size=0,
+                        _bytes_size=4,
                         _codec=Codec.CODEC_RAW,
                     )
                 },
