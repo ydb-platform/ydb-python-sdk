@@ -388,26 +388,6 @@ class ReaderStream:
         partition_session_id, batch = self._message_batches.popitem(last=False)
         return partition_session_id, batch
 
-    def _cut_batch_by_max_messages(
-        self,
-        batch: datatypes.PublicBatch,
-        max_messages: int,
-    ) -> typing.Tuple[datatypes.PublicBatch, datatypes.PublicBatch]:
-        initial_length = len(batch.messages)
-        one_message_size = batch._bytes_size // initial_length
-
-        new_batch = datatypes.PublicBatch(
-            messages=batch.messages[:max_messages],
-            _partition_session=batch._partition_session,
-            _bytes_size=one_message_size * max_messages,
-            _codec=batch._codec,
-        )
-
-        batch.messages = batch.messages[max_messages:]
-        batch._bytes_size = one_message_size * (initial_length - max_messages)
-
-        return new_batch, batch
-
     def receive_batch_nowait(self, max_messages: Optional[int] = None):
         if self._get_first_error():
             raise self._get_first_error()

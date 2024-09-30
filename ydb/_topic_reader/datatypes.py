@@ -182,6 +182,10 @@ class PublicBatch(ICommittable, ISessionAlive):
 
     def _pop_batch(self, size: int) -> PublicBatch:
         initial_length = len(self.messages)
+
+        if size >= initial_length:
+            raise ValueError("Pop batch with size >= actual size is not supported.")
+
         one_message_size = self._bytes_size // initial_length
 
         new_batch = PublicBatch(
@@ -192,6 +196,6 @@ class PublicBatch(ICommittable, ISessionAlive):
         )
 
         self.messages = self.messages[size:]
-        self._bytes_size = one_message_size * (initial_length - size)
+        self._bytes_size = self._bytes_size - new_batch._bytes_size
 
         return new_batch
