@@ -214,6 +214,19 @@ def get_config(
                 endpoint, database, root_certificates, credentials, **kwargs
             )
         return driver_config
+
+    if driver_config.endpoint is None and endpoint is not None:
+        driver_config.endpoint = endpoint
+
+    if driver_config.database is None and database is not None:
+        driver_config.database = database
+
+    if driver_config.credentials is None and credentials is not None:
+        driver_config.credentials = credentials
+
+    if driver_config.root_certificates is None and root_certificates is not None:
+        driver_config.root_certificates = root_certificates
+
     return driver_config
 
 
