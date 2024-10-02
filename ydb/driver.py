@@ -190,6 +190,11 @@ class DriverConfig(object):
         self.grpc_keep_alive_timeout = timeout
         return self
 
+    def _update_attrs_by_kwargs(self, kwargs: dict):
+        for key, value in kwargs.items():
+            if getattr(self, key) is None:
+                setattr(self, key, value)
+
 
 ConnectionParams = DriverConfig
 
@@ -215,17 +220,12 @@ def get_config(
             )
         return driver_config
 
-    if driver_config.endpoint is None and endpoint is not None:
-        driver_config.endpoint = endpoint
+    kwargs["endpoint"] = endpoint
+    kwargs["database"] = database
+    kwargs["root_certificates"] = root_certificates
+    kwargs["credentials"] = credentials
 
-    if driver_config.database is None and database is not None:
-        driver_config.database = database
-
-    if driver_config.credentials is None and credentials is not None:
-        driver_config.credentials = credentials
-
-    if driver_config.root_certificates is None and root_certificates is not None:
-        driver_config.root_certificates = root_certificates
+    driver_config._update_attrs_by_kwargs(kwargs)
 
     return driver_config
 
