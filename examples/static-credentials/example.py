@@ -31,13 +31,13 @@ def auth_with_static_credentials_old(endpoint: str, database: str, user: str, pa
 
 def auth_with_static_credentials_new(endpoint: str, database: str, user: str, password: str):
     driver_config = ydb.DriverConfig(
-        endpoint,
-        database,
+        endpoint=endpoint,
+        database=database,
     )
     creds = ydb.StaticCredentials(
-        driver_config,
-        user,
-        password,
+        driver_config=driver_config,
+        user=user,
+        password=password,
     )
 
     with ydb.Driver(driver_config=driver_config, credentials=creds) as driver:
