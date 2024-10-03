@@ -176,7 +176,7 @@ class DriverConfig(object):
             database,
             credentials=default_credentials(credentials),
             root_certificates=root_certificates,
-            **kwargs
+            **kwargs,
         )
 
     @classmethod
@@ -187,7 +187,7 @@ class DriverConfig(object):
             database,
             credentials=default_credentials(credentials),
             root_certificates=root_certificates,
-            **kwargs
+            **kwargs,
         )
 
     def set_grpc_keep_alive_timeout(self, timeout):
@@ -215,7 +215,7 @@ def get_config(
     root_certificates=None,
     credentials=None,
     config_class=DriverConfig,
-    **kwargs
+    **kwargs,
 ):
     if driver_config is None:
         if connection_string is not None:
@@ -249,7 +249,7 @@ class Driver(pool.ConnectionPool):
         database=None,
         root_certificates=None,
         credentials=None,
-        **kwargs
+        **kwargs,
     ):
         """
         Constructs a driver instance to be used in table and scheme clients.
