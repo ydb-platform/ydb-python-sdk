@@ -215,7 +215,7 @@ class StaticCredentials(AbstractExpiringTokenCredentials):
 
 class UserPasswordCredentials(AbstractExpiringTokenCredentials):
     def __init__(self, user, password, endpoint, database, root_certificates=None, tracer=None):
-        super(UserPasswordCredentials).__init__(tracer)
+        super(UserPasswordCredentials, self).__init__(tracer)
 
         from .driver import DriverConfig  # to prevent circular dependencies
 
@@ -224,6 +224,7 @@ class UserPasswordCredentials(AbstractExpiringTokenCredentials):
             database=database,
             root_certificates=root_certificates,
         )
+
         self.user = user
         self.password = password
         self.request_timeout = 10

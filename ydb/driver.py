@@ -1,12 +1,16 @@
 # -*- coding: utf-8 -*-
+import grpc
+import logging
+import os
+from typing import Any  # noqa
+
 from . import credentials as credentials_impl, table, scheme, pool
 from . import tracing
-import os
-import grpc
 from . import iam
 from . import _utilities
 
-from typing import Any  # noqa
+
+logger = logging.getLogger(__name__)
 
 
 class RPCCompression:
@@ -190,9 +194,13 @@ class DriverConfig(object):
         self.grpc_keep_alive_timeout = timeout
         return self
 
-    def _update_attrs_by_kwargs(self, kwargs: dict):
+    def _update_attrs_by_kwargs(self, **kwargs):
         for key, value in kwargs.items():
-            if getattr(self, key) is None:
+            if value is not None:
+                if getattr(self, key) is not None:
+                    logger.warning(
+                        f"Arg {key} was used in both DriverConfig and Driver. Value from Driver will be used."
+                    )
                 setattr(self, key, value)
 
 
@@ -225,7 +233,7 @@ def get_config(
     kwargs["root_certificates"] = root_certificates
     kwargs["credentials"] = credentials
 
-    driver_config._update_attrs_by_kwargs(kwargs)
+    driver_config._update_attrs_by_kwargs(**kwargs)
 
     return driver_config
 
