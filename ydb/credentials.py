@@ -230,38 +230,6 @@ class StaticCredentials(AbstractExpiringTokenCredentials):
         )
 
 
-class UserPasswordCredentials(AbstractExpiringTokenCredentials):
-    def __init__(self, user, password, endpoint, database, root_certificates=None, tracer=None):
-        super(UserPasswordCredentials, self).__init__(tracer)
-
-        from .driver import DriverConfig  # to prevent circular dependencies
-
-        self.driver_config = DriverConfig(
-            endpoint=endpoint,
-            database=database,
-            root_certificates=root_certificates,
-        )
-
-        self.user = user
-        self.password = password
-        self.request_timeout = 10
-
-    def _make_token_request(self):
-        conn = connection.Connection.ready_factory(self.driver_config.endpoint, self.driver_config)
-        assert conn is not None, "Failed to establish connection in to %s" % self.driver_config.endpoint
-        try:
-            result = conn(
-                ydb_auth_pb2.LoginRequest(user=self.user, password=self.password),
-                ydb_auth_v1_pb2_grpc.AuthServiceStub,
-                "Login",
-                _wrap_static_credentials_response,
-                settings_impl.BaseRequestSettings().with_timeout(self.request_timeout).with_need_rpc_auth(False),
-            )
-        finally:
-            conn.close()
-        return {"expires_in": 30 * 60, "access_token": result.token}
-
-
 class AnonymousCredentials(Credentials):
     @staticmethod
     def auth_metadata():

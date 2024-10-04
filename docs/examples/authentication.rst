@@ -31,9 +31,8 @@ Full executable example `here <https://github.com/ydb-platform/ydb-python-sdk/tr
     )
 
 
-Static Credentials (Legacy)
+Static Credentials
 ---------------------------
-This method is legacy, use UserPasswordCredentials instead.
 
 Full executable example `here <https://github.com/ydb-platform/ydb-python-sdk/tree/main/examples/static-credentials>`_.
 
@@ -43,41 +42,13 @@ Full executable example `here <https://github.com/ydb-platform/ydb-python-sdk/tr
     driver_config = ydb.DriverConfig(
         endpoint=endpoint,
         database=database,
-    )
-    creds = ydb.StaticCredentials(
-        driver_config=driver_config,
-        user=user,
-        password=password,
-    )
-
-    driver = ydb.Driver(
-        driver_config=driver_config,
-        credentials=creds,
-    )
-
-
-User Password Credentials
--------------------------
-
-Full executable example `here <https://github.com/ydb-platform/ydb-python-sdk/tree/main/examples/static-credentials>`_.
-
-.. code-block:: python
-
-    driver_config = ydb.DriverConfig(
-        endpoint=endpoint,
-        database=database,
-        credentials=ydb.UserPasswordCredentials(
-            user=user,
-            password=password,
-            endpoint=endpoint,
-            database=database,
-        ),
+        credentials=ydb.StaticCredentials.from_user_password(user, password),
     )
 
     driver = ydb.Driver(driver_config=driver_config)
 
 
-Service Accaount Credentials
+Service Account Credentials
 ----------------------------
 
 Full executable example `here <https://github.com/ydb-platform/ydb-python-sdk/tree/main/examples/service-account-credentials>`_.
