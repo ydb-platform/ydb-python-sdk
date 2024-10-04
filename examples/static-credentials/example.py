@@ -44,6 +44,17 @@ def auth_with_static_credentials_new(endpoint: str, database: str, user: str, pa
         test_driver_works(driver)
 
 
+def auth_with_static_credentials_new2(endpoint: str, database: str, user: str, password: str):
+    driver_config = ydb.DriverConfig(
+        endpoint=endpoint,
+        database=database,
+        credentials=ydb.StaticCredentials.from_user_password(user, password),
+    )
+
+    with ydb.Driver(driver_config=driver_config) as driver:
+        test_driver_works(driver)
+
+
 def auth_with_user_password_credentials(endpoint: str, database: str, user: str, password: str):
     driver_config = ydb.DriverConfig(
         endpoint=endpoint,
@@ -63,4 +74,5 @@ def auth_with_user_password_credentials(endpoint: str, database: str, user: str,
 def run(endpoint: str, database: str, user: str, password: str):
     auth_with_static_credentials_old(endpoint, database, user, password)
     auth_with_static_credentials_new(endpoint, database, user, password)
+    auth_with_static_credentials_new2(endpoint, database, user, password)
     auth_with_user_password_credentials(endpoint, database, user, password)

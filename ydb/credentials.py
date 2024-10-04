@@ -188,14 +188,19 @@ class StaticCredentials(AbstractExpiringTokenCredentials):
 
         from .driver import DriverConfig
 
-        self.driver_config = DriverConfig(
-            endpoint=driver_config.endpoint,
-            database=driver_config.database,
-            root_certificates=driver_config.root_certificates,
-        )
+        if driver_config is not None:
+            self.driver_config = DriverConfig(
+                endpoint=driver_config.endpoint,
+                database=driver_config.database,
+                root_certificates=driver_config.root_certificates,
+            )
         self.user = user
         self.password = password
         self.request_timeout = 10
+
+    @classmethod
+    def from_user_password(cls, user: str, password: str, tracer=None):
+        return cls(None, user, password, tracer)
 
     def _make_token_request(self):
         conn = connection.Connection.ready_factory(self.driver_config.endpoint, self.driver_config)
@@ -211,6 +216,15 @@ class StaticCredentials(AbstractExpiringTokenCredentials):
         finally:
             conn.close()
         return {"expires_in": 30 * 60, "access_token": result.token}
+
+    def _update_driver_config(self, driver_config):
+        from .driver import DriverConfig
+
+        self.driver_config = DriverConfig(
+            endpoint=driver_config.endpoint,
+            database=driver_config.database,
+            root_certificates=driver_config.root_certificates,
+        )
 
 
 class UserPasswordCredentials(AbstractExpiringTokenCredentials):

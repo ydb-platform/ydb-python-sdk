@@ -226,14 +226,16 @@ def get_config(
             driver_config = config_class.default_from_endpoint_and_database(
                 endpoint, database, root_certificates, credentials, **kwargs
             )
-        return driver_config
+    else:
+        kwargs["endpoint"] = endpoint
+        kwargs["database"] = database
+        kwargs["root_certificates"] = root_certificates
+        kwargs["credentials"] = credentials
 
-    kwargs["endpoint"] = endpoint
-    kwargs["database"] = database
-    kwargs["root_certificates"] = root_certificates
-    kwargs["credentials"] = credentials
+        driver_config._update_attrs_by_kwargs(**kwargs)
 
-    driver_config._update_attrs_by_kwargs(**kwargs)
+    if isinstance(driver_config.credentials, credentials_impl.StaticCredentials):
+        driver_config.credentials._update_driver_config(driver_config)
 
     return driver_config
 
