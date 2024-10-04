@@ -1,8 +1,6 @@
 import pytest
 import ydb
 
-from concurrent.futures import TimeoutError
-
 
 USERNAME = "root"
 PASSWORD = "1234"
@@ -41,9 +39,9 @@ def test_static_credentials_wrong_creds(endpoint, database):
     driver_config = ydb.DriverConfig(
         endpoint,
         database,
-        credentials=ydb.StaticCredentials.from_user_password(USERNAME, PASSWORD*2),
+        credentials=ydb.StaticCredentials.from_user_password(USERNAME, PASSWORD * 2),
     )
 
-    with pytest.raises(TimeoutError):
+    with pytest.raises(ydb.ConnectionFailure):
         with ydb.Driver(driver_config=driver_config) as driver:
-            driver.wait(5)
+            driver.wait(5, fail_fast=True)
