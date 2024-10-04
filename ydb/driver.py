@@ -234,7 +234,8 @@ def get_config(
 
         driver_config._update_attrs_by_kwargs(**kwargs)
 
-    driver_config.credentials._update_driver_config(driver_config)
+    if driver_config.credentials is not None:
+        driver_config.credentials._update_driver_config(driver_config)
 
     return driver_config
 
