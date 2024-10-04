@@ -234,8 +234,7 @@ def get_config(
 
         driver_config._update_attrs_by_kwargs(**kwargs)
 
-    if isinstance(driver_config.credentials, credentials_impl.StaticCredentials):
-        driver_config.credentials._update_driver_config(driver_config)
+    driver_config.credentials._update_driver_config(driver_config)
 
     return driver_config
 

@@ -45,6 +45,9 @@ class Credentials(abc.ABC):
                 return token
         return ""
 
+    def _update_driver_config(self, driver_config):
+        pass
+
 
 class OneToManyValue(object):
     def __init__(self):
