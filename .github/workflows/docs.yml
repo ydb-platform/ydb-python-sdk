@@ -2,7 +2,7 @@ name: Deploy Sphinx documentation to Github Pages
 
 on:
   push:
-    branches: [main, fix_driver_and_driver_config_collision] # branch to trigger deployment
+    branches: [main] # branch to trigger deployment
 
 jobs:
   pages:
