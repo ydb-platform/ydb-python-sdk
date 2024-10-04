@@ -18,7 +18,7 @@ def check_driver_works(driver):
 def test_static_credentials_default(endpoint, database):
     driver_config = ydb.DriverConfig(
         endpoint,
-        database
+        database,
     )
     credentials = ydb.StaticCredentials(driver_config, USERNAME, PASSWORD)
 
@@ -30,7 +30,7 @@ def test_static_credentials_classmethod(endpoint, database):
     driver_config = ydb.DriverConfig(
         endpoint,
         database,
-        credentials=ydb.StaticCredentials.from_user_password(USERNAME, PASSWORD)
+        credentials=ydb.StaticCredentials.from_user_password(USERNAME, PASSWORD),
     )
 
     with ydb.Driver(driver_config=driver_config) as driver:
@@ -41,10 +41,9 @@ def test_static_credentials_wrong_creds(endpoint, database):
     driver_config = ydb.DriverConfig(
         endpoint,
         database,
-        credentials=ydb.StaticCredentials.from_user_password(USERNAME, PASSWORD*2)
+        credentials=ydb.StaticCredentials.from_user_password(USERNAME, PASSWORD*2),
     )
 
     with pytest.raises(TimeoutError):
         with ydb.Driver(driver_config=driver_config) as driver:
             driver.wait(5)
-
