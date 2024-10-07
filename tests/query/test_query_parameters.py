@@ -1,3 +1,5 @@
+import uuid
+
 import pytest
 import ydb
 
@@ -152,3 +154,27 @@ def test_select_typevalue_custom_type_raises(pool: ydb.QuerySessionPool):
     typed_value = ydb.TypedValue(expected_value)
     with pytest.raises(ValueError):
         pool.execute_with_retries(query, parameters={"$a": typed_value})
+
+
+def test_uuid_send(pool: ydb.QuerySessionPool):
+    val = uuid.UUID("52F84CBA-B15A-4BF2-9696-161ECA74CB5D")
+    query = """
+DECLARE $val AS UUID;
+
+SELECT CAST($val AS Utf8) AS value    
+"""
+    res = pool.execute_with_retries(query, parameters={"$val": ydb.TypedValue(val, ydb.PrimitiveType.UUID)})
+    actual_value = res[0].rows[0]["value"]
+    assert actual_value.upper() == str(val).upper()
+
+
+def test_uuid_read(pool: ydb.QuerySessionPool):
+    val = uuid.UUID("52F84CBA-B15A-4BF2-9696-161ECA74CB5D")
+    query = """
+DECLARE $val AS Utf8;
+
+SELECT CAST($val AS UUID) AS value    
+"""
+    res = pool.execute_with_retries(query, parameters={"$val": ydb.TypedValue(str(val), ydb.PrimitiveType.Utf8)})
+    actual_value = res[0].rows[0]["value"]
+    assert actual_value.hex.upper() == val.hex.upper()
