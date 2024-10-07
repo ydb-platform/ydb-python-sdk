@@ -1,3 +1,6 @@
+* Add an ability to use both driver config and driver args
+* Added new way to create StaticCredentials
+
 ## 3.18.0 ##
 * Ability to batch messages in topic reader
 * Implement max_messages on recieve_batch
