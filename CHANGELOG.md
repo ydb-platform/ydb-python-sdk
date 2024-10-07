@@ -1,3 +1,4 @@
+## 3.18.1 ##
 * Add an ability to use both driver config and driver args
 * Added new way to create StaticCredentials
 
