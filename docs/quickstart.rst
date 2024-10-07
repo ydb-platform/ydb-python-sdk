@@ -28,6 +28,15 @@ To install YDB Python SDK through Pypi execute the following command::
 
     pip install ydb
 
+
+Installation From Sources
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+To install YDB Python SDK from sources execute the following command from the root of repository::
+
+    pip install -e .
+
+
 Usage
 -----
 
