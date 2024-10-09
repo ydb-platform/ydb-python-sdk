@@ -14,10 +14,14 @@ else:
     from .._grpc.common.draft import (
         ydb_dynamic_config_v1_pb2_grpc,
     )
-
-    from .._grpc.common.draft.protos import (
-        ydb_dynamic_config_pb2,
-    )
+    try:
+        from .._grpc.common.draft.protos import (
+            ydb_dynamic_config_pb2,
+        )
+    except ImportError:
+        from .._grpc.common.protos.draft import (
+            ydb_dynamic_config_pb2,
+        )
 
 
 ydb_dynamic_config = ydb_dynamic_config_pb2
