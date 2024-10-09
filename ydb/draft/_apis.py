@@ -14,6 +14,7 @@ else:
     from .._grpc.common.draft import (
         ydb_dynamic_config_v1_pb2_grpc,
     )
+
     try:
         from .._grpc.common.draft.protos import (
             ydb_dynamic_config_pb2,
