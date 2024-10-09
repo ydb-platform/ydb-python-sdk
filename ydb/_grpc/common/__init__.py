@@ -10,7 +10,15 @@ from ... import _utilities
 protobuf_version = Version(google.protobuf.__version__)
 
 # for compatible with arcadia
-if _utilities.check_module_exists("ydb.public.api"):
+if _utilities.check_module_exists("contrib.ydb.public.api"):
+    from contrib.ydb.public.api.grpc import *  # noqa
+
+    sys.modules["ydb._grpc.common"] = sys.modules["contrib.ydb.public.api.grpc"]
+
+    from contrib.ydb.public.api import protos
+
+    sys.modules["ydb._grpc.common.protos"] = sys.modules["contrib.ydb.public.api.protos"]
+elif _utilities.check_module_exists("ydb.public.api"):
     from ydb.public.api.grpc import *  # noqa
 
     sys.modules["ydb._grpc.common"] = sys.modules["ydb.public.api.grpc"]
