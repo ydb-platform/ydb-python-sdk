@@ -1386,7 +1386,7 @@ class TableClient(BaseTableClient):
     def copy_tables(
         self,
         source_destination_pairs: List[Tuple[str, str]],
-        settings: Optional["settings_impl.BaseRequestSettings"] = None
+        settings: Optional["settings_impl.BaseRequestSettings"] = None,
     ) -> "ydb.Operation":
         """
         Copy a YDB tables.

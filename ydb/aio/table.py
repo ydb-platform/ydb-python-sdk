@@ -345,7 +345,7 @@ class TableClient(BaseTableClient):
     async def rename_tables(
         self,
         rename_items: List[Tuple[str, str]],
-        settings:  Optional["settings_impl.BaseRequestSettings"] = None,
+        settings: Optional["settings_impl.BaseRequestSettings"] = None,
     ) -> "ydb.Operation":
         """
         Rename a YDB tables.
