@@ -6,6 +6,14 @@ import logging
 import enum
 import typing
 
+from typing import (
+    Any,
+    Dict,
+    List,
+    Optional,
+    Tuple,
+)
+
 from . import (
     issues,
     convert,
@@ -1200,7 +1208,7 @@ class TableClient(BaseTableClient):
         self._pool: SessionPool = SessionPool(self._driver, 10)
 
     def __del__(self):
-        self._pool.close()
+        self._pool.stop()
 
     def async_scan_query(self, query, parameters=None, settings=None):
         # type: (ydb.ScanQuery, tuple, ydb.BaseRequestSettings) -> ydb.AsyncResponseIterator
@@ -1232,16 +1240,16 @@ class TableClient(BaseTableClient):
         self,
         path: str,
         table_description: TableDescription,
-        settings: typing.Optional[settings_impl.BaseRequestSettings] = None,
-    ):
+        settings: Optional[settings_impl.BaseRequestSettings] = None,
+    ) -> ydb.Operation:
         """
         Create a YDB table.
 
         :param path: A table path
-        :param table_description: A description of table to create. An instance TableDescription
-        :param settings: An instance of BaseRequestSettings that describes how rpc should invoked.
+        :param table_description: TableDescription instanse.
+        :param settings: An instance of BaseRequestSettings that describes how rpc should be invoked.
 
-        :return: A description of created scheme entry or error otherwise.
+        :return: Operation or YDB error otherwise.
         """
 
         def callee(session: Session):
@@ -1252,8 +1260,17 @@ class TableClient(BaseTableClient):
     def drop_table(
         self,
         path: str,
-        settings: typing.Optional[settings_impl.BaseRequestSettings] = None,
-    ):
+        settings: Optional[settings_impl.BaseRequestSettings] = None,
+    ) -> ydb.Operation:
+        """
+        Drop a YDB table.
+
+        :param path: A table path
+        :param settings: An instance of BaseRequestSettings that describes how rpc should be invoked.
+
+        :return: Operation or YDB error otherwise.
+        """
+
         def callee(session: Session):
             return session.drop_table(path=path, settings=settings)
 
@@ -1261,23 +1278,45 @@ class TableClient(BaseTableClient):
 
     def alter_table(
         self,
-        path,
-        add_columns=None,
-        drop_columns=None,
-        settings=None,
-        alter_attributes=None,
-        add_indexes=None,
-        drop_indexes=None,
-        set_ttl_settings=None,
-        drop_ttl_settings=None,
-        add_column_families=None,
-        alter_column_families=None,
-        alter_storage_settings=None,
-        set_compaction_policy=None,
-        alter_partitioning_settings=None,
-        set_key_bloom_filter=None,
-        set_read_replicas_settings=None,
-    ):
+        path: str,
+        add_columns: Optional[List[ydb.Column]] = None,
+        drop_columns: Optional[List[str]] = None,
+        settings: Optional[settings_impl.BaseRequestSettings] = None,
+        alter_attributes: Optional[Optional[Dict[str, str]]] = None,
+        add_indexes: Optional[List[ydb.TableIndex]] = None,
+        drop_indexes: Optional[List[str]] = None,
+        set_ttl_settings: Optional[ydb.TtlSettings] = None,
+        drop_ttl_settings: Optional[Any] = None,
+        add_column_families: Optional[List[ydb.ColumnFamily]] = None,
+        alter_column_families: Optional[List[ydb.ColumnFamily]] = None,
+        alter_storage_settings: Optional[ydb.StorageSettings] = None,
+        set_compaction_policy: Optional[str] = None,
+        alter_partitioning_settings: Optional[ydb.PartitioningSettings] = None,
+        set_key_bloom_filter: Optional[ydb.FeatureFlag] = None,
+        set_read_replicas_settings: Optional[ydb.ReadReplicasSettings] = None,
+    ) -> ydb.Operation:
+        """
+        Alter a YDB table.
+
+        :param path: A table path
+        :param add_columns: List of ydb.Column to add
+        :param drop_columns: List of column names to drop
+        :param settings: An instance of BaseRequestSettings that describes how rpc should be invoked.
+        :param alter_attributes: Dict of attributes to alter
+        :param add_indexes: List of ydb.TableIndex to add
+        :param drop_indexes: List of index names to drop
+        :param set_ttl_settings: ydb.TtlSettings to set
+        :param drop_ttl_settings: Any to drop
+        :param add_column_families: List of ydb.ColumnFamily to add
+        :param alter_column_families: List of ydb.ColumnFamily to alter
+        :param alter_storage_settings: ydb.StorageSettings to alter
+        :param set_compaction_policy: Compaction policy
+        :param alter_partitioning_settings: ydb.PartitioningSettings to alter
+        :param set_key_bloom_filter: ydb.FeatureFlag to set key bloom filter
+
+        :return: Operation or YDB error otherwise.
+        """
+
         def callee(session: Session):
             return session.alter_table(
                 path=path,
@@ -1300,13 +1339,41 @@ class TableClient(BaseTableClient):
 
         return self._pool.retry_operation_sync(callee)
 
-    def describe_table(self, path, settings=None):
+    def describe_table(
+        self,
+        path: str,
+        settings: Optional[settings_impl.BaseRequestSettings] = None,
+    ) -> ydb.TableSchemeEntry:
+        """
+        Describe a YDB table.
+
+        :param path: A table path
+        :param settings: An instance of BaseRequestSettings that describes how rpc should be invoked.
+
+        :return: TableSchemeEntry or YDB error otherwise.
+        """
+
         def callee(session: Session):
             return session.describe_table(path=path, settings=settings)
 
         return self._pool.retry_operation_sync(callee)
 
-    def copy_table(self, source_path, destination_path, settings=None):
+    def copy_table(
+        self,
+        source_path: str,
+        destination_path: str,
+        settings: Optional[settings_impl.BaseRequestSettings] = None,
+    ) -> ydb.Operation:
+        """
+        Copy a YDB table.
+
+        :param source_path: A table path
+        :param destination_path: Destination table path
+        :param settings: An instance of BaseRequestSettings that describes how rpc should be invoked.
+
+        :return: Operation or YDB error otherwise.
+        """
+
         def callee(session: Session):
             return session.copy_table(
                 source_path=source_path,
@@ -1316,13 +1383,39 @@ class TableClient(BaseTableClient):
 
         return self._pool.retry_operation_sync(callee)
 
-    def copy_tables(self, source_destination_pairs, settings=None):
+    def copy_tables(
+        self,
+        source_destination_pairs: List[Tuple[str, str]],
+        settings: Optional[settings_impl.BaseRequestSettings] = None
+    ) -> ydb.Operation:
+        """
+        Copy a YDB tables.
+
+        :param source_destination_pairs: List of tuples (source_path, destination_path)
+        :param settings: An instance of BaseRequestSettings that describes how rpc should be invoked.
+
+        :return: Operation or YDB error otherwise.
+        """
+
         def callee(session: Session):
             return session.copy_tables(source_destination_pairs=source_destination_pairs, settings=settings)
 
         return self._pool.retry_operation_sync(callee)
 
-    def rename_tables(self, rename_items, settings=None):
+    def rename_tables(
+        self,
+        rename_items: List[Tuple[str, str]],
+        settings=None
+    ) -> ydb.Operation:
+        """
+        Rename a YDB tables.
+
+        :param rename_items: List of tuples (current_name, desired_name)
+        :param settings: An instance of BaseRequestSettings that describes how rpc should be invoked.
+
+        :return: Operation or YDB error otherwise.
+        """
+
         def callee(session: Session):
             return session.rename_tables(rename_items=rename_items, settings=settings)
 
