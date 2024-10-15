@@ -1243,6 +1243,7 @@ class TableClient(BaseTableClient):
 
         :return: A description of created scheme entry or error otherwise.
         """
+
         def callee(session: Session):
             return session.create_table(path=path, table_description=table_description, settings=settings)
 

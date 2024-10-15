@@ -183,6 +183,7 @@ class TableClient(BaseTableClient):
 
         :return: A description of created scheme entry or error otherwise.
         """
+
         async def callee(session: Session):
             return await session.create_table(path=path, table_description=table_description, settings=settings)
 

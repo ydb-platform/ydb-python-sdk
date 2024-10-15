@@ -51,9 +51,12 @@ class TestTableClient:
 
         client.create_table(table_name, description)
 
-        client.alter_table(table_name, add_columns=[
-            ydb.Column("value2", ydb.OptionalType(ydb.PrimitiveType.Uint64)),
-        ])
+        client.alter_table(
+            table_name,
+            add_columns=[
+                ydb.Column("value2", ydb.OptionalType(ydb.PrimitiveType.Uint64)),
+            ]
+        )
 
         description = client.describe_table(table_name)
         assert len(description.columns) == 4
