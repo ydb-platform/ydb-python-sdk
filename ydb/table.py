@@ -1241,7 +1241,7 @@ class TableClient(BaseTableClient):
         path: str,
         table_description: TableDescription,
         settings: Optional[settings_impl.BaseRequestSettings] = None,
-    ) -> ydb.Operation:
+    ) -> "ydb.Operation":
         """
         Create a YDB table.
 
@@ -1261,7 +1261,7 @@ class TableClient(BaseTableClient):
         self,
         path: str,
         settings: Optional[settings_impl.BaseRequestSettings] = None,
-    ) -> ydb.Operation:
+    ) -> "ydb.Operation":
         """
         Drop a YDB table.
 
@@ -1294,7 +1294,7 @@ class TableClient(BaseTableClient):
         alter_partitioning_settings: Optional[ydb.PartitioningSettings] = None,
         set_key_bloom_filter: Optional[ydb.FeatureFlag] = None,
         set_read_replicas_settings: Optional[ydb.ReadReplicasSettings] = None,
-    ) -> ydb.Operation:
+    ) -> "ydb.Operation":
         """
         Alter a YDB table.
 
@@ -1363,7 +1363,7 @@ class TableClient(BaseTableClient):
         source_path: str,
         destination_path: str,
         settings: Optional[settings_impl.BaseRequestSettings] = None,
-    ) -> ydb.Operation:
+    ) -> "ydb.Operation":
         """
         Copy a YDB table.
 
@@ -1387,7 +1387,7 @@ class TableClient(BaseTableClient):
         self,
         source_destination_pairs: List[Tuple[str, str]],
         settings: Optional[settings_impl.BaseRequestSettings] = None
-    ) -> ydb.Operation:
+    ) -> "ydb.Operation":
         """
         Copy a YDB tables.
 
@@ -1406,7 +1406,7 @@ class TableClient(BaseTableClient):
         self,
         rename_items: List[Tuple[str, str]],
         settings=None
-    ) -> ydb.Operation:
+    ) -> "ydb.Operation":
         """
         Rename a YDB tables.
 
