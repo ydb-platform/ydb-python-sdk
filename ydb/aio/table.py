@@ -179,8 +179,8 @@ class TableClient(BaseTableClient):
     async def create_table(
         self,
         path: str,
-        table_description: TableDescription,
-        settings: Optional[settings_impl.BaseRequestSettings] = None,
+        table_description: "TableDescription",
+        settings: Optional["settings_impl.BaseRequestSettings"] = None,
     ) -> "ydb.Operation":
         """
         Create a YDB table.
@@ -200,7 +200,7 @@ class TableClient(BaseTableClient):
     async def drop_table(
         self,
         path: str,
-        settings: Optional[settings_impl.BaseRequestSettings] = None,
+        settings: Optional["settings_impl.BaseRequestSettings"] = None,
     ) -> "ydb.Operation":
         """
         Drop a YDB table.
@@ -219,21 +219,21 @@ class TableClient(BaseTableClient):
     async def alter_table(
         self,
         path: str,
-        add_columns: Optional[List[ydb.Column]] = None,
+        add_columns: Optional[List["ydb.Column"]] = None,
         drop_columns: Optional[List[str]] = None,
-        settings: Optional[settings_impl.BaseRequestSettings] = None,
+        settings: Optional["settings_impl.BaseRequestSettings"] = None,
         alter_attributes: Optional[Optional[Dict[str, str]]] = None,
-        add_indexes: Optional[List[ydb.TableIndex]] = None,
+        add_indexes: Optional[List["ydb.TableIndex"]] = None,
         drop_indexes: Optional[List[str]] = None,
-        set_ttl_settings: Optional[ydb.TtlSettings] = None,
+        set_ttl_settings: Optional["ydb.TtlSettings"] = None,
         drop_ttl_settings: Optional[Any] = None,
-        add_column_families: Optional[List[ydb.ColumnFamily]] = None,
-        alter_column_families: Optional[List[ydb.ColumnFamily]] = None,
-        alter_storage_settings: Optional[ydb.StorageSettings] = None,
+        add_column_families: Optional[List["ydb.ColumnFamily"]] = None,
+        alter_column_families: Optional[List["ydb.ColumnFamily"]] = None,
+        alter_storage_settings: Optional["ydb.StorageSettings"] = None,
         set_compaction_policy: Optional[str] = None,
-        alter_partitioning_settings: Optional[ydb.PartitioningSettings] = None,
-        set_key_bloom_filter: Optional[ydb.FeatureFlag] = None,
-        set_read_replicas_settings: Optional[ydb.ReadReplicasSettings] = None,
+        alter_partitioning_settings: Optional["ydb.PartitioningSettings"] = None,
+        set_key_bloom_filter: Optional["ydb.FeatureFlag"] = None,
+        set_read_replicas_settings: Optional["ydb.ReadReplicasSettings"] = None,
     ) -> "ydb.Operation":
         """
         Alter a YDB table.
@@ -282,8 +282,8 @@ class TableClient(BaseTableClient):
     async def describe_table(
         self,
         path: str,
-        settings: Optional[settings_impl.BaseRequestSettings] = None,
-    ) -> ydb.TableSchemeEntry:
+        settings: Optional["settings_impl.BaseRequestSettings"] = None,
+    ) -> "ydb.TableSchemeEntry":
         """
         Describe a YDB table.
 
@@ -302,7 +302,7 @@ class TableClient(BaseTableClient):
         self,
         source_path: str,
         destination_path: str,
-        settings: Optional[settings_impl.BaseRequestSettings] = None,
+        settings: Optional["settings_impl.BaseRequestSettings"] = None,
     ) -> "ydb.Operation":
         """
         Copy a YDB table.
@@ -326,7 +326,7 @@ class TableClient(BaseTableClient):
     async def copy_tables(
         self,
         source_destination_pairs: List[Tuple[str, str]],
-        settings: Optional[settings_impl.BaseRequestSettings] = None
+        settings: Optional["settings_impl.BaseRequestSettings"] = None,
     ) -> "ydb.Operation":
         """
         Copy a YDB tables.
@@ -345,7 +345,7 @@ class TableClient(BaseTableClient):
     async def rename_tables(
         self,
         rename_items: List[Tuple[str, str]],
-        settings=None
+        settings:  Optional["settings_impl.BaseRequestSettings"] = None,
     ) -> "ydb.Operation":
         """
         Rename a YDB tables.
