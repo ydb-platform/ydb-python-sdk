@@ -283,6 +283,6 @@ class Driver(pool.ConnectionPool):
         self.table_client = table.TableClient(self, driver_config.table_client_settings)
         self.topic_client = topic.TopicClient(self, driver_config.topic_client_settings)
 
-    def stop(self):
-        self.table_client._pool.stop()
-        super().stop()
+    def stop(self, timeout=10):
+        self.table_client._pool.stop(timeout=timeout)
+        super().stop(timeout=timeout)
