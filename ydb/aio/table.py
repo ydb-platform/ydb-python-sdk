@@ -13,6 +13,7 @@ from ydb.table import (
     _scan_query_request_factory,
     _wrap_scan_query_response,
     BaseTxContext,
+    TableDescription,
 )
 from . import _utilities
 from ydb import _apis, _session_impl
@@ -139,6 +140,11 @@ class Session(BaseSession):
 
 
 class TableClient(BaseTableClient):
+    def __init__(self, driver, table_client_settings=None):
+        # type:(ydb.Driver, ydb.TableClientSettings) -> None
+        super().__init__(driver=driver, table_client_settings=table_client_settings)
+        self._pool: SessionPool = SessionPool(self._driver, 10)
+
     def session(self):
         return Session(self._driver, self._table_client_settings)
 
@@ -157,6 +163,105 @@ class TableClient(BaseTableClient):
             response,
             lambda resp: _wrap_scan_query_response(resp, self._table_client_settings),
         )
+
+    async def create_table(
+        self,
+        path: str,
+        table_description: TableDescription,
+        settings: typing.Optional[settings_impl.BaseRequestSettings] = None,
+    ):
+        """
+        Create a YDB table.
+
+        :param path: A table path
+        :param table_description: A description of table to create. An instance TableDescription
+        :param settings: An instance of BaseRequestSettings that describes how rpc should invoked.
+
+        :return: A description of created scheme entry or error otherwise.
+        """
+        async def callee(session: Session):
+            return await session.create_table(path=path, table_description=table_description, settings=settings)
+
+        return await self._pool.retry_operation(callee)
+
+    async def drop_table(
+        self,
+        path: str,
+        settings: typing.Optional[settings_impl.BaseRequestSettings] = None,
+    ):
+        async def callee(session: Session):
+            return await session.drop_table(path=path, settings=settings)
+
+        return await self._pool.retry_operation(callee)
+
+    async def alter_table(
+        self,
+        path,
+        add_columns=None,
+        drop_columns=None,
+        settings=None,
+        alter_attributes=None,
+        add_indexes=None,
+        drop_indexes=None,
+        set_ttl_settings=None,
+        drop_ttl_settings=None,
+        add_column_families=None,
+        alter_column_families=None,
+        alter_storage_settings=None,
+        set_compaction_policy=None,
+        alter_partitioning_settings=None,
+        set_key_bloom_filter=None,
+        set_read_replicas_settings=None,
+    ):
+        async def callee(session: Session):
+            return await session.alter_table(
+                path=path,
+                add_columns=add_columns,
+                drop_columns=drop_columns,
+                settings=settings,
+                alter_attributes=alter_attributes,
+                add_indexes=add_indexes,
+                drop_indexes=drop_indexes,
+                set_ttl_settings=set_ttl_settings,
+                drop_ttl_settings=drop_ttl_settings,
+                add_column_families=add_column_families,
+                alter_column_families=alter_column_families,
+                alter_storage_settings=alter_storage_settings,
+                set_compaction_policy=set_compaction_policy,
+                alter_partitioning_settings=alter_partitioning_settings,
+                set_key_bloom_filter=set_key_bloom_filter,
+                set_read_replicas_settings=set_read_replicas_settings,
+            )
+
+        return await self._pool.retry_operation(callee)
+
+    async def describe_table(self, path, settings=None):
+        async def callee(session: Session):
+            return await session.describe_table(path=path, settings=settings)
+
+        return await self._pool.retry_operation(callee)
+
+    async def copy_table(self, source_path, destination_path, settings=None):
+        async def callee(session: Session):
+            return await session.copy_table(
+                source_path=source_path,
+                destination_path=destination_path,
+                settings=settings,
+            )
+
+        return await self._pool.retry_operation(callee)
+
+    async def copy_tables(self, source_destination_pairs, settings=None):
+        async def callee(session: Session):
+            return await session.copy_tables(source_destination_pairs=source_destination_pairs, settings=settings)
+
+        return await self._pool.retry_operation(callee)
+
+    async def rename_tables(self, rename_items, settings=None):
+        async def callee(session: Session):
+            return await session.rename_tables(rename_items=rename_items, settings=settings)
+
+        return await self._pool.retry_operation(callee)
 
 
 class TxContext(BaseTxContext):
