@@ -1199,6 +1199,9 @@ class TableClient(BaseTableClient):
         super().__init__(driver=driver, table_client_settings=table_client_settings)
         self._pool: SessionPool = SessionPool(self._driver, 10)
 
+    def __del__(self):
+        self._pool.close()
+
     def async_scan_query(self, query, parameters=None, settings=None):
         # type: (ydb.ScanQuery, tuple, ydb.BaseRequestSettings) -> ydb.AsyncResponseIterator
         request = _scan_query_request_factory(query, parameters, settings)
