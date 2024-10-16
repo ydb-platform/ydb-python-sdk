@@ -1,3 +1,6 @@
+* Hide session management for table client methods 
+* Add build method to QueryOnlineReadOnly mode
+
 ## 3.18.2 ##
 * Fix compatibility with arcadia
 
