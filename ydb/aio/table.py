@@ -151,11 +151,11 @@ class TableClient(BaseTableClient):
     def __init__(self, driver, table_client_settings=None):
         # type:(ydb.Driver, ydb.TableClientSettings) -> None
         super().__init__(driver=driver, table_client_settings=table_client_settings)
-        self._pool: SessionPool = SessionPool(self._driver, 10)
+        self._pool: Optional[SessionPool] = None
 
     def __del__(self):
         if not self._pool._terminating:
-            asyncio.get_running_loop.call_soon(self._pool.stop)
+            asyncio.get_running_loop.call_soon(self._stop_pool_if_needed)
 
     def session(self):
         return Session(self._driver, self._table_client_settings)
@@ -176,6 +176,14 @@ class TableClient(BaseTableClient):
             lambda resp: _wrap_scan_query_response(resp, self._table_client_settings),
         )
 
+    def _init_pool_if_needed(self):
+        if self._pool is None:
+            self._pool = SessionPool(self._driver, 10)
+
+    async def _stop_pool_if_needed(self, timeout=10):
+        if self._pool is not None:
+            await self._pool.stop(timeout=timeout)
+
     async def create_table(
         self,
         path: str,
@@ -191,6 +199,8 @@ class TableClient(BaseTableClient):
 
         :return: Operation or YDB error otherwise.
         """
+
+        self._init_pool_if_needed()
 
         async def callee(session: Session):
             return await session.create_table(path=path, table_description=table_description, settings=settings)
@@ -210,6 +220,8 @@ class TableClient(BaseTableClient):
 
         :return: Operation or YDB error otherwise.
         """
+
+        self._init_pool_if_needed()
 
         async def callee(session: Session):
             return await session.drop_table(path=path, settings=settings)
@@ -257,6 +269,8 @@ class TableClient(BaseTableClient):
         :return: Operation or YDB error otherwise.
         """
 
+        self._init_pool_if_needed()
+
         async def callee(session: Session):
             return await session.alter_table(
                 path=path,
@@ -293,6 +307,8 @@ class TableClient(BaseTableClient):
         :return: TableSchemeEntry or YDB error otherwise.
         """
 
+        self._init_pool_if_needed()
+
         async def callee(session: Session):
             return await session.describe_table(path=path, settings=settings)
 
@@ -313,6 +329,8 @@ class TableClient(BaseTableClient):
 
         :return: Operation or YDB error otherwise.
         """
+
+        self._init_pool_if_needed()
 
         async def callee(session: Session):
             return await session.copy_table(
@@ -337,6 +355,8 @@ class TableClient(BaseTableClient):
         :return: Operation or YDB error otherwise.
         """
 
+        self._init_pool_if_needed()
+
         async def callee(session: Session):
             return await session.copy_tables(source_destination_pairs=source_destination_pairs, settings=settings)
 
@@ -355,6 +375,8 @@ class TableClient(BaseTableClient):
 
         :return: Operation or YDB error otherwise.
         """
+
+        self._init_pool_if_needed()
 
         async def callee(session: Session):
             return await session.rename_tables(rename_items=rename_items, settings=settings)

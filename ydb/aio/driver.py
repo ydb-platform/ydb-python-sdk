@@ -61,5 +61,5 @@ class Driver(pool.ConnectionPool):
         self.topic_client = topic.TopicClientAsyncIO(self, config.topic_client_settings)
 
     async def stop(self, timeout=10):
-        await self.table_client._pool.stop(timeout=timeout)
+        await self.table_client._stop_pool_if_needed(timeout=timeout)
         await super().stop(timeout=timeout)
