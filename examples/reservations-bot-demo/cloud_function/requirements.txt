@@ -5,7 +5,7 @@ cryptography==41.0.0
 enum-compat==0.0.3
 googleapis-common-protos==1.52.0
 grpcio==1.53.2
-idna==2.10
+idna==3.7
 protobuf==3.18.3
 pycparser==2.20
 pydantic==1.6.2
