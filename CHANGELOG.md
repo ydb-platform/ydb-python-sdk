@@ -1,3 +1,5 @@
+* Fix table_client desctructor
+  
 ## 3.18.3 ##
 * Hide session management for table client methods 
 * Add build method to QueryOnlineReadOnly mode
