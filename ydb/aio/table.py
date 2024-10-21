@@ -154,7 +154,7 @@ class TableClient(BaseTableClient):
         self._pool: Optional[SessionPool] = None
 
     def __del__(self):
-        asyncio.get_running_loop.call_soon(self._stop_pool_if_needed)
+        asyncio.get_running_loop().call_soon(self._stop_pool_if_needed)
 
     def session(self):
         return Session(self._driver, self._table_client_settings)
