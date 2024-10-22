@@ -1,3 +1,5 @@
+* Fix table_client desctructor
+
 ## 3.18.4 ##
 * Fix table_client desctructor
   
