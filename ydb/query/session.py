@@ -134,8 +134,19 @@ class BaseQuerySession:
 
     def __init__(self, driver: common_utils.SupportedDriverType, settings: Optional[base.QueryClientSettings] = None):
         self._driver = driver
-        self._settings = settings if settings is not None else base.QueryClientSettings()
+        self._settings = self._get_client_settings(driver, settings)
         self._state = QuerySessionState(settings)
+
+    def _get_client_settings(
+        self,
+        driver: common_utils.SupportedDriverType,
+        settings: Optional[base.QueryClientSettings] = None,
+    ) -> base.QueryClientSettings:
+        if settings is not None:
+            return settings
+        if driver._driver_config.query_client_settings is not None:
+            return driver._driver_config.query_client_settings
+        return base.QueryClientSettings()
 
     def _create_call(self, settings: Optional[BaseRequestSettings] = None) -> "BaseQuerySession":
         return self._driver(

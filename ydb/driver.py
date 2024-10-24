@@ -89,6 +89,7 @@ class DriverConfig(object):
         "secure_channel",
         "table_client_settings",
         "topic_client_settings",
+        "query_client_settings",
         "endpoints",
         "primary_user_agent",
         "tracer",
@@ -112,6 +113,7 @@ class DriverConfig(object):
         grpc_keep_alive_timeout=None,
         table_client_settings=None,
         topic_client_settings=None,
+        query_client_settings=None,
         endpoints=None,
         primary_user_agent="python-library",
         tracer=None,
@@ -159,6 +161,7 @@ class DriverConfig(object):
         self.grpc_keep_alive_timeout = grpc_keep_alive_timeout
         self.table_client_settings = table_client_settings
         self.topic_client_settings = topic_client_settings
+        self.query_client_settings = query_client_settings
         self.primary_user_agent = primary_user_agent
         self.tracer = tracer if tracer is not None else tracing.Tracer(None)
         self.grpc_lb_policy_name = grpc_lb_policy_name
