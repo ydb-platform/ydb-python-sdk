@@ -32,6 +32,7 @@ class QuerySessionPool:
         self,
         driver: common_utils.SupportedDriverType,
         size: int = 100,
+        *,
         query_client_settings: Optional[QueryClientSettings] = None,
     ):
         """
