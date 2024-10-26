@@ -91,13 +91,13 @@ def run_slo(args, driver, tb_name):
     logger.info("Max ID: %s", max_id)
 
     metrics = Metrics(args.prom_pgw)
-    if SDK_SERVICE_NAME == "sync-python-table":
+    if SDK_SERVICE_NAME == "py-sync-table":
         futures = (
             *run_read_jobs(args, driver, tb_name, max_id, metrics),
             *run_write_jobs(args, driver, tb_name, max_id, metrics),
             run_metric_job(args, metrics),
         )
-    elif SDK_SERVICE_NAME == "sync-python-query":
+    elif SDK_SERVICE_NAME == "py-sync-query":
         futures = (
             *run_read_jobs_query(args, driver, tb_name, max_id, metrics),
             *run_write_jobs_query(args, driver, tb_name, max_id, metrics),
@@ -121,7 +121,6 @@ def run_from_args(args):
     driver_config = ydb.DriverConfig(
         args.endpoint,
         database=args.db,
-        credentials=ydb.credentials_from_env_variables(),
         grpc_keep_alive_timeout=5000,
     )
 

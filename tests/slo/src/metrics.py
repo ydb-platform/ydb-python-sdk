@@ -7,13 +7,13 @@ from os import environ
 
 environ["PROMETHEUS_DISABLE_CREATED_SERIES"] = "True"
 
-from prometheus_client import CollectorRegistry, Gauge, Histogram, push_to_gateway  # noqa: E402
-from summary import Summary  # noqa: E402
+from prometheus_client import CollectorRegistry, Counter, Gauge, Histogram, push_to_gateway  # noqa: E402
 
-JOB_READ_LABEL, JOB_WRITE_LABEL = "read", "write"
-JOB_STATUS_OK, JOB_STATUS_ERR = "ok", "err"
+OP_TYPE_READ, OP_TYPE_WRITE = "read", "write"
+OP_STATUS_SUCCESS, OP_STATUS_FAILURE = "success", "err"
 
-SDK_SERVICE_NAME = environ.get("SDK_SERVICE", "sync-python-table")
+REF = environ.get("REF", "main")
+SDK_SERVICE_NAME = environ.get("SDK_SERVICE", "py-sync-table")
 
 
 class Metrics:
@@ -21,41 +21,83 @@ class Metrics:
         self._push_gtw = push_gateway
         self._registry = CollectorRegistry()
         self._metrics = dict(
-            oks=Gauge(
-                "oks",
-                "amount of OK requests",
-                labelnames=("jobName",),
+            errors_total=Counter(
+                "sdk_errors_total",
+                "Total number of errors encountered, categorized by error type.",
+                labelnames=("operation_type", "error_type"),
                 registry=self._registry,
             ),
-            not_oks=Gauge(
-                "not_oks",
-                "amount of not OK requests",
-                labelnames=("jobName",),
+            operations_total=Counter(
+                "sdk_operations_total",
+                "Total number of operations, categorized by type attempted by the SDK.",
+                labelnames=("operation_type",),
                 registry=self._registry,
             ),
-            inflight=Gauge(
-                "inflight",
-                "amount of requests in flight",
-                labelnames=("jobName",),
+            operations_success_total=Counter(
+                "sdk_operations_success_total",
+                "Total number of successful operations, categorized by type.",
+                labelnames=("operation_type",),
                 registry=self._registry,
             ),
-            latency=Summary(
-                "latency",
-                "summary of latencies in ms",
-                labelnames=("jobName", "status"),
+            operations_failure_total=Counter(
+                "sdk_operations_failure_total",
+                "Total number of failed operations, categorized by type.",
+                labelnames=("operation_type",),
                 registry=self._registry,
-                objectives=(
-                    (0.5, 0.01),
-                    (0.99, 0.001),
-                    (1.0, 0.0),
+            ),
+            operation_latency_seconds=Histogram(
+                "sdk_operation_latency_seconds",
+                "Latency of operations performed by the SDK in seconds, categorized by type and status.",
+                labelnames=(
+                    "operation_type",
+                    "operation_status",
+                ),
+                registry=self._registry,
+                buckets=(
+                    0.001,  # 1 ms
+                    0.002,  # 2 ms
+                    0.003,  # 3 ms
+                    0.004,  # 4 ms
+                    0.005,  # 5 ms
+                    0.0075,  # 7.5 ms
+                    0.010,  # 10 ms
+                    0.020,  # 20 ms
+                    0.050,  # 50 ms
+                    0.100,  # 100 ms
+                    0.200,  # 200 ms
+                    0.500,  # 500 ms
+                    1.000,  # 1 s
                 ),
             ),
-            attempts=Histogram(
-                "attempts",
-                "histogram of amount of requests",
-                labelnames=("jobName", "status"),
+            retry_attempts=Gauge(
+                "sdk_retry_attempts",
+                "Current retry attempts, categorized by operation type.",
+                labelnames=("operation_type",),
                 registry=self._registry,
-                buckets=tuple(range(1, 11)),
+            ),
+            retry_attempts_total=Counter(
+                "sdk_retry_attempts_total",
+                "Total number of retry attempts, categorized by operation type.",
+                labelnames=("operation_type",),
+                registry=self._registry,
+            ),
+            retries_success_total=Counter(
+                "sdk_retries_success_total",
+                "Total number of successful retries, categorized by operation type.",
+                labelnames=("operation_type",),
+                registry=self._registry,
+            ),
+            retries_failure_total=Counter(
+                "sdk_retries_failure_total",
+                "Total number of failed retries, categorized by operation type.",
+                labelnames=("operation_type",),
+                registry=self._registry,
+            ),
+            pending_operations=Gauge(
+                "sdk_pending_operations",
+                "Current number of pending operations, categorized by type.",
+                labelnames=("operation_type",),
+                registry=self._registry,
             ),
         )
         self.reset()
@@ -81,25 +123,30 @@ class Metrics:
         if not isinstance(labels, Iterable):
             labels = (labels,)
 
-        self.inflight.labels(*labels).inc()
+        self.pending_operations.labels(*labels).inc()
         return time.time()
 
     def stop(self, labels, start_time, attempts=1, error=None):
-        runtime_ms = 1000 * (time.time() - start_time)
+        duration = time.time() - start_time
 
         if not isinstance(labels, Iterable):
             labels = (labels,)
 
-        self.inflight.labels(*labels).dec()
+        self.retry_attempts.labels(*labels).set(attempts)
+        self.operations_total.labels(*labels).inc()
+        self.pending_operations.labels(*labels).dec()
+        self.retry_attempts_total.labels(*labels).inc(attempts)
 
         if error:
-            self.not_oks.labels(*labels).inc()
-            self.latency.labels(*labels, JOB_STATUS_ERR).observe(runtime_ms)
+            self.errors_total.labels(*labels, type(error).__name__).inc()
+            self.retries_failure_total.labels(*labels).inc(attempts)
+            self.operations_failure_total.labels(*labels).inc()
+            self.operation_latency_seconds.labels(*labels, OP_STATUS_FAILURE).observe(duration)
             return
 
-        self.oks.labels(*labels).inc()
-        self.latency.labels(*labels, JOB_STATUS_OK).observe(runtime_ms)
-        self.attempts.labels(*labels, JOB_STATUS_OK).observe(attempts)
+        self.retries_success_total.labels(*labels).inc(attempts)
+        self.operations_success_total.labels(*labels).inc()
+        self.operation_latency_seconds.labels(*labels, OP_STATUS_SUCCESS).observe(duration)
 
     def push(self):
         push_to_gateway(
@@ -107,18 +154,14 @@ class Metrics:
             job=f"workload-{SDK_SERVICE_NAME}",
             registry=self._registry,
             grouping_key={
+                "ref": REF,
                 "sdk": SDK_SERVICE_NAME,
-                "sdkVersion": version("ydb"),
+                "sdk_version": version("ydb"),
             },
         )
 
     def reset(self):
-        for label in (JOB_READ_LABEL, JOB_WRITE_LABEL):
-            self.oks.labels(label).set(0)
-            self.not_oks.labels(label).set(0)
-            self.inflight.labels(label).set(0)
-
-        self.latency.clear()
-        self.attempts.clear()
+        for m in self._metrics.values():
+            m.clear()
 
         self.push()
