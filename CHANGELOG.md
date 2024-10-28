@@ -1,3 +1,4 @@
+## 3.18.6 ##
 * Add missing ability to configure QueryClientSettings
 
 ## 3.18.5 ##
