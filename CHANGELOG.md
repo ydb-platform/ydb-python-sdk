@@ -1,3 +1,5 @@
+* Add missing ability to configure QueryClientSettings
+
 ## 3.18.5 ##
 * Fix table_client desctructor
 
