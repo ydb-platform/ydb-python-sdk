@@ -161,7 +161,7 @@ def test_uuid_send(pool: ydb.QuerySessionPool):
     query = """
 DECLARE $val AS UUID;
 
-SELECT CAST($val AS Utf8) AS value    
+SELECT CAST($val AS Utf8) AS value
 """
     res = pool.execute_with_retries(query, parameters={"$val": ydb.TypedValue(val, ydb.PrimitiveType.UUID)})
     actual_value = res[0].rows[0]["value"]
@@ -173,7 +173,7 @@ def test_uuid_read(pool: ydb.QuerySessionPool):
     query = """
 DECLARE $val AS Utf8;
 
-SELECT CAST($val AS UUID) AS value    
+SELECT CAST($val AS UUID) AS value
 """
     res = pool.execute_with_retries(query, parameters={"$val": ydb.TypedValue(str(val), ydb.PrimitiveType.Utf8)})
     actual_value = res[0].rows[0]["value"]
