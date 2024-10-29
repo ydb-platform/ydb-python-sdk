@@ -157,7 +157,7 @@ def test_select_typevalue_custom_type_raises(pool: ydb.QuerySessionPool):
 
 
 def test_uuid_send(pool: ydb.QuerySessionPool):
-    val = uuid.UUID("52F84CBA-B15A-4BF2-9696-161ECA74CB5D")
+    val = uuid.UUID("6E73B41C-4EDE-4D08-9CFB-B7462D9E498B")
     query = """
 DECLARE $val AS UUID;
 
@@ -169,7 +169,7 @@ SELECT CAST($val AS Utf8) AS value
 
 
 def test_uuid_read(pool: ydb.QuerySessionPool):
-    val = uuid.UUID("52F84CBA-B15A-4BF2-9696-161ECA74CB5D")
+    val = uuid.UUID("6E73B41C-4EDE-4D08-9CFB-B7462D9E498B")
     query = """
 DECLARE $val AS Utf8;
 
