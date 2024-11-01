@@ -1,3 +1,4 @@
+## 3.18.8 ##
 * Refactor aio tableclient destructor 
 
 ## 3.18.7 ##
