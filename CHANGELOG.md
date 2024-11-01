@@ -1,3 +1,5 @@
+* Add an ability to pass custom event loop to QuerySessionPool
+
 ## 3.18.6 ##
 * Add missing ability to configure QueryClientSettings
 
