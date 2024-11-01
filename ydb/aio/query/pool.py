@@ -29,6 +29,7 @@ class QuerySessionPool:
         size: int = 100,
         *,
         query_client_settings: Optional[QueryClientSettings] = None,
+        loop: Optional[asyncio.AbstractEventLoop] = None,
     ):
         """
         :param driver: A driver instance
@@ -42,7 +43,7 @@ class QuerySessionPool:
         self._queue = asyncio.Queue()
         self._current_size = 0
         self._waiters = 0
-        self._loop = asyncio.get_running_loop()
+        self._loop = asyncio.get_running_loop() if loop is None else loop
         self._query_client_settings = query_client_settings
 
     async def _create_new_session(self):
