@@ -1,3 +1,5 @@
+* Refactor aio tableclient destructor 
+
 ## 3.18.7 ##
 * Add an ability to pass custom event loop to QuerySessionPool
 
