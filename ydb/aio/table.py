@@ -154,10 +154,11 @@ class TableClient(BaseTableClient):
         self._pool: Optional[SessionPool] = None
 
     def __del__(self):
-        try:
-            asyncio.get_running_loop().call_soon(self._stop_pool_if_needed)
-        except Exception:
-            pass
+        if self._pool is not None and not self._pool._terminating:
+            try:
+                asyncio.get_running_loop().create_task(self._stop_pool_if_needed())
+            except Exception:
+                pass
 
     def session(self):
         return Session(self._driver, self._table_client_settings)
@@ -185,6 +186,7 @@ class TableClient(BaseTableClient):
     async def _stop_pool_if_needed(self, timeout=10):
         if self._pool is not None and not self._pool._terminating:
             await self._pool.stop(timeout=timeout)
+            self._pool = None
 
     async def create_table(
         self,
