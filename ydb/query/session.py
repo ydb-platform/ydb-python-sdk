@@ -23,6 +23,7 @@ logger = logging.getLogger(__name__)
 
 
 DEFAULT_ATTACH_FIRST_RESP_TIMEOUT = 600
+DEFAULT_ATTACH_LONG_TIMEOUT = 31536000  # year
 
 
 class QuerySessionStateEnum(enum.Enum):
@@ -141,9 +142,9 @@ class BaseQuerySession:
         self._state = QuerySessionState(settings)
         self._attach_settings: BaseRequestSettings = (
             BaseRequestSettings()
-            .with_operation_timeout(31536000)  # year
-            .with_cancel_after(31536000)  # year
-            .with_timeout(31536000)  # year
+            .with_operation_timeout(DEFAULT_ATTACH_LONG_TIMEOUT)
+            .with_cancel_after(DEFAULT_ATTACH_LONG_TIMEOUT)
+            .with_timeout(DEFAULT_ATTACH_LONG_TIMEOUT)
         )
 
     def _get_client_settings(
@@ -222,7 +223,7 @@ class QuerySession(BaseQuerySession):
 
     _stream = None
 
-    def _attach(self) -> None:
+    def _attach(self, first_resp_timeout: int = DEFAULT_ATTACH_FIRST_RESP_TIMEOUT) -> None:
         self._stream = self._attach_call()
         status_stream = _utilities.SyncResponseIterator(
             self._stream,
@@ -234,7 +235,6 @@ class QuerySession(BaseQuerySession):
         def get_first_response(waiter):
             first_response = next(status_stream)
             if first_response.status != issues.StatusCode.SUCCESS:
-                self._state.reset()
                 raise RuntimeError("Failed to attach session")
             waiter.set_result(True)
 
@@ -247,8 +247,9 @@ class QuerySession(BaseQuerySession):
         thread.start()
 
         try:
-            waiter.result(timeout=DEFAULT_ATTACH_FIRST_RESP_TIMEOUT)
+            waiter.result(timeout=first_resp_timeout)
         except Exception as e:
+            self._state.reset()
             status_stream.cancel()
             raise e
 
@@ -258,7 +259,7 @@ class QuerySession(BaseQuerySession):
         threading.Thread(
             target=self._check_session_status_loop,
             args=(status_stream,),
-            name="check session status thread",
+            name="attach stream thread",
             daemon=True,
         ).start()
 

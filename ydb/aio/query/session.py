@@ -47,12 +47,12 @@ class QuerySession(BaseQuerySession):
         async def get_first_response():
             first_response = await self._status_stream.next()
             if first_response.status != issues.StatusCode.SUCCESS:
-                self._state.reset()
                 raise RuntimeError("Failed to attach session")
 
         try:
             await asyncio.wait_for(get_first_response(), DEFAULT_ATTACH_FIRST_RESP_TIMEOUT)
         except Exception as e:
+            self._state.reset()
             self._status_stream.cancel()
             raise e
 

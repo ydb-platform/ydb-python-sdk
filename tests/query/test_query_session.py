@@ -1,4 +1,9 @@
 import pytest
+import threading
+import time
+from concurrent.futures import _base as b
+from unittest import mock
+
 
 from ydb.query.session import QuerySession
 
@@ -100,3 +105,38 @@ class TestQuerySession:
                     res.append(list(result_set.rows[0].values()))
 
         assert res == [[1], [2]]
+
+    def test_thread_leaks(self, session: QuerySession):
+        session.create()
+        thread_names = [t.name for t in threading.enumerate()]
+        assert "first response attach stream thread" not in thread_names
+        assert "attach stream thread" in thread_names
+
+    def test_first_resp_timeout(self, session: QuerySession):
+        class FakeStream:
+            def __iter__(self):
+                return self
+
+            def __next__(self):
+                time.sleep(10)
+                return 1
+
+            def cancel(self):
+                pass
+
+        fake_stream = mock.Mock(spec=FakeStream)
+
+        session._attach_call = mock.MagicMock(return_value=fake_stream)
+        assert session._attach_call() == fake_stream
+
+        session._create_call()
+        with pytest.raises(b.TimeoutError):
+            session._attach(0.1)
+
+        fake_stream.cancel.assert_called()
+
+        thread_names = [t.name for t in threading.enumerate()]
+        assert "first response attach stream thread" not in thread_names
+        assert "attach stream thread" not in thread_names
+
+        _check_session_state_empty(session)
