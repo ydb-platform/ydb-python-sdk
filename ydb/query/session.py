@@ -22,6 +22,9 @@ from .transaction import QueryTxContext
 logger = logging.getLogger(__name__)
 
 
+DEFAULT_ATTACH_FIRST_RESP_TIMEOUT = 600
+
+
 class QuerySessionStateEnum(enum.Enum):
     NOT_INITIALIZED = "NOT_INITIALIZED"
     CREATED = "CREATED"
@@ -136,6 +139,12 @@ class BaseQuerySession:
         self._driver = driver
         self._settings = self._get_client_settings(driver, settings)
         self._state = QuerySessionState(settings)
+        self._attach_settings: BaseRequestSettings = (
+            BaseRequestSettings()
+            .with_operation_timeout(31536000)  # year
+            .with_cancel_after(31536000)  # year
+            .with_timeout(31536000)  # year
+        )
 
     def _get_client_settings(
         self,
@@ -168,12 +177,12 @@ class BaseQuerySession:
             settings=settings,
         )
 
-    def _attach_call(self, settings: Optional[BaseRequestSettings] = None) -> Iterable[_apis.ydb_query.SessionState]:
+    def _attach_call(self) -> Iterable[_apis.ydb_query.SessionState]:
         return self._driver(
             _apis.ydb_query.AttachSessionRequest(session_id=self._state.session_id),
             _apis.QueryService.Stub,
             _apis.QueryService.AttachSession,
-            settings=settings,
+            settings=self._attach_settings,
         )
 
     def _execute_call(
@@ -213,16 +222,35 @@ class QuerySession(BaseQuerySession):
 
     _stream = None
 
-    def _attach(self, settings: Optional[BaseRequestSettings] = None) -> None:
-        self._stream = self._attach_call(settings=settings)
+    def _attach(self) -> None:
+        self._stream = self._attach_call()
         status_stream = _utilities.SyncResponseIterator(
             self._stream,
             lambda response: common_utils.ServerStatus.from_proto(response),
         )
 
-        first_response = next(status_stream)
-        if first_response.status != issues.StatusCode.SUCCESS:
-            pass
+        waiter = _utilities.future()
+
+        def get_first_response(waiter):
+            first_response = next(status_stream)
+            if first_response.status != issues.StatusCode.SUCCESS:
+                self._state.reset()
+                raise RuntimeError("Failed to attach session")
+            waiter.set_result(True)
+
+        thread = threading.Thread(
+            target=get_first_response,
+            args=(waiter,),
+            name="first response attach stream thread",
+            daemon=True,
+        )
+        thread.start()
+
+        try:
+            waiter.result(timeout=DEFAULT_ATTACH_FIRST_RESP_TIMEOUT)
+        except Exception as e:
+            status_stream.cancel()
+            raise e
 
         self._state.set_attached(True)
         self._state._change_state(QuerySessionStateEnum.CREATED)

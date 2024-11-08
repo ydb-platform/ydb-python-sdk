@@ -15,6 +15,7 @@ from ..._grpc.grpcwrapper import ydb_query_public_types as _ydb_query_public
 from ...query import base
 from ...query.session import (
     BaseQuerySession,
+    DEFAULT_ATTACH_FIRST_RESP_TIMEOUT,
     QuerySessionStateEnum,
 )
 
@@ -43,9 +44,17 @@ class QuerySession(BaseQuerySession):
             lambda response: common_utils.ServerStatus.from_proto(response),
         )
 
-        first_response = await self._status_stream.next()
-        if first_response.status != issues.StatusCode.SUCCESS:
-            pass
+        async def get_first_response():
+            first_response = await self._status_stream.next()
+            if first_response.status != issues.StatusCode.SUCCESS:
+                self._state.reset()
+                raise RuntimeError("Failed to attach session")
+
+        try:
+            await asyncio.wait_for(get_first_response(), DEFAULT_ATTACH_FIRST_RESP_TIMEOUT)
+        except Exception as e:
+            self._status_stream.cancel()
+            raise e
 
         self._state.set_attached(True)
         self._state._change_state(QuerySessionStateEnum.CREATED)
