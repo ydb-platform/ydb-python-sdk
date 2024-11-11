@@ -44,13 +44,13 @@ class QuerySession(BaseQuerySession):
             lambda response: common_utils.ServerStatus.from_proto(response),
         )
 
-        async def get_first_response():
-            first_response = await self._status_stream.next()
+        try:
+            first_response = await _utilities.get_first_message_with_timeout(
+                self._status_stream,
+                DEFAULT_ATTACH_FIRST_RESP_TIMEOUT,
+            )
             if first_response.status != issues.StatusCode.SUCCESS:
                 raise RuntimeError("Failed to attach session")
-
-        try:
-            await asyncio.wait_for(get_first_response(), DEFAULT_ATTACH_FIRST_RESP_TIMEOUT)
         except Exception as e:
             self._state.reset()
             self._status_stream.cancel()

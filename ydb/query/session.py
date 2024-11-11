@@ -230,24 +230,13 @@ class QuerySession(BaseQuerySession):
             lambda response: common_utils.ServerStatus.from_proto(response),
         )
 
-        waiter = _utilities.future()
-
-        def get_first_response(waiter):
-            first_response = next(status_stream)
+        try:
+            first_response = _utilities.get_first_message_with_timeout(
+                status_stream,
+                first_resp_timeout,
+            )
             if first_response.status != issues.StatusCode.SUCCESS:
                 raise RuntimeError("Failed to attach session")
-            waiter.set_result(True)
-
-        thread = threading.Thread(
-            target=get_first_response,
-            args=(waiter,),
-            name="first response attach stream thread",
-            daemon=True,
-        )
-        thread.start()
-
-        try:
-            waiter.result(timeout=first_resp_timeout)
         except Exception as e:
             self._state.reset()
             status_stream.cancel()
