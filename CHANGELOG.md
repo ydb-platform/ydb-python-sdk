@@ -1,3 +1,6 @@
+* Add backslash to database name if needed
+* Fix attach session timeouts
+
 ## 3.18.8 ##
 * Refactor aio tableclient destructor 
 
