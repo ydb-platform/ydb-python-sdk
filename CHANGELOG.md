@@ -1,3 +1,4 @@
+## 3.18.9 ##
 * Add backslash to database name if needed
 * Fix attach session timeouts
 
