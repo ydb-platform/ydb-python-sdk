@@ -3,6 +3,7 @@ import grpc
 import logging
 import os
 from typing import Any  # noqa
+from typing import Optional
 
 from . import credentials as credentials_impl, table, scheme, pool
 from . import tracing
@@ -143,7 +144,7 @@ class DriverConfig(object):
 
         """
         self.endpoint = endpoint
-        self.database = database
+        self.database = self._maybe_add_slash(database)
         self.ca_cert = ca_cert
         self.channel_options = channel_options
         self.secure_channel = _utilities.is_secure_protocol(endpoint)
@@ -169,7 +170,7 @@ class DriverConfig(object):
         self.compression = compression
 
     def set_database(self, database):
-        self.database = database
+        self.database = self._maybe_add_slash(database)
         return self
 
     @classmethod
@@ -205,6 +206,15 @@ class DriverConfig(object):
                         f"Arg {key} was used in both DriverConfig and Driver. Value from Driver will be used."
                     )
                 setattr(self, key, value)
+
+    def _maybe_add_slash(self, database: Optional[str]) -> Optional[str]:
+        if not database:
+            return database
+
+        if database.startswith("/"):
+            return database
+
+        return f"/{database}"
 
 
 ConnectionParams = DriverConfig
