@@ -13,7 +13,7 @@ OP_TYPE_READ, OP_TYPE_WRITE = "read", "write"
 OP_STATUS_SUCCESS, OP_STATUS_FAILURE = "success", "err"
 
 REF = environ.get("REF", "main")
-SDK_SERVICE_NAME = environ.get("SDK_SERVICE", "py-sync-table")
+WORKLOAD = environ.get("WORKLOAD", "sync-query")
 
 
 class Metrics:
@@ -75,24 +75,24 @@ class Metrics:
                 labelnames=("operation_type",),
                 registry=self._registry,
             ),
-            retry_attempts_total=Counter(
-                "sdk_retry_attempts_total",
-                "Total number of retry attempts, categorized by operation type.",
-                labelnames=("operation_type",),
-                registry=self._registry,
-            ),
-            retries_success_total=Counter(
-                "sdk_retries_success_total",
-                "Total number of successful retries, categorized by operation type.",
-                labelnames=("operation_type",),
-                registry=self._registry,
-            ),
-            retries_failure_total=Counter(
-                "sdk_retries_failure_total",
-                "Total number of failed retries, categorized by operation type.",
-                labelnames=("operation_type",),
-                registry=self._registry,
-            ),
+            # retry_attempts_total=Counter(
+            #     "sdk_retry_attempts_total",
+            #     "Total number of retry attempts, categorized by operation type.",
+            #     labelnames=("operation_type",),
+            #     registry=self._registry,
+            # ),
+            # retries_success_total=Counter(
+            #     "sdk_retries_success_total",
+            #     "Total number of successful retries, categorized by operation type.",
+            #     labelnames=("operation_type",),
+            #     registry=self._registry,
+            # ),
+            # retries_failure_total=Counter(
+            #     "sdk_retries_failure_total",
+            #     "Total number of failed retries, categorized by operation type.",
+            #     labelnames=("operation_type",),
+            #     registry=self._registry,
+            # ),
             pending_operations=Gauge(
                 "sdk_pending_operations",
                 "Current number of pending operations, categorized by type.",
@@ -135,28 +135,30 @@ class Metrics:
         self.retry_attempts.labels(*labels).set(attempts)
         self.operations_total.labels(*labels).inc()
         self.pending_operations.labels(*labels).dec()
-        self.retry_attempts_total.labels(*labels).inc(attempts)
+        # self.retry_attempts_total.labels(*labels).inc(attempts)
 
         if error:
             self.errors_total.labels(*labels, type(error).__name__).inc()
-            self.retries_failure_total.labels(*labels).inc(attempts)
+            # self.retries_failure_total.labels(*labels).inc(attempts)
             self.operations_failure_total.labels(*labels).inc()
             self.operation_latency_seconds.labels(*labels, OP_STATUS_FAILURE).observe(duration)
             return
 
-        self.retries_success_total.labels(*labels).inc(attempts)
+        # self.retries_success_total.labels(*labels).inc(attempts)
         self.operations_success_total.labels(*labels).inc()
         self.operation_latency_seconds.labels(*labels, OP_STATUS_SUCCESS).observe(duration)
 
     def push(self):
         push_to_gateway(
             self._push_gtw,
-            job=f"workload-{SDK_SERVICE_NAME}",
+            job=f"workload-{WORKLOAD}",
             registry=self._registry,
             grouping_key={
                 "ref": REF,
-                "sdk": SDK_SERVICE_NAME,
+                "sdk": "ydb-python-sdk",
                 "sdk_version": version("ydb"),
+                "workload": WORKLOAD,
+                "workload_version": "0.0.0",
             },
         )
 

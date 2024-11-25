@@ -30,12 +30,12 @@ jobs:
 
     strategy:
       matrix:
-        sdk:
-          - py-sync-table
-          - py-sync-query
+        workload:
+          - sync-table
+          - sync-query
 
     concurrency:
-      group: slo-${{ github.ref }}-${{ matrix.sdk }}
+      group: slo-${{ github.ref }}-${{ matrix.workload }}
       cancel-in-progress: true
 
     steps:
@@ -59,7 +59,7 @@ jobs:
         with:
           github_pull_request_number: ${{ github.event.inputs.github_pull_request_number }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          sdk_name: ${{ matrix.sdk }}
+          workload_name: ${{ matrix.workload }}
           ydb_database_node_count: 5
 
       - name: Prepare SLO Database
@@ -69,7 +69,7 @@ jobs:
       - name: Run SLO Tests
         env:
           REF: '${{ github.head_ref || github.ref }}'
-          SDK_SERVICE: '${{ matrix.sdk }}'
+          WORKLOAD: '${{ matrix.workload }}'
         run: |
           python ./tests/slo/src run grpc://localhost:2135 /Root/testdb \
             --prom-pgw localhost:9091 \
@@ -78,7 +78,12 @@ jobs:
             --read-rps ${{inputs.slo_workload_read_max_rps || 1000}} \
             --write-rps ${{inputs.slo_workload_write_max_rps || 100}} \
             --read-timeout 1000 \
-            --write-timeout 1000 || true
+            --write-timeout 1000
+
+      - if: always()
+        name: Cleanup SLO Database
+        run: |
+          python ./tests/slo/src cleanup grpc://localhost:2135 /Root/testdb
 
       - if: always()
         name: Store ydb chaos testing logs
@@ -88,11 +93,6 @@ jobs:
       - if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.sdk }}-chaos-ydb.log
+          name: ${{ matrix.workload }}-chaos-ydb.log
           path: ./chaos-ydb.log
           retention-days: 1
-
-      - if: always()
-        name: Cleanup SLO Database
-        run: |
-          python ./tests/slo/src cleanup grpc://localhost:2135 /Root/testdb || true

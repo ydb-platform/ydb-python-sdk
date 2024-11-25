@@ -14,7 +14,7 @@ from jobs import (
     run_write_jobs_query,
     run_metric_job,
 )
-from metrics import Metrics, SDK_SERVICE_NAME
+from metrics import Metrics, WORKLOAD
 
 logger = logging.getLogger(__name__)
 
@@ -91,20 +91,20 @@ def run_slo(args, driver, tb_name):
     logger.info("Max ID: %s", max_id)
 
     metrics = Metrics(args.prom_pgw)
-    if SDK_SERVICE_NAME == "py-sync-table":
+    if WORKLOAD == "sync-table":
         futures = (
             *run_read_jobs(args, driver, tb_name, max_id, metrics),
             *run_write_jobs(args, driver, tb_name, max_id, metrics),
             run_metric_job(args, metrics),
         )
-    elif SDK_SERVICE_NAME == "py-sync-query":
+    elif WORKLOAD == "sync-query":
         futures = (
             *run_read_jobs_query(args, driver, tb_name, max_id, metrics),
             *run_write_jobs_query(args, driver, tb_name, max_id, metrics),
             run_metric_job(args, metrics),
         )
     else:
-        raise ValueError(f"Unsupported service: {SDK_SERVICE_NAME}")
+        raise ValueError(f"Unsupported service: {WORKLOAD}")
 
     for future in futures:
         future.join()
