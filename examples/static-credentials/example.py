@@ -24,6 +24,7 @@ def auth_with_static_credentials(endpoint: str, database: str, user: str, passwo
         database (str): Accepts a string, the database name in the format `/Root/<database-name>`.
         user (str): Username.
         password (str): User password.
+        ca_path (str): Path to CA cert
 
     Notes:
         The argument `root_certificates` of the function `ydb.DriverConfig` takes the content of the cluster's root certificate for connecting to cluster nodes via TLS.
