@@ -37,7 +37,7 @@ def auth_with_static_credentials(endpoint: str, database: str, user: str, passwo
         endpoint=endpoint,
         database=database,
         credentials=ydb.StaticCredentials.from_user_password(user, password),
-        root_certificates=ydb.load_ydb_root_certificate(ca_path)
+        root_certificates=ydb.load_ydb_root_certificate(ca_path),
     )
 
     with ydb.Driver(driver_config=driver_config) as driver:
