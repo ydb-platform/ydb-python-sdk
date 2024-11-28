@@ -1,5 +1,6 @@
 import ydb
 
+
 def test_driver_works(driver: ydb.Driver):
     """Tests the functionality of the YDB driver.
 
@@ -15,6 +16,7 @@ def test_driver_works(driver: ydb.Driver):
     pool = ydb.QuerySessionPool(driver)
     result = pool.execute_with_retries("SELECT 1 as cnt")
     assert result[0].rows[0].cnt == 1
+
 
 def auth_with_static_credentials(endpoint: str, database: str, user: str, password: str, ca_path: str):
     """Authenticate using static credentials.
@@ -32,10 +34,10 @@ def auth_with_static_credentials(endpoint: str, database: str, user: str, passwo
     """
 
     driver_config = ydb.DriverConfig(
-        endpoint = endpoint,
-        database = database,
-        credentials = ydb.StaticCredentials.from_user_password(user, password),
-        root_certificates = ydb.auth_helpers.load_ydb_root_certificate(ca_path)
+        endpoint=endpoint,
+        database=database,
+        credentials=ydb.StaticCredentials.from_user_password(user, password),
+        root_certificates=ydb.load_ydb_root_certificate(ca_path)
     )
 
     with ydb.Driver(driver_config=driver_config) as driver:
