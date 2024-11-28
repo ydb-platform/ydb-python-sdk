@@ -8,7 +8,7 @@ from ratelimiter import RateLimiter
 
 import threading
 
-from metrics import Metrics, JOB_WRITE_LABEL, JOB_READ_LABEL
+from metrics import Metrics, OP_TYPE_WRITE, OP_TYPE_READ
 
 from generator import RowGenerator
 
@@ -106,7 +106,7 @@ def run_reads(driver, query, max_id, metrics, limiter, runtime, timeout):
                     query=query,
                     params=params,
                     metrics=metrics,
-                    labels=(JOB_READ_LABEL,),
+                    labels=(OP_TYPE_READ,),
                     request_settings=request_settings,
                     retry_settings=retry_setting,
                     check_result_cb=check_result,
@@ -163,7 +163,7 @@ def run_reads_query(driver, query, max_id, metrics, limiter, runtime, timeout):
                     query=query,
                     params=params,
                     metrics=metrics,
-                    labels=(JOB_READ_LABEL,),
+                    labels=(OP_TYPE_READ,),
                     request_settings=request_settings,
                     retry_settings=retry_setting,
                     check_result_cb=check_result,
@@ -220,7 +220,7 @@ def run_writes(driver, query, row_generator, metrics, limiter, runtime, timeout)
                     query=query,
                     params=params,
                     metrics=metrics,
-                    labels=(JOB_WRITE_LABEL,),
+                    labels=(OP_TYPE_WRITE,),
                     request_settings=request_settings,
                     retry_settings=retry_setting,
                 )
@@ -285,7 +285,7 @@ def run_writes_query(driver, query, row_generator, metrics, limiter, runtime, ti
                     query=query,
                     params=params,
                     metrics=metrics,
-                    labels=(JOB_WRITE_LABEL,),
+                    labels=(OP_TYPE_WRITE,),
                     request_settings=request_settings,
                     retry_settings=retry_setting,
                     check_result_cb=check_result,

@@ -1,70 +1,98 @@
 name: SLO
 
 on:
+  push:
+    branches:
+      - main
   pull_request:
-    branches: [main]
+    branches:
+      - main
   workflow_dispatch:
+    inputs:
+      github_pull_request_number:
+        required: true
+      slo_workload_duration_seconds:
+        default: '600'
+        required: false
+      slo_workload_read_max_rps:
+        default: '1000'
+        required: false
+      slo_workload_write_max_rps:
+        default: '100'
+        required: false
 
 jobs:
-  test-slo:
-    concurrency:
-      group: slo-${{ github.ref }}
+  ydb-slo-action:
     if: (!contains(github.event.pull_request.labels.*.name, 'no slo'))
 
+    name: Run YDB SLO Tests
     runs-on: ubuntu-latest
-    name: SLO test
-    permissions:
-      checks: write
-      pull-requests: write
-      contents: read
-      issues: write
+
+    strategy:
+      matrix:
+        workload:
+          - sync-table
+          - sync-query
+
+    concurrency:
+      group: slo-${{ github.ref }}-${{ matrix.workload }}
+      cancel-in-progress: true
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
-        if: env.DOCKER_REPO != null
-        env:
-          DOCKER_REPO: ${{ secrets.SLO_DOCKER_REPO }}
+        uses: actions/checkout@v4
 
-      - name: Run SLO
-        uses: ydb-platform/slo-tests@main
-        if: env.DOCKER_REPO != null
-        env:
-          DOCKER_REPO: ${{ secrets.SLO_DOCKER_REPO }}
-        continue-on-error: true
+      - name: Install Python3
+        uses: actions/setup-python@v5
         with:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          KUBECONFIG_B64: ${{ secrets.SLO_KUBE_CONFIG }}
-          AWS_CREDENTIALS_B64: ${{ secrets.SLO_AWS_CREDENTIALS }}
-          AWS_CONFIG_B64: ${{ secrets.SLO_AWS_CONFIG }}
-          DOCKER_USERNAME: ${{ secrets.SLO_DOCKER_USERNAME }}
-          DOCKER_PASSWORD: ${{ secrets.SLO_DOCKER_PASSWORD }}
-          DOCKER_REPO: ${{ secrets.SLO_DOCKER_REPO }}
-          DOCKER_FOLDER: ${{ secrets.SLO_DOCKER_FOLDER }}
-          s3_endpoint: ${{ secrets.SLO_S3_ENDPOINT }}
-          s3_images_folder: ${{ vars.SLO_S3_IMAGES_FOLDER }}
-          grafana_domain: ${{ vars.SLO_GRAFANA_DOMAIN }}
-          grafana_dashboard: ${{ vars.SLO_GRAFANA_DASHBOARD }}
-          ydb_version: 'newest'
-          timeBetweenPhases: 30
-          shutdownTime: 30
+          python-version: '3.8'
+          cache: 'pip'
 
-          language_id0: sync-python-table
-          language0: Python SDK over Table Service
-          workload_path0: tests/slo
-          workload_build_context0: ../..
-          workload_build_options0: -f Dockerfile --build-arg SDK_SERVICE=sync-python-table
+      - name: Install dependencies
+        run: |
+          python -m pip install --no-cache-dir --upgrade pip
+          python -m pip install --no-cache-dir -e .
+          python -m pip install --no-cache-dir -r tests/slo/requirements.txt
 
-          language_id1: sync-python-query
-          language1: Python SDK over Query Service
-          workload_path1: tests/slo
-          workload_build_context1: ../..
-          workload_build_options1: -f Dockerfile --build-arg SDK_SERVICE=sync-python-query
-
-      - uses: actions/upload-artifact@v3
-        if: env.DOCKER_REPO != null
-        env:
-          DOCKER_REPO: ${{ secrets.SLO_DOCKER_REPO }}
+      - name: Initialize YDB SLO
+        uses: ydb-platform/ydb-slo-action/init@main
         with:
-          name: slo-logs
-          path: logs/
+          github_pull_request_number: ${{ github.event.inputs.github_pull_request_number }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          workload_name: ${{ matrix.workload }}
+          ydb_database_node_count: 5
+
+      - name: Prepare SLO Database
+        run: |
+          python ./tests/slo/src create grpc://localhost:2135 /Root/testdb
+
+      - name: Run SLO Tests
+        env:
+          REF: '${{ github.head_ref || github.ref }}'
+          WORKLOAD: '${{ matrix.workload }}'
+        run: |
+          python ./tests/slo/src run grpc://localhost:2135 /Root/testdb \
+            --prom-pgw localhost:9091 \
+            --report-period 250 \
+            --time ${{inputs.slo_workload_duration_seconds || 600}} \
+            --read-rps ${{inputs.slo_workload_read_max_rps || 1000}} \
+            --write-rps ${{inputs.slo_workload_write_max_rps || 100}} \
+            --read-timeout 1000 \
+            --write-timeout 1000
+
+      - if: always()
+        name: Cleanup SLO Database
+        run: |
+          python ./tests/slo/src cleanup grpc://localhost:2135 /Root/testdb
+
+      - if: always()
+        name: Store ydb chaos testing logs
+        run: |
+          docker logs ydb-chaos > chaos-ydb.log
+
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.workload }}-chaos-ydb.log
+          path: ./chaos-ydb.log
+          retention-days: 1
