@@ -40,6 +40,8 @@ class Entry(_message.Message):
     DATABASE: Entry.Type
     DIRECTORY: Entry.Type
     EFFECTIVE_PERMISSIONS_FIELD_NUMBER: _ClassVar[int]
+    EXTERNAL_DATA_SOURCE: Entry.Type
+    EXTERNAL_TABLE: Entry.Type
     NAME_FIELD_NUMBER: _ClassVar[int]
     OWNER_FIELD_NUMBER: _ClassVar[int]
     PERMISSIONS_FIELD_NUMBER: _ClassVar[int]
@@ -52,6 +54,7 @@ class Entry(_message.Message):
     TOPIC: Entry.Type
     TYPE_FIELD_NUMBER: _ClassVar[int]
     TYPE_UNSPECIFIED: Entry.Type
+    VIEW: Entry.Type
     created_at: _ydb_common_pb2.VirtualTimestamp
     effective_permissions: _containers.RepeatedCompositeFieldContainer[Permissions]
     name: str

@@ -103,7 +103,7 @@ class DeleteSessionResponse(_message.Message):
     def __init__(self, status: _Optional[_Union[_ydb_status_codes_pb2.StatusIds.StatusCode, str]] = ..., issues: _Optional[_Iterable[_Union[_ydb_issue_message_pb2.IssueMessage, _Mapping]]] = ...) -> None: ...
 
 class ExecuteQueryRequest(_message.Message):
-    __slots__ = ["concurrent_result_sets", "exec_mode", "parameters", "query_content", "session_id", "stats_mode", "tx_control"]
+    __slots__ = ["concurrent_result_sets", "exec_mode", "parameters", "pool_id", "query_content", "response_part_limit_bytes", "session_id", "stats_mode", "tx_control"]
     class ParametersEntry(_message.Message):
         __slots__ = ["key", "value"]
         KEY_FIELD_NUMBER: _ClassVar[int]
@@ -114,18 +114,22 @@ class ExecuteQueryRequest(_message.Message):
     CONCURRENT_RESULT_SETS_FIELD_NUMBER: _ClassVar[int]
     EXEC_MODE_FIELD_NUMBER: _ClassVar[int]
     PARAMETERS_FIELD_NUMBER: _ClassVar[int]
+    POOL_ID_FIELD_NUMBER: _ClassVar[int]
     QUERY_CONTENT_FIELD_NUMBER: _ClassVar[int]
+    RESPONSE_PART_LIMIT_BYTES_FIELD_NUMBER: _ClassVar[int]
     SESSION_ID_FIELD_NUMBER: _ClassVar[int]
     STATS_MODE_FIELD_NUMBER: _ClassVar[int]
     TX_CONTROL_FIELD_NUMBER: _ClassVar[int]
     concurrent_result_sets: bool
     exec_mode: ExecMode
     parameters: _containers.MessageMap[str, _ydb_value_pb2.TypedValue]
+    pool_id: str
     query_content: QueryContent
+    response_part_limit_bytes: int
     session_id: str
     stats_mode: StatsMode
     tx_control: TransactionControl
-    def __init__(self, session_id: _Optional[str] = ..., exec_mode: _Optional[_Union[ExecMode, str]] = ..., tx_control: _Optional[_Union[TransactionControl, _Mapping]] = ..., query_content: _Optional[_Union[QueryContent, _Mapping]] = ..., parameters: _Optional[_Mapping[str, _ydb_value_pb2.TypedValue]] = ..., stats_mode: _Optional[_Union[StatsMode, str]] = ..., concurrent_result_sets: bool = ...) -> None: ...
+    def __init__(self, session_id: _Optional[str] = ..., exec_mode: _Optional[_Union[ExecMode, str]] = ..., tx_control: _Optional[_Union[TransactionControl, _Mapping]] = ..., query_content: _Optional[_Union[QueryContent, _Mapping]] = ..., parameters: _Optional[_Mapping[str, _ydb_value_pb2.TypedValue]] = ..., stats_mode: _Optional[_Union[StatsMode, str]] = ..., concurrent_result_sets: bool = ..., response_part_limit_bytes: _Optional[int] = ..., pool_id: _Optional[str] = ...) -> None: ...
 
 class ExecuteQueryResponsePart(_message.Message):
     __slots__ = ["exec_stats", "issues", "result_set", "result_set_index", "status", "tx_meta"]
@@ -160,7 +164,7 @@ class ExecuteScriptMetadata(_message.Message):
     def __init__(self, execution_id: _Optional[str] = ..., exec_status: _Optional[_Union[ExecStatus, str]] = ..., script_content: _Optional[_Union[QueryContent, _Mapping]] = ..., result_sets_meta: _Optional[_Iterable[_Union[ResultSetMeta, _Mapping]]] = ..., exec_mode: _Optional[_Union[ExecMode, str]] = ..., exec_stats: _Optional[_Union[_ydb_query_stats_pb2.QueryStats, _Mapping]] = ...) -> None: ...
 
 class ExecuteScriptRequest(_message.Message):
-    __slots__ = ["exec_mode", "operation_params", "parameters", "results_ttl", "script_content", "stats_mode"]
+    __slots__ = ["exec_mode", "operation_params", "parameters", "pool_id", "results_ttl", "script_content", "stats_mode"]
     class ParametersEntry(_message.Message):
         __slots__ = ["key", "value"]
         KEY_FIELD_NUMBER: _ClassVar[int]
@@ -171,16 +175,18 @@ class ExecuteScriptRequest(_message.Message):
     EXEC_MODE_FIELD_NUMBER: _ClassVar[int]
     OPERATION_PARAMS_FIELD_NUMBER: _ClassVar[int]
     PARAMETERS_FIELD_NUMBER: _ClassVar[int]
+    POOL_ID_FIELD_NUMBER: _ClassVar[int]
     RESULTS_TTL_FIELD_NUMBER: _ClassVar[int]
     SCRIPT_CONTENT_FIELD_NUMBER: _ClassVar[int]
     STATS_MODE_FIELD_NUMBER: _ClassVar[int]
     exec_mode: ExecMode
     operation_params: _ydb_operation_pb2.OperationParams
     parameters: _containers.MessageMap[str, _ydb_value_pb2.TypedValue]
+    pool_id: str
     results_ttl: _duration_pb2.Duration
     script_content: QueryContent
     stats_mode: StatsMode
-    def __init__(self, operation_params: _Optional[_Union[_ydb_operation_pb2.OperationParams, _Mapping]] = ..., exec_mode: _Optional[_Union[ExecMode, str]] = ..., script_content: _Optional[_Union[QueryContent, _Mapping]] = ..., parameters: _Optional[_Mapping[str, _ydb_value_pb2.TypedValue]] = ..., stats_mode: _Optional[_Union[StatsMode, str]] = ..., results_ttl: _Optional[_Union[_duration_pb2.Duration, _Mapping]] = ...) -> None: ...
+    def __init__(self, operation_params: _Optional[_Union[_ydb_operation_pb2.OperationParams, _Mapping]] = ..., exec_mode: _Optional[_Union[ExecMode, str]] = ..., script_content: _Optional[_Union[QueryContent, _Mapping]] = ..., parameters: _Optional[_Mapping[str, _ydb_value_pb2.TypedValue]] = ..., stats_mode: _Optional[_Union[StatsMode, str]] = ..., results_ttl: _Optional[_Union[_duration_pb2.Duration, _Mapping]] = ..., pool_id: _Optional[str] = ...) -> None: ...
 
 class FetchScriptResultsRequest(_message.Message):
     __slots__ = ["fetch_token", "operation_id", "result_set_index", "rows_limit"]

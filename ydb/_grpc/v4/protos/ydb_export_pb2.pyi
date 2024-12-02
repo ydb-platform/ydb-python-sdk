@@ -62,7 +62,7 @@ class ExportToS3Result(_message.Message):
     def __init__(self) -> None: ...
 
 class ExportToS3Settings(_message.Message):
-    __slots__ = ["access_key", "bucket", "compression", "description", "endpoint", "items", "number_of_retries", "region", "scheme", "secret_key", "storage_class"]
+    __slots__ = ["access_key", "bucket", "compression", "description", "disable_virtual_addressing", "endpoint", "items", "number_of_retries", "region", "scheme", "secret_key", "storage_class"]
     class Scheme(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
         __slots__ = []
     class StorageClass(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
@@ -79,6 +79,7 @@ class ExportToS3Settings(_message.Message):
     COMPRESSION_FIELD_NUMBER: _ClassVar[int]
     DEEP_ARCHIVE: ExportToS3Settings.StorageClass
     DESCRIPTION_FIELD_NUMBER: _ClassVar[int]
+    DISABLE_VIRTUAL_ADDRESSING_FIELD_NUMBER: _ClassVar[int]
     ENDPOINT_FIELD_NUMBER: _ClassVar[int]
     GLACIER: ExportToS3Settings.StorageClass
     HTTP: ExportToS3Settings.Scheme
@@ -101,6 +102,7 @@ class ExportToS3Settings(_message.Message):
     bucket: str
     compression: str
     description: str
+    disable_virtual_addressing: bool
     endpoint: str
     items: _containers.RepeatedCompositeFieldContainer[ExportToS3Settings.Item]
     number_of_retries: int
@@ -108,7 +110,7 @@ class ExportToS3Settings(_message.Message):
     scheme: ExportToS3Settings.Scheme
     secret_key: str
     storage_class: ExportToS3Settings.StorageClass
-    def __init__(self, endpoint: _Optional[str] = ..., scheme: _Optional[_Union[ExportToS3Settings.Scheme, str]] = ..., bucket: _Optional[str] = ..., access_key: _Optional[str] = ..., secret_key: _Optional[str] = ..., items: _Optional[_Iterable[_Union[ExportToS3Settings.Item, _Mapping]]] = ..., description: _Optional[str] = ..., number_of_retries: _Optional[int] = ..., storage_class: _Optional[_Union[ExportToS3Settings.StorageClass, str]] = ..., compression: _Optional[str] = ..., region: _Optional[str] = ...) -> None: ...
+    def __init__(self, endpoint: _Optional[str] = ..., scheme: _Optional[_Union[ExportToS3Settings.Scheme, str]] = ..., bucket: _Optional[str] = ..., access_key: _Optional[str] = ..., secret_key: _Optional[str] = ..., items: _Optional[_Iterable[_Union[ExportToS3Settings.Item, _Mapping]]] = ..., description: _Optional[str] = ..., number_of_retries: _Optional[int] = ..., storage_class: _Optional[_Union[ExportToS3Settings.StorageClass, str]] = ..., compression: _Optional[str] = ..., region: _Optional[str] = ..., disable_virtual_addressing: bool = ...) -> None: ...
 
 class ExportToYtMetadata(_message.Message):
     __slots__ = ["items_progress", "progress", "settings"]

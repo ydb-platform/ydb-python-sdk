@@ -47,13 +47,14 @@ class ActionScope(_message.Message):
     def __init__(self, node_id: _Optional[int] = ..., host: _Optional[str] = ...) -> None: ...
 
 class ActionState(_message.Message):
-    __slots__ = ["action", "action_uid", "deadline", "reason", "status"]
+    __slots__ = ["action", "action_uid", "deadline", "reason", "reason_details", "status"]
     class ActionReason(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
         __slots__ = []
     class ActionStatus(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
         __slots__ = []
     ACTION_FIELD_NUMBER: _ClassVar[int]
     ACTION_REASON_DISABLED_NODES_LIMIT_REACHED: ActionState.ActionReason
+    ACTION_REASON_GENERIC: ActionState.ActionReason
     ACTION_REASON_OK: ActionState.ActionReason
     ACTION_REASON_SYS_TABLETS_NODE_LIMIT_REACHED: ActionState.ActionReason
     ACTION_REASON_TENANT_DISABLED_NODES_LIMIT_REACHED: ActionState.ActionReason
@@ -66,14 +67,16 @@ class ActionState(_message.Message):
     ACTION_STATUS_UNSPECIFIED: ActionState.ActionStatus
     ACTION_UID_FIELD_NUMBER: _ClassVar[int]
     DEADLINE_FIELD_NUMBER: _ClassVar[int]
+    REASON_DETAILS_FIELD_NUMBER: _ClassVar[int]
     REASON_FIELD_NUMBER: _ClassVar[int]
     STATUS_FIELD_NUMBER: _ClassVar[int]
     action: Action
     action_uid: ActionUid
     deadline: _timestamp_pb2.Timestamp
     reason: ActionState.ActionReason
+    reason_details: str
     status: ActionState.ActionStatus
-    def __init__(self, action: _Optional[_Union[Action, _Mapping]] = ..., action_uid: _Optional[_Union[ActionUid, _Mapping]] = ..., status: _Optional[_Union[ActionState.ActionStatus, str]] = ..., reason: _Optional[_Union[ActionState.ActionReason, str]] = ..., deadline: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ...) -> None: ...
+    def __init__(self, action: _Optional[_Union[Action, _Mapping]] = ..., action_uid: _Optional[_Union[ActionUid, _Mapping]] = ..., status: _Optional[_Union[ActionState.ActionStatus, str]] = ..., reason: _Optional[_Union[ActionState.ActionReason, str]] = ..., reason_details: _Optional[str] = ..., deadline: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ...) -> None: ...
 
 class ActionUid(_message.Message):
     __slots__ = ["action_id", "group_id", "task_uid"]
@@ -180,16 +183,18 @@ class LockAction(_message.Message):
     def __init__(self, scope: _Optional[_Union[ActionScope, _Mapping]] = ..., duration: _Optional[_Union[_duration_pb2.Duration, _Mapping]] = ...) -> None: ...
 
 class MaintenanceTaskOptions(_message.Message):
-    __slots__ = ["availability_mode", "description", "dry_run", "task_uid"]
+    __slots__ = ["availability_mode", "description", "dry_run", "priority", "task_uid"]
     AVAILABILITY_MODE_FIELD_NUMBER: _ClassVar[int]
     DESCRIPTION_FIELD_NUMBER: _ClassVar[int]
     DRY_RUN_FIELD_NUMBER: _ClassVar[int]
+    PRIORITY_FIELD_NUMBER: _ClassVar[int]
     TASK_UID_FIELD_NUMBER: _ClassVar[int]
     availability_mode: AvailabilityMode
     description: str
     dry_run: bool
+    priority: int
     task_uid: str
-    def __init__(self, task_uid: _Optional[str] = ..., description: _Optional[str] = ..., availability_mode: _Optional[_Union[AvailabilityMode, str]] = ..., dry_run: bool = ...) -> None: ...
+    def __init__(self, task_uid: _Optional[str] = ..., description: _Optional[str] = ..., availability_mode: _Optional[_Union[AvailabilityMode, str]] = ..., dry_run: bool = ..., priority: _Optional[int] = ...) -> None: ...
 
 class MaintenanceTaskResponse(_message.Message):
     __slots__ = ["operation"]
