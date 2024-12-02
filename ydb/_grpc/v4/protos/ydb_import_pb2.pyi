@@ -60,7 +60,7 @@ class ImportFromS3Result(_message.Message):
     def __init__(self) -> None: ...
 
 class ImportFromS3Settings(_message.Message):
-    __slots__ = ["access_key", "bucket", "description", "endpoint", "items", "number_of_retries", "region", "scheme", "secret_key"]
+    __slots__ = ["access_key", "bucket", "description", "disable_virtual_addressing", "endpoint", "items", "number_of_retries", "region", "scheme", "secret_key"]
     class Scheme(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
         __slots__ = []
     class Item(_message.Message):
@@ -73,6 +73,7 @@ class ImportFromS3Settings(_message.Message):
     ACCESS_KEY_FIELD_NUMBER: _ClassVar[int]
     BUCKET_FIELD_NUMBER: _ClassVar[int]
     DESCRIPTION_FIELD_NUMBER: _ClassVar[int]
+    DISABLE_VIRTUAL_ADDRESSING_FIELD_NUMBER: _ClassVar[int]
     ENDPOINT_FIELD_NUMBER: _ClassVar[int]
     HTTP: ImportFromS3Settings.Scheme
     HTTPS: ImportFromS3Settings.Scheme
@@ -85,13 +86,14 @@ class ImportFromS3Settings(_message.Message):
     access_key: str
     bucket: str
     description: str
+    disable_virtual_addressing: bool
     endpoint: str
     items: _containers.RepeatedCompositeFieldContainer[ImportFromS3Settings.Item]
     number_of_retries: int
     region: str
     scheme: ImportFromS3Settings.Scheme
     secret_key: str
-    def __init__(self, endpoint: _Optional[str] = ..., scheme: _Optional[_Union[ImportFromS3Settings.Scheme, str]] = ..., bucket: _Optional[str] = ..., access_key: _Optional[str] = ..., secret_key: _Optional[str] = ..., items: _Optional[_Iterable[_Union[ImportFromS3Settings.Item, _Mapping]]] = ..., description: _Optional[str] = ..., number_of_retries: _Optional[int] = ..., region: _Optional[str] = ...) -> None: ...
+    def __init__(self, endpoint: _Optional[str] = ..., scheme: _Optional[_Union[ImportFromS3Settings.Scheme, str]] = ..., bucket: _Optional[str] = ..., access_key: _Optional[str] = ..., secret_key: _Optional[str] = ..., items: _Optional[_Iterable[_Union[ImportFromS3Settings.Item, _Mapping]]] = ..., description: _Optional[str] = ..., number_of_retries: _Optional[int] = ..., region: _Optional[str] = ..., disable_virtual_addressing: bool = ...) -> None: ...
 
 class ImportItemProgress(_message.Message):
     __slots__ = ["end_time", "parts_completed", "parts_total", "start_time"]

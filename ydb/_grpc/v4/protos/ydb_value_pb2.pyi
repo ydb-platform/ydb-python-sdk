@@ -44,14 +44,18 @@ class OptionalType(_message.Message):
     def __init__(self, item: _Optional[_Union[Type, _Mapping]] = ...) -> None: ...
 
 class PgType(_message.Message):
-    __slots__ = ["oid", "typlen", "typmod"]
+    __slots__ = ["oid", "type_modifier", "type_name", "typlen", "typmod"]
     OID_FIELD_NUMBER: _ClassVar[int]
+    TYPE_MODIFIER_FIELD_NUMBER: _ClassVar[int]
+    TYPE_NAME_FIELD_NUMBER: _ClassVar[int]
     TYPLEN_FIELD_NUMBER: _ClassVar[int]
     TYPMOD_FIELD_NUMBER: _ClassVar[int]
     oid: int
+    type_modifier: str
+    type_name: str
     typlen: int
     typmod: int
-    def __init__(self, oid: _Optional[int] = ..., typlen: _Optional[int] = ..., typmod: _Optional[int] = ...) -> None: ...
+    def __init__(self, type_name: _Optional[str] = ..., type_modifier: _Optional[str] = ..., oid: _Optional[int] = ..., typlen: _Optional[int] = ..., typmod: _Optional[int] = ...) -> None: ...
 
 class ResultSet(_message.Message):
     __slots__ = ["columns", "rows", "truncated"]
@@ -97,7 +101,9 @@ class Type(_message.Message):
         __slots__ = []
     BOOL: Type.PrimitiveTypeId
     DATE: Type.PrimitiveTypeId
+    DATE32: Type.PrimitiveTypeId
     DATETIME: Type.PrimitiveTypeId
+    DATETIME64: Type.PrimitiveTypeId
     DECIMAL_TYPE_FIELD_NUMBER: _ClassVar[int]
     DICT_TYPE_FIELD_NUMBER: _ClassVar[int]
     DOUBLE: Type.PrimitiveTypeId
@@ -110,6 +116,7 @@ class Type(_message.Message):
     INT64: Type.PrimitiveTypeId
     INT8: Type.PrimitiveTypeId
     INTERVAL: Type.PrimitiveTypeId
+    INTERVAL64: Type.PrimitiveTypeId
     JSON: Type.PrimitiveTypeId
     JSON_DOCUMENT: Type.PrimitiveTypeId
     LIST_TYPE_FIELD_NUMBER: _ClassVar[int]
@@ -121,6 +128,7 @@ class Type(_message.Message):
     STRUCT_TYPE_FIELD_NUMBER: _ClassVar[int]
     TAGGED_TYPE_FIELD_NUMBER: _ClassVar[int]
     TIMESTAMP: Type.PrimitiveTypeId
+    TIMESTAMP64: Type.PrimitiveTypeId
     TUPLE_TYPE_FIELD_NUMBER: _ClassVar[int]
     TYPE_ID_FIELD_NUMBER: _ClassVar[int]
     TZ_DATE: Type.PrimitiveTypeId

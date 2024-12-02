@@ -22,7 +22,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   syntax='proto3',
   serialized_options=b'\n\025tech.ydb.proto.schemeB\025SchemeOperationProtosZ9github.com/ydb-platform/ydb-go-genproto/protos/Ydb_Scheme\370\001\001',
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n\x17protos/ydb_scheme.proto\x12\nYdb.Scheme\x1a\x17protos/ydb_common.proto\x1a\x1aprotos/ydb_operation.proto\"_\n\x14MakeDirectoryRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x0c\n\x04path\x18\x02 \x01(\t\"E\n\x15MakeDirectoryResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"a\n\x16RemoveDirectoryRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x0c\n\x04path\x18\x02 \x01(\t\"G\n\x17RemoveDirectoryResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"_\n\x14ListDirectoryRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x0c\n\x04path\x18\x02 \x01(\t\"E\n\x15ListDirectoryResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"8\n\x0bPermissions\x12\x0f\n\x07subject\x18\x01 \x01(\t\x12\x18\n\x10permission_names\x18\x02 \x03(\t\"\xda\x03\n\x05\x45ntry\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\r\n\x05owner\x18\x02 \x01(\t\x12$\n\x04type\x18\x05 \x01(\x0e\x32\x16.Ydb.Scheme.Entry.Type\x12\x36\n\x15\x65\x66\x66\x65\x63tive_permissions\x18\x06 \x03(\x0b\x32\x17.Ydb.Scheme.Permissions\x12,\n\x0bpermissions\x18\x07 \x03(\x0b\x32\x17.Ydb.Scheme.Permissions\x12\x12\n\nsize_bytes\x18\x08 \x01(\x04\x12)\n\ncreated_at\x18\t \x01(\x0b\x32\x15.Ydb.VirtualTimestamp\"\xe8\x01\n\x04Type\x12\x14\n\x10TYPE_UNSPECIFIED\x10\x00\x12\r\n\tDIRECTORY\x10\x01\x12\t\n\x05TABLE\x10\x02\x12\x14\n\x10PERS_QUEUE_GROUP\x10\x03\x12\x0c\n\x08\x44\x41TABASE\x10\x04\x12\x0f\n\x0bRTMR_VOLUME\x10\x05\x12\x16\n\x12\x42LOCK_STORE_VOLUME\x10\x06\x12\x15\n\x11\x43OORDINATION_NODE\x10\x07\x12\x10\n\x0c\x43OLUMN_STORE\x10\x0c\x12\x10\n\x0c\x43OLUMN_TABLE\x10\r\x12\x0c\n\x08SEQUENCE\x10\x0f\x12\x0f\n\x0bREPLICATION\x10\x10\x12\t\n\x05TOPIC\x10\x11\"[\n\x13ListDirectoryResult\x12\x1f\n\x04self\x18\x01 \x01(\x0b\x32\x11.Ydb.Scheme.Entry\x12#\n\x08\x63hildren\x18\x02 \x03(\x0b\x32\x11.Ydb.Scheme.Entry\"^\n\x13\x44\x65scribePathRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x0c\n\x04path\x18\x02 \x01(\t\"D\n\x14\x44\x65scribePathResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"5\n\x12\x44\x65scribePathResult\x12\x1f\n\x04self\x18\x01 \x01(\x0b\x32\x11.Ydb.Scheme.Entry\"\xb2\x01\n\x11PermissionsAction\x12(\n\x05grant\x18\x01 \x01(\x0b\x32\x17.Ydb.Scheme.PermissionsH\x00\x12)\n\x06revoke\x18\x02 \x01(\x0b\x32\x17.Ydb.Scheme.PermissionsH\x00\x12&\n\x03set\x18\x03 \x01(\x0b\x32\x17.Ydb.Scheme.PermissionsH\x00\x12\x16\n\x0c\x63hange_owner\x18\x04 \x01(\tH\x00\x42\x08\n\x06\x61\x63tion\"\xde\x01\n\x18ModifyPermissionsRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x0c\n\x04path\x18\x02 \x01(\t\x12.\n\x07\x61\x63tions\x18\x03 \x03(\x0b\x32\x1d.Ydb.Scheme.PermissionsAction\x12\x19\n\x11\x63lear_permissions\x18\x04 \x01(\x08\x12\x1f\n\x15interrupt_inheritance\x18\x05 \x01(\x08H\x00\x42\r\n\x0binheritance\"I\n\x19ModifyPermissionsResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.OperationBl\n\x15tech.ydb.proto.schemeB\x15SchemeOperationProtosZ9github.com/ydb-platform/ydb-go-genproto/protos/Ydb_Scheme\xf8\x01\x01\x62\x06proto3'
+  serialized_pb=b'\n\x17protos/ydb_scheme.proto\x12\nYdb.Scheme\x1a\x17protos/ydb_common.proto\x1a\x1aprotos/ydb_operation.proto\"_\n\x14MakeDirectoryRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x0c\n\x04path\x18\x02 \x01(\t\"E\n\x15MakeDirectoryResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"a\n\x16RemoveDirectoryRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x0c\n\x04path\x18\x02 \x01(\t\"G\n\x17RemoveDirectoryResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"_\n\x14ListDirectoryRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x0c\n\x04path\x18\x02 \x01(\t\"E\n\x15ListDirectoryResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"8\n\x0bPermissions\x12\x0f\n\x07subject\x18\x01 \x01(\t\x12\x18\n\x10permission_names\x18\x02 \x03(\t\"\x92\x04\n\x05\x45ntry\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\r\n\x05owner\x18\x02 \x01(\t\x12$\n\x04type\x18\x05 \x01(\x0e\x32\x16.Ydb.Scheme.Entry.Type\x12\x36\n\x15\x65\x66\x66\x65\x63tive_permissions\x18\x06 \x03(\x0b\x32\x17.Ydb.Scheme.Permissions\x12,\n\x0bpermissions\x18\x07 \x03(\x0b\x32\x17.Ydb.Scheme.Permissions\x12\x12\n\nsize_bytes\x18\x08 \x01(\x04\x12)\n\ncreated_at\x18\t \x01(\x0b\x32\x15.Ydb.VirtualTimestamp\"\xa0\x02\n\x04Type\x12\x14\n\x10TYPE_UNSPECIFIED\x10\x00\x12\r\n\tDIRECTORY\x10\x01\x12\t\n\x05TABLE\x10\x02\x12\x14\n\x10PERS_QUEUE_GROUP\x10\x03\x12\x0c\n\x08\x44\x41TABASE\x10\x04\x12\x0f\n\x0bRTMR_VOLUME\x10\x05\x12\x16\n\x12\x42LOCK_STORE_VOLUME\x10\x06\x12\x15\n\x11\x43OORDINATION_NODE\x10\x07\x12\x10\n\x0c\x43OLUMN_STORE\x10\x0c\x12\x10\n\x0c\x43OLUMN_TABLE\x10\r\x12\x0c\n\x08SEQUENCE\x10\x0f\x12\x0f\n\x0bREPLICATION\x10\x10\x12\t\n\x05TOPIC\x10\x11\x12\x12\n\x0e\x45XTERNAL_TABLE\x10\x12\x12\x18\n\x14\x45XTERNAL_DATA_SOURCE\x10\x13\x12\x08\n\x04VIEW\x10\x14\"[\n\x13ListDirectoryResult\x12\x1f\n\x04self\x18\x01 \x01(\x0b\x32\x11.Ydb.Scheme.Entry\x12#\n\x08\x63hildren\x18\x02 \x03(\x0b\x32\x11.Ydb.Scheme.Entry\"^\n\x13\x44\x65scribePathRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x0c\n\x04path\x18\x02 \x01(\t\"D\n\x14\x44\x65scribePathResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"5\n\x12\x44\x65scribePathResult\x12\x1f\n\x04self\x18\x01 \x01(\x0b\x32\x11.Ydb.Scheme.Entry\"\xb2\x01\n\x11PermissionsAction\x12(\n\x05grant\x18\x01 \x01(\x0b\x32\x17.Ydb.Scheme.PermissionsH\x00\x12)\n\x06revoke\x18\x02 \x01(\x0b\x32\x17.Ydb.Scheme.PermissionsH\x00\x12&\n\x03set\x18\x03 \x01(\x0b\x32\x17.Ydb.Scheme.PermissionsH\x00\x12\x16\n\x0c\x63hange_owner\x18\x04 \x01(\tH\x00\x42\x08\n\x06\x61\x63tion\"\xde\x01\n\x18ModifyPermissionsRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x0c\n\x04path\x18\x02 \x01(\t\x12.\n\x07\x61\x63tions\x18\x03 \x03(\x0b\x32\x1d.Ydb.Scheme.PermissionsAction\x12\x19\n\x11\x63lear_permissions\x18\x04 \x01(\x08\x12\x1f\n\x15interrupt_inheritance\x18\x05 \x01(\x08H\x00\x42\r\n\x0binheritance\"I\n\x19ModifyPermissionsResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.OperationBl\n\x15tech.ydb.proto.schemeB\x15SchemeOperationProtosZ9github.com/ydb-platform/ydb-go-genproto/protos/Ydb_Scheme\xf8\x01\x01\x62\x06proto3'
   ,
   dependencies=[protos_dot_ydb__common__pb2.DESCRIPTOR,protos_dot_ydb__operation__pb2.DESCRIPTOR,])
 
@@ -100,11 +100,26 @@ _ENTRY_TYPE = _descriptor.EnumDescriptor(
       serialized_options=None,
       type=None,
       create_key=_descriptor._internal_create_key),
+    _descriptor.EnumValueDescriptor(
+      name='EXTERNAL_TABLE', index=13, number=18,
+      serialized_options=None,
+      type=None,
+      create_key=_descriptor._internal_create_key),
+    _descriptor.EnumValueDescriptor(
+      name='EXTERNAL_DATA_SOURCE', index=14, number=19,
+      serialized_options=None,
+      type=None,
+      create_key=_descriptor._internal_create_key),
+    _descriptor.EnumValueDescriptor(
+      name='VIEW', index=15, number=20,
+      serialized_options=None,
+      type=None,
+      create_key=_descriptor._internal_create_key),
   ],
   containing_type=None,
   serialized_options=None,
   serialized_start=901,
-  serialized_end=1133,
+  serialized_end=1189,
 )
 _sym_db.RegisterEnumDescriptor(_ENTRY_TYPE)
 
@@ -432,7 +447,7 @@ _ENTRY = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=659,
-  serialized_end=1133,
+  serialized_end=1189,
 )
 
 
@@ -470,8 +485,8 @@ _LISTDIRECTORYRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1135,
-  serialized_end=1226,
+  serialized_start=1191,
+  serialized_end=1282,
 )
 
 
@@ -509,8 +524,8 @@ _DESCRIBEPATHREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1228,
-  serialized_end=1322,
+  serialized_start=1284,
+  serialized_end=1378,
 )
 
 
@@ -541,8 +556,8 @@ _DESCRIBEPATHRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1324,
-  serialized_end=1392,
+  serialized_start=1380,
+  serialized_end=1448,
 )
 
 
@@ -573,8 +588,8 @@ _DESCRIBEPATHRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1394,
-  serialized_end=1447,
+  serialized_start=1450,
+  serialized_end=1503,
 )
 
 
@@ -631,8 +646,8 @@ _PERMISSIONSACTION = _descriptor.Descriptor(
       create_key=_descriptor._internal_create_key,
     fields=[]),
   ],
-  serialized_start=1450,
-  serialized_end=1628,
+  serialized_start=1506,
+  serialized_end=1684,
 )
 
 
@@ -696,8 +711,8 @@ _MODIFYPERMISSIONSREQUEST = _descriptor.Descriptor(
       create_key=_descriptor._internal_create_key,
     fields=[]),
   ],
-  serialized_start=1631,
-  serialized_end=1853,
+  serialized_start=1687,
+  serialized_end=1909,
 )
 
 
@@ -728,8 +743,8 @@ _MODIFYPERMISSIONSRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1855,
-  serialized_end=1928,
+  serialized_start=1911,
+  serialized_end=1984,
 )
 
 _MAKEDIRECTORYREQUEST.fields_by_name['operation_params'].message_type = protos_dot_ydb__operation__pb2._OPERATIONPARAMS
