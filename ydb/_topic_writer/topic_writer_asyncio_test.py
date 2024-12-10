@@ -132,7 +132,7 @@ class TestWriterAsyncIOStream:
 
     async def test_write_a_message(self, writer_and_stream: WriterWithMockedStream):
         data = "123".encode()
-        now = datetime.datetime.now()
+        now = datetime.datetime.now(datetime.timezone.utc)
         writer_and_stream.writer.write(
             [
                 InternalMessage(
@@ -322,7 +322,7 @@ class TestWriterAsyncIOReconnector:
         get_stream_writer,
         default_write_statistic,
     ):
-        now = datetime.datetime.now()
+        now = datetime.datetime.now(datetime.timezone.utc)
         data = "123".encode()
 
         message1 = PublicMessage(
@@ -460,7 +460,7 @@ class TestWriterAsyncIOReconnector:
 
     @freezegun.freeze_time("2022-01-13 20:50:00", tz_offset=0)
     async def test_auto_created_at(self, default_driver, default_settings, get_stream_writer):
-        now = datetime.datetime.now()
+        now = datetime.datetime.now(datetime.timezone.utc)
 
         settings = copy.deepcopy(default_settings)
         settings.auto_created_at = True
@@ -587,7 +587,7 @@ class TestWriterAsyncIOReconnector:
         settings.codec = codec
         reconnector = WriterAsyncIOReconnector(default_driver, settings)
 
-        now = datetime.datetime.now()
+        now = datetime.datetime.now(datetime.timezone.utc)
         seqno = self.init_last_seqno + 1
 
         await reconnector.write_with_ack_future([PublicMessage(data=b"123", seqno=seqno, created_at=now)])
