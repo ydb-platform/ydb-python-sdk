@@ -748,7 +748,7 @@ class TestReaderStream:
         initial_buffer_size = stream_reader._buffer_size_bytes
         message_size = initial_buffer_size - 1
 
-        t = datetime.datetime.now()
+        t = datetime.datetime.now(datetime.timezone.utc)
 
         stream.from_server.put_nowait(
             StreamReadMessage.FromServer(
