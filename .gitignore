@@ -4,6 +4,7 @@ ydb.egg-info/
 /.vscode
 /tox
 /venv
+/.venv
 /ydb_certs
 /ydb_data
 /tmp
