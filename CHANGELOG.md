@@ -1,3 +1,5 @@
+* Make created_at utc in topic writer
+
 ## 3.18.10 ##
 * Update protofiles
 * Revert "Add backslash to database name if needed"
