@@ -7,9 +7,9 @@ import ydb
 
 async def connect(endpoint: str, database: str) -> ydb.aio.Driver:
     config = ydb.DriverConfig(endpoint=endpoint, database=database)
-    config.credentials = ydb.credentials_from_env_variables()
+    # config.credentials = ydb.credentials_from_env_variables()
     driver = ydb.aio.Driver(config)
-    await driver.wait(15)
+    await driver.wait(5,fail_fast=True)
     return driver
 
 
@@ -25,7 +25,11 @@ async def create_topic(driver: ydb.aio.Driver, topic: str, consumer: str):
 async def write_messages(driver: ydb.aio.Driver, topic: str):
     async with driver.topic_client.writer(topic) as writer:
         for i in range(10):
-            await writer.write(f"mess-{i}")
+            mess = ydb.TopicWriterMessage(
+                data = f"mess-{i}",
+                metadata_items= {"index": f"{i}"}
+            )
+            await writer.write(mess)
             await asyncio.sleep(1)
 
 
@@ -38,6 +42,7 @@ async def read_messages(driver: ydb.aio.Driver, topic: str, consumer: str):
                 print(mess.seqno)
                 print(mess.created_at)
                 print(mess.data.decode())
+                print(mess.metadata_items)
                 reader.commit(mess)
             except asyncio.TimeoutError:
                 return
