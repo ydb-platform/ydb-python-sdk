@@ -9,6 +9,7 @@ def connect():
         credentials=ydb.credentials.AnonymousCredentials(),
     )
     reader = db.topic_client.reader("/local/topic", consumer="consumer")
+    #use your consumer
     return reader
 
 
@@ -108,3 +109,13 @@ def handle_partition_graceful_stop_batch(reader: ydb.TopicReader):
 
 def _process(msg):
     raise NotImplementedError()
+
+#create new consumer, if you used thise one earlier
+#driver.topic_client.alter_topic(
+#   "/local/topics",
+#    add_consumers=[
+#       ydb.TopicConsumer(
+#           name="consumer6"
+#       )
+#   ]
+#)
