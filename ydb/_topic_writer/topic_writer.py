@@ -120,11 +120,12 @@ class InternalMessage(StreamWriteMessage.WriteRequest.MessageData, IToProto):
     codec: PublicCodec
 
     def __init__(self, mess: PublicMessage):
+        metadata_items = mess.metadata_items or {}
         super().__init__(
             seq_no=mess.seqno,
             created_at=mess.created_at,
             data=mess.data,
-            metadata_items=mess.metadata_items,
+            metadata_items=metadata_items,
             uncompressed_size=len(mess.data),
             partitioning=None,
         )
