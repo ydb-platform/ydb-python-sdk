@@ -11,3 +11,4 @@ ydb.egg-info/
 .coverage
 /cov_html
 /build
+/.DS_Store
