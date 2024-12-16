@@ -27,11 +27,6 @@ def auth_with_static_credentials(endpoint: str, database: str, user: str, passwo
         user (str): Username.
         password (str): User password.
         ca_path (str): Path to CA cert
-
-    Notes:
-        The argument `root_certificates` of the function `ydb.DriverConfig` takes the content of the cluster's root certificate
-        for connecting to cluster nodes via TLS.
-        Note that the VM from which you are connecting must be in the cluster's domain for which the CA certificate is issued.
     """
     driver_config = ydb.DriverConfig(
         endpoint=endpoint,
