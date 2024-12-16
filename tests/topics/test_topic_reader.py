@@ -30,6 +30,21 @@ class TestTopicReaderAsyncIO:
 
         await reader.close()
 
+    async def test_read_metadata(self, driver, topic_with_messages_with_metadata, topic_consumer):
+        reader = driver.topic_client.reader(topic_with_messages_with_metadata, topic_consumer)
+
+        expected_metadata_items = {"key": b"value"}
+
+        for _ in range(2):
+            await reader.wait_message()
+            msg = await reader.receive_message()
+
+            assert msg is not None
+            assert msg.metadata_items
+            assert msg.metadata_items == expected_metadata_items
+
+        await reader.close()
+
     async def test_read_and_commit_with_close_reader(self, driver, topic_with_messages, topic_consumer):
         async with driver.topic_client.reader(topic_with_messages, topic_consumer) as reader:
             message = await reader.receive_message()
@@ -132,6 +147,20 @@ class TestTopicReaderSync:
 
         assert msg is not None
         assert msg.seqno
+
+        reader.close()
+
+    def test_read_metadata(self, driver_sync, topic_with_messages_with_metadata, topic_consumer):
+        reader = driver_sync.topic_client.reader(topic_with_messages_with_metadata, topic_consumer)
+
+        expected_metadata_items = {"key": b"value"}
+
+        for _ in range(2):
+            msg = reader.receive_message()
+
+            assert msg is not None
+            assert msg.metadata_items
+            assert msg.metadata_items == expected_metadata_items
 
         reader.close()
 
