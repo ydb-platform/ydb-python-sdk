@@ -36,9 +36,10 @@ async def test_yandex_service_account_credentials():
         tests.auth.test_credentials.PRIVATE_KEY,
         server.get_endpoint(),
     )
-    t = (await credentials.auth_metadata())[0][1]
+    t = await credentials.get_auth_token()
     assert t == "test_token"
     assert credentials.get_expire_time() <= 42
+
     server.stop()
 
 
