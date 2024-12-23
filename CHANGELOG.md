@@ -1,3 +1,5 @@
+* Fix aio auth credentials
+
 ## 3.18.11 ##
 * Make created_at utc in topic writer
 
