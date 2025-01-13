@@ -1,3 +1,5 @@
+* Fix empty tx_id in tx meta
+
 ## 3.18.12 ##
 * Fix aio auth credentials
 
