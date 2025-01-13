@@ -1,3 +1,5 @@
+* Fix cancel logic during SessionPool.acquire
+
 ## 3.18.13 ##
 * Fix empty tx_id in tx meta
 
