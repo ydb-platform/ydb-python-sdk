@@ -34,10 +34,15 @@ async def test_waiter_is_notified(driver):
 @pytest.mark.asyncio
 async def test_no_race_after_future_cancel(driver):
     pool = ydb.aio.SessionPool(driver, 1)
+
     s = await pool.acquire()
     waiter = asyncio.ensure_future(pool.acquire())
+    await asyncio.sleep(0)
     waiter.cancel()
     await pool.release(s)
+    await asyncio.wait([waiter])
+
+    assert pool._active_queue.qsize() == 1
     s = await pool.acquire()
     assert s.initialized()
     await pool.stop()
