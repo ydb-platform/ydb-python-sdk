@@ -1,3 +1,4 @@
+## 3.18.14 ##
 * Fix cancel logic during SessionPool.acquire
 
 ## 3.18.13 ##
