@@ -15,6 +15,11 @@ class TestTopicWriterAsyncIO:
         await writer.write(ydb.TopicWriterMessage(data="123".encode()))
         await writer.close()
 
+    async def test_send_message_with_metadata(self, driver: ydb.aio.Driver, topic_path):
+        writer = driver.topic_client.writer(topic_path, producer_id="test")
+        await writer.write(ydb.TopicWriterMessage(data="123".encode(), metadata_items={"key": "value"}))
+        await writer.close()
+
     async def test_wait_last_seqno(self, driver: ydb.aio.Driver, topic_path):
         async with driver.topic_client.writer(
             topic_path,
@@ -134,6 +139,11 @@ class TestTopicWriterSync:
     def test_send_message(self, driver_sync: ydb.Driver, topic_path):
         writer = driver_sync.topic_client.writer(topic_path, producer_id="test")
         writer.write(ydb.TopicWriterMessage(data="123".encode()))
+        writer.close()
+
+    def test_send_message_with_metadata(self, driver_sync: ydb.Driver, topic_path):
+        writer = driver_sync.topic_client.writer(topic_path, producer_id="test")
+        writer.write(ydb.TopicWriterMessage(data="123".encode(), metadata_items={"key": "value"}))
         writer.close()
 
     def test_wait_last_seqno(self, driver_sync: ydb.Driver, topic_path):

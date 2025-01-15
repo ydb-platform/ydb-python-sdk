@@ -265,6 +265,31 @@ async def topic_with_messages(driver, topic_consumer, database):
 
 @pytest.fixture()
 @pytest.mark.asyncio()
+async def topic_with_messages_with_metadata(driver, topic_consumer, database):
+    topic_path = database + "/test-topic-with-messages-with-metadata"
+    try:
+        await driver.topic_client.drop_topic(topic_path)
+    except issues.SchemeError:
+        pass
+
+    await driver.topic_client.create_topic(
+        path=topic_path,
+        consumers=[topic_consumer],
+    )
+
+    writer = driver.topic_client.writer(topic_path, producer_id="fixture-producer-id", codec=ydb.TopicCodec.RAW)
+    await writer.write_with_ack(
+        [
+            ydb.TopicWriterMessage(data="123".encode(), metadata_items={"key": "value"}),
+            ydb.TopicWriterMessage(data="456".encode(), metadata_items={"key": b"value"}),
+        ]
+    )
+    await writer.close()
+    return topic_path
+
+
+@pytest.fixture()
+@pytest.mark.asyncio()
 async def topic_reader(driver, topic_consumer, topic_path) -> ydb.TopicReaderAsyncIO:
     reader = driver.topic_client.reader(topic=topic_path, consumer=topic_consumer)
     yield reader

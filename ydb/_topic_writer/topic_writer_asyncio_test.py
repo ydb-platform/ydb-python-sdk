@@ -153,6 +153,7 @@ class TestWriterAsyncIOStream:
                         seq_no=1,
                         created_at=now,
                         data=data,
+                        metadata_items={},
                         uncompressed_size=len(data),
                         partitioning=None,
                     )
