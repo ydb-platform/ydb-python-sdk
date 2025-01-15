@@ -7,7 +7,7 @@ import ydb
 
 async def connect(endpoint: str, database: str) -> ydb.aio.Driver:
     config = ydb.DriverConfig(endpoint=endpoint, database=database)
-    # config.credentials = ydb.credentials_from_env_variables()
+    config.credentials = ydb.credentials_from_env_variables()
     driver = ydb.aio.Driver(config)
     await driver.wait(5, fail_fast=True)
     return driver

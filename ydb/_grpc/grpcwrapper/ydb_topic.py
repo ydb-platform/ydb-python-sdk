@@ -220,7 +220,6 @@ class StreamWriteMessage:
                 proto.uncompressed_size = self.uncompressed_size
 
                 for key, value in self.metadata_items.items():
-                    # TODO: CHECK
                     item = ydb_topic_pb2.MetadataItem(key=key, value=value)
                     proto.metadata_items.append(item)
 
