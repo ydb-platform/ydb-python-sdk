@@ -544,7 +544,7 @@ class TestWriterAsyncIOReconnector:
             mess = mess[0]
 
             assert mess.codec == expected_codecs[i]
-            assert mess.get_bytes() == expected_datas[i]
+            assert mess.get_data_bytes() == expected_datas[i]
 
         await reconnector.close(flush=False)
 
@@ -575,7 +575,7 @@ class TestWriterAsyncIOReconnector:
 
         for index, mess in enumerate(messages):
             assert mess.codec == codec
-            assert mess.get_bytes() == expected_datas[index]
+            assert mess.get_data_bytes() == expected_datas[index]
 
         await reconnector.close(flush=True)
 
