@@ -1,3 +1,5 @@
+* Topic metadata feature
+
 ## 3.18.14 ##
 * Fix cancel logic during SessionPool.acquire
 
