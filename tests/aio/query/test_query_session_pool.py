@@ -1,8 +1,12 @@
 import asyncio
 import pytest
 import ydb
+
+from typing import Optional
+
 from ydb.aio.query.pool import QuerySessionPool
 from ydb.aio.query.session import QuerySession, QuerySessionStateEnum
+from ydb.aio.query.transaction import QueryTxContext
 
 
 class TestQuerySessionPool:
@@ -54,6 +58,36 @@ class TestQuerySessionPool:
 
         with pytest.raises(CustomException):
             await pool.retry_operation_async(callee)
+
+    @pytest.mark.parametrize(
+        "tx_mode",
+        [
+            (None),
+            (ydb.QuerySerializableReadWrite()),
+            (ydb.QuerySnapshotReadOnly()),
+            (ydb.QueryOnlineReadOnly()),
+            (ydb.QueryStaleReadOnly()),
+        ],
+    )
+    @pytest.mark.asyncio
+    async def test_retry_tx_normal(self, pool: QuerySessionPool, tx_mode: Optional[ydb.BaseQueryTxMode]):
+        async def callee(tx: QueryTxContext):
+            result_stream = await tx.execute("SELECT 1")
+            return [result_set async for result_set in result_stream]
+
+        result = await pool.retry_tx_async(callee=callee, tx_mode=tx_mode)
+        assert len(result) == 1
+
+    @pytest.mark.asyncio
+    async def test_retry_tx_raises(self, pool: QuerySessionPool):
+        class CustomException(Exception):
+            pass
+
+        async def callee(tx: QueryTxContext):
+            raise CustomException()
+
+        with pytest.raises(CustomException):
+            await pool.retry_tx_async(callee)
 
     @pytest.mark.asyncio
     async def test_pool_size_limit_logic(self, pool: QuerySessionPool):
