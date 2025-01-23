@@ -1,7 +1,11 @@
 import pytest
 import ydb
+
+from typing import Optional
+
 from ydb.query.pool import QuerySessionPool
 from ydb.query.session import QuerySession, QuerySessionStateEnum
+from ydb.query.transaction import QueryTxContext
 
 
 class TestQuerySessionPool:
@@ -45,6 +49,41 @@ class TestQuerySessionPool:
 
         with pytest.raises(CustomException):
             pool.retry_operation_sync(callee)
+
+    @pytest.mark.parametrize(
+        "tx_mode",
+        [
+            (None),
+            (ydb.QuerySerializableReadWrite()),
+            (ydb.QuerySnapshotReadOnly()),
+            (ydb.QueryOnlineReadOnly()),
+            (ydb.QueryStaleReadOnly()),
+        ],
+    )
+    def test_retry_tx_normal(self, pool: QuerySessionPool, tx_mode: Optional[ydb.BaseQueryTxMode]):
+        retry_no = 0
+
+        def callee(tx: QueryTxContext):
+            nonlocal retry_no
+            if retry_no < 2:
+                retry_no += 1
+                raise ydb.Unavailable("Fake fast backoff error")
+            result_stream = tx.execute("SELECT 1")
+            return [result_set for result_set in result_stream]
+
+        result = pool.retry_tx_sync(callee=callee, tx_mode=tx_mode)
+        assert len(result) == 1
+        assert retry_no == 2
+
+    def test_retry_tx_raises(self, pool: QuerySessionPool):
+        class CustomException(Exception):
+            pass
+
+        def callee(tx: QueryTxContext):
+            raise CustomException()
+
+        with pytest.raises(CustomException):
+            pool.retry_tx_sync(callee)
 
     def test_pool_size_limit_logic(self, pool: QuerySessionPool):
         target_size = 5
