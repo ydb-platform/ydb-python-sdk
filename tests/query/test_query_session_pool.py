@@ -61,12 +61,19 @@ class TestQuerySessionPool:
         ],
     )
     def test_retry_tx_normal(self, pool: QuerySessionPool, tx_mode: Optional[ydb.BaseQueryTxMode]):
+        retry_no = 0
+
         def callee(tx: QueryTxContext):
+            nonlocal retry_no
+            if retry_no < 2:
+                retry_no += 1
+                raise ydb.Unavailable("Fake fast backoff error")
             result_stream = tx.execute("SELECT 1")
             return [result_set for result_set in result_stream]
 
         result = pool.retry_tx_sync(callee=callee, tx_mode=tx_mode)
         assert len(result) == 1
+        assert retry_no == 2
 
     def test_retry_tx_raises(self, pool: QuerySessionPool):
         class CustomException(Exception):
