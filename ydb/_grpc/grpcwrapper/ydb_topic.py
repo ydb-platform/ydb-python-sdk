@@ -419,12 +419,14 @@ class StreamReadMessage:
     class InitRequest(IToProto):
         topics_read_settings: List["StreamReadMessage.InitRequest.TopicReadSettings"]
         consumer: str
+        auto_partitioning_support: bool = False
 
         def to_proto(self) -> ydb_topic_pb2.StreamReadMessage.InitRequest:
             res = ydb_topic_pb2.StreamReadMessage.InitRequest()
             res.consumer = self.consumer
             for settings in self.topics_read_settings:
                 res.topics_read_settings.append(settings.to_proto())
+            res.auto_partitioning_support = self.auto_partitioning_support
             return res
 
         @dataclass
@@ -697,6 +699,20 @@ class StreamReadMessage:
             )
 
     @dataclass
+    class EndPartitionSession(IFromProto):
+        partition_session_id: int
+        adjacent_partition_ids: List[int]
+        child_partition_ids: List[int]
+
+        @staticmethod
+        def from_proto(msg: ydb_topic_pb2.StreamReadMessage.EndPartitionSession):
+            return StreamReadMessage.EndPartitionSession(
+                partition_session_id=msg.partition_session_id,
+                adjacent_partition_ids=list(msg.adjacent_partition_ids),
+                child_partition_ids=list(msg.child_partition_ids),
+            )
+
+    @dataclass
     class FromClient(IToProto):
         client_message: "ReaderMessagesFromClientToServer"
 
@@ -775,6 +791,13 @@ class StreamReadMessage:
                         msg.partition_session_status_response
                     ),
                 )
+            elif mess_type == "end_partition_session":
+                return StreamReadMessage.FromServer(
+                    server_status=server_status,
+                    server_message=StreamReadMessage.EndPartitionSession.from_proto(
+                        msg.end_partition_session,
+                    ),
+                )
             else:
                 raise issues.UnexpectedGrpcMessage(
                     "Unexpected message while parse ReaderMessagesFromServerToClient: '%s'" % mess_type
@@ -799,6 +822,7 @@ ReaderMessagesFromServerToClient = Union[
     UpdateTokenResponse,
     StreamReadMessage.StartPartitionSessionRequest,
     StreamReadMessage.StopPartitionSessionRequest,
+    StreamReadMessage.EndPartitionSession,
 ]
 
 

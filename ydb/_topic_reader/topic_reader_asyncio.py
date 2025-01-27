@@ -498,6 +498,12 @@ class ReaderStream:
                     ):
                         self._on_partition_session_stop(message.server_message)
 
+                    elif isinstance(
+                        message.server_message,
+                        StreamReadMessage.EndPartitionSession,
+                    ):
+                        self._on_end_partition_session(message.server_message)
+
                     elif isinstance(message.server_message, UpdateTokenResponse):
                         self._update_token_event.set()
 
@@ -574,6 +580,9 @@ class ReaderStream:
                     )
                 )
             )
+
+    def _on_end_partition_session(self, message: StreamReadMessage.EndPartitionSession):
+        logger.debug(f"End partition session with id: {message.partition_session_id}")
 
     def _on_read_response(self, message: StreamReadMessage.ReadResponse):
         self._buffer_consume_bytes(message.bytes_size)
