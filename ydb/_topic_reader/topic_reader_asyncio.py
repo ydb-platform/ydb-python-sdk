@@ -582,7 +582,7 @@ class ReaderStream:
             )
 
     def _on_end_partition_session(self, message: StreamReadMessage.EndPartitionSession):
-        logger.debug(f"End partition session with id: {message.partition_session_id}")
+        logger.info(f"End partition session with id: {message.partition_session_id}, child partitions: {message.child_partition_ids}")
 
     def _on_read_response(self, message: StreamReadMessage.ReadResponse):
         self._buffer_consume_bytes(message.bytes_size)
