@@ -980,11 +980,15 @@ class PartitioningSettings(IToProto, IFromProto):
         )
 
     def to_proto(self) -> ydb_topic_pb2.PartitioningSettings:
+        auto_partitioning_settings = None
+        if self.auto_partitioning_settings is not None:
+            auto_partitioning_settings = self.auto_partitioning_settings.to_proto()
+
         return ydb_topic_pb2.PartitioningSettings(
             min_active_partitions=self.min_active_partitions,
             partition_count_limit=self.partition_count_limit,
             max_active_partitions=self.max_active_partitions,
-            auto_partitioning_settings=self.auto_partitioning_settings.to_proto(),
+            auto_partitioning_settings=auto_partitioning_settings,
         )
 
 
@@ -1041,6 +1045,9 @@ class AutoPartitioningSettings(IToProto, IFromProto, IFromPublic, IToPublic):
 
     @staticmethod
     def from_proto(msg: ydb_topic_pb2.AutoPartitioningSettings) -> AutoPartitioningSettings:
+        if msg is None:
+            return None
+
         return AutoPartitioningSettings(
             strategy=AutoPartitioningStrategy.from_proto(msg.strategy),
             partition_write_speed=AutoPartitioningWriteSpeedStrategy.from_proto(msg.partition_write_speed),
@@ -1074,7 +1081,12 @@ class AutoPartitioningWriteSpeedStrategy(IToProto, IFromProto):
         )
 
     @staticmethod
-    def from_proto(msg: ydb_topic_pb2.AutoPartitioningWriteSpeedStrategy) -> AutoPartitioningWriteSpeedStrategy:
+    def from_proto(
+        msg: Optional[ydb_topic_pb2.AutoPartitioningWriteSpeedStrategy],
+    ) -> Optional[AutoPartitioningWriteSpeedStrategy]:
+        if msg is None:
+            return None
+
         return AutoPartitioningWriteSpeedStrategy(
             stabilization_window=timedelta_from_proto_duration(msg.stabilization_window),
             up_utilization_percent=msg.up_utilization_percent,
@@ -1090,10 +1102,15 @@ class AlterPartitioningSettings(IToProto):
     alter_auto_partitioning_settings: Optional[AlterAutoPartitioningSettings]
 
     def to_proto(self) -> ydb_topic_pb2.AlterPartitioningSettings:
+        alter_auto_partitioning_settings = None
+        if self.alter_auto_partitioning_settings is not None:
+            alter_auto_partitioning_settings = self.alter_auto_partitioning_settings.to_proto()
+
         return ydb_topic_pb2.AlterPartitioningSettings(
             set_min_active_partitions=self.set_min_active_partitions,
             set_partition_count_limit=self.set_partition_count_limit,
             set_max_active_partitions=self.set_max_active_partitions,
+            alter_auto_partitioning_settings=alter_auto_partitioning_settings,
         )
 
 
@@ -1109,12 +1126,12 @@ class AlterAutoPartitioningSettings(IToProto, IFromPublic):
         if not settings:
             return None
 
-        return AutoPartitioningSettings(
-            strategy=settings.set_strategy,
-            partition_write_speed=AlterAutoPartitioningWriteSpeedStrategy(
-                stabilization_window=settings.set_stabilization_window,
-                up_utilization_percent=settings.set_up_utilization_percent,
-                down_utilization_percent=settings.set_down_utilization_percent,
+        return AlterAutoPartitioningSettings(
+            set_strategy=settings.set_strategy,
+            set_partition_write_speed=AlterAutoPartitioningWriteSpeedStrategy(
+                set_stabilization_window=settings.set_stabilization_window,
+                set_up_utilization_percent=settings.set_up_utilization_percent,
+                set_down_utilization_percent=settings.set_down_utilization_percent,
             ),
         )
 
@@ -1185,9 +1202,13 @@ class CreateTopicRequest(IToProto, IFromPublic):
     metering_mode: "MeteringMode"
 
     def to_proto(self) -> ydb_topic_pb2.CreateTopicRequest:
+        partitioning_settings = None
+        if self.partitioning_settings is not None:
+            partitioning_settings = self.partitioning_settings.to_proto()
+
         return ydb_topic_pb2.CreateTopicRequest(
             path=self.path,
-            partitioning_settings=self.partitioning_settings.to_proto(),
+            partitioning_settings=partitioning_settings,
             retention_period=proto_duration_from_timedelta(self.retention_period),
             retention_storage_mb=self.retention_storage_mb,
             supported_codecs=self.supported_codecs.to_proto(),
@@ -1295,7 +1316,7 @@ class AlterTopicRequest(IToProto, IFromPublic):
 
         alter_auto_partitioning_settings = None
         if req.alter_auto_partitioning_settings is not None:
-            alter_auto_partitioning_settings = AutoPartitioningSettings.from_public(
+            alter_auto_partitioning_settings = AlterAutoPartitioningSettings.from_public(
                 req.alter_auto_partitioning_settings
             )
 
