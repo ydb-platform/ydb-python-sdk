@@ -976,9 +976,7 @@ class PartitioningSettings(IToProto, IFromProto):
             min_active_partitions=msg.min_active_partitions,
             partition_count_limit=msg.partition_count_limit,
             max_active_partitions=msg.max_active_partitions,
-            auto_partitioning_settings=AutoPartitioningSettings.from_proto(
-                msg.auto_partitioning_settings
-            ),
+            auto_partitioning_settings=AutoPartitioningSettings.from_proto(msg.auto_partitioning_settings),
         )
 
     def to_proto(self) -> ydb_topic_pb2.PartitioningSettings:
@@ -986,7 +984,7 @@ class PartitioningSettings(IToProto, IFromProto):
             min_active_partitions=self.min_active_partitions,
             partition_count_limit=self.partition_count_limit,
             max_active_partitions=self.max_active_partitions,
-            auto_partitioning_settings=self.auto_partitioning_settings.to_proto()
+            auto_partitioning_settings=self.auto_partitioning_settings.to_proto(),
         )
 
 
@@ -1027,7 +1025,7 @@ class AutoPartitioningSettings(IToProto, IFromProto, IFromPublic, IToPublic):
 
     @staticmethod
     def from_public(
-        settings: Optional[ydb_topic_public_types.PublicAutoPartitioningSettings]
+        settings: Optional[ydb_topic_public_types.PublicAutoPartitioningSettings],
     ) -> Optional[AutoPartitioningSettings]:
         if not settings:
             return None
@@ -1038,22 +1036,19 @@ class AutoPartitioningSettings(IToProto, IFromProto, IFromPublic, IToPublic):
                 stabilization_window=settings.stabilization_window,
                 up_utilization_percent=settings.up_utilization_percent,
                 down_utilization_percent=settings.down_utilization_percent,
-            )
+            ),
         )
 
     @staticmethod
     def from_proto(msg: ydb_topic_pb2.AutoPartitioningSettings) -> AutoPartitioningSettings:
         return AutoPartitioningSettings(
             strategy=AutoPartitioningStrategy.from_proto(msg.strategy),
-            partition_write_speed=AutoPartitioningWriteSpeedStrategy.from_proto(
-                msg.partition_write_speed
-            ),
+            partition_write_speed=AutoPartitioningWriteSpeedStrategy.from_proto(msg.partition_write_speed),
         )
 
     def to_proto(self) -> ydb_topic_pb2.AutoPartitioningSettings:
         return ydb_topic_pb2.AutoPartitioningSettings(
-            strategy=self.strategy,
-            partition_write_speed=self.partition_write_speed.to_proto()
+            strategy=self.strategy, partition_write_speed=self.partition_write_speed.to_proto()
         )
 
     def to_public(self) -> ydb_topic_public_types.PublicAutoPartitioningSettings:
@@ -1109,7 +1104,7 @@ class AlterAutoPartitioningSettings(IToProto, IFromPublic):
 
     @staticmethod
     def from_public(
-        settings: Optional[ydb_topic_public_types.PublicAlterAutoPartitioningSettings]
+        settings: Optional[ydb_topic_public_types.PublicAlterAutoPartitioningSettings],
     ) -> Optional[AlterAutoPartitioningSettings]:
         if not settings:
             return None
@@ -1120,7 +1115,7 @@ class AlterAutoPartitioningSettings(IToProto, IFromPublic):
                 stabilization_window=settings.set_stabilization_window,
                 up_utilization_percent=settings.set_up_utilization_percent,
                 down_utilization_percent=settings.set_down_utilization_percent,
-            )
+            ),
         )
 
     def to_proto(self) -> ydb_topic_pb2.AlterAutoPartitioningSettings:
@@ -1227,7 +1222,7 @@ class CreateTopicRequest(IToProto, IFromPublic):
                 min_active_partitions=req.min_active_partitions,
                 partition_count_limit=req.partition_count_limit,
                 max_active_partitions=req.max_active_partitions,
-                auto_partitioning_settings=auto_partitioning_settings
+                auto_partitioning_settings=auto_partitioning_settings,
             ),
             retention_period=req.retention_period,
             retention_storage_mb=req.retention_storage_mb,
@@ -1303,7 +1298,6 @@ class AlterTopicRequest(IToProto, IFromPublic):
             alter_auto_partitioning_settings = AutoPartitioningSettings.from_public(
                 req.alter_auto_partitioning_settings
             )
-
 
         drop_consumers = req.drop_consumers if req.drop_consumers else []
 
