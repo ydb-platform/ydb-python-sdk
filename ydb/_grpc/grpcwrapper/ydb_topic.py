@@ -1017,7 +1017,7 @@ class AutoPartitioningStrategy(int, IFromProto, IFromPublic, IToPublic):
 
     def to_public(self) -> ydb_topic_public_types.PublicAutoPartitioningStrategy:
         try:
-            ydb_topic_public_types.PublicAutoPartitioningStrategy(int(self))
+            return ydb_topic_public_types.PublicAutoPartitioningStrategy(int(self))
         except KeyError:
             return ydb_topic_public_types.PublicAutoPartitioningStrategy.UNSPECIFIED
 
@@ -1183,7 +1183,7 @@ class MeteringMode(int, IFromProto, IFromPublic, IToPublic):
 
     def to_public(self) -> ydb_topic_public_types.PublicMeteringMode:
         try:
-            ydb_topic_public_types.PublicMeteringMode(int(self))
+            return ydb_topic_public_types.PublicMeteringMode(int(self))
         except KeyError:
             return ydb_topic_public_types.PublicMeteringMode.UNSPECIFIED
 

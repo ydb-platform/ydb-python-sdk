@@ -82,18 +82,18 @@ class PublicAutoPartitioningStrategy(IntEnum):
 
 @dataclass
 class PublicAutoPartitioningSettings:
-    strategy: Optional["PublicAutoPartitioningStrategy"] = 0
+    strategy: Optional["PublicAutoPartitioningStrategy"] = None
     stabilization_window: Optional[datetime.timedelta] = None
-    up_utilization_percent: Optional[int] = None
     down_utilization_percent: Optional[int] = None
+    up_utilization_percent: Optional[int] = None
 
 
 @dataclass
 class PublicAlterAutoPartitioningSettings:
-    set_strategy: Optional["PublicAutoPartitioningStrategy"] = 0
+    set_strategy: Optional["PublicAutoPartitioningStrategy"] = None
     set_stabilization_window: Optional[datetime.timedelta] = None
-    set_up_utilization_percent: Optional[int] = None
     set_down_utilization_percent: Optional[int] = None
+    set_up_utilization_percent: Optional[int] = None
 
 
 @dataclass

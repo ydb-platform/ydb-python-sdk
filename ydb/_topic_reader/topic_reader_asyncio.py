@@ -335,6 +335,8 @@ class ReaderStream:
         self._started = True
         self._stream = stream
 
+        print(init_message)
+
         stream.write(StreamReadMessage.FromClient(client_message=init_message))
         init_response = await stream.receive()  # type: StreamReadMessage.FromServer
         if isinstance(init_response.server_message, StreamReadMessage.InitResponse):
@@ -583,6 +585,10 @@ class ReaderStream:
 
     def _on_end_partition_session(self, message: StreamReadMessage.EndPartitionSession):
         logger.info(
+            f"End partition session with id: {message.partition_session_id}, child partitions: {message.child_partition_ids}"
+        )
+
+        print(
             f"End partition session with id: {message.partition_session_id}, child partitions: {message.child_partition_ids}"
         )
 
