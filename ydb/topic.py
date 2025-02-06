@@ -236,7 +236,7 @@ class TopicClientAsyncIO:
         # custom decoder executor for call builtin and custom decoders. If None - use shared executor pool.
         # if max_worker in the executor is 1 - then decoders will be called from the thread without parallel
         decoder_executor: Optional[concurrent.futures.Executor] = None,
-        auto_partitioning_support: Optional[bool] = False,  # Auto partitioning feature flag. Default - False.
+        auto_partitioning_support: Optional[bool] = True,  # Auto partitioning feature flag. Default - True.
     ) -> TopicReaderAsyncIO:
 
         if not decoder_executor:
@@ -446,7 +446,7 @@ class TopicClient:
         # custom decoder executor for call builtin and custom decoders. If None - use shared executor pool.
         # if max_worker in the executor is 1 - then decoders will be called from the thread without parallel
         decoder_executor: Optional[concurrent.futures.Executor] = None,  # default shared client executor pool
-        auto_partitioning_support: Optional[bool] = False,  # Auto partitioning feature flag. Default - False.
+        auto_partitioning_support: Optional[bool] = True,  # Auto partitioning feature flag. Default - True.
     ) -> TopicReader:
         if not decoder_executor:
             decoder_executor = self._executor

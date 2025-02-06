@@ -45,7 +45,7 @@ class PublicReaderSettings:
     consumer: str
     topic: TopicSelectorTypes
     buffer_size_bytes: int = 50 * 1024 * 1024
-    auto_partitioning_support: bool = False
+    auto_partitioning_support: bool = True
 
     decoders: Union[Mapping[int, Callable[[bytes], bytes]], None] = None
     """decoders: map[codec_code] func(encoded_bytes)->decoded_bytes"""
