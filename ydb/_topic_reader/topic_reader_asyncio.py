@@ -394,7 +394,6 @@ class ReaderStream:
         # In case of auto-split we should return all parent messages ASAP
         # without queue rotation to prevent child's messages before parent's.
         if part_sess_id in self._partition_sessions and self._partition_sessions[part_sess_id].ended:
-            print(f"part_sess_id: {part_sess_id} is ended, return to beginning of queue")
             self._message_batches.move_to_end(part_sess_id, last=False)
 
     def receive_batch_nowait(self, max_messages: Optional[int] = None):
