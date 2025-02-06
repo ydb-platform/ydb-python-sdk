@@ -610,6 +610,7 @@ class TestReaderStream:
                     read_from=None,
                 )
             ],
+            auto_partitioning_support=False,
         )
         start_task = asyncio.create_task(reader._start(stream, init_message))
 

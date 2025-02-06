@@ -419,7 +419,7 @@ class StreamReadMessage:
     class InitRequest(IToProto):
         topics_read_settings: List["StreamReadMessage.InitRequest.TopicReadSettings"]
         consumer: str
-        auto_partitioning_support: bool = False
+        auto_partitioning_support: bool
 
         def to_proto(self) -> ydb_topic_pb2.StreamReadMessage.InitRequest:
             res = ydb_topic_pb2.StreamReadMessage.InitRequest()
