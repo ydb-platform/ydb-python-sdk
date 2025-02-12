@@ -7,6 +7,8 @@ from .ydb_topic import AlterTopicRequest
 from .ydb_topic_public_types import (
     AlterTopicRequestParams,
     PublicAlterConsumer,
+    PublicAlterAutoPartitioningSettings,
+    PublicAutoPartitioningStrategy,
     PublicConsumer,
     PublicCodec,
 )
@@ -51,7 +53,11 @@ def test_alter_topic_request_from_public_to_proto():
         "alter_attributes": {"key": "value"},
         "set_metering_mode": 1,
         "set_min_active_partitions": 2,
-        "set_partition_count_limit": 4,
+        "set_max_active_partitions": 8,
+        "set_partition_count_limit": 10,
+        "alter_auto_partitioning_settings": PublicAlterAutoPartitioningSettings(
+            set_strategy=PublicAutoPartitioningStrategy.DISABLED,
+        ),
     }
 
     params_public = AlterTopicRequestParams(**params)
@@ -62,7 +68,15 @@ def test_alter_topic_request_from_public_to_proto():
 
     expected_dict = {
         "path": "topic_name",
-        "alter_partitioning_settings": {"set_min_active_partitions": "2", "set_partition_count_limit": "4"},
+        "alter_partitioning_settings": {
+            "set_min_active_partitions": "2",
+            "set_max_active_partitions": "8",
+            "set_partition_count_limit": "10",
+            "alter_auto_partitioning_settings": {
+                "set_strategy": "AUTO_PARTITIONING_STRATEGY_DISABLED",
+                "set_partition_write_speed": {},
+            },
+        },
         "set_retention_period": "2419200s",
         "set_retention_storage_mb": "4",
         "set_supported_codecs": {"codecs": [1, 2]},

@@ -52,8 +52,8 @@ def default_executor():
     executor.shutdown()
 
 
-def stub_partition_session(id: int = 0):
-    return datatypes.PartitionSession(
+def stub_partition_session(id: int = 0, ended: bool = False):
+    partition_session = datatypes.PartitionSession(
         id=id,
         state=datatypes.PartitionSession.State.Active,
         topic_path="asd",
@@ -62,6 +62,11 @@ def stub_partition_session(id: int = 0):
         reader_reconnector_id=415,
         reader_stream_id=513,
     )
+
+    if ended:
+        partition_session.end()
+
+    return partition_session
 
 
 def stub_message(id: int):
@@ -73,7 +78,7 @@ def stub_message(id: int):
         offset=0,
         written_at=datetime.datetime(2023, 3, 18, 14, 15),
         producer_id="",
-        data=bytes(),
+        data=id,
         metadata_items={},
         _partition_session=stub_partition_session(),
         _commit_start_offset=0,
@@ -605,6 +610,7 @@ class TestReaderStream:
                     read_from=None,
                 )
             ],
+            auto_partitioning_support=False,
         )
         start_task = asyncio.create_task(reader._start(stream, init_message))
 
@@ -745,6 +751,31 @@ class TestReaderStream:
         await asyncio.sleep(0)  # wait next loop
         with pytest.raises(asyncio.QueueEmpty):
             stream.from_client.get_nowait()
+
+    async def test_end_partition_session(self, stream, stream_reader, partition_session):
+        def session_count():
+            return len(stream_reader._partition_sessions)
+
+        initial_session_count = session_count()
+
+        stream.from_server.put_nowait(
+            StreamReadMessage.FromServer(
+                server_status=ServerStatus(ydb_status_codes_pb2.StatusIds.SUCCESS, []),
+                server_message=StreamReadMessage.EndPartitionSession(
+                    partition_session_id=partition_session.id,
+                    adjacent_partition_ids=[],
+                    child_partition_ids=[20, 30],
+                ),
+            )
+        )
+
+        await asyncio.sleep(0)  # wait next loop
+        with pytest.raises(asyncio.QueueEmpty):
+            stream.from_client.get_nowait()
+
+        assert session_count() == initial_session_count
+        assert partition_session.id in stream_reader._partition_sessions
+        assert partition_session.ended
 
     @pytest.mark.parametrize(
         "graceful",
@@ -1167,6 +1198,82 @@ class TestReaderStream:
 
         assert mess == expected_message
         assert dict(stream_reader._message_batches) == batches_after
+
+    @pytest.mark.parametrize(
+        "batches,expected_order",
+        [
+            (
+                {
+                    0: PublicBatch(
+                        messages=[stub_message(1)],
+                        _partition_session=stub_partition_session(0, ended=True),
+                        _bytes_size=0,
+                        _codec=Codec.CODEC_RAW,
+                    )
+                },
+                [1],
+            ),
+            (
+                {
+                    0: PublicBatch(
+                        messages=[stub_message(1), stub_message(2)],
+                        _partition_session=stub_partition_session(0, ended=True),
+                        _bytes_size=0,
+                        _codec=Codec.CODEC_RAW,
+                    ),
+                    1: PublicBatch(
+                        messages=[stub_message(3), stub_message(4)],
+                        _partition_session=stub_partition_session(1),
+                        _bytes_size=0,
+                        _codec=Codec.CODEC_RAW,
+                    ),
+                },
+                [1, 2, 3, 4],
+            ),
+            (
+                {
+                    0: PublicBatch(
+                        messages=[stub_message(1), stub_message(2)],
+                        _partition_session=stub_partition_session(0),
+                        _bytes_size=0,
+                        _codec=Codec.CODEC_RAW,
+                    ),
+                    1: PublicBatch(
+                        messages=[stub_message(3), stub_message(4)],
+                        _partition_session=stub_partition_session(1, ended=True),
+                        _bytes_size=0,
+                        _codec=Codec.CODEC_RAW,
+                    ),
+                    2: PublicBatch(
+                        messages=[stub_message(5)],
+                        _partition_session=stub_partition_session(2),
+                        _bytes_size=0,
+                        _codec=Codec.CODEC_RAW,
+                    ),
+                },
+                [1, 3, 4, 5, 2],
+            ),
+        ],
+    )
+    async def test_read_message_autosplit_order(
+        self,
+        stream_reader,
+        batches: typing.Dict[int, datatypes.PublicBatch],
+        expected_order: typing.List[int],
+    ):
+        stream_reader._message_batches = OrderedDict(batches)
+
+        for id, batch in batches.items():
+            ps = batch._partition_session
+            stream_reader._partition_sessions[id] = ps
+
+        result = []
+        for _ in range(len(expected_order)):
+            mess = stream_reader.receive_message_nowait()
+            result.append(mess.data)
+
+        assert result == expected_order
+        assert stream_reader.receive_message_nowait() is None
 
     @pytest.mark.parametrize(
         "batches_before,max_messages,actual_messages,batches_after",

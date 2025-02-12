@@ -2,6 +2,7 @@ import os.path
 
 import pytest
 
+import ydb
 from ydb import issues
 
 
@@ -55,6 +56,39 @@ class TestTopicClientControlPlaneAsyncIO:
 
         topic_after = await client.describe_topic(topic_path)
         assert topic_after.min_active_partitions == target_min_active_partitions
+
+    async def test_alter_auto_partitioning_settings(self, driver, topic_path):
+        client = driver.topic_client
+
+        topic_before = await client.describe_topic(topic_path)
+
+        expected = topic_before.auto_partitioning_settings
+
+        expected.strategy = ydb.TopicAutoPartitioningStrategy.SCALE_UP
+
+        await client.alter_topic(
+            topic_path,
+            alter_auto_partitioning_settings=ydb.TopicAlterAutoPartitioningSettings(
+                set_strategy=ydb.TopicAutoPartitioningStrategy.SCALE_UP,
+            ),
+        )
+
+        topic_after = await client.describe_topic(topic_path)
+
+        assert topic_after.auto_partitioning_settings == expected
+
+        expected.up_utilization_percent = 88
+
+        await client.alter_topic(
+            topic_path,
+            alter_auto_partitioning_settings=ydb.TopicAlterAutoPartitioningSettings(
+                set_up_utilization_percent=88,
+            ),
+        )
+
+        topic_after = await client.describe_topic(topic_path)
+
+        assert topic_after.auto_partitioning_settings == expected
 
 
 class TestTopicClientControlPlane:
