@@ -1,3 +1,8 @@
+* Partition autosplit feature
+* Transactional retryer
+* Ignore AttributeError in ydb/import_client.py
+* add missing scheme entry types
+
 ## 3.18.15 ##
 * Topic metadata feature
 
