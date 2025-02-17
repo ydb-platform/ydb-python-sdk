@@ -103,10 +103,13 @@ class TestAsyncQuerySession:
     async def test_two_results(self, session: QuerySession):
         await session.create()
         res = []
+        counter = 0
 
         async with await session.execute("select 1; select 2") as results:
             async for result_set in results:
+                counter += 1
                 if len(result_set.rows) > 0:
                     res.append(list(result_set.rows[0].values()))
 
         assert res == [[1], [2]]
+        assert counter == 2
