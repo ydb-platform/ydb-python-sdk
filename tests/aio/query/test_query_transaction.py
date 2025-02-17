@@ -92,3 +92,18 @@ class TestAsyncQueryTransaction:
             res = [result_set async for result_set in results]
 
         assert len(res) == 1
+
+    @pytest.mark.asyncio
+    async def test_execute_two_results(self, tx: QueryTxContext):
+        await tx.begin()
+        counter = 0
+        res = []
+
+        async with await tx.execute("select 1; select 2") as results:
+            async for result_set in results:
+                counter += 1
+                if len(result_set.rows) > 0:
+                    res.append(list(result_set.rows[0].values()))
+
+        assert res == [[1], [2]]
+        assert counter == 2

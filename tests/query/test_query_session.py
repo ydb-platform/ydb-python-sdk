@@ -98,13 +98,16 @@ class TestQuerySession:
     def test_two_results(self, session: QuerySession):
         session.create()
         res = []
+        counter = 0
 
         with session.execute("select 1; select 2") as results:
             for result_set in results:
+                counter += 1
                 if len(result_set.rows) > 0:
                     res.append(list(result_set.rows[0].values()))
 
         assert res == [[1], [2]]
+        assert counter == 2
 
     def test_thread_leaks(self, session: QuerySession):
         session.create()
