@@ -1,3 +1,5 @@
+* Fix empty result sets from stream
+
 ## 3.18.16 ##
 * Partition autosplit feature
 * Transactional retryer
