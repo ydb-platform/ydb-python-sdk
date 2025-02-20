@@ -1,3 +1,5 @@
+* Fix import client init
+
 ## 2.15.1 ##
 * Fixed python2 compatibility 
 
