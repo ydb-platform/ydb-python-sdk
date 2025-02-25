@@ -9,7 +9,7 @@ RUN \
     python -m pip install grpcio-tools==${GRPCIO_VER} && \
     python -m pip install protobuf==${PY_PROTOBUF_VER}
 
-ENV PROTOC_VER=21.8
+ARG PROTOC_VER=21.8
 RUN wget https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOC_VER}/protoc-${PROTOC_VER}-linux-x86_64.zip && \
     unzip protoc-*.zip && \
     rm -f protoc-*.zip && \

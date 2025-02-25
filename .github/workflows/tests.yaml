@@ -18,12 +18,14 @@ jobs:
       fail-fast: false
       matrix:
         python-version: [3.8]
-        environment: [py, py-tls, py-proto3, py-tls-proto3]
+        environment: [py, py-tls, py-proto3, py-tls-proto3, py-proto5, py-tls-proto5]
         folder: [ydb, tests]
         exclude:
           - environment: py-tls
             folder: ydb
           - environment: py-tls-proto3
+            folder: ydb
+          - environment: py-tls-proto5
             folder: ydb
 
     steps:
