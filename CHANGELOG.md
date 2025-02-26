@@ -1,3 +1,5 @@
+* protobuf 5 compatibility
+
 ## 3.18.17 ##
 * Fix empty result sets from stream
 
