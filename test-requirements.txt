@@ -11,7 +11,7 @@ docker==5.0.0
 docker-compose==1.29.2
 dockerpty==0.4.1
 docopt==0.6.2
-grpcio==1.42.0
+grpcio>=1.42.0
 idna==3.2
 importlib-metadata==4.6.1
 iniconfig==1.1.1
@@ -19,7 +19,7 @@ jsonschema==3.2.0
 packaging==21.0
 paramiko==2.10.1
 pluggy==0.13.1
-protobuf>=3.13.0,<5.0.0
+protobuf>=3.13.0,<6.0.0
 py==1.10.0
 pycparser==2.20
 PyNaCl==1.4.0
