@@ -1,3 +1,4 @@
+## 3.19.0 ##
 * protobuf 5 compatibility
 
 ## 3.18.17 ##
