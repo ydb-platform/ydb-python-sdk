@@ -1,3 +1,4 @@
+## 3.19.1 ##
 * Fix dynconfig proto usage
 
 ## 3.19.0 ##
