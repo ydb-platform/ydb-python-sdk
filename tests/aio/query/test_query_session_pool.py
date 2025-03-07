@@ -162,3 +162,20 @@ class TestQuerySessionPool:
 
         docker_project.start()
         await pool.stop()
+
+    @pytest.mark.asyncio
+    async def test_acquire_no_race_condition(self, driver):
+        ids = set()
+        async with ydb.aio.QuerySessionPool(driver, 1) as pool:
+
+            async def acquire_session():
+                session = await pool.acquire()
+                ids.add(session._state.session_id)
+                await pool.release(session)
+
+            tasks = [acquire_session() for _ in range(10)]
+
+            await asyncio.gather(*tasks)
+
+            assert len(ids) == 1
+            assert pool._current_size == 1
