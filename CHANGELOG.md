@@ -1,3 +1,4 @@
+## 3.19.2 ##
 * Fix async query pool acquire race condition
 
 ## 3.19.1 ##
