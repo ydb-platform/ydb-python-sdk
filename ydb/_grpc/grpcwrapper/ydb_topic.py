@@ -142,6 +142,18 @@ class UpdateTokenResponse(IFromProto):
 ########################################################################################################################
 
 
+@dataclass
+class TransactionIdentity(IToProto):
+    tx_id: str
+    session_id: str
+
+    def to_proto(self) -> ydb_topic_pb2.TransactionIdentity:
+        return ydb_topic_pb2.TransactionIdentity(
+            id=self.tx_id,
+            session=self.session_id,
+        )
+
+
 class StreamWriteMessage:
     @dataclass()
     class InitRequest(IToProto):
@@ -200,6 +212,7 @@ class StreamWriteMessage:
     class WriteRequest(IToProto):
         messages: typing.List["StreamWriteMessage.WriteRequest.MessageData"]
         codec: int
+        tx_identity: Optional[TransactionIdentity]
 
         @dataclass
         class MessageData(IToProto):
@@ -237,6 +250,9 @@ class StreamWriteMessage:
         def to_proto(self) -> ydb_topic_pb2.StreamWriteMessage.WriteRequest:
             proto = ydb_topic_pb2.StreamWriteMessage.WriteRequest()
             proto.codec = self.codec
+
+            if self.tx_identity is not None:
+                proto.tx = self.tx_identity.to_proto()
 
             for message in self.messages:
                 proto_mess = proto.messages.add()

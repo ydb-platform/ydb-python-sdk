@@ -18,6 +18,7 @@ from .. import StatusCode, issues
 from .._grpc.grpcwrapper.ydb_topic import (
     Codec,
     StreamWriteMessage,
+    TransactionIdentity,
     UpdateTokenRequest,
     UpdateTokenResponse,
 )
@@ -41,6 +42,12 @@ from .topic_writer_asyncio import (
 )
 
 from ..credentials import AnonymousCredentials
+
+
+FAKE_TRANSACTION_IDENTITY = TransactionIdentity(
+    tx_id="transaction_id",
+    session_id="session_id",
+)
 
 
 @pytest.fixture
@@ -148,6 +155,44 @@ class TestWriterAsyncIOStream:
         expected_message = StreamWriteMessage.FromClient(
             StreamWriteMessage.WriteRequest(
                 codec=Codec.CODEC_RAW,
+                tx_identity=None,
+                messages=[
+                    StreamWriteMessage.WriteRequest.MessageData(
+                        seq_no=1,
+                        created_at=now,
+                        data=data,
+                        metadata_items={},
+                        uncompressed_size=len(data),
+                        partitioning=None,
+                    )
+                ],
+            )
+        )
+
+        sent_message = await writer_and_stream.stream.from_client.get()
+        assert expected_message == sent_message
+
+    async def test_write_a_message_with_tx(self, writer_and_stream: WriterWithMockedStream):
+        writer_and_stream.writer._tx_identity = FAKE_TRANSACTION_IDENTITY
+
+        data = "123".encode()
+        now = datetime.datetime.now(datetime.timezone.utc)
+        writer_and_stream.writer.write(
+            [
+                InternalMessage(
+                    PublicMessage(
+                        seqno=1,
+                        created_at=now,
+                        data=data,
+                    )
+                )
+            ]
+        )
+
+        expected_message = StreamWriteMessage.FromClient(
+            StreamWriteMessage.WriteRequest(
+                codec=Codec.CODEC_RAW,
+                tx_identity=FAKE_TRANSACTION_IDENTITY,
                 messages=[
                     StreamWriteMessage.WriteRequest.MessageData(
                         seq_no=1,
@@ -264,7 +309,7 @@ class TestWriterAsyncIOReconnector:
 
         res = DoubleQueueWriters()
 
-        async def async_create(driver, init_message, token_getter):
+        async def async_create(driver, init_message, token_getter, tx_identity):
             return res.get_first()
 
         monkeypatch.setattr(WriterAsyncIOStream, "create", async_create)

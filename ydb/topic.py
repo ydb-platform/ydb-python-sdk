@@ -65,6 +65,7 @@ from ._topic_writer.topic_writer import (  # noqa: F401
     PublicWriteResult as TopicWriteResult,
 )
 
+from ydb._topic_writer.topic_writer_asyncio import TxWriterAsyncIO as TopicTxWriterAsyncIO
 from ydb._topic_writer.topic_writer_asyncio import WriterAsyncIO as TopicWriterAsyncIO
 from ._topic_writer.topic_writer_sync import WriterSync as TopicWriter
 
@@ -275,6 +276,34 @@ class TopicClientAsyncIO:
             settings.encoder_executor = self._executor
 
         return TopicWriterAsyncIO(self._driver, settings, _client=self)
+
+    def tx_writer(
+        self,
+        tx,
+        topic,
+        *,
+        producer_id: Optional[str] = None,  # default - random
+        session_metadata: Mapping[str, str] = None,
+        partition_id: Union[int, None] = None,
+        auto_seqno: bool = True,
+        auto_created_at: bool = True,
+        codec: Optional[TopicCodec] = None,  # default mean auto-select
+        # encoders: map[codec_code] func(encoded_bytes)->decoded_bytes
+        # the func will be called from multiply threads in parallel.
+        encoders: Optional[Mapping[_ydb_topic_public_types.PublicCodec, Callable[[bytes], bytes]]] = None,
+        # custom encoder executor for call builtin and custom decoders. If None - use shared executor pool.
+        # If max_worker in the executor is 1 - then encoders will be called from the thread without parallel.
+        encoder_executor: Optional[concurrent.futures.Executor] = None,
+    ) -> TopicTxWriterAsyncIO:
+        args = locals().copy()
+        del args["self"]
+
+        settings = TopicWriterSettings(**args)
+
+        if not settings.encoder_executor:
+            settings.encoder_executor = self._executor
+
+        return TopicTxWriterAsyncIO(tx=tx, driver=self._driver, settings=settings, _client=self)
 
     def close(self):
         if self._closed:

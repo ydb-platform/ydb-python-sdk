@@ -92,3 +92,15 @@ class TestQueryTransaction:
 
         assert res == [[1], [2]]
         assert counter == 2
+
+    def test_tx_identity_before_begin_raises(self, tx: QueryTxContext):
+        with pytest.raises(RuntimeError):
+            tx._tx_identity()
+
+    def test_tx_identity_after_begin_works(self, tx: QueryTxContext):
+        tx.begin()
+
+        identity = tx._tx_identity()
+
+        assert identity.tx_id == tx.tx_id
+        assert identity.session_id == tx.session_id
