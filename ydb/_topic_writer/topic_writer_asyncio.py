@@ -164,6 +164,10 @@ class WriterAsyncIO:
         return await self._reconnector.wait_init()
 
 
+class TxWriterAsyncIO(WriterAsyncIO):
+    ...
+
+
 class WriterAsyncIOReconnector:
     _closed: bool
     _loop: asyncio.AbstractEventLoop
