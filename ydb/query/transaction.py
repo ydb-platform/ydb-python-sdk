@@ -11,6 +11,7 @@ from .. import (
     _apis,
     issues,
 )
+from .._grpc.grpcwrapper import ydb_topic as _ydb_topic
 from .._grpc.grpcwrapper import ydb_query as _ydb_query
 from ..connection import _RpcState as RpcState
 
@@ -214,6 +215,11 @@ class BaseQueryTxContext:
         :return: An id of open transaction or None otherwise
         """
         return self._tx_state.tx_id
+
+    def _tx_identity(self) -> _ydb_topic.TransactionIdentity:
+        if not self.tx_id:
+            raise RuntimeError("Unable to get tx identity without started tx.")
+        return _ydb_topic.TransactionIdentity(self.tx_id, self.session_id)
 
     def _begin_call(self, settings: Optional[BaseRequestSettings]) -> "BaseQueryTxContext":
         self._tx_state._check_invalid_transition(QueryTxStateEnum.BEGINED)
