@@ -18,21 +18,15 @@ jobs:
       fail-fast: false
       matrix:
         python-version: [3.8, 3.9]
-        environment: [py-proto5, py-tls-proto5, py-proto4, py-tls-proto4, py-proto3, py-tls-proto3]
-        folder: [ydb, tests --ignore=tests/topics, tests/topics]
+        environment: [py, py-tls, py-proto4, py-tls-proto4, py-proto3, py-tls-proto3]
+        folder: [ydb, tests]
         exclude:
-          - environment: py-tls-proto5
+          - environment: py-tls
             folder: ydb
           - environment: py-tls-proto4
             folder: ydb
           - environment: py-tls-proto3
             folder: ydb
-          - environment: py-tls-proto5
-            folder: tests/topics
-          - environment: py-tls-proto4
-            folder: tests/topics
-          - environment: py-tls-proto3
-            folder: tests/topics
 
     steps:
     - uses: actions/checkout@v1
