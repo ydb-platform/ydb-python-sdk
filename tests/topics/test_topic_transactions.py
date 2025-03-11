@@ -65,7 +65,7 @@ class TestTopicTransactionalWriter:
         with pytest.raises(asyncio.TimeoutError):
             await wait_for(topic_reader.receive_message(), 0.1)
 
-    async def test_no_msg_writter_in_error_case(
+    async def test_no_msg_written_in_error_case(
         self, driver: ydb.aio.Driver, topic_path, topic_reader: ydb.TopicReaderAsyncIO
     ):
         async with ydb.aio.QuerySessionPool(driver) as pool:
@@ -81,6 +81,29 @@ class TestTopicTransactionalWriter:
 
         with pytest.raises(asyncio.TimeoutError):
             await wait_for(topic_reader.receive_message(), 0.1)
+
+    async def test_msg_written_exactly_once_with_retries(
+        self, driver: ydb.aio.Driver, topic_path, topic_reader: ydb.TopicReaderAsyncIO
+    ):
+        error_raised = False
+        async with ydb.aio.QuerySessionPool(driver) as pool:
+
+            async def callee(tx: ydb.aio.QueryTxContext):
+                nonlocal error_raised
+                tx_writer = driver.topic_client.tx_writer(tx, topic_path)
+                await tx_writer.write(ydb.TopicWriterMessage(data="123".encode()))
+
+                if not error_raised:
+                    error_raised = True
+                    raise ydb.issues.Unavailable("some retriable error")
+
+            await pool.retry_tx_async(callee)
+
+            msg = await wait_for(topic_reader.receive_message(), 0.1)
+            assert msg.data.decode() == "123"
+
+            with pytest.raises(asyncio.TimeoutError):
+                await wait_for(topic_reader.receive_message(), 0.1)
 
 
 class TestTopicTransactionalWriterSync:
@@ -110,7 +133,7 @@ class TestTopicTransactionalWriterSync:
         with pytest.raises(TimeoutError):
             topic_reader_sync.receive_message(timeout=0.1)
 
-    def test_no_msg_writter_in_error_case(
+    def test_no_msg_written_in_error_case(
         self, driver_sync: ydb.Driver, topic_path, topic_reader_sync: ydb.TopicReaderAsyncIO
     ):
         with ydb.QuerySessionPool(driver_sync) as pool:

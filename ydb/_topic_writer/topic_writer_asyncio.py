@@ -191,7 +191,7 @@ class TxWriterAsyncIO(WriterAsyncIO, TxListenerAsyncIO):
         await self.close()
 
     async def _on_before_rollback(self):
-        await self.close()
+        await self.close(flush=False)
 
 
 class WriterAsyncIOReconnector:
@@ -423,7 +423,7 @@ class WriterAsyncIOReconnector:
                 done.pop().result()  # need for raise exception - reason of stop task
             except issues.Error as err:
                 err_info = check_retriable_error(err, retry_settings, attempt)
-                if not err_info.is_retriable:
+                if not err_info.is_retriable or self._tx is not None:  # no retries in tx writer
                     self._stop(err)
                     return
 
@@ -586,7 +586,6 @@ class WriterAsyncIOReconnector:
 
             while True:
                 m = await self._new_messages.get()  # type: InternalMessage
-                print("NEW MESSAGE")
                 if m.seq_no > last_seq_no:
                     writer.write([m])
         except asyncio.CancelledError:
@@ -618,7 +617,6 @@ class WriterAsyncIOReconnector:
 
         # wait last message
         await asyncio.wait(self._messages_future)
-        print("ALL MESSAGES WERE SENT TO SERVER")
 
 
 class WriterAsyncIOStream:

@@ -164,4 +164,4 @@ class TxWriterSync(WriterSync, TxListener):
         self.close()
 
     def _on_before_rollback(self):
-        self.close()
+        self.close(flush=False)
