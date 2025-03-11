@@ -54,8 +54,12 @@ class PublicWriteResult:
     class Skipped:
         pass
 
+    @dataclass(eq=True)
+    class WrittenInTx:
+        pass
 
-PublicWriteResultTypes = Union[PublicWriteResult.Written, PublicWriteResult.Skipped]
+
+PublicWriteResultTypes = Union[PublicWriteResult.Written, PublicWriteResult.Skipped, PublicWriteResult.WrittenInTx]
 
 
 class WriterSettings(PublicWriterSettings):

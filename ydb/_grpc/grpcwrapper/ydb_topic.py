@@ -252,7 +252,7 @@ class StreamWriteMessage:
             proto.codec = self.codec
 
             if self.tx_identity is not None:
-                proto.tx = self.tx_identity.to_proto()
+                proto.tx.CopyFrom(self.tx_identity.to_proto())
 
             for message in self.messages:
                 proto_mess = proto.messages.add()
@@ -314,6 +314,8 @@ class StreamWriteMessage:
                         )
                     except ValueError:
                         message_write_status = reason
+                elif proto_ack.HasField("written_in_tx"):
+                    message_write_status = StreamWriteMessage.WriteResponse.WriteAck.StatusWrittenInTx()
                 else:
                     raise NotImplementedError("unexpected ack status")
 
@@ -325,6 +327,9 @@ class StreamWriteMessage:
             @dataclass
             class StatusWritten:
                 offset: int
+
+            class StatusWrittenInTx:
+                pass
 
             @dataclass
             class StatusSkipped:

@@ -297,6 +297,7 @@ class TopicClientAsyncIO:
     ) -> TopicTxWriterAsyncIO:
         args = locals().copy()
         del args["self"]
+        del args["tx"]
 
         settings = TopicWriterSettings(**args)
 

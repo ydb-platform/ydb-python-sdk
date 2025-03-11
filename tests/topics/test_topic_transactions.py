@@ -38,14 +38,14 @@ class TestTopicTransactionalReader:
                 assert msg.data.decode() == "123"
 
 
-@pytest.mark.skip("Not implemented yet.")
+# @pytest.mark.skip("Not implemented yet.")
 class TestTopicTransactionalWriter:
     async def test_commit(self, driver: ydb.aio.Driver, topic_path, topic_reader: ydb.TopicReaderAsyncIO):
         async with ydb.aio.QuerySessionPool(driver) as pool:
 
             async def callee(tx: ydb.aio.QueryTxContext):
                 tx_writer = driver.topic_client.tx_writer(tx, topic_path)
-                tx_writer.write(ydb.TopicWriterMessage(data="123".encode()))
+                await tx_writer.write(ydb.TopicWriterMessage(data="123".encode()))
 
             await pool.retry_tx_async(callee)
 
@@ -57,7 +57,7 @@ class TestTopicTransactionalWriter:
 
             async def callee(tx: ydb.aio.QueryTxContext):
                 tx_writer = driver.topic_client.tx_writer(tx, topic_path)
-                tx_writer.write(ydb.TopicWriterMessage(data="123".encode()))
+                await tx_writer.write(ydb.TopicWriterMessage(data="123".encode()))
 
                 await tx.rollback()
 

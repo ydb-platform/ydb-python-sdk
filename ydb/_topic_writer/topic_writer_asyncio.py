@@ -44,6 +44,8 @@ from .._grpc.grpcwrapper.common_utils import (
     GrpcWrapperAsyncIO,
 )
 
+from ..query.base import TxListenerAsyncIO
+
 if typing.TYPE_CHECKING:
     from ..query.transaction import BaseQueryTxContext
 
@@ -168,12 +170,12 @@ class WriterAsyncIO:
         return await self._reconnector.wait_init()
 
 
-class TxWriterAsyncIO(WriterAsyncIO):
-    _tx: object
+class TxWriterAsyncIO(WriterAsyncIO, TxListenerAsyncIO):
+    _tx: "BaseQueryTxContext"
 
     def __init__(
         self,
-        tx,
+        tx: "BaseQueryTxContext",
         driver: SupportedDriverType,
         settings: PublicWriterSettings,
         _client=None,
@@ -183,6 +185,13 @@ class TxWriterAsyncIO(WriterAsyncIO):
         self._closed = False
         self._reconnector = WriterAsyncIOReconnector(driver=driver, settings=WriterSettings(settings), tx=self._tx)
         self._parent = _client
+        self._tx._add_listener(self)
+
+    async def _on_before_commit(self):
+        await self.close()
+
+    async def _on_before_rollback(self):
+        await self.close()
 
 
 class WriterAsyncIOReconnector:
@@ -560,6 +569,8 @@ class WriterAsyncIOReconnector:
             result = PublicWriteResult.Skipped()
         elif isinstance(status, write_ack_msg.StatusWritten):
             result = PublicWriteResult.Written(offset=status.offset)
+        elif isinstance(status, write_ack_msg.StatusWrittenInTx):
+            result = PublicWriteResult.WrittenInTx()
         else:
             raise TopicWriterError("internal error - receive unexpected ack message.")
         message_future.set_result(result)
@@ -575,6 +586,7 @@ class WriterAsyncIOReconnector:
 
             while True:
                 m = await self._new_messages.get()  # type: InternalMessage
+                print("NEW MESSAGE")
                 if m.seq_no > last_seq_no:
                     writer.write([m])
         except asyncio.CancelledError:
@@ -606,6 +618,7 @@ class WriterAsyncIOReconnector:
 
         # wait last message
         await asyncio.wait(self._messages_future)
+        print("ALL MESSAGES WERE SENT TO SERVER")
 
 
 class WriterAsyncIOStream:
