@@ -1,5 +1,7 @@
 import pytest
+import unittest.mock as mock
 
+from ydb.query.base import TxListener
 from ydb.query.transaction import QueryTxContext
 from ydb.query.transaction import QueryTxStateEnum
 
@@ -104,3 +106,67 @@ class TestQueryTransaction:
 
         assert identity.tx_id == tx.tx_id
         assert identity.session_id == tx.session_id
+
+
+class TestQueryTransactionListeners:
+    class FakeListener(TxListener):
+        def __init__(self):
+            self._call_stack = []
+
+        def _on_before_commit(self):
+            self._call_stack.append("before_commit")
+
+        def _on_after_commit(self, exc):
+            if exc is not None:
+                self._call_stack.append("after_commit_exc")
+                return
+            self._call_stack.append("after_commit")
+
+        def _on_before_rollback(self):
+            self._call_stack.append("before_rollback")
+
+        def _on_after_rollback(self, exc):
+            if exc is not None:
+                self._call_stack.append("after_rollback_exc")
+                return
+            self._call_stack.append("after_rollback")
+
+        @property
+        def call_stack(self):
+            return self._call_stack
+
+    def test_tx_commit_normal(self, tx: QueryTxContext):
+        listener = TestQueryTransactionListeners.FakeListener()
+        tx._add_listener(listener)
+        tx.begin()
+        tx.commit()
+
+        assert listener.call_stack == ["before_commit", "after_commit"]
+
+    def test_tx_commit_exc(self, tx: QueryTxContext):
+        listener = TestQueryTransactionListeners.FakeListener()
+        tx._add_listener(listener)
+        tx.begin()
+        with mock.patch.object(tx, "_commit_call", side_effect=BaseException("commit failed")):
+            with pytest.raises(BaseException):
+                tx.commit()
+
+        assert listener.call_stack == ["before_commit", "after_commit_exc"]
+
+    def test_tx_rollback_normal(self, tx: QueryTxContext):
+        listener = TestQueryTransactionListeners.FakeListener()
+        tx._add_listener(listener)
+        tx.begin()
+        tx.rollback()
+
+        assert listener.call_stack == ["before_rollback", "after_rollback"]
+
+    def test_tx_rollback_exc(self, tx: QueryTxContext):
+        listener = TestQueryTransactionListeners.FakeListener()
+        tx._add_listener(listener)
+        tx.begin()
+        with mock.patch.object(tx, "_rollback_call", side_effect=BaseException("commit failed")):
+            with pytest.raises(BaseException):
+                tx.rollback()
+
+        assert listener.call_stack == ["before_rollback", "after_rollback_exc"]
