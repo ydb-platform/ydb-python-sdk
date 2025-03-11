@@ -38,7 +38,6 @@ class TestTopicTransactionalReader:
                 assert msg.data.decode() == "123"
 
 
-# @pytest.mark.skip("Not implemented yet.")
 class TestTopicTransactionalWriter:
     async def test_commit(self, driver: ydb.aio.Driver, topic_path, topic_reader: ydb.TopicReaderAsyncIO):
         async with ydb.aio.QuerySessionPool(driver) as pool:
@@ -65,3 +64,65 @@ class TestTopicTransactionalWriter:
 
         with pytest.raises(asyncio.TimeoutError):
             await wait_for(topic_reader.receive_message(), 0.1)
+
+    async def test_no_msg_writter_in_error_case(
+        self, driver: ydb.aio.Driver, topic_path, topic_reader: ydb.TopicReaderAsyncIO
+    ):
+        async with ydb.aio.QuerySessionPool(driver) as pool:
+
+            async def callee(tx: ydb.aio.QueryTxContext):
+                tx_writer = driver.topic_client.tx_writer(tx, topic_path)
+                await tx_writer.write(ydb.TopicWriterMessage(data="123".encode()))
+
+                raise BaseException("error")
+
+            with pytest.raises(BaseException):
+                await pool.retry_tx_async(callee)
+
+        with pytest.raises(asyncio.TimeoutError):
+            await wait_for(topic_reader.receive_message(), 0.1)
+
+
+class TestTopicTransactionalWriterSync:
+    def test_commit(self, driver_sync: ydb.Driver, topic_path, topic_reader_sync: ydb.TopicReader):
+        with ydb.QuerySessionPool(driver_sync) as pool:
+
+            def callee(tx: ydb.QueryTxContext):
+                tx_writer = driver_sync.topic_client.tx_writer(tx, topic_path)
+                tx_writer.write(ydb.TopicWriterMessage(data="123".encode()))
+
+            pool.retry_tx_sync(callee)
+
+        msg = topic_reader_sync.receive_message(timeout=0.1)
+        assert msg.data.decode() == "123"
+
+    def test_rollback(self, driver_sync: ydb.aio.Driver, topic_path, topic_reader_sync: ydb.TopicReader):
+        with ydb.QuerySessionPool(driver_sync) as pool:
+
+            def callee(tx: ydb.QueryTxContext):
+                tx_writer = driver_sync.topic_client.tx_writer(tx, topic_path)
+                tx_writer.write(ydb.TopicWriterMessage(data="123".encode()))
+
+                tx.rollback()
+
+            pool.retry_tx_sync(callee)
+
+        with pytest.raises(TimeoutError):
+            topic_reader_sync.receive_message(timeout=0.1)
+
+    def test_no_msg_writter_in_error_case(
+        self, driver_sync: ydb.Driver, topic_path, topic_reader_sync: ydb.TopicReaderAsyncIO
+    ):
+        with ydb.QuerySessionPool(driver_sync) as pool:
+
+            def callee(tx: ydb.QueryTxContext):
+                tx_writer = driver_sync.topic_client.tx_writer(tx, topic_path)
+                tx_writer.write(ydb.TopicWriterMessage(data="123".encode()))
+
+                raise BaseException("error")
+
+            with pytest.raises(BaseException):
+                pool.retry_tx_sync(callee)
+
+        with pytest.raises(TimeoutError):
+            topic_reader_sync.receive_message(timeout=0.1)
