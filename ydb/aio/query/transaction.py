@@ -57,6 +57,7 @@ class QueryTxContext(BaseQueryTxContext):
         await self._begin_call(settings)
         return self
 
+    @base.with_async_transaction_events
     async def commit(self, settings: Optional[BaseRequestSettings] = None) -> None:
         """Calls commit on a transaction if it is open otherwise is no-op. If transaction execution
         failed then this method raises PreconditionFailed.
@@ -65,7 +66,7 @@ class QueryTxContext(BaseQueryTxContext):
 
         :return: A committed transaction or exception if commit is failed
         """
-        if self._tx_state._already_in(QueryTxStateEnum.COMMITTED):
+        if self._tx_state._should_skip(QueryTxStateEnum.COMMITTED):
             return
 
         if self._tx_state._state == QueryTxStateEnum.NOT_INITIALIZED:
@@ -76,6 +77,7 @@ class QueryTxContext(BaseQueryTxContext):
 
         await self._commit_call(settings)
 
+    @base.with_async_transaction_events
     async def rollback(self, settings: Optional[BaseRequestSettings] = None) -> None:
         """Calls rollback on a transaction if it is open otherwise is no-op. If transaction execution
         failed then this method raises PreconditionFailed.
@@ -84,7 +86,7 @@ class QueryTxContext(BaseQueryTxContext):
 
         :return: A committed transaction or exception if commit is failed
         """
-        if self._tx_state._already_in(QueryTxStateEnum.ROLLBACKED):
+        if self._tx_state._should_skip(QueryTxStateEnum.ROLLBACKED):
             return
 
         if self._tx_state._state == QueryTxStateEnum.NOT_INITIALIZED:

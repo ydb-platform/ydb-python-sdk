@@ -35,6 +35,7 @@ from .._grpc.grpcwrapper.ydb_topic import (
     UpdateTokenRequest,
     UpdateTokenResponse,
     StreamWriteMessage,
+    TransactionIdentity,
     WriterMessagesFromServerToClient,
 )
 from .._grpc.grpcwrapper.common_utils import (
@@ -42,6 +43,11 @@ from .._grpc.grpcwrapper.common_utils import (
     SupportedDriverType,
     GrpcWrapperAsyncIO,
 )
+
+from ..query.base import TxListenerAsyncIO
+
+if typing.TYPE_CHECKING:
+    from ..query.transaction import BaseQueryTxContext
 
 logger = logging.getLogger(__name__)
 
@@ -164,6 +170,30 @@ class WriterAsyncIO:
         return await self._reconnector.wait_init()
 
 
+class TxWriterAsyncIO(WriterAsyncIO, TxListenerAsyncIO):
+    _tx: "BaseQueryTxContext"
+
+    def __init__(
+        self,
+        tx: "BaseQueryTxContext",
+        driver: SupportedDriverType,
+        settings: PublicWriterSettings,
+        _client=None,
+    ):
+        self._tx = tx
+        self._loop = asyncio.get_running_loop()
+        self._closed = False
+        self._reconnector = WriterAsyncIOReconnector(driver=driver, settings=WriterSettings(settings), tx=self._tx)
+        self._parent = _client
+        self._tx._add_listener(self)
+
+    async def _on_before_commit(self):
+        await self.close()
+
+    async def _on_before_rollback(self):
+        await self.close(flush=False)
+
+
 class WriterAsyncIOReconnector:
     _closed: bool
     _loop: asyncio.AbstractEventLoop
@@ -178,6 +208,7 @@ class WriterAsyncIOReconnector:
     _codec_selector_batch_num: int
     _codec_selector_last_codec: Optional[PublicCodec]
     _codec_selector_check_batches_interval: int
+    _tx: Optional["BaseQueryTxContext"]
 
     if typing.TYPE_CHECKING:
         _messages_for_encode: asyncio.Queue[List[InternalMessage]]
@@ -195,7 +226,9 @@ class WriterAsyncIOReconnector:
         _stop_reason: asyncio.Future
     _init_info: Optional[PublicWriterInitInfo]
 
-    def __init__(self, driver: SupportedDriverType, settings: WriterSettings):
+    def __init__(
+        self, driver: SupportedDriverType, settings: WriterSettings, tx: Optional["BaseQueryTxContext"] = None
+    ):
         self._closed = False
         self._loop = asyncio.get_running_loop()
         self._driver = driver
@@ -205,6 +238,7 @@ class WriterAsyncIOReconnector:
         self._init_info = None
         self._stream_connected = asyncio.Event()
         self._settings = settings
+        self._tx = tx
 
         self._codec_functions = {
             PublicCodec.RAW: lambda data: data,
@@ -354,10 +388,12 @@ class WriterAsyncIOReconnector:
             # noinspection PyBroadException
             stream_writer = None
             try:
+                tx_identity = None if self._tx is None else self._tx._tx_identity()
                 stream_writer = await WriterAsyncIOStream.create(
                     self._driver,
                     self._init_message,
                     self._settings.update_token_interval,
+                    tx_identity=tx_identity,
                 )
                 try:
                     if self._init_info is None:
@@ -387,7 +423,7 @@ class WriterAsyncIOReconnector:
                 done.pop().result()  # need for raise exception - reason of stop task
             except issues.Error as err:
                 err_info = check_retriable_error(err, retry_settings, attempt)
-                if not err_info.is_retriable:
+                if not err_info.is_retriable or self._tx is not None:  # no retries in tx writer
                     self._stop(err)
                     return
 
@@ -533,6 +569,8 @@ class WriterAsyncIOReconnector:
             result = PublicWriteResult.Skipped()
         elif isinstance(status, write_ack_msg.StatusWritten):
             result = PublicWriteResult.Written(offset=status.offset)
+        elif isinstance(status, write_ack_msg.StatusWrittenInTx):
+            result = PublicWriteResult.WrittenInTx()
         else:
             raise TopicWriterError("internal error - receive unexpected ack message.")
         message_future.set_result(result)
@@ -597,10 +635,13 @@ class WriterAsyncIOStream:
     _update_token_event: asyncio.Event
     _get_token_function: Optional[Callable[[], str]]
 
+    _tx_identity: Optional[TransactionIdentity]
+
     def __init__(
         self,
         update_token_interval: Optional[Union[int, float]] = None,
         get_token_function: Optional[Callable[[], str]] = None,
+        tx_identity: Optional[TransactionIdentity] = None,
     ):
         self._closed = False
 
@@ -608,6 +649,8 @@ class WriterAsyncIOStream:
         self._get_token_function = get_token_function
         self._update_token_event = asyncio.Event()
         self._update_token_task = None
+
+        self._tx_identity = tx_identity
 
     async def close(self):
         if self._closed:
@@ -625,6 +668,7 @@ class WriterAsyncIOStream:
         driver: SupportedDriverType,
         init_request: StreamWriteMessage.InitRequest,
         update_token_interval: Optional[Union[int, float]] = None,
+        tx_identity: Optional[TransactionIdentity] = None,
     ) -> "WriterAsyncIOStream":
         stream = GrpcWrapperAsyncIO(StreamWriteMessage.FromServer.from_proto)
 
@@ -634,6 +678,7 @@ class WriterAsyncIOStream:
         writer = WriterAsyncIOStream(
             update_token_interval=update_token_interval,
             get_token_function=creds.get_auth_token if creds else lambda: "",
+            tx_identity=tx_identity,
         )
         await writer._start(stream, init_request)
         return writer
@@ -680,7 +725,7 @@ class WriterAsyncIOStream:
         if self._closed:
             raise RuntimeError("Can not write on closed stream.")
 
-        for request in messages_to_proto_requests(messages):
+        for request in messages_to_proto_requests(messages, self._tx_identity):
             self._stream.write(request)
 
     async def _update_token_loop(self):

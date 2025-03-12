@@ -167,6 +167,8 @@ class QuerySessionPool:
         def wrapped_callee():
             with self.checkout(timeout=retry_settings.max_session_acquire_timeout) as session:
                 with session.transaction(tx_mode=tx_mode) as tx:
+                    if tx_mode.name in ["serializable_read_write", "snapshot_read_only"]:
+                        tx.begin()
                     result = callee(tx, *args, **kwargs)
                     tx.commit()
                 return result

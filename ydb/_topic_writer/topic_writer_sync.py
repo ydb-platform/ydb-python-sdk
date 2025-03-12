@@ -14,12 +14,20 @@ from .topic_writer import (
     TopicWriterClosedError,
 )
 
-from .topic_writer_asyncio import WriterAsyncIO
+from ..query.base import TxListener
+
+from .topic_writer_asyncio import (
+    TxWriterAsyncIO,
+    WriterAsyncIO,
+)
 from .._topic_common.common import (
     _get_shared_event_loop,
     TimeoutType,
     CallFromSyncToAsync,
 )
+
+if typing.TYPE_CHECKING:
+    from ..query.transaction import BaseQueryTxContext
 
 
 class WriterSync:
@@ -122,3 +130,38 @@ class WriterSync:
         self._check_closed()
 
         return self._caller.unsafe_call_with_result(self._async_writer.write_with_ack(messages), timeout=timeout)
+
+
+class TxWriterSync(WriterSync, TxListener):
+    def __init__(
+        self,
+        tx: "BaseQueryTxContext",
+        driver: SupportedDriverType,
+        settings: PublicWriterSettings,
+        *,
+        eventloop: Optional[asyncio.AbstractEventLoop] = None,
+        _parent=None,
+    ):
+
+        self._closed = False
+
+        if eventloop:
+            loop = eventloop
+        else:
+            loop = _get_shared_event_loop()
+
+        self._caller = CallFromSyncToAsync(loop)
+
+        async def create_async_writer():
+            return TxWriterAsyncIO(tx, driver, settings)
+
+        self._async_writer = self._caller.safe_call_with_result(create_async_writer(), None)
+        self._parent = _parent
+
+        tx._add_listener(self)
+
+    def _on_before_commit(self):
+        self.close()
+
+    def _on_before_rollback(self):
+        self.close(flush=False)
