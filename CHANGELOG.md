@@ -1,3 +1,5 @@
+* Add consumer_stats to PublicConsumer
+
 ## 3.19.2 ##
 * Fix async query pool acquire race condition
 
