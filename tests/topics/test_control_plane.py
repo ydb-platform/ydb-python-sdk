@@ -34,6 +34,9 @@ class TestTopicClientControlPlaneAsyncIO:
 
         has_consumer = False
         for consumer in res.consumers:
+            assert consumer.consumer_stats is not None
+            for stat in ["min_partitions_last_read_time", "max_read_time_lag", "max_write_time_lag", "bytes_read"]:
+                assert getattr(consumer.consumer_stats, stat, None) is not None
             if consumer.name == topic_consumer:
                 has_consumer = True
                 break
