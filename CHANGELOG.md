@@ -1,3 +1,4 @@
+## 3.19.3 ##
 * Add consumer_stats to PublicConsumer
 
 ## 3.19.2 ##
