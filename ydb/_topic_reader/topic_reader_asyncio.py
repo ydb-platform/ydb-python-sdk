@@ -25,10 +25,16 @@ from .._grpc.grpcwrapper.ydb_topic import (
     StreamReadMessage,
     UpdateTokenRequest,
     UpdateTokenResponse,
+    UpdateOffsetsInTransactionRequest,
     Codec,
 )
 from .._errors import check_retriable_error
 import logging
+
+from ..query.base import TxListenerAsyncIO
+
+if typing.TYPE_CHECKING:
+    from ..query.transaction import BaseQueryTxContext
 
 logger = logging.getLogger(__name__)
 
@@ -121,6 +127,23 @@ class PublicAsyncIOReader:
         await self._reconnector.wait_message()
         return self._reconnector.receive_message_nowait()
 
+    async def receive_batch_with_tx(
+        self,
+        tx: "BaseQueryTxContext",
+        max_messages: typing.Union[int, None] = None,
+    ) -> typing.Union[datatypes.PublicBatch, None]:
+        """
+        Get one messages batch from reader.
+        All messages in a batch from same partition.
+
+        use asyncio.wait_for for wait with timeout.
+        """
+        await self._reconnector.wait_message()
+        return await self._reconnector.receive_batch_with_tx_nowait(
+            tx,
+            max_messages=max_messages,
+        )
+
     def commit(self, batch: typing.Union[datatypes.PublicMessage, datatypes.PublicBatch]):
         """
         Write commit message to a buffer.
@@ -165,6 +188,7 @@ class ReaderReconnector:
     _state_changed: asyncio.Event
     _stream_reader: Optional["ReaderStream"]
     _first_error: asyncio.Future[YdbError]
+    _batches_to_commit: asyncio.Queue
 
     def __init__(self, driver: Driver, settings: topic_reader.PublicReaderSettings):
         self._id = self._static_reader_reconnector_counter.inc_and_get()
@@ -176,6 +200,8 @@ class ReaderReconnector:
         self._stream_reader = None
         self._background_tasks.add(asyncio.create_task(self._connection_loop()))
         self._first_error = asyncio.get_running_loop().create_future()
+
+        self._batches_to_commit = asyncio.Queue()
 
     async def _connection_loop(self):
         attempt = 0
@@ -227,6 +253,51 @@ class ReaderReconnector:
 
     def commit(self, batch: datatypes.ICommittable) -> datatypes.PartitionSession.CommitAckWaiter:
         return self._stream_reader.commit(batch)
+
+    async def _commit_with_tx(self, tx: "BaseQueryTxContext", batch: datatypes.ICommittable) -> None:
+        pass
+
+    async def receive_batch_with_tx_nowait(self, tx: "BaseQueryTxContext", max_messages: Optional[int] = None):
+        batch = self.receive_batch_nowait(max_messages=max_messages)
+        tx._add_listener(batch)
+        await self._update_offsets_in_tx_call(self._driver, tx, batch)
+        return batch
+        # self._batches_to_commit.put_nowait((tx, batch))
+
+    async def _update_offsets_in_tx_loop(self):
+        while True:
+            tx, batch = self._batches_to_commit.get()
+            await self._update_offsets_in_tx_call(self._driver, tx, batch)
+
+    async def _update_offsets_in_tx_call(self, driver: SupportedDriverType, tx: "BaseQueryTxContext", batch: datatypes.ICommittable) -> None:
+        partition_session = batch._commit_get_partition_session()
+        request = UpdateOffsetsInTransactionRequest(
+            tx=tx._tx_identity(),
+            consumer=self._settings.consumer,
+            topics=[
+                UpdateOffsetsInTransactionRequest.TopicOffsets(
+                    path=partition_session.topic_path,
+                    partitions=[
+                        UpdateOffsetsInTransactionRequest.TopicOffsets.PartitionOffsets(
+                            partition_id=partition_session.partition_id,
+                            partition_offsets=[batch._commit_get_offsets_range()]
+                        )
+                    ],
+                )
+            ],
+        ).to_proto()
+
+        res = driver(
+            request,
+            _apis.TopicService.Stub,
+            _apis.TopicService.UpdateOffsetsInTransaction,
+            topic_common.wrap_operation,
+        )
+
+        if asyncio.iscoroutinefunction(driver.__call__):
+            res = await res
+
+        return res
 
     async def close(self, flush: bool):
         if self._stream_reader:
