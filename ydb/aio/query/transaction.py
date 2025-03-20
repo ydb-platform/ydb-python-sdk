@@ -57,7 +57,7 @@ class QueryTxContext(BaseQueryTxContext):
         await self._begin_call(settings)
         return self
 
-    @base.with_async_transaction_events
+    @base.with_transaction_events
     async def commit(self, settings: Optional[BaseRequestSettings] = None) -> None:
         """Calls commit on a transaction if it is open otherwise is no-op. If transaction execution
         failed then this method raises PreconditionFailed.
@@ -77,7 +77,7 @@ class QueryTxContext(BaseQueryTxContext):
 
         await self._commit_call(settings)
 
-    @base.with_async_transaction_events
+    @base.with_transaction_events
     async def rollback(self, settings: Optional[BaseRequestSettings] = None) -> None:
         """Calls rollback on a transaction if it is open otherwise is no-op. If transaction execution
         failed then this method raises PreconditionFailed.

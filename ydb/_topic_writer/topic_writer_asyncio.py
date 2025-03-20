@@ -187,10 +187,10 @@ class TxWriterAsyncIO(WriterAsyncIO, TxListenerAsyncIO):
         self._parent = _client
         self._tx._add_listener(self)
 
-    async def _on_before_commit(self):
+    async def _on_before_commit(self, **kwargs):
         await self.close()
 
-    async def _on_before_rollback(self):
+    async def _on_before_rollback(self, **kwargs):
         await self.close(flush=False)
 
 

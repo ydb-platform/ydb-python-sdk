@@ -163,6 +163,7 @@ class PublicBatch(ICommittable, ISessionAlive):
     _partition_session: PartitionSession
     _bytes_size: int
     _codec: Codec
+    _commited_with_tx: bool = False
 
     def _commit_get_partition_session(self) -> PartitionSession:
         return self.messages[0]._commit_get_partition_session()

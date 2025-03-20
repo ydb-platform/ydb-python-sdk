@@ -160,8 +160,8 @@ class TxWriterSync(WriterSync, TxListener):
 
         tx._add_listener(self)
 
-    def _on_before_commit(self):
+    def _on_before_commit(self, **kwargs):
         self.close()
 
-    def _on_before_rollback(self):
+    def _on_before_rollback(self, **kwargs):
         self.close(flush=False)
