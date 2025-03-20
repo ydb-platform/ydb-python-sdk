@@ -1,4 +1,5 @@
 import abc
+import asyncio
 import enum
 import functools
 
@@ -196,3 +197,110 @@ def wrap_execute_query_response(
         return convert.ResultSet.from_message(response_pb.result_set, settings)
 
     return None
+
+
+class TxListener:
+    def _on_before_commit(self, tx: "BaseQueryTxContext"):
+        pass
+
+    def _on_after_commit(self, tx: "BaseQueryTxContext", exc: typing.Optional[BaseException]):
+        pass
+
+    def _on_before_rollback(self, tx: "BaseQueryTxContext"):
+        pass
+
+    def _on_after_rollback(self, tx: "BaseQueryTxContext", exc: typing.Optional[BaseException]):
+        pass
+
+
+class TxListenerAsyncIO:
+    async def _on_before_commit(self, tx: "BaseQueryTxContext"):
+        pass
+
+    async def _on_after_commit(self, tx: "BaseQueryTxContext", exc: typing.Optional[BaseException]):
+        pass
+
+    async def _on_before_rollback(self, tx: "BaseQueryTxContext"):
+        pass
+
+    async def _on_after_rollback(self, tx: "BaseQueryTxContext", exc: typing.Optional[BaseException]):
+        pass
+
+
+def with_transaction_events(method):
+    @functools.wraps(method)
+    def wrapper(self: ListenerHandlerMixin, *args, **kwargs):
+        method_name = method.__name__
+        before_event = f"_on_before_{method_name}"
+        after_event = f"_on_after_{method_name}"
+
+        self._notify_listeners_sync(before_event, tx=self)
+
+        try:
+            result = method(self, *args, **kwargs)
+
+            self._notify_listeners_sync(after_event, tx=self, exc=None)
+
+            return result
+        except BaseException as e:
+            self._notify_listeners_sync(after_event, tx=self, exc=e)
+            raise
+        finally:
+            self._clear_listeners()
+
+    @functools.wraps(method)
+    async def async_wrapper(self: ListenerHandlerMixin, *args, **kwargs):
+        method_name = method.__name__
+        before_event = f"_on_before_{method_name}"
+        after_event = f"_on_after_{method_name}"
+
+        await self._notify_listeners_async(before_event, tx=self)
+
+        try:
+            result = await method(self, *args, **kwargs)
+
+            await self._notify_listeners_async(after_event, tx=self, exc=None)
+
+            return result
+        except BaseException as e:
+            await self._notify_listeners_async(after_event, tx=self, exc=e)
+            raise
+        finally:
+            self._clear_listeners()
+
+    if asyncio.iscoroutinefunction(method):
+        return async_wrapper
+    return wrapper
+
+
+class ListenerHandlerMixin:
+    def _init_listener_handler(self):
+        self.listeners = []
+
+    def _add_listener(self, listener):
+        if listener not in self.listeners:
+            self.listeners.append(listener)
+        return self
+
+    def _remove_listener(self, listener):
+        if listener in self.listeners:
+            self.listeners.remove(listener)
+        return self
+
+    def _clear_listeners(self):
+        self.listeners.clear()
+        return self
+
+    def _notify_listeners_sync(self, event_name: str, **kwargs) -> None:
+        for listener in self.listeners:
+            if isinstance(listener, TxListener) and hasattr(listener, event_name):
+                getattr(listener, event_name)(**kwargs)
+
+    async def _notify_listeners_async(self, event_name: str, **kwargs) -> None:
+        coros = []
+        for listener in self.listeners:
+            if isinstance(listener, TxListenerAsyncIO) and hasattr(listener, event_name):
+                coros.append(getattr(listener, event_name)(**kwargs))
+
+        if coros:
+            await asyncio.gather(*coros)

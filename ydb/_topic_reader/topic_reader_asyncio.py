@@ -5,7 +5,7 @@ import concurrent.futures
 import gzip
 import typing
 from asyncio import Task
-from collections import OrderedDict
+from collections import OrderedDict, defaultdict
 from typing import Optional, Set, Dict, Union, Callable
 
 import ydb
@@ -20,15 +20,22 @@ from .._grpc.grpcwrapper.common_utils import (
     IGrpcWrapperAsyncIO,
     SupportedDriverType,
     GrpcWrapperAsyncIO,
+    to_thread,
 )
 from .._grpc.grpcwrapper.ydb_topic import (
     StreamReadMessage,
     UpdateTokenRequest,
     UpdateTokenResponse,
+    UpdateOffsetsInTransactionRequest,
     Codec,
 )
 from .._errors import check_retriable_error
 import logging
+
+from ..query.base import TxListenerAsyncIO
+
+if typing.TYPE_CHECKING:
+    from ..query.transaction import BaseQueryTxContext
 
 logger = logging.getLogger(__name__)
 
@@ -62,7 +69,7 @@ class TopicReaderClosedError(TopicReaderError):
         super().__init__("Topic reader is closed already")
 
 
-class PublicAsyncIOReader:
+class PublicAsyncIOReader(TxListenerAsyncIO):
     _loop: asyncio.AbstractEventLoop
     _closed: bool
     _reconnector: ReaderReconnector
@@ -121,6 +128,24 @@ class PublicAsyncIOReader:
         await self._reconnector.wait_message()
         return self._reconnector.receive_message_nowait()
 
+    async def receive_batch_with_tx(
+        self,
+        tx: "BaseQueryTxContext",
+        max_messages: typing.Union[int, None] = None,
+    ) -> typing.Union[datatypes.PublicBatch, None]:
+        """
+        Get one messages batch from reader.
+        All messages in a batch from same partition.
+
+        use asyncio.wait_for for wait with timeout.
+        """
+        await self._reconnector.wait_message()
+        tx._add_listener(self)
+        return self._reconnector.receive_batch_with_tx_nowait(
+            tx,
+            max_messages=max_messages,
+        )
+
     def commit(self, batch: typing.Union[datatypes.PublicMessage, datatypes.PublicBatch]):
         """
         Write commit message to a buffer.
@@ -153,6 +178,15 @@ class PublicAsyncIOReader:
         self._closed = True
         await self._reconnector.close(flush)
 
+    async def _on_before_commit(self, tx):
+        await self._reconnector._on_before_commit(tx)
+
+    async def _on_after_commit(self, tx, exc):
+        await self._reconnector._on_after_commit(tx, exc)
+
+    async def _on_after_rollback(self, tx, exc):
+        await self._reconnector._on_after_rollback(tx, exc)
+
 
 class ReaderReconnector:
     _static_reader_reconnector_counter = AtomicCounter()
@@ -166,6 +200,10 @@ class ReaderReconnector:
     _stream_reader: Optional["ReaderStream"]
     _first_error: asyncio.Future[YdbError]
 
+    _batches_to_commit_with_tx: asyncio.Queue
+    _tx_to_batches: typing.Dict[str, typing.List[datatypes.PublicBatch]]
+    _wait_executor: concurrent.futures.ThreadPoolExecutor
+
     def __init__(self, driver: Driver, settings: topic_reader.PublicReaderSettings):
         self._id = self._static_reader_reconnector_counter.inc_and_get()
         self._settings = settings
@@ -176,6 +214,11 @@ class ReaderReconnector:
         self._stream_reader = None
         self._background_tasks.add(asyncio.create_task(self._connection_loop()))
         self._first_error = asyncio.get_running_loop().create_future()
+        self._wait_executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
+
+        self._batches_to_commit_with_tx = asyncio.Queue()
+        self._tx_to_batches = defaultdict(list)
+        self._background_tasks.add(asyncio.create_task(self._update_offsets_in_tx_loop()))
 
     async def _connection_loop(self):
         attempt = 0
@@ -228,6 +271,74 @@ class ReaderReconnector:
     def commit(self, batch: datatypes.ICommittable) -> datatypes.PartitionSession.CommitAckWaiter:
         return self._stream_reader.commit(batch)
 
+    def receive_batch_with_tx_nowait(self, tx: "BaseQueryTxContext", max_messages: Optional[int] = None):
+        batch = self.receive_batch_nowait(max_messages=max_messages)
+        self._tx_to_batches[tx.tx_id].append(batch)
+
+        self._batches_to_commit_with_tx.put_nowait((tx, batch))
+
+        print("batch recieved")
+
+        return batch
+
+    async def _update_offsets_in_tx_loop(self):
+        while True:
+            print("_update_offsets_in_tx_loop")
+
+            tx, batch = await self._batches_to_commit_with_tx.get()
+            await self._update_offsets_in_tx_call(self._driver, tx, batch)
+
+    async def _update_offsets_in_tx_call(self, driver: SupportedDriverType, tx: "BaseQueryTxContext", batch: datatypes.ICommittable) -> None:
+        try:
+            partition_session = batch._commit_get_partition_session()
+            request = UpdateOffsetsInTransactionRequest(
+                tx=tx._tx_identity(),
+                consumer=self._settings.consumer,
+                topics=[
+                    UpdateOffsetsInTransactionRequest.TopicOffsets(
+                        path=partition_session.topic_path,
+                        partitions=[
+                            UpdateOffsetsInTransactionRequest.TopicOffsets.PartitionOffsets(
+                                partition_id=partition_session.partition_id,
+                                partition_offsets=[batch._commit_get_offsets_range()]
+                            )
+                        ],
+                    )
+                ],
+            ).to_proto()
+
+            args = [
+                request,
+                _apis.TopicService.Stub,
+                _apis.TopicService.UpdateOffsetsInTransaction,
+                topic_common.wrap_operation,
+            ]
+
+            if asyncio.iscoroutinefunction(driver.__call__):
+                res = await driver(*args)
+            else:
+                res = await to_thread(driver, *args, executor=self._wait_executor)
+
+            batch._commited_with_tx = True
+
+            return res
+        except BaseException as e:
+            self._stream_reader._set_first_error(e)
+
+    async def _ensure_all_batches_commited_with_tx(self, tx: "BaseQueryTxContext"):
+        while True:
+            print("_ensure_all_batches_commited_with_tx")
+            if tx.tx_id not in self._tx_to_batches:
+                # we should not be here
+                return True
+            batches = self._tx_to_batches.get(tx.tx_id)
+            everything_commited = True
+            for batch in batches:
+                everything_commited = everything_commited and batch._commited_with_tx
+            if everything_commited:
+                return True
+            await asyncio.sleep(0.001)
+
     async def close(self, flush: bool):
         if self._stream_reader:
             await self._stream_reader.close(flush)
@@ -235,6 +346,9 @@ class ReaderReconnector:
             task.cancel()
 
         await asyncio.wait(self._background_tasks)
+
+        if self._wait_executor is not None:
+            self._wait_executor.shutdown(wait=flush)
 
     async def flush(self):
         if self._stream_reader:
@@ -247,6 +361,26 @@ class ReaderReconnector:
         except asyncio.InvalidStateError:
             # skip if already has result
             pass
+
+    async def _on_before_commit(self, tx):
+        print("on before commit")
+        await asyncio.wait_for(self._ensure_all_batches_commited_with_tx(tx), 1)
+        pass
+
+    async def _on_after_commit(self, tx, exc):
+        print(f"on after commit, exc = {exc is not None}")
+
+        if exc:
+            self._stream_reader._set_first_error(exc)
+        for batch in self._tx_to_batches[tx.tx_id]:
+            batch._partition_session.committed_offset = max(batch._partition_session.committed_offset, batch._commit_get_offsets_range().end)
+        del self._tx_to_batches[tx.tx_id]
+
+    async def _on_after_rollback(self, tx, exc):
+        print(f"on after rollback, exc = {exc is not None}")
+        print(exc)
+        exc = exc if exc is not None else issues.InternalError("tx rollback failed")
+        self._stream_reader._set_first_error(exc)
 
 
 class ReaderStream:

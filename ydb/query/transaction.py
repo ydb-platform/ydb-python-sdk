@@ -11,6 +11,7 @@ from .. import (
     _apis,
     issues,
 )
+from .._grpc.grpcwrapper import ydb_topic as _ydb_topic
 from .._grpc.grpcwrapper import ydb_query as _ydb_query
 from ..connection import _RpcState as RpcState
 
@@ -42,9 +43,21 @@ class QueryTxStateHelper(abc.ABC):
         QueryTxStateEnum.DEAD: [],
     }
 
+    _SKIP_TRANSITIONS = {
+        QueryTxStateEnum.NOT_INITIALIZED: [],
+        QueryTxStateEnum.BEGINED: [],
+        QueryTxStateEnum.COMMITTED: [QueryTxStateEnum.COMMITTED, QueryTxStateEnum.ROLLBACKED],
+        QueryTxStateEnum.ROLLBACKED: [QueryTxStateEnum.COMMITTED, QueryTxStateEnum.ROLLBACKED],
+        QueryTxStateEnum.DEAD: [],
+    }
+
     @classmethod
     def valid_transition(cls, before: QueryTxStateEnum, after: QueryTxStateEnum) -> bool:
         return after in cls._VALID_TRANSITIONS[before]
+
+    @classmethod
+    def should_skip(cls, before: QueryTxStateEnum, after: QueryTxStateEnum) -> bool:
+        return after in cls._SKIP_TRANSITIONS[before]
 
     @classmethod
     def terminal(cls, state: QueryTxStateEnum) -> bool:
@@ -88,8 +101,8 @@ class QueryTxState:
         if QueryTxStateHelper.terminal(self._state):
             raise RuntimeError(f"Transaction is in terminal state: {self._state.value}")
 
-    def _already_in(self, target: QueryTxStateEnum) -> bool:
-        return self._state == target
+    def _should_skip(self, target: QueryTxStateEnum) -> bool:
+        return QueryTxStateHelper.should_skip(self._state, target)
 
 
 def _construct_tx_settings(tx_state: QueryTxState) -> _ydb_query.TransactionSettings:
@@ -170,7 +183,7 @@ def wrap_tx_rollback_response(
     return tx
 
 
-class BaseQueryTxContext:
+class BaseQueryTxContext(base.ListenerHandlerMixin):
     def __init__(self, driver, session_state, session, tx_mode):
         """
         An object that provides a simple transaction context manager that allows statements execution
@@ -196,6 +209,7 @@ class BaseQueryTxContext:
         self._session_state = session_state
         self.session = session
         self._prev_stream = None
+        self._init_listener_handler()
 
     @property
     def session_id(self) -> str:
@@ -214,6 +228,11 @@ class BaseQueryTxContext:
         :return: An id of open transaction or None otherwise
         """
         return self._tx_state.tx_id
+
+    def _tx_identity(self) -> _ydb_topic.TransactionIdentity:
+        if not self.tx_id:
+            raise RuntimeError("Unable to get tx identity without started tx.")
+        return _ydb_topic.TransactionIdentity(self.tx_id, self.session_id)
 
     def _begin_call(self, settings: Optional[BaseRequestSettings]) -> "BaseQueryTxContext":
         self._tx_state._check_invalid_transition(QueryTxStateEnum.BEGINED)
@@ -283,13 +302,13 @@ class BaseQueryTxContext:
         )
 
     def _move_to_beginned(self, tx_id: str) -> None:
-        if self._tx_state._already_in(QueryTxStateEnum.BEGINED) or not tx_id:
+        if self._tx_state._should_skip(QueryTxStateEnum.BEGINED) or not tx_id:
             return
         self._tx_state._change_state(QueryTxStateEnum.BEGINED)
         self._tx_state.tx_id = tx_id
 
     def _move_to_commited(self) -> None:
-        if self._tx_state._already_in(QueryTxStateEnum.COMMITTED):
+        if self._tx_state._should_skip(QueryTxStateEnum.COMMITTED):
             return
         self._tx_state._change_state(QueryTxStateEnum.COMMITTED)
 
@@ -337,6 +356,7 @@ class QueryTxContext(BaseQueryTxContext):
 
         return self
 
+    @base.with_transaction_events
     def commit(self, settings: Optional[BaseRequestSettings] = None) -> None:
         """Calls commit on a transaction if it is open otherwise is no-op. If transaction execution
         failed then this method raises PreconditionFailed.
@@ -345,7 +365,7 @@ class QueryTxContext(BaseQueryTxContext):
 
         :return: A committed transaction or exception if commit is failed
         """
-        if self._tx_state._already_in(QueryTxStateEnum.COMMITTED):
+        if self._tx_state._should_skip(QueryTxStateEnum.COMMITTED):
             return
 
         if self._tx_state._state == QueryTxStateEnum.NOT_INITIALIZED:
@@ -356,6 +376,7 @@ class QueryTxContext(BaseQueryTxContext):
 
         self._commit_call(settings)
 
+    @base.with_transaction_events
     def rollback(self, settings: Optional[BaseRequestSettings] = None) -> None:
         """Calls rollback on a transaction if it is open otherwise is no-op. If transaction execution
         failed then this method raises PreconditionFailed.
@@ -364,7 +385,7 @@ class QueryTxContext(BaseQueryTxContext):
 
         :return: A committed transaction or exception if commit is failed
         """
-        if self._tx_state._already_in(QueryTxStateEnum.ROLLBACKED):
+        if self._tx_state._should_skip(QueryTxStateEnum.ROLLBACKED):
             return
 
         if self._tx_state._state == QueryTxStateEnum.NOT_INITIALIZED:

@@ -158,6 +158,8 @@ class QuerySessionPool:
         async def wrapped_callee():
             async with self.checkout() as session:
                 async with session.transaction(tx_mode=tx_mode) as tx:
+                    if tx_mode.name in ["serializable_read_write", "snapshot_read_only"]:
+                        await tx.begin()
                     result = await callee(tx, *args, **kwargs)
                     await tx.commit()
                 return result

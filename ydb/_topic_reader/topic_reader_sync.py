@@ -20,8 +20,13 @@ from ydb._topic_reader.topic_reader_asyncio import (
     TopicReaderClosedError,
 )
 
+from ..query.base import TxListener
 
-class TopicReaderSync:
+if typing.TYPE_CHECKING:
+    from ..query.transaction import BaseQueryTxContext
+
+
+class TopicReaderSync(TxListener):
     _caller: CallFromSyncToAsync
     _async_reader: PublicAsyncIOReader
     _closed: bool
@@ -155,3 +160,23 @@ class TopicReaderSync:
     def _check_closed(self):
         if self._closed:
             raise TopicReaderClosedError()
+
+    def _on_before_commit(self, tx: "BaseQueryTxContext"):
+        self._check_closed()
+
+        return self._caller.unsafe_call_with_result(self._async_reader._on_before_commit(tx), 5)
+
+    def _on_after_commit(self, tx: "BaseQueryTxContext", exc):
+        self._check_closed()
+
+        return self._caller.unsafe_call_with_result(self._async_reader._on_after_commit(tx, exc), 5)
+
+    def _on_before_rollback(self, tx: "BaseQueryTxContext"):
+        self._check_closed()
+
+        return self._caller.unsafe_call_with_result(self._async_reader._on_before_rollback(tx), 5)
+
+    def _on_after_rollback(self, tx: "BaseQueryTxContext", exc):
+        self._check_closed()
+
+        return self._caller.unsafe_call_with_result(self._async_reader._on_after_rollback(tx, exc), 5)
