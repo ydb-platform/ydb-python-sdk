@@ -20,6 +20,7 @@ from .._grpc.grpcwrapper.common_utils import (
     IGrpcWrapperAsyncIO,
     SupportedDriverType,
     GrpcWrapperAsyncIO,
+    to_thread,
 )
 from .._grpc.grpcwrapper.ydb_topic import (
     StreamReadMessage,
@@ -68,7 +69,7 @@ class TopicReaderClosedError(TopicReaderError):
         super().__init__("Topic reader is closed already")
 
 
-class PublicAsyncIOReader:
+class PublicAsyncIOReader(TxListenerAsyncIO):
     _loop: asyncio.AbstractEventLoop
     _closed: bool
     _reconnector: ReaderReconnector
@@ -176,6 +177,12 @@ class PublicAsyncIOReader:
         self._closed = True
         await self._reconnector.close(flush)
 
+    def _on_after_commit(self, exc):
+        return super()._on_after_commit(exc)
+
+    def _on_after_rollback(self, exc):
+        return super()._on_after_rollback(exc)
+
 
 class ReaderReconnector:
     _static_reader_reconnector_counter = AtomicCounter()
@@ -189,6 +196,7 @@ class ReaderReconnector:
     _stream_reader: Optional["ReaderStream"]
     _first_error: asyncio.Future[YdbError]
     _batches_to_commit: asyncio.Queue
+    _wait_executor: Optional[concurrent.futures.ThreadPoolExecutor]
 
     def __init__(self, driver: Driver, settings: topic_reader.PublicReaderSettings):
         self._id = self._static_reader_reconnector_counter.inc_and_get()
@@ -200,6 +208,7 @@ class ReaderReconnector:
         self._stream_reader = None
         self._background_tasks.add(asyncio.create_task(self._connection_loop()))
         self._first_error = asyncio.get_running_loop().create_future()
+        self._wait_executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
 
         self._batches_to_commit = asyncio.Queue()
 
@@ -270,34 +279,39 @@ class ReaderReconnector:
             await self._update_offsets_in_tx_call(self._driver, tx, batch)
 
     async def _update_offsets_in_tx_call(self, driver: SupportedDriverType, tx: "BaseQueryTxContext", batch: datatypes.ICommittable) -> None:
-        partition_session = batch._commit_get_partition_session()
-        request = UpdateOffsetsInTransactionRequest(
-            tx=tx._tx_identity(),
-            consumer=self._settings.consumer,
-            topics=[
-                UpdateOffsetsInTransactionRequest.TopicOffsets(
-                    path=partition_session.topic_path,
-                    partitions=[
-                        UpdateOffsetsInTransactionRequest.TopicOffsets.PartitionOffsets(
-                            partition_id=partition_session.partition_id,
-                            partition_offsets=[batch._commit_get_offsets_range()]
-                        )
-                    ],
-                )
-            ],
-        ).to_proto()
+        try:
+            partition_session = batch._commit_get_partition_session()
+            request = UpdateOffsetsInTransactionRequest(
+                tx=tx._tx_identity(),
+                consumer=self._settings.consumer,
+                topics=[
+                    UpdateOffsetsInTransactionRequest.TopicOffsets(
+                        path=partition_session.topic_path,
+                        partitions=[
+                            UpdateOffsetsInTransactionRequest.TopicOffsets.PartitionOffsets(
+                                partition_id=partition_session.partition_id,
+                                partition_offsets=[batch._commit_get_offsets_range()]
+                            )
+                        ],
+                    )
+                ],
+            ).to_proto()
 
-        res = driver(
-            request,
-            _apis.TopicService.Stub,
-            _apis.TopicService.UpdateOffsetsInTransaction,
-            topic_common.wrap_operation,
-        )
+            args = [
+                request,
+                _apis.TopicService.Stub,
+                _apis.TopicService.UpdateOffsetsInTransaction,
+                topic_common.wrap_operation,
+            ]
 
-        if asyncio.iscoroutinefunction(driver.__call__):
-            res = await res
+            if asyncio.iscoroutinefunction(driver.__call__):
+                res = await driver(*args)
+            else:
+                res = await to_thread(driver, *args, executor=self._wait_executor)
 
-        return res
+            return res
+        except BaseException as e:
+            self._set_first_error(e)
 
     async def close(self, flush: bool):
         if self._stream_reader:
@@ -306,6 +320,9 @@ class ReaderReconnector:
             task.cancel()
 
         await asyncio.wait(self._background_tasks)
+
+        if self._wait_executor is not None:
+            self._wait_executor.shutdown(wait=flush)
 
     async def flush(self):
         if self._stream_reader:
