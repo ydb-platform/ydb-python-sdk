@@ -245,12 +245,10 @@ class CallbackHandler:
         self._callback_mode = mode
 
     def _execute_callbacks_sync(self, event_name: str, *args, **kwargs) -> None:
-        print(f"EXECUTE SYNC CALLBACKS FOR EVENT: {event_name}")
         for callback in self._callbacks[event_name]:
             callback(self, *args, **kwargs)
 
     async def _execute_callbacks_async(self, event_name: str, *args, **kwargs) -> None:
-        print(f"EXECUTE ASYNC CALLBACKS FOR EVENT: {event_name}")
         tasks = [asyncio.create_task(callback(self, *args, **kwargs)) for callback in self._callbacks[event_name]]
         if not tasks:
             return

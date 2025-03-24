@@ -130,7 +130,7 @@ class QueryTxContext(BaseQueryTxContext):
             await self._rollback_call(settings)
             await self._execute_callbacks_async(base.TxEvent.AFTER_ROLLBACK, exc=None)
         except BaseException as e:
-            self._execute_callbacks_async(base.TxEvent.AFTER_ROLLBACK, exc=e)
+            await self._execute_callbacks_async(base.TxEvent.AFTER_ROLLBACK, exc=e)
             raise e
 
     async def execute(

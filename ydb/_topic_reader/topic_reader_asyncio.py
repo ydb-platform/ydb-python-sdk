@@ -125,7 +125,7 @@ class PublicAsyncIOReader:
         max_messages: typing.Union[int, None] = None,
     ) -> typing.Union[datatypes.PublicBatch, None]:
         """
-        Get one messages batch from reader.
+        Get one messages batch with tx from reader.
         All messages in a batch from same partition.
 
         use asyncio.wait_for for wait with timeout.
@@ -208,19 +208,15 @@ class ReaderReconnector:
         attempt = 0
         while True:
             try:
-                print("reconnector connection loop")
                 self._stream_reader = await ReaderStream.create(self._id, self._driver, self._settings)
                 attempt = 0
                 self._state_changed.set()
                 await self._stream_reader.wait_error()
             except BaseException as err:
-                print(f"FOUND EXCEPTION: {err}")
                 retry_info = check_retriable_error(err, self._settings._retry_settings(), attempt)
                 if not retry_info.is_retriable:
-                    print("ERROR IS NOT RETRIABLE")
                     self._set_first_error(err)
                     return
-                print(f"ERROR IS RETRIABLE, sleep for {retry_info.sleep_timeout_seconds}")
 
                 await asyncio.sleep(retry_info.sleep_timeout_seconds)
 
@@ -273,8 +269,8 @@ class ReaderReconnector:
     def _init_tx_if_needed(self, tx: "BaseQueryTxContext"):
         if tx.tx_id not in self._tx_to_batches_map:  # Init tx callbacks
             tx._add_callback(TxEvent.BEFORE_COMMIT, self._commit_batches_with_tx, None)
-            tx._add_callback(TxEvent.AFTER_COMMIT, self._reconnect_if_tx_commit_failed, None)
-            tx._add_callback(TxEvent.AFTER_ROLLBACK, self._reconnect_after_tx_rollback, None)
+            tx._add_callback(TxEvent.AFTER_COMMIT, self._handle_after_tx_commit, None)
+            tx._add_callback(TxEvent.AFTER_ROLLBACK, self._handle_after_tx_rollback, None)
 
     async def _commit_batches_with_tx(self, tx: "BaseQueryTxContext"):
         grouped_batches = defaultdict(lambda: defaultdict(list))
@@ -301,7 +297,6 @@ class ReaderReconnector:
             exc = issues.ClientInternalError("Failed to update offsets in tx.")
             tx._set_external_error(exc)
             self._stream_reader._set_first_error(exc)
-            await asyncio.sleep(0)
         finally:
             del self._tx_to_batches_map[tx.tx_id]
 
@@ -320,18 +315,20 @@ class ReaderReconnector:
 
         return res
 
-    async def _reconnect_after_tx_rollback(self, tx: "BaseQueryTxContext", exc: Optional[BaseException]) -> None:
-        exc = exc if exc is not None else issues.ClientInternalError("Reconnect due to transaction rollback")
-        print("FIRST ERROR SET")
+    async def _handle_after_tx_rollback(self, tx: "BaseQueryTxContext", exc: Optional[BaseException]) -> None:
+        if tx.tx_id in self._tx_to_batches_map:
+            del self._tx_to_batches_map[tx.tx_id]
+        exc = issues.ClientInternalError("Reconnect due to transaction rollback")
         self._stream_reader._set_first_error(exc)
-        await asyncio.sleep(0)
 
-    async def _reconnect_if_tx_commit_failed(self, tx: "BaseQueryTxContext", exc: Optional[BaseException]) -> None:
+    async def _handle_after_tx_commit(self, tx: "BaseQueryTxContext", exc: Optional[BaseException]) -> None:
+        if tx.tx_id in self._tx_to_batches_map:
+            del self._tx_to_batches_map[tx.tx_id]
+
         if exc is not None:
             self._stream_reader._set_first_error(
                 issues.ClientInternalError("Reconnect due to transaction commit failed")
             )
-            await asyncio.sleep(0)
 
     def commit(self, batch: datatypes.ICommittable) -> datatypes.PartitionSession.CommitAckWaiter:
         return self._stream_reader.commit(batch)
