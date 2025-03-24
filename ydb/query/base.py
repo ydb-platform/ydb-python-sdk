@@ -2,6 +2,7 @@ import abc
 import asyncio
 import enum
 import functools
+from collections import defaultdict
 
 import typing
 from typing import (
@@ -17,6 +18,10 @@ from .. import convert
 from .. import issues
 from .. import _utilities
 from .. import _apis
+
+from ydb._topic_common.common import CallFromSyncToAsync, _get_shared_event_loop
+from ydb._grpc.grpcwrapper.common_utils import to_thread
+
 
 if typing.TYPE_CHECKING:
     from .transaction import BaseQueryTxContext
@@ -199,114 +204,64 @@ def wrap_execute_query_response(
     return None
 
 
-class TxListener:
-    def _on_before_commit(self):
-        pass
-
-    def _on_after_commit(self, exc: typing.Optional[BaseException]):
-        pass
-
-    def _on_before_rollback(self):
-        pass
-
-    def _on_after_rollback(self, exc: typing.Optional[BaseException]):
-        pass
+class TxEvent(enum.Enum):
+    BEFORE_COMMIT = "BEFORE_COMMIT"
+    AFTER_COMMIT = "AFTER_COMMIT"
+    BEFORE_ROLLBACK = "BEFORE_ROLLBACK"
+    AFTER_ROLLBACK = "AFTER_ROLLBACK"
 
 
-class TxListenerAsyncIO:
-    async def _on_before_commit(self):
-        pass
-
-    async def _on_after_commit(self, exc: typing.Optional[BaseException]):
-        pass
-
-    async def _on_before_rollback(self):
-        pass
-
-    async def _on_after_rollback(self, exc: typing.Optional[BaseException]):
-        pass
+class CallbackHandlerMode(enum.Enum):
+    SYNC = "SYNC"
+    ASYNC = "ASYNC"
 
 
-def with_transaction_events(method):
-    @functools.wraps(method)
-    def wrapper(self, *args, **kwargs):
-        method_name = method.__name__
-        before_event = f"_on_before_{method_name}"
-        after_event = f"_on_after_{method_name}"
+def _get_sync_callback(method: typing.Callable, loop: Optional[asyncio.AbstractEventLoop]):
+    if asyncio.iscoroutinefunction(method):
+        if loop is None:
+            loop = _get_shared_event_loop()
 
-        self._notify_listeners_sync(before_event)
+        def async_to_sync_callback(*args, **kwargs):
+            caller = CallFromSyncToAsync(loop)
+            return caller.safe_call_with_result(method(*args, **kwargs), 10)
 
-        try:
-            result = method(self, *args, **kwargs)
-
-            self._notify_listeners_sync(after_event, exc=None)
-
-            return result
-        except BaseException as e:
-            self._notify_listeners_sync(after_event, exc=e)
-            raise
-
-    return wrapper
+        return async_to_sync_callback
+    return method
 
 
-def with_async_transaction_events(method):
-    @functools.wraps(method)
-    async def wrapper(self, *args, **kwargs):
-        method_name = method.__name__
-        before_event = f"_on_before_{method_name}"
-        after_event = f"_on_after_{method_name}"
+def _get_async_callback(method: typing.Callable):
+    if asyncio.iscoroutinefunction(method):
+        return method
 
-        await self._notify_listeners_async(before_event)
+    async def sync_to_async_callback(*args, **kwargs):
+        return await to_thread(method, *args, **kwargs, executor=None)
 
-        try:
-            result = await method(self, *args, **kwargs)
-
-            await self._notify_listeners_async(after_event, exc=None)
-
-            return result
-        except BaseException as e:
-            await self._notify_listeners_async(after_event, exc=e)
-            raise
-
-    return wrapper
+    return sync_to_async_callback
 
 
-class ListenerHandlerMixin:
-    def _init_listener_handler(self):
-        self.listeners = []
+class CallbackHandler:
+    def _init_callback_handler(self, mode: CallbackHandlerMode) -> None:
+        self._callbacks = defaultdict(list)
+        self._callback_mode = mode
 
-    def _add_listener(self, listener):
-        if listener not in self.listeners:
-            self.listeners.append(listener)
-        return self
+    def _execute_callbacks_sync(self, event_name: str, *args, **kwargs) -> None:
+        print(f"EXECUTE SYNC CALLBACKS FOR EVENT: {event_name}")
+        for callback in self._callbacks[event_name]:
+            callback(self, *args, **kwargs)
 
-    def _remove_listener(self, listener):
-        if listener in self.listeners:
-            self.listeners.remove(listener)
-        return self
+    async def _execute_callbacks_async(self, event_name: str, *args, **kwargs) -> None:
+        print(f"EXECUTE ASYNC CALLBACKS FOR EVENT: {event_name}")
+        tasks = [asyncio.create_task(callback(self, *args, **kwargs)) for callback in self._callbacks[event_name]]
+        if not tasks:
+            return
+        await asyncio.gather(*tasks)
 
-    def _clear_listeners(self):
-        self.listeners.clear()
-        return self
+    def _prepare_callback(
+        self, callback: typing.Callable, loop: Optional[asyncio.AbstractEventLoop]
+    ) -> typing.Callable:
+        if self._callback_mode == CallbackHandlerMode.SYNC:
+            return _get_sync_callback(callback, loop)
+        return _get_async_callback(callback)
 
-    def _notify_sync_listeners(self, event_name: str, **kwargs) -> None:
-        for listener in self.listeners:
-            if isinstance(listener, TxListener) and hasattr(listener, event_name):
-                getattr(listener, event_name)(**kwargs)
-
-    async def _notify_async_listeners(self, event_name: str, **kwargs) -> None:
-        coros = []
-        for listener in self.listeners:
-            if isinstance(listener, TxListenerAsyncIO) and hasattr(listener, event_name):
-                coros.append(getattr(listener, event_name)(**kwargs))
-
-        if coros:
-            await asyncio.gather(*coros)
-
-    def _notify_listeners_sync(self, event_name: str, **kwargs) -> None:
-        self._notify_sync_listeners(event_name, **kwargs)
-
-    async def _notify_listeners_async(self, event_name: str, **kwargs) -> None:
-        # self._notify_sync_listeners(event_name, **kwargs)
-
-        await self._notify_async_listeners(event_name, **kwargs)
+    def _add_callback(self, event_name: str, callback: typing.Callable, loop: Optional[asyncio.AbstractEventLoop]):
+        self._callbacks[event_name].append(self._prepare_callback(callback, loop))

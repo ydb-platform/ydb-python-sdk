@@ -1210,6 +1210,52 @@ class MeteringMode(int, IFromProto, IFromPublic, IToPublic):
 
 
 @dataclass
+class UpdateOffsetsInTransactionRequest(IToProto):
+    tx: TransactionIdentity
+    topics: List[UpdateOffsetsInTransactionRequest.TopicOffsets]
+    consumer: str
+
+    def to_proto(self):
+        return ydb_topic_pb2.UpdateOffsetsInTransactionRequest(
+            tx=self.tx.to_proto(),
+            consumer=self.consumer,
+            topics=list(
+                map(
+                    UpdateOffsetsInTransactionRequest.TopicOffsets.to_proto,
+                    self.topics,
+                )
+            ),
+        )
+
+    @dataclass
+    class TopicOffsets(IToProto):
+        path: str
+        partitions: List[UpdateOffsetsInTransactionRequest.TopicOffsets.PartitionOffsets]
+
+        def to_proto(self):
+            return ydb_topic_pb2.UpdateOffsetsInTransactionRequest.TopicOffsets(
+                path=self.path,
+                partitions=list(
+                    map(
+                        UpdateOffsetsInTransactionRequest.TopicOffsets.PartitionOffsets.to_proto,
+                        self.partitions,
+                    )
+                ),
+            )
+
+        @dataclass
+        class PartitionOffsets(IToProto):
+            partition_id: int
+            partition_offsets: List[OffsetsRange]
+
+            def to_proto(self) -> ydb_topic_pb2.UpdateOffsetsInTransactionRequest.TopicOffsets.PartitionOffsets:
+                return ydb_topic_pb2.UpdateOffsetsInTransactionRequest.TopicOffsets.PartitionOffsets(
+                    partition_id=self.partition_id,
+                    partition_offsets=list(map(OffsetsRange.to_proto, self.partition_offsets)),
+                )
+
+
+@dataclass
 class CreateTopicRequest(IToProto, IFromPublic):
     path: str
     partitioning_settings: "PartitioningSettings"

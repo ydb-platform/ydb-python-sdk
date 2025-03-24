@@ -44,7 +44,7 @@ from .._grpc.grpcwrapper.common_utils import (
     GrpcWrapperAsyncIO,
 )
 
-from ..query.base import TxListenerAsyncIO
+from ..query.base import TxEvent
 
 if typing.TYPE_CHECKING:
     from ..query.transaction import BaseQueryTxContext
@@ -170,7 +170,7 @@ class WriterAsyncIO:
         return await self._reconnector.wait_init()
 
 
-class TxWriterAsyncIO(WriterAsyncIO, TxListenerAsyncIO):
+class TxWriterAsyncIO(WriterAsyncIO):
     _tx: "BaseQueryTxContext"
 
     def __init__(
@@ -179,19 +179,27 @@ class TxWriterAsyncIO(WriterAsyncIO, TxListenerAsyncIO):
         driver: SupportedDriverType,
         settings: PublicWriterSettings,
         _client=None,
+        _is_implicit=False,
     ):
         self._tx = tx
         self._loop = asyncio.get_running_loop()
         self._closed = False
         self._reconnector = WriterAsyncIOReconnector(driver=driver, settings=WriterSettings(settings), tx=self._tx)
         self._parent = _client
-        self._tx._add_listener(self)
+        self._is_implicit = _is_implicit
 
-    async def _on_before_commit(self):
+        tx._add_callback(TxEvent.BEFORE_COMMIT, self._on_before_commit, self._loop)
+        tx._add_callback(TxEvent.BEFORE_ROLLBACK, self._on_before_rollback, self._loop)
+
+    async def _on_before_commit(self, tx: "BaseQueryTxContext"):
+        if self._is_implicit:
+            return
         await self.close()
 
-    async def _on_before_rollback(self):
-        await self.close()
+    async def _on_before_rollback(self, tx: "BaseQueryTxContext"):
+        if self._is_implicit:
+            return
+        await self.close(flush=False)
 
 
 class WriterAsyncIOReconnector:
@@ -423,7 +431,7 @@ class WriterAsyncIOReconnector:
                 done.pop().result()  # need for raise exception - reason of stop task
             except issues.Error as err:
                 err_info = check_retriable_error(err, retry_settings, attempt)
-                if not err_info.is_retriable:
+                if not err_info.is_retriable or self._tx is not None:  # no retries in tx writer
                     self._stop(err)
                     return
 
@@ -586,7 +594,6 @@ class WriterAsyncIOReconnector:
 
             while True:
                 m = await self._new_messages.get()  # type: InternalMessage
-                print("NEW MESSAGE")
                 if m.seq_no > last_seq_no:
                     writer.write([m])
         except asyncio.CancelledError:
@@ -618,7 +625,6 @@ class WriterAsyncIOReconnector:
 
         # wait last message
         await asyncio.wait(self._messages_future)
-        print("ALL MESSAGES WERE SENT TO SERVER")
 
 
 class WriterAsyncIOStream:
