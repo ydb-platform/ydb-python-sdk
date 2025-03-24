@@ -25,6 +25,8 @@ __all__ = [
     "TopicWriteResult",
     "TopicWriter",
     "TopicWriterAsyncIO",
+    "TopicTxWriter",
+    "TopicTxWriterAsyncIO",
     "TopicWriterInitInfo",
     "TopicWriterMessage",
     "TopicWriterSettings",
@@ -68,7 +70,7 @@ from ._topic_writer.topic_writer import (  # noqa: F401
 from ydb._topic_writer.topic_writer_asyncio import TxWriterAsyncIO as TopicTxWriterAsyncIO
 from ydb._topic_writer.topic_writer_asyncio import WriterAsyncIO as TopicWriterAsyncIO
 from ._topic_writer.topic_writer_sync import WriterSync as TopicWriter
-from ._topic_writer.topic_writer_sync import TxWriterSync as TxTopicWriter
+from ._topic_writer.topic_writer_sync import TxWriterSync as TopicTxWriter
 
 from ._topic_common.common import (
     wrap_operation as _wrap_operation,
@@ -546,7 +548,7 @@ class TopicClient:
         if not settings.encoder_executor:
             settings.encoder_executor = self._executor
 
-        return TxTopicWriter(tx, self._driver, settings, _parent=self)
+        return TopicTxWriter(tx, self._driver, settings, _parent=self)
 
     def close(self):
         if self._closed:

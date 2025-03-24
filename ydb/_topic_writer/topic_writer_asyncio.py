@@ -191,9 +191,22 @@ class TxWriterAsyncIO(WriterAsyncIO):
         tx._add_callback(TxEvent.BEFORE_COMMIT, self._on_before_commit, self._loop)
         tx._add_callback(TxEvent.BEFORE_ROLLBACK, self._on_before_rollback, self._loop)
 
+    async def write(
+        self,
+        messages: Union[Message, List[Message]],
+    ):
+        """
+        send one or number of messages to server.
+        it put message to internal buffer
+
+        For wait with timeout use asyncio.wait_for.
+        """
+        await self.write_with_ack(messages)
+
     async def _on_before_commit(self, tx: "BaseQueryTxContext"):
         if self._is_implicit:
             return
+        await self.flush()
         await self.close()
 
     async def _on_before_rollback(self, tx: "BaseQueryTxContext"):
