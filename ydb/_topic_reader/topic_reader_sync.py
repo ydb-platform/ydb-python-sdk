@@ -1,5 +1,6 @@
 import asyncio
 import concurrent.futures
+import logging
 import typing
 from typing import List, Union, Optional
 
@@ -22,6 +23,8 @@ from ydb._topic_reader.topic_reader_asyncio import (
 
 if typing.TYPE_CHECKING:
     from ..query.transaction import BaseQueryTxContext
+
+logger = logging.getLogger(__name__)
 
 
 class TopicReaderSync:
@@ -55,7 +58,8 @@ class TopicReaderSync:
         self._parent = _parent
 
     def __del__(self):
-        self.close(flush=False)
+        if not self._closed:
+            logger.warning("Topic reader was not closed properly. Consider using method close().")
 
     def __enter__(self):
         return self

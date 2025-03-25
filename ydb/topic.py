@@ -35,6 +35,7 @@ __all__ = [
 import concurrent.futures
 import datetime
 from dataclasses import dataclass
+import logging
 from typing import List, Union, Mapping, Optional, Dict, Callable
 
 from . import aio, Credentials, _apis, issues
@@ -92,6 +93,8 @@ from ._grpc.grpcwrapper.ydb_topic_public_types import (  # noqa: F401
     PublicAlterAutoPartitioningSettings as TopicAlterAutoPartitioningSettings,
 )
 
+logger = logging.getLogger(__name__)
+
 
 class TopicClientAsyncIO:
     _closed: bool
@@ -112,7 +115,8 @@ class TopicClientAsyncIO:
         )
 
     def __del__(self):
-        self.close()
+        if not self._closed:
+            logger.warning("Topic client was not closed properly. Consider using method close().")
 
     async def create_topic(
         self,
@@ -320,7 +324,7 @@ class TopicClientAsyncIO:
         if not self._closed:
             return
 
-        raise RuntimeError("Topic client closed")
+        raise issues.Error("Topic client closed")
 
 
 class TopicClient:
@@ -343,7 +347,8 @@ class TopicClient:
         )
 
     def __del__(self):
-        self.close()
+        if not self._closed:
+            logger.warning("Topic client was not closed properly. Consider using method close().")
 
     def create_topic(
         self,
@@ -561,7 +566,7 @@ class TopicClient:
         if not self._closed:
             return
 
-        raise RuntimeError("Topic client closed")
+        raise issues.Error("Topic client closed")
 
 
 @dataclass

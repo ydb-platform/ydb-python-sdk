@@ -80,10 +80,8 @@ class WriterAsyncIO:
                 raise
 
     def __del__(self):
-        if self._closed or self._loop.is_closed():
-            return
-
-        self._loop.call_soon(functools.partial(self.close, flush=False))
+        if not self._closed:
+            logger.warning("Topic writer was not closed properly. Consider using method close().")
 
     async def close(self, *, flush: bool = True):
         if self._closed:

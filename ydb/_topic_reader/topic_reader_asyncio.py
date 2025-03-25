@@ -95,8 +95,7 @@ class PublicAsyncIOReader:
 
     def __del__(self):
         if not self._closed:
-            task = self._loop.create_task(self.close(flush=False))
-            topic_common.wrap_set_name_for_asyncio_task(task, task_name="close reader")
+            logger.warning("Topic reader was not closed properly. Consider using method close().")
 
     async def wait_message(self):
         """

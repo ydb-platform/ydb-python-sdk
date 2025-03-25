@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import logging
 import typing
 from concurrent.futures import Future
 from typing import Union, List, Optional
@@ -28,6 +29,8 @@ from .._topic_common.common import (
 
 if typing.TYPE_CHECKING:
     from ..query.transaction import BaseQueryTxContext
+
+logger = logging.getLogger(__name__)
 
 
 class WriterSync:
@@ -71,7 +74,8 @@ class WriterSync:
                 raise
 
     def __del__(self):
-        self.close(flush=False)
+        if not self._closed:
+            logger.warning("Topic writer was not closed properly. Consider using method close().")
 
     def close(self, *, flush: bool = True, timeout: TimeoutType = None):
         if self._closed:
