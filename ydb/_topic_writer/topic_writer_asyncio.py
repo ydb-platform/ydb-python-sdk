@@ -1,7 +1,6 @@
 import asyncio
 import concurrent.futures
 import datetime
-import functools
 import gzip
 import typing
 from collections import deque
@@ -186,6 +185,10 @@ class TxWriterAsyncIO(WriterAsyncIO):
         self._parent = _client
         self._is_implicit = _is_implicit
 
+        # For some reason, creating partition could conflict with other session operations.
+        # Could be removed later.
+        self._first_write = True
+
         tx._add_callback(TxEvent.BEFORE_COMMIT, self._on_before_commit, self._loop)
         tx._add_callback(TxEvent.BEFORE_ROLLBACK, self._on_before_rollback, self._loop)
 
@@ -199,12 +202,14 @@ class TxWriterAsyncIO(WriterAsyncIO):
 
         For wait with timeout use asyncio.wait_for.
         """
-        await self.write_with_ack(messages)
+        if self._first_write:
+            self._first_write = False
+            return await super().write_with_ack(messages)
+        return await super().write(messages)
 
     async def _on_before_commit(self, tx: "BaseQueryTxContext"):
         if self._is_implicit:
             return
-        await self.flush()
         await self.close()
 
     async def _on_before_rollback(self, tx: "BaseQueryTxContext"):

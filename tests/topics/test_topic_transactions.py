@@ -357,6 +357,17 @@ class TestTopicTransactionalWriter:
             with pytest.raises(asyncio.TimeoutError):
                 await wait_for(topic_reader.receive_message(), 0.1)
 
+    async def test_writes_do_not_conflict_with_executes(self, driver: ydb.aio.Driver, topic_path):
+        async with ydb.aio.QuerySessionPool(driver) as pool:
+
+            async def callee(tx: ydb.aio.QueryTxContext):
+                tx_writer = driver.topic_client.tx_writer(tx, topic_path)
+                for _ in range(3):
+                    async with await tx.execute("select 1"):
+                        await tx_writer.write(ydb.TopicWriterMessage(data="123".encode()))
+
+            await pool.retry_tx_async(callee, retry_settings=DEFAULT_RETRY_SETTINGS)
+
 
 class TestTopicTransactionalWriterSync:
     def test_commit(self, driver_sync: ydb.Driver, topic_path, topic_reader_sync: ydb.TopicReader):
@@ -445,3 +456,14 @@ class TestTopicTransactionalWriterSync:
 
             with pytest.raises(TimeoutError):
                 topic_reader_sync.receive_message(timeout=DEFAULT_TIMEOUT)
+
+    def test_writes_do_not_conflict_with_executes(self, driver_sync: ydb.Driver, topic_path):
+        with ydb.QuerySessionPool(driver_sync) as pool:
+
+            def callee(tx: ydb.QueryTxContext):
+                tx_writer = driver_sync.topic_client.tx_writer(tx, topic_path)
+                for _ in range(3):
+                    with tx.execute("select 1"):
+                        tx_writer.write(ydb.TopicWriterMessage(data="123".encode()))
+
+            pool.retry_tx_sync(callee, retry_settings=DEFAULT_RETRY_SETTINGS)

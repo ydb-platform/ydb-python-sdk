@@ -84,7 +84,7 @@ class PublicAsyncIOReader:
     ):
         self._loop = asyncio.get_running_loop()
         self._closed = False
-        self._reconnector = ReaderReconnector(driver, settings)
+        self._reconnector = ReaderReconnector(driver, settings, self._loop)
         self._parent = _parent
 
     async def __aenter__(self):
@@ -190,10 +190,16 @@ class ReaderReconnector:
     _first_error: asyncio.Future[YdbError]
     _tx_to_batches_map: Dict[str, typing.List[datatypes.PublicBatch]]
 
-    def __init__(self, driver: Driver, settings: topic_reader.PublicReaderSettings):
+    def __init__(
+        self,
+        driver: Driver,
+        settings: topic_reader.PublicReaderSettings,
+        loop: Optional[asyncio.AbstractEventLoop] = None,
+    ):
         self._id = self._static_reader_reconnector_counter.inc_and_get()
         self._settings = settings
         self._driver = driver
+        self._loop = loop if loop is not None else asyncio.get_running_loop()
         self._background_tasks = set()
 
         self._state_changed = asyncio.Event()
@@ -201,7 +207,7 @@ class ReaderReconnector:
         self._background_tasks.add(asyncio.create_task(self._connection_loop()))
         self._first_error = asyncio.get_running_loop().create_future()
 
-        self._tx_to_batches_map = defaultdict(list)
+        self._tx_to_batches_map = dict()
 
     async def _connection_loop(self):
         attempt = 0
@@ -254,22 +260,23 @@ class ReaderReconnector:
             max_messages=max_messages,
         )
 
-        self._init_tx_if_needed(tx)
+        self._init_tx(tx)
 
         self._tx_to_batches_map[tx.tx_id].append(batch)
 
-        tx._add_callback(TxEvent.AFTER_COMMIT, batch._update_partition_offsets, None)  # probably should be current loop
+        tx._add_callback(TxEvent.AFTER_COMMIT, batch._update_partition_offsets, self._loop)
 
         return batch
 
     def receive_message_nowait(self):
         return self._stream_reader.receive_message_nowait()
 
-    def _init_tx_if_needed(self, tx: "BaseQueryTxContext"):
+    def _init_tx(self, tx: "BaseQueryTxContext"):
         if tx.tx_id not in self._tx_to_batches_map:  # Init tx callbacks
-            tx._add_callback(TxEvent.BEFORE_COMMIT, self._commit_batches_with_tx, None)
-            tx._add_callback(TxEvent.AFTER_COMMIT, self._handle_after_tx_commit, None)
-            tx._add_callback(TxEvent.AFTER_ROLLBACK, self._handle_after_tx_rollback, None)
+            self._tx_to_batches_map[tx.tx_id] = []
+            tx._add_callback(TxEvent.BEFORE_COMMIT, self._commit_batches_with_tx, self._loop)
+            tx._add_callback(TxEvent.AFTER_COMMIT, self._handle_after_tx_commit, self._loop)
+            tx._add_callback(TxEvent.AFTER_ROLLBACK, self._handle_after_tx_rollback, self._loop)
 
     async def _commit_batches_with_tx(self, tx: "BaseQueryTxContext"):
         grouped_batches = defaultdict(lambda: defaultdict(list))

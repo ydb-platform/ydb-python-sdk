@@ -1,59 +1,54 @@
-import asyncio
 import argparse
 import logging
 import ydb
 
 
-async def connect(endpoint: str, database: str) -> ydb.aio.Driver:
+def connect(endpoint: str, database: str) -> ydb.Driver:
     config = ydb.DriverConfig(endpoint=endpoint, database=database)
     config.credentials = ydb.credentials_from_env_variables()
-    driver = ydb.aio.Driver(config)
-    await driver.wait(5, fail_fast=True)
+    driver = ydb.Driver(config)
+    driver.wait(5, fail_fast=True)
     return driver
 
 
-async def create_topic(driver: ydb.aio.Driver, topic: str, consumer: str):
+def create_topic(driver: ydb.Driver, topic: str, consumer: str):
     try:
-        await driver.topic_client.drop_topic(topic)
+        driver.topic_client.drop_topic(topic)
     except ydb.SchemeError:
         pass
 
-    await driver.topic_client.create_topic(topic, consumers=[consumer])
+    driver.topic_client.create_topic(topic, consumers=[consumer])
 
 
-async def write_with_tx_example(driver: ydb.aio.Driver, topic: str, message_count: int = 10):
-    async with ydb.aio.QuerySessionPool(driver) as session_pool:
+def write_with_tx_example(driver: ydb.Driver, topic: str, message_count: int = 10):
+    with ydb.QuerySessionPool(driver) as session_pool:
 
-        async def callee(tx: ydb.aio.QueryTxContext):
-            print(f"TX ID: {tx.tx_id}")
-            print(f"TX STATE: {tx._tx_state._state.value}")
-            tx_writer: ydb.TopicTxWriterAsyncIO = driver.topic_client.tx_writer(tx, topic)
-            print(f"TX ID: {tx.tx_id}")
-            print(f"TX STATE: {tx._tx_state._state.value}")
+        def callee(tx: ydb.QueryTxContext):
+            tx_writer: ydb.TopicTxWriter = driver.topic_client.tx_writer(tx, topic)
+
             for i in range(message_count):
-                result_stream = await tx.execute(query=f"select {i} as res")
-                messages = [result_set.rows[0]["res"] async for result_set in result_stream]
+                result_stream = tx.execute(query=f"select {i} as res;")
+                for result_set in result_stream:
+                    message = str(result_set.rows[0]["res"])
+                    tx_writer.write(ydb.TopicWriterMessage(message))
+                    print(f"Message {message} was written with tx.")
 
-                await tx_writer.write([ydb.TopicWriterMessage(data=str(message)) for message in messages])
-
-                print(f"Messages {messages} were written with tx.")
-
-        await session_pool.retry_tx_async(callee)
+        session_pool.retry_tx_sync(callee)
 
 
-async def read_with_tx_example(driver: ydb.aio.Driver, topic: str, consumer: str, message_count: int = 10):
-    async with driver.topic_client.reader(topic, consumer) as reader:
-        async with ydb.aio.QuerySessionPool(driver) as session_pool:
+def read_with_tx_example(driver: ydb.Driver, topic: str, consumer: str, message_count: int = 10):
+    with driver.topic_client.reader(topic, consumer) as reader:
+        with ydb.QuerySessionPool(driver) as session_pool:
             for _ in range(message_count):
 
-                async def callee(tx: ydb.aio.QueryTxContext):
-                    batch = await reader.receive_batch_with_tx(tx, max_messages=1)
-                    print(f"Messages {batch.messages[0].data} were read with tx.")
+                def callee(tx: ydb.QueryTxContext):
+                    batch = reader.receive_batch_with_tx(tx, max_messages=1)
+                    print(f"Message {batch.messages[0].data.decode()} was read with tx.")
 
-                await session_pool.retry_tx_async(callee)
+                session_pool.retry_tx_sync(callee)
 
 
-async def main():
+def main():
     parser = argparse.ArgumentParser(
         formatter_class=argparse.RawDescriptionHelpFormatter,
         description="""YDB topic basic example.\n""",
@@ -78,13 +73,13 @@ async def main():
         logger.setLevel(logging.DEBUG)
         logger.addHandler(logging.StreamHandler())
 
-    driver = await connect(args.endpoint, args.database)
-    if not args.skip_drop_and_create_topic:
-        await create_topic(driver, args.path, args.consumer)
+    with connect(args.endpoint, args.database) as driver:
+        if not args.skip_drop_and_create_topic:
+            create_topic(driver, args.path, args.consumer)
 
-    await write_with_tx_example(driver, args.path)
-    await read_with_tx_example(driver, args.path, args.consumer)
+        write_with_tx_example(driver, args.path)
+        read_with_tx_example(driver, args.path, args.consumer)
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    main()
