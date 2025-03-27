@@ -174,12 +174,13 @@ class TestTopicReaderSync:
             assert message != message2
 
     def test_read_and_commit_with_ack(self, driver_sync, topic_with_messages, topic_consumer):
-        reader = driver_sync.topic_client.reader(topic_with_messages, topic_consumer)
-        message = reader.receive_message()
-        reader.commit_with_ack(message)
+        with driver_sync.topic_client.reader(topic_with_messages, topic_consumer) as reader:
+            message = reader.receive_message()
+            reader.commit_with_ack(message)
 
-        reader = driver_sync.topic_client.reader(topic_with_messages, topic_consumer)
-        batch = reader.receive_batch()
+        with driver_sync.topic_client.reader(topic_with_messages, topic_consumer) as reader:
+            batch = reader.receive_batch()
+
         assert message != batch.messages[0]
 
     def test_read_compressed_messages(self, driver_sync, topic_path, topic_consumer):
@@ -247,3 +248,6 @@ class TestBugFixesAsync:
         datas.sort()
 
         assert datas == ["10", "11"]
+
+        await reader0.close()
+        await reader1.close()
