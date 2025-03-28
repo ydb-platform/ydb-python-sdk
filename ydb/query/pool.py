@@ -226,9 +226,6 @@ class QuerySessionPool:
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.stop()
 
-    def __del__(self):
-        self.stop()
-
 
 class SimpleQuerySessionCheckout:
     def __init__(self, pool: QuerySessionPool, timeout: Optional[float]):

@@ -215,12 +215,6 @@ class QuerySessionPool:
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         await self.stop()
 
-    def __del__(self):
-        if self._should_stop.is_set() or self._loop.is_closed():
-            return
-
-        self._loop.call_soon(self.stop)
-
 
 class SimpleQuerySessionCheckoutAsync:
     def __init__(self, pool: QuerySessionPool):
