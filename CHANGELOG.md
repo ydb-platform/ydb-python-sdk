@@ -1,3 +1,6 @@
+* Transactions between topics and tables
+* Remove QuerySessionPool desctuctors
+
 ## 3.19.3 ##
 * Add consumer_stats to PublicConsumer
 
