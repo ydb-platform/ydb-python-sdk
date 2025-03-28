@@ -1,3 +1,4 @@
+## 3.20.0 ##
 * Transactions between topics and tables
 * Remove QuerySessionPool desctuctors
 
