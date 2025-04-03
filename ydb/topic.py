@@ -116,7 +116,11 @@ class TopicClientAsyncIO:
 
     def __del__(self):
         if not self._closed:
-            logger.warning("Topic client was not closed properly. Consider using method close().")
+            try:
+                logger.warning("Topic client was not closed properly. Consider using method close().")
+                self.close()
+            except BaseException:
+                logger.warning("Something went wrong during topic client close in __del__")
 
     async def create_topic(
         self,
@@ -348,7 +352,11 @@ class TopicClient:
 
     def __del__(self):
         if not self._closed:
-            logger.warning("Topic client was not closed properly. Consider using method close().")
+            try:
+                logger.warning("Topic client was not closed properly. Consider using method close().")
+                self.close()
+            except BaseException:
+                logger.warning("Something went wrong during topic client close in __del__")
 
     def create_topic(
         self,

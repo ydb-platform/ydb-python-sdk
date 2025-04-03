@@ -75,7 +75,11 @@ class WriterSync:
 
     def __del__(self):
         if not self._closed:
-            logger.warning("Topic writer was not closed properly. Consider using method close().")
+            try:
+                logger.warning("Topic writer was not closed properly. Consider using method close().")
+                self.close(flush=False)
+            except BaseException:
+                logger.warning("Something went wrong during writer close in __del__")
 
     def close(self, *, flush: bool = True, timeout: TimeoutType = None):
         if self._closed:
