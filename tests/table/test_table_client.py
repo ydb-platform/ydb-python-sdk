@@ -86,3 +86,47 @@ class TestTableClient:
         copied_description = client.describe_table(table_name + "_copy")
 
         assert description.columns == copied_description.columns
+
+    def test_describe_table_creation_time(self, driver_sync: ydb.Driver):
+        client = driver_sync.table_client
+
+        table_name = "/local/testtableclient"
+        try:
+            client.drop_table(table_name)
+        except ydb.SchemeError:
+            pass
+
+        description = (
+            ydb.TableDescription()
+            .with_primary_keys("key1", "key2")
+            .with_columns(
+                ydb.Column("key1", ydb.OptionalType(ydb.PrimitiveType.Uint64)),
+                ydb.Column("key2", ydb.OptionalType(ydb.PrimitiveType.Uint64)),
+                ydb.Column("value", ydb.OptionalType(ydb.PrimitiveType.Utf8)),
+            )
+        )
+
+        client.create_table(table_name, description)
+
+        desc_before = client.describe_table(
+            table_name,
+            ydb.DescribeTableSettings().with_include_table_stats(True),
+        )
+
+        assert desc_before.table_stats is not None
+
+        client.alter_table(
+            table_name,
+            add_columns=[
+                ydb.Column("value2", ydb.OptionalType(ydb.PrimitiveType.Uint64)),
+            ],
+        )
+
+        desc_after = client.describe_table(
+            table_name,
+            ydb.DescribeTableSettings().with_include_table_stats(True),
+        )
+
+        assert desc_after.table_stats is not None
+
+        assert desc_before.table_stats.creation_time == desc_after.table_stats.creation_time
