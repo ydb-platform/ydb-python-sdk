@@ -36,7 +36,7 @@ import concurrent.futures
 import datetime
 from dataclasses import dataclass
 import logging
-from typing import List, Union, Mapping, Optional, Dict, Callable
+from typing import Awaitable, List, Union, Mapping, Optional, Dict, Callable
 
 from . import aio, Credentials, _apis, issues
 
@@ -52,7 +52,9 @@ from ._topic_reader.topic_reader import (
     PublicTopicSelector as TopicReaderSelector,
 )
 
-from ._topic_reader.topic_reader_sync import TopicReaderSync as TopicReader
+from ._topic_reader.topic_reader_sync import (
+    TopicReaderSync as TopicReader,
+)
 
 from ._topic_reader.topic_reader_asyncio import (
     PublicAsyncIOReader as TopicReaderAsyncIO,
@@ -240,7 +242,7 @@ class TopicClientAsyncIO:
     def reader(
         self,
         topic: Union[str, TopicReaderSelector, List[Union[str, TopicReaderSelector]]],
-        consumer: str,
+        consumer: Optional[str],
         buffer_size_bytes: int = 50 * 1024 * 1024,
         # decoders: map[codec_code] func(encoded_bytes)->decoded_bytes
         # the func will be called from multiply threads in parallel
@@ -249,6 +251,8 @@ class TopicClientAsyncIO:
         # if max_worker in the executor is 1 - then decoders will be called from the thread without parallel
         decoder_executor: Optional[concurrent.futures.Executor] = None,
         auto_partitioning_support: Optional[bool] = True,  # Auto partitioning feature flag. Default - True.
+        partition_ids: Optional[List[int]] = None,
+        get_start_offset_lambda: Optional[Union[Callable[[int], int], Callable[[int], Awaitable[int]]]] = None,
     ) -> TopicReaderAsyncIO:
 
         if not decoder_executor:
@@ -256,6 +260,16 @@ class TopicClientAsyncIO:
 
         args = locals().copy()
         del args["self"]
+
+        if consumer is None:
+            if partition_ids is None:
+                raise issues.Error("To use reader without consumer it is required to specify partition_ids.")
+            if get_start_offset_lambda is None:
+
+                def callee(partition_id: int):
+                    return None
+
+                args["get_start_offset_lambda"] = callee
 
         settings = TopicReaderSettings(**args)
 
@@ -484,7 +498,7 @@ class TopicClient:
     def reader(
         self,
         topic: Union[str, TopicReaderSelector, List[Union[str, TopicReaderSelector]]],
-        consumer: str,
+        consumer: Optional[str],
         buffer_size_bytes: int = 50 * 1024 * 1024,
         # decoders: map[codec_code] func(encoded_bytes)->decoded_bytes
         # the func will be called from multiply threads in parallel
@@ -493,13 +507,24 @@ class TopicClient:
         # if max_worker in the executor is 1 - then decoders will be called from the thread without parallel
         decoder_executor: Optional[concurrent.futures.Executor] = None,  # default shared client executor pool
         auto_partitioning_support: Optional[bool] = True,  # Auto partitioning feature flag. Default - True.
+        partition_ids: Optional[List[int]] = None,
+        get_start_offset_lambda: Optional[Union[Callable[[int], int], Callable[[int], Awaitable[int]]]] = None,
     ) -> TopicReader:
         if not decoder_executor:
             decoder_executor = self._executor
 
         args = locals().copy()
         del args["self"]
-        self._check_closed()
+
+        if consumer is None:
+            if partition_ids is None:
+                raise issues.Error("To use reader without consumer it is required to specify partition_ids.")
+            if get_start_offset_lambda is None:
+
+                def callee(partition_id: int):
+                    return None
+
+                args["get_start_offset_lambda"] = callee
 
         settings = TopicReaderSettings(**args)
 

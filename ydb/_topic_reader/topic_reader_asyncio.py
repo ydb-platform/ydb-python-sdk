@@ -72,6 +72,7 @@ class TopicReaderClosedError(TopicReaderError):
 class PublicAsyncIOReader:
     _loop: asyncio.AbstractEventLoop
     _closed: bool
+    _settings: topic_reader.PublicReaderSettings
     _reconnector: ReaderReconnector
     _parent: typing.Any  # need for prevent close parent client by GC
 
@@ -84,6 +85,7 @@ class PublicAsyncIOReader:
     ):
         self._loop = asyncio.get_running_loop()
         self._closed = False
+        self._settings = settings
         self._reconnector = ReaderReconnector(driver, settings, self._loop)
         self._parent = _parent
 
@@ -156,6 +158,9 @@ class PublicAsyncIOReader:
         For the method no way check the commit result
         (for example if lost connection - commits will not re-send and committed messages will receive again).
         """
+        if self._settings.consumer is None:
+            raise issues.Error("Commit operations are not supported for topic reader without consumer.")
+
         try:
             self._reconnector.commit(batch)
         except PublicTopicReaderPartitionExpiredError:
@@ -171,6 +176,9 @@ class PublicAsyncIOReader:
         before receive commit ack. Message may be acked or not (if not - it will send in other read session,
         to this or other reader).
         """
+        if self._settings.consumer is None:
+            raise issues.Error("Commit operations are not supported for topic reader without consumer.")
+
         waiter = self._reconnector.commit(batch)
         await waiter.future
 
@@ -393,6 +401,7 @@ class ReaderStream:
     _update_token_interval: Union[int, float]
     _update_token_event: asyncio.Event
     _get_token_function: Callable[[], str]
+    _settings: topic_reader.PublicReaderSettings
 
     def __init__(
         self,
@@ -424,6 +433,8 @@ class ReaderStream:
         self._update_token_interval = settings.update_token_interval
         self._get_token_function = get_token_function
         self._update_token_event = asyncio.Event()
+
+        self._settings = settings
 
     @staticmethod
     async def create(
@@ -615,7 +626,7 @@ class ReaderStream:
                         message.server_message,
                         StreamReadMessage.StartPartitionSessionRequest,
                     ):
-                        self._on_start_partition_session(message.server_message)
+                        await self._on_start_partition_session(message.server_message)
 
                     elif isinstance(
                         message.server_message,
@@ -660,7 +671,7 @@ class ReaderStream:
         finally:
             self._update_token_event.clear()
 
-    def _on_start_partition_session(self, message: StreamReadMessage.StartPartitionSessionRequest):
+    async def _on_start_partition_session(self, message: StreamReadMessage.StartPartitionSessionRequest):
         try:
             if message.partition_session.partition_session_id in self._partition_sessions:
                 raise TopicReaderError(
@@ -676,11 +687,19 @@ class ReaderStream:
                 reader_reconnector_id=self._reader_reconnector_id,
                 reader_stream_id=self._id,
             )
+
+            read_offset = None
+            callee = self._settings.get_start_offset_lambda
+            if callee is not None:
+                read_offset = callee(message.partition_session.partition_id)
+                if asyncio.iscoroutinefunction(callee):
+                    read_offset = await read_offset
+
             self._stream.write(
                 StreamReadMessage.FromClient(
                     client_message=StreamReadMessage.StartPartitionSessionResponse(
                         partition_session_id=message.partition_session.partition_session_id,
-                        read_offset=None,
+                        read_offset=read_offset,
                         commit_offset=None,
                     )
                 ),

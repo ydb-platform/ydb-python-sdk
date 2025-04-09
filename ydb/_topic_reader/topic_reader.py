@@ -3,6 +3,7 @@ import enum
 import datetime
 from dataclasses import dataclass
 from typing import (
+    Awaitable,
     Union,
     Optional,
     List,
@@ -42,7 +43,7 @@ TopicSelectorTypes = Union[str, PublicTopicSelector, List[Union[str, PublicTopic
 
 @dataclass
 class PublicReaderSettings:
-    consumer: str
+    consumer: Optional[str]
     topic: TopicSelectorTypes
     buffer_size_bytes: int = 50 * 1024 * 1024
     auto_partitioning_support: bool = True
@@ -54,12 +55,15 @@ class PublicReaderSettings:
     decoder_executor: Optional[concurrent.futures.Executor] = None
     update_token_interval: Union[int, float] = 3600
 
+    partition_ids: Optional[List[int]] = None
+    get_start_offset_lambda: Optional[Union[Callable[[int], int], Callable[[int], Awaitable[int]]]] = None
+
     def __post_init__(self):
         # check possible create init message
         _ = self._init_message()
 
     def _init_message(self) -> StreamReadMessage.InitRequest:
-        if not isinstance(self.consumer, str):
+        if self.consumer is not None and not isinstance(self.consumer, str):
             raise TypeError("Unsupported type for customer field: '%s'" % type(self.consumer))
 
         if isinstance(self.topic, list):
@@ -69,7 +73,7 @@ class PublicReaderSettings:
 
         for index, selector in enumerate(selectors):
             if isinstance(selector, str):
-                selectors[index] = PublicTopicSelector(path=selector)
+                selectors[index] = PublicTopicSelector(path=selector, partitions=self.partition_ids)
             elif isinstance(selector, PublicTopicSelector):
                 pass
             else:
