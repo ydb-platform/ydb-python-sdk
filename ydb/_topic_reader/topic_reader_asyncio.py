@@ -15,6 +15,7 @@ from .._utilities import AtomicCounter
 from ..aio import Driver
 from ..issues import Error as YdbError, _process_response
 from . import datatypes
+from . import events
 from . import topic_reader
 from .._grpc.grpcwrapper.common_utils import (
     IGrpcWrapperAsyncIO,
@@ -689,11 +690,15 @@ class ReaderStream:
             )
 
             read_offset = None
-            callee = self._settings.get_start_offset_lambda
-            if callee is not None:
-                read_offset = callee(message.partition_session.partition_id)
-                if asyncio.iscoroutinefunction(callee):
-                    read_offset = await read_offset
+
+            if self._settings.event_handler is not None:
+                resp = await self._settings.event_handler._dispatch(
+                    events.OnPartitionGetStartOffsetRequest(
+                        message.partition_session.path,
+                        message.partition_session.partition_id,
+                    )
+                )
+                read_offset = None if resp is None else resp.start_offset
 
             self._stream.write(
                 StreamReadMessage.FromClient(
