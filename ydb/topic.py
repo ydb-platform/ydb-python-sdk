@@ -16,6 +16,7 @@ __all__ = [
     "TopicReader",
     "TopicReaderAsyncIO",
     "TopicReaderBatch",
+    "TopicReaderEvents",
     "TopicReaderMessage",
     "TopicReaderSelector",
     "TopicReaderSettings",
@@ -36,11 +37,13 @@ import concurrent.futures
 import datetime
 from dataclasses import dataclass
 import logging
-from typing import Awaitable, List, Union, Mapping, Optional, Dict, Callable
+from typing import List, Union, Mapping, Optional, Dict, Callable
 
 from . import aio, Credentials, _apis, issues
 
 from . import driver
+
+from ._topic_reader import events as TopicReaderEvents
 
 from ._topic_reader.datatypes import (
     PublicBatch as TopicReaderBatch,
@@ -251,8 +254,7 @@ class TopicClientAsyncIO:
         # if max_worker in the executor is 1 - then decoders will be called from the thread without parallel
         decoder_executor: Optional[concurrent.futures.Executor] = None,
         auto_partitioning_support: Optional[bool] = True,  # Auto partitioning feature flag. Default - True.
-        partition_ids: Optional[List[int]] = None,
-        get_start_offset_lambda: Optional[Union[Callable[[int], int], Callable[[int], Awaitable[int]]]] = None,
+        event_handler: Optional[TopicReaderEvents.EventHandler] = None,
     ) -> TopicReaderAsyncIO:
 
         if not decoder_executor:
@@ -261,15 +263,22 @@ class TopicClientAsyncIO:
         args = locals().copy()
         del args["self"]
 
+        if consumer == "":
+            raise issues.Error(
+                "Consumer name could not be empty! To use reader without consumer specify consumer as None."
+            )
+
         if consumer is None:
-            if partition_ids is None:
-                raise issues.Error("To use reader without consumer it is required to specify partition_ids.")
-            if get_start_offset_lambda is None:
+            if not isinstance(topic, TopicReaderSelector) or topic.partitions is None:
+                raise issues.Error(
+                    "To use reader without consumer it is required to specify partition_ids in topic selector."
+                )
 
-                def callee(partition_id: int):
-                    return None
-
-                args["get_start_offset_lambda"] = callee
+            if event_handler is None:
+                raise issues.Error(
+                    "To use reader without consumer it is required to specify event_handler with "
+                    "on_partition_get_start_offset method."
+                )
 
         settings = TopicReaderSettings(**args)
 
@@ -507,8 +516,7 @@ class TopicClient:
         # if max_worker in the executor is 1 - then decoders will be called from the thread without parallel
         decoder_executor: Optional[concurrent.futures.Executor] = None,  # default shared client executor pool
         auto_partitioning_support: Optional[bool] = True,  # Auto partitioning feature flag. Default - True.
-        partition_ids: Optional[List[int]] = None,
-        get_start_offset_lambda: Optional[Union[Callable[[int], int], Callable[[int], Awaitable[int]]]] = None,
+        event_handler: Optional[TopicReaderEvents.EventHandler] = None,
     ) -> TopicReader:
         if not decoder_executor:
             decoder_executor = self._executor
@@ -516,15 +524,22 @@ class TopicClient:
         args = locals().copy()
         del args["self"]
 
+        if consumer == "":
+            raise issues.Error(
+                "Consumer name could not be empty! To use reader without consumer specify consumer as None."
+            )
+
         if consumer is None:
-            if partition_ids is None:
-                raise issues.Error("To use reader without consumer it is required to specify partition_ids.")
-            if get_start_offset_lambda is None:
+            if not isinstance(topic, TopicReaderSelector) or topic.partitions is None:
+                raise issues.Error(
+                    "To use reader without consumer it is required to specify partition_ids in topic selector."
+                )
 
-                def callee(partition_id: int):
-                    return None
-
-                args["get_start_offset_lambda"] = callee
+            if event_handler is None:
+                raise issues.Error(
+                    "To use reader without consumer it is required to specify event_handler with "
+                    "on_partition_get_start_offset method."
+                )
 
         settings = TopicReaderSettings(**args)
 

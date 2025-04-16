@@ -3,7 +3,6 @@ import enum
 import datetime
 from dataclasses import dataclass
 from typing import (
-    Awaitable,
     Union,
     Optional,
     List,
@@ -11,6 +10,7 @@ from typing import (
     Callable,
 )
 
+from .events import EventHandler
 from ..retries import RetrySettings
 from .._grpc.grpcwrapper.ydb_topic import StreamReadMessage, OffsetsRange
 
@@ -21,6 +21,7 @@ class PublicTopicSelector:
     partitions: Optional[Union[int, List[int]]] = None
     read_from: Optional[datetime.datetime] = None
     max_lag: Optional[datetime.timedelta] = None
+    read_offset: Optional[int] = None
 
     def _to_topic_read_settings(self) -> StreamReadMessage.InitRequest.TopicReadSettings:
         partitions = self.partitions
@@ -54,9 +55,7 @@ class PublicReaderSettings:
     # decoder_executor, must be set for handle non raw messages
     decoder_executor: Optional[concurrent.futures.Executor] = None
     update_token_interval: Union[int, float] = 3600
-
-    partition_ids: Optional[List[int]] = None
-    get_start_offset_lambda: Optional[Union[Callable[[int], int], Callable[[int], Awaitable[int]]]] = None
+    event_handler: Optional[EventHandler] = None
 
     def __post_init__(self):
         # check possible create init message
@@ -73,7 +72,7 @@ class PublicReaderSettings:
 
         for index, selector in enumerate(selectors):
             if isinstance(selector, str):
-                selectors[index] = PublicTopicSelector(path=selector, partitions=self.partition_ids)
+                selectors[index] = PublicTopicSelector(path=selector)
             elif isinstance(selector, PublicTopicSelector):
                 pass
             else:
@@ -87,25 +86,6 @@ class PublicReaderSettings:
 
     def _retry_settings(self) -> RetrySettings:
         return RetrySettings(idempotent=True)
-
-
-class Events:
-    class OnCommit:
-        topic: str
-        offset: int
-
-    class OnPartitionGetStartOffsetRequest:
-        topic: str
-        partition_id: int
-
-    class OnPartitionGetStartOffsetResponse:
-        start_offset: int
-
-    class OnInitPartition:
-        pass
-
-    class OnShutdownPatition:
-        pass
 
 
 class RetryPolicy:
