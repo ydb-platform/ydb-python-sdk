@@ -4,7 +4,7 @@ import time
 from concurrent.futures import _base as b
 from unittest import mock
 
-
+from ydb.query.base import QueryStatsMode
 from ydb.query.session import QuerySession
 
 
@@ -143,3 +143,34 @@ class TestQuerySession:
         assert "attach stream thread" not in thread_names
 
         _check_session_state_empty(session)
+
+    @pytest.mark.parametrize(
+        "stats_mode",
+        [
+            None,
+            QueryStatsMode.UNSPECIFIED,
+            QueryStatsMode.NONE,
+            QueryStatsMode.BASIC,
+            QueryStatsMode.FULL,
+            QueryStatsMode.PROFILE,
+        ],
+    )
+    def test_stats_mode(self, session: QuerySession, stats_mode: QueryStatsMode):
+        session.create()
+
+        for _ in session.execute("SELECT 1; SELECT 2; SELECT 3;", stats_mode=stats_mode):
+            pass
+
+        stats = session.last_query_stats
+
+        if stats_mode in [None, QueryStatsMode.NONE, QueryStatsMode.UNSPECIFIED]:
+            assert stats is None
+            return
+
+        assert stats is not None
+        assert len(stats.query_phases) > 0
+
+        if stats_mode != QueryStatsMode.BASIC:
+            assert len(stats.query_plan) > 0
+        else:
+            assert stats.query_plan == ""

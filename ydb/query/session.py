@@ -147,6 +147,12 @@ class BaseQuerySession:
             .with_timeout(DEFAULT_ATTACH_LONG_TIMEOUT)
         )
 
+        self._last_query_stats = None
+
+    @property
+    def last_query_stats(self):
+        return self._last_query_stats
+
     def _get_client_settings(
         self,
         driver: common_utils.SupportedDriverType,
@@ -189,22 +195,26 @@ class BaseQuerySession:
     def _execute_call(
         self,
         query: str,
+        parameters: dict = None,
         commit_tx: bool = False,
         syntax: base.QuerySyntax = None,
         exec_mode: base.QueryExecMode = None,
-        parameters: dict = None,
+        stats_mode: Optional[base.QueryStatsMode] = None,
         concurrent_result_sets: bool = False,
         settings: Optional[BaseRequestSettings] = None,
     ) -> Iterable[_apis.ydb_query.ExecuteQueryResponsePart]:
+        self._last_query_stats = None
+
         request = base.create_execute_query_request(
             query=query,
-            session_id=self._state.session_id,
+            parameters=parameters,
             commit_tx=commit_tx,
+            session_id=self._state.session_id,
             tx_mode=None,
             tx_id=None,
             syntax=syntax,
             exec_mode=exec_mode,
-            parameters=parameters,
+            stats_mode=stats_mode,
             concurrent_result_sets=concurrent_result_sets,
         )
 
@@ -320,6 +330,7 @@ class QuerySession(BaseQuerySession):
         syntax: base.QuerySyntax = None,
         exec_mode: base.QueryExecMode = None,
         concurrent_result_sets: bool = False,
+        stats_mode: Optional[base.QueryStatsMode] = None,
         settings: Optional[BaseRequestSettings] = None,
     ) -> base.SyncResponseContextIterator:
         """Sends a query to Query Service
@@ -337,10 +348,11 @@ class QuerySession(BaseQuerySession):
 
         stream_it = self._execute_call(
             query=query,
+            parameters=parameters,
             commit_tx=True,
             syntax=syntax,
             exec_mode=exec_mode,
-            parameters=parameters,
+            stats_mode=stats_mode,
             concurrent_result_sets=concurrent_result_sets,
             settings=settings,
         )
@@ -351,6 +363,7 @@ class QuerySession(BaseQuerySession):
                 rpc_state=None,
                 response_pb=resp,
                 session_state=self._state,
+                session=self,
                 settings=self._settings,
             ),
         )

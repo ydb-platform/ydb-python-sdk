@@ -1,5 +1,6 @@
 import pytest
 
+from ydb.query.base import QueryStatsMode
 from ydb.query.transaction import QueryTxContext
 from ydb.query.transaction import QueryTxStateEnum
 
@@ -104,3 +105,32 @@ class TestQueryTransaction:
 
         assert identity.tx_id == tx.tx_id
         assert identity.session_id == tx.session_id
+
+    @pytest.mark.parametrize(
+        "stats_mode",
+        [
+            None,
+            QueryStatsMode.UNSPECIFIED,
+            QueryStatsMode.NONE,
+            QueryStatsMode.BASIC,
+            QueryStatsMode.FULL,
+            QueryStatsMode.PROFILE,
+        ],
+    )
+    def test_stats_mode(self, tx: QueryTxContext, stats_mode: QueryStatsMode):
+        for _ in tx.execute("SELECT 1; SELECT 2; SELECT 3;", commit_tx=True, stats_mode=stats_mode):
+            pass
+
+        stats = tx.last_query_stats
+
+        if stats_mode in [None, QueryStatsMode.NONE, QueryStatsMode.UNSPECIFIED]:
+            assert stats is None
+            return
+
+        assert stats is not None
+        assert len(stats.query_phases) > 0
+
+        if stats_mode != QueryStatsMode.BASIC:
+            assert len(stats.query_plan) > 0
+        else:
+            assert stats.query_plan == ""

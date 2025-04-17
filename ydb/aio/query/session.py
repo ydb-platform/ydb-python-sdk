@@ -115,6 +115,7 @@ class QuerySession(BaseQuerySession):
         parameters: dict = None,
         syntax: base.QuerySyntax = None,
         exec_mode: base.QueryExecMode = None,
+        stats_mode: Optional[base.QueryStatsMode] = None,
         concurrent_result_sets: bool = False,
         settings: Optional[BaseRequestSettings] = None,
     ) -> AsyncResponseContextIterator:
@@ -133,10 +134,11 @@ class QuerySession(BaseQuerySession):
 
         stream_it = await self._execute_call(
             query=query,
+            parameters=parameters,
             commit_tx=True,
             syntax=syntax,
             exec_mode=exec_mode,
-            parameters=parameters,
+            stats_mode=stats_mode,
             concurrent_result_sets=concurrent_result_sets,
             settings=settings,
         )
@@ -147,6 +149,7 @@ class QuerySession(BaseQuerySession):
                 rpc_state=None,
                 response_pb=resp,
                 session_state=self._state,
+                session=self,
                 settings=self._settings,
             ),
         )

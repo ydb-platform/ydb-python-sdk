@@ -140,6 +140,7 @@ class QueryTxContext(BaseQueryTxContext):
         commit_tx: Optional[bool] = False,
         syntax: Optional[base.QuerySyntax] = None,
         exec_mode: Optional[base.QueryExecMode] = None,
+        stats_mode: Optional[base.QueryStatsMode] = None,
         concurrent_result_sets: Optional[bool] = False,
         settings: Optional[BaseRequestSettings] = None,
     ) -> AsyncResponseContextIterator:
@@ -156,6 +157,11 @@ class QueryTxContext(BaseQueryTxContext):
          2) QueryExecMode.EXPLAIN;
          3) QueryExecMode.VALIDATE;
          4) QueryExecMode.PARSE.
+        :param stats_mode: Mode of query statistics to gather, which is a one from the following choises:
+         1) QueryStatsMode:NONE, which is default;
+         2) QueryStatsMode.BASIC;
+         3) QueryStatsMode.FULL;
+         4) QueryStatsMode.PROFILE;
         :param concurrent_result_sets: A flag to allow YDB mix parts of different result sets. Default is False;
 
         :return: Iterator with result sets
@@ -164,10 +170,11 @@ class QueryTxContext(BaseQueryTxContext):
 
         stream_it = await self._execute_call(
             query=query,
+            parameters=parameters,
             commit_tx=commit_tx,
             syntax=syntax,
             exec_mode=exec_mode,
-            parameters=parameters,
+            stats_mode=stats_mode,
             concurrent_result_sets=concurrent_result_sets,
             settings=settings,
         )

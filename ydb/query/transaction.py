@@ -210,6 +210,7 @@ class BaseQueryTxContext(base.CallbackHandler):
         self.session = session
         self._prev_stream = None
         self._external_error = None
+        self._last_query_stats = None
 
     @property
     def session_id(self) -> str:
@@ -228,6 +229,10 @@ class BaseQueryTxContext(base.CallbackHandler):
         :return: An id of open transaction or None otherwise
         """
         return self._tx_state.tx_id
+
+    @property
+    def last_query_stats(self):
+        return self._last_query_stats
 
     def _tx_identity(self) -> _ydb_topic.TransactionIdentity:
         if not self.tx_id:
@@ -283,25 +288,29 @@ class BaseQueryTxContext(base.CallbackHandler):
     def _execute_call(
         self,
         query: str,
+        parameters: Optional[dict],
         commit_tx: Optional[bool],
         syntax: Optional[base.QuerySyntax],
         exec_mode: Optional[base.QueryExecMode],
-        parameters: Optional[dict],
+        stats_mode: Optional[base.QueryStatsMode],
         concurrent_result_sets: Optional[bool],
         settings: Optional[BaseRequestSettings],
     ) -> Iterable[_apis.ydb_query.ExecuteQueryResponsePart]:
         self._tx_state._check_tx_ready_to_use()
         self._check_external_error_set()
 
+        self._last_query_stats = None
+
         request = base.create_execute_query_request(
             query=query,
-            session_id=self._session_state.session_id,
+            parameters=parameters,
             commit_tx=commit_tx,
+            session_id=self._session_state.session_id,
             tx_id=self._tx_state.tx_id,
             tx_mode=self._tx_state.tx_mode,
             syntax=syntax,
             exec_mode=exec_mode,
-            parameters=parameters,
+            stats_mode=stats_mode,
             concurrent_result_sets=concurrent_result_sets,
         )
 
@@ -449,6 +458,7 @@ class QueryTxContext(BaseQueryTxContext):
         commit_tx: Optional[bool] = False,
         syntax: Optional[base.QuerySyntax] = None,
         exec_mode: Optional[base.QueryExecMode] = None,
+        stats_mode: Optional[base.QueryStatsMode] = None,
         concurrent_result_sets: Optional[bool] = False,
         settings: Optional[BaseRequestSettings] = None,
     ) -> base.SyncResponseContextIterator:
@@ -465,6 +475,11 @@ class QueryTxContext(BaseQueryTxContext):
          2) QueryExecMode.EXPLAIN;
          3) QueryExecMode.VALIDATE;
          4) QueryExecMode.PARSE.
+        :param stats_mode: Mode of query statistics to gather, which is a one from the following choises:
+         1) QueryStatsMode:NONE, which is default;
+         2) QueryStatsMode.BASIC;
+         3) QueryStatsMode.FULL;
+         4) QueryStatsMode.PROFILE;
         :param concurrent_result_sets: A flag to allow YDB mix parts of different result sets. Default is False;
         :param settings: An additional request settings BaseRequestSettings;
 
@@ -477,6 +492,7 @@ class QueryTxContext(BaseQueryTxContext):
             commit_tx=commit_tx,
             syntax=syntax,
             exec_mode=exec_mode,
+            stats_mode=stats_mode,
             parameters=parameters,
             concurrent_result_sets=concurrent_result_sets,
             settings=settings,
