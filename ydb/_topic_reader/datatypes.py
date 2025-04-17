@@ -56,6 +56,14 @@ class PublicMessage(ICommittable, ISessionAlive):
     def alive(self) -> bool:
         return not self._partition_session.closed
 
+    @property
+    def partition_id(self) -> int:
+        return self._partition_session.partition_id
+
+    @property
+    def offset_to_commit(self) -> int:
+        return self._commit_end_offset
+
 
 @dataclass
 class PartitionSession:
@@ -183,6 +191,14 @@ class PublicBatch(ICommittable, ISessionAlive):
     @property
     def alive(self) -> bool:
         return not self._partition_session.closed
+
+    @property
+    def partition_id(self) -> int:
+        return self._partition_session.partition_id
+
+    @property
+    def offset_to_commit(self) -> int:
+        return self._commit_get_offsets_range().end
 
     def pop_message(self) -> PublicMessage:
         return self.messages.pop(0)
