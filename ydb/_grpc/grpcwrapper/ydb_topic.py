@@ -137,6 +137,22 @@ class UpdateTokenResponse(IFromProto):
         return UpdateTokenResponse()
 
 
+@dataclass
+class CommitOffsetRequest(IToProto):
+    path: str
+    consumer: str
+    partition_id: int
+    offset: int
+
+    def to_proto(self) -> ydb_topic_pb2.CommitOffsetRequest:
+        return ydb_topic_pb2.CommitOffsetRequest(
+            path=self.path,
+            consumer=self.consumer,
+            partition_id=self.partition_id,
+            offset=self.offset,
+        )
+
+
 ########################################################################################################################
 #  StreamWrite
 ########################################################################################################################
