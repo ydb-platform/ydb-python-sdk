@@ -251,3 +251,249 @@ class TestBugFixesAsync:
 
         await reader0.close()
         await reader1.close()
+
+
+@pytest.fixture()
+def topic_selector(topic_with_messages):
+    return ydb.TopicReaderSelector(path=topic_with_messages, partitions=[0])
+
+
+@pytest.mark.asyncio
+class TestTopicNoConsumerReaderAsyncIO:
+    async def test_reader_with_no_partition_ids_raises(self, driver, topic_with_messages):
+        with pytest.raises(ydb.Error):
+            driver.topic_client.reader(
+                topic_with_messages,
+                consumer=None,
+                event_handler=ydb.TopicReaderEvents.EventHandler(),
+            )
+
+    async def test_reader_with_no_event_handler_raises(self, driver, topic_with_messages):
+        with pytest.raises(ydb.Error):
+            driver.topic_client.reader(
+                topic_with_messages,
+                consumer=None,
+            )
+
+    async def test_reader_with_no_partition_ids_selector_raises(self, driver, topic_selector):
+        topic_selector.partitions = None
+
+        with pytest.raises(ydb.Error):
+            driver.topic_client.reader(
+                topic_selector,
+                consumer=None,
+                event_handler=ydb.TopicReaderEvents.EventHandler(),
+            )
+
+    async def test_reader_with_default_lambda(self, driver, topic_selector):
+        reader = driver.topic_client.reader(
+            topic_selector,
+            consumer=None,
+            event_handler=ydb.TopicReaderEvents.EventHandler(),
+        )
+        msg = await reader.receive_message()
+
+        assert msg.seqno == 1
+
+        await reader.close()
+
+    async def test_reader_with_sync_lambda(self, driver, topic_selector):
+        class CustomEventHandler(ydb.TopicReaderEvents.EventHandler):
+            def on_partition_get_start_offset(self, event):
+                assert topic_selector.path.endswith(event.topic)
+                assert event.partition_id == 0
+                return ydb.TopicReaderEvents.OnPartitionGetStartOffsetResponse(1)
+
+        reader = driver.topic_client.reader(
+            topic_selector,
+            consumer=None,
+            event_handler=CustomEventHandler(),
+        )
+
+        msg = await reader.receive_message()
+
+        assert msg.seqno == 2
+
+        await reader.close()
+
+    async def test_reader_with_async_lambda(self, driver, topic_selector):
+        class CustomEventHandler(ydb.TopicReaderEvents.EventHandler):
+            async def on_partition_get_start_offset(self, event):
+                assert topic_selector.path.endswith(event.topic)
+                assert event.partition_id == 0
+                return ydb.TopicReaderEvents.OnPartitionGetStartOffsetResponse(1)
+
+        reader = driver.topic_client.reader(
+            topic_selector,
+            consumer=None,
+            event_handler=CustomEventHandler(),
+        )
+
+        msg = await reader.receive_message()
+
+        assert msg.seqno == 2
+
+        await reader.close()
+
+    async def test_commit_not_allowed(self, driver, topic_selector):
+        reader = driver.topic_client.reader(
+            topic_selector,
+            consumer=None,
+            event_handler=ydb.TopicReaderEvents.EventHandler(),
+        )
+        batch = await reader.receive_batch()
+
+        with pytest.raises(ydb.Error):
+            reader.commit(batch)
+
+        with pytest.raises(ydb.Error):
+            await reader.commit_with_ack(batch)
+
+        await reader.close()
+
+    async def test_offsets_updated_after_reconnect(self, driver, topic_selector):
+        current_offset = 0
+
+        class CustomEventHandler(ydb.TopicReaderEvents.EventHandler):
+            def on_partition_get_start_offset(self, event):
+                nonlocal current_offset
+                return ydb.TopicReaderEvents.OnPartitionGetStartOffsetResponse(current_offset)
+
+        reader = driver.topic_client.reader(
+            topic_selector,
+            consumer=None,
+            event_handler=CustomEventHandler(),
+        )
+        msg = await reader.receive_message()
+
+        assert msg.seqno == current_offset + 1
+
+        current_offset += 2
+        reader._reconnector._stream_reader._set_first_error(ydb.Unavailable("some retriable error"))
+
+        await asyncio.sleep(0)
+
+        msg = await reader.receive_message()
+
+        assert msg.seqno == current_offset + 1
+
+        await reader.close()
+
+
+class TestTopicReaderWithoutConsumer:
+    def test_reader_with_no_partition_ids_raises(self, driver_sync, topic_with_messages):
+        with pytest.raises(ydb.Error):
+            driver_sync.topic_client.reader(
+                topic_with_messages,
+                consumer=None,
+                event_handler=ydb.TopicReaderEvents.EventHandler(),
+            )
+
+    def test_reader_with_no_event_handler_raises(self, driver_sync, topic_with_messages):
+        with pytest.raises(ydb.Error):
+            driver_sync.topic_client.reader(
+                topic_with_messages,
+                consumer=None,
+            )
+
+    def test_reader_with_no_partition_ids_selector_raises(self, driver_sync, topic_selector):
+        topic_selector.partitions = None
+
+        with pytest.raises(ydb.Error):
+            driver_sync.topic_client.reader(
+                topic_selector,
+                consumer=None,
+                event_handler=ydb.TopicReaderEvents.EventHandler(),
+            )
+
+    def test_reader_with_default_lambda(self, driver_sync, topic_selector):
+        reader = driver_sync.topic_client.reader(
+            topic_selector,
+            consumer=None,
+            event_handler=ydb.TopicReaderEvents.EventHandler(),
+        )
+        msg = reader.receive_message()
+
+        assert msg.seqno == 1
+
+        reader.close()
+
+    def test_reader_with_sync_lambda(self, driver_sync, topic_selector):
+        class CustomEventHandler(ydb.TopicReaderEvents.EventHandler):
+            def on_partition_get_start_offset(self, event):
+                assert topic_selector.path.endswith(event.topic)
+                assert event.partition_id == 0
+                return ydb.TopicReaderEvents.OnPartitionGetStartOffsetResponse(1)
+
+        reader = driver_sync.topic_client.reader(
+            topic_selector,
+            consumer=None,
+            event_handler=CustomEventHandler(),
+        )
+
+        msg = reader.receive_message()
+
+        assert msg.seqno == 2
+
+        reader.close()
+
+    def test_reader_with_async_lambda(self, driver_sync, topic_selector):
+        class CustomEventHandler(ydb.TopicReaderEvents.EventHandler):
+            async def on_partition_get_start_offset(self, event):
+                assert topic_selector.path.endswith(event.topic)
+                assert event.partition_id == 0
+                return ydb.TopicReaderEvents.OnPartitionGetStartOffsetResponse(1)
+
+        reader = driver_sync.topic_client.reader(
+            topic_selector,
+            consumer=None,
+            event_handler=CustomEventHandler(),
+        )
+
+        msg = reader.receive_message()
+
+        assert msg.seqno == 2
+
+        reader.close()
+
+    def test_commit_not_allowed(self, driver_sync, topic_selector):
+        reader = driver_sync.topic_client.reader(
+            topic_selector,
+            consumer=None,
+            event_handler=ydb.TopicReaderEvents.EventHandler(),
+        )
+        batch = reader.receive_batch()
+
+        with pytest.raises(ydb.Error):
+            reader.commit(batch)
+
+        with pytest.raises(ydb.Error):
+            reader.commit_with_ack(batch)
+
+        reader.close()
+
+    def test_offsets_updated_after_reconnect(self, driver_sync, topic_selector):
+        current_offset = 0
+
+        class CustomEventHandler(ydb.TopicReaderEvents.EventHandler):
+            def on_partition_get_start_offset(self, event):
+                nonlocal current_offset
+                return ydb.TopicReaderEvents.OnPartitionGetStartOffsetResponse(current_offset)
+
+        reader = driver_sync.topic_client.reader(
+            topic_selector,
+            consumer=None,
+            event_handler=CustomEventHandler(),
+        )
+        msg = reader.receive_message()
+
+        assert msg.seqno == current_offset + 1
+
+        current_offset += 2
+        reader._async_reader._reconnector._stream_reader._set_first_error(ydb.Unavailable("some retriable error"))
+
+        msg = reader.receive_message()
+
+        assert msg.seqno == current_offset + 1
+
+        reader.close()
