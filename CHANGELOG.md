@@ -1,3 +1,7 @@
+* Reader without Consumer
+* CommitOffset feature
+* QueryService stats support
+
 ## 3.20.1 ##
 * Add missing fields to tablestats
 * Return topic destructors
