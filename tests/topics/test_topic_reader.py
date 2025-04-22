@@ -64,6 +64,26 @@ class TestTopicReaderAsyncIO:
 
         assert message != batch.messages[0]
 
+    async def test_commit_offset_works(self, driver, topic_with_messages, topic_consumer):
+        for out in ["123", "456", "789", "0"]:
+            async with driver.topic_client.reader(topic_with_messages, topic_consumer) as reader:
+                message = await reader.receive_message()
+                assert message.data.decode() == out
+
+                await driver.topic_client.commit_offset(
+                    topic_with_messages, topic_consumer, message.partition_id, message.offset + 1
+                )
+
+    async def test_reader_reconnect_after_commit_offset(self, driver, topic_with_messages, topic_consumer):
+        async with driver.topic_client.reader(topic_with_messages, topic_consumer) as reader:
+            for out in ["123", "456", "789", "0"]:
+                message = await reader.receive_message()
+                assert message.data.decode() == out
+
+                await driver.topic_client.commit_offset(
+                    topic_with_messages, topic_consumer, message.partition_id, message.offset + 1
+                )
+
     async def test_read_compressed_messages(self, driver, topic_path, topic_consumer):
         async with driver.topic_client.writer(topic_path, codec=ydb.TopicCodec.GZIP) as writer:
             await writer.write("123")
@@ -182,6 +202,26 @@ class TestTopicReaderSync:
             batch = reader.receive_batch()
 
         assert message != batch.messages[0]
+
+    def test_commit_offset_works(self, driver_sync, topic_with_messages, topic_consumer):
+        for out in ["123", "456", "789", "0"]:
+            with driver_sync.topic_client.reader(topic_with_messages, topic_consumer) as reader:
+                message = reader.receive_message()
+                assert message.data.decode() == out
+
+                driver_sync.topic_client.commit_offset(
+                    topic_with_messages, topic_consumer, message.partition_id, message.offset + 1
+                )
+
+    def test_reader_reconnect_after_commit_offset(self, driver_sync, topic_with_messages, topic_consumer):
+        with driver_sync.topic_client.reader(topic_with_messages, topic_consumer) as reader:
+            for out in ["123", "456", "789", "0"]:
+                message = reader.receive_message()
+                assert message.data.decode() == out
+
+                driver_sync.topic_client.commit_offset(
+                    topic_with_messages, topic_consumer, message.partition_id, message.offset + 1
+                )
 
     def test_read_compressed_messages(self, driver_sync, topic_path, topic_consumer):
         with driver_sync.topic_client.writer(topic_path, codec=ydb.TopicCodec.GZIP) as writer:

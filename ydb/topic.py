@@ -340,6 +340,21 @@ class TopicClientAsyncIO:
 
         return TopicTxWriterAsyncIO(tx=tx, driver=self._driver, settings=settings, _client=self)
 
+    async def commit_offset(self, path: str, consumer: str, partition_id: int, offset: int) -> None:
+        req = _ydb_topic.CommitOffsetRequest(
+            path=path,
+            consumer=consumer,
+            partition_id=partition_id,
+            offset=offset,
+        )
+
+        await self._driver(
+            req.to_proto(),
+            _apis.TopicService.Stub,
+            _apis.TopicService.CommitOffset,
+            _wrap_operation,
+        )
+
     def close(self):
         if self._closed:
             return
@@ -602,6 +617,21 @@ class TopicClient:
             settings.encoder_executor = self._executor
 
         return TopicTxWriter(tx, self._driver, settings, _parent=self)
+
+    def commit_offset(self, path: str, consumer: str, partition_id: int, offset: int) -> None:
+        req = _ydb_topic.CommitOffsetRequest(
+            path=path,
+            consumer=consumer,
+            partition_id=partition_id,
+            offset=offset,
+        )
+
+        self._driver(
+            req.to_proto(),
+            _apis.TopicService.Stub,
+            _apis.TopicService.CommitOffset,
+            _wrap_operation,
+        )
 
     def close(self):
         if self._closed:
