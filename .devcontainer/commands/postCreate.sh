@@ -1,6 +1,11 @@
 #!/bin/bash
 set -e
 
+if git config --get commit.gpgsign | grep -q true; then
+	git config --global gpg.format ssh
+	git config --global gpg.ssh.defaultKeyCommand 'ssh-add -L'
+	git config --global gpg.ssh.allowedSigners '~/.ssh/allowed_signers'
+fi
 
 # Set up YDB profile if ydb cli exists
 if which ydb > /dev/null 2>&1; then
