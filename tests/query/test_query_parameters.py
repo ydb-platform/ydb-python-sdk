@@ -4,10 +4,11 @@ import pytest
 import ydb
 
 
-query = """SELECT $a AS value"""
+query_template = "DECLARE $a as %s; SELECT $a AS value"
 
 
 def test_select_implicit_int(pool: ydb.QuerySessionPool):
+    query = query_template % "Int64"
     expected_value = 111
     res = pool.execute_with_retries(query, parameters={"$a": expected_value})
     actual_value = res[0].rows[0]["value"]
@@ -15,6 +16,7 @@ def test_select_implicit_int(pool: ydb.QuerySessionPool):
 
 
 def test_select_implicit_float(pool: ydb.QuerySessionPool):
+    query = query_template % "Double"
     expected_value = 11.1
     res = pool.execute_with_retries(query, parameters={"$a": expected_value})
     actual_value = res[0].rows[0]["value"]
@@ -22,6 +24,7 @@ def test_select_implicit_float(pool: ydb.QuerySessionPool):
 
 
 def test_select_implicit_bool(pool: ydb.QuerySessionPool):
+    query = query_template % "Bool"
     expected_value = False
     res = pool.execute_with_retries(query, parameters={"$a": expected_value})
     actual_value = res[0].rows[0]["value"]
@@ -29,6 +32,7 @@ def test_select_implicit_bool(pool: ydb.QuerySessionPool):
 
 
 def test_select_implicit_str(pool: ydb.QuerySessionPool):
+    query = query_template % "Utf8"
     expected_value = "text"
     res = pool.execute_with_retries(query, parameters={"$a": expected_value})
     actual_value = res[0].rows[0]["value"]
@@ -36,6 +40,7 @@ def test_select_implicit_str(pool: ydb.QuerySessionPool):
 
 
 def test_select_implicit_bytes(pool: ydb.QuerySessionPool):
+    query = query_template % "String"
     expected_value = b"text"
     res = pool.execute_with_retries(query, parameters={"$a": expected_value})
     actual_value = res[0].rows[0]["value"]
@@ -43,6 +48,7 @@ def test_select_implicit_bytes(pool: ydb.QuerySessionPool):
 
 
 def test_select_implicit_list(pool: ydb.QuerySessionPool):
+    query = query_template % "List<Int64>"
     expected_value = [1, 2, 3]
     res = pool.execute_with_retries(query, parameters={"$a": expected_value})
     actual_value = res[0].rows[0]["value"]
@@ -50,6 +56,7 @@ def test_select_implicit_list(pool: ydb.QuerySessionPool):
 
 
 def test_select_implicit_dict(pool: ydb.QuerySessionPool):
+    query = query_template % "Dict<Utf8, Int64>"
     expected_value = {"a": 1, "b": 2}
     res = pool.execute_with_retries(query, parameters={"$a": expected_value})
     actual_value = res[0].rows[0]["value"]
@@ -57,6 +64,7 @@ def test_select_implicit_dict(pool: ydb.QuerySessionPool):
 
 
 def test_select_implicit_list_nested(pool: ydb.QuerySessionPool):
+    query = query_template % "List<Dict<Utf8, Int64>>"
     expected_value = [{"a": 1}, {"b": 2}]
     res = pool.execute_with_retries(query, parameters={"$a": expected_value})
     actual_value = res[0].rows[0]["value"]
@@ -64,6 +72,7 @@ def test_select_implicit_list_nested(pool: ydb.QuerySessionPool):
 
 
 def test_select_implicit_dict_nested(pool: ydb.QuerySessionPool):
+    query = query_template % "Dict<Utf8, List<Int64>>"
     expected_value = {"a": [1, 2, 3], "b": [4, 5]}
     res = pool.execute_with_retries(query, parameters={"$a": expected_value})
     actual_value = res[0].rows[0]["value"]
@@ -71,6 +80,8 @@ def test_select_implicit_dict_nested(pool: ydb.QuerySessionPool):
 
 
 def test_select_implicit_custom_type_raises(pool: ydb.QuerySessionPool):
+    query = query_template % "Struct"
+
     class CustomClass:
         pass
 
@@ -80,18 +91,21 @@ def test_select_implicit_custom_type_raises(pool: ydb.QuerySessionPool):
 
 
 def test_select_implicit_empty_list_raises(pool: ydb.QuerySessionPool):
+    query = query_template % "List<Int64>"
     expected_value = []
     with pytest.raises(ValueError):
         pool.execute_with_retries(query, parameters={"$a": expected_value})
 
 
 def test_select_implicit_empty_dict_raises(pool: ydb.QuerySessionPool):
+    query = query_template % "Dict<Int64, Int64>"
     expected_value = {}
     with pytest.raises(ValueError):
         pool.execute_with_retries(query, parameters={"$a": expected_value})
 
 
 def test_select_explicit_primitive(pool: ydb.QuerySessionPool):
+    query = query_template % "Int64"
     expected_value = 111
     res = pool.execute_with_retries(query, parameters={"$a": (expected_value, ydb.PrimitiveType.Int64)})
     actual_value = res[0].rows[0]["value"]
@@ -99,6 +113,7 @@ def test_select_explicit_primitive(pool: ydb.QuerySessionPool):
 
 
 def test_select_explicit_list(pool: ydb.QuerySessionPool):
+    query = query_template % "List<Int64>"
     expected_value = [1, 2, 3]
     type_ = ydb.ListType(ydb.PrimitiveType.Int64)
     res = pool.execute_with_retries(query, parameters={"$a": (expected_value, type_)})
@@ -107,6 +122,7 @@ def test_select_explicit_list(pool: ydb.QuerySessionPool):
 
 
 def test_select_explicit_dict(pool: ydb.QuerySessionPool):
+    query = query_template % "Dict<Utf8, Utf8>"
     expected_value = {"key": "value"}
     type_ = ydb.DictType(ydb.PrimitiveType.Utf8, ydb.PrimitiveType.Utf8)
     res = pool.execute_with_retries(query, parameters={"$a": (expected_value, type_)})
@@ -115,6 +131,7 @@ def test_select_explicit_dict(pool: ydb.QuerySessionPool):
 
 
 def test_select_explicit_empty_list_not_raises(pool: ydb.QuerySessionPool):
+    query = query_template % "List<Int64>"
     expected_value = []
     type_ = ydb.ListType(ydb.PrimitiveType.Int64)
     res = pool.execute_with_retries(query, parameters={"$a": (expected_value, type_)})
@@ -123,6 +140,7 @@ def test_select_explicit_empty_list_not_raises(pool: ydb.QuerySessionPool):
 
 
 def test_select_explicit_empty_dict_not_raises(pool: ydb.QuerySessionPool):
+    query = query_template % "Dict<Utf8, Utf8>"
     expected_value = {}
     type_ = ydb.DictType(ydb.PrimitiveType.Utf8, ydb.PrimitiveType.Utf8)
     res = pool.execute_with_retries(query, parameters={"$a": (expected_value, type_)})
@@ -131,6 +149,7 @@ def test_select_explicit_empty_dict_not_raises(pool: ydb.QuerySessionPool):
 
 
 def test_select_typedvalue_full_primitive(pool: ydb.QuerySessionPool):
+    query = query_template % "Int64"
     expected_value = 111
     typed_value = ydb.TypedValue(expected_value, ydb.PrimitiveType.Int64)
     res = pool.execute_with_retries(query, parameters={"$a": typed_value})
@@ -139,6 +158,7 @@ def test_select_typedvalue_full_primitive(pool: ydb.QuerySessionPool):
 
 
 def test_select_typedvalue_implicit_primitive(pool: ydb.QuerySessionPool):
+    query = query_template % "Int64"
     expected_value = 111
     typed_value = ydb.TypedValue(expected_value)
     res = pool.execute_with_retries(query, parameters={"$a": typed_value})
@@ -147,6 +167,8 @@ def test_select_typedvalue_implicit_primitive(pool: ydb.QuerySessionPool):
 
 
 def test_select_typevalue_custom_type_raises(pool: ydb.QuerySessionPool):
+    query = query_template % "Struct"
+
     class CustomClass:
         pass
 
