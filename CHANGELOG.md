@@ -1,3 +1,4 @@
+## 3.21.0 ##
 * Reader without Consumer
 * CommitOffset feature
 * QueryService stats support
