@@ -1,3 +1,4 @@
+## 3.21.1 ##
 * Support Date32, Datetime64, Timestamp64, Interval64
 
 ## 3.21.0 ##
