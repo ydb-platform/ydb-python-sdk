@@ -8,7 +8,11 @@ from ydb import issues
 
 @pytest.fixture(scope="module")
 def docker_compose_file(pytestconfig):
-    return os.path.join(str(pytestconfig.rootdir), "compose.yml")
+    f = "compose.yml"
+    if os.environ.get('REMOTE_CONTAINERS') is not None:
+        f = "compose.remote.yml"
+
+    return os.path.join(str(pytestconfig.rootdir), f)
 
 
 def wait_container_ready(driver):
