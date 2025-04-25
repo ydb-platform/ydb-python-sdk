@@ -1,0 +1,22 @@
+networks:
+  default:
+    external: true
+    name: ydb-python-sdk_default
+
+services:
+  py-sdk-ydb:
+    image: ydbplatform/local-ydb:trunk
+    restart: always
+    hostname: py-sdk-ydb
+    ports:
+      - 2135
+      - 2136
+      - 8765
+    volumes:
+    - ./ydb_certs:/ydb_certs
+    environment:
+      - YDB_USE_IN_MEMORY_PDISKS=true
+      - YDB_ENABLE_COLUMN_TABLES=true
+      - GRPC_TLS_PORT=2135
+      - GRPC_PORT=2136
+      - MON_PORT=8765
