@@ -15,15 +15,14 @@
 	"features": {
 		"ghcr.io/devcontainers/features/git": {},
 		"ghcr.io/devcontainers/features/common-utils": {},
-		"ghcr.io/devcontainers/features/github-cli:1": {}
+		"ghcr.io/devcontainers/features/github-cli:1": {},
+		"ghcr.io/devcontainers/features/docker-outside-of-docker:1": {}
 	},
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
 	"forwardPorts": [
-		2135,
-		2136,
-		8765,
-		9090,
-		9464
+		"ydb:2135",
+		"ydb:2136",
+		"ydb:8765"
 	],
 	// Use 'initializeCommand' to run commands before the container is created.
 	"initializeCommand": "chmod +x .devcontainer/commands/initialize.sh && .devcontainer/commands/initialize.sh",

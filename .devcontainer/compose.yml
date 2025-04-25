@@ -1,3 +1,5 @@
+name: ydb-python-sdk
+
 volumes:
   ydb-data:
     # driver: local
@@ -19,9 +21,10 @@ services:
       - ../:/workspaces/ydb-python-sdk:cached
 
     environment:
-      - YDB_IMAGE_VERSION=24.3
-      - YDB_CREDENTIALS_USER=root
-      - YDB_CREDENTIALS_PASSWORD=1234
+      - YDB_VERSION=25.1
+      - YDB_STATIC_CREDENTIALS_USER=root
+      - YDB_STATIC_CREDENTIALS_PASSWORD=1234
+      - YDB_STATIC_CREDENTIALS_ENDPOINT=grpc://ydb:2136
       - YDB_CONNECTION_STRING=grpc://ydb:2136/local
       - YDB_CONNECTION_STRING_SECURE=grpcs://ydb:2135/local
       - YDB_SSL_ROOT_CERTIFICATES_FILE=/ydb_certs/ca.pem
@@ -30,15 +33,15 @@ services:
     command: sleep infinity
 
   ydb:
-    image: ghcr.io/ydb-platform/local-ydb:24.3
+    image: ydbplatform/local-ydb:25.1
     restart: unless-stopped
     hostname: ydb
     platform: linux/amd64
 
     ports:
-      - 2135:2135
-      - 2136:2136
-      - 8765:8765
+      - 2135
+      - 2136
+      - 8765
 
     volumes:
       - ydb-data:/ydb_data
