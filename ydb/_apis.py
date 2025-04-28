@@ -72,6 +72,7 @@ class OperationService(object):
     ForgetOperation = "ForgetOperation"
     GetOperation = "GetOperation"
     CancelOperation = "CancelOperation"
+    ListOperations = "ListOperations"
 
 
 class SchemeService(object):
