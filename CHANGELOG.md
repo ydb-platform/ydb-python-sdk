@@ -1,3 +1,4 @@
+## 3.21.2 ##
 * Add disable_discovery option to DriverConfig
 
 ## 3.21.1 ##
