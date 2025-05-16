@@ -204,7 +204,9 @@ class ConnectionPool(IConnectionPool):
             # If discovery is disabled, just add the initial endpoint to the store
             async def init_connection():
                 ready_connection = Connection(self._driver_config.endpoint, self._driver_config)
-                await ready_connection.connection_ready(ready_timeout=getattr(self._driver_config, "discovery_request_timeout", 10))
+                await ready_connection.connection_ready(
+                    ready_timeout=getattr(self._driver_config, "discovery_request_timeout", 10)
+                )
                 self._store.add(ready_connection)
 
             # Create and schedule the task to initialize the connection
