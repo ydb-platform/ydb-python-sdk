@@ -5,11 +5,8 @@ import asyncio
 from ydb import _apis
 
 
-# Common test constants and mock config
-DISCOVERY_DISABLED_ERROR_MSG = "Discovery should not be executed when discovery is disabled"
 TEST_ERROR = "Test error"
 TEST_QUERY = "SELECT 1 + 2 AS sum"
-
 
 @pytest.fixture
 def mock_connection():
@@ -48,7 +45,7 @@ def create_mock_discovery_resolver(path):
     def _mock_fixture():
         with unittest.mock.patch(path) as mock_resolve:
             # Configure mock to throw an exception if called
-            mock_resolve.side_effect = Exception(DISCOVERY_DISABLED_ERROR_MSG)
+            mock_resolve.side_effect = Exception("Discovery should not be executed when discovery is disabled")
             yield mock_resolve
     return _mock_fixture
 
@@ -56,10 +53,6 @@ def create_mock_discovery_resolver(path):
 # Mock discovery resolvers to verify no discovery requests are made
 mock_discovery_resolver = pytest.fixture(create_mock_discovery_resolver('ydb.resolver.DiscoveryEndpointsResolver.context_resolve'))
 mock_aio_discovery_resolver = pytest.fixture(create_mock_discovery_resolver('ydb.aio.resolver.DiscoveryEndpointsResolver.resolve'))
-
-
-# We'll use the fixtures from conftest.py instead of these mock fixtures
-# However, we'll keep them for tests that don't need the real YDB container
 
 
 # Basic unit tests for DriverConfig
