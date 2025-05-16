@@ -252,6 +252,7 @@ async def test_aio_driver_discovery_enabled_mock(driver_config_enabled_discovery
         try:
             # Check that the discovery class was instantiated
             mocks["mock_discovery_class"].assert_called_once()
+            assert driver is not None  # Use the driver variable to avoid F841
         finally:
             # The stop method is already mocked, so we don't need to await it
             pass
