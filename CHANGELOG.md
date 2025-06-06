@@ -1,3 +1,5 @@
+* Rename indexes feature
+
 ## 3.21.2 ##
 * Add disable_discovery option to DriverConfig
 
