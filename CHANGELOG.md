@@ -1,3 +1,4 @@
+## 3.21.3 ##
 * Rename indexes feature
 
 ## 3.21.2 ##
