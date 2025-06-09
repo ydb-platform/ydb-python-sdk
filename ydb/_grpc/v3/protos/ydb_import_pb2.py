@@ -13,6 +13,7 @@ _sym_db = _symbol_database.Default()
 
 
 from ydb._grpc.v3.protos.annotations import validation_pb2 as protos_dot_annotations_dot_validation__pb2
+from ydb._grpc.v3.protos import ydb_export_pb2 as protos_dot_ydb__export__pb2
 from ydb._grpc.v3.protos import ydb_operation_pb2 as protos_dot_ydb__operation__pb2
 from google.protobuf import timestamp_pb2 as google_dot_protobuf_dot_timestamp__pb2
 
@@ -23,9 +24,9 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   syntax='proto3',
   serialized_options=b'\n\026tech.ydb.proto.import_Z9github.com/ydb-platform/ydb-go-genproto/protos/Ydb_Import\370\001\001',
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n\x17protos/ydb_import.proto\x12\nYdb.Import\x1a#protos/annotations/validation.proto\x1a\x1aprotos/ydb_operation.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xcd\x01\n\x0eImportProgress\"\xba\x01\n\x08Progress\x12\x18\n\x14PROGRESS_UNSPECIFIED\x10\x00\x12\x16\n\x12PROGRESS_PREPARING\x10\x01\x12\x1a\n\x16PROGRESS_TRANSFER_DATA\x10\x02\x12\x1a\n\x16PROGRESS_BUILD_INDEXES\x10\x03\x12\x11\n\rPROGRESS_DONE\x10\x04\x12\x19\n\x15PROGRESS_CANCELLATION\x10\x05\x12\x16\n\x12PROGRESS_CANCELLED\x10\x06\"\xa0\x01\n\x12ImportItemProgress\x12\x13\n\x0bparts_total\x18\x01 \x01(\r\x12\x17\n\x0fparts_completed\x18\x02 \x01(\r\x12.\n\nstart_time\x18\x03 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12,\n\x08\x65nd_time\x18\x04 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\"\xd1\x03\n\x14ImportFromS3Settings\x12\x16\n\x08\x65ndpoint\x18\x01 \x01(\tB\x04\x90\xe6*\x01\x12\x37\n\x06scheme\x18\x02 \x01(\x0e\x32\'.Ydb.Import.ImportFromS3Settings.Scheme\x12\x14\n\x06\x62ucket\x18\x03 \x01(\tB\x04\x90\xe6*\x01\x12\x18\n\naccess_key\x18\x04 \x01(\tB\x04\x90\xe6*\x01\x12\x18\n\nsecret_key\x18\x05 \x01(\tB\x04\x90\xe6*\x01\x12<\n\x05items\x18\x06 \x03(\x0b\x32%.Ydb.Import.ImportFromS3Settings.ItemB\x06\x9a\xe6*\x02(\x01\x12\x1c\n\x0b\x64\x65scription\x18\x07 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x01\x12\x19\n\x11number_of_retries\x18\x08 \x01(\r\x12\x0e\n\x06region\x18\t \x01(\t\x12\"\n\x1a\x64isable_virtual_addressing\x18\n \x01(\x08\x1a\x43\n\x04Item\x12\x1b\n\rsource_prefix\x18\x01 \x01(\tB\x04\x90\xe6*\x01\x12\x1e\n\x10\x64\x65stination_path\x18\x02 \x01(\tB\x04\x90\xe6*\x01\".\n\x06Scheme\x12\x0f\n\x0bUNSPECIFIED\x10\x00\x12\x08\n\x04HTTP\x10\x01\x12\t\n\x05HTTPS\x10\x02\"\x14\n\x12ImportFromS3Result\"\xb9\x01\n\x14ImportFromS3Metadata\x12\x32\n\x08settings\x18\x01 \x01(\x0b\x32 .Ydb.Import.ImportFromS3Settings\x12\x35\n\x08progress\x18\x02 \x01(\x0e\x32#.Ydb.Import.ImportProgress.Progress\x12\x36\n\x0eitems_progress\x18\x03 \x03(\x0b\x32\x1e.Ydb.Import.ImportItemProgress\"\x8a\x01\n\x13ImportFromS3Request\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x38\n\x08settings\x18\x02 \x01(\x0b\x32 .Ydb.Import.ImportFromS3SettingsB\x04\x90\xe6*\x01\"D\n\x14ImportFromS3Response\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\" \n\rYdbDumpFormat\x12\x0f\n\x07\x63olumns\x18\x01 \x03(\t\"\x12\n\x10ImportDataResult\"\xae\x01\n\x11ImportDataRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x0c\n\x04path\x18\x02 \x01(\t\x12\x17\n\x04\x64\x61ta\x18\x03 \x01(\x0c\x42\t\xa2\xe6*\x05\x18\x80\x80\x80\x04\x12-\n\x08ydb_dump\x18\x04 \x01(\x0b\x32\x19.Ydb.Import.YdbDumpFormatH\x00\x42\x08\n\x06\x66ormat\"B\n\x12ImportDataResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.OperationBV\n\x16tech.ydb.proto.import_Z9github.com/ydb-platform/ydb-go-genproto/protos/Ydb_Import\xf8\x01\x01\x62\x06proto3'
+  serialized_pb=b'\n\x17protos/ydb_import.proto\x12\nYdb.Import\x1a#protos/annotations/validation.proto\x1a\x17protos/ydb_export.proto\x1a\x1aprotos/ydb_operation.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xee\x01\n\x0eImportProgress\"\xdb\x01\n\x08Progress\x12\x18\n\x14PROGRESS_UNSPECIFIED\x10\x00\x12\x16\n\x12PROGRESS_PREPARING\x10\x01\x12\x1a\n\x16PROGRESS_TRANSFER_DATA\x10\x02\x12\x1a\n\x16PROGRESS_BUILD_INDEXES\x10\x03\x12\x11\n\rPROGRESS_DONE\x10\x04\x12\x19\n\x15PROGRESS_CANCELLATION\x10\x05\x12\x16\n\x12PROGRESS_CANCELLED\x10\x06\x12\x1f\n\x1bPROGRESS_CREATE_CHANGEFEEDS\x10\x07\"\xa0\x01\n\x12ImportItemProgress\x12\x13\n\x0bparts_total\x18\x01 \x01(\r\x12\x17\n\x0fparts_completed\x18\x02 \x01(\r\x12.\n\nstart_time\x18\x03 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12,\n\x08\x65nd_time\x18\x04 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\"\x80\x05\n\x14ImportFromS3Settings\x12\x16\n\x08\x65ndpoint\x18\x01 \x01(\tB\x04\x90\xe6*\x01\x12\x37\n\x06scheme\x18\x02 \x01(\x0e\x32\'.Ydb.Import.ImportFromS3Settings.Scheme\x12\x14\n\x06\x62ucket\x18\x03 \x01(\tB\x04\x90\xe6*\x01\x12\x18\n\naccess_key\x18\x04 \x01(\tB\x04\x90\xe6*\x01\x12\x18\n\nsecret_key\x18\x05 \x01(\tB\x04\x90\xe6*\x01\x12\x34\n\x05items\x18\x06 \x03(\x0b\x32%.Ydb.Import.ImportFromS3Settings.Item\x12\x1c\n\x0b\x64\x65scription\x18\x07 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x01\x12\x19\n\x11number_of_retries\x18\x08 \x01(\r\x12\x0e\n\x06region\x18\t \x01(\t\x12\"\n\x1a\x64isable_virtual_addressing\x18\n \x01(\x08\x12\x0e\n\x06no_acl\x18\x0b \x01(\x08\x12 \n\x18skip_checksum_validation\x18\x0c \x01(\x08\x12\x15\n\rsource_prefix\x18\r \x01(\t\x12\x18\n\x10\x64\x65stination_path\x18\x0e \x01(\t\x12;\n\x13\x65ncryption_settings\x18\x0f \x01(\x0b\x32\x1e.Ydb.Export.EncryptionSettings\x1aZ\n\x04Item\x12\x17\n\rsource_prefix\x18\x01 \x01(\tH\x00\x12\x15\n\x0bsource_path\x18\x03 \x01(\tH\x00\x12\x18\n\x10\x64\x65stination_path\x18\x02 \x01(\tB\x08\n\x06Source\".\n\x06Scheme\x12\x0f\n\x0bUNSPECIFIED\x10\x00\x12\x08\n\x04HTTP\x10\x01\x12\t\n\x05HTTPS\x10\x02\"\x14\n\x12ImportFromS3Result\"\xb9\x01\n\x14ImportFromS3Metadata\x12\x32\n\x08settings\x18\x01 \x01(\x0b\x32 .Ydb.Import.ImportFromS3Settings\x12\x35\n\x08progress\x18\x02 \x01(\x0e\x32#.Ydb.Import.ImportProgress.Progress\x12\x36\n\x0eitems_progress\x18\x03 \x03(\x0b\x32\x1e.Ydb.Import.ImportItemProgress\"\x8a\x01\n\x13ImportFromS3Request\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x38\n\x08settings\x18\x02 \x01(\x0b\x32 .Ydb.Import.ImportFromS3SettingsB\x04\x90\xe6*\x01\"D\n\x14ImportFromS3Response\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\xab\x03\n\x1dListObjectsInS3ExportSettings\x12\x16\n\x08\x65ndpoint\x18\x01 \x01(\tB\x04\x90\xe6*\x01\x12\x37\n\x06scheme\x18\x02 \x01(\x0e\x32\'.Ydb.Import.ImportFromS3Settings.Scheme\x12\x14\n\x06\x62ucket\x18\x03 \x01(\tB\x04\x90\xe6*\x01\x12\x18\n\naccess_key\x18\x04 \x01(\tB\x04\x90\xe6*\x01\x12\x18\n\nsecret_key\x18\x05 \x01(\tB\x04\x90\xe6*\x01\x12=\n\x05items\x18\x06 \x03(\x0b\x32..Ydb.Import.ListObjectsInS3ExportSettings.Item\x12\x19\n\x11number_of_retries\x18\x07 \x01(\r\x12\x0e\n\x06region\x18\x08 \x01(\t\x12\"\n\x1a\x64isable_virtual_addressing\x18\t \x01(\x08\x12\x0e\n\x06prefix\x18\n \x01(\t\x12;\n\x13\x65ncryption_settings\x18\x0b \x01(\x0b\x32\x1e.Ydb.Export.EncryptionSettings\x1a\x14\n\x04Item\x12\x0c\n\x04path\x18\x01 \x01(\t\"\x99\x01\n\x1bListObjectsInS3ExportResult\x12;\n\x05items\x18\x01 \x03(\x0b\x32,.Ydb.Import.ListObjectsInS3ExportResult.Item\x12\x17\n\x0fnext_page_token\x18\x02 \x01(\t\x1a$\n\x04Item\x12\x0e\n\x06prefix\x18\x01 \x01(\t\x12\x0c\n\x04path\x18\x02 \x01(\t\"\xd1\x01\n\x1cListObjectsInS3ExportRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x41\n\x08settings\x18\x02 \x01(\x0b\x32).Ydb.Import.ListObjectsInS3ExportSettingsB\x04\x90\xe6*\x01\x12\x1f\n\tpage_size\x18\x03 \x01(\x03\x42\x0c\xb2\xe6*\x08<= 10000\x12\x12\n\npage_token\x18\x04 \x01(\t\"M\n\x1dListObjectsInS3ExportResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\" \n\rYdbDumpFormat\x12\x0f\n\x07\x63olumns\x18\x01 \x03(\t\"\x12\n\x10ImportDataResult\"\xae\x01\n\x11ImportDataRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x0c\n\x04path\x18\x02 \x01(\t\x12\x17\n\x04\x64\x61ta\x18\x03 \x01(\x0c\x42\t\xa2\xe6*\x05\x18\x80\x80\x80\x08\x12-\n\x08ydb_dump\x18\x04 \x01(\x0b\x32\x19.Ydb.Import.YdbDumpFormatH\x00\x42\x08\n\x06\x66ormat\"B\n\x12ImportDataResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.OperationBV\n\x16tech.ydb.proto.import_Z9github.com/ydb-platform/ydb-go-genproto/protos/Ydb_Import\xf8\x01\x01\x62\x06proto3'
   ,
-  dependencies=[protos_dot_annotations_dot_validation__pb2.DESCRIPTOR,protos_dot_ydb__operation__pb2.DESCRIPTOR,google_dot_protobuf_dot_timestamp__pb2.DESCRIPTOR,])
+  dependencies=[protos_dot_annotations_dot_validation__pb2.DESCRIPTOR,protos_dot_ydb__export__pb2.DESCRIPTOR,protos_dot_ydb__operation__pb2.DESCRIPTOR,google_dot_protobuf_dot_timestamp__pb2.DESCRIPTOR,])
 
 
 
@@ -71,11 +72,16 @@ _IMPORTPROGRESS_PROGRESS = _descriptor.EnumDescriptor(
       serialized_options=None,
       type=None,
       create_key=_descriptor._internal_create_key),
+    _descriptor.EnumValueDescriptor(
+      name='PROGRESS_CREATE_CHANGEFEEDS', index=7, number=7,
+      serialized_options=None,
+      type=None,
+      create_key=_descriptor._internal_create_key),
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=157,
-  serialized_end=343,
+  serialized_start=182,
+  serialized_end=401,
 )
 _sym_db.RegisterEnumDescriptor(_IMPORTPROGRESS_PROGRESS)
 
@@ -104,8 +110,8 @@ _IMPORTFROMS3SETTINGS_SCHEME = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=928,
-  serialized_end=974,
+  serialized_start=1161,
+  serialized_end=1207,
 )
 _sym_db.RegisterEnumDescriptor(_IMPORTFROMS3SETTINGS_SCHEME)
 
@@ -131,8 +137,8 @@ _IMPORTPROGRESS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=138,
-  serialized_end=343,
+  serialized_start=163,
+  serialized_end=401,
 )
 
 
@@ -184,8 +190,8 @@ _IMPORTITEMPROGRESS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=346,
-  serialized_end=506,
+  serialized_start=404,
+  serialized_end=564,
 )
 
 
@@ -203,14 +209,21 @@ _IMPORTFROMS3SETTINGS_ITEM = _descriptor.Descriptor(
       has_default_value=False, default_value=b"".decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      serialized_options=b'\220\346*\001', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='destination_path', full_name='Ydb.Import.ImportFromS3Settings.Item.destination_path', index=1,
+      name='source_path', full_name='Ydb.Import.ImportFromS3Settings.Item.source_path', index=1,
+      number=3, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='destination_path', full_name='Ydb.Import.ImportFromS3Settings.Item.destination_path', index=2,
       number=2, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=b"".decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      serialized_options=b'\220\346*\001', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
   ],
   extensions=[
   ],
@@ -222,9 +235,14 @@ _IMPORTFROMS3SETTINGS_ITEM = _descriptor.Descriptor(
   syntax='proto3',
   extension_ranges=[],
   oneofs=[
+    _descriptor.OneofDescriptor(
+      name='Source', full_name='Ydb.Import.ImportFromS3Settings.Item.Source',
+      index=0, containing_type=None,
+      create_key=_descriptor._internal_create_key,
+    fields=[]),
   ],
-  serialized_start=859,
-  serialized_end=926,
+  serialized_start=1069,
+  serialized_end=1159,
 )
 
 _IMPORTFROMS3SETTINGS = _descriptor.Descriptor(
@@ -276,7 +294,7 @@ _IMPORTFROMS3SETTINGS = _descriptor.Descriptor(
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      serialized_options=b'\232\346*\002(\001', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
       name='description', full_name='Ydb.Import.ImportFromS3Settings.description', index=6,
       number=7, type=9, cpp_type=9, label=1,
@@ -305,6 +323,41 @@ _IMPORTFROMS3SETTINGS = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='no_acl', full_name='Ydb.Import.ImportFromS3Settings.no_acl', index=10,
+      number=11, type=8, cpp_type=7, label=1,
+      has_default_value=False, default_value=False,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='skip_checksum_validation', full_name='Ydb.Import.ImportFromS3Settings.skip_checksum_validation', index=11,
+      number=12, type=8, cpp_type=7, label=1,
+      has_default_value=False, default_value=False,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='source_prefix', full_name='Ydb.Import.ImportFromS3Settings.source_prefix', index=12,
+      number=13, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='destination_path', full_name='Ydb.Import.ImportFromS3Settings.destination_path', index=13,
+      number=14, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='encryption_settings', full_name='Ydb.Import.ImportFromS3Settings.encryption_settings', index=14,
+      number=15, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
   ],
   extensions=[
   ],
@@ -318,8 +371,8 @@ _IMPORTFROMS3SETTINGS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=509,
-  serialized_end=974,
+  serialized_start=567,
+  serialized_end=1207,
 )
 
 
@@ -343,8 +396,8 @@ _IMPORTFROMS3RESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=976,
-  serialized_end=996,
+  serialized_start=1209,
+  serialized_end=1229,
 )
 
 
@@ -389,8 +442,8 @@ _IMPORTFROMS3METADATA = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=999,
-  serialized_end=1184,
+  serialized_start=1232,
+  serialized_end=1417,
 )
 
 
@@ -428,8 +481,8 @@ _IMPORTFROMS3REQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1187,
-  serialized_end=1325,
+  serialized_start=1420,
+  serialized_end=1558,
 )
 
 
@@ -460,8 +513,303 @@ _IMPORTFROMS3RESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1327,
-  serialized_end=1395,
+  serialized_start=1560,
+  serialized_end=1628,
+)
+
+
+_LISTOBJECTSINS3EXPORTSETTINGS_ITEM = _descriptor.Descriptor(
+  name='Item',
+  full_name='Ydb.Import.ListObjectsInS3ExportSettings.Item',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='path', full_name='Ydb.Import.ListObjectsInS3ExportSettings.Item.path', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=2038,
+  serialized_end=2058,
+)
+
+_LISTOBJECTSINS3EXPORTSETTINGS = _descriptor.Descriptor(
+  name='ListObjectsInS3ExportSettings',
+  full_name='Ydb.Import.ListObjectsInS3ExportSettings',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='endpoint', full_name='Ydb.Import.ListObjectsInS3ExportSettings.endpoint', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=b'\220\346*\001', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='scheme', full_name='Ydb.Import.ListObjectsInS3ExportSettings.scheme', index=1,
+      number=2, type=14, cpp_type=8, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='bucket', full_name='Ydb.Import.ListObjectsInS3ExportSettings.bucket', index=2,
+      number=3, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=b'\220\346*\001', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='access_key', full_name='Ydb.Import.ListObjectsInS3ExportSettings.access_key', index=3,
+      number=4, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=b'\220\346*\001', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='secret_key', full_name='Ydb.Import.ListObjectsInS3ExportSettings.secret_key', index=4,
+      number=5, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=b'\220\346*\001', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='items', full_name='Ydb.Import.ListObjectsInS3ExportSettings.items', index=5,
+      number=6, type=11, cpp_type=10, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='number_of_retries', full_name='Ydb.Import.ListObjectsInS3ExportSettings.number_of_retries', index=6,
+      number=7, type=13, cpp_type=3, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='region', full_name='Ydb.Import.ListObjectsInS3ExportSettings.region', index=7,
+      number=8, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='disable_virtual_addressing', full_name='Ydb.Import.ListObjectsInS3ExportSettings.disable_virtual_addressing', index=8,
+      number=9, type=8, cpp_type=7, label=1,
+      has_default_value=False, default_value=False,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='prefix', full_name='Ydb.Import.ListObjectsInS3ExportSettings.prefix', index=9,
+      number=10, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='encryption_settings', full_name='Ydb.Import.ListObjectsInS3ExportSettings.encryption_settings', index=10,
+      number=11, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[_LISTOBJECTSINS3EXPORTSETTINGS_ITEM, ],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=1631,
+  serialized_end=2058,
+)
+
+
+_LISTOBJECTSINS3EXPORTRESULT_ITEM = _descriptor.Descriptor(
+  name='Item',
+  full_name='Ydb.Import.ListObjectsInS3ExportResult.Item',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='prefix', full_name='Ydb.Import.ListObjectsInS3ExportResult.Item.prefix', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='path', full_name='Ydb.Import.ListObjectsInS3ExportResult.Item.path', index=1,
+      number=2, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=2178,
+  serialized_end=2214,
+)
+
+_LISTOBJECTSINS3EXPORTRESULT = _descriptor.Descriptor(
+  name='ListObjectsInS3ExportResult',
+  full_name='Ydb.Import.ListObjectsInS3ExportResult',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='items', full_name='Ydb.Import.ListObjectsInS3ExportResult.items', index=0,
+      number=1, type=11, cpp_type=10, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='next_page_token', full_name='Ydb.Import.ListObjectsInS3ExportResult.next_page_token', index=1,
+      number=2, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[_LISTOBJECTSINS3EXPORTRESULT_ITEM, ],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=2061,
+  serialized_end=2214,
+)
+
+
+_LISTOBJECTSINS3EXPORTREQUEST = _descriptor.Descriptor(
+  name='ListObjectsInS3ExportRequest',
+  full_name='Ydb.Import.ListObjectsInS3ExportRequest',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='operation_params', full_name='Ydb.Import.ListObjectsInS3ExportRequest.operation_params', index=0,
+      number=1, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='settings', full_name='Ydb.Import.ListObjectsInS3ExportRequest.settings', index=1,
+      number=2, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=b'\220\346*\001', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='page_size', full_name='Ydb.Import.ListObjectsInS3ExportRequest.page_size', index=2,
+      number=3, type=3, cpp_type=2, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=b'\262\346*\010<= 10000', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='page_token', full_name='Ydb.Import.ListObjectsInS3ExportRequest.page_token', index=3,
+      number=4, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=2217,
+  serialized_end=2426,
+)
+
+
+_LISTOBJECTSINS3EXPORTRESPONSE = _descriptor.Descriptor(
+  name='ListObjectsInS3ExportResponse',
+  full_name='Ydb.Import.ListObjectsInS3ExportResponse',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='operation', full_name='Ydb.Import.ListObjectsInS3ExportResponse.operation', index=0,
+      number=1, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=2428,
+  serialized_end=2505,
 )
 
 
@@ -492,8 +840,8 @@ _YDBDUMPFORMAT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1397,
-  serialized_end=1429,
+  serialized_start=2507,
+  serialized_end=2539,
 )
 
 
@@ -517,8 +865,8 @@ _IMPORTDATARESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1431,
-  serialized_end=1449,
+  serialized_start=2541,
+  serialized_end=2559,
 )
 
 
@@ -550,7 +898,7 @@ _IMPORTDATAREQUEST = _descriptor.Descriptor(
       has_default_value=False, default_value=b"",
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      serialized_options=b'\242\346*\005\030\200\200\200\004', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+      serialized_options=b'\242\346*\005\030\200\200\200\010', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
       name='ydb_dump', full_name='Ydb.Import.ImportDataRequest.ydb_dump', index=3,
       number=4, type=11, cpp_type=10, label=1,
@@ -575,8 +923,8 @@ _IMPORTDATAREQUEST = _descriptor.Descriptor(
       create_key=_descriptor._internal_create_key,
     fields=[]),
   ],
-  serialized_start=1452,
-  serialized_end=1626,
+  serialized_start=2562,
+  serialized_end=2736,
 )
 
 
@@ -607,16 +955,23 @@ _IMPORTDATARESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1628,
-  serialized_end=1694,
+  serialized_start=2738,
+  serialized_end=2804,
 )
 
 _IMPORTPROGRESS_PROGRESS.containing_type = _IMPORTPROGRESS
 _IMPORTITEMPROGRESS.fields_by_name['start_time'].message_type = google_dot_protobuf_dot_timestamp__pb2._TIMESTAMP
 _IMPORTITEMPROGRESS.fields_by_name['end_time'].message_type = google_dot_protobuf_dot_timestamp__pb2._TIMESTAMP
 _IMPORTFROMS3SETTINGS_ITEM.containing_type = _IMPORTFROMS3SETTINGS
+_IMPORTFROMS3SETTINGS_ITEM.oneofs_by_name['Source'].fields.append(
+  _IMPORTFROMS3SETTINGS_ITEM.fields_by_name['source_prefix'])
+_IMPORTFROMS3SETTINGS_ITEM.fields_by_name['source_prefix'].containing_oneof = _IMPORTFROMS3SETTINGS_ITEM.oneofs_by_name['Source']
+_IMPORTFROMS3SETTINGS_ITEM.oneofs_by_name['Source'].fields.append(
+  _IMPORTFROMS3SETTINGS_ITEM.fields_by_name['source_path'])
+_IMPORTFROMS3SETTINGS_ITEM.fields_by_name['source_path'].containing_oneof = _IMPORTFROMS3SETTINGS_ITEM.oneofs_by_name['Source']
 _IMPORTFROMS3SETTINGS.fields_by_name['scheme'].enum_type = _IMPORTFROMS3SETTINGS_SCHEME
 _IMPORTFROMS3SETTINGS.fields_by_name['items'].message_type = _IMPORTFROMS3SETTINGS_ITEM
+_IMPORTFROMS3SETTINGS.fields_by_name['encryption_settings'].message_type = protos_dot_ydb__export__pb2._ENCRYPTIONSETTINGS
 _IMPORTFROMS3SETTINGS_SCHEME.containing_type = _IMPORTFROMS3SETTINGS
 _IMPORTFROMS3METADATA.fields_by_name['settings'].message_type = _IMPORTFROMS3SETTINGS
 _IMPORTFROMS3METADATA.fields_by_name['progress'].enum_type = _IMPORTPROGRESS_PROGRESS
@@ -624,6 +979,15 @@ _IMPORTFROMS3METADATA.fields_by_name['items_progress'].message_type = _IMPORTITE
 _IMPORTFROMS3REQUEST.fields_by_name['operation_params'].message_type = protos_dot_ydb__operation__pb2._OPERATIONPARAMS
 _IMPORTFROMS3REQUEST.fields_by_name['settings'].message_type = _IMPORTFROMS3SETTINGS
 _IMPORTFROMS3RESPONSE.fields_by_name['operation'].message_type = protos_dot_ydb__operation__pb2._OPERATION
+_LISTOBJECTSINS3EXPORTSETTINGS_ITEM.containing_type = _LISTOBJECTSINS3EXPORTSETTINGS
+_LISTOBJECTSINS3EXPORTSETTINGS.fields_by_name['scheme'].enum_type = _IMPORTFROMS3SETTINGS_SCHEME
+_LISTOBJECTSINS3EXPORTSETTINGS.fields_by_name['items'].message_type = _LISTOBJECTSINS3EXPORTSETTINGS_ITEM
+_LISTOBJECTSINS3EXPORTSETTINGS.fields_by_name['encryption_settings'].message_type = protos_dot_ydb__export__pb2._ENCRYPTIONSETTINGS
+_LISTOBJECTSINS3EXPORTRESULT_ITEM.containing_type = _LISTOBJECTSINS3EXPORTRESULT
+_LISTOBJECTSINS3EXPORTRESULT.fields_by_name['items'].message_type = _LISTOBJECTSINS3EXPORTRESULT_ITEM
+_LISTOBJECTSINS3EXPORTREQUEST.fields_by_name['operation_params'].message_type = protos_dot_ydb__operation__pb2._OPERATIONPARAMS
+_LISTOBJECTSINS3EXPORTREQUEST.fields_by_name['settings'].message_type = _LISTOBJECTSINS3EXPORTSETTINGS
+_LISTOBJECTSINS3EXPORTRESPONSE.fields_by_name['operation'].message_type = protos_dot_ydb__operation__pb2._OPERATION
 _IMPORTDATAREQUEST.fields_by_name['operation_params'].message_type = protos_dot_ydb__operation__pb2._OPERATIONPARAMS
 _IMPORTDATAREQUEST.fields_by_name['ydb_dump'].message_type = _YDBDUMPFORMAT
 _IMPORTDATAREQUEST.oneofs_by_name['format'].fields.append(
@@ -637,6 +1001,10 @@ DESCRIPTOR.message_types_by_name['ImportFromS3Result'] = _IMPORTFROMS3RESULT
 DESCRIPTOR.message_types_by_name['ImportFromS3Metadata'] = _IMPORTFROMS3METADATA
 DESCRIPTOR.message_types_by_name['ImportFromS3Request'] = _IMPORTFROMS3REQUEST
 DESCRIPTOR.message_types_by_name['ImportFromS3Response'] = _IMPORTFROMS3RESPONSE
+DESCRIPTOR.message_types_by_name['ListObjectsInS3ExportSettings'] = _LISTOBJECTSINS3EXPORTSETTINGS
+DESCRIPTOR.message_types_by_name['ListObjectsInS3ExportResult'] = _LISTOBJECTSINS3EXPORTRESULT
+DESCRIPTOR.message_types_by_name['ListObjectsInS3ExportRequest'] = _LISTOBJECTSINS3EXPORTREQUEST
+DESCRIPTOR.message_types_by_name['ListObjectsInS3ExportResponse'] = _LISTOBJECTSINS3EXPORTRESPONSE
 DESCRIPTOR.message_types_by_name['YdbDumpFormat'] = _YDBDUMPFORMAT
 DESCRIPTOR.message_types_by_name['ImportDataResult'] = _IMPORTDATARESULT
 DESCRIPTOR.message_types_by_name['ImportDataRequest'] = _IMPORTDATAREQUEST
@@ -700,6 +1068,50 @@ ImportFromS3Response = _reflection.GeneratedProtocolMessageType('ImportFromS3Res
   })
 _sym_db.RegisterMessage(ImportFromS3Response)
 
+ListObjectsInS3ExportSettings = _reflection.GeneratedProtocolMessageType('ListObjectsInS3ExportSettings', (_message.Message,), {
+
+  'Item' : _reflection.GeneratedProtocolMessageType('Item', (_message.Message,), {
+    'DESCRIPTOR' : _LISTOBJECTSINS3EXPORTSETTINGS_ITEM,
+    '__module__' : 'protos.ydb_import_pb2'
+    # @@protoc_insertion_point(class_scope:Ydb.Import.ListObjectsInS3ExportSettings.Item)
+    })
+  ,
+  'DESCRIPTOR' : _LISTOBJECTSINS3EXPORTSETTINGS,
+  '__module__' : 'protos.ydb_import_pb2'
+  # @@protoc_insertion_point(class_scope:Ydb.Import.ListObjectsInS3ExportSettings)
+  })
+_sym_db.RegisterMessage(ListObjectsInS3ExportSettings)
+_sym_db.RegisterMessage(ListObjectsInS3ExportSettings.Item)
+
+ListObjectsInS3ExportResult = _reflection.GeneratedProtocolMessageType('ListObjectsInS3ExportResult', (_message.Message,), {
+
+  'Item' : _reflection.GeneratedProtocolMessageType('Item', (_message.Message,), {
+    'DESCRIPTOR' : _LISTOBJECTSINS3EXPORTRESULT_ITEM,
+    '__module__' : 'protos.ydb_import_pb2'
+    # @@protoc_insertion_point(class_scope:Ydb.Import.ListObjectsInS3ExportResult.Item)
+    })
+  ,
+  'DESCRIPTOR' : _LISTOBJECTSINS3EXPORTRESULT,
+  '__module__' : 'protos.ydb_import_pb2'
+  # @@protoc_insertion_point(class_scope:Ydb.Import.ListObjectsInS3ExportResult)
+  })
+_sym_db.RegisterMessage(ListObjectsInS3ExportResult)
+_sym_db.RegisterMessage(ListObjectsInS3ExportResult.Item)
+
+ListObjectsInS3ExportRequest = _reflection.GeneratedProtocolMessageType('ListObjectsInS3ExportRequest', (_message.Message,), {
+  'DESCRIPTOR' : _LISTOBJECTSINS3EXPORTREQUEST,
+  '__module__' : 'protos.ydb_import_pb2'
+  # @@protoc_insertion_point(class_scope:Ydb.Import.ListObjectsInS3ExportRequest)
+  })
+_sym_db.RegisterMessage(ListObjectsInS3ExportRequest)
+
+ListObjectsInS3ExportResponse = _reflection.GeneratedProtocolMessageType('ListObjectsInS3ExportResponse', (_message.Message,), {
+  'DESCRIPTOR' : _LISTOBJECTSINS3EXPORTRESPONSE,
+  '__module__' : 'protos.ydb_import_pb2'
+  # @@protoc_insertion_point(class_scope:Ydb.Import.ListObjectsInS3ExportResponse)
+  })
+_sym_db.RegisterMessage(ListObjectsInS3ExportResponse)
+
 YdbDumpFormat = _reflection.GeneratedProtocolMessageType('YdbDumpFormat', (_message.Message,), {
   'DESCRIPTOR' : _YDBDUMPFORMAT,
   '__module__' : 'protos.ydb_import_pb2'
@@ -730,14 +1142,17 @@ _sym_db.RegisterMessage(ImportDataResponse)
 
 
 DESCRIPTOR._options = None
-_IMPORTFROMS3SETTINGS_ITEM.fields_by_name['source_prefix']._options = None
-_IMPORTFROMS3SETTINGS_ITEM.fields_by_name['destination_path']._options = None
 _IMPORTFROMS3SETTINGS.fields_by_name['endpoint']._options = None
 _IMPORTFROMS3SETTINGS.fields_by_name['bucket']._options = None
 _IMPORTFROMS3SETTINGS.fields_by_name['access_key']._options = None
 _IMPORTFROMS3SETTINGS.fields_by_name['secret_key']._options = None
-_IMPORTFROMS3SETTINGS.fields_by_name['items']._options = None
 _IMPORTFROMS3SETTINGS.fields_by_name['description']._options = None
 _IMPORTFROMS3REQUEST.fields_by_name['settings']._options = None
+_LISTOBJECTSINS3EXPORTSETTINGS.fields_by_name['endpoint']._options = None
+_LISTOBJECTSINS3EXPORTSETTINGS.fields_by_name['bucket']._options = None
+_LISTOBJECTSINS3EXPORTSETTINGS.fields_by_name['access_key']._options = None
+_LISTOBJECTSINS3EXPORTSETTINGS.fields_by_name['secret_key']._options = None
+_LISTOBJECTSINS3EXPORTREQUEST.fields_by_name['settings']._options = None
+_LISTOBJECTSINS3EXPORTREQUEST.fields_by_name['page_size']._options = None
 _IMPORTDATAREQUEST.fields_by_name['data']._options = None
 # @@protoc_insertion_point(module_scope)

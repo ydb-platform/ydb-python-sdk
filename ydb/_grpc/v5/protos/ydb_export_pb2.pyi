@@ -1,3 +1,4 @@
+from protos.annotations import sensitive_pb2 as _sensitive_pb2
 from protos.annotations import validation_pb2 as _validation_pb2
 from protos import ydb_operation_pb2 as _ydb_operation_pb2
 from google.protobuf import timestamp_pb2 as _timestamp_pb2
@@ -8,6 +9,19 @@ from google.protobuf import message as _message
 from typing import ClassVar as _ClassVar, Iterable as _Iterable, Mapping as _Mapping, Optional as _Optional, Union as _Union
 
 DESCRIPTOR: _descriptor.FileDescriptor
+
+class EncryptionSettings(_message.Message):
+    __slots__ = ["encryption_algorithm", "symmetric_key"]
+    class SymmetricKey(_message.Message):
+        __slots__ = ["key"]
+        KEY_FIELD_NUMBER: _ClassVar[int]
+        key: bytes
+        def __init__(self, key: _Optional[bytes] = ...) -> None: ...
+    ENCRYPTION_ALGORITHM_FIELD_NUMBER: _ClassVar[int]
+    SYMMETRIC_KEY_FIELD_NUMBER: _ClassVar[int]
+    encryption_algorithm: str
+    symmetric_key: EncryptionSettings.SymmetricKey
+    def __init__(self, encryption_algorithm: _Optional[str] = ..., symmetric_key: _Optional[_Union[EncryptionSettings.SymmetricKey, _Mapping]] = ...) -> None: ...
 
 class ExportItemProgress(_message.Message):
     __slots__ = ["end_time", "parts_completed", "parts_total", "start_time"]
@@ -62,7 +76,7 @@ class ExportToS3Result(_message.Message):
     def __init__(self) -> None: ...
 
 class ExportToS3Settings(_message.Message):
-    __slots__ = ["access_key", "bucket", "compression", "description", "disable_virtual_addressing", "endpoint", "items", "number_of_retries", "region", "scheme", "secret_key", "storage_class"]
+    __slots__ = ["access_key", "bucket", "compression", "description", "destination_prefix", "disable_virtual_addressing", "encryption_settings", "endpoint", "items", "number_of_retries", "region", "scheme", "secret_key", "source_path", "storage_class"]
     class Scheme(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
         __slots__ = []
     class StorageClass(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
@@ -79,7 +93,9 @@ class ExportToS3Settings(_message.Message):
     COMPRESSION_FIELD_NUMBER: _ClassVar[int]
     DEEP_ARCHIVE: ExportToS3Settings.StorageClass
     DESCRIPTION_FIELD_NUMBER: _ClassVar[int]
+    DESTINATION_PREFIX_FIELD_NUMBER: _ClassVar[int]
     DISABLE_VIRTUAL_ADDRESSING_FIELD_NUMBER: _ClassVar[int]
+    ENCRYPTION_SETTINGS_FIELD_NUMBER: _ClassVar[int]
     ENDPOINT_FIELD_NUMBER: _ClassVar[int]
     GLACIER: ExportToS3Settings.StorageClass
     HTTP: ExportToS3Settings.Scheme
@@ -93,6 +109,7 @@ class ExportToS3Settings(_message.Message):
     REGION_FIELD_NUMBER: _ClassVar[int]
     SCHEME_FIELD_NUMBER: _ClassVar[int]
     SECRET_KEY_FIELD_NUMBER: _ClassVar[int]
+    SOURCE_PATH_FIELD_NUMBER: _ClassVar[int]
     STANDARD: ExportToS3Settings.StorageClass
     STANDARD_IA: ExportToS3Settings.StorageClass
     STORAGE_CLASS_FIELD_NUMBER: _ClassVar[int]
@@ -102,15 +119,18 @@ class ExportToS3Settings(_message.Message):
     bucket: str
     compression: str
     description: str
+    destination_prefix: str
     disable_virtual_addressing: bool
+    encryption_settings: EncryptionSettings
     endpoint: str
     items: _containers.RepeatedCompositeFieldContainer[ExportToS3Settings.Item]
     number_of_retries: int
     region: str
     scheme: ExportToS3Settings.Scheme
     secret_key: str
+    source_path: str
     storage_class: ExportToS3Settings.StorageClass
-    def __init__(self, endpoint: _Optional[str] = ..., scheme: _Optional[_Union[ExportToS3Settings.Scheme, str]] = ..., bucket: _Optional[str] = ..., access_key: _Optional[str] = ..., secret_key: _Optional[str] = ..., items: _Optional[_Iterable[_Union[ExportToS3Settings.Item, _Mapping]]] = ..., description: _Optional[str] = ..., number_of_retries: _Optional[int] = ..., storage_class: _Optional[_Union[ExportToS3Settings.StorageClass, str]] = ..., compression: _Optional[str] = ..., region: _Optional[str] = ..., disable_virtual_addressing: bool = ...) -> None: ...
+    def __init__(self, endpoint: _Optional[str] = ..., scheme: _Optional[_Union[ExportToS3Settings.Scheme, str]] = ..., bucket: _Optional[str] = ..., access_key: _Optional[str] = ..., secret_key: _Optional[str] = ..., items: _Optional[_Iterable[_Union[ExportToS3Settings.Item, _Mapping]]] = ..., description: _Optional[str] = ..., number_of_retries: _Optional[int] = ..., storage_class: _Optional[_Union[ExportToS3Settings.StorageClass, str]] = ..., compression: _Optional[str] = ..., region: _Optional[str] = ..., disable_virtual_addressing: bool = ..., source_path: _Optional[str] = ..., destination_prefix: _Optional[str] = ..., encryption_settings: _Optional[_Union[EncryptionSettings, _Mapping]] = ...) -> None: ...
 
 class ExportToYtMetadata(_message.Message):
     __slots__ = ["items_progress", "progress", "settings"]
