@@ -74,6 +74,28 @@ class TestTopicReaderAsyncIO:
                     topic_with_messages, topic_consumer, message.partition_id, message.offset + 1
                 )
 
+    async def test_commit_offset_with_session_id_works(self, driver, topic_with_messages, topic_consumer):
+        async with driver.topic_client.reader(topic_with_messages, topic_consumer) as reader:
+            msg1 = await reader.receive_message()
+            assert msg1.seqno == 1
+            msg2 = await reader.receive_message()
+            assert msg2.seqno == 2
+
+            await driver.topic_client.commit_offset(
+                topic_with_messages,
+                topic_consumer,
+                msg1.partition_id,
+                msg1.offset + 1,
+                reader.read_session_id,
+            )
+
+            msg3 = await reader.receive_message()
+            assert msg3.seqno == 3
+
+        async with driver.topic_client.reader(topic_with_messages, topic_consumer) as reader:
+            msg2 = await reader.receive_message()
+            assert msg2.seqno == 2
+
     async def test_reader_reconnect_after_commit_offset(self, driver, topic_with_messages, topic_consumer):
         async with driver.topic_client.reader(topic_with_messages, topic_consumer) as reader:
             for out in ["123", "456", "789", "0"]:
@@ -212,6 +234,28 @@ class TestTopicReaderSync:
                 driver_sync.topic_client.commit_offset(
                     topic_with_messages, topic_consumer, message.partition_id, message.offset + 1
                 )
+
+    def test_commit_offset_with_session_id_works(self, driver_sync, topic_with_messages, topic_consumer):
+        with driver_sync.topic_client.reader(topic_with_messages, topic_consumer) as reader:
+            msg1 = reader.receive_message()
+            assert msg1.seqno == 1
+            msg2 = reader.receive_message()
+            assert msg2.seqno == 2
+
+            driver_sync.topic_client.commit_offset(
+                topic_with_messages,
+                topic_consumer,
+                msg1.partition_id,
+                msg1.offset + 1,
+                reader.read_session_id,
+            )
+
+            msg3 = reader.receive_message()
+            assert msg3.seqno == 3
+
+        with driver_sync.topic_client.reader(topic_with_messages, topic_consumer) as reader:
+            msg2 = reader.receive_message()
+            assert msg2.seqno == 2
 
     def test_reader_reconnect_after_commit_offset(self, driver_sync, topic_with_messages, topic_consumer):
         with driver_sync.topic_client.reader(topic_with_messages, topic_consumer) as reader:
