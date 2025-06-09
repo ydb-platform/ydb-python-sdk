@@ -1,4 +1,5 @@
 from protos.annotations import validation_pb2 as _validation_pb2
+from protos import ydb_export_pb2 as _ydb_export_pb2
 from protos import ydb_operation_pb2 as _ydb_operation_pb2
 from google.protobuf import timestamp_pb2 as _timestamp_pb2
 from google.protobuf.internal import containers as _containers
@@ -60,40 +61,52 @@ class ImportFromS3Result(_message.Message):
     def __init__(self) -> None: ...
 
 class ImportFromS3Settings(_message.Message):
-    __slots__ = ["access_key", "bucket", "description", "disable_virtual_addressing", "endpoint", "items", "number_of_retries", "region", "scheme", "secret_key"]
+    __slots__ = ["access_key", "bucket", "description", "destination_path", "disable_virtual_addressing", "encryption_settings", "endpoint", "items", "no_acl", "number_of_retries", "region", "scheme", "secret_key", "skip_checksum_validation", "source_prefix"]
     class Scheme(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
         __slots__ = []
     class Item(_message.Message):
-        __slots__ = ["destination_path", "source_prefix"]
+        __slots__ = ["destination_path", "source_path", "source_prefix"]
         DESTINATION_PATH_FIELD_NUMBER: _ClassVar[int]
+        SOURCE_PATH_FIELD_NUMBER: _ClassVar[int]
         SOURCE_PREFIX_FIELD_NUMBER: _ClassVar[int]
         destination_path: str
+        source_path: str
         source_prefix: str
-        def __init__(self, source_prefix: _Optional[str] = ..., destination_path: _Optional[str] = ...) -> None: ...
+        def __init__(self, source_prefix: _Optional[str] = ..., source_path: _Optional[str] = ..., destination_path: _Optional[str] = ...) -> None: ...
     ACCESS_KEY_FIELD_NUMBER: _ClassVar[int]
     BUCKET_FIELD_NUMBER: _ClassVar[int]
     DESCRIPTION_FIELD_NUMBER: _ClassVar[int]
+    DESTINATION_PATH_FIELD_NUMBER: _ClassVar[int]
     DISABLE_VIRTUAL_ADDRESSING_FIELD_NUMBER: _ClassVar[int]
+    ENCRYPTION_SETTINGS_FIELD_NUMBER: _ClassVar[int]
     ENDPOINT_FIELD_NUMBER: _ClassVar[int]
     HTTP: ImportFromS3Settings.Scheme
     HTTPS: ImportFromS3Settings.Scheme
     ITEMS_FIELD_NUMBER: _ClassVar[int]
+    NO_ACL_FIELD_NUMBER: _ClassVar[int]
     NUMBER_OF_RETRIES_FIELD_NUMBER: _ClassVar[int]
     REGION_FIELD_NUMBER: _ClassVar[int]
     SCHEME_FIELD_NUMBER: _ClassVar[int]
     SECRET_KEY_FIELD_NUMBER: _ClassVar[int]
+    SKIP_CHECKSUM_VALIDATION_FIELD_NUMBER: _ClassVar[int]
+    SOURCE_PREFIX_FIELD_NUMBER: _ClassVar[int]
     UNSPECIFIED: ImportFromS3Settings.Scheme
     access_key: str
     bucket: str
     description: str
+    destination_path: str
     disable_virtual_addressing: bool
+    encryption_settings: _ydb_export_pb2.EncryptionSettings
     endpoint: str
     items: _containers.RepeatedCompositeFieldContainer[ImportFromS3Settings.Item]
+    no_acl: bool
     number_of_retries: int
     region: str
     scheme: ImportFromS3Settings.Scheme
     secret_key: str
-    def __init__(self, endpoint: _Optional[str] = ..., scheme: _Optional[_Union[ImportFromS3Settings.Scheme, str]] = ..., bucket: _Optional[str] = ..., access_key: _Optional[str] = ..., secret_key: _Optional[str] = ..., items: _Optional[_Iterable[_Union[ImportFromS3Settings.Item, _Mapping]]] = ..., description: _Optional[str] = ..., number_of_retries: _Optional[int] = ..., region: _Optional[str] = ..., disable_virtual_addressing: bool = ...) -> None: ...
+    skip_checksum_validation: bool
+    source_prefix: str
+    def __init__(self, endpoint: _Optional[str] = ..., scheme: _Optional[_Union[ImportFromS3Settings.Scheme, str]] = ..., bucket: _Optional[str] = ..., access_key: _Optional[str] = ..., secret_key: _Optional[str] = ..., items: _Optional[_Iterable[_Union[ImportFromS3Settings.Item, _Mapping]]] = ..., description: _Optional[str] = ..., number_of_retries: _Optional[int] = ..., region: _Optional[str] = ..., disable_virtual_addressing: bool = ..., no_acl: bool = ..., skip_checksum_validation: bool = ..., source_prefix: _Optional[str] = ..., destination_path: _Optional[str] = ..., encryption_settings: _Optional[_Union[_ydb_export_pb2.EncryptionSettings, _Mapping]] = ...) -> None: ...
 
 class ImportItemProgress(_message.Message):
     __slots__ = ["end_time", "parts_completed", "parts_total", "start_time"]
@@ -114,11 +127,76 @@ class ImportProgress(_message.Message):
     PROGRESS_BUILD_INDEXES: ImportProgress.Progress
     PROGRESS_CANCELLATION: ImportProgress.Progress
     PROGRESS_CANCELLED: ImportProgress.Progress
+    PROGRESS_CREATE_CHANGEFEEDS: ImportProgress.Progress
     PROGRESS_DONE: ImportProgress.Progress
     PROGRESS_PREPARING: ImportProgress.Progress
     PROGRESS_TRANSFER_DATA: ImportProgress.Progress
     PROGRESS_UNSPECIFIED: ImportProgress.Progress
     def __init__(self) -> None: ...
+
+class ListObjectsInS3ExportRequest(_message.Message):
+    __slots__ = ["operation_params", "page_size", "page_token", "settings"]
+    OPERATION_PARAMS_FIELD_NUMBER: _ClassVar[int]
+    PAGE_SIZE_FIELD_NUMBER: _ClassVar[int]
+    PAGE_TOKEN_FIELD_NUMBER: _ClassVar[int]
+    SETTINGS_FIELD_NUMBER: _ClassVar[int]
+    operation_params: _ydb_operation_pb2.OperationParams
+    page_size: int
+    page_token: str
+    settings: ListObjectsInS3ExportSettings
+    def __init__(self, operation_params: _Optional[_Union[_ydb_operation_pb2.OperationParams, _Mapping]] = ..., settings: _Optional[_Union[ListObjectsInS3ExportSettings, _Mapping]] = ..., page_size: _Optional[int] = ..., page_token: _Optional[str] = ...) -> None: ...
+
+class ListObjectsInS3ExportResponse(_message.Message):
+    __slots__ = ["operation"]
+    OPERATION_FIELD_NUMBER: _ClassVar[int]
+    operation: _ydb_operation_pb2.Operation
+    def __init__(self, operation: _Optional[_Union[_ydb_operation_pb2.Operation, _Mapping]] = ...) -> None: ...
+
+class ListObjectsInS3ExportResult(_message.Message):
+    __slots__ = ["items", "next_page_token"]
+    class Item(_message.Message):
+        __slots__ = ["path", "prefix"]
+        PATH_FIELD_NUMBER: _ClassVar[int]
+        PREFIX_FIELD_NUMBER: _ClassVar[int]
+        path: str
+        prefix: str
+        def __init__(self, prefix: _Optional[str] = ..., path: _Optional[str] = ...) -> None: ...
+    ITEMS_FIELD_NUMBER: _ClassVar[int]
+    NEXT_PAGE_TOKEN_FIELD_NUMBER: _ClassVar[int]
+    items: _containers.RepeatedCompositeFieldContainer[ListObjectsInS3ExportResult.Item]
+    next_page_token: str
+    def __init__(self, items: _Optional[_Iterable[_Union[ListObjectsInS3ExportResult.Item, _Mapping]]] = ..., next_page_token: _Optional[str] = ...) -> None: ...
+
+class ListObjectsInS3ExportSettings(_message.Message):
+    __slots__ = ["access_key", "bucket", "disable_virtual_addressing", "encryption_settings", "endpoint", "items", "number_of_retries", "prefix", "region", "scheme", "secret_key"]
+    class Item(_message.Message):
+        __slots__ = ["path"]
+        PATH_FIELD_NUMBER: _ClassVar[int]
+        path: str
+        def __init__(self, path: _Optional[str] = ...) -> None: ...
+    ACCESS_KEY_FIELD_NUMBER: _ClassVar[int]
+    BUCKET_FIELD_NUMBER: _ClassVar[int]
+    DISABLE_VIRTUAL_ADDRESSING_FIELD_NUMBER: _ClassVar[int]
+    ENCRYPTION_SETTINGS_FIELD_NUMBER: _ClassVar[int]
+    ENDPOINT_FIELD_NUMBER: _ClassVar[int]
+    ITEMS_FIELD_NUMBER: _ClassVar[int]
+    NUMBER_OF_RETRIES_FIELD_NUMBER: _ClassVar[int]
+    PREFIX_FIELD_NUMBER: _ClassVar[int]
+    REGION_FIELD_NUMBER: _ClassVar[int]
+    SCHEME_FIELD_NUMBER: _ClassVar[int]
+    SECRET_KEY_FIELD_NUMBER: _ClassVar[int]
+    access_key: str
+    bucket: str
+    disable_virtual_addressing: bool
+    encryption_settings: _ydb_export_pb2.EncryptionSettings
+    endpoint: str
+    items: _containers.RepeatedCompositeFieldContainer[ListObjectsInS3ExportSettings.Item]
+    number_of_retries: int
+    prefix: str
+    region: str
+    scheme: ImportFromS3Settings.Scheme
+    secret_key: str
+    def __init__(self, endpoint: _Optional[str] = ..., scheme: _Optional[_Union[ImportFromS3Settings.Scheme, str]] = ..., bucket: _Optional[str] = ..., access_key: _Optional[str] = ..., secret_key: _Optional[str] = ..., items: _Optional[_Iterable[_Union[ListObjectsInS3ExportSettings.Item, _Mapping]]] = ..., number_of_retries: _Optional[int] = ..., region: _Optional[str] = ..., disable_virtual_addressing: bool = ..., prefix: _Optional[str] = ..., encryption_settings: _Optional[_Union[_ydb_export_pb2.EncryptionSettings, _Mapping]] = ...) -> None: ...
 
 class YdbDumpFormat(_message.Message):
     __slots__ = ["columns"]

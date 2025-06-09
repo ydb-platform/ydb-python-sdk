@@ -15,7 +15,7 @@ _sym_db = _symbol_database.Default()
 from ydb._grpc.v5.protos import ydb_import_pb2 as protos_dot_ydb__import__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x13ydb_import_v1.proto\x12\rYdb.Import.V1\x1a\x17protos/ydb_import.proto2\xaf\x01\n\rImportService\x12Q\n\x0cImportFromS3\x12\x1f.Ydb.Import.ImportFromS3Request\x1a .Ydb.Import.ImportFromS3Response\x12K\n\nImportData\x12\x1d.Ydb.Import.ImportDataRequest\x1a\x1e.Ydb.Import.ImportDataResponseBR\n\x19tech.ydb.proto.import_.v1Z5github.com/ydb-platform/ydb-go-genproto/Ydb_Import_V1b\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x13ydb_import_v1.proto\x12\rYdb.Import.V1\x1a\x17protos/ydb_import.proto2\x9d\x02\n\rImportService\x12Q\n\x0cImportFromS3\x12\x1f.Ydb.Import.ImportFromS3Request\x1a .Ydb.Import.ImportFromS3Response\x12l\n\x15ListObjectsInS3Export\x12(.Ydb.Import.ListObjectsInS3ExportRequest\x1a).Ydb.Import.ListObjectsInS3ExportResponse\x12K\n\nImportData\x12\x1d.Ydb.Import.ImportDataRequest\x1a\x1e.Ydb.Import.ImportDataResponseBR\n\x19tech.ydb.proto.import_.v1Z5github.com/ydb-platform/ydb-go-genproto/Ydb_Import_V1b\x06proto3')
 
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, globals())
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'ydb_import_v1_pb2', globals())
@@ -24,5 +24,5 @@ if _descriptor._USE_C_DESCRIPTORS == False:
   DESCRIPTOR._options = None
   DESCRIPTOR._serialized_options = b'\n\031tech.ydb.proto.import_.v1Z5github.com/ydb-platform/ydb-go-genproto/Ydb_Import_V1'
   _IMPORTSERVICE._serialized_start=64
-  _IMPORTSERVICE._serialized_end=239
+  _IMPORTSERVICE._serialized_end=349
 # @@protoc_insertion_point(module_scope)

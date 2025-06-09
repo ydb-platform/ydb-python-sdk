@@ -7,12 +7,7 @@ from ydb._grpc.v4.protos import ydb_query_pb2 as protos_dot_ydb__query__pb2
 
 
 class QueryServiceStub(object):
-    """! WARNING: Experimental API
-    ! This API is currently in experimental state and is a subject for changes.
-    ! No backward and/or forward compatibility guarantees are provided.
-    ! DO NOT USE for production workloads.
-
-    """
+    """Missing associated documentation comment in .proto file."""
 
     def __init__(self, channel):
         """Constructor.
@@ -68,12 +63,7 @@ class QueryServiceStub(object):
 
 
 class QueryServiceServicer(object):
-    """! WARNING: Experimental API
-    ! This API is currently in experimental state and is a subject for changes.
-    ! No backward and/or forward compatibility guarantees are provided.
-    ! DO NOT USE for production workloads.
-
-    """
+    """Missing associated documentation comment in .proto file."""
 
     def CreateSession(self, request, context):
         """Sessions are basic primitives for communicating with YDB Query Service. The are similar to
@@ -214,12 +204,7 @@ def add_QueryServiceServicer_to_server(servicer, server):
 
  # This class is part of an EXPERIMENTAL API.
 class QueryService(object):
-    """! WARNING: Experimental API
-    ! This API is currently in experimental state and is a subject for changes.
-    ! No backward and/or forward compatibility guarantees are provided.
-    ! DO NOT USE for production workloads.
-
-    """
+    """Missing associated documentation comment in .proto file."""
 
     @staticmethod
     def CreateSession(request,

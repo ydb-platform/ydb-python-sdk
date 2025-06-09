@@ -145,18 +145,20 @@ class AutoPartitioningWriteSpeedStrategy(_message.Message):
     def __init__(self, stabilization_window: _Optional[_Union[_duration_pb2.Duration, _Mapping]] = ..., up_utilization_percent: _Optional[int] = ..., down_utilization_percent: _Optional[int] = ...) -> None: ...
 
 class CommitOffsetRequest(_message.Message):
-    __slots__ = ["consumer", "offset", "operation_params", "partition_id", "path"]
+    __slots__ = ["consumer", "offset", "operation_params", "partition_id", "path", "read_session_id"]
     CONSUMER_FIELD_NUMBER: _ClassVar[int]
     OFFSET_FIELD_NUMBER: _ClassVar[int]
     OPERATION_PARAMS_FIELD_NUMBER: _ClassVar[int]
     PARTITION_ID_FIELD_NUMBER: _ClassVar[int]
     PATH_FIELD_NUMBER: _ClassVar[int]
+    READ_SESSION_ID_FIELD_NUMBER: _ClassVar[int]
     consumer: str
     offset: int
     operation_params: _ydb_operation_pb2.OperationParams
     partition_id: int
     path: str
-    def __init__(self, operation_params: _Optional[_Union[_ydb_operation_pb2.OperationParams, _Mapping]] = ..., path: _Optional[str] = ..., partition_id: _Optional[int] = ..., consumer: _Optional[str] = ..., offset: _Optional[int] = ...) -> None: ...
+    read_session_id: str
+    def __init__(self, operation_params: _Optional[_Union[_ydb_operation_pb2.OperationParams, _Mapping]] = ..., path: _Optional[str] = ..., partition_id: _Optional[int] = ..., consumer: _Optional[str] = ..., offset: _Optional[int] = ..., read_session_id: _Optional[str] = ...) -> None: ...
 
 class CommitOffsetResponse(_message.Message):
     __slots__ = ["operation"]
@@ -178,16 +180,18 @@ class Consumer(_message.Message):
         value: str
         def __init__(self, key: _Optional[str] = ..., value: _Optional[str] = ...) -> None: ...
     class ConsumerStats(_message.Message):
-        __slots__ = ["bytes_read", "max_read_time_lag", "max_write_time_lag", "min_partitions_last_read_time"]
+        __slots__ = ["bytes_read", "max_committed_time_lag", "max_read_time_lag", "max_write_time_lag", "min_partitions_last_read_time"]
         BYTES_READ_FIELD_NUMBER: _ClassVar[int]
+        MAX_COMMITTED_TIME_LAG_FIELD_NUMBER: _ClassVar[int]
         MAX_READ_TIME_LAG_FIELD_NUMBER: _ClassVar[int]
         MAX_WRITE_TIME_LAG_FIELD_NUMBER: _ClassVar[int]
         MIN_PARTITIONS_LAST_READ_TIME_FIELD_NUMBER: _ClassVar[int]
         bytes_read: MultipleWindowsStat
+        max_committed_time_lag: _duration_pb2.Duration
         max_read_time_lag: _duration_pb2.Duration
         max_write_time_lag: _duration_pb2.Duration
         min_partitions_last_read_time: _timestamp_pb2.Timestamp
-        def __init__(self, min_partitions_last_read_time: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., max_read_time_lag: _Optional[_Union[_duration_pb2.Duration, _Mapping]] = ..., max_write_time_lag: _Optional[_Union[_duration_pb2.Duration, _Mapping]] = ..., bytes_read: _Optional[_Union[MultipleWindowsStat, _Mapping]] = ...) -> None: ...
+        def __init__(self, min_partitions_last_read_time: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., max_read_time_lag: _Optional[_Union[_duration_pb2.Duration, _Mapping]] = ..., max_write_time_lag: _Optional[_Union[_duration_pb2.Duration, _Mapping]] = ..., max_committed_time_lag: _Optional[_Union[_duration_pb2.Duration, _Mapping]] = ..., bytes_read: _Optional[_Union[MultipleWindowsStat, _Mapping]] = ...) -> None: ...
     ATTRIBUTES_FIELD_NUMBER: _ClassVar[int]
     CONSUMER_STATS_FIELD_NUMBER: _ClassVar[int]
     IMPORTANT_FIELD_NUMBER: _ClassVar[int]
@@ -268,12 +272,13 @@ class DescribeConsumerResponse(_message.Message):
 class DescribeConsumerResult(_message.Message):
     __slots__ = ["consumer", "partitions", "self"]
     class PartitionConsumerStats(_message.Message):
-        __slots__ = ["bytes_read", "committed_offset", "connection_node_id", "last_read_offset", "last_read_time", "max_read_time_lag", "max_write_time_lag", "partition_read_session_create_time", "read_session_id", "reader_name"]
+        __slots__ = ["bytes_read", "committed_offset", "connection_node_id", "last_read_offset", "last_read_time", "max_committed_time_lag", "max_read_time_lag", "max_write_time_lag", "partition_read_session_create_time", "read_session_id", "reader_name"]
         BYTES_READ_FIELD_NUMBER: _ClassVar[int]
         COMMITTED_OFFSET_FIELD_NUMBER: _ClassVar[int]
         CONNECTION_NODE_ID_FIELD_NUMBER: _ClassVar[int]
         LAST_READ_OFFSET_FIELD_NUMBER: _ClassVar[int]
         LAST_READ_TIME_FIELD_NUMBER: _ClassVar[int]
+        MAX_COMMITTED_TIME_LAG_FIELD_NUMBER: _ClassVar[int]
         MAX_READ_TIME_LAG_FIELD_NUMBER: _ClassVar[int]
         MAX_WRITE_TIME_LAG_FIELD_NUMBER: _ClassVar[int]
         PARTITION_READ_SESSION_CREATE_TIME_FIELD_NUMBER: _ClassVar[int]
@@ -284,12 +289,13 @@ class DescribeConsumerResult(_message.Message):
         connection_node_id: int
         last_read_offset: int
         last_read_time: _timestamp_pb2.Timestamp
+        max_committed_time_lag: _duration_pb2.Duration
         max_read_time_lag: _duration_pb2.Duration
         max_write_time_lag: _duration_pb2.Duration
         partition_read_session_create_time: _timestamp_pb2.Timestamp
         read_session_id: str
         reader_name: str
-        def __init__(self, last_read_offset: _Optional[int] = ..., committed_offset: _Optional[int] = ..., read_session_id: _Optional[str] = ..., partition_read_session_create_time: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., last_read_time: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., max_read_time_lag: _Optional[_Union[_duration_pb2.Duration, _Mapping]] = ..., max_write_time_lag: _Optional[_Union[_duration_pb2.Duration, _Mapping]] = ..., bytes_read: _Optional[_Union[MultipleWindowsStat, _Mapping]] = ..., reader_name: _Optional[str] = ..., connection_node_id: _Optional[int] = ...) -> None: ...
+        def __init__(self, last_read_offset: _Optional[int] = ..., committed_offset: _Optional[int] = ..., read_session_id: _Optional[str] = ..., partition_read_session_create_time: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., last_read_time: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., max_read_time_lag: _Optional[_Union[_duration_pb2.Duration, _Mapping]] = ..., max_write_time_lag: _Optional[_Union[_duration_pb2.Duration, _Mapping]] = ..., max_committed_time_lag: _Optional[_Union[_duration_pb2.Duration, _Mapping]] = ..., bytes_read: _Optional[_Union[MultipleWindowsStat, _Mapping]] = ..., reader_name: _Optional[str] = ..., connection_node_id: _Optional[int] = ...) -> None: ...
     class PartitionInfo(_message.Message):
         __slots__ = ["active", "child_partition_ids", "parent_partition_ids", "partition_consumer_stats", "partition_id", "partition_location", "partition_stats"]
         ACTIVE_FIELD_NUMBER: _ClassVar[int]
@@ -525,14 +531,16 @@ class PartitioningSettings(_message.Message):
 class StreamDirectReadMessage(_message.Message):
     __slots__ = []
     class DirectReadResponse(_message.Message):
-        __slots__ = ["direct_read_id", "partition_data", "partition_session_id"]
+        __slots__ = ["bytes_size", "direct_read_id", "partition_data", "partition_session_id"]
+        BYTES_SIZE_FIELD_NUMBER: _ClassVar[int]
         DIRECT_READ_ID_FIELD_NUMBER: _ClassVar[int]
         PARTITION_DATA_FIELD_NUMBER: _ClassVar[int]
         PARTITION_SESSION_ID_FIELD_NUMBER: _ClassVar[int]
+        bytes_size: int
         direct_read_id: int
         partition_data: StreamReadMessage.ReadResponse.PartitionData
         partition_session_id: int
-        def __init__(self, partition_session_id: _Optional[int] = ..., direct_read_id: _Optional[int] = ..., partition_data: _Optional[_Union[StreamReadMessage.ReadResponse.PartitionData, _Mapping]] = ...) -> None: ...
+        def __init__(self, partition_session_id: _Optional[int] = ..., direct_read_id: _Optional[int] = ..., partition_data: _Optional[_Union[StreamReadMessage.ReadResponse.PartitionData, _Mapping]] = ..., bytes_size: _Optional[int] = ...) -> None: ...
     class FromClient(_message.Message):
         __slots__ = ["init_request", "start_direct_read_partition_session_request", "update_token_request"]
         INIT_REQUEST_FIELD_NUMBER: _ClassVar[int]

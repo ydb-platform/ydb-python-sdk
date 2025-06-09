@@ -180,7 +180,7 @@ class ConnectionContent(_message.Message):
     def __init__(self, name: _Optional[str] = ..., setting: _Optional[_Union[ConnectionSetting, _Mapping]] = ..., acl: _Optional[_Union[Acl, _Mapping]] = ..., description: _Optional[str] = ...) -> None: ...
 
 class ConnectionSetting(_message.Message):
-    __slots__ = ["clickhouse_cluster", "data_streams", "monitoring", "object_storage", "postgresql_cluster", "ydb_database"]
+    __slots__ = ["clickhouse_cluster", "data_streams", "greenplum_cluster", "iceberg", "logging", "monitoring", "mysql_cluster", "object_storage", "postgresql_cluster", "ydb_database"]
     class ConnectionType(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
         __slots__ = []
     CLICKHOUSE_CLUSTER: ConnectionSetting.ConnectionType
@@ -188,8 +188,16 @@ class ConnectionSetting(_message.Message):
     CONNECTION_TYPE_UNSPECIFIED: ConnectionSetting.ConnectionType
     DATA_STREAMS: ConnectionSetting.ConnectionType
     DATA_STREAMS_FIELD_NUMBER: _ClassVar[int]
+    GREENPLUM_CLUSTER: ConnectionSetting.ConnectionType
+    GREENPLUM_CLUSTER_FIELD_NUMBER: _ClassVar[int]
+    ICEBERG: ConnectionSetting.ConnectionType
+    ICEBERG_FIELD_NUMBER: _ClassVar[int]
+    LOGGING: ConnectionSetting.ConnectionType
+    LOGGING_FIELD_NUMBER: _ClassVar[int]
     MONITORING: ConnectionSetting.ConnectionType
     MONITORING_FIELD_NUMBER: _ClassVar[int]
+    MYSQL_CLUSTER: ConnectionSetting.ConnectionType
+    MYSQL_CLUSTER_FIELD_NUMBER: _ClassVar[int]
     OBJECT_STORAGE: ConnectionSetting.ConnectionType
     OBJECT_STORAGE_FIELD_NUMBER: _ClassVar[int]
     POSTGRESQL_CLUSTER: ConnectionSetting.ConnectionType
@@ -198,11 +206,15 @@ class ConnectionSetting(_message.Message):
     YDB_DATABASE_FIELD_NUMBER: _ClassVar[int]
     clickhouse_cluster: ClickHouseCluster
     data_streams: DataStreams
+    greenplum_cluster: GreenplumCluster
+    iceberg: Iceberg
+    logging: Logging
     monitoring: Monitoring
+    mysql_cluster: MySQLCluster
     object_storage: ObjectStorageConnection
     postgresql_cluster: PostgreSQLCluster
     ydb_database: YdbDatabase
-    def __init__(self, ydb_database: _Optional[_Union[YdbDatabase, _Mapping]] = ..., clickhouse_cluster: _Optional[_Union[ClickHouseCluster, _Mapping]] = ..., data_streams: _Optional[_Union[DataStreams, _Mapping]] = ..., object_storage: _Optional[_Union[ObjectStorageConnection, _Mapping]] = ..., monitoring: _Optional[_Union[Monitoring, _Mapping]] = ..., postgresql_cluster: _Optional[_Union[PostgreSQLCluster, _Mapping]] = ...) -> None: ...
+    def __init__(self, ydb_database: _Optional[_Union[YdbDatabase, _Mapping]] = ..., clickhouse_cluster: _Optional[_Union[ClickHouseCluster, _Mapping]] = ..., data_streams: _Optional[_Union[DataStreams, _Mapping]] = ..., object_storage: _Optional[_Union[ObjectStorageConnection, _Mapping]] = ..., monitoring: _Optional[_Union[Monitoring, _Mapping]] = ..., postgresql_cluster: _Optional[_Union[PostgreSQLCluster, _Mapping]] = ..., greenplum_cluster: _Optional[_Union[GreenplumCluster, _Mapping]] = ..., mysql_cluster: _Optional[_Union[MySQLCluster, _Mapping]] = ..., logging: _Optional[_Union[Logging, _Mapping]] = ..., iceberg: _Optional[_Union[Iceberg, _Mapping]] = ...) -> None: ...
 
 class ControlQueryRequest(_message.Message):
     __slots__ = ["action", "idempotency_key", "operation_params", "previous_revision", "query_id"]
@@ -303,18 +315,20 @@ class CurrentIAMTokenAuth(_message.Message):
     def __init__(self) -> None: ...
 
 class DataStreams(_message.Message):
-    __slots__ = ["auth", "database", "database_id", "endpoint", "secure"]
+    __slots__ = ["auth", "database", "database_id", "endpoint", "secure", "shared_reading"]
     AUTH_FIELD_NUMBER: _ClassVar[int]
     DATABASE_FIELD_NUMBER: _ClassVar[int]
     DATABASE_ID_FIELD_NUMBER: _ClassVar[int]
     ENDPOINT_FIELD_NUMBER: _ClassVar[int]
     SECURE_FIELD_NUMBER: _ClassVar[int]
+    SHARED_READING_FIELD_NUMBER: _ClassVar[int]
     auth: IamAuth
     database: str
     database_id: str
     endpoint: str
     secure: bool
-    def __init__(self, database_id: _Optional[str] = ..., auth: _Optional[_Union[IamAuth, _Mapping]] = ..., endpoint: _Optional[str] = ..., database: _Optional[str] = ..., secure: bool = ...) -> None: ...
+    shared_reading: bool
+    def __init__(self, database_id: _Optional[str] = ..., auth: _Optional[_Union[IamAuth, _Mapping]] = ..., endpoint: _Optional[str] = ..., database: _Optional[str] = ..., secure: bool = ..., shared_reading: bool = ...) -> None: ...
 
 class DataStreamsBinding(_message.Message):
     __slots__ = ["compression", "format", "format_setting", "schema", "stream_name"]
@@ -531,24 +545,93 @@ class GetResultDataResult(_message.Message):
     result_set: _ydb_value_pb2.ResultSet
     def __init__(self, result_set: _Optional[_Union[_ydb_value_pb2.ResultSet, _Mapping]] = ...) -> None: ...
 
+class GreenplumCluster(_message.Message):
+    __slots__ = ["auth", "database_id", "database_name", "login", "password", "schema"]
+    AUTH_FIELD_NUMBER: _ClassVar[int]
+    DATABASE_ID_FIELD_NUMBER: _ClassVar[int]
+    DATABASE_NAME_FIELD_NUMBER: _ClassVar[int]
+    LOGIN_FIELD_NUMBER: _ClassVar[int]
+    PASSWORD_FIELD_NUMBER: _ClassVar[int]
+    SCHEMA_FIELD_NUMBER: _ClassVar[int]
+    auth: IamAuth
+    database_id: str
+    database_name: str
+    login: str
+    password: str
+    schema: str
+    def __init__(self, database_id: _Optional[str] = ..., database_name: _Optional[str] = ..., login: _Optional[str] = ..., password: _Optional[str] = ..., schema: _Optional[str] = ..., auth: _Optional[_Union[IamAuth, _Mapping]] = ...) -> None: ...
+
 class IamAuth(_message.Message):
-    __slots__ = ["current_iam", "none", "service_account"]
+    __slots__ = ["current_iam", "none", "service_account", "token"]
     CURRENT_IAM_FIELD_NUMBER: _ClassVar[int]
     NONE_FIELD_NUMBER: _ClassVar[int]
     SERVICE_ACCOUNT_FIELD_NUMBER: _ClassVar[int]
+    TOKEN_FIELD_NUMBER: _ClassVar[int]
     current_iam: CurrentIAMTokenAuth
     none: NoneAuth
     service_account: ServiceAccountAuth
-    def __init__(self, current_iam: _Optional[_Union[CurrentIAMTokenAuth, _Mapping]] = ..., service_account: _Optional[_Union[ServiceAccountAuth, _Mapping]] = ..., none: _Optional[_Union[NoneAuth, _Mapping]] = ...) -> None: ...
+    token: TokenAuth
+    def __init__(self, current_iam: _Optional[_Union[CurrentIAMTokenAuth, _Mapping]] = ..., service_account: _Optional[_Union[ServiceAccountAuth, _Mapping]] = ..., none: _Optional[_Union[NoneAuth, _Mapping]] = ..., token: _Optional[_Union[TokenAuth, _Mapping]] = ...) -> None: ...
+
+class Iceberg(_message.Message):
+    __slots__ = ["catalog", "warehouse", "warehouse_auth"]
+    CATALOG_FIELD_NUMBER: _ClassVar[int]
+    WAREHOUSE_AUTH_FIELD_NUMBER: _ClassVar[int]
+    WAREHOUSE_FIELD_NUMBER: _ClassVar[int]
+    catalog: IcebergCatalog
+    warehouse: IcebergWarehouse
+    warehouse_auth: IamAuth
+    def __init__(self, warehouse_auth: _Optional[_Union[IamAuth, _Mapping]] = ..., warehouse: _Optional[_Union[IcebergWarehouse, _Mapping]] = ..., catalog: _Optional[_Union[IcebergCatalog, _Mapping]] = ...) -> None: ...
+
+class IcebergCatalog(_message.Message):
+    __slots__ = ["hadoop", "hive_metastore"]
+    class Hadoop(_message.Message):
+        __slots__ = ["directory"]
+        DIRECTORY_FIELD_NUMBER: _ClassVar[int]
+        directory: str
+        def __init__(self, directory: _Optional[str] = ...) -> None: ...
+    class HiveMetastore(_message.Message):
+        __slots__ = ["database_name", "uri"]
+        DATABASE_NAME_FIELD_NUMBER: _ClassVar[int]
+        URI_FIELD_NUMBER: _ClassVar[int]
+        database_name: str
+        uri: str
+        def __init__(self, uri: _Optional[str] = ..., database_name: _Optional[str] = ...) -> None: ...
+    HADOOP_FIELD_NUMBER: _ClassVar[int]
+    HIVE_METASTORE_FIELD_NUMBER: _ClassVar[int]
+    hadoop: IcebergCatalog.Hadoop
+    hive_metastore: IcebergCatalog.HiveMetastore
+    def __init__(self, hadoop: _Optional[_Union[IcebergCatalog.Hadoop, _Mapping]] = ..., hive_metastore: _Optional[_Union[IcebergCatalog.HiveMetastore, _Mapping]] = ...) -> None: ...
+
+class IcebergWarehouse(_message.Message):
+    __slots__ = ["s3"]
+    class S3(_message.Message):
+        __slots__ = ["bucket", "path"]
+        BUCKET_FIELD_NUMBER: _ClassVar[int]
+        PATH_FIELD_NUMBER: _ClassVar[int]
+        bucket: str
+        path: str
+        def __init__(self, bucket: _Optional[str] = ..., path: _Optional[str] = ...) -> None: ...
+    S3_FIELD_NUMBER: _ClassVar[int]
+    s3: IcebergWarehouse.S3
+    def __init__(self, s3: _Optional[_Union[IcebergWarehouse.S3, _Mapping]] = ...) -> None: ...
 
 class Job(_message.Message):
-    __slots__ = ["acl", "ast", "automatic", "expire_at", "issue", "meta", "plan", "query_meta", "query_name", "result_set_meta", "statistics", "syntax", "text"]
+    __slots__ = ["acl", "ast", "automatic", "expire_at", "issue", "meta", "parameters", "plan", "query_meta", "query_name", "result_set_meta", "statistics", "syntax", "text"]
+    class ParametersEntry(_message.Message):
+        __slots__ = ["key", "value"]
+        KEY_FIELD_NUMBER: _ClassVar[int]
+        VALUE_FIELD_NUMBER: _ClassVar[int]
+        key: str
+        value: _ydb_value_pb2.TypedValue
+        def __init__(self, key: _Optional[str] = ..., value: _Optional[_Union[_ydb_value_pb2.TypedValue, _Mapping]] = ...) -> None: ...
     ACL_FIELD_NUMBER: _ClassVar[int]
     AST_FIELD_NUMBER: _ClassVar[int]
     AUTOMATIC_FIELD_NUMBER: _ClassVar[int]
     EXPIRE_AT_FIELD_NUMBER: _ClassVar[int]
     ISSUE_FIELD_NUMBER: _ClassVar[int]
     META_FIELD_NUMBER: _ClassVar[int]
+    PARAMETERS_FIELD_NUMBER: _ClassVar[int]
     PLAN_FIELD_NUMBER: _ClassVar[int]
     QUERY_META_FIELD_NUMBER: _ClassVar[int]
     QUERY_NAME_FIELD_NUMBER: _ClassVar[int]
@@ -562,6 +645,7 @@ class Job(_message.Message):
     expire_at: _timestamp_pb2.Timestamp
     issue: _containers.RepeatedCompositeFieldContainer[_ydb_issue_message_pb2.IssueMessage]
     meta: CommonMeta
+    parameters: _containers.MessageMap[str, _ydb_value_pb2.TypedValue]
     plan: QueryPlan
     query_meta: QueryMeta
     query_name: str
@@ -569,7 +653,7 @@ class Job(_message.Message):
     statistics: QueryStatistics
     syntax: QueryContent.QuerySyntax
     text: str
-    def __init__(self, meta: _Optional[_Union[CommonMeta, _Mapping]] = ..., text: _Optional[str] = ..., query_meta: _Optional[_Union[QueryMeta, _Mapping]] = ..., plan: _Optional[_Union[QueryPlan, _Mapping]] = ..., issue: _Optional[_Iterable[_Union[_ydb_issue_message_pb2.IssueMessage, _Mapping]]] = ..., statistics: _Optional[_Union[QueryStatistics, _Mapping]] = ..., result_set_meta: _Optional[_Iterable[_Union[ResultSetMeta, _Mapping]]] = ..., ast: _Optional[_Union[QueryAst, _Mapping]] = ..., query_name: _Optional[str] = ..., acl: _Optional[_Union[Acl, _Mapping]] = ..., automatic: bool = ..., expire_at: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., syntax: _Optional[_Union[QueryContent.QuerySyntax, str]] = ...) -> None: ...
+    def __init__(self, meta: _Optional[_Union[CommonMeta, _Mapping]] = ..., text: _Optional[str] = ..., query_meta: _Optional[_Union[QueryMeta, _Mapping]] = ..., plan: _Optional[_Union[QueryPlan, _Mapping]] = ..., issue: _Optional[_Iterable[_Union[_ydb_issue_message_pb2.IssueMessage, _Mapping]]] = ..., statistics: _Optional[_Union[QueryStatistics, _Mapping]] = ..., result_set_meta: _Optional[_Iterable[_Union[ResultSetMeta, _Mapping]]] = ..., ast: _Optional[_Union[QueryAst, _Mapping]] = ..., query_name: _Optional[str] = ..., acl: _Optional[_Union[Acl, _Mapping]] = ..., automatic: bool = ..., expire_at: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., syntax: _Optional[_Union[QueryContent.QuerySyntax, str]] = ..., parameters: _Optional[_Mapping[str, _ydb_value_pb2.TypedValue]] = ...) -> None: ...
 
 class Limits(_message.Message):
     __slots__ = ["execution_deadline", "execution_timeout", "flow_rate_limit", "max_result_rows", "max_result_size", "memory_limit", "result_ttl", "vcpu_rate_limit", "vcpu_time_limit"]
@@ -745,6 +829,14 @@ class ListQueriesResult(_message.Message):
     query: _containers.RepeatedCompositeFieldContainer[BriefQuery]
     def __init__(self, query: _Optional[_Iterable[_Union[BriefQuery, _Mapping]]] = ..., next_page_token: _Optional[str] = ...) -> None: ...
 
+class Logging(_message.Message):
+    __slots__ = ["auth", "folder_id"]
+    AUTH_FIELD_NUMBER: _ClassVar[int]
+    FOLDER_ID_FIELD_NUMBER: _ClassVar[int]
+    auth: IamAuth
+    folder_id: str
+    def __init__(self, folder_id: _Optional[str] = ..., auth: _Optional[_Union[IamAuth, _Mapping]] = ...) -> None: ...
+
 class ModifyBindingRequest(_message.Message):
     __slots__ = ["binding_id", "content", "idempotency_key", "operation_params", "previous_revision"]
     BINDING_ID_FIELD_NUMBER: _ClassVar[int]
@@ -833,6 +925,20 @@ class Monitoring(_message.Message):
     project: str
     def __init__(self, project: _Optional[str] = ..., cluster: _Optional[str] = ..., auth: _Optional[_Union[IamAuth, _Mapping]] = ...) -> None: ...
 
+class MySQLCluster(_message.Message):
+    __slots__ = ["auth", "database_id", "database_name", "login", "password"]
+    AUTH_FIELD_NUMBER: _ClassVar[int]
+    DATABASE_ID_FIELD_NUMBER: _ClassVar[int]
+    DATABASE_NAME_FIELD_NUMBER: _ClassVar[int]
+    LOGIN_FIELD_NUMBER: _ClassVar[int]
+    PASSWORD_FIELD_NUMBER: _ClassVar[int]
+    auth: IamAuth
+    database_id: str
+    database_name: str
+    login: str
+    password: str
+    def __init__(self, database_id: _Optional[str] = ..., database_name: _Optional[str] = ..., login: _Optional[str] = ..., password: _Optional[str] = ..., auth: _Optional[_Union[IamAuth, _Mapping]] = ...) -> None: ...
+
 class NoneAuth(_message.Message):
     __slots__ = []
     def __init__(self) -> None: ...
@@ -905,7 +1011,7 @@ class PostgreSQLCluster(_message.Message):
     def __init__(self, database_id: _Optional[str] = ..., database_name: _Optional[str] = ..., login: _Optional[str] = ..., password: _Optional[str] = ..., schema: _Optional[str] = ..., auth: _Optional[_Union[IamAuth, _Mapping]] = ..., host: _Optional[str] = ..., port: _Optional[int] = ..., secure: bool = ...) -> None: ...
 
 class Query(_message.Message):
-    __slots__ = ["ast", "content", "issue", "meta", "plan", "result_set_meta", "statistics", "transient_issue"]
+    __slots__ = ["ast", "content", "issue", "meta", "plan", "result_set_meta", "statistics", "timeline", "transient_issue"]
     AST_FIELD_NUMBER: _ClassVar[int]
     CONTENT_FIELD_NUMBER: _ClassVar[int]
     ISSUE_FIELD_NUMBER: _ClassVar[int]
@@ -913,6 +1019,7 @@ class Query(_message.Message):
     PLAN_FIELD_NUMBER: _ClassVar[int]
     RESULT_SET_META_FIELD_NUMBER: _ClassVar[int]
     STATISTICS_FIELD_NUMBER: _ClassVar[int]
+    TIMELINE_FIELD_NUMBER: _ClassVar[int]
     TRANSIENT_ISSUE_FIELD_NUMBER: _ClassVar[int]
     ast: QueryAst
     content: QueryContent
@@ -921,8 +1028,9 @@ class Query(_message.Message):
     plan: QueryPlan
     result_set_meta: _containers.RepeatedCompositeFieldContainer[ResultSetMeta]
     statistics: QueryStatistics
+    timeline: QueryTimeline
     transient_issue: _containers.RepeatedCompositeFieldContainer[_ydb_issue_message_pb2.IssueMessage]
-    def __init__(self, meta: _Optional[_Union[QueryMeta, _Mapping]] = ..., content: _Optional[_Union[QueryContent, _Mapping]] = ..., plan: _Optional[_Union[QueryPlan, _Mapping]] = ..., issue: _Optional[_Iterable[_Union[_ydb_issue_message_pb2.IssueMessage, _Mapping]]] = ..., transient_issue: _Optional[_Iterable[_Union[_ydb_issue_message_pb2.IssueMessage, _Mapping]]] = ..., statistics: _Optional[_Union[QueryStatistics, _Mapping]] = ..., result_set_meta: _Optional[_Iterable[_Union[ResultSetMeta, _Mapping]]] = ..., ast: _Optional[_Union[QueryAst, _Mapping]] = ...) -> None: ...
+    def __init__(self, meta: _Optional[_Union[QueryMeta, _Mapping]] = ..., content: _Optional[_Union[QueryContent, _Mapping]] = ..., plan: _Optional[_Union[QueryPlan, _Mapping]] = ..., issue: _Optional[_Iterable[_Union[_ydb_issue_message_pb2.IssueMessage, _Mapping]]] = ..., transient_issue: _Optional[_Iterable[_Union[_ydb_issue_message_pb2.IssueMessage, _Mapping]]] = ..., statistics: _Optional[_Union[QueryStatistics, _Mapping]] = ..., result_set_meta: _Optional[_Iterable[_Union[ResultSetMeta, _Mapping]]] = ..., ast: _Optional[_Union[QueryAst, _Mapping]] = ..., timeline: _Optional[_Union[QueryTimeline, _Mapping]] = ...) -> None: ...
 
 class QueryAst(_message.Message):
     __slots__ = ["data"]
@@ -931,7 +1039,7 @@ class QueryAst(_message.Message):
     def __init__(self, data: _Optional[str] = ...) -> None: ...
 
 class QueryContent(_message.Message):
-    __slots__ = ["acl", "automatic", "description", "execution_settings", "limits", "name", "syntax", "text", "type"]
+    __slots__ = ["acl", "automatic", "description", "execution_settings", "limits", "name", "parameters", "syntax", "text", "type"]
     class QuerySyntax(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
         __slots__ = []
     class QueryType(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
@@ -943,6 +1051,13 @@ class QueryContent(_message.Message):
         key: str
         value: str
         def __init__(self, key: _Optional[str] = ..., value: _Optional[str] = ...) -> None: ...
+    class ParametersEntry(_message.Message):
+        __slots__ = ["key", "value"]
+        KEY_FIELD_NUMBER: _ClassVar[int]
+        VALUE_FIELD_NUMBER: _ClassVar[int]
+        key: str
+        value: _ydb_value_pb2.TypedValue
+        def __init__(self, key: _Optional[str] = ..., value: _Optional[_Union[_ydb_value_pb2.TypedValue, _Mapping]] = ...) -> None: ...
     ACL_FIELD_NUMBER: _ClassVar[int]
     ANALYTICS: QueryContent.QueryType
     AUTOMATIC_FIELD_NUMBER: _ClassVar[int]
@@ -950,6 +1065,7 @@ class QueryContent(_message.Message):
     EXECUTION_SETTINGS_FIELD_NUMBER: _ClassVar[int]
     LIMITS_FIELD_NUMBER: _ClassVar[int]
     NAME_FIELD_NUMBER: _ClassVar[int]
+    PARAMETERS_FIELD_NUMBER: _ClassVar[int]
     PG: QueryContent.QuerySyntax
     QUERY_SYNTAX_UNSPECIFIED: QueryContent.QuerySyntax
     QUERY_TYPE_UNSPECIFIED: QueryContent.QueryType
@@ -964,10 +1080,11 @@ class QueryContent(_message.Message):
     execution_settings: _containers.ScalarMap[str, str]
     limits: Limits
     name: str
+    parameters: _containers.MessageMap[str, _ydb_value_pb2.TypedValue]
     syntax: QueryContent.QuerySyntax
     text: str
     type: QueryContent.QueryType
-    def __init__(self, type: _Optional[_Union[QueryContent.QueryType, str]] = ..., name: _Optional[str] = ..., acl: _Optional[_Union[Acl, _Mapping]] = ..., limits: _Optional[_Union[Limits, _Mapping]] = ..., text: _Optional[str] = ..., automatic: bool = ..., description: _Optional[str] = ..., execution_settings: _Optional[_Mapping[str, str]] = ..., syntax: _Optional[_Union[QueryContent.QuerySyntax, str]] = ...) -> None: ...
+    def __init__(self, type: _Optional[_Union[QueryContent.QueryType, str]] = ..., name: _Optional[str] = ..., acl: _Optional[_Union[Acl, _Mapping]] = ..., limits: _Optional[_Union[Limits, _Mapping]] = ..., text: _Optional[str] = ..., automatic: bool = ..., description: _Optional[str] = ..., execution_settings: _Optional[_Mapping[str, str]] = ..., syntax: _Optional[_Union[QueryContent.QuerySyntax, str]] = ..., parameters: _Optional[_Mapping[str, _ydb_value_pb2.TypedValue]] = ...) -> None: ...
 
 class QueryMeta(_message.Message):
     __slots__ = ["aborted_by", "common", "execute_mode", "expire_at", "finished_at", "has_saved_checkpoints", "last_job_id", "last_job_query_revision", "paused_by", "result_expire_at", "started_at", "started_by", "status", "submitted_at"]
@@ -1028,6 +1145,12 @@ class QueryStatistics(_message.Message):
     JSON_FIELD_NUMBER: _ClassVar[int]
     json: str
     def __init__(self, json: _Optional[str] = ...) -> None: ...
+
+class QueryTimeline(_message.Message):
+    __slots__ = ["svg"]
+    SVG_FIELD_NUMBER: _ClassVar[int]
+    svg: str
+    def __init__(self, svg: _Optional[str] = ...) -> None: ...
 
 class ResultSetMeta(_message.Message):
     __slots__ = ["column", "rows_count", "truncated"]
@@ -1097,6 +1220,12 @@ class TestConnectionResponse(_message.Message):
 class TestConnectionResult(_message.Message):
     __slots__ = []
     def __init__(self) -> None: ...
+
+class TokenAuth(_message.Message):
+    __slots__ = ["token"]
+    TOKEN_FIELD_NUMBER: _ClassVar[int]
+    token: str
+    def __init__(self, token: _Optional[str] = ...) -> None: ...
 
 class YdbDatabase(_message.Message):
     __slots__ = ["auth", "database", "database_id", "endpoint", "secure"]

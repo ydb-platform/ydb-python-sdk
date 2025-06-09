@@ -29,7 +29,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   syntax='proto3',
   serialized_options=b'\n$tech.ydb.proto.draft.federated.queryZGgithub.com/ydb-platform/ydb-go-genproto/draft/protos/Ydb_FederatedQuery\370\001\001',
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n&draft/protos/ydb_federated_query.proto\x12\x0e\x46\x65\x64\x65ratedQuery\x1a\"protos/annotations/sensitive.proto\x1a#protos/annotations/validation.proto\x1a\x1aprotos/ydb_operation.proto\x1a\x16protos/ydb_value.proto\x1a\x1eprotos/ydb_issue_message.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1bgoogle/protobuf/empty.proto\"{\n\x03\x41\x63l\x12\x32\n\nvisibility\x18\x01 \x01(\x0e\x32\x1e.FederatedQuery.Acl.Visibility\"@\n\nVisibility\x12\x1a\n\x16VISIBILITY_UNSPECIFIED\x10\x00\x12\x0b\n\x07PRIVATE\x10\x01\x12\t\n\x05SCOPE\x10\x02\"\x83\x03\n\x06Limits\x12!\n\x0fvcpu_rate_limit\x18\x01 \x01(\x03\x42\x08\xb2\xe6*\x04>= 0\x12!\n\x0f\x66low_rate_limit\x18\x02 \x01(\x03\x42\x08\xb2\xe6*\x04>= 0\x12!\n\x0fvcpu_time_limit\x18\x03 \x01(\x03\x42\x08\xb2\xe6*\x04>= 0\x12!\n\x0fmax_result_size\x18\x04 \x01(\x03\x42\x08\xb2\xe6*\x04>= 0\x12!\n\x0fmax_result_rows\x18\x05 \x01(\x03\x42\x08\xb2\xe6*\x04>= 0\x12\x1e\n\x0cmemory_limit\x18\x06 \x01(\x03\x42\x08\xb2\xe6*\x04>= 0\x12-\n\nresult_ttl\x18\x07 \x01(\x0b\x32\x19.google.protobuf.Duration\x12\x36\n\x11\x65xecution_timeout\x18\x08 \x01(\x0b\x32\x19.google.protobuf.DurationH\x00\x12\x38\n\x12\x65xecution_deadline\x18\t \x01(\x0b\x32\x1a.google.protobuf.TimestampH\x00\x42\t\n\x07timeout\"\xef\x03\n\x14StreamingDisposition\x12(\n\x06oldest\x18\x01 \x01(\x0b\x32\x16.google.protobuf.EmptyH\x00\x12\'\n\x05\x66resh\x18\x02 \x01(\x0b\x32\x16.google.protobuf.EmptyH\x00\x12\x42\n\tfrom_time\x18\x03 \x01(\x0b\x32-.FederatedQuery.StreamingDisposition.FromTimeH\x00\x12@\n\x08time_ago\x18\x04 \x01(\x0b\x32,.FederatedQuery.StreamingDisposition.TimeAgoH\x00\x12W\n\x14\x66rom_last_checkpoint\x18\x05 \x01(\x0b\x32\x37.FederatedQuery.StreamingDisposition.FromLastCheckpointH\x00\x1a\x39\n\x08\x46romTime\x12-\n\ttimestamp\x18\x01 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x1a\x36\n\x07TimeAgo\x12+\n\x08\x64uration\x18\x01 \x01(\x0b\x32\x19.google.protobuf.Duration\x1a#\n\x12\x46romLastCheckpoint\x12\r\n\x05\x66orce\x18\x01 \x01(\x08\x42\r\n\x0b\x64isposition\"\xd4\x04\n\x0cQueryContent\x12\x34\n\x04type\x18\x01 \x01(\x0e\x32&.FederatedQuery.QueryContent.QueryType\x12\x15\n\x04name\x18\x02 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\x12 \n\x03\x61\x63l\x18\x03 \x01(\x0b\x32\x13.FederatedQuery.Acl\x12&\n\x06limits\x18\x04 \x01(\x0b\x32\x16.FederatedQuery.Limits\x12\x1a\n\x04text\x18\x05 \x01(\tB\x0c\xa2\xe6*\x08\n\x06\x08\x01\x10\x80\xa0\x06\x12\x11\n\tautomatic\x18\x06 \x01(\x08\x12\x1c\n\x0b\x64\x65scription\x18\x07 \x01(\tB\x07\xa2\xe6*\x03\x18\x80P\x12\x64\n\x12\x65xecution_settings\x18\n \x03(\x0b\x32\x33.FederatedQuery.QueryContent.ExecutionSettingsEntryB\x13\xaa\xe6*\x08\n\x06\n\x04\x08\x01\x10\x64\xa2\xe6*\x03\x18\x80 \x12\x38\n\x06syntax\x18\x0b \x01(\x0e\x32(.FederatedQuery.QueryContent.QuerySyntax\x1a\x38\n\x16\x45xecutionSettingsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\"E\n\tQueryType\x12\x1a\n\x16QUERY_TYPE_UNSPECIFIED\x10\x00\x12\r\n\tANALYTICS\x10\x01\x12\r\n\tSTREAMING\x10\x02\"?\n\x0bQuerySyntax\x12\x1c\n\x18QUERY_SYNTAX_UNSPECIFIED\x10\x00\x12\n\n\x06YQL_V1\x10\x01\x12\x06\n\x02PG\x10\x02\"\xe5\x01\n\nCommonMeta\x12\x17\n\x02id\x18\x01 \x01(\tB\x0b\xa2\xe6*\x07\n\x05\x08\x01\x10\x80\x08\x12\x1f\n\ncreated_by\x18\x02 \x01(\tB\x0b\xa2\xe6*\x07\n\x05\x08\x01\x10\x80\x08\x12 \n\x0bmodified_by\x18\x03 \x01(\tB\x0b\xa2\xe6*\x07\n\x05\x08\x01\x10\x80\x08\x12.\n\ncreated_at\x18\x04 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12/\n\x0bmodified_at\x18\x05 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12\x1a\n\x08revision\x18\x06 \x01(\x03\x42\x08\xb2\xe6*\x04>= 0\"\xbf\x06\n\tQueryMeta\x12*\n\x06\x63ommon\x18\x01 \x01(\x0b\x32\x1a.FederatedQuery.CommonMeta\x12\x30\n\x0csubmitted_at\x18\x0e \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12.\n\nstarted_at\x18\x02 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12/\n\x0b\x66inished_at\x18\x03 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12\x31\n\x0c\x65xecute_mode\x18\x04 \x01(\x0e\x32\x1b.FederatedQuery.ExecuteMode\x12\x37\n\x06status\x18\x05 \x01(\x0e\x32\'.FederatedQuery.QueryMeta.ComputeStatus\x12\x1f\n\x17last_job_query_revision\x18\x06 \x01(\x03\x12\x13\n\x0blast_job_id\x18\x07 \x01(\t\x12-\n\texpire_at\x18\x08 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12\x34\n\x10result_expire_at\x18\t \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12\x12\n\nstarted_by\x18\n \x01(\t\x12\x14\n\naborted_by\x18\x0b \x01(\tH\x00\x12\x13\n\tpaused_by\x18\x0c \x01(\tH\x00\x12\x1d\n\x15has_saved_checkpoints\x18\r \x01(\x08\"\x83\x02\n\rComputeStatus\x12\x1e\n\x1a\x43OMPUTE_STATUS_UNSPECIFIED\x10\x00\x12\x0c\n\x08STARTING\x10\x01\x12\x13\n\x0f\x41\x42ORTED_BY_USER\x10\x02\x12\x15\n\x11\x41\x42ORTED_BY_SYSTEM\x10\x03\x12\x14\n\x10\x41\x42ORTING_BY_USER\x10\x04\x12\x16\n\x12\x41\x42ORTING_BY_SYSTEM\x10\x05\x12\x0c\n\x08RESUMING\x10\x06\x12\x0b\n\x07RUNNING\x10\x07\x12\r\n\tCOMPLETED\x10\x08\x12\x0e\n\nCOMPLETING\x10\x0c\x12\n\n\x06\x46\x41ILED\x10\t\x12\x0b\n\x07\x46\x41ILING\x10\r\x12\n\n\x06PAUSED\x10\x0b\x12\x0b\n\x07PAUSING\x10\nB\x08\n\x06\x61\x63tion\"\xc9\x01\n\nBriefQuery\x12\x34\n\x04type\x18\x01 \x01(\x0e\x32&.FederatedQuery.QueryContent.QueryType\x12\x15\n\x04name\x18\x02 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\x12\'\n\x04meta\x18\x03 \x01(\x0b\x32\x19.FederatedQuery.QueryMeta\x12\x32\n\nvisibility\x18\x04 \x01(\x0e\x32\x1e.FederatedQuery.Acl.Visibility\x12\x11\n\tautomatic\x18\x05 \x01(\x08\"\x19\n\tQueryPlan\x12\x0c\n\x04json\x18\x01 \x01(\t\"\x18\n\x08QueryAst\x12\x0c\n\x04\x64\x61ta\x18\x01 \x01(\t\"]\n\rResultSetMeta\x12\x1b\n\x06\x63olumn\x18\x01 \x03(\x0b\x32\x0b.Ydb.Column\x12\x1c\n\nrows_count\x18\x02 \x01(\x03\x42\x08\xb2\xe6*\x04>= 0\x12\x11\n\ttruncated\x18\x03 \x01(\x08\"\xf6\x02\n\x05Query\x12\'\n\x04meta\x18\x01 \x01(\x0b\x32\x19.FederatedQuery.QueryMeta\x12-\n\x07\x63ontent\x18\x02 \x01(\x0b\x32\x1c.FederatedQuery.QueryContent\x12\'\n\x04plan\x18\x03 \x01(\x0b\x32\x19.FederatedQuery.QueryPlan\x12&\n\x05issue\x18\x04 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessage\x12\x30\n\x0ftransient_issue\x18\x05 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessage\x12\x33\n\nstatistics\x18\x06 \x01(\x0b\x32\x1f.FederatedQuery.QueryStatistics\x12\x36\n\x0fresult_set_meta\x18\x07 \x03(\x0b\x32\x1d.FederatedQuery.ResultSetMeta\x12%\n\x03\x61st\x18\x08 \x01(\x0b\x32\x18.FederatedQuery.QueryAst\"\x1f\n\x0fQueryStatistics\x12\x0c\n\x04json\x18\x01 \x01(\t\"\x8e\x02\n\x12\x43reateQueryRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12-\n\x07\x63ontent\x18\x02 \x01(\x0b\x32\x1c.FederatedQuery.QueryContent\x12\x31\n\x0c\x65xecute_mode\x18\x03 \x01(\x0e\x32\x1b.FederatedQuery.ExecuteMode\x12\x39\n\x0b\x64isposition\x18\x04 \x01(\x0b\x32$.FederatedQuery.StreamingDisposition\x12 \n\x0fidempotency_key\x18\x05 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\"C\n\x13\x43reateQueryResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\".\n\x11\x43reateQueryResult\x12\x19\n\x08query_id\x18\x01 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\"\x93\x04\n\x12ListQueriesRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x1b\n\npage_token\x18\x02 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\x12\x1b\n\x05limit\x18\x03 \x01(\x05\x42\x0c\xb2\xe6*\x08[1; 100]\x12\x39\n\x06\x66ilter\x18\x04 \x01(\x0b\x32).FederatedQuery.ListQueriesRequest.Filter\x1a\xcc\x02\n\x06\x46ilter\x12:\n\nquery_type\x18\x01 \x01(\x0e\x32&.FederatedQuery.QueryContent.QueryType\x12?\n\x06status\x18\x02 \x03(\x0e\x32\'.FederatedQuery.QueryMeta.ComputeStatusB\x06\x9a\xe6*\x02\x18\x14\x12\x31\n\x04mode\x18\x03 \x03(\x0e\x32\x1b.FederatedQuery.ExecuteModeB\x06\x9a\xe6*\x02\x18\x14\x12\x15\n\x04name\x18\x04 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\x12\x15\n\rcreated_by_me\x18\x05 \x01(\x08\x12\x32\n\nvisibility\x18\x06 \x01(\x0e\x32\x1e.FederatedQuery.Acl.Visibility\x12\x30\n\tautomatic\x18\x07 \x01(\x0e\x32\x1d.FederatedQuery.AutomaticType\"C\n\x13ListQueriesResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"`\n\x11ListQueriesResult\x12)\n\x05query\x18\x01 \x03(\x0b\x32\x1a.FederatedQuery.BriefQuery\x12 \n\x0fnext_page_token\x18\x02 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\"p\n\x14\x44\x65scribeQueryRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x1d\n\x08query_id\x18\x02 \x01(\tB\x0b\xa2\xe6*\x07\n\x05\x08\x01\x10\x80\x08\"E\n\x15\x44\x65scribeQueryResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\";\n\x13\x44\x65scribeQueryResult\x12$\n\x05query\x18\x01 \x01(\x0b\x32\x15.FederatedQuery.Query\"q\n\x15GetQueryStatusRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x1d\n\x08query_id\x18\x02 \x01(\tB\x0b\xa2\xe6*\x07\n\x05\x08\x01\x10\x80\x08\"F\n\x16GetQueryStatusResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"f\n\x14GetQueryStatusResult\x12\x37\n\x06status\x18\x01 \x01(\x0e\x32\'.FederatedQuery.QueryMeta.ComputeStatus\x12\x15\n\rmeta_revision\x18\x02 \x01(\x03\"\xb5\x01\n\x12\x44\x65leteQueryRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x1d\n\x08query_id\x18\x02 \x01(\tB\x0b\xa2\xe6*\x07\n\x05\x08\x01\x10\x80\x08\x12#\n\x11previous_revision\x18\x03 \x01(\x03\x42\x08\xb2\xe6*\x04>= 0\x12 \n\x0fidempotency_key\x18\x04 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\"C\n\x13\x44\x65leteQueryResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\x13\n\x11\x44\x65leteQueryResult\"\x8a\x03\n\x12ModifyQueryRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x1d\n\x08query_id\x18\x02 \x01(\tB\x0b\xa2\xe6*\x07\n\x05\x08\x01\x10\x80\x08\x12-\n\x07\x63ontent\x18\x03 \x01(\x0b\x32\x1c.FederatedQuery.QueryContent\x12\x31\n\x0c\x65xecute_mode\x18\x04 \x01(\x0e\x32\x1b.FederatedQuery.ExecuteMode\x12\x39\n\x0b\x64isposition\x18\x05 \x01(\x0b\x32$.FederatedQuery.StreamingDisposition\x12\x36\n\x0fstate_load_mode\x18\x06 \x01(\x0e\x32\x1d.FederatedQuery.StateLoadMode\x12#\n\x11previous_revision\x18\x07 \x01(\x03\x42\x08\xb2\xe6*\x04>= 0\x12 \n\x0fidempotency_key\x18\x08 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\"C\n\x13ModifyQueryResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\x13\n\x11ModifyQueryResult\"\xe3\x01\n\x13\x43ontrolQueryRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x1d\n\x08query_id\x18\x02 \x01(\tB\x0b\xa2\xe6*\x07\n\x05\x08\x01\x10\x80\x08\x12+\n\x06\x61\x63tion\x18\x03 \x01(\x0e\x32\x1b.FederatedQuery.QueryAction\x12#\n\x11previous_revision\x18\x04 \x01(\x03\x42\x08\xb2\xe6*\x04>= 0\x12 \n\x0fidempotency_key\x18\x05 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\"D\n\x14\x43ontrolQueryResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\x14\n\x12\x43ontrolQueryResult\"\xed\x01\n\x08\x42riefJob\x12(\n\x04meta\x18\x01 \x01(\x0b\x32\x1a.FederatedQuery.CommonMeta\x12-\n\nquery_meta\x18\x03 \x01(\x0b\x32\x19.FederatedQuery.QueryMeta\x12\x12\n\nquery_name\x18\t \x01(\t\x12\x32\n\nvisibility\x18\n \x01(\x0e\x32\x1e.FederatedQuery.Acl.Visibility\x12\x11\n\tautomatic\x18\x0b \x01(\x08\x12-\n\texpire_at\x18\x0c \x01(\x0b\x32\x1a.google.protobuf.Timestamp\"\x83\x04\n\x03Job\x12(\n\x04meta\x18\x01 \x01(\x0b\x32\x1a.FederatedQuery.CommonMeta\x12\x0c\n\x04text\x18\x02 \x01(\t\x12-\n\nquery_meta\x18\x03 \x01(\x0b\x32\x19.FederatedQuery.QueryMeta\x12\'\n\x04plan\x18\x04 \x01(\x0b\x32\x19.FederatedQuery.QueryPlan\x12&\n\x05issue\x18\x05 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessage\x12\x33\n\nstatistics\x18\x06 \x01(\x0b\x32\x1f.FederatedQuery.QueryStatistics\x12\x36\n\x0fresult_set_meta\x18\x07 \x03(\x0b\x32\x1d.FederatedQuery.ResultSetMeta\x12%\n\x03\x61st\x18\x08 \x01(\x0b\x32\x18.FederatedQuery.QueryAst\x12\x12\n\nquery_name\x18\t \x01(\t\x12 \n\x03\x61\x63l\x18\n \x01(\x0b\x32\x13.FederatedQuery.Acl\x12\x11\n\tautomatic\x18\x0b \x01(\x08\x12-\n\texpire_at\x18\x0c \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12\x38\n\x06syntax\x18\r \x01(\x0e\x32(.FederatedQuery.QueryContent.QuerySyntax\"\x8c\x02\n\x0fListJobsRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x1b\n\npage_token\x18\x02 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\x12\x1b\n\x05limit\x18\x03 \x01(\x05\x42\x0c\xb2\xe6*\x08[1; 100]\x12\x10\n\x08query_id\x18\x05 \x01(\t\x12\x36\n\x06\x66ilter\x18\x04 \x01(\x0b\x32&.FederatedQuery.ListJobsRequest.Filter\x1a:\n\x06\x46ilter\x12\x19\n\x08query_id\x18\x01 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\x12\x15\n\rcreated_by_me\x18\x02 \x01(\x08\"@\n\x10ListJobsResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"Y\n\x0eListJobsResult\x12%\n\x03job\x18\x01 \x03(\x0b\x32\x18.FederatedQuery.BriefJob\x12 \n\x0fnext_page_token\x18\x02 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\"l\n\x12\x44\x65scribeJobRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x1b\n\x06job_id\x18\x02 \x01(\tB\x0b\xa2\xe6*\x07\n\x05\x08\x01\x10\x80\x08\"C\n\x13\x44\x65scribeJobResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"5\n\x11\x44\x65scribeJobResult\x12 \n\x03job\x18\x01 \x01(\x0b\x32\x13.FederatedQuery.Job\"\x15\n\x13\x43urrentIAMTokenAuth\"\n\n\x08NoneAuth\")\n\x12ServiceAccountAuth\x12\x13\n\x02id\x18\x01 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\"\xba\x01\n\x07IamAuth\x12:\n\x0b\x63urrent_iam\x18\x01 \x01(\x0b\x32#.FederatedQuery.CurrentIAMTokenAuthH\x00\x12=\n\x0fservice_account\x18\x02 \x01(\x0b\x32\".FederatedQuery.ServiceAccountAuthH\x00\x12(\n\x04none\x18\x03 \x01(\x0b\x32\x18.FederatedQuery.NoneAuthH\x00\x42\n\n\x08identity\"\x98\x01\n\x0b\x44\x61taStreams\x12\x1c\n\x0b\x64\x61tabase_id\x18\x01 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\x12%\n\x04\x61uth\x18\x02 \x01(\x0b\x32\x17.FederatedQuery.IamAuth\x12\x19\n\x08\x65ndpoint\x18\x03 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\x12\x19\n\x08\x64\x61tabase\x18\x04 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\x12\x0e\n\x06secure\x18\x05 \x01(\x08\"g\n\nMonitoring\x12\x18\n\x07project\x18\x01 \x01(\tB\x07\xa2\xe6*\x03\x18\xc8\x01\x12\x18\n\x07\x63luster\x18\x02 \x01(\tB\x07\xa2\xe6*\x03\x18\xc8\x01\x12%\n\x04\x61uth\x18\x03 \x01(\x0b\x32\x17.FederatedQuery.IamAuth\"\x98\x01\n\x0bYdbDatabase\x12\x1c\n\x0b\x64\x61tabase_id\x18\x01 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\x12%\n\x04\x61uth\x18\x02 \x01(\x0b\x32\x17.FederatedQuery.IamAuth\x12\x19\n\x08\x65ndpoint\x18\x03 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\x12\x19\n\x08\x64\x61tabase\x18\x04 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\x12\x0e\n\x06secure\x18\x05 \x01(\x08\"\xf8\x01\n\x11\x43lickHouseCluster\x12\x1c\n\x0b\x64\x61tabase_id\x18\x01 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\x12\x1e\n\rdatabase_name\x18\x08 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\x12\x1a\n\x05login\x18\x02 \x01(\tB\x0b\xa2\xe6*\x03\x18\x80\x08\xb8\xe6*\x01\x12\x1d\n\x08password\x18\x03 \x01(\tB\x0b\xa2\xe6*\x03\x18\x80\x08\xb8\xe6*\x01\x12%\n\x04\x61uth\x18\x04 \x01(\x0b\x32\x17.FederatedQuery.IamAuth\x12\x15\n\x04host\x18\x05 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\x12\x1c\n\x04port\x18\x06 \x01(\x05\x42\x0e\xb2\xe6*\n[0; 65536]\x12\x0e\n\x06secure\x18\x07 \x01(\x08\"Y\n\x17ObjectStorageConnection\x12\x17\n\x06\x62ucket\x18\x01 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\x12%\n\x04\x61uth\x18\x02 \x01(\x0b\x32\x17.FederatedQuery.IamAuth\"\x91\x02\n\x11PostgreSQLCluster\x12\x1c\n\x0b\x64\x61tabase_id\x18\x01 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\x12\x1e\n\rdatabase_name\x18\x08 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\x12\x1a\n\x05login\x18\x02 \x01(\tB\x0b\xa2\xe6*\x03\x18\x80\x08\xb8\xe6*\x01\x12\x1d\n\x08password\x18\x03 \x01(\tB\x0b\xa2\xe6*\x03\x18\x80\x08\xb8\xe6*\x01\x12\x17\n\x06schema\x18\t \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\x12%\n\x04\x61uth\x18\x04 \x01(\x0b\x32\x17.FederatedQuery.IamAuth\x12\x15\n\x04host\x18\x05 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\x12\x1c\n\x04port\x18\x06 \x01(\x05\x42\x0e\xb2\xe6*\n[0; 65536]\x12\x0e\n\x06secure\x18\x07 \x01(\x08\"\xae\x04\n\x11\x43onnectionSetting\x12\x33\n\x0cydb_database\x18\x01 \x01(\x0b\x32\x1b.FederatedQuery.YdbDatabaseH\x00\x12?\n\x12\x63lickhouse_cluster\x18\x02 \x01(\x0b\x32!.FederatedQuery.ClickHouseClusterH\x00\x12\x33\n\x0c\x64\x61ta_streams\x18\x03 \x01(\x0b\x32\x1b.FederatedQuery.DataStreamsH\x00\x12\x41\n\x0eobject_storage\x18\x04 \x01(\x0b\x32\'.FederatedQuery.ObjectStorageConnectionH\x00\x12\x30\n\nmonitoring\x18\x05 \x01(\x0b\x32\x1a.FederatedQuery.MonitoringH\x00\x12?\n\x12postgresql_cluster\x18\x06 \x01(\x0b\x32!.FederatedQuery.PostgreSQLClusterH\x00\"\xa9\x01\n\x0e\x43onnectionType\x12\x1f\n\x1b\x43ONNECTION_TYPE_UNSPECIFIED\x10\x00\x12\x10\n\x0cYDB_DATABASE\x10\x01\x12\x16\n\x12\x43LICKHOUSE_CLUSTER\x10\x02\x12\x10\n\x0c\x44\x41TA_STREAMS\x10\x03\x12\x12\n\x0eOBJECT_STORAGE\x10\x04\x12\x0e\n\nMONITORING\x10\x05\x12\x16\n\x12POSTGRESQL_CLUSTER\x10\x06\x42\x0c\n\nconnection\"\xa2\x01\n\x11\x43onnectionContent\x12\x19\n\x04name\x18\x01 \x01(\tB\x0b\xa2\xe6*\x07\n\x05\x08\x01\x10\x80\x08\x12\x32\n\x07setting\x18\x02 \x01(\x0b\x32!.FederatedQuery.ConnectionSetting\x12 \n\x03\x61\x63l\x18\x03 \x01(\x0b\x32\x13.FederatedQuery.Acl\x12\x1c\n\x0b\x64\x65scription\x18\x04 \x01(\tB\x07\xa2\xe6*\x03\x18\x80P\"j\n\nConnection\x12\x32\n\x07\x63ontent\x18\x01 \x01(\x0b\x32!.FederatedQuery.ConnectionContent\x12(\n\x04meta\x18\x02 \x01(\x0b\x32\x1a.FederatedQuery.CommonMeta\"\xaa\x01\n\x17\x43reateConnectionRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x32\n\x07\x63ontent\x18\x02 \x01(\x0b\x32!.FederatedQuery.ConnectionContent\x12 \n\x0fidempotency_key\x18\x03 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\"H\n\x18\x43reateConnectionResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"<\n\x16\x43reateConnectionResult\x12\"\n\rconnection_id\x18\x01 \x01(\tB\x0b\xa2\xe6*\x07\n\x05\x08\x01\x10\x80\x08\"\x84\x03\n\x16ListConnectionsRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x1b\n\npage_token\x18\x02 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\x12\x1b\n\x05limit\x18\x03 \x01(\x05\x42\x0c\xb2\xe6*\x08[1; 100]\x12=\n\x06\x66ilter\x18\x04 \x01(\x0b\x32-.FederatedQuery.ListConnectionsRequest.Filter\x1a\xb5\x01\n\x06\x46ilter\x12\x15\n\x04name\x18\x01 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\x12\x15\n\rcreated_by_me\x18\x02 \x01(\x08\x12I\n\x0f\x63onnection_type\x18\x03 \x01(\x0e\x32\x30.FederatedQuery.ConnectionSetting.ConnectionType\x12\x32\n\nvisibility\x18\x04 \x01(\x0e\x32\x1e.FederatedQuery.Acl.Visibility\"G\n\x17ListConnectionsResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"i\n\x15ListConnectionsResult\x12.\n\nconnection\x18\x01 \x03(\x0b\x32\x1a.FederatedQuery.Connection\x12 \n\x0fnext_page_token\x18\x02 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\"z\n\x19\x44\x65scribeConnectionRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\"\n\rconnection_id\x18\x02 \x01(\tB\x0b\xa2\xe6*\x07\n\x05\x08\x01\x10\x80\x08\"J\n\x1a\x44\x65scribeConnectionResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"J\n\x18\x44\x65scribeConnectionResult\x12.\n\nconnection\x18\x01 \x01(\x0b\x32\x1a.FederatedQuery.Connection\"\xf3\x01\n\x17ModifyConnectionRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\"\n\rconnection_id\x18\x02 \x01(\tB\x0b\xa2\xe6*\x07\n\x05\x08\x01\x10\x80\x08\x12\x32\n\x07\x63ontent\x18\x03 \x01(\x0b\x32!.FederatedQuery.ConnectionContent\x12#\n\x11previous_revision\x18\x04 \x01(\x03\x42\x08\xb2\xe6*\x04>= 0\x12 \n\x0fidempotency_key\x18\x05 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\"H\n\x18ModifyConnectionResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\x18\n\x16ModifyConnectionResult\"\xbf\x01\n\x17\x44\x65leteConnectionRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\"\n\rconnection_id\x18\x02 \x01(\tB\x0b\xa2\xe6*\x07\n\x05\x08\x01\x10\x80\x08\x12#\n\x11previous_revision\x18\x03 \x01(\x03\x42\x08\xb2\xe6*\x04>= 0\x12 \n\x0fidempotency_key\x18\x04 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\"H\n\x18\x44\x65leteConnectionResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\x18\n\x16\x44\x65leteConnectionResult\"\x86\x01\n\x15TestConnectionRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x32\n\x07setting\x18\x02 \x01(\x0b\x32!.FederatedQuery.ConnectionSetting\"F\n\x16TestConnectionResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\x16\n\x14TestConnectionResult\"\xcc\x01\n\x14GetResultDataRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x1d\n\x08query_id\x18\x02 \x01(\tB\x0b\xa2\xe6*\x07\n\x05\x08\x01\x10\x80\x08\x12\"\n\x10result_set_index\x18\x03 \x01(\x05\x42\x08\xb2\xe6*\x04>= 0\x12\x18\n\x06offset\x18\x04 \x01(\x03\x42\x08\xb2\xe6*\x04>= 0\x12\x1c\n\x05limit\x18\x05 \x01(\x03\x42\r\xb2\xe6*\t[1; 1000]\"E\n\x15GetResultDataResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"9\n\x13GetResultDataResult\x12\"\n\nresult_set\x18\x01 \x01(\x0b\x32\x0e.Ydb.ResultSet\".\n\x06Schema\x12$\n\x06\x63olumn\x18\x01 \x03(\x0b\x32\x0b.Ydb.ColumnB\x07\x9a\xe6*\x03\x18\xe8\x07\"\xa2\x02\n\x12\x44\x61taStreamsBinding\x12 \n\x0bstream_name\x18\x01 \x01(\tB\x0b\xa2\xe6*\x07\n\x05\x08\x01\x10\x80\x08\x12\x17\n\x06\x66ormat\x18\x02 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\x12\x1c\n\x0b\x63ompression\x18\x03 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\x12&\n\x06schema\x18\x04 \x01(\x0b\x32\x16.FederatedQuery.Schema\x12U\n\x0e\x66ormat_setting\x18\x05 \x03(\x0b\x32\x35.FederatedQuery.DataStreamsBinding.FormatSettingEntryB\x06\x9a\xe6*\x02\x18\x64\x1a\x34\n\x12\x46ormatSettingEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\"\x92\x04\n\x14ObjectStorageBinding\x12;\n\x06subset\x18\x01 \x03(\x0b\x32+.FederatedQuery.ObjectStorageBinding.Subset\x1a\xbc\x03\n\x06Subset\x12!\n\x0cpath_pattern\x18\x01 \x01(\tB\x0b\xa2\xe6*\x07\n\x05\x08\x01\x10\x80\x08\x12\x17\n\x06\x66ormat\x18\x02 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\x12^\n\x0e\x66ormat_setting\x18\x03 \x03(\x0b\x32>.FederatedQuery.ObjectStorageBinding.Subset.FormatSettingEntryB\x06\x9a\xe6*\x02\x18\x64\x12\x1c\n\x0b\x63ompression\x18\x04 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\x12&\n\x06schema\x18\x05 \x01(\x0b\x32\x16.FederatedQuery.Schema\x12O\n\nprojection\x18\x06 \x03(\x0b\x32;.FederatedQuery.ObjectStorageBinding.Subset.ProjectionEntry\x12\x16\n\x0epartitioned_by\x18\x07 \x03(\t\x1a\x34\n\x12\x46ormatSettingEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\x1a\x31\n\x0fProjectionEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\"\xea\x01\n\x0e\x42indingSetting\x12:\n\x0c\x64\x61ta_streams\x18\x01 \x01(\x0b\x32\".FederatedQuery.DataStreamsBindingH\x00\x12>\n\x0eobject_storage\x18\x02 \x01(\x0b\x32$.FederatedQuery.ObjectStorageBindingH\x00\"Q\n\x0b\x42indingType\x12\x1c\n\x18\x42INDING_TYPE_UNSPECIFIED\x10\x00\x12\x10\n\x0c\x44\x41TA_STREAMS\x10\x01\x12\x12\n\x0eOBJECT_STORAGE\x10\x02\x42\t\n\x07\x62inding\"\xe5\x01\n\x0c\x42riefBinding\x12\x19\n\x04name\x18\x01 \x01(\tB\x0b\xa2\xe6*\x07\n\x05\x08\x01\x10\x80\x08\x12\"\n\rconnection_id\x18\x02 \x01(\tB\x0b\xa2\xe6*\x07\n\x05\x08\x01\x10\x80\x08\x12(\n\x04meta\x18\x03 \x01(\x0b\x32\x1a.FederatedQuery.CommonMeta\x12\x38\n\x04type\x18\x04 \x01(\x0e\x32*.FederatedQuery.BindingSetting.BindingType\x12\x32\n\nvisibility\x18\x05 \x01(\x0e\x32\x1e.FederatedQuery.Acl.Visibility\"\xc0\x01\n\x0e\x42indingContent\x12\x19\n\x04name\x18\x01 \x01(\tB\x0b\xa2\xe6*\x07\n\x05\x08\x01\x10\x80\x08\x12\"\n\rconnection_id\x18\x02 \x01(\tB\x0b\xa2\xe6*\x07\n\x05\x08\x01\x10\x80\x08\x12/\n\x07setting\x18\x03 \x01(\x0b\x32\x1e.FederatedQuery.BindingSetting\x12 \n\x03\x61\x63l\x18\x04 \x01(\x0b\x32\x13.FederatedQuery.Acl\x12\x1c\n\x0b\x64\x65scription\x18\x05 \x01(\tB\x07\xa2\xe6*\x03\x18\x80P\"d\n\x07\x42inding\x12/\n\x07\x63ontent\x18\x01 \x01(\x0b\x32\x1e.FederatedQuery.BindingContent\x12(\n\x04meta\x18\x02 \x01(\x0b\x32\x1a.FederatedQuery.CommonMeta\"\xa4\x01\n\x14\x43reateBindingRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12/\n\x07\x63ontent\x18\x02 \x01(\x0b\x32\x1e.FederatedQuery.BindingContent\x12 \n\x0fidempotency_key\x18\x03 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\"E\n\x15\x43reateBindingResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"6\n\x13\x43reateBindingResult\x12\x1f\n\nbinding_id\x18\x01 \x01(\tB\x0b\xa2\xe6*\x07\n\x05\x08\x01\x10\x80\x08\"\xd3\x02\n\x13ListBindingsRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x1b\n\npage_token\x18\x02 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\x12\x1b\n\x05limit\x18\x03 \x01(\x05\x42\x0c\xb2\xe6*\x08[1; 100]\x12:\n\x06\x66ilter\x18\x04 \x01(\x0b\x32*.FederatedQuery.ListBindingsRequest.Filter\x1a\x8a\x01\n\x06\x46ilter\x12\x1e\n\rconnection_id\x18\x01 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\x12\x15\n\x04name\x18\x02 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\x12\x15\n\rcreated_by_me\x18\x03 \x01(\x08\x12\x32\n\nvisibility\x18\x04 \x01(\x0e\x32\x1e.FederatedQuery.Acl.Visibility\"D\n\x14ListBindingsResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"e\n\x12ListBindingsResult\x12-\n\x07\x62inding\x18\x01 \x03(\x0b\x32\x1c.FederatedQuery.BriefBinding\x12 \n\x0fnext_page_token\x18\x02 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\"t\n\x16\x44\x65scribeBindingRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x1f\n\nbinding_id\x18\x02 \x01(\tB\x0b\xa2\xe6*\x07\n\x05\x08\x01\x10\x80\x08\"G\n\x17\x44\x65scribeBindingResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"A\n\x15\x44\x65scribeBindingResult\x12(\n\x07\x62inding\x18\x01 \x01(\x0b\x32\x17.FederatedQuery.Binding\"\xea\x01\n\x14ModifyBindingRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x1f\n\nbinding_id\x18\x02 \x01(\tB\x0b\xa2\xe6*\x07\n\x05\x08\x01\x10\x80\x08\x12/\n\x07\x63ontent\x18\x03 \x01(\x0b\x32\x1e.FederatedQuery.BindingContent\x12#\n\x11previous_revision\x18\x04 \x01(\x03\x42\x08\xb2\xe6*\x04>= 0\x12 \n\x0fidempotency_key\x18\x05 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\"E\n\x15ModifyBindingResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\x15\n\x13ModifyBindingResult\"\xb9\x01\n\x14\x44\x65leteBindingRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x1f\n\nbinding_id\x18\x02 \x01(\tB\x0b\xa2\xe6*\x07\n\x05\x08\x01\x10\x80\x08\x12#\n\x11previous_revision\x18\x03 \x01(\x03\x42\x08\xb2\xe6*\x04>= 0\x12 \n\x0fidempotency_key\x18\x04 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\"E\n\x15\x44\x65leteBindingResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\x15\n\x13\x44\x65leteBindingResult*q\n\x0b\x45xecuteMode\x12\x1c\n\x18\x45XECUTE_MODE_UNSPECIFIED\x10\x00\x12\x08\n\x04SAVE\x10\x01\x12\t\n\x05PARSE\x10\x02\x12\x0b\n\x07\x43OMPILE\x10\x03\x12\x0c\n\x08VALIDATE\x10\x04\x12\x0b\n\x07\x45XPLAIN\x10\x05\x12\x07\n\x03RUN\x10\x06*y\n\x0bQueryAction\x12\x1c\n\x18QUERY_ACTION_UNSPECIFIED\x10\x00\x12\t\n\x05PAUSE\x10\x01\x12\x14\n\x10PAUSE_GRACEFULLY\x10\x02\x12\t\n\x05\x41\x42ORT\x10\x03\x12\x14\n\x10\x41\x42ORT_GRACEFULLY\x10\x04\x12\n\n\x06RESUME\x10\x05*U\n\rStateLoadMode\x12\x1f\n\x1bSTATE_LOAD_MODE_UNSPECIFIED\x10\x00\x12\t\n\x05\x45MPTY\x10\x01\x12\x18\n\x14\x46ROM_LAST_CHECKPOINT\x10\x02*Q\n\rAutomaticType\x12\x1e\n\x1a\x41UTOMATIC_TYPE_UNSPECIFIED\x10\x00\x12\r\n\tAUTOMATIC\x10\x01\x12\x11\n\rNOT_AUTOMATIC\x10\x02\x42r\n$tech.ydb.proto.draft.federated.queryZGgithub.com/ydb-platform/ydb-go-genproto/draft/protos/Ydb_FederatedQuery\xf8\x01\x01\x62\x06proto3'
+  serialized_pb=b'\n&draft/protos/ydb_federated_query.proto\x12\x0e\x46\x65\x64\x65ratedQuery\x1a\"protos/annotations/sensitive.proto\x1a#protos/annotations/validation.proto\x1a\x1aprotos/ydb_operation.proto\x1a\x16protos/ydb_value.proto\x1a\x1eprotos/ydb_issue_message.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1bgoogle/protobuf/empty.proto\"{\n\x03\x41\x63l\x12\x32\n\nvisibility\x18\x01 \x01(\x0e\x32\x1e.FederatedQuery.Acl.Visibility\"@\n\nVisibility\x12\x1a\n\x16VISIBILITY_UNSPECIFIED\x10\x00\x12\x0b\n\x07PRIVATE\x10\x01\x12\t\n\x05SCOPE\x10\x02\"\x83\x03\n\x06Limits\x12!\n\x0fvcpu_rate_limit\x18\x01 \x01(\x03\x42\x08\xb2\xe6*\x04>= 0\x12!\n\x0f\x66low_rate_limit\x18\x02 \x01(\x03\x42\x08\xb2\xe6*\x04>= 0\x12!\n\x0fvcpu_time_limit\x18\x03 \x01(\x03\x42\x08\xb2\xe6*\x04>= 0\x12!\n\x0fmax_result_size\x18\x04 \x01(\x03\x42\x08\xb2\xe6*\x04>= 0\x12!\n\x0fmax_result_rows\x18\x05 \x01(\x03\x42\x08\xb2\xe6*\x04>= 0\x12\x1e\n\x0cmemory_limit\x18\x06 \x01(\x03\x42\x08\xb2\xe6*\x04>= 0\x12-\n\nresult_ttl\x18\x07 \x01(\x0b\x32\x19.google.protobuf.Duration\x12\x36\n\x11\x65xecution_timeout\x18\x08 \x01(\x0b\x32\x19.google.protobuf.DurationH\x00\x12\x38\n\x12\x65xecution_deadline\x18\t \x01(\x0b\x32\x1a.google.protobuf.TimestampH\x00\x42\t\n\x07timeout\"\xef\x03\n\x14StreamingDisposition\x12(\n\x06oldest\x18\x01 \x01(\x0b\x32\x16.google.protobuf.EmptyH\x00\x12\'\n\x05\x66resh\x18\x02 \x01(\x0b\x32\x16.google.protobuf.EmptyH\x00\x12\x42\n\tfrom_time\x18\x03 \x01(\x0b\x32-.FederatedQuery.StreamingDisposition.FromTimeH\x00\x12@\n\x08time_ago\x18\x04 \x01(\x0b\x32,.FederatedQuery.StreamingDisposition.TimeAgoH\x00\x12W\n\x14\x66rom_last_checkpoint\x18\x05 \x01(\x0b\x32\x37.FederatedQuery.StreamingDisposition.FromLastCheckpointH\x00\x1a\x39\n\x08\x46romTime\x12-\n\ttimestamp\x18\x01 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x1a\x36\n\x07TimeAgo\x12+\n\x08\x64uration\x18\x01 \x01(\x0b\x32\x19.google.protobuf.Duration\x1a#\n\x12\x46romLastCheckpoint\x12\r\n\x05\x66orce\x18\x01 \x01(\x08\x42\r\n\x0b\x64isposition\"\xe8\x05\n\x0cQueryContent\x12\x34\n\x04type\x18\x01 \x01(\x0e\x32&.FederatedQuery.QueryContent.QueryType\x12\x15\n\x04name\x18\x02 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\x12 \n\x03\x61\x63l\x18\x03 \x01(\x0b\x32\x13.FederatedQuery.Acl\x12&\n\x06limits\x18\x04 \x01(\x0b\x32\x16.FederatedQuery.Limits\x12\x1a\n\x04text\x18\x05 \x01(\tB\x0c\xa2\xe6*\x08\n\x06\x08\x01\x10\x80\xa0\x06\x12\x11\n\tautomatic\x18\x06 \x01(\x08\x12\x1c\n\x0b\x64\x65scription\x18\x07 \x01(\tB\x07\xa2\xe6*\x03\x18\x80P\x12\x64\n\x12\x65xecution_settings\x18\n \x03(\x0b\x32\x33.FederatedQuery.QueryContent.ExecutionSettingsEntryB\x13\xaa\xe6*\x08\n\x06\n\x04\x08\x01\x10\x64\xa2\xe6*\x03\x18\x80 \x12\x38\n\x06syntax\x18\x0b \x01(\x0e\x32(.FederatedQuery.QueryContent.QuerySyntax\x12N\n\nparameters\x18\x0c \x03(\x0b\x32,.FederatedQuery.QueryContent.ParametersEntryB\x0c\xaa\xe6*\x08\n\x06\n\x04\x08\x01\x10\x64\x1a\x38\n\x16\x45xecutionSettingsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\x1a\x42\n\x0fParametersEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\x1e\n\x05value\x18\x02 \x01(\x0b\x32\x0f.Ydb.TypedValue:\x02\x38\x01\"E\n\tQueryType\x12\x1a\n\x16QUERY_TYPE_UNSPECIFIED\x10\x00\x12\r\n\tANALYTICS\x10\x01\x12\r\n\tSTREAMING\x10\x02\"?\n\x0bQuerySyntax\x12\x1c\n\x18QUERY_SYNTAX_UNSPECIFIED\x10\x00\x12\n\n\x06YQL_V1\x10\x01\x12\x06\n\x02PG\x10\x02\"\xe5\x01\n\nCommonMeta\x12\x17\n\x02id\x18\x01 \x01(\tB\x0b\xa2\xe6*\x07\n\x05\x08\x01\x10\x80\x08\x12\x1f\n\ncreated_by\x18\x02 \x01(\tB\x0b\xa2\xe6*\x07\n\x05\x08\x01\x10\x80\x08\x12 \n\x0bmodified_by\x18\x03 \x01(\tB\x0b\xa2\xe6*\x07\n\x05\x08\x01\x10\x80\x08\x12.\n\ncreated_at\x18\x04 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12/\n\x0bmodified_at\x18\x05 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12\x1a\n\x08revision\x18\x06 \x01(\x03\x42\x08\xb2\xe6*\x04>= 0\"\xbf\x06\n\tQueryMeta\x12*\n\x06\x63ommon\x18\x01 \x01(\x0b\x32\x1a.FederatedQuery.CommonMeta\x12\x30\n\x0csubmitted_at\x18\x0e \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12.\n\nstarted_at\x18\x02 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12/\n\x0b\x66inished_at\x18\x03 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12\x31\n\x0c\x65xecute_mode\x18\x04 \x01(\x0e\x32\x1b.FederatedQuery.ExecuteMode\x12\x37\n\x06status\x18\x05 \x01(\x0e\x32\'.FederatedQuery.QueryMeta.ComputeStatus\x12\x1f\n\x17last_job_query_revision\x18\x06 \x01(\x03\x12\x13\n\x0blast_job_id\x18\x07 \x01(\t\x12-\n\texpire_at\x18\x08 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12\x34\n\x10result_expire_at\x18\t \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12\x12\n\nstarted_by\x18\n \x01(\t\x12\x14\n\naborted_by\x18\x0b \x01(\tH\x00\x12\x13\n\tpaused_by\x18\x0c \x01(\tH\x00\x12\x1d\n\x15has_saved_checkpoints\x18\r \x01(\x08\"\x83\x02\n\rComputeStatus\x12\x1e\n\x1a\x43OMPUTE_STATUS_UNSPECIFIED\x10\x00\x12\x0c\n\x08STARTING\x10\x01\x12\x13\n\x0f\x41\x42ORTED_BY_USER\x10\x02\x12\x15\n\x11\x41\x42ORTED_BY_SYSTEM\x10\x03\x12\x14\n\x10\x41\x42ORTING_BY_USER\x10\x04\x12\x16\n\x12\x41\x42ORTING_BY_SYSTEM\x10\x05\x12\x0c\n\x08RESUMING\x10\x06\x12\x0b\n\x07RUNNING\x10\x07\x12\r\n\tCOMPLETED\x10\x08\x12\x0e\n\nCOMPLETING\x10\x0c\x12\n\n\x06\x46\x41ILED\x10\t\x12\x0b\n\x07\x46\x41ILING\x10\r\x12\n\n\x06PAUSED\x10\x0b\x12\x0b\n\x07PAUSING\x10\nB\x08\n\x06\x61\x63tion\"\xc9\x01\n\nBriefQuery\x12\x34\n\x04type\x18\x01 \x01(\x0e\x32&.FederatedQuery.QueryContent.QueryType\x12\x15\n\x04name\x18\x02 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\x12\'\n\x04meta\x18\x03 \x01(\x0b\x32\x19.FederatedQuery.QueryMeta\x12\x32\n\nvisibility\x18\x04 \x01(\x0e\x32\x1e.FederatedQuery.Acl.Visibility\x12\x11\n\tautomatic\x18\x05 \x01(\x08\"\x19\n\tQueryPlan\x12\x0c\n\x04json\x18\x01 \x01(\t\"\x18\n\x08QueryAst\x12\x0c\n\x04\x64\x61ta\x18\x01 \x01(\t\"]\n\rResultSetMeta\x12\x1b\n\x06\x63olumn\x18\x01 \x03(\x0b\x32\x0b.Ydb.Column\x12\x1c\n\nrows_count\x18\x02 \x01(\x03\x42\x08\xb2\xe6*\x04>= 0\x12\x11\n\ttruncated\x18\x03 \x01(\x08\"\x1c\n\rQueryTimeline\x12\x0b\n\x03svg\x18\x01 \x01(\t\"\xa7\x03\n\x05Query\x12\'\n\x04meta\x18\x01 \x01(\x0b\x32\x19.FederatedQuery.QueryMeta\x12-\n\x07\x63ontent\x18\x02 \x01(\x0b\x32\x1c.FederatedQuery.QueryContent\x12\'\n\x04plan\x18\x03 \x01(\x0b\x32\x19.FederatedQuery.QueryPlan\x12&\n\x05issue\x18\x04 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessage\x12\x30\n\x0ftransient_issue\x18\x05 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessage\x12\x33\n\nstatistics\x18\x06 \x01(\x0b\x32\x1f.FederatedQuery.QueryStatistics\x12\x36\n\x0fresult_set_meta\x18\x07 \x03(\x0b\x32\x1d.FederatedQuery.ResultSetMeta\x12%\n\x03\x61st\x18\x08 \x01(\x0b\x32\x18.FederatedQuery.QueryAst\x12/\n\x08timeline\x18\t \x01(\x0b\x32\x1d.FederatedQuery.QueryTimeline\"\x1f\n\x0fQueryStatistics\x12\x0c\n\x04json\x18\x01 \x01(\t\"\x8e\x02\n\x12\x43reateQueryRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12-\n\x07\x63ontent\x18\x02 \x01(\x0b\x32\x1c.FederatedQuery.QueryContent\x12\x31\n\x0c\x65xecute_mode\x18\x03 \x01(\x0e\x32\x1b.FederatedQuery.ExecuteMode\x12\x39\n\x0b\x64isposition\x18\x04 \x01(\x0b\x32$.FederatedQuery.StreamingDisposition\x12 \n\x0fidempotency_key\x18\x05 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\"C\n\x13\x43reateQueryResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\".\n\x11\x43reateQueryResult\x12\x19\n\x08query_id\x18\x01 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\"\x93\x04\n\x12ListQueriesRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x1b\n\npage_token\x18\x02 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\x12\x1b\n\x05limit\x18\x03 \x01(\x05\x42\x0c\xb2\xe6*\x08[1; 100]\x12\x39\n\x06\x66ilter\x18\x04 \x01(\x0b\x32).FederatedQuery.ListQueriesRequest.Filter\x1a\xcc\x02\n\x06\x46ilter\x12:\n\nquery_type\x18\x01 \x01(\x0e\x32&.FederatedQuery.QueryContent.QueryType\x12?\n\x06status\x18\x02 \x03(\x0e\x32\'.FederatedQuery.QueryMeta.ComputeStatusB\x06\x9a\xe6*\x02\x18\x14\x12\x31\n\x04mode\x18\x03 \x03(\x0e\x32\x1b.FederatedQuery.ExecuteModeB\x06\x9a\xe6*\x02\x18\x14\x12\x15\n\x04name\x18\x04 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\x12\x15\n\rcreated_by_me\x18\x05 \x01(\x08\x12\x32\n\nvisibility\x18\x06 \x01(\x0e\x32\x1e.FederatedQuery.Acl.Visibility\x12\x30\n\tautomatic\x18\x07 \x01(\x0e\x32\x1d.FederatedQuery.AutomaticType\"C\n\x13ListQueriesResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"`\n\x11ListQueriesResult\x12)\n\x05query\x18\x01 \x03(\x0b\x32\x1a.FederatedQuery.BriefQuery\x12 \n\x0fnext_page_token\x18\x02 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\"p\n\x14\x44\x65scribeQueryRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x1d\n\x08query_id\x18\x02 \x01(\tB\x0b\xa2\xe6*\x07\n\x05\x08\x01\x10\x80\x08\"E\n\x15\x44\x65scribeQueryResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\";\n\x13\x44\x65scribeQueryResult\x12$\n\x05query\x18\x01 \x01(\x0b\x32\x15.FederatedQuery.Query\"q\n\x15GetQueryStatusRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x1d\n\x08query_id\x18\x02 \x01(\tB\x0b\xa2\xe6*\x07\n\x05\x08\x01\x10\x80\x08\"F\n\x16GetQueryStatusResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"f\n\x14GetQueryStatusResult\x12\x37\n\x06status\x18\x01 \x01(\x0e\x32\'.FederatedQuery.QueryMeta.ComputeStatus\x12\x15\n\rmeta_revision\x18\x02 \x01(\x03\"\xb5\x01\n\x12\x44\x65leteQueryRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x1d\n\x08query_id\x18\x02 \x01(\tB\x0b\xa2\xe6*\x07\n\x05\x08\x01\x10\x80\x08\x12#\n\x11previous_revision\x18\x03 \x01(\x03\x42\x08\xb2\xe6*\x04>= 0\x12 \n\x0fidempotency_key\x18\x04 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\"C\n\x13\x44\x65leteQueryResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\x13\n\x11\x44\x65leteQueryResult\"\x8a\x03\n\x12ModifyQueryRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x1d\n\x08query_id\x18\x02 \x01(\tB\x0b\xa2\xe6*\x07\n\x05\x08\x01\x10\x80\x08\x12-\n\x07\x63ontent\x18\x03 \x01(\x0b\x32\x1c.FederatedQuery.QueryContent\x12\x31\n\x0c\x65xecute_mode\x18\x04 \x01(\x0e\x32\x1b.FederatedQuery.ExecuteMode\x12\x39\n\x0b\x64isposition\x18\x05 \x01(\x0b\x32$.FederatedQuery.StreamingDisposition\x12\x36\n\x0fstate_load_mode\x18\x06 \x01(\x0e\x32\x1d.FederatedQuery.StateLoadMode\x12#\n\x11previous_revision\x18\x07 \x01(\x03\x42\x08\xb2\xe6*\x04>= 0\x12 \n\x0fidempotency_key\x18\x08 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\"C\n\x13ModifyQueryResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\x13\n\x11ModifyQueryResult\"\xe3\x01\n\x13\x43ontrolQueryRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x1d\n\x08query_id\x18\x02 \x01(\tB\x0b\xa2\xe6*\x07\n\x05\x08\x01\x10\x80\x08\x12+\n\x06\x61\x63tion\x18\x03 \x01(\x0e\x32\x1b.FederatedQuery.QueryAction\x12#\n\x11previous_revision\x18\x04 \x01(\x03\x42\x08\xb2\xe6*\x04>= 0\x12 \n\x0fidempotency_key\x18\x05 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\"D\n\x14\x43ontrolQueryResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\x14\n\x12\x43ontrolQueryResult\"\xed\x01\n\x08\x42riefJob\x12(\n\x04meta\x18\x01 \x01(\x0b\x32\x1a.FederatedQuery.CommonMeta\x12-\n\nquery_meta\x18\x03 \x01(\x0b\x32\x19.FederatedQuery.QueryMeta\x12\x12\n\nquery_name\x18\t \x01(\t\x12\x32\n\nvisibility\x18\n \x01(\x0e\x32\x1e.FederatedQuery.Acl.Visibility\x12\x11\n\tautomatic\x18\x0b \x01(\x08\x12-\n\texpire_at\x18\x0c \x01(\x0b\x32\x1a.google.protobuf.Timestamp\"\x80\x05\n\x03Job\x12(\n\x04meta\x18\x01 \x01(\x0b\x32\x1a.FederatedQuery.CommonMeta\x12\x0c\n\x04text\x18\x02 \x01(\t\x12-\n\nquery_meta\x18\x03 \x01(\x0b\x32\x19.FederatedQuery.QueryMeta\x12\'\n\x04plan\x18\x04 \x01(\x0b\x32\x19.FederatedQuery.QueryPlan\x12&\n\x05issue\x18\x05 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessage\x12\x33\n\nstatistics\x18\x06 \x01(\x0b\x32\x1f.FederatedQuery.QueryStatistics\x12\x36\n\x0fresult_set_meta\x18\x07 \x03(\x0b\x32\x1d.FederatedQuery.ResultSetMeta\x12%\n\x03\x61st\x18\x08 \x01(\x0b\x32\x18.FederatedQuery.QueryAst\x12\x12\n\nquery_name\x18\t \x01(\t\x12 \n\x03\x61\x63l\x18\n \x01(\x0b\x32\x13.FederatedQuery.Acl\x12\x11\n\tautomatic\x18\x0b \x01(\x08\x12-\n\texpire_at\x18\x0c \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12\x38\n\x06syntax\x18\r \x01(\x0e\x32(.FederatedQuery.QueryContent.QuerySyntax\x12\x37\n\nparameters\x18\x0e \x03(\x0b\x32#.FederatedQuery.Job.ParametersEntry\x1a\x42\n\x0fParametersEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\x1e\n\x05value\x18\x02 \x01(\x0b\x32\x0f.Ydb.TypedValue:\x02\x38\x01\"\x8c\x02\n\x0fListJobsRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x1b\n\npage_token\x18\x02 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\x12\x1b\n\x05limit\x18\x03 \x01(\x05\x42\x0c\xb2\xe6*\x08[1; 100]\x12\x10\n\x08query_id\x18\x05 \x01(\t\x12\x36\n\x06\x66ilter\x18\x04 \x01(\x0b\x32&.FederatedQuery.ListJobsRequest.Filter\x1a:\n\x06\x46ilter\x12\x19\n\x08query_id\x18\x01 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\x12\x15\n\rcreated_by_me\x18\x02 \x01(\x08\"@\n\x10ListJobsResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"Y\n\x0eListJobsResult\x12%\n\x03job\x18\x01 \x03(\x0b\x32\x18.FederatedQuery.BriefJob\x12 \n\x0fnext_page_token\x18\x02 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\"l\n\x12\x44\x65scribeJobRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x1b\n\x06job_id\x18\x02 \x01(\tB\x0b\xa2\xe6*\x07\n\x05\x08\x01\x10\x80\x08\"C\n\x13\x44\x65scribeJobResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"5\n\x11\x44\x65scribeJobResult\x12 \n\x03job\x18\x01 \x01(\x0b\x32\x13.FederatedQuery.Job\"\x15\n\x13\x43urrentIAMTokenAuth\"\n\n\x08NoneAuth\")\n\x12ServiceAccountAuth\x12\x13\n\x02id\x18\x01 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\"\'\n\tTokenAuth\x12\x1a\n\x05token\x18\x01 \x01(\tB\x0b\xa2\xe6*\x03\x18\x80\x08\xb8\xe6*\x01\"\xe6\x01\n\x07IamAuth\x12:\n\x0b\x63urrent_iam\x18\x01 \x01(\x0b\x32#.FederatedQuery.CurrentIAMTokenAuthH\x00\x12=\n\x0fservice_account\x18\x02 \x01(\x0b\x32\".FederatedQuery.ServiceAccountAuthH\x00\x12(\n\x04none\x18\x03 \x01(\x0b\x32\x18.FederatedQuery.NoneAuthH\x00\x12*\n\x05token\x18\x04 \x01(\x0b\x32\x19.FederatedQuery.TokenAuthH\x00\x42\n\n\x08identity\"\xb0\x01\n\x0b\x44\x61taStreams\x12\x1c\n\x0b\x64\x61tabase_id\x18\x01 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\x12%\n\x04\x61uth\x18\x02 \x01(\x0b\x32\x17.FederatedQuery.IamAuth\x12\x19\n\x08\x65ndpoint\x18\x03 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\x12\x19\n\x08\x64\x61tabase\x18\x04 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\x12\x0e\n\x06secure\x18\x05 \x01(\x08\x12\x16\n\x0eshared_reading\x18\x06 \x01(\x08\"g\n\nMonitoring\x12\x18\n\x07project\x18\x01 \x01(\tB\x07\xa2\xe6*\x03\x18\xc8\x01\x12\x18\n\x07\x63luster\x18\x02 \x01(\tB\x07\xa2\xe6*\x03\x18\xc8\x01\x12%\n\x04\x61uth\x18\x03 \x01(\x0b\x32\x17.FederatedQuery.IamAuth\"\x98\x01\n\x0bYdbDatabase\x12\x1c\n\x0b\x64\x61tabase_id\x18\x01 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\x12%\n\x04\x61uth\x18\x02 \x01(\x0b\x32\x17.FederatedQuery.IamAuth\x12\x19\n\x08\x65ndpoint\x18\x03 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\x12\x19\n\x08\x64\x61tabase\x18\x04 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\x12\x0e\n\x06secure\x18\x05 \x01(\x08\"\xf8\x01\n\x11\x43lickHouseCluster\x12\x1c\n\x0b\x64\x61tabase_id\x18\x01 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\x12\x1e\n\rdatabase_name\x18\x08 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\x12\x1a\n\x05login\x18\x02 \x01(\tB\x0b\xa2\xe6*\x03\x18\x80\x08\xb8\xe6*\x01\x12\x1d\n\x08password\x18\x03 \x01(\tB\x0b\xa2\xe6*\x03\x18\x80\x08\xb8\xe6*\x01\x12%\n\x04\x61uth\x18\x04 \x01(\x0b\x32\x17.FederatedQuery.IamAuth\x12\x15\n\x04host\x18\x05 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\x12\x1c\n\x04port\x18\x06 \x01(\x05\x42\x0e\xb2\xe6*\n[0; 65536]\x12\x0e\n\x06secure\x18\x07 \x01(\x08\"Y\n\x17ObjectStorageConnection\x12\x17\n\x06\x62ucket\x18\x01 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\x12%\n\x04\x61uth\x18\x02 \x01(\x0b\x32\x17.FederatedQuery.IamAuth\"\x91\x02\n\x11PostgreSQLCluster\x12\x1c\n\x0b\x64\x61tabase_id\x18\x01 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\x12\x1e\n\rdatabase_name\x18\x08 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\x12\x1a\n\x05login\x18\x02 \x01(\tB\x0b\xa2\xe6*\x03\x18\x80\x08\xb8\xe6*\x01\x12\x1d\n\x08password\x18\x03 \x01(\tB\x0b\xa2\xe6*\x03\x18\x80\x08\xb8\xe6*\x01\x12\x17\n\x06schema\x18\t \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\x12%\n\x04\x61uth\x18\x04 \x01(\x0b\x32\x17.FederatedQuery.IamAuth\x12\x15\n\x04host\x18\x05 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\x12\x1c\n\x04port\x18\x06 \x01(\x05\x42\x0e\xb2\xe6*\n[0; 65536]\x12\x0e\n\x06secure\x18\x07 \x01(\x08\"\xcb\x01\n\x10GreenplumCluster\x12\x1c\n\x0b\x64\x61tabase_id\x18\x01 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\x12\x1e\n\rdatabase_name\x18\x02 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\x12\x1a\n\x05login\x18\x03 \x01(\tB\x0b\xa2\xe6*\x03\x18\x80\x08\xb8\xe6*\x01\x12\x1d\n\x08password\x18\x04 \x01(\tB\x0b\xa2\xe6*\x03\x18\x80\x08\xb8\xe6*\x01\x12\x17\n\x06schema\x18\x05 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\x12%\n\x04\x61uth\x18\x06 \x01(\x0b\x32\x17.FederatedQuery.IamAuth\"\xae\x01\n\x0cMySQLCluster\x12\x1c\n\x0b\x64\x61tabase_id\x18\x01 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\x12\x1e\n\rdatabase_name\x18\x02 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\x12\x1a\n\x05login\x18\x03 \x01(\tB\x0b\xa2\xe6*\x03\x18\x80\x08\xb8\xe6*\x01\x12\x1d\n\x08password\x18\x04 \x01(\tB\x0b\xa2\xe6*\x03\x18\x80\x08\xb8\xe6*\x01\x12%\n\x04\x61uth\x18\x05 \x01(\x0b\x32\x17.FederatedQuery.IamAuth\"C\n\x07Logging\x12\x11\n\tfolder_id\x18\x01 \x01(\t\x12%\n\x04\x61uth\x18\x02 \x01(\x0b\x32\x17.FederatedQuery.IamAuth\"\xa4\x01\n\x10IcebergWarehouse\x12\x31\n\x02s3\x18\x01 \x01(\x0b\x32#.FederatedQuery.IcebergWarehouse.S3H\x00\x1aR\n\x02S3\x12\x1c\n\x06\x62ucket\x18\x01 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08H\x00\x88\x01\x01\x12\x1a\n\x04path\x18\x02 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08H\x01\x88\x01\x01\x42\t\n\x07_bucketB\x07\n\x05_pathB\t\n\x07payload\"\xc0\x02\n\x0eIcebergCatalog\x12\x37\n\x06hadoop\x18\x01 \x01(\x0b\x32%.FederatedQuery.IcebergCatalog.HadoopH\x00\x12\x46\n\x0ehive_metastore\x18\x02 \x01(\x0b\x32,.FederatedQuery.IcebergCatalog.HiveMetastoreH\x00\x1a\x37\n\x06Hadoop\x12\x1f\n\tdirectory\x18\x01 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08H\x00\x88\x01\x01\x42\x0c\n\n_directory\x1ai\n\rHiveMetastore\x12\x19\n\x03uri\x18\x01 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08H\x00\x88\x01\x01\x12#\n\rdatabase_name\x18\x02 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08H\x01\x88\x01\x01\x42\x06\n\x04_uriB\x10\n\x0e_database_nameB\t\n\x07payload\"\xa0\x01\n\x07Iceberg\x12/\n\x0ewarehouse_auth\x18\x02 \x01(\x0b\x32\x17.FederatedQuery.IamAuth\x12\x33\n\twarehouse\x18\x03 \x01(\x0b\x32 .FederatedQuery.IcebergWarehouse\x12/\n\x07\x63\x61talog\x18\x04 \x01(\x0b\x32\x1e.FederatedQuery.IcebergCatalog\"\xc0\x06\n\x11\x43onnectionSetting\x12\x33\n\x0cydb_database\x18\x01 \x01(\x0b\x32\x1b.FederatedQuery.YdbDatabaseH\x00\x12?\n\x12\x63lickhouse_cluster\x18\x02 \x01(\x0b\x32!.FederatedQuery.ClickHouseClusterH\x00\x12\x33\n\x0c\x64\x61ta_streams\x18\x03 \x01(\x0b\x32\x1b.FederatedQuery.DataStreamsH\x00\x12\x41\n\x0eobject_storage\x18\x04 \x01(\x0b\x32\'.FederatedQuery.ObjectStorageConnectionH\x00\x12\x30\n\nmonitoring\x18\x05 \x01(\x0b\x32\x1a.FederatedQuery.MonitoringH\x00\x12?\n\x12postgresql_cluster\x18\x06 \x01(\x0b\x32!.FederatedQuery.PostgreSQLClusterH\x00\x12=\n\x11greenplum_cluster\x18\x07 \x01(\x0b\x32 .FederatedQuery.GreenplumClusterH\x00\x12\x35\n\rmysql_cluster\x18\x08 \x01(\x0b\x32\x1c.FederatedQuery.MySQLClusterH\x00\x12*\n\x07logging\x18\t \x01(\x0b\x32\x17.FederatedQuery.LoggingH\x00\x12*\n\x07iceberg\x18\n \x01(\x0b\x32\x17.FederatedQuery.IcebergH\x00\"\xed\x01\n\x0e\x43onnectionType\x12\x1f\n\x1b\x43ONNECTION_TYPE_UNSPECIFIED\x10\x00\x12\x10\n\x0cYDB_DATABASE\x10\x01\x12\x16\n\x12\x43LICKHOUSE_CLUSTER\x10\x02\x12\x10\n\x0c\x44\x41TA_STREAMS\x10\x03\x12\x12\n\x0eOBJECT_STORAGE\x10\x04\x12\x0e\n\nMONITORING\x10\x05\x12\x16\n\x12POSTGRESQL_CLUSTER\x10\x06\x12\x15\n\x11GREENPLUM_CLUSTER\x10\x07\x12\x11\n\rMYSQL_CLUSTER\x10\x08\x12\x0b\n\x07LOGGING\x10\t\x12\x0b\n\x07ICEBERG\x10\nB\x0c\n\nconnection\"\xa2\x01\n\x11\x43onnectionContent\x12\x19\n\x04name\x18\x01 \x01(\tB\x0b\xa2\xe6*\x07\n\x05\x08\x01\x10\x80\x08\x12\x32\n\x07setting\x18\x02 \x01(\x0b\x32!.FederatedQuery.ConnectionSetting\x12 \n\x03\x61\x63l\x18\x03 \x01(\x0b\x32\x13.FederatedQuery.Acl\x12\x1c\n\x0b\x64\x65scription\x18\x04 \x01(\tB\x07\xa2\xe6*\x03\x18\x80P\"j\n\nConnection\x12\x32\n\x07\x63ontent\x18\x01 \x01(\x0b\x32!.FederatedQuery.ConnectionContent\x12(\n\x04meta\x18\x02 \x01(\x0b\x32\x1a.FederatedQuery.CommonMeta\"\xaa\x01\n\x17\x43reateConnectionRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x32\n\x07\x63ontent\x18\x02 \x01(\x0b\x32!.FederatedQuery.ConnectionContent\x12 \n\x0fidempotency_key\x18\x03 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\"H\n\x18\x43reateConnectionResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"<\n\x16\x43reateConnectionResult\x12\"\n\rconnection_id\x18\x01 \x01(\tB\x0b\xa2\xe6*\x07\n\x05\x08\x01\x10\x80\x08\"\x84\x03\n\x16ListConnectionsRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x1b\n\npage_token\x18\x02 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\x12\x1b\n\x05limit\x18\x03 \x01(\x05\x42\x0c\xb2\xe6*\x08[1; 100]\x12=\n\x06\x66ilter\x18\x04 \x01(\x0b\x32-.FederatedQuery.ListConnectionsRequest.Filter\x1a\xb5\x01\n\x06\x46ilter\x12\x15\n\x04name\x18\x01 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\x12\x15\n\rcreated_by_me\x18\x02 \x01(\x08\x12I\n\x0f\x63onnection_type\x18\x03 \x01(\x0e\x32\x30.FederatedQuery.ConnectionSetting.ConnectionType\x12\x32\n\nvisibility\x18\x04 \x01(\x0e\x32\x1e.FederatedQuery.Acl.Visibility\"G\n\x17ListConnectionsResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"i\n\x15ListConnectionsResult\x12.\n\nconnection\x18\x01 \x03(\x0b\x32\x1a.FederatedQuery.Connection\x12 \n\x0fnext_page_token\x18\x02 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\"z\n\x19\x44\x65scribeConnectionRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\"\n\rconnection_id\x18\x02 \x01(\tB\x0b\xa2\xe6*\x07\n\x05\x08\x01\x10\x80\x08\"J\n\x1a\x44\x65scribeConnectionResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"J\n\x18\x44\x65scribeConnectionResult\x12.\n\nconnection\x18\x01 \x01(\x0b\x32\x1a.FederatedQuery.Connection\"\xf3\x01\n\x17ModifyConnectionRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\"\n\rconnection_id\x18\x02 \x01(\tB\x0b\xa2\xe6*\x07\n\x05\x08\x01\x10\x80\x08\x12\x32\n\x07\x63ontent\x18\x03 \x01(\x0b\x32!.FederatedQuery.ConnectionContent\x12#\n\x11previous_revision\x18\x04 \x01(\x03\x42\x08\xb2\xe6*\x04>= 0\x12 \n\x0fidempotency_key\x18\x05 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\"H\n\x18ModifyConnectionResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\x18\n\x16ModifyConnectionResult\"\xbf\x01\n\x17\x44\x65leteConnectionRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\"\n\rconnection_id\x18\x02 \x01(\tB\x0b\xa2\xe6*\x07\n\x05\x08\x01\x10\x80\x08\x12#\n\x11previous_revision\x18\x03 \x01(\x03\x42\x08\xb2\xe6*\x04>= 0\x12 \n\x0fidempotency_key\x18\x04 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\"H\n\x18\x44\x65leteConnectionResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\x18\n\x16\x44\x65leteConnectionResult\"\x86\x01\n\x15TestConnectionRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x32\n\x07setting\x18\x02 \x01(\x0b\x32!.FederatedQuery.ConnectionSetting\"F\n\x16TestConnectionResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\x16\n\x14TestConnectionResult\"\xcc\x01\n\x14GetResultDataRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x1d\n\x08query_id\x18\x02 \x01(\tB\x0b\xa2\xe6*\x07\n\x05\x08\x01\x10\x80\x08\x12\"\n\x10result_set_index\x18\x03 \x01(\x05\x42\x08\xb2\xe6*\x04>= 0\x12\x18\n\x06offset\x18\x04 \x01(\x03\x42\x08\xb2\xe6*\x04>= 0\x12\x1c\n\x05limit\x18\x05 \x01(\x03\x42\r\xb2\xe6*\t[1; 1000]\"E\n\x15GetResultDataResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"9\n\x13GetResultDataResult\x12\"\n\nresult_set\x18\x01 \x01(\x0b\x32\x0e.Ydb.ResultSet\".\n\x06Schema\x12$\n\x06\x63olumn\x18\x01 \x03(\x0b\x32\x0b.Ydb.ColumnB\x07\x9a\xe6*\x03\x18\xe8\x07\"\xa2\x02\n\x12\x44\x61taStreamsBinding\x12 \n\x0bstream_name\x18\x01 \x01(\tB\x0b\xa2\xe6*\x07\n\x05\x08\x01\x10\x80\x08\x12\x17\n\x06\x66ormat\x18\x02 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\x12\x1c\n\x0b\x63ompression\x18\x03 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\x12&\n\x06schema\x18\x04 \x01(\x0b\x32\x16.FederatedQuery.Schema\x12U\n\x0e\x66ormat_setting\x18\x05 \x03(\x0b\x32\x35.FederatedQuery.DataStreamsBinding.FormatSettingEntryB\x06\x9a\xe6*\x02\x18\x64\x1a\x34\n\x12\x46ormatSettingEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\"\x92\x04\n\x14ObjectStorageBinding\x12;\n\x06subset\x18\x01 \x03(\x0b\x32+.FederatedQuery.ObjectStorageBinding.Subset\x1a\xbc\x03\n\x06Subset\x12!\n\x0cpath_pattern\x18\x01 \x01(\tB\x0b\xa2\xe6*\x07\n\x05\x08\x01\x10\x80\x08\x12\x17\n\x06\x66ormat\x18\x02 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\x12^\n\x0e\x66ormat_setting\x18\x03 \x03(\x0b\x32>.FederatedQuery.ObjectStorageBinding.Subset.FormatSettingEntryB\x06\x9a\xe6*\x02\x18\x64\x12\x1c\n\x0b\x63ompression\x18\x04 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\x12&\n\x06schema\x18\x05 \x01(\x0b\x32\x16.FederatedQuery.Schema\x12O\n\nprojection\x18\x06 \x03(\x0b\x32;.FederatedQuery.ObjectStorageBinding.Subset.ProjectionEntry\x12\x16\n\x0epartitioned_by\x18\x07 \x03(\t\x1a\x34\n\x12\x46ormatSettingEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\x1a\x31\n\x0fProjectionEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\"\xea\x01\n\x0e\x42indingSetting\x12:\n\x0c\x64\x61ta_streams\x18\x01 \x01(\x0b\x32\".FederatedQuery.DataStreamsBindingH\x00\x12>\n\x0eobject_storage\x18\x02 \x01(\x0b\x32$.FederatedQuery.ObjectStorageBindingH\x00\"Q\n\x0b\x42indingType\x12\x1c\n\x18\x42INDING_TYPE_UNSPECIFIED\x10\x00\x12\x10\n\x0c\x44\x41TA_STREAMS\x10\x01\x12\x12\n\x0eOBJECT_STORAGE\x10\x02\x42\t\n\x07\x62inding\"\xe5\x01\n\x0c\x42riefBinding\x12\x19\n\x04name\x18\x01 \x01(\tB\x0b\xa2\xe6*\x07\n\x05\x08\x01\x10\x80\x08\x12\"\n\rconnection_id\x18\x02 \x01(\tB\x0b\xa2\xe6*\x07\n\x05\x08\x01\x10\x80\x08\x12(\n\x04meta\x18\x03 \x01(\x0b\x32\x1a.FederatedQuery.CommonMeta\x12\x38\n\x04type\x18\x04 \x01(\x0e\x32*.FederatedQuery.BindingSetting.BindingType\x12\x32\n\nvisibility\x18\x05 \x01(\x0e\x32\x1e.FederatedQuery.Acl.Visibility\"\xc0\x01\n\x0e\x42indingContent\x12\x19\n\x04name\x18\x01 \x01(\tB\x0b\xa2\xe6*\x07\n\x05\x08\x01\x10\x80\x08\x12\"\n\rconnection_id\x18\x02 \x01(\tB\x0b\xa2\xe6*\x07\n\x05\x08\x01\x10\x80\x08\x12/\n\x07setting\x18\x03 \x01(\x0b\x32\x1e.FederatedQuery.BindingSetting\x12 \n\x03\x61\x63l\x18\x04 \x01(\x0b\x32\x13.FederatedQuery.Acl\x12\x1c\n\x0b\x64\x65scription\x18\x05 \x01(\tB\x07\xa2\xe6*\x03\x18\x80P\"d\n\x07\x42inding\x12/\n\x07\x63ontent\x18\x01 \x01(\x0b\x32\x1e.FederatedQuery.BindingContent\x12(\n\x04meta\x18\x02 \x01(\x0b\x32\x1a.FederatedQuery.CommonMeta\"\xa4\x01\n\x14\x43reateBindingRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12/\n\x07\x63ontent\x18\x02 \x01(\x0b\x32\x1e.FederatedQuery.BindingContent\x12 \n\x0fidempotency_key\x18\x03 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\"E\n\x15\x43reateBindingResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"6\n\x13\x43reateBindingResult\x12\x1f\n\nbinding_id\x18\x01 \x01(\tB\x0b\xa2\xe6*\x07\n\x05\x08\x01\x10\x80\x08\"\xd3\x02\n\x13ListBindingsRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x1b\n\npage_token\x18\x02 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\x12\x1b\n\x05limit\x18\x03 \x01(\x05\x42\x0c\xb2\xe6*\x08[1; 100]\x12:\n\x06\x66ilter\x18\x04 \x01(\x0b\x32*.FederatedQuery.ListBindingsRequest.Filter\x1a\x8a\x01\n\x06\x46ilter\x12\x1e\n\rconnection_id\x18\x01 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\x12\x15\n\x04name\x18\x02 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\x12\x15\n\rcreated_by_me\x18\x03 \x01(\x08\x12\x32\n\nvisibility\x18\x04 \x01(\x0e\x32\x1e.FederatedQuery.Acl.Visibility\"D\n\x14ListBindingsResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"e\n\x12ListBindingsResult\x12-\n\x07\x62inding\x18\x01 \x03(\x0b\x32\x1c.FederatedQuery.BriefBinding\x12 \n\x0fnext_page_token\x18\x02 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\"t\n\x16\x44\x65scribeBindingRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x1f\n\nbinding_id\x18\x02 \x01(\tB\x0b\xa2\xe6*\x07\n\x05\x08\x01\x10\x80\x08\"G\n\x17\x44\x65scribeBindingResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"A\n\x15\x44\x65scribeBindingResult\x12(\n\x07\x62inding\x18\x01 \x01(\x0b\x32\x17.FederatedQuery.Binding\"\xea\x01\n\x14ModifyBindingRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x1f\n\nbinding_id\x18\x02 \x01(\tB\x0b\xa2\xe6*\x07\n\x05\x08\x01\x10\x80\x08\x12/\n\x07\x63ontent\x18\x03 \x01(\x0b\x32\x1e.FederatedQuery.BindingContent\x12#\n\x11previous_revision\x18\x04 \x01(\x03\x42\x08\xb2\xe6*\x04>= 0\x12 \n\x0fidempotency_key\x18\x05 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\"E\n\x15ModifyBindingResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\x15\n\x13ModifyBindingResult\"\xb9\x01\n\x14\x44\x65leteBindingRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x1f\n\nbinding_id\x18\x02 \x01(\tB\x0b\xa2\xe6*\x07\n\x05\x08\x01\x10\x80\x08\x12#\n\x11previous_revision\x18\x03 \x01(\x03\x42\x08\xb2\xe6*\x04>= 0\x12 \n\x0fidempotency_key\x18\x04 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\"E\n\x15\x44\x65leteBindingResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\x15\n\x13\x44\x65leteBindingResult*q\n\x0b\x45xecuteMode\x12\x1c\n\x18\x45XECUTE_MODE_UNSPECIFIED\x10\x00\x12\x08\n\x04SAVE\x10\x01\x12\t\n\x05PARSE\x10\x02\x12\x0b\n\x07\x43OMPILE\x10\x03\x12\x0c\n\x08VALIDATE\x10\x04\x12\x0b\n\x07\x45XPLAIN\x10\x05\x12\x07\n\x03RUN\x10\x06*y\n\x0bQueryAction\x12\x1c\n\x18QUERY_ACTION_UNSPECIFIED\x10\x00\x12\t\n\x05PAUSE\x10\x01\x12\x14\n\x10PAUSE_GRACEFULLY\x10\x02\x12\t\n\x05\x41\x42ORT\x10\x03\x12\x14\n\x10\x41\x42ORT_GRACEFULLY\x10\x04\x12\n\n\x06RESUME\x10\x05*U\n\rStateLoadMode\x12\x1f\n\x1bSTATE_LOAD_MODE_UNSPECIFIED\x10\x00\x12\t\n\x05\x45MPTY\x10\x01\x12\x18\n\x14\x46ROM_LAST_CHECKPOINT\x10\x02*Q\n\rAutomaticType\x12\x1e\n\x1a\x41UTOMATIC_TYPE_UNSPECIFIED\x10\x00\x12\r\n\tAUTOMATIC\x10\x01\x12\x11\n\rNOT_AUTOMATIC\x10\x02\x42r\n$tech.ydb.proto.draft.federated.queryZGgithub.com/ydb-platform/ydb-go-genproto/draft/protos/Ydb_FederatedQuery\xf8\x01\x01\x62\x06proto3'
   ,
   dependencies=[protos_dot_annotations_dot_sensitive__pb2.DESCRIPTOR,protos_dot_annotations_dot_validation__pb2.DESCRIPTOR,protos_dot_ydb__operation__pb2.DESCRIPTOR,protos_dot_ydb__value__pb2.DESCRIPTOR,protos_dot_ydb__issue__message__pb2.DESCRIPTOR,google_dot_protobuf_dot_duration__pb2.DESCRIPTOR,google_dot_protobuf_dot_timestamp__pb2.DESCRIPTOR,google_dot_protobuf_dot_empty__pb2.DESCRIPTOR,])
 
@@ -78,8 +78,8 @@ _EXECUTEMODE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=15700,
-  serialized_end=15813,
+  serialized_start=17540,
+  serialized_end=17653,
 )
 _sym_db.RegisterEnumDescriptor(_EXECUTEMODE)
 
@@ -124,8 +124,8 @@ _QUERYACTION = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=15815,
-  serialized_end=15936,
+  serialized_start=17655,
+  serialized_end=17776,
 )
 _sym_db.RegisterEnumDescriptor(_QUERYACTION)
 
@@ -155,8 +155,8 @@ _STATELOADMODE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=15938,
-  serialized_end=16023,
+  serialized_start=17778,
+  serialized_end=17863,
 )
 _sym_db.RegisterEnumDescriptor(_STATELOADMODE)
 
@@ -186,8 +186,8 @@ _AUTOMATICTYPE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=16025,
-  serialized_end=16106,
+  serialized_start=17865,
+  serialized_end=17946,
 )
 _sym_db.RegisterEnumDescriptor(_AUTOMATICTYPE)
 
@@ -268,8 +268,8 @@ _QUERYCONTENT_QUERYTYPE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=1785,
-  serialized_end=1854,
+  serialized_start=1933,
+  serialized_end=2002,
 )
 _sym_db.RegisterEnumDescriptor(_QUERYCONTENT_QUERYTYPE)
 
@@ -298,8 +298,8 @@ _QUERYCONTENT_QUERYSYNTAX = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=1856,
-  serialized_end=1919,
+  serialized_start=2004,
+  serialized_end=2067,
 )
 _sym_db.RegisterEnumDescriptor(_QUERYCONTENT_QUERYSYNTAX)
 
@@ -383,8 +383,8 @@ _QUERYMETA_COMPUTESTATUS = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=2716,
-  serialized_end=2975,
+  serialized_start=2864,
+  serialized_end=3123,
 )
 _sym_db.RegisterEnumDescriptor(_QUERYMETA_COMPUTESTATUS)
 
@@ -430,11 +430,31 @@ _CONNECTIONSETTING_CONNECTIONTYPE = _descriptor.EnumDescriptor(
       serialized_options=None,
       type=None,
       create_key=_descriptor._internal_create_key),
+    _descriptor.EnumValueDescriptor(
+      name='GREENPLUM_CLUSTER', index=7, number=7,
+      serialized_options=None,
+      type=None,
+      create_key=_descriptor._internal_create_key),
+    _descriptor.EnumValueDescriptor(
+      name='MYSQL_CLUSTER', index=8, number=8,
+      serialized_options=None,
+      type=None,
+      create_key=_descriptor._internal_create_key),
+    _descriptor.EnumValueDescriptor(
+      name='LOGGING', index=9, number=9,
+      serialized_options=None,
+      type=None,
+      create_key=_descriptor._internal_create_key),
+    _descriptor.EnumValueDescriptor(
+      name='ICEBERG', index=10, number=10,
+      serialized_options=None,
+      type=None,
+      create_key=_descriptor._internal_create_key),
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=9556,
-  serialized_end=9725,
+  serialized_start=11328,
+  serialized_end=11565,
 )
 _sym_db.RegisterEnumDescriptor(_CONNECTIONSETTING_CONNECTIONTYPE)
 
@@ -463,8 +483,8 @@ _BINDINGSETTING_BINDINGTYPE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=13397,
-  serialized_end=13478,
+  serialized_start=15237,
+  serialized_end=15318,
 )
 _sym_db.RegisterEnumDescriptor(_BINDINGSETTING_BINDINGTYPE)
 
@@ -787,8 +807,46 @@ _QUERYCONTENT_EXECUTIONSETTINGSENTRY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1727,
-  serialized_end=1783,
+  serialized_start=1807,
+  serialized_end=1863,
+)
+
+_QUERYCONTENT_PARAMETERSENTRY = _descriptor.Descriptor(
+  name='ParametersEntry',
+  full_name='FederatedQuery.QueryContent.ParametersEntry',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='key', full_name='FederatedQuery.QueryContent.ParametersEntry.key', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='value', full_name='FederatedQuery.QueryContent.ParametersEntry.value', index=1,
+      number=2, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=b'8\001',
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=1865,
+  serialized_end=1931,
 )
 
 _QUERYCONTENT = _descriptor.Descriptor(
@@ -862,10 +920,17 @@ _QUERYCONTENT = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='parameters', full_name='FederatedQuery.QueryContent.parameters', index=9,
+      number=12, type=11, cpp_type=10, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=b'\252\346*\010\n\006\n\004\010\001\020d', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
   ],
   extensions=[
   ],
-  nested_types=[_QUERYCONTENT_EXECUTIONSETTINGSENTRY, ],
+  nested_types=[_QUERYCONTENT_EXECUTIONSETTINGSENTRY, _QUERYCONTENT_PARAMETERSENTRY, ],
   enum_types=[
     _QUERYCONTENT_QUERYTYPE,
     _QUERYCONTENT_QUERYSYNTAX,
@@ -877,7 +942,7 @@ _QUERYCONTENT = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=1323,
-  serialized_end=1919,
+  serialized_end=2067,
 )
 
 
@@ -943,8 +1008,8 @@ _COMMONMETA = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1922,
-  serialized_end=2151,
+  serialized_start=2070,
+  serialized_end=2299,
 )
 
 
@@ -1072,8 +1137,8 @@ _QUERYMETA = _descriptor.Descriptor(
       create_key=_descriptor._internal_create_key,
     fields=[]),
   ],
-  serialized_start=2154,
-  serialized_end=2985,
+  serialized_start=2302,
+  serialized_end=3133,
 )
 
 
@@ -1132,8 +1197,8 @@ _BRIEFQUERY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2988,
-  serialized_end=3189,
+  serialized_start=3136,
+  serialized_end=3337,
 )
 
 
@@ -1164,8 +1229,8 @@ _QUERYPLAN = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3191,
-  serialized_end=3216,
+  serialized_start=3339,
+  serialized_end=3364,
 )
 
 
@@ -1196,8 +1261,8 @@ _QUERYAST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3218,
-  serialized_end=3242,
+  serialized_start=3366,
+  serialized_end=3390,
 )
 
 
@@ -1242,8 +1307,40 @@ _RESULTSETMETA = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3244,
-  serialized_end=3337,
+  serialized_start=3392,
+  serialized_end=3485,
+)
+
+
+_QUERYTIMELINE = _descriptor.Descriptor(
+  name='QueryTimeline',
+  full_name='FederatedQuery.QueryTimeline',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='svg', full_name='FederatedQuery.QueryTimeline.svg', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=3487,
+  serialized_end=3515,
 )
 
 
@@ -1311,6 +1408,13 @@ _QUERY = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='timeline', full_name='FederatedQuery.Query.timeline', index=8,
+      number=9, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
   ],
   extensions=[
   ],
@@ -1323,8 +1427,8 @@ _QUERY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3340,
-  serialized_end=3714,
+  serialized_start=3518,
+  serialized_end=3941,
 )
 
 
@@ -1355,8 +1459,8 @@ _QUERYSTATISTICS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3716,
-  serialized_end=3747,
+  serialized_start=3943,
+  serialized_end=3974,
 )
 
 
@@ -1415,8 +1519,8 @@ _CREATEQUERYREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3750,
-  serialized_end=4020,
+  serialized_start=3977,
+  serialized_end=4247,
 )
 
 
@@ -1447,8 +1551,8 @@ _CREATEQUERYRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=4022,
-  serialized_end=4089,
+  serialized_start=4249,
+  serialized_end=4316,
 )
 
 
@@ -1479,8 +1583,8 @@ _CREATEQUERYRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=4091,
-  serialized_end=4137,
+  serialized_start=4318,
+  serialized_end=4364,
 )
 
 
@@ -1553,8 +1657,8 @@ _LISTQUERIESREQUEST_FILTER = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=4339,
-  serialized_end=4671,
+  serialized_start=4566,
+  serialized_end=4898,
 )
 
 _LISTQUERIESREQUEST = _descriptor.Descriptor(
@@ -1605,8 +1709,8 @@ _LISTQUERIESREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=4140,
-  serialized_end=4671,
+  serialized_start=4367,
+  serialized_end=4898,
 )
 
 
@@ -1637,8 +1741,8 @@ _LISTQUERIESRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=4673,
-  serialized_end=4740,
+  serialized_start=4900,
+  serialized_end=4967,
 )
 
 
@@ -1676,8 +1780,8 @@ _LISTQUERIESRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=4742,
-  serialized_end=4838,
+  serialized_start=4969,
+  serialized_end=5065,
 )
 
 
@@ -1715,8 +1819,8 @@ _DESCRIBEQUERYREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=4840,
-  serialized_end=4952,
+  serialized_start=5067,
+  serialized_end=5179,
 )
 
 
@@ -1747,8 +1851,8 @@ _DESCRIBEQUERYRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=4954,
-  serialized_end=5023,
+  serialized_start=5181,
+  serialized_end=5250,
 )
 
 
@@ -1779,8 +1883,8 @@ _DESCRIBEQUERYRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=5025,
-  serialized_end=5084,
+  serialized_start=5252,
+  serialized_end=5311,
 )
 
 
@@ -1818,8 +1922,8 @@ _GETQUERYSTATUSREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=5086,
-  serialized_end=5199,
+  serialized_start=5313,
+  serialized_end=5426,
 )
 
 
@@ -1850,8 +1954,8 @@ _GETQUERYSTATUSRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=5201,
-  serialized_end=5271,
+  serialized_start=5428,
+  serialized_end=5498,
 )
 
 
@@ -1889,8 +1993,8 @@ _GETQUERYSTATUSRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=5273,
-  serialized_end=5375,
+  serialized_start=5500,
+  serialized_end=5602,
 )
 
 
@@ -1942,8 +2046,8 @@ _DELETEQUERYREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=5378,
-  serialized_end=5559,
+  serialized_start=5605,
+  serialized_end=5786,
 )
 
 
@@ -1974,8 +2078,8 @@ _DELETEQUERYRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=5561,
-  serialized_end=5628,
+  serialized_start=5788,
+  serialized_end=5855,
 )
 
 
@@ -1999,8 +2103,8 @@ _DELETEQUERYRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=5630,
-  serialized_end=5649,
+  serialized_start=5857,
+  serialized_end=5876,
 )
 
 
@@ -2080,8 +2184,8 @@ _MODIFYQUERYREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=5652,
-  serialized_end=6046,
+  serialized_start=5879,
+  serialized_end=6273,
 )
 
 
@@ -2112,8 +2216,8 @@ _MODIFYQUERYRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=6048,
-  serialized_end=6115,
+  serialized_start=6275,
+  serialized_end=6342,
 )
 
 
@@ -2137,8 +2241,8 @@ _MODIFYQUERYRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=6117,
-  serialized_end=6136,
+  serialized_start=6344,
+  serialized_end=6363,
 )
 
 
@@ -2197,8 +2301,8 @@ _CONTROLQUERYREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=6139,
-  serialized_end=6366,
+  serialized_start=6366,
+  serialized_end=6593,
 )
 
 
@@ -2229,8 +2333,8 @@ _CONTROLQUERYRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=6368,
-  serialized_end=6436,
+  serialized_start=6595,
+  serialized_end=6663,
 )
 
 
@@ -2254,8 +2358,8 @@ _CONTROLQUERYRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=6438,
-  serialized_end=6458,
+  serialized_start=6665,
+  serialized_end=6685,
 )
 
 
@@ -2321,10 +2425,48 @@ _BRIEFJOB = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=6461,
-  serialized_end=6698,
+  serialized_start=6688,
+  serialized_end=6925,
 )
 
+
+_JOB_PARAMETERSENTRY = _descriptor.Descriptor(
+  name='ParametersEntry',
+  full_name='FederatedQuery.Job.ParametersEntry',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='key', full_name='FederatedQuery.Job.ParametersEntry.key', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='value', full_name='FederatedQuery.Job.ParametersEntry.value', index=1,
+      number=2, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=b'8\001',
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=1865,
+  serialized_end=1931,
+)
 
 _JOB = _descriptor.Descriptor(
   name='Job',
@@ -2425,10 +2567,17 @@ _JOB = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='parameters', full_name='FederatedQuery.Job.parameters', index=13,
+      number=14, type=11, cpp_type=10, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
   ],
   extensions=[
   ],
-  nested_types=[],
+  nested_types=[_JOB_PARAMETERSENTRY, ],
   enum_types=[
   ],
   serialized_options=None,
@@ -2437,8 +2586,8 @@ _JOB = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=6701,
-  serialized_end=7216,
+  serialized_start=6928,
+  serialized_end=7568,
 )
 
 
@@ -2476,8 +2625,8 @@ _LISTJOBSREQUEST_FILTER = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=7429,
-  serialized_end=7487,
+  serialized_start=7781,
+  serialized_end=7839,
 )
 
 _LISTJOBSREQUEST = _descriptor.Descriptor(
@@ -2535,8 +2684,8 @@ _LISTJOBSREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=7219,
-  serialized_end=7487,
+  serialized_start=7571,
+  serialized_end=7839,
 )
 
 
@@ -2567,8 +2716,8 @@ _LISTJOBSRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=7489,
-  serialized_end=7553,
+  serialized_start=7841,
+  serialized_end=7905,
 )
 
 
@@ -2606,8 +2755,8 @@ _LISTJOBSRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=7555,
-  serialized_end=7644,
+  serialized_start=7907,
+  serialized_end=7996,
 )
 
 
@@ -2645,8 +2794,8 @@ _DESCRIBEJOBREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=7646,
-  serialized_end=7754,
+  serialized_start=7998,
+  serialized_end=8106,
 )
 
 
@@ -2677,8 +2826,8 @@ _DESCRIBEJOBRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=7756,
-  serialized_end=7823,
+  serialized_start=8108,
+  serialized_end=8175,
 )
 
 
@@ -2709,8 +2858,8 @@ _DESCRIBEJOBRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=7825,
-  serialized_end=7878,
+  serialized_start=8177,
+  serialized_end=8230,
 )
 
 
@@ -2734,8 +2883,8 @@ _CURRENTIAMTOKENAUTH = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=7880,
-  serialized_end=7901,
+  serialized_start=8232,
+  serialized_end=8253,
 )
 
 
@@ -2759,8 +2908,8 @@ _NONEAUTH = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=7903,
-  serialized_end=7913,
+  serialized_start=8255,
+  serialized_end=8265,
 )
 
 
@@ -2791,8 +2940,40 @@ _SERVICEACCOUNTAUTH = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=7915,
-  serialized_end=7956,
+  serialized_start=8267,
+  serialized_end=8308,
+)
+
+
+_TOKENAUTH = _descriptor.Descriptor(
+  name='TokenAuth',
+  full_name='FederatedQuery.TokenAuth',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='token', full_name='FederatedQuery.TokenAuth.token', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=b'\242\346*\003\030\200\010\270\346*\001', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=8310,
+  serialized_end=8349,
 )
 
 
@@ -2825,6 +3006,13 @@ _IAMAUTH = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='token', full_name='FederatedQuery.IamAuth.token', index=3,
+      number=4, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
   ],
   extensions=[
   ],
@@ -2842,8 +3030,8 @@ _IAMAUTH = _descriptor.Descriptor(
       create_key=_descriptor._internal_create_key,
     fields=[]),
   ],
-  serialized_start=7959,
-  serialized_end=8145,
+  serialized_start=8352,
+  serialized_end=8582,
 )
 
 
@@ -2890,6 +3078,13 @@ _DATASTREAMS = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='shared_reading', full_name='FederatedQuery.DataStreams.shared_reading', index=5,
+      number=6, type=8, cpp_type=7, label=1,
+      has_default_value=False, default_value=False,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
   ],
   extensions=[
   ],
@@ -2902,8 +3097,8 @@ _DATASTREAMS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=8148,
-  serialized_end=8300,
+  serialized_start=8585,
+  serialized_end=8761,
 )
 
 
@@ -2948,8 +3143,8 @@ _MONITORING = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=8302,
-  serialized_end=8405,
+  serialized_start=8763,
+  serialized_end=8866,
 )
 
 
@@ -3008,8 +3203,8 @@ _YDBDATABASE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=8408,
-  serialized_end=8560,
+  serialized_start=8869,
+  serialized_end=9021,
 )
 
 
@@ -3089,8 +3284,8 @@ _CLICKHOUSECLUSTER = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=8563,
-  serialized_end=8811,
+  serialized_start=9024,
+  serialized_end=9272,
 )
 
 
@@ -3128,8 +3323,8 @@ _OBJECTSTORAGECONNECTION = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=8813,
-  serialized_end=8902,
+  serialized_start=9274,
+  serialized_end=9363,
 )
 
 
@@ -3216,8 +3411,433 @@ _POSTGRESQLCLUSTER = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=8905,
-  serialized_end=9178,
+  serialized_start=9366,
+  serialized_end=9639,
+)
+
+
+_GREENPLUMCLUSTER = _descriptor.Descriptor(
+  name='GreenplumCluster',
+  full_name='FederatedQuery.GreenplumCluster',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='database_id', full_name='FederatedQuery.GreenplumCluster.database_id', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=b'\242\346*\003\030\200\010', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='database_name', full_name='FederatedQuery.GreenplumCluster.database_name', index=1,
+      number=2, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=b'\242\346*\003\030\200\010', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='login', full_name='FederatedQuery.GreenplumCluster.login', index=2,
+      number=3, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=b'\242\346*\003\030\200\010\270\346*\001', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='password', full_name='FederatedQuery.GreenplumCluster.password', index=3,
+      number=4, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=b'\242\346*\003\030\200\010\270\346*\001', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='schema', full_name='FederatedQuery.GreenplumCluster.schema', index=4,
+      number=5, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=b'\242\346*\003\030\200\010', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='auth', full_name='FederatedQuery.GreenplumCluster.auth', index=5,
+      number=6, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=9642,
+  serialized_end=9845,
+)
+
+
+_MYSQLCLUSTER = _descriptor.Descriptor(
+  name='MySQLCluster',
+  full_name='FederatedQuery.MySQLCluster',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='database_id', full_name='FederatedQuery.MySQLCluster.database_id', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=b'\242\346*\003\030\200\010', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='database_name', full_name='FederatedQuery.MySQLCluster.database_name', index=1,
+      number=2, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=b'\242\346*\003\030\200\010', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='login', full_name='FederatedQuery.MySQLCluster.login', index=2,
+      number=3, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=b'\242\346*\003\030\200\010\270\346*\001', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='password', full_name='FederatedQuery.MySQLCluster.password', index=3,
+      number=4, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=b'\242\346*\003\030\200\010\270\346*\001', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='auth', full_name='FederatedQuery.MySQLCluster.auth', index=4,
+      number=5, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=9848,
+  serialized_end=10022,
+)
+
+
+_LOGGING = _descriptor.Descriptor(
+  name='Logging',
+  full_name='FederatedQuery.Logging',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='folder_id', full_name='FederatedQuery.Logging.folder_id', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='auth', full_name='FederatedQuery.Logging.auth', index=1,
+      number=2, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=10024,
+  serialized_end=10091,
+)
+
+
+_ICEBERGWAREHOUSE_S3 = _descriptor.Descriptor(
+  name='S3',
+  full_name='FederatedQuery.IcebergWarehouse.S3',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='bucket', full_name='FederatedQuery.IcebergWarehouse.S3.bucket', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=b'\242\346*\003\030\200\010', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='path', full_name='FederatedQuery.IcebergWarehouse.S3.path', index=1,
+      number=2, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=b'\242\346*\003\030\200\010', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+    _descriptor.OneofDescriptor(
+      name='_bucket', full_name='FederatedQuery.IcebergWarehouse.S3._bucket',
+      index=0, containing_type=None,
+      create_key=_descriptor._internal_create_key,
+    fields=[]),
+    _descriptor.OneofDescriptor(
+      name='_path', full_name='FederatedQuery.IcebergWarehouse.S3._path',
+      index=1, containing_type=None,
+      create_key=_descriptor._internal_create_key,
+    fields=[]),
+  ],
+  serialized_start=10165,
+  serialized_end=10247,
+)
+
+_ICEBERGWAREHOUSE = _descriptor.Descriptor(
+  name='IcebergWarehouse',
+  full_name='FederatedQuery.IcebergWarehouse',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='s3', full_name='FederatedQuery.IcebergWarehouse.s3', index=0,
+      number=1, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[_ICEBERGWAREHOUSE_S3, ],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+    _descriptor.OneofDescriptor(
+      name='payload', full_name='FederatedQuery.IcebergWarehouse.payload',
+      index=0, containing_type=None,
+      create_key=_descriptor._internal_create_key,
+    fields=[]),
+  ],
+  serialized_start=10094,
+  serialized_end=10258,
+)
+
+
+_ICEBERGCATALOG_HADOOP = _descriptor.Descriptor(
+  name='Hadoop',
+  full_name='FederatedQuery.IcebergCatalog.Hadoop',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='directory', full_name='FederatedQuery.IcebergCatalog.Hadoop.directory', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=b'\242\346*\003\030\200\010', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+    _descriptor.OneofDescriptor(
+      name='_directory', full_name='FederatedQuery.IcebergCatalog.Hadoop._directory',
+      index=0, containing_type=None,
+      create_key=_descriptor._internal_create_key,
+    fields=[]),
+  ],
+  serialized_start=10408,
+  serialized_end=10463,
+)
+
+_ICEBERGCATALOG_HIVEMETASTORE = _descriptor.Descriptor(
+  name='HiveMetastore',
+  full_name='FederatedQuery.IcebergCatalog.HiveMetastore',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='uri', full_name='FederatedQuery.IcebergCatalog.HiveMetastore.uri', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=b'\242\346*\003\030\200\010', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='database_name', full_name='FederatedQuery.IcebergCatalog.HiveMetastore.database_name', index=1,
+      number=2, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=b'\242\346*\003\030\200\010', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+    _descriptor.OneofDescriptor(
+      name='_uri', full_name='FederatedQuery.IcebergCatalog.HiveMetastore._uri',
+      index=0, containing_type=None,
+      create_key=_descriptor._internal_create_key,
+    fields=[]),
+    _descriptor.OneofDescriptor(
+      name='_database_name', full_name='FederatedQuery.IcebergCatalog.HiveMetastore._database_name',
+      index=1, containing_type=None,
+      create_key=_descriptor._internal_create_key,
+    fields=[]),
+  ],
+  serialized_start=10465,
+  serialized_end=10570,
+)
+
+_ICEBERGCATALOG = _descriptor.Descriptor(
+  name='IcebergCatalog',
+  full_name='FederatedQuery.IcebergCatalog',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='hadoop', full_name='FederatedQuery.IcebergCatalog.hadoop', index=0,
+      number=1, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='hive_metastore', full_name='FederatedQuery.IcebergCatalog.hive_metastore', index=1,
+      number=2, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[_ICEBERGCATALOG_HADOOP, _ICEBERGCATALOG_HIVEMETASTORE, ],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+    _descriptor.OneofDescriptor(
+      name='payload', full_name='FederatedQuery.IcebergCatalog.payload',
+      index=0, containing_type=None,
+      create_key=_descriptor._internal_create_key,
+    fields=[]),
+  ],
+  serialized_start=10261,
+  serialized_end=10581,
+)
+
+
+_ICEBERG = _descriptor.Descriptor(
+  name='Iceberg',
+  full_name='FederatedQuery.Iceberg',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='warehouse_auth', full_name='FederatedQuery.Iceberg.warehouse_auth', index=0,
+      number=2, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='warehouse', full_name='FederatedQuery.Iceberg.warehouse', index=1,
+      number=3, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='catalog', full_name='FederatedQuery.Iceberg.catalog', index=2,
+      number=4, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=10584,
+  serialized_end=10744,
 )
 
 
@@ -3271,6 +3891,34 @@ _CONNECTIONSETTING = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='greenplum_cluster', full_name='FederatedQuery.ConnectionSetting.greenplum_cluster', index=6,
+      number=7, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='mysql_cluster', full_name='FederatedQuery.ConnectionSetting.mysql_cluster', index=7,
+      number=8, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='logging', full_name='FederatedQuery.ConnectionSetting.logging', index=8,
+      number=9, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='iceberg', full_name='FederatedQuery.ConnectionSetting.iceberg', index=9,
+      number=10, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
   ],
   extensions=[
   ],
@@ -3289,8 +3937,8 @@ _CONNECTIONSETTING = _descriptor.Descriptor(
       create_key=_descriptor._internal_create_key,
     fields=[]),
   ],
-  serialized_start=9181,
-  serialized_end=9739,
+  serialized_start=10747,
+  serialized_end=11579,
 )
 
 
@@ -3342,8 +3990,8 @@ _CONNECTIONCONTENT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=9742,
-  serialized_end=9904,
+  serialized_start=11582,
+  serialized_end=11744,
 )
 
 
@@ -3381,8 +4029,8 @@ _CONNECTION = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=9906,
-  serialized_end=10012,
+  serialized_start=11746,
+  serialized_end=11852,
 )
 
 
@@ -3427,8 +4075,8 @@ _CREATECONNECTIONREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=10015,
-  serialized_end=10185,
+  serialized_start=11855,
+  serialized_end=12025,
 )
 
 
@@ -3459,8 +4107,8 @@ _CREATECONNECTIONRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=10187,
-  serialized_end=10259,
+  serialized_start=12027,
+  serialized_end=12099,
 )
 
 
@@ -3491,8 +4139,8 @@ _CREATECONNECTIONRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=10261,
-  serialized_end=10321,
+  serialized_start=12101,
+  serialized_end=12161,
 )
 
 
@@ -3544,8 +4192,8 @@ _LISTCONNECTIONSREQUEST_FILTER = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=10531,
-  serialized_end=10712,
+  serialized_start=12371,
+  serialized_end=12552,
 )
 
 _LISTCONNECTIONSREQUEST = _descriptor.Descriptor(
@@ -3596,8 +4244,8 @@ _LISTCONNECTIONSREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=10324,
-  serialized_end=10712,
+  serialized_start=12164,
+  serialized_end=12552,
 )
 
 
@@ -3628,8 +4276,8 @@ _LISTCONNECTIONSRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=10714,
-  serialized_end=10785,
+  serialized_start=12554,
+  serialized_end=12625,
 )
 
 
@@ -3667,8 +4315,8 @@ _LISTCONNECTIONSRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=10787,
-  serialized_end=10892,
+  serialized_start=12627,
+  serialized_end=12732,
 )
 
 
@@ -3706,8 +4354,8 @@ _DESCRIBECONNECTIONREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=10894,
-  serialized_end=11016,
+  serialized_start=12734,
+  serialized_end=12856,
 )
 
 
@@ -3738,8 +4386,8 @@ _DESCRIBECONNECTIONRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=11018,
-  serialized_end=11092,
+  serialized_start=12858,
+  serialized_end=12932,
 )
 
 
@@ -3770,8 +4418,8 @@ _DESCRIBECONNECTIONRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=11094,
-  serialized_end=11168,
+  serialized_start=12934,
+  serialized_end=13008,
 )
 
 
@@ -3830,8 +4478,8 @@ _MODIFYCONNECTIONREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=11171,
-  serialized_end=11414,
+  serialized_start=13011,
+  serialized_end=13254,
 )
 
 
@@ -3862,8 +4510,8 @@ _MODIFYCONNECTIONRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=11416,
-  serialized_end=11488,
+  serialized_start=13256,
+  serialized_end=13328,
 )
 
 
@@ -3887,8 +4535,8 @@ _MODIFYCONNECTIONRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=11490,
-  serialized_end=11514,
+  serialized_start=13330,
+  serialized_end=13354,
 )
 
 
@@ -3940,8 +4588,8 @@ _DELETECONNECTIONREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=11517,
-  serialized_end=11708,
+  serialized_start=13357,
+  serialized_end=13548,
 )
 
 
@@ -3972,8 +4620,8 @@ _DELETECONNECTIONRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=11710,
-  serialized_end=11782,
+  serialized_start=13550,
+  serialized_end=13622,
 )
 
 
@@ -3997,8 +4645,8 @@ _DELETECONNECTIONRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=11784,
-  serialized_end=11808,
+  serialized_start=13624,
+  serialized_end=13648,
 )
 
 
@@ -4036,8 +4684,8 @@ _TESTCONNECTIONREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=11811,
-  serialized_end=11945,
+  serialized_start=13651,
+  serialized_end=13785,
 )
 
 
@@ -4068,8 +4716,8 @@ _TESTCONNECTIONRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=11947,
-  serialized_end=12017,
+  serialized_start=13787,
+  serialized_end=13857,
 )
 
 
@@ -4093,8 +4741,8 @@ _TESTCONNECTIONRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=12019,
-  serialized_end=12041,
+  serialized_start=13859,
+  serialized_end=13881,
 )
 
 
@@ -4153,8 +4801,8 @@ _GETRESULTDATAREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=12044,
-  serialized_end=12248,
+  serialized_start=13884,
+  serialized_end=14088,
 )
 
 
@@ -4185,8 +4833,8 @@ _GETRESULTDATARESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=12250,
-  serialized_end=12319,
+  serialized_start=14090,
+  serialized_end=14159,
 )
 
 
@@ -4217,8 +4865,8 @@ _GETRESULTDATARESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=12321,
-  serialized_end=12378,
+  serialized_start=14161,
+  serialized_end=14218,
 )
 
 
@@ -4249,8 +4897,8 @@ _SCHEMA = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=12380,
-  serialized_end=12426,
+  serialized_start=14220,
+  serialized_end=14266,
 )
 
 
@@ -4288,8 +4936,8 @@ _DATASTREAMSBINDING_FORMATSETTINGENTRY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=12667,
-  serialized_end=12719,
+  serialized_start=14507,
+  serialized_end=14559,
 )
 
 _DATASTREAMSBINDING = _descriptor.Descriptor(
@@ -4347,8 +4995,8 @@ _DATASTREAMSBINDING = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=12429,
-  serialized_end=12719,
+  serialized_start=14269,
+  serialized_end=14559,
 )
 
 
@@ -4386,8 +5034,8 @@ _OBJECTSTORAGEBINDING_SUBSET_FORMATSETTINGENTRY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=12667,
-  serialized_end=12719,
+  serialized_start=14507,
+  serialized_end=14559,
 )
 
 _OBJECTSTORAGEBINDING_SUBSET_PROJECTIONENTRY = _descriptor.Descriptor(
@@ -4424,8 +5072,8 @@ _OBJECTSTORAGEBINDING_SUBSET_PROJECTIONENTRY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=13203,
-  serialized_end=13252,
+  serialized_start=15043,
+  serialized_end=15092,
 )
 
 _OBJECTSTORAGEBINDING_SUBSET = _descriptor.Descriptor(
@@ -4497,8 +5145,8 @@ _OBJECTSTORAGEBINDING_SUBSET = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=12808,
-  serialized_end=13252,
+  serialized_start=14648,
+  serialized_end=15092,
 )
 
 _OBJECTSTORAGEBINDING = _descriptor.Descriptor(
@@ -4528,8 +5176,8 @@ _OBJECTSTORAGEBINDING = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=12722,
-  serialized_end=13252,
+  serialized_start=14562,
+  serialized_end=15092,
 )
 
 
@@ -4573,8 +5221,8 @@ _BINDINGSETTING = _descriptor.Descriptor(
       create_key=_descriptor._internal_create_key,
     fields=[]),
   ],
-  serialized_start=13255,
-  serialized_end=13489,
+  serialized_start=15095,
+  serialized_end=15329,
 )
 
 
@@ -4633,8 +5281,8 @@ _BRIEFBINDING = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=13492,
-  serialized_end=13721,
+  serialized_start=15332,
+  serialized_end=15561,
 )
 
 
@@ -4693,8 +5341,8 @@ _BINDINGCONTENT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=13724,
-  serialized_end=13916,
+  serialized_start=15564,
+  serialized_end=15756,
 )
 
 
@@ -4732,8 +5380,8 @@ _BINDING = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=13918,
-  serialized_end=14018,
+  serialized_start=15758,
+  serialized_end=15858,
 )
 
 
@@ -4778,8 +5426,8 @@ _CREATEBINDINGREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=14021,
-  serialized_end=14185,
+  serialized_start=15861,
+  serialized_end=16025,
 )
 
 
@@ -4810,8 +5458,8 @@ _CREATEBINDINGRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=14187,
-  serialized_end=14256,
+  serialized_start=16027,
+  serialized_end=16096,
 )
 
 
@@ -4842,8 +5490,8 @@ _CREATEBINDINGRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=14258,
-  serialized_end=14312,
+  serialized_start=16098,
+  serialized_end=16152,
 )
 
 
@@ -4895,8 +5543,8 @@ _LISTBINDINGSREQUEST_FILTER = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=14516,
-  serialized_end=14654,
+  serialized_start=16356,
+  serialized_end=16494,
 )
 
 _LISTBINDINGSREQUEST = _descriptor.Descriptor(
@@ -4947,8 +5595,8 @@ _LISTBINDINGSREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=14315,
-  serialized_end=14654,
+  serialized_start=16155,
+  serialized_end=16494,
 )
 
 
@@ -4979,8 +5627,8 @@ _LISTBINDINGSRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=14656,
-  serialized_end=14724,
+  serialized_start=16496,
+  serialized_end=16564,
 )
 
 
@@ -5018,8 +5666,8 @@ _LISTBINDINGSRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=14726,
-  serialized_end=14827,
+  serialized_start=16566,
+  serialized_end=16667,
 )
 
 
@@ -5057,8 +5705,8 @@ _DESCRIBEBINDINGREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=14829,
-  serialized_end=14945,
+  serialized_start=16669,
+  serialized_end=16785,
 )
 
 
@@ -5089,8 +5737,8 @@ _DESCRIBEBINDINGRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=14947,
-  serialized_end=15018,
+  serialized_start=16787,
+  serialized_end=16858,
 )
 
 
@@ -5121,8 +5769,8 @@ _DESCRIBEBINDINGRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=15020,
-  serialized_end=15085,
+  serialized_start=16860,
+  serialized_end=16925,
 )
 
 
@@ -5181,8 +5829,8 @@ _MODIFYBINDINGREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=15088,
-  serialized_end=15322,
+  serialized_start=16928,
+  serialized_end=17162,
 )
 
 
@@ -5213,8 +5861,8 @@ _MODIFYBINDINGRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=15324,
-  serialized_end=15393,
+  serialized_start=17164,
+  serialized_end=17233,
 )
 
 
@@ -5238,8 +5886,8 @@ _MODIFYBINDINGRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=15395,
-  serialized_end=15416,
+  serialized_start=17235,
+  serialized_end=17256,
 )
 
 
@@ -5291,8 +5939,8 @@ _DELETEBINDINGREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=15419,
-  serialized_end=15604,
+  serialized_start=17259,
+  serialized_end=17444,
 )
 
 
@@ -5323,8 +5971,8 @@ _DELETEBINDINGRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=15606,
-  serialized_end=15675,
+  serialized_start=17446,
+  serialized_end=17515,
 )
 
 
@@ -5348,8 +5996,8 @@ _DELETEBINDINGRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=15677,
-  serialized_end=15698,
+  serialized_start=17517,
+  serialized_end=17538,
 )
 
 _ACL.fields_by_name['visibility'].enum_type = _ACL_VISIBILITY
@@ -5389,11 +6037,14 @@ _STREAMINGDISPOSITION.oneofs_by_name['disposition'].fields.append(
   _STREAMINGDISPOSITION.fields_by_name['from_last_checkpoint'])
 _STREAMINGDISPOSITION.fields_by_name['from_last_checkpoint'].containing_oneof = _STREAMINGDISPOSITION.oneofs_by_name['disposition']
 _QUERYCONTENT_EXECUTIONSETTINGSENTRY.containing_type = _QUERYCONTENT
+_QUERYCONTENT_PARAMETERSENTRY.fields_by_name['value'].message_type = protos_dot_ydb__value__pb2._TYPEDVALUE
+_QUERYCONTENT_PARAMETERSENTRY.containing_type = _QUERYCONTENT
 _QUERYCONTENT.fields_by_name['type'].enum_type = _QUERYCONTENT_QUERYTYPE
 _QUERYCONTENT.fields_by_name['acl'].message_type = _ACL
 _QUERYCONTENT.fields_by_name['limits'].message_type = _LIMITS
 _QUERYCONTENT.fields_by_name['execution_settings'].message_type = _QUERYCONTENT_EXECUTIONSETTINGSENTRY
 _QUERYCONTENT.fields_by_name['syntax'].enum_type = _QUERYCONTENT_QUERYSYNTAX
+_QUERYCONTENT.fields_by_name['parameters'].message_type = _QUERYCONTENT_PARAMETERSENTRY
 _QUERYCONTENT_QUERYTYPE.containing_type = _QUERYCONTENT
 _QUERYCONTENT_QUERYSYNTAX.containing_type = _QUERYCONTENT
 _COMMONMETA.fields_by_name['created_at'].message_type = google_dot_protobuf_dot_timestamp__pb2._TIMESTAMP
@@ -5425,6 +6076,7 @@ _QUERY.fields_by_name['transient_issue'].message_type = protos_dot_ydb__issue__m
 _QUERY.fields_by_name['statistics'].message_type = _QUERYSTATISTICS
 _QUERY.fields_by_name['result_set_meta'].message_type = _RESULTSETMETA
 _QUERY.fields_by_name['ast'].message_type = _QUERYAST
+_QUERY.fields_by_name['timeline'].message_type = _QUERYTIMELINE
 _CREATEQUERYREQUEST.fields_by_name['operation_params'].message_type = protos_dot_ydb__operation__pb2._OPERATIONPARAMS
 _CREATEQUERYREQUEST.fields_by_name['content'].message_type = _QUERYCONTENT
 _CREATEQUERYREQUEST.fields_by_name['execute_mode'].enum_type = _EXECUTEMODE
@@ -5461,6 +6113,8 @@ _BRIEFJOB.fields_by_name['meta'].message_type = _COMMONMETA
 _BRIEFJOB.fields_by_name['query_meta'].message_type = _QUERYMETA
 _BRIEFJOB.fields_by_name['visibility'].enum_type = _ACL_VISIBILITY
 _BRIEFJOB.fields_by_name['expire_at'].message_type = google_dot_protobuf_dot_timestamp__pb2._TIMESTAMP
+_JOB_PARAMETERSENTRY.fields_by_name['value'].message_type = protos_dot_ydb__value__pb2._TYPEDVALUE
+_JOB_PARAMETERSENTRY.containing_type = _JOB
 _JOB.fields_by_name['meta'].message_type = _COMMONMETA
 _JOB.fields_by_name['query_meta'].message_type = _QUERYMETA
 _JOB.fields_by_name['plan'].message_type = _QUERYPLAN
@@ -5471,6 +6125,7 @@ _JOB.fields_by_name['ast'].message_type = _QUERYAST
 _JOB.fields_by_name['acl'].message_type = _ACL
 _JOB.fields_by_name['expire_at'].message_type = google_dot_protobuf_dot_timestamp__pb2._TIMESTAMP
 _JOB.fields_by_name['syntax'].enum_type = _QUERYCONTENT_QUERYSYNTAX
+_JOB.fields_by_name['parameters'].message_type = _JOB_PARAMETERSENTRY
 _LISTJOBSREQUEST_FILTER.containing_type = _LISTJOBSREQUEST
 _LISTJOBSREQUEST.fields_by_name['operation_params'].message_type = protos_dot_ydb__operation__pb2._OPERATIONPARAMS
 _LISTJOBSREQUEST.fields_by_name['filter'].message_type = _LISTJOBSREQUEST_FILTER
@@ -5482,6 +6137,7 @@ _DESCRIBEJOBRESULT.fields_by_name['job'].message_type = _JOB
 _IAMAUTH.fields_by_name['current_iam'].message_type = _CURRENTIAMTOKENAUTH
 _IAMAUTH.fields_by_name['service_account'].message_type = _SERVICEACCOUNTAUTH
 _IAMAUTH.fields_by_name['none'].message_type = _NONEAUTH
+_IAMAUTH.fields_by_name['token'].message_type = _TOKENAUTH
 _IAMAUTH.oneofs_by_name['identity'].fields.append(
   _IAMAUTH.fields_by_name['current_iam'])
 _IAMAUTH.fields_by_name['current_iam'].containing_oneof = _IAMAUTH.oneofs_by_name['identity']
@@ -5491,18 +6147,61 @@ _IAMAUTH.fields_by_name['service_account'].containing_oneof = _IAMAUTH.oneofs_by
 _IAMAUTH.oneofs_by_name['identity'].fields.append(
   _IAMAUTH.fields_by_name['none'])
 _IAMAUTH.fields_by_name['none'].containing_oneof = _IAMAUTH.oneofs_by_name['identity']
+_IAMAUTH.oneofs_by_name['identity'].fields.append(
+  _IAMAUTH.fields_by_name['token'])
+_IAMAUTH.fields_by_name['token'].containing_oneof = _IAMAUTH.oneofs_by_name['identity']
 _DATASTREAMS.fields_by_name['auth'].message_type = _IAMAUTH
 _MONITORING.fields_by_name['auth'].message_type = _IAMAUTH
 _YDBDATABASE.fields_by_name['auth'].message_type = _IAMAUTH
 _CLICKHOUSECLUSTER.fields_by_name['auth'].message_type = _IAMAUTH
 _OBJECTSTORAGECONNECTION.fields_by_name['auth'].message_type = _IAMAUTH
 _POSTGRESQLCLUSTER.fields_by_name['auth'].message_type = _IAMAUTH
+_GREENPLUMCLUSTER.fields_by_name['auth'].message_type = _IAMAUTH
+_MYSQLCLUSTER.fields_by_name['auth'].message_type = _IAMAUTH
+_LOGGING.fields_by_name['auth'].message_type = _IAMAUTH
+_ICEBERGWAREHOUSE_S3.containing_type = _ICEBERGWAREHOUSE
+_ICEBERGWAREHOUSE_S3.oneofs_by_name['_bucket'].fields.append(
+  _ICEBERGWAREHOUSE_S3.fields_by_name['bucket'])
+_ICEBERGWAREHOUSE_S3.fields_by_name['bucket'].containing_oneof = _ICEBERGWAREHOUSE_S3.oneofs_by_name['_bucket']
+_ICEBERGWAREHOUSE_S3.oneofs_by_name['_path'].fields.append(
+  _ICEBERGWAREHOUSE_S3.fields_by_name['path'])
+_ICEBERGWAREHOUSE_S3.fields_by_name['path'].containing_oneof = _ICEBERGWAREHOUSE_S3.oneofs_by_name['_path']
+_ICEBERGWAREHOUSE.fields_by_name['s3'].message_type = _ICEBERGWAREHOUSE_S3
+_ICEBERGWAREHOUSE.oneofs_by_name['payload'].fields.append(
+  _ICEBERGWAREHOUSE.fields_by_name['s3'])
+_ICEBERGWAREHOUSE.fields_by_name['s3'].containing_oneof = _ICEBERGWAREHOUSE.oneofs_by_name['payload']
+_ICEBERGCATALOG_HADOOP.containing_type = _ICEBERGCATALOG
+_ICEBERGCATALOG_HADOOP.oneofs_by_name['_directory'].fields.append(
+  _ICEBERGCATALOG_HADOOP.fields_by_name['directory'])
+_ICEBERGCATALOG_HADOOP.fields_by_name['directory'].containing_oneof = _ICEBERGCATALOG_HADOOP.oneofs_by_name['_directory']
+_ICEBERGCATALOG_HIVEMETASTORE.containing_type = _ICEBERGCATALOG
+_ICEBERGCATALOG_HIVEMETASTORE.oneofs_by_name['_uri'].fields.append(
+  _ICEBERGCATALOG_HIVEMETASTORE.fields_by_name['uri'])
+_ICEBERGCATALOG_HIVEMETASTORE.fields_by_name['uri'].containing_oneof = _ICEBERGCATALOG_HIVEMETASTORE.oneofs_by_name['_uri']
+_ICEBERGCATALOG_HIVEMETASTORE.oneofs_by_name['_database_name'].fields.append(
+  _ICEBERGCATALOG_HIVEMETASTORE.fields_by_name['database_name'])
+_ICEBERGCATALOG_HIVEMETASTORE.fields_by_name['database_name'].containing_oneof = _ICEBERGCATALOG_HIVEMETASTORE.oneofs_by_name['_database_name']
+_ICEBERGCATALOG.fields_by_name['hadoop'].message_type = _ICEBERGCATALOG_HADOOP
+_ICEBERGCATALOG.fields_by_name['hive_metastore'].message_type = _ICEBERGCATALOG_HIVEMETASTORE
+_ICEBERGCATALOG.oneofs_by_name['payload'].fields.append(
+  _ICEBERGCATALOG.fields_by_name['hadoop'])
+_ICEBERGCATALOG.fields_by_name['hadoop'].containing_oneof = _ICEBERGCATALOG.oneofs_by_name['payload']
+_ICEBERGCATALOG.oneofs_by_name['payload'].fields.append(
+  _ICEBERGCATALOG.fields_by_name['hive_metastore'])
+_ICEBERGCATALOG.fields_by_name['hive_metastore'].containing_oneof = _ICEBERGCATALOG.oneofs_by_name['payload']
+_ICEBERG.fields_by_name['warehouse_auth'].message_type = _IAMAUTH
+_ICEBERG.fields_by_name['warehouse'].message_type = _ICEBERGWAREHOUSE
+_ICEBERG.fields_by_name['catalog'].message_type = _ICEBERGCATALOG
 _CONNECTIONSETTING.fields_by_name['ydb_database'].message_type = _YDBDATABASE
 _CONNECTIONSETTING.fields_by_name['clickhouse_cluster'].message_type = _CLICKHOUSECLUSTER
 _CONNECTIONSETTING.fields_by_name['data_streams'].message_type = _DATASTREAMS
 _CONNECTIONSETTING.fields_by_name['object_storage'].message_type = _OBJECTSTORAGECONNECTION
 _CONNECTIONSETTING.fields_by_name['monitoring'].message_type = _MONITORING
 _CONNECTIONSETTING.fields_by_name['postgresql_cluster'].message_type = _POSTGRESQLCLUSTER
+_CONNECTIONSETTING.fields_by_name['greenplum_cluster'].message_type = _GREENPLUMCLUSTER
+_CONNECTIONSETTING.fields_by_name['mysql_cluster'].message_type = _MYSQLCLUSTER
+_CONNECTIONSETTING.fields_by_name['logging'].message_type = _LOGGING
+_CONNECTIONSETTING.fields_by_name['iceberg'].message_type = _ICEBERG
 _CONNECTIONSETTING_CONNECTIONTYPE.containing_type = _CONNECTIONSETTING
 _CONNECTIONSETTING.oneofs_by_name['connection'].fields.append(
   _CONNECTIONSETTING.fields_by_name['ydb_database'])
@@ -5522,6 +6221,18 @@ _CONNECTIONSETTING.fields_by_name['monitoring'].containing_oneof = _CONNECTIONSE
 _CONNECTIONSETTING.oneofs_by_name['connection'].fields.append(
   _CONNECTIONSETTING.fields_by_name['postgresql_cluster'])
 _CONNECTIONSETTING.fields_by_name['postgresql_cluster'].containing_oneof = _CONNECTIONSETTING.oneofs_by_name['connection']
+_CONNECTIONSETTING.oneofs_by_name['connection'].fields.append(
+  _CONNECTIONSETTING.fields_by_name['greenplum_cluster'])
+_CONNECTIONSETTING.fields_by_name['greenplum_cluster'].containing_oneof = _CONNECTIONSETTING.oneofs_by_name['connection']
+_CONNECTIONSETTING.oneofs_by_name['connection'].fields.append(
+  _CONNECTIONSETTING.fields_by_name['mysql_cluster'])
+_CONNECTIONSETTING.fields_by_name['mysql_cluster'].containing_oneof = _CONNECTIONSETTING.oneofs_by_name['connection']
+_CONNECTIONSETTING.oneofs_by_name['connection'].fields.append(
+  _CONNECTIONSETTING.fields_by_name['logging'])
+_CONNECTIONSETTING.fields_by_name['logging'].containing_oneof = _CONNECTIONSETTING.oneofs_by_name['connection']
+_CONNECTIONSETTING.oneofs_by_name['connection'].fields.append(
+  _CONNECTIONSETTING.fields_by_name['iceberg'])
+_CONNECTIONSETTING.fields_by_name['iceberg'].containing_oneof = _CONNECTIONSETTING.oneofs_by_name['connection']
 _CONNECTIONCONTENT.fields_by_name['setting'].message_type = _CONNECTIONSETTING
 _CONNECTIONCONTENT.fields_by_name['acl'].message_type = _ACL
 _CONNECTION.fields_by_name['content'].message_type = _CONNECTIONCONTENT
@@ -5604,6 +6315,7 @@ DESCRIPTOR.message_types_by_name['BriefQuery'] = _BRIEFQUERY
 DESCRIPTOR.message_types_by_name['QueryPlan'] = _QUERYPLAN
 DESCRIPTOR.message_types_by_name['QueryAst'] = _QUERYAST
 DESCRIPTOR.message_types_by_name['ResultSetMeta'] = _RESULTSETMETA
+DESCRIPTOR.message_types_by_name['QueryTimeline'] = _QUERYTIMELINE
 DESCRIPTOR.message_types_by_name['Query'] = _QUERY
 DESCRIPTOR.message_types_by_name['QueryStatistics'] = _QUERYSTATISTICS
 DESCRIPTOR.message_types_by_name['CreateQueryRequest'] = _CREATEQUERYREQUEST
@@ -5638,6 +6350,7 @@ DESCRIPTOR.message_types_by_name['DescribeJobResult'] = _DESCRIBEJOBRESULT
 DESCRIPTOR.message_types_by_name['CurrentIAMTokenAuth'] = _CURRENTIAMTOKENAUTH
 DESCRIPTOR.message_types_by_name['NoneAuth'] = _NONEAUTH
 DESCRIPTOR.message_types_by_name['ServiceAccountAuth'] = _SERVICEACCOUNTAUTH
+DESCRIPTOR.message_types_by_name['TokenAuth'] = _TOKENAUTH
 DESCRIPTOR.message_types_by_name['IamAuth'] = _IAMAUTH
 DESCRIPTOR.message_types_by_name['DataStreams'] = _DATASTREAMS
 DESCRIPTOR.message_types_by_name['Monitoring'] = _MONITORING
@@ -5645,6 +6358,12 @@ DESCRIPTOR.message_types_by_name['YdbDatabase'] = _YDBDATABASE
 DESCRIPTOR.message_types_by_name['ClickHouseCluster'] = _CLICKHOUSECLUSTER
 DESCRIPTOR.message_types_by_name['ObjectStorageConnection'] = _OBJECTSTORAGECONNECTION
 DESCRIPTOR.message_types_by_name['PostgreSQLCluster'] = _POSTGRESQLCLUSTER
+DESCRIPTOR.message_types_by_name['GreenplumCluster'] = _GREENPLUMCLUSTER
+DESCRIPTOR.message_types_by_name['MySQLCluster'] = _MYSQLCLUSTER
+DESCRIPTOR.message_types_by_name['Logging'] = _LOGGING
+DESCRIPTOR.message_types_by_name['IcebergWarehouse'] = _ICEBERGWAREHOUSE
+DESCRIPTOR.message_types_by_name['IcebergCatalog'] = _ICEBERGCATALOG
+DESCRIPTOR.message_types_by_name['Iceberg'] = _ICEBERG
 DESCRIPTOR.message_types_by_name['ConnectionSetting'] = _CONNECTIONSETTING
 DESCRIPTOR.message_types_by_name['ConnectionContent'] = _CONNECTIONCONTENT
 DESCRIPTOR.message_types_by_name['Connection'] = _CONNECTION
@@ -5750,12 +6469,20 @@ QueryContent = _reflection.GeneratedProtocolMessageType('QueryContent', (_messag
     # @@protoc_insertion_point(class_scope:FederatedQuery.QueryContent.ExecutionSettingsEntry)
     })
   ,
+
+  'ParametersEntry' : _reflection.GeneratedProtocolMessageType('ParametersEntry', (_message.Message,), {
+    'DESCRIPTOR' : _QUERYCONTENT_PARAMETERSENTRY,
+    '__module__' : 'draft.protos.ydb_federated_query_pb2'
+    # @@protoc_insertion_point(class_scope:FederatedQuery.QueryContent.ParametersEntry)
+    })
+  ,
   'DESCRIPTOR' : _QUERYCONTENT,
   '__module__' : 'draft.protos.ydb_federated_query_pb2'
   # @@protoc_insertion_point(class_scope:FederatedQuery.QueryContent)
   })
 _sym_db.RegisterMessage(QueryContent)
 _sym_db.RegisterMessage(QueryContent.ExecutionSettingsEntry)
+_sym_db.RegisterMessage(QueryContent.ParametersEntry)
 
 CommonMeta = _reflection.GeneratedProtocolMessageType('CommonMeta', (_message.Message,), {
   'DESCRIPTOR' : _COMMONMETA,
@@ -5798,6 +6525,13 @@ ResultSetMeta = _reflection.GeneratedProtocolMessageType('ResultSetMeta', (_mess
   # @@protoc_insertion_point(class_scope:FederatedQuery.ResultSetMeta)
   })
 _sym_db.RegisterMessage(ResultSetMeta)
+
+QueryTimeline = _reflection.GeneratedProtocolMessageType('QueryTimeline', (_message.Message,), {
+  'DESCRIPTOR' : _QUERYTIMELINE,
+  '__module__' : 'draft.protos.ydb_federated_query_pb2'
+  # @@protoc_insertion_point(class_scope:FederatedQuery.QueryTimeline)
+  })
+_sym_db.RegisterMessage(QueryTimeline)
 
 Query = _reflection.GeneratedProtocolMessageType('Query', (_message.Message,), {
   'DESCRIPTOR' : _QUERY,
@@ -5976,11 +6710,19 @@ BriefJob = _reflection.GeneratedProtocolMessageType('BriefJob', (_message.Messag
 _sym_db.RegisterMessage(BriefJob)
 
 Job = _reflection.GeneratedProtocolMessageType('Job', (_message.Message,), {
+
+  'ParametersEntry' : _reflection.GeneratedProtocolMessageType('ParametersEntry', (_message.Message,), {
+    'DESCRIPTOR' : _JOB_PARAMETERSENTRY,
+    '__module__' : 'draft.protos.ydb_federated_query_pb2'
+    # @@protoc_insertion_point(class_scope:FederatedQuery.Job.ParametersEntry)
+    })
+  ,
   'DESCRIPTOR' : _JOB,
   '__module__' : 'draft.protos.ydb_federated_query_pb2'
   # @@protoc_insertion_point(class_scope:FederatedQuery.Job)
   })
 _sym_db.RegisterMessage(Job)
+_sym_db.RegisterMessage(Job.ParametersEntry)
 
 ListJobsRequest = _reflection.GeneratedProtocolMessageType('ListJobsRequest', (_message.Message,), {
 
@@ -6053,6 +6795,13 @@ ServiceAccountAuth = _reflection.GeneratedProtocolMessageType('ServiceAccountAut
   })
 _sym_db.RegisterMessage(ServiceAccountAuth)
 
+TokenAuth = _reflection.GeneratedProtocolMessageType('TokenAuth', (_message.Message,), {
+  'DESCRIPTOR' : _TOKENAUTH,
+  '__module__' : 'draft.protos.ydb_federated_query_pb2'
+  # @@protoc_insertion_point(class_scope:FederatedQuery.TokenAuth)
+  })
+_sym_db.RegisterMessage(TokenAuth)
+
 IamAuth = _reflection.GeneratedProtocolMessageType('IamAuth', (_message.Message,), {
   'DESCRIPTOR' : _IAMAUTH,
   '__module__' : 'draft.protos.ydb_federated_query_pb2'
@@ -6101,6 +6850,72 @@ PostgreSQLCluster = _reflection.GeneratedProtocolMessageType('PostgreSQLCluster'
   # @@protoc_insertion_point(class_scope:FederatedQuery.PostgreSQLCluster)
   })
 _sym_db.RegisterMessage(PostgreSQLCluster)
+
+GreenplumCluster = _reflection.GeneratedProtocolMessageType('GreenplumCluster', (_message.Message,), {
+  'DESCRIPTOR' : _GREENPLUMCLUSTER,
+  '__module__' : 'draft.protos.ydb_federated_query_pb2'
+  # @@protoc_insertion_point(class_scope:FederatedQuery.GreenplumCluster)
+  })
+_sym_db.RegisterMessage(GreenplumCluster)
+
+MySQLCluster = _reflection.GeneratedProtocolMessageType('MySQLCluster', (_message.Message,), {
+  'DESCRIPTOR' : _MYSQLCLUSTER,
+  '__module__' : 'draft.protos.ydb_federated_query_pb2'
+  # @@protoc_insertion_point(class_scope:FederatedQuery.MySQLCluster)
+  })
+_sym_db.RegisterMessage(MySQLCluster)
+
+Logging = _reflection.GeneratedProtocolMessageType('Logging', (_message.Message,), {
+  'DESCRIPTOR' : _LOGGING,
+  '__module__' : 'draft.protos.ydb_federated_query_pb2'
+  # @@protoc_insertion_point(class_scope:FederatedQuery.Logging)
+  })
+_sym_db.RegisterMessage(Logging)
+
+IcebergWarehouse = _reflection.GeneratedProtocolMessageType('IcebergWarehouse', (_message.Message,), {
+
+  'S3' : _reflection.GeneratedProtocolMessageType('S3', (_message.Message,), {
+    'DESCRIPTOR' : _ICEBERGWAREHOUSE_S3,
+    '__module__' : 'draft.protos.ydb_federated_query_pb2'
+    # @@protoc_insertion_point(class_scope:FederatedQuery.IcebergWarehouse.S3)
+    })
+  ,
+  'DESCRIPTOR' : _ICEBERGWAREHOUSE,
+  '__module__' : 'draft.protos.ydb_federated_query_pb2'
+  # @@protoc_insertion_point(class_scope:FederatedQuery.IcebergWarehouse)
+  })
+_sym_db.RegisterMessage(IcebergWarehouse)
+_sym_db.RegisterMessage(IcebergWarehouse.S3)
+
+IcebergCatalog = _reflection.GeneratedProtocolMessageType('IcebergCatalog', (_message.Message,), {
+
+  'Hadoop' : _reflection.GeneratedProtocolMessageType('Hadoop', (_message.Message,), {
+    'DESCRIPTOR' : _ICEBERGCATALOG_HADOOP,
+    '__module__' : 'draft.protos.ydb_federated_query_pb2'
+    # @@protoc_insertion_point(class_scope:FederatedQuery.IcebergCatalog.Hadoop)
+    })
+  ,
+
+  'HiveMetastore' : _reflection.GeneratedProtocolMessageType('HiveMetastore', (_message.Message,), {
+    'DESCRIPTOR' : _ICEBERGCATALOG_HIVEMETASTORE,
+    '__module__' : 'draft.protos.ydb_federated_query_pb2'
+    # @@protoc_insertion_point(class_scope:FederatedQuery.IcebergCatalog.HiveMetastore)
+    })
+  ,
+  'DESCRIPTOR' : _ICEBERGCATALOG,
+  '__module__' : 'draft.protos.ydb_federated_query_pb2'
+  # @@protoc_insertion_point(class_scope:FederatedQuery.IcebergCatalog)
+  })
+_sym_db.RegisterMessage(IcebergCatalog)
+_sym_db.RegisterMessage(IcebergCatalog.Hadoop)
+_sym_db.RegisterMessage(IcebergCatalog.HiveMetastore)
+
+Iceberg = _reflection.GeneratedProtocolMessageType('Iceberg', (_message.Message,), {
+  'DESCRIPTOR' : _ICEBERG,
+  '__module__' : 'draft.protos.ydb_federated_query_pb2'
+  # @@protoc_insertion_point(class_scope:FederatedQuery.Iceberg)
+  })
+_sym_db.RegisterMessage(Iceberg)
 
 ConnectionSetting = _reflection.GeneratedProtocolMessageType('ConnectionSetting', (_message.Message,), {
   'DESCRIPTOR' : _CONNECTIONSETTING,
@@ -6481,10 +7296,12 @@ _LIMITS.fields_by_name['max_result_size']._options = None
 _LIMITS.fields_by_name['max_result_rows']._options = None
 _LIMITS.fields_by_name['memory_limit']._options = None
 _QUERYCONTENT_EXECUTIONSETTINGSENTRY._options = None
+_QUERYCONTENT_PARAMETERSENTRY._options = None
 _QUERYCONTENT.fields_by_name['name']._options = None
 _QUERYCONTENT.fields_by_name['text']._options = None
 _QUERYCONTENT.fields_by_name['description']._options = None
 _QUERYCONTENT.fields_by_name['execution_settings']._options = None
+_QUERYCONTENT.fields_by_name['parameters']._options = None
 _COMMONMETA.fields_by_name['id']._options = None
 _COMMONMETA.fields_by_name['created_by']._options = None
 _COMMONMETA.fields_by_name['modified_by']._options = None
@@ -6510,12 +7327,14 @@ _MODIFYQUERYREQUEST.fields_by_name['idempotency_key']._options = None
 _CONTROLQUERYREQUEST.fields_by_name['query_id']._options = None
 _CONTROLQUERYREQUEST.fields_by_name['previous_revision']._options = None
 _CONTROLQUERYREQUEST.fields_by_name['idempotency_key']._options = None
+_JOB_PARAMETERSENTRY._options = None
 _LISTJOBSREQUEST_FILTER.fields_by_name['query_id']._options = None
 _LISTJOBSREQUEST.fields_by_name['page_token']._options = None
 _LISTJOBSREQUEST.fields_by_name['limit']._options = None
 _LISTJOBSRESULT.fields_by_name['next_page_token']._options = None
 _DESCRIBEJOBREQUEST.fields_by_name['job_id']._options = None
 _SERVICEACCOUNTAUTH.fields_by_name['id']._options = None
+_TOKENAUTH.fields_by_name['token']._options = None
 _DATASTREAMS.fields_by_name['database_id']._options = None
 _DATASTREAMS.fields_by_name['endpoint']._options = None
 _DATASTREAMS.fields_by_name['database']._options = None
@@ -6538,6 +7357,20 @@ _POSTGRESQLCLUSTER.fields_by_name['password']._options = None
 _POSTGRESQLCLUSTER.fields_by_name['schema']._options = None
 _POSTGRESQLCLUSTER.fields_by_name['host']._options = None
 _POSTGRESQLCLUSTER.fields_by_name['port']._options = None
+_GREENPLUMCLUSTER.fields_by_name['database_id']._options = None
+_GREENPLUMCLUSTER.fields_by_name['database_name']._options = None
+_GREENPLUMCLUSTER.fields_by_name['login']._options = None
+_GREENPLUMCLUSTER.fields_by_name['password']._options = None
+_GREENPLUMCLUSTER.fields_by_name['schema']._options = None
+_MYSQLCLUSTER.fields_by_name['database_id']._options = None
+_MYSQLCLUSTER.fields_by_name['database_name']._options = None
+_MYSQLCLUSTER.fields_by_name['login']._options = None
+_MYSQLCLUSTER.fields_by_name['password']._options = None
+_ICEBERGWAREHOUSE_S3.fields_by_name['bucket']._options = None
+_ICEBERGWAREHOUSE_S3.fields_by_name['path']._options = None
+_ICEBERGCATALOG_HADOOP.fields_by_name['directory']._options = None
+_ICEBERGCATALOG_HIVEMETASTORE.fields_by_name['uri']._options = None
+_ICEBERGCATALOG_HIVEMETASTORE.fields_by_name['database_name']._options = None
 _CONNECTIONCONTENT.fields_by_name['name']._options = None
 _CONNECTIONCONTENT.fields_by_name['description']._options = None
 _CREATECONNECTIONREQUEST.fields_by_name['idempotency_key']._options = None
