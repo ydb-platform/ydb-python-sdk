@@ -17,6 +17,12 @@ class TestQuerySessionPool:
         res = pool.execute_with_retries("select 1;")
         assert len(res) == 1
 
+    def test_oneshot_query_result_set_index(self, pool: QuerySessionPool):
+        res = pool.execute_with_retries("select 1; select 2; select 3")
+        assert len(res) == 3
+        indexes = [result_set.index for result_set in res]
+        assert indexes == [0, 1, 2]
+
     def test_oneshot_ddl_query(self, pool: QuerySessionPool):
         pool.execute_with_retries("create table Queen(key UInt64, PRIMARY KEY (key));")
         pool.execute_with_retries("drop table Queen;")
