@@ -1,3 +1,5 @@
+* Add index to resultsets
+
 ## 3.21.3 ##
 * Rename indexes feature
 
