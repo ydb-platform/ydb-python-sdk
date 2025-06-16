@@ -1,3 +1,4 @@
+## 3.21.4 ##
 * Add index to resultsets
 
 ## 3.21.3 ##
