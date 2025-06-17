@@ -9,7 +9,7 @@ from ydb import issues
 @pytest.fixture(scope="module")
 def docker_compose_file(pytestconfig):
     f = "compose.yml"
-    if os.environ.get('REMOTE_CONTAINERS') is not None:
+    if os.environ.get("REMOTE_CONTAINERS") is not None:
         f = "compose.remote.yml"
 
     return os.path.join(str(pytestconfig.rootdir), f)
@@ -37,7 +37,7 @@ def wait_container_ready(driver):
 @pytest.fixture(scope="module")
 def endpoint(pytestconfig, module_scoped_container_getter):
     e = "grpc://localhost:2136"
-    if os.environ.get('REMOTE_CONTAINERS') is not None:
+    if os.environ.get("REMOTE_CONTAINERS") is not None:
         e = "grpc://py-sdk-ydb:2136"
 
     with ydb.Driver(endpoint=e, database="/local") as driver:
@@ -58,7 +58,7 @@ def secure_endpoint(pytestconfig, session_scoped_container_getter):
     os.environ["YDB_SSL_ROOT_CERTIFICATES_FILE"] = ca_path
 
     e = "grpcs://localhost:2135"
-    if os.environ.get('REMOTE_CONTAINERS') is not None:
+    if os.environ.get("REMOTE_CONTAINERS") is not None:
         e = "grpcs://py-sdk-ydb:2135"
 
     with ydb.Driver(

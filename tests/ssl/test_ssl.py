@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import os
 import ydb
 import pytest
 
