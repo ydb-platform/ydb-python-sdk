@@ -46,6 +46,6 @@ sqlalchemy==1.4.26
 pylint-protobuf
 cython
 freezegun==1.2.2
-pytest-cov
+# pytest-cov
 yandexcloud
 -e .
