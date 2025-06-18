@@ -4,6 +4,8 @@
 
 YDB is a free and open project and we appreciate to receive contributions from our community.
 
+For information about setting up your development environment, please see [BUILD.md](BUILD.md).
+
 ## Contributing code changes
 
 If you would like to contribute a new feature or a bug fix, please discuss your idea first on the GitHub issue.

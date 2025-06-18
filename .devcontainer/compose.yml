@@ -1,0 +1,55 @@
+name: ydb-python-sdk
+
+volumes:
+  ydb-data:
+    # driver: local
+    # driver_opts:
+    #   type: tmpfs
+    #   device: tmpfs
+    #   o: size=80g
+  ydb-certs:
+
+services:
+  sdk:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    hostname: sdk
+
+    volumes:
+      - ydb-certs:/ydb_certs
+      - ../:/workspaces/ydb-python-sdk:cached
+
+    environment:
+      - YDB_VERSION=25.1
+      - YDB_STATIC_CREDENTIALS_USER=root
+      - YDB_STATIC_CREDENTIALS_PASSWORD=1234
+      - YDB_STATIC_CREDENTIALS_ENDPOINT=grpc://ydb:2136
+      - YDB_CONNECTION_STRING=grpc://ydb:2136/local
+      - YDB_CONNECTION_STRING_SECURE=grpcs://ydb:2135/local
+      - YDB_SSL_ROOT_CERTIFICATES_FILE=/ydb_certs/ca.pem
+      - TEST_COMPOSE_FILE=compose.remote.yml
+
+    # Overrides default command so things don't shut down after the process ends.
+    command: sleep infinity
+
+  ydb:
+    image: ydbplatform/local-ydb:25.1
+    restart: unless-stopped
+    hostname: ydb
+    platform: linux/amd64
+
+    ports:
+      - 2135
+      - 2136
+      - 8765
+
+    volumes:
+      - ydb-data:/ydb_data
+      - ydb-certs:/ydb_certs
+
+    environment:
+      - YDB_USE_IN_MEMORY_PDISKS=true
+      - GRPC_TLS_PORT=2135
+      - GRPC_PORT=2136
+      - MON_PORT=8765

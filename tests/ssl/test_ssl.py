@@ -6,8 +6,8 @@ import pytest
 @pytest.mark.tls
 def test_connect_secure(secure_endpoint, database):
     with ydb.Driver(
-        endpoint="grpcs://localhost:2135",
-        database="/local",
+        endpoint=secure_endpoint,
+        database=database,
         root_certificates=ydb.load_ydb_root_certificate(),
     ) as driver:
         driver.wait(timeout=10)
