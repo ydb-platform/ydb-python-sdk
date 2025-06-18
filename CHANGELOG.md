@@ -1,3 +1,5 @@
+* Ability to create Date type from datetime
+
 ## 3.21.4 ##
 * Add index to resultsets
 
