@@ -2,7 +2,7 @@
 
 This document has detailed instructions on how to build ydb-python-sdk from source and run style and unit tests.
 
-### Pre-requisites
+## Pre-requisites
 
 - Install [Docker](https://docs.docker.com/engine/install/).
 - Install [Python](https://docs.python.org/3.8/)
@@ -53,3 +53,12 @@ Use the command below for regenerate protobuf code.
 ```sh
 make protobuf
 ```
+
+## Using Dev Containers
+
+This repository includes Dev Containers configuration for a quick development environment setup. For general information about Dev Containers, see the [official guide](https://code.visualstudio.com/docs/devcontainers/containers).
+
+The dev container automatically sets up:
+- A local YDB database instance for testing
+- YDB CLI with a pre-configured profile named `local` that connects to the database
+- All Python dependencies and development tools
