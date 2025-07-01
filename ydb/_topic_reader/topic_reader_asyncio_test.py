@@ -1485,6 +1485,7 @@ class TestReaderReconnector:
             raise test_error
 
         reader_stream_mock_with_error = mock.Mock(ReaderStream)
+        reader_stream_mock_with_error._id = 0
         reader_stream_mock_with_error.wait_error = mock.AsyncMock(side_effect=wait_error)
 
         async def wait_messages_with_error():
@@ -1497,6 +1498,7 @@ class TestReaderReconnector:
             await f
 
         reader_stream_with_messages = mock.Mock(ReaderStream)
+        reader_stream_with_messages._id = 0
         reader_stream_with_messages.wait_error = mock.AsyncMock(side_effect=wait_forever)
         reader_stream_with_messages.wait_messages.return_value = None
 

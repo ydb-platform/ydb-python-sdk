@@ -251,6 +251,7 @@ class TestWriterAsyncIOReconnector:
             update_token_interval: Optional[int, float] = None,
             get_token_function: Optional[Callable[[], str]] = None,
         ):
+            self._id = 0
             self.last_seqno = 0
             self.from_server = asyncio.Queue()
             self.from_client = asyncio.Queue()
