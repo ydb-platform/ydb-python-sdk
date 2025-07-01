@@ -1,3 +1,8 @@
+* Wrap prepare execute request exceptions to ydb.Error
+* Add async methods to QuerySessionPool
+* Add default grpc keepalive value
+* Add detailed debug logs to topic instances
+
 ## 3.21.5 ##
 * Ability to create Date type from datetime
 
