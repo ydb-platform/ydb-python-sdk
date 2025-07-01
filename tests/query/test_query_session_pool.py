@@ -1,5 +1,7 @@
 import pytest
 import ydb
+import time
+from concurrent import futures
 
 from typing import Optional
 
@@ -132,7 +134,7 @@ class TestQuerySessionPool:
 
     def test_acquire_from_closed_pool_raises(self, pool: QuerySessionPool):
         pool.stop()
-        with pytest.raises(RuntimeError):
+        with pytest.raises(ydb.SessionPoolClosed):
             pool.acquire(1)
 
     def test_no_session_leak(self, driver_sync, docker_project):
@@ -146,3 +148,55 @@ class TestQuerySessionPool:
 
         docker_project.start()
         pool.stop()
+
+    def test_execute_with_retries_async(self, pool: QuerySessionPool):
+        fut = pool.execute_with_retries_async("select 1;")
+        res = fut.result()
+        assert len(res) == 1
+
+    def test_retry_operation_async(self, pool: QuerySessionPool):
+        def callee(session: QuerySession):
+            with session.transaction() as tx:
+                iterator = tx.execute("select 1;", commit_tx=True)
+                return [result_set for result_set in iterator]
+
+        fut = pool.retry_operation_async(callee)
+        res = fut.result()
+        assert len(res) == 1
+
+    def test_retry_tx_async(self, pool: QuerySessionPool):
+        retry_no = 0
+
+        def callee(tx: QueryTxContext):
+            nonlocal retry_no
+            if retry_no < 2:
+                retry_no += 1
+                raise ydb.Unavailable("Fake fast backoff error")
+            result_stream = tx.execute("SELECT 1")
+            return [result_set for result_set in result_stream]
+
+        result = pool.retry_tx_async(callee=callee).result()
+        assert len(result) == 1
+        assert retry_no == 2
+
+    def test_execute_with_retries_async_many_calls(self, pool: QuerySessionPool):
+        futs = [pool.execute_with_retries_async("select 1;") for _ in range(10)]
+        results = [f.result() for f in futures.as_completed(futs)]
+        assert all(len(r) == 1 for r in results)
+
+    def test_future_waits_on_stop(self, pool: QuerySessionPool):
+        def callee(session: QuerySession):
+            time.sleep(0.1)
+            with session.transaction() as tx:
+                it = tx.execute("select 1;", commit_tx=True)
+                return [rs for rs in it]
+
+        fut = pool.retry_operation_async(callee)
+        pool.stop()
+        assert fut.done()
+        assert len(fut.result()) == 1
+
+    def test_async_methods_after_stop_raise(self, pool: QuerySessionPool):
+        pool.stop()
+        with pytest.raises(ydb.SessionPoolClosed):
+            pool.execute_with_retries_async("select 1;")
