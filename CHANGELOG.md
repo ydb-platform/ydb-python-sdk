@@ -1,3 +1,4 @@
+## 3.21.7 ##
 * Remove default timeout from topic stream
 
 ## 3.21.6 ##
