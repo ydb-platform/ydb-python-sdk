@@ -1,3 +1,5 @@
+* Remove default timeout from topic stream
+
 ## 3.21.6 ##
 * Wrap prepare execute request exceptions to ydb.Error
 * Add async methods to QuerySessionPool
