@@ -14,7 +14,7 @@ from ydb import issues
 from . import datatypes, topic_reader_asyncio
 from .datatypes import PublicBatch, PublicMessage
 from .topic_reader import PublicReaderSettings
-from .topic_reader_asyncio import ReaderStream, ReaderReconnector
+from .topic_reader_asyncio import ReaderStream, ReaderReconnector, TopicReaderError
 from .._grpc.grpcwrapper.common_utils import SupportedDriverType, ServerStatus
 from .._grpc.grpcwrapper.ydb_topic import (
     StreamReadMessage,
@@ -35,6 +35,8 @@ if typing.TYPE_CHECKING:
     from .._grpc.v4.protos import ydb_status_codes_pb2
 else:
     from .._grpc.common.protos import ydb_status_codes_pb2
+
+from .._constants import DEFAULT_INITIAL_RESPONSE_TIMEOUT
 
 
 @pytest.fixture(autouse=True)
@@ -1474,6 +1476,46 @@ class TestReaderStream:
             return False
 
         await wait_condition(logged)
+
+    async def test_init_timeout_parameter(self, stream, default_reader_settings):
+        """Test that ReaderStream._start calls stream.receive with timeout=10"""
+        reader = ReaderStream(self.default_reader_reconnector_id, default_reader_settings)
+        init_message = default_reader_settings._init_message()
+
+        # Mock stream.receive to check if timeout is passed
+        with mock.patch.object(stream, "receive") as mock_receive:
+            mock_receive.return_value = StreamReadMessage.FromServer(
+                server_status=ServerStatus(ydb_status_codes_pb2.StatusIds.SUCCESS, []),
+                server_message=StreamReadMessage.InitResponse(session_id="test_session"),
+            )
+
+            await reader._start(stream, init_message)
+
+            # Verify that receive was called with timeout
+            mock_receive.assert_called_with(timeout=DEFAULT_INITIAL_RESPONSE_TIMEOUT)
+
+        await reader.close(False)
+
+    async def test_init_timeout_behavior(self, stream, default_reader_settings):
+        """Test that ReaderStream._start raises TopicReaderError when receive times out"""
+        reader = ReaderStream(self.default_reader_reconnector_id, default_reader_settings)
+        init_message = default_reader_settings._init_message()
+
+        # Mock stream.receive to directly raise TimeoutError when called with timeout
+        async def timeout_receive(timeout=None):
+            if timeout == DEFAULT_INITIAL_RESPONSE_TIMEOUT:
+                raise asyncio.TimeoutError("Simulated timeout")
+            return StreamReadMessage.FromServer(
+                server_status=ServerStatus(ydb_status_codes_pb2.StatusIds.SUCCESS, []),
+                server_message=StreamReadMessage.InitResponse(session_id="test_session"),
+            )
+
+        with mock.patch.object(stream, "receive", side_effect=timeout_receive):
+            # Should raise TopicReaderError with timeout message
+            with pytest.raises(TopicReaderError, match="Timeout waiting for init response"):
+                await reader._start(stream, init_message)
+
+        await reader.close(False)
 
 
 @pytest.mark.asyncio
