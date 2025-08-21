@@ -1,5 +1,6 @@
 import pytest
 
+import ydb
 from ydb.aio.query.transaction import QueryTxContext
 from ydb.query.transaction import QueryTxStateEnum
 
@@ -107,3 +108,13 @@ class TestAsyncQueryTransaction:
 
         assert res == [[1], [2]]
         assert counter == 2
+
+    @pytest.mark.asyncio
+    @pytest.mark.usefixtures("ydb_terminates_streams_with_unavailable")
+    async def test_terminated_stream_raises_ydb_error(self, tx: QueryTxContext):
+        await tx.begin()
+
+        with pytest.raises(ydb.Unavailable):
+            async with await tx.execute("select 1") as results:
+                async for _ in results:
+                    pass

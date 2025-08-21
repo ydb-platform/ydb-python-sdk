@@ -1,4 +1,6 @@
 import pytest
+
+import ydb
 from ydb.aio.query.session import QuerySession
 
 
@@ -113,3 +115,13 @@ class TestAsyncQuerySession:
 
         assert res == [[1], [2]]
         assert counter == 2
+
+    @pytest.mark.asyncio
+    @pytest.mark.usefixtures("ydb_terminates_streams_with_unavailable")
+    async def test_terminated_stream_raises_ydb_error(self, session: QuerySession):
+        await session.create()
+
+        with pytest.raises(ydb.Unavailable):
+            async with await session.execute("select 1") as results:
+                async for _ in results:
+                    pass
