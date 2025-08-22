@@ -1,3 +1,4 @@
+## 3.21.8 ##
 * Fix: convert gRPC stream termination to YDB errors in async query client
 
 ## 3.21.7 ##
