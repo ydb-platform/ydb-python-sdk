@@ -19,6 +19,7 @@ from .._grpc.grpcwrapper import ydb_query_public_types as _ydb_query_public
 from .transaction import QueryTxContext
 
 from .._constants import DEFAULT_INITIAL_RESPONSE_TIMEOUT, DEFAULT_LONG_STREAM_TIMEOUT
+from .._errors import stream_error_converter
 
 
 logger = logging.getLogger(__name__)
@@ -362,12 +363,13 @@ class QuerySession(BaseQuerySession):
         )
 
         return base.SyncResponseContextIterator(
-            stream_it,
-            lambda resp: base.wrap_execute_query_response(
+            it=stream_it,
+            wrapper=lambda resp: base.wrap_execute_query_response(
                 rpc_state=None,
                 response_pb=resp,
                 session_state=self._state,
                 session=self,
                 settings=self._settings,
             ),
+            error_converter=stream_error_converter,
         )

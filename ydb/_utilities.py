@@ -149,9 +149,10 @@ class AsyncResponseIterator(object):
 
 
 class SyncResponseIterator(object):
-    def __init__(self, it, wrapper):
+    def __init__(self, it, wrapper, error_converter=None):
         self.it = it
         self.wrapper = wrapper
+        self.error_converter = error_converter
 
     def cancel(self):
         self.it.cancel()
@@ -161,9 +162,16 @@ class SyncResponseIterator(object):
         return self
 
     def _next(self):
-        res = self.wrapper(next(self.it))
+        try:
+            res = self.wrapper(next(self.it))
+        except BaseException as e:
+            if self.error_converter:
+                raise self.error_converter(e) from e
+            raise e
+
         if res is not None:
             return res
+
         return self._next()
 
     def next(self):
