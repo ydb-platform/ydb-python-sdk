@@ -1,7 +1,10 @@
 import asyncio
+import json
 
 from typing import (
     Optional,
+    Dict,
+    Any,
 )
 
 from .base import AsyncResponseContextIterator
@@ -162,3 +165,20 @@ class QuerySession(BaseQuerySession):
             ),
             error_converter=stream_error_converter,
         )
+
+    async def explain(self, query: str, parameters: Optional[dict] = None) -> Dict[str, Any]:
+        """Explains query result
+        :param query: YQL or SQL query.
+        :param parameters: dict with parameters and YDB types;
+        :return: Parsed query plan.
+        """
+
+        res = await self.execute(query, parameters, exec_mode=base.QueryExecMode.EXPLAIN)
+
+        # it needs to read result sets for set last_query_stats as sideeffect
+        async for _ in res:
+            pass
+
+        plan_text = self.last_query_stats.query_plan
+        plan = json.loads(plan_text)
+        return plan

@@ -1,9 +1,12 @@
+import json
+
 import pytest
 import threading
 import time
 from concurrent.futures import _base as b
 from unittest import mock
 
+from ydb import QuerySessionPool
 from ydb.query.base import QueryStatsMode
 from ydb.query.session import QuerySession
 
@@ -174,3 +177,28 @@ class TestQuerySession:
             assert len(stats.query_plan) > 0
         else:
             assert stats.query_plan == ""
+
+    def test_explain(self, pool: QuerySessionPool):
+        pool.execute_with_retries("DROP TABLE IF EXISTS test_explain")
+        pool.execute_with_retries("CREATE TABLE test_explain (id Int64, PRIMARY KEY (id))")
+        try:
+            plan_fullscan = ""
+            plan_lookup = ""
+
+            def callee(session: QuerySession):
+                nonlocal plan_fullscan, plan_lookup
+                plan_fullscan = session.explain("SELECT * FROM test_explain")
+                plan_lookup = session.explain(
+                    "SELECT * FROM test_explain WHERE id = $id",
+                    {"$id": 1},
+                )
+
+            pool.retry_operation_sync(callee)
+
+            plan_fulltext_string = json.dumps(plan_fullscan)
+            assert "FullScan" in plan_fulltext_string
+
+            plan_lookup_string = json.dumps(plan_lookup)
+            assert "Lookup" in plan_lookup_string
+        finally:
+            pool.execute_with_retries("DROP TABLE test_explain")

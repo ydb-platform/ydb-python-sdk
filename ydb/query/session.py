@@ -1,10 +1,13 @@
 import abc
 import enum
+import json
 import logging
 import threading
 from typing import (
     Iterable,
     Optional,
+    Dict,
+    Any,
 )
 
 from . import base
@@ -371,3 +374,20 @@ class QuerySession(BaseQuerySession):
                 settings=self._settings,
             ),
         )
+
+    def explain(self, query: str, parameters: dict = None) -> Dict[str, Any]:
+        """Explains query result
+        :param query: YQL or SQL query.
+        :param parameters: dict with parameters and YDB types;
+        :return: Parsed query plan.
+        """
+
+        res = self.execute(query, parameters, exec_mode=base.QueryExecMode.EXPLAIN)
+
+        # is needs to read result sets for set last_query_stats as sideeffect
+        for _ in res:
+            pass
+
+        plan_text = self.last_query_stats.query_plan
+        plan = json.loads(plan_text)
+        return plan

@@ -4,6 +4,8 @@ from typing import (
     Callable,
     Optional,
     List,
+    Dict,
+    Any,
 )
 
 from .session import (
@@ -193,6 +195,27 @@ class QuerySessionPool:
                 return [result_set async for result_set in it]
 
         return await retry_operation_async(wrapped_callee, retry_settings)
+
+    async def explain_with_retries(
+        self,
+        query: str,
+        parameters: Optional[dict] = None,
+        *,
+        retry_settings: Optional[RetrySettings] = None,
+    ) -> Dict[str, Any]:
+        """
+        Explain a query in retriable way. No real query execution will happen.
+
+        :param query: A query, yql or sql text.
+        :param parameters: dict with parameters and YDB types;
+        :param retry_settings: RetrySettings object.
+        :return: Parsed query plan.
+        """
+
+        async def callee(session: QuerySession):
+            return await session.explain(query, parameters)
+
+        return await self.retry_operation_async(callee, retry_settings)
 
     async def stop(self):
         self._should_stop.set()

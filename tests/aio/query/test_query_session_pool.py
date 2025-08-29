@@ -1,4 +1,6 @@
 import asyncio
+import json
+
 import pytest
 import ydb
 
@@ -179,3 +181,21 @@ class TestQuerySessionPool:
 
             assert len(ids) == 1
             assert pool._current_size == 1
+
+    @pytest.mark.asyncio
+    async def test_explain_with_retries(self, pool: QuerySessionPool):
+        await pool.execute_with_retries("DROP TABLE IF EXISTS test_explain")
+        await pool.execute_with_retries("CREATE TABLE test_explain (id Int64, PRIMARY KEY (id))")
+        try:
+            plan = await pool.explain_with_retries("SELECT * FROM test_explain")
+            plan_string = json.dumps(plan)
+            assert "FullScan" in plan_string
+
+            plan = await pool.explain_with_retries(
+                "SELECT * FROM test_explain WHERE id = $id",
+                {"$id": 1},
+            )
+            plan_string = json.dumps(plan)
+            assert "Lookup" in plan_string
+        finally:
+            await pool.execute_with_retries("DROP TABLE test_explain")

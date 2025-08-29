@@ -1,3 +1,5 @@
+import json
+
 import pytest
 import ydb
 import time
@@ -200,3 +202,20 @@ class TestQuerySessionPool:
         pool.stop()
         with pytest.raises(ydb.SessionPoolClosed):
             pool.execute_with_retries_async("select 1;")
+
+    def test_explain_with_retries(self, pool: QuerySessionPool):
+        pool.execute_with_retries("DROP TABLE IF EXISTS test_explain")
+        pool.execute_with_retries("CREATE TABLE test_explain (id Int64, PRIMARY KEY (id))")
+        try:
+            plan = pool.explain_with_retries("SELECT * FROM test_explain")
+            plan_string = json.dumps(plan)
+            assert "FullScan" in plan_string
+
+            plan = pool.explain_with_retries(
+                "SELECT * FROM test_explain WHERE id = $id",
+                {"$id": 1},
+            )
+            plan_string = json.dumps(plan)
+            assert "Lookup" in plan_string
+        finally:
+            pool.execute_with_retries("DROP TABLE test_explain")

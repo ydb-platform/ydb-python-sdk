@@ -4,6 +4,8 @@ from typing import (
     Callable,
     Optional,
     List,
+    Dict,
+    Any,
 )
 import time
 import threading
@@ -269,6 +271,27 @@ class QuerySessionPool:
             *args,
             **kwargs,
         )
+
+    def explain_with_retries(
+        self,
+        query: str,
+        parameters: Optional[dict] = None,
+        *,
+        retry_settings: Optional[RetrySettings] = None,
+    ) -> Dict[str, Any]:
+        """
+        Explain a query in retriable way. No real query execution will happen.
+
+        :param query: A query, yql or sql text.
+        :param parameters: dict with parameters and YDB types;
+        :param retry_settings: RetrySettings object.
+        :return: Parsed query plan.
+        """
+
+        def callee(session: QuerySession):
+            return session.explain(query, parameters)
+
+        return self.retry_operation_sync(callee, retry_settings)
 
     def stop(self, timeout=None):
         acquire_timeout = timeout if timeout is not None else -1

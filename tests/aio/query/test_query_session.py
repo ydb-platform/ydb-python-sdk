@@ -1,3 +1,5 @@
+import json
+
 import pytest
 
 import ydb
@@ -125,3 +127,30 @@ class TestAsyncQuerySession:
             async with await session.execute("select 1") as results:
                 async for _ in results:
                     pass
+
+    @pytest.mark.asyncio
+    async def test_explain(self, pool: ydb.aio.query.QuerySessionPool):
+        await pool.execute_with_retries("DROP TABLE IF EXISTS test_explain")
+        await pool.execute_with_retries("CREATE TABLE test_explain (id Int64, PRIMARY KEY (id))")
+        try:
+            plan_fullscan = ""
+            plan_lookup = ""
+
+            async def callee(session: QuerySession):
+                nonlocal plan_fullscan, plan_lookup
+
+                plan_fullscan = await session.explain("SELECT * FROM test_explain")
+                plan_lookup = await session.explain(
+                    "SELECT * FROM test_explain WHERE id = $id",
+                    {"$id": 1},
+                )
+
+            await pool.retry_operation_async(callee)
+
+            plan_fulltext_string = json.dumps(plan_fullscan)
+            assert "FullScan" in plan_fulltext_string
+
+            plan_lookup_string = json.dumps(plan_lookup)
+            assert "Lookup" in plan_lookup_string
+        finally:
+            await pool.execute_with_retries("DROP TABLE test_explain")
