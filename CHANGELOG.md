@@ -1,3 +1,4 @@
+## 3.21.9 ##
 * Add method explain for explain query to QuerySession and QuerySessionPool classes
 
 ## 3.21.8 ##
