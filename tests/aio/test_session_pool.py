@@ -2,6 +2,7 @@ import asyncio
 
 import pytest
 import ydb
+from tests.conftest import wait_container_ready_async
 
 
 @pytest.mark.asyncio
@@ -90,6 +91,7 @@ async def test_no_cluster_endpoints_no_failure(driver, docker_project):
     await pool.release(sess)
     assert pool._active_count == 0
     await pool.stop()
+    await wait_container_ready_async(driver)
 
 
 @pytest.mark.asyncio
@@ -144,3 +146,4 @@ async def test_no_session_leak(driver, docker_project):
 
     docker_project.start()
     await pool.stop()
+    await wait_container_ready_async(driver)

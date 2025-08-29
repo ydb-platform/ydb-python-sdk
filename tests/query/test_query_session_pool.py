@@ -7,6 +7,7 @@ from concurrent import futures
 
 from typing import Optional
 
+from tests.conftest import wait_container_ready
 from ydb.query.pool import QuerySessionPool
 from ydb.query.session import QuerySession, QuerySessionStateEnum
 from ydb.query.transaction import QueryTxContext
@@ -150,6 +151,7 @@ class TestQuerySessionPool:
 
         docker_project.start()
         pool.stop()
+        wait_container_ready(driver)
 
     def test_execute_with_retries_async(self, pool: QuerySessionPool):
         fut = pool.execute_with_retries_async("select 1;")
