@@ -8,9 +8,11 @@ from typing import (
     Optional,
     Dict,
     Any,
+    Union,
 )
 
 from . import base
+from .base import QueryExplainResultFormat
 
 from .. import _apis, issues, _utilities
 from ..settings import BaseRequestSettings
@@ -375,10 +377,17 @@ class QuerySession(BaseQuerySession):
             ),
         )
 
-    def explain(self, query: str, parameters: dict = None) -> Dict[str, Any]:
+    def explain(
+        self,
+        query: str,
+        parameters: dict = None,
+        *,
+        result_format: QueryExplainResultFormat = QueryExplainResultFormat.STR,
+    ) -> Union[str, Dict[str, Any]]:
         """Explains query result
         :param query: YQL or SQL query.
         :param parameters: dict with parameters and YDB types;
+        :param result_format: Return format: string or dict.
         :return: Parsed query plan.
         """
 
@@ -388,6 +397,8 @@ class QuerySession(BaseQuerySession):
         for _ in res:
             pass
 
-        plan_text = self.last_query_stats.query_plan
-        plan = json.loads(plan_text)
+        plan = self.last_query_stats.query_plan
+        if result_format == QueryExplainResultFormat.DICT:
+            plan = json.loads(plan)
+
         return plan

@@ -37,7 +37,7 @@ async def wait_container_ready_async(driver):
     async with ydb.aio.SessionPool(driver, 1) as pool:
 
         started_at = time.time()
-        while time.time() - started_at < 120:
+        while time.time() - started_at < 30:
             try:
                 async with pool.checkout() as session:
                     await session.execute_scheme("create table `.sys_health/test_table` (A int32, primary key(A));")

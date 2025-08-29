@@ -6,6 +6,7 @@ from typing import (
     List,
     Dict,
     Any,
+    Union,
 )
 
 from .session import (
@@ -15,7 +16,7 @@ from ...retries import (
     RetrySettings,
     retry_operation_async,
 )
-from ...query.base import BaseQueryTxMode
+from ...query.base import BaseQueryTxMode, QueryExplainResultFormat
 from ...query.base import QueryClientSettings
 from ... import convert
 from ..._grpc.grpcwrapper import common_utils
@@ -201,19 +202,21 @@ class QuerySessionPool:
         query: str,
         parameters: Optional[dict] = None,
         *,
+        result_format: QueryExplainResultFormat = QueryExplainResultFormat.STR,
         retry_settings: Optional[RetrySettings] = None,
-    ) -> Dict[str, Any]:
+    ) -> Union[str, Dict[str, Any]]:
         """
         Explain a query in retriable way. No real query execution will happen.
 
         :param query: A query, yql or sql text.
         :param parameters: dict with parameters and YDB types;
+        :param result_format: Return format: string or dict.
         :param retry_settings: RetrySettings object.
         :return: Parsed query plan.
         """
 
         async def callee(session: QuerySession):
-            return await session.explain(query, parameters)
+            return await session.explain(query, parameters, result_format=result_format)
 
         return await self.retry_operation_async(callee, retry_settings)
 

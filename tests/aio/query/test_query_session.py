@@ -3,6 +3,7 @@ import json
 import pytest
 
 import ydb
+from ydb import QueryExplainResultFormat
 from ydb.aio.query.session import QuerySession
 
 
@@ -139,10 +140,17 @@ class TestAsyncQuerySession:
             async def callee(session: QuerySession):
                 nonlocal plan_fullscan, plan_lookup
 
-                plan_fullscan = await session.explain("SELECT * FROM test_explain")
+                plan = await session.explain("SELECT * FROM test_explain", result_format=QueryExplainResultFormat.STR)
+                isinstance(plan, str)
+                assert "FullScan" in plan
+
+                plan_fullscan = await session.explain(
+                    "SELECT * FROM test_explain", result_format=QueryExplainResultFormat.DICT
+                )
                 plan_lookup = await session.explain(
                     "SELECT * FROM test_explain WHERE id = $id",
                     {"$id": 1},
+                    result_format=QueryExplainResultFormat.DICT,
                 )
 
             await pool.retry_operation_async(callee)

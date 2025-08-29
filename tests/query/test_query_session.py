@@ -7,7 +7,7 @@ from concurrent.futures import _base as b
 from unittest import mock
 
 from ydb import QuerySessionPool
-from ydb.query.base import QueryStatsMode
+from ydb.query.base import QueryStatsMode, QueryExplainResultFormat
 from ydb.query.session import QuerySession
 
 
@@ -187,10 +187,19 @@ class TestQuerySession:
 
             def callee(session: QuerySession):
                 nonlocal plan_fullscan, plan_lookup
-                plan_fullscan = session.explain("SELECT * FROM test_explain")
+
+                plan = session.explain("SELECT * FROM test_explain", result_format=QueryExplainResultFormat.STR)
+                isinstance(plan, str)
+                assert "FullScan" in plan
+
+                plan_fullscan = session.explain(
+                    "SELECT * FROM test_explain", result_format=QueryExplainResultFormat.DICT
+                )
+
                 plan_lookup = session.explain(
                     "SELECT * FROM test_explain WHERE id = $id",
                     {"$id": 1},
+                    result_format=QueryExplainResultFormat.DICT,
                 )
 
             pool.retry_operation_sync(callee)
