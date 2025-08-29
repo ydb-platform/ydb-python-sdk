@@ -1,6 +1,7 @@
 import asyncio
 from unittest.mock import MagicMock
 
+from tests.conftest import wait_container_ready_async
 from ydb.aio.driver import Driver
 import pytest
 import ydb
@@ -108,6 +109,7 @@ async def test_raises_when_disconnect(endpoint, database, docker_project):
         await asyncio.gather(*coros, return_exceptions=False)
 
     docker_project.start()
+    await wait_container_ready_async(driver)
     await driver.stop()
 
 
@@ -132,6 +134,7 @@ async def test_disconnect_by_call(endpoint, database, docker_project):
     await asyncio.sleep(5)
     assert len(driver._store.connections) == 0
     docker_project.start()
+    await wait_container_ready_async(driver)
     await driver.stop()
 
 

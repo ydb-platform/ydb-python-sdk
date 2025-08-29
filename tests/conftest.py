@@ -1,3 +1,4 @@
+import asyncio
 import os
 
 import pytest
@@ -26,6 +27,25 @@ def wait_container_ready(driver):
 
             except ydb.Error:
                 time.sleep(1)
+
+    raise RuntimeError("Container is not ready after timeout.")
+
+
+async def wait_container_ready_async(driver):
+    await driver.wait(timeout=30)
+
+    async with ydb.aio.SessionPool(driver, 1) as pool:
+
+        started_at = time.time()
+        while time.time() - started_at < 30:
+            try:
+                async with pool.checkout() as session:
+                    await session.execute_scheme("create table `.sys_health/test_table` (A int32, primary key(A));")
+
+                return True
+
+            except ydb.Error:
+                await asyncio.sleep(1)
 
     raise RuntimeError("Container is not ready after timeout.")
 

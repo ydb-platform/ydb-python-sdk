@@ -1,9 +1,13 @@
 import asyncio
+import json
+
 import pytest
 import ydb
 
 from typing import Optional
 
+from tests.conftest import wait_container_ready_async
+from ydb import QueryExplainResultFormat
 from ydb.aio.query.pool import QuerySessionPool
 from ydb.aio.query.session import QuerySession, QuerySessionStateEnum
 from ydb.aio.query.transaction import QueryTxContext
@@ -162,6 +166,7 @@ class TestQuerySessionPool:
 
         docker_project.start()
         await pool.stop()
+        await wait_container_ready_async(driver)
 
     @pytest.mark.asyncio
     async def test_acquire_no_race_condition(self, driver):
@@ -179,3 +184,30 @@ class TestQuerySessionPool:
 
             assert len(ids) == 1
             assert pool._current_size == 1
+
+    @pytest.mark.asyncio
+    async def test_explain_with_retries(self, pool: QuerySessionPool):
+        await pool.execute_with_retries("DROP TABLE IF EXISTS test_explain")
+        await pool.execute_with_retries("CREATE TABLE test_explain (id Int64, PRIMARY KEY (id))")
+        try:
+            plan = await pool.explain_with_retries(
+                "SELECT * FROM test_explain", result_format=QueryExplainResultFormat.STR
+            )
+            isinstance(plan, str)
+            assert "FullScan" in plan
+
+            plan = await pool.explain_with_retries(
+                "SELECT * FROM test_explain", result_format=QueryExplainResultFormat.DICT
+            )
+            plan_string = json.dumps(plan)
+            assert "FullScan" in plan_string
+
+            plan = await pool.explain_with_retries(
+                "SELECT * FROM test_explain WHERE id = $id",
+                {"$id": 1},
+                result_format=QueryExplainResultFormat.DICT,
+            )
+            plan_string = json.dumps(plan)
+            assert "Lookup" in plan_string
+        finally:
+            await pool.execute_with_retries("DROP TABLE test_explain")

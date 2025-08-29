@@ -1,3 +1,5 @@
+import json
+
 import pytest
 import ydb
 import time
@@ -5,6 +7,8 @@ from concurrent import futures
 
 from typing import Optional
 
+from tests.conftest import wait_container_ready
+from ydb import QueryExplainResultFormat
 from ydb.query.pool import QuerySessionPool
 from ydb.query.session import QuerySession, QuerySessionStateEnum
 from ydb.query.transaction import QueryTxContext
@@ -147,6 +151,7 @@ class TestQuerySessionPool:
         assert pool._current_size == 0
 
         docker_project.start()
+        wait_container_ready(driver_sync)
         pool.stop()
 
     def test_execute_with_retries_async(self, pool: QuerySessionPool):
@@ -200,3 +205,28 @@ class TestQuerySessionPool:
         pool.stop()
         with pytest.raises(ydb.SessionPoolClosed):
             pool.execute_with_retries_async("select 1;")
+
+    def test_explain_with_retries(self, pool: QuerySessionPool):
+        pool.execute_with_retries("DROP TABLE IF EXISTS test_explain")
+        pool.execute_with_retries("CREATE TABLE test_explain (id Int64, PRIMARY KEY (id))")
+        try:
+
+            plan = pool.explain_with_retries("SELECT * FROM test_explain", result_format=QueryExplainResultFormat.STR)
+            isinstance(plan, str)
+            assert "FullScan" in plan
+
+            plan = pool.explain_with_retries("SELECT * FROM test_explain", result_format=QueryExplainResultFormat.DICT)
+            assert isinstance(plan, dict)
+
+            plan_string = json.dumps(plan)
+            assert "FullScan" in plan_string
+
+            plan = pool.explain_with_retries(
+                "SELECT * FROM test_explain WHERE id = $id",
+                {"$id": 1},
+                result_format=ydb.QueryExplainResultFormat.DICT,
+            )
+            plan_string = json.dumps(plan)
+            assert "Lookup" in plan_string
+        finally:
+            pool.execute_with_retries("DROP TABLE test_explain")
