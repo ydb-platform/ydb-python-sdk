@@ -22,7 +22,9 @@ def make_table_create_parser(subparsers):
         "-c", "--initial-data-count", default=1000, type=int, help="Total number of records to generate"
     )
 
-    table_create_parser.add_argument("--write-timeout", default=20000, type=int, help="Write requests execution timeout [ms]")
+    table_create_parser.add_argument(
+        "--write-timeout", default=20000, type=int, help="Write requests execution timeout [ms]"
+    )
 
     table_create_parser.add_argument(
         "--batch-size", default=100, type=int, help="Number of new records in each create request"
@@ -35,10 +37,14 @@ def make_table_run_parser(subparsers):
     add_common_options(table_run_parser)
 
     table_run_parser.add_argument("--read-rps", default=100, type=int, help="Read request rps")
-    table_run_parser.add_argument("--read-timeout", default=10000, type=int, help="Read requests execution timeout [ms]")
+    table_run_parser.add_argument(
+        "--read-timeout", default=10000, type=int, help="Read requests execution timeout [ms]"
+    )
 
     table_run_parser.add_argument("--write-rps", default=10, type=int, help="Write request rps")
-    table_run_parser.add_argument("--write-timeout", default=20000, type=int, help="Write requests execution timeout [ms]")
+    table_run_parser.add_argument(
+        "--write-timeout", default=20000, type=int, help="Write requests execution timeout [ms]"
+    )
 
     table_run_parser.add_argument("--time", default=10, type=int, help="Time to run in seconds")
     table_run_parser.add_argument("--shutdown-time", default=10, type=int, help="Graceful shutdown time in seconds")
@@ -48,6 +54,11 @@ def make_table_run_parser(subparsers):
 
     table_run_parser.add_argument("--read-threads", default=8, type=int, help="Number of threads to use for write")
     table_run_parser.add_argument("--write-threads", default=4, type=int, help="Number of threads to use for read")
+
+
+def make_table_cleanup_parser(subparsers):
+    table_cleanup_parser = subparsers.add_parser("table-cleanup", help="Drop tables")
+    add_common_options(table_cleanup_parser)
 
 
 def make_topic_run_parser(subparsers):
@@ -75,7 +86,6 @@ def make_topic_run_parser(subparsers):
 
 
 def make_topic_create_parser(subparsers):
-    """Создает парсер для команды topic-create"""
     topic_create_parser = subparsers.add_parser("topic-create", help="Create topic with consumer")
     add_common_options(topic_create_parser)
 
@@ -86,13 +96,7 @@ def make_topic_create_parser(subparsers):
     topic_create_parser.add_argument("--topic-retention-hours", default=24, type=int, help="Retention period in hours")
 
 
-def make_table_cleanup_parser(subparsers):
-    table_cleanup_parser = subparsers.add_parser("table-cleanup", help="Drop tables")
-    add_common_options(table_cleanup_parser)
-
-
 def make_topic_cleanup_parser(subparsers):
-    """Создает парсер для команды topic-cleanup"""
     topic_cleanup_parser = subparsers.add_parser("topic-cleanup", help="Drop topic")
     add_common_options(topic_cleanup_parser)
 
@@ -114,6 +118,7 @@ def get_root_parser():
     make_table_create_parser(subparsers)
     make_table_run_parser(subparsers)
     make_table_cleanup_parser(subparsers)
+
     make_topic_create_parser(subparsers)
     make_topic_run_parser(subparsers)
     make_topic_cleanup_parser(subparsers)
