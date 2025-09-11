@@ -30,9 +30,12 @@ jobs:
 
     strategy:
       matrix:
-        workload:
-          - sync-table
-          - sync-query
+        include:
+          - prefix: table
+            workload: sync-table
+          - prefix: table
+            workload: sync-query
+
 
     concurrency:
       group: slo-${{ github.ref }}-${{ matrix.workload }}
@@ -64,14 +67,14 @@ jobs:
 
       - name: Prepare SLO Database
         run: |
-          python ./tests/slo/src create grpc://localhost:2135 /Root/testdb
+          python ./tests/slo/src ${{ matrix.prefix }}-create grpc://localhost:2135 /Root/testdb
 
       - name: Run SLO Tests
         env:
           REF: '${{ github.head_ref || github.ref }}'
           WORKLOAD: '${{ matrix.workload }}'
         run: |
-          python ./tests/slo/src run grpc://localhost:2135 /Root/testdb \
+          python ./tests/slo/src ${{ matrix.prefix }}-run grpc://localhost:2135 /Root/testdb \
             --prom-pgw localhost:9091 \
             --report-period 250 \
             --time ${{inputs.slo_workload_duration_seconds || 600}} \
@@ -83,7 +86,7 @@ jobs:
       - if: always()
         name: Cleanup SLO Database
         run: |
-          python ./tests/slo/src cleanup grpc://localhost:2135 /Root/testdb
+          python ./tests/slo/src ${{ matrix.prefix }}-cleanup grpc://localhost:2135 /Root/testdb
 
       - if: always()
         name: Store ydb chaos testing logs

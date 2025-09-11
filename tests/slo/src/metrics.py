@@ -10,6 +10,7 @@ environ["PROMETHEUS_DISABLE_CREATED_SERIES"] = "True"
 from prometheus_client import CollectorRegistry, Counter, Gauge, Histogram, push_to_gateway  # noqa: E402
 
 OP_TYPE_READ, OP_TYPE_WRITE = "read", "write"
+OP_TYPE_TOPIC_READ, OP_TYPE_TOPIC_WRITE = "topic_read", "topic_write"
 OP_STATUS_SUCCESS, OP_STATUS_FAILURE = "success", "err"
 
 REF = environ.get("REF", "main")

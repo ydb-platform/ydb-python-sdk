@@ -14,9 +14,25 @@ from jobs import (
     run_write_jobs_query,
     run_metric_job,
 )
+from topic_jobs import (
+    run_topic_write_jobs,
+    run_topic_read_jobs,
+    create_topic,
+    cleanup_topic,
+)
 from metrics import Metrics, WORKLOAD
 
 logger = logging.getLogger(__name__)
+
+
+class DummyMetrics:
+    """Заглушка для метрик, когда Prometheus отключен"""
+
+    def start(self, labels):
+        return 0
+
+    def stop(self, labels, start_time, attempts=1, error=None):
+        pass
 
 
 INSERT_ROWS_TEMPLATE = """
@@ -117,6 +133,103 @@ def run_cleanup(args, driver, tb_name):
     session.drop_table(tb_name)
 
 
+def run_topic_create(args, driver):
+    """
+    Создает топик и консьюмера для SLO тестов.
+
+    :param args: аргументы командной строки
+    :param driver: YDB driver
+    """
+    logger.info("Creating topic for SLO tests")
+
+    create_topic(
+        driver,
+        args.topic_path,
+        args.topic_consumer,
+        min_partitions=args.topic_min_partitions,
+        max_partitions=args.topic_max_partitions,
+        retention_hours=args.topic_retention_hours
+    )
+
+    logger.info("Topic creation completed")
+
+
+def run_topic_cleanup(args, driver):
+    """
+    Удаляет топик после SLO тестов.
+
+    :param args: аргументы командной строки
+    :param driver: YDB driver
+    """
+    logger.info("Cleaning up topic")
+
+    cleanup_topic(driver, args.topic_path)
+
+    logger.info("Topic cleanup completed")
+
+
+def run_topic_slo(args, driver):
+    """
+    Запускает SLO тесты для топиков.
+    Ожидает, что топик уже создан командой topic-create.
+
+    :param args: аргументы командной строки
+    :param driver: YDB driver
+    """
+    logger.info("Starting topic SLO test")
+
+    # Проверяем, что топик существует
+    try:
+        description = driver.topic_client.describe_topic(args.topic_path)
+        logger.info("Topic exists: %s", args.topic_path)
+
+        # Проверяем, есть ли консьюмер
+        consumer_exists = any(c.name == args.topic_consumer for c in description.consumers)
+
+        if not consumer_exists:
+            logger.error("Consumer '%s' does not exist in topic '%s'", args.topic_consumer, args.topic_path)
+            logger.error("Please create the topic with consumer first using topic-create command")
+            raise RuntimeError(f"Consumer '{args.topic_consumer}' not found")
+        else:
+            logger.info("Consumer exists: %s", args.topic_consumer)
+
+    except ydb.Error as e:
+        error_msg = str(e).lower()
+        if "does not exist" in error_msg:
+            logger.error("Topic does not exist: %s", args.topic_path)
+            logger.error("Please create the topic first using topic-create command")
+            raise RuntimeError(f"Topic '{args.topic_path}' not found")
+        else:
+            logger.error("Failed to check topic: %s", e)
+            raise
+
+    # Создаем объект для сбора метрик (если Prometheus включен)
+    if args.prom_pgw:
+        metrics = Metrics(args.prom_pgw)
+        metric_futures = (run_metric_job(args, metrics),)
+    else:
+        logger.info("Prometheus disabled, creating dummy metrics")
+        metrics = DummyMetrics()
+        metric_futures = ()
+
+    # Запускаем задачи для записи и чтения
+    futures = (
+        *run_topic_write_jobs(args, driver, args.topic_path, metrics),
+        *run_topic_read_jobs(args, driver, args.topic_path, args.topic_consumer, metrics),
+        *metric_futures,
+    )
+
+    # Ждем завершения всех задач
+    for future in futures:
+        future.join()
+
+    # Сбрасываем метрики (если они реальные)
+    if hasattr(metrics, 'reset'):
+        metrics.reset()
+
+    logger.info("Topic SLO test completed")
+
+
 def run_from_args(args):
     driver_config = ydb.DriverConfig(
         args.endpoint,
@@ -129,12 +242,18 @@ def run_from_args(args):
     with ydb.Driver(driver_config) as driver:
         driver.wait(timeout=300)
         try:
-            if args.subcommand == "create":
+            if args.subcommand == "table-create":
                 run_create(args, driver, table_name)
-            elif args.subcommand == "run":
+            elif args.subcommand == "table-run":
                 run_slo(args, driver, table_name)
-            elif args.subcommand == "cleanup":
+            elif args.subcommand == "table-cleanup":
                 run_cleanup(args, driver, table_name)
+            elif args.subcommand == "topic-create":
+                run_topic_create(args, driver)
+            elif args.subcommand == "topic-run":
+                run_topic_slo(args, driver)
+            elif args.subcommand == "topic-cleanup":
+                run_topic_cleanup(args, driver)
             else:
                 raise RuntimeError(f"Unknown command {args.subcommand}")
         except BaseException:
