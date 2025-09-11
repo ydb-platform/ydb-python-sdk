@@ -57,6 +57,26 @@ jobs:
               --read-timeout 1000 \
               --write-timeout 1000
             cleanup-args: grpc://localhost:2135 /Root/testdb
+          # - prefix: topic
+          #   workload: topic-basic
+          #   create-args: |
+          #     grpc://localhost:2135 /Root/testdb \
+          #     --path /Root/testdb/slo_topic \
+          #     --partitions-count 10
+          #   run-args: |
+          #     grpc://localhost:2135 /Root/testdb \
+          #     --path /Root/testdb/slo_topic \
+          #     --prom-pgw localhost:9091 \
+          #     --partitions-count 10 \
+          #     --read-threads 10 \
+          #     --write-threads 10 \
+          #     --report-period 250 \
+          #     --time ${{inputs.slo_workload_duration_seconds || 600}} \
+          #     --read-rps ${{inputs.slo_workload_read_max_rps || 100}} \
+          #     --write-rps ${{inputs.slo_workload_write_max_rps || 100}} \
+          #     --read-timeout 5000 \
+          #     --write-timeout 5000
+          #   cleanup-args: grpc://localhost:2135 /Root/testdb --path /Root/testdb/slo_topic
 
 
     concurrency:

@@ -4,12 +4,14 @@ import threading
 import time
 from ratelimiter import RateLimiter
 
+import ydb
+
 logger = logging.getLogger(__name__)
 
 
 class BaseJobManager(ABC):
     def __init__(self, driver, args, metrics):
-        self.driver = driver
+        self.driver: ydb.Driver = driver
         self.args = args
         self.metrics = metrics
 

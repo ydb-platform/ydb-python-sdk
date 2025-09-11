@@ -1,8 +1,10 @@
+from abc import ABC, abstractmethod
+
 import time
 from contextlib import contextmanager
 from importlib.metadata import version
 from collections.abc import Iterable
-
+import logging
 from os import environ
 
 environ["PROMETHEUS_DISABLE_CREATED_SERIES"] = "True"
@@ -10,14 +12,50 @@ environ["PROMETHEUS_DISABLE_CREATED_SERIES"] = "True"
 from prometheus_client import CollectorRegistry, Counter, Gauge, Histogram, push_to_gateway  # noqa: E402
 
 OP_TYPE_READ, OP_TYPE_WRITE = "read", "write"
-OP_TYPE_TOPIC_READ, OP_TYPE_TOPIC_WRITE = "topic_read", "topic_write"
 OP_STATUS_SUCCESS, OP_STATUS_FAILURE = "success", "err"
 
 REF = environ.get("REF", "main")
 WORKLOAD = environ.get("WORKLOAD", "sync-query")
 
 
-class Metrics:
+logger = logging.getLogger(__name__)
+
+
+class BaseMetrics(ABC):
+    @abstractmethod
+    def start(self, labels):
+        pass
+
+    @abstractmethod
+    def stop(self, labels, start_time, attempts=1, error=None):
+        pass
+
+    @abstractmethod
+    def reset(self):
+        pass
+
+
+def create_metrics(push_gateway) -> BaseMetrics:
+    if push_gateway:
+        logger.info("Creating metrics with push gateway: %s", push_gateway)
+        return Metrics(push_gateway)
+    else:
+        logger.info("Creating dummy metrics")
+        return DummyMetrics()
+
+
+class DummyMetrics(BaseMetrics):
+    def start(self, labels):
+        return 0
+
+    def stop(self, labels, start_time, attempts=1, error=None):
+        pass
+
+    def reset(self):
+        pass
+
+
+class Metrics(BaseMetrics):
     def __init__(self, push_gateway):
         self._push_gtw = push_gateway
         self._registry = CollectorRegistry()
