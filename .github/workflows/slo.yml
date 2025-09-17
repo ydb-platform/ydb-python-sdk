@@ -30,9 +30,54 @@ jobs:
 
     strategy:
       matrix:
-        workload:
-          - sync-table
-          - sync-query
+        include:
+          - prefix: table
+            workload: sync-table
+            create-args: grpc://localhost:2135 /Root/testdb
+            run-args: |
+              grpc://localhost:2135 /Root/testdb \
+              --prom-pgw localhost:9091 \
+              --report-period 250 \
+              --time ${{inputs.slo_workload_duration_seconds || 600}} \
+              --read-rps ${{inputs.slo_workload_read_max_rps || 1000}} \
+              --write-rps ${{inputs.slo_workload_write_max_rps || 100}} \
+              --read-timeout 1000 \
+              --write-timeout 1000
+            cleanup-args: grpc://localhost:2135 /Root/testdb
+          - prefix: table
+            workload: sync-query
+            create-args: grpc://localhost:2135 /Root/testdb
+            run-args: |
+              grpc://localhost:2135 /Root/testdb \
+              --prom-pgw localhost:9091 \
+              --report-period 250 \
+              --time ${{inputs.slo_workload_duration_seconds || 600}} \
+              --read-rps ${{inputs.slo_workload_read_max_rps || 1000}} \
+              --write-rps ${{inputs.slo_workload_write_max_rps || 100}} \
+              --read-timeout 1000 \
+              --write-timeout 1000
+            cleanup-args: grpc://localhost:2135 /Root/testdb
+          # - prefix: topic
+          #   workload: topic-basic
+          #   create-args: |
+          #     grpc://localhost:2135 /Root/testdb \
+          #     --path /Root/testdb/slo_topic \
+          #     --partitions-count 10
+          #   run-args: |
+          #     grpc://localhost:2135 /Root/testdb \
+          #     --path /Root/testdb/slo_topic \
+          #     --prom-pgw localhost:9091 \
+          #     --partitions-count 10 \
+          #     --read-threads 10 \
+          #     --write-threads 10 \
+          #     --report-period 250 \
+          #     --time ${{inputs.slo_workload_duration_seconds || 600}} \
+          #     --read-rps ${{inputs.slo_workload_read_max_rps || 100}} \
+          #     --write-rps ${{inputs.slo_workload_write_max_rps || 100}} \
+          #     --read-timeout 5000 \
+          #     --write-timeout 5000
+          #   cleanup-args: grpc://localhost:2135 /Root/testdb --path /Root/testdb/slo_topic
+
 
     concurrency:
       group: slo-${{ github.ref }}-${{ matrix.workload }}
@@ -64,26 +109,19 @@ jobs:
 
       - name: Prepare SLO Database
         run: |
-          python ./tests/slo/src create grpc://localhost:2135 /Root/testdb
+          python ./tests/slo/src ${{ matrix.prefix }}-create ${{ matrix.create-args }}
 
       - name: Run SLO Tests
         env:
           REF: '${{ github.head_ref || github.ref }}'
           WORKLOAD: '${{ matrix.workload }}'
         run: |
-          python ./tests/slo/src run grpc://localhost:2135 /Root/testdb \
-            --prom-pgw localhost:9091 \
-            --report-period 250 \
-            --time ${{inputs.slo_workload_duration_seconds || 600}} \
-            --read-rps ${{inputs.slo_workload_read_max_rps || 1000}} \
-            --write-rps ${{inputs.slo_workload_write_max_rps || 100}} \
-            --read-timeout 1000 \
-            --write-timeout 1000
+          python ./tests/slo/src ${{ matrix.prefix }}-run ${{ matrix.run-args }}
 
       - if: always()
         name: Cleanup SLO Database
         run: |
-          python ./tests/slo/src cleanup grpc://localhost:2135 /Root/testdb
+          python ./tests/slo/src ${{ matrix.prefix }}-cleanup ${{ matrix.cleanup-args }}
 
       - if: always()
         name: Store ydb chaos testing logs
