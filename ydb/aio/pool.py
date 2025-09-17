@@ -259,6 +259,7 @@ class ConnectionPool(IConnectionPool):
         wrap_args=(),
         preferred_endpoint=None,
         fast_fail=False,
+        include_disconnected_lambda_to_result=False,
     ):
         if self._stopped:
             raise issues.Error("Driver was stopped")
@@ -270,12 +271,18 @@ class ConnectionPool(IConnectionPool):
                 self._discovery.notify_disconnected()
             raise
 
-        return await connection(
+        on_disconnected = self._on_disconnected(connection)
+
+        res = await connection(
             request,
             stub,
             rpc_name,
             wrap_result,
             settings,
             wrap_args,
-            self._on_disconnected(connection),
+            on_disconnected,
         )
+
+        if include_disconnected_lambda_to_result:
+            return res, on_disconnected
+        return res

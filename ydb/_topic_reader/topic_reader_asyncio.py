@@ -248,11 +248,14 @@ class ReaderReconnector:
                 self._state_changed.set()
                 await self._stream_reader.wait_error()
             except BaseException as err:
+                logger.debug("reader %s, attempt %s connection loop error %s", self._id, attempt, err)
                 retry_info = check_retriable_error(err, self._settings._retry_settings(), attempt)
                 if not retry_info.is_retriable:
                     logger.debug("reader %s stop connection loop due to %s", self._id, err)
                     self._set_first_error(err)
                     return
+
+                logger.debug("sleep before retry for %s seconds", retry_info.sleep_timeout_seconds)
 
                 await asyncio.sleep(retry_info.sleep_timeout_seconds)
 
@@ -498,6 +501,9 @@ class ReaderStream:
             )  # type: StreamReadMessage.FromServer
         except asyncio.TimeoutError:
             raise TopicReaderError("Timeout waiting for init response")
+        except Exception as e:
+            logger.debug("reader stream %s init request error %s", self._id, e)
+            raise e
 
         if isinstance(init_response.server_message, StreamReadMessage.InitResponse):
             self._session_id = init_response.server_message.session_id

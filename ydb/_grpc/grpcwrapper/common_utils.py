@@ -6,6 +6,7 @@ import concurrent.futures
 import contextvars
 import datetime
 import functools
+import logging
 import typing
 from typing import (
     Optional,
@@ -36,6 +37,8 @@ else:
 from ... import issues, connection
 from ...settings import BaseRequestSettings
 from ..._constants import DEFAULT_LONG_STREAM_TIMEOUT
+
+logger = logging.getLogger(__name__)
 
 
 class IFromProto(abc.ABC):
@@ -162,6 +165,7 @@ class GrpcWrapperAsyncIO(IGrpcWrapperAsyncIO):
         self._connection_state = "new"
         self._stream_call = None
         self._wait_executor = None
+        self._on_disconnected_lambda = None
 
         self._stream_settings: BaseRequestSettings = (
             BaseRequestSettings()
@@ -193,28 +197,32 @@ class GrpcWrapperAsyncIO(IGrpcWrapperAsyncIO):
 
     async def _start_asyncio_driver(self, driver: DriverIO, stub, method):
         requests_iterator = QueueToIteratorAsyncIO(self.from_client_grpc)
-        stream_call = await driver(
+        stream_call, on_disconnected_lambda = await driver(
             requests_iterator,
             stub,
             method,
             settings=self._stream_settings,
+            include_disconnected_lambda_to_result=True,
         )
         self._stream_call = stream_call
+        self._on_disconnected_lambda = on_disconnected_lambda
         self.from_server_grpc = stream_call.__aiter__()
 
     async def _start_sync_driver(self, driver: Driver, stub, method):
         requests_iterator = AsyncQueueToSyncIteratorAsyncIO(self.from_client_grpc)
         self._wait_executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
 
-        stream_call = await to_thread(
+        stream_call, on_disconnected_lambda = await to_thread(
             driver,
             requests_iterator,
             stub,
             method,
             executor=self._wait_executor,
             settings=self._stream_settings,
+            include_disconnected_lambda_to_result=True,
         )
         self._stream_call = stream_call
+        self._on_disconnected_lambda = on_disconnected_lambda
         self.from_server_grpc = SyncToAsyncIterator(stream_call.__iter__(), self._wait_executor)
 
     async def receive(self, timeout: Optional[int] = None) -> Any:
@@ -230,6 +238,11 @@ class GrpcWrapperAsyncIO(IGrpcWrapperAsyncIO):
                 grpc_message = await asyncio.wait_for(get_response(), timeout)
 
         except (grpc.RpcError, grpc.aio.AioRpcError) as e:
+            if self._on_disconnected_lambda:
+                coro = self._on_disconnected_lambda()
+                if asyncio.iscoroutine(coro):
+                    await coro
+
             raise connection._rpc_error_handler(self._connection_state, e)
 
         issues._process_response(grpc_message)
