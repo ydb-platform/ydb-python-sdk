@@ -437,7 +437,6 @@ class ConnectionPool(IConnectionPool):
         settings=None,
         wrap_args=(),
         preferred_endpoint=None,
-        include_disconnected_callback_to_result=False,
     ):
         """
         Synchronously sends request constructed by client library
@@ -462,8 +461,6 @@ class ConnectionPool(IConnectionPool):
             self._discovery_thread.notify_disconnected()
             raise
 
-        on_disconnected = lambda: self._on_disconnected(connection)  # noqa: E731
-
         res = connection(
             request,
             stub,
@@ -471,13 +468,11 @@ class ConnectionPool(IConnectionPool):
             wrap_result,
             settings,
             wrap_args,
-            on_disconnected,
+            lambda: self._on_disconnected(connection),
         )
 
         tracing.trace(self.tracer, {"response": res}, trace_level=tracing.TraceLevel.DEBUG)
 
-        if include_disconnected_callback_to_result:
-            return res, on_disconnected
         return res
 
     @_utilities.wrap_async_call_exceptions

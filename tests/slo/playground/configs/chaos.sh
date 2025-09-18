@@ -31,7 +31,7 @@ do
   sh -c "docker stop ${nodeForChaos} -t 10"
   sh -c "docker start ${nodeForChaos}"
 
-  sleep 60
+  sleep 30
 done
 
 # for i in $(seq 1 3)

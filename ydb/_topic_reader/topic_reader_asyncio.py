@@ -501,9 +501,6 @@ class ReaderStream:
             )  # type: StreamReadMessage.FromServer
         except asyncio.TimeoutError:
             raise TopicReaderError("Timeout waiting for init response")
-        except Exception as e:
-            logger.debug("reader stream %s init request error %s", self._id, e)
-            raise e
 
         if isinstance(init_response.server_message, StreamReadMessage.InitResponse):
             self._session_id = init_response.server_message.session_id
