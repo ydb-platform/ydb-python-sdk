@@ -165,7 +165,7 @@ class GrpcWrapperAsyncIO(IGrpcWrapperAsyncIO):
         self._connection_state = "new"
         self._stream_call = None
         self._wait_executor = None
-        self._on_disconnected_lambda = None
+        self._on_disconnected_callback = None
 
         self._stream_settings: BaseRequestSettings = (
             BaseRequestSettings()
@@ -197,32 +197,32 @@ class GrpcWrapperAsyncIO(IGrpcWrapperAsyncIO):
 
     async def _start_asyncio_driver(self, driver: DriverIO, stub, method):
         requests_iterator = QueueToIteratorAsyncIO(self.from_client_grpc)
-        stream_call, on_disconnected_lambda = await driver(
+        stream_call, on_disconnected_callback = await driver(
             requests_iterator,
             stub,
             method,
             settings=self._stream_settings,
-            include_disconnected_lambda_to_result=True,
+            include_disconnected_callback_to_result=True,
         )
         self._stream_call = stream_call
-        self._on_disconnected_lambda = on_disconnected_lambda
+        self._on_disconnected_callback = on_disconnected_callback
         self.from_server_grpc = stream_call.__aiter__()
 
     async def _start_sync_driver(self, driver: Driver, stub, method):
         requests_iterator = AsyncQueueToSyncIteratorAsyncIO(self.from_client_grpc)
         self._wait_executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
 
-        stream_call, on_disconnected_lambda = await to_thread(
+        stream_call, on_disconnected_callback = await to_thread(
             driver,
             requests_iterator,
             stub,
             method,
             executor=self._wait_executor,
             settings=self._stream_settings,
-            include_disconnected_lambda_to_result=True,
+            include_disconnected_callback_to_result=True,
         )
         self._stream_call = stream_call
-        self._on_disconnected_lambda = on_disconnected_lambda
+        self._on_disconnected_callback = on_disconnected_callback
         self.from_server_grpc = SyncToAsyncIterator(stream_call.__iter__(), self._wait_executor)
 
     async def receive(self, timeout: Optional[int] = None) -> Any:
@@ -238,8 +238,8 @@ class GrpcWrapperAsyncIO(IGrpcWrapperAsyncIO):
                 grpc_message = await asyncio.wait_for(get_response(), timeout)
 
         except (grpc.RpcError, grpc.aio.AioRpcError) as e:
-            if self._on_disconnected_lambda:
-                coro = self._on_disconnected_lambda()
+            if self._on_disconnected_callback:
+                coro = self._on_disconnected_callback()
                 if asyncio.iscoroutine(coro):
                     await coro
 

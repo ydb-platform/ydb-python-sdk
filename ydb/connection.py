@@ -499,7 +499,7 @@ class Connection(object):
         Closes the underlying gRPC channel
         :return: None
         """
-        logger.info("Closing channel for endpoint %s", self.endpoint)
+        logger.debug("Closing channel for endpoint %s", self.endpoint)
         with self.lock:
             self.closing = True
 

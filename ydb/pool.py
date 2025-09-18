@@ -437,7 +437,7 @@ class ConnectionPool(IConnectionPool):
         settings=None,
         wrap_args=(),
         preferred_endpoint=None,
-        include_disconnected_lambda_to_result=False,
+        include_disconnected_callback_to_result=False,
     ):
         """
         Synchronously sends request constructed by client library
@@ -476,7 +476,7 @@ class ConnectionPool(IConnectionPool):
 
         tracing.trace(self.tracer, {"response": res}, trace_level=tracing.TraceLevel.DEBUG)
 
-        if include_disconnected_lambda_to_result:
+        if include_disconnected_callback_to_result:
             return res, on_disconnected
         return res
 

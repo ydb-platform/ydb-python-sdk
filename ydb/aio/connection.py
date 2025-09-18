@@ -235,7 +235,7 @@ class Connection:
         been terminated are cancelled. If grace is None, this method will wait until all tasks are finished.
         :return: None
         """
-        logger.info("Closing channel for endpoint %s", self.endpoint)
+        logger.debug("Closing channel for endpoint %s", self.endpoint)
 
         self.closing = True
 

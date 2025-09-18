@@ -1,8 +1,10 @@
 import time
 import ydb
+import ydb.aio
 
 from .base import BaseRunner
 from jobs.topic_jobs import TopicJobManager
+from jobs.async_topic_jobs import AsyncTopicJobManager
 from core.metrics import create_metrics
 
 
@@ -72,6 +74,21 @@ class TopicRunner(BaseRunner):
         job_manager.run_tests()
 
         self.logger.info("Topic SLO tests completed")
+
+        if hasattr(metrics, "reset"):
+            metrics.reset()
+
+    async def run_async(self, args):
+        """Async version of topic SLO tests using ydb.aio.Driver"""
+        metrics = create_metrics(args.prom_pgw)
+
+        self.logger.info("Starting async topic SLO tests")
+
+        # Use async driver for topic operations
+        job_manager = AsyncTopicJobManager(self.driver, args, metrics)
+        await job_manager.run_tests()
+
+        self.logger.info("Async topic SLO tests completed")
 
         if hasattr(metrics, "reset"):
             metrics.reset()

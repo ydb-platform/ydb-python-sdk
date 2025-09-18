@@ -259,7 +259,7 @@ class ConnectionPool(IConnectionPool):
         wrap_args=(),
         preferred_endpoint=None,
         fast_fail=False,
-        include_disconnected_lambda_to_result=False,
+        include_disconnected_callback_to_result=False,
     ):
         if self._stopped:
             raise issues.Error("Driver was stopped")
@@ -283,6 +283,6 @@ class ConnectionPool(IConnectionPool):
             on_disconnected,
         )
 
-        if include_disconnected_lambda_to_result:
+        if include_disconnected_callback_to_result:
             return res, on_disconnected
         return res

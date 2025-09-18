@@ -24,6 +24,9 @@ class BaseRunner(ABC):
     def run(self, args):
         pass
 
+    async def run_async(self, args):
+        raise NotImplementedError(f"Async mode not supported for {self.prefix}")
+
     @abstractmethod
     def cleanup(self, args):
         pass
