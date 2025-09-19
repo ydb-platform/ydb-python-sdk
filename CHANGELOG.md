@@ -1,3 +1,4 @@
+## 3.21.11 ##
 * Fix is_view, is_resource_pool for SchemeEntryType
 
 ## 3.21.10 ##
