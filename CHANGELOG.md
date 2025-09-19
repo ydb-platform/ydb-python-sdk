@@ -1,3 +1,5 @@
+* Fix is_view, is_resource_pool for SchemeEntryType
+
 ## 3.21.10 ##
 * Fix stream error handling
 
@@ -89,7 +91,7 @@
 * Fix attach session timeouts
 
 ## 3.18.8 ##
-* Refactor aio tableclient destructor 
+* Refactor aio tableclient destructor
 
 ## 3.18.7 ##
 * Add an ability to pass custom event loop to QuerySessionPool
@@ -102,9 +104,9 @@
 
 ## 3.18.4 ##
 * Fix table_client desctructor
-  
+
 ## 3.18.3 ##
-* Hide session management for table client methods 
+* Hide session management for table client methods
 * Add build method to QueryOnlineReadOnly mode
 
 ## 3.18.2 ##
