@@ -27,7 +27,6 @@ class TestSchemeEntryType:
         assert has_column_table
         assert has_row_table
 
-
     @pytest.mark.parametrize(
         [
             ydb.scheme.SchemeEntryType.TYPE_UNSPECIFIED,
