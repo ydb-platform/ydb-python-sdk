@@ -6,6 +6,7 @@ def add_common_options(parser):
     parser.add_argument("db", help="YDB database name")
     parser.add_argument("-t", "--table-name", default="key_value", help="Table name")
     parser.add_argument("--debug", action="store_true", help="Enable debug logging")
+    parser.add_argument("--async", action="store_true", help="Use async mode for operations")
 
 
 def make_table_create_parser(subparsers):

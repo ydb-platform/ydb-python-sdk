@@ -1,4 +1,6 @@
+import asyncio
 import ydb
+import ydb.aio
 import logging
 from typing import Dict
 
@@ -26,6 +28,15 @@ class SLORunner:
             raise ValueError(f"Unknown prefix: {prefix}. Available: {list(self.runners.keys())}")
 
         runner_instance = self.runners[prefix]()
+
+        # Check if async mode is requested and command is 'run'
+        if getattr(args, "async", False) and command == "run":
+            asyncio.run(self._run_async_command(args, runner_instance, command))
+        else:
+            self._run_sync_command(args, runner_instance, command)
+
+    def _run_sync_command(self, args, runner_instance, command):
+        """Run command in synchronous mode"""
         driver_config = ydb.DriverConfig(
             args.endpoint,
             database=args.db,
@@ -43,12 +54,32 @@ class SLORunner:
                 elif command == "cleanup":
                     runner_instance.cleanup(args)
                 else:
-                    raise RuntimeError(f"Unknown command {command} for prefix {prefix}")
+                    raise RuntimeError(f"Unknown command {command} for prefix {runner_instance.prefix}")
             except BaseException:
                 logger.exception("Something went wrong")
                 raise
             finally:
                 driver.stop(timeout=getattr(args, "shutdown_time", 10))
+
+    async def _run_async_command(self, args, runner_instance, command):
+        """Run command in asynchronous mode"""
+        driver_config = ydb.DriverConfig(
+            args.endpoint,
+            database=args.db,
+            grpc_keep_alive_timeout=5000,
+        )
+
+        async with ydb.aio.Driver(driver_config) as driver:
+            await driver.wait(timeout=300)
+            try:
+                runner_instance.set_driver(driver)
+                if command == "run":
+                    await runner_instance.run_async(args)
+                else:
+                    raise RuntimeError(f"Async mode only supports 'run' command, got '{command}'")
+            except BaseException:
+                logger.exception("Something went wrong in async mode")
+                raise
 
 
 def create_runner() -> SLORunner:

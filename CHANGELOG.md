@@ -1,5 +1,8 @@
 * Fix is_view, is_resource_pool for SchemeEntryType
 
+## 3.21.10 ##
+* Fix stream error handling
+
 ## 3.21.9 ##
 * Add method explain for explain query to QuerySession and QuerySessionPool classes
 

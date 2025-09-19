@@ -6,6 +6,7 @@ import concurrent.futures
 import contextvars
 import datetime
 import functools
+import logging
 import typing
 from typing import (
     Optional,
@@ -36,6 +37,8 @@ else:
 from ... import issues, connection
 from ...settings import BaseRequestSettings
 from ..._constants import DEFAULT_LONG_STREAM_TIMEOUT
+
+logger = logging.getLogger(__name__)
 
 
 class IFromProto(abc.ABC):
