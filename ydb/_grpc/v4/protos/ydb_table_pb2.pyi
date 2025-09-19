@@ -607,6 +607,12 @@ class DropTableResponse(_message.Message):
     operation: _ydb_operation_pb2.Operation
     def __init__(self, operation: _Optional[_Union[_ydb_operation_pb2.Operation, _Mapping]] = ...) -> None: ...
 
+class EvictionToExternalStorageSettings(_message.Message):
+    __slots__ = ["storage"]
+    STORAGE_FIELD_NUMBER: _ClassVar[int]
+    storage: str
+    def __init__(self, storage: _Optional[str] = ...) -> None: ...
+
 class ExecuteDataQueryRequest(_message.Message):
     __slots__ = ["collect_stats", "operation_params", "parameters", "query", "query_cache_policy", "session_id", "tx_control"]
     class ParametersEntry(_message.Message):
@@ -1340,6 +1346,12 @@ class TableStats(_message.Message):
     store_size: int
     def __init__(self, partition_stats: _Optional[_Iterable[_Union[PartitionStats, _Mapping]]] = ..., rows_estimate: _Optional[int] = ..., store_size: _Optional[int] = ..., partitions: _Optional[int] = ..., creation_time: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., modification_time: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ...) -> None: ...
 
+class TieredModeSettings(_message.Message):
+    __slots__ = ["tiers"]
+    TIERS_FIELD_NUMBER: _ClassVar[int]
+    tiers: _containers.RepeatedCompositeFieldContainer[TtlTier]
+    def __init__(self, tiers: _Optional[_Iterable[_Union[TtlTier, _Mapping]]] = ...) -> None: ...
+
 class TransactionControl(_message.Message):
     __slots__ = ["begin_tx", "commit_tx", "tx_id"]
     BEGIN_TX_FIELD_NUMBER: _ClassVar[int]
@@ -1369,14 +1381,28 @@ class TransactionSettings(_message.Message):
     def __init__(self, serializable_read_write: _Optional[_Union[SerializableModeSettings, _Mapping]] = ..., online_read_only: _Optional[_Union[OnlineModeSettings, _Mapping]] = ..., stale_read_only: _Optional[_Union[StaleModeSettings, _Mapping]] = ..., snapshot_read_only: _Optional[_Union[SnapshotModeSettings, _Mapping]] = ...) -> None: ...
 
 class TtlSettings(_message.Message):
-    __slots__ = ["date_type_column", "run_interval_seconds", "value_since_unix_epoch"]
+    __slots__ = ["date_type_column", "run_interval_seconds", "tiered_ttl", "value_since_unix_epoch"]
     DATE_TYPE_COLUMN_FIELD_NUMBER: _ClassVar[int]
     RUN_INTERVAL_SECONDS_FIELD_NUMBER: _ClassVar[int]
+    TIERED_TTL_FIELD_NUMBER: _ClassVar[int]
     VALUE_SINCE_UNIX_EPOCH_FIELD_NUMBER: _ClassVar[int]
     date_type_column: DateTypeColumnModeSettings
     run_interval_seconds: int
+    tiered_ttl: TieredModeSettings
     value_since_unix_epoch: ValueSinceUnixEpochModeSettings
-    def __init__(self, date_type_column: _Optional[_Union[DateTypeColumnModeSettings, _Mapping]] = ..., value_since_unix_epoch: _Optional[_Union[ValueSinceUnixEpochModeSettings, _Mapping]] = ..., run_interval_seconds: _Optional[int] = ...) -> None: ...
+    def __init__(self, date_type_column: _Optional[_Union[DateTypeColumnModeSettings, _Mapping]] = ..., value_since_unix_epoch: _Optional[_Union[ValueSinceUnixEpochModeSettings, _Mapping]] = ..., tiered_ttl: _Optional[_Union[TieredModeSettings, _Mapping]] = ..., run_interval_seconds: _Optional[int] = ...) -> None: ...
+
+class TtlTier(_message.Message):
+    __slots__ = ["date_type_column", "delete", "evict_to_external_storage", "value_since_unix_epoch"]
+    DATE_TYPE_COLUMN_FIELD_NUMBER: _ClassVar[int]
+    DELETE_FIELD_NUMBER: _ClassVar[int]
+    EVICT_TO_EXTERNAL_STORAGE_FIELD_NUMBER: _ClassVar[int]
+    VALUE_SINCE_UNIX_EPOCH_FIELD_NUMBER: _ClassVar[int]
+    date_type_column: DateTypeColumnModeSettings
+    delete: _empty_pb2.Empty
+    evict_to_external_storage: EvictionToExternalStorageSettings
+    value_since_unix_epoch: ValueSinceUnixEpochModeSettings
+    def __init__(self, date_type_column: _Optional[_Union[DateTypeColumnModeSettings, _Mapping]] = ..., value_since_unix_epoch: _Optional[_Union[ValueSinceUnixEpochModeSettings, _Mapping]] = ..., delete: _Optional[_Union[_empty_pb2.Empty, _Mapping]] = ..., evict_to_external_storage: _Optional[_Union[EvictionToExternalStorageSettings, _Mapping]] = ...) -> None: ...
 
 class ValueSinceUnixEpochModeSettings(_message.Message):
     __slots__ = ["column_name", "column_unit", "expire_after_seconds"]
