@@ -534,6 +534,7 @@ class TtlSettings(object):
     def __init__(self):
         self.date_type_column = None
         self.value_since_unix_epoch = None
+        self.tiered_ttl = None
 
     def with_date_type_column(self, column_name, expire_after_seconds=0):
         self.date_type_column = DateTypeColumnModeSettings(column_name, expire_after_seconds)
@@ -543,6 +544,10 @@ class TtlSettings(object):
         self.value_since_unix_epoch = ValueSinceUnixEpochModeSettings(column_name, column_unit, expire_after_seconds)
         return self
 
+    def with_tiered_ttl(self, tiered_ttl):
+        self.tiered_ttl = tiered_ttl
+        return self
+
     def to_pb(self):
         pb = _apis.ydb_table.TtlSettings()
 
@@ -550,6 +555,8 @@ class TtlSettings(object):
             pb.date_type_column.MergeFrom(self.date_type_column.to_pb())
         elif self.value_since_unix_epoch is not None:
             pb.value_since_unix_epoch.MergeFrom(self.value_since_unix_epoch.to_pb())
+        elif self.with_tiered_ttl is not None:
+            pb.tiered_ttl.MergeFrom(self.tiered_ttl.to_pb())
         else:
             raise RuntimeError("Unspecified ttl settings mode")
 
@@ -1608,6 +1615,8 @@ class TableSchemeEntry(scheme.SchemeEntry):
                     ColumnUnit(ttl_settings.value_since_unix_epoch.column_unit),
                     ttl_settings.value_since_unix_epoch.expire_after_seconds,
                 )
+            elif ttl_settings.HasField("tiered_ttl"):
+                self.ttl_settings = TtlSettings().with_tiered_ttl(ttl_settings.tiered_ttl)
 
         self.table_stats = None
         if table_stats is not None:
