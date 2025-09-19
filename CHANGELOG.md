@@ -1,3 +1,4 @@
+## 3.21.10 ##
 * Fix stream error handling
 
 ## 3.21.9 ##
