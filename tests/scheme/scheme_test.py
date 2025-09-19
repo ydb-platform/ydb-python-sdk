@@ -28,6 +28,7 @@ class TestSchemeEntryType:
         assert has_row_table
 
     @pytest.mark.parametrize(
+        "scheme_entry_type",
         [
             ydb.scheme.SchemeEntryType.TYPE_UNSPECIFIED,
             ydb.scheme.SchemeEntryType.DIRECTORY,
