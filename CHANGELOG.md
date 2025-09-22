@@ -1,3 +1,5 @@
+* Fix getattr propagation to wrapped stream
+
 ## 3.21.11 ##
 * Fix is_view, is_resource_pool for SchemeEntryType
 
