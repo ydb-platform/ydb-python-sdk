@@ -1,3 +1,4 @@
+## 3.21.12 ##
 * Fix getattr propagation to wrapped stream
 
 ## 3.21.11 ##
