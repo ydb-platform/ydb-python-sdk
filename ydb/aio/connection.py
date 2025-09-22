@@ -127,6 +127,9 @@ class _SafeAsyncIterator:
                 await self.on_disconnected_callback()
             raise ydb_error
 
+    def __getattr__(self, item):
+        return getattr(self.resp, item)
+
 
 class Connection:
     __slots__ = (
