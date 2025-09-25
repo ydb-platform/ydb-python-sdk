@@ -61,3 +61,38 @@ class TestTable:
 
         pool = ydb.SessionPool(driver=driver_sync)
         pool.retry_operation_sync(select)
+
+    def test_async_read_table(self, driver_sync, database):
+        table_path = database + "/test_table_to_read"
+
+        session: ydb.Session = ydb.retry_operation_sync(lambda: driver_sync.table_client.session().create())
+
+        try:
+            session.drop_table(table_path)
+        except ydb.issues.SchemeError:
+            pass
+
+        description = (
+            ydb.TableDescription()
+            .with_primary_keys("key1")
+            .with_columns(
+                ydb.Column("key1", ydb.PrimitiveType.Uint64),
+                ydb.Column("value", ydb.OptionalType(ydb.PrimitiveType.Utf8)),
+            )
+        )
+
+        session.create_table(table_path, description)
+
+        session.transaction().execute(
+            """INSERT INTO `test_table_to_read` (`key1`, `value`) VALUES (1, "hello_world"), (2, "2")""",
+            commit_tx=True,
+        )
+
+        iter = session.async_read_table(table_path)
+        rows_cnt = 0
+        for fut in iter:
+            # item = fut
+            item = fut.result(timeout=60)
+            rows_cnt += len(item.rows)
+
+        assert rows_cnt == 2

@@ -45,14 +45,24 @@ def create_metrics(push_gateway) -> BaseMetrics:
 
 
 class DummyMetrics(BaseMetrics):
+    def __init__(self):
+        self._metrics = dict()
+
     def start(self, labels):
+        for label in labels:
+            if label not in self._metrics:
+                self._metrics[label] = {'success': 0, 'failure': 0}
         return 0
 
     def stop(self, labels, start_time, attempts=1, error=None):
-        pass
+        for label in labels:
+            if error:
+                self._metrics[label]['failure'] += 1
+            else:
+                self._metrics[label]['success'] += 1
 
     def reset(self):
-        pass
+        logger.info(f"Collected metrics: {self._metrics}")
 
 
 class Metrics(BaseMetrics):

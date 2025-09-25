@@ -38,6 +38,7 @@ def make_table_run_parser(subparsers):
     table_run_parser = subparsers.add_parser("table-run", help="Run table SLO workload")
     add_common_options(table_run_parser)
 
+    table_run_parser.add_argument("--session-pool-size", default=100, type=int, help="Session pool size")
     table_run_parser.add_argument("--read-rps", default=100, type=int, help="Read request rps")
     table_run_parser.add_argument(
         "--read-timeout", default=10000, type=int, help="Read requests execution timeout [ms]"

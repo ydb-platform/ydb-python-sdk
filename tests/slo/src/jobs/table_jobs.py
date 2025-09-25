@@ -65,6 +65,7 @@ def execute_query(params: RequestParams):
 
     try:
         params.pool.retry_operation_sync(transaction, retry_settings=params.retry_settings)
+        logger.info(f"Successfully executed query with params: {params.params}")
     except ydb.Error as err:
         error = err
         logger.exception("[labels: %s] Cannot retry error:", params.labels)
@@ -190,7 +191,7 @@ class TableJobManager(BaseJobManager):
             max_session_acquire_timeout=self.args.read_timeout / 1000,
         )
 
-        with ydb.SessionPool(self.driver) as pool:
+        with ydb.SessionPool(self.driver, size=self.args.session_pool_size) as pool:
             while time.time() - start_time < self.args.time:
                 params = {"$object_id": randint(1, self.max_id)}
 
@@ -225,7 +226,7 @@ class TableJobManager(BaseJobManager):
 
         row_generator = RowGenerator(self.max_id)
 
-        with ydb.SessionPool(self.driver) as pool:
+        with ydb.SessionPool(self.driver, size=self.args.session_pool_size) as pool:
             while time.time() - start_time < self.args.time:
                 row = row_generator.get()
                 params = {
@@ -259,7 +260,7 @@ class TableJobManager(BaseJobManager):
             max_session_acquire_timeout=self.args.read_timeout / 1000,
         )
 
-        with ydb.QuerySessionPool(self.driver) as pool:
+        with ydb.QuerySessionPool(self.driver, size=self.args.session_pool_size) as pool:
             while time.time() - start_time < self.args.time:
                 params = {"$object_id": (randint(1, self.max_id), ydb.PrimitiveType.Uint64)}
 
@@ -295,7 +296,7 @@ class TableJobManager(BaseJobManager):
 
         row_generator = RowGenerator(self.max_id)
 
-        with ydb.QuerySessionPool(self.driver) as pool:
+        with ydb.QuerySessionPool(self.driver, size=self.args.session_pool_size) as pool:
             while time.time() - start_time < self.args.time:
                 row = row_generator.get()
                 params = {
