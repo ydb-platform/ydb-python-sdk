@@ -8,6 +8,8 @@ from . import credentials as credentials_impl, table, scheme, pool
 from . import tracing
 from . import iam
 from . import _utilities
+from .coordination.client import CoordinationClient
+
 
 
 logger = logging.getLogger(__name__)
@@ -248,7 +250,7 @@ def get_config(
 
 
 class Driver(pool.ConnectionPool):
-    __slots__ = ("scheme_client", "table_client")
+    __slots__ = ("scheme_client", "table_client", "coordination_client")
 
     def __init__(
         self,
@@ -287,10 +289,16 @@ class Driver(pool.ConnectionPool):
         self._credentials = driver_config.credentials
 
         self.scheme_client = scheme.SchemeClient(self)
+        self.coordination_client = CoordinationClient(self)
         self.table_client = table.TableClient(self, driver_config.table_client_settings)
         self.topic_client = topic.TopicClient(self, driver_config.topic_client_settings)
 
     def stop(self, timeout=10):
         self.table_client._stop_pool_if_needed(timeout=timeout)
         self.topic_client.close()
+        if hasattr(self, "coordination_client"):
+            try:
+                self.coordination_client.close()
+            except Exception as e:
+                logger.warning(f"Failed to close coordination client: {e}")
         super().stop(timeout=timeout)
