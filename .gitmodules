@@ -1,3 +1,6 @@
 [submodule "ydb-api-protos"]
 	path = ydb-api-protos
 	url = https://github.com/ydb-platform/ydb-api-protos.git
+[submodule "ydb/coordination/ydb-protos"]
+	path = ydb/coordination/ydb-protos
+	url = https://github.com/ydb-platform/ydb-api-protos.git
