@@ -28,6 +28,21 @@ class CreateNodeRequest(IToProto):
             operation_params=self.operation_params,
         )
 
+@dataclass
+class AlterNodeRequest(IToProto):
+    path: str
+    config: typing.Optional[public_types.NodeConfig] = None
+    operation_params: typing.Any = None
+
+    def to_proto(self) -> ydb_coordination_pb2.AlterNodeRequest:
+        cfg_proto = self.config.to_proto() if self.config else None
+        return ydb_coordination_pb2.AlterNodeRequest(
+            path=self.path,
+            config=cfg_proto,
+            operation_params=self.operation_params,
+        )
+
+
 
 @dataclass
 class DescribeNodeRequest(IToProto):
@@ -52,42 +67,4 @@ class DropNodeRequest(IToProto):
             operation_params=self.operation_params,
         )
 
-
-@dataclass
-class CreateNodeResponse(IFromProto):
-    operation : ydb.Operation
-    OPERATION_FIELD_NUMBER : int
-
-    @staticmethod
-    def from_proto(msg: ydb_coordination_pb2.CreateNodeResponse) -> "CreateNodeResponse":
-        return CreateNodeResponse(
-            operation=msg.operation,
-            OPERATION_FIELD_NUMBER=msg.OPERATION_FIELD_NUMBER
-        )
-
-
-@dataclass
-class DescribeNodeResponse(IFromProto):
-    operation : ydb.Operation
-    OPERATION_FIELD_NUMBER : int
-
-    @staticmethod
-    def from_proto(msg: "ydb_coordination_pb2.DescribeNodeResponse") -> "DescribeNodeResponse":
-        return DescribeNodeResponse(
-            operation=msg.operation,
-            OPERATION_FIELD_NUMBER=msg.OPERATION_FIELD_NUMBER
-        )
-
-
-@dataclass
-class DropNodeResponse(IFromProto):
-    operation : ydb.Operation
-    OPERATION_FIELD_NUMBER : int
-
-    @staticmethod
-    def from_proto(msg: ydb_coordination_pb2.DropNodeResponse) -> "DropNodeResponse":
-        return DropNodeResponse(
-            operation=msg.operation,
-            OPERATION_FIELD_NUMBER=msg.OPERATION_FIELD_NUMBER
-        )
 

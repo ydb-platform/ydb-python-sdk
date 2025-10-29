@@ -4,8 +4,7 @@ from typing import Optional
 from ydb import _apis, issues
 
 
-from .operations import DescribeNodeOperation, CreateNodeOperation, DropNodeOperation
-
+from .operations import DescribeNodeOperation, CreateNodeOperation, DropNodeOperation, AlterNodeOperation
 
 if typing.TYPE_CHECKING:
     import ydb
@@ -24,6 +23,10 @@ def wrapper_describe_node(rpc_state, response_pb, *_args, **_kwargs):
 def wrapper_delete_node(rpc_state, response_pb, path, *_args, **_kwargs):
     issues._process_response(response_pb.operation)
     return DropNodeOperation(rpc_state, response_pb, path)
+
+def wrapper_alter_node(rpc_state, response_pb, path, *_args, **_kwargs):
+    issues._process_response(response_pb.operation)
+    return AlterNodeOperation(rpc_state, response_pb, path)
 
 
 class CoordinationClient:
@@ -102,4 +105,31 @@ class CoordinationClient:
             wrap_args=(path,),
             settings=settings,
         )
+
+    def alter_node(
+            self,
+            path: str,
+            new_config: typing.Optional[typing.Any] = None,
+            operation_params: typing.Optional[typing.Any] = None,
+            settings: Optional["ydb.BaseRequestSettings"] = None,
+    ):
+        """
+        Alter node configuration.
+        """
+        request = _apis.ydb_coordination.AlterNodeRequest(
+            path=path,
+            config=new_config,
+            operation_params=operation_params,
+        )
+
+        return self._call_node(
+            request,
+            _apis.CoordinationService.AlterNode,
+            wrapper_alter_node,
+            wrap_args=(path,),
+            settings=settings,
+        )
+
+    def close(self):
+        pass
 

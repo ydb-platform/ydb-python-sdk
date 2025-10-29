@@ -48,3 +48,16 @@ class DropNodeOperation(ydb_op.Operation):
 
     def __repr__(self):
         return f"DropNodeOperation<id={self.id}, path={self.path}, status={self.status}>"
+
+class AlterNodeOperation(ydb_op.Operation):
+    def __init__(self, rpc_state, response, path, driver=None):
+        super().__init__(rpc_state, response, driver)
+        self.path = path
+        self.status = response.operation.status
+
+    def __repr__(self):
+        return f"AlterNodeOperation<id={self.id}, path={self.path}, status={self.status}>"
+
+    __str__ = __repr__
+
+
