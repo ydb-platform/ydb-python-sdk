@@ -5,7 +5,6 @@ import typing
 from . import tracing, issues, connection
 from . import settings as settings_impl
 import threading
-from concurrent import futures
 import logging
 import time
 
@@ -49,130 +48,65 @@ class Credentials(abc.ABC):
         pass
 
 
-class OneToManyValue(object):
-    def __init__(self):
-        self._value = None
-        self._condition = threading.Condition()
-
-    def consume(self, timeout=3):
-        with self._condition:
-            if self._value is None:
-                self._condition.wait(timeout=timeout)
-            return self._value
-
-    def update(self, n_value):
-        with self._condition:
-            prev_value = self._value
-            self._value = n_value
-            if prev_value is None:
-                self._condition.notify_all()
-
-
-class AtMostOneExecution(object):
-    def __init__(self):
-        self._can_schedule = True
-        self._lock = threading.Lock()
-        self._tp = futures.ThreadPoolExecutor(1)
-
-    def wrapped_execution(self, callback):
-        try:
-            callback()
-        except Exception:
-            pass
-
-        finally:
-            self.cleanup()
-
-    def submit(self, callback):
-        with self._lock:
-            if self._can_schedule:
-                self._tp.submit(self.wrapped_execution, callback)
-                self._can_schedule = False
-
-    def cleanup(self):
-        with self._lock:
-            self._can_schedule = True
-
-
 class AbstractExpiringTokenCredentials(Credentials):
     def __init__(self, tracer=None):
         super(AbstractExpiringTokenCredentials, self).__init__(tracer)
         self._expires_in = 0
-        self._refresh_in = 0
-        self._hour = 60 * 60
-        self._cached_token = OneToManyValue()
-        self._tp = AtMostOneExecution()
+        self._cached_token = None
+        self._token_lock = threading.Lock()
         self.logger = logger.getChild(self.__class__.__name__)
         self.last_error = None
         self.extra_error_message = ""
+        self._hour = 60 * 60
 
     @abc.abstractmethod
     def _make_token_request(self):
         pass
 
-    def _log_refresh_start(self, current_time):
-        self.logger.debug("Start refresh token from metadata")
-        if current_time > self._refresh_in:
-            self.logger.info(
-                "Cached token reached refresh_in deadline, current time %s, deadline %s",
-                current_time,
-                self._refresh_in,
-            )
-
-        if current_time > self._expires_in and self._expires_in > 0:
-            self.logger.error(
-                "Cached token reached expires_in deadline, current time %s, deadline %s",
-                current_time,
-                self._expires_in,
-            )
-
-    def _update_expiration_info(self, auth_metadata):
-        self._expires_in = time.time() + min(self._hour, auth_metadata["expires_in"] / 2)
-        self._refresh_in = time.time() + min(self._hour / 2, auth_metadata["expires_in"] / 4)
-
-    def _refresh(self):
+    def _is_token_valid(self):
         current_time = time.time()
-        self._log_refresh_start(current_time)
-        try:
-            token_response = self._make_token_request()
-            self._cached_token.update(token_response["access_token"])
-            self._update_expiration_info(token_response)
-            self.logger.info(
-                "Token refresh successful. current_time %s, refresh_in %s",
-                current_time,
-                self._refresh_in,
-            )
+        return self._cached_token is not None and current_time <= self._expires_in
 
-        except (KeyboardInterrupt, SystemExit):
-            return
+    def _update_token_info(self, token_response, current_time):
+        self._expires_in = current_time + min(self._hour / 2, token_response["expires_in"] / 4)
+        self._cached_token = token_response["access_token"]
+
+    def _refresh_token(self):
+        current_time = time.time()
+
+        try:
+            self.logger.debug("Refreshing token, current_time: %s, expires_in: %s", current_time, self._expires_in)
+
+            token_response = self._make_token_request()
+            self._update_token_info(token_response, current_time)
+
+            self.logger.info("Token refreshed successfully, expires_in: %s", self._expires_in)
+            self.last_error = None
 
         except Exception as e:
             self.last_error = str(e)
-            time.sleep(1)
-            self._tp.submit(self._refresh)
+            self.logger.error("Failed to refresh token: %s", e)
+            raise issues.ConnectionError(
+                "%s: %s.\n%s" % (self.__class__.__name__, self.last_error, self.extra_error_message)
+            )
 
     @property
     @tracing.with_trace()
     def token(self):
-        current_time = time.time()
-        if current_time > self._refresh_in:
+        if self._is_token_valid():
+            tracing.trace(self.tracer, {"consumed": True})
+            return self._cached_token
+
+        with self._token_lock:
+            if self._is_token_valid():
+                tracing.trace(self.tracer, {"consumed": True})
+                return self._cached_token
+
             tracing.trace(self.tracer, {"refresh": True})
-            self._tp.submit(self._refresh)
-        cached_token = self._cached_token.consume(timeout=3)
+            self._refresh_token()
+
         tracing.trace(self.tracer, {"consumed": True})
-        if cached_token is None:
-            if self.last_error is None:
-                raise issues.ConnectionError(
-                    "%s: timeout occurred while waiting for token.\n%s"
-                    % (
-                        self.__class__.__name__,
-                        self.extra_error_message,
-                    )
-                )
-            raise issues.ConnectionError(
-                "%s: %s.\n%s" % (self.__class__.__name__, self.last_error, self.extra_error_message)
-            )
-        return cached_token
+        return self._cached_token
 
     def auth_metadata(self):
         return [(YDB_AUTH_TICKET_HEADER, self.token)]
