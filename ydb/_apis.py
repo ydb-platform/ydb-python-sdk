@@ -11,6 +11,7 @@ if typing.TYPE_CHECKING:
         ydb_operation_v1_pb2_grpc,
         ydb_topic_v1_pb2_grpc,
         ydb_query_v1_pb2_grpc,
+        ydb_coordination_v1_pb2_grpc,
     )
 
     from ._grpc.v4.protos import (
@@ -22,6 +23,7 @@ if typing.TYPE_CHECKING:
         ydb_operation_pb2,
         ydb_common_pb2,
         ydb_query_pb2,
+        ydb_coordination_pb2,
     )
 
 else:
@@ -33,6 +35,7 @@ else:
         ydb_operation_v1_pb2_grpc,
         ydb_topic_v1_pb2_grpc,
         ydb_query_v1_pb2_grpc,
+        ydb_coordination_v1_pb2_grpc,
     )
 
     from ._grpc.common.protos import (
@@ -44,6 +47,7 @@ else:
         ydb_operation_pb2,
         ydb_common_pb2,
         ydb_query_pb2,
+        ydb_coordination_pb2,
     )
 
 
@@ -56,6 +60,7 @@ ydb_table = ydb_table_pb2
 ydb_discovery = ydb_discovery_pb2
 ydb_operation = ydb_operation_pb2
 ydb_query = ydb_query_pb2
+ydb_coordination = ydb_coordination_pb2
 
 
 class CmsService(object):
@@ -134,3 +139,19 @@ class QueryService(object):
     ExecuteQuery = "ExecuteQuery"
     ExecuteScript = "ExecuteScript"
     FetchScriptResults = "FetchScriptResults"
+
+class CoordinationService(object):
+    Stub = ydb_coordination_v1_pb2_grpc.CoordinationServiceStub
+
+    Session = "Session"
+    CreateNode = "CreateNode"
+    AlterNode = "AlterNode"
+    DropNode = "DropNode"
+    DescribeNode = "DescribeNode"
+
+    Request = ydb_coordination.CreateNodeRequest
+    Response = ydb_coordination.CreateNodeResponse
+    DescribeRequest = ydb_coordination.DescribeNodeRequest
+    DescribeResponse = ydb_coordination.DescribeNodeResponse
+    DropRequest = ydb_coordination.DropNodeRequest
+    DropResponse = ydb_coordination.DropNodeResponse

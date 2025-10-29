@@ -1,6 +1,6 @@
 import pytest
 import ydb
-from ydb.coordination.client import CoordinationClient
+from ydb.coordination.coordination_client import CoordinationClient
 import time
 
 

@@ -8,7 +8,7 @@ from . import credentials as credentials_impl, table, scheme, pool
 from . import tracing
 from . import iam
 from . import _utilities
-from .coordination.client import CoordinationClient
+from .coordination.coordination_client import CoordinationClient
 
 
 
