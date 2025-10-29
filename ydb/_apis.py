@@ -148,10 +148,3 @@ class CoordinationService(object):
     AlterNode = "AlterNode"
     DropNode = "DropNode"
     DescribeNode = "DescribeNode"
-
-    Request = ydb_coordination.CreateNodeRequest
-    Response = ydb_coordination.CreateNodeResponse
-    DescribeRequest = ydb_coordination.DescribeNodeRequest
-    DescribeResponse = ydb_coordination.DescribeNodeResponse
-    DropRequest = ydb_coordination.DropNodeRequest
-    DropResponse = ydb_coordination.DropNodeResponse

@@ -1,46 +1,41 @@
 import typing
 from typing import Optional
 
-import ydb
 from ydb import _apis, issues
 
-from .coordination_lock import CoordinationLock
-from .сoordination_session import CoordinationSession
+
+from .operations import DescribeNodeOperation, CreateNodeOperation, DropNodeOperation
 
 
-def wrapper_create_node(rpc_state, response_pb, *_args, **_kwargs):
-    from .._grpc.grpcwrapper.ydb_coordination import CreateNodeResponse
+if typing.TYPE_CHECKING:
+    import ydb
 
+
+def wrapper_create_node(rpc_state, response_pb, path, *_args, **_kwargs):
     issues._process_response(response_pb.operation)
-    return CreateNodeResponse.from_proto(response_pb)
+    return CreateNodeOperation(rpc_state, response_pb, path)
 
 
 def wrapper_describe_node(rpc_state, response_pb, *_args, **_kwargs):
-    from .._grpc.grpcwrapper.ydb_coordination import DescribeNodeResponse
-
     issues._process_response(response_pb.operation)
-    return DescribeNodeResponse.from_proto(response_pb)
+    return DescribeNodeOperation(rpc_state, response_pb)
 
 
-def wrapper_delete_node(rpc_state, response_pb, *_args, **_kwargs):
-    from .._grpc.grpcwrapper.ydb_coordination import DropNodeResponse
-
+def wrapper_delete_node(rpc_state, response_pb, path, *_args, **_kwargs):
     issues._process_response(response_pb.operation)
-    return DropNodeResponse.from_proto(response_pb)
+    return DropNodeOperation(rpc_state, response_pb, path)
 
 
 class CoordinationClient:
     def __init__(self, driver: "ydb.Driver"):
         self._driver = driver
 
-    def session(self) -> "CoordinationSession":
-        return CoordinationSession(self._driver)
-
     def _call_node(
             self,
             request,
             rpc_method,
             wrapper_fn,
+            wrap_args=(),
             settings: Optional["ydb.BaseRequestSettings"] = None,
     ):
         return self._driver(
@@ -48,7 +43,7 @@ class CoordinationClient:
             _apis.CoordinationService.Stub,
             rpc_method,
             wrap_result=wrapper_fn,
-            wrap_args=(),
+            wrap_args=wrap_args,
             settings=settings,
         )
 
@@ -58,7 +53,7 @@ class CoordinationClient:
             config: typing.Optional[typing.Any] = None,
             operation_params: typing.Optional[typing.Any] = None,
             settings: Optional["ydb.BaseRequestSettings"] = None,
-    ) -> _apis.ydb_coordination.CreateNodeResponse:
+    ) -> CreateNodeOperation:
         request = _apis.ydb_coordination.CreateNodeRequest(
             path=path,
             config=config,
@@ -68,7 +63,8 @@ class CoordinationClient:
             request,
             _apis.CoordinationService.CreateNode,
             wrapper_create_node,
-            settings,
+            wrap_args=(path,),
+            settings=settings,
         )
 
     def describe_node(
@@ -76,7 +72,7 @@ class CoordinationClient:
         path: str,
         operation_params: typing.Optional[typing.Any] = None,
         settings: Optional["ydb.BaseRequestSettings"] = None,
-    ) -> _apis.ydb_coordination.DescribeNodeResponse:
+    ) -> DescribeNodeOperation:
         request = _apis.ydb_coordination.DescribeNodeRequest(
             path=path,
             operation_params=operation_params,
@@ -85,7 +81,8 @@ class CoordinationClient:
             request,
             _apis.CoordinationService.DescribeNode,
             wrapper_describe_node,
-            settings,
+            wrap_args=(path,),
+            settings=settings,
         )
 
     def delete_node(
@@ -93,7 +90,7 @@ class CoordinationClient:
             path: str,
             operation_params: typing.Optional[typing.Any] = None,
             settings: Optional["ydb.BaseRequestSettings"] = None,
-    ) -> _apis.ydb_coordination.DropNodeResponse:
+    ):
         request = _apis.ydb_coordination.DropNodeRequest(
             path=path,
             operation_params=operation_params,
@@ -102,13 +99,7 @@ class CoordinationClient:
             request,
             _apis.CoordinationService.DropNode,
             wrapper_delete_node,
-            settings,
+            wrap_args=(path,),
+            settings=settings,
         )
 
-    def lock(
-        self,
-        path: str,
-        timeout: int = 5000,
-        count: int = 1,
-    ) -> "CoordinationLock":
-        return CoordinationLock(self.session(), path, timeout, count)

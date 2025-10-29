@@ -1,5 +1,4 @@
 import ydb
-from ydb._grpc.v4.protos import ydb_coordination_pb2
 
 
 def test_coordination_nodes(driver_sync: ydb.Driver):
@@ -7,27 +6,19 @@ def test_coordination_nodes(driver_sync: ydb.Driver):
     node_path = "/local/test_node"
 
     try:
-        drop_res = client.delete_node(node_path)
-        print(f"Node deleted (pre-clean), operation id: {drop_res.operation.id}")
+        client.delete_node(node_path)
     except ydb.SchemeError:
         pass
 
-    create_res = client.create_node(node_path)
-    assert create_res.operation.id is not None
-    print(f"Node created, operation id: {create_res.operation.id}")
+    client.create_node(node_path)
 
-    describe_res = client.describe_node(node_path)
-    assert describe_res.operation.id is not None
-    print(f"Node described, operation id: {describe_res.operation.id}")
+    node = client.describe_node(node_path)
 
-    describe_result_proto = ydb_coordination_pb2.DescribeNodeResult()
-    describe_res.operation.result.Unpack(describe_result_proto)
+    assert node.status == ydb.StatusCode.SUCCESS, f"Unexpected operation status: {node.status}"
 
-    print(f"Node path: {describe_result_proto.path}")
-    if describe_result_proto.HasField("config"):
-        print(f"Node config: {describe_result_proto.config}")
+    assert node.path.split("/")[-1] == "test_node", "Node name mismatch"
 
-    # --- Удаляем узел ---
-    drop_res = client.delete_node(node_path)
-    assert drop_res.operation.id is not None
-    print(f"Node deleted, operation id: {drop_res.operation.id}")
+
+    assert node.config is not None, "Node config is missing"
+
+    client.delete_node(node_path)
