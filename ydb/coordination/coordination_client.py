@@ -113,9 +113,6 @@ class CoordinationClient:
             operation_params: typing.Optional[typing.Any] = None,
             settings: Optional["ydb.BaseRequestSettings"] = None,
     ):
-        """
-        Alter node configuration.
-        """
         request = _apis.ydb_coordination.AlterNodeRequest(
             path=path,
             config=new_config,
