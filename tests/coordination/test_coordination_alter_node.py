@@ -19,16 +19,14 @@ def test_coordination_alter_node(driver_sync: ydb.Driver):
         read_consistency_mode=_apis.ydb_coordination.ConsistencyMode.CONSISTENCY_MODE_RELAXED,
     )
 
-    alter_res = client.alter_node(node_path, new_config)
 
-    assert alter_res.status == ydb.StatusCode.SUCCESS, f"Alter operation failed: {alter_res.status}"
+    client.alter_node(node_path, new_config)
 
-
-    node = client.describe_node(node_path)
-    assert node.config.session_grace_period_millis == 12345, "Session grace period not updated"
-    assert node.config.attach_consistency_mode == _apis.ydb_coordination.ConsistencyMode.CONSISTENCY_MODE_STRICT, \
+    node_config = client.describe_node(node_path)
+    assert node_config.session_grace_period_millis == 12345, "Session grace period not updated"
+    assert node_config.attach_consistency_mode == _apis.ydb_coordination.ConsistencyMode.CONSISTENCY_MODE_STRICT, \
         "Attach consistency mode not updated"
-    assert node.config.read_consistency_mode == _apis.ydb_coordination.ConsistencyMode.CONSISTENCY_MODE_RELAXED, \
+    assert node_config.read_consistency_mode == _apis.ydb_coordination.ConsistencyMode.CONSISTENCY_MODE_RELAXED, \
         "Read consistency mode not updated"
 
     client.delete_node(node_path)

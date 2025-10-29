@@ -20,10 +20,10 @@ class NodeConfig:
     @staticmethod
     def from_proto(msg: ydb_coordination_pb2.Config) -> "NodeConfig":
         return NodeConfig(
-            attach_consistency_mode=ydb_coordination_pb2.ConsistencyMode(msg.attach_consistency_mode),
+            attach_consistency_mode=msg.attach_consistency_mode,
             path=msg.path,
-            rate_limiter_counters_mode=ydb_coordination_pb2.RateLimiterCountersMode(msg.rate_limiter_counters_mode),
-            read_consistency_mode=ydb_coordination_pb2.ConsistencyMode(msg.read_consistency_mode),
+            rate_limiter_counters_mode=msg.rate_limiter_counters_mode,
+            read_consistency_mode=msg.read_consistency_mode,
             self_check_period_millis=msg.self_check_period_millis,
             session_grace_period_millis=msg.session_grace_period_millis,
         )
