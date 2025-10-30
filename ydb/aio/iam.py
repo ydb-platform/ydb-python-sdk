@@ -103,6 +103,7 @@ class MetadataUrlCredentials(AbstractExpiringTokenCredentials):
         assert aiohttp is not None, "Install aiohttp library to use metadata credentials provider"
         self._metadata_url = auth.DEFAULT_METADATA_URL if metadata_url is None else metadata_url
         self.extra_error_message = "Check that metadata service configured properly and application deployed in VM or function at Yandex.Cloud."
+        self._tp.submit(self._refresh_token)
 
     async def _make_token_request(self):
         timeout = aiohttp.ClientTimeout(total=2)

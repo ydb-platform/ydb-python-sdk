@@ -4,6 +4,7 @@ import typing
 
 from . import tracing, issues, connection
 from . import settings as settings_impl
+from concurrent import futures
 import threading
 import logging
 import time
@@ -19,6 +20,32 @@ else:
 
 YDB_AUTH_TICKET_HEADER = "x-ydb-auth-ticket"
 logger = logging.getLogger(__name__)
+
+
+class AtMostOneExecution(object):
+    def __init__(self):
+        self._can_schedule = True
+        self._lock = threading.Lock()
+        self._tp = futures.ThreadPoolExecutor(1)
+
+    def wrapped_execution(self, callback):
+        try:
+            callback()
+        except Exception:
+            pass
+
+        finally:
+            self.cleanup()
+
+    def submit(self, callback):
+        with self._lock:
+            if self._can_schedule:
+                self._tp.submit(self.wrapped_execution, callback)
+                self._can_schedule = False
+
+    def cleanup(self):
+        with self._lock:
+            self._can_schedule = True
 
 
 class AbstractCredentials(abc.ABC):
@@ -51,6 +78,7 @@ class Credentials(abc.ABC):
 class AbstractExpiringTokenCredentials(Credentials):
     def __init__(self, tracer=None):
         super(AbstractExpiringTokenCredentials, self).__init__(tracer)
+        self._refresh_in = 0
         self._expires_in = 0
         self._cached_token = None
         self._token_lock = threading.Lock()
@@ -58,20 +86,25 @@ class AbstractExpiringTokenCredentials(Credentials):
         self.last_error = None
         self.extra_error_message = ""
         self._hour = 60 * 60
+        self._tp = AtMostOneExecution()
+        self._time_shift_protection_seconds = 30
 
     @abc.abstractmethod
     def _make_token_request(self):
         pass
 
     def _is_token_valid(self):
-        current_time = time.time()
-        return self._cached_token is not None and current_time <= self._expires_in
+        return self._cached_token is not None and time.time() <= self._expires_in
+
+    def _should_refresh(self):
+        return time.time() >= self._refresh_in
 
     def _update_token_info(self, token_response, current_time):
-        self._expires_in = current_time + min(self._hour / 2, token_response["expires_in"] / 4)
+        self._refresh_in = current_time + min(self._hour / 2, token_response["expires_in"] / 10)
+        self._expires_in = current_time + token_response["expires_in"] - self._time_shift_protection_seconds
         self._cached_token = token_response["access_token"]
 
-    def _refresh_token(self):
+    def _refresh_token(self, should_raise=False):
         current_time = time.time()
 
         try:
@@ -86,14 +119,19 @@ class AbstractExpiringTokenCredentials(Credentials):
         except Exception as e:
             self.last_error = str(e)
             self.logger.error("Failed to refresh token: %s", e)
-            raise issues.ConnectionError(
-                "%s: %s.\n%s" % (self.__class__.__name__, self.last_error, self.extra_error_message)
-            )
+            if should_raise:
+                raise issues.ConnectionError(
+                    "%s: %s.\n%s" % (self.__class__.__name__, self.last_error, self.extra_error_message)
+                )
 
     @property
     @tracing.with_trace()
     def token(self):
         if self._is_token_valid():
+            if self._should_refresh():
+                tracing.trace(self.tracer, {"refresh": True})
+                self._tp.submit(self._refresh_token)
+
             tracing.trace(self.tracer, {"consumed": True})
             return self._cached_token
 
@@ -103,7 +141,7 @@ class AbstractExpiringTokenCredentials(Credentials):
                 return self._cached_token
 
             tracing.trace(self.tracer, {"refresh": True})
-            self._refresh_token()
+            self._refresh_token(should_raise=True)
 
         tracing.trace(self.tracer, {"consumed": True})
         return self._cached_token

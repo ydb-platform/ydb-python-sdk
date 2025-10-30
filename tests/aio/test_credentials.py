@@ -6,7 +6,7 @@ import tempfile
 import os
 import json
 import asyncio
-from unittest.mock import patch, AsyncMock
+from unittest.mock import patch, AsyncMock, MagicMock
 
 import tests.auth.test_credentials
 import tests.oauth2_token_exchange
@@ -125,6 +125,8 @@ async def test_token_lazy_refresh():
         "localhost:0",
     )
 
+    credentials._tp.submit = MagicMock()
+
     mock_response = {"access_token": "token_v1", "expires_in": 3600}
     credentials._make_token_request = AsyncMock(return_value=mock_response)
 
@@ -139,7 +141,7 @@ async def test_token_lazy_refresh():
         assert token2 == "token_v1"
         assert credentials._make_token_request.call_count == 1
 
-        mock_time.return_value = 2000
+        mock_time.return_value = 1000 + 3600 - 30 + 1
         credentials._make_token_request.return_value = {"access_token": "token_v2", "expires_in": 3600}
 
         token3 = await credentials.token()
@@ -155,6 +157,8 @@ async def test_token_double_check_locking():
         tests.auth.test_credentials.PRIVATE_KEY,
         "localhost:0",
     )
+
+    credentials._tp.submit = MagicMock()
 
     call_count = 0
 
@@ -185,6 +189,8 @@ async def test_token_expiration_calculation():
         "localhost:0",
     )
 
+    credentials._tp.submit = MagicMock()
+
     with patch("time.time") as mock_time:
         mock_time.return_value = 1000
 
@@ -192,7 +198,7 @@ async def test_token_expiration_calculation():
 
         await credentials.token()
 
-        expected_expires = 1000 + min(1800, 3600 / 4)
+        expected_expires = 1000 + 3600 - 30
         assert credentials._expires_in == expected_expires
 
 
@@ -205,6 +211,8 @@ async def test_token_refresh_error_handling():
         "localhost:0",
     )
 
+    credentials._tp.submit = MagicMock()
+
     credentials._make_token_request = AsyncMock(side_effect=Exception("Network error"))
 
     with pytest.raises(Exception) as exc_info:
@@ -212,3 +220,46 @@ async def test_token_refresh_error_handling():
 
     assert "Network error" in str(exc_info.value)
     assert credentials.last_error == "Network error"
+
+
+@pytest.mark.asyncio
+async def test_hybrid_background_and_sync_refresh():
+    credentials = ServiceAccountCredentialsForTest(
+        tests.auth.test_credentials.SERVICE_ACCOUNT_ID,
+        tests.auth.test_credentials.ACCESS_KEY_ID,
+        tests.auth.test_credentials.PRIVATE_KEY,
+        "localhost:0",
+    )
+
+    call_count = 0
+    background_calls = []
+
+    async def mock_make_request():
+        nonlocal call_count
+        call_count += 1
+        return {"access_token": f"token_v{call_count}", "expires_in": 3600}
+
+    def mock_submit(callback):
+        background_calls.append(callback)
+
+    credentials._make_token_request = mock_make_request
+    credentials._tp.submit = mock_submit
+
+    with patch("time.time") as mock_time:
+        mock_time.return_value = 1000
+
+        token1 = await credentials.token()
+        assert token1 == "token_v1"
+        assert call_count == 1
+        assert len(background_calls) == 0
+
+        mock_time.return_value = 1000 + min(1800, 3600 / 10) + 1
+        token2 = await credentials.token()
+        assert token2 == "token_v1"
+        assert call_count == 1
+        assert len(background_calls) == 1
+
+        mock_time.return_value = 1000 + 3600 - 30 + 1
+        token3 = await credentials.token()
+        assert token3 == "token_v2"
+        assert call_count == 2
