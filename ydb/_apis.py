@@ -140,6 +140,7 @@ class QueryService(object):
     ExecuteScript = "ExecuteScript"
     FetchScriptResults = "FetchScriptResults"
 
+
 class CoordinationService(object):
     Stub = ydb_coordination_v1_pb2_grpc.CoordinationServiceStub
 

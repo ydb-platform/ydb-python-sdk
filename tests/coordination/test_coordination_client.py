@@ -7,6 +7,7 @@ from ydb.coordination import (
     CoordinationClient
 )
 
+
 class TestCoordination:
 
     def test_coordination_alter_node(self, driver_sync: ydb.Driver):

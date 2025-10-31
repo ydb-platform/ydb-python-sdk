@@ -9,7 +9,6 @@ else:
     from ..common.protos import ydb_coordination_pb2
 
 
-
 class ConsistencyMode(Enum):
     UNSET = 0
     STRICT = 1
@@ -144,4 +143,3 @@ class CoordinationClientSettings:
         brs.need_rpc_auth = self._need_rpc_auth
         brs.headers.extend(self._headers)
         return brs
-

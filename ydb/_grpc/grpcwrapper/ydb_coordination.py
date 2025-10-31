@@ -7,8 +7,8 @@ if typing.TYPE_CHECKING:
 else:
     from ..common.protos import ydb_coordination_pb2
 
-from .common_utils import IToProto, IFromProto, ServerStatus
-from  ydb.coordination import NodeConfig
+from .common_utils import IToProto
+from ydb.coordination import NodeConfig
 
 
 @dataclass
@@ -23,6 +23,7 @@ class CreateNodeRequest(IToProto):
             config=cfg_proto,
         )
 
+
 @dataclass
 class AlterNodeRequest(IToProto):
     path: str
@@ -34,7 +35,6 @@ class AlterNodeRequest(IToProto):
             path=self.path,
             config=cfg_proto,
         )
-
 
 
 @dataclass
@@ -55,5 +55,3 @@ class DropNodeRequest(IToProto):
         return ydb_coordination_pb2.DropNodeRequest(
             path=self.path,
         )
-
-
