@@ -250,7 +250,7 @@ def get_config(
 
 
 class Driver(pool.ConnectionPool):
-    __slots__ = ("scheme_client", "table_client", "coordination_client")
+    __slots__ = ("scheme_client", "table_client")
 
     def __init__(
         self,
@@ -289,12 +289,10 @@ class Driver(pool.ConnectionPool):
         self._credentials = driver_config.credentials
 
         self.scheme_client = scheme.SchemeClient(self)
-        self.coordination_client = coordination.CoordinationClient(self)
         self.table_client = table.TableClient(self, driver_config.table_client_settings)
         self.topic_client = topic.TopicClient(self, driver_config.topic_client_settings)
 
     def stop(self, timeout=10):
         self.table_client._stop_pool_if_needed(timeout=timeout)
         self.topic_client.close()
-        self.coordination_client.close()
         super().stop(timeout=timeout)
