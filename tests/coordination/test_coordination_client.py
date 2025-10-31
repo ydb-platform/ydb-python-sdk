@@ -1,15 +1,9 @@
 import ydb
 
-from ydb.coordination import (
-    NodeConfig,
-    ConsistencyMode,
-    RateLimiterCountersMode,
-    CoordinationClient
-)
+from ydb.coordination import NodeConfig, ConsistencyMode, RateLimiterCountersMode, CoordinationClient
 
 
 class TestCoordination:
-
     def test_coordination_alter_node(self, driver_sync: ydb.Driver):
         client = CoordinationClient(driver_sync)
         node_path = "/local/test_alter_node"

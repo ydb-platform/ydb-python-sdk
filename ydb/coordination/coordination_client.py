@@ -45,7 +45,7 @@ class CoordinationClient:
             request,
             _apis.CoordinationService.Stub,
             _apis.CoordinationService.DescribeNode,
-            settings=base_driver_settings
+            settings=base_driver_settings,
         )
         issues._process_response(response.operation)
 
