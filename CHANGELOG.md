@@ -1,3 +1,4 @@
+## 3.21.13 ##
 * Refactor auth token refresh logic
 
 ## 3.21.12 ##
