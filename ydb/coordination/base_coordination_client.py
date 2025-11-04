@@ -1,6 +1,3 @@
-import typing
-from typing import Optional
-
 from ydb import _apis, issues
 from ydb._grpc.grpcwrapper.ydb_coordination_public_types import NodeConfig, NodeDescription
 
