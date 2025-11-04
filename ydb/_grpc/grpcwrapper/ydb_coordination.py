@@ -1,6 +1,7 @@
 import typing
 from dataclasses import dataclass
 
+from .ydb_coordination_public_types import NodeConfig
 
 if typing.TYPE_CHECKING:
     from ..v4.protos import ydb_coordination_pb2
@@ -8,13 +9,12 @@ else:
     from ..common.protos import ydb_coordination_pb2
 
 from .common_utils import IToProto
-from ydb.coordination import NodeConfig
 
 
 @dataclass
 class CreateNodeRequest(IToProto):
     path: str
-    config: typing.Optional[NodeConfig] = None
+    config: typing.Optional[NodeConfig]
 
     def to_proto(self) -> ydb_coordination_pb2.CreateNodeRequest:
         cfg_proto = self.config.to_proto() if self.config else None
@@ -27,7 +27,7 @@ class CreateNodeRequest(IToProto):
 @dataclass
 class AlterNodeRequest(IToProto):
     path: str
-    config: typing.Optional[NodeConfig] = None
+    config: NodeConfig
 
     def to_proto(self) -> ydb_coordination_pb2.AlterNodeRequest:
         cfg_proto = self.config.to_proto() if self.config else None

@@ -10,34 +10,34 @@ from ydb._grpc.grpcwrapper.ydb_coordination_public_types import NodeConfig, Node
 from ydb.coordination.base_coordination_client import BaseCoordinationClient
 
 
-class CoordinationClient(BaseCoordinationClient):
-    def create_node(self, path: str, config: Optional[NodeConfig], settings=None):
-        return self._call_create(
+class AsyncCoordinationClient(BaseCoordinationClient):
+    async def create_node(self, path: str, config: Optional[NodeConfig] = None, settings=None):
+        return await self._call_create(
             CreateNodeRequest(path=path, config=config).to_proto(),
             settings=settings,
             wrap_args=(self,),
         )
 
-    def describe_node(self, path: str, settings=None) -> NodeDescription:
-        return self._call_describe(
+    async def describe_node(self, path: str, settings=None) -> NodeDescription:
+        return await self._call_describe(
             DescribeNodeRequest(path=path).to_proto(),
             settings=settings,
             wrap_args=(self, path),
         )
 
-    def alter_node(self, path: str, new_config: NodeConfig, settings=None):
-        return self._call_alter(
+    async def alter_node(self, path: str, new_config: NodeConfig, settings=None):
+        return await self._call_alter(
             AlterNodeRequest(path=path, config=new_config).to_proto(),
             settings=settings,
             wrap_args=(self,),
         )
 
-    def delete_node(self, path: str, settings=None):
-        return self._call_delete(
+    async def delete_node(self, path: str, settings=None):
+        return await self._call_delete(
             DropNodeRequest(path=path).to_proto(),
             settings=settings,
             wrap_args=(self,),
         )
 
-    def lock(self):
+    async def lock(self):
         raise NotImplementedError("Will be implemented in future release")
