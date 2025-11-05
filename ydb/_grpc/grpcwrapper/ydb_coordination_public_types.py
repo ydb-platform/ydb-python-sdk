@@ -49,13 +49,9 @@ class NodeConfig:
         )
 
 
-@dataclass
-class NodeDescription:
-    path: str
-    config: NodeConfig
-
+class DescribeResult:
     @staticmethod
-    def from_proto(path: str, response_pb: ydb_coordination_pb2.DescribeNodeResponse) -> "NodeDescription":
+    def from_proto(msg: ydb_coordination_pb2.DescribeNodeResponse) -> "NodeConfig":
         result = ydb_coordination_pb2.DescribeNodeResult()
-        response_pb.operation.result.Unpack(result)
-        return NodeDescription(path=path, config=NodeConfig.from_proto(result.config))
+        msg.operation.result.Unpack(result)
+        return NodeConfig.from_proto(result.config)

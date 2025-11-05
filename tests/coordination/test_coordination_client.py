@@ -1,13 +1,13 @@
 import pytest
 
 import ydb
+from ydb import aio
 
 from ydb.coordination import (
     NodeConfig,
     ConsistencyMode,
     RateLimiterCountersMode,
     CoordinationClient,
-    AsyncCoordinationClient,
 )
 
 
@@ -33,9 +33,8 @@ class TestCoordination:
         )
         client.create_node(node_path, initial_config)
 
-        node_descr = client.describe_node(node_path)
-        assert node_descr.path == node_path
-        assert node_descr.config == initial_config
+        node_conf = client.describe_node(node_path)
+        assert node_conf == initial_config
 
         updated_config = NodeConfig(
             session_grace_period_millis=12345,
@@ -46,9 +45,8 @@ class TestCoordination:
         )
         client.alter_node(node_path, updated_config)
 
-        node_descr = client.describe_node(node_path)
-        assert node_descr.path == node_path
-        assert node_descr.config == updated_config
+        node_conf = client.describe_node(node_path)
+        assert node_conf == updated_config
 
         client.delete_node(node_path)
 
@@ -56,7 +54,7 @@ class TestCoordination:
             client.describe_node(node_path)
 
     async def test_coordination_node_lifecycle_async(self, aio_connection):
-        client = AsyncCoordinationClient(aio_connection)
+        client = aio.CoordinationClient(aio_connection)
         node_path = "/local/test_node_lifecycle"
 
         try:
@@ -76,9 +74,8 @@ class TestCoordination:
         )
         await client.create_node(node_path, initial_config)
 
-        node_descr = await client.describe_node(node_path)
-        assert node_descr.path == node_path
-        assert node_descr.config == initial_config
+        node_conf = await client.describe_node(node_path)
+        assert node_conf == initial_config
 
         updated_config = NodeConfig(
             session_grace_period_millis=12345,
@@ -89,9 +86,8 @@ class TestCoordination:
         )
         await client.alter_node(node_path, updated_config)
 
-        node_descr = await client.describe_node(node_path)
-        assert node_descr.path == node_path
-        assert node_descr.config == updated_config
+        node_conf = await client.describe_node(node_path)
+        assert node_conf == updated_config
 
         await client.delete_node(node_path)
 

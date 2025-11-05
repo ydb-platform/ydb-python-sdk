@@ -6,7 +6,7 @@ from ydb._grpc.grpcwrapper.ydb_coordination import (
     AlterNodeRequest,
     DropNodeRequest,
 )
-from ydb._grpc.grpcwrapper.ydb_coordination_public_types import NodeConfig, NodeDescription
+from ydb._grpc.grpcwrapper.ydb_coordination_public_types import NodeConfig
 from ydb.coordination.base_coordination_client import BaseCoordinationClient
 
 
@@ -15,28 +15,24 @@ class CoordinationClient(BaseCoordinationClient):
         return self._call_create(
             CreateNodeRequest(path=path, config=config).to_proto(),
             settings=settings,
-            wrap_args=(self,),
         )
 
-    def describe_node(self, path: str, settings=None) -> NodeDescription:
+    def describe_node(self, path: str, settings=None) -> NodeConfig:
         return self._call_describe(
             DescribeNodeRequest(path=path).to_proto(),
             settings=settings,
-            wrap_args=(self, path),
         )
 
     def alter_node(self, path: str, new_config: NodeConfig, settings=None):
         return self._call_alter(
             AlterNodeRequest(path=path, config=new_config).to_proto(),
             settings=settings,
-            wrap_args=(self,),
         )
 
     def delete_node(self, path: str, settings=None):
         return self._call_delete(
             DropNodeRequest(path=path).to_proto(),
             settings=settings,
-            wrap_args=(self,),
         )
 
     def lock(self):
