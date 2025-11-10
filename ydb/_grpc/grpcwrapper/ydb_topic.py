@@ -483,7 +483,7 @@ class StreamReadMessage:
                     path=self.path,
                     partition_ids=self.partition_ids,
                     max_lag=proto_duration_from_timedelta(self.max_lag),
-                    read_from=proto_timestamp_from_datetime(self.read_from)
+                    read_from=proto_timestamp_from_datetime(self.read_from),
                 )
 
     @dataclass
