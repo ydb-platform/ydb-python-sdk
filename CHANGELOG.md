@@ -1,3 +1,5 @@
+* Fixed bug with param read_from for topic reader
+
 ## 3.21.13 ##
 * Refactor auth token refresh logic
 
