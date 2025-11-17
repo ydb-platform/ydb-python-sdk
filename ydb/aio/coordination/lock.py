@@ -20,7 +20,6 @@ class CoordinationLock:
         self._node_path = node_path
 
         self._req_id: Optional[int] = None
-        self._entered_client: bool = False
         self._count: int = 1
         self._timeout_millis: int = 30000
         self._next_req_id: int = 1
@@ -32,7 +31,6 @@ class CoordinationLock:
         self.session_id: Optional[int] = None
         self._session_ready: asyncio.Event = asyncio.Event()
         self._reconnector = CoordinationReconnector(self)
-        self._first_error: asyncio.Future = asyncio.get_running_loop().create_future()
 
 
     def next_req_id(self) -> int:
@@ -61,7 +59,6 @@ class CoordinationLock:
             self._reconnector.start()
 
             await self._session_ready.wait()
-            self._entered_client = True
 
         self._req_id = self.next_req_id()
 
@@ -99,12 +96,11 @@ class CoordinationLock:
             req = ReleaseSemaphore(req_id=self._req_id, name=self._name)
             await self.send(req)
 
-        if self._entered_client:
-            self._closed.set()
-            if self._stream:
-                await self._stream.close()
-                self._stream = None
+        self._closed.set()
+        if self._stream:
+            await self._stream.close()
+            self._stream = None
 
-            await self._reconnector.stop()
-            self.session_id = None
-            self._node_path = None
+        await self._reconnector.stop()
+        self.session_id = None
+        self._node_path = None
