@@ -1,18 +1,39 @@
 import asyncio
+from typing import Optional
+
 from ydb import issues
-from ydb._grpc.grpcwrapper.ydb_coordination import AcquireSemaphore, ReleaseSemaphore, FromServer, SessionStart
+from ydb._grpc.grpcwrapper.ydb_coordination import (
+    AcquireSemaphore,
+    ReleaseSemaphore,
+    FromServer,
+    SessionStart,
+)
+from ydb.aio.coordination.stream import CoordinationStream
+from ydb.aio.coordination.reconnector import CoordinationReconnector
 
 
 class CoordinationLock:
-    def __init__(self, client, name, node_path=None):
+    def __init__(self, client, name: str, node_path: Optional[str] = None):
         self._client = client
+        self._driver = client._driver
         self._name = name
         self._node_path = node_path
-        self._req_id = None
-        self._entered_client = False
-        self._count = 1
-        self._timeout_millis = 30000
-        self._next_req_id = 1
+
+        self._req_id: Optional[int] = None
+        self._entered_client: bool = False
+        self._count: int = 1
+        self._timeout_millis: int = 30000
+        self._next_req_id: int = 1
+
+        self._closed: asyncio.Event = asyncio.Event()
+        self._request_queue: asyncio.Queue = asyncio.Queue()
+        self._stream: Optional[CoordinationStream] = None
+        self._reader_task: Optional[asyncio.Task] = None
+        self.session_id: Optional[int] = None
+        self._session_ready: asyncio.Event = asyncio.Event()
+        self._reconnector = CoordinationReconnector(self)
+        self._first_error: asyncio.Future = asyncio.get_running_loop().create_future()
+
 
     def next_req_id(self) -> int:
         r = self._next_req_id
@@ -20,26 +41,26 @@ class CoordinationLock:
         return r
 
     async def send(self, req):
-        if self._client._stream is None:
+        if self._stream is None:
             raise issues.Error("Stream is not started yet")
-        await self._client._stream.send(req)
+        await self._stream.send(req)
 
     async def __aenter__(self):
-        if self._client.session_id is None:
-            if not self._client._node_path:
-                self._client._node_path = self._node_path
+        if self.session_id is None:
+            if not self._node_path:
+                raise issues.Error("node_path is not set for CoordinationLock")
 
-            await self._client._request_queue.put(
+            await self._request_queue.put(
                 SessionStart(
-                    path=self._client._node_path,
+                    path=self._node_path,
                     session_id=0,
-                    timeout_millis=30000
+                    timeout_millis=30000,
                 ).to_proto()
             )
 
-            self._client._reconnector.start()
+            self._reconnector.start()
 
-            await self._client._session_ready.wait()
+            await self._session_ready.wait()
             self._entered_client = True
 
         self._req_id = self.next_req_id()
@@ -49,7 +70,7 @@ class CoordinationLock:
             name=self._name,
             count=self._count,
             ephemeral=True,
-            timeout_millis=self._timeout_millis
+            timeout_millis=self._timeout_millis,
         ).to_proto()
 
         await self.send(req)
@@ -64,7 +85,8 @@ class CoordinationLock:
         try:
             while True:
                 resp = await asyncio.wait_for(
-                    self._client._stream._incoming_queue.get(), timeout=30.0
+                    self._stream._incoming_queue.get(),
+                    timeout=30.0,
                 )
                 acquire_resp = FromServer.from_proto(resp).acquire_semaphore_result
                 if acquire_resp and acquire_resp.req_id == self._req_id:
@@ -78,10 +100,11 @@ class CoordinationLock:
             await self.send(req)
 
         if self._entered_client:
-            self._client._closed.set()
-            if self._client._stream:
-                await self._client._stream.close()
-                self._client._stream = None
-            await self._client._reconnector.stop()
-            self._client.session_id = None
-            self._client._node_path = None
+            self._closed.set()
+            if self._stream:
+                await self._stream.close()
+                self._stream = None
+
+            await self._reconnector.stop()
+            self.session_id = None
+            self._node_path = None
