@@ -55,3 +55,31 @@ class DescribeResult:
         result = ydb_coordination_pb2.DescribeNodeResult()
         msg.operation.result.Unpack(result)
         return NodeConfig.from_proto(result.config)
+
+
+@dataclass
+class AcquireSemaphoreResult:
+    req_id: int
+    acquired: bool
+    status: int
+
+    @staticmethod
+    def from_proto(msg: ydb_coordination_pb2.SessionResponse.AcquireSemaphoreResult) -> "AcquireSemaphoreResult":
+        return AcquireSemaphoreResult(
+            req_id=msg.req_id,
+            acquired=msg.acquired,
+            status=msg.status,
+        )
+
+
+@dataclass
+class CreateSemaphoreResult:
+    req_id: int
+    status: int
+
+    @staticmethod
+    def from_proto(msg: ydb_coordination_pb2.SessionResponse.CreateSemaphoreResult) -> "CreateSemaphoreResult":
+        return CreateSemaphoreResult(
+            req_id=msg.req_id,
+            status=msg.status,
+        )

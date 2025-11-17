@@ -143,9 +143,9 @@ class QueryService(object):
 
 class CoordinationService(object):
     Stub = ydb_coordination_v1_pb2_grpc.CoordinationServiceStub
-
-    Session = "Session"
     CreateNode = "CreateNode"
     AlterNode = "AlterNode"
     DropNode = "DropNode"
     DescribeNode = "DescribeNode"
+    SessionRequest = "SessionRequest"
+    Session = "Session"

@@ -1,3 +1,5 @@
+import asyncio
+
 import pytest
 
 import ydb
@@ -93,3 +95,30 @@ class TestCoordination:
 
         with pytest.raises(ydb.SchemeError):
             await client.describe_node(node_path)
+
+    async def test_coordination_lock_context_exclusive(self, aio_connection):
+        client = aio.CoordinationClient(aio_connection)
+
+        node_path = "/local/test_lock_context_exclusive"
+
+        try:
+            await client.delete_node(node_path)
+        except ydb.SchemeError:
+            pass
+
+        await client.create_node(
+            node_path,
+            NodeConfig(
+                session_grace_period_millis=1000,
+                attach_consistency_mode=ConsistencyMode.STRICT,
+                read_consistency_mode=ConsistencyMode.STRICT,
+                rate_limiter_counters_mode=RateLimiterCountersMode.UNSET,
+                self_check_period_millis=0,
+            ),
+        )
+
+        async with client.lock("test_lock", node_path) as lock1:
+            print("Lock1 acquired")
+            await asyncio.sleep(10)
+            print("Lock1 still holding after 10 seconds")
+
