@@ -3,7 +3,7 @@ import contextlib
 from typing import Set, Optional
 
 from ydb import issues, _apis
-from ydb._grpc.grpcwrapper.ydb_coordination import FromServer, Ping
+from ydb._grpc.grpcwrapper.ydb_coordination import FromServer, Ping, SessionStart
 
 
 class CoordinationStream:
@@ -19,7 +19,21 @@ class CoordinationStream:
         self.session_id: Optional[int] = None
         self._started: bool = False
 
-    async def start(self):
+    async def start_session(self, path: str, timeout_millis: int):
+        if self._started:
+            raise issues.Error("CoordinationStream already started")
+
+        await self.send(
+            SessionStart(
+                path=path,
+                session_id=0,
+                timeout_millis=timeout_millis,
+            ).to_proto()
+        )
+
+        await self._start_internal()
+
+    async def _start_internal(self):
         if self._started:
             raise issues.Error("CoordinationStream already started")
         self._started = True
@@ -30,13 +44,16 @@ class CoordinationStream:
                 yield req
 
         self._stream = await self._driver(
-            request_gen(), _apis.CoordinationService.Stub, _apis.CoordinationService.Session
+            request_gen(),
+            _apis.CoordinationService.Stub,
+            _apis.CoordinationService.Session,
         )
 
         try:
             async for resp in self._stream:
-                if FromServer.from_proto(resp).session_started:
-                    self.session_id = FromServer.from_proto(resp).session_started
+                fs = FromServer.from_proto(resp)
+                if fs.session_started:
+                    self.session_id = fs.session_started
                     break
         except Exception as exc:
             self._set_first_error(exc)
@@ -84,6 +101,8 @@ class CoordinationStream:
                 self._stream.close()
             except Exception:
                 pass
+
+        self.session_id = None
         self._state_changed.set()
 
     def _set_first_error(self, exc: Exception):

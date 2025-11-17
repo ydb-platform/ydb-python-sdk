@@ -6,7 +6,6 @@ from ydb._grpc.grpcwrapper.ydb_coordination import (
     AcquireSemaphore,
     ReleaseSemaphore,
     FromServer,
-    SessionStart,
 )
 from ydb.aio.coordination.stream import CoordinationStream
 from ydb.aio.coordination.reconnector import CoordinationReconnector
@@ -31,13 +30,15 @@ class CoordinationLock:
         self._timeout_millis: int = timeout_millis
         self._next_req_id: int = 1
 
-        self._closed: asyncio.Event = asyncio.Event()
         self._request_queue: asyncio.Queue = asyncio.Queue()
         self._stream: Optional[CoordinationStream] = None
-        self._reader_task: Optional[asyncio.Task] = None
-        self.session_id: Optional[int] = None
-        self._session_ready: asyncio.Event = asyncio.Event()
-        self._reconnector = CoordinationReconnector(self)
+
+        self._reconnector = CoordinationReconnector(
+            driver=self._driver,
+            request_queue=self._request_queue,
+            node_path=self._node_path,
+            timeout_millis=self._timeout_millis,
+        )
 
         self._wait_timeout: float = self._timeout_millis / 1000.0
 
@@ -51,33 +52,17 @@ class CoordinationLock:
             raise issues.Error("Stream is not started yet")
         await self._stream.send(req)
 
-    async def _start_session(self):
-        if self.session_id is not None:
+    async def _ensure_session(self):
+        if self._stream is not None and self._stream.session_id is not None:
             return
 
         if not self._node_path:
             raise issues.Error("node_path is not set for CoordinationLock")
 
-        await self._request_queue.put(
-            SessionStart(
-                path=self._node_path,
-                session_id=0,
-                timeout_millis=self._timeout_millis,
-            ).to_proto()
-        )
-
         self._reconnector.start()
-        await self._session_ready.wait()
+        await self._reconnector.wait_ready()
 
-    async def _stop_session(self):
-        self._closed.set()
-        if self._stream:
-            await self._stream.close()
-            self._stream = None
-
-        await self._reconnector.stop()
-        self.session_id = None
-        self._node_path = None
+        self._stream = self._reconnector.get_stream()
 
     async def _wait_for_acquire_response(self):
         try:
@@ -95,7 +80,7 @@ class CoordinationLock:
             )
 
     async def __aenter__(self):
-        await self._start_session()
+        await self._ensure_session()
 
         self._req_id = self.next_req_id()
 
@@ -123,7 +108,9 @@ class CoordinationLock:
             except issues.Error:
                 pass
 
-        await self._stop_session()
+        await self._reconnector.stop()
+        self._stream = None
+        self._node_path = None
 
     async def acquire(self):
         return await self.__aenter__()
