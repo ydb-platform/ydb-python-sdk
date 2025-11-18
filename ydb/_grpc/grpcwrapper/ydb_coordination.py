@@ -67,14 +67,16 @@ class SessionStart(IToProto):
     protection_key: bytes = b""
 
     def to_proto(self) -> ydb_coordination_pb2.SessionRequest:
-        return ydb_coordination_pb2.SessionRequest(session_start=ydb_coordination_pb2.SessionRequest.SessionStart(
-            path=self.path,
-            session_id=self.session_id,
-            timeout_millis=self.timeout_millis,
-            description=self.description,
-            seq_no=self.seq_no,
-            protection_key=self.protection_key,
-        ))
+        return ydb_coordination_pb2.SessionRequest(
+            session_start=ydb_coordination_pb2.SessionRequest.SessionStart(
+                path=self.path,
+                session_id=self.session_id,
+                timeout_millis=self.timeout_millis,
+                description=self.description,
+                seq_no=self.seq_no,
+                protection_key=self.protection_key,
+            )
+        )
 
 
 @dataclass
@@ -89,7 +91,8 @@ class Ping(IToProto):
 
     def to_proto(self) -> ydb_coordination_pb2.SessionRequest:
         return ydb_coordination_pb2.SessionRequest(
-            ping=ydb_coordination_pb2.SessionRequest.PingPong(opaque=self.opaque))
+            ping=ydb_coordination_pb2.SessionRequest.PingPong(opaque=self.opaque)
+        )
 
 
 @dataclass
@@ -100,9 +103,11 @@ class CreateSemaphore(IToProto):
     data: bytes = b""
 
     def to_proto(self) -> ydb_coordination_pb2.SessionRequest:
-        return ydb_coordination_pb2.SessionRequest(create_semaphore=ydb_coordination_pb2.SessionRequest.CreateSemaphore(
-            req_id=self.req_id, name=self.name, limit=self.limit, data=self.data
-        ))
+        return ydb_coordination_pb2.SessionRequest(
+            create_semaphore=ydb_coordination_pb2.SessionRequest.CreateSemaphore(
+                req_id=self.req_id, name=self.name, limit=self.limit, data=self.data
+            )
+        )
 
 
 @dataclass
@@ -112,9 +117,11 @@ class UpdateSemaphore(IToProto):
     data: bytes
 
     def to_proto(self) -> ydb_coordination_pb2.SessionRequest:
-        return ydb_coordination_pb2.SessionRequest(update_semaphore=ydb_coordination_pb2.SessionRequest.UpdateSemaphore(
-            req_id=self.req_id, name=self.name, data=self.data
-        ))
+        return ydb_coordination_pb2.SessionRequest(
+            update_semaphore=ydb_coordination_pb2.SessionRequest.UpdateSemaphore(
+                req_id=self.req_id, name=self.name, data=self.data
+            )
+        )
 
 
 @dataclass
@@ -124,9 +131,11 @@ class DeleteSemaphore(IToProto):
     force: bool = False
 
     def to_proto(self) -> ydb_coordination_pb2.SessionRequest:
-        return ydb_coordination_pb2.SessionRequest(delete_semaphore=ydb_coordination_pb2.SessionRequest.DeleteSemaphore(
-            req_id=self.req_id, name=self.name, force=self.force
-        ))
+        return ydb_coordination_pb2.SessionRequest(
+            delete_semaphore=ydb_coordination_pb2.SessionRequest.DeleteSemaphore(
+                req_id=self.req_id, name=self.name, force=self.force
+            )
+        )
 
 
 @dataclass
@@ -147,7 +156,8 @@ class AcquireSemaphore(IToProto):
                 count=self.count,
                 data=self.data,
                 ephemeral=self.ephemeral,
-            ))
+            )
+        )
 
 
 @dataclass
@@ -157,9 +167,9 @@ class ReleaseSemaphore(IToProto):
 
     def to_proto(self) -> ydb_coordination_pb2.SessionRequest:
         return ydb_coordination_pb2.SessionRequest(
-            release_semaphore=ydb_coordination_pb2.SessionRequest.ReleaseSemaphore(
-                req_id=self.req_id, name=self.name
-            ))
+            release_semaphore=ydb_coordination_pb2.SessionRequest.ReleaseSemaphore(req_id=self.req_id, name=self.name)
+        )
+
 
 @dataclass
 class DescribeSemaphore(IToProto):
@@ -178,7 +188,7 @@ class DescribeSemaphore(IToProto):
                 name=self.name,
                 req_id=self.req_id,
                 watch_data=self.watch_data,
-                watch_owners=self.watch_owners
+                watch_owners=self.watch_owners,
             )
         )
 

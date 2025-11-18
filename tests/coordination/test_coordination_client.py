@@ -147,7 +147,6 @@ class TestCoordination:
         assert list(sem2.owners) == []
         assert list(sem2.waiters) == []
 
-
         lock2_started = asyncio.Event()
         lock2_acquired = asyncio.Event()
 
@@ -191,10 +190,8 @@ class TestCoordination:
             sem3 = resp3.semaphore_description
             assert sem3.count == 1
 
-
         delete_resp = await lock.delete()
         assert delete_resp.status == StatusCode.SUCCESS
 
         describe_after_delete = await lock.describe()
         assert describe_after_delete.status == StatusCode.NOT_FOUND
-

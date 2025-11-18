@@ -46,7 +46,6 @@ class CoordinationLock:
 
         self._wait_timeout: float = self._timeout_millis / 1000.0
 
-
     def next_req_id(self) -> int:
         r = self._next_req_id
         self._next_req_id += 1
@@ -100,13 +99,10 @@ class CoordinationLock:
                 "describe": "describe",
                 "update": "update",
                 "delete": "delete",
-                "create": "create"
+                "create": "create",
             }.get(kind, "operation")
 
-            raise issues.Error(
-                f"Timeout waiting for lock {self._name} {action}"
-            )
-
+            raise issues.Error(f"Timeout waiting for lock {self._name} {action}")
 
     async def __aenter__(self):
         await self._ensure_session()
@@ -157,12 +153,7 @@ class CoordinationLock:
 
         req_id = self.next_req_id()
 
-        req = CreateSemaphore(
-            req_id=req_id,
-            name=self._name,
-            limit=init_limit,
-            data=init_data
-        ).to_proto()
+        req = CreateSemaphore(req_id=req_id, name=self._name, limit=init_limit, data=init_data).to_proto()
 
         await self.send(req)
 
@@ -183,7 +174,6 @@ class CoordinationLock:
 
         resp = await self._wait_for_response(req_id, kind="delete")
         return resp
-
 
     async def describe(self):
         await self._ensure_session()
@@ -208,11 +198,7 @@ class CoordinationLock:
         await self._ensure_session()
 
         req_id = self.next_req_id()
-        req = UpdateSemaphore(
-            req_id=req_id,
-            name=self._name,
-            data=new_data
-        ).to_proto()
+        req = UpdateSemaphore(req_id=req_id, name=self._name, data=new_data).to_proto()
 
         await self.send(req)
 
