@@ -1,3 +1,9 @@
+## 3.21.14 ##
+* Fixed bug with param read_from for topic reader
+
+## 3.21.13 ##
+* Refactor auth token refresh logic
+
 ## 3.21.12 ##
 * Fix getattr propagation to wrapped stream
 
