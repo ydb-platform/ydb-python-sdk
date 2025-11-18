@@ -2,7 +2,6 @@ from dataclasses import dataclass
 from enum import IntEnum
 import typing
 
-
 if typing.TYPE_CHECKING:
     from ..v4.protos import ydb_coordination_pb2
 else:
@@ -82,4 +81,33 @@ class CreateSemaphoreResult:
         return CreateSemaphoreResult(
             req_id=msg.req_id,
             status=msg.status,
+        )
+
+
+@dataclass
+class DescribeLockResult:
+    req_id: int
+    status: int
+    watch_added: bool
+    count: int
+    data: bytes
+    ephemeral: bool
+    limit: int
+    name: str
+    owners: list
+    waiters: list
+
+    @staticmethod
+    def from_proto(msg: ydb_coordination_pb2.SessionResponse.DescribeSemaphoreResult) -> "DescribeLockResult":
+        return DescribeLockResult(
+            req_id=msg.req_id,
+            status=msg.status,
+            watch_added=msg.watch_added,
+            count=msg.semaphore_description.count,
+            data=msg.semaphore_description.data,
+            ephemeral=msg.semaphore_description.ephemeral,
+            limit=msg.semaphore_description.limit,
+            name=msg.semaphore_description.name,
+            owners=msg.semaphore_description.owners,
+            waiters=msg.semaphore_description.waiters,
         )

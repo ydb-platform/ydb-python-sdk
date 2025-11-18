@@ -1,7 +1,6 @@
 import typing
 from dataclasses import dataclass
 
-from .ydb_coordination_public_types import NodeConfig
 
 if typing.TYPE_CHECKING:
     from ..v4.protos import ydb_coordination_pb2
@@ -14,7 +13,7 @@ from .common_utils import IToProto
 @dataclass
 class CreateNodeRequest(IToProto):
     path: str
-    config: typing.Optional[NodeConfig]
+    config: typing.Any
 
     def to_proto(self) -> ydb_coordination_pb2.CreateNodeRequest:
         cfg_proto = self.config.to_proto() if self.config else None
@@ -27,7 +26,7 @@ class CreateNodeRequest(IToProto):
 @dataclass
 class AlterNodeRequest(IToProto):
     path: str
-    config: NodeConfig
+    config: typing.Any
 
     def to_proto(self) -> ydb_coordination_pb2.AlterNodeRequest:
         cfg_proto = self.config.to_proto() if self.config else None
@@ -205,61 +204,34 @@ class FromServer:
         return getattr(self.raw, name)
 
     @property
-    def status(self) -> typing.Optional[int]:
-        return getattr(self.raw, "status", None)
-
-    @property
     def session_started(self) -> typing.Optional[ydb_coordination_pb2.SessionResponse.SessionStarted]:
-        x = getattr(self.raw, "session_started", None)
-        return x if getattr(x, "session_id", 0) else None
-
-    @property
-    def session_stopped(self) -> typing.Optional[ydb_coordination_pb2.SessionResponse.SessionStopped]:
-        return getattr(self.raw, "session_stopped", None) or None
-
-    @property
-    def failure(self) -> typing.Optional[ydb_coordination_pb2.SessionResponse.Failure]:
-        return getattr(self.raw, "failure", None) or None
-
-    @property
-    def pong(self) -> typing.Optional[ydb_coordination_pb2.SessionResponse.PingPong]:
-        return getattr(self.raw, "pong", None) or None
-
-    @property
-    def ping(self) -> typing.Optional[ydb_coordination_pb2.SessionResponse.PingPong]:
-        return getattr(self.raw, "ping", None) or None
+        s = self.raw.session_started
+        return s if s.session_id else None
 
     @property
     def opaque(self) -> typing.Optional[int]:
-        if getattr(self.raw, "ping") is not None:
-            return getattr(getattr(self.raw, "ping"), "opaque", None)
+        if self.raw.HasField("ping"):
+            return self.raw.ping.opaque
+        return None
 
     @property
-    def acquire_semaphore_result(
-        self,
-    ) -> typing.Optional[ydb_coordination_pb2.SessionResponse.AcquireSemaphoreResult]:
-        return getattr(self.raw, "acquire_semaphore_result", None) or None
+    def acquire_semaphore_result(self) -> typing.Optional[ydb_coordination_pb2.SessionResponse.AcquireSemaphoreResult]:
+        return self.raw.acquire_semaphore_result if self.raw.HasField("acquire_semaphore_result") else None
 
     @property
-    def create_semaphore_result(
-        self,
-    ) -> typing.Optional[ydb_coordination_pb2.SessionResponse.CreateSemaphoreResult]:
-        return getattr(self.raw, "create_semaphore_result", None) or None
+    def create_semaphore_result(self) -> typing.Optional[ydb_coordination_pb2.SessionResponse.CreateSemaphoreResult]:
+        return self.raw.create_semaphore_result if self.raw.HasField("create_semaphore_result") else None
 
     @property
-    def delete_semaphore_result(
-        self,
-    ) -> typing.Optional[ydb_coordination_pb2.SessionResponse.DeleteSemaphoreResult]:
-        return getattr(self.raw, "delete_semaphore_result", None) or None
+    def delete_semaphore_result(self) -> typing.Optional[ydb_coordination_pb2.SessionResponse.DeleteSemaphoreResult]:
+        return self.raw.delete_semaphore_result if self.raw.HasField("delete_semaphore_result") else None
 
     @property
-    def update_semaphore_result(
-        self,
-    ) -> typing.Optional[ydb_coordination_pb2.SessionResponse.UpdateSemaphoreResult]:
-        return getattr(self.raw, "update_semaphore_result", None) or None
+    def update_semaphore_result(self) -> typing.Optional[ydb_coordination_pb2.SessionResponse.UpdateSemaphoreResult]:
+        return self.raw.update_semaphore_result if self.raw.HasField("update_semaphore_result") else None
 
     @property
     def describe_semaphore_result(
         self,
     ) -> typing.Optional[ydb_coordination_pb2.SessionResponse.DescribeSemaphoreResult]:
-        return getattr(self.raw, "describe_semaphore_result", None) or None
+        return self.raw.describe_semaphore_result if self.raw.HasField("describe_semaphore_result") else None

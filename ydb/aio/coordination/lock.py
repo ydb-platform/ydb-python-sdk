@@ -11,6 +11,7 @@ from ydb._grpc.grpcwrapper.ydb_coordination import (
     DeleteSemaphore,
     FromServer,
 )
+from ydb._grpc.grpcwrapper.ydb_coordination_public_types import CreateSemaphoreResult, DescribeLockResult
 from ydb.aio.coordination.stream import CoordinationStream
 from ydb.aio.coordination.reconnector import CoordinationReconnector
 
@@ -158,7 +159,7 @@ class CoordinationLock:
         await self.send(req)
 
         resp = await self._wait_for_response(req_id, kind="create")
-        return resp
+        return CreateSemaphoreResult.from_proto(resp)
 
     async def delete(self):
         await self._ensure_session()
@@ -192,7 +193,7 @@ class CoordinationLock:
         await self.send(req)
 
         resp = await self._wait_for_response(req_id, kind="describe")
-        return resp
+        return DescribeLockResult.from_proto(resp)
 
     async def update(self, new_data):
         await self._ensure_session()
