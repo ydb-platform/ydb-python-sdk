@@ -7,6 +7,8 @@ from ydb._grpc.grpcwrapper.ydb_coordination import (
     ReleaseSemaphore,
     UpdateSemaphore,
     DescribeSemaphore,
+    CreateSemaphore,
+    DeleteSemaphore,
     FromServer,
 )
 from ydb.aio.coordination.stream import CoordinationStream
@@ -44,6 +46,7 @@ class CoordinationLock:
 
         self._wait_timeout: float = self._timeout_millis / 1000.0
 
+
     def next_req_id(self) -> int:
         r = self._next_req_id
         self._next_req_id += 1
@@ -66,52 +69,62 @@ class CoordinationLock:
 
         self._stream = self._reconnector.get_stream()
 
-    async def _wait_for_acquire_response(self):
+    async def _wait_for_response(self, req_id: int, *, kind: str):
         try:
             while True:
                 resp = await asyncio.wait_for(
                     self._stream._incoming_queue.get(),
                     timeout=self._wait_timeout,
                 )
-                acquire_resp = FromServer.from_proto(resp).acquire_semaphore_result
-                if acquire_resp and acquire_resp.req_id == self._req_id:
-                    return acquire_resp
+                fs = FromServer.from_proto(resp)
+
+                if kind == "acquire":
+                    r = fs.acquire_semaphore_result
+                elif kind == "describe":
+                    r = fs.describe_semaphore_result
+                elif kind == "create":
+                    r = fs.create_semaphore_result
+                elif kind == "update":
+                    r = fs.update_semaphore_result
+                elif kind == "delete":
+                    r = fs.delete_semaphore_result
+                else:
+                    r = None
+
+                if r and r.req_id == req_id:
+                    return r
+
         except asyncio.TimeoutError:
+            action = {
+                "acquire": "acquisition",
+                "describe": "describe",
+                "update": "update",
+                "delete": "delete",
+                "create": "create"
+            }.get(kind, "operation")
+
             raise issues.Error(
-                f"Timeout waiting for lock {self._name} acquisition"
+                f"Timeout waiting for lock {self._name} {action}"
             )
 
-    async def _wait_for_describe_response(self, req_id: int):
-        try:
-            while True:
-                resp = await asyncio.wait_for(
-                    self._stream._incoming_queue.get(),
-                    timeout=self._wait_timeout,
-                )
-                describe_resp = FromServer.from_proto(resp).describe_semaphore_result
-                if describe_resp and describe_resp.req_id == req_id:
-                    return describe_resp
-        except asyncio.TimeoutError:
-            raise issues.Error(
-                f"Timeout waiting for lock {self._name} describe"
-            )
 
     async def __aenter__(self):
         await self._ensure_session()
 
-        self._req_id = self.next_req_id()
+        req_id = self.next_req_id()
+        self._req_id = req_id
 
         req = AcquireSemaphore(
-            req_id=self._req_id,
+            req_id=req_id,
             name=self._name,
             count=self._count,
-            ephemeral=True,
+            ephemeral=False,
             timeout_millis=self._timeout_millis,
         ).to_proto()
 
         await self.send(req)
 
-        resp = await self._wait_for_acquire_response()
+        resp = await self._wait_for_response(req_id, kind="acquire")
         if resp.acquired:
             return self
         else:
@@ -120,7 +133,10 @@ class CoordinationLock:
     async def __aexit__(self, exc_type, exc, tb):
         if self._req_id is not None:
             try:
-                req = ReleaseSemaphore(req_id=self._req_id, name=self._name)
+                req = ReleaseSemaphore(
+                    req_id=self._req_id,
+                    name=self._name,
+                ).to_proto()
                 await self.send(req)
             except issues.Error:
                 pass
@@ -128,12 +144,45 @@ class CoordinationLock:
         await self._reconnector.stop()
         self._stream = None
         self._node_path = None
+        self._req_id = None
 
     async def acquire(self):
         return await self.__aenter__()
 
     async def release(self):
         await self.__aexit__(None, None, None)
+
+    async def create(self, init_limit, init_data):
+        await self._ensure_session()
+
+        req_id = self.next_req_id()
+
+        req = CreateSemaphore(
+            req_id=req_id,
+            name=self._name,
+            limit=init_limit,
+            data=init_data
+        ).to_proto()
+
+        await self.send(req)
+
+        resp = await self._wait_for_response(req_id, kind="create")
+        return resp
+
+    async def delete(self):
+        await self._ensure_session()
+
+        req_id = self.next_req_id()
+
+        req = DeleteSemaphore(
+            req_id=req_id,
+            name=self._name,
+        ).to_proto()
+
+        await self.send(req)
+
+        resp = await self._wait_for_response(req_id, kind="delete")
+        return resp
 
 
     async def describe(self):
@@ -152,8 +201,20 @@ class CoordinationLock:
 
         await self.send(req)
 
-        resp = await self._wait_for_describe_response(req_id)
+        resp = await self._wait_for_response(req_id, kind="describe")
         return resp
 
-    async def update(self, *, limit: Optional[int] = None, settings=None):
-        pass
+    async def update(self, new_data):
+        await self._ensure_session()
+
+        req_id = self.next_req_id()
+        req = UpdateSemaphore(
+            req_id=req_id,
+            name=self._name,
+            data=new_data
+        ).to_proto()
+
+        await self.send(req)
+
+        resp = await self._wait_for_response(req_id, kind="update")
+        return resp
