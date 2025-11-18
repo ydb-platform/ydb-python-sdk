@@ -3,7 +3,7 @@ import asyncio
 import pytest
 
 import ydb
-from ydb import aio
+from ydb import aio, StatusCode
 
 from ydb.coordination import (
     NodeConfig,
@@ -96,10 +96,10 @@ class TestCoordination:
         with pytest.raises(ydb.SchemeError):
             await client.describe_node(node_path)
 
-    async def test_coordination_lock_context_exclusive(self, aio_connection):
+    async def test_coordination_lock_full_lifecycle(self, aio_connection):
         client = aio.CoordinationClient(aio_connection)
 
-        node_path = "/local/test_lock_context_exclusive"
+        node_path = "/local/test_lock_full_lifecycle"
 
         try:
             await client.delete_node(node_path)
@@ -117,8 +117,34 @@ class TestCoordination:
             ),
         )
 
+        lock2_started = asyncio.Event()
+        lock2_acquired = asyncio.Event()
+
+        async def second_lock_task():
+            lock2_started.set()
+            async with client.lock("test_lock", node_path):
+                lock2_acquired.set()
+                await asyncio.sleep(0.5)
+
         async with client.lock("test_lock", node_path) as lock1:
-            print("Lock1 acquired")
-            await asyncio.sleep(10)
-            print("Lock1 still holding after 10 seconds")
+
+            assert lock1._stream is not None
+            assert lock1._stream.session_id is not None
+            resp = await lock1.describe()
+            assert resp.status == StatusCode.SUCCESS
+
+            t2 = asyncio.create_task(second_lock_task())
+            await lock2_started.wait()
+
+
+            await asyncio.sleep(0.5)
+
+            assert lock1._stream is not None
+
+        await asyncio.wait_for(lock2_acquired.wait(), timeout=5)
+        await asyncio.wait_for(t2, timeout=5)
+
+        async with client.lock("test_lock", node_path) as lock3:
+            assert lock3._stream is not None
+            assert lock3._stream.session_id is not None
 

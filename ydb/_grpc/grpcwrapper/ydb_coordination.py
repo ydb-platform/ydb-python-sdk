@@ -161,6 +161,27 @@ class ReleaseSemaphore(IToProto):
                 req_id=self.req_id, name=self.name
             ))
 
+@dataclass
+class DescribeSemaphore(IToProto):
+    include_owners: bool
+    include_waiters: bool
+    name: str
+    req_id: int
+    watch_data: bool
+    watch_owners: bool
+
+    def to_proto(self) -> ydb_coordination_pb2.SessionRequest:
+        return ydb_coordination_pb2.SessionRequest(
+            describe_semaphore=ydb_coordination_pb2.SessionRequest.DescribeSemaphore(
+                include_owners=self.include_owners,
+                include_waiters=self.include_waiters,
+                name=self.name,
+                req_id=self.req_id,
+                watch_data=self.watch_data,
+                watch_owners=self.watch_owners
+            )
+        )
+
 
 @dataclass
 class FromServer:

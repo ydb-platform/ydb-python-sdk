@@ -5,6 +5,8 @@ from ydb import issues
 from ydb._grpc.grpcwrapper.ydb_coordination import (
     AcquireSemaphore,
     ReleaseSemaphore,
+    UpdateSemaphore,
+    DescribeSemaphore,
     FromServer,
 )
 from ydb.aio.coordination.stream import CoordinationStream
@@ -79,6 +81,21 @@ class CoordinationLock:
                 f"Timeout waiting for lock {self._name} acquisition"
             )
 
+    async def _wait_for_describe_response(self, req_id: int):
+        try:
+            while True:
+                resp = await asyncio.wait_for(
+                    self._stream._incoming_queue.get(),
+                    timeout=self._wait_timeout,
+                )
+                describe_resp = FromServer.from_proto(resp).describe_semaphore_result
+                if describe_resp and describe_resp.req_id == req_id:
+                    return describe_resp
+        except asyncio.TimeoutError:
+            raise issues.Error(
+                f"Timeout waiting for lock {self._name} describe"
+            )
+
     async def __aenter__(self):
         await self._ensure_session()
 
@@ -117,3 +134,26 @@ class CoordinationLock:
 
     async def release(self):
         await self.__aexit__(None, None, None)
+
+
+    async def describe(self):
+        await self._ensure_session()
+
+        req_id = self.next_req_id()
+
+        req = DescribeSemaphore(
+            req_id=req_id,
+            name=self._name,
+            include_owners=True,
+            include_waiters=True,
+            watch_data=False,
+            watch_owners=False,
+        ).to_proto()
+
+        await self.send(req)
+
+        resp = await self._wait_for_describe_response(req_id)
+        return resp
+
+    async def update(self, *, limit: Optional[int] = None, settings=None):
+        pass
