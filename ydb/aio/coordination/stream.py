@@ -2,6 +2,7 @@ import asyncio
 import contextlib
 from typing import Set, Optional
 
+import ydb
 from ydb import issues, _apis
 from ydb._grpc.grpcwrapper.ydb_coordination import FromServer, Ping, SessionStart
 

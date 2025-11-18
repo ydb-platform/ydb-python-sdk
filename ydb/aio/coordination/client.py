@@ -1,4 +1,3 @@
-import asyncio
 from typing import Optional
 
 from ydb._grpc.grpcwrapper.ydb_coordination import (
