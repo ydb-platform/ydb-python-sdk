@@ -392,6 +392,7 @@ class _ResultSet(object):
             rows.append(row)
 
         from ydb.query import QueryResultSetFormat, ArrowFormatMeta
+
         result_format = message.format if message.format else QueryResultSetFormat.VALUE
 
         arrow_meta = None
