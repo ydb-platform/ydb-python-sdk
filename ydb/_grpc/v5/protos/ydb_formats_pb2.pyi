@@ -1,3 +1,4 @@
+from google.protobuf.internal import enum_type_wrapper as _enum_type_wrapper
 from google.protobuf import descriptor as _descriptor
 from google.protobuf import message as _message
 from typing import ClassVar as _ClassVar, Mapping as _Mapping, Optional as _Optional, Union as _Union
@@ -9,6 +10,31 @@ class ArrowBatchSettings(_message.Message):
     SCHEMA_FIELD_NUMBER: _ClassVar[int]
     schema: bytes
     def __init__(self, schema: _Optional[bytes] = ...) -> None: ...
+
+class ArrowFormatMeta(_message.Message):
+    __slots__ = ["schema"]
+    SCHEMA_FIELD_NUMBER: _ClassVar[int]
+    schema: bytes
+    def __init__(self, schema: _Optional[bytes] = ...) -> None: ...
+
+class ArrowFormatSettings(_message.Message):
+    __slots__ = ["compression_codec"]
+    class CompressionCodec(_message.Message):
+        __slots__ = ["level", "type"]
+        class Type(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
+            __slots__ = []
+        LEVEL_FIELD_NUMBER: _ClassVar[int]
+        TYPE_FIELD_NUMBER: _ClassVar[int]
+        TYPE_LZ4_FRAME: ArrowFormatSettings.CompressionCodec.Type
+        TYPE_NONE: ArrowFormatSettings.CompressionCodec.Type
+        TYPE_UNSPECIFIED: ArrowFormatSettings.CompressionCodec.Type
+        TYPE_ZSTD: ArrowFormatSettings.CompressionCodec.Type
+        level: int
+        type: ArrowFormatSettings.CompressionCodec.Type
+        def __init__(self, type: _Optional[_Union[ArrowFormatSettings.CompressionCodec.Type, str]] = ..., level: _Optional[int] = ...) -> None: ...
+    COMPRESSION_CODEC_FIELD_NUMBER: _ClassVar[int]
+    compression_codec: ArrowFormatSettings.CompressionCodec
+    def __init__(self, compression_codec: _Optional[_Union[ArrowFormatSettings.CompressionCodec, _Mapping]] = ...) -> None: ...
 
 class CsvSettings(_message.Message):
     __slots__ = ["delimiter", "header", "null_value", "quoting", "skip_rows"]

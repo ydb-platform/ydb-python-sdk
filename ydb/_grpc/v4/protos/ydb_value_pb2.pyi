@@ -1,4 +1,5 @@
 from google.protobuf import struct_pb2 as _struct_pb2
+from protos import ydb_formats_pb2 as _ydb_formats_pb2
 from google.protobuf.internal import containers as _containers
 from google.protobuf.internal import enum_type_wrapper as _enum_type_wrapper
 from google.protobuf import descriptor as _descriptor
@@ -58,14 +59,25 @@ class PgType(_message.Message):
     def __init__(self, type_name: _Optional[str] = ..., type_modifier: _Optional[str] = ..., oid: _Optional[int] = ..., typlen: _Optional[int] = ..., typmod: _Optional[int] = ...) -> None: ...
 
 class ResultSet(_message.Message):
-    __slots__ = ["columns", "rows", "truncated"]
+    __slots__ = ["arrow_format_meta", "columns", "data", "format", "rows", "truncated"]
+    class Format(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
+        __slots__ = []
+    ARROW_FORMAT_META_FIELD_NUMBER: _ClassVar[int]
     COLUMNS_FIELD_NUMBER: _ClassVar[int]
+    DATA_FIELD_NUMBER: _ClassVar[int]
+    FORMAT_ARROW: ResultSet.Format
+    FORMAT_FIELD_NUMBER: _ClassVar[int]
+    FORMAT_UNSPECIFIED: ResultSet.Format
+    FORMAT_VALUE: ResultSet.Format
     ROWS_FIELD_NUMBER: _ClassVar[int]
     TRUNCATED_FIELD_NUMBER: _ClassVar[int]
+    arrow_format_meta: _ydb_formats_pb2.ArrowFormatMeta
     columns: _containers.RepeatedCompositeFieldContainer[Column]
+    data: bytes
+    format: ResultSet.Format
     rows: _containers.RepeatedCompositeFieldContainer[Value]
     truncated: bool
-    def __init__(self, columns: _Optional[_Iterable[_Union[Column, _Mapping]]] = ..., rows: _Optional[_Iterable[_Union[Value, _Mapping]]] = ..., truncated: bool = ...) -> None: ...
+    def __init__(self, columns: _Optional[_Iterable[_Union[Column, _Mapping]]] = ..., rows: _Optional[_Iterable[_Union[Value, _Mapping]]] = ..., truncated: bool = ..., format: _Optional[_Union[ResultSet.Format, str]] = ..., arrow_format_meta: _Optional[_Union[_ydb_formats_pb2.ArrowFormatMeta, _Mapping]] = ..., data: _Optional[bytes] = ...) -> None: ...
 
 class StructMember(_message.Message):
     __slots__ = ["name", "type"]

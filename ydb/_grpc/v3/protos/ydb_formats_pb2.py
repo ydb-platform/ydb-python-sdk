@@ -20,10 +20,45 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   syntax='proto3',
   serialized_options=b'\n\026tech.ydb.proto.formatsZ:github.com/ydb-platform/ydb-go-genproto/protos/Ydb_Formats\370\001\001',
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n\x18protos/ydb_formats.proto\x12\x0bYdb.Formats\"$\n\x12\x41rrowBatchSettings\x12\x0e\n\x06schema\x18\x01 \x01(\x0c\"\xda\x01\n\x0b\x43svSettings\x12\x11\n\tskip_rows\x18\x01 \x01(\r\x12\x11\n\tdelimiter\x18\x02 \x01(\x0c\x12\x12\n\nnull_value\x18\x03 \x01(\x0c\x12\x0e\n\x06header\x18\x04 \x01(\x08\x12\x31\n\x07quoting\x18\x05 \x01(\x0b\x32 .Ydb.Formats.CsvSettings.Quoting\x1aN\n\x07Quoting\x12\x10\n\x08\x64isabled\x18\x01 \x01(\x08\x12\x12\n\nquote_char\x18\x02 \x01(\x0c\x12\x1d\n\x15\x64ouble_quote_disabled\x18\x03 \x01(\x08\x42W\n\x16tech.ydb.proto.formatsZ:github.com/ydb-platform/ydb-go-genproto/protos/Ydb_Formats\xf8\x01\x01\x62\x06proto3'
+  serialized_pb=b'\n\x18protos/ydb_formats.proto\x12\x0bYdb.Formats\"$\n\x12\x41rrowBatchSettings\x12\x0e\n\x06schema\x18\x01 \x01(\x0c\"\xda\x01\n\x0b\x43svSettings\x12\x11\n\tskip_rows\x18\x01 \x01(\r\x12\x11\n\tdelimiter\x18\x02 \x01(\x0c\x12\x12\n\nnull_value\x18\x03 \x01(\x0c\x12\x0e\n\x06header\x18\x04 \x01(\x08\x12\x31\n\x07quoting\x18\x05 \x01(\x0b\x32 .Ydb.Formats.CsvSettings.Quoting\x1aN\n\x07Quoting\x12\x10\n\x08\x64isabled\x18\x01 \x01(\x08\x12\x12\n\nquote_char\x18\x02 \x01(\x0c\x12\x1d\n\x15\x64ouble_quote_disabled\x18\x03 \x01(\x08\"\xac\x02\n\x13\x41rrowFormatSettings\x12L\n\x11\x63ompression_codec\x18\x01 \x01(\x0b\x32\x31.Ydb.Formats.ArrowFormatSettings.CompressionCodec\x1a\xc6\x01\n\x10\x43ompressionCodec\x12\x44\n\x04type\x18\x01 \x01(\x0e\x32\x36.Ydb.Formats.ArrowFormatSettings.CompressionCodec.Type\x12\x12\n\x05level\x18\x02 \x01(\x05H\x00\x88\x01\x01\"N\n\x04Type\x12\x14\n\x10TYPE_UNSPECIFIED\x10\x00\x12\r\n\tTYPE_NONE\x10\x01\x12\r\n\tTYPE_ZSTD\x10\x02\x12\x12\n\x0eTYPE_LZ4_FRAME\x10\x03\x42\x08\n\x06_level\"!\n\x0f\x41rrowFormatMeta\x12\x0e\n\x06schema\x18\x01 \x01(\x0c\x42W\n\x16tech.ydb.proto.formatsZ:github.com/ydb-platform/ydb-go-genproto/protos/Ydb_Formats\xf8\x01\x01\x62\x06proto3'
 )
 
 
+
+_ARROWFORMATSETTINGS_COMPRESSIONCODEC_TYPE = _descriptor.EnumDescriptor(
+  name='Type',
+  full_name='Ydb.Formats.ArrowFormatSettings.CompressionCodec.Type',
+  filename=None,
+  file=DESCRIPTOR,
+  create_key=_descriptor._internal_create_key,
+  values=[
+    _descriptor.EnumValueDescriptor(
+      name='TYPE_UNSPECIFIED', index=0, number=0,
+      serialized_options=None,
+      type=None,
+      create_key=_descriptor._internal_create_key),
+    _descriptor.EnumValueDescriptor(
+      name='TYPE_NONE', index=1, number=1,
+      serialized_options=None,
+      type=None,
+      create_key=_descriptor._internal_create_key),
+    _descriptor.EnumValueDescriptor(
+      name='TYPE_ZSTD', index=2, number=2,
+      serialized_options=None,
+      type=None,
+      create_key=_descriptor._internal_create_key),
+    _descriptor.EnumValueDescriptor(
+      name='TYPE_LZ4_FRAME', index=3, number=3,
+      serialized_options=None,
+      type=None,
+      create_key=_descriptor._internal_create_key),
+  ],
+  containing_type=None,
+  serialized_options=None,
+  serialized_start=513,
+  serialized_end=591,
+)
+_sym_db.RegisterEnumDescriptor(_ARROWFORMATSETTINGS_COMPRESSIONCODEC_TYPE)
 
 
 _ARROWBATCHSETTINGS = _descriptor.Descriptor(
@@ -162,10 +197,127 @@ _CSVSETTINGS = _descriptor.Descriptor(
   serialized_end=298,
 )
 
+
+_ARROWFORMATSETTINGS_COMPRESSIONCODEC = _descriptor.Descriptor(
+  name='CompressionCodec',
+  full_name='Ydb.Formats.ArrowFormatSettings.CompressionCodec',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='type', full_name='Ydb.Formats.ArrowFormatSettings.CompressionCodec.type', index=0,
+      number=1, type=14, cpp_type=8, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='level', full_name='Ydb.Formats.ArrowFormatSettings.CompressionCodec.level', index=1,
+      number=2, type=5, cpp_type=1, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+    _ARROWFORMATSETTINGS_COMPRESSIONCODEC_TYPE,
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+    _descriptor.OneofDescriptor(
+      name='_level', full_name='Ydb.Formats.ArrowFormatSettings.CompressionCodec._level',
+      index=0, containing_type=None,
+      create_key=_descriptor._internal_create_key,
+    fields=[]),
+  ],
+  serialized_start=403,
+  serialized_end=601,
+)
+
+_ARROWFORMATSETTINGS = _descriptor.Descriptor(
+  name='ArrowFormatSettings',
+  full_name='Ydb.Formats.ArrowFormatSettings',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='compression_codec', full_name='Ydb.Formats.ArrowFormatSettings.compression_codec', index=0,
+      number=1, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[_ARROWFORMATSETTINGS_COMPRESSIONCODEC, ],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=301,
+  serialized_end=601,
+)
+
+
+_ARROWFORMATMETA = _descriptor.Descriptor(
+  name='ArrowFormatMeta',
+  full_name='Ydb.Formats.ArrowFormatMeta',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='schema', full_name='Ydb.Formats.ArrowFormatMeta.schema', index=0,
+      number=1, type=12, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"",
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=603,
+  serialized_end=636,
+)
+
 _CSVSETTINGS_QUOTING.containing_type = _CSVSETTINGS
 _CSVSETTINGS.fields_by_name['quoting'].message_type = _CSVSETTINGS_QUOTING
+_ARROWFORMATSETTINGS_COMPRESSIONCODEC.fields_by_name['type'].enum_type = _ARROWFORMATSETTINGS_COMPRESSIONCODEC_TYPE
+_ARROWFORMATSETTINGS_COMPRESSIONCODEC.containing_type = _ARROWFORMATSETTINGS
+_ARROWFORMATSETTINGS_COMPRESSIONCODEC_TYPE.containing_type = _ARROWFORMATSETTINGS_COMPRESSIONCODEC
+_ARROWFORMATSETTINGS_COMPRESSIONCODEC.oneofs_by_name['_level'].fields.append(
+  _ARROWFORMATSETTINGS_COMPRESSIONCODEC.fields_by_name['level'])
+_ARROWFORMATSETTINGS_COMPRESSIONCODEC.fields_by_name['level'].containing_oneof = _ARROWFORMATSETTINGS_COMPRESSIONCODEC.oneofs_by_name['_level']
+_ARROWFORMATSETTINGS.fields_by_name['compression_codec'].message_type = _ARROWFORMATSETTINGS_COMPRESSIONCODEC
 DESCRIPTOR.message_types_by_name['ArrowBatchSettings'] = _ARROWBATCHSETTINGS
 DESCRIPTOR.message_types_by_name['CsvSettings'] = _CSVSETTINGS
+DESCRIPTOR.message_types_by_name['ArrowFormatSettings'] = _ARROWFORMATSETTINGS
+DESCRIPTOR.message_types_by_name['ArrowFormatMeta'] = _ARROWFORMATMETA
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
 ArrowBatchSettings = _reflection.GeneratedProtocolMessageType('ArrowBatchSettings', (_message.Message,), {
@@ -189,6 +341,28 @@ CsvSettings = _reflection.GeneratedProtocolMessageType('CsvSettings', (_message.
   })
 _sym_db.RegisterMessage(CsvSettings)
 _sym_db.RegisterMessage(CsvSettings.Quoting)
+
+ArrowFormatSettings = _reflection.GeneratedProtocolMessageType('ArrowFormatSettings', (_message.Message,), {
+
+  'CompressionCodec' : _reflection.GeneratedProtocolMessageType('CompressionCodec', (_message.Message,), {
+    'DESCRIPTOR' : _ARROWFORMATSETTINGS_COMPRESSIONCODEC,
+    '__module__' : 'protos.ydb_formats_pb2'
+    # @@protoc_insertion_point(class_scope:Ydb.Formats.ArrowFormatSettings.CompressionCodec)
+    })
+  ,
+  'DESCRIPTOR' : _ARROWFORMATSETTINGS,
+  '__module__' : 'protos.ydb_formats_pb2'
+  # @@protoc_insertion_point(class_scope:Ydb.Formats.ArrowFormatSettings)
+  })
+_sym_db.RegisterMessage(ArrowFormatSettings)
+_sym_db.RegisterMessage(ArrowFormatSettings.CompressionCodec)
+
+ArrowFormatMeta = _reflection.GeneratedProtocolMessageType('ArrowFormatMeta', (_message.Message,), {
+  'DESCRIPTOR' : _ARROWFORMATMETA,
+  '__module__' : 'protos.ydb_formats_pb2'
+  # @@protoc_insertion_point(class_scope:Ydb.Formats.ArrowFormatMeta)
+  })
+_sym_db.RegisterMessage(ArrowFormatMeta)
 
 
 DESCRIPTOR._options = None

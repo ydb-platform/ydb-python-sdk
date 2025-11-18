@@ -4,6 +4,7 @@ from protos import ydb_issue_message_pb2 as _ydb_issue_message_pb2
 from protos import ydb_operation_pb2 as _ydb_operation_pb2
 from protos import ydb_query_stats_pb2 as _ydb_query_stats_pb2
 from protos import ydb_status_codes_pb2 as _ydb_status_codes_pb2
+from protos import ydb_formats_pb2 as _ydb_formats_pb2
 from protos import ydb_value_pb2 as _ydb_value_pb2
 from google.protobuf.internal import containers as _containers
 from google.protobuf.internal import enum_type_wrapper as _enum_type_wrapper
@@ -23,6 +24,9 @@ EXEC_STATUS_COMPLETED: ExecStatus
 EXEC_STATUS_FAILED: ExecStatus
 EXEC_STATUS_STARTING: ExecStatus
 EXEC_STATUS_UNSPECIFIED: ExecStatus
+SCHEMA_INCLUSION_MODE_ALWAYS: SchemaInclusionMode
+SCHEMA_INCLUSION_MODE_FIRST_ONLY: SchemaInclusionMode
+SCHEMA_INCLUSION_MODE_UNSPECIFIED: SchemaInclusionMode
 STATS_MODE_BASIC: StatsMode
 STATS_MODE_FULL: StatsMode
 STATS_MODE_NONE: StatsMode
@@ -103,7 +107,7 @@ class DeleteSessionResponse(_message.Message):
     def __init__(self, status: _Optional[_Union[_ydb_status_codes_pb2.StatusIds.StatusCode, str]] = ..., issues: _Optional[_Iterable[_Union[_ydb_issue_message_pb2.IssueMessage, _Mapping]]] = ...) -> None: ...
 
 class ExecuteQueryRequest(_message.Message):
-    __slots__ = ["concurrent_result_sets", "exec_mode", "parameters", "pool_id", "query_content", "response_part_limit_bytes", "session_id", "stats_mode", "tx_control"]
+    __slots__ = ["arrow_format_settings", "concurrent_result_sets", "exec_mode", "parameters", "pool_id", "query_content", "response_part_limit_bytes", "result_set_format", "schema_inclusion_mode", "session_id", "stats_mode", "stats_period_ms", "tx_control"]
     class ParametersEntry(_message.Message):
         __slots__ = ["key", "value"]
         KEY_FIELD_NUMBER: _ClassVar[int]
@@ -111,25 +115,33 @@ class ExecuteQueryRequest(_message.Message):
         key: str
         value: _ydb_value_pb2.TypedValue
         def __init__(self, key: _Optional[str] = ..., value: _Optional[_Union[_ydb_value_pb2.TypedValue, _Mapping]] = ...) -> None: ...
+    ARROW_FORMAT_SETTINGS_FIELD_NUMBER: _ClassVar[int]
     CONCURRENT_RESULT_SETS_FIELD_NUMBER: _ClassVar[int]
     EXEC_MODE_FIELD_NUMBER: _ClassVar[int]
     PARAMETERS_FIELD_NUMBER: _ClassVar[int]
     POOL_ID_FIELD_NUMBER: _ClassVar[int]
     QUERY_CONTENT_FIELD_NUMBER: _ClassVar[int]
     RESPONSE_PART_LIMIT_BYTES_FIELD_NUMBER: _ClassVar[int]
+    RESULT_SET_FORMAT_FIELD_NUMBER: _ClassVar[int]
+    SCHEMA_INCLUSION_MODE_FIELD_NUMBER: _ClassVar[int]
     SESSION_ID_FIELD_NUMBER: _ClassVar[int]
     STATS_MODE_FIELD_NUMBER: _ClassVar[int]
+    STATS_PERIOD_MS_FIELD_NUMBER: _ClassVar[int]
     TX_CONTROL_FIELD_NUMBER: _ClassVar[int]
+    arrow_format_settings: _ydb_formats_pb2.ArrowFormatSettings
     concurrent_result_sets: bool
     exec_mode: ExecMode
     parameters: _containers.MessageMap[str, _ydb_value_pb2.TypedValue]
     pool_id: str
     query_content: QueryContent
     response_part_limit_bytes: int
+    result_set_format: _ydb_value_pb2.ResultSet.Format
+    schema_inclusion_mode: SchemaInclusionMode
     session_id: str
     stats_mode: StatsMode
+    stats_period_ms: int
     tx_control: TransactionControl
-    def __init__(self, session_id: _Optional[str] = ..., exec_mode: _Optional[_Union[ExecMode, str]] = ..., tx_control: _Optional[_Union[TransactionControl, _Mapping]] = ..., query_content: _Optional[_Union[QueryContent, _Mapping]] = ..., parameters: _Optional[_Mapping[str, _ydb_value_pb2.TypedValue]] = ..., stats_mode: _Optional[_Union[StatsMode, str]] = ..., concurrent_result_sets: bool = ..., response_part_limit_bytes: _Optional[int] = ..., pool_id: _Optional[str] = ...) -> None: ...
+    def __init__(self, session_id: _Optional[str] = ..., exec_mode: _Optional[_Union[ExecMode, str]] = ..., tx_control: _Optional[_Union[TransactionControl, _Mapping]] = ..., query_content: _Optional[_Union[QueryContent, _Mapping]] = ..., parameters: _Optional[_Mapping[str, _ydb_value_pb2.TypedValue]] = ..., stats_mode: _Optional[_Union[StatsMode, str]] = ..., concurrent_result_sets: bool = ..., response_part_limit_bytes: _Optional[int] = ..., pool_id: _Optional[str] = ..., stats_period_ms: _Optional[int] = ..., schema_inclusion_mode: _Optional[_Union[SchemaInclusionMode, str]] = ..., result_set_format: _Optional[_Union[_ydb_value_pb2.ResultSet.Format, str]] = ..., arrow_format_settings: _Optional[_Union[_ydb_formats_pb2.ArrowFormatSettings, _Mapping]] = ...) -> None: ...
 
 class ExecuteQueryResponsePart(_message.Message):
     __slots__ = ["exec_stats", "issues", "result_set", "result_set_index", "status", "tx_meta"]
@@ -311,6 +323,9 @@ class ExecMode(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     __slots__ = []
 
 class StatsMode(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
+    __slots__ = []
+
+class SchemaInclusionMode(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     __slots__ = []
 
 class ExecStatus(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
