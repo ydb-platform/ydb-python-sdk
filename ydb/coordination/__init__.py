@@ -5,6 +5,16 @@ from ydb._grpc.grpcwrapper.ydb_coordination_public_types import (
     ConsistencyMode,
     RateLimiterCountersMode,
     DescribeResult,
+    CreateSemaphoreResult,
+    DescribeLockResult,
 )
 
-__all__ = ["CoordinationClient", "NodeConfig", "ConsistencyMode", "RateLimiterCountersMode", "DescribeResult"]
+__all__ = [
+    "CoordinationClient",
+    "NodeConfig",
+    "ConsistencyMode",
+    "RateLimiterCountersMode",
+    "DescribeResult",
+    "CreateSemaphoreResult",
+    "DescribeLockResult",
+]
