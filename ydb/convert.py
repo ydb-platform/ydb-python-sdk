@@ -2,8 +2,6 @@
 import decimal
 from google.protobuf import struct_pb2
 
-from ydb.query import QueryResultSetFormat, ArrowFormatMeta
-
 from . import issues, types, _apis
 
 
@@ -393,6 +391,7 @@ class _ResultSet(object):
                 row[column.name] = column_parser(unwrapped_type, value, table_client_settings)
             rows.append(row)
 
+        from ydb.query import QueryResultSetFormat, ArrowFormatMeta
         result_format = message.format if message.format else QueryResultSetFormat.VALUE
 
         arrow_meta = None
@@ -405,6 +404,8 @@ class _ResultSet(object):
 
     @classmethod
     def lazy_from_message(cls, message, table_client_settings=None, snapshot=None):
+        from ydb.query import QueryResultSetFormat, ArrowFormatMeta
+
         rows = _LazyRows(message.rows, table_client_settings, message.columns)
         result_format = message.format if message.format else QueryResultSetFormat.VALUE
 
