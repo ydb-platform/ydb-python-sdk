@@ -191,7 +191,6 @@ class TestCoordination:
         client = CoordinationClient(driver_sync)
         node_path = "/local/test_lock_full_lifecycle"
 
-        # --- cleanup ---
         try:
             client.delete_node(node_path)
         except ydb.SchemeError:
@@ -210,7 +209,6 @@ class TestCoordination:
 
         lock = client.lock("test_lock", node_path)
 
-        # --- create/update/describe ---
         create_resp: CreateSemaphoreResult = lock.create(init_limit=1, init_data=b"init-data")
         assert create_resp.status == StatusCode.SUCCESS
 
@@ -222,16 +220,15 @@ class TestCoordination:
         assert update_resp.status == StatusCode.SUCCESS
         assert lock.describe().data == b"updated-data"
 
-        # --- threading coordination ---
         lock2_ready = threading.Event()
         lock2_acquired = threading.Event()
         thread_exc = {"err": None}
 
         def second_lock_task():
             try:
-                lock2_ready.set()  # сигнал, что поток готов
+                lock2_ready.set()
                 with client.lock("test_lock", node_path):
-                    lock2_acquired.set()  # сигнал, что захватил lock
+                    lock2_acquired.set()
                     logger.info("Second thread acquired lock")
             except Exception as e:
                 logger.exception("second_lock_task failed")
@@ -239,44 +236,33 @@ class TestCoordination:
 
         t2 = threading.Thread(target=second_lock_task)
 
-        # --- main thread acquires first lock ---
         with client.lock("test_lock", node_path) as lock1:
             resp = lock1.describe()
             assert resp.status == StatusCode.SUCCESS
             assert resp.count == 1
 
-            # запускаем второй поток
             t2.start()
             started = lock2_ready.wait(timeout=2.0)
             assert started, "Second thread did not signal readiness to acquire lock"
 
-        # --- main thread released lock, второй поток должен захватить ---
-        acquired = lock2_acquired.wait(timeout=10.0)  # увеличенный таймаут
+        acquired = lock2_acquired.wait(timeout=10.0)
         t2.join(timeout=5.0)
 
         if not acquired:
             if thread_exc["err"]:
                 raise AssertionError(f"Second thread raised exception: {thread_exc['err']!r}") from thread_exc["err"]
             else:
-                raise AssertionError(
-                    "Second thread did not acquire the lock in time. Check logs for details."
-                )
+                raise AssertionError("Second thread did not acquire the lock in time. Check logs for details.")
 
         assert not t2.is_alive(), "Second thread did not finish after acquiring lock"
 
-        # --- проверяем, что lock можно снова взять в главном потоке ---
         with client.lock("test_lock", node_path) as lock3:
             resp3: DescribeLockResult = lock3.describe()
             assert resp3.status == StatusCode.SUCCESS
             assert resp3.count == 1
 
-        # --- cleanup ---
         delete_resp = lock.delete()
         assert delete_resp.status == StatusCode.SUCCESS
-        # небольшая пауза для удаления на сервере
         time.sleep(0.1)
         describe_after_delete: DescribeLockResult = lock.describe()
         assert describe_after_delete.status == StatusCode.NOT_FOUND
-
-
-

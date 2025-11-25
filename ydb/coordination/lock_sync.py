@@ -27,7 +27,6 @@ class CoordinationLockSync:
         self._count = count
         self._timeout_millis = timeout_millis
 
-
         async def _make_lock():
             return CoordinationLock(
                 client=self._client,
@@ -37,9 +36,7 @@ class CoordinationLockSync:
                 timeout_millis=self._timeout_millis,
             )
 
-        self._async_lock: CoordinationLock = self._caller.safe_call_with_result(
-            _make_lock(), self._timeout_sec
-        )
+        self._async_lock: CoordinationLock = self._caller.safe_call_with_result(_make_lock(), self._timeout_sec)
 
     def _check_closed(self):
         if self._closed:
@@ -69,14 +66,12 @@ class CoordinationLockSync:
     def create(self, init_limit: int, init_data: bytes, timeout: Optional[float] = None):
         self._check_closed()
         t = timeout or self._timeout_sec
-        return self._caller.safe_call_with_result(
-            self._async_lock.create(init_limit, init_data), t
-        )
+        return self._caller.safe_call_with_result(self._async_lock.create(init_limit, init_data), t)
 
     def delete(self, timeout: Optional[float] = None):
         self._check_closed()
         t = timeout or self._timeout_sec
-        return self._caller.safe_call_with_result( self._async_lock.delete(), t)
+        return self._caller.safe_call_with_result(self._async_lock.delete(), t)
 
     def describe(self, timeout: Optional[float] = None):
         self._check_closed()

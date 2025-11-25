@@ -10,6 +10,7 @@ from .common_utils import IToProto
 
 # ---------- CRUD для узлов ----------
 
+
 @dataclass
 class CreateNodeRequest(IToProto):
     path: str
@@ -55,7 +56,9 @@ class DropNodeRequest(IToProto):
             path=self.path,
         )
 
+
 # ---------- Сессии и семафоры ----------
+
 
 @dataclass
 class SessionStart(IToProto):
@@ -82,9 +85,7 @@ class SessionStart(IToProto):
 @dataclass
 class SessionStop(IToProto):
     def to_proto(self) -> "ydb_coordination_pb2.SessionRequest":
-        return ydb_coordination_pb2.SessionRequest(
-            session_stop=ydb_coordination_pb2.SessionRequest.SessionStop()
-        )
+        return ydb_coordination_pb2.SessionRequest(session_stop=ydb_coordination_pb2.SessionRequest.SessionStop())
 
 
 @dataclass
@@ -141,9 +142,7 @@ class ReleaseSemaphore(IToProto):
 
     def to_proto(self) -> "ydb_coordination_pb2.SessionRequest":
         return ydb_coordination_pb2.SessionRequest(
-            release_semaphore=ydb_coordination_pb2.SessionRequest.ReleaseSemaphore(
-                req_id=self.req_id, name=self.name
-            )
+            release_semaphore=ydb_coordination_pb2.SessionRequest.ReleaseSemaphore(req_id=self.req_id, name=self.name)
         )
 
 
@@ -167,6 +166,7 @@ class DescribeSemaphore(IToProto):
                 watch_owners=self.watch_owners,
             )
         )
+
 
 @dataclass
 class UpdateSemaphore(IToProto):
