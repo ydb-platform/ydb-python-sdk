@@ -13,6 +13,7 @@ _sym_db = _symbol_database.Default()
 
 
 from google.protobuf import struct_pb2 as google_dot_protobuf_dot_struct__pb2
+from ydb._grpc.v3.protos import ydb_formats_pb2 as protos_dot_ydb__formats__pb2
 
 
 DESCRIPTOR = _descriptor.FileDescriptor(
@@ -21,9 +22,9 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   syntax='proto3',
   serialized_options=b'\n\016tech.ydb.protoB\013ValueProtosZ2github.com/ydb-platform/ydb-go-genproto/protos/Ydb\370\001\001',
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n\x16protos/ydb_value.proto\x12\x03Ydb\x1a\x1cgoogle/protobuf/struct.proto\"/\n\x0b\x44\x65\x63imalType\x12\x11\n\tprecision\x18\x01 \x01(\r\x12\r\n\x05scale\x18\x02 \x01(\r\"\'\n\x0cOptionalType\x12\x17\n\x04item\x18\x01 \x01(\x0b\x32\t.Ydb.Type\"#\n\x08ListType\x12\x17\n\x04item\x18\x01 \x01(\x0b\x32\t.Ydb.Type\"e\n\x0bVariantType\x12%\n\x0btuple_items\x18\x01 \x01(\x0b\x32\x0e.Ydb.TupleTypeH\x00\x12\'\n\x0cstruct_items\x18\x02 \x01(\x0b\x32\x0f.Ydb.StructTypeH\x00\x42\x06\n\x04type\"(\n\tTupleType\x12\x1b\n\x08\x65lements\x18\x01 \x03(\x0b\x32\t.Ydb.Type\"5\n\x0cStructMember\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x17\n\x04type\x18\x02 \x01(\x0b\x32\t.Ydb.Type\"0\n\nStructType\x12\"\n\x07members\x18\x01 \x03(\x0b\x32\x11.Ydb.StructMember\">\n\x08\x44ictType\x12\x16\n\x03key\x18\x01 \x01(\x0b\x32\t.Ydb.Type\x12\x1a\n\x07payload\x18\x02 \x01(\x0b\x32\t.Ydb.Type\"2\n\nTaggedType\x12\x0b\n\x03tag\x18\x01 \x01(\t\x12\x17\n\x04type\x18\x02 \x01(\x0b\x32\t.Ydb.Type\"_\n\x06PgType\x12\x11\n\ttype_name\x18\n \x01(\t\x12\x15\n\rtype_modifier\x18\x0b \x01(\t\x12\x0b\n\x03oid\x18\x01 \x01(\r\x12\x0e\n\x06typlen\x18\x02 \x01(\x05\x12\x0e\n\x06typmod\x18\x03 \x01(\x05\"\x9f\x08\n\x04Type\x12,\n\x07type_id\x18\x01 \x01(\x0e\x32\x19.Ydb.Type.PrimitiveTypeIdH\x00\x12(\n\x0c\x64\x65\x63imal_type\x18\x02 \x01(\x0b\x32\x10.Ydb.DecimalTypeH\x00\x12*\n\roptional_type\x18\x65 \x01(\x0b\x32\x11.Ydb.OptionalTypeH\x00\x12\"\n\tlist_type\x18\x66 \x01(\x0b\x32\r.Ydb.ListTypeH\x00\x12$\n\ntuple_type\x18g \x01(\x0b\x32\x0e.Ydb.TupleTypeH\x00\x12&\n\x0bstruct_type\x18h \x01(\x0b\x32\x0f.Ydb.StructTypeH\x00\x12\"\n\tdict_type\x18i \x01(\x0b\x32\r.Ydb.DictTypeH\x00\x12(\n\x0cvariant_type\x18j \x01(\x0b\x32\x10.Ydb.VariantTypeH\x00\x12&\n\x0btagged_type\x18k \x01(\x0b\x32\x0f.Ydb.TaggedTypeH\x00\x12\x30\n\tvoid_type\x18\xc9\x01 \x01(\x0e\x32\x1a.google.protobuf.NullValueH\x00\x12\x30\n\tnull_type\x18\xca\x01 \x01(\x0e\x32\x1a.google.protobuf.NullValueH\x00\x12\x36\n\x0f\x65mpty_list_type\x18\xcb\x01 \x01(\x0e\x32\x1a.google.protobuf.NullValueH\x00\x12\x36\n\x0f\x65mpty_dict_type\x18\xcc\x01 \x01(\x0e\x32\x1a.google.protobuf.NullValueH\x00\x12\x1f\n\x07pg_type\x18\xcd\x01 \x01(\x0b\x32\x0b.Ydb.PgTypeH\x00\"\xad\x03\n\x0fPrimitiveTypeId\x12!\n\x1dPRIMITIVE_TYPE_ID_UNSPECIFIED\x10\x00\x12\x08\n\x04\x42OOL\x10\x06\x12\x08\n\x04INT8\x10\x07\x12\t\n\x05UINT8\x10\x05\x12\t\n\x05INT16\x10\x08\x12\n\n\x06UINT16\x10\t\x12\t\n\x05INT32\x10\x01\x12\n\n\x06UINT32\x10\x02\x12\t\n\x05INT64\x10\x03\x12\n\n\x06UINT64\x10\x04\x12\t\n\x05\x46LOAT\x10!\x12\n\n\x06\x44OUBLE\x10 \x12\x08\n\x04\x44\x41TE\x10\x30\x12\x0c\n\x08\x44\x41TETIME\x10\x31\x12\r\n\tTIMESTAMP\x10\x32\x12\x0c\n\x08INTERVAL\x10\x33\x12\x0b\n\x07TZ_DATE\x10\x34\x12\x0f\n\x0bTZ_DATETIME\x10\x35\x12\x10\n\x0cTZ_TIMESTAMP\x10\x36\x12\n\n\x06\x44\x41TE32\x10@\x12\x0e\n\nDATETIME64\x10\x41\x12\x0f\n\x0bTIMESTAMP64\x10\x42\x12\x0e\n\nINTERVAL64\x10\x43\x12\x0b\n\x06STRING\x10\x81 \x12\t\n\x04UTF8\x10\x80$\x12\t\n\x04YSON\x10\x81$\x12\t\n\x04JSON\x10\x82$\x12\t\n\x04UUID\x10\x83$\x12\x12\n\rJSON_DOCUMENT\x10\x84$\x12\r\n\x08\x44YNUMBER\x10\x82&B\x06\n\x04type\"A\n\tValuePair\x12\x17\n\x03key\x18\x01 \x01(\x0b\x32\n.Ydb.Value\x12\x1b\n\x07payload\x18\x02 \x01(\x0b\x32\n.Ydb.Value\"\xb1\x03\n\x05Value\x12\x14\n\nbool_value\x18\x01 \x01(\x08H\x00\x12\x15\n\x0bint32_value\x18\x02 \x01(\x0fH\x00\x12\x16\n\x0cuint32_value\x18\x03 \x01(\x07H\x00\x12\x15\n\x0bint64_value\x18\x04 \x01(\x10H\x00\x12\x16\n\x0cuint64_value\x18\x05 \x01(\x06H\x00\x12\x15\n\x0b\x66loat_value\x18\x06 \x01(\x02H\x00\x12\x16\n\x0c\x64ouble_value\x18\x07 \x01(\x01H\x00\x12\x15\n\x0b\x62ytes_value\x18\x08 \x01(\x0cH\x00\x12\x14\n\ntext_value\x18\t \x01(\tH\x00\x12\x35\n\x0fnull_flag_value\x18\n \x01(\x0e\x32\x1a.google.protobuf.NullValueH\x00\x12\"\n\x0cnested_value\x18\x0b \x01(\x0b\x32\n.Ydb.ValueH\x00\x12\x11\n\x07low_128\x18\x0f \x01(\x06H\x00\x12\x19\n\x05items\x18\x0c \x03(\x0b\x32\n.Ydb.Value\x12\x1d\n\x05pairs\x18\r \x03(\x0b\x32\x0e.Ydb.ValuePair\x12\x15\n\rvariant_index\x18\x0e \x01(\r\x12\x10\n\x08high_128\x18\x10 \x01(\x06\x42\x07\n\x05value\"@\n\nTypedValue\x12\x17\n\x04type\x18\x01 \x01(\x0b\x32\t.Ydb.Type\x12\x19\n\x05value\x18\x02 \x01(\x0b\x32\n.Ydb.Value\"/\n\x06\x43olumn\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x17\n\x04type\x18\x02 \x01(\x0b\x32\t.Ydb.Type\"V\n\tResultSet\x12\x1c\n\x07\x63olumns\x18\x01 \x03(\x0b\x32\x0b.Ydb.Column\x12\x18\n\x04rows\x18\x02 \x03(\x0b\x32\n.Ydb.Value\x12\x11\n\ttruncated\x18\x03 \x01(\x08\x42T\n\x0etech.ydb.protoB\x0bValueProtosZ2github.com/ydb-platform/ydb-go-genproto/protos/Ydb\xf8\x01\x01\x62\x06proto3'
+  serialized_pb=b'\n\x16protos/ydb_value.proto\x12\x03Ydb\x1a\x1cgoogle/protobuf/struct.proto\x1a\x18protos/ydb_formats.proto\"/\n\x0b\x44\x65\x63imalType\x12\x11\n\tprecision\x18\x01 \x01(\r\x12\r\n\x05scale\x18\x02 \x01(\r\"\'\n\x0cOptionalType\x12\x17\n\x04item\x18\x01 \x01(\x0b\x32\t.Ydb.Type\"#\n\x08ListType\x12\x17\n\x04item\x18\x01 \x01(\x0b\x32\t.Ydb.Type\"e\n\x0bVariantType\x12%\n\x0btuple_items\x18\x01 \x01(\x0b\x32\x0e.Ydb.TupleTypeH\x00\x12\'\n\x0cstruct_items\x18\x02 \x01(\x0b\x32\x0f.Ydb.StructTypeH\x00\x42\x06\n\x04type\"(\n\tTupleType\x12\x1b\n\x08\x65lements\x18\x01 \x03(\x0b\x32\t.Ydb.Type\"5\n\x0cStructMember\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x17\n\x04type\x18\x02 \x01(\x0b\x32\t.Ydb.Type\"0\n\nStructType\x12\"\n\x07members\x18\x01 \x03(\x0b\x32\x11.Ydb.StructMember\">\n\x08\x44ictType\x12\x16\n\x03key\x18\x01 \x01(\x0b\x32\t.Ydb.Type\x12\x1a\n\x07payload\x18\x02 \x01(\x0b\x32\t.Ydb.Type\"2\n\nTaggedType\x12\x0b\n\x03tag\x18\x01 \x01(\t\x12\x17\n\x04type\x18\x02 \x01(\x0b\x32\t.Ydb.Type\"_\n\x06PgType\x12\x11\n\ttype_name\x18\n \x01(\t\x12\x15\n\rtype_modifier\x18\x0b \x01(\t\x12\x0b\n\x03oid\x18\x01 \x01(\r\x12\x0e\n\x06typlen\x18\x02 \x01(\x05\x12\x0e\n\x06typmod\x18\x03 \x01(\x05\"\x9f\x08\n\x04Type\x12,\n\x07type_id\x18\x01 \x01(\x0e\x32\x19.Ydb.Type.PrimitiveTypeIdH\x00\x12(\n\x0c\x64\x65\x63imal_type\x18\x02 \x01(\x0b\x32\x10.Ydb.DecimalTypeH\x00\x12*\n\roptional_type\x18\x65 \x01(\x0b\x32\x11.Ydb.OptionalTypeH\x00\x12\"\n\tlist_type\x18\x66 \x01(\x0b\x32\r.Ydb.ListTypeH\x00\x12$\n\ntuple_type\x18g \x01(\x0b\x32\x0e.Ydb.TupleTypeH\x00\x12&\n\x0bstruct_type\x18h \x01(\x0b\x32\x0f.Ydb.StructTypeH\x00\x12\"\n\tdict_type\x18i \x01(\x0b\x32\r.Ydb.DictTypeH\x00\x12(\n\x0cvariant_type\x18j \x01(\x0b\x32\x10.Ydb.VariantTypeH\x00\x12&\n\x0btagged_type\x18k \x01(\x0b\x32\x0f.Ydb.TaggedTypeH\x00\x12\x30\n\tvoid_type\x18\xc9\x01 \x01(\x0e\x32\x1a.google.protobuf.NullValueH\x00\x12\x30\n\tnull_type\x18\xca\x01 \x01(\x0e\x32\x1a.google.protobuf.NullValueH\x00\x12\x36\n\x0f\x65mpty_list_type\x18\xcb\x01 \x01(\x0e\x32\x1a.google.protobuf.NullValueH\x00\x12\x36\n\x0f\x65mpty_dict_type\x18\xcc\x01 \x01(\x0e\x32\x1a.google.protobuf.NullValueH\x00\x12\x1f\n\x07pg_type\x18\xcd\x01 \x01(\x0b\x32\x0b.Ydb.PgTypeH\x00\"\xad\x03\n\x0fPrimitiveTypeId\x12!\n\x1dPRIMITIVE_TYPE_ID_UNSPECIFIED\x10\x00\x12\x08\n\x04\x42OOL\x10\x06\x12\x08\n\x04INT8\x10\x07\x12\t\n\x05UINT8\x10\x05\x12\t\n\x05INT16\x10\x08\x12\n\n\x06UINT16\x10\t\x12\t\n\x05INT32\x10\x01\x12\n\n\x06UINT32\x10\x02\x12\t\n\x05INT64\x10\x03\x12\n\n\x06UINT64\x10\x04\x12\t\n\x05\x46LOAT\x10!\x12\n\n\x06\x44OUBLE\x10 \x12\x08\n\x04\x44\x41TE\x10\x30\x12\x0c\n\x08\x44\x41TETIME\x10\x31\x12\r\n\tTIMESTAMP\x10\x32\x12\x0c\n\x08INTERVAL\x10\x33\x12\x0b\n\x07TZ_DATE\x10\x34\x12\x0f\n\x0bTZ_DATETIME\x10\x35\x12\x10\n\x0cTZ_TIMESTAMP\x10\x36\x12\n\n\x06\x44\x41TE32\x10@\x12\x0e\n\nDATETIME64\x10\x41\x12\x0f\n\x0bTIMESTAMP64\x10\x42\x12\x0e\n\nINTERVAL64\x10\x43\x12\x0b\n\x06STRING\x10\x81 \x12\t\n\x04UTF8\x10\x80$\x12\t\n\x04YSON\x10\x81$\x12\t\n\x04JSON\x10\x82$\x12\t\n\x04UUID\x10\x83$\x12\x12\n\rJSON_DOCUMENT\x10\x84$\x12\r\n\x08\x44YNUMBER\x10\x82&B\x06\n\x04type\"A\n\tValuePair\x12\x17\n\x03key\x18\x01 \x01(\x0b\x32\n.Ydb.Value\x12\x1b\n\x07payload\x18\x02 \x01(\x0b\x32\n.Ydb.Value\"\xb1\x03\n\x05Value\x12\x14\n\nbool_value\x18\x01 \x01(\x08H\x00\x12\x15\n\x0bint32_value\x18\x02 \x01(\x0fH\x00\x12\x16\n\x0cuint32_value\x18\x03 \x01(\x07H\x00\x12\x15\n\x0bint64_value\x18\x04 \x01(\x10H\x00\x12\x16\n\x0cuint64_value\x18\x05 \x01(\x06H\x00\x12\x15\n\x0b\x66loat_value\x18\x06 \x01(\x02H\x00\x12\x16\n\x0c\x64ouble_value\x18\x07 \x01(\x01H\x00\x12\x15\n\x0b\x62ytes_value\x18\x08 \x01(\x0cH\x00\x12\x14\n\ntext_value\x18\t \x01(\tH\x00\x12\x35\n\x0fnull_flag_value\x18\n \x01(\x0e\x32\x1a.google.protobuf.NullValueH\x00\x12\"\n\x0cnested_value\x18\x0b \x01(\x0b\x32\n.Ydb.ValueH\x00\x12\x11\n\x07low_128\x18\x0f \x01(\x06H\x00\x12\x19\n\x05items\x18\x0c \x03(\x0b\x32\n.Ydb.Value\x12\x1d\n\x05pairs\x18\r \x03(\x0b\x32\x0e.Ydb.ValuePair\x12\x15\n\rvariant_index\x18\x0e \x01(\r\x12\x10\n\x08high_128\x18\x10 \x01(\x06\x42\x07\n\x05value\"@\n\nTypedValue\x12\x17\n\x04type\x18\x01 \x01(\x0b\x32\t.Ydb.Type\x12\x19\n\x05value\x18\x02 \x01(\x0b\x32\n.Ydb.Value\"/\n\x06\x43olumn\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x17\n\x04type\x18\x02 \x01(\x0b\x32\t.Ydb.Type\"\x8a\x02\n\tResultSet\x12\x1c\n\x07\x63olumns\x18\x01 \x03(\x0b\x32\x0b.Ydb.Column\x12\x18\n\x04rows\x18\x02 \x03(\x0b\x32\n.Ydb.Value\x12\x11\n\ttruncated\x18\x03 \x01(\x08\x12%\n\x06\x66ormat\x18\x04 \x01(\x0e\x32\x15.Ydb.ResultSet.Format\x12\x37\n\x11\x61rrow_format_meta\x18\x05 \x01(\x0b\x32\x1c.Ydb.Formats.ArrowFormatMeta\x12\x0c\n\x04\x64\x61ta\x18\x0f \x01(\x0c\"D\n\x06\x46ormat\x12\x16\n\x12\x46ORMAT_UNSPECIFIED\x10\x00\x12\x10\n\x0c\x46ORMAT_VALUE\x10\x01\x12\x10\n\x0c\x46ORMAT_ARROW\x10\x02\x42T\n\x0etech.ydb.protoB\x0bValueProtosZ2github.com/ydb-platform/ydb-go-genproto/protos/Ydb\xf8\x01\x01\x62\x06proto3'
   ,
-  dependencies=[google_dot_protobuf_dot_struct__pb2.DESCRIPTOR,])
+  dependencies=[google_dot_protobuf_dot_struct__pb2.DESCRIPTOR,protos_dot_ydb__formats__pb2.DESCRIPTOR,])
 
 
 
@@ -187,10 +188,40 @@ _TYPE_PRIMITIVETYPEID = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=1270,
-  serialized_end=1699,
+  serialized_start=1296,
+  serialized_end=1725,
 )
 _sym_db.RegisterEnumDescriptor(_TYPE_PRIMITIVETYPEID)
+
+_RESULTSET_FORMAT = _descriptor.EnumDescriptor(
+  name='Format',
+  full_name='Ydb.ResultSet.Format',
+  filename=None,
+  file=DESCRIPTOR,
+  create_key=_descriptor._internal_create_key,
+  values=[
+    _descriptor.EnumValueDescriptor(
+      name='FORMAT_UNSPECIFIED', index=0, number=0,
+      serialized_options=None,
+      type=None,
+      create_key=_descriptor._internal_create_key),
+    _descriptor.EnumValueDescriptor(
+      name='FORMAT_VALUE', index=1, number=1,
+      serialized_options=None,
+      type=None,
+      create_key=_descriptor._internal_create_key),
+    _descriptor.EnumValueDescriptor(
+      name='FORMAT_ARROW', index=2, number=2,
+      serialized_options=None,
+      type=None,
+      create_key=_descriptor._internal_create_key),
+  ],
+  containing_type=None,
+  serialized_options=None,
+  serialized_start=2552,
+  serialized_end=2620,
+)
+_sym_db.RegisterEnumDescriptor(_RESULTSET_FORMAT)
 
 
 _DECIMALTYPE = _descriptor.Descriptor(
@@ -227,8 +258,8 @@ _DECIMALTYPE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=61,
-  serialized_end=108,
+  serialized_start=87,
+  serialized_end=134,
 )
 
 
@@ -259,8 +290,8 @@ _OPTIONALTYPE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=110,
-  serialized_end=149,
+  serialized_start=136,
+  serialized_end=175,
 )
 
 
@@ -291,8 +322,8 @@ _LISTTYPE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=151,
-  serialized_end=186,
+  serialized_start=177,
+  serialized_end=212,
 )
 
 
@@ -335,8 +366,8 @@ _VARIANTTYPE = _descriptor.Descriptor(
       create_key=_descriptor._internal_create_key,
     fields=[]),
   ],
-  serialized_start=188,
-  serialized_end=289,
+  serialized_start=214,
+  serialized_end=315,
 )
 
 
@@ -367,8 +398,8 @@ _TUPLETYPE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=291,
-  serialized_end=331,
+  serialized_start=317,
+  serialized_end=357,
 )
 
 
@@ -406,8 +437,8 @@ _STRUCTMEMBER = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=333,
-  serialized_end=386,
+  serialized_start=359,
+  serialized_end=412,
 )
 
 
@@ -438,8 +469,8 @@ _STRUCTTYPE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=388,
-  serialized_end=436,
+  serialized_start=414,
+  serialized_end=462,
 )
 
 
@@ -477,8 +508,8 @@ _DICTTYPE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=438,
-  serialized_end=500,
+  serialized_start=464,
+  serialized_end=526,
 )
 
 
@@ -516,8 +547,8 @@ _TAGGEDTYPE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=502,
-  serialized_end=552,
+  serialized_start=528,
+  serialized_end=578,
 )
 
 
@@ -576,8 +607,8 @@ _PGTYPE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=554,
-  serialized_end=649,
+  serialized_start=580,
+  serialized_end=675,
 )
 
 
@@ -705,8 +736,8 @@ _TYPE = _descriptor.Descriptor(
       create_key=_descriptor._internal_create_key,
     fields=[]),
   ],
-  serialized_start=652,
-  serialized_end=1707,
+  serialized_start=678,
+  serialized_end=1733,
 )
 
 
@@ -744,8 +775,8 @@ _VALUEPAIR = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1709,
-  serialized_end=1774,
+  serialized_start=1735,
+  serialized_end=1800,
 )
 
 
@@ -886,8 +917,8 @@ _VALUE = _descriptor.Descriptor(
       create_key=_descriptor._internal_create_key,
     fields=[]),
   ],
-  serialized_start=1777,
-  serialized_end=2210,
+  serialized_start=1803,
+  serialized_end=2236,
 )
 
 
@@ -925,8 +956,8 @@ _TYPEDVALUE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2212,
-  serialized_end=2276,
+  serialized_start=2238,
+  serialized_end=2302,
 )
 
 
@@ -964,8 +995,8 @@ _COLUMN = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2278,
-  serialized_end=2325,
+  serialized_start=2304,
+  serialized_end=2351,
 )
 
 
@@ -998,11 +1029,33 @@ _RESULTSET = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='format', full_name='Ydb.ResultSet.format', index=3,
+      number=4, type=14, cpp_type=8, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='arrow_format_meta', full_name='Ydb.ResultSet.arrow_format_meta', index=4,
+      number=5, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='data', full_name='Ydb.ResultSet.data', index=5,
+      number=15, type=12, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"",
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
+    _RESULTSET_FORMAT,
   ],
   serialized_options=None,
   is_extendable=False,
@@ -1010,8 +1063,8 @@ _RESULTSET = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2327,
-  serialized_end=2413,
+  serialized_start=2354,
+  serialized_end=2620,
 )
 
 _OPTIONALTYPE.fields_by_name['item'].message_type = _TYPE
@@ -1134,6 +1187,9 @@ _TYPEDVALUE.fields_by_name['value'].message_type = _VALUE
 _COLUMN.fields_by_name['type'].message_type = _TYPE
 _RESULTSET.fields_by_name['columns'].message_type = _COLUMN
 _RESULTSET.fields_by_name['rows'].message_type = _VALUE
+_RESULTSET.fields_by_name['format'].enum_type = _RESULTSET_FORMAT
+_RESULTSET.fields_by_name['arrow_format_meta'].message_type = protos_dot_ydb__formats__pb2._ARROWFORMATMETA
+_RESULTSET_FORMAT.containing_type = _RESULTSET
 DESCRIPTOR.message_types_by_name['DecimalType'] = _DECIMALTYPE
 DESCRIPTOR.message_types_by_name['OptionalType'] = _OPTIONALTYPE
 DESCRIPTOR.message_types_by_name['ListType'] = _LISTTYPE
