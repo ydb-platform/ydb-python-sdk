@@ -1,4 +1,3 @@
-import asyncio
 from typing import Optional
 
 from ydb import issues
@@ -12,28 +11,20 @@ class CoordinationLockSync:
         client,
         name: str,
         node_path: Optional[str] = None,
-        count: int = 1,
-        timeout_millis: int = 30000,
-        *,
-        eventloop: Optional[asyncio.AbstractEventLoop] = None,
     ):
         self._closed = False
         self._name = name
-        self._loop = eventloop or _get_shared_event_loop()
-        self._timeout_sec = timeout_millis / 1000.0
+        self._loop = _get_shared_event_loop()
         self._caller = CallFromSyncToAsync(self._loop)
         self._client = client
         self._node_path = node_path
-        self._count = count
-        self._timeout_millis = timeout_millis
+        self._timeout_sec = 30
 
         async def _make_lock():
             return CoordinationLock(
                 client=self._client,
                 name=self._name,
                 node_path=self._node_path,
-                count=self._count,
-                timeout_millis=self._timeout_millis,
             )
 
         self._async_lock: CoordinationLock = self._caller.safe_call_with_result(_make_lock(), self._timeout_sec)
@@ -88,14 +79,6 @@ class CoordinationLockSync:
             return
         t = timeout or self._timeout_sec
 
-        try:
-            self._caller.safe_call_with_result(self._async_lock.release(), t)
-        except Exception:
-            pass
-
-        try:
-            self._caller.safe_call_with_result(self._async_lock.close(True), t)
-        except Exception:
-            pass
-
+        self._caller.safe_call_with_result(self._async_lock.release(), t)
+        self._caller.safe_call_with_result(self._async_lock.close(True), t)
         self._closed = True

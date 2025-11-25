@@ -22,8 +22,6 @@ class CoordinationLock:
         client,
         name: str,
         node_path: Optional[str] = None,
-        count: int = 1,
-        timeout_millis: int = 30000,
     ):
         self._client = client
         self._driver = client._driver
@@ -31,8 +29,8 @@ class CoordinationLock:
         self._node_path = node_path
 
         self._req_id: Optional[int] = None
-        self._count: int = count
-        self._timeout_millis: int = timeout_millis
+        self._count: int = 1
+        self._timeout_millis: int = 30000
         self._next_req_id: int = 1
 
         self._request_queue: asyncio.Queue = asyncio.Queue()
