@@ -1,7 +1,7 @@
 import asyncio
 from typing import Optional
 
-from ydb import issues
+from ydb import issues, StatusCode
 from ydb._grpc.grpcwrapper.ydb_coordination import (
     AcquireSemaphore,
     ReleaseSemaphore,
@@ -130,17 +130,15 @@ class CoordinationLock:
     async def __aexit__(self, exc_type, exc, tb):
         if self._req_id is not None:
             try:
-                req = ReleaseSemaphore(req_id=self._req_id, name=self._name)
+                req = ReleaseSemaphore(
+                    req_id=self._req_id,
+                    name=self._name,
+                )
                 await self.send(req)
             except issues.Error:
                 pass
 
-        if self._reconnector:
-            await self._reconnector.stop(flush=True)
-
-        self._stream = None
         self._req_id = None
-        self._node_path = None
 
     async def acquire(self):
         return await self.__aenter__()
@@ -160,18 +158,31 @@ class CoordinationLock:
         resp = await self._wait_for_response(req_id, kind="create")
         return CreateSemaphoreResult.from_proto(resp)
 
-    async def delete(self):
+    async def delete(self, wait_empty_timeout: float = 5.0, poll_interval: float = 0.05):
         await self._ensure_session()
 
+        deadline = asyncio.get_running_loop().time() + wait_empty_timeout
+        while True:
+            try:
+                desc = await self.describe()
+                if desc.count == 0 and not desc.owners:
+                    break
+            except issues.Error as e:
+                if getattr(e, "status", None) == StatusCode.NOT_FOUND:
+                    break
+                raise
+
+            now = asyncio.get_running_loop().time()
+            if now > deadline:
+                raise issues.Error(
+                    f"Timeout waiting for semaphore '{self._name}' to become empty before delete. "
+                    f"count={desc.count}, owners={list(desc.owners)}"
+                )
+            await asyncio.sleep(poll_interval)
+
         req_id = self.next_req_id()
-
-        req = DeleteSemaphore(
-            req_id=req_id,
-            name=self._name,
-        )
-
+        req = DeleteSemaphore(req_id=req_id, name=self._name)
         await self.send(req)
-
         resp = await self._wait_for_response(req_id, kind="delete")
         return resp
 
@@ -206,18 +217,17 @@ class CoordinationLock:
         return resp
 
     async def close(self, flush: bool = True):
-
         try:
             if self._req_id is not None:
                 req = ReleaseSemaphore(req_id=self._req_id, name=self._name)
-                await self.send(req)
+                if self._stream is not None:
+                    await self.send(req)
         except issues.Error:
             pass
 
-        if self._reconnector:
+        if self._reconnector is not None:
             await self._reconnector.stop(flush)
 
         self._stream = None
         self._req_id = None
         self._node_path = None
-

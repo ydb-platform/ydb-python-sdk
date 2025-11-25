@@ -1,11 +1,14 @@
 import asyncio
 import contextlib
+import logging
 from typing import Optional, Set
 
 import ydb
 from ydb import issues, _apis
 from ydb._grpc.grpcwrapper.common_utils import IToProto, GrpcWrapperAsyncIO
 from ydb._grpc.grpcwrapper.ydb_coordination import FromServer, Ping, SessionStart
+
+logger = logging.getLogger(__name__)
 
 
 class CoordinationStream:
@@ -32,6 +35,7 @@ class CoordinationStream:
         self._stream.write(start_msg)
 
         try:
+            # Wait for SessionStart response
             async for resp in self._stream.from_server_grpc:
                 fs = FromServer.from_proto(resp)
                 if fs.session_started:
@@ -44,7 +48,9 @@ class CoordinationStream:
         except Exception as e:
             raise issues.Error(f"Failed to start session: {e}")
 
-        self._background_tasks.add(asyncio.create_task(self._reader_loop()))
+        task = asyncio.get_running_loop().create_task(self._reader_loop())
+        self._background_tasks.add(task)
+        logger.debug("CoordinationStream: started reader task %r", task)
 
     async def _reader_loop(self):
         try:
@@ -54,13 +60,18 @@ class CoordinationStream:
 
                 fs = FromServer.from_proto(resp)
                 if fs.opaque:
-                    self._stream.write(Ping(fs.opaque))
+                    try:
+                        self._stream.write(Ping(fs.opaque))
+                    except Exception:
+                        self._set_first_error(RuntimeError("Failed to write Ping"))
                 else:
                     await self._incoming_queue.put(resp)
                     self._state_changed.set()
         except asyncio.CancelledError:
+            logger.debug("CoordinationStream: reader loop cancelled")
             pass
         except Exception as exc:
+            logger.exception("CoordinationStream: reader loop error")
             self._set_first_error(exc)
 
     async def send(self, req: IToProto):
@@ -89,26 +100,25 @@ class CoordinationStream:
             return
         self._closed = True
 
-        tasks = list(self._background_tasks)
-        for task in tasks:
+        logger.debug("CoordinationStream: closing, cancelling %d background tasks", len(self._background_tasks))
+        for task in list(self._background_tasks):
             task.cancel()
 
         with contextlib.suppress(asyncio.CancelledError):
-            await asyncio.gather(*tasks, return_exceptions=True)
+            await asyncio.gather(*self._background_tasks, return_exceptions=True)
 
         self._background_tasks.clear()
 
         if self._stream:
-            close_coro = getattr(self._stream, "close", None)
-            if close_coro and asyncio.iscoroutinefunction(close_coro):
-                await self._stream.close()
-            else:
+            try:
                 self._stream.close()
+            except Exception:
+                logger.exception("CoordinationStream: error closing underlying stream")
+            self._stream = None
 
         self.session_id = None
-        self._started = False
         self._state_changed.set()
-        self._incoming_queue = asyncio.Queue()
+        logger.debug("CoordinationStream: closed")
 
     def _set_first_error(self, exc: Exception):
         if not self._first_error.done():
@@ -118,6 +128,7 @@ class CoordinationStream:
     def _get_first_error(self):
         if self._first_error.done():
             return self._first_error.result()
+        return None
 
     def _check_error(self):
         err = self._get_first_error()

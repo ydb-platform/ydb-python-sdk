@@ -1,12 +1,9 @@
 import asyncio
-import logging
 from typing import Optional
 
 from ydb import issues
 from ydb._topic_common.common import _get_shared_event_loop, CallFromSyncToAsync
 from ydb.aio.coordination.lock import CoordinationLock
-
-logger = logging.getLogger(__name__)
 
 
 class CoordinationLockSync:
@@ -22,62 +19,96 @@ class CoordinationLockSync:
     ):
         self._closed = False
         self._name = name
-        self.loop = eventloop or _get_shared_event_loop()
-        self._caller = CallFromSyncToAsync(self.loop)
+        self._loop = eventloop or _get_shared_event_loop()
         self._timeout_sec = timeout_millis / 1000.0
+        self._caller = CallFromSyncToAsync(self._loop)
         self._client = client
         self._node_path = node_path
         self._count = count
         self._timeout_millis = timeout_millis
 
-        async def create_reader():
-            return CoordinationLock(self._client, self._name, self._node_path)
 
-        # Инициализация асинхронного reader
-        self._async_reader = asyncio.run_coroutine_threadsafe(create_reader(), self.loop).result()
+        async def _make_lock():
+            return CoordinationLock(
+                client=self._client,
+                name=self._name,
+                node_path=self._node_path,
+                count=self._count,
+                timeout_millis=self._timeout_millis,
+            )
+
+        self._async_lock: CoordinationLock = self._caller.safe_call_with_result(
+            _make_lock(), self._timeout_sec
+        )
 
     def _check_closed(self):
         if self._closed:
             raise issues.Error(f"CoordinationLockSync {self._name} already closed")
 
-    # ------------------ Контекстный менеджер ------------------ #
     def __enter__(self):
         self.acquire(timeout=self._timeout_sec)
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        self.close()
+        try:
+            self.release(timeout=self._timeout_sec)
+        except Exception:
+            pass
 
-    # ------------------ Основные методы ------------------ #
     def acquire(self, timeout: Optional[float] = None):
         self._check_closed()
-        return self._caller.safe_call_with_result(self._async_reader.acquire(), timeout or self._timeout_sec)
+        t = timeout or self._timeout_sec
+        return self._caller.safe_call_with_result(self._async_lock.acquire(), t)
 
     def release(self, timeout: Optional[float] = None):
-        self._check_closed()
-        return self._caller.safe_call_with_result(self._async_reader.release(), timeout or self._timeout_sec)
+        if self._closed:
+            return
+        t = timeout or self._timeout_sec
+        return self._caller.safe_call_with_result(self._async_lock.release(), t)
 
     def create(self, init_limit: int, init_data: bytes, timeout: Optional[float] = None):
         self._check_closed()
-        return self._caller.safe_call_with_result(self._async_reader.create(init_limit, init_data), timeout or self._timeout_sec)
+        t = timeout or self._timeout_sec
+        return self._caller.safe_call_with_result(
+            self._async_lock.create(init_limit, init_data), t
+        )
 
     def delete(self, timeout: Optional[float] = None):
         self._check_closed()
-        return self._caller.safe_call_with_result(self._async_reader.delete(), timeout or self._timeout_sec)
+        t = timeout or self._timeout_sec
+        return self._caller.safe_call_with_result( self._async_lock.delete(), t)
 
     def describe(self, timeout: Optional[float] = None):
         self._check_closed()
-        return self._caller.safe_call_with_result(self._async_reader.describe(), timeout or self._timeout_sec)
+        t = timeout or self._timeout_sec
+        return self._caller.safe_call_with_result(self._async_lock.describe(), t)
 
     def update(self, new_data: bytes, timeout: Optional[float] = None):
         self._check_closed()
-        return self._caller.safe_call_with_result(self._async_reader.update(new_data), timeout or self._timeout_sec)
+        t = timeout or self._timeout_sec
+        return self._caller.safe_call_with_result(self._async_lock.update(new_data), t)
 
-    # ------------------ Закрытие ------------------ #
-    def close(self, flush=True, timeout: Optional[float] = None):
+    def close(self, timeout: Optional[float] = None):
+        """
+        Закрытие синхронной обёртки: постараемся аккуратно освободить lock и остановить
+        фоновые ресурсы асинхронной части (stream/reconnector) через async close().
+        """
         if self._closed:
             return
+        t = timeout or self._timeout_sec
+
+        # best-effort release
+        try:
+            self._caller.safe_call_with_result(self._async_lock.release(), t)
+        except Exception:
+            pass
+
+        # если асинхнронный объект предоставляет close(flush) — вызвать его, иначе игнорировать
+        try:
+            # используем lambda, чтобы получить coroutine
+            self._caller.safe_call_with_result(self._async_lock.close(True), t)
+        except Exception:
+            # некоторые версии могут не иметь close или оно может упасть — игнорируем
+            pass
 
         self._closed = True
-
-        self._caller.safe_call_with_result(self._async_reader.close(flush), timeout)
