@@ -8,8 +8,6 @@ else:
 
 from .common_utils import IToProto
 
-# ---------- CRUD для узлов ----------
-
 
 @dataclass
 class CreateNodeRequest(IToProto):
@@ -55,9 +53,6 @@ class DropNodeRequest(IToProto):
         return ydb_coordination_pb2.DropNodeRequest(
             path=self.path,
         )
-
-
-# ---------- Сессии и семафоры ----------
 
 
 @dataclass
