@@ -93,3 +93,21 @@ class QueryStaleReadOnly(BaseQueryTxMode):
 
     def to_proto(self) -> ydb_query_pb2.StaleModeSettings:
         return ydb_query_pb2.StaleModeSettings()
+
+
+class QuerySnapshotReadWrite(BaseQueryTxMode):
+    """Snapshot isolation mode with read-write support.
+    All read operations within a transaction access the database snapshot.
+    The snapshot is taken when the transaction begins.
+    Write operations are also allowed in this mode.
+    """
+
+    def __init__(self):
+        self._name = "snapshot_read_write"
+
+    @property
+    def name(self) -> str:
+        return self._name
+
+    def to_proto(self) -> ydb_query_pb2.SnapshotRWModeSettings:
+        return ydb_query_pb2.SnapshotRWModeSettings()

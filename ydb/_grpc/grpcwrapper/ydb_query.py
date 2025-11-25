@@ -79,6 +79,8 @@ class TransactionSettings(IFromPublic, IToProto):
             return ydb_query_pb2.TransactionSettings(online_read_only=self.tx_mode.to_proto())
         if self.tx_mode.name == "stale_read_only":
             return ydb_query_pb2.TransactionSettings(stale_read_only=self.tx_mode.to_proto())
+        if self.tx_mode.name == "snapshot_read_write":
+            return ydb_query_pb2.TransactionSettings(snapshot_read_write=self.tx_mode.to_proto())
 
 
 @dataclass

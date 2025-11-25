@@ -4,6 +4,7 @@ __all__ = [
     "QueryOnlineReadOnly",
     "QuerySerializableReadWrite",
     "QuerySnapshotReadOnly",
+    "QuerySnapshotReadWrite",
     "QueryStaleReadOnly",
     "QuerySessionPool",
     "QueryClientSettings",
@@ -29,6 +30,7 @@ from .._grpc.grpcwrapper.ydb_query_public_types import (
     QueryOnlineReadOnly,
     QuerySerializableReadWrite,
     QuerySnapshotReadOnly,
+    QuerySnapshotReadWrite,
     QueryStaleReadOnly,
 )
 

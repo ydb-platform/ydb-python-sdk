@@ -197,7 +197,8 @@ class QuerySessionPool:
           1) QuerySerializableReadWrite() which is default mode;
           2) QueryOnlineReadOnly(allow_inconsistent_reads=False);
           3) QuerySnapshotReadOnly();
-          4) QueryStaleReadOnly().
+          4) QuerySnapshotReadWrite();
+          5) QueryStaleReadOnly().
         :param retry_settings: RetrySettings object.
 
         :return: Result sets or exception in case of execution errors.
@@ -212,7 +213,7 @@ class QuerySessionPool:
         def wrapped_callee():
             with self.checkout(timeout=retry_settings.max_session_acquire_timeout) as session:
                 with session.transaction(tx_mode=tx_mode) as tx:
-                    if tx_mode.name in ["serializable_read_write", "snapshot_read_only"]:
+                    if tx_mode.name in ["serializable_read_write", "snapshot_read_only", "snapshot_read_write"]:
                         tx.begin()
                     result = callee(tx, *args, **kwargs)
                     tx.commit()
