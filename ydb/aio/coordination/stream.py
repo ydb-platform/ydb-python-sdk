@@ -35,7 +35,6 @@ class CoordinationStream:
         self._stream.write(start_msg)
 
         try:
-            # Wait for SessionStart response
             async for resp in self._stream.from_server_grpc:
                 fs = FromServer.from_proto(resp)
                 if fs.session_started:

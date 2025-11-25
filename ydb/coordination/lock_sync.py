@@ -84,26 +84,18 @@ class CoordinationLockSync:
         return self._caller.safe_call_with_result(self._async_lock.update(new_data), t)
 
     def close(self, timeout: Optional[float] = None):
-        """
-        Закрытие синхронной обёртки: постараемся аккуратно освободить lock и остановить
-        фоновые ресурсы асинхронной части (stream/reconnector) через async close().
-        """
         if self._closed:
             return
         t = timeout or self._timeout_sec
 
-        # best-effort release
         try:
             self._caller.safe_call_with_result(self._async_lock.release(), t)
         except Exception:
             pass
 
-        # если асинхнронный объект предоставляет close(flush) — вызвать его, иначе игнорировать
         try:
-            # используем lambda, чтобы получить coroutine
             self._caller.safe_call_with_result(self._async_lock.close(True), t)
         except Exception:
-            # некоторые версии могут не иметь close или оно может упасть — игнорируем
             pass
 
         self._closed = True
