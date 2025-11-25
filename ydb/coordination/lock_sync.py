@@ -14,17 +14,14 @@ class CoordinationLockSync:
     ):
         self._closed = False
         self._name = name
-        self._loop = _get_shared_event_loop()
-        self._caller = CallFromSyncToAsync(self._loop)
-        self._client = client
-        self._node_path = node_path
-        self._timeout_sec = 30
+        self._caller = CallFromSyncToAsync(_get_shared_event_loop())
+        self._timeout_sec = 5
 
         async def _make_lock():
             return CoordinationLock(
-                client=self._client,
+                client=client,
                 name=self._name,
-                node_path=self._node_path,
+                node_path=node_path,
             )
 
         self._async_lock: CoordinationLock = self._caller.safe_call_with_result(_make_lock(), self._timeout_sec)
