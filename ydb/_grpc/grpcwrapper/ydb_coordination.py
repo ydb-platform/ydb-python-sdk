@@ -1,7 +1,6 @@
 import typing
 from dataclasses import dataclass
 
-
 if typing.TYPE_CHECKING:
     from ..v4.protos import ydb_coordination_pb2
 else:
@@ -9,13 +8,14 @@ else:
 
 from .common_utils import IToProto
 
+# ---------- CRUD для узлов ----------
 
 @dataclass
 class CreateNodeRequest(IToProto):
     path: str
     config: typing.Any
 
-    def to_proto(self) -> ydb_coordination_pb2.CreateNodeRequest:
+    def to_proto(self) -> "ydb_coordination_pb2.CreateNodeRequest":
         cfg_proto = self.config.to_proto() if self.config else None
         return ydb_coordination_pb2.CreateNodeRequest(
             path=self.path,
@@ -28,7 +28,7 @@ class AlterNodeRequest(IToProto):
     path: str
     config: typing.Any
 
-    def to_proto(self) -> ydb_coordination_pb2.AlterNodeRequest:
+    def to_proto(self) -> "ydb_coordination_pb2.AlterNodeRequest":
         cfg_proto = self.config.to_proto() if self.config else None
         return ydb_coordination_pb2.AlterNodeRequest(
             path=self.path,
@@ -40,7 +40,7 @@ class AlterNodeRequest(IToProto):
 class DescribeNodeRequest(IToProto):
     path: str
 
-    def to_proto(self) -> ydb_coordination_pb2.DescribeNodeRequest:
+    def to_proto(self) -> "ydb_coordination_pb2.DescribeNodeRequest":
         return ydb_coordination_pb2.DescribeNodeRequest(
             path=self.path,
         )
@@ -50,11 +50,12 @@ class DescribeNodeRequest(IToProto):
 class DropNodeRequest(IToProto):
     path: str
 
-    def to_proto(self) -> ydb_coordination_pb2.DropNodeRequest:
+    def to_proto(self) -> "ydb_coordination_pb2.DropNodeRequest":
         return ydb_coordination_pb2.DropNodeRequest(
             path=self.path,
         )
 
+# ---------- Сессии и семафоры ----------
 
 @dataclass
 class SessionStart(IToProto):
@@ -65,7 +66,7 @@ class SessionStart(IToProto):
     seq_no: int = 0
     protection_key: bytes = b""
 
-    def to_proto(self) -> ydb_coordination_pb2.SessionRequest:
+    def to_proto(self) -> "ydb_coordination_pb2.SessionRequest":
         return ydb_coordination_pb2.SessionRequest(
             session_start=ydb_coordination_pb2.SessionRequest.SessionStart(
                 path=self.path,
@@ -80,15 +81,17 @@ class SessionStart(IToProto):
 
 @dataclass
 class SessionStop(IToProto):
-    def to_proto(self) -> ydb_coordination_pb2.SessionRequest:
-        return ydb_coordination_pb2.SessionRequest(session_stop=ydb_coordination_pb2.SessionRequest.SessionStop())
+    def to_proto(self) -> "ydb_coordination_pb2.SessionRequest":
+        return ydb_coordination_pb2.SessionRequest(
+            session_stop=ydb_coordination_pb2.SessionRequest.SessionStop()
+        )
 
 
 @dataclass
 class Ping(IToProto):
     opaque: int = 0
 
-    def to_proto(self) -> ydb_coordination_pb2.SessionRequest:
+    def to_proto(self) -> "ydb_coordination_pb2.SessionRequest":
         return ydb_coordination_pb2.SessionRequest(
             ping=ydb_coordination_pb2.SessionRequest.PingPong(opaque=self.opaque)
         )
@@ -101,38 +104,10 @@ class CreateSemaphore(IToProto):
     limit: int
     data: bytes = b""
 
-    def to_proto(self) -> ydb_coordination_pb2.SessionRequest:
+    def to_proto(self) -> "ydb_coordination_pb2.SessionRequest":
         return ydb_coordination_pb2.SessionRequest(
             create_semaphore=ydb_coordination_pb2.SessionRequest.CreateSemaphore(
                 req_id=self.req_id, name=self.name, limit=self.limit, data=self.data
-            )
-        )
-
-
-@dataclass
-class UpdateSemaphore(IToProto):
-    name: str
-    req_id: int
-    data: bytes
-
-    def to_proto(self) -> ydb_coordination_pb2.SessionRequest:
-        return ydb_coordination_pb2.SessionRequest(
-            update_semaphore=ydb_coordination_pb2.SessionRequest.UpdateSemaphore(
-                req_id=self.req_id, name=self.name, data=self.data
-            )
-        )
-
-
-@dataclass
-class DeleteSemaphore(IToProto):
-    name: str
-    req_id: int
-    force: bool = False
-
-    def to_proto(self) -> ydb_coordination_pb2.SessionRequest:
-        return ydb_coordination_pb2.SessionRequest(
-            delete_semaphore=ydb_coordination_pb2.SessionRequest.DeleteSemaphore(
-                req_id=self.req_id, name=self.name, force=self.force
             )
         )
 
@@ -146,7 +121,7 @@ class AcquireSemaphore(IToProto):
     data: bytes = b""
     ephemeral: bool = False
 
-    def to_proto(self) -> ydb_coordination_pb2.SessionRequest:
+    def to_proto(self) -> "ydb_coordination_pb2.SessionRequest":
         return ydb_coordination_pb2.SessionRequest(
             acquire_semaphore=ydb_coordination_pb2.SessionRequest.AcquireSemaphore(
                 req_id=self.req_id,
@@ -164,9 +139,11 @@ class ReleaseSemaphore(IToProto):
     name: str
     req_id: int
 
-    def to_proto(self) -> ydb_coordination_pb2.SessionRequest:
+    def to_proto(self) -> "ydb_coordination_pb2.SessionRequest":
         return ydb_coordination_pb2.SessionRequest(
-            release_semaphore=ydb_coordination_pb2.SessionRequest.ReleaseSemaphore(req_id=self.req_id, name=self.name)
+            release_semaphore=ydb_coordination_pb2.SessionRequest.ReleaseSemaphore(
+                req_id=self.req_id, name=self.name
+            )
         )
 
 
@@ -179,7 +156,7 @@ class DescribeSemaphore(IToProto):
     watch_data: bool
     watch_owners: bool
 
-    def to_proto(self) -> ydb_coordination_pb2.SessionRequest:
+    def to_proto(self) -> "ydb_coordination_pb2.SessionRequest":
         return ydb_coordination_pb2.SessionRequest(
             describe_semaphore=ydb_coordination_pb2.SessionRequest.DescribeSemaphore(
                 include_owners=self.include_owners,
@@ -191,20 +168,47 @@ class DescribeSemaphore(IToProto):
             )
         )
 
+@dataclass
+class UpdateSemaphore(IToProto):
+    name: str
+    req_id: int
+    data: bytes
+
+    def to_proto(self) -> "ydb_coordination_pb2.SessionRequest":
+        return ydb_coordination_pb2.SessionRequest(
+            update_semaphore=ydb_coordination_pb2.SessionRequest.UpdateSemaphore(
+                req_id=self.req_id, name=self.name, data=self.data
+            )
+        )
+
+
+@dataclass
+class DeleteSemaphore(IToProto):
+    name: str
+    req_id: int
+    force: bool = False
+
+    def to_proto(self) -> "ydb_coordination_pb2.SessionRequest":
+        return ydb_coordination_pb2.SessionRequest(
+            delete_semaphore=ydb_coordination_pb2.SessionRequest.DeleteSemaphore(
+                req_id=self.req_id, name=self.name, force=self.force
+            )
+        )
+
 
 @dataclass
 class FromServer:
-    raw: ydb_coordination_pb2.SessionResponse
+    raw: "ydb_coordination_pb2.SessionResponse"
 
     @staticmethod
-    def from_proto(resp: ydb_coordination_pb2.SessionResponse) -> "FromServer":
+    def from_proto(resp: "ydb_coordination_pb2.SessionResponse") -> "FromServer":
         return FromServer(raw=resp)
 
     def __getattr__(self, name: str):
         return getattr(self.raw, name)
 
     @property
-    def session_started(self) -> typing.Optional[ydb_coordination_pb2.SessionResponse.SessionStarted]:
+    def session_started(self) -> typing.Optional["ydb_coordination_pb2.SessionResponse.SessionStarted"]:
         s = self.raw.session_started
         return s if s.session_id else None
 
@@ -215,23 +219,9 @@ class FromServer:
         return None
 
     @property
-    def acquire_semaphore_result(self) -> typing.Optional[ydb_coordination_pb2.SessionResponse.AcquireSemaphoreResult]:
+    def acquire_semaphore_result(self):
         return self.raw.acquire_semaphore_result if self.raw.HasField("acquire_semaphore_result") else None
 
     @property
-    def create_semaphore_result(self) -> typing.Optional[ydb_coordination_pb2.SessionResponse.CreateSemaphoreResult]:
+    def create_semaphore_result(self):
         return self.raw.create_semaphore_result if self.raw.HasField("create_semaphore_result") else None
-
-    @property
-    def delete_semaphore_result(self) -> typing.Optional[ydb_coordination_pb2.SessionResponse.DeleteSemaphoreResult]:
-        return self.raw.delete_semaphore_result if self.raw.HasField("delete_semaphore_result") else None
-
-    @property
-    def update_semaphore_result(self) -> typing.Optional[ydb_coordination_pb2.SessionResponse.UpdateSemaphoreResult]:
-        return self.raw.update_semaphore_result if self.raw.HasField("update_semaphore_result") else None
-
-    @property
-    def describe_semaphore_result(
-        self,
-    ) -> typing.Optional[ydb_coordination_pb2.SessionResponse.DescribeSemaphoreResult]:
-        return self.raw.describe_semaphore_result if self.raw.HasField("describe_semaphore_result") else None

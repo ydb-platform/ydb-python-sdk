@@ -117,7 +117,7 @@ class CoordinationLock:
             count=self._count,
             ephemeral=False,
             timeout_millis=self._timeout_millis,
-        ).to_proto()
+        )
 
         await self.send(req)
 
@@ -130,18 +130,17 @@ class CoordinationLock:
     async def __aexit__(self, exc_type, exc, tb):
         if self._req_id is not None:
             try:
-                req = ReleaseSemaphore(
-                    req_id=self._req_id,
-                    name=self._name,
-                ).to_proto()
+                req = ReleaseSemaphore(req_id=self._req_id, name=self._name)
                 await self.send(req)
             except issues.Error:
                 pass
 
-        await self._reconnector.stop()
+        if self._reconnector:
+            await self._reconnector.stop(flush=True)
+
         self._stream = None
-        self._node_path = None
         self._req_id = None
+        self._node_path = None
 
     async def acquire(self):
         return await self.__aenter__()
@@ -154,7 +153,7 @@ class CoordinationLock:
 
         req_id = self.next_req_id()
 
-        req = CreateSemaphore(req_id=req_id, name=self._name, limit=init_limit, data=init_data).to_proto()
+        req = CreateSemaphore(req_id=req_id, name=self._name, limit=init_limit, data=init_data)
 
         await self.send(req)
 
@@ -169,7 +168,7 @@ class CoordinationLock:
         req = DeleteSemaphore(
             req_id=req_id,
             name=self._name,
-        ).to_proto()
+        )
 
         await self.send(req)
 
@@ -188,7 +187,7 @@ class CoordinationLock:
             include_waiters=True,
             watch_data=False,
             watch_owners=False,
-        ).to_proto()
+        )
 
         await self.send(req)
 
@@ -199,9 +198,26 @@ class CoordinationLock:
         await self._ensure_session()
 
         req_id = self.next_req_id()
-        req = UpdateSemaphore(req_id=req_id, name=self._name, data=new_data).to_proto()
+        req = UpdateSemaphore(req_id=req_id, name=self._name, data=new_data)
 
         await self.send(req)
 
         resp = await self._wait_for_response(req_id, kind="update")
         return resp
+
+    async def close(self, flush: bool = True):
+
+        try:
+            if self._req_id is not None:
+                req = ReleaseSemaphore(req_id=self._req_id, name=self._name)
+                await self.send(req)
+        except issues.Error:
+            pass
+
+        if self._reconnector:
+            await self._reconnector.stop(flush)
+
+        self._stream = None
+        self._req_id = None
+        self._node_path = None
+

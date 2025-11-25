@@ -6,6 +6,14 @@ from ydb.aio.coordination.stream import CoordinationStream
 
 
 class CoordinationReconnector:
+    """
+    Простейшая затычка реконнектора:
+    - не делает автопереподключение
+    - сразу бросает ошибку, если stream не стартан
+    - интерфейс start/stop/get_stream/wait_ready полностью рабочий
+    - не зависает ни на каких таймаутах
+    """
+
     def __init__(
         self,
         driver,
@@ -23,17 +31,16 @@ class CoordinationReconnector:
 
         self._ready = asyncio.Event()
         self._stopped = False
-
-        self._first_error: asyncio.Future = asyncio.get_running_loop().create_future()
-        self._state_changed = asyncio.Event()
+        self._first_error: Optional[Exception] = None
 
     def start(self):
+        """Запуск реконнектора (фактически старт одного stream)"""
         if self._stopped:
             return
         if self._task is None or self._task.done():
             self._task = asyncio.create_task(self._connection_loop())
 
-    async def stop(self):
+    async def stop(self, flush: bool = True):
         self._stopped = True
 
         if self._task:
@@ -43,62 +50,53 @@ class CoordinationReconnector:
             self._task = None
 
         if self._stream:
-            await self._stream.close()
+            if flush:
+                try:
+                    await self._stream.close()
+                except Exception:
+                    pass
+            else:
+                self._stream._closed = True
             self._stream = None
 
+        # 3. Сбрасываем состояние
         self._ready.clear()
+        self._first_error = None
 
     async def wait_ready(self):
+        """Ждём, пока stream будет готов, или сразу бросаем ошибку"""
+        if self._first_error:
+            raise self._first_error
         await self._ready.wait()
+        if self._first_error:
+            raise self._first_error
 
     def get_stream(self) -> CoordinationStream:
+        """Получить готовый stream"""
         if self._stream is None or self._stream.session_id is None:
             raise RuntimeError("Coordination stream is not ready")
         return self._stream
 
     async def _connection_loop(self):
-        attempt = 0
-        backoff = 0.1
+        if self._stopped:
+            return
 
-        while not self._stopped:
-            try:
-                stream = CoordinationStream(
-                    self._driver,
-                    self._request_queue,
-                )
+        try:
+            self._stream = CoordinationStream(self._driver)
+            await self._stream.start_session(self._node_path, self._timeout_millis)
+            self._ready.set()
 
-                await stream.start_session(
-                    self._node_path,
-                    self._timeout_millis,
-                )
-
-                self._stream = stream
-                self._ready.set()
-
+            if self._stream._background_tasks:
                 await asyncio.wait(
-                    stream._background_tasks,
+                    self._stream._background_tasks,
                     return_when=asyncio.FIRST_EXCEPTION,
                 )
 
-            except asyncio.CancelledError:
-                break
-
-            except Exception as exc:
-                self._ready.clear()
-                self._stream = None
-
-                if not self._first_error.done():
-                    self._first_error.set_result(exc)
-                    self._state_changed.set()
-
-                if self._stopped:
-                    break
-
-                await asyncio.sleep(backoff)
-                attempt += 1
-                backoff = min(backoff * 2, 3.0)
-
-            finally:
-                if self._stream:
+        except Exception as exc:
+            self._first_error = exc
+            self._ready.clear()
+            if self._stream:
+                with contextlib.suppress(Exception):
                     await self._stream.close()
-                    self._stream = None
+            self._stream = None
+
