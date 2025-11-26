@@ -235,7 +235,8 @@ class GrpcWrapperAsyncIO(IGrpcWrapperAsyncIO):
         except (grpc.RpcError, grpc.aio.AioRpcError) as e:
             raise connection._rpc_error_handler(self._connection_state, e)
 
-        issues._process_response(grpc_message)
+        # coordination grpc calls dont have status field
+        # issues._process_response(grpc_message)
 
         if self._connection_state != "has_received_messages":
             self._connection_state = "has_received_messages"
