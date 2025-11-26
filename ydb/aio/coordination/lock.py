@@ -154,28 +154,8 @@ class CoordinationLock:
         resp = await self._wait_for_response(req_id, kind="create")
         return CreateSemaphoreResult.from_proto(resp)
 
-    async def delete(self, wait_empty_timeout: float = 5.0, poll_interval: float = 0.05):
+    async def delete(self):
         await self._ensure_session()
-
-        deadline = asyncio.get_running_loop().time() + wait_empty_timeout
-        while True:
-            try:
-                desc = await self.describe()
-                if desc.count == 0 and not desc.owners:
-                    break
-            except issues.Error as e:
-                if getattr(e, "status", None) == StatusCode.NOT_FOUND:
-                    break
-                raise
-
-            now = asyncio.get_running_loop().time()
-            if now > deadline:
-                raise issues.Error(
-                    f"Timeout waiting for semaphore '{self._name}' to become empty before delete. "
-                    f"count={desc.count}, owners={list(desc.owners)}"
-                )
-            await asyncio.sleep(poll_interval)
-
         req_id = self.next_req_id()
         req = DeleteSemaphore(req_id=req_id, name=self._name)
         await self.send(req)
