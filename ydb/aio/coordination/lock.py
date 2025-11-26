@@ -70,10 +70,8 @@ class CoordinationLock:
     async def _wait_for_response(self, req_id: int, *, kind: str):
         try:
             while True:
-                resp = await asyncio.wait_for(
-                    self._stream._incoming_queue.get(),
-                    timeout=self._wait_timeout,
-                )
+                resp = await self._stream.receive(self._wait_timeout)
+
                 fs = FromServer.from_proto(resp)
 
                 if kind == "acquire":

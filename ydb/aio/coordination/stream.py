@@ -92,10 +92,7 @@ class CoordinationStream:
         self._background_tasks.clear()
 
         if self._stream:
-            try:
-                self._stream.close()
-            except Exception:
-                pass
+            self._stream.close()
             self._stream = None
 
         self.session_id = None
