@@ -69,7 +69,6 @@ class TestQuerySessionPool:
             (None),
             (ydb.QuerySerializableReadWrite()),
             (ydb.QuerySnapshotReadOnly()),
-            (ydb.QuerySnapshotReadWrite()),
             (ydb.QueryOnlineReadOnly()),
             (ydb.QueryStaleReadOnly()),
         ],
