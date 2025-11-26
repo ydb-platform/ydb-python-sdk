@@ -116,12 +116,10 @@ class CoordinationLock:
         )
 
         await self.send(req)
+        await self._wait_for_response(req_id, kind="acquire")
 
-        resp = await self._wait_for_response(req_id, kind="acquire")
-        if resp.acquired:
-            return self
-        else:
-            raise issues.Error(f"Failed to acquire lock: {resp.issues}")
+        return self
+
 
     async def __aexit__(self, exc_type, exc, tb):
         if self._req_id is not None:
