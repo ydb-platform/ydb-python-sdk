@@ -1,3 +1,5 @@
+* Support Arrow format of result sets in QueryService
+
 ## 3.21.14 ##
 * Fixed bug with param read_from for topic reader
 
