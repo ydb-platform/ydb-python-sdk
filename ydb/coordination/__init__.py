@@ -1,10 +1,16 @@
-from .coordination_client import CoordinationClient
+__all__ = [
+    "CoordinationClient",
+    "NodeConfig",
+    "ConsistencyMode",
+    "RateLimiterCountersMode",
+    "DescribeResult",
+]
 
-from ydb._grpc.grpcwrapper.ydb_coordination_public_types import (
+from .client import CoordinationClient
+
+from .._grpc.grpcwrapper.ydb_coordination_public_types import (
     NodeConfig,
     ConsistencyMode,
     RateLimiterCountersMode,
     DescribeResult,
 )
-
-__all__ = ["CoordinationClient", "NodeConfig", "ConsistencyMode", "RateLimiterCountersMode", "DescribeResult"]

@@ -1,5 +1,5 @@
-from ydb import _apis, issues
-from ydb._grpc.grpcwrapper.ydb_coordination_public_types import NodeConfig, DescribeResult
+from .. import _apis, issues
+from .._grpc.grpcwrapper.ydb_coordination_public_types import NodeConfig, DescribeResult
 import logging
 
 

@@ -1,13 +1,13 @@
 from typing import Optional
 
-from ydb._grpc.grpcwrapper.ydb_coordination import (
+from .._grpc.grpcwrapper.ydb_coordination import (
     CreateNodeRequest,
     DescribeNodeRequest,
     AlterNodeRequest,
     DropNodeRequest,
 )
-from ydb._grpc.grpcwrapper.ydb_coordination_public_types import NodeConfig
-from ydb.coordination.base_coordination_client import BaseCoordinationClient
+from .._grpc.grpcwrapper.ydb_coordination_public_types import NodeConfig
+from .base import BaseCoordinationClient
 
 
 class CoordinationClient(BaseCoordinationClient):

@@ -1,7 +1,7 @@
 import pytest
 
 import ydb
-from ydb import aio
+from ydb.aio.coordination import CoordinationClient as AioCoordinationClient
 
 from ydb.coordination import (
     NodeConfig,
@@ -54,7 +54,7 @@ class TestCoordination:
             client.describe_node(node_path)
 
     async def test_coordination_node_lifecycle_async(self, aio_connection):
-        client = aio.CoordinationClient(aio_connection)
+        client = AioCoordinationClient(aio_connection)
         node_path = "/local/test_node_lifecycle"
 
         try:
