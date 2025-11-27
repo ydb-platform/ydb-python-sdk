@@ -1,3 +1,4 @@
+## 3.22.0 ##
 * Support Arrow format of result sets in QueryService
 
 ## 3.21.14 ##
