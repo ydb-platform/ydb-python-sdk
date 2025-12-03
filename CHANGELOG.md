@@ -1,3 +1,5 @@
+* Fix crash on discovery thread
+
 ## 3.22.0 ##
 * Support Arrow format of result sets in QueryService
 
