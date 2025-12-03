@@ -1,3 +1,4 @@
+## 3.22.1 ##
 * Fix crash on discovery thread
 
 ## 3.22.0 ##
