@@ -1,3 +1,4 @@
+## 3.22.2 ##
 * Make use_all_nodes True by default
 
 ## 3.22.1 ##
