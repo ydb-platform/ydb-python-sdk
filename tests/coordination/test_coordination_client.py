@@ -5,7 +5,8 @@ import time
 import pytest
 
 import ydb
-from ydb import aio, StatusCode, logger
+from ydb.aio.coordination import CoordinationClient as AioCoordinationClient
+from ydb import StatusCode, logger
 
 from ydb.coordination import (
     NodeConfig,
@@ -46,7 +47,7 @@ def sync_coordination_node(driver_sync):
 
 @pytest.fixture
 async def async_coordination_node(aio_connection):
-    client = aio.CoordinationClient(aio_connection)
+    client = AioCoordinationClient(aio_connection)
     node_path = "/local/test_node"
 
     try:
