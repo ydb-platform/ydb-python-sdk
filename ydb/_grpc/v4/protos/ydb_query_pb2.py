@@ -18,10 +18,11 @@ from ydb._grpc.v4.protos import ydb_issue_message_pb2 as protos_dot_ydb__issue__
 from ydb._grpc.v4.protos import ydb_operation_pb2 as protos_dot_ydb__operation__pb2
 from ydb._grpc.v4.protos import ydb_query_stats_pb2 as protos_dot_ydb__query__stats__pb2
 from ydb._grpc.v4.protos import ydb_status_codes_pb2 as protos_dot_ydb__status__codes__pb2
+from ydb._grpc.v4.protos import ydb_formats_pb2 as protos_dot_ydb__formats__pb2
 from ydb._grpc.v4.protos import ydb_value_pb2 as protos_dot_ydb__value__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x16protos/ydb_query.proto\x12\tYdb.Query\x1a\x1egoogle/protobuf/duration.proto\x1a#protos/annotations/validation.proto\x1a\x1eprotos/ydb_issue_message.proto\x1a\x1aprotos/ydb_operation.proto\x1a\x1cprotos/ydb_query_stats.proto\x1a\x1dprotos/ydb_status_codes.proto\x1a\x16protos/ydb_value.proto\"\x16\n\x14\x43reateSessionRequest\"\xa3\x01\n\x15\x43reateSessionResponse\x12)\n\x06status\x18\x01 \x01(\x0e\x32\x19.Ydb.StatusIds.StatusCode\x12\'\n\x06issues\x18\x02 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessage\x12\x1b\n\nsession_id\x18\x03 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\x12\x19\n\x07node_id\x18\x04 \x01(\x03\x42\x08\xb2\xe6*\x04>= 0\"3\n\x14\x44\x65leteSessionRequest\x12\x1b\n\nsession_id\x18\x01 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\"k\n\x15\x44\x65leteSessionResponse\x12)\n\x06status\x18\x01 \x01(\x0e\x32\x19.Ydb.StatusIds.StatusCode\x12\'\n\x06issues\x18\x02 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessage\"3\n\x14\x41ttachSessionRequest\x12\x1b\n\nsession_id\x18\x01 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\"b\n\x0cSessionState\x12)\n\x06status\x18\x01 \x01(\x0e\x32\x19.Ydb.StatusIds.StatusCode\x12\'\n\x06issues\x18\x02 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessage\"\x1a\n\x18SerializableModeSettings\"6\n\x12OnlineModeSettings\x12 \n\x18\x61llow_inconsistent_reads\x18\x01 \x01(\x08\"\x13\n\x11StaleModeSettings\"\x16\n\x14SnapshotModeSettings\"\x9b\x02\n\x13TransactionSettings\x12\x46\n\x17serializable_read_write\x18\x01 \x01(\x0b\x32#.Ydb.Query.SerializableModeSettingsH\x00\x12\x39\n\x10online_read_only\x18\x02 \x01(\x0b\x32\x1d.Ydb.Query.OnlineModeSettingsH\x00\x12\x37\n\x0fstale_read_only\x18\x03 \x01(\x0b\x32\x1c.Ydb.Query.StaleModeSettingsH\x00\x12=\n\x12snapshot_read_only\x18\x04 \x01(\x0b\x32\x1f.Ydb.Query.SnapshotModeSettingsH\x00\x42\t\n\x07tx_mode\"\x84\x01\n\x12TransactionControl\x12\x18\n\x05tx_id\x18\x01 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08H\x00\x12\x32\n\x08\x62\x65gin_tx\x18\x02 \x01(\x0b\x32\x1e.Ydb.Query.TransactionSettingsH\x00\x12\x11\n\tcommit_tx\x18\n \x01(\x08\x42\r\n\x0btx_selector\"k\n\x17\x42\x65ginTransactionRequest\x12\x1b\n\nsession_id\x18\x01 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\x12\x33\n\x0btx_settings\x18\x02 \x01(\x0b\x32\x1e.Ydb.Query.TransactionSettings\"&\n\x0fTransactionMeta\x12\x13\n\x02id\x18\x01 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\"\x9b\x01\n\x18\x42\x65ginTransactionResponse\x12)\n\x06status\x18\x01 \x01(\x0e\x32\x19.Ydb.StatusIds.StatusCode\x12\'\n\x06issues\x18\x02 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessage\x12+\n\x07tx_meta\x18\x03 \x01(\x0b\x32\x1a.Ydb.Query.TransactionMeta\"O\n\x18\x43ommitTransactionRequest\x12\x1b\n\nsession_id\x18\x01 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\x12\x16\n\x05tx_id\x18\x02 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\"o\n\x19\x43ommitTransactionResponse\x12)\n\x06status\x18\x01 \x01(\x0e\x32\x19.Ydb.StatusIds.StatusCode\x12\'\n\x06issues\x18\x02 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessage\"Q\n\x1aRollbackTransactionRequest\x12\x1b\n\nsession_id\x18\x01 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\x12\x16\n\x05tx_id\x18\x02 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\"q\n\x1bRollbackTransactionResponse\x12)\n\x06status\x18\x01 \x01(\x0e\x32\x19.Ydb.StatusIds.StatusCode\x12\'\n\x06issues\x18\x02 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessage\"?\n\x0cQueryContent\x12!\n\x06syntax\x18\x01 \x01(\x0e\x32\x11.Ydb.Query.Syntax\x12\x0c\n\x04text\x18\x02 \x01(\t\"\xe1\x03\n\x13\x45xecuteQueryRequest\x12\x1b\n\nsession_id\x18\x01 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\x12&\n\texec_mode\x18\x02 \x01(\x0e\x32\x13.Ydb.Query.ExecMode\x12\x31\n\ntx_control\x18\x03 \x01(\x0b\x32\x1d.Ydb.Query.TransactionControl\x12\x30\n\rquery_content\x18\x04 \x01(\x0b\x32\x17.Ydb.Query.QueryContentH\x00\x12\x42\n\nparameters\x18\x06 \x03(\x0b\x32..Ydb.Query.ExecuteQueryRequest.ParametersEntry\x12(\n\nstats_mode\x18\x07 \x01(\x0e\x32\x14.Ydb.Query.StatsMode\x12\x1e\n\x16\x63oncurrent_result_sets\x18\x08 \x01(\x08\x12\x34\n\x19response_part_limit_bytes\x18\t \x01(\x03\x42\x11\xb2\xe6*\r[0; 33554432]\x12\x0f\n\x07pool_id\x18\n \x01(\t\x1a\x42\n\x0fParametersEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\x1e\n\x05value\x18\x02 \x01(\x0b\x32\x0f.Ydb.TypedValue:\x02\x38\x01\x42\x07\n\x05query\"-\n\rResultSetMeta\x12\x1c\n\x07\x63olumns\x18\x01 \x03(\x0b\x32\x0b.Ydb.Column\"\x93\x02\n\x18\x45xecuteQueryResponsePart\x12)\n\x06status\x18\x01 \x01(\x0e\x32\x19.Ydb.StatusIds.StatusCode\x12\'\n\x06issues\x18\x02 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessage\x12\"\n\x10result_set_index\x18\x03 \x01(\x03\x42\x08\xb2\xe6*\x04>= 0\x12\"\n\nresult_set\x18\x04 \x01(\x0b\x32\x0e.Ydb.ResultSet\x12.\n\nexec_stats\x18\x05 \x01(\x0b\x32\x1a.Ydb.TableStats.QueryStats\x12+\n\x07tx_meta\x18\x06 \x01(\x0b\x32\x1a.Ydb.Query.TransactionMeta\"\x9e\x03\n\x14\x45xecuteScriptRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12&\n\texec_mode\x18\x02 \x01(\x0e\x32\x13.Ydb.Query.ExecMode\x12/\n\x0escript_content\x18\x03 \x01(\x0b\x32\x17.Ydb.Query.QueryContent\x12\x43\n\nparameters\x18\x04 \x03(\x0b\x32/.Ydb.Query.ExecuteScriptRequest.ParametersEntry\x12(\n\nstats_mode\x18\x05 \x01(\x0e\x32\x14.Ydb.Query.StatsMode\x12.\n\x0bresults_ttl\x18\x06 \x01(\x0b\x32\x19.google.protobuf.Duration\x12\x0f\n\x07pool_id\x18\x07 \x01(\t\x1a\x42\n\x0fParametersEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\x1e\n\x05value\x18\x02 \x01(\x0b\x32\x0f.Ydb.TypedValue:\x02\x38\x01\"\x9f\x02\n\x15\x45xecuteScriptMetadata\x12\x1d\n\x0c\x65xecution_id\x18\x01 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\x12*\n\x0b\x65xec_status\x18\x02 \x01(\x0e\x32\x15.Ydb.Query.ExecStatus\x12/\n\x0escript_content\x18\x03 \x01(\x0b\x32\x17.Ydb.Query.QueryContent\x12\x32\n\x10result_sets_meta\x18\x04 \x03(\x0b\x32\x18.Ydb.Query.ResultSetMeta\x12&\n\texec_mode\x18\x05 \x01(\x0e\x32\x13.Ydb.Query.ExecMode\x12.\n\nexec_stats\x18\x06 \x01(\x0b\x32\x1a.Ydb.TableStats.QueryStats\"\x90\x01\n\x19\x46\x65tchScriptResultsRequest\x12\x1d\n\x0coperation_id\x18\x01 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\x12\x18\n\x10result_set_index\x18\x02 \x01(\x03\x12\x1c\n\x0b\x66\x65tch_token\x18\x03 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\x12\x1c\n\nrows_limit\x18\x04 \x01(\x03\x42\x08\xb2\xe6*\x04>= 0\"\xdb\x01\n\x1a\x46\x65tchScriptResultsResponse\x12)\n\x06status\x18\x01 \x01(\x0e\x32\x19.Ydb.StatusIds.StatusCode\x12\'\n\x06issues\x18\x02 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessage\x12\"\n\x10result_set_index\x18\x03 \x01(\x03\x42\x08\xb2\xe6*\x04>= 0\x12\"\n\nresult_set\x18\x04 \x01(\x0b\x32\x0e.Ydb.ResultSet\x12!\n\x10next_fetch_token\x18\x05 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\"9\n\x06Script\x12/\n\x0escript_content\x18\x01 \x01(\x0b\x32\x17.Ydb.Query.QueryContent*B\n\x06Syntax\x12\x16\n\x12SYNTAX_UNSPECIFIED\x10\x00\x12\x11\n\rSYNTAX_YQL_V1\x10\x01\x12\r\n\tSYNTAX_PG\x10\x02*\x86\x01\n\x08\x45xecMode\x12\x19\n\x15\x45XEC_MODE_UNSPECIFIED\x10\x00\x12\x13\n\x0f\x45XEC_MODE_PARSE\x10\n\x12\x16\n\x12\x45XEC_MODE_VALIDATE\x10\x14\x12\x15\n\x11\x45XEC_MODE_EXPLAIN\x10\x1e\x12\x15\n\x11\x45XEC_MODE_EXECUTE\x10\x32\"\x04\x08(\x10(*\x7f\n\tStatsMode\x12\x1a\n\x16STATS_MODE_UNSPECIFIED\x10\x00\x12\x13\n\x0fSTATS_MODE_NONE\x10\n\x12\x14\n\x10STATS_MODE_BASIC\x10\x14\x12\x13\n\x0fSTATS_MODE_FULL\x10\x1e\x12\x16\n\x12STATS_MODE_PROFILE\x10(*\xaa\x01\n\nExecStatus\x12\x1b\n\x17\x45XEC_STATUS_UNSPECIFIED\x10\x00\x12\x18\n\x14\x45XEC_STATUS_STARTING\x10\n\x12\x17\n\x13\x45XEC_STATUS_ABORTED\x10\x14\x12\x19\n\x15\x45XEC_STATUS_CANCELLED\x10\x1e\x12\x19\n\x15\x45XEC_STATUS_COMPLETED\x10(\x12\x16\n\x12\x45XEC_STATUS_FAILED\x10\x32\x42S\n\x14tech.ydb.proto.queryZ8github.com/ydb-platform/ydb-go-genproto/protos/Ydb_Query\xf8\x01\x01\x62\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x16protos/ydb_query.proto\x12\tYdb.Query\x1a\x1egoogle/protobuf/duration.proto\x1a#protos/annotations/validation.proto\x1a\x1eprotos/ydb_issue_message.proto\x1a\x1aprotos/ydb_operation.proto\x1a\x1cprotos/ydb_query_stats.proto\x1a\x1dprotos/ydb_status_codes.proto\x1a\x18protos/ydb_formats.proto\x1a\x16protos/ydb_value.proto\"\x16\n\x14\x43reateSessionRequest\"\xa3\x01\n\x15\x43reateSessionResponse\x12)\n\x06status\x18\x01 \x01(\x0e\x32\x19.Ydb.StatusIds.StatusCode\x12\'\n\x06issues\x18\x02 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessage\x12\x1b\n\nsession_id\x18\x03 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\x12\x19\n\x07node_id\x18\x04 \x01(\x03\x42\x08\xb2\xe6*\x04>= 0\"3\n\x14\x44\x65leteSessionRequest\x12\x1b\n\nsession_id\x18\x01 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\"k\n\x15\x44\x65leteSessionResponse\x12)\n\x06status\x18\x01 \x01(\x0e\x32\x19.Ydb.StatusIds.StatusCode\x12\'\n\x06issues\x18\x02 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessage\"3\n\x14\x41ttachSessionRequest\x12\x1b\n\nsession_id\x18\x01 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\"b\n\x0cSessionState\x12)\n\x06status\x18\x01 \x01(\x0e\x32\x19.Ydb.StatusIds.StatusCode\x12\'\n\x06issues\x18\x02 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessage\"\x1a\n\x18SerializableModeSettings\"6\n\x12OnlineModeSettings\x12 \n\x18\x61llow_inconsistent_reads\x18\x01 \x01(\x08\"\x13\n\x11StaleModeSettings\"\x16\n\x14SnapshotModeSettings\"\x9b\x02\n\x13TransactionSettings\x12\x46\n\x17serializable_read_write\x18\x01 \x01(\x0b\x32#.Ydb.Query.SerializableModeSettingsH\x00\x12\x39\n\x10online_read_only\x18\x02 \x01(\x0b\x32\x1d.Ydb.Query.OnlineModeSettingsH\x00\x12\x37\n\x0fstale_read_only\x18\x03 \x01(\x0b\x32\x1c.Ydb.Query.StaleModeSettingsH\x00\x12=\n\x12snapshot_read_only\x18\x04 \x01(\x0b\x32\x1f.Ydb.Query.SnapshotModeSettingsH\x00\x42\t\n\x07tx_mode\"\x84\x01\n\x12TransactionControl\x12\x18\n\x05tx_id\x18\x01 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08H\x00\x12\x32\n\x08\x62\x65gin_tx\x18\x02 \x01(\x0b\x32\x1e.Ydb.Query.TransactionSettingsH\x00\x12\x11\n\tcommit_tx\x18\n \x01(\x08\x42\r\n\x0btx_selector\"k\n\x17\x42\x65ginTransactionRequest\x12\x1b\n\nsession_id\x18\x01 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\x12\x33\n\x0btx_settings\x18\x02 \x01(\x0b\x32\x1e.Ydb.Query.TransactionSettings\"&\n\x0fTransactionMeta\x12\x13\n\x02id\x18\x01 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\"\x9b\x01\n\x18\x42\x65ginTransactionResponse\x12)\n\x06status\x18\x01 \x01(\x0e\x32\x19.Ydb.StatusIds.StatusCode\x12\'\n\x06issues\x18\x02 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessage\x12+\n\x07tx_meta\x18\x03 \x01(\x0b\x32\x1a.Ydb.Query.TransactionMeta\"O\n\x18\x43ommitTransactionRequest\x12\x1b\n\nsession_id\x18\x01 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\x12\x16\n\x05tx_id\x18\x02 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\"o\n\x19\x43ommitTransactionResponse\x12)\n\x06status\x18\x01 \x01(\x0e\x32\x19.Ydb.StatusIds.StatusCode\x12\'\n\x06issues\x18\x02 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessage\"Q\n\x1aRollbackTransactionRequest\x12\x1b\n\nsession_id\x18\x01 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\x12\x16\n\x05tx_id\x18\x02 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\"q\n\x1bRollbackTransactionResponse\x12)\n\x06status\x18\x01 \x01(\x0e\x32\x19.Ydb.StatusIds.StatusCode\x12\'\n\x06issues\x18\x02 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessage\"?\n\x0cQueryContent\x12!\n\x06syntax\x18\x01 \x01(\x0e\x32\x11.Ydb.Query.Syntax\x12\x0c\n\x04text\x18\x02 \x01(\t\"\xb6\x05\n\x13\x45xecuteQueryRequest\x12\x1b\n\nsession_id\x18\x01 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\x12&\n\texec_mode\x18\x02 \x01(\x0e\x32\x13.Ydb.Query.ExecMode\x12\x31\n\ntx_control\x18\x03 \x01(\x0b\x32\x1d.Ydb.Query.TransactionControl\x12\x30\n\rquery_content\x18\x04 \x01(\x0b\x32\x17.Ydb.Query.QueryContentH\x00\x12\x42\n\nparameters\x18\x06 \x03(\x0b\x32..Ydb.Query.ExecuteQueryRequest.ParametersEntry\x12(\n\nstats_mode\x18\x07 \x01(\x0e\x32\x14.Ydb.Query.StatsMode\x12\x1e\n\x16\x63oncurrent_result_sets\x18\x08 \x01(\x08\x12\x34\n\x19response_part_limit_bytes\x18\t \x01(\x03\x42\x11\xb2\xe6*\r[0; 33554432]\x12\x0f\n\x07pool_id\x18\n \x01(\t\x12!\n\x0fstats_period_ms\x18\x0b \x01(\x03\x42\x08\xb2\xe6*\x04>= 0\x12=\n\x15schema_inclusion_mode\x18\x0c \x01(\x0e\x32\x1e.Ydb.Query.SchemaInclusionMode\x12\x30\n\x11result_set_format\x18\r \x01(\x0e\x32\x15.Ydb.ResultSet.Format\x12?\n\x15\x61rrow_format_settings\x18\x0e \x01(\x0b\x32 .Ydb.Formats.ArrowFormatSettings\x1a\x42\n\x0fParametersEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\x1e\n\x05value\x18\x02 \x01(\x0b\x32\x0f.Ydb.TypedValue:\x02\x38\x01\x42\x07\n\x05query\"-\n\rResultSetMeta\x12\x1c\n\x07\x63olumns\x18\x01 \x03(\x0b\x32\x0b.Ydb.Column\"\x93\x02\n\x18\x45xecuteQueryResponsePart\x12)\n\x06status\x18\x01 \x01(\x0e\x32\x19.Ydb.StatusIds.StatusCode\x12\'\n\x06issues\x18\x02 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessage\x12\"\n\x10result_set_index\x18\x03 \x01(\x03\x42\x08\xb2\xe6*\x04>= 0\x12\"\n\nresult_set\x18\x04 \x01(\x0b\x32\x0e.Ydb.ResultSet\x12.\n\nexec_stats\x18\x05 \x01(\x0b\x32\x1a.Ydb.TableStats.QueryStats\x12+\n\x07tx_meta\x18\x06 \x01(\x0b\x32\x1a.Ydb.Query.TransactionMeta\"\x9e\x03\n\x14\x45xecuteScriptRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12&\n\texec_mode\x18\x02 \x01(\x0e\x32\x13.Ydb.Query.ExecMode\x12/\n\x0escript_content\x18\x03 \x01(\x0b\x32\x17.Ydb.Query.QueryContent\x12\x43\n\nparameters\x18\x04 \x03(\x0b\x32/.Ydb.Query.ExecuteScriptRequest.ParametersEntry\x12(\n\nstats_mode\x18\x05 \x01(\x0e\x32\x14.Ydb.Query.StatsMode\x12.\n\x0bresults_ttl\x18\x06 \x01(\x0b\x32\x19.google.protobuf.Duration\x12\x0f\n\x07pool_id\x18\x07 \x01(\t\x1a\x42\n\x0fParametersEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\x1e\n\x05value\x18\x02 \x01(\x0b\x32\x0f.Ydb.TypedValue:\x02\x38\x01\"\x9f\x02\n\x15\x45xecuteScriptMetadata\x12\x1d\n\x0c\x65xecution_id\x18\x01 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\x12*\n\x0b\x65xec_status\x18\x02 \x01(\x0e\x32\x15.Ydb.Query.ExecStatus\x12/\n\x0escript_content\x18\x03 \x01(\x0b\x32\x17.Ydb.Query.QueryContent\x12\x32\n\x10result_sets_meta\x18\x04 \x03(\x0b\x32\x18.Ydb.Query.ResultSetMeta\x12&\n\texec_mode\x18\x05 \x01(\x0e\x32\x13.Ydb.Query.ExecMode\x12.\n\nexec_stats\x18\x06 \x01(\x0b\x32\x1a.Ydb.TableStats.QueryStats\"\x90\x01\n\x19\x46\x65tchScriptResultsRequest\x12\x1d\n\x0coperation_id\x18\x01 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\x12\x18\n\x10result_set_index\x18\x02 \x01(\x03\x12\x1c\n\x0b\x66\x65tch_token\x18\x03 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\x12\x1c\n\nrows_limit\x18\x04 \x01(\x03\x42\x08\xb2\xe6*\x04>= 0\"\xdb\x01\n\x1a\x46\x65tchScriptResultsResponse\x12)\n\x06status\x18\x01 \x01(\x0e\x32\x19.Ydb.StatusIds.StatusCode\x12\'\n\x06issues\x18\x02 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessage\x12\"\n\x10result_set_index\x18\x03 \x01(\x03\x42\x08\xb2\xe6*\x04>= 0\x12\"\n\nresult_set\x18\x04 \x01(\x0b\x32\x0e.Ydb.ResultSet\x12!\n\x10next_fetch_token\x18\x05 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x08\"9\n\x06Script\x12/\n\x0escript_content\x18\x01 \x01(\x0b\x32\x17.Ydb.Query.QueryContent*B\n\x06Syntax\x12\x16\n\x12SYNTAX_UNSPECIFIED\x10\x00\x12\x11\n\rSYNTAX_YQL_V1\x10\x01\x12\r\n\tSYNTAX_PG\x10\x02*\x86\x01\n\x08\x45xecMode\x12\x19\n\x15\x45XEC_MODE_UNSPECIFIED\x10\x00\x12\x13\n\x0f\x45XEC_MODE_PARSE\x10\n\x12\x16\n\x12\x45XEC_MODE_VALIDATE\x10\x14\x12\x15\n\x11\x45XEC_MODE_EXPLAIN\x10\x1e\x12\x15\n\x11\x45XEC_MODE_EXECUTE\x10\x32\"\x04\x08(\x10(*\x7f\n\tStatsMode\x12\x1a\n\x16STATS_MODE_UNSPECIFIED\x10\x00\x12\x13\n\x0fSTATS_MODE_NONE\x10\n\x12\x14\n\x10STATS_MODE_BASIC\x10\x14\x12\x13\n\x0fSTATS_MODE_FULL\x10\x1e\x12\x16\n\x12STATS_MODE_PROFILE\x10(*\x84\x01\n\x13SchemaInclusionMode\x12%\n!SCHEMA_INCLUSION_MODE_UNSPECIFIED\x10\x00\x12 \n\x1cSCHEMA_INCLUSION_MODE_ALWAYS\x10\x01\x12$\n SCHEMA_INCLUSION_MODE_FIRST_ONLY\x10\x02*\xaa\x01\n\nExecStatus\x12\x1b\n\x17\x45XEC_STATUS_UNSPECIFIED\x10\x00\x12\x18\n\x14\x45XEC_STATUS_STARTING\x10\n\x12\x17\n\x13\x45XEC_STATUS_ABORTED\x10\x14\x12\x19\n\x15\x45XEC_STATUS_CANCELLED\x10\x1e\x12\x19\n\x15\x45XEC_STATUS_COMPLETED\x10(\x12\x16\n\x12\x45XEC_STATUS_FAILED\x10\x32\x42S\n\x14tech.ydb.proto.queryZ8github.com/ydb-platform/ydb-go-genproto/protos/Ydb_Query\xf8\x01\x01\x62\x06proto3')
 
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, globals())
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'protos.ydb_query_pb2', globals())
@@ -57,6 +58,8 @@ if _descriptor._USE_C_DESCRIPTORS == False:
   _EXECUTEQUERYREQUEST.fields_by_name['session_id']._serialized_options = b'\242\346*\003\030\200\010'
   _EXECUTEQUERYREQUEST.fields_by_name['response_part_limit_bytes']._options = None
   _EXECUTEQUERYREQUEST.fields_by_name['response_part_limit_bytes']._serialized_options = b'\262\346*\r[0; 33554432]'
+  _EXECUTEQUERYREQUEST.fields_by_name['stats_period_ms']._options = None
+  _EXECUTEQUERYREQUEST.fields_by_name['stats_period_ms']._serialized_options = b'\262\346*\004>= 0'
   _EXECUTEQUERYRESPONSEPART.fields_by_name['result_set_index']._options = None
   _EXECUTEQUERYRESPONSEPART.fields_by_name['result_set_index']._serialized_options = b'\262\346*\004>= 0'
   _EXECUTESCRIPTREQUEST_PARAMETERSENTRY._options = None
@@ -73,72 +76,74 @@ if _descriptor._USE_C_DESCRIPTORS == False:
   _FETCHSCRIPTRESULTSRESPONSE.fields_by_name['result_set_index']._serialized_options = b'\262\346*\004>= 0'
   _FETCHSCRIPTRESULTSRESPONSE.fields_by_name['next_fetch_token']._options = None
   _FETCHSCRIPTRESULTSRESPONSE.fields_by_name['next_fetch_token']._serialized_options = b'\242\346*\003\030\200\010'
-  _SYNTAX._serialized_start=4014
-  _SYNTAX._serialized_end=4080
-  _EXECMODE._serialized_start=4083
-  _EXECMODE._serialized_end=4217
-  _STATSMODE._serialized_start=4219
-  _STATSMODE._serialized_end=4346
-  _EXECSTATUS._serialized_start=4349
-  _EXECSTATUS._serialized_end=4519
-  _CREATESESSIONREQUEST._serialized_start=251
-  _CREATESESSIONREQUEST._serialized_end=273
-  _CREATESESSIONRESPONSE._serialized_start=276
-  _CREATESESSIONRESPONSE._serialized_end=439
-  _DELETESESSIONREQUEST._serialized_start=441
-  _DELETESESSIONREQUEST._serialized_end=492
-  _DELETESESSIONRESPONSE._serialized_start=494
-  _DELETESESSIONRESPONSE._serialized_end=601
-  _ATTACHSESSIONREQUEST._serialized_start=603
-  _ATTACHSESSIONREQUEST._serialized_end=654
-  _SESSIONSTATE._serialized_start=656
-  _SESSIONSTATE._serialized_end=754
-  _SERIALIZABLEMODESETTINGS._serialized_start=756
-  _SERIALIZABLEMODESETTINGS._serialized_end=782
-  _ONLINEMODESETTINGS._serialized_start=784
-  _ONLINEMODESETTINGS._serialized_end=838
-  _STALEMODESETTINGS._serialized_start=840
-  _STALEMODESETTINGS._serialized_end=859
-  _SNAPSHOTMODESETTINGS._serialized_start=861
-  _SNAPSHOTMODESETTINGS._serialized_end=883
-  _TRANSACTIONSETTINGS._serialized_start=886
-  _TRANSACTIONSETTINGS._serialized_end=1169
-  _TRANSACTIONCONTROL._serialized_start=1172
-  _TRANSACTIONCONTROL._serialized_end=1304
-  _BEGINTRANSACTIONREQUEST._serialized_start=1306
-  _BEGINTRANSACTIONREQUEST._serialized_end=1413
-  _TRANSACTIONMETA._serialized_start=1415
-  _TRANSACTIONMETA._serialized_end=1453
-  _BEGINTRANSACTIONRESPONSE._serialized_start=1456
-  _BEGINTRANSACTIONRESPONSE._serialized_end=1611
-  _COMMITTRANSACTIONREQUEST._serialized_start=1613
-  _COMMITTRANSACTIONREQUEST._serialized_end=1692
-  _COMMITTRANSACTIONRESPONSE._serialized_start=1694
-  _COMMITTRANSACTIONRESPONSE._serialized_end=1805
-  _ROLLBACKTRANSACTIONREQUEST._serialized_start=1807
-  _ROLLBACKTRANSACTIONREQUEST._serialized_end=1888
-  _ROLLBACKTRANSACTIONRESPONSE._serialized_start=1890
-  _ROLLBACKTRANSACTIONRESPONSE._serialized_end=2003
-  _QUERYCONTENT._serialized_start=2005
-  _QUERYCONTENT._serialized_end=2068
-  _EXECUTEQUERYREQUEST._serialized_start=2071
-  _EXECUTEQUERYREQUEST._serialized_end=2552
-  _EXECUTEQUERYREQUEST_PARAMETERSENTRY._serialized_start=2477
-  _EXECUTEQUERYREQUEST_PARAMETERSENTRY._serialized_end=2543
-  _RESULTSETMETA._serialized_start=2554
-  _RESULTSETMETA._serialized_end=2599
-  _EXECUTEQUERYRESPONSEPART._serialized_start=2602
-  _EXECUTEQUERYRESPONSEPART._serialized_end=2877
-  _EXECUTESCRIPTREQUEST._serialized_start=2880
-  _EXECUTESCRIPTREQUEST._serialized_end=3294
-  _EXECUTESCRIPTREQUEST_PARAMETERSENTRY._serialized_start=2477
-  _EXECUTESCRIPTREQUEST_PARAMETERSENTRY._serialized_end=2543
-  _EXECUTESCRIPTMETADATA._serialized_start=3297
-  _EXECUTESCRIPTMETADATA._serialized_end=3584
-  _FETCHSCRIPTRESULTSREQUEST._serialized_start=3587
-  _FETCHSCRIPTRESULTSREQUEST._serialized_end=3731
-  _FETCHSCRIPTRESULTSRESPONSE._serialized_start=3734
-  _FETCHSCRIPTRESULTSRESPONSE._serialized_end=3953
-  _SCRIPT._serialized_start=3955
-  _SCRIPT._serialized_end=4012
+  _SYNTAX._serialized_start=4253
+  _SYNTAX._serialized_end=4319
+  _EXECMODE._serialized_start=4322
+  _EXECMODE._serialized_end=4456
+  _STATSMODE._serialized_start=4458
+  _STATSMODE._serialized_end=4585
+  _SCHEMAINCLUSIONMODE._serialized_start=4588
+  _SCHEMAINCLUSIONMODE._serialized_end=4720
+  _EXECSTATUS._serialized_start=4723
+  _EXECSTATUS._serialized_end=4893
+  _CREATESESSIONREQUEST._serialized_start=277
+  _CREATESESSIONREQUEST._serialized_end=299
+  _CREATESESSIONRESPONSE._serialized_start=302
+  _CREATESESSIONRESPONSE._serialized_end=465
+  _DELETESESSIONREQUEST._serialized_start=467
+  _DELETESESSIONREQUEST._serialized_end=518
+  _DELETESESSIONRESPONSE._serialized_start=520
+  _DELETESESSIONRESPONSE._serialized_end=627
+  _ATTACHSESSIONREQUEST._serialized_start=629
+  _ATTACHSESSIONREQUEST._serialized_end=680
+  _SESSIONSTATE._serialized_start=682
+  _SESSIONSTATE._serialized_end=780
+  _SERIALIZABLEMODESETTINGS._serialized_start=782
+  _SERIALIZABLEMODESETTINGS._serialized_end=808
+  _ONLINEMODESETTINGS._serialized_start=810
+  _ONLINEMODESETTINGS._serialized_end=864
+  _STALEMODESETTINGS._serialized_start=866
+  _STALEMODESETTINGS._serialized_end=885
+  _SNAPSHOTMODESETTINGS._serialized_start=887
+  _SNAPSHOTMODESETTINGS._serialized_end=909
+  _TRANSACTIONSETTINGS._serialized_start=912
+  _TRANSACTIONSETTINGS._serialized_end=1195
+  _TRANSACTIONCONTROL._serialized_start=1198
+  _TRANSACTIONCONTROL._serialized_end=1330
+  _BEGINTRANSACTIONREQUEST._serialized_start=1332
+  _BEGINTRANSACTIONREQUEST._serialized_end=1439
+  _TRANSACTIONMETA._serialized_start=1441
+  _TRANSACTIONMETA._serialized_end=1479
+  _BEGINTRANSACTIONRESPONSE._serialized_start=1482
+  _BEGINTRANSACTIONRESPONSE._serialized_end=1637
+  _COMMITTRANSACTIONREQUEST._serialized_start=1639
+  _COMMITTRANSACTIONREQUEST._serialized_end=1718
+  _COMMITTRANSACTIONRESPONSE._serialized_start=1720
+  _COMMITTRANSACTIONRESPONSE._serialized_end=1831
+  _ROLLBACKTRANSACTIONREQUEST._serialized_start=1833
+  _ROLLBACKTRANSACTIONREQUEST._serialized_end=1914
+  _ROLLBACKTRANSACTIONRESPONSE._serialized_start=1916
+  _ROLLBACKTRANSACTIONRESPONSE._serialized_end=2029
+  _QUERYCONTENT._serialized_start=2031
+  _QUERYCONTENT._serialized_end=2094
+  _EXECUTEQUERYREQUEST._serialized_start=2097
+  _EXECUTEQUERYREQUEST._serialized_end=2791
+  _EXECUTEQUERYREQUEST_PARAMETERSENTRY._serialized_start=2716
+  _EXECUTEQUERYREQUEST_PARAMETERSENTRY._serialized_end=2782
+  _RESULTSETMETA._serialized_start=2793
+  _RESULTSETMETA._serialized_end=2838
+  _EXECUTEQUERYRESPONSEPART._serialized_start=2841
+  _EXECUTEQUERYRESPONSEPART._serialized_end=3116
+  _EXECUTESCRIPTREQUEST._serialized_start=3119
+  _EXECUTESCRIPTREQUEST._serialized_end=3533
+  _EXECUTESCRIPTREQUEST_PARAMETERSENTRY._serialized_start=2716
+  _EXECUTESCRIPTREQUEST_PARAMETERSENTRY._serialized_end=2782
+  _EXECUTESCRIPTMETADATA._serialized_start=3536
+  _EXECUTESCRIPTMETADATA._serialized_end=3823
+  _FETCHSCRIPTRESULTSREQUEST._serialized_start=3826
+  _FETCHSCRIPTRESULTSREQUEST._serialized_end=3970
+  _FETCHSCRIPTRESULTSRESPONSE._serialized_start=3973
+  _FETCHSCRIPTRESULTSRESPONSE._serialized_end=4192
+  _SCRIPT._serialized_start=4194
+  _SCRIPT._serialized_end=4251
 # @@protoc_insertion_point(module_scope)

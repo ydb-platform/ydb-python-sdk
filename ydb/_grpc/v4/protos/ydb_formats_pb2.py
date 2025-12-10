@@ -14,7 +14,7 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x18protos/ydb_formats.proto\x12\x0bYdb.Formats\"$\n\x12\x41rrowBatchSettings\x12\x0e\n\x06schema\x18\x01 \x01(\x0c\"\xda\x01\n\x0b\x43svSettings\x12\x11\n\tskip_rows\x18\x01 \x01(\r\x12\x11\n\tdelimiter\x18\x02 \x01(\x0c\x12\x12\n\nnull_value\x18\x03 \x01(\x0c\x12\x0e\n\x06header\x18\x04 \x01(\x08\x12\x31\n\x07quoting\x18\x05 \x01(\x0b\x32 .Ydb.Formats.CsvSettings.Quoting\x1aN\n\x07Quoting\x12\x10\n\x08\x64isabled\x18\x01 \x01(\x08\x12\x12\n\nquote_char\x18\x02 \x01(\x0c\x12\x1d\n\x15\x64ouble_quote_disabled\x18\x03 \x01(\x08\x42W\n\x16tech.ydb.proto.formatsZ:github.com/ydb-platform/ydb-go-genproto/protos/Ydb_Formats\xf8\x01\x01\x62\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x18protos/ydb_formats.proto\x12\x0bYdb.Formats\"$\n\x12\x41rrowBatchSettings\x12\x0e\n\x06schema\x18\x01 \x01(\x0c\"\xda\x01\n\x0b\x43svSettings\x12\x11\n\tskip_rows\x18\x01 \x01(\r\x12\x11\n\tdelimiter\x18\x02 \x01(\x0c\x12\x12\n\nnull_value\x18\x03 \x01(\x0c\x12\x0e\n\x06header\x18\x04 \x01(\x08\x12\x31\n\x07quoting\x18\x05 \x01(\x0b\x32 .Ydb.Formats.CsvSettings.Quoting\x1aN\n\x07Quoting\x12\x10\n\x08\x64isabled\x18\x01 \x01(\x08\x12\x12\n\nquote_char\x18\x02 \x01(\x0c\x12\x1d\n\x15\x64ouble_quote_disabled\x18\x03 \x01(\x08\"\xac\x02\n\x13\x41rrowFormatSettings\x12L\n\x11\x63ompression_codec\x18\x01 \x01(\x0b\x32\x31.Ydb.Formats.ArrowFormatSettings.CompressionCodec\x1a\xc6\x01\n\x10\x43ompressionCodec\x12\x44\n\x04type\x18\x01 \x01(\x0e\x32\x36.Ydb.Formats.ArrowFormatSettings.CompressionCodec.Type\x12\x12\n\x05level\x18\x02 \x01(\x05H\x00\x88\x01\x01\"N\n\x04Type\x12\x14\n\x10TYPE_UNSPECIFIED\x10\x00\x12\r\n\tTYPE_NONE\x10\x01\x12\r\n\tTYPE_ZSTD\x10\x02\x12\x12\n\x0eTYPE_LZ4_FRAME\x10\x03\x42\x08\n\x06_level\"!\n\x0f\x41rrowFormatMeta\x12\x0e\n\x06schema\x18\x01 \x01(\x0c\x42W\n\x16tech.ydb.proto.formatsZ:github.com/ydb-platform/ydb-go-genproto/protos/Ydb_Formats\xf8\x01\x01\x62\x06proto3')
 
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, globals())
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'protos.ydb_formats_pb2', globals())
@@ -28,4 +28,12 @@ if _descriptor._USE_C_DESCRIPTORS == False:
   _CSVSETTINGS._serialized_end=298
   _CSVSETTINGS_QUOTING._serialized_start=220
   _CSVSETTINGS_QUOTING._serialized_end=298
+  _ARROWFORMATSETTINGS._serialized_start=301
+  _ARROWFORMATSETTINGS._serialized_end=601
+  _ARROWFORMATSETTINGS_COMPRESSIONCODEC._serialized_start=403
+  _ARROWFORMATSETTINGS_COMPRESSIONCODEC._serialized_end=601
+  _ARROWFORMATSETTINGS_COMPRESSIONCODEC_TYPE._serialized_start=513
+  _ARROWFORMATSETTINGS_COMPRESSIONCODEC_TYPE._serialized_end=591
+  _ARROWFORMATMETA._serialized_start=603
+  _ARROWFORMATMETA._serialized_end=636
 # @@protoc_insertion_point(module_scope)

@@ -1,3 +1,12 @@
+## 3.22.2 ##
+* Make use_all_nodes True by default
+
+## 3.22.1 ##
+* Fix crash on discovery thread
+
+## 3.22.0 ##
+* Support Arrow format of result sets in QueryService
+
 ## 3.21.14 ##
 * Fixed bug with param read_from for topic reader
 
