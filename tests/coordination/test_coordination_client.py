@@ -1,7 +1,6 @@
 import asyncio
 import threading
 import time
-from cgitb import small
 
 import pytest
 
@@ -16,6 +15,7 @@ from ydb.coordination import (
     CreateSemaphoreResult,
     DescribeLockResult,
 )
+
 
 @pytest.fixture
 def sync_coordination_node(driver_sync):
@@ -42,6 +42,7 @@ def sync_coordination_node(driver_sync):
         client.delete_node(node_path)
     except ydb.SchemeError:
         pass
+
 
 @pytest.fixture
 async def async_coordination_node(aio_connection):
@@ -146,7 +147,6 @@ class TestCoordination:
         assert list(desc2.owners) == []
         assert list(desc2.waiters) == []
 
-
         delete = await lock.delete()
         assert delete.status == StatusCode.SUCCESS
 
@@ -248,7 +248,7 @@ class TestCoordination:
                     lock2_acquired.set()
                     logger.info("Second thread acquired lock")
             except Exception as e:
-                logger.exception("second_lock_task failed")
+                logger.exception(f"{e} | second_lock_task failed")
 
         t2 = threading.Thread(target=second_lock_task)
 

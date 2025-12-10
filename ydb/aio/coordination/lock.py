@@ -1,6 +1,5 @@
 import asyncio
 import contextlib
-from typing import Optional
 
 from ydb import issues
 from ydb._grpc.grpcwrapper.ydb_coordination import (
@@ -13,7 +12,6 @@ from ydb._grpc.grpcwrapper.ydb_coordination import (
     FromServer,
 )
 from ydb._grpc.grpcwrapper.ydb_coordination_public_types import CreateSemaphoreResult, DescribeLockResult
-from ydb.aio.coordination.stream import CoordinationStream
 from ydb.aio.coordination.reconnector import CoordinationReconnector
 
 
