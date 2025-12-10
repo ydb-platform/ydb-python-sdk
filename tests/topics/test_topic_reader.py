@@ -96,6 +96,32 @@ class TestTopicReaderAsyncIO:
             msg2 = await reader.receive_message()
             assert msg2.seqno == 2
 
+    async def test_commit_offset_retry_on_ydb_errors(self, driver, topic_with_messages, topic_consumer, monkeypatch):
+        async with driver.topic_client.reader(topic_with_messages, topic_consumer) as reader:
+            message = await reader.receive_message()
+
+            call_count = 0
+            original_driver_call = driver.topic_client._driver
+
+            async def mock_driver_call(*args, **kwargs):
+                nonlocal call_count
+                call_count += 1
+
+                if call_count == 1:
+                    raise ydb.Unavailable("Service temporarily unavailable")
+                elif call_count == 2:
+                    raise ydb.Cancelled("Operation was cancelled")
+                else:
+                    return await original_driver_call(*args, **kwargs)
+
+            monkeypatch.setattr(driver.topic_client, "_driver", mock_driver_call)
+
+            await driver.topic_client.commit_offset(
+                topic_with_messages, topic_consumer, message.partition_id, message.offset + 1
+            )
+
+            assert call_count == 3
+
     async def test_reader_reconnect_after_commit_offset(self, driver, topic_with_messages, topic_consumer):
         async with driver.topic_client.reader(topic_with_messages, topic_consumer) as reader:
             for out in ["123", "456", "789", "0"]:
@@ -256,6 +282,33 @@ class TestTopicReaderSync:
         with driver_sync.topic_client.reader(topic_with_messages, topic_consumer) as reader:
             msg2 = reader.receive_message()
             assert msg2.seqno == 2
+
+    def test_commit_offset_retry_on_ydb_errors(self, driver_sync, topic_with_messages, topic_consumer, monkeypatch):
+        with driver_sync.topic_client.reader(topic_with_messages, topic_consumer) as reader:
+            message = reader.receive_message()
+
+            # Counter to track retry attempts
+            call_count = 0
+            original_driver_call = driver_sync.topic_client._driver
+
+            def mock_driver_call(*args, **kwargs):
+                nonlocal call_count
+                call_count += 1
+
+                if call_count == 1:
+                    raise ydb.Unavailable("Service temporarily unavailable")
+                elif call_count == 2:
+                    raise ydb.Cancelled("Operation was cancelled")
+                else:
+                    return original_driver_call(*args, **kwargs)
+
+            monkeypatch.setattr(driver_sync.topic_client, "_driver", mock_driver_call)
+
+            driver_sync.topic_client.commit_offset(
+                topic_with_messages, topic_consumer, message.partition_id, message.offset + 1
+            )
+
+            assert call_count == 3
 
     def test_reader_reconnect_after_commit_offset(self, driver_sync, topic_with_messages, topic_consumer):
         with driver_sync.topic_client.reader(topic_with_messages, topic_consumer) as reader:
