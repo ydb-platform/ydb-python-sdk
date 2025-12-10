@@ -1,3 +1,4 @@
+## 3.22.3 ##
 * Make commit_offset call retryable
 
 ## 3.22.2 ##
