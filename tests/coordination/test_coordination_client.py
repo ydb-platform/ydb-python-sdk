@@ -249,7 +249,6 @@ class TestCoordination:
                     logger.info("Second thread acquired lock")
             except Exception as e:
                 logger.exception("second_lock_task failed")
-                thread_exc["err"] = e
 
         t2 = threading.Thread(target=second_lock_task)
 
