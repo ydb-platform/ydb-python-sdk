@@ -50,11 +50,8 @@ class CoordinationLock:
     async def release(self):
         req = ReleaseSemaphore(req_id=self._next_req_id(), name=self._name)
         try:
-            print(f"Releasing lock {self._name} with req_id={req.req_id}")
             await asyncio.shield(self._reconnector.send_and_wait(req))
-            print(f"Released lock {self._name} req_id={req.req_id}")
         except (asyncio.CancelledError, Exception):
-            # игнорируем, чтобы __aexit__ не падал
             pass
 
     async def create(self, init_limit: int, init_data: bytes):
