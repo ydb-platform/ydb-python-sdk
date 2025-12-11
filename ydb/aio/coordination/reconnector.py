@@ -2,8 +2,8 @@ import asyncio
 import contextlib
 from typing import Optional
 
-from ydb.aio.coordination.stream import CoordinationStream
-from ydb._grpc.grpcwrapper.ydb_coordination import FromServer
+from ...aio.coordination.stream import CoordinationStream
+from ..._grpc.grpcwrapper.ydb_coordination import FromServer
 
 
 class CoordinationReconnector:

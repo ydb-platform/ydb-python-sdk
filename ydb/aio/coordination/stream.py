@@ -2,14 +2,13 @@ import asyncio
 import contextlib
 from typing import Optional, Set
 
-import ydb
-from ydb import issues, _apis
-from ydb._grpc.grpcwrapper.common_utils import IToProto, GrpcWrapperAsyncIO
-from ydb._grpc.grpcwrapper.ydb_coordination import FromServer, Ping, SessionStart
+from ... import issues, _apis
+from ..._grpc.grpcwrapper.common_utils import IToProto, GrpcWrapperAsyncIO
+from ..._grpc.grpcwrapper.ydb_coordination import FromServer, Ping, SessionStart
 
 
 class CoordinationStream:
-    def __init__(self, driver: "ydb.aio.Driver"):
+    def __init__(self, driver):
         self._driver = driver
         self._stream: GrpcWrapperAsyncIO = GrpcWrapperAsyncIO(FromServer.from_proto)
         self._background_tasks: Set[asyncio.Task] = set()

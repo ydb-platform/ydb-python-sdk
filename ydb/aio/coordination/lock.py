@@ -1,7 +1,7 @@
 import asyncio
 
 from ydb import issues
-from ydb._grpc.grpcwrapper.ydb_coordination import (
+from ..._grpc.grpcwrapper.ydb_coordination import (
     AcquireSemaphore,
     ReleaseSemaphore,
     UpdateSemaphore,
@@ -9,8 +9,8 @@ from ydb._grpc.grpcwrapper.ydb_coordination import (
     CreateSemaphore,
     DeleteSemaphore,
 )
-from ydb._grpc.grpcwrapper.ydb_coordination_public_types import CreateSemaphoreResult, DescribeLockResult
-from ydb.aio.coordination.reconnector import CoordinationReconnector
+from ..._grpc.grpcwrapper.ydb_coordination_public_types import CreateSemaphoreResult, DescribeLockResult
+from ...aio.coordination.reconnector import CoordinationReconnector
 
 
 class CoordinationLock:
