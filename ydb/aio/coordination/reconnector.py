@@ -146,70 +146,54 @@ class CoordinationReconnector:
                 self._stream = None
 
     async def _dispatch_loop(self):
-        try:
-            while True:
-                try:
-                    resp = await self._stream.receive(self._wait_timeout)
-                except asyncio.TimeoutError:
-                    continue
-                except asyncio.CancelledError:
-                    raise
-                except Exception as exc:
-                    for fut in self._pending_futures.values():
-                        if not fut.done():
-                            fut.set_exception(exc)
-                    self._pending_futures.clear()
-                    with contextlib.suppress(Exception):
-                        await self._stream.close()
-                    break
+        while True:
+            try:
+                resp = await self._stream.receive(self._wait_timeout)
+            except asyncio.TimeoutError:
+                continue
+            except asyncio.CancelledError:
+                raise
+            except Exception as exc:
+                for fut in self._pending_futures.values():
+                    if not fut.done():
+                        fut.set_exception(exc)
+                self._pending_futures.clear()
+                with contextlib.suppress(Exception):
+                    await self._stream.close()
+                break
 
-                if resp is None:
-                    continue
+            if resp is None:
+                continue
 
-                try:
-                    fs = FromServer.from_proto(resp)
-                    raw = fs.raw
-                except Exception as exc:
-                    for fut in self._pending_futures.values():
-                        if not fut.done():
-                            fut.set_exception(exc)
-                    self._pending_futures.clear()
-                    with contextlib.suppress(Exception):
-                        await self._stream.close()
-                    break
+            try:
+                fs = FromServer.from_proto(resp)
+                raw = fs.raw
+            except Exception as exc:
+                for fut in self._pending_futures.values():
+                    if not fut.done():
+                        fut.set_exception(exc)
+                self._pending_futures.clear()
+                with contextlib.suppress(Exception):
+                    await self._stream.close()
+                break
 
-                payload = None
-                for field_name in (
+            payload = None
+            for field_name in (
                     "acquire_semaphore_result",
                     "release_semaphore_result",
                     "describe_semaphore_result",
                     "create_semaphore_result",
                     "update_semaphore_result",
                     "delete_semaphore_result",
-                ):
-                    if raw.HasField(field_name):
-                        payload = getattr(fs, field_name)
-                        break
-                if payload is None:
-                    continue
+            ):
+                if raw.HasField(field_name):
+                    payload = getattr(fs, field_name)
+                    break
+            if payload is None:
+                continue
 
-                req_id = getattr(payload, "req_id", None)
-                if req_id is not None:
-                    fut = self._pending_futures.pop(req_id, None)
-                    if isinstance(fut, asyncio.Future) and not fut.done():
-                        fut.set_result(payload)
-
-        except asyncio.CancelledError:
-            for fut in self._pending_futures.values():
-                if not fut.done():
-                    fut.set_exception(asyncio.CancelledError())
-            self._pending_futures.clear()
-            raise
-
-        except Exception as exc:
-            for fut in self._pending_futures.values():
-                if not fut.done():
-                    fut.set_exception(exc)
-            self._pending_futures.clear()
-            with contextlib.suppress(Exception):
-                await self._stream.close()
+            req_id = getattr(payload, "req_id", None)
+            if req_id is not None:
+                fut = self._pending_futures.pop(req_id, None)
+                if isinstance(fut, asyncio.Future) and not fut.done():
+                    fut.set_result(payload)
