@@ -1,5 +1,4 @@
 import asyncio
-from typing import Optional
 
 from ydb import issues
 from ydb._grpc.grpcwrapper.ydb_coordination import (
@@ -45,14 +44,14 @@ class CoordinationLock:
             ephemeral=False,
             timeout_millis=self._timeout_millis,
         )
-        await self._reconnector.send_and_wait(req, "acquire")
+        await self._reconnector.send_and_wait(req)
         return self
 
     async def release(self):
         req = ReleaseSemaphore(req_id=self._next_req_id(), name=self._name)
         try:
             print(f"Releasing lock {self._name} with req_id={req.req_id}")
-            await asyncio.shield(self._reconnector.send_and_wait(req, "release"))
+            await asyncio.shield(self._reconnector.send_and_wait(req))
             print(f"Released lock {self._name} req_id={req.req_id}")
         except (asyncio.CancelledError, Exception):
             # игнорируем, чтобы __aexit__ не падал
@@ -65,12 +64,12 @@ class CoordinationLock:
             limit=init_limit,
             data=init_data,
         )
-        resp = await self._reconnector.send_and_wait(req, "create")
+        resp = await self._reconnector.send_and_wait(req)
         return CreateSemaphoreResult.from_proto(resp)
 
     async def delete(self):
         req = DeleteSemaphore(req_id=self._next_req_id(), name=self._name)
-        resp = await self._reconnector.send_and_wait(req, "delete")
+        resp = await self._reconnector.send_and_wait(req)
         return resp
 
     async def describe(self):
@@ -82,17 +81,17 @@ class CoordinationLock:
             watch_data=False,
             watch_owners=False,
         )
-        resp = await self._reconnector.send_and_wait(req, "describe")
+        resp = await self._reconnector.send_and_wait(req)
         return DescribeLockResult.from_proto(resp)
 
     async def update(self, new_data: bytes):
         req = UpdateSemaphore(req_id=self._next_req_id(), name=self._name, data=new_data)
-        return await self._reconnector.send_and_wait(req, "update")
+        return await self._reconnector.send_and_wait(req)
 
     async def close(self, flush: bool = True):
         try:
             req = ReleaseSemaphore(req_id=self._next_req_id(), name=self._name)
-            await asyncio.shield(self._reconnector.send_and_wait(req, "release"))
+            await asyncio.shield(self._reconnector.send_and_wait(req))
         except issues.Error:
             pass
         await self._reconnector.stop(flush)
