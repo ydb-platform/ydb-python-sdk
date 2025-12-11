@@ -21,24 +21,34 @@ class CoordinationStream:
         if self._started:
             raise issues.Error("CoordinationStream already started")
 
+        print("[CoordinationStream] Starting session...")
         self._started = True
         await self._stream.start(self._driver, _apis.CoordinationService.Stub, _apis.CoordinationService.Session)
 
+        print(f"[CoordinationStream] Writing SessionStart for path {path}")
         self._stream.write(SessionStart(path=path, timeout_millis=timeout_millis))
 
         while True:
             try:
+                print("[CoordinationStream] Waiting for SessionStart response...")
                 resp = await self._stream.receive(timeout=3)
+                print(f"[CoordinationStream] Received response: {resp}")
+
                 if resp.session_started:
                     self.session_id = resp.session_started
+                    print(f"[CoordinationStream] Session started: {self.session_id}")
                     break
                 else:
+                    print("[CoordinationStream] Response received but session not started, continuing...")
                     continue
             except asyncio.TimeoutError:
+                print("[CoordinationStream] Timeout waiting for SessionStart response")
                 raise issues.Error("Timeout waiting for SessionStart response")
             except Exception as e:
+                print(f"[CoordinationStream] Exception during start_session: {e}")
                 raise issues.Error(f"Failed to start session: {e}")
 
+        print("[CoordinationStream] Starting reader loop task...")
         task = asyncio.get_running_loop().create_task(self._reader_loop())
         self._background_tasks.add(task)
 
@@ -80,8 +90,10 @@ class CoordinationStream:
     async def close(self):
         if self._closed:
             return
+
         self._closed = True
 
+        # Завершаем все background tasks
         for task in list(self._background_tasks):
             task.cancel()
 
@@ -90,8 +102,17 @@ class CoordinationStream:
 
         self._background_tasks.clear()
 
+        # Закрываем GRPC stream
         if self._stream:
             self._stream.close()
             self._stream = None
 
+        # Чистим очередь, освобождая "висящие" get()
+        while not self._incoming_queue.empty():
+            try:
+                self._incoming_queue.get_nowait()
+            except Exception:
+                break
+
         self.session_id = None
+

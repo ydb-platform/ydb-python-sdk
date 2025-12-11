@@ -267,3 +267,20 @@ class TestCoordination:
         time.sleep(small_timeout)
         describe_after_delete: DescribeLockResult = lock.describe()
         assert describe_after_delete.status == StatusCode.NOT_FOUND
+
+    async def test_coordination_reconnect_async(self, async_coordination_node):
+        client, node_path, config = async_coordination_node
+
+        lock = client.lock("test_lock", node_path)
+
+        # create semaphore
+        res = await lock.create(init_limit=1, init_data=b"")
+        assert res.status == StatusCode.SUCCESS
+
+        # break connection (simulate network drop)
+        await lock._reconnector._stream.close()
+
+        # next call must succeed after reconnect
+        desc = await lock.describe()
+        assert desc.status == StatusCode.SUCCESS
+        assert desc.name == "test_lock"
