@@ -196,7 +196,7 @@ class CoordinationReconnector:
                 req_id = getattr(payload, "req_id", None)
                 if req_id is not None:
                     fut = self._pending_futures.pop(req_id, None)
-                    if fut and not fut.done():
+                    if isinstance(fut, asyncio.Future) and not fut.done():
                         fut.set_result(payload)
 
         except asyncio.CancelledError:
