@@ -1,30 +1,34 @@
+# coordination_reconnector.py
 import asyncio
 import contextlib
 from typing import Optional
 
+from ydb import issues
 from ydb.aio.coordination.stream import CoordinationStream
+from ydb._grpc.grpcwrapper.ydb_coordination import FromServer
 
 
 class CoordinationReconnector:
-    def __init__(
-        self,
-        driver,
-        request_queue: asyncio.Queue,
-        node_path: str,
-        timeout_millis: int,
-    ):
+    def __init__(self, driver, node_path: str, timeout_millis: int = 30000):
         self._driver = driver
-        self._request_queue = request_queue
         self._node_path = node_path
         self._timeout_millis = timeout_millis
 
-        self._task: Optional[asyncio.Task] = None
         self._stream: Optional[CoordinationStream] = None
-
+        self._task: Optional[asyncio.Task] = None
+        self._dispatch_task: Optional[asyncio.Task] = None
         self._ready: Optional[asyncio.Event] = None
+
         self._stopped = False
         self._first_error: Optional[Exception] = None
+        self._wait_timeout = timeout_millis / 1000.0
 
+        # key: req_id, value: future
+        self._pending_futures = {}
+
+    # -----------------------------
+    # Public API
+    # -----------------------------
     def start(self):
         if self._stopped:
             return
@@ -37,7 +41,8 @@ class CoordinationReconnector:
         if self._task is None or self._task.done():
             self._task = asyncio.create_task(self._connection_loop())
 
-    async def stop(self, flush: bool):
+    async def stop(self, flush=True):
+        """Stop reconnector: cancel tasks, close stream, clear pending futures."""
         self._stopped = True
 
         if self._task:
@@ -45,6 +50,12 @@ class CoordinationReconnector:
             with contextlib.suppress(asyncio.CancelledError):
                 await self._task
             self._task = None
+
+        if self._dispatch_task:
+            self._dispatch_task.cancel()
+            with contextlib.suppress(asyncio.CancelledError):
+                await self._dispatch_task
+            self._dispatch_task = None
 
         if self._stream:
             with contextlib.suppress(Exception):
@@ -54,36 +65,89 @@ class CoordinationReconnector:
         if self._ready:
             self._ready.clear()
 
+        # cancel all pending futures
+        for fut in self._pending_futures.values():
+            if not fut.done():
+                fut.set_exception(asyncio.CancelledError())
+        self._pending_futures.clear()
+
     async def wait_ready(self):
         if self._first_error:
             raise self._first_error
+
         if not self._ready:
             raise RuntimeError("Reconnector not started")
+
         await self._ready.wait()
+
         if self._first_error:
             raise self._first_error
 
-    def get_stream(self) -> CoordinationStream:
+    def get_stream(self):
         if self._stream is None or self._stream.session_id is None:
             raise RuntimeError("Coordination stream is not ready")
         return self._stream
 
+    async def send_and_wait(self, req, op_type: str):
+        """
+        Send a request and wait for its specific response based on req_id.
+        """
+        self.start()
+        await self.wait_ready()
+
+        loop = asyncio.get_running_loop()
+        fut = loop.create_future()
+        self._pending_futures[req.req_id] = fut
+
+        try:
+            await self._stream.send(req)
+        except Exception as exc:
+            # remove pending future on immediate send failure
+            self._pending_futures.pop(req.req_id, None)
+            if not fut.done():
+                fut.set_exception(exc)
+            raise
+
+        try:
+            # shield future from external cancellation
+            return await asyncio.wait_for(asyncio.shield(fut), timeout=self._wait_timeout)
+        except asyncio.TimeoutError:
+            self._pending_futures.pop(req.req_id, None)
+            if not fut.done():
+                fut.set_exception(asyncio.TimeoutError())
+            raise
+        except asyncio.CancelledError:
+            self._pending_futures.pop(req.req_id, None)
+            if not fut.done():
+                fut.set_exception(asyncio.CancelledError())
+            raise
+
+    # -----------------------------
+    # Internal
+    # -----------------------------
     async def _connection_loop(self):
         if self._stopped:
             return
 
         try:
+            # create and start session
             self._stream = CoordinationStream(self._driver)
             await self._stream.start_session(self._node_path, self._timeout_millis)
+
+            # mark ready
             if self._ready:
                 self._ready.set()
 
-            if self._stream._background_tasks:
+            # ensure dispatch loop is running
+            if self._dispatch_task is None or self._dispatch_task.done():
+                self._dispatch_task = asyncio.create_task(self._dispatch_loop())
+
+            # wait for background tasks in stream if any
+            if getattr(self._stream, "_background_tasks", None):
                 done, pending = await asyncio.wait(
-                    self._stream._background_tasks,
+                    list(self._stream._background_tasks),
                     return_when=asyncio.FIRST_EXCEPTION,
                 )
-
                 for d in done:
                     if d.cancelled():
                         continue
@@ -99,3 +163,96 @@ class CoordinationReconnector:
                 with contextlib.suppress(Exception):
                     await self._stream.close()
             self._stream = None
+
+        finally:
+            if self._dispatch_task:
+                if not self._dispatch_task.done():
+                    self._dispatch_task.cancel()
+                    with contextlib.suppress(asyncio.CancelledError):
+                        await self._dispatch_task
+                self._dispatch_task = None
+
+            if self._stream:
+                with contextlib.suppress(Exception):
+                    await self._stream.close()
+                self._stream = None
+
+    async def _dispatch_loop(self):
+        try:
+            while True:
+                try:
+                    resp = await self._stream.receive(self._wait_timeout)
+                except asyncio.TimeoutError:
+                    continue  # normal: no data in interval
+                except asyncio.CancelledError:
+                    raise
+                except Exception as exc:
+                    # severe receive failure
+                    for fut in self._pending_futures.values():
+                        if not fut.done():
+                            fut.set_exception(exc)
+                    self._pending_futures.clear()
+                    with contextlib.suppress(Exception):
+                        await self._stream.close()
+                    break
+
+                if resp is None:
+                    continue
+
+                try:
+                    fs = FromServer.from_proto(resp)
+                    raw = fs.raw
+                except Exception as exc:
+                    for fut in self._pending_futures.values():
+                        if not fut.done():
+                            fut.set_exception(exc)
+                    self._pending_futures.clear()
+                    with contextlib.suppress(Exception):
+                        await self._stream.close()
+                    break
+
+                # parse operation and payload
+                try:
+                    if raw.HasField("acquire_semaphore_result"):
+                        payload = fs.acquire_semaphore_result
+                    elif raw.HasField("describe_semaphore_result"):
+                        payload = fs.describe_semaphore_result
+                    elif raw.HasField("create_semaphore_result"):
+                        payload = fs.create_semaphore_result
+                    elif raw.HasField("update_semaphore_result"):
+                        payload = fs.update_semaphore_result
+                    elif raw.HasField("delete_semaphore_result"):
+                        payload = fs.delete_semaphore_result
+                    else:
+                        continue  # unknown message
+                except Exception as exc:
+                    for fut in self._pending_futures.values():
+                        if not fut.done():
+                            fut.set_exception(exc)
+                    self._pending_futures.clear()
+                    with contextlib.suppress(Exception):
+                        await self._stream.close()
+                    break
+
+                # set result for specific req_id
+                req_id = getattr(payload, "req_id", None)
+                if req_id is not None:
+                    fut = self._pending_futures.pop(req_id, None)
+                    if fut and not fut.done():
+                        fut.set_result(payload)
+
+        except asyncio.CancelledError:
+            for fut in self._pending_futures.values():
+                if not fut.done():
+                    fut.set_exception(asyncio.CancelledError())
+            self._pending_futures.clear()
+            raise
+
+        except Exception as exc:
+            for fut in self._pending_futures.values():
+                if not fut.done():
+                    fut.set_exception(exc)
+            self._pending_futures.clear()
+            with contextlib.suppress(Exception):
+                await self._stream.close()
+            return
