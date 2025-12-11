@@ -1,4 +1,3 @@
-# coordination_reconnector.py
 import asyncio
 import contextlib
 from typing import Optional
