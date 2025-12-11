@@ -55,7 +55,8 @@ class CoordinationReconnector:
                 fut.set_exception(asyncio.CancelledError())
         self._pending_futures.clear()
 
-    async def wait_ready(self):
+    async def send_and_wait(self, req):
+        self.start()
         if self._first_error:
             raise self._first_error
         if not self._ready:
@@ -63,15 +64,6 @@ class CoordinationReconnector:
         await self._ready.wait()
         if self._first_error:
             raise self._first_error
-
-    def get_stream(self):
-        if self._stream is None or self._stream.session_id is None:
-            raise RuntimeError("Coordination stream is not ready")
-        return self._stream
-
-    async def send_and_wait(self, req):
-        self.start()
-        await self.wait_ready()
 
         loop = asyncio.get_running_loop()
         fut = loop.create_future()
