@@ -68,27 +68,9 @@ class CoordinationReconnector:
         loop = asyncio.get_running_loop()
         fut = loop.create_future()
         self._pending_futures[req.req_id] = fut
+        await self._stream.send(req)
+        return await asyncio.wait_for(asyncio.shield(fut), timeout=self._wait_timeout)
 
-        try:
-            await self._stream.send(req)
-        except Exception as exc:
-            self._pending_futures.pop(req.req_id, None)
-            if not fut.done():
-                fut.set_exception(exc)
-            raise
-
-        try:
-            return await asyncio.wait_for(asyncio.shield(fut), timeout=self._wait_timeout)
-        except asyncio.TimeoutError:
-            self._pending_futures.pop(req.req_id, None)
-            if not fut.done():
-                fut.set_exception(asyncio.TimeoutError())
-            raise
-        except asyncio.CancelledError:
-            self._pending_futures.pop(req.req_id, None)
-            if not fut.done():
-                fut.set_exception(asyncio.CancelledError())
-            raise
 
     async def _connection_loop(self):
         if self._stopped:
