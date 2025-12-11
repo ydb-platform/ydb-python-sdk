@@ -191,7 +191,7 @@ class CoordinationReconnector:
                         payload = getattr(fs, field_name)
                         break
                 if payload is None:
-                    continue  # unknown message
+                    continue
 
                 req_id = getattr(payload, "req_id", None)
                 if req_id is not None:
