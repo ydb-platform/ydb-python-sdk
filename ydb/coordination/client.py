@@ -8,6 +8,7 @@ from .._grpc.grpcwrapper.ydb_coordination import (
 )
 from .._grpc.grpcwrapper.ydb_coordination_public_types import NodeConfig
 from .base import BaseCoordinationClient
+from .lock_sync import CoordinationLockSync
 
 
 class CoordinationClient(BaseCoordinationClient):
@@ -35,5 +36,5 @@ class CoordinationClient(BaseCoordinationClient):
             settings=settings,
         )
 
-    def lock(self):
-        raise NotImplementedError("Will be implemented in future release")
+    def lock(self, lock_name: str, node_path: str):
+        return CoordinationLockSync(self, lock_name, node_path=node_path)
