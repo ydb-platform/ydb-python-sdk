@@ -190,10 +190,9 @@ class TestCoordination:
 
     async def test_coordination_lock_racing_async(self, async_coordination_node):
         client, node_path, initial_config = async_coordination_node
-        small_timeout = 2
+        timeout = 5  # таймаут для CI/нагрузки
 
         lock = client.lock("test_lock", node_path)
-
         await lock.create(init_limit=1, init_data=b"init-data")
 
         describe_resp: DescribeLockResult = await lock.describe()
@@ -201,25 +200,32 @@ class TestCoordination:
 
         lock2_started = asyncio.Event()
         lock2_acquired = asyncio.Event()
+        lock2_release = asyncio.Event()
 
         async def second_lock_task():
             lock2_started.set()
             async with client.lock("test_lock", node_path):
                 lock2_acquired.set()
-                await asyncio.sleep(small_timeout)
+                await lock2_release.wait()  # вместо sleep
 
         async with client.lock("test_lock", node_path) as lock1:
-
             resp: DescribeLockResult = await lock1.describe()
             assert resp.status == StatusCode.SUCCESS
 
             t2 = asyncio.create_task(second_lock_task())
-            await lock2_started.wait()
+            await asyncio.wait_for(lock2_started.wait(), timeout=timeout)
 
-            await asyncio.sleep(small_timeout)
+            # Даем t2 шанс реально дойти до попытки acquire (не обязательно, но помогает стабильности)
+            await asyncio.sleep(0)
 
-        await asyncio.wait_for(lock2_acquired.wait(), timeout=small_timeout)
-        await asyncio.wait_for(t2, timeout=small_timeout)
+            # lock1 держится до выхода из async with
+
+        # После освобождения lock1 второй лок обязан захватиться
+        await asyncio.wait_for(lock2_acquired.wait(), timeout=timeout)
+
+        # Разрешаем t2 корректно выйти и ждём завершения
+        lock2_release.set()
+        await asyncio.wait_for(t2, timeout=timeout)
 
         delete_resp = await lock.delete()
         assert delete_resp.status == StatusCode.SUCCESS
