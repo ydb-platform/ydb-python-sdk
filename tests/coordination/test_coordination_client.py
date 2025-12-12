@@ -190,7 +190,7 @@ class TestCoordination:
 
     async def test_coordination_lock_racing_async(self, async_coordination_node):
         client, node_path, initial_config = async_coordination_node
-        timeout = 5  # таймаут для CI/нагрузки
+        timeout = 5
 
         lock = client.lock("test_lock", node_path)
         await lock.create(init_limit=1, init_data=b"init-data")
@@ -206,7 +206,7 @@ class TestCoordination:
             lock2_started.set()
             async with client.lock("test_lock", node_path):
                 lock2_acquired.set()
-                await lock2_release.wait()  # вместо sleep
+                await lock2_release.wait()
 
         async with client.lock("test_lock", node_path) as lock1:
             resp: DescribeLockResult = await lock1.describe()
@@ -215,15 +215,11 @@ class TestCoordination:
             t2 = asyncio.create_task(second_lock_task())
             await asyncio.wait_for(lock2_started.wait(), timeout=timeout)
 
-            # Даем t2 шанс реально дойти до попытки acquire (не обязательно, но помогает стабильности)
             await asyncio.sleep(0)
 
-            # lock1 держится до выхода из async with
 
-        # После освобождения lock1 второй лок обязан захватиться
         await asyncio.wait_for(lock2_acquired.wait(), timeout=timeout)
 
-        # Разрешаем t2 корректно выйти и ждём завершения
         lock2_release.set()
         await asyncio.wait_for(t2, timeout=timeout)
 
