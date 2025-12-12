@@ -1,6 +1,5 @@
 import asyncio
 
-from ydb import issues
 from ..._grpc.grpcwrapper.ydb_coordination import (
     AcquireSemaphore,
     ReleaseSemaphore,
@@ -9,7 +8,10 @@ from ..._grpc.grpcwrapper.ydb_coordination import (
     CreateSemaphore,
     DeleteSemaphore,
 )
-from ..._grpc.grpcwrapper.ydb_coordination_public_types import CreateSemaphoreResult, DescribeLockResult
+from ..._grpc.grpcwrapper.ydb_coordination_public_types import (
+    CreateSemaphoreResult,
+    DescribeLockResult,
+)
 from ...aio.coordination.reconnector import CoordinationReconnector
 
 
@@ -87,10 +89,10 @@ class CoordinationLock:
 
     async def close(self):
         try:
-            req = ReleaseSemaphore(req_id=self._next_req_id(), name=self._name)
-            await asyncio.shield(self._reconnector.send_and_wait(req))
-        except issues.Error:
+            await self.release()
+        except Exception:
             pass
+
         await self._reconnector.stop()
 
     async def __aenter__(self):
@@ -98,4 +100,4 @@ class CoordinationLock:
         return self
 
     async def __aexit__(self, exc_type, exc, tb):
-        await self.release()
+        await self.close()

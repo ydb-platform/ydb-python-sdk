@@ -189,12 +189,12 @@ class CoordinationReconnector:
 
                 payload = None
                 for field_name in (
-                    "acquire_semaphore_result",
-                    "release_semaphore_result",
-                    "describe_semaphore_result",
-                    "create_semaphore_result",
-                    "update_semaphore_result",
-                    "delete_semaphore_result",
+                        "acquire_semaphore_result",
+                        "release_semaphore_result",
+                        "describe_semaphore_result",
+                        "create_semaphore_result",
+                        "update_semaphore_result",
+                        "delete_semaphore_result",
                 ):
                     if raw.HasField(field_name):
                         payload = getattr(fs, field_name)
@@ -215,9 +215,12 @@ class CoordinationReconnector:
                         req_id,
                     )
         finally:
+            logger.debug("[CoordinationReconnector] _dispatch_loop finished")
             if self._stream is stream:
-                logger.debug("[CoordinationReconnector] _dispatch_loop finished, clearing current stream")
+                with contextlib.suppress(Exception):
+                    await stream.close()
                 self._stream = None
+                logger.debug("[CoordinationReconnector] stream closed in _dispatch_loop finally")
 
     async def _on_stream_error(self, stream: CoordinationStream, exc: Exception):
         if self._pending_futures:

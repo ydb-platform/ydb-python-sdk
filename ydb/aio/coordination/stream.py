@@ -31,26 +31,33 @@ class CoordinationStream:
 
         self._stream.write(SessionStart(path=path, timeout_millis=timeout_millis))
 
-        while True:
-            try:
-                resp = await self._stream.receive(timeout=3)
-            except asyncio.TimeoutError:
-                raise issues.Error("Timeout waiting for SessionStart response")
-            except StopAsyncIteration:
-                raise issues.Error("Stream closed while waiting for SessionStart response")
-            except asyncio.CancelledError:
-                raise
-            except Exception as exc:
-                raise issues.Error(f"Failed to start session: {exc}") from exc
+        try:
+            while True:
+                try:
+                    resp = await self._stream.receive(timeout=3)
+                except asyncio.TimeoutError:
+                    raise issues.Error("Timeout waiting for SessionStart response")
+                except StopAsyncIteration:
+                    raise issues.Error("Stream closed while waiting for SessionStart response")
+                except asyncio.CancelledError:
+                    raise
+                except Exception as exc:
+                    raise issues.Error(f"Failed to start session: {exc}") from exc
 
-            if resp is None:
-                continue
+                if resp is None:
+                    continue
 
-            if getattr(resp, "session_started", None):
-                self.session_id = resp.session_started
-                break
+                if getattr(resp, "session_started", None):
+                    self.session_id = resp.session_started
+                    break
 
-        # запускаем фонового читателя
+        except Exception:
+            with contextlib.suppress(Exception):
+                await self._stream.close()
+            self._stream = None
+            self._started = False
+            raise
+
         loop = asyncio.get_running_loop()
         task = loop.create_task(self._reader_loop())
         self._background_tasks.add(task)
@@ -96,6 +103,11 @@ class CoordinationStream:
                 with contextlib.suppress(asyncio.QueueFull):
                     self._incoming_queue.put_nowait(None)
 
+            if self._stream is not None:
+                with contextlib.suppress(Exception):
+                    await self._stream.close()
+                self._stream = None
+
     async def send(self, req: IToProto):
         if self._closed:
             raise issues.Error("Stream closed")
@@ -118,6 +130,11 @@ class CoordinationStream:
 
         self._closed = True
 
+        if self._stream is not None:
+            with contextlib.suppress(Exception):
+                await self._stream.close()
+            self._stream = None
+
         with contextlib.suppress(asyncio.QueueFull):
             self._incoming_queue.put_nowait(None)
 
@@ -126,14 +143,9 @@ class CoordinationStream:
                 task.cancel()
 
             with contextlib.suppress(asyncio.CancelledError):
-                await asyncio.gather(*self._background_tasks, return_exceptions=True)
+                await asyncio.wait(self._background_tasks)
 
             self._background_tasks.clear()
-
-        if self._stream is not None:
-            with contextlib.suppress(Exception):
-                self._stream.close()
-            self._stream = None
 
         while not self._incoming_queue.empty():
             with contextlib.suppress(asyncio.QueueEmpty):
