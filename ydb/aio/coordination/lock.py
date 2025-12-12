@@ -85,13 +85,13 @@ class CoordinationLock:
         req = UpdateSemaphore(req_id=self._next_req_id(), name=self._name, data=new_data)
         return await self._reconnector.send_and_wait(req)
 
-    async def close(self, flush: bool = True):
+    async def close(self):
         try:
             req = ReleaseSemaphore(req_id=self._next_req_id(), name=self._name)
             await asyncio.shield(self._reconnector.send_and_wait(req))
         except issues.Error:
             pass
-        await self._reconnector.stop(flush)
+        await self._reconnector.stop()
 
     async def __aenter__(self):
         await self.acquire()

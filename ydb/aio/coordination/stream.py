@@ -10,7 +10,9 @@ from ..._grpc.grpcwrapper.ydb_coordination import FromServer, Ping, SessionStart
 class CoordinationStream:
     def __init__(self, driver):
         self._driver = driver
-        self._stream: GrpcWrapperAsyncIO = GrpcWrapperAsyncIO(FromServer.from_proto)
+        self._stream: Optional[GrpcWrapperAsyncIO] = GrpcWrapperAsyncIO(
+            FromServer.from_proto
+        )
         self._background_tasks: Set[asyncio.Task] = set()
         self._incoming_queue: asyncio.Queue = asyncio.Queue()
         self._closed = False
@@ -21,54 +23,92 @@ class CoordinationStream:
         if self._started:
             raise issues.Error("CoordinationStream already started")
 
-        print("[CoordinationStream] Starting session...")
         self._started = True
-        await self._stream.start(self._driver, _apis.CoordinationService.Stub, _apis.CoordinationService.Session)
 
-        print(f"[CoordinationStream] Writing SessionStart for path {path}")
+        await self._stream.start(
+            self._driver,
+            _apis.CoordinationService.Stub,
+            _apis.CoordinationService.Session,
+        )
+
+        # initial handshake
         self._stream.write(SessionStart(path=path, timeout_millis=timeout_millis))
 
         while True:
             try:
-                print("[CoordinationStream] Waiting for SessionStart response...")
                 resp = await self._stream.receive(timeout=3)
-                print(f"[CoordinationStream] Received response: {resp}")
-
-                if resp.session_started:
-                    self.session_id = resp.session_started
-                    print(f"[CoordinationStream] Session started: {self.session_id}")
-                    break
-                else:
-                    print("[CoordinationStream] Response received but session not started, continuing...")
-                    continue
             except asyncio.TimeoutError:
-                print("[CoordinationStream] Timeout waiting for SessionStart response")
                 raise issues.Error("Timeout waiting for SessionStart response")
-            except Exception as e:
-                print(f"[CoordinationStream] Exception during start_session: {e}")
-                raise issues.Error(f"Failed to start session: {e}")
+            except StopAsyncIteration:
+                raise issues.Error("Stream closed while waiting for SessionStart response")
+            except asyncio.CancelledError:
+                raise
+            except Exception as exc:
+                raise issues.Error(f"Failed to start session: {exc}") from exc
 
-        print("[CoordinationStream] Starting reader loop task...")
-        task = asyncio.get_running_loop().create_task(self._reader_loop())
+            if resp is None:
+                # защита от странных ситуаций — подождём ещё
+                continue
+
+            if getattr(resp, "session_started", None):
+                self.session_id = resp.session_started
+                break
+
+        # запускаем фонового читателя
+        loop = asyncio.get_running_loop()
+        task = loop.create_task(self._reader_loop())
         self._background_tasks.add(task)
 
+        def _on_done(t: asyncio.Task) -> None:
+            # убрать таск из набора и прочитать exception,
+            # чтобы не было "Task exception was never retrieved"
+            self._background_tasks.discard(t)
+            with contextlib.suppress(asyncio.CancelledError, Exception):
+                _ = t.exception()
+
+        task.add_done_callback(_on_done)
+
     async def _reader_loop(self):
-        while True:
-            try:
-                resp = await self._stream.receive(timeout=3)
+        try:
+            while True:
+                try:
+                    resp = await self._stream.receive(timeout=3)
+                except asyncio.TimeoutError:
+                    # тишина — просто ждём дальше
+                    continue
+                except asyncio.CancelledError:
+                    break
+                except StopAsyncIteration:
+                    # сервер закрыл grpc-стрим
+                    break
+                except Exception:
+                    # любая другая ошибка — тихо вываливаемся
+                    break
+
                 if self._closed:
                     break
 
+                if resp is None:
+                    # например, таймаут из receive()
+                    continue
+
                 fs = FromServer.from_proto(resp)
                 if fs.opaque:
+                    # keep-alive ping
                     try:
                         self._stream.write(Ping(fs.opaque))
                     except Exception:
-                        raise issues.Error("Failed to write Ping")
+                        # не поднимаем ошибку наружу, просто выходим
+                        break
                 else:
                     await self._incoming_queue.put(resp)
-            except asyncio.CancelledError:
-                break
+        finally:
+            # если reader закончился сам (по StopAsyncIteration/ошибке),
+            # помечаем стрим закрытым и будим ожидающих на очереди
+            if not self._closed:
+                self._closed = True
+                with contextlib.suppress(asyncio.QueueFull):
+                    self._incoming_queue.put_nowait(None)
 
     async def send(self, req: IToProto):
         if self._closed:
@@ -77,14 +117,15 @@ class CoordinationStream:
 
     async def receive(self, timeout: Optional[float] = None):
         if self._closed:
+            # важно: если нас закрыли, больше ничего не ждём
             raise issues.Error("Stream closed")
 
         try:
             if timeout is not None:
                 return await asyncio.wait_for(self._incoming_queue.get(), timeout)
-            else:
-                return await self._incoming_queue.get()
+            return await self._incoming_queue.get()
         except asyncio.TimeoutError:
+            # старый контракт: на таймаут возвращаем None
             return None
 
     async def close(self):
@@ -93,26 +134,29 @@ class CoordinationStream:
 
         self._closed = True
 
-        # Завершаем все background tasks
-        for task in list(self._background_tasks):
-            task.cancel()
+        # разбудим хотя бы одного ожидающего receive(), чтобы он смог корректно завершиться
+        with contextlib.suppress(asyncio.QueueFull):
+            self._incoming_queue.put_nowait(None)
 
-        with contextlib.suppress(asyncio.CancelledError):
-            await asyncio.gather(*self._background_tasks, return_exceptions=True)
+        # отменяем фоновые таски и ждём их завершения
+        if self._background_tasks:
+            for task in list(self._background_tasks):
+                task.cancel()
 
-        self._background_tasks.clear()
+            with contextlib.suppress(asyncio.CancelledError):
+                await asyncio.gather(*self._background_tasks, return_exceptions=True)
 
-        # Закрываем GRPC stream
-        if self._stream:
-            self._stream.close()
+            self._background_tasks.clear()
+
+        # закрываем grpc-стрим
+        if self._stream is not None:
+            with contextlib.suppress(Exception):
+                self._stream.close()
             self._stream = None
 
-        # Чистим очередь, освобождая "висящие" get()
+        # подчистим очередь
         while not self._incoming_queue.empty():
-            try:
+            with contextlib.suppress(asyncio.QueueEmpty):
                 self._incoming_queue.get_nowait()
-            except Exception:
-                break
 
         self.session_id = None
-

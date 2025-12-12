@@ -21,63 +21,57 @@ class CoordinationReconnector:
 
         self._wait_timeout = timeout_millis / 1000.0
 
-        # pending futures by req_id
         self._pending_futures: Dict[int, asyncio.Future] = {}
 
-        # чтобы не создавать несколько стримов параллельно
         self._ensure_lock = asyncio.Lock()
 
-        logger.debug("[CoordinationReconnector] init node_path=%s timeout=%s", node_path, timeout_millis)
-
-    # --------------------
-    # PUBLIC API
-    # --------------------
+        logger.debug(
+            "[CoordinationReconnector] init node_path=%s timeout_millis=%s",
+            node_path,
+            timeout_millis,
+        )
 
     async def stop(self):
         logger.debug("[CoordinationReconnector] stop() called")
 
-        # cancel dispatch loop
         if self._dispatch_task:
             self._dispatch_task.cancel()
             with contextlib.suppress(asyncio.CancelledError):
                 await self._dispatch_task
             self._dispatch_task = None
 
-        # close stream
         if self._stream:
             with contextlib.suppress(Exception):
                 await self._stream.close()
             self._stream = None
 
-        # fail pending futures
-        for fut in self._pending_futures.values():
-            if not fut.done():
-                fut.set_exception(asyncio.CancelledError())
-        self._pending_futures.clear()
+        if self._pending_futures:
+            err = asyncio.CancelledError()
+            for fut in self._pending_futures.values():
+                if not fut.done():
+                    fut.set_exception(err)
+            self._pending_futures.clear()
 
     async def send_and_wait(self, req):
-        """
-        Отправить запрос и дождаться ответа с тем же req_id.
-
-        Если стрим отсутствует или сломан — лениво создаём новый.
-        """
         await self._ensure_stream()
 
         loop = asyncio.get_running_loop()
-        fut = loop.create_future()
+        fut: asyncio.Future = loop.create_future()
         self._pending_futures[req.req_id] = fut
 
         logger.debug("[CoordinationReconnector] send req_id=%s req=%s", req.req_id, req)
         try:
             await self._stream.send(req)
         except Exception as exc:
-            # немедленный провал отправки: чистим future и закрываем стрим
-            logger.exception("[CoordinationReconnector] send failed for req_id=%s: %s", req.req_id, exc)
+            logger.exception(
+                "[CoordinationReconnector] send failed for req_id=%s: %s",
+                req.req_id,
+                exc,
+            )
             await self._pending_futures.pop(req.req_id, None)
             if not fut.done():
                 fut.set_exception(exc)
 
-            # текущий стрим считаем умершим, закроем его
             if self._stream:
                 with contextlib.suppress(Exception):
                     await self._stream.close()
@@ -85,12 +79,16 @@ class CoordinationReconnector:
             raise
 
         try:
-            # ждём ответ, shield — чтобы не убить внутреннюю логику при внешней отмене таска
-            result = await asyncio.wait_for(asyncio.shield(fut), timeout=self._wait_timeout)
-            logger.debug("[CoordinationReconnector] got result for req_id=%s", req.req_id)
+            result = await asyncio.wait_for(
+                asyncio.shield(fut),
+                timeout=self._wait_timeout,
+            )
+            logger.debug(
+                "[CoordinationReconnector] got result for req_id=%s",
+                req.req_id,
+            )
             return result
         except Exception:
-            # timeout / cancel / другое — убираем future из словаря и пробрасываем
             await self._pending_futures.pop(req.req_id, None)
             raise
 
@@ -99,22 +97,15 @@ class CoordinationReconnector:
     # --------------------
 
     async def _ensure_stream(self):
-        """
-        Убедиться, что есть живой CoordinationStream.
-
-        Если:
-          - стрима нет, или
-          - он уже закрыт,
-        то создаём новый, стартуем session и запускаем _dispatch_loop.
-        """
         async with self._ensure_lock:
-            # double-check под локом
             if self._stream is not None and not self._stream._closed:
                 return
 
-            logger.debug("[CoordinationReconnector] ensuring stream: creating new CoordinationStream")
+            logger.debug(
+                "[CoordinationReconnector] ensuring stream: creating new CoordinationStream"
+            )
 
-            # на всякий случай прибираем старые сущности
+            # подчистим старые сущности
             if self._dispatch_task:
                 self._dispatch_task.cancel()
                 with contextlib.suppress(asyncio.CancelledError):
@@ -126,7 +117,6 @@ class CoordinationReconnector:
                     await self._stream.close()
                 self._stream = None
 
-            # при обрыве соединения — заваливаем все pending futures
             if self._pending_futures:
                 err = issues.Error("Connection lost")
                 for fut in self._pending_futures.values():
@@ -134,7 +124,6 @@ class CoordinationReconnector:
                         fut.set_exception(err)
                 self._pending_futures.clear()
 
-            # создаём новый CoordinationStream
             stream = CoordinationStream(self._driver)
             logger.debug(
                 "[CoordinationReconnector] starting session path=%s timeout_millis=%s",
@@ -149,43 +138,71 @@ class CoordinationReconnector:
 
             self._stream = stream
 
-            # запускаем диспетчер этого стрима
-            self._dispatch_task = asyncio.create_task(self._dispatch_loop(stream))
+            loop = asyncio.get_running_loop()
+            dispatch_task = loop.create_task(self._dispatch_loop(stream))
+            self._dispatch_task = dispatch_task
+
+            def _on_done(t: asyncio.Task) -> None:
+                # читаем exception, чтобы не было "Task exception was never retrieved"
+                with contextlib.suppress(asyncio.CancelledError, Exception):
+                    _ = t.exception()
+                if self._dispatch_task is t:
+                    self._dispatch_task = None
+
+            dispatch_task.add_done_callback(_on_done)
+
             logger.debug("[CoordinationReconnector] dispatch loop started")
 
     async def _dispatch_loop(self, stream: CoordinationStream):
-        """
-        Получаем FromServer и маппим по req_id на futures.
-        Привязан к конкретному stream. При любой фатальной ошибке — выходим.
-        """
-        logger.debug("[CoordinationReconnector] _dispatch_loop entered (session_id=%s)", stream.session_id)
+        logger.debug(
+            "[CoordinationReconnector] _dispatch_loop entered (session_id=%s)",
+            stream.session_id,
+        )
         try:
             while True:
                 try:
                     resp = await stream.receive(self._wait_timeout)
                 except asyncio.TimeoutError:
-                    # нет сообщений — просто ждём дальше
+                    # если вдруг receive начнёт реально кидать TimeoutError
                     continue
                 except asyncio.CancelledError:
                     logger.debug("[CoordinationReconnector] _dispatch_loop cancelled")
                     break
+                except issues.Error as exc:
+                    logger.debug(
+                        "[CoordinationReconnector] _dispatch_loop issues.Error: %s",
+                        exc,
+                    )
+                    await self._on_stream_error(stream, exc)
+                    break
                 except Exception as exc:
-                    logger.exception("[CoordinationReconnector] _dispatch_loop receive error: %s", exc)
-                    # считаем стрим мёртвым, пусть следующая send_and_wait() пересоздаст
+                    logger.exception(
+                        "[CoordinationReconnector] _dispatch_loop receive error: %s",
+                        exc,
+                    )
                     await self._on_stream_error(stream, exc)
                     break
 
                 if resp is None:
+                    # два варианта:
+                    #  - обычный таймаут — тогда stream._closed == False, просто ждём дальше
+                    #  - reader завершился и пометил stream._closed == True — выходим
+                    if getattr(stream, "_closed", False):
+                        logger.debug(
+                            "[CoordinationReconnector] stream closed, leaving _dispatch_loop"
+                        )
+                        break
                     continue
 
                 try:
                     fs = FromServer.from_proto(resp)
                     raw = fs.raw
                 except Exception:
-                    logger.exception("[CoordinationReconnector] Failed to parse FromServer")
+                    logger.exception(
+                        "[CoordinationReconnector] Failed to parse FromServer"
+                    )
                     continue
 
-                # определяем тип ответа
                 payload = None
                 for field_name in (
                     "acquire_semaphore_result",
@@ -200,7 +217,6 @@ class CoordinationReconnector:
                         break
 
                 if payload is None:
-                    # это может быть pong или другой служебный ответ — игнорируем
                     continue
 
                 req_id = getattr(payload, "req_id", None)
@@ -210,29 +226,29 @@ class CoordinationReconnector:
                 fut = self._pending_futures.pop(req_id, None)
                 if fut and not fut.done():
                     fut.set_result(payload)
-                    logger.debug("[CoordinationReconnector] completed req_id=%s", req_id)
-
+                    logger.debug(
+                        "[CoordinationReconnector] completed req_id=%s",
+                        req_id,
+                    )
         finally:
-            # если этот стрим всё ещё текущий — помечаем, что его нет
             if self._stream is stream:
-                logger.debug("[CoordinationReconnector] _dispatch_loop finished, clearing current stream")
+                logger.debug(
+                    "[CoordinationReconnector] _dispatch_loop finished, clearing current stream"
+                )
                 self._stream = None
-            # не трогаем _dispatch_task здесь — её обнуляет _ensure_stream/stop при необходимости
 
     async def _on_stream_error(self, stream: CoordinationStream, exc: Exception):
-        """
-        Обработка ошибки стрима: пробрасываем её всем pending futures и закрываем стрим.
-        """
-        # отдаём ошибку всем, кто ждёт ответ
-        for fut in self._pending_futures.values():
-            if not fut.done():
-                fut.set_exception(exc)
-        self._pending_futures.clear()
+        if self._pending_futures:
+            for fut in self._pending_futures.values():
+                if not fut.done():
+                    fut.set_exception(exc)
+            self._pending_futures.clear()
 
         if self._stream is stream:
             with contextlib.suppress(Exception):
                 await stream.close()
             self._stream = None
-        logger.debug("[CoordinationReconnector] stream error handled, stream closed")
 
-
+        logger.debug(
+            "[CoordinationReconnector] stream error handled, stream closed: %s", exc
+        )
