@@ -217,7 +217,6 @@ class TestCoordination:
 
             await asyncio.sleep(0)
 
-
         await asyncio.wait_for(lock2_acquired.wait(), timeout=timeout)
 
         lock2_release.set()
@@ -275,14 +274,11 @@ class TestCoordination:
 
         lock = client.lock("test_lock", node_path)
 
-        # create semaphore
         res = await lock.create(init_limit=1, init_data=b"")
         assert res.status == StatusCode.SUCCESS
 
-        # break connection (simulate network drop)
         await lock._reconnector._stream.close()
 
-        # next call must succeed after reconnect
         desc = await lock.describe()
         assert desc.status == StatusCode.SUCCESS
         assert desc.name == "test_lock"

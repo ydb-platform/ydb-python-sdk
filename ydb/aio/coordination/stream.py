@@ -34,7 +34,7 @@ class CoordinationStream:
         try:
             while True:
                 try:
-                    resp = await self._stream.receive(timeout=3)
+                    resp = await self._stream.receive(timeout=3, is_coordination_calls=True)
                 except asyncio.TimeoutError:
                     raise issues.Error("Timeout waiting for SessionStart response")
                 except StopAsyncIteration:
@@ -73,7 +73,7 @@ class CoordinationStream:
         try:
             while True:
                 try:
-                    resp = await self._stream.receive(timeout=3)
+                    resp = await self._stream.receive(timeout=3, is_coordination_calls=True)
                 except asyncio.TimeoutError:
                     continue
                 except asyncio.CancelledError:
