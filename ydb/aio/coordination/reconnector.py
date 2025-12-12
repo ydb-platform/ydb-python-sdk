@@ -92,20 +92,13 @@ class CoordinationReconnector:
             await self._pending_futures.pop(req.req_id, None)
             raise
 
-    # --------------------
-    # INTERNAL
-    # --------------------
-
     async def _ensure_stream(self):
         async with self._ensure_lock:
             if self._stream is not None and not self._stream._closed:
                 return
 
-            logger.debug(
-                "[CoordinationReconnector] ensuring stream: creating new CoordinationStream"
-            )
+            logger.debug("[CoordinationReconnector] ensuring stream: creating new CoordinationStream")
 
-            # подчистим старые сущности
             if self._dispatch_task:
                 self._dispatch_task.cancel()
                 with contextlib.suppress(asyncio.CancelledError):
@@ -143,7 +136,6 @@ class CoordinationReconnector:
             self._dispatch_task = dispatch_task
 
             def _on_done(t: asyncio.Task) -> None:
-                # читаем exception, чтобы не было "Task exception was never retrieved"
                 with contextlib.suppress(asyncio.CancelledError, Exception):
                     _ = t.exception()
                 if self._dispatch_task is t:
@@ -163,7 +155,6 @@ class CoordinationReconnector:
                 try:
                     resp = await stream.receive(self._wait_timeout)
                 except asyncio.TimeoutError:
-                    # если вдруг receive начнёт реально кидать TimeoutError
                     continue
                 except asyncio.CancelledError:
                     logger.debug("[CoordinationReconnector] _dispatch_loop cancelled")
@@ -184,13 +175,8 @@ class CoordinationReconnector:
                     break
 
                 if resp is None:
-                    # два варианта:
-                    #  - обычный таймаут — тогда stream._closed == False, просто ждём дальше
-                    #  - reader завершился и пометил stream._closed == True — выходим
                     if getattr(stream, "_closed", False):
-                        logger.debug(
-                            "[CoordinationReconnector] stream closed, leaving _dispatch_loop"
-                        )
+                        logger.debug("[CoordinationReconnector] stream closed, leaving _dispatch_loop")
                         break
                     continue
 
@@ -198,9 +184,7 @@ class CoordinationReconnector:
                     fs = FromServer.from_proto(resp)
                     raw = fs.raw
                 except Exception:
-                    logger.exception(
-                        "[CoordinationReconnector] Failed to parse FromServer"
-                    )
+                    logger.exception("[CoordinationReconnector] Failed to parse FromServer")
                     continue
 
                 payload = None
@@ -232,9 +216,7 @@ class CoordinationReconnector:
                     )
         finally:
             if self._stream is stream:
-                logger.debug(
-                    "[CoordinationReconnector] _dispatch_loop finished, clearing current stream"
-                )
+                logger.debug("[CoordinationReconnector] _dispatch_loop finished, clearing current stream")
                 self._stream = None
 
     async def _on_stream_error(self, stream: CoordinationStream, exc: Exception):
@@ -249,6 +231,4 @@ class CoordinationReconnector:
                 await stream.close()
             self._stream = None
 
-        logger.debug(
-            "[CoordinationReconnector] stream error handled, stream closed: %s", exc
-        )
+        logger.debug("[CoordinationReconnector] stream error handled, stream closed: %s", exc)
