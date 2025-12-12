@@ -189,12 +189,12 @@ class CoordinationReconnector:
 
                 payload = None
                 for field_name in (
-                        "acquire_semaphore_result",
-                        "release_semaphore_result",
-                        "describe_semaphore_result",
-                        "create_semaphore_result",
-                        "update_semaphore_result",
-                        "delete_semaphore_result",
+                    "acquire_semaphore_result",
+                    "release_semaphore_result",
+                    "describe_semaphore_result",
+                    "create_semaphore_result",
+                    "update_semaphore_result",
+                    "delete_semaphore_result",
                 ):
                     if raw.HasField(field_name):
                         payload = getattr(fs, field_name)
