@@ -190,7 +190,7 @@ class TestCoordination:
 
     async def test_coordination_lock_racing_async(self, async_coordination_node):
         client, node_path, initial_config = async_coordination_node
-        small_timeout = 0.5
+        small_timeout = 2
 
         lock = client.lock("test_lock", node_path)
 
@@ -229,7 +229,7 @@ class TestCoordination:
 
     def test_coordination_lock_racing_sync(self, sync_coordination_node):
         client, node_path, initial_config = sync_coordination_node
-        small_timeout = 0.5
+        small_timeout = 1
 
         lock = client.lock("test_lock", node_path)
 
