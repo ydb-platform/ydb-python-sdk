@@ -1,20 +1,17 @@
 import asyncio
 import threading
-import time
 
 import pytest
 
 import ydb
 from ydb.aio.coordination import CoordinationClient as AioCoordinationClient
-from ydb import StatusCode, logger
+from ydb import StatusCode
 
 from ydb.coordination import (
     NodeConfig,
     ConsistencyMode,
     RateLimiterCountersMode,
     CoordinationClient,
-    CreateSemaphoreResult,
-    DescribeLockResult,
 )
 
 
@@ -120,165 +117,103 @@ class TestCoordination:
             await client.describe_node(node_path)
 
     async def test_coordination_lock_describe_full_async(self, async_coordination_node):
-        client, node_path, config = async_coordination_node
+        client, node_path, _ = async_coordination_node
 
-        lock = client.lock("test_lock", node_path)
+        async with client.node(node_path) as node:
+            lock = node.lock("test_lock")
 
-        create = await lock.create(init_limit=1, init_data=b"hello")
-        assert create.status == StatusCode.SUCCESS
+            desc = await lock.describe()
+            assert desc.status == StatusCode.NOT_FOUND
 
-        desc = await lock.describe()
-        assert desc.status == StatusCode.SUCCESS
-        assert desc.name == "test_lock"
-        assert desc.data == b"hello"
-        assert desc.count == 0
-        assert desc.ephemeral is False
-        assert list(desc.owners) == []
-        assert list(desc.waiters) == []
+            async with lock:
+                pass
 
-        upd = await lock.update(new_data=b"world")
-        assert upd.status == StatusCode.SUCCESS
+            desc = await lock.describe()
+            assert desc.data == b""
 
-        desc2 = await lock.describe()
-        assert desc2.status == StatusCode.SUCCESS
-        assert desc2.name == "test_lock"
-        assert desc2.data == b"world"
-        assert desc2.count == 0
-        assert desc2.ephemeral is False
-        assert list(desc2.owners) == []
-        assert list(desc2.waiters) == []
+            await lock.update(new_data=b"world")
 
-        delete = await lock.delete()
-        assert delete.status == StatusCode.SUCCESS
+            desc2 = await lock.describe()
+            assert desc2.data == b"world"
 
-        desc_after = await lock.describe()
-        assert desc_after.status == StatusCode.NOT_FOUND
+    def test_coordination_lock_describe_full(self, sync_coordination_node):
+        client, node_path, _ = sync_coordination_node
 
-    def test_coordination_lock_describe_full_sync(self, sync_coordination_node):
-        client, node_path, config = sync_coordination_node
+        with client.node(node_path) as node:
+            lock = node.lock("test_lock")
 
-        lock = client.lock("test_lock", node_path)
+            desc = lock.describe()
+            assert desc.status == StatusCode.NOT_FOUND
 
-        create = lock.create(init_limit=1, init_data=b"hello")
-        assert create.status == StatusCode.SUCCESS
+            with lock:
+                pass
 
-        desc = lock.describe()
-        assert desc.status == StatusCode.SUCCESS
-        assert desc.name == "test_lock"
-        assert desc.data == b"hello"
-        assert desc.count == 0
-        assert desc.ephemeral is False
-        assert list(desc.owners) == []
-        assert list(desc.waiters) == []
-        upd = lock.update(new_data=b"world")
-        assert upd.status == StatusCode.SUCCESS
+            desc = lock.describe()
+            assert desc.data == b""
 
-        desc2 = lock.describe()
-        assert desc2.status == StatusCode.SUCCESS
-        assert desc2.name == "test_lock"
-        assert desc2.data == b"world"
-        assert desc2.count == 0
-        assert desc2.ephemeral is False
-        assert list(desc2.owners) == []
-        assert list(desc2.waiters) == []
+            lock.update(new_data=b"world")
 
-        delete = lock.delete()
-        assert delete.status == StatusCode.SUCCESS
-
-        desc_after = lock.describe()
-        assert desc_after.status == StatusCode.NOT_FOUND
+            desc2 = lock.describe()
+            assert desc2.data == b"world"
 
     async def test_coordination_lock_racing_async(self, async_coordination_node):
-        client, node_path, initial_config = async_coordination_node
+        client, node_path, _ = async_coordination_node
         timeout = 5
 
-        lock = client.lock("test_lock", node_path)
-        await lock.create(init_limit=1, init_data=b"init-data")
+        async with client.node(node_path) as node:
+            lock2_started = asyncio.Event()
+            lock2_acquired = asyncio.Event()
+            lock2_release = asyncio.Event()
 
-        describe_resp: DescribeLockResult = await lock.describe()
-        assert describe_resp.status == StatusCode.SUCCESS
-
-        lock2_started = asyncio.Event()
-        lock2_acquired = asyncio.Event()
-        lock2_release = asyncio.Event()
-
-        async def second_lock_task():
-            lock2_started.set()
-            async with client.lock("test_lock", node_path):
-                lock2_acquired.set()
-                await lock2_release.wait()
-
-        async with client.lock("test_lock", node_path) as lock1:
-            resp: DescribeLockResult = await lock1.describe()
-            assert resp.status == StatusCode.SUCCESS
-
-            t2 = asyncio.create_task(second_lock_task())
-            await asyncio.wait_for(lock2_started.wait(), timeout=timeout)
-
-            await asyncio.sleep(0)
-
-        await asyncio.wait_for(lock2_acquired.wait(), timeout=timeout)
-
-        lock2_release.set()
-        await asyncio.wait_for(t2, timeout=timeout)
-
-        delete_resp = await lock.delete()
-        assert delete_resp.status == StatusCode.SUCCESS
-
-        describe_after_delete: DescribeLockResult = await lock.describe()
-        assert describe_after_delete.status == StatusCode.NOT_FOUND
-
-    def test_coordination_lock_racing_sync(self, sync_coordination_node):
-        client, node_path, initial_config = sync_coordination_node
-        small_timeout = 1
-
-        lock = client.lock("test_lock", node_path)
-
-        create_resp: CreateSemaphoreResult = lock.create(init_limit=1, init_data=b"init-data")
-        assert create_resp.status == StatusCode.SUCCESS
-
-        describe_resp: DescribeLockResult = lock.describe()
-        assert describe_resp.status == StatusCode.SUCCESS
-
-        lock2_ready = threading.Event()
-        lock2_acquired = threading.Event()
-
-        def second_lock_task():
-            try:
-                lock2_ready.set()
-                with client.lock("test_lock", node_path):
+            async def second_lock_task():
+                lock2_started.set()
+                async with node.lock("test_lock"):
                     lock2_acquired.set()
-                    logger.info("Second thread acquired lock")
-            except Exception as e:
-                logger.exception(f"{e} | second_lock_task failed")
+                    await lock2_release.wait()
 
-        t2 = threading.Thread(target=second_lock_task)
+            async with node.lock("test_lock"):
+                t2 = asyncio.create_task(second_lock_task())
+                await asyncio.wait_for(lock2_started.wait(), timeout=timeout)
 
-        with client.lock("test_lock", node_path) as lock1:
-            resp = lock1.describe()
-            assert resp.status == StatusCode.SUCCESS
-            t2.start()
-            lock2_ready.wait(timeout=small_timeout)
+            await asyncio.wait_for(lock2_acquired.wait(), timeout=timeout)
+            lock2_release.set()
+            await asyncio.wait_for(t2, timeout=timeout)
 
-        lock2_acquired.wait(timeout=small_timeout)
-        t2.join(timeout=small_timeout)
+    def test_coordination_lock_racing(self, sync_coordination_node):
+        client, node_path, _ = sync_coordination_node
+        timeout = 5
 
-        delete_resp = lock.delete()
-        assert delete_resp.status == StatusCode.SUCCESS
-        time.sleep(small_timeout)
-        describe_after_delete: DescribeLockResult = lock.describe()
-        assert describe_after_delete.status == StatusCode.NOT_FOUND
+        with client.node(node_path) as node:
+            lock2_started = threading.Event()
+            lock2_acquired = threading.Event()
+            lock2_release = threading.Event()
+
+            def second_lock_task():
+                lock2_started.set()
+                with node.lock("test_lock"):
+                    lock2_acquired.set()
+                    lock2_release.wait(timeout)
+
+            with node.lock("test_lock"):
+                t2 = threading.Thread(target=second_lock_task)
+                t2.start()
+
+                assert lock2_started.wait(timeout)
+
+            assert lock2_acquired.wait(timeout)
+            lock2_release.set()
+            t2.join(timeout)
 
     async def test_coordination_reconnect_async(self, async_coordination_node):
-        client, node_path, config = async_coordination_node
+        client, node_path, _ = async_coordination_node
 
-        lock = client.lock("test_lock", node_path)
+        async with client.node(node_path) as node:
+            lock = node.lock("test_lock")
 
-        res = await lock.create(init_limit=1, init_data=b"")
-        assert res.status == StatusCode.SUCCESS
+            async with lock:
+                pass
 
-        await lock._reconnector._stream.close()
+            await node._reconnector.stop()
 
-        desc = await lock.describe()
-        assert desc.status == StatusCode.SUCCESS
-        assert desc.name == "test_lock"
+            async with lock:
+                pass

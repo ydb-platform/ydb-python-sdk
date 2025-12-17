@@ -1,6 +1,5 @@
 import asyncio
 import contextlib
-from typing import Optional, Set
 
 from ... import issues, _apis
 from ..._grpc.grpcwrapper.common_utils import IToProto, GrpcWrapperAsyncIO
@@ -10,12 +9,12 @@ from ..._grpc.grpcwrapper.ydb_coordination import FromServer, Ping, SessionStart
 class CoordinationStream:
     def __init__(self, driver):
         self._driver = driver
-        self._stream: Optional[GrpcWrapperAsyncIO] = GrpcWrapperAsyncIO(FromServer.from_proto)
-        self._background_tasks: Set[asyncio.Task] = set()
+        self._stream = GrpcWrapperAsyncIO(FromServer.from_proto)
+        self._background_tasks = set()
         self._incoming_queue: asyncio.Queue = asyncio.Queue()
         self._closed = False
         self._started = False
-        self.session_id: Optional[int] = None
+        self.session_id = None
 
     async def start_session(self, path: str, timeout_millis: int):
         if self._started:
@@ -113,7 +112,7 @@ class CoordinationStream:
             raise issues.Error("Stream closed")
         self._stream.write(req)
 
-    async def receive(self, timeout: Optional[float] = None):
+    async def receive(self, timeout=None):
         if self._closed:
             raise issues.Error("Stream closed")
 

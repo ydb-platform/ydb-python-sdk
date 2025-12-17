@@ -8,7 +8,7 @@ from .._grpc.grpcwrapper.ydb_coordination import (
 )
 from .._grpc.grpcwrapper.ydb_coordination_public_types import NodeConfig
 from .base import BaseCoordinationClient
-from .lock_sync import CoordinationLockSync
+from .node_sync import CoordinationNodeSync
 
 
 class CoordinationClient(BaseCoordinationClient):
@@ -36,5 +36,5 @@ class CoordinationClient(BaseCoordinationClient):
             settings=settings,
         )
 
-    def lock(self, lock_name: str, node_path: str):
-        return CoordinationLockSync(self, lock_name, node_path=node_path)
+    def node(self, path: str) -> CoordinationNodeSync:
+        return CoordinationNodeSync(self, path)
