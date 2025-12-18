@@ -1,3 +1,5 @@
+* Update default keepalive time to 10s
+
 ## 3.22.3 ##
 * Make commit_offset call retryable
 
