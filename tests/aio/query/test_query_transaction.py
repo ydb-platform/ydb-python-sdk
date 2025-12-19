@@ -31,6 +31,12 @@ class TestAsyncQueryTransaction:
         assert tx._tx_state._state == QueryTxStateEnum.COMMITTED
 
     @pytest.mark.asyncio
+    async def test_tx_rollback_after_session_detached(self, tx: QueryTxContext):
+        async with tx:
+            await tx.begin()
+            await tx.session.delete()
+
+    @pytest.mark.asyncio
     async def test_tx_rollback_before_begin(self, tx: QueryTxContext):
         await tx.rollback()
         assert tx._tx_state._state == QueryTxStateEnum.ROLLBACKED

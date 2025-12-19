@@ -11,9 +11,7 @@ from ydb.query.base import QueryStatsMode, QueryExplainResultFormat
 from ydb.query.session import QuerySession
 
 
-def _check_session_state_empty(session: QuerySession):
-    assert session._state.session_id is None
-    assert session._state.node_id is None
+def _check_session_not_attached(session: QuerySession):
     assert not session._state.attached
 
 
@@ -25,13 +23,13 @@ def _check_session_state_full(session: QuerySession):
 
 class TestQuerySession:
     def test_session_normal_lifecycle(self, session: QuerySession):
-        _check_session_state_empty(session)
+        _check_session_not_attached(session)
 
         session.create()
         _check_session_state_full(session)
 
         session.delete()
-        _check_session_state_empty(session)
+        _check_session_not_attached(session)
 
     def test_second_create_do_nothing(self, session: QuerySession):
         session.create()
@@ -145,7 +143,7 @@ class TestQuerySession:
         assert "first response attach stream thread" not in thread_names
         assert "attach stream thread" not in thread_names
 
-        _check_session_state_empty(session)
+        _check_session_not_attached(session)
 
     @pytest.mark.parametrize(
         "stats_mode",

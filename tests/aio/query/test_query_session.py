@@ -7,9 +7,7 @@ from ydb import QueryExplainResultFormat
 from ydb.aio.query.session import QuerySession
 
 
-def _check_session_state_empty(session: QuerySession):
-    assert session._state.session_id is None
-    assert session._state.node_id is None
+def _check_session_not_attached(session: QuerySession):
     assert not session._state.attached
 
 
@@ -22,13 +20,13 @@ def _check_session_state_full(session: QuerySession):
 class TestAsyncQuerySession:
     @pytest.mark.asyncio
     async def test_session_normal_lifecycle(self, session: QuerySession):
-        _check_session_state_empty(session)
+        _check_session_not_attached(session)
 
         await session.create()
         _check_session_state_full(session)
 
         await session.delete()
-        _check_session_state_empty(session)
+        _check_session_not_attached(session)
 
     @pytest.mark.asyncio
     async def test_second_create_do_nothing(self, session: QuerySession):
