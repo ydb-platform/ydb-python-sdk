@@ -19,8 +19,8 @@ async def main():
     await asyncio.gather(
         some_workload(driver, "worker 1"),
         some_workload(driver, "worker 2"),
-        some_workload(driver, "worker 3"),
-        some_workload(driver, "worker 4"),
+        # some_workload(driver, "worker 3"),
+        # some_workload(driver, "worker 4"),
     )
 
     await driver.stop()
@@ -32,7 +32,7 @@ async def some_workload(driver, text):
     session = client.node("/local/node1")
     semaphore = session.lock("semaphore")
     for i in range(10):
-        print(f"{text} starting iteration {i}")
+        # print(f"{text} starting iteration {i}")
         await semaphore.acquire()
         for j in range(5):
             if j == 3:
@@ -42,7 +42,7 @@ async def some_workload(driver, text):
 
         await semaphore.release()
         await asyncio.sleep(0.01)
-        print(f"{text} finished iteration {i}")
+        # print(f"{text} finished iteration {i}")
 
     await session.close()
 
