@@ -213,7 +213,53 @@ class TestCoordination:
             async with lock:
                 pass
 
-            await node._reconnector.stop()
+            await node._reconnector._stream.close()
 
             async with lock:
                 pass
+
+    async def test_same_lock_cannot_be_acquired_twice(self, async_coordination_node):
+        client, node_path, _ = async_coordination_node
+
+        async with client.node(node_path) as node:
+            lock1 = node.lock("lock1")
+            lock1_1 = node.lock("lock1")
+
+            await lock1.acquire()
+
+            acquire_task = asyncio.create_task(lock1_1.acquire())
+
+            assert not acquire_task.done()
+
+            await lock1.release()
+            await asyncio.wait_for(acquire_task, timeout=5)
+
+    async def test_coordination_reconnect_under_load_3_workers_async(
+        self,
+        async_coordination_node,
+    ):
+        client, node_path, _ = async_coordination_node
+
+        async with client.node(node_path) as node:
+            semaphore = node.lock("semaphore")
+
+            iterations = 10
+            inner_steps = 5
+
+            async def worker(worker_id: int):
+                for i in range(iterations):
+                    await semaphore.acquire()
+
+                    for j in range(inner_steps):
+                        if worker_id == 0 and j == 3:
+                            await node._reconnector._stream.close()
+                        await asyncio.sleep(0.01)
+
+                    await semaphore.release()
+                    await asyncio.sleep(0.01)
+
+            await asyncio.gather(
+                worker(0),
+                worker(1),
+                worker(2),
+            )

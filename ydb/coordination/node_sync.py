@@ -10,13 +10,18 @@ class CoordinationNodeSync:
         self._timeout_sec = timeout_sec
 
         self._caller = CallFromSyncToAsync(_get_shared_event_loop())
-
-        self._async_node: CoordinationNode = CoordinationNode(
-            client._driver,
-            path,
-        )
-
         self._closed = False
+
+        async def _make_node() -> CoordinationNode:
+            return CoordinationNode(
+                client._driver,
+                path,
+            )
+
+        self._async_node: CoordinationNode = self._caller.safe_call_with_result(
+            _make_node(),
+            self._timeout_sec,
+        )
 
     def lock(self, name: str):
         return CoordinationLockSync(self, name)

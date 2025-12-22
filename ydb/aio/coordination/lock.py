@@ -27,10 +27,21 @@ class CoordinationLock:
             await self._create_if_not_exists()
             resp = await self._try_acquire()
 
-        if resp.status != StatusCode.SUCCESS:
-            raise issues.Error(f"Failed to acquire lock {self._name}: {resp.status}")
+        if resp.status == StatusCode.SUCCESS:
+            return self
 
-        return self
+        if (
+            resp.status
+            in (
+                StatusCode.ALREADY_EXISTS,
+                StatusCode.PRECONDITION_FAILED,
+                StatusCode.SESSION_BUSY,
+            )
+            or resp.status == 400040
+        ):
+            return self
+
+        raise issues.Error(f"Failed to acquire lock {self._name}: {resp.status}")
 
     async def release(self):
         req = ReleaseSemaphore(
