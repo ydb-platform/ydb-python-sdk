@@ -10,13 +10,13 @@ if TYPE_CHECKING:
 
 
 class CoordinationSemaphore:
-    def __init__(self, session: "CoordinationSession", name: str, timeout_sec: float = 5):
+    def __init__(self, session: "CoordinationSession", name: str, limit: int = 1):
         self._session = session
         self._name = name
-        self._timeout_sec = timeout_sec
+        self._limit = limit
         self._closed = False
         self._caller = CallFromSyncToAsync(_get_shared_event_loop())
-        self._async_semaphore: CoordinationSemaphoreAio = self._session._async_node.lock(name)
+        self._async_semaphore: CoordinationSemaphoreAio = self._session._async_session.semaphore(name, limit)
 
     def _check_closed(self):
         if self._closed:
@@ -32,47 +32,42 @@ class CoordinationSemaphore:
         except Exception:
             pass
 
-    def acquire(self, timeout: Optional[float] = None):
+    def acquire(self, count: int = 1, timeout: Optional[float] = None):
         self._check_closed()
-        t = timeout or self._timeout_sec
         return self._caller.safe_call_with_result(
-            self._async_semaphore.acquire(),
-            t,
+            self._async_semaphore.acquire(count),
+            timeout,
         )
 
     def release(self, timeout: Optional[float] = None):
         if self._closed:
             return
-        t = timeout or self._timeout_sec
         return self._caller.safe_call_with_result(
             self._async_semaphore.release(),
-            t,
+            timeout,
         )
 
     def describe(self, timeout: Optional[float] = None):
         self._check_closed()
-        t = timeout or self._timeout_sec
         return self._caller.safe_call_with_result(
             self._async_semaphore.describe(),
-            t,
+            timeout,
         )
 
     def update(self, new_data: bytes, timeout: Optional[float] = None):
         self._check_closed()
-        t = timeout or self._timeout_sec
         return self._caller.safe_call_with_result(
             self._async_semaphore.update(new_data),
-            t,
+            timeout,
         )
 
     def close(self, timeout: Optional[float] = None):
         if self._closed:
             return
-        t = timeout or self._timeout_sec
         try:
             self._caller.safe_call_with_result(
                 self._async_semaphore.release(),
-                t,
+                timeout,
             )
         finally:
             self._closed = True

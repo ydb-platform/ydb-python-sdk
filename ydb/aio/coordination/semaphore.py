@@ -13,19 +13,16 @@ from ..._grpc.grpcwrapper.ydb_coordination_public_types import (
 
 
 class CoordinationSemaphore:
-    def __init__(self, node, name: str, limit: int = 1):
-        self._node = node
+    def __init__(self, session, name: str, limit: int):
+        self._session = session
         self._name = name
 
         self._limit = limit
-        self._timeout_millis = node._timeout_millis
+        self._timeout_millis = session._timeout_millis
 
     async def acquire(self, count: int = 1):
+        await self._create_if_not_exists()
         resp = await self._try_acquire(count)
-
-        if resp.status == StatusCode.NOT_FOUND:
-            await self._create_if_not_exists()
-            resp = await self._try_acquire()
 
         if resp.status != StatusCode.SUCCESS:
             raise issues.Error(f"Failed to acquire lock {self._name}: {resp.status}")
@@ -34,33 +31,33 @@ class CoordinationSemaphore:
 
     async def release(self):
         req = ReleaseSemaphore(
-            req_id=await self._node.next_req_id(),
+            req_id=await self._session.next_req_id(),
             name=self._name,
         )
         try:
-            await self._node._reconnector.send_and_wait(req)
+            await self._session._reconnector.send_and_wait(req)
         except Exception:
             pass
 
     async def describe(self) -> DescribeLockResult:
         req = DescribeSemaphore(
-            req_id=await self._node.next_req_id(),
+            req_id=await self._session.next_req_id(),
             name=self._name,
             include_owners=True,
             include_waiters=True,
             watch_data=False,
             watch_owners=False,
         )
-        resp = await self._node._reconnector.send_and_wait(req)
+        resp = await self._session._reconnector.send_and_wait(req)
         return DescribeLockResult.from_proto(resp)
 
     async def update(self, new_data: bytes) -> None:
         req = UpdateSemaphore(
-            req_id=await self._node.next_req_id(),
+            req_id=await self._session.next_req_id(),
             name=self._name,
             data=new_data,
         )
-        resp = await self._node._reconnector.send_and_wait(req)
+        resp = await self._session._reconnector.send_and_wait(req)
 
         if resp.status != StatusCode.SUCCESS:
             raise issues.Error(f"Failed to update lock {self._name}: {resp.status}")
@@ -75,24 +72,24 @@ class CoordinationSemaphore:
     async def __aexit__(self, exc_type, exc, tb):
         await self.release()
 
-    async def _try_acquire(self, count: int = 1):
+    async def _try_acquire(self, count: int):
         req = AcquireSemaphore(
-            req_id=await self._node.next_req_id(),
+            req_id=await self._session.next_req_id(),
             name=self._name,
             count=count,
             ephemeral=False,
             timeout_millis=self._timeout_millis,
         )
-        return await self._node._reconnector.send_and_wait(req)
+        return await self._session._reconnector.send_and_wait(req)
 
     async def _create_if_not_exists(self):
         req = CreateSemaphore(
-            req_id=await self._node.next_req_id(),
+            req_id=await self._session.next_req_id(),
             name=self._name,
             limit=self._limit,
             data=b"",
         )
-        resp = await self._node._reconnector.send_and_wait(req)
+        resp = await self._session._reconnector.send_and_wait(req)
 
         if resp.status not in (
             StatusCode.SUCCESS,

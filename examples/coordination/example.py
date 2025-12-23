@@ -1,51 +1,57 @@
-import asyncio
+import time
+import threading
 import ydb
-from ydb.aio.coordination import CoordinationClient
+
+NODE_PATH = "/local/node_name1"
+SEMAPHORE_NAME = "semaphore"
 
 
-async def main():
-    driver_config = ydb.DriverConfig(
-        endpoint="grpc://localhost:2136",
-        database="/local",
-        # credentials=ydb.credentials_from_env_variables(),
-        # root_certificates=ydb.load_ydb_root_certificate(),
-    )
-    try:
-        driver = ydb.aio.Driver(driver_config)
-        await driver.wait()
-    except TimeoutError:
-        raise RuntimeError("Connect failed to YDB")
-
-    await asyncio.gather(
-        some_workload(driver, "worker 1"),
-        some_workload(driver, "worker 2"),
-        # some_workload(driver, "worker 3"),
-        # some_workload(driver, "worker 4"),
-    )
-
-    await driver.stop()
+def linear_workload(client, text):
+    session = client.session(NODE_PATH)
+    semaphore = session.semaphore(SEMAPHORE_NAME)
+    for i in range(3):
+        semaphore.acquire()
+        for j in range(3):
+            print(f"{text} iteration {i}-{j}")
+            time.sleep(0.1)
+        semaphore.release()
+        time.sleep(0.05)
+    session.close()
 
 
-async def some_workload(driver, text):
-    client = CoordinationClient(driver)
-    await client.create_node("/local/node3")
-    session = client.session("/local/node3")
-    semaphore = session.lock("semaphore")
-    for i in range(10):
-        # print(f"{text} starting iteration {i}")
-        await semaphore.acquire()
-        for j in range(5):
-            if j == 3:
-                await session._reconnector._stream.close()
-            print(f"{text} iteration {j}")
-            await asyncio.sleep(0.01)
-
-        await semaphore.release()
-        await asyncio.sleep(0.01)
-        # print(f"{text} finished iteration {i}")
-
-    await session.close()
+def context_manager_workload(client, text):
+    with client.session(NODE_PATH) as session:
+        for i in range(3):
+            with session.semaphore(SEMAPHORE_NAME):
+                for j in range(3):
+                    print(f"{text} iteration {i}-{j}")
+                    time.sleep(0.1)
+            time.sleep(0.05)
 
 
-if __name__ == "__main__":
-    asyncio.run(main())
+def run(endpoint, database):
+    with ydb.Driver(
+        endpoint=endpoint,
+        database=database,
+        credentials=ydb.credentials_from_env_variables(),
+        root_certificates=ydb.load_ydb_root_certificate(),
+    ) as driver:
+        driver.wait(timeout=5, fail_fast=True)
+
+        driver.coordination_client.create_node(NODE_PATH)
+
+        threads = []
+
+        for i in range(4):
+            worker_name = f"worker {i+1}"
+            if i < 2:
+                thread = threading.Thread(target=linear_workload, args=(driver.coordination_client, worker_name))
+            else:
+                thread = threading.Thread(
+                    target=context_manager_workload, args=(driver.coordination_client, worker_name)
+                )
+            threads.append(thread)
+            thread.start()
+
+        for thread in threads:
+            thread.join()

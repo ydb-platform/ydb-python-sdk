@@ -25,10 +25,10 @@ class CoordinationSession:
             self._req_id += 1
             return self._req_id
 
-    def lock(self, name: str) -> CoordinationSemaphore:
+    def semaphore(self, name: str, limit: int = 1) -> CoordinationSemaphore:
         if self._closed:
-            raise RuntimeError("CoordinationNode is closed")
-        return CoordinationSemaphore(self, name)
+            raise RuntimeError("CoordinationSession is closed")
+        return CoordinationSemaphore(self, name, limit)
 
     async def close(self):
         if self._closed:

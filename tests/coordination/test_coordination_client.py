@@ -120,7 +120,7 @@ class TestCoordination:
         client, node_path, _ = async_coordination_node
 
         async with client.session(node_path) as node:
-            lock = node.lock("test_lock")
+            lock = node.semaphore("test_lock")
 
             desc = await lock.describe()
             assert desc.status == StatusCode.NOT_FOUND
@@ -140,7 +140,7 @@ class TestCoordination:
         client, node_path, _ = sync_coordination_node
 
         with client.session(node_path) as node:
-            lock = node.lock("test_lock")
+            lock = node.semaphore("test_lock")
 
             desc = lock.describe()
             assert desc.status == StatusCode.NOT_FOUND
@@ -167,11 +167,11 @@ class TestCoordination:
 
             async def second_lock_task():
                 lock2_started.set()
-                async with node.lock("test_lock"):
+                async with node.semaphore("test_lock"):
                     lock2_acquired.set()
                     await lock2_release.wait()
 
-            async with node.lock("test_lock"):
+            async with node.semaphore("test_lock"):
                 t2 = asyncio.create_task(second_lock_task())
                 await asyncio.wait_for(lock2_started.wait(), timeout=timeout)
 
@@ -190,11 +190,11 @@ class TestCoordination:
 
             def second_lock_task():
                 lock2_started.set()
-                with node.lock("test_lock"):
+                with node.semaphore("test_lock"):
                     lock2_acquired.set()
                     lock2_release.wait(timeout)
 
-            with node.lock("test_lock"):
+            with node.semaphore("test_lock"):
                 t2 = threading.Thread(target=second_lock_task)
                 t2.start()
 
@@ -208,7 +208,7 @@ class TestCoordination:
         client, node_path, _ = async_coordination_node
 
         async with client.session(node_path) as node:
-            lock = node.lock("test_lock")
+            lock = node.semaphore("test_lock")
 
             async with lock:
                 pass
@@ -222,8 +222,8 @@ class TestCoordination:
         client, node_path, _ = async_coordination_node
 
         async with client.session(node_path) as node:
-            lock1 = node.lock("lock1")
-            lock1_1 = node.lock("lock1")
+            lock1 = node.semaphore("lock1")
+            lock1_1 = node.semaphore("lock1")
 
             await lock1.acquire()
 
