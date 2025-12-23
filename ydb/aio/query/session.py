@@ -57,7 +57,7 @@ class QuerySession(BaseQuerySession):
             if first_response.status != issues.StatusCode.SUCCESS:
                 raise RuntimeError("Failed to attach session")
         except Exception as e:
-            self._state.reset()
+            self._state.set_attached(False)
             self._status_stream.cancel()
             raise e
 
@@ -70,11 +70,11 @@ class QuerySession(BaseQuerySession):
         try:
             async for status in self._status_stream:
                 if status.status != issues.StatusCode.SUCCESS:
-                    self._state.reset()
+                    self._state.set_attached(False)
                     self._state._change_state(QuerySessionStateEnum.CLOSED)
         except Exception:
             if not self._state._already_in(QuerySessionStateEnum.CLOSED):
-                self._state.reset()
+                self._state.set_attached(False)
                 self._state._change_state(QuerySessionStateEnum.CLOSED)
 
     async def delete(self, settings: Optional[BaseRequestSettings] = None) -> None:

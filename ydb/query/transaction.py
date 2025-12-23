@@ -377,6 +377,10 @@ class QueryTxContext(BaseQueryTxContext):
         it is not finished explicitly
         """
         self._ensure_prev_stream_finished()
+
+        if not self._session_state.attached:
+            return
+
         if self._tx_state._state == QueryTxStateEnum.BEGINED and self._external_error is None:
             # It's strictly recommended to close transactions directly
             # by using commit_tx=True flag while executing statement or by
