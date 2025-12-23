@@ -6,3 +6,4 @@ Examples
 
    examples/basic_example
    examples/authentication
+   examples/coordination
