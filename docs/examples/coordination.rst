@@ -2,7 +2,7 @@ Coordination Service
 ===================
 
 .. warning::
-   Coordination Service API is experimental and may change in future releases.
+   Coordination Service API is experimental and may contain bugs and may change in future releases.
 
 All examples in this section are parts of `coordination example <https://github.com/ydb-platform/ydb-python-sdk/tree/main/examples/coordination>`_.
 
