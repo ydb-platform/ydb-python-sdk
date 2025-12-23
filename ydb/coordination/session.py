@@ -1,9 +1,9 @@
 from .._topic_common.common import _get_shared_event_loop, CallFromSyncToAsync
-from ..aio.coordination.node import CoordinationNode
-from .semaphore_sync import CoordinationSemaphoreSync
+from ..aio.coordination.session import CoordinationSession as CoordinationSessionAio
+from .semaphore import CoordinationSemaphore
 
 
-class CoordinationNodeSync:
+class CoordinationSession:
     def __init__(self, client, path: str, timeout_sec: float = 5):
         self._client = client
         self._path = path
@@ -12,19 +12,19 @@ class CoordinationNodeSync:
         self._caller = CallFromSyncToAsync(_get_shared_event_loop())
         self._closed = False
 
-        async def _make_node() -> CoordinationNode:
-            return CoordinationNode(
+        async def _make_node() -> CoordinationSessionAio:
+            return CoordinationSessionAio(
                 client._driver,
                 path,
             )
 
-        self._async_node: CoordinationNode = self._caller.safe_call_with_result(
+        self._async_node: CoordinationSessionAio = self._caller.safe_call_with_result(
             _make_node(),
             self._timeout_sec,
         )
 
     def lock(self, name: str):
-        return CoordinationSemaphoreSync(self, name)
+        return CoordinationSemaphore(self, name)
 
     def close(self):
         if self._closed:

@@ -8,7 +8,7 @@ from ..._grpc.grpcwrapper.ydb_coordination import (
 )
 from ..._grpc.grpcwrapper.ydb_coordination_public_types import NodeConfig
 from ...coordination.base import BaseCoordinationClient
-from .node import CoordinationNode
+from .session import CoordinationSession
 
 
 class CoordinationClient(BaseCoordinationClient):
@@ -40,5 +40,5 @@ class CoordinationClient(BaseCoordinationClient):
             settings=settings,
         )
 
-    def session(self, path: str) -> CoordinationNode:
-        return CoordinationNode(self._driver, path)
+    def session(self, path: str) -> CoordinationSession:
+        return CoordinationSession(self._driver, path)

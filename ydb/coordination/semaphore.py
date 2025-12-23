@@ -2,21 +2,25 @@ from typing import Optional
 
 from .. import issues
 from .._topic_common.common import _get_shared_event_loop, CallFromSyncToAsync
-from ..aio.coordination.semaphore import CoordinationSemaphore
+from ..aio.coordination.semaphore import CoordinationSemaphore as CoordinationSemaphoreAio
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .session import CoordinationSession
 
 
-class CoordinationSemaphoreSync:
-    def __init__(self, node_sync, name: str, timeout_sec: float = 5):
-        self._node_sync = node_sync
+class CoordinationSemaphore:
+    def __init__(self, session: "CoordinationSession", name: str, timeout_sec: float = 5):
+        self._session = session
         self._name = name
         self._timeout_sec = timeout_sec
         self._closed = False
         self._caller = CallFromSyncToAsync(_get_shared_event_loop())
-        self._async_lock: CoordinationSemaphore = self._node_sync._async_node.lock(name)
+        self._async_semaphore: CoordinationSemaphoreAio = self._session._async_node.lock(name)
 
     def _check_closed(self):
         if self._closed:
-            raise issues.Error(f"CoordinationLockSync {self._name} already closed")
+            raise issues.Error(f"CoordinationSemaphore {self._name} already closed")
 
     def __enter__(self):
         self.acquire()
@@ -32,7 +36,7 @@ class CoordinationSemaphoreSync:
         self._check_closed()
         t = timeout or self._timeout_sec
         return self._caller.safe_call_with_result(
-            self._async_lock.acquire(),
+            self._async_semaphore.acquire(),
             t,
         )
 
@@ -41,7 +45,7 @@ class CoordinationSemaphoreSync:
             return
         t = timeout or self._timeout_sec
         return self._caller.safe_call_with_result(
-            self._async_lock.release(),
+            self._async_semaphore.release(),
             t,
         )
 
@@ -49,7 +53,7 @@ class CoordinationSemaphoreSync:
         self._check_closed()
         t = timeout or self._timeout_sec
         return self._caller.safe_call_with_result(
-            self._async_lock.describe(),
+            self._async_semaphore.describe(),
             t,
         )
 
@@ -57,7 +61,7 @@ class CoordinationSemaphoreSync:
         self._check_closed()
         t = timeout or self._timeout_sec
         return self._caller.safe_call_with_result(
-            self._async_lock.update(new_data),
+            self._async_semaphore.update(new_data),
             t,
         )
 
@@ -67,7 +71,7 @@ class CoordinationSemaphoreSync:
         t = timeout or self._timeout_sec
         try:
             self._caller.safe_call_with_result(
-                self._async_lock.release(),
+                self._async_semaphore.release(),
                 t,
             )
         finally:

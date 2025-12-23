@@ -13,15 +13,15 @@ from ..._grpc.grpcwrapper.ydb_coordination_public_types import (
 
 
 class CoordinationSemaphore:
-    def __init__(self, node, name: str):
+    def __init__(self, node, name: str, limit: int = 1):
         self._node = node
         self._name = name
 
-        self._count = 1
+        self._limit = limit
         self._timeout_millis = node._timeout_millis
 
-    async def acquire(self):
-        resp = await self._try_acquire()
+    async def acquire(self, count: int = 1):
+        resp = await self._try_acquire(count)
 
         if resp.status == StatusCode.NOT_FOUND:
             await self._create_if_not_exists()
@@ -75,11 +75,11 @@ class CoordinationSemaphore:
     async def __aexit__(self, exc_type, exc, tb):
         await self.release()
 
-    async def _try_acquire(self):
+    async def _try_acquire(self, count: int = 1):
         req = AcquireSemaphore(
             req_id=await self._node.next_req_id(),
             name=self._name,
-            count=self._count,
+            count=count,
             ephemeral=False,
             timeout_millis=self._timeout_millis,
         )
@@ -89,7 +89,7 @@ class CoordinationSemaphore:
         req = CreateSemaphore(
             req_id=await self._node.next_req_id(),
             name=self._name,
-            limit=self._count,
+            limit=self._limit,
             data=b"",
         )
         resp = await self._node._reconnector.send_and_wait(req)

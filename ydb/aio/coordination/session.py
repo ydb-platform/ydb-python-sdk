@@ -4,7 +4,7 @@ from .reconnector import CoordinationReconnector
 from .semaphore import CoordinationSemaphore
 
 
-class CoordinationNode:
+class CoordinationSession:
     def __init__(self, driver, path: str, timeout_millis: int = 30000):
         self._driver = driver
         self._path = path

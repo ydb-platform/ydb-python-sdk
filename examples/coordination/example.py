@@ -28,8 +28,8 @@ async def main():
 
 async def some_workload(driver, text):
     client = CoordinationClient(driver)
-    await client.create_node("/local/node1")
-    session = client.session("/local/node1")
+    await client.create_node("/local/node3")
+    session = client.session("/local/node3")
     semaphore = session.lock("semaphore")
     for i in range(10):
         # print(f"{text} starting iteration {i}")
@@ -37,7 +37,7 @@ async def some_workload(driver, text):
         for j in range(5):
             if j == 3:
                 await session._reconnector._stream.close()
-            print(f"{text} {j}")
+            print(f"{text} iteration {j}")
             await asyncio.sleep(0.01)
 
         await semaphore.release()
