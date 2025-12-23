@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from typing import Optional, Dict
+from typing import Dict
 
 from ... import issues
 from ..._grpc.grpcwrapper.common_utils import IToProto
@@ -19,16 +19,14 @@ class CoordinationReconnector:
         self._timeout_millis = timeout_millis
         self._wait_timeout = timeout_millis / 1000
 
-        self._stream: Optional[CoordinationStream] = None
-        self._session_id: Optional[int] = None
+        self._stream = None
+        self._session_id = None
 
         self._pending_futures: Dict[int, asyncio.Future] = {}
         self._pending_requests: Dict[int, IToProto] = {}
 
         self._send_lock = asyncio.Lock()
-        self._state_changed = asyncio.Event()
-
-        self._connection_task: Optional[asyncio.Task] = None
+        self._connection_task = None
         self._closed = False
 
     async def stop(self):
@@ -50,14 +48,16 @@ class CoordinationReconnector:
 
         self._pending_futures.clear()
         self._pending_requests.clear()
-        self._state_changed.set()
 
     async def send_and_wait(self, req: IToProto):
         if self._closed:
             raise issues.Error("Reconnector closed")
 
-        await self._ensure_connection_loop()
-        await self._wait_stream_ready()
+        if self._connection_task is None:
+            self._connection_task = asyncio.create_task(self._connection_loop())
+
+        while not self._stream or self._stream._closed:
+            await asyncio.sleep(0)
 
         req_id = getattr(req, "req_id")
         loop = asyncio.get_running_loop()
@@ -66,22 +66,10 @@ class CoordinationReconnector:
         self._pending_futures[req_id] = fut
         self._pending_requests[req_id] = req
 
-        try:
-            async with self._send_lock:
-                await self._stream.send(req)
-        except Exception:
-            self._state_changed.set()
-            raise
+        async with self._send_lock:
+            await self._stream.send(req)
 
-        try:
-            return await asyncio.wait_for(fut, self._wait_timeout)
-        finally:
-            self._pending_futures.pop(req_id, None)
-            self._pending_requests.pop(req_id, None)
-
-    async def _ensure_connection_loop(self):
-        if self._connection_task is None:
-            self._connection_task = asyncio.create_task(self._connection_loop())
+        return await asyncio.wait_for(fut, self._wait_timeout)
 
     async def _connection_loop(self):
         while not self._closed:
@@ -95,38 +83,22 @@ class CoordinationReconnector:
 
                 self._stream = stream
                 self._session_id = stream.session_id
-                self._state_changed.set()
 
-                await self._resend_pending()
+                for req in self._pending_requests.values():
+                    await stream.send(req)
+
                 await self._dispatch_loop(stream)
 
             except asyncio.CancelledError:
                 return
             except Exception as exc:
-                logger.debug("Coordination stream error, reconnecting: %r", exc)
+                logger.debug("Coordination stream error: %r", exc)
             finally:
                 if self._stream:
                     await self._stream.close()
                     self._stream = None
-                self._state_changed.set()
 
-    async def _wait_stream_ready(self):
-        while not self._closed:
-            if self._stream and not self._stream._closed:
-                return
-            await self._state_changed.wait()
-            self._state_changed.clear()
-
-        raise issues.Error("Reconnector closed")
-
-    async def _resend_pending(self):
-        async with self._send_lock:
-            if not self._stream:
-                return
-            for req in self._pending_requests.values():
-                await self._stream.send(req)
-
-    async def _dispatch_loop(self, stream: CoordinationStream):
+    async def _dispatch_loop(self, stream):
         while not self._closed and self._stream is stream:
             resp = await stream.receive(self._wait_timeout)
             if not resp:
@@ -149,9 +121,12 @@ class CoordinationReconnector:
                 None,
             )
 
-            if payload is None:
+            if not payload:
                 continue
 
-            fut = self._pending_futures.get(payload.req_id)
+            fut = self._pending_futures.pop(payload.req_id, None)
+            self._pending_requests.pop(payload.req_id, None)
+
             if fut and not fut.done():
                 fut.set_result(payload)
+
