@@ -129,4 +129,3 @@ class CoordinationReconnector:
 
             if fut and not fut.done():
                 fut.set_result(payload)
-
