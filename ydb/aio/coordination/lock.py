@@ -17,8 +17,8 @@ class CoordinationLock:
         self._node = node
         self._name = name
 
-        self._count: int = 1
-        self._timeout_millis: int = node._timeout_millis
+        self._count = 1
+        self._timeout_millis = node._timeout_millis
 
     async def acquire(self):
         resp = await self._try_acquire()
@@ -27,21 +27,10 @@ class CoordinationLock:
             await self._create_if_not_exists()
             resp = await self._try_acquire()
 
-        if resp.status == StatusCode.SUCCESS:
-            return self
+        if resp.status != StatusCode.SUCCESS:
+            raise issues.Error(f"Failed to acquire lock {self._name}: {resp.status}")
 
-        if (
-            resp.status
-            in (
-                StatusCode.ALREADY_EXISTS,
-                StatusCode.PRECONDITION_FAILED,
-                StatusCode.SESSION_BUSY,
-            )
-            or resp.status == 400040
-        ):
-            return self
-
-        raise issues.Error(f"Failed to acquire lock {self._name}: {resp.status}")
+        return self
 
     async def release(self):
         req = ReleaseSemaphore(
