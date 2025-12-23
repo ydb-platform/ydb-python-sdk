@@ -1,3 +1,5 @@
+* Coordination Service experimental support
+
 ## 3.22.4 ##
 * Update default keepalive time to 10s
 
