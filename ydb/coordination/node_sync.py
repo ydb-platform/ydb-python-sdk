@@ -1,6 +1,6 @@
 from .._topic_common.common import _get_shared_event_loop, CallFromSyncToAsync
 from ..aio.coordination.node import CoordinationNode
-from .lock_sync import CoordinationLockSync
+from .semaphore_sync import CoordinationSemaphoreSync
 
 
 class CoordinationNodeSync:
@@ -24,7 +24,7 @@ class CoordinationNodeSync:
         )
 
     def lock(self, name: str):
-        return CoordinationLockSync(self, name)
+        return CoordinationSemaphoreSync(self, name)
 
     def close(self):
         if self._closed:

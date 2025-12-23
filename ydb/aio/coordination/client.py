@@ -40,5 +40,5 @@ class CoordinationClient(BaseCoordinationClient):
             settings=settings,
         )
 
-    def node(self, path: str) -> CoordinationNode:
+    def session(self, path: str) -> CoordinationNode:
         return CoordinationNode(self._driver, path)

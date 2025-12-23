@@ -36,5 +36,5 @@ class CoordinationClient(BaseCoordinationClient):
             settings=settings,
         )
 
-    def node(self, path: str) -> CoordinationNodeSync:
+    def session(self, path: str) -> CoordinationNodeSync:
         return CoordinationNodeSync(self, path)

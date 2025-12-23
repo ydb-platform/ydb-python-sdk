@@ -119,7 +119,7 @@ class TestCoordination:
     async def test_coordination_lock_describe_full_async(self, async_coordination_node):
         client, node_path, _ = async_coordination_node
 
-        async with client.node(node_path) as node:
+        async with client.session(node_path) as node:
             lock = node.lock("test_lock")
 
             desc = await lock.describe()
@@ -139,7 +139,7 @@ class TestCoordination:
     def test_coordination_lock_describe_full(self, sync_coordination_node):
         client, node_path, _ = sync_coordination_node
 
-        with client.node(node_path) as node:
+        with client.session(node_path) as node:
             lock = node.lock("test_lock")
 
             desc = lock.describe()
@@ -160,7 +160,7 @@ class TestCoordination:
         client, node_path, _ = async_coordination_node
         timeout = 5
 
-        async with client.node(node_path) as node:
+        async with client.session(node_path) as node:
             lock2_started = asyncio.Event()
             lock2_acquired = asyncio.Event()
             lock2_release = asyncio.Event()
@@ -183,7 +183,7 @@ class TestCoordination:
         client, node_path, _ = sync_coordination_node
         timeout = 5
 
-        with client.node(node_path) as node:
+        with client.session(node_path) as node:
             lock2_started = threading.Event()
             lock2_acquired = threading.Event()
             lock2_release = threading.Event()
@@ -207,7 +207,7 @@ class TestCoordination:
     async def test_coordination_reconnect_async(self, async_coordination_node):
         client, node_path, _ = async_coordination_node
 
-        async with client.node(node_path) as node:
+        async with client.session(node_path) as node:
             lock = node.lock("test_lock")
 
             async with lock:
@@ -221,7 +221,7 @@ class TestCoordination:
     async def test_same_lock_cannot_be_acquired_twice(self, async_coordination_node):
         client, node_path, _ = async_coordination_node
 
-        async with client.node(node_path) as node:
+        async with client.session(node_path) as node:
             lock1 = node.lock("lock1")
             lock1_1 = node.lock("lock1")
 

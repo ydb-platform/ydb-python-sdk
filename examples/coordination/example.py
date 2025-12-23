@@ -29,7 +29,7 @@ async def main():
 async def some_workload(driver, text):
     client = CoordinationClient(driver)
     await client.create_node("/local/node1")
-    session = client.node("/local/node1")
+    session = client.session("/local/node1")
     semaphore = session.lock("semaphore")
     for i in range(10):
         # print(f"{text} starting iteration {i}")

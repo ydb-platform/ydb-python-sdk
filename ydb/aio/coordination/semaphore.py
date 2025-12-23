@@ -12,7 +12,7 @@ from ..._grpc.grpcwrapper.ydb_coordination_public_types import (
 )
 
 
-class CoordinationLock:
+class CoordinationSemaphore:
     def __init__(self, node, name: str):
         self._node = node
         self._name = name

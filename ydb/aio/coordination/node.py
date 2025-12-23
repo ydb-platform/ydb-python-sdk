@@ -1,7 +1,7 @@
 import asyncio
 
 from .reconnector import CoordinationReconnector
-from .lock import CoordinationLock
+from .semaphore import CoordinationSemaphore
 
 
 class CoordinationNode:
@@ -25,10 +25,10 @@ class CoordinationNode:
             self._req_id += 1
             return self._req_id
 
-    def lock(self, name: str) -> CoordinationLock:
+    def lock(self, name: str) -> CoordinationSemaphore:
         if self._closed:
             raise RuntimeError("CoordinationNode is closed")
-        return CoordinationLock(self, name)
+        return CoordinationSemaphore(self, name)
 
     async def close(self):
         if self._closed:

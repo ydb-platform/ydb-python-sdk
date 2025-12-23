@@ -2,17 +2,17 @@ from typing import Optional
 
 from .. import issues
 from .._topic_common.common import _get_shared_event_loop, CallFromSyncToAsync
-from ..aio.coordination.lock import CoordinationLock
+from ..aio.coordination.semaphore import CoordinationSemaphore
 
 
-class CoordinationLockSync:
+class CoordinationSemaphoreSync:
     def __init__(self, node_sync, name: str, timeout_sec: float = 5):
         self._node_sync = node_sync
         self._name = name
         self._timeout_sec = timeout_sec
         self._closed = False
         self._caller = CallFromSyncToAsync(_get_shared_event_loop())
-        self._async_lock: CoordinationLock = self._node_sync._async_node.lock(name)
+        self._async_lock: CoordinationSemaphore = self._node_sync._async_node.lock(name)
 
     def _check_closed(self):
         if self._closed:
