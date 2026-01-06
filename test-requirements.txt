@@ -38,7 +38,7 @@ typing-extensions==4.12.2
 urllib3==1.26.6
 websocket-client==0.59.0
 zipp==3.19.1
-aiohttp==3.7.4
+aiohttp==3.13.3
 pytest-pep8
 pytest-flake8
 flake8==3.9.2
