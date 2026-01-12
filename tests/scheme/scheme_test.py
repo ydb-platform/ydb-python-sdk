@@ -47,6 +47,7 @@ class TestSchemeEntryType:
             ydb.scheme.SchemeEntryType.EXTERNAL_DATA_SOURCE,
             ydb.scheme.SchemeEntryType.VIEW,
             ydb.scheme.SchemeEntryType.RESOURCE_POOL,
+            ydb.scheme.SchemeEntryType.SYS_VIEW,
         ],
     )
     def test_scheme_entry(self, scheme_entry_type):
@@ -75,3 +76,4 @@ class TestSchemeEntryType:
         assert scheme_entry.is_external_data_source() == (scheme_entry_type in (et.EXTERNAL_DATA_SOURCE,))
         assert scheme_entry.is_view() == (scheme_entry_type in (et.VIEW,))
         assert scheme_entry.is_resource_pool() == (scheme_entry_type in (et.RESOURCE_POOL,))
+        assert scheme_entry.is_sysview() == (scheme_entry_type in (et.SYS_VIEW,))

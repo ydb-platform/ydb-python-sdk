@@ -1,10 +1,10 @@
 from sqlalchemy import text
-
+import pytest
 import ydb
 
 import sqlalchemy as sa
 
-
+@pytest.mark.skip(reason="Module moved out of sdk repository")
 def test_get_columns(driver_sync, sa_engine):
     session = ydb.retry_operation_sync(lambda: driver_sync.table_client.session().create())
     session.execute_scheme("CREATE TABLE test(id Int64 NOT NULL, value TEXT, num DECIMAL(22, 9), PRIMARY KEY (id))")
@@ -22,6 +22,7 @@ def test_get_columns(driver_sync, sa_engine):
     session.execute_scheme("DROP TABLE test")
 
 
+@pytest.mark.skip(reason="Module moved out of sdk repository")
 def test_query_list(sa_engine):
     with sa_engine.connect() as connection:
         result = connection.execute(text("SELECT AsList(1, 2, 3, 4) as c"))

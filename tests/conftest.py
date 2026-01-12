@@ -11,14 +11,13 @@ from ydb import issues
 def docker_compose_file(pytestconfig):
     return os.path.join(str(pytestconfig.rootdir), "docker-compose.yml")
 
-
 def wait_container_ready(driver):
-    driver.wait(timeout=30)
+    driver.wait(timeout=60)
 
     with ydb.SessionPool(driver) as pool:
 
         started_at = time.time()
-        while time.time() - started_at < 30:
+        while time.time() - started_at < 60:
             try:
                 with pool.checkout() as session:
                     session.execute_scheme("create table `.sys_health/test_table` (A int32, primary key(A));")
@@ -32,12 +31,12 @@ def wait_container_ready(driver):
 
 
 async def wait_container_ready_async(driver):
-    await driver.wait(timeout=30)
+    await driver.wait(timeout=60)
 
     async with ydb.aio.SessionPool(driver, 1) as pool:
 
         started_at = time.time()
-        while time.time() - started_at < 30:
+        while time.time() - started_at < 60:
             try:
                 async with pool.checkout() as session:
                     await session.execute_scheme("create table `.sys_health/test_table` (A int32, primary key(A));")
