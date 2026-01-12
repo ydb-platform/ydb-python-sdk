@@ -21,7 +21,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   syntax='proto3',
   serialized_options=b'\n\031tech.ydb.proto.import_.v1Z5github.com/ydb-platform/ydb-go-genproto/Ydb_Import_V1',
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n\x13ydb_import_v1.proto\x12\rYdb.Import.V1\x1a\x17protos/ydb_import.proto2\x9d\x02\n\rImportService\x12Q\n\x0cImportFromS3\x12\x1f.Ydb.Import.ImportFromS3Request\x1a .Ydb.Import.ImportFromS3Response\x12l\n\x15ListObjectsInS3Export\x12(.Ydb.Import.ListObjectsInS3ExportRequest\x1a).Ydb.Import.ListObjectsInS3ExportResponse\x12K\n\nImportData\x12\x1d.Ydb.Import.ImportDataRequest\x1a\x1e.Ydb.Import.ImportDataResponseBR\n\x19tech.ydb.proto.import_.v1Z5github.com/ydb-platform/ydb-go-genproto/Ydb_Import_V1b\x06proto3'
+  serialized_pb=b'\n\x13ydb_import_v1.proto\x12\rYdb.Import.V1\x1a\x17protos/ydb_import.proto2\xde\x03\n\rImportService\x12Q\n\x0cImportFromS3\x12\x1f.Ydb.Import.ImportFromS3Request\x1a .Ydb.Import.ImportFromS3Response\x12Q\n\x0cImportFromFs\x12\x1f.Ydb.Import.ImportFromFsRequest\x1a .Ydb.Import.ImportFromFsResponse\x12l\n\x15ListObjectsInS3Export\x12(.Ydb.Import.ListObjectsInS3ExportRequest\x1a).Ydb.Import.ListObjectsInS3ExportResponse\x12l\n\x15ListObjectsInFsExport\x12(.Ydb.Import.ListObjectsInFsExportRequest\x1a).Ydb.Import.ListObjectsInFsExportResponse\x12K\n\nImportData\x12\x1d.Ydb.Import.ImportDataRequest\x1a\x1e.Ydb.Import.ImportDataResponseBR\n\x19tech.ydb.proto.import_.v1Z5github.com/ydb-platform/ydb-go-genproto/Ydb_Import_V1b\x06proto3'
   ,
   dependencies=[protos_dot_ydb__import__pb2.DESCRIPTOR,])
 
@@ -40,7 +40,7 @@ _IMPORTSERVICE = _descriptor.ServiceDescriptor(
   serialized_options=None,
   create_key=_descriptor._internal_create_key,
   serialized_start=64,
-  serialized_end=349,
+  serialized_end=542,
   methods=[
   _descriptor.MethodDescriptor(
     name='ImportFromS3',
@@ -53,9 +53,19 @@ _IMPORTSERVICE = _descriptor.ServiceDescriptor(
     create_key=_descriptor._internal_create_key,
   ),
   _descriptor.MethodDescriptor(
+    name='ImportFromFs',
+    full_name='Ydb.Import.V1.ImportService.ImportFromFs',
+    index=1,
+    containing_service=None,
+    input_type=protos_dot_ydb__import__pb2._IMPORTFROMFSREQUEST,
+    output_type=protos_dot_ydb__import__pb2._IMPORTFROMFSRESPONSE,
+    serialized_options=None,
+    create_key=_descriptor._internal_create_key,
+  ),
+  _descriptor.MethodDescriptor(
     name='ListObjectsInS3Export',
     full_name='Ydb.Import.V1.ImportService.ListObjectsInS3Export',
-    index=1,
+    index=2,
     containing_service=None,
     input_type=protos_dot_ydb__import__pb2._LISTOBJECTSINS3EXPORTREQUEST,
     output_type=protos_dot_ydb__import__pb2._LISTOBJECTSINS3EXPORTRESPONSE,
@@ -63,9 +73,19 @@ _IMPORTSERVICE = _descriptor.ServiceDescriptor(
     create_key=_descriptor._internal_create_key,
   ),
   _descriptor.MethodDescriptor(
+    name='ListObjectsInFsExport',
+    full_name='Ydb.Import.V1.ImportService.ListObjectsInFsExport',
+    index=3,
+    containing_service=None,
+    input_type=protos_dot_ydb__import__pb2._LISTOBJECTSINFSEXPORTREQUEST,
+    output_type=protos_dot_ydb__import__pb2._LISTOBJECTSINFSEXPORTRESPONSE,
+    serialized_options=None,
+    create_key=_descriptor._internal_create_key,
+  ),
+  _descriptor.MethodDescriptor(
     name='ImportData',
     full_name='Ydb.Import.V1.ImportService.ImportData',
-    index=2,
+    index=4,
     containing_service=None,
     input_type=protos_dot_ydb__import__pb2._IMPORTDATAREQUEST,
     output_type=protos_dot_ydb__import__pb2._IMPORTDATARESPONSE,

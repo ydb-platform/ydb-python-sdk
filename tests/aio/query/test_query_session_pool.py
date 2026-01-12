@@ -6,7 +6,6 @@ import ydb
 
 from typing import Optional
 
-from tests.conftest import wait_container_ready_async
 from ydb import QueryExplainResultFormat
 from ydb.aio.query.pool import QuerySessionPool
 from ydb.aio.query.session import QuerySession, QuerySessionStateEnum
@@ -166,7 +165,6 @@ class TestQuerySessionPool:
 
         docker_project.start()
         await pool.stop()
-        await wait_container_ready_async(driver)
 
     @pytest.mark.asyncio
     async def test_acquire_no_race_condition(self, driver):
