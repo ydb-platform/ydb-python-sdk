@@ -1,3 +1,5 @@
+* Added SysView scheme type
+
 ## 3.23.0 ##
 * Coordination Service experimental support
 
