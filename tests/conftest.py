@@ -1,79 +1,143 @@
-import asyncio
 import os
 
 import pytest
 import ydb
-import time
 from ydb import issues
 
 
-@pytest.fixture(scope="module")
-def docker_compose_file(pytestconfig):
-    return os.path.join(str(pytestconfig.rootdir), "docker-compose.yml")
-
-
-def wait_container_ready(driver):
-    driver.wait(timeout=30)
-
-    with ydb.SessionPool(driver) as pool:
-
-        started_at = time.time()
-        while time.time() - started_at < 30:
-            try:
-                with pool.checkout() as session:
-                    session.execute_scheme("create table `.sys_health/test_table` (A int32, primary key(A));")
-
-                return True
-
-            except ydb.Error:
-                time.sleep(1)
-
-    raise RuntimeError("Container is not ready after timeout.")
-
-
-async def wait_container_ready_async(driver):
-    await driver.wait(timeout=30)
-
-    async with ydb.aio.SessionPool(driver, 1) as pool:
-
-        started_at = time.time()
-        while time.time() - started_at < 30:
-            try:
-                async with pool.checkout() as session:
-                    await session.execute_scheme("create table `.sys_health/test_table` (A int32, primary key(A));")
-
-                return True
-
-            except ydb.Error:
-                await asyncio.sleep(1)
-
-    raise RuntimeError("Container is not ready after timeout.")
-
-
-@pytest.fixture(scope="module")
-def endpoint(pytestconfig, module_scoped_container_getter):
-    with ydb.Driver(endpoint="localhost:2136", database="/local") as driver:
-        wait_container_ready(driver)
-    yield "localhost:2136"
+def pytest_addoption(parser):
+    """Add custom command line options for pytest-docker compatibility."""
+    parser.addoption(
+        "--docker-compose-file",
+        action="store",
+        default="docker-compose.yml",
+        help="Path to docker-compose file (relative to project root)",
+    )
 
 
 @pytest.fixture(scope="session")
-def secure_endpoint(pytestconfig, session_scoped_container_getter):
-    ca_path = os.path.join(str(pytestconfig.rootdir), "ydb_certs/ca.pem")
-    iterations = 0
-    while not os.path.exists(ca_path) and iterations < 10:
-        time.sleep(1)
-        iterations += 1
+def docker_compose_file(pytestconfig):
+    """Path to docker-compose.yml for pytest-docker."""
+    compose_file = pytestconfig.getoption("--docker-compose-file")
+    return os.path.join(str(pytestconfig.rootdir), compose_file)
 
-    assert os.path.exists(ca_path)
+
+@pytest.fixture(scope="session")
+def docker_cleanup():
+    """Remove volumes after tests (equivalent to --docker-compose-remove-volumes)."""
+    return ["down -v --remove-orphans"]
+
+
+class DockerProject:
+    """Compatibility wrapper for pytest-docker-compose docker_project fixture."""
+
+    def __init__(self, docker_compose, docker_services, endpoint):
+        self._docker_compose = docker_compose
+        self._docker_services = docker_services
+        self._endpoint = endpoint
+        self._stopped = False
+
+    def stop(self):
+        """Stop all containers (marks as stopped, actual restart happens in start())."""
+        self._stopped = True
+        # Use 'kill' for instant stop (simulates network failure better than graceful stop)
+        self._docker_compose.execute("kill")
+
+    def start(self):
+        """Restart containers and wait for YDB to be ready."""
+        if self._stopped:
+            # After kill, we need to recreate the container to restore YDB properly
+            self._docker_compose.execute("up -d --force-recreate")
+            self._stopped = False
+        else:
+            self._docker_compose.execute("start")
+
+        self._docker_services.wait_until_responsive(
+            timeout=120.0,
+            pause=2.0,
+            check=lambda: is_ydb_responsive(self._endpoint),
+        )
+
+
+@pytest.fixture(scope="module")
+def docker_project(docker_services, endpoint):
+    """Compatibility fixture providing stop/start methods like pytest-docker-compose."""
+    return DockerProject(docker_services._docker_compose, docker_services, endpoint)
+
+
+def is_ydb_responsive(endpoint):
+    """Check if YDB is ready to accept connections."""
+    try:
+        with ydb.Driver(endpoint=endpoint, database="/local") as driver:
+            driver.wait(timeout=5)
+            with ydb.SessionPool(driver) as pool:
+                with pool.checkout() as session:
+                    session.execute_scheme("create table `.sys_health/test_table` (A int32, primary key(A));")
+            return True
+    except Exception:
+        return False
+
+
+def is_ydb_secure_responsive(endpoint, root_certificates):
+    """Check if YDB TLS endpoint is ready to accept connections."""
+    try:
+        with ydb.Driver(
+            endpoint=f"grpcs://{endpoint}",
+            database="/local",
+            root_certificates=root_certificates,
+        ) as driver:
+            driver.wait(timeout=5)
+            with ydb.SessionPool(driver) as pool:
+                with pool.checkout() as session:
+                    session.execute_scheme("create table `.sys_health/test_table_tls` (A int32, primary key(A));")
+            return True
+    except Exception:
+        return False
+
+
+@pytest.fixture(scope="module")
+def endpoint(docker_ip, docker_services):
+    """Wait for YDB to be responsive and return endpoint."""
+    port = docker_services.port_for("ydb", 2136)
+    endpoint_url = f"{docker_ip}:{port}"
+    docker_services.wait_until_responsive(
+        timeout=60.0,
+        pause=1.0,
+        check=lambda: is_ydb_responsive(endpoint_url),
+    )
+    yield endpoint_url
+
+
+@pytest.fixture(scope="session")
+def secure_endpoint(pytestconfig, docker_ip, docker_services):
+    """Wait for YDB TLS endpoint to be responsive."""
+    ca_path = os.path.join(str(pytestconfig.rootdir), "ydb_certs/ca.pem")
+
+    # Wait for certificate file to be generated by container
+    def wait_for_certificate():
+        return os.path.exists(ca_path)
+
+    docker_services.wait_until_responsive(
+        timeout=30.0,
+        pause=1.0,
+        check=wait_for_certificate,
+    )
+
+    assert os.path.exists(ca_path), f"Certificate not found at {ca_path}"
     os.environ["YDB_SSL_ROOT_CERTIFICATES_FILE"] = ca_path
-    with ydb.Driver(
-        endpoint="grpcs://localhost:2135",
-        database="/local",
-        root_certificates=ydb.load_ydb_root_certificate(),
-    ) as driver:
-        wait_container_ready(driver)
-    yield "localhost:2135"
+    root_certificates = ydb.load_ydb_root_certificate()
+
+    port = docker_services.port_for("ydb", 2135)
+    # Use 'localhost' instead of docker_ip because SSL certificate is issued for 'localhost'
+    endpoint_url = f"localhost:{port}"
+
+    docker_services.wait_until_responsive(
+        timeout=60.0,
+        pause=1.0,
+        check=lambda: is_ydb_secure_responsive(endpoint_url, root_certificates),
+    )
+
+    yield endpoint_url
 
 
 @pytest.fixture(scope="module")

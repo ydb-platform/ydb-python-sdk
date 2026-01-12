@@ -7,10 +7,7 @@ cffi==1.14.6
 charset-normalizer==2.0.1
 cryptography==41.0.0
 distro==1.5.0
-docker==5.0.0
-docker-compose==1.29.2
-dockerpty==0.4.1
-docopt==0.6.2
+docker>=5.0.0
 grpcio>=1.42.0
 idna==3.2
 importlib-metadata==4.6.1
@@ -27,7 +24,7 @@ pyparsing==2.4.7
 pyrsistent==0.18.0
 pytest<8.0.0
 pytest-asyncio==0.21.0
-pytest-docker-compose==3.2.1
+pytest-docker>=3.0.0
 python-dotenv==0.18.0
 PyYAML==5.3.1
 pyjwt==2.0.0

@@ -11,3 +11,4 @@ services:
     - ./ydb_certs:/ydb_certs
     environment:
       - YDB_ENABLE_COLUMN_TABLES=true
+      - YDB_USE_IN_MEMORY_PDISKS=true

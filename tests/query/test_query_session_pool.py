@@ -7,7 +7,6 @@ from concurrent import futures
 
 from typing import Optional
 
-from tests.conftest import wait_container_ready
 from ydb import QueryExplainResultFormat
 from ydb.query.pool import QuerySessionPool
 from ydb.query.session import QuerySession, QuerySessionStateEnum
@@ -151,7 +150,6 @@ class TestQuerySessionPool:
         assert pool._current_size == 0
 
         docker_project.start()
-        wait_container_ready(driver_sync)
         pool.stop()
 
     def test_execute_with_retries_async(self, pool: QuerySessionPool):
