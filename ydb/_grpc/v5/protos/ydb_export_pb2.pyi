@@ -47,6 +47,61 @@ class ExportProgress(_message.Message):
     PROGRESS_UNSPECIFIED: ExportProgress.Progress
     def __init__(self) -> None: ...
 
+class ExportToFsMetadata(_message.Message):
+    __slots__ = ["items_progress", "progress", "settings"]
+    ITEMS_PROGRESS_FIELD_NUMBER: _ClassVar[int]
+    PROGRESS_FIELD_NUMBER: _ClassVar[int]
+    SETTINGS_FIELD_NUMBER: _ClassVar[int]
+    items_progress: _containers.RepeatedCompositeFieldContainer[ExportItemProgress]
+    progress: ExportProgress.Progress
+    settings: ExportToFsSettings
+    def __init__(self, settings: _Optional[_Union[ExportToFsSettings, _Mapping]] = ..., progress: _Optional[_Union[ExportProgress.Progress, str]] = ..., items_progress: _Optional[_Iterable[_Union[ExportItemProgress, _Mapping]]] = ...) -> None: ...
+
+class ExportToFsRequest(_message.Message):
+    __slots__ = ["operation_params", "settings"]
+    OPERATION_PARAMS_FIELD_NUMBER: _ClassVar[int]
+    SETTINGS_FIELD_NUMBER: _ClassVar[int]
+    operation_params: _ydb_operation_pb2.OperationParams
+    settings: ExportToFsSettings
+    def __init__(self, operation_params: _Optional[_Union[_ydb_operation_pb2.OperationParams, _Mapping]] = ..., settings: _Optional[_Union[ExportToFsSettings, _Mapping]] = ...) -> None: ...
+
+class ExportToFsResponse(_message.Message):
+    __slots__ = ["operation"]
+    OPERATION_FIELD_NUMBER: _ClassVar[int]
+    operation: _ydb_operation_pb2.Operation
+    def __init__(self, operation: _Optional[_Union[_ydb_operation_pb2.Operation, _Mapping]] = ...) -> None: ...
+
+class ExportToFsResult(_message.Message):
+    __slots__ = []
+    def __init__(self) -> None: ...
+
+class ExportToFsSettings(_message.Message):
+    __slots__ = ["base_path", "compression", "description", "encryption_settings", "exclude_regexps", "items", "number_of_retries", "source_path"]
+    class Item(_message.Message):
+        __slots__ = ["destination_path", "source_path"]
+        DESTINATION_PATH_FIELD_NUMBER: _ClassVar[int]
+        SOURCE_PATH_FIELD_NUMBER: _ClassVar[int]
+        destination_path: str
+        source_path: str
+        def __init__(self, source_path: _Optional[str] = ..., destination_path: _Optional[str] = ...) -> None: ...
+    BASE_PATH_FIELD_NUMBER: _ClassVar[int]
+    COMPRESSION_FIELD_NUMBER: _ClassVar[int]
+    DESCRIPTION_FIELD_NUMBER: _ClassVar[int]
+    ENCRYPTION_SETTINGS_FIELD_NUMBER: _ClassVar[int]
+    EXCLUDE_REGEXPS_FIELD_NUMBER: _ClassVar[int]
+    ITEMS_FIELD_NUMBER: _ClassVar[int]
+    NUMBER_OF_RETRIES_FIELD_NUMBER: _ClassVar[int]
+    SOURCE_PATH_FIELD_NUMBER: _ClassVar[int]
+    base_path: str
+    compression: str
+    description: str
+    encryption_settings: EncryptionSettings
+    exclude_regexps: _containers.RepeatedScalarFieldContainer[str]
+    items: _containers.RepeatedCompositeFieldContainer[ExportToFsSettings.Item]
+    number_of_retries: int
+    source_path: str
+    def __init__(self, base_path: _Optional[str] = ..., items: _Optional[_Iterable[_Union[ExportToFsSettings.Item, _Mapping]]] = ..., description: _Optional[str] = ..., number_of_retries: _Optional[int] = ..., compression: _Optional[str] = ..., encryption_settings: _Optional[_Union[EncryptionSettings, _Mapping]] = ..., source_path: _Optional[str] = ..., exclude_regexps: _Optional[_Iterable[str]] = ...) -> None: ...
+
 class ExportToS3Metadata(_message.Message):
     __slots__ = ["items_progress", "progress", "settings"]
     ITEMS_PROGRESS_FIELD_NUMBER: _ClassVar[int]
@@ -76,7 +131,7 @@ class ExportToS3Result(_message.Message):
     def __init__(self) -> None: ...
 
 class ExportToS3Settings(_message.Message):
-    __slots__ = ["access_key", "bucket", "compression", "description", "destination_prefix", "disable_virtual_addressing", "encryption_settings", "endpoint", "items", "number_of_retries", "region", "scheme", "secret_key", "source_path", "storage_class"]
+    __slots__ = ["access_key", "bucket", "compression", "description", "destination_prefix", "disable_virtual_addressing", "encryption_settings", "endpoint", "exclude_regexps", "items", "materialize_indexes", "number_of_retries", "region", "scheme", "secret_key", "source_path", "storage_class"]
     class Scheme(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
         __slots__ = []
     class StorageClass(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
@@ -97,11 +152,13 @@ class ExportToS3Settings(_message.Message):
     DISABLE_VIRTUAL_ADDRESSING_FIELD_NUMBER: _ClassVar[int]
     ENCRYPTION_SETTINGS_FIELD_NUMBER: _ClassVar[int]
     ENDPOINT_FIELD_NUMBER: _ClassVar[int]
+    EXCLUDE_REGEXPS_FIELD_NUMBER: _ClassVar[int]
     GLACIER: ExportToS3Settings.StorageClass
     HTTP: ExportToS3Settings.Scheme
     HTTPS: ExportToS3Settings.Scheme
     INTELLIGENT_TIERING: ExportToS3Settings.StorageClass
     ITEMS_FIELD_NUMBER: _ClassVar[int]
+    MATERIALIZE_INDEXES_FIELD_NUMBER: _ClassVar[int]
     NUMBER_OF_RETRIES_FIELD_NUMBER: _ClassVar[int]
     ONEZONE_IA: ExportToS3Settings.StorageClass
     OUTPOSTS: ExportToS3Settings.StorageClass
@@ -123,14 +180,16 @@ class ExportToS3Settings(_message.Message):
     disable_virtual_addressing: bool
     encryption_settings: EncryptionSettings
     endpoint: str
+    exclude_regexps: _containers.RepeatedScalarFieldContainer[str]
     items: _containers.RepeatedCompositeFieldContainer[ExportToS3Settings.Item]
+    materialize_indexes: bool
     number_of_retries: int
     region: str
     scheme: ExportToS3Settings.Scheme
     secret_key: str
     source_path: str
     storage_class: ExportToS3Settings.StorageClass
-    def __init__(self, endpoint: _Optional[str] = ..., scheme: _Optional[_Union[ExportToS3Settings.Scheme, str]] = ..., bucket: _Optional[str] = ..., access_key: _Optional[str] = ..., secret_key: _Optional[str] = ..., items: _Optional[_Iterable[_Union[ExportToS3Settings.Item, _Mapping]]] = ..., description: _Optional[str] = ..., number_of_retries: _Optional[int] = ..., storage_class: _Optional[_Union[ExportToS3Settings.StorageClass, str]] = ..., compression: _Optional[str] = ..., region: _Optional[str] = ..., disable_virtual_addressing: bool = ..., source_path: _Optional[str] = ..., destination_prefix: _Optional[str] = ..., encryption_settings: _Optional[_Union[EncryptionSettings, _Mapping]] = ...) -> None: ...
+    def __init__(self, endpoint: _Optional[str] = ..., scheme: _Optional[_Union[ExportToS3Settings.Scheme, str]] = ..., bucket: _Optional[str] = ..., access_key: _Optional[str] = ..., secret_key: _Optional[str] = ..., items: _Optional[_Iterable[_Union[ExportToS3Settings.Item, _Mapping]]] = ..., description: _Optional[str] = ..., number_of_retries: _Optional[int] = ..., storage_class: _Optional[_Union[ExportToS3Settings.StorageClass, str]] = ..., compression: _Optional[str] = ..., region: _Optional[str] = ..., disable_virtual_addressing: bool = ..., source_path: _Optional[str] = ..., destination_prefix: _Optional[str] = ..., encryption_settings: _Optional[_Union[EncryptionSettings, _Mapping]] = ..., materialize_indexes: bool = ..., exclude_regexps: _Optional[_Iterable[str]] = ...) -> None: ...
 
 class ExportToYtMetadata(_message.Message):
     __slots__ = ["items_progress", "progress", "settings"]
@@ -161,7 +220,7 @@ class ExportToYtResult(_message.Message):
     def __init__(self) -> None: ...
 
 class ExportToYtSettings(_message.Message):
-    __slots__ = ["description", "host", "items", "number_of_retries", "port", "token", "use_type_v3"]
+    __slots__ = ["description", "exclude_regexps", "host", "items", "number_of_retries", "port", "token", "use_type_v3"]
     class Item(_message.Message):
         __slots__ = ["destination_path", "source_path"]
         DESTINATION_PATH_FIELD_NUMBER: _ClassVar[int]
@@ -170,6 +229,7 @@ class ExportToYtSettings(_message.Message):
         source_path: str
         def __init__(self, source_path: _Optional[str] = ..., destination_path: _Optional[str] = ...) -> None: ...
     DESCRIPTION_FIELD_NUMBER: _ClassVar[int]
+    EXCLUDE_REGEXPS_FIELD_NUMBER: _ClassVar[int]
     HOST_FIELD_NUMBER: _ClassVar[int]
     ITEMS_FIELD_NUMBER: _ClassVar[int]
     NUMBER_OF_RETRIES_FIELD_NUMBER: _ClassVar[int]
@@ -177,10 +237,11 @@ class ExportToYtSettings(_message.Message):
     TOKEN_FIELD_NUMBER: _ClassVar[int]
     USE_TYPE_V3_FIELD_NUMBER: _ClassVar[int]
     description: str
+    exclude_regexps: _containers.RepeatedScalarFieldContainer[str]
     host: str
     items: _containers.RepeatedCompositeFieldContainer[ExportToYtSettings.Item]
     number_of_retries: int
     port: int
     token: str
     use_type_v3: bool
-    def __init__(self, host: _Optional[str] = ..., port: _Optional[int] = ..., token: _Optional[str] = ..., items: _Optional[_Iterable[_Union[ExportToYtSettings.Item, _Mapping]]] = ..., description: _Optional[str] = ..., number_of_retries: _Optional[int] = ..., use_type_v3: bool = ...) -> None: ...
+    def __init__(self, host: _Optional[str] = ..., port: _Optional[int] = ..., token: _Optional[str] = ..., items: _Optional[_Iterable[_Union[ExportToYtSettings.Item, _Mapping]]] = ..., description: _Optional[str] = ..., number_of_retries: _Optional[int] = ..., use_type_v3: bool = ..., exclude_regexps: _Optional[_Iterable[str]] = ...) -> None: ...

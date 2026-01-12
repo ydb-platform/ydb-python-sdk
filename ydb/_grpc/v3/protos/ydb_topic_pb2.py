@@ -19,6 +19,7 @@ from ydb._grpc.v3.protos import ydb_status_codes_pb2 as protos_dot_ydb__status__
 from ydb._grpc.v3.protos import ydb_issue_message_pb2 as protos_dot_ydb__issue__message__pb2
 from ydb._grpc.v3.protos.annotations import sensitive_pb2 as protos_dot_annotations_dot_sensitive__pb2
 from ydb._grpc.v3.protos.annotations import validation_pb2 as protos_dot_annotations_dot_validation__pb2
+from google.protobuf import empty_pb2 as google_dot_protobuf_dot_empty__pb2
 from google.protobuf import duration_pb2 as google_dot_protobuf_dot_duration__pb2
 from google.protobuf import timestamp_pb2 as google_dot_protobuf_dot_timestamp__pb2
 
@@ -29,9 +30,9 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   syntax='proto3',
   serialized_options=b'\n\024tech.ydb.proto.topicZ8github.com/ydb-platform/ydb-go-genproto/protos/Ydb_Topic\370\001\001',
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n\x16protos/ydb_topic.proto\x12\tYdb.Topic\x1a\x1aprotos/ydb_operation.proto\x1a\x17protos/ydb_scheme.proto\x1a\x1dprotos/ydb_status_codes.proto\x1a\x1eprotos/ydb_issue_message.proto\x1a\"protos/annotations/sensitive.proto\x1a#protos/annotations/validation.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"7\n\x0fSupportedCodecs\x12$\n\x06\x63odecs\x18\x01 \x03(\x05\x42\x14\xb2\xe6*\n[1; 19999]\x9a\xe6*\x02\x18\x64\"*\n\x0cOffsetsRange\x12\r\n\x05start\x18\x01 \x01(\x03\x12\x0b\n\x03\x65nd\x18\x02 \x01(\x03\")\n\x12UpdateTokenRequest\x12\x13\n\x05token\x18\x01 \x01(\tB\x04\xb8\xe6*\x01\"\x15\n\x13UpdateTokenResponse\"C\n\x17PartitionWithGeneration\x12\x14\n\x0cpartition_id\x18\x01 \x01(\x03\x12\x12\n\ngeneration\x18\x02 \x01(\x03\"*\n\x0cMetadataItem\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\x0c\"\x9e\x14\n\x12StreamWriteMessage\x1a\xe5\x01\n\nFromClient\x12\x41\n\x0cinit_request\x18\x01 \x01(\x0b\x32).Ydb.Topic.StreamWriteMessage.InitRequestH\x00\x12\x43\n\rwrite_request\x18\x02 \x01(\x0b\x32*.Ydb.Topic.StreamWriteMessage.WriteRequestH\x00\x12=\n\x14update_token_request\x18\x03 \x01(\x0b\x32\x1d.Ydb.Topic.UpdateTokenRequestH\x00\x42\x10\n\x0e\x63lient_message\x1a\xbf\x02\n\nFromServer\x12)\n\x06status\x18\x01 \x01(\x0e\x32\x19.Ydb.StatusIds.StatusCode\x12\'\n\x06issues\x18\x02 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessage\x12\x43\n\rinit_response\x18\x03 \x01(\x0b\x32*.Ydb.Topic.StreamWriteMessage.InitResponseH\x00\x12\x45\n\x0ewrite_response\x18\x04 \x01(\x0b\x32+.Ydb.Topic.StreamWriteMessage.WriteResponseH\x00\x12?\n\x15update_token_response\x18\x05 \x01(\x0b\x32\x1e.Ydb.Topic.UpdateTokenResponseH\x00\x42\x10\n\x0eserver_message\x1a\xfe\x02\n\x0bInitRequest\x12\x0c\n\x04path\x18\x01 \x01(\t\x12\x1c\n\x0bproducer_id\x18\x02 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x10\x12[\n\x12write_session_meta\x18\x03 \x03(\x0b\x32?.Ydb.Topic.StreamWriteMessage.InitRequest.WriteSessionMetaEntry\x12#\n\x10message_group_id\x18\x04 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x10H\x00\x12\x16\n\x0cpartition_id\x18\x05 \x01(\x03H\x00\x12G\n\x19partition_with_generation\x18\x07 \x01(\x0b\x32\".Ydb.Topic.PartitionWithGenerationH\x00\x12\x17\n\x0fget_last_seq_no\x18\x06 \x01(\x08\x1a\x37\n\x15WriteSessionMetaEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\x42\x0e\n\x0cpartitioning\x1a\x83\x01\n\x0cInitResponse\x12\x13\n\x0blast_seq_no\x18\x01 \x01(\x03\x12\x12\n\nsession_id\x18\x02 \x01(\t\x12\x14\n\x0cpartition_id\x18\x03 \x01(\x03\x12\x34\n\x10supported_codecs\x18\x04 \x01(\x0b\x32\x1a.Ydb.Topic.SupportedCodecs\x1a\xe8\x03\n\x0cWriteRequest\x12H\n\x08messages\x18\x01 \x03(\x0b\x32\x36.Ydb.Topic.StreamWriteMessage.WriteRequest.MessageData\x12\r\n\x05\x63odec\x18\x02 \x01(\x05\x12/\n\x02tx\x18\x03 \x01(\x0b\x32\x1e.Ydb.Topic.TransactionIdentityH\x00\x88\x01\x01\x1a\xc6\x02\n\x0bMessageData\x12\x0e\n\x06seq_no\x18\x01 \x01(\x03\x12.\n\ncreated_at\x18\x02 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12\x0c\n\x04\x64\x61ta\x18\x03 \x01(\x0c\x12\x19\n\x11uncompressed_size\x18\x04 \x01(\x03\x12#\n\x10message_group_id\x18\x05 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x10H\x00\x12\x16\n\x0cpartition_id\x18\x06 \x01(\x03H\x00\x12G\n\x19partition_with_generation\x18\x08 \x01(\x0b\x32\".Ydb.Topic.PartitionWithGenerationH\x00\x12\x38\n\x0emetadata_items\x18\x07 \x03(\x0b\x32\x17.Ydb.Topic.MetadataItemB\x07\x9a\xe6*\x03\x18\xe8\x07\x42\x0e\n\x0cpartitioningB\x05\n\x03_tx\x1a\xeb\x07\n\rWriteResponse\x12\x42\n\x04\x61\x63ks\x18\x01 \x03(\x0b\x32\x34.Ydb.Topic.StreamWriteMessage.WriteResponse.WriteAck\x12\x14\n\x0cpartition_id\x18\x02 \x01(\x03\x12U\n\x10write_statistics\x18\x03 \x01(\x0b\x32;.Ydb.Topic.StreamWriteMessage.WriteResponse.WriteStatistics\x1a\xf8\x03\n\x08WriteAck\x12\x0e\n\x06seq_no\x18\x01 \x01(\x03\x12O\n\x07written\x18\x02 \x01(\x0b\x32<.Ydb.Topic.StreamWriteMessage.WriteResponse.WriteAck.WrittenH\x00\x12O\n\x07skipped\x18\x03 \x01(\x0b\x32<.Ydb.Topic.StreamWriteMessage.WriteResponse.WriteAck.SkippedH\x00\x12Y\n\rwritten_in_tx\x18\x04 \x01(\x0b\x32@.Ydb.Topic.StreamWriteMessage.WriteResponse.WriteAck.WrittenInTxH\x00\x1a\x19\n\x07Written\x12\x0e\n\x06offset\x18\x01 \x01(\x03\x1a\x9c\x01\n\x07Skipped\x12S\n\x06reason\x18\x01 \x01(\x0e\x32\x43.Ydb.Topic.StreamWriteMessage.WriteResponse.WriteAck.Skipped.Reason\"<\n\x06Reason\x12\x16\n\x12REASON_UNSPECIFIED\x10\x00\x12\x1a\n\x16REASON_ALREADY_WRITTEN\x10\x01\x1a\r\n\x0bWrittenInTxB\x16\n\x14message_write_status\x1a\xad\x02\n\x0fWriteStatistics\x12\x32\n\x0fpersisting_time\x18\x01 \x01(\x0b\x32\x19.google.protobuf.Duration\x12\x36\n\x13min_queue_wait_time\x18\x02 \x01(\x0b\x32\x19.google.protobuf.Duration\x12\x36\n\x13max_queue_wait_time\x18\x03 \x01(\x0b\x32\x19.google.protobuf.Duration\x12<\n\x19partition_quota_wait_time\x18\x04 \x01(\x0b\x32\x19.google.protobuf.Duration\x12\x38\n\x15topic_quota_wait_time\x18\x05 \x01(\x0b\x32\x19.google.protobuf.Duration\"\x9c#\n\x11StreamReadMessage\x1aT\n\x10PartitionSession\x12\x1c\n\x14partition_session_id\x18\x01 \x01(\x03\x12\x0c\n\x04path\x18\x02 \x01(\t\x12\x14\n\x0cpartition_id\x18\x03 \x01(\x03\x1a\xb1\x05\n\nFromClient\x12@\n\x0cinit_request\x18\x01 \x01(\x0b\x32(.Ydb.Topic.StreamReadMessage.InitRequestH\x00\x12@\n\x0cread_request\x18\x02 \x01(\x0b\x32(.Ydb.Topic.StreamReadMessage.ReadRequestH\x00\x12Q\n\x15\x63ommit_offset_request\x18\x03 \x01(\x0b\x32\x30.Ydb.Topic.StreamReadMessage.CommitOffsetRequestH\x00\x12\x66\n partition_session_status_request\x18\x04 \x01(\x0b\x32:.Ydb.Topic.StreamReadMessage.PartitionSessionStatusRequestH\x00\x12=\n\x14update_token_request\x18\x05 \x01(\x0b\x32\x1d.Ydb.Topic.UpdateTokenRequestH\x00\x12\x45\n\x0f\x64irect_read_ack\x18\x08 \x01(\x0b\x32*.Ydb.Topic.StreamReadMessage.DirectReadAckH\x00\x12\x66\n start_partition_session_response\x18\x06 \x01(\x0b\x32:.Ydb.Topic.StreamReadMessage.StartPartitionSessionResponseH\x00\x12\x64\n\x1fstop_partition_session_response\x18\x07 \x01(\x0b\x32\x39.Ydb.Topic.StreamReadMessage.StopPartitionSessionResponseH\x00\x42\x10\n\x0e\x63lient_message\x1a\xf0\x06\n\nFromServer\x12)\n\x06status\x18\x01 \x01(\x0e\x32\x19.Ydb.StatusIds.StatusCode\x12\'\n\x06issues\x18\x02 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessage\x12\x42\n\rinit_response\x18\x03 \x01(\x0b\x32).Ydb.Topic.StreamReadMessage.InitResponseH\x00\x12\x42\n\rread_response\x18\x04 \x01(\x0b\x32).Ydb.Topic.StreamReadMessage.ReadResponseH\x00\x12S\n\x16\x63ommit_offset_response\x18\x05 \x01(\x0b\x32\x31.Ydb.Topic.StreamReadMessage.CommitOffsetResponseH\x00\x12h\n!partition_session_status_response\x18\x06 \x01(\x0b\x32;.Ydb.Topic.StreamReadMessage.PartitionSessionStatusResponseH\x00\x12?\n\x15update_token_response\x18\x07 \x01(\x0b\x32\x1e.Ydb.Topic.UpdateTokenResponseH\x00\x12\x64\n\x1fstart_partition_session_request\x18\x08 \x01(\x0b\x32\x39.Ydb.Topic.StreamReadMessage.StartPartitionSessionRequestH\x00\x12\x62\n\x1estop_partition_session_request\x18\t \x01(\x0b\x32\x38.Ydb.Topic.StreamReadMessage.StopPartitionSessionRequestH\x00\x12W\n\x18update_partition_session\x18\n \x01(\x0b\x32\x33.Ydb.Topic.StreamReadMessage.UpdatePartitionSessionH\x00\x12Q\n\x15\x65nd_partition_session\x18\x0b \x01(\x0b\x32\x30.Ydb.Topic.StreamReadMessage.EndPartitionSessionH\x00\x42\x10\n\x0eserver_message\x1a\xdc\x02\n\x0bInitRequest\x12X\n\x14topics_read_settings\x18\x01 \x03(\x0b\x32:.Ydb.Topic.StreamReadMessage.InitRequest.TopicReadSettings\x12\x10\n\x08\x63onsumer\x18\x02 \x01(\t\x12\x13\n\x0breader_name\x18\x03 \x01(\t\x12\x13\n\x0b\x64irect_read\x18\x04 \x01(\x08\x12!\n\x19\x61uto_partitioning_support\x18\x05 \x01(\x08\x1a\x93\x01\n\x11TopicReadSettings\x12\x0c\n\x04path\x18\x01 \x01(\t\x12\x15\n\rpartition_ids\x18\x02 \x03(\x03\x12*\n\x07max_lag\x18\x03 \x01(\x0b\x32\x19.google.protobuf.Duration\x12-\n\tread_from\x18\x04 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x1a\"\n\x0cInitResponse\x12\x12\n\nsession_id\x18\x01 \x01(\t\x1a!\n\x0bReadRequest\x12\x12\n\nbytes_size\x18\x01 \x01(\x03\x1a\x91\x06\n\x0cReadResponse\x12O\n\x0epartition_data\x18\x01 \x03(\x0b\x32\x37.Ydb.Topic.StreamReadMessage.ReadResponse.PartitionData\x12\x12\n\nbytes_size\x18\x02 \x01(\x03\x1a\xda\x01\n\x0bMessageData\x12\x0e\n\x06offset\x18\x01 \x01(\x03\x12\x0e\n\x06seq_no\x18\x02 \x01(\x03\x12.\n\ncreated_at\x18\x03 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12\x0c\n\x04\x64\x61ta\x18\x05 \x01(\x0c\x12\x19\n\x11uncompressed_size\x18\x06 \x01(\x03\x12!\n\x10message_group_id\x18\x07 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x10\x12/\n\x0emetadata_items\x18\x08 \x03(\x0b\x32\x17.Ydb.Topic.MetadataItem\x1a\xcd\x02\n\x05\x42\x61tch\x12K\n\x0cmessage_data\x18\x01 \x03(\x0b\x32\x35.Ydb.Topic.StreamReadMessage.ReadResponse.MessageData\x12\x1c\n\x0bproducer_id\x18\x02 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x10\x12\x61\n\x12write_session_meta\x18\x03 \x03(\x0b\x32\x45.Ydb.Topic.StreamReadMessage.ReadResponse.Batch.WriteSessionMetaEntry\x12\r\n\x05\x63odec\x18\x04 \x01(\x05\x12.\n\nwritten_at\x18\x05 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x1a\x37\n\x15WriteSessionMetaEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\x1ao\n\rPartitionData\x12\x1c\n\x14partition_session_id\x18\x01 \x01(\x03\x12@\n\x07\x62\x61tches\x18\x02 \x03(\x0b\x32/.Ydb.Topic.StreamReadMessage.ReadResponse.Batch\x1a\xd6\x01\n\x13\x43ommitOffsetRequest\x12^\n\x0e\x63ommit_offsets\x18\x01 \x03(\x0b\x32\x46.Ydb.Topic.StreamReadMessage.CommitOffsetRequest.PartitionCommitOffset\x1a_\n\x15PartitionCommitOffset\x12\x1c\n\x14partition_session_id\x18\x01 \x01(\x03\x12(\n\x07offsets\x18\x02 \x03(\x0b\x32\x17.Ydb.Topic.OffsetsRange\x1a\xdc\x01\n\x14\x43ommitOffsetResponse\x12p\n\x1cpartitions_committed_offsets\x18\x01 \x03(\x0b\x32J.Ydb.Topic.StreamReadMessage.CommitOffsetResponse.PartitionCommittedOffset\x1aR\n\x18PartitionCommittedOffset\x12\x1c\n\x14partition_session_id\x18\x01 \x01(\x03\x12\x18\n\x10\x63ommitted_offset\x18\x02 \x01(\x03\x1a=\n\x1dPartitionSessionStatusRequest\x12\x1c\n\x14partition_session_id\x18\x01 \x01(\x03\x1a\xcb\x01\n\x1ePartitionSessionStatusResponse\x12\x1c\n\x14partition_session_id\x18\x01 \x01(\x03\x12\x32\n\x11partition_offsets\x18\x02 \x01(\x0b\x32\x17.Ydb.Topic.OffsetsRange\x12\x18\n\x10\x63ommitted_offset\x18\x03 \x01(\x03\x12=\n\x19write_time_high_watermark\x18\x04 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x1a\xf0\x01\n\x1cStartPartitionSessionRequest\x12H\n\x11partition_session\x18\x01 \x01(\x0b\x32-.Ydb.Topic.StreamReadMessage.PartitionSession\x12\x18\n\x10\x63ommitted_offset\x18\x02 \x01(\x03\x12\x32\n\x11partition_offsets\x18\x03 \x01(\x0b\x32\x17.Ydb.Topic.OffsetsRange\x12\x38\n\x12partition_location\x18\x04 \x01(\x0b\x32\x1c.Ydb.Topic.PartitionLocation\x1a\x95\x01\n\x1dStartPartitionSessionResponse\x12\x1c\n\x14partition_session_id\x18\x01 \x01(\x03\x12\x18\n\x0bread_offset\x18\x02 \x01(\x03H\x00\x88\x01\x01\x12\x1a\n\rcommit_offset\x18\x03 \x01(\x03H\x01\x88\x01\x01\x42\x0e\n\x0c_read_offsetB\x10\n\x0e_commit_offset\x1a\x84\x01\n\x1bStopPartitionSessionRequest\x12\x1c\n\x14partition_session_id\x18\x01 \x01(\x03\x12\x10\n\x08graceful\x18\x02 \x01(\x08\x12\x18\n\x10\x63ommitted_offset\x18\x03 \x01(\x03\x12\x1b\n\x13last_direct_read_id\x18\x04 \x01(\x03\x1aN\n\x1cStopPartitionSessionResponse\x12\x1c\n\x14partition_session_id\x18\x01 \x01(\x03\x12\x10\n\x08graceful\x18\x02 \x01(\x08\x1ap\n\x16UpdatePartitionSession\x12\x1c\n\x14partition_session_id\x18\x01 \x01(\x03\x12\x38\n\x12partition_location\x18\x02 \x01(\x0b\x32\x1c.Ydb.Topic.PartitionLocation\x1a\x45\n\rDirectReadAck\x12\x1c\n\x14partition_session_id\x18\x01 \x01(\x03\x12\x16\n\x0e\x64irect_read_id\x18\x02 \x01(\x03\x1ap\n\x13\x45ndPartitionSession\x12\x1c\n\x14partition_session_id\x18\x01 \x01(\x03\x12\x1e\n\x16\x61\x64jacent_partition_ids\x18\x02 \x03(\x03\x12\x1b\n\x13\x63hild_partition_ids\x18\x03 \x03(\x03\"\x8b\r\n\x17StreamDirectReadMessage\x1a\xa8\x02\n\nFromClient\x12\x46\n\x0cinit_request\x18\x01 \x01(\x0b\x32..Ydb.Topic.StreamDirectReadMessage.InitRequestH\x00\x12\x80\x01\n+start_direct_read_partition_session_request\x18\x02 \x01(\x0b\x32I.Ydb.Topic.StreamDirectReadMessage.StartDirectReadPartitionSessionRequestH\x00\x12=\n\x14update_token_request\x18\x03 \x01(\x0b\x32\x1d.Ydb.Topic.UpdateTokenRequestH\x00\x42\x10\n\x0e\x63lient_message\x1a\xca\x04\n\nFromServer\x12)\n\x06status\x18\x01 \x01(\x0e\x32\x19.Ydb.StatusIds.StatusCode\x12\'\n\x06issues\x18\x02 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessage\x12H\n\rinit_response\x18\x06 \x01(\x0b\x32/.Ydb.Topic.StreamDirectReadMessage.InitResponseH\x00\x12\x82\x01\n,start_direct_read_partition_session_response\x18\x07 \x01(\x0b\x32J.Ydb.Topic.StreamDirectReadMessage.StartDirectReadPartitionSessionResponseH\x00\x12o\n\"stop_direct_read_partition_session\x18\x03 \x01(\x0b\x32\x41.Ydb.Topic.StreamDirectReadMessage.StopDirectReadPartitionSessionH\x00\x12U\n\x14\x64irect_read_response\x18\x04 \x01(\x0b\x32\x35.Ydb.Topic.StreamDirectReadMessage.DirectReadResponseH\x00\x12?\n\x15update_token_response\x18\x05 \x01(\x0b\x32\x1e.Ydb.Topic.UpdateTokenResponseH\x00\x42\x10\n\x0eserver_message\x1a\xb6\x01\n\x0bInitRequest\x12\x12\n\nsession_id\x18\x01 \x01(\t\x12^\n\x14topics_read_settings\x18\x02 \x03(\x0b\x32@.Ydb.Topic.StreamDirectReadMessage.InitRequest.TopicReadSettings\x12\x10\n\x08\x63onsumer\x18\x03 \x01(\t\x1a!\n\x11TopicReadSettings\x12\x0c\n\x04path\x18\x01 \x01(\t\x1a\x0e\n\x0cInitResponse\x1aw\n&StartDirectReadPartitionSessionRequest\x12\x1c\n\x14partition_session_id\x18\x01 \x01(\x03\x12\x1b\n\x13last_direct_read_id\x18\x02 \x01(\x03\x12\x12\n\ngeneration\x18\x03 \x01(\x03\x1a[\n\'StartDirectReadPartitionSessionResponse\x12\x1c\n\x14partition_session_id\x18\x01 \x01(\x03\x12\x12\n\ngeneration\x18\x02 \x01(\x03\x1a\xa6\x01\n\x1eStopDirectReadPartitionSession\x12)\n\x06status\x18\x01 \x01(\x0e\x32\x19.Ydb.StatusIds.StatusCode\x12\'\n\x06issues\x18\x02 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessage\x12\x1c\n\x14partition_session_id\x18\x03 \x01(\x03\x12\x12\n\ngeneration\x18\x04 \x01(\x03\x1a\xaf\x01\n\x12\x44irectReadResponse\x12\x1c\n\x14partition_session_id\x18\x01 \x01(\x03\x12\x16\n\x0e\x64irect_read_id\x18\x02 \x01(\x03\x12O\n\x0epartition_data\x18\x03 \x01(\x0b\x32\x37.Ydb.Topic.StreamReadMessage.ReadResponse.PartitionData\x12\x12\n\nbytes_size\x18\x04 \x01(\x03\"2\n\x13TransactionIdentity\x12\n\n\x02id\x18\x01 \x01(\t\x12\x0f\n\x07session\x18\x02 \x01(\t\"\xc4\x03\n!UpdateOffsetsInTransactionRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12*\n\x02tx\x18\x02 \x01(\x0b\x32\x1e.Ydb.Topic.TransactionIdentity\x12I\n\x06topics\x18\x03 \x03(\x0b\x32\x39.Ydb.Topic.UpdateOffsetsInTransactionRequest.TopicOffsets\x12\x10\n\x08\x63onsumer\x18\x04 \x01(\t\x1a\xda\x01\n\x0cTopicOffsets\x12\x0c\n\x04path\x18\x01 \x01(\t\x12^\n\npartitions\x18\x02 \x03(\x0b\x32J.Ydb.Topic.UpdateOffsetsInTransactionRequest.TopicOffsets.PartitionOffsets\x1a\\\n\x10PartitionOffsets\x12\x14\n\x0cpartition_id\x18\x01 \x01(\x03\x12\x32\n\x11partition_offsets\x18\x02 \x03(\x0b\x32\x17.Ydb.Topic.OffsetsRange\"R\n\"UpdateOffsetsInTransactionResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\"\n UpdateOffsetsInTransactionResult\"\xaf\x01\n\x13\x43ommitOffsetRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x0c\n\x04path\x18\x02 \x01(\t\x12\x14\n\x0cpartition_id\x18\x03 \x01(\x03\x12\x10\n\x08\x63onsumer\x18\x04 \x01(\t\x12\x0e\n\x06offset\x18\x05 \x01(\x03\x12\x17\n\x0fread_session_id\x18\x06 \x01(\t\"D\n\x14\x43ommitOffsetResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\x14\n\x12\x43ommitOffsetResult\"L\n\x13MultipleWindowsStat\x12\x12\n\nper_minute\x18\x01 \x01(\x03\x12\x10\n\x08per_hour\x18\x02 \x01(\x03\x12\x0f\n\x07per_day\x18\x03 \x01(\x03\"\xee\x04\n\x08\x43onsumer\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x11\n\timportant\x18\x02 \x01(\x08\x12-\n\tread_from\x18\x03 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12\x34\n\x10supported_codecs\x18\x05 \x01(\x0b\x32\x1a.Ydb.Topic.SupportedCodecs\x12\x37\n\nattributes\x18\x06 \x03(\x0b\x32#.Ydb.Topic.Consumer.AttributesEntry\x12\x39\n\x0e\x63onsumer_stats\x18\x07 \x01(\x0b\x32!.Ydb.Topic.Consumer.ConsumerStats\x1a\x31\n\x0f\x41ttributesEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\x1a\xae\x02\n\rConsumerStats\x12\x41\n\x1dmin_partitions_last_read_time\x18\x01 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12\x34\n\x11max_read_time_lag\x18\x02 \x01(\x0b\x32\x19.google.protobuf.Duration\x12\x35\n\x12max_write_time_lag\x18\x03 \x01(\x0b\x32\x19.google.protobuf.Duration\x12\x39\n\x16max_committed_time_lag\x18\x05 \x01(\x0b\x32\x19.google.protobuf.Duration\x12\x32\n\nbytes_read\x18\x04 \x01(\x0b\x32\x1e.Ydb.Topic.MultipleWindowsStatJ\x04\x08\x04\x10\x05\"\xbf\x02\n\rAlterConsumer\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x1a\n\rset_important\x18\x02 \x01(\x08H\x00\x88\x01\x01\x12\x31\n\rset_read_from\x18\x03 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12\x38\n\x14set_supported_codecs\x18\x05 \x01(\x0b\x32\x1a.Ydb.Topic.SupportedCodecs\x12G\n\x10\x61lter_attributes\x18\x06 \x03(\x0b\x32-.Ydb.Topic.AlterConsumer.AlterAttributesEntry\x1a\x36\n\x14\x41lterAttributesEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\x42\x10\n\x0e_set_importantJ\x04\x08\x04\x10\x05\"\xdc\x01\n\x14PartitioningSettings\x12\'\n\x15min_active_partitions\x18\x01 \x01(\x03\x42\x08\xb2\xe6*\x04>= 0\x12\'\n\x15max_active_partitions\x18\x03 \x01(\x03\x42\x08\xb2\xe6*\x04>= 0\x12)\n\x15partition_count_limit\x18\x02 \x01(\x03\x42\n\x18\x01\xb2\xe6*\x04>= 0\x12G\n\x1a\x61uto_partitioning_settings\x18\x04 \x01(\x0b\x32#.Ydb.Topic.AutoPartitioningSettings\"\x9f\x01\n\x18\x41utoPartitioningSettings\x12\x35\n\x08strategy\x18\x01 \x01(\x0e\x32#.Ydb.Topic.AutoPartitioningStrategy\x12L\n\x15partition_write_speed\x18\x02 \x01(\x0b\x32-.Ydb.Topic.AutoPartitioningWriteSpeedStrategy\"\xb3\x01\n\"AutoPartitioningWriteSpeedStrategy\x12\x37\n\x14stabilization_window\x18\x01 \x01(\x0b\x32\x19.google.protobuf.Duration\x12(\n\x16up_utilization_percent\x18\x02 \x01(\x05\x42\x08\xb2\xe6*\x04>= 0\x12*\n\x18\x64own_utilization_percent\x18\x03 \x01(\x05\x42\x08\xb2\xe6*\x04>= 0\"\x8b\x03\n\x19\x41lterPartitioningSettings\x12\x30\n\x19set_min_active_partitions\x18\x01 \x01(\x03\x42\x08\xb2\xe6*\x04>= 0H\x00\x88\x01\x01\x12\x30\n\x19set_max_active_partitions\x18\x03 \x01(\x03\x42\x08\xb2\xe6*\x04>= 0H\x01\x88\x01\x01\x12\x32\n\x19set_partition_count_limit\x18\x02 \x01(\x03\x42\n\x18\x01\xb2\xe6*\x04>= 0H\x02\x88\x01\x01\x12W\n alter_auto_partitioning_settings\x18\x04 \x01(\x0b\x32(.Ydb.Topic.AlterAutoPartitioningSettingsH\x03\x88\x01\x01\x42\x1c\n\x1a_set_min_active_partitionsB\x1c\n\x1a_set_max_active_partitionsB\x1c\n\x1a_set_partition_count_limitB#\n!_alter_auto_partitioning_settings\"\xea\x01\n\x1d\x41lterAutoPartitioningSettings\x12>\n\x0cset_strategy\x18\x01 \x01(\x0e\x32#.Ydb.Topic.AutoPartitioningStrategyH\x00\x88\x01\x01\x12Z\n\x19set_partition_write_speed\x18\x02 \x01(\x0b\x32\x32.Ydb.Topic.AlterAutoPartitioningWriteSpeedStrategyH\x01\x88\x01\x01\x42\x0f\n\r_set_strategyB\x1c\n\x1a_set_partition_write_speed\"\xb0\x02\n\'AlterAutoPartitioningWriteSpeedStrategy\x12@\n\x18set_stabilization_window\x18\x01 \x01(\x0b\x32\x19.google.protobuf.DurationH\x00\x88\x01\x01\x12\x31\n\x1aset_up_utilization_percent\x18\x02 \x01(\x05\x42\x08\xb2\xe6*\x04>= 0H\x01\x88\x01\x01\x12\x33\n\x1cset_down_utilization_percent\x18\x03 \x01(\x05\x42\x08\xb2\xe6*\x04>= 0H\x02\x88\x01\x01\x42\x1b\n\x19_set_stabilization_windowB\x1d\n\x1b_set_up_utilization_percentB\x1f\n\x1d_set_down_utilization_percent\"\xf6\x04\n\x12\x43reateTopicRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x0c\n\x04path\x18\x02 \x01(\t\x12>\n\x15partitioning_settings\x18\x03 \x01(\x0b\x32\x1f.Ydb.Topic.PartitioningSettings\x12\x33\n\x10retention_period\x18\x04 \x01(\x0b\x32\x19.google.protobuf.Duration\x12&\n\x14retention_storage_mb\x18\x05 \x01(\x03\x42\x08\xb2\xe6*\x04>= 0\x12\x34\n\x10supported_codecs\x18\x07 \x01(\x0b\x32\x1a.Ydb.Topic.SupportedCodecs\x12\x38\n&partition_write_speed_bytes_per_second\x18\x08 \x01(\x03\x42\x08\xb2\xe6*\x04>= 0\x12-\n\x1bpartition_write_burst_bytes\x18\t \x01(\x03\x42\x08\xb2\xe6*\x04>= 0\x12\x41\n\nattributes\x18\n \x03(\x0b\x32-.Ydb.Topic.CreateTopicRequest.AttributesEntry\x12/\n\tconsumers\x18\x0b \x03(\x0b\x32\x13.Ydb.Topic.ConsumerB\x07\x9a\xe6*\x03\x18\xb8\x17\x12.\n\rmetering_mode\x18\x0c \x01(\x0e\x32\x17.Ydb.Topic.MeteringMode\x1a\x31\n\x0f\x41ttributesEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01J\x04\x08\x06\x10\x07\"C\n\x13\x43reateTopicResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\x13\n\x11\x43reateTopicResult\"8\n\x11PartitionLocation\x12\x0f\n\x07node_id\x18\x01 \x01(\x05\x12\x12\n\ngeneration\x18\x02 \x01(\x03\"\x90\x01\n\x14\x44\x65scribeTopicRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x0c\n\x04path\x18\x02 \x01(\t\x12\x15\n\rinclude_stats\x18\x03 \x01(\x08\x12\x18\n\x10include_location\x18\x04 \x01(\x08\"E\n\x15\x44\x65scribeTopicResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"_\n\x11PartitionKeyRange\x12\x17\n\nfrom_bound\x18\x01 \x01(\x0cH\x00\x88\x01\x01\x12\x15\n\x08to_bound\x18\x02 \x01(\x0cH\x01\x88\x01\x01\x42\r\n\x0b_from_boundB\x0b\n\t_to_bound\"\xfa\t\n\x13\x44\x65scribeTopicResult\x12\x1f\n\x04self\x18\x01 \x01(\x0b\x32\x11.Ydb.Scheme.Entry\x12>\n\x15partitioning_settings\x18\x02 \x01(\x0b\x32\x1f.Ydb.Topic.PartitioningSettings\x12@\n\npartitions\x18\x03 \x03(\x0b\x32,.Ydb.Topic.DescribeTopicResult.PartitionInfo\x12\x33\n\x10retention_period\x18\x04 \x01(\x0b\x32\x19.google.protobuf.Duration\x12\x1c\n\x14retention_storage_mb\x18\x05 \x01(\x03\x12\x34\n\x10supported_codecs\x18\x07 \x01(\x0b\x32\x1a.Ydb.Topic.SupportedCodecs\x12.\n&partition_write_speed_bytes_per_second\x18\x08 \x01(\x03\x12\x33\n+partition_total_read_speed_bytes_per_second\x18\x0e \x01(\x03\x12\x36\n.partition_consumer_read_speed_bytes_per_second\x18\x0f \x01(\x03\x12#\n\x1bpartition_write_burst_bytes\x18\t \x01(\x03\x12\x42\n\nattributes\x18\n \x03(\x0b\x32..Ydb.Topic.DescribeTopicResult.AttributesEntry\x12&\n\tconsumers\x18\x0b \x03(\x0b\x32\x13.Ydb.Topic.Consumer\x12.\n\rmetering_mode\x18\x0c \x01(\x0e\x32\x17.Ydb.Topic.MeteringMode\x12>\n\x0btopic_stats\x18\r \x01(\x0b\x32).Ydb.Topic.DescribeTopicResult.TopicStats\x1a\x31\n\x0f\x41ttributesEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\x1a\x8f\x02\n\rPartitionInfo\x12\x14\n\x0cpartition_id\x18\x01 \x01(\x03\x12\x0e\n\x06\x61\x63tive\x18\x02 \x01(\x08\x12\x1b\n\x13\x63hild_partition_ids\x18\x03 \x03(\x03\x12\x1c\n\x14parent_partition_ids\x18\x04 \x03(\x03\x12\x32\n\x0fpartition_stats\x18\x05 \x01(\x0b\x32\x19.Ydb.Topic.PartitionStats\x12\x38\n\x12partition_location\x18\x06 \x01(\x0b\x32\x1c.Ydb.Topic.PartitionLocation\x12/\n\tkey_range\x18\x07 \x01(\x0b\x32\x1c.Ydb.Topic.PartitionKeyRange\x1a\xcd\x01\n\nTopicStats\x12\x18\n\x10store_size_bytes\x18\x01 \x01(\x03\x12\x37\n\x13min_last_write_time\x18\x02 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12\x35\n\x12max_write_time_lag\x18\x03 \x01(\x0b\x32\x19.google.protobuf.Duration\x12\x35\n\rbytes_written\x18\x04 \x01(\x0b\x32\x1e.Ydb.Topic.MultipleWindowsStatJ\x04\x08\x06\x10\x07\"\xaa\x01\n\x18\x44\x65scribePartitionRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x0c\n\x04path\x18\x02 \x01(\t\x12\x14\n\x0cpartition_id\x18\x03 \x01(\x03\x12\x15\n\rinclude_stats\x18\x04 \x01(\x08\x12\x18\n\x10include_location\x18\x05 \x01(\x08\"I\n\x19\x44\x65scribePartitionResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"Z\n\x17\x44\x65scribePartitionResult\x12?\n\tpartition\x18\x01 \x01(\x0b\x32,.Ydb.Topic.DescribeTopicResult.PartitionInfo\"\xa5\x01\n\x17\x44\x65scribeConsumerRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x0c\n\x04path\x18\x02 \x01(\t\x12\x10\n\x08\x63onsumer\x18\x03 \x01(\t\x12\x15\n\rinclude_stats\x18\x04 \x01(\x08\x12\x18\n\x10include_location\x18\x05 \x01(\x08\"H\n\x18\x44\x65scribeConsumerResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\xd3\x07\n\x16\x44\x65scribeConsumerResult\x12\x1f\n\x04self\x18\x01 \x01(\x0b\x32\x11.Ydb.Scheme.Entry\x12%\n\x08\x63onsumer\x18\x02 \x01(\x0b\x32\x13.Ydb.Topic.Consumer\x12\x43\n\npartitions\x18\x03 \x03(\x0b\x32/.Ydb.Topic.DescribeConsumerResult.PartitionInfo\x1a\xba\x02\n\rPartitionInfo\x12\x14\n\x0cpartition_id\x18\x01 \x01(\x03\x12\x0e\n\x06\x61\x63tive\x18\x02 \x01(\x08\x12\x1b\n\x13\x63hild_partition_ids\x18\x03 \x03(\x03\x12\x1c\n\x14parent_partition_ids\x18\x04 \x03(\x03\x12\x32\n\x0fpartition_stats\x18\x05 \x01(\x0b\x32\x19.Ydb.Topic.PartitionStats\x12Z\n\x18partition_consumer_stats\x18\x06 \x01(\x0b\x32\x38.Ydb.Topic.DescribeConsumerResult.PartitionConsumerStats\x12\x38\n\x12partition_location\x18\x07 \x01(\x0b\x32\x1c.Ydb.Topic.PartitionLocation\x1a\xee\x03\n\x16PartitionConsumerStats\x12\x18\n\x10last_read_offset\x18\x01 \x01(\x03\x12\x18\n\x10\x63ommitted_offset\x18\x02 \x01(\x03\x12\x17\n\x0fread_session_id\x18\x03 \x01(\t\x12\x46\n\"partition_read_session_create_time\x18\x04 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12\x32\n\x0elast_read_time\x18\x05 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12\x34\n\x11max_read_time_lag\x18\x06 \x01(\x0b\x32\x19.google.protobuf.Duration\x12\x35\n\x12max_write_time_lag\x18\x07 \x01(\x0b\x32\x19.google.protobuf.Duration\x12\x39\n\x16max_committed_time_lag\x18\r \x01(\x0b\x32\x19.google.protobuf.Duration\x12\x32\n\nbytes_read\x18\x08 \x01(\x0b\x32\x1e.Ydb.Topic.MultipleWindowsStat\x12\x13\n\x0breader_name\x18\x0b \x01(\t\x12\x1a\n\x12\x63onnection_node_id\x18\x0c \x01(\x05\"\xa0\x02\n\x0ePartitionStats\x12\x32\n\x11partition_offsets\x18\x01 \x01(\x0b\x32\x17.Ydb.Topic.OffsetsRange\x12\x18\n\x10store_size_bytes\x18\x02 \x01(\x03\x12\x33\n\x0flast_write_time\x18\x03 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12\x35\n\x12max_write_time_lag\x18\x04 \x01(\x0b\x32\x19.google.protobuf.Duration\x12\x35\n\rbytes_written\x18\x05 \x01(\x0b\x32\x1e.Ydb.Topic.MultipleWindowsStat\x12\x1d\n\x11partition_node_id\x18\x08 \x01(\x05\x42\x02\x18\x01\"\x87\x07\n\x11\x41lterTopicRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x0c\n\x04path\x18\x02 \x01(\t\x12I\n\x1b\x61lter_partitioning_settings\x18\x03 \x01(\x0b\x32$.Ydb.Topic.AlterPartitioningSettings\x12\x37\n\x14set_retention_period\x18\x04 \x01(\x0b\x32\x19.google.protobuf.Duration\x12/\n\x18set_retention_storage_mb\x18\x05 \x01(\x03\x42\x08\xb2\xe6*\x04>= 0H\x00\x88\x01\x01\x12\x38\n\x14set_supported_codecs\x18\x07 \x01(\x0b\x32\x1a.Ydb.Topic.SupportedCodecs\x12\x41\n*set_partition_write_speed_bytes_per_second\x18\x08 \x01(\x03\x42\x08\xb2\xe6*\x04>= 0H\x01\x88\x01\x01\x12\x36\n\x1fset_partition_write_burst_bytes\x18\t \x01(\x03\x42\x08\xb2\xe6*\x04>= 0H\x02\x88\x01\x01\x12K\n\x10\x61lter_attributes\x18\n \x03(\x0b\x32\x31.Ydb.Topic.AlterTopicRequest.AlterAttributesEntry\x12\x33\n\radd_consumers\x18\x0b \x03(\x0b\x32\x13.Ydb.Topic.ConsumerB\x07\x9a\xe6*\x03\x18\xb8\x17\x12\x1f\n\x0e\x64rop_consumers\x18\x0c \x03(\tB\x07\x9a\xe6*\x03\x18\xb8\x17\x12:\n\x0f\x61lter_consumers\x18\r \x03(\x0b\x32\x18.Ydb.Topic.AlterConsumerB\x07\x9a\xe6*\x03\x18\xb8\x17\x12\x32\n\x11set_metering_mode\x18\x0e \x01(\x0e\x32\x17.Ydb.Topic.MeteringMode\x1a\x36\n\x14\x41lterAttributesEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\x42\x1b\n\x19_set_retention_storage_mbB-\n+_set_partition_write_speed_bytes_per_secondB\"\n _set_partition_write_burst_bytesJ\x04\x08\x06\x10\x07\"B\n\x12\x41lterTopicResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\x12\n\x10\x41lterTopicResult\"[\n\x10\x44ropTopicRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x0c\n\x04path\x18\x02 \x01(\t\"A\n\x11\x44ropTopicResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\x11\n\x0f\x44ropTopicResult*\x83\x01\n\x05\x43odec\x12\x15\n\x11\x43ODEC_UNSPECIFIED\x10\x00\x12\r\n\tCODEC_RAW\x10\x01\x12\x0e\n\nCODEC_GZIP\x10\x02\x12\x0e\n\nCODEC_LZOP\x10\x03\x12\x0e\n\nCODEC_ZSTD\x10\x04\x12\x11\n\x0c\x43ODEC_CUSTOM\x10\x90N\"\x05\x08\x05\x10\x8fN\"\n\x08\xa0\x9c\x01\x10\xff\xff\xff\xff\x07*\xf1\x01\n\x18\x41utoPartitioningStrategy\x12*\n&AUTO_PARTITIONING_STRATEGY_UNSPECIFIED\x10\x00\x12\'\n#AUTO_PARTITIONING_STRATEGY_DISABLED\x10\x01\x12\'\n#AUTO_PARTITIONING_STRATEGY_SCALE_UP\x10\x02\x12\x30\n,AUTO_PARTITIONING_STRATEGY_SCALE_UP_AND_DOWN\x10\x03\x12%\n!AUTO_PARTITIONING_STRATEGY_PAUSED\x10\x04*s\n\x0cMeteringMode\x12\x1d\n\x19METERING_MODE_UNSPECIFIED\x10\x00\x12#\n\x1fMETERING_MODE_RESERVED_CAPACITY\x10\x01\x12\x1f\n\x1bMETERING_MODE_REQUEST_UNITS\x10\x02\x42S\n\x14tech.ydb.proto.topicZ8github.com/ydb-platform/ydb-go-genproto/protos/Ydb_Topic\xf8\x01\x01\x62\x06proto3'
+  serialized_pb=b'\n\x16protos/ydb_topic.proto\x12\tYdb.Topic\x1a\x1aprotos/ydb_operation.proto\x1a\x17protos/ydb_scheme.proto\x1a\x1dprotos/ydb_status_codes.proto\x1a\x1eprotos/ydb_issue_message.proto\x1a\"protos/annotations/sensitive.proto\x1a#protos/annotations/validation.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"7\n\x0fSupportedCodecs\x12$\n\x06\x63odecs\x18\x01 \x03(\x05\x42\x14\xb2\xe6*\n[1; 19999]\x9a\xe6*\x02\x18\x64\"*\n\x0cOffsetsRange\x12\r\n\x05start\x18\x01 \x01(\x03\x12\x0b\n\x03\x65nd\x18\x02 \x01(\x03\")\n\x12UpdateTokenRequest\x12\x13\n\x05token\x18\x01 \x01(\tB\x04\xb8\xe6*\x01\"\x15\n\x13UpdateTokenResponse\"C\n\x17PartitionWithGeneration\x12\x14\n\x0cpartition_id\x18\x01 \x01(\x03\x12\x12\n\ngeneration\x18\x02 \x01(\x03\"*\n\x0cMetadataItem\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\x0c\"\x9e\x14\n\x12StreamWriteMessage\x1a\xe5\x01\n\nFromClient\x12\x41\n\x0cinit_request\x18\x01 \x01(\x0b\x32).Ydb.Topic.StreamWriteMessage.InitRequestH\x00\x12\x43\n\rwrite_request\x18\x02 \x01(\x0b\x32*.Ydb.Topic.StreamWriteMessage.WriteRequestH\x00\x12=\n\x14update_token_request\x18\x03 \x01(\x0b\x32\x1d.Ydb.Topic.UpdateTokenRequestH\x00\x42\x10\n\x0e\x63lient_message\x1a\xbf\x02\n\nFromServer\x12)\n\x06status\x18\x01 \x01(\x0e\x32\x19.Ydb.StatusIds.StatusCode\x12\'\n\x06issues\x18\x02 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessage\x12\x43\n\rinit_response\x18\x03 \x01(\x0b\x32*.Ydb.Topic.StreamWriteMessage.InitResponseH\x00\x12\x45\n\x0ewrite_response\x18\x04 \x01(\x0b\x32+.Ydb.Topic.StreamWriteMessage.WriteResponseH\x00\x12?\n\x15update_token_response\x18\x05 \x01(\x0b\x32\x1e.Ydb.Topic.UpdateTokenResponseH\x00\x42\x10\n\x0eserver_message\x1a\xfe\x02\n\x0bInitRequest\x12\x0c\n\x04path\x18\x01 \x01(\t\x12\x1c\n\x0bproducer_id\x18\x02 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x10\x12[\n\x12write_session_meta\x18\x03 \x03(\x0b\x32?.Ydb.Topic.StreamWriteMessage.InitRequest.WriteSessionMetaEntry\x12#\n\x10message_group_id\x18\x04 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x10H\x00\x12\x16\n\x0cpartition_id\x18\x05 \x01(\x03H\x00\x12G\n\x19partition_with_generation\x18\x07 \x01(\x0b\x32\".Ydb.Topic.PartitionWithGenerationH\x00\x12\x17\n\x0fget_last_seq_no\x18\x06 \x01(\x08\x1a\x37\n\x15WriteSessionMetaEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\x42\x0e\n\x0cpartitioning\x1a\x83\x01\n\x0cInitResponse\x12\x13\n\x0blast_seq_no\x18\x01 \x01(\x03\x12\x12\n\nsession_id\x18\x02 \x01(\t\x12\x14\n\x0cpartition_id\x18\x03 \x01(\x03\x12\x34\n\x10supported_codecs\x18\x04 \x01(\x0b\x32\x1a.Ydb.Topic.SupportedCodecs\x1a\xe8\x03\n\x0cWriteRequest\x12H\n\x08messages\x18\x01 \x03(\x0b\x32\x36.Ydb.Topic.StreamWriteMessage.WriteRequest.MessageData\x12\r\n\x05\x63odec\x18\x02 \x01(\x05\x12/\n\x02tx\x18\x03 \x01(\x0b\x32\x1e.Ydb.Topic.TransactionIdentityH\x00\x88\x01\x01\x1a\xc6\x02\n\x0bMessageData\x12\x0e\n\x06seq_no\x18\x01 \x01(\x03\x12.\n\ncreated_at\x18\x02 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12\x0c\n\x04\x64\x61ta\x18\x03 \x01(\x0c\x12\x19\n\x11uncompressed_size\x18\x04 \x01(\x03\x12#\n\x10message_group_id\x18\x05 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x10H\x00\x12\x16\n\x0cpartition_id\x18\x06 \x01(\x03H\x00\x12G\n\x19partition_with_generation\x18\x08 \x01(\x0b\x32\".Ydb.Topic.PartitionWithGenerationH\x00\x12\x38\n\x0emetadata_items\x18\x07 \x03(\x0b\x32\x17.Ydb.Topic.MetadataItemB\x07\x9a\xe6*\x03\x18\xe8\x07\x42\x0e\n\x0cpartitioningB\x05\n\x03_tx\x1a\xeb\x07\n\rWriteResponse\x12\x42\n\x04\x61\x63ks\x18\x01 \x03(\x0b\x32\x34.Ydb.Topic.StreamWriteMessage.WriteResponse.WriteAck\x12\x14\n\x0cpartition_id\x18\x02 \x01(\x03\x12U\n\x10write_statistics\x18\x03 \x01(\x0b\x32;.Ydb.Topic.StreamWriteMessage.WriteResponse.WriteStatistics\x1a\xf8\x03\n\x08WriteAck\x12\x0e\n\x06seq_no\x18\x01 \x01(\x03\x12O\n\x07written\x18\x02 \x01(\x0b\x32<.Ydb.Topic.StreamWriteMessage.WriteResponse.WriteAck.WrittenH\x00\x12O\n\x07skipped\x18\x03 \x01(\x0b\x32<.Ydb.Topic.StreamWriteMessage.WriteResponse.WriteAck.SkippedH\x00\x12Y\n\rwritten_in_tx\x18\x04 \x01(\x0b\x32@.Ydb.Topic.StreamWriteMessage.WriteResponse.WriteAck.WrittenInTxH\x00\x1a\x19\n\x07Written\x12\x0e\n\x06offset\x18\x01 \x01(\x03\x1a\x9c\x01\n\x07Skipped\x12S\n\x06reason\x18\x01 \x01(\x0e\x32\x43.Ydb.Topic.StreamWriteMessage.WriteResponse.WriteAck.Skipped.Reason\"<\n\x06Reason\x12\x16\n\x12REASON_UNSPECIFIED\x10\x00\x12\x1a\n\x16REASON_ALREADY_WRITTEN\x10\x01\x1a\r\n\x0bWrittenInTxB\x16\n\x14message_write_status\x1a\xad\x02\n\x0fWriteStatistics\x12\x32\n\x0fpersisting_time\x18\x01 \x01(\x0b\x32\x19.google.protobuf.Duration\x12\x36\n\x13min_queue_wait_time\x18\x02 \x01(\x0b\x32\x19.google.protobuf.Duration\x12\x36\n\x13max_queue_wait_time\x18\x03 \x01(\x0b\x32\x19.google.protobuf.Duration\x12<\n\x19partition_quota_wait_time\x18\x04 \x01(\x0b\x32\x19.google.protobuf.Duration\x12\x38\n\x15topic_quota_wait_time\x18\x05 \x01(\x0b\x32\x19.google.protobuf.Duration\"\x9c#\n\x11StreamReadMessage\x1aT\n\x10PartitionSession\x12\x1c\n\x14partition_session_id\x18\x01 \x01(\x03\x12\x0c\n\x04path\x18\x02 \x01(\t\x12\x14\n\x0cpartition_id\x18\x03 \x01(\x03\x1a\xb1\x05\n\nFromClient\x12@\n\x0cinit_request\x18\x01 \x01(\x0b\x32(.Ydb.Topic.StreamReadMessage.InitRequestH\x00\x12@\n\x0cread_request\x18\x02 \x01(\x0b\x32(.Ydb.Topic.StreamReadMessage.ReadRequestH\x00\x12Q\n\x15\x63ommit_offset_request\x18\x03 \x01(\x0b\x32\x30.Ydb.Topic.StreamReadMessage.CommitOffsetRequestH\x00\x12\x66\n partition_session_status_request\x18\x04 \x01(\x0b\x32:.Ydb.Topic.StreamReadMessage.PartitionSessionStatusRequestH\x00\x12=\n\x14update_token_request\x18\x05 \x01(\x0b\x32\x1d.Ydb.Topic.UpdateTokenRequestH\x00\x12\x45\n\x0f\x64irect_read_ack\x18\x08 \x01(\x0b\x32*.Ydb.Topic.StreamReadMessage.DirectReadAckH\x00\x12\x66\n start_partition_session_response\x18\x06 \x01(\x0b\x32:.Ydb.Topic.StreamReadMessage.StartPartitionSessionResponseH\x00\x12\x64\n\x1fstop_partition_session_response\x18\x07 \x01(\x0b\x32\x39.Ydb.Topic.StreamReadMessage.StopPartitionSessionResponseH\x00\x42\x10\n\x0e\x63lient_message\x1a\xf0\x06\n\nFromServer\x12)\n\x06status\x18\x01 \x01(\x0e\x32\x19.Ydb.StatusIds.StatusCode\x12\'\n\x06issues\x18\x02 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessage\x12\x42\n\rinit_response\x18\x03 \x01(\x0b\x32).Ydb.Topic.StreamReadMessage.InitResponseH\x00\x12\x42\n\rread_response\x18\x04 \x01(\x0b\x32).Ydb.Topic.StreamReadMessage.ReadResponseH\x00\x12S\n\x16\x63ommit_offset_response\x18\x05 \x01(\x0b\x32\x31.Ydb.Topic.StreamReadMessage.CommitOffsetResponseH\x00\x12h\n!partition_session_status_response\x18\x06 \x01(\x0b\x32;.Ydb.Topic.StreamReadMessage.PartitionSessionStatusResponseH\x00\x12?\n\x15update_token_response\x18\x07 \x01(\x0b\x32\x1e.Ydb.Topic.UpdateTokenResponseH\x00\x12\x64\n\x1fstart_partition_session_request\x18\x08 \x01(\x0b\x32\x39.Ydb.Topic.StreamReadMessage.StartPartitionSessionRequestH\x00\x12\x62\n\x1estop_partition_session_request\x18\t \x01(\x0b\x32\x38.Ydb.Topic.StreamReadMessage.StopPartitionSessionRequestH\x00\x12W\n\x18update_partition_session\x18\n \x01(\x0b\x32\x33.Ydb.Topic.StreamReadMessage.UpdatePartitionSessionH\x00\x12Q\n\x15\x65nd_partition_session\x18\x0b \x01(\x0b\x32\x30.Ydb.Topic.StreamReadMessage.EndPartitionSessionH\x00\x42\x10\n\x0eserver_message\x1a\xdc\x02\n\x0bInitRequest\x12X\n\x14topics_read_settings\x18\x01 \x03(\x0b\x32:.Ydb.Topic.StreamReadMessage.InitRequest.TopicReadSettings\x12\x10\n\x08\x63onsumer\x18\x02 \x01(\t\x12\x13\n\x0breader_name\x18\x03 \x01(\t\x12\x13\n\x0b\x64irect_read\x18\x04 \x01(\x08\x12!\n\x19\x61uto_partitioning_support\x18\x05 \x01(\x08\x1a\x93\x01\n\x11TopicReadSettings\x12\x0c\n\x04path\x18\x01 \x01(\t\x12\x15\n\rpartition_ids\x18\x02 \x03(\x03\x12*\n\x07max_lag\x18\x03 \x01(\x0b\x32\x19.google.protobuf.Duration\x12-\n\tread_from\x18\x04 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x1a\"\n\x0cInitResponse\x12\x12\n\nsession_id\x18\x01 \x01(\t\x1a!\n\x0bReadRequest\x12\x12\n\nbytes_size\x18\x01 \x01(\x03\x1a\x91\x06\n\x0cReadResponse\x12O\n\x0epartition_data\x18\x01 \x03(\x0b\x32\x37.Ydb.Topic.StreamReadMessage.ReadResponse.PartitionData\x12\x12\n\nbytes_size\x18\x02 \x01(\x03\x1a\xda\x01\n\x0bMessageData\x12\x0e\n\x06offset\x18\x01 \x01(\x03\x12\x0e\n\x06seq_no\x18\x02 \x01(\x03\x12.\n\ncreated_at\x18\x03 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12\x0c\n\x04\x64\x61ta\x18\x05 \x01(\x0c\x12\x19\n\x11uncompressed_size\x18\x06 \x01(\x03\x12!\n\x10message_group_id\x18\x07 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x10\x12/\n\x0emetadata_items\x18\x08 \x03(\x0b\x32\x17.Ydb.Topic.MetadataItem\x1a\xcd\x02\n\x05\x42\x61tch\x12K\n\x0cmessage_data\x18\x01 \x03(\x0b\x32\x35.Ydb.Topic.StreamReadMessage.ReadResponse.MessageData\x12\x1c\n\x0bproducer_id\x18\x02 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x10\x12\x61\n\x12write_session_meta\x18\x03 \x03(\x0b\x32\x45.Ydb.Topic.StreamReadMessage.ReadResponse.Batch.WriteSessionMetaEntry\x12\r\n\x05\x63odec\x18\x04 \x01(\x05\x12.\n\nwritten_at\x18\x05 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x1a\x37\n\x15WriteSessionMetaEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\x1ao\n\rPartitionData\x12\x1c\n\x14partition_session_id\x18\x01 \x01(\x03\x12@\n\x07\x62\x61tches\x18\x02 \x03(\x0b\x32/.Ydb.Topic.StreamReadMessage.ReadResponse.Batch\x1a\xd6\x01\n\x13\x43ommitOffsetRequest\x12^\n\x0e\x63ommit_offsets\x18\x01 \x03(\x0b\x32\x46.Ydb.Topic.StreamReadMessage.CommitOffsetRequest.PartitionCommitOffset\x1a_\n\x15PartitionCommitOffset\x12\x1c\n\x14partition_session_id\x18\x01 \x01(\x03\x12(\n\x07offsets\x18\x02 \x03(\x0b\x32\x17.Ydb.Topic.OffsetsRange\x1a\xdc\x01\n\x14\x43ommitOffsetResponse\x12p\n\x1cpartitions_committed_offsets\x18\x01 \x03(\x0b\x32J.Ydb.Topic.StreamReadMessage.CommitOffsetResponse.PartitionCommittedOffset\x1aR\n\x18PartitionCommittedOffset\x12\x1c\n\x14partition_session_id\x18\x01 \x01(\x03\x12\x18\n\x10\x63ommitted_offset\x18\x02 \x01(\x03\x1a=\n\x1dPartitionSessionStatusRequest\x12\x1c\n\x14partition_session_id\x18\x01 \x01(\x03\x1a\xcb\x01\n\x1ePartitionSessionStatusResponse\x12\x1c\n\x14partition_session_id\x18\x01 \x01(\x03\x12\x32\n\x11partition_offsets\x18\x02 \x01(\x0b\x32\x17.Ydb.Topic.OffsetsRange\x12\x18\n\x10\x63ommitted_offset\x18\x03 \x01(\x03\x12=\n\x19write_time_high_watermark\x18\x04 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x1a\xf0\x01\n\x1cStartPartitionSessionRequest\x12H\n\x11partition_session\x18\x01 \x01(\x0b\x32-.Ydb.Topic.StreamReadMessage.PartitionSession\x12\x18\n\x10\x63ommitted_offset\x18\x02 \x01(\x03\x12\x32\n\x11partition_offsets\x18\x03 \x01(\x0b\x32\x17.Ydb.Topic.OffsetsRange\x12\x38\n\x12partition_location\x18\x04 \x01(\x0b\x32\x1c.Ydb.Topic.PartitionLocation\x1a\x95\x01\n\x1dStartPartitionSessionResponse\x12\x1c\n\x14partition_session_id\x18\x01 \x01(\x03\x12\x18\n\x0bread_offset\x18\x02 \x01(\x03H\x00\x88\x01\x01\x12\x1a\n\rcommit_offset\x18\x03 \x01(\x03H\x01\x88\x01\x01\x42\x0e\n\x0c_read_offsetB\x10\n\x0e_commit_offset\x1a\x84\x01\n\x1bStopPartitionSessionRequest\x12\x1c\n\x14partition_session_id\x18\x01 \x01(\x03\x12\x10\n\x08graceful\x18\x02 \x01(\x08\x12\x18\n\x10\x63ommitted_offset\x18\x03 \x01(\x03\x12\x1b\n\x13last_direct_read_id\x18\x04 \x01(\x03\x1aN\n\x1cStopPartitionSessionResponse\x12\x1c\n\x14partition_session_id\x18\x01 \x01(\x03\x12\x10\n\x08graceful\x18\x02 \x01(\x08\x1ap\n\x16UpdatePartitionSession\x12\x1c\n\x14partition_session_id\x18\x01 \x01(\x03\x12\x38\n\x12partition_location\x18\x02 \x01(\x0b\x32\x1c.Ydb.Topic.PartitionLocation\x1a\x45\n\rDirectReadAck\x12\x1c\n\x14partition_session_id\x18\x01 \x01(\x03\x12\x16\n\x0e\x64irect_read_id\x18\x02 \x01(\x03\x1ap\n\x13\x45ndPartitionSession\x12\x1c\n\x14partition_session_id\x18\x01 \x01(\x03\x12\x1e\n\x16\x61\x64jacent_partition_ids\x18\x02 \x03(\x03\x12\x1b\n\x13\x63hild_partition_ids\x18\x03 \x03(\x03\"\x8b\r\n\x17StreamDirectReadMessage\x1a\xa8\x02\n\nFromClient\x12\x46\n\x0cinit_request\x18\x01 \x01(\x0b\x32..Ydb.Topic.StreamDirectReadMessage.InitRequestH\x00\x12\x80\x01\n+start_direct_read_partition_session_request\x18\x02 \x01(\x0b\x32I.Ydb.Topic.StreamDirectReadMessage.StartDirectReadPartitionSessionRequestH\x00\x12=\n\x14update_token_request\x18\x03 \x01(\x0b\x32\x1d.Ydb.Topic.UpdateTokenRequestH\x00\x42\x10\n\x0e\x63lient_message\x1a\xca\x04\n\nFromServer\x12)\n\x06status\x18\x01 \x01(\x0e\x32\x19.Ydb.StatusIds.StatusCode\x12\'\n\x06issues\x18\x02 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessage\x12H\n\rinit_response\x18\x06 \x01(\x0b\x32/.Ydb.Topic.StreamDirectReadMessage.InitResponseH\x00\x12\x82\x01\n,start_direct_read_partition_session_response\x18\x07 \x01(\x0b\x32J.Ydb.Topic.StreamDirectReadMessage.StartDirectReadPartitionSessionResponseH\x00\x12o\n\"stop_direct_read_partition_session\x18\x03 \x01(\x0b\x32\x41.Ydb.Topic.StreamDirectReadMessage.StopDirectReadPartitionSessionH\x00\x12U\n\x14\x64irect_read_response\x18\x04 \x01(\x0b\x32\x35.Ydb.Topic.StreamDirectReadMessage.DirectReadResponseH\x00\x12?\n\x15update_token_response\x18\x05 \x01(\x0b\x32\x1e.Ydb.Topic.UpdateTokenResponseH\x00\x42\x10\n\x0eserver_message\x1a\xb6\x01\n\x0bInitRequest\x12\x12\n\nsession_id\x18\x01 \x01(\t\x12^\n\x14topics_read_settings\x18\x02 \x03(\x0b\x32@.Ydb.Topic.StreamDirectReadMessage.InitRequest.TopicReadSettings\x12\x10\n\x08\x63onsumer\x18\x03 \x01(\t\x1a!\n\x11TopicReadSettings\x12\x0c\n\x04path\x18\x01 \x01(\t\x1a\x0e\n\x0cInitResponse\x1aw\n&StartDirectReadPartitionSessionRequest\x12\x1c\n\x14partition_session_id\x18\x01 \x01(\x03\x12\x1b\n\x13last_direct_read_id\x18\x02 \x01(\x03\x12\x12\n\ngeneration\x18\x03 \x01(\x03\x1a[\n\'StartDirectReadPartitionSessionResponse\x12\x1c\n\x14partition_session_id\x18\x01 \x01(\x03\x12\x12\n\ngeneration\x18\x02 \x01(\x03\x1a\xa6\x01\n\x1eStopDirectReadPartitionSession\x12)\n\x06status\x18\x01 \x01(\x0e\x32\x19.Ydb.StatusIds.StatusCode\x12\'\n\x06issues\x18\x02 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessage\x12\x1c\n\x14partition_session_id\x18\x03 \x01(\x03\x12\x12\n\ngeneration\x18\x04 \x01(\x03\x1a\xaf\x01\n\x12\x44irectReadResponse\x12\x1c\n\x14partition_session_id\x18\x01 \x01(\x03\x12\x16\n\x0e\x64irect_read_id\x18\x02 \x01(\x03\x12O\n\x0epartition_data\x18\x03 \x01(\x0b\x32\x37.Ydb.Topic.StreamReadMessage.ReadResponse.PartitionData\x12\x12\n\nbytes_size\x18\x04 \x01(\x03\"2\n\x13TransactionIdentity\x12\n\n\x02id\x18\x01 \x01(\t\x12\x0f\n\x07session\x18\x02 \x01(\t\"\xc4\x03\n!UpdateOffsetsInTransactionRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12*\n\x02tx\x18\x02 \x01(\x0b\x32\x1e.Ydb.Topic.TransactionIdentity\x12I\n\x06topics\x18\x03 \x03(\x0b\x32\x39.Ydb.Topic.UpdateOffsetsInTransactionRequest.TopicOffsets\x12\x10\n\x08\x63onsumer\x18\x04 \x01(\t\x1a\xda\x01\n\x0cTopicOffsets\x12\x0c\n\x04path\x18\x01 \x01(\t\x12^\n\npartitions\x18\x02 \x03(\x0b\x32J.Ydb.Topic.UpdateOffsetsInTransactionRequest.TopicOffsets.PartitionOffsets\x1a\\\n\x10PartitionOffsets\x12\x14\n\x0cpartition_id\x18\x01 \x01(\x03\x12\x32\n\x11partition_offsets\x18\x02 \x03(\x0b\x32\x17.Ydb.Topic.OffsetsRange\"R\n\"UpdateOffsetsInTransactionResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\"\n UpdateOffsetsInTransactionResult\"\xaf\x01\n\x13\x43ommitOffsetRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x0c\n\x04path\x18\x02 \x01(\t\x12\x14\n\x0cpartition_id\x18\x03 \x01(\x03\x12\x10\n\x08\x63onsumer\x18\x04 \x01(\t\x12\x0e\n\x06offset\x18\x05 \x01(\x03\x12\x17\n\x0fread_session_id\x18\x06 \x01(\t\"D\n\x14\x43ommitOffsetResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\x14\n\x12\x43ommitOffsetResult\"L\n\x13MultipleWindowsStat\x12\x12\n\nper_minute\x18\x01 \x01(\x03\x12\x10\n\x08per_hour\x18\x02 \x01(\x03\x12\x0f\n\x07per_day\x18\x03 \x01(\x03\"\xc3\x05\n\x08\x43onsumer\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x11\n\timportant\x18\x02 \x01(\x08\x12-\n\tread_from\x18\x03 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12\x34\n\x10supported_codecs\x18\x05 \x01(\x0b\x32\x1a.Ydb.Topic.SupportedCodecs\x12\x37\n\nattributes\x18\x06 \x03(\x0b\x32#.Ydb.Topic.Consumer.AttributesEntry\x12\x39\n\x0e\x63onsumer_stats\x18\x07 \x01(\x0b\x32!.Ydb.Topic.Consumer.ConsumerStats\x12;\n\x13\x61vailability_period\x18\x08 \x01(\x0b\x32\x19.google.protobuf.DurationH\x00\x88\x01\x01\x1a\x31\n\x0f\x41ttributesEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\x1a\xae\x02\n\rConsumerStats\x12\x41\n\x1dmin_partitions_last_read_time\x18\x01 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12\x34\n\x11max_read_time_lag\x18\x02 \x01(\x0b\x32\x19.google.protobuf.Duration\x12\x35\n\x12max_write_time_lag\x18\x03 \x01(\x0b\x32\x19.google.protobuf.Duration\x12\x39\n\x16max_committed_time_lag\x18\x05 \x01(\x0b\x32\x19.google.protobuf.Duration\x12\x32\n\nbytes_read\x18\x04 \x01(\x0b\x32\x1e.Ydb.Topic.MultipleWindowsStatB\x16\n\x14_availability_periodJ\x04\x08\x04\x10\x05\"\xd8\x03\n\rAlterConsumer\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x1a\n\rset_important\x18\x02 \x01(\x08H\x01\x88\x01\x01\x12\x31\n\rset_read_from\x18\x03 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12\x38\n\x14set_supported_codecs\x18\x05 \x01(\x0b\x32\x1a.Ydb.Topic.SupportedCodecs\x12G\n\x10\x61lter_attributes\x18\x06 \x03(\x0b\x32-.Ydb.Topic.AlterConsumer.AlterAttributesEntry\x12<\n\x17set_availability_period\x18\x07 \x01(\x0b\x32\x19.google.protobuf.DurationH\x00\x12;\n\x19reset_availability_period\x18\x08 \x01(\x0b\x32\x16.google.protobuf.EmptyH\x00\x1a\x36\n\x14\x41lterAttributesEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\x42\x1c\n\x1a\x61vailability_period_actionB\x10\n\x0e_set_importantJ\x04\x08\x04\x10\x05\"\xdc\x01\n\x14PartitioningSettings\x12\'\n\x15min_active_partitions\x18\x01 \x01(\x03\x42\x08\xb2\xe6*\x04>= 0\x12\'\n\x15max_active_partitions\x18\x03 \x01(\x03\x42\x08\xb2\xe6*\x04>= 0\x12)\n\x15partition_count_limit\x18\x02 \x01(\x03\x42\n\x18\x01\xb2\xe6*\x04>= 0\x12G\n\x1a\x61uto_partitioning_settings\x18\x04 \x01(\x0b\x32#.Ydb.Topic.AutoPartitioningSettings\"\x9f\x01\n\x18\x41utoPartitioningSettings\x12\x35\n\x08strategy\x18\x01 \x01(\x0e\x32#.Ydb.Topic.AutoPartitioningStrategy\x12L\n\x15partition_write_speed\x18\x02 \x01(\x0b\x32-.Ydb.Topic.AutoPartitioningWriteSpeedStrategy\"\xb3\x01\n\"AutoPartitioningWriteSpeedStrategy\x12\x37\n\x14stabilization_window\x18\x01 \x01(\x0b\x32\x19.google.protobuf.Duration\x12(\n\x16up_utilization_percent\x18\x02 \x01(\x05\x42\x08\xb2\xe6*\x04>= 0\x12*\n\x18\x64own_utilization_percent\x18\x03 \x01(\x05\x42\x08\xb2\xe6*\x04>= 0\"\x8b\x03\n\x19\x41lterPartitioningSettings\x12\x30\n\x19set_min_active_partitions\x18\x01 \x01(\x03\x42\x08\xb2\xe6*\x04>= 0H\x00\x88\x01\x01\x12\x30\n\x19set_max_active_partitions\x18\x03 \x01(\x03\x42\x08\xb2\xe6*\x04>= 0H\x01\x88\x01\x01\x12\x32\n\x19set_partition_count_limit\x18\x02 \x01(\x03\x42\n\x18\x01\xb2\xe6*\x04>= 0H\x02\x88\x01\x01\x12W\n alter_auto_partitioning_settings\x18\x04 \x01(\x0b\x32(.Ydb.Topic.AlterAutoPartitioningSettingsH\x03\x88\x01\x01\x42\x1c\n\x1a_set_min_active_partitionsB\x1c\n\x1a_set_max_active_partitionsB\x1c\n\x1a_set_partition_count_limitB#\n!_alter_auto_partitioning_settings\"\xea\x01\n\x1d\x41lterAutoPartitioningSettings\x12>\n\x0cset_strategy\x18\x01 \x01(\x0e\x32#.Ydb.Topic.AutoPartitioningStrategyH\x00\x88\x01\x01\x12Z\n\x19set_partition_write_speed\x18\x02 \x01(\x0b\x32\x32.Ydb.Topic.AlterAutoPartitioningWriteSpeedStrategyH\x01\x88\x01\x01\x42\x0f\n\r_set_strategyB\x1c\n\x1a_set_partition_write_speed\"\xb0\x02\n\'AlterAutoPartitioningWriteSpeedStrategy\x12@\n\x18set_stabilization_window\x18\x01 \x01(\x0b\x32\x19.google.protobuf.DurationH\x00\x88\x01\x01\x12\x31\n\x1aset_up_utilization_percent\x18\x02 \x01(\x05\x42\x08\xb2\xe6*\x04>= 0H\x01\x88\x01\x01\x12\x33\n\x1cset_down_utilization_percent\x18\x03 \x01(\x05\x42\x08\xb2\xe6*\x04>= 0H\x02\x88\x01\x01\x42\x1b\n\x19_set_stabilization_windowB\x1d\n\x1b_set_up_utilization_percentB\x1f\n\x1d_set_down_utilization_percent\"\xf6\x04\n\x12\x43reateTopicRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x0c\n\x04path\x18\x02 \x01(\t\x12>\n\x15partitioning_settings\x18\x03 \x01(\x0b\x32\x1f.Ydb.Topic.PartitioningSettings\x12\x33\n\x10retention_period\x18\x04 \x01(\x0b\x32\x19.google.protobuf.Duration\x12&\n\x14retention_storage_mb\x18\x05 \x01(\x03\x42\x08\xb2\xe6*\x04>= 0\x12\x34\n\x10supported_codecs\x18\x07 \x01(\x0b\x32\x1a.Ydb.Topic.SupportedCodecs\x12\x38\n&partition_write_speed_bytes_per_second\x18\x08 \x01(\x03\x42\x08\xb2\xe6*\x04>= 0\x12-\n\x1bpartition_write_burst_bytes\x18\t \x01(\x03\x42\x08\xb2\xe6*\x04>= 0\x12\x41\n\nattributes\x18\n \x03(\x0b\x32-.Ydb.Topic.CreateTopicRequest.AttributesEntry\x12/\n\tconsumers\x18\x0b \x03(\x0b\x32\x13.Ydb.Topic.ConsumerB\x07\x9a\xe6*\x03\x18\xb8\x17\x12.\n\rmetering_mode\x18\x0c \x01(\x0e\x32\x17.Ydb.Topic.MeteringMode\x1a\x31\n\x0f\x41ttributesEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01J\x04\x08\x06\x10\x07\"C\n\x13\x43reateTopicResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\x13\n\x11\x43reateTopicResult\"8\n\x11PartitionLocation\x12\x0f\n\x07node_id\x18\x01 \x01(\x05\x12\x12\n\ngeneration\x18\x02 \x01(\x03\"\x90\x01\n\x14\x44\x65scribeTopicRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x0c\n\x04path\x18\x02 \x01(\t\x12\x15\n\rinclude_stats\x18\x03 \x01(\x08\x12\x18\n\x10include_location\x18\x04 \x01(\x08\"E\n\x15\x44\x65scribeTopicResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"_\n\x11PartitionKeyRange\x12\x17\n\nfrom_bound\x18\x01 \x01(\x0cH\x00\x88\x01\x01\x12\x15\n\x08to_bound\x18\x02 \x01(\x0cH\x01\x88\x01\x01\x42\r\n\x0b_from_boundB\x0b\n\t_to_bound\"\xfa\t\n\x13\x44\x65scribeTopicResult\x12\x1f\n\x04self\x18\x01 \x01(\x0b\x32\x11.Ydb.Scheme.Entry\x12>\n\x15partitioning_settings\x18\x02 \x01(\x0b\x32\x1f.Ydb.Topic.PartitioningSettings\x12@\n\npartitions\x18\x03 \x03(\x0b\x32,.Ydb.Topic.DescribeTopicResult.PartitionInfo\x12\x33\n\x10retention_period\x18\x04 \x01(\x0b\x32\x19.google.protobuf.Duration\x12\x1c\n\x14retention_storage_mb\x18\x05 \x01(\x03\x12\x34\n\x10supported_codecs\x18\x07 \x01(\x0b\x32\x1a.Ydb.Topic.SupportedCodecs\x12.\n&partition_write_speed_bytes_per_second\x18\x08 \x01(\x03\x12\x33\n+partition_total_read_speed_bytes_per_second\x18\x0e \x01(\x03\x12\x36\n.partition_consumer_read_speed_bytes_per_second\x18\x0f \x01(\x03\x12#\n\x1bpartition_write_burst_bytes\x18\t \x01(\x03\x12\x42\n\nattributes\x18\n \x03(\x0b\x32..Ydb.Topic.DescribeTopicResult.AttributesEntry\x12&\n\tconsumers\x18\x0b \x03(\x0b\x32\x13.Ydb.Topic.Consumer\x12.\n\rmetering_mode\x18\x0c \x01(\x0e\x32\x17.Ydb.Topic.MeteringMode\x12>\n\x0btopic_stats\x18\r \x01(\x0b\x32).Ydb.Topic.DescribeTopicResult.TopicStats\x1a\x31\n\x0f\x41ttributesEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\x1a\x8f\x02\n\rPartitionInfo\x12\x14\n\x0cpartition_id\x18\x01 \x01(\x03\x12\x0e\n\x06\x61\x63tive\x18\x02 \x01(\x08\x12\x1b\n\x13\x63hild_partition_ids\x18\x03 \x03(\x03\x12\x1c\n\x14parent_partition_ids\x18\x04 \x03(\x03\x12\x32\n\x0fpartition_stats\x18\x05 \x01(\x0b\x32\x19.Ydb.Topic.PartitionStats\x12\x38\n\x12partition_location\x18\x06 \x01(\x0b\x32\x1c.Ydb.Topic.PartitionLocation\x12/\n\tkey_range\x18\x07 \x01(\x0b\x32\x1c.Ydb.Topic.PartitionKeyRange\x1a\xcd\x01\n\nTopicStats\x12\x18\n\x10store_size_bytes\x18\x01 \x01(\x03\x12\x37\n\x13min_last_write_time\x18\x02 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12\x35\n\x12max_write_time_lag\x18\x03 \x01(\x0b\x32\x19.google.protobuf.Duration\x12\x35\n\rbytes_written\x18\x04 \x01(\x0b\x32\x1e.Ydb.Topic.MultipleWindowsStatJ\x04\x08\x06\x10\x07\"\xaa\x01\n\x18\x44\x65scribePartitionRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x0c\n\x04path\x18\x02 \x01(\t\x12\x14\n\x0cpartition_id\x18\x03 \x01(\x03\x12\x15\n\rinclude_stats\x18\x04 \x01(\x08\x12\x18\n\x10include_location\x18\x05 \x01(\x08\"I\n\x19\x44\x65scribePartitionResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"Z\n\x17\x44\x65scribePartitionResult\x12?\n\tpartition\x18\x01 \x01(\x0b\x32,.Ydb.Topic.DescribeTopicResult.PartitionInfo\"\xa5\x01\n\x17\x44\x65scribeConsumerRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x0c\n\x04path\x18\x02 \x01(\t\x12\x10\n\x08\x63onsumer\x18\x03 \x01(\t\x12\x15\n\rinclude_stats\x18\x04 \x01(\x08\x12\x18\n\x10include_location\x18\x05 \x01(\x08\"H\n\x18\x44\x65scribeConsumerResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\xd3\x07\n\x16\x44\x65scribeConsumerResult\x12\x1f\n\x04self\x18\x01 \x01(\x0b\x32\x11.Ydb.Scheme.Entry\x12%\n\x08\x63onsumer\x18\x02 \x01(\x0b\x32\x13.Ydb.Topic.Consumer\x12\x43\n\npartitions\x18\x03 \x03(\x0b\x32/.Ydb.Topic.DescribeConsumerResult.PartitionInfo\x1a\xba\x02\n\rPartitionInfo\x12\x14\n\x0cpartition_id\x18\x01 \x01(\x03\x12\x0e\n\x06\x61\x63tive\x18\x02 \x01(\x08\x12\x1b\n\x13\x63hild_partition_ids\x18\x03 \x03(\x03\x12\x1c\n\x14parent_partition_ids\x18\x04 \x03(\x03\x12\x32\n\x0fpartition_stats\x18\x05 \x01(\x0b\x32\x19.Ydb.Topic.PartitionStats\x12Z\n\x18partition_consumer_stats\x18\x06 \x01(\x0b\x32\x38.Ydb.Topic.DescribeConsumerResult.PartitionConsumerStats\x12\x38\n\x12partition_location\x18\x07 \x01(\x0b\x32\x1c.Ydb.Topic.PartitionLocation\x1a\xee\x03\n\x16PartitionConsumerStats\x12\x18\n\x10last_read_offset\x18\x01 \x01(\x03\x12\x18\n\x10\x63ommitted_offset\x18\x02 \x01(\x03\x12\x17\n\x0fread_session_id\x18\x03 \x01(\t\x12\x46\n\"partition_read_session_create_time\x18\x04 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12\x32\n\x0elast_read_time\x18\x05 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12\x34\n\x11max_read_time_lag\x18\x06 \x01(\x0b\x32\x19.google.protobuf.Duration\x12\x35\n\x12max_write_time_lag\x18\x07 \x01(\x0b\x32\x19.google.protobuf.Duration\x12\x39\n\x16max_committed_time_lag\x18\r \x01(\x0b\x32\x19.google.protobuf.Duration\x12\x32\n\nbytes_read\x18\x08 \x01(\x0b\x32\x1e.Ydb.Topic.MultipleWindowsStat\x12\x13\n\x0breader_name\x18\x0b \x01(\t\x12\x1a\n\x12\x63onnection_node_id\x18\x0c \x01(\x05\"\xa0\x02\n\x0ePartitionStats\x12\x32\n\x11partition_offsets\x18\x01 \x01(\x0b\x32\x17.Ydb.Topic.OffsetsRange\x12\x18\n\x10store_size_bytes\x18\x02 \x01(\x03\x12\x33\n\x0flast_write_time\x18\x03 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12\x35\n\x12max_write_time_lag\x18\x04 \x01(\x0b\x32\x19.google.protobuf.Duration\x12\x35\n\rbytes_written\x18\x05 \x01(\x0b\x32\x1e.Ydb.Topic.MultipleWindowsStat\x12\x1d\n\x11partition_node_id\x18\x08 \x01(\x05\x42\x02\x18\x01\"\x87\x07\n\x11\x41lterTopicRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x0c\n\x04path\x18\x02 \x01(\t\x12I\n\x1b\x61lter_partitioning_settings\x18\x03 \x01(\x0b\x32$.Ydb.Topic.AlterPartitioningSettings\x12\x37\n\x14set_retention_period\x18\x04 \x01(\x0b\x32\x19.google.protobuf.Duration\x12/\n\x18set_retention_storage_mb\x18\x05 \x01(\x03\x42\x08\xb2\xe6*\x04>= 0H\x00\x88\x01\x01\x12\x38\n\x14set_supported_codecs\x18\x07 \x01(\x0b\x32\x1a.Ydb.Topic.SupportedCodecs\x12\x41\n*set_partition_write_speed_bytes_per_second\x18\x08 \x01(\x03\x42\x08\xb2\xe6*\x04>= 0H\x01\x88\x01\x01\x12\x36\n\x1fset_partition_write_burst_bytes\x18\t \x01(\x03\x42\x08\xb2\xe6*\x04>= 0H\x02\x88\x01\x01\x12K\n\x10\x61lter_attributes\x18\n \x03(\x0b\x32\x31.Ydb.Topic.AlterTopicRequest.AlterAttributesEntry\x12\x33\n\radd_consumers\x18\x0b \x03(\x0b\x32\x13.Ydb.Topic.ConsumerB\x07\x9a\xe6*\x03\x18\xb8\x17\x12\x1f\n\x0e\x64rop_consumers\x18\x0c \x03(\tB\x07\x9a\xe6*\x03\x18\xb8\x17\x12:\n\x0f\x61lter_consumers\x18\r \x03(\x0b\x32\x18.Ydb.Topic.AlterConsumerB\x07\x9a\xe6*\x03\x18\xb8\x17\x12\x32\n\x11set_metering_mode\x18\x0e \x01(\x0e\x32\x17.Ydb.Topic.MeteringMode\x1a\x36\n\x14\x41lterAttributesEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\x42\x1b\n\x19_set_retention_storage_mbB-\n+_set_partition_write_speed_bytes_per_secondB\"\n _set_partition_write_burst_bytesJ\x04\x08\x06\x10\x07\"B\n\x12\x41lterTopicResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\x12\n\x10\x41lterTopicResult\"[\n\x10\x44ropTopicRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x0c\n\x04path\x18\x02 \x01(\t\"A\n\x11\x44ropTopicResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\x11\n\x0f\x44ropTopicResult*\x83\x01\n\x05\x43odec\x12\x15\n\x11\x43ODEC_UNSPECIFIED\x10\x00\x12\r\n\tCODEC_RAW\x10\x01\x12\x0e\n\nCODEC_GZIP\x10\x02\x12\x0e\n\nCODEC_LZOP\x10\x03\x12\x0e\n\nCODEC_ZSTD\x10\x04\x12\x11\n\x0c\x43ODEC_CUSTOM\x10\x90N\"\x05\x08\x05\x10\x8fN\"\n\x08\xa0\x9c\x01\x10\xff\xff\xff\xff\x07*\xf1\x01\n\x18\x41utoPartitioningStrategy\x12*\n&AUTO_PARTITIONING_STRATEGY_UNSPECIFIED\x10\x00\x12\'\n#AUTO_PARTITIONING_STRATEGY_DISABLED\x10\x01\x12\'\n#AUTO_PARTITIONING_STRATEGY_SCALE_UP\x10\x02\x12\x30\n,AUTO_PARTITIONING_STRATEGY_SCALE_UP_AND_DOWN\x10\x03\x12%\n!AUTO_PARTITIONING_STRATEGY_PAUSED\x10\x04*s\n\x0cMeteringMode\x12\x1d\n\x19METERING_MODE_UNSPECIFIED\x10\x00\x12#\n\x1fMETERING_MODE_RESERVED_CAPACITY\x10\x01\x12\x1f\n\x1bMETERING_MODE_REQUEST_UNITS\x10\x02\x42S\n\x14tech.ydb.proto.topicZ8github.com/ydb-platform/ydb-go-genproto/protos/Ydb_Topic\xf8\x01\x01\x62\x06proto3'
   ,
-  dependencies=[protos_dot_ydb__operation__pb2.DESCRIPTOR,protos_dot_ydb__scheme__pb2.DESCRIPTOR,protos_dot_ydb__status__codes__pb2.DESCRIPTOR,protos_dot_ydb__issue__message__pb2.DESCRIPTOR,protos_dot_annotations_dot_sensitive__pb2.DESCRIPTOR,protos_dot_annotations_dot_validation__pb2.DESCRIPTOR,google_dot_protobuf_dot_duration__pb2.DESCRIPTOR,google_dot_protobuf_dot_timestamp__pb2.DESCRIPTOR,])
+  dependencies=[protos_dot_ydb__operation__pb2.DESCRIPTOR,protos_dot_ydb__scheme__pb2.DESCRIPTOR,protos_dot_ydb__status__codes__pb2.DESCRIPTOR,protos_dot_ydb__issue__message__pb2.DESCRIPTOR,protos_dot_annotations_dot_sensitive__pb2.DESCRIPTOR,protos_dot_annotations_dot_validation__pb2.DESCRIPTOR,google_dot_protobuf_dot_empty__pb2.DESCRIPTOR,google_dot_protobuf_dot_duration__pb2.DESCRIPTOR,google_dot_protobuf_dot_timestamp__pb2.DESCRIPTOR,])
 
 _CODEC = _descriptor.EnumDescriptor(
   name='Codec',
@@ -73,8 +74,8 @@ _CODEC = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=18186,
-  serialized_end=18317,
+  serialized_start=18453,
+  serialized_end=18584,
 )
 _sym_db.RegisterEnumDescriptor(_CODEC)
 
@@ -114,8 +115,8 @@ _AUTOPARTITIONINGSTRATEGY = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=18320,
-  serialized_end=18561,
+  serialized_start=18587,
+  serialized_end=18828,
 )
 _sym_db.RegisterEnumDescriptor(_AUTOPARTITIONINGSTRATEGY)
 
@@ -145,8 +146,8 @@ _METERINGMODE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=18563,
-  serialized_end=18678,
+  serialized_start=18830,
+  serialized_end=18945,
 )
 _sym_db.RegisterEnumDescriptor(_METERINGMODE)
 
@@ -187,8 +188,8 @@ _STREAMWRITEMESSAGE_WRITERESPONSE_WRITEACK_SKIPPED_REASON = _descriptor.EnumDesc
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=2759,
-  serialized_end=2819,
+  serialized_start=2788,
+  serialized_end=2848,
 )
 _sym_db.RegisterEnumDescriptor(_STREAMWRITEMESSAGE_WRITERESPONSE_WRITEACK_SKIPPED_REASON)
 
@@ -220,8 +221,8 @@ _SUPPORTEDCODECS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=291,
-  serialized_end=346,
+  serialized_start=320,
+  serialized_end=375,
 )
 
 
@@ -259,8 +260,8 @@ _OFFSETSRANGE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=348,
-  serialized_end=390,
+  serialized_start=377,
+  serialized_end=419,
 )
 
 
@@ -291,8 +292,8 @@ _UPDATETOKENREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=392,
-  serialized_end=433,
+  serialized_start=421,
+  serialized_end=462,
 )
 
 
@@ -316,8 +317,8 @@ _UPDATETOKENRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=435,
-  serialized_end=456,
+  serialized_start=464,
+  serialized_end=485,
 )
 
 
@@ -355,8 +356,8 @@ _PARTITIONWITHGENERATION = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=458,
-  serialized_end=525,
+  serialized_start=487,
+  serialized_end=554,
 )
 
 
@@ -394,8 +395,8 @@ _METADATAITEM = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=527,
-  serialized_end=569,
+  serialized_start=556,
+  serialized_end=598,
 )
 
 
@@ -445,8 +446,8 @@ _STREAMWRITEMESSAGE_FROMCLIENT = _descriptor.Descriptor(
       create_key=_descriptor._internal_create_key,
     fields=[]),
   ],
-  serialized_start=595,
-  serialized_end=824,
+  serialized_start=624,
+  serialized_end=853,
 )
 
 _STREAMWRITEMESSAGE_FROMSERVER = _descriptor.Descriptor(
@@ -509,8 +510,8 @@ _STREAMWRITEMESSAGE_FROMSERVER = _descriptor.Descriptor(
       create_key=_descriptor._internal_create_key,
     fields=[]),
   ],
-  serialized_start=827,
-  serialized_end=1146,
+  serialized_start=856,
+  serialized_end=1175,
 )
 
 _STREAMWRITEMESSAGE_INITREQUEST_WRITESESSIONMETAENTRY = _descriptor.Descriptor(
@@ -547,8 +548,8 @@ _STREAMWRITEMESSAGE_INITREQUEST_WRITESESSIONMETAENTRY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1460,
-  serialized_end=1515,
+  serialized_start=1489,
+  serialized_end=1544,
 )
 
 _STREAMWRITEMESSAGE_INITREQUEST = _descriptor.Descriptor(
@@ -625,8 +626,8 @@ _STREAMWRITEMESSAGE_INITREQUEST = _descriptor.Descriptor(
       create_key=_descriptor._internal_create_key,
     fields=[]),
   ],
-  serialized_start=1149,
-  serialized_end=1531,
+  serialized_start=1178,
+  serialized_end=1560,
 )
 
 _STREAMWRITEMESSAGE_INITRESPONSE = _descriptor.Descriptor(
@@ -677,8 +678,8 @@ _STREAMWRITEMESSAGE_INITRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1534,
-  serialized_end=1665,
+  serialized_start=1563,
+  serialized_end=1694,
 )
 
 _STREAMWRITEMESSAGE_WRITEREQUEST_MESSAGEDATA = _descriptor.Descriptor(
@@ -762,8 +763,8 @@ _STREAMWRITEMESSAGE_WRITEREQUEST_MESSAGEDATA = _descriptor.Descriptor(
       create_key=_descriptor._internal_create_key,
     fields=[]),
   ],
-  serialized_start=1823,
-  serialized_end=2149,
+  serialized_start=1852,
+  serialized_end=2178,
 )
 
 _STREAMWRITEMESSAGE_WRITEREQUEST = _descriptor.Descriptor(
@@ -812,8 +813,8 @@ _STREAMWRITEMESSAGE_WRITEREQUEST = _descriptor.Descriptor(
       create_key=_descriptor._internal_create_key,
     fields=[]),
   ],
-  serialized_start=1668,
-  serialized_end=2156,
+  serialized_start=1697,
+  serialized_end=2185,
 )
 
 _STREAMWRITEMESSAGE_WRITERESPONSE_WRITEACK_WRITTEN = _descriptor.Descriptor(
@@ -843,8 +844,8 @@ _STREAMWRITEMESSAGE_WRITERESPONSE_WRITEACK_WRITTEN = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2635,
-  serialized_end=2660,
+  serialized_start=2664,
+  serialized_end=2689,
 )
 
 _STREAMWRITEMESSAGE_WRITERESPONSE_WRITEACK_SKIPPED = _descriptor.Descriptor(
@@ -875,8 +876,8 @@ _STREAMWRITEMESSAGE_WRITERESPONSE_WRITEACK_SKIPPED = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2663,
-  serialized_end=2819,
+  serialized_start=2692,
+  serialized_end=2848,
 )
 
 _STREAMWRITEMESSAGE_WRITERESPONSE_WRITEACK_WRITTENINTX = _descriptor.Descriptor(
@@ -899,8 +900,8 @@ _STREAMWRITEMESSAGE_WRITERESPONSE_WRITEACK_WRITTENINTX = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2821,
-  serialized_end=2834,
+  serialized_start=2850,
+  serialized_end=2863,
 )
 
 _STREAMWRITEMESSAGE_WRITERESPONSE_WRITEACK = _descriptor.Descriptor(
@@ -956,8 +957,8 @@ _STREAMWRITEMESSAGE_WRITERESPONSE_WRITEACK = _descriptor.Descriptor(
       create_key=_descriptor._internal_create_key,
     fields=[]),
   ],
-  serialized_start=2354,
-  serialized_end=2858,
+  serialized_start=2383,
+  serialized_end=2887,
 )
 
 _STREAMWRITEMESSAGE_WRITERESPONSE_WRITESTATISTICS = _descriptor.Descriptor(
@@ -1015,8 +1016,8 @@ _STREAMWRITEMESSAGE_WRITERESPONSE_WRITESTATISTICS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2861,
-  serialized_end=3162,
+  serialized_start=2890,
+  serialized_end=3191,
 )
 
 _STREAMWRITEMESSAGE_WRITERESPONSE = _descriptor.Descriptor(
@@ -1060,8 +1061,8 @@ _STREAMWRITEMESSAGE_WRITERESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2159,
-  serialized_end=3162,
+  serialized_start=2188,
+  serialized_end=3191,
 )
 
 _STREAMWRITEMESSAGE = _descriptor.Descriptor(
@@ -1084,8 +1085,8 @@ _STREAMWRITEMESSAGE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=572,
-  serialized_end=3162,
+  serialized_start=601,
+  serialized_end=3191,
 )
 
 
@@ -1130,8 +1131,8 @@ _STREAMREADMESSAGE_PARTITIONSESSION = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3186,
-  serialized_end=3270,
+  serialized_start=3215,
+  serialized_end=3299,
 )
 
 _STREAMREADMESSAGE_FROMCLIENT = _descriptor.Descriptor(
@@ -1215,8 +1216,8 @@ _STREAMREADMESSAGE_FROMCLIENT = _descriptor.Descriptor(
       create_key=_descriptor._internal_create_key,
     fields=[]),
   ],
-  serialized_start=3273,
-  serialized_end=3962,
+  serialized_start=3302,
+  serialized_end=3991,
 )
 
 _STREAMREADMESSAGE_FROMSERVER = _descriptor.Descriptor(
@@ -1321,8 +1322,8 @@ _STREAMREADMESSAGE_FROMSERVER = _descriptor.Descriptor(
       create_key=_descriptor._internal_create_key,
     fields=[]),
   ],
-  serialized_start=3965,
-  serialized_end=4845,
+  serialized_start=3994,
+  serialized_end=4874,
 )
 
 _STREAMREADMESSAGE_INITREQUEST_TOPICREADSETTINGS = _descriptor.Descriptor(
@@ -1373,8 +1374,8 @@ _STREAMREADMESSAGE_INITREQUEST_TOPICREADSETTINGS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=5049,
-  serialized_end=5196,
+  serialized_start=5078,
+  serialized_end=5225,
 )
 
 _STREAMREADMESSAGE_INITREQUEST = _descriptor.Descriptor(
@@ -1432,8 +1433,8 @@ _STREAMREADMESSAGE_INITREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=4848,
-  serialized_end=5196,
+  serialized_start=4877,
+  serialized_end=5225,
 )
 
 _STREAMREADMESSAGE_INITRESPONSE = _descriptor.Descriptor(
@@ -1463,8 +1464,8 @@ _STREAMREADMESSAGE_INITRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=5198,
-  serialized_end=5232,
+  serialized_start=5227,
+  serialized_end=5261,
 )
 
 _STREAMREADMESSAGE_READREQUEST = _descriptor.Descriptor(
@@ -1494,8 +1495,8 @@ _STREAMREADMESSAGE_READREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=5234,
-  serialized_end=5267,
+  serialized_start=5263,
+  serialized_end=5296,
 )
 
 _STREAMREADMESSAGE_READRESPONSE_MESSAGEDATA = _descriptor.Descriptor(
@@ -1567,8 +1568,8 @@ _STREAMREADMESSAGE_READRESPONSE_MESSAGEDATA = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=5388,
-  serialized_end=5606,
+  serialized_start=5417,
+  serialized_end=5635,
 )
 
 _STREAMREADMESSAGE_READRESPONSE_BATCH_WRITESESSIONMETAENTRY = _descriptor.Descriptor(
@@ -1605,8 +1606,8 @@ _STREAMREADMESSAGE_READRESPONSE_BATCH_WRITESESSIONMETAENTRY = _descriptor.Descri
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1460,
-  serialized_end=1515,
+  serialized_start=1489,
+  serialized_end=1544,
 )
 
 _STREAMREADMESSAGE_READRESPONSE_BATCH = _descriptor.Descriptor(
@@ -1664,8 +1665,8 @@ _STREAMREADMESSAGE_READRESPONSE_BATCH = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=5609,
-  serialized_end=5942,
+  serialized_start=5638,
+  serialized_end=5971,
 )
 
 _STREAMREADMESSAGE_READRESPONSE_PARTITIONDATA = _descriptor.Descriptor(
@@ -1702,8 +1703,8 @@ _STREAMREADMESSAGE_READRESPONSE_PARTITIONDATA = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=5944,
-  serialized_end=6055,
+  serialized_start=5973,
+  serialized_end=6084,
 )
 
 _STREAMREADMESSAGE_READRESPONSE = _descriptor.Descriptor(
@@ -1740,8 +1741,8 @@ _STREAMREADMESSAGE_READRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=5270,
-  serialized_end=6055,
+  serialized_start=5299,
+  serialized_end=6084,
 )
 
 _STREAMREADMESSAGE_COMMITOFFSETREQUEST_PARTITIONCOMMITOFFSET = _descriptor.Descriptor(
@@ -1778,8 +1779,8 @@ _STREAMREADMESSAGE_COMMITOFFSETREQUEST_PARTITIONCOMMITOFFSET = _descriptor.Descr
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=6177,
-  serialized_end=6272,
+  serialized_start=6206,
+  serialized_end=6301,
 )
 
 _STREAMREADMESSAGE_COMMITOFFSETREQUEST = _descriptor.Descriptor(
@@ -1809,8 +1810,8 @@ _STREAMREADMESSAGE_COMMITOFFSETREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=6058,
-  serialized_end=6272,
+  serialized_start=6087,
+  serialized_end=6301,
 )
 
 _STREAMREADMESSAGE_COMMITOFFSETRESPONSE_PARTITIONCOMMITTEDOFFSET = _descriptor.Descriptor(
@@ -1847,8 +1848,8 @@ _STREAMREADMESSAGE_COMMITOFFSETRESPONSE_PARTITIONCOMMITTEDOFFSET = _descriptor.D
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=6413,
-  serialized_end=6495,
+  serialized_start=6442,
+  serialized_end=6524,
 )
 
 _STREAMREADMESSAGE_COMMITOFFSETRESPONSE = _descriptor.Descriptor(
@@ -1878,8 +1879,8 @@ _STREAMREADMESSAGE_COMMITOFFSETRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=6275,
-  serialized_end=6495,
+  serialized_start=6304,
+  serialized_end=6524,
 )
 
 _STREAMREADMESSAGE_PARTITIONSESSIONSTATUSREQUEST = _descriptor.Descriptor(
@@ -1909,8 +1910,8 @@ _STREAMREADMESSAGE_PARTITIONSESSIONSTATUSREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=6497,
-  serialized_end=6558,
+  serialized_start=6526,
+  serialized_end=6587,
 )
 
 _STREAMREADMESSAGE_PARTITIONSESSIONSTATUSRESPONSE = _descriptor.Descriptor(
@@ -1961,8 +1962,8 @@ _STREAMREADMESSAGE_PARTITIONSESSIONSTATUSRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=6561,
-  serialized_end=6764,
+  serialized_start=6590,
+  serialized_end=6793,
 )
 
 _STREAMREADMESSAGE_STARTPARTITIONSESSIONREQUEST = _descriptor.Descriptor(
@@ -2013,8 +2014,8 @@ _STREAMREADMESSAGE_STARTPARTITIONSESSIONREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=6767,
-  serialized_end=7007,
+  serialized_start=6796,
+  serialized_end=7036,
 )
 
 _STREAMREADMESSAGE_STARTPARTITIONSESSIONRESPONSE = _descriptor.Descriptor(
@@ -2068,8 +2069,8 @@ _STREAMREADMESSAGE_STARTPARTITIONSESSIONRESPONSE = _descriptor.Descriptor(
       create_key=_descriptor._internal_create_key,
     fields=[]),
   ],
-  serialized_start=7010,
-  serialized_end=7159,
+  serialized_start=7039,
+  serialized_end=7188,
 )
 
 _STREAMREADMESSAGE_STOPPARTITIONSESSIONREQUEST = _descriptor.Descriptor(
@@ -2120,8 +2121,8 @@ _STREAMREADMESSAGE_STOPPARTITIONSESSIONREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=7162,
-  serialized_end=7294,
+  serialized_start=7191,
+  serialized_end=7323,
 )
 
 _STREAMREADMESSAGE_STOPPARTITIONSESSIONRESPONSE = _descriptor.Descriptor(
@@ -2158,8 +2159,8 @@ _STREAMREADMESSAGE_STOPPARTITIONSESSIONRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=7296,
-  serialized_end=7374,
+  serialized_start=7325,
+  serialized_end=7403,
 )
 
 _STREAMREADMESSAGE_UPDATEPARTITIONSESSION = _descriptor.Descriptor(
@@ -2196,8 +2197,8 @@ _STREAMREADMESSAGE_UPDATEPARTITIONSESSION = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=7376,
-  serialized_end=7488,
+  serialized_start=7405,
+  serialized_end=7517,
 )
 
 _STREAMREADMESSAGE_DIRECTREADACK = _descriptor.Descriptor(
@@ -2234,8 +2235,8 @@ _STREAMREADMESSAGE_DIRECTREADACK = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=7490,
-  serialized_end=7559,
+  serialized_start=7519,
+  serialized_end=7588,
 )
 
 _STREAMREADMESSAGE_ENDPARTITIONSESSION = _descriptor.Descriptor(
@@ -2279,8 +2280,8 @@ _STREAMREADMESSAGE_ENDPARTITIONSESSION = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=7561,
-  serialized_end=7673,
+  serialized_start=7590,
+  serialized_end=7702,
 )
 
 _STREAMREADMESSAGE = _descriptor.Descriptor(
@@ -2303,8 +2304,8 @@ _STREAMREADMESSAGE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3165,
-  serialized_end=7673,
+  serialized_start=3194,
+  serialized_end=7702,
 )
 
 
@@ -2354,8 +2355,8 @@ _STREAMDIRECTREADMESSAGE_FROMCLIENT = _descriptor.Descriptor(
       create_key=_descriptor._internal_create_key,
     fields=[]),
   ],
-  serialized_start=7704,
-  serialized_end=8000,
+  serialized_start=7733,
+  serialized_end=8029,
 )
 
 _STREAMDIRECTREADMESSAGE_FROMSERVER = _descriptor.Descriptor(
@@ -2432,8 +2433,8 @@ _STREAMDIRECTREADMESSAGE_FROMSERVER = _descriptor.Descriptor(
       create_key=_descriptor._internal_create_key,
     fields=[]),
   ],
-  serialized_start=8003,
-  serialized_end=8589,
+  serialized_start=8032,
+  serialized_end=8618,
 )
 
 _STREAMDIRECTREADMESSAGE_INITREQUEST_TOPICREADSETTINGS = _descriptor.Descriptor(
@@ -2463,8 +2464,8 @@ _STREAMDIRECTREADMESSAGE_INITREQUEST_TOPICREADSETTINGS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=5049,
-  serialized_end=5082,
+  serialized_start=5078,
+  serialized_end=5111,
 )
 
 _STREAMDIRECTREADMESSAGE_INITREQUEST = _descriptor.Descriptor(
@@ -2508,8 +2509,8 @@ _STREAMDIRECTREADMESSAGE_INITREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=8592,
-  serialized_end=8774,
+  serialized_start=8621,
+  serialized_end=8803,
 )
 
 _STREAMDIRECTREADMESSAGE_INITRESPONSE = _descriptor.Descriptor(
@@ -2532,8 +2533,8 @@ _STREAMDIRECTREADMESSAGE_INITRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1534,
-  serialized_end=1548,
+  serialized_start=1563,
+  serialized_end=1577,
 )
 
 _STREAMDIRECTREADMESSAGE_STARTDIRECTREADPARTITIONSESSIONREQUEST = _descriptor.Descriptor(
@@ -2577,8 +2578,8 @@ _STREAMDIRECTREADMESSAGE_STARTDIRECTREADPARTITIONSESSIONREQUEST = _descriptor.De
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=8792,
-  serialized_end=8911,
+  serialized_start=8821,
+  serialized_end=8940,
 )
 
 _STREAMDIRECTREADMESSAGE_STARTDIRECTREADPARTITIONSESSIONRESPONSE = _descriptor.Descriptor(
@@ -2615,8 +2616,8 @@ _STREAMDIRECTREADMESSAGE_STARTDIRECTREADPARTITIONSESSIONRESPONSE = _descriptor.D
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=8913,
-  serialized_end=9004,
+  serialized_start=8942,
+  serialized_end=9033,
 )
 
 _STREAMDIRECTREADMESSAGE_STOPDIRECTREADPARTITIONSESSION = _descriptor.Descriptor(
@@ -2667,8 +2668,8 @@ _STREAMDIRECTREADMESSAGE_STOPDIRECTREADPARTITIONSESSION = _descriptor.Descriptor
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=9007,
-  serialized_end=9173,
+  serialized_start=9036,
+  serialized_end=9202,
 )
 
 _STREAMDIRECTREADMESSAGE_DIRECTREADRESPONSE = _descriptor.Descriptor(
@@ -2719,8 +2720,8 @@ _STREAMDIRECTREADMESSAGE_DIRECTREADRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=9176,
-  serialized_end=9351,
+  serialized_start=9205,
+  serialized_end=9380,
 )
 
 _STREAMDIRECTREADMESSAGE = _descriptor.Descriptor(
@@ -2743,8 +2744,8 @@ _STREAMDIRECTREADMESSAGE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=7676,
-  serialized_end=9351,
+  serialized_start=7705,
+  serialized_end=9380,
 )
 
 
@@ -2782,8 +2783,8 @@ _TRANSACTIONIDENTITY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=9353,
-  serialized_end=9403,
+  serialized_start=9382,
+  serialized_end=9432,
 )
 
 
@@ -2821,8 +2822,8 @@ _UPDATEOFFSETSINTRANSACTIONREQUEST_TOPICOFFSETS_PARTITIONOFFSETS = _descriptor.D
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=9766,
-  serialized_end=9858,
+  serialized_start=9795,
+  serialized_end=9887,
 )
 
 _UPDATEOFFSETSINTRANSACTIONREQUEST_TOPICOFFSETS = _descriptor.Descriptor(
@@ -2859,8 +2860,8 @@ _UPDATEOFFSETSINTRANSACTIONREQUEST_TOPICOFFSETS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=9640,
-  serialized_end=9858,
+  serialized_start=9669,
+  serialized_end=9887,
 )
 
 _UPDATEOFFSETSINTRANSACTIONREQUEST = _descriptor.Descriptor(
@@ -2911,8 +2912,8 @@ _UPDATEOFFSETSINTRANSACTIONREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=9406,
-  serialized_end=9858,
+  serialized_start=9435,
+  serialized_end=9887,
 )
 
 
@@ -2943,8 +2944,8 @@ _UPDATEOFFSETSINTRANSACTIONRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=9860,
-  serialized_end=9942,
+  serialized_start=9889,
+  serialized_end=9971,
 )
 
 
@@ -2968,8 +2969,8 @@ _UPDATEOFFSETSINTRANSACTIONRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=9944,
-  serialized_end=9978,
+  serialized_start=9973,
+  serialized_end=10007,
 )
 
 
@@ -3035,8 +3036,8 @@ _COMMITOFFSETREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=9981,
-  serialized_end=10156,
+  serialized_start=10010,
+  serialized_end=10185,
 )
 
 
@@ -3067,8 +3068,8 @@ _COMMITOFFSETRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=10158,
-  serialized_end=10226,
+  serialized_start=10187,
+  serialized_end=10255,
 )
 
 
@@ -3092,8 +3093,8 @@ _COMMITOFFSETRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=10228,
-  serialized_end=10248,
+  serialized_start=10257,
+  serialized_end=10277,
 )
 
 
@@ -3138,8 +3139,8 @@ _MULTIPLEWINDOWSSTAT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=10250,
-  serialized_end=10326,
+  serialized_start=10279,
+  serialized_end=10355,
 )
 
 
@@ -3177,8 +3178,8 @@ _CONSUMER_ATTRIBUTESENTRY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=10591,
-  serialized_end=10640,
+  serialized_start=10681,
+  serialized_end=10730,
 )
 
 _CONSUMER_CONSUMERSTATS = _descriptor.Descriptor(
@@ -3236,8 +3237,8 @@ _CONSUMER_CONSUMERSTATS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=10643,
-  serialized_end=10945,
+  serialized_start=10733,
+  serialized_end=11035,
 )
 
 _CONSUMER = _descriptor.Descriptor(
@@ -3290,6 +3291,13 @@ _CONSUMER = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='availability_period', full_name='Ydb.Topic.Consumer.availability_period', index=6,
+      number=8, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
   ],
   extensions=[
   ],
@@ -3301,9 +3309,14 @@ _CONSUMER = _descriptor.Descriptor(
   syntax='proto3',
   extension_ranges=[],
   oneofs=[
+    _descriptor.OneofDescriptor(
+      name='_availability_period', full_name='Ydb.Topic.Consumer._availability_period',
+      index=0, containing_type=None,
+      create_key=_descriptor._internal_create_key,
+    fields=[]),
   ],
-  serialized_start=10329,
-  serialized_end=10951,
+  serialized_start=10358,
+  serialized_end=11065,
 )
 
 
@@ -3341,8 +3354,8 @@ _ALTERCONSUMER_ALTERATTRIBUTESENTRY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=11195,
-  serialized_end=11249,
+  serialized_start=11432,
+  serialized_end=11486,
 )
 
 _ALTERCONSUMER = _descriptor.Descriptor(
@@ -3388,6 +3401,20 @@ _ALTERCONSUMER = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='set_availability_period', full_name='Ydb.Topic.AlterConsumer.set_availability_period', index=5,
+      number=7, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='reset_availability_period', full_name='Ydb.Topic.AlterConsumer.reset_availability_period', index=6,
+      number=8, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
   ],
   extensions=[
   ],
@@ -3400,13 +3427,18 @@ _ALTERCONSUMER = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
     _descriptor.OneofDescriptor(
-      name='_set_important', full_name='Ydb.Topic.AlterConsumer._set_important',
+      name='availability_period_action', full_name='Ydb.Topic.AlterConsumer.availability_period_action',
       index=0, containing_type=None,
       create_key=_descriptor._internal_create_key,
     fields=[]),
+    _descriptor.OneofDescriptor(
+      name='_set_important', full_name='Ydb.Topic.AlterConsumer._set_important',
+      index=1, containing_type=None,
+      create_key=_descriptor._internal_create_key,
+    fields=[]),
   ],
-  serialized_start=10954,
-  serialized_end=11273,
+  serialized_start=11068,
+  serialized_end=11540,
 )
 
 
@@ -3458,8 +3490,8 @@ _PARTITIONINGSETTINGS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=11276,
-  serialized_end=11496,
+  serialized_start=11543,
+  serialized_end=11763,
 )
 
 
@@ -3497,8 +3529,8 @@ _AUTOPARTITIONINGSETTINGS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=11499,
-  serialized_end=11658,
+  serialized_start=11766,
+  serialized_end=11925,
 )
 
 
@@ -3543,8 +3575,8 @@ _AUTOPARTITIONINGWRITESPEEDSTRATEGY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=11661,
-  serialized_end=11840,
+  serialized_start=11928,
+  serialized_end=12107,
 )
 
 
@@ -3616,8 +3648,8 @@ _ALTERPARTITIONINGSETTINGS = _descriptor.Descriptor(
       create_key=_descriptor._internal_create_key,
     fields=[]),
   ],
-  serialized_start=11843,
-  serialized_end=12238,
+  serialized_start=12110,
+  serialized_end=12505,
 )
 
 
@@ -3665,8 +3697,8 @@ _ALTERAUTOPARTITIONINGSETTINGS = _descriptor.Descriptor(
       create_key=_descriptor._internal_create_key,
     fields=[]),
   ],
-  serialized_start=12241,
-  serialized_end=12475,
+  serialized_start=12508,
+  serialized_end=12742,
 )
 
 
@@ -3726,8 +3758,8 @@ _ALTERAUTOPARTITIONINGWRITESPEEDSTRATEGY = _descriptor.Descriptor(
       create_key=_descriptor._internal_create_key,
     fields=[]),
   ],
-  serialized_start=12478,
-  serialized_end=12782,
+  serialized_start=12745,
+  serialized_end=13049,
 )
 
 
@@ -3765,8 +3797,8 @@ _CREATETOPICREQUEST_ATTRIBUTESENTRY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=10591,
-  serialized_end=10640,
+  serialized_start=10681,
+  serialized_end=10730,
 )
 
 _CREATETOPICREQUEST = _descriptor.Descriptor(
@@ -3866,8 +3898,8 @@ _CREATETOPICREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=12785,
-  serialized_end=13415,
+  serialized_start=13052,
+  serialized_end=13682,
 )
 
 
@@ -3898,8 +3930,8 @@ _CREATETOPICRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=13417,
-  serialized_end=13484,
+  serialized_start=13684,
+  serialized_end=13751,
 )
 
 
@@ -3923,8 +3955,8 @@ _CREATETOPICRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=13486,
-  serialized_end=13505,
+  serialized_start=13753,
+  serialized_end=13772,
 )
 
 
@@ -3962,8 +3994,8 @@ _PARTITIONLOCATION = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=13507,
-  serialized_end=13563,
+  serialized_start=13774,
+  serialized_end=13830,
 )
 
 
@@ -4015,8 +4047,8 @@ _DESCRIBETOPICREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=13566,
-  serialized_end=13710,
+  serialized_start=13833,
+  serialized_end=13977,
 )
 
 
@@ -4047,8 +4079,8 @@ _DESCRIBETOPICRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=13712,
-  serialized_end=13781,
+  serialized_start=13979,
+  serialized_end=14048,
 )
 
 
@@ -4096,8 +4128,8 @@ _PARTITIONKEYRANGE = _descriptor.Descriptor(
       create_key=_descriptor._internal_create_key,
     fields=[]),
   ],
-  serialized_start=13783,
-  serialized_end=13878,
+  serialized_start=14050,
+  serialized_end=14145,
 )
 
 
@@ -4135,8 +4167,8 @@ _DESCRIBETOPICRESULT_ATTRIBUTESENTRY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=10591,
-  serialized_end=10640,
+  serialized_start=10681,
+  serialized_end=10730,
 )
 
 _DESCRIBETOPICRESULT_PARTITIONINFO = _descriptor.Descriptor(
@@ -4208,8 +4240,8 @@ _DESCRIBETOPICRESULT_PARTITIONINFO = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=14670,
-  serialized_end=14941,
+  serialized_start=14937,
+  serialized_end=15208,
 )
 
 _DESCRIBETOPICRESULT_TOPICSTATS = _descriptor.Descriptor(
@@ -4260,8 +4292,8 @@ _DESCRIBETOPICRESULT_TOPICSTATS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=14944,
-  serialized_end=15149,
+  serialized_start=15211,
+  serialized_end=15416,
 )
 
 _DESCRIBETOPICRESULT = _descriptor.Descriptor(
@@ -4382,8 +4414,8 @@ _DESCRIBETOPICRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=13881,
-  serialized_end=15155,
+  serialized_start=14148,
+  serialized_end=15422,
 )
 
 
@@ -4442,8 +4474,8 @@ _DESCRIBEPARTITIONREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=15158,
-  serialized_end=15328,
+  serialized_start=15425,
+  serialized_end=15595,
 )
 
 
@@ -4474,8 +4506,8 @@ _DESCRIBEPARTITIONRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=15330,
-  serialized_end=15403,
+  serialized_start=15597,
+  serialized_end=15670,
 )
 
 
@@ -4506,8 +4538,8 @@ _DESCRIBEPARTITIONRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=15405,
-  serialized_end=15495,
+  serialized_start=15672,
+  serialized_end=15762,
 )
 
 
@@ -4566,8 +4598,8 @@ _DESCRIBECONSUMERREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=15498,
-  serialized_end=15663,
+  serialized_start=15765,
+  serialized_end=15930,
 )
 
 
@@ -4598,8 +4630,8 @@ _DESCRIBECONSUMERRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=15665,
-  serialized_end=15737,
+  serialized_start=15932,
+  serialized_end=16004,
 )
 
 
@@ -4672,8 +4704,8 @@ _DESCRIBECONSUMERRESULT_PARTITIONINFO = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=15908,
-  serialized_end=16222,
+  serialized_start=16175,
+  serialized_end=16489,
 )
 
 _DESCRIBECONSUMERRESULT_PARTITIONCONSUMERSTATS = _descriptor.Descriptor(
@@ -4773,8 +4805,8 @@ _DESCRIBECONSUMERRESULT_PARTITIONCONSUMERSTATS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=16225,
-  serialized_end=16719,
+  serialized_start=16492,
+  serialized_end=16986,
 )
 
 _DESCRIBECONSUMERRESULT = _descriptor.Descriptor(
@@ -4818,8 +4850,8 @@ _DESCRIBECONSUMERRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=15740,
-  serialized_end=16719,
+  serialized_start=16007,
+  serialized_end=16986,
 )
 
 
@@ -4885,8 +4917,8 @@ _PARTITIONSTATS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=16722,
-  serialized_end=17010,
+  serialized_start=16989,
+  serialized_end=17277,
 )
 
 
@@ -4924,8 +4956,8 @@ _ALTERTOPICREQUEST_ALTERATTRIBUTESENTRY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=11195,
-  serialized_end=11249,
+  serialized_start=11432,
+  serialized_end=11486,
 )
 
 _ALTERTOPICREQUEST = _descriptor.Descriptor(
@@ -5054,8 +5086,8 @@ _ALTERTOPICREQUEST = _descriptor.Descriptor(
       create_key=_descriptor._internal_create_key,
     fields=[]),
   ],
-  serialized_start=17013,
-  serialized_end=17916,
+  serialized_start=17280,
+  serialized_end=18183,
 )
 
 
@@ -5086,8 +5118,8 @@ _ALTERTOPICRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=17918,
-  serialized_end=17984,
+  serialized_start=18185,
+  serialized_end=18251,
 )
 
 
@@ -5111,8 +5143,8 @@ _ALTERTOPICRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=17986,
-  serialized_end=18004,
+  serialized_start=18253,
+  serialized_end=18271,
 )
 
 
@@ -5150,8 +5182,8 @@ _DROPTOPICREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=18006,
-  serialized_end=18097,
+  serialized_start=18273,
+  serialized_end=18364,
 )
 
 
@@ -5182,8 +5214,8 @@ _DROPTOPICRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=18099,
-  serialized_end=18164,
+  serialized_start=18366,
+  serialized_end=18431,
 )
 
 
@@ -5207,8 +5239,8 @@ _DROPTOPICRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=18166,
-  serialized_end=18183,
+  serialized_start=18433,
+  serialized_end=18450,
 )
 
 _STREAMWRITEMESSAGE_FROMCLIENT.fields_by_name['init_request'].message_type = _STREAMWRITEMESSAGE_INITREQUEST
@@ -5488,10 +5520,22 @@ _CONSUMER.fields_by_name['read_from'].message_type = google_dot_protobuf_dot_tim
 _CONSUMER.fields_by_name['supported_codecs'].message_type = _SUPPORTEDCODECS
 _CONSUMER.fields_by_name['attributes'].message_type = _CONSUMER_ATTRIBUTESENTRY
 _CONSUMER.fields_by_name['consumer_stats'].message_type = _CONSUMER_CONSUMERSTATS
+_CONSUMER.fields_by_name['availability_period'].message_type = google_dot_protobuf_dot_duration__pb2._DURATION
+_CONSUMER.oneofs_by_name['_availability_period'].fields.append(
+  _CONSUMER.fields_by_name['availability_period'])
+_CONSUMER.fields_by_name['availability_period'].containing_oneof = _CONSUMER.oneofs_by_name['_availability_period']
 _ALTERCONSUMER_ALTERATTRIBUTESENTRY.containing_type = _ALTERCONSUMER
 _ALTERCONSUMER.fields_by_name['set_read_from'].message_type = google_dot_protobuf_dot_timestamp__pb2._TIMESTAMP
 _ALTERCONSUMER.fields_by_name['set_supported_codecs'].message_type = _SUPPORTEDCODECS
 _ALTERCONSUMER.fields_by_name['alter_attributes'].message_type = _ALTERCONSUMER_ALTERATTRIBUTESENTRY
+_ALTERCONSUMER.fields_by_name['set_availability_period'].message_type = google_dot_protobuf_dot_duration__pb2._DURATION
+_ALTERCONSUMER.fields_by_name['reset_availability_period'].message_type = google_dot_protobuf_dot_empty__pb2._EMPTY
+_ALTERCONSUMER.oneofs_by_name['availability_period_action'].fields.append(
+  _ALTERCONSUMER.fields_by_name['set_availability_period'])
+_ALTERCONSUMER.fields_by_name['set_availability_period'].containing_oneof = _ALTERCONSUMER.oneofs_by_name['availability_period_action']
+_ALTERCONSUMER.oneofs_by_name['availability_period_action'].fields.append(
+  _ALTERCONSUMER.fields_by_name['reset_availability_period'])
+_ALTERCONSUMER.fields_by_name['reset_availability_period'].containing_oneof = _ALTERCONSUMER.oneofs_by_name['availability_period_action']
 _ALTERCONSUMER.oneofs_by_name['_set_important'].fields.append(
   _ALTERCONSUMER.fields_by_name['set_important'])
 _ALTERCONSUMER.fields_by_name['set_important'].containing_oneof = _ALTERCONSUMER.oneofs_by_name['_set_important']

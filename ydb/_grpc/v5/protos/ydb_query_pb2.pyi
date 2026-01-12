@@ -284,6 +284,10 @@ class SnapshotModeSettings(_message.Message):
     __slots__ = []
     def __init__(self) -> None: ...
 
+class SnapshotRWModeSettings(_message.Message):
+    __slots__ = []
+    def __init__(self) -> None: ...
+
 class StaleModeSettings(_message.Message):
     __slots__ = []
     def __init__(self) -> None: ...
@@ -305,16 +309,18 @@ class TransactionMeta(_message.Message):
     def __init__(self, id: _Optional[str] = ...) -> None: ...
 
 class TransactionSettings(_message.Message):
-    __slots__ = ["online_read_only", "serializable_read_write", "snapshot_read_only", "stale_read_only"]
+    __slots__ = ["online_read_only", "serializable_read_write", "snapshot_read_only", "snapshot_read_write", "stale_read_only"]
     ONLINE_READ_ONLY_FIELD_NUMBER: _ClassVar[int]
     SERIALIZABLE_READ_WRITE_FIELD_NUMBER: _ClassVar[int]
     SNAPSHOT_READ_ONLY_FIELD_NUMBER: _ClassVar[int]
+    SNAPSHOT_READ_WRITE_FIELD_NUMBER: _ClassVar[int]
     STALE_READ_ONLY_FIELD_NUMBER: _ClassVar[int]
     online_read_only: OnlineModeSettings
     serializable_read_write: SerializableModeSettings
     snapshot_read_only: SnapshotModeSettings
+    snapshot_read_write: SnapshotRWModeSettings
     stale_read_only: StaleModeSettings
-    def __init__(self, serializable_read_write: _Optional[_Union[SerializableModeSettings, _Mapping]] = ..., online_read_only: _Optional[_Union[OnlineModeSettings, _Mapping]] = ..., stale_read_only: _Optional[_Union[StaleModeSettings, _Mapping]] = ..., snapshot_read_only: _Optional[_Union[SnapshotModeSettings, _Mapping]] = ...) -> None: ...
+    def __init__(self, serializable_read_write: _Optional[_Union[SerializableModeSettings, _Mapping]] = ..., online_read_only: _Optional[_Union[OnlineModeSettings, _Mapping]] = ..., stale_read_only: _Optional[_Union[StaleModeSettings, _Mapping]] = ..., snapshot_read_only: _Optional[_Union[SnapshotModeSettings, _Mapping]] = ..., snapshot_read_write: _Optional[_Union[SnapshotRWModeSettings, _Mapping]] = ...) -> None: ...
 
 class Syntax(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     __slots__ = []
