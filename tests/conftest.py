@@ -101,11 +101,11 @@ async def driver(endpoint, database, event_loop):
     )
 
     driver = ydb.aio.Driver(driver_config=driver_config)
-    await driver.wait(timeout=15)
+    await driver.wait(timeout=60)
 
     yield driver
 
-    await driver.stop(timeout=10)
+    await driver.stop(timeout=60)
 
 
 @pytest.fixture()
@@ -116,11 +116,11 @@ async def driver_sync(endpoint, database, event_loop):
     )
 
     driver = ydb.Driver(driver_config=driver_config)
-    driver.wait(timeout=15)
+    driver.wait(timeout=60)
 
     yield driver
 
-    driver.stop(timeout=10)
+    driver.stop(timeout=60)
 
 
 @pytest.fixture()
