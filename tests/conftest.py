@@ -11,6 +11,14 @@ from ydb import issues
 def docker_compose_file(pytestconfig):
     return os.path.join(str(pytestconfig.rootdir), "docker-compose.yml")
 
+@pytest.fixture(scope="module")
+def docker_compose_up_options():
+    return ["--remove-orphans"]
+
+@pytest.fixture(scope="module")
+def docker_compose_down_options():
+    return ["--remove-orphans", "--volumes"]
+
 def wait_container_ready(driver):
     driver.wait(timeout=60)
 
