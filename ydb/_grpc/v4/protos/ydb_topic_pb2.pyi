@@ -4,6 +4,7 @@ from protos import ydb_status_codes_pb2 as _ydb_status_codes_pb2
 from protos import ydb_issue_message_pb2 as _ydb_issue_message_pb2
 from protos.annotations import sensitive_pb2 as _sensitive_pb2
 from protos.annotations import validation_pb2 as _validation_pb2
+from google.protobuf import empty_pb2 as _empty_pb2
 from google.protobuf import duration_pb2 as _duration_pb2
 from google.protobuf import timestamp_pb2 as _timestamp_pb2
 from google.protobuf.internal import containers as _containers
@@ -47,7 +48,7 @@ class AlterAutoPartitioningWriteSpeedStrategy(_message.Message):
     def __init__(self, set_stabilization_window: _Optional[_Union[_duration_pb2.Duration, _Mapping]] = ..., set_up_utilization_percent: _Optional[int] = ..., set_down_utilization_percent: _Optional[int] = ...) -> None: ...
 
 class AlterConsumer(_message.Message):
-    __slots__ = ["alter_attributes", "name", "set_important", "set_read_from", "set_supported_codecs"]
+    __slots__ = ["alter_attributes", "name", "reset_availability_period", "set_availability_period", "set_important", "set_read_from", "set_supported_codecs"]
     class AlterAttributesEntry(_message.Message):
         __slots__ = ["key", "value"]
         KEY_FIELD_NUMBER: _ClassVar[int]
@@ -57,15 +58,19 @@ class AlterConsumer(_message.Message):
         def __init__(self, key: _Optional[str] = ..., value: _Optional[str] = ...) -> None: ...
     ALTER_ATTRIBUTES_FIELD_NUMBER: _ClassVar[int]
     NAME_FIELD_NUMBER: _ClassVar[int]
+    RESET_AVAILABILITY_PERIOD_FIELD_NUMBER: _ClassVar[int]
+    SET_AVAILABILITY_PERIOD_FIELD_NUMBER: _ClassVar[int]
     SET_IMPORTANT_FIELD_NUMBER: _ClassVar[int]
     SET_READ_FROM_FIELD_NUMBER: _ClassVar[int]
     SET_SUPPORTED_CODECS_FIELD_NUMBER: _ClassVar[int]
     alter_attributes: _containers.ScalarMap[str, str]
     name: str
+    reset_availability_period: _empty_pb2.Empty
+    set_availability_period: _duration_pb2.Duration
     set_important: bool
     set_read_from: _timestamp_pb2.Timestamp
     set_supported_codecs: SupportedCodecs
-    def __init__(self, name: _Optional[str] = ..., set_important: bool = ..., set_read_from: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., set_supported_codecs: _Optional[_Union[SupportedCodecs, _Mapping]] = ..., alter_attributes: _Optional[_Mapping[str, str]] = ...) -> None: ...
+    def __init__(self, name: _Optional[str] = ..., set_important: bool = ..., set_read_from: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., set_supported_codecs: _Optional[_Union[SupportedCodecs, _Mapping]] = ..., alter_attributes: _Optional[_Mapping[str, str]] = ..., set_availability_period: _Optional[_Union[_duration_pb2.Duration, _Mapping]] = ..., reset_availability_period: _Optional[_Union[_empty_pb2.Empty, _Mapping]] = ...) -> None: ...
 
 class AlterPartitioningSettings(_message.Message):
     __slots__ = ["alter_auto_partitioning_settings", "set_max_active_partitions", "set_min_active_partitions", "set_partition_count_limit"]
@@ -171,7 +176,7 @@ class CommitOffsetResult(_message.Message):
     def __init__(self) -> None: ...
 
 class Consumer(_message.Message):
-    __slots__ = ["attributes", "consumer_stats", "important", "name", "read_from", "supported_codecs"]
+    __slots__ = ["attributes", "availability_period", "consumer_stats", "important", "name", "read_from", "supported_codecs"]
     class AttributesEntry(_message.Message):
         __slots__ = ["key", "value"]
         KEY_FIELD_NUMBER: _ClassVar[int]
@@ -193,18 +198,20 @@ class Consumer(_message.Message):
         min_partitions_last_read_time: _timestamp_pb2.Timestamp
         def __init__(self, min_partitions_last_read_time: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., max_read_time_lag: _Optional[_Union[_duration_pb2.Duration, _Mapping]] = ..., max_write_time_lag: _Optional[_Union[_duration_pb2.Duration, _Mapping]] = ..., max_committed_time_lag: _Optional[_Union[_duration_pb2.Duration, _Mapping]] = ..., bytes_read: _Optional[_Union[MultipleWindowsStat, _Mapping]] = ...) -> None: ...
     ATTRIBUTES_FIELD_NUMBER: _ClassVar[int]
+    AVAILABILITY_PERIOD_FIELD_NUMBER: _ClassVar[int]
     CONSUMER_STATS_FIELD_NUMBER: _ClassVar[int]
     IMPORTANT_FIELD_NUMBER: _ClassVar[int]
     NAME_FIELD_NUMBER: _ClassVar[int]
     READ_FROM_FIELD_NUMBER: _ClassVar[int]
     SUPPORTED_CODECS_FIELD_NUMBER: _ClassVar[int]
     attributes: _containers.ScalarMap[str, str]
+    availability_period: _duration_pb2.Duration
     consumer_stats: Consumer.ConsumerStats
     important: bool
     name: str
     read_from: _timestamp_pb2.Timestamp
     supported_codecs: SupportedCodecs
-    def __init__(self, name: _Optional[str] = ..., important: bool = ..., read_from: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., supported_codecs: _Optional[_Union[SupportedCodecs, _Mapping]] = ..., attributes: _Optional[_Mapping[str, str]] = ..., consumer_stats: _Optional[_Union[Consumer.ConsumerStats, _Mapping]] = ...) -> None: ...
+    def __init__(self, name: _Optional[str] = ..., important: bool = ..., read_from: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., supported_codecs: _Optional[_Union[SupportedCodecs, _Mapping]] = ..., attributes: _Optional[_Mapping[str, str]] = ..., consumer_stats: _Optional[_Union[Consumer.ConsumerStats, _Mapping]] = ..., availability_period: _Optional[_Union[_duration_pb2.Duration, _Mapping]] = ...) -> None: ...
 
 class CreateTopicRequest(_message.Message):
     __slots__ = ["attributes", "consumers", "metering_mode", "operation_params", "partition_write_burst_bytes", "partition_write_speed_bytes_per_second", "partitioning_settings", "path", "retention_period", "retention_storage_mb", "supported_codecs"]

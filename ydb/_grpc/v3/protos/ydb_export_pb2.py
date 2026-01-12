@@ -24,7 +24,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   syntax='proto3',
   serialized_options=b'\n\025tech.ydb.proto.exportZ9github.com/ydb-platform/ydb-go-genproto/protos/Ydb_Export\370\001\001',
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n\x17protos/ydb_export.proto\x12\nYdb.Export\x1a\"protos/annotations/sensitive.proto\x1a#protos/annotations/validation.proto\x1a\x1aprotos/ydb_operation.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xb1\x01\n\x0e\x45xportProgress\"\x9e\x01\n\x08Progress\x12\x18\n\x14PROGRESS_UNSPECIFIED\x10\x00\x12\x16\n\x12PROGRESS_PREPARING\x10\x01\x12\x1a\n\x16PROGRESS_TRANSFER_DATA\x10\x02\x12\x11\n\rPROGRESS_DONE\x10\x03\x12\x19\n\x15PROGRESS_CANCELLATION\x10\x04\x12\x16\n\x12PROGRESS_CANCELLED\x10\x05\"\xa0\x01\n\x12\x45xportItemProgress\x12\x13\n\x0bparts_total\x18\x01 \x01(\r\x12\x17\n\x0fparts_completed\x18\x02 \x01(\r\x12.\n\nstart_time\x18\x03 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12,\n\x08\x65nd_time\x18\x04 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\"\x98\x02\n\x12\x45xportToYtSettings\x12\x12\n\x04host\x18\x01 \x01(\tB\x04\x90\xe6*\x01\x12\x0c\n\x04port\x18\x02 \x01(\r\x12\x13\n\x05token\x18\x03 \x01(\tB\x04\x90\xe6*\x01\x12:\n\x05items\x18\x04 \x03(\x0b\x32#.Ydb.Export.ExportToYtSettings.ItemB\x06\x9a\xe6*\x02(\x01\x12\x1c\n\x0b\x64\x65scription\x18\x05 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x01\x12\x19\n\x11number_of_retries\x18\x06 \x01(\r\x12\x13\n\x0buse_type_v3\x18\x07 \x01(\x08\x1a\x41\n\x04Item\x12\x19\n\x0bsource_path\x18\x01 \x01(\tB\x04\x90\xe6*\x01\x12\x1e\n\x10\x64\x65stination_path\x18\x02 \x01(\tB\x04\x90\xe6*\x01\"\x12\n\x10\x45xportToYtResult\"\xb5\x01\n\x12\x45xportToYtMetadata\x12\x30\n\x08settings\x18\x01 \x01(\x0b\x32\x1e.Ydb.Export.ExportToYtSettings\x12\x35\n\x08progress\x18\x02 \x01(\x0e\x32#.Ydb.Export.ExportProgress.Progress\x12\x36\n\x0eitems_progress\x18\x03 \x03(\x0b\x32\x1e.Ydb.Export.ExportItemProgress\"\x86\x01\n\x11\x45xportToYtRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x36\n\x08settings\x18\x02 \x01(\x0b\x32\x1e.Ydb.Export.ExportToYtSettingsB\x04\x90\xe6*\x01\"B\n\x12\x45xportToYtResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\xc1\x06\n\x12\x45xportToS3Settings\x12\x16\n\x08\x65ndpoint\x18\x01 \x01(\tB\x04\x90\xe6*\x01\x12\x35\n\x06scheme\x18\x02 \x01(\x0e\x32%.Ydb.Export.ExportToS3Settings.Scheme\x12\x14\n\x06\x62ucket\x18\x03 \x01(\tB\x04\x90\xe6*\x01\x12\x18\n\naccess_key\x18\x04 \x01(\tB\x04\x90\xe6*\x01\x12\x18\n\nsecret_key\x18\x05 \x01(\tB\x04\x90\xe6*\x01\x12\x32\n\x05items\x18\x06 \x03(\x0b\x32#.Ydb.Export.ExportToS3Settings.Item\x12\x1c\n\x0b\x64\x65scription\x18\x07 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x01\x12\x19\n\x11number_of_retries\x18\x08 \x01(\r\x12\x42\n\rstorage_class\x18\t \x01(\x0e\x32+.Ydb.Export.ExportToS3Settings.StorageClass\x12\x13\n\x0b\x63ompression\x18\n \x01(\t\x12\x0e\n\x06region\x18\x0b \x01(\t\x12\"\n\x1a\x64isable_virtual_addressing\x18\x0c \x01(\x08\x12\x13\n\x0bsource_path\x18\r \x01(\t\x12\x1a\n\x12\x64\x65stination_prefix\x18\x0e \x01(\t\x12;\n\x13\x65ncryption_settings\x18\x0f \x01(\x0b\x32\x1e.Ydb.Export.EncryptionSettings\x1a=\n\x04Item\x12\x19\n\x0bsource_path\x18\x01 \x01(\tB\x04\x90\xe6*\x01\x12\x1a\n\x12\x64\x65stination_prefix\x18\x02 \x01(\t\".\n\x06Scheme\x12\x0f\n\x0bUNSPECIFIED\x10\x00\x12\x08\n\x04HTTP\x10\x01\x12\t\n\x05HTTPS\x10\x02\"\xba\x01\n\x0cStorageClass\x12\x1d\n\x19STORAGE_CLASS_UNSPECIFIED\x10\x00\x12\x0c\n\x08STANDARD\x10\x01\x12\x16\n\x12REDUCED_REDUNDANCY\x10\x02\x12\x0f\n\x0bSTANDARD_IA\x10\x03\x12\x0e\n\nONEZONE_IA\x10\x04\x12\x17\n\x13INTELLIGENT_TIERING\x10\x05\x12\x0b\n\x07GLACIER\x10\x06\x12\x10\n\x0c\x44\x45\x45P_ARCHIVE\x10\x07\x12\x0c\n\x08OUTPOSTS\x10\x08\"\x12\n\x10\x45xportToS3Result\"\xb5\x01\n\x12\x45xportToS3Metadata\x12\x30\n\x08settings\x18\x01 \x01(\x0b\x32\x1e.Ydb.Export.ExportToS3Settings\x12\x35\n\x08progress\x18\x02 \x01(\x0e\x32#.Ydb.Export.ExportProgress.Progress\x12\x36\n\x0eitems_progress\x18\x03 \x03(\x0b\x32\x1e.Ydb.Export.ExportItemProgress\"\x86\x01\n\x11\x45xportToS3Request\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x36\n\x08settings\x18\x02 \x01(\x0b\x32\x1e.Ydb.Export.ExportToS3SettingsB\x04\x90\xe6*\x01\"B\n\x12\x45xportToS3Response\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\xa2\x01\n\x12\x45ncryptionSettings\x12\x1c\n\x14\x65ncryption_algorithm\x18\x01 \x01(\t\x12\x44\n\rsymmetric_key\x18\x02 \x01(\x0b\x32+.Ydb.Export.EncryptionSettings.SymmetricKeyH\x00\x1a!\n\x0cSymmetricKey\x12\x11\n\x03key\x18\x01 \x01(\x0c\x42\x04\xb8\xe6*\x01\x42\x05\n\x03KeyBU\n\x15tech.ydb.proto.exportZ9github.com/ydb-platform/ydb-go-genproto/protos/Ydb_Export\xf8\x01\x01\x62\x06proto3'
+  serialized_pb=b'\n\x17protos/ydb_export.proto\x12\nYdb.Export\x1a\"protos/annotations/sensitive.proto\x1a#protos/annotations/validation.proto\x1a\x1aprotos/ydb_operation.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xb1\x01\n\x0e\x45xportProgress\"\x9e\x01\n\x08Progress\x12\x18\n\x14PROGRESS_UNSPECIFIED\x10\x00\x12\x16\n\x12PROGRESS_PREPARING\x10\x01\x12\x1a\n\x16PROGRESS_TRANSFER_DATA\x10\x02\x12\x11\n\rPROGRESS_DONE\x10\x03\x12\x19\n\x15PROGRESS_CANCELLATION\x10\x04\x12\x16\n\x12PROGRESS_CANCELLED\x10\x05\"\xa0\x01\n\x12\x45xportItemProgress\x12\x13\n\x0bparts_total\x18\x01 \x01(\r\x12\x17\n\x0fparts_completed\x18\x02 \x01(\r\x12.\n\nstart_time\x18\x03 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12,\n\x08\x65nd_time\x18\x04 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\"\xb1\x02\n\x12\x45xportToYtSettings\x12\x12\n\x04host\x18\x01 \x01(\tB\x04\x90\xe6*\x01\x12\x0c\n\x04port\x18\x02 \x01(\r\x12\x13\n\x05token\x18\x03 \x01(\tB\x04\x90\xe6*\x01\x12:\n\x05items\x18\x04 \x03(\x0b\x32#.Ydb.Export.ExportToYtSettings.ItemB\x06\x9a\xe6*\x02(\x01\x12\x1c\n\x0b\x64\x65scription\x18\x05 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x01\x12\x19\n\x11number_of_retries\x18\x06 \x01(\r\x12\x13\n\x0buse_type_v3\x18\x07 \x01(\x08\x12\x17\n\x0f\x65xclude_regexps\x18\x08 \x03(\t\x1a\x41\n\x04Item\x12\x19\n\x0bsource_path\x18\x01 \x01(\tB\x04\x90\xe6*\x01\x12\x1e\n\x10\x64\x65stination_path\x18\x02 \x01(\tB\x04\x90\xe6*\x01\"\x12\n\x10\x45xportToYtResult\"\xb5\x01\n\x12\x45xportToYtMetadata\x12\x30\n\x08settings\x18\x01 \x01(\x0b\x32\x1e.Ydb.Export.ExportToYtSettings\x12\x35\n\x08progress\x18\x02 \x01(\x0e\x32#.Ydb.Export.ExportProgress.Progress\x12\x36\n\x0eitems_progress\x18\x03 \x03(\x0b\x32\x1e.Ydb.Export.ExportItemProgress\"\x86\x01\n\x11\x45xportToYtRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x36\n\x08settings\x18\x02 \x01(\x0b\x32\x1e.Ydb.Export.ExportToYtSettingsB\x04\x90\xe6*\x01\"B\n\x12\x45xportToYtResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\xf7\x06\n\x12\x45xportToS3Settings\x12\x16\n\x08\x65ndpoint\x18\x01 \x01(\tB\x04\x90\xe6*\x01\x12\x35\n\x06scheme\x18\x02 \x01(\x0e\x32%.Ydb.Export.ExportToS3Settings.Scheme\x12\x14\n\x06\x62ucket\x18\x03 \x01(\tB\x04\x90\xe6*\x01\x12\x18\n\naccess_key\x18\x04 \x01(\tB\x04\x90\xe6*\x01\x12\x18\n\nsecret_key\x18\x05 \x01(\tB\x04\x90\xe6*\x01\x12\x32\n\x05items\x18\x06 \x03(\x0b\x32#.Ydb.Export.ExportToS3Settings.Item\x12\x1c\n\x0b\x64\x65scription\x18\x07 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x01\x12\x19\n\x11number_of_retries\x18\x08 \x01(\r\x12\x42\n\rstorage_class\x18\t \x01(\x0e\x32+.Ydb.Export.ExportToS3Settings.StorageClass\x12\x13\n\x0b\x63ompression\x18\n \x01(\t\x12\x0e\n\x06region\x18\x0b \x01(\t\x12\"\n\x1a\x64isable_virtual_addressing\x18\x0c \x01(\x08\x12\x13\n\x0bsource_path\x18\r \x01(\t\x12\x1a\n\x12\x64\x65stination_prefix\x18\x0e \x01(\t\x12;\n\x13\x65ncryption_settings\x18\x0f \x01(\x0b\x32\x1e.Ydb.Export.EncryptionSettings\x12\x1b\n\x13materialize_indexes\x18\x10 \x01(\x08\x12\x17\n\x0f\x65xclude_regexps\x18\x11 \x03(\t\x1a=\n\x04Item\x12\x19\n\x0bsource_path\x18\x01 \x01(\tB\x04\x90\xe6*\x01\x12\x1a\n\x12\x64\x65stination_prefix\x18\x02 \x01(\t\".\n\x06Scheme\x12\x0f\n\x0bUNSPECIFIED\x10\x00\x12\x08\n\x04HTTP\x10\x01\x12\t\n\x05HTTPS\x10\x02\"\xba\x01\n\x0cStorageClass\x12\x1d\n\x19STORAGE_CLASS_UNSPECIFIED\x10\x00\x12\x0c\n\x08STANDARD\x10\x01\x12\x16\n\x12REDUCED_REDUNDANCY\x10\x02\x12\x0f\n\x0bSTANDARD_IA\x10\x03\x12\x0e\n\nONEZONE_IA\x10\x04\x12\x17\n\x13INTELLIGENT_TIERING\x10\x05\x12\x0b\n\x07GLACIER\x10\x06\x12\x10\n\x0c\x44\x45\x45P_ARCHIVE\x10\x07\x12\x0c\n\x08OUTPOSTS\x10\x08\"\x12\n\x10\x45xportToS3Result\"\xb5\x01\n\x12\x45xportToS3Metadata\x12\x30\n\x08settings\x18\x01 \x01(\x0b\x32\x1e.Ydb.Export.ExportToS3Settings\x12\x35\n\x08progress\x18\x02 \x01(\x0e\x32#.Ydb.Export.ExportProgress.Progress\x12\x36\n\x0eitems_progress\x18\x03 \x03(\x0b\x32\x1e.Ydb.Export.ExportItemProgress\"\x86\x01\n\x11\x45xportToS3Request\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x36\n\x08settings\x18\x02 \x01(\x0b\x32\x1e.Ydb.Export.ExportToS3SettingsB\x04\x90\xe6*\x01\"B\n\x12\x45xportToS3Response\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\xa2\x01\n\x12\x45ncryptionSettings\x12\x1c\n\x14\x65ncryption_algorithm\x18\x01 \x01(\t\x12\x44\n\rsymmetric_key\x18\x02 \x01(\x0b\x32+.Ydb.Export.EncryptionSettings.SymmetricKeyH\x00\x1a!\n\x0cSymmetricKey\x12\x11\n\x03key\x18\x01 \x01(\x0c\x42\x04\xb8\xe6*\x01\x42\x05\n\x03Key\"\xd7\x02\n\x12\x45xportToFsSettings\x12\x17\n\tbase_path\x18\x01 \x01(\tB\x04\x90\xe6*\x01\x12\x32\n\x05items\x18\x02 \x03(\x0b\x32#.Ydb.Export.ExportToFsSettings.Item\x12\x1c\n\x0b\x64\x65scription\x18\x03 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x01\x12\x19\n\x11number_of_retries\x18\x04 \x01(\r\x12\x13\n\x0b\x63ompression\x18\x05 \x01(\t\x12;\n\x13\x65ncryption_settings\x18\x06 \x01(\x0b\x32\x1e.Ydb.Export.EncryptionSettings\x12\x13\n\x0bsource_path\x18\x07 \x01(\t\x12\x17\n\x0f\x65xclude_regexps\x18\x08 \x03(\t\x1a;\n\x04Item\x12\x19\n\x0bsource_path\x18\x01 \x01(\tB\x04\x90\xe6*\x01\x12\x18\n\x10\x64\x65stination_path\x18\x02 \x01(\t\"\x12\n\x10\x45xportToFsResult\"\xb5\x01\n\x12\x45xportToFsMetadata\x12\x30\n\x08settings\x18\x01 \x01(\x0b\x32\x1e.Ydb.Export.ExportToFsSettings\x12\x35\n\x08progress\x18\x02 \x01(\x0e\x32#.Ydb.Export.ExportProgress.Progress\x12\x36\n\x0eitems_progress\x18\x03 \x03(\x0b\x32\x1e.Ydb.Export.ExportItemProgress\"\x86\x01\n\x11\x45xportToFsRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x36\n\x08settings\x18\x02 \x01(\x0b\x32\x1e.Ydb.Export.ExportToFsSettingsB\x04\x90\xe6*\x01\"B\n\x12\x45xportToFsResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.OperationBU\n\x15tech.ydb.proto.exportZ9github.com/ydb-platform/ydb-go-genproto/protos/Ydb_Export\xf8\x01\x01\x62\x06proto3'
   ,
   dependencies=[protos_dot_annotations_dot_sensitive__pb2.DESCRIPTOR,protos_dot_annotations_dot_validation__pb2.DESCRIPTOR,protos_dot_ydb__operation__pb2.DESCRIPTOR,google_dot_protobuf_dot_timestamp__pb2.DESCRIPTOR,])
 
@@ -100,8 +100,8 @@ _EXPORTTOS3SETTINGS_SCHEME = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=1807,
-  serialized_end=1853,
+  serialized_start=1886,
+  serialized_end=1932,
 )
 _sym_db.RegisterEnumDescriptor(_EXPORTTOS3SETTINGS_SCHEME)
 
@@ -160,8 +160,8 @@ _EXPORTTOS3SETTINGS_STORAGECLASS = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=1856,
-  serialized_end=2042,
+  serialized_start=1935,
+  serialized_end=2121,
 )
 _sym_db.RegisterEnumDescriptor(_EXPORTTOS3SETTINGS_STORAGECLASS)
 
@@ -279,8 +279,8 @@ _EXPORTTOYTSETTINGS_ITEM = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=732,
-  serialized_end=797,
+  serialized_start=757,
+  serialized_end=822,
 )
 
 _EXPORTTOYTSETTINGS = _descriptor.Descriptor(
@@ -340,6 +340,13 @@ _EXPORTTOYTSETTINGS = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='exclude_regexps', full_name='Ydb.Export.ExportToYtSettings.exclude_regexps', index=7,
+      number=8, type=9, cpp_type=9, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
   ],
   extensions=[
   ],
@@ -353,7 +360,7 @@ _EXPORTTOYTSETTINGS = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=517,
-  serialized_end=797,
+  serialized_end=822,
 )
 
 
@@ -377,8 +384,8 @@ _EXPORTTOYTRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=799,
-  serialized_end=817,
+  serialized_start=824,
+  serialized_end=842,
 )
 
 
@@ -423,8 +430,8 @@ _EXPORTTOYTMETADATA = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=820,
-  serialized_end=1001,
+  serialized_start=845,
+  serialized_end=1026,
 )
 
 
@@ -462,8 +469,8 @@ _EXPORTTOYTREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1004,
-  serialized_end=1138,
+  serialized_start=1029,
+  serialized_end=1163,
 )
 
 
@@ -494,8 +501,8 @@ _EXPORTTOYTRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1140,
-  serialized_end=1206,
+  serialized_start=1165,
+  serialized_end=1231,
 )
 
 
@@ -533,8 +540,8 @@ _EXPORTTOS3SETTINGS_ITEM = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1744,
-  serialized_end=1805,
+  serialized_start=1823,
+  serialized_end=1884,
 )
 
 _EXPORTTOS3SETTINGS = _descriptor.Descriptor(
@@ -650,6 +657,20 @@ _EXPORTTOS3SETTINGS = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='materialize_indexes', full_name='Ydb.Export.ExportToS3Settings.materialize_indexes', index=15,
+      number=16, type=8, cpp_type=7, label=1,
+      has_default_value=False, default_value=False,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='exclude_regexps', full_name='Ydb.Export.ExportToS3Settings.exclude_regexps', index=16,
+      number=17, type=9, cpp_type=9, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
   ],
   extensions=[
   ],
@@ -664,8 +685,8 @@ _EXPORTTOS3SETTINGS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1209,
-  serialized_end=2042,
+  serialized_start=1234,
+  serialized_end=2121,
 )
 
 
@@ -689,8 +710,8 @@ _EXPORTTOS3RESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2044,
-  serialized_end=2062,
+  serialized_start=2123,
+  serialized_end=2141,
 )
 
 
@@ -735,8 +756,8 @@ _EXPORTTOS3METADATA = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2065,
-  serialized_end=2246,
+  serialized_start=2144,
+  serialized_end=2325,
 )
 
 
@@ -774,8 +795,8 @@ _EXPORTTOS3REQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2249,
-  serialized_end=2383,
+  serialized_start=2328,
+  serialized_end=2462,
 )
 
 
@@ -806,8 +827,8 @@ _EXPORTTOS3RESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2385,
-  serialized_end=2451,
+  serialized_start=2464,
+  serialized_end=2530,
 )
 
 
@@ -838,8 +859,8 @@ _ENCRYPTIONSETTINGS_SYMMETRICKEY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2576,
-  serialized_end=2609,
+  serialized_start=2655,
+  serialized_end=2688,
 )
 
 _ENCRYPTIONSETTINGS = _descriptor.Descriptor(
@@ -881,8 +902,269 @@ _ENCRYPTIONSETTINGS = _descriptor.Descriptor(
       create_key=_descriptor._internal_create_key,
     fields=[]),
   ],
-  serialized_start=2454,
-  serialized_end=2616,
+  serialized_start=2533,
+  serialized_end=2695,
+)
+
+
+_EXPORTTOFSSETTINGS_ITEM = _descriptor.Descriptor(
+  name='Item',
+  full_name='Ydb.Export.ExportToFsSettings.Item',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='source_path', full_name='Ydb.Export.ExportToFsSettings.Item.source_path', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=b'\220\346*\001', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='destination_path', full_name='Ydb.Export.ExportToFsSettings.Item.destination_path', index=1,
+      number=2, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=2982,
+  serialized_end=3041,
+)
+
+_EXPORTTOFSSETTINGS = _descriptor.Descriptor(
+  name='ExportToFsSettings',
+  full_name='Ydb.Export.ExportToFsSettings',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='base_path', full_name='Ydb.Export.ExportToFsSettings.base_path', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=b'\220\346*\001', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='items', full_name='Ydb.Export.ExportToFsSettings.items', index=1,
+      number=2, type=11, cpp_type=10, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='description', full_name='Ydb.Export.ExportToFsSettings.description', index=2,
+      number=3, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=b'\242\346*\003\030\200\001', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='number_of_retries', full_name='Ydb.Export.ExportToFsSettings.number_of_retries', index=3,
+      number=4, type=13, cpp_type=3, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='compression', full_name='Ydb.Export.ExportToFsSettings.compression', index=4,
+      number=5, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='encryption_settings', full_name='Ydb.Export.ExportToFsSettings.encryption_settings', index=5,
+      number=6, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='source_path', full_name='Ydb.Export.ExportToFsSettings.source_path', index=6,
+      number=7, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='exclude_regexps', full_name='Ydb.Export.ExportToFsSettings.exclude_regexps', index=7,
+      number=8, type=9, cpp_type=9, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[_EXPORTTOFSSETTINGS_ITEM, ],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=2698,
+  serialized_end=3041,
+)
+
+
+_EXPORTTOFSRESULT = _descriptor.Descriptor(
+  name='ExportToFsResult',
+  full_name='Ydb.Export.ExportToFsResult',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=3043,
+  serialized_end=3061,
+)
+
+
+_EXPORTTOFSMETADATA = _descriptor.Descriptor(
+  name='ExportToFsMetadata',
+  full_name='Ydb.Export.ExportToFsMetadata',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='settings', full_name='Ydb.Export.ExportToFsMetadata.settings', index=0,
+      number=1, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='progress', full_name='Ydb.Export.ExportToFsMetadata.progress', index=1,
+      number=2, type=14, cpp_type=8, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='items_progress', full_name='Ydb.Export.ExportToFsMetadata.items_progress', index=2,
+      number=3, type=11, cpp_type=10, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=3064,
+  serialized_end=3245,
+)
+
+
+_EXPORTTOFSREQUEST = _descriptor.Descriptor(
+  name='ExportToFsRequest',
+  full_name='Ydb.Export.ExportToFsRequest',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='operation_params', full_name='Ydb.Export.ExportToFsRequest.operation_params', index=0,
+      number=1, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='settings', full_name='Ydb.Export.ExportToFsRequest.settings', index=1,
+      number=2, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=b'\220\346*\001', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=3248,
+  serialized_end=3382,
+)
+
+
+_EXPORTTOFSRESPONSE = _descriptor.Descriptor(
+  name='ExportToFsResponse',
+  full_name='Ydb.Export.ExportToFsResponse',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='operation', full_name='Ydb.Export.ExportToFsResponse.operation', index=0,
+      number=1, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=3384,
+  serialized_end=3450,
 )
 
 _EXPORTPROGRESS_PROGRESS.containing_type = _EXPORTPROGRESS
@@ -914,6 +1196,15 @@ _ENCRYPTIONSETTINGS.fields_by_name['symmetric_key'].message_type = _ENCRYPTIONSE
 _ENCRYPTIONSETTINGS.oneofs_by_name['Key'].fields.append(
   _ENCRYPTIONSETTINGS.fields_by_name['symmetric_key'])
 _ENCRYPTIONSETTINGS.fields_by_name['symmetric_key'].containing_oneof = _ENCRYPTIONSETTINGS.oneofs_by_name['Key']
+_EXPORTTOFSSETTINGS_ITEM.containing_type = _EXPORTTOFSSETTINGS
+_EXPORTTOFSSETTINGS.fields_by_name['items'].message_type = _EXPORTTOFSSETTINGS_ITEM
+_EXPORTTOFSSETTINGS.fields_by_name['encryption_settings'].message_type = _ENCRYPTIONSETTINGS
+_EXPORTTOFSMETADATA.fields_by_name['settings'].message_type = _EXPORTTOFSSETTINGS
+_EXPORTTOFSMETADATA.fields_by_name['progress'].enum_type = _EXPORTPROGRESS_PROGRESS
+_EXPORTTOFSMETADATA.fields_by_name['items_progress'].message_type = _EXPORTITEMPROGRESS
+_EXPORTTOFSREQUEST.fields_by_name['operation_params'].message_type = protos_dot_ydb__operation__pb2._OPERATIONPARAMS
+_EXPORTTOFSREQUEST.fields_by_name['settings'].message_type = _EXPORTTOFSSETTINGS
+_EXPORTTOFSRESPONSE.fields_by_name['operation'].message_type = protos_dot_ydb__operation__pb2._OPERATION
 DESCRIPTOR.message_types_by_name['ExportProgress'] = _EXPORTPROGRESS
 DESCRIPTOR.message_types_by_name['ExportItemProgress'] = _EXPORTITEMPROGRESS
 DESCRIPTOR.message_types_by_name['ExportToYtSettings'] = _EXPORTTOYTSETTINGS
@@ -927,6 +1218,11 @@ DESCRIPTOR.message_types_by_name['ExportToS3Metadata'] = _EXPORTTOS3METADATA
 DESCRIPTOR.message_types_by_name['ExportToS3Request'] = _EXPORTTOS3REQUEST
 DESCRIPTOR.message_types_by_name['ExportToS3Response'] = _EXPORTTOS3RESPONSE
 DESCRIPTOR.message_types_by_name['EncryptionSettings'] = _ENCRYPTIONSETTINGS
+DESCRIPTOR.message_types_by_name['ExportToFsSettings'] = _EXPORTTOFSSETTINGS
+DESCRIPTOR.message_types_by_name['ExportToFsResult'] = _EXPORTTOFSRESULT
+DESCRIPTOR.message_types_by_name['ExportToFsMetadata'] = _EXPORTTOFSMETADATA
+DESCRIPTOR.message_types_by_name['ExportToFsRequest'] = _EXPORTTOFSREQUEST
+DESCRIPTOR.message_types_by_name['ExportToFsResponse'] = _EXPORTTOFSRESPONSE
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
 ExportProgress = _reflection.GeneratedProtocolMessageType('ExportProgress', (_message.Message,), {
@@ -1044,6 +1340,49 @@ EncryptionSettings = _reflection.GeneratedProtocolMessageType('EncryptionSetting
 _sym_db.RegisterMessage(EncryptionSettings)
 _sym_db.RegisterMessage(EncryptionSettings.SymmetricKey)
 
+ExportToFsSettings = _reflection.GeneratedProtocolMessageType('ExportToFsSettings', (_message.Message,), {
+
+  'Item' : _reflection.GeneratedProtocolMessageType('Item', (_message.Message,), {
+    'DESCRIPTOR' : _EXPORTTOFSSETTINGS_ITEM,
+    '__module__' : 'protos.ydb_export_pb2'
+    # @@protoc_insertion_point(class_scope:Ydb.Export.ExportToFsSettings.Item)
+    })
+  ,
+  'DESCRIPTOR' : _EXPORTTOFSSETTINGS,
+  '__module__' : 'protos.ydb_export_pb2'
+  # @@protoc_insertion_point(class_scope:Ydb.Export.ExportToFsSettings)
+  })
+_sym_db.RegisterMessage(ExportToFsSettings)
+_sym_db.RegisterMessage(ExportToFsSettings.Item)
+
+ExportToFsResult = _reflection.GeneratedProtocolMessageType('ExportToFsResult', (_message.Message,), {
+  'DESCRIPTOR' : _EXPORTTOFSRESULT,
+  '__module__' : 'protos.ydb_export_pb2'
+  # @@protoc_insertion_point(class_scope:Ydb.Export.ExportToFsResult)
+  })
+_sym_db.RegisterMessage(ExportToFsResult)
+
+ExportToFsMetadata = _reflection.GeneratedProtocolMessageType('ExportToFsMetadata', (_message.Message,), {
+  'DESCRIPTOR' : _EXPORTTOFSMETADATA,
+  '__module__' : 'protos.ydb_export_pb2'
+  # @@protoc_insertion_point(class_scope:Ydb.Export.ExportToFsMetadata)
+  })
+_sym_db.RegisterMessage(ExportToFsMetadata)
+
+ExportToFsRequest = _reflection.GeneratedProtocolMessageType('ExportToFsRequest', (_message.Message,), {
+  'DESCRIPTOR' : _EXPORTTOFSREQUEST,
+  '__module__' : 'protos.ydb_export_pb2'
+  # @@protoc_insertion_point(class_scope:Ydb.Export.ExportToFsRequest)
+  })
+_sym_db.RegisterMessage(ExportToFsRequest)
+
+ExportToFsResponse = _reflection.GeneratedProtocolMessageType('ExportToFsResponse', (_message.Message,), {
+  'DESCRIPTOR' : _EXPORTTOFSRESPONSE,
+  '__module__' : 'protos.ydb_export_pb2'
+  # @@protoc_insertion_point(class_scope:Ydb.Export.ExportToFsResponse)
+  })
+_sym_db.RegisterMessage(ExportToFsResponse)
+
 
 DESCRIPTOR._options = None
 _EXPORTTOYTSETTINGS_ITEM.fields_by_name['source_path']._options = None
@@ -1061,4 +1400,8 @@ _EXPORTTOS3SETTINGS.fields_by_name['secret_key']._options = None
 _EXPORTTOS3SETTINGS.fields_by_name['description']._options = None
 _EXPORTTOS3REQUEST.fields_by_name['settings']._options = None
 _ENCRYPTIONSETTINGS_SYMMETRICKEY.fields_by_name['key']._options = None
+_EXPORTTOFSSETTINGS_ITEM.fields_by_name['source_path']._options = None
+_EXPORTTOFSSETTINGS.fields_by_name['base_path']._options = None
+_EXPORTTOFSSETTINGS.fields_by_name['description']._options = None
+_EXPORTTOFSREQUEST.fields_by_name['settings']._options = None
 # @@protoc_insertion_point(module_scope)
