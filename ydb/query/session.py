@@ -65,11 +65,6 @@ class QuerySessionState(base.IQuerySessionState):
     def __init__(self, settings: base.QueryClientSettings = None):
         self._settings = settings
 
-    def reset(self) -> None:
-        self._session_id = None
-        self._node_id = None
-        self._attached = False
-
     @property
     def session_id(self) -> Optional[str]:
         return self._session_id
@@ -129,7 +124,7 @@ def wrapper_delete_session(
 ) -> "BaseQuerySession":
     message = _ydb_query.DeleteSessionResponse.from_proto(response_pb)
     issues._process_response(message.status)
-    session_state.reset()
+    session_state.set_attached(False)
     session_state._change_state(QuerySessionStateEnum.CLOSED)
     return session
 
@@ -257,7 +252,7 @@ class QuerySession(BaseQuerySession):
             if first_response.status != issues.StatusCode.SUCCESS:
                 raise RuntimeError("Failed to attach session")
         except Exception as e:
-            self._state.reset()
+            self._state.set_attached(False)
             status_stream.cancel()
             raise e
 
@@ -275,11 +270,11 @@ class QuerySession(BaseQuerySession):
         try:
             for status in status_stream:
                 if status.status != issues.StatusCode.SUCCESS:
-                    self._state.reset()
+                    self._state.set_attached(False)
                     self._state._change_state(QuerySessionStateEnum.CLOSED)
         except Exception:
             if not self._state._already_in(QuerySessionStateEnum.CLOSED):
-                self._state.reset()
+                self._state.set_attached(False)
                 self._state._change_state(QuerySessionStateEnum.CLOSED)
 
     def delete(self, settings: Optional[BaseRequestSettings] = None) -> None:
