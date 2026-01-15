@@ -185,6 +185,18 @@ class TestQuerySessionPool:
             assert pool._current_size == 1
 
     @pytest.mark.asyncio
+    async def test_released_after_future_canceled(self, driver):
+        async with ydb.aio.QuerySessionPool(driver, 1) as pool:
+            s = await pool.acquire()
+            waiter = asyncio.ensure_future(pool.acquire())
+            await asyncio.sleep(0)  # let waiter run until waiting point
+            waiter.cancel()
+            await pool.release(s)
+            await asyncio.wait([waiter])
+
+            assert pool._queue.qsize() == 1
+
+    @pytest.mark.asyncio
     async def test_explain_with_retries(self, pool: QuerySessionPool):
         await pool.execute_with_retries("DROP TABLE IF EXISTS test_explain")
         await pool.execute_with_retries("CREATE TABLE test_explain (id Int64, PRIMARY KEY (id))")
