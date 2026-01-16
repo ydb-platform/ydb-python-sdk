@@ -34,7 +34,7 @@ permissions:
 jobs:
   ydb-slo-action:
     name: Run YDB SLO Tests
-    runs-on: ubuntu-latest
+    runs-on: "large-runner"
 
     # Run on PRs only when labeled "SLO"; allow manual runs via workflow_dispatch
     if: ${{ github.event_name == 'workflow_dispatch' || contains(github.event.pull_request.labels.*.name, 'SLO') }}
