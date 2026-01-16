@@ -34,7 +34,7 @@ permissions:
 jobs:
   ydb-slo-action:
     name: Run YDB SLO Tests
-    runs-on: "large-runner"
+    runs-on: "large-runner-python-sdk"
 
     # Run on PRs only when labeled "SLO"; allow manual runs via workflow_dispatch
     if: ${{ github.event_name == 'workflow_dispatch' || contains(github.event.pull_request.labels.*.name, 'SLO') }}
@@ -55,8 +55,36 @@ jobs:
       cancel-in-progress: true
 
     steps:
+      - name: Install dependencies
+        run: |
+          YQ_VERSION=v4.48.2
+          BUILDX_VERSION=0.30.1
+          COMPOSE_VERSION=2.40.3
+
+          sudo curl -L https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_amd64 -o /usr/local/bin/yq && \
+            sudo chmod +x /usr/local/bin/yq
+
+          echo "Updating Docker plugins..."
+          sudo mkdir -p /usr/local/lib/docker/cli-plugins
+
+          echo "Installing Docker Buildx ${BUILDX_VERSION}..."
+          sudo curl -fLo /usr/local/lib/docker/cli-plugins/docker-buildx \
+            "https://github.com/docker/buildx/releases/download/v${BUILDX_VERSION}/buildx-v${BUILDX_VERSION}.linux-amd64"
+          sudo chmod +x /usr/local/lib/docker/cli-plugins/docker-buildx
+
+          echo "Installing Docker Compose ${COMPOSE_VERSION}..."
+          sudo curl -fLo /usr/local/lib/docker/cli-plugins/docker-compose \
+            "https://github.com/docker/compose/releases/download/v${COMPOSE_VERSION}/docker-compose-linux-x86_64"
+          sudo chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
+
+          echo "Installed versions:"
+          yq --version
+          docker --version
+          docker buildx version
+          docker compose version
+
       - name: Checkout current version
-        uses: actions/checkout@v6
+        uses: actions/checkout@v5
         with:
           path: current
           fetch-depth: 0
@@ -66,34 +94,31 @@ jobs:
         shell: bash
         run: |
           cd current
-
-          git fetch --no-tags --prune --depth=0 origin +refs/heads/main:refs/remotes/origin/main
-
           if [[ -n "${{ inputs.baseline_ref }}" ]]; then
             BASELINE="${{ inputs.baseline_ref }}"
           else
-            BASELINE="$(git merge-base HEAD origin/main)"
+            BASELINE=$(git merge-base HEAD origin/main)
           fi
-
-          echo "sha=$BASELINE" >> "$GITHUB_OUTPUT"
+          echo "sha=$BASELINE" >> $GITHUB_OUTPUT
 
           # Try to determine a human-readable ref name for baseline
-          if git merge-base --is-ancestor "$BASELINE" origin/main && \
-             [[ "$(git rev-parse origin/main)" == "$BASELINE" ]]; then
-            BASELINE_REF="main"
+          # Check if baseline is on main
+          if git merge-base --is-ancestor $BASELINE origin/main && \
+             [ "$(git rev-parse origin/main)" = "$BASELINE" ]; then
+             BASELINE_REF="main"
           else
-            BRANCH="$(git branch -r --contains "$BASELINE" | grep -v HEAD | head -1 | sed 's/.*\///' || true)"
-            if [[ -n "$BRANCH" ]]; then
+            # Try to find a branch containing this commit
+            BRANCH=$(git branch -r --contains $BASELINE | grep -v HEAD | head -1 | sed 's/.*\///' || echo "")
+            if [ -n "$BRANCH" ]; then
               BASELINE_REF="${BRANCH}@${BASELINE:0:7}"
             else
               BASELINE_REF="${BASELINE:0:7}"
             fi
           fi
-
-          echo "ref=$BASELINE_REF" >> "$GITHUB_OUTPUT"
+          echo "ref=$BASELINE_REF" >> $GITHUB_OUTPUT
 
       - name: Checkout baseline version
-        uses: actions/checkout@v6
+        uses: actions/checkout@v5
         with:
           ref: ${{ steps.baseline.outputs.sha }}
           path: baseline
