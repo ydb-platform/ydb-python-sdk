@@ -29,7 +29,42 @@ Each workload type has 3 commands:
 - `topic-cleanup` - drops topic in database
 - `topic-run`     - runs topic workload (publish and consume messages with set RPS)
 
+### Infra (Docker Compose)
+
+SLO workload is designed to run **inside the Docker Compose network** so it can reach YDB/Prometheus by service DNS names without publishing ports to localhost.
+
+Infra compose configs are maintained in a separate repo:
+- https://github.com/ydb-platform/ydb-slo-action/tree/main/deploy
+
+Expected setup:
+- Start infra using `deploy/compose.yml` from `ydb-slo-action`
+- Infra network name should be `ydb_cluster`
+- Workload container attaches to that network
+
+Example infra start (from the `ydb-slo-action` repo root):
+- `docker compose -f deploy/compose.yml --profile telemetry up -d --build`
+
+### Runner script (`tests/slo/slo_runner.sh`)
+
+This repo contains a simple maintainer convenience runner that:
+1) builds the workload image
+2) runs a basic SLO workload inside `ydb_cluster`
+
+It is intentionally minimal (not a complete interface for all workload options). For full control, use the commands in `tests/slo/src/` directly.
+
+Example usage (infra must already be running):
+- `NETWORK_NAME=ydb_cluster ./tests/slo/slo_runner.sh`
+
+Defaults used by the runner (override via env vars):
+- `NETWORK_NAME=ydb_cluster`
+- `YDB_ENDPOINT=grpc://ydb-storage-1:2136` (also commonly works as `grpc://storage-1:2136`)
+- `YDB_DATABASE=/Root/testdb`
+- `OTLP_ENDPOINT=http://prometheus:9090/api/v1/otlp/v1/metrics`
+
 ### Run examples with all arguments:
+
+You can also configure the OTLP endpoint via environment variable:
+- `OTLP_ENDPOINT=http://ydb-prometheus:9090/api/v1/otlp/v1/metrics` (full OTLP metrics endpoint)
 
 **Table examples:**
 
@@ -43,7 +78,8 @@ table-cleanup:
 
 table-run:
 `python tests/slo/src/ table-run localhost:2136 /local -t tableName
---prom-pgw http://prometheus-pushgateway:9091 --report-period 250
+--otlp-endpoint http://ydb-prometheus:9090/api/v1/otlp/v1/metrics
+--report-period 250
 --read-rps 1000 --read-timeout 10000
 --write-rps 100 --write-timeout 10000
 --time 600 --shutdown-time 30`
@@ -60,7 +96,8 @@ topic-cleanup:
 topic-run:
 `python tests/slo/src/ topic-run localhost:2136 /local
 --topic-path /local/slo_topic --topic-consumer slo_consumer
---prom-pgw http://prometheus-pushgateway:9091 --report-period 250
+--otlp-endpoint http://ydb-prometheus:9090/api/v1/otlp/v1/metrics
+--report-period 250
 --topic-write-rps 50 --topic-read-rps 100
 --topic-write-timeout 5000 --topic-read-timeout 3000
 --time 600 --shutdown-time 30`
@@ -114,8 +151,8 @@ Arguments:
 Options:
   -t --table-name         <string> table name to create
 
-  --prom-pgw              <string> prometheus push gateway
-  --report-period         <int>    prometheus push period in milliseconds
+  --otlp-endpoint         <string> Prometheus OTLP metrics endpoint (e.g. http://ydb-prometheus:9090/api/v1/otlp/v1/metrics)
+  --report-period         <int>    metrics export period in milliseconds
 
   --read-rps              <int>    read RPS
   --read-timeout          <int>    read timeout milliseconds
@@ -170,8 +207,8 @@ Options:
   --topic-path                    <string> topic path
   --topic-consumer                <string> consumer name
 
-  --prom-pgw                      <string> prometheus push gateway
-  --report-period                 <int>    prometheus push period in milliseconds
+  --otlp-endpoint                 <string> Prometheus OTLP metrics endpoint (e.g. http://ydb-prometheus:9090/api/v1/otlp/v1/metrics)
+  --report-period                 <int>    metrics export period in milliseconds
 
   --topic-read-rps                <int>    read RPS for topics
   --topic-read-timeout            <int>    read timeout milliseconds for topics
@@ -229,7 +266,8 @@ Messages contain:
 
 Metrics are collected for both table operations (`read`, `write`) and topic operations (`read`, `write`).
 
-> You must reset metrics to keep them `0` in prometheus and grafana before beginning and after ending of jobs
+> Note: with Prometheus OTLP receiver (no Pushgateway) counters/histograms are cumulative and cannot be reset to `0`.
+> If you need clean separation between runs, use distinct `REF`/`WORKLOAD` (and/or `SLO_INSTANCE_ID`) so each run writes into separate time series.
 
 ## Look at metrics in grafana
 You can get dashboard used in that test [here](https://github.com/ydb-platform/slo-tests/blob/main/k8s/helms/grafana.yaml#L69) - you will need to import json into grafana.

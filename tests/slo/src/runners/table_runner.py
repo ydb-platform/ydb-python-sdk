@@ -1,12 +1,14 @@
-import ydb
-from os import path
 import concurrent.futures
 from concurrent.futures import ThreadPoolExecutor
+from os import path
+
+from core.generator import batch_generator
+from core.metrics import create_metrics
+from jobs.table_jobs import TableJobManager
+
+import ydb
 
 from .base import BaseRunner
-from jobs.table_jobs import TableJobManager
-from core.metrics import create_metrics
-from core.generator import batch_generator
 
 
 class TableRunner(BaseRunner):
@@ -39,7 +41,12 @@ class TableRunner(BaseRunner):
                 .with_column(ydb.Column("object_id", ydb.OptionalType(ydb.PrimitiveType.Uint64)))
                 .with_column(ydb.Column("payload_str", ydb.OptionalType(ydb.PrimitiveType.Utf8)))
                 .with_column(ydb.Column("payload_double", ydb.OptionalType(ydb.PrimitiveType.Double)))
-                .with_column(ydb.Column("payload_timestamp", ydb.OptionalType(ydb.PrimitiveType.Timestamp)))
+                .with_column(
+                    ydb.Column(
+                        "payload_timestamp",
+                        ydb.OptionalType(ydb.PrimitiveType.Timestamp),
+                    )
+                )
                 .with_primary_keys("object_hash", "object_id")
                 .with_uniform_partitions(args.min_partitions_count)
                 .with_partitioning_settings(
@@ -81,12 +88,13 @@ class TableRunner(BaseRunner):
             self.logger.info("Table creation completed")
 
     def run(self, args):
-        metrics = create_metrics(args.prom_pgw)
+        metrics = create_metrics(args.otlp_endpoint)
 
         self.logger.info("Starting table SLO tests")
 
         table_name = path.join(args.db, args.table_name)
 
+        assert self.driver is not None, "Driver is not initialized. Call set_driver() before running."
         session = self.driver.table_client.session().create()
         result = session.transaction().execute(
             "SELECT MAX(`object_id`) as max_id FROM `{}`".format(table_name),
@@ -107,6 +115,7 @@ class TableRunner(BaseRunner):
         table_name = path.join(args.db, args.table_name)
         self.logger.info("Cleaning up table: %s", table_name)
 
+        assert self.driver is not None, "Driver is not initialized. Call set_driver() before cleanup."
         session = self.driver.table_client.session().create()
         session.drop_table(table_name)
 

@@ -1,11 +1,15 @@
 import asyncio
-import ydb.aio
-import time
 import logging
-from aiolimiter import AsyncLimiter
+import time
+from typing import Optional
+
+# `aiolimiter` is a runtime dependency (see `tests/slo/requirements.txt`).
+from aiolimiter import AsyncLimiter  # pyright: ignore[reportMissingImports]
+from core.metrics import OP_TYPE_READ, OP_TYPE_WRITE
+
+import ydb.aio
 
 from .base import BaseJobManager
-from core.metrics import OP_TYPE_READ, OP_TYPE_WRITE
 
 logger = logging.getLogger(__name__)
 
@@ -13,7 +17,8 @@ logger = logging.getLogger(__name__)
 class AsyncTopicJobManager(BaseJobManager):
     def __init__(self, driver, args, metrics):
         super().__init__(driver, args, metrics)
-        self.driver: ydb.aio.Driver = driver
+        # Keep async driver separately to avoid type-incompatible override of BaseJobManager.driver
+        self.aio_driver = driver
 
     async def run_tests(self):
         tasks = [
@@ -21,17 +26,19 @@ class AsyncTopicJobManager(BaseJobManager):
             *await self._run_topic_read_jobs(),
             *self._run_metric_job(),
         ]
-
         await asyncio.gather(*tasks)
 
     async def _run_topic_write_jobs(self):
         logger.info("Start async topic write jobs")
 
+        tasks = []
         write_limiter = AsyncLimiter(max_rate=self.args.write_rps, time_period=1)
 
-        tasks = []
         for i in range(self.args.write_threads):
-            task = asyncio.create_task(self._run_topic_writes(write_limiter, i), name=f"slo_topic_write_{i}")
+            task = asyncio.create_task(
+                self._run_topic_writes(write_limiter, i),
+                name=f"slo_topic_write_{i}",
+            )
             tasks.append(task)
 
         return tasks
@@ -39,22 +46,25 @@ class AsyncTopicJobManager(BaseJobManager):
     async def _run_topic_read_jobs(self):
         logger.info("Start async topic read jobs")
 
+        tasks = []
         read_limiter = AsyncLimiter(max_rate=self.args.read_rps, time_period=1)
 
-        tasks = []
         for i in range(self.args.read_threads):
-            task = asyncio.create_task(self._run_topic_reads(read_limiter), name=f"slo_topic_read_{i}")
+            task = asyncio.create_task(
+                self._run_topic_reads(read_limiter),
+                name=f"slo_topic_read_{i}",
+            )
             tasks.append(task)
 
         return tasks
 
-    async def _run_topic_writes(self, limiter, partition_id=None):
+    async def _run_topic_writes(self, limiter: AsyncLimiter, partition_id: Optional[int] = None):
         start_time = time.time()
         logger.info("Start async topic write workload")
 
-        async with self.driver.topic_client.writer(
+        async with self.aio_driver.topic_client.writer(
             self.args.path,
-            codec=ydb.TopicCodec.GZIP,
+            codec=getattr(ydb, "PublicCodec", ydb.TopicCodec).GZIP,
             partition_id=partition_id,
         ) as writer:
             logger.info("Async topic writer created")
@@ -64,8 +74,9 @@ class AsyncTopicJobManager(BaseJobManager):
                 async with limiter:
                     message_count += 1
 
-                    content = f"message_{message_count}_{asyncio.current_task().get_name()}".encode("utf-8")
-
+                    task = asyncio.current_task()
+                    task_name = task.get_name() if task is not None else "unknown_task"
+                    content = f"message_{message_count}_{task_name}".encode("utf-8")
                     if len(content) < self.args.message_size:
                         content += b"x" * (self.args.message_size - len(content))
 
@@ -82,11 +93,11 @@ class AsyncTopicJobManager(BaseJobManager):
 
         logger.info("Stop async topic write workload")
 
-    async def _run_topic_reads(self, limiter):
+    async def _run_topic_reads(self, limiter: AsyncLimiter):
         start_time = time.time()
         logger.info("Start async topic read workload")
 
-        async with self.driver.topic_client.reader(
+        async with self.aio_driver.topic_client.reader(
             self.args.path,
             self.args.consumer,
         ) as reader:
@@ -109,14 +120,17 @@ class AsyncTopicJobManager(BaseJobManager):
         logger.info("Stop async topic read workload")
 
     def _run_metric_job(self):
-        if not self.args.prom_pgw:
+        # Metrics are enabled only if an OTLP endpoint is provided (CLI: --otlp-endpoint).
+        if not getattr(self.args, "otlp_endpoint", None):
             return []
 
-        # Create async task for metrics
-        task = asyncio.create_task(self._async_metric_sender(self.args.time), name="slo_metrics_sender")
+        task = asyncio.create_task(
+            self._async_metric_sender(self.args.time),
+            name="slo_metrics_sender",
+        )
         return [task]
 
-    async def _async_metric_sender(self, runtime):
+    async def _async_metric_sender(self, runtime: int):
         start_time = time.time()
         logger.info("Start push metrics (async)")
 
@@ -124,7 +138,7 @@ class AsyncTopicJobManager(BaseJobManager):
 
         while time.time() - start_time < runtime:
             async with limiter:
-                # Call sync metrics.push() in executor to avoid blocking
+                # Call sync metrics.push() in executor to avoid blocking the event loop.
                 await asyncio.get_event_loop().run_in_executor(None, self.metrics.push)
 
         logger.info("Stop push metrics (async)")

@@ -1,11 +1,13 @@
 import time
+
+from core.metrics import create_metrics
+from jobs.async_topic_jobs import AsyncTopicJobManager
+from jobs.topic_jobs import TopicJobManager
+
 import ydb
 import ydb.aio
 
 from .base import BaseRunner
-from jobs.topic_jobs import TopicJobManager
-from jobs.async_topic_jobs import AsyncTopicJobManager
-from core.metrics import create_metrics
 
 
 class TopicRunner(BaseRunner):
@@ -14,6 +16,7 @@ class TopicRunner(BaseRunner):
         return "topic"
 
     def create(self, args):
+        assert self.driver is not None, "Driver is not initialized. Call set_driver() before create()."
         retry_no = 0
         while retry_no < 3:
             self.logger.info("Creating topic: %s (retry no: %d)", args.path, retry_no)
@@ -66,7 +69,8 @@ class TopicRunner(BaseRunner):
         raise RuntimeError("Failed to create topic")
 
     def run(self, args):
-        metrics = create_metrics(args.prom_pgw)
+        assert self.driver is not None, "Driver is not initialized. Call set_driver() before run()."
+        metrics = create_metrics(args.otlp_endpoint)
 
         self.logger.info("Starting topic SLO tests")
 
@@ -80,7 +84,8 @@ class TopicRunner(BaseRunner):
 
     async def run_async(self, args):
         """Async version of topic SLO tests using ydb.aio.Driver"""
-        metrics = create_metrics(args.prom_pgw)
+        assert self.driver is not None, "Driver is not initialized. Call set_driver() before run_async()."
+        metrics = create_metrics(args.otlp_endpoint)
 
         self.logger.info("Starting async topic SLO tests")
 
@@ -96,6 +101,7 @@ class TopicRunner(BaseRunner):
     def cleanup(self, args):
         self.logger.info("Cleaning up topic: %s", args.path)
 
+        assert self.driver is not None, "Driver is not initialized. Call set_driver() before cleanup()."
         try:
             self.driver.topic_client.drop_topic(args.path)
             self.logger.info("Topic dropped: %s", args.path)

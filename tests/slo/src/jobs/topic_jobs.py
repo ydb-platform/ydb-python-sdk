@@ -1,11 +1,12 @@
-import ydb
-import time
 import logging
 import threading
-from ratelimiter import RateLimiter
+import time
 
-from .base import BaseJobManager
 from core.metrics import OP_TYPE_READ, OP_TYPE_WRITE
+
+import ydb
+
+from .base import BaseJobManager, SyncRateLimiter
 
 logger = logging.getLogger(__name__)
 
@@ -24,7 +25,8 @@ class TopicJobManager(BaseJobManager):
     def _run_topic_write_jobs(self):
         logger.info("Start topic write jobs")
 
-        write_limiter = RateLimiter(max_calls=self.args.write_rps, period=1)
+        write_rps = int(getattr(self.args, "write_rps", 0))
+        write_limiter = SyncRateLimiter(min_interval_s=0.0 if write_rps <= 0 else 1.0 / write_rps)
 
         futures = []
         for i in range(self.args.write_threads):
@@ -44,7 +46,8 @@ class TopicJobManager(BaseJobManager):
     def _run_topic_read_jobs(self):
         logger.info("Start topic read jobs")
 
-        read_limiter = RateLimiter(max_calls=self.args.read_rps, period=1)
+        read_rps = int(getattr(self.args, "read_rps", 0))
+        read_limiter = SyncRateLimiter(min_interval_s=0.0 if read_rps <= 0 else 1.0 / read_rps)
 
         futures = []
         for i in range(self.args.read_threads):
