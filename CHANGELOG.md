@@ -1,3 +1,5 @@
+* QuerySessionPool: Cancel queue.get in case of cancel of parent coroutine
+
 ## 3.23.1 ##
 * Added SysView scheme type
 
