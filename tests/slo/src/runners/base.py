@@ -1,12 +1,14 @@
-import ydb
 import logging
 from abc import ABC, abstractmethod
+from typing import Optional
+
+import ydb
 
 
 class BaseRunner(ABC):
     def __init__(self):
         self.logger = logging.getLogger(self.__class__.__module__)
-        self.driver = None
+        self.driver: Optional[ydb.Driver] = None
 
     @property
     @abstractmethod

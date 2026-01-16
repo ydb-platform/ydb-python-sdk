@@ -1,13 +1,14 @@
-import ydb
-import time
 import logging
 import threading
+import time
 from random import randint
-from ratelimiter import RateLimiter
 
-from .base import BaseJobManager
-from core.metrics import OP_TYPE_READ, OP_TYPE_WRITE
 from core.generator import RowGenerator
+from core.metrics import OP_TYPE_READ, OP_TYPE_WRITE
+
+import ydb
+
+from .base import BaseJobManager, SyncRateLimiter
 
 logger = logging.getLogger(__name__)
 
@@ -31,7 +32,17 @@ UPSERT INTO `{}` (
 
 
 class RequestParams:
-    def __init__(self, pool, query, params, metrics, labels, request_settings, retry_settings, check_result_cb=None):
+    def __init__(
+        self,
+        pool,
+        query,
+        params,
+        metrics,
+        labels,
+        request_settings,
+        retry_settings,
+        check_result_cb=None,
+    ):
         self.pool = pool
         self.query = query
         self.params = params
@@ -110,7 +121,8 @@ class TableJobManager(BaseJobManager):
         session = ydb.retry_operation_sync(lambda: self.driver.table_client.session().create())
         read_query = session.prepare(READ_QUERY_TEMPLATE.format(self.table_name))
 
-        read_limiter = RateLimiter(max_calls=self.args.read_rps, period=1)
+        read_rps = int(getattr(self.args, "read_rps", 0))
+        read_limiter = SyncRateLimiter(min_interval_s=0.0 if read_rps <= 0 else 1.0 / read_rps)
 
         futures = []
         for i in range(self.args.read_threads):
@@ -130,7 +142,8 @@ class TableJobManager(BaseJobManager):
         session = ydb.retry_operation_sync(lambda: self.driver.table_client.session().create())
         write_query = session.prepare(WRITE_QUERY_TEMPLATE.format(self.table_name))
 
-        write_limiter = RateLimiter(max_calls=self.args.write_rps, period=1)
+        write_rps = int(getattr(self.args, "write_rps", 0))
+        write_limiter = SyncRateLimiter(min_interval_s=0.0 if write_rps <= 0 else 1.0 / write_rps)
 
         futures = []
         for i in range(self.args.write_threads):
@@ -148,7 +161,8 @@ class TableJobManager(BaseJobManager):
         logger.info("Start query read jobs")
 
         read_query = READ_QUERY_TEMPLATE.format(self.table_name)
-        read_limiter = RateLimiter(max_calls=self.args.read_rps, period=1)
+        read_rps = int(getattr(self.args, "read_rps", 0))
+        read_limiter = SyncRateLimiter(min_interval_s=0.0 if read_rps <= 0 else 1.0 / read_rps)
 
         futures = []
         for i in range(self.args.read_threads):
@@ -166,7 +180,8 @@ class TableJobManager(BaseJobManager):
         logger.info("Start query write jobs")
 
         write_query = WRITE_QUERY_TEMPLATE.format(self.table_name)
-        write_limiter = RateLimiter(max_calls=self.args.write_rps, period=1)
+        write_rps = int(getattr(self.args, "write_rps", 0))
+        write_limiter = SyncRateLimiter(min_interval_s=0.0 if write_rps <= 0 else 1.0 / write_rps)
 
         futures = []
         for i in range(self.args.write_threads):
@@ -302,7 +317,10 @@ class TableJobManager(BaseJobManager):
                     "$object_id": (row.object_id, ydb.PrimitiveType.Uint64),
                     "$payload_str": (row.payload_str, ydb.PrimitiveType.Utf8),
                     "$payload_double": (row.payload_double, ydb.PrimitiveType.Double),
-                    "$payload_timestamp": (row.payload_timestamp, ydb.PrimitiveType.Timestamp),
+                    "$payload_timestamp": (
+                        row.payload_timestamp,
+                        ydb.PrimitiveType.Timestamp,
+                    ),
                 }
 
                 def check_result(result):
