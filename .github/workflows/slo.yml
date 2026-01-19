@@ -151,6 +151,11 @@ jobs:
           workload_current_ref: ${{ github.head_ref || github.ref_name }}
           workload_baseline_ref: ${{ steps.baseline.outputs.ref }}
 
+      - name: Verify YDB
+        run: |
+          sleep 15
+          docker ps -a
+
       - name: Prepare SLO Database
         run: |
           docker run --rm \
