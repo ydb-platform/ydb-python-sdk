@@ -7,7 +7,7 @@ from collections.abc import Iterable
 from contextlib import contextmanager
 from importlib.metadata import version
 from os import environ
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Optional, Tuple
 
 OP_TYPE_READ, OP_TYPE_WRITE = "read", "write"
 OP_STATUS_SUCCESS, OP_STATUS_FAILURE = "success", "err"
@@ -49,7 +49,13 @@ class BaseMetrics(ABC):
         pass
 
     @abstractmethod
-    def stop(self, labels, start_time: float, attempts: int = 1, error: Exception = None) -> None:
+    def stop(
+        self,
+        labels,
+        start_time: float,
+        attempts: int = 1,
+        error: Optional[Exception] = None,
+    ) -> None:
         pass
 
     @abstractmethod
@@ -77,7 +83,13 @@ class DummyMetrics(BaseMetrics):
     def start(self, labels) -> float:
         return 0.0
 
-    def stop(self, labels, start_time: float, attempts: int = 1, error: Exception = None) -> None:
+    def stop(
+        self,
+        labels,
+        start_time: float,
+        attempts: int = 1,
+        error: Optional[Exception] = None,
+    ) -> None:
         return None
 
     def reset(self) -> None:
@@ -87,48 +99,6 @@ class DummyMetrics(BaseMetrics):
         return None
 
 
-class _GaugeStore:
-    """
-    Minimal state store for ObservableGauge.
-
-    OpenTelemetry Python implements "gauge" as an ObservableGauge (async instrument).
-    We keep the latest value per label-set and expose it via a callback.
-    """
-
-    def __init__(self, labelnames: Tuple[str, ...]):
-        self._labelnames = labelnames
-        self._values: Dict[Tuple[Any, ...], float] = {}
-
-    def _key(self, labelvalues: Tuple[Any, ...]) -> Tuple[Any, ...]:
-        if len(labelvalues) != len(self._labelnames):
-            raise ValueError(
-                f"Expected {len(self._labelnames)} labels {self._labelnames}, got {len(labelvalues)}: {labelvalues}"
-            )
-        return labelvalues
-
-    def set(self, labelvalues: Tuple[Any, ...], value: float) -> None:
-        self._values[self._key(labelvalues)] = float(value)
-
-    def inc(self, labelvalues: Tuple[Any, ...], amount: float = 1.0) -> None:
-        k = self._key(labelvalues)
-        self._values[k] = float(self._values.get(k, 0.0) + amount)
-
-    def dec(self, labelvalues: Tuple[Any, ...], amount: float = 1.0) -> None:
-        k = self._key(labelvalues)
-        self._values[k] = float(self._values.get(k, 0.0) - amount)
-
-    def clear(self) -> None:
-        self._values.clear()
-
-    def observations(self, Observation) -> List[Any]:
-        # Observation type is imported lazily from opentelemetry.metrics
-        out = []
-        for labelvalues, value in self._values.items():
-            attrs = dict(zip(self._labelnames, labelvalues))
-            out.append(Observation(value, attributes=attrs))
-        return out
-
-
 class OtlpMetrics(BaseMetrics):
     """
     Canonical OpenTelemetry metrics implementation.
@@ -136,22 +106,19 @@ class OtlpMetrics(BaseMetrics):
     This exports metrics via OTLP/HTTP to a Prometheus server with OTLP receiver enabled:
       POST http(s)://<host>:<port>/api/v1/otlp/v1/metrics
 
-    Naming notes (to preserve existing Prometheus series names as much as possible):
-    - Counters are created WITHOUT `_total` suffix. Prometheus OTLP translation adds `_total`.
-    - Histogram is created WITHOUT `_seconds` suffix but with unit="s". Prometheus translation
-      typically results in `*_seconds_*` series (depending on Prometheus translation settings).
+    Naming notes:
+    - Metric names follow OpenTelemetry conventions (dot-separated namespaces, e.g. `sdk.operations.total`).
+    - Prometheus OTLP translation typically converts dots to underscores and may add suffixes like
+      `_total` for counters and `_bucket/_sum/_count` for histograms.
     """
 
     def __init__(self, otlp_metrics_endpoint: str):
         from opentelemetry.exporter.otlp.proto.http.metric_exporter import (
             OTLPMetricExporter,
         )
-        from opentelemetry.metrics import Observation
         from opentelemetry.sdk.metrics import MeterProvider
         from opentelemetry.sdk.metrics.export import PeriodicExportingMetricReader
         from opentelemetry.sdk.resources import Resource
-
-        self._Observation = Observation
 
         # Resource attributes: Prometheus maps service.name -> job, service.instance.id -> instance.
         resource = Resource.create(
@@ -174,86 +141,98 @@ class OtlpMetrics(BaseMetrics):
 
         # Instruments (sync)
         self._errors = self._meter.create_counter(
-            name="sdk_errors",
+            name="sdk.errors.total",
             description="Total number of errors encountered, categorized by error type.",
         )
         self._operations_total = self._meter.create_counter(
-            name="sdk_operations",
+            name="sdk.operations.total",
             description="Total number of operations, categorized by type attempted by the SDK.",
         )
         self._operations_success_total = self._meter.create_counter(
-            name="sdk_operations_success",
+            name="sdk.operations.success.total",
             description="Total number of successful operations, categorized by type.",
         )
         self._operations_failure_total = self._meter.create_counter(
-            name="sdk_operations_failure",
+            name="sdk.operations.failure.total",
             description="Total number of failed operations, categorized by type.",
         )
         self._latency = self._meter.create_histogram(
-            name="sdk_operation_latency",
+            name="sdk.operation.latency",
             unit="s",
             description="Latency of operations performed by the SDK in seconds, categorized by type and status.",
         )
 
         # Pending operations: sync UpDownCounter (canonical for "in flight" style metrics).
         self._pending = self._meter.create_up_down_counter(
-            name="sdk_pending_operations",
+            name="sdk.pending.operations",
             description="Current number of pending operations, categorized by type.",
         )
 
-        # Retry attempts: ObservableGauge (we keep last value per label set and expose it via callback).
-        self._retry_attempts_store = _GaugeStore(labelnames=("operation_type",))
-
-        def retry_attempts_cb(options=None):
-            return self._retry_attempts_store.observations(self._Observation)
-
-        self._meter.create_observable_gauge(
-            name="sdk_retry_attempts",
-            description="Current retry attempts, categorized by operation type.",
-            callbacks=[retry_attempts_cb],
+        # Retry attempts: counter (monotonic). Suitable for rate()/increase() in PromQL.
+        self._retry_attempts_total = self._meter.create_counter(
+            name="sdk.retry.attempts.total",
+            description="Total number of retry attempts, categorized by ref and operation type.",
         )
 
         self.reset()
 
     def start(self, labels) -> float:
         labels_t = _normalize_labels(labels)
-        self._pending.add(1, attributes={"operation_type": labels_t[0]})
+        self._pending.add(
+            1,
+            attributes={
+                "ref": REF,
+                "operation_type": labels_t[0],
+            },
+        )
         return time.time()
 
-    def stop(self, labels, start_time: float, attempts: int = 1, error: Exception = None) -> None:
+    def stop(
+        self,
+        labels,
+        start_time: float,
+        attempts: int = 1,
+        error: Optional[Exception] = None,
+    ) -> None:
         labels_t = _normalize_labels(labels)
         duration = time.time() - start_time
 
+        op_type = labels_t[0]
+        base_attrs = {
+            "ref": REF,
+            "operation_type": op_type,
+        }
+
         # Update instruments
-        self._retry_attempts_store.set(labels_t, float(attempts))
-        self._pending.add(-1, attributes={"operation_type": labels_t[0]})
+        self._retry_attempts_total.add(int(attempts), attributes=base_attrs)
+        self._pending.add(-1, attributes=base_attrs)
 
         # Counters + latency
-        self._operations_total.add(1, attributes={"operation_type": labels_t[0]})
+        self._operations_total.add(1, attributes=base_attrs)
 
         if error is not None:
             self._errors.add(
                 1,
                 attributes={
-                    "operation_type": labels_t[0],
+                    **base_attrs,
                     "error_type": type(error).__name__,
                 },
             )
-            self._operations_failure_total.add(1, attributes={"operation_type": labels_t[0]})
+            self._operations_failure_total.add(1, attributes=base_attrs)
             self._latency.record(
                 duration,
                 attributes={
-                    "operation_type": labels_t[0],
+                    **base_attrs,
                     "operation_status": OP_STATUS_FAILURE,
                 },
             )
             return
 
-        self._operations_success_total.add(1, attributes={"operation_type": labels_t[0]})
+        self._operations_success_total.add(1, attributes=base_attrs)
         self._latency.record(
             duration,
             attributes={
-                "operation_type": labels_t[0],
+                **base_attrs,
                 "operation_status": OP_STATUS_SUCCESS,
             },
         )
@@ -265,8 +244,7 @@ class OtlpMetrics(BaseMetrics):
 
     def reset(self) -> None:
         # OpenTelemetry counters/histograms are cumulative and cannot be reset.
-        # Reset only affects the ObservableGauge-backed state.
-        self._retry_attempts_store.clear()
+        # Reset is implemented as an immediate push/flush.
         self.push()
 
 
