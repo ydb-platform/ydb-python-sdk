@@ -118,6 +118,10 @@ class OtlpMetrics(BaseMetrics):
         )
         from opentelemetry.sdk.metrics import MeterProvider
         from opentelemetry.sdk.metrics.export import PeriodicExportingMetricReader
+        from opentelemetry.sdk.metrics.view import (
+            ExplicitBucketHistogramAggregation,
+            View,
+        )
         from opentelemetry.sdk.resources import Resource
 
         # Resource attributes: Prometheus maps service.name -> job, service.instance.id -> instance.
@@ -136,7 +140,32 @@ class OtlpMetrics(BaseMetrics):
         exporter = OTLPMetricExporter(endpoint=otlp_metrics_endpoint)
         reader = PeriodicExportingMetricReader(exporter)  # we force_flush() explicitly in push()
 
-        self._provider = MeterProvider(resource=resource, metric_readers=[reader])
+        latency_view = View(
+            instrument_name="sdk.operation.latency",
+            aggregation=ExplicitBucketHistogramAggregation(
+                boundaries=(
+                    0.001,
+                    0.002,
+                    0.003,
+                    0.004,
+                    0.005,
+                    0.0075,
+                    0.010,
+                    0.020,
+                    0.050,
+                    0.100,
+                    0.200,
+                    0.500,
+                    1.000,
+                )
+            ),
+        )
+
+        self._provider = MeterProvider(
+            resource=resource,
+            metric_readers=[reader],
+            views=[latency_view],
+        )
         self._meter = self._provider.get_meter("ydb-slo")
 
         # Instruments (sync)
@@ -162,13 +191,11 @@ class OtlpMetrics(BaseMetrics):
             description="Latency of operations performed by the SDK in seconds, categorized by type and status.",
         )
 
-        # Pending operations: sync UpDownCounter (canonical for "in flight" style metrics).
         self._pending = self._meter.create_up_down_counter(
             name="sdk.pending.operations",
             description="Current number of pending operations, categorized by type.",
         )
 
-        # Retry attempts: counter (monotonic). Suitable for rate()/increase() in PromQL.
         self._retry_attempts_total = self._meter.create_counter(
             name="sdk.retry.attempts.total",
             description="Total number of retry attempts, categorized by ref and operation type.",
