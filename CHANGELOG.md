@@ -1,3 +1,4 @@
+## 3.23.3 ##
 * Make attach session error readable
 
 ## 3.23.2 ##
