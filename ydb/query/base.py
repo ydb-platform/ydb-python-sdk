@@ -111,10 +111,6 @@ class IQuerySessionState(abc.ABC):
     def __init__(self, settings: Optional[QueryClientSettings] = None):
         pass
 
-    @abc.abstractmethod
-    def reset(self) -> None:
-        pass
-
     @property
     @abc.abstractmethod
     def session_id(self) -> Optional[str]:
@@ -210,7 +206,7 @@ def bad_session_handler(func):
         try:
             return func(rpc_state, response_pb, session_state, *args, **kwargs)
         except issues.BadSession:
-            session_state.reset()
+            session_state.set_attached(False)
             raise
 
     return decorator

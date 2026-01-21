@@ -26,6 +26,11 @@ class TestQueryTransaction:
         tx.commit()
         assert tx._tx_state._state == QueryTxStateEnum.COMMITTED
 
+    def test_tx_rollback_after_session_detached(self, tx: QueryTxContext):
+        with tx:
+            tx.begin()
+            tx.session.delete()
+
     def test_tx_rollback_before_begin(self, tx: QueryTxContext):
         tx.rollback()
         assert tx._tx_state._state == QueryTxStateEnum.ROLLBACKED
