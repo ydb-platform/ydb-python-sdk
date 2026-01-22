@@ -146,13 +146,14 @@ class TestQueryTransaction:
             tx1 = session1.transaction()
             tx2 = session2.transaction()
 
-            with tx1.execute(f"SELECT i64Val FROM {table_ref} WHERE id = 1;") as results:
-                for _ in results:
-                    pass
+            with tx1.execute(f"SELECT i64Val FROM {table_ref} WHERE id = 1;") as _:
+                pass
 
-            tx2.execute(f"UPSERT INTO {table_ref} (id, i64Val) VALUES (1, 1);", commit_tx=True)
+            with tx2.execute(f"UPSERT INTO {table_ref} (id, i64Val) VALUES (1, 1);", commit_tx=True) as _:
+                pass
 
-            tx1.execute(f"UPSERT INTO {table_ref} (id, i64Val) VALUES (1, 2);")
+            with tx1.execute(f"UPSERT INTO {table_ref} (id, i64Val) VALUES (1, 2);") as _:
+                pass
             with pytest.raises(ydb.Aborted):
                 tx1.commit()  # receive TLI here
 
