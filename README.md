@@ -12,6 +12,7 @@ Officially supported Python client for YDB.
 
 **Documentation**: <a href="https://ydb-platform.github.io/ydb-python-sdk" target="_blank">https://ydb-platform.github.io/ydb-python-sdk</a>
 
+
 ---
 
 ## Quickstart
