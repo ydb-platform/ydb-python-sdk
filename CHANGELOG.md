@@ -1,3 +1,6 @@
+* Refactor session lifecycle
+* Make DeadlineExceeded not retriable
+
 ## 3.23.4 ##
 * Allow rollback after TLI 
 
