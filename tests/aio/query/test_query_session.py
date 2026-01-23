@@ -7,42 +7,41 @@ from ydb import QueryExplainResultFormat
 from ydb.aio.query.session import QuerySession
 
 
-def _check_session_state_empty(session: QuerySession):
-    assert session._state.session_id is None
-    assert session._state.node_id is None
-    assert not session._state.attached
+def _check_session_not_ready(session: QuerySession):
+    assert not session.is_active
 
 
-def _check_session_state_full(session: QuerySession):
-    assert session._state.session_id is not None
-    assert session._state.node_id is not None
-    assert session._state.attached
+def _check_session_ready(session: QuerySession):
+    assert session.session_id is not None
+    assert session.node_id is not None
+    assert session.is_active
+    assert not session.is_closed
 
 
 class TestAsyncQuerySession:
     @pytest.mark.asyncio
     async def test_session_normal_lifecycle(self, session: QuerySession):
-        _check_session_state_empty(session)
+        _check_session_not_ready(session)
 
         await session.create()
-        _check_session_state_full(session)
+        _check_session_ready(session)
 
         await session.delete()
-        _check_session_state_empty(session)
+        assert session.is_closed
 
     @pytest.mark.asyncio
     async def test_second_create_do_nothing(self, session: QuerySession):
         await session.create()
-        _check_session_state_full(session)
+        _check_session_ready(session)
 
-        session_id_before = session._state.session_id
-        node_id_before = session._state.node_id
+        session_id_before = session.session_id
+        node_id_before = session.node_id
 
         await session.create()
-        _check_session_state_full(session)
+        _check_session_ready(session)
 
-        assert session._state.session_id == session_id_before
-        assert session._state.node_id == node_id_before
+        assert session.session_id == session_id_before
+        assert session.node_id == node_id_before
 
     @pytest.mark.asyncio
     async def test_second_delete_do_nothing(self, session: QuerySession):
@@ -52,9 +51,9 @@ class TestAsyncQuerySession:
         await session.delete()
 
     @pytest.mark.asyncio
-    async def test_delete_before_create_not_possible(self, session: QuerySession):
-        with pytest.raises(RuntimeError):
-            await session.delete()
+    async def test_delete_before_create_is_noop(self, session: QuerySession):
+        await session.delete()
+        assert session.is_closed
 
     @pytest.mark.asyncio
     async def test_create_after_delete_not_possible(self, session: QuerySession):

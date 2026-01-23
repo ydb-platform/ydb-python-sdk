@@ -11,40 +11,39 @@ from ydb.query.base import QueryStatsMode, QueryExplainResultFormat
 from ydb.query.session import QuerySession
 
 
-def _check_session_state_empty(session: QuerySession):
-    assert session._state.session_id is None
-    assert session._state.node_id is None
-    assert not session._state.attached
+def _check_session_not_ready(session: QuerySession):
+    assert not session.is_active
 
 
-def _check_session_state_full(session: QuerySession):
-    assert session._state.session_id is not None
-    assert session._state.node_id is not None
-    assert session._state.attached
+def _check_session_ready(session: QuerySession):
+    assert session.session_id is not None
+    assert session.node_id is not None
+    assert session.is_active
+    assert not session.is_closed
 
 
 class TestQuerySession:
     def test_session_normal_lifecycle(self, session: QuerySession):
-        _check_session_state_empty(session)
+        _check_session_not_ready(session)
 
         session.create()
-        _check_session_state_full(session)
+        _check_session_ready(session)
 
         session.delete()
-        _check_session_state_empty(session)
+        assert session.is_closed
 
     def test_second_create_do_nothing(self, session: QuerySession):
         session.create()
-        _check_session_state_full(session)
+        _check_session_ready(session)
 
-        session_id_before = session._state.session_id
-        node_id_before = session._state.node_id
+        session_id_before = session.session_id
+        node_id_before = session.node_id
 
         session.create()
-        _check_session_state_full(session)
+        _check_session_ready(session)
 
-        assert session._state.session_id == session_id_before
-        assert session._state.node_id == node_id_before
+        assert session.session_id == session_id_before
+        assert session.node_id == node_id_before
 
     def test_second_delete_do_nothing(self, session: QuerySession):
         session.create()
@@ -52,9 +51,9 @@ class TestQuerySession:
         session.delete()
         session.delete()
 
-    def test_delete_before_create_not_possible(self, session: QuerySession):
-        with pytest.raises(RuntimeError):
-            session.delete()
+    def test_delete_before_create_is_noop(self, session: QuerySession):
+        session.delete()
+        assert session.is_closed
 
     def test_create_after_delete_not_possible(self, session: QuerySession):
         session.create()
@@ -119,18 +118,31 @@ class TestQuerySession:
         assert "attach stream thread" in thread_names
 
     def test_first_resp_timeout(self, session: QuerySession):
+        class FakeResponse:
+            """Fake response that passes through ServerStatus.from_proto()"""
+
+            status = 0  # SUCCESS
+            issues = []
+
         class FakeStream:
+            def __init__(self):
+                self.cancel_called = False
+                self._cancelled = threading.Event()
+
             def __iter__(self):
                 return self
 
             def __next__(self):
-                time.sleep(10)
-                return 1
+                # Wait until cancelled or timeout
+                self._cancelled.wait(timeout=10)
+                # Return fake response instead of raising - avoids thread exception warning
+                return FakeResponse()
 
             def cancel(self):
-                pass
+                self.cancel_called = True
+                self._cancelled.set()
 
-        fake_stream = mock.Mock(spec=FakeStream)
+        fake_stream = FakeStream()
 
         session._attach_call = mock.MagicMock(return_value=fake_stream)
         assert session._attach_call() == fake_stream
@@ -139,13 +151,16 @@ class TestQuerySession:
         with pytest.raises(b.TimeoutError):
             session._attach(0.1)
 
-        fake_stream.cancel.assert_called()
+        assert fake_stream.cancel_called
+
+        # Give background thread time to finish
+        time.sleep(0.1)
 
         thread_names = [t.name for t in threading.enumerate()]
         assert "first response attach stream thread" not in thread_names
         assert "attach stream thread" not in thread_names
 
-        _check_session_state_empty(session)
+        assert session.is_closed
 
     @pytest.mark.parametrize(
         "stats_mode",
