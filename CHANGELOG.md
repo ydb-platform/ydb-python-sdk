@@ -1,3 +1,4 @@
+## 3.24.0 ##
 * Refactor session lifecycle
 * Make DeadlineExceeded not retriable
 
