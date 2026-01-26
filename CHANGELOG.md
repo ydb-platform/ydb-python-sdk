@@ -1,3 +1,6 @@
+* Use session's node_id as preferred endpoint
+* Fix attach stream finish logic
+
 ## 3.24.0 ##
 * Refactor session lifecycle
 * Make DeadlineExceeded not retriable
