@@ -69,7 +69,6 @@ class QuerySession(BaseQuerySession):
             logger.debug("Attach stream closed, session_id: %s", self._session_id)
         except Exception as e:
             logger.debug("Attach stream error: %s, session_id: %s", e, self._session_id)
-        finally:
             self._invalidate()
 
     async def delete(self, settings: Optional[BaseRequestSettings] = None) -> None:
