@@ -15,7 +15,7 @@ from .base import QueryExplainResultFormat
 
 from .. import _apis, issues, _utilities
 from ..settings import BaseRequestSettings
-from ..connection import _RpcState as RpcState
+from ..connection import _RpcState as RpcState, EndpointKey
 from .._grpc.grpcwrapper import common_utils
 from .._grpc.grpcwrapper import ydb_query as _ydb_query
 from .._grpc.grpcwrapper import ydb_query_public_types as _ydb_query_public
@@ -86,6 +86,12 @@ class BaseQuerySession(abc.ABC):
         return self._session_id is not None and not self._closed
 
     @property
+    def _endpoint_key(self) -> Optional[EndpointKey]:
+        if self._node_id is None:
+            return None
+        return EndpointKey(endpoint=None, node_id=self._node_id)
+
+    @property
     def is_closed(self) -> bool:
         return self._closed
 
@@ -141,6 +147,7 @@ class BaseQuerySession(abc.ABC):
             wrap_result=wrapper_delete_session,
             wrap_args=(self,),
             settings=settings,
+            preferred_endpoint=self._endpoint_key,
         )
 
     def _attach_call(self) -> Iterable[_apis.ydb_query.SessionState]:
@@ -149,6 +156,7 @@ class BaseQuerySession(abc.ABC):
             _apis.QueryService.Stub,
             _apis.QueryService.AttachSession,
             settings=self._attach_settings,
+            preferred_endpoint=self._endpoint_key,
         )
 
     def _execute_call(
@@ -188,6 +196,7 @@ class BaseQuerySession(abc.ABC):
             _apis.QueryService.Stub,
             _apis.QueryService.ExecuteQuery,
             settings=settings,
+            preferred_endpoint=self._endpoint_key,
         )
 
 
