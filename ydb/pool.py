@@ -9,7 +9,7 @@ import collections
 import random
 from typing import Any, Callable, ContextManager, List, Optional, Set, Tuple, TYPE_CHECKING
 
-from . import connection as connection_impl, issues, resolver, _utilities, tracing
+from . import connection as connection_impl, issues, nearest_dc, resolver, _utilities, tracing
 from abc import abstractmethod
 
 from .connection import Connection, EndpointKey
@@ -232,6 +232,28 @@ class Discovery(threading.Thread):
                 if cached_endpoint.endpoint not in resolved_endpoints:
                     self._cache.make_outdated(cached_endpoint)
 
+            local_dc = resolve_details.self_location
+
+            # Detect local DC using TCP latency if enabled
+            if self._driver_config.detect_local_dc:
+                try:
+                    detected_location = nearest_dc.detect_local_dc(
+                        resolve_details.endpoints, max_per_location=3, timeout=self._ready_timeout
+                    )
+                    if detected_location:
+                        local_dc = detected_location
+                        self.logger.info(
+                            "Detected local DC via TCP latency: %s (server reported: %s)",
+                            local_dc,
+                            resolve_details.self_location,
+                        )
+                except Exception as e:
+                    self.logger.warning(
+                        "Failed to detect local DC via TCP latency, using server location: %s. Error: %s",
+                        resolve_details.self_location,
+                        e,
+                    )
+
             for resolved_endpoint in resolve_details.endpoints:
                 if self._ssl_required and not resolved_endpoint.ssl:
                     continue
@@ -239,7 +261,7 @@ class Discovery(threading.Thread):
                 if not self._ssl_required and resolved_endpoint.ssl:
                     continue
 
-                preferred = resolve_details.self_location == resolved_endpoint.location
+                preferred = local_dc == resolved_endpoint.location
 
                 for (
                     endpoint,
