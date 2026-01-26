@@ -259,6 +259,7 @@ class BaseQueryTxContext(base.CallbackHandler):
             wrap_tx_begin_response,
             settings,
             (self.session, self._tx_state, self),
+            preferred_endpoint=self.session._endpoint_key,
         )
 
     def _commit_call(self, settings: Optional[BaseRequestSettings]) -> "BaseQueryTxContext":
@@ -272,6 +273,7 @@ class BaseQueryTxContext(base.CallbackHandler):
             wrap_tx_commit_response,
             settings,
             (self.session, self._tx_state, self),
+            preferred_endpoint=self.session._endpoint_key,
         )
 
     def _rollback_call(self, settings: Optional[BaseRequestSettings]) -> "BaseQueryTxContext":
@@ -285,6 +287,7 @@ class BaseQueryTxContext(base.CallbackHandler):
             wrap_tx_rollback_response,
             settings,
             (self.session, self._tx_state, self),
+            preferred_endpoint=self.session._endpoint_key,
         )
 
     def _execute_call(
@@ -327,6 +330,7 @@ class BaseQueryTxContext(base.CallbackHandler):
             _apis.QueryService.Stub,
             _apis.QueryService.ExecuteQuery,
             settings=settings,
+            preferred_endpoint=self.session._endpoint_key,
         )
 
     def _move_to_beginned(self, tx_id: str) -> None:

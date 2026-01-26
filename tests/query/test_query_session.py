@@ -9,6 +9,7 @@ from unittest import mock
 from ydb import QuerySessionPool
 from ydb.query.base import QueryStatsMode, QueryExplainResultFormat
 from ydb.query.session import QuerySession
+from ydb.connection import EndpointKey
 
 
 def _check_session_not_ready(session: QuerySession):
@@ -226,3 +227,78 @@ class TestQuerySession:
             assert "Lookup" in plan_lookup_string
         finally:
             pool.execute_with_retries("DROP TABLE test_explain")
+
+
+class TestQuerySessionPreferredEndpoint:
+    def test_endpoint_key_is_none_before_create(self, session: QuerySession):
+        assert session._endpoint_key is None
+
+    def test_endpoint_key_is_set_after_create(self, session: QuerySession):
+        session.create()
+        assert session.node_id is not None
+        assert session._endpoint_key is not None
+        assert isinstance(session._endpoint_key, EndpointKey)
+        assert session._endpoint_key.node_id == session.node_id
+
+    def test_session_uses_preferred_endpoint_on_execute(self, session: QuerySession):
+        session.create()
+        original_driver_call = session._driver
+
+        calls = []
+
+        def mock_driver_call(*args, **kwargs):
+            calls.append(kwargs)
+            return original_driver_call(*args, **kwargs)
+
+        session._driver = mock_driver_call
+
+        with session.execute("select 1;") as results:
+            for _ in results:
+                pass
+
+        assert len(calls) > 0
+        assert "preferred_endpoint" in calls[0]
+        assert calls[0]["preferred_endpoint"] is not None
+        assert calls[0]["preferred_endpoint"].node_id == session.node_id
+
+    def test_session_uses_preferred_endpoint_on_delete(self, session: QuerySession):
+        session.create()
+        original_driver_call = session._driver
+
+        calls = []
+
+        def mock_driver_call(*args, **kwargs):
+            calls.append(kwargs)
+            return original_driver_call(*args, **kwargs)
+
+        session._driver = mock_driver_call
+
+        session.delete()
+
+        assert len(calls) > 0
+        assert "preferred_endpoint" in calls[0]
+        assert calls[0]["preferred_endpoint"] is not None
+        assert calls[0]["preferred_endpoint"].node_id == session.node_id
+
+    def test_transaction_uses_preferred_endpoint(self, session: QuerySession):
+        session.create()
+        original_driver_call = session._driver
+
+        calls = []
+
+        def mock_driver_call(*args, **kwargs):
+            calls.append(kwargs)
+            return original_driver_call(*args, **kwargs)
+
+        session._driver = mock_driver_call
+
+        with session.transaction() as tx:
+            with tx.execute("select 1;") as results:
+                for _ in results:
+                    pass
+
+        execute_calls = [c for c in calls if "preferred_endpoint" in c]
+        assert len(execute_calls) > 0
+        for call in execute_calls:
+            assert call["preferred_endpoint"] is not None
+            assert call["preferred_endpoint"].node_id == session.node_id
