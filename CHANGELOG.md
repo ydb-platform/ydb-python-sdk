@@ -1,3 +1,4 @@
+## 3.24.1 ##
 * Use session's node_id as preferred endpoint
 * Fix attach stream finish logic
 
