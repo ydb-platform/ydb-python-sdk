@@ -10,7 +10,7 @@ from ydb.pool import ConnectionsCache as _ConnectionsCache, IConnectionPool
 
 from .connection import Connection, EndpointKey
 
-from . import resolver
+from . import nearest_dc, resolver
 
 if TYPE_CHECKING:
     from ydb.driver import DriverConfig
@@ -145,6 +145,28 @@ class Discovery:
             if cached_endpoint.endpoint not in resolved_endpoints:
                 self._cache.make_outdated(cached_endpoint)
 
+        local_dc = resolve_details.self_location
+
+        # Detect local DC using TCP latency if enabled
+        if self._driver_config.detect_local_dc:
+            try:
+                detected_location = await nearest_dc.detect_local_dc(
+                    resolve_details.endpoints, max_per_location=3, timeout=self._ready_timeout
+                )
+                if detected_location:
+                    local_dc = detected_location
+                    self.logger.info(
+                        "Detected local DC via TCP latency: %s (server reported: %s)",
+                        local_dc,
+                        resolve_details.self_location,
+                    )
+            except Exception as e:
+                self.logger.warning(
+                    "Failed to detect local DC via TCP latency, using server location: %s. Error: %s",
+                    resolve_details.self_location,
+                    e,
+                )
+
         for resolved_endpoint in resolve_details.endpoints:
             if self._ssl_required and not resolved_endpoint.ssl:
                 continue
@@ -152,7 +174,7 @@ class Discovery:
             if not self._ssl_required and resolved_endpoint.ssl:
                 continue
 
-            preferred = resolve_details.self_location == resolved_endpoint.location
+            preferred = local_dc == resolved_endpoint.location
 
             for (
                 endpoint,
