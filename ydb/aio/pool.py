@@ -1,7 +1,7 @@
 import asyncio
 import logging
 import random
-import typing
+from typing import Any, Callable, Optional, Tuple, TYPE_CHECKING
 
 from ydb import issues
 from ydb.pool import ConnectionsCache as _ConnectionsCache, IConnectionPool
@@ -9,6 +9,9 @@ from ydb.pool import ConnectionsCache as _ConnectionsCache, IConnectionPool
 from .connection import Connection, EndpointKey
 
 from . import resolver
+
+if TYPE_CHECKING:
+    from ydb.settings import BaseRequestSettings
 
 logger = logging.getLogger(__name__)
 
@@ -22,7 +25,9 @@ class ConnectionsCache(_ConnectionsCache):
 
         self._fast_fail_error = None
 
-    async def get(self, preferred_endpoint: typing.Optional[EndpointKey] = None, fast_fail=False, wait_timeout=10):
+    async def get(
+        self, preferred_endpoint: Optional[EndpointKey] = None, fast_fail: bool = False, wait_timeout: int = 10
+    ):
 
         if fast_fail:
             await asyncio.wait_for(self._fast_fail_event.wait(), timeout=wait_timeout)
@@ -251,15 +256,15 @@ class ConnectionPool(IConnectionPool):
 
     async def __call__(
         self,
-        request,
-        stub,
-        rpc_name,
-        wrap_result=None,
-        settings=None,
-        wrap_args=(),
-        preferred_endpoint=None,
-        fast_fail=False,
-    ):
+        request: Any,
+        stub: Any,
+        rpc_name: str,
+        wrap_result: Optional[Callable[..., Any]] = None,
+        settings: Optional["BaseRequestSettings"] = None,
+        wrap_args: Tuple[Any, ...] = (),
+        preferred_endpoint: Optional[EndpointKey] = None,
+        fast_fail: bool = False,
+    ) -> Any:
         if self._stopped:
             raise issues.Error("Driver was stopped")
         wait_timeout = settings.timeout if settings else 10

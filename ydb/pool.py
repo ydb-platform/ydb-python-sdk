@@ -5,12 +5,15 @@ import logging
 from concurrent import futures
 import collections
 import random
-import typing
+from typing import Any, Callable, Optional, Tuple, TYPE_CHECKING
 
 from . import connection as connection_impl, issues, resolver, _utilities, tracing
 from abc import abstractmethod
 
 from .connection import Connection, EndpointKey
+
+if TYPE_CHECKING:
+    from .settings import BaseRequestSettings
 
 logger = logging.getLogger(__name__)
 
@@ -124,7 +127,7 @@ class ConnectionsCache(object):
             return subscription
 
     @tracing.with_trace()
-    def get(self, preferred_endpoint: typing.Optional[EndpointKey] = None) -> Connection:
+    def get(self, preferred_endpoint: Optional[EndpointKey] = None) -> Connection:
         with self.lock:
             if preferred_endpoint is not None and preferred_endpoint.node_id in self.connections_by_node_id:
                 return self.connections_by_node_id[preferred_endpoint.node_id]
@@ -316,14 +319,14 @@ class IConnectionPool(abc.ABC):
     @abstractmethod
     def __call__(
         self,
-        request,
-        stub,
-        rpc_name,
-        wrap_result=None,
-        settings=None,
-        wrap_args=(),
-        preferred_endpoint=None,
-    ):
+        request: Any,
+        stub: Any,
+        rpc_name: str,
+        wrap_result: Optional[Callable[..., Any]] = None,
+        settings: Optional["BaseRequestSettings"] = None,
+        wrap_args: Tuple[Any, ...] = (),
+        preferred_endpoint: Optional[EndpointKey] = None,
+    ) -> Any:
         """
         Sends request constructed by client library
         :param request: A request constructed by client
@@ -431,14 +434,14 @@ class ConnectionPool(IConnectionPool):
     @tracing.with_trace()
     def __call__(
         self,
-        request,
-        stub,
-        rpc_name,
-        wrap_result=None,
-        settings=None,
-        wrap_args=(),
-        preferred_endpoint=None,
-    ):
+        request: Any,
+        stub: Any,
+        rpc_name: str,
+        wrap_result: Optional[Callable[..., Any]] = None,
+        settings: Optional["BaseRequestSettings"] = None,
+        wrap_args: Tuple[Any, ...] = (),
+        preferred_endpoint: Optional[EndpointKey] = None,
+    ) -> Any:
         """
         Synchronously sends request constructed by client library
 

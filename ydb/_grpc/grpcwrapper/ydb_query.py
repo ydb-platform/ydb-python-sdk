@@ -164,7 +164,7 @@ class TransactionControl(IToProto):
 class ExecuteQueryRequest(IToProto):
     session_id: str
     query_content: QueryContent
-    tx_control: TransactionControl
+    tx_control: Optional[TransactionControl]
     concurrent_result_sets: bool
     exec_mode: int
     parameters: dict

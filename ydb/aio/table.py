@@ -9,6 +9,7 @@ from typing import (
     List,
     Optional,
     Tuple,
+    TYPE_CHECKING,
 )
 
 import ydb
@@ -21,10 +22,14 @@ from ydb.table import (
     _scan_query_request_factory,
     _wrap_scan_query_response,
     BaseTxContext,
+    TableClientSettings,
     TableDescription,
 )
 from . import _utilities
 from ydb import _apis, _session_impl
+
+if TYPE_CHECKING:
+    from .driver import Driver as AsyncDriver
 
 logger = logging.getLogger(__name__)
 
@@ -149,9 +154,8 @@ class Session(BaseSession):
         return await super().rename_tables(rename_items, settings)
 
 
-class TableClient(BaseTableClient):
-    def __init__(self, driver, table_client_settings=None):
-        # type:(ydb.Driver, ydb.TableClientSettings) -> None
+class TableClient(BaseTableClient["AsyncDriver"]):
+    def __init__(self, driver: "AsyncDriver", table_client_settings: Optional[TableClientSettings] = None) -> None:
         super().__init__(driver=driver, table_client_settings=table_client_settings)
         self._pool: Optional[SessionPool] = None
 
@@ -181,7 +185,7 @@ class TableClient(BaseTableClient):
             lambda resp: _wrap_scan_query_response(resp, self._table_client_settings),
         )
 
-    def _init_pool_if_needed(self):
+    def _init_pool_if_needed(self) -> None:
         if self._pool is None:
             self._pool = SessionPool(self._driver, 10)
 
@@ -207,6 +211,7 @@ class TableClient(BaseTableClient):
         """
 
         self._init_pool_if_needed()
+        assert self._pool is not None
 
         async def callee(session: Session):
             return await session.create_table(path=path, table_description=table_description, settings=settings)
@@ -228,6 +233,7 @@ class TableClient(BaseTableClient):
         """
 
         self._init_pool_if_needed()
+        assert self._pool is not None
 
         async def callee(session: Session):
             return await session.drop_table(path=path, settings=settings)
@@ -278,6 +284,7 @@ class TableClient(BaseTableClient):
         """
 
         self._init_pool_if_needed()
+        assert self._pool is not None
 
         async def callee(session: Session):
             return await session.alter_table(
@@ -317,6 +324,7 @@ class TableClient(BaseTableClient):
         """
 
         self._init_pool_if_needed()
+        assert self._pool is not None
 
         async def callee(session: Session):
             return await session.describe_table(path=path, settings=settings)
@@ -340,6 +348,7 @@ class TableClient(BaseTableClient):
         """
 
         self._init_pool_if_needed()
+        assert self._pool is not None
 
         async def callee(session: Session):
             return await session.copy_table(
@@ -365,6 +374,7 @@ class TableClient(BaseTableClient):
         """
 
         self._init_pool_if_needed()
+        assert self._pool is not None
 
         async def callee(session: Session):
             return await session.copy_tables(source_destination_pairs=source_destination_pairs, settings=settings)
@@ -386,6 +396,7 @@ class TableClient(BaseTableClient):
         """
 
         self._init_pool_if_needed()
+        assert self._pool is not None
 
         async def callee(session: Session):
             return await session.rename_tables(rename_items=rename_items, settings=settings)
@@ -490,7 +501,7 @@ class SessionPool:
         self._should_stop = asyncio.Event()
         self._waiters = 0
         self._driver = driver
-        self._active_queue = asyncio.PriorityQueue()
+        self._active_queue: asyncio.PriorityQueue[Any] = asyncio.PriorityQueue()
         self._active_count = 0
         self._size = size
         self._req_settings = settings_impl.BaseRequestSettings().with_timeout(3)

@@ -25,8 +25,7 @@ from google.protobuf.message import Message
 from google.protobuf.duration_pb2 import Duration as ProtoDuration
 from google.protobuf.timestamp_pb2 import Timestamp as ProtoTimeStamp
 
-from ...driver import Driver
-from ...aio.driver import Driver as DriverIO
+from ..._typing import SupportedDriverType
 
 # Workaround for good IDE and universal for runtime
 if typing.TYPE_CHECKING:
@@ -148,7 +147,7 @@ class IGrpcWrapperAsyncIO(abc.ABC):
         ...
 
 
-SupportedDriverType = Union[Driver, DriverIO]
+# SupportedDriverType imported from ydb._typing
 
 
 class GrpcWrapperAsyncIO(IGrpcWrapperAsyncIO):
@@ -194,7 +193,7 @@ class GrpcWrapperAsyncIO(IGrpcWrapperAsyncIO):
         if self._wait_executor:
             self._wait_executor.shutdown(wait)
 
-    async def _start_asyncio_driver(self, driver: DriverIO, stub, method):
+    async def _start_asyncio_driver(self, driver, stub, method):
         requests_iterator = QueueToIteratorAsyncIO(self.from_client_grpc)
         stream_call = await driver(
             requests_iterator,
@@ -205,7 +204,7 @@ class GrpcWrapperAsyncIO(IGrpcWrapperAsyncIO):
         self._stream_call = stream_call
         self.from_server_grpc = stream_call.__aiter__()
 
-    async def _start_sync_driver(self, driver: Driver, stub, method):
+    async def _start_sync_driver(self, driver, stub, method):
         requests_iterator = AsyncQueueToSyncIteratorAsyncIO(self.from_client_grpc)
         self._wait_executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
 

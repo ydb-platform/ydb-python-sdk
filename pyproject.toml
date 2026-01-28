@@ -1,2 +1,127 @@
 [tool.black]
 line-length = 120
+
+[tool.mypy]
+python_version = "3.9"
+warn_return_any = false
+warn_unused_configs = true
+warn_redundant_casts = true
+warn_unused_ignores = false
+strict_equality = false
+check_untyped_defs = false
+disallow_untyped_decorators = false
+no_implicit_optional = false
+show_error_codes = true
+
+# Start with more lenient settings, can be made stricter over time
+disallow_untyped_defs = false
+disallow_incomplete_defs = false
+
+exclude = [
+    "ydb/_grpc/v3/",
+    "ydb/_grpc/v4/",
+    "ydb/_grpc/v5/",
+    "ydb/_grpc/v6/",
+    "tests/",
+    "examples/",
+    "docs/",
+    # Exclude test files inside ydb directory
+    ".*_test\\.py$",
+]
+
+[[tool.mypy.overrides]]
+module = [
+    "ydb._grpc.v3.*",
+    "ydb._grpc.v4.*",
+    "ydb._grpc.v5.*",
+    "ydb._grpc.v6.*",
+    "ydb._grpc.grpcwrapper.*",
+    "ydb._grpc.common.*",
+    "google.protobuf.*",
+    "grpc.*",
+    "aiohttp.*",
+    "yandexcloud.*",
+    "yandex.cloud.*",
+    "jwt.*",
+    "kikimr.*",
+    "sqlalchemy.*",
+    "requests.*",
+    "ydb.public.api.*",
+    "contrib.ydb.public.api.*",
+]
+ignore_missing_imports = true
+ignore_errors = true
+
+# Files that heavily use protobuf types - allow attr-defined errors
+[[tool.mypy.overrides]]
+module = [
+    "ydb.types",
+    "ydb.convert",
+    "ydb._apis",
+    "ydb._utilities",
+]
+disable_error_code = ["attr-defined", "union-attr", "arg-type", "return-value", "assignment", "misc"]
+
+# IAM and OAuth modules with optional imports
+[[tool.mypy.overrides]]
+module = [
+    "ydb.iam.*",
+    "ydb.oauth2_token_exchange.*",
+]
+disable_error_code = ["assignment", "arg-type", "return-value"]
+
+# Query modules - now fully typed!
+
+# Table modules - protobuf attr-defined issues
+[[tool.mypy.overrides]]
+module = ["ydb.table", "ydb.aio.table"]
+disable_error_code = ["attr-defined", "return-value", "arg-type"]
+
+# Topic modules
+[[tool.mypy.overrides]]
+module = [
+    "ydb._topic_reader.*",
+    "ydb._topic_writer.*",
+    "ydb._topic_common.*",
+]
+disable_error_code = [
+    "arg-type",
+    "return-value",
+    "assignment",
+    "misc",
+    "empty-body",
+    "var-annotated",
+    "dict-item",
+    "list-item",
+    "no-redef",
+    "union-attr",
+    "index",
+    "truthy-function",
+    "call-arg",
+    "attr-defined",
+    "return",
+]
+
+
+# Async IAM and OAuth
+[[tool.mypy.overrides]]
+module = [
+    "ydb.aio.iam",
+    "ydb.aio.oauth2_token_exchange",
+    "ydb.aio.credentials",
+]
+disable_error_code = ["assignment", "override"]
+
+# Topic module
+[[tool.mypy.overrides]]
+module = [
+    "ydb.topic",
+]
+disable_error_code = ["assignment", "attr-defined"]
+
+# SQLAlchemy integration
+[[tool.mypy.overrides]]
+module = [
+    "ydb.sqlalchemy.*",
+]
+disable_error_code = ["no-redef"]
