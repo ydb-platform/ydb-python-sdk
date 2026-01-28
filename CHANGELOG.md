@@ -1,3 +1,4 @@
+## 3.25.0 ##
 * Add protobuf 6 support
 
 ## 3.24.1 ##
