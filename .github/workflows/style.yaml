@@ -2,10 +2,12 @@ name: Style checks
 
 on:
   push:
+    branches:
+      - main
   pull_request:
 
 jobs:
-  build:
+  lint:
     runs-on: ubuntu-latest
     strategy:
       max-parallel: 4

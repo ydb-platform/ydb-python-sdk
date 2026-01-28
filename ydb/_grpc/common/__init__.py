@@ -45,7 +45,7 @@ else:
 
         sys.modules["ydb._grpc.common.protos"] = sys.modules["ydb._grpc.v4.protos"]
 
-    else:
+    elif protobuf_version < Version("6.0"):
         from ydb._grpc.v5 import *  # noqa
 
         sys.modules["ydb._grpc.common"] = sys.modules["ydb._grpc.v5"]
@@ -53,3 +53,12 @@ else:
         from ydb._grpc.v5 import protos  # noqa
 
         sys.modules["ydb._grpc.common.protos"] = sys.modules["ydb._grpc.v5.protos"]
+
+    else:
+        from ydb._grpc.v6 import *  # noqa
+
+        sys.modules["ydb._grpc.common"] = sys.modules["ydb._grpc.v6"]
+
+        from ydb._grpc.v6 import protos  # noqa
+
+        sys.modules["ydb._grpc.common.protos"] = sys.modules["ydb._grpc.v6.protos"]
