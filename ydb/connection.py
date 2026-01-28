@@ -1,11 +1,16 @@
 # -*- coding: utf-8 -*-
 import logging
 import copy
-import typing
 from concurrent import futures
 import uuid
 import threading
 import collections
+from typing import (
+    Any,
+    Callable,
+    Optional,
+    Union,
+)
 
 from google.protobuf import text_format
 import grpc
@@ -29,7 +34,7 @@ _DEFAULT_MAX_GRPC_MESSAGE_SIZE = 64 * 10**6
 _DEFAULT_KEEPALIVE_TIMEOUT = 10000
 
 
-def _message_to_string(message):
+def _message_to_string(message: Any) -> str:
     """
     Constructs a string representation of provided message or generator
     :param message: A protocol buffer or generator instance
@@ -41,7 +46,7 @@ def _message_to_string(message):
         return str(message)
 
 
-def _log_response(rpc_state, response):
+def _log_response(rpc_state: "_RpcState", response: Any) -> None:
     """
     Writes a message with response into debug logs
     :param rpc_state: A state of rpc
@@ -52,7 +57,7 @@ def _log_response(rpc_state, response):
         logger.debug("%s: response = { %s }", rpc_state, _message_to_string(response))
 
 
-def _log_request(rpc_state, request):
+def _log_request(rpc_state: "_RpcState", request: Any) -> None:
     """
     Writes a message with request into debug logs
     :param rpc_state: An id of request
@@ -64,11 +69,11 @@ def _log_request(rpc_state, request):
 
 
 def _rpc_error_handler(
-    rpc_state,
-    rpc_error: typing.Union[grpc.RpcError, grpc.aio.AioRpcError, grpc.Call, grpc.aio.Call],
-    on_disconnected: typing.Callable[[], None] = None,
+    rpc_state: "_RpcState",
+    rpc_error: Union[grpc.RpcError, grpc.aio.AioRpcError, grpc.Call, grpc.aio.Call],
+    on_disconnected: Optional[Callable[[], None]] = None,
     use_unavailable: bool = False,
-):
+) -> issues.Error:
     """
     RPC call error handler, that translates gRPC error into YDB issue
     :param rpc_state: A state of rpc
