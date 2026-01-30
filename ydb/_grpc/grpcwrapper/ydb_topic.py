@@ -1596,3 +1596,176 @@ class PartitionStats(IFromProto, IToPublic):
             bytes_written=self.bytes_written.to_public(),
             partition_node_id=self.partition_node_id,
         )
+
+
+@dataclass
+class PartitionLocation(IFromProto, IToPublic):
+    node_id: int
+    generation: int
+
+    @staticmethod
+    def from_proto(
+        msg: Optional[ydb_topic_pb2.PartitionLocation],
+    ) -> Optional["PartitionLocation"]:
+        if msg is None:
+            return None
+        return PartitionLocation(
+            node_id=msg.node_id,
+            generation=msg.generation,
+        )
+
+    def to_public(self) -> ydb_topic_public_types.PublicPartitionLocation:
+        return ydb_topic_public_types.PublicPartitionLocation(
+            node_id=self.node_id,
+            generation=self.generation,
+        )
+
+
+@dataclass
+class PartitionConsumerStats(IFromProto, IToPublic):
+    last_read_offset: int
+    committed_offset: int
+    read_session_id: str
+    partition_read_session_create_time: Optional[datetime.datetime]
+    last_read_time: Optional[datetime.datetime]
+    max_read_time_lag: Optional[datetime.timedelta]
+    max_write_time_lag: Optional[datetime.timedelta]
+    max_committed_time_lag: Optional[datetime.timedelta]
+    bytes_read: Optional["MultipleWindowsStat"]
+    reader_name: str
+    connection_node_id: int
+
+    @staticmethod
+    def from_proto(
+        msg: Optional[ydb_topic_pb2.DescribeConsumerResult.PartitionConsumerStats],
+    ) -> Optional["PartitionConsumerStats"]:
+        if msg is None:
+            return None
+        return PartitionConsumerStats(
+            last_read_offset=msg.last_read_offset,
+            committed_offset=msg.committed_offset,
+            read_session_id=msg.read_session_id,
+            partition_read_session_create_time=(
+                datetime_from_proto_timestamp(msg.partition_read_session_create_time)
+                if msg.HasField("partition_read_session_create_time")
+                else None
+            ),
+            last_read_time=(
+                datetime_from_proto_timestamp(msg.last_read_time) if msg.HasField("last_read_time") else None
+            ),
+            max_read_time_lag=(
+                timedelta_from_proto_duration(msg.max_read_time_lag) if msg.HasField("max_read_time_lag") else None
+            ),
+            max_write_time_lag=(
+                timedelta_from_proto_duration(msg.max_write_time_lag) if msg.HasField("max_write_time_lag") else None
+            ),
+            max_committed_time_lag=(
+                timedelta_from_proto_duration(msg.max_committed_time_lag)
+                if msg.HasField("max_committed_time_lag")
+                else None
+            ),
+            bytes_read=MultipleWindowsStat.from_proto(msg.bytes_read) if msg.HasField("bytes_read") else None,
+            reader_name=msg.reader_name,
+            connection_node_id=msg.connection_node_id,
+        )
+
+    def to_public(self) -> ydb_topic_public_types.PublicPartitionConsumerStats:
+        bytes_read = None
+        if self.bytes_read is not None:
+            bytes_read = self.bytes_read.to_public()
+        return ydb_topic_public_types.PublicPartitionConsumerStats(
+            last_read_offset=self.last_read_offset,
+            committed_offset=self.committed_offset,
+            read_session_id=self.read_session_id,
+            partition_read_session_create_time=self.partition_read_session_create_time,
+            last_read_time=self.last_read_time,
+            max_read_time_lag=self.max_read_time_lag,
+            max_write_time_lag=self.max_write_time_lag,
+            max_committed_time_lag=self.max_committed_time_lag,
+            bytes_read=bytes_read,
+            reader_name=self.reader_name,
+            connection_node_id=self.connection_node_id,
+        )
+
+
+@dataclass
+class DescribeConsumerResult(IFromProtoWithProtoType, IToPublic):
+    self_proto: ydb_scheme_pb2.Entry
+    consumer: Consumer
+    partitions: List["DescribeConsumerResult.PartitionInfo"]
+
+    @staticmethod
+    def from_proto(msg: ydb_topic_pb2.DescribeConsumerResult) -> "DescribeConsumerResult":
+        return DescribeConsumerResult(
+            self_proto=msg.self,
+            consumer=Consumer.from_proto(msg.consumer),
+            partitions=list(map(DescribeConsumerResult.PartitionInfo.from_proto, msg.partitions)),
+        )
+
+    @staticmethod
+    def empty_proto_message() -> ydb_topic_pb2.DescribeConsumerResult:
+        return ydb_topic_pb2.DescribeConsumerResult()
+
+    def to_public(self) -> ydb_topic_public_types.PublicDescribeConsumerResult:
+        return ydb_topic_public_types.PublicDescribeConsumerResult(
+            self=scheme._wrap_scheme_entry(self.self_proto),
+            consumer=self.consumer.to_public(),
+            partitions=list(map(DescribeConsumerResult.PartitionInfo.to_public, self.partitions)),
+        )
+
+    @dataclass
+    class PartitionInfo(IFromProto, IToPublic):
+        partition_id: int
+        active: bool
+        child_partition_ids: List[int]
+        parent_partition_ids: List[int]
+        partition_stats: Optional["PartitionStats"]
+        partition_consumer_stats: Optional["PartitionConsumerStats"]
+        partition_location: Optional["PartitionLocation"]
+
+        @staticmethod
+        def from_proto(
+            msg: Optional[ydb_topic_pb2.DescribeConsumerResult.PartitionInfo],
+        ) -> Optional["DescribeConsumerResult.PartitionInfo"]:
+            if msg is None:
+                return None
+
+            return DescribeConsumerResult.PartitionInfo(
+                partition_id=msg.partition_id,
+                active=msg.active,
+                child_partition_ids=list(msg.child_partition_ids),
+                parent_partition_ids=list(msg.parent_partition_ids),
+                partition_stats=(
+                    PartitionStats.from_proto(msg.partition_stats) if msg.HasField("partition_stats") else None
+                ),
+                partition_consumer_stats=(
+                    PartitionConsumerStats.from_proto(msg.partition_consumer_stats)
+                    if msg.HasField("partition_consumer_stats")
+                    else None
+                ),
+                partition_location=(
+                    PartitionLocation.from_proto(msg.partition_location) if msg.HasField("partition_location") else None
+                ),
+            )
+
+        def to_public(
+            self,
+        ) -> ydb_topic_public_types.PublicDescribeConsumerResult.PartitionInfo:
+            partition_stats = None
+            if self.partition_stats is not None:
+                partition_stats = self.partition_stats.to_public()
+            partition_consumer_stats = None
+            if self.partition_consumer_stats is not None:
+                partition_consumer_stats = self.partition_consumer_stats.to_public()
+            partition_location = None
+            if self.partition_location is not None:
+                partition_location = self.partition_location.to_public()
+            return ydb_topic_public_types.PublicDescribeConsumerResult.PartitionInfo(
+                partition_id=self.partition_id,
+                active=self.active,
+                child_partition_ids=self.child_partition_ids,
+                parent_partition_ids=self.parent_partition_ids,
+                partition_stats=partition_stats,
+                partition_consumer_stats=partition_consumer_stats,
+                partition_location=partition_location,
+            )
