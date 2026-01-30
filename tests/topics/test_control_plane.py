@@ -43,6 +43,61 @@ class TestTopicClientControlPlaneAsyncIO:
 
         assert has_consumer
 
+    async def test_describe_consumer(self, driver, topic_path: str, topic_consumer):
+        res = await driver.topic_client.describe_consumer(topic_path, topic_consumer)
+
+        assert res.self.name.endswith(topic_consumer)
+        assert res.consumer.name == topic_consumer
+        assert res.partitions is not None
+
+    async def test_describe_not_existed_consumer(self, driver, topic_path: str):
+        with pytest.raises(issues.SchemeError):
+            await driver.topic_client.describe_consumer(topic_path, "not-existed-consumer")
+
+    async def test_describe_consumer_with_stats(self, driver, topic_path: str, topic_consumer):
+        res = await driver.topic_client.describe_consumer(topic_path, topic_consumer, include_stats=True)
+
+        assert res.self.name.endswith(topic_consumer)
+        assert res.consumer.name == topic_consumer
+        assert res.partitions is not None
+        for partition in res.partitions:
+            assert partition.partition_stats is not None
+            assert partition.partition_consumer_stats is not None
+
+    async def test_describe_consumer_with_location(self, driver, topic_path: str, topic_consumer):
+        res = await driver.topic_client.describe_consumer(topic_path, topic_consumer, include_location=True)
+
+        assert res.consumer.name == topic_consumer
+        assert res.partitions is not None
+        assert len(res.partitions) > 0
+        for partition in res.partitions:
+            assert partition.partition_location is not None
+            assert hasattr(partition.partition_location, "node_id")
+            assert hasattr(partition.partition_location, "generation")
+
+    async def test_describe_consumer_offsets(self, driver, topic_with_messages, topic_consumer):
+        # topic_with_messages has 4 messages written (offsets 0, 1, 2, 3)
+        # Read and commit 2 messages
+        async with driver.topic_client.reader(topic_with_messages, topic_consumer) as reader:
+            msg1 = await reader.receive_message()
+            await reader.commit_with_ack(msg1)
+            msg2 = await reader.receive_message()
+            await reader.commit_with_ack(msg2)
+
+        # Check consumer stats
+        res = await driver.topic_client.describe_consumer(topic_with_messages, topic_consumer, include_stats=True)
+
+        assert len(res.partitions) > 0
+        partition = res.partitions[0]
+
+        # Verify partition stats
+        assert partition.partition_stats is not None
+        assert partition.partition_stats.partition_end == 4  # 4 messages written
+
+        # Verify consumer stats
+        assert partition.partition_consumer_stats is not None
+        assert partition.partition_consumer_stats.committed_offset == 2  # 2 messages committed
+
     async def test_alter_not_existed_topic(self, driver, topic_path):
         client = driver.topic_client
 
@@ -126,6 +181,61 @@ class TestTopicClientControlPlane:
                 break
 
         assert has_consumer
+
+    def test_describe_consumer(self, driver_sync, topic_path: str, topic_consumer):
+        res = driver_sync.topic_client.describe_consumer(topic_path, topic_consumer)
+
+        assert res.self.name.endswith(topic_consumer)
+        assert res.consumer.name == topic_consumer
+        assert res.partitions is not None
+
+    def test_describe_not_existed_consumer(self, driver_sync, topic_path: str):
+        with pytest.raises(issues.SchemeError):
+            driver_sync.topic_client.describe_consumer(topic_path, "not-existed-consumer")
+
+    def test_describe_consumer_with_stats(self, driver_sync, topic_path: str, topic_consumer):
+        res = driver_sync.topic_client.describe_consumer(topic_path, topic_consumer, include_stats=True)
+
+        assert res.self.name.endswith(topic_consumer)
+        assert res.consumer.name == topic_consumer
+        assert res.partitions is not None
+        for partition in res.partitions:
+            assert partition.partition_stats is not None
+            assert partition.partition_consumer_stats is not None
+
+    def test_describe_consumer_with_location(self, driver_sync, topic_path: str, topic_consumer):
+        res = driver_sync.topic_client.describe_consumer(topic_path, topic_consumer, include_location=True)
+
+        assert res.consumer.name == topic_consumer
+        assert res.partitions is not None
+        assert len(res.partitions) > 0
+        for partition in res.partitions:
+            assert partition.partition_location is not None
+            assert hasattr(partition.partition_location, "node_id")
+            assert hasattr(partition.partition_location, "generation")
+
+    def test_describe_consumer_offsets(self, driver_sync, topic_with_messages, topic_consumer):
+        # topic_with_messages has 4 messages written (offsets 0, 1, 2, 3)
+        # Read and commit 2 messages
+        with driver_sync.topic_client.reader(topic_with_messages, topic_consumer) as reader:
+            msg1 = reader.receive_message()
+            reader.commit(msg1)
+            msg2 = reader.receive_message()
+            reader.commit(msg2)
+
+        # Check consumer stats
+        res = driver_sync.topic_client.describe_consumer(topic_with_messages, topic_consumer, include_stats=True)
+
+        assert len(res.partitions) > 0
+        partition = res.partitions[0]
+
+        # Verify partition stats
+        assert partition.partition_stats is not None
+        assert partition.partition_stats.partition_end == 4  # 4 messages written
+
+        # Verify consumer stats
+        assert partition.partition_consumer_stats is not None
+        assert partition.partition_consumer_stats.committed_offset == 2  # 2 messages committed
 
     def test_alter_not_existed_topic(self, driver_sync, topic_path):
         client = driver_sync.topic_client

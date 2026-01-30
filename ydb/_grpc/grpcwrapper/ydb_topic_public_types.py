@@ -180,6 +180,22 @@ class DescribeTopicRequestParams(IToProto):
 
 
 @dataclass
+class DescribeConsumerRequestParams(IToProto):
+    path: str
+    consumer: str
+    include_stats: bool
+    include_location: bool
+
+    def to_proto(self) -> ydb_topic_pb2.DescribeConsumerRequest:
+        return ydb_topic_pb2.DescribeConsumerRequest(
+            path=self.path,
+            consumer=self.consumer,
+            include_stats=self.include_stats,
+            include_location=self.include_location,
+        )
+
+
+@dataclass
 # Need similar struct to CreateTopicRequestParams
 class PublicDescribeTopicResult:
     self: SchemeEntry
@@ -290,3 +306,83 @@ class PublicMultipleWindowsStat:
     per_minute: int
     per_hour: int
     per_day: int
+
+
+@dataclass
+class PublicPartitionLocation:
+    node_id: int
+    "Node identifier where partition is located."
+
+    generation: int
+    "Partition generation."
+
+
+@dataclass
+class PublicPartitionConsumerStats:
+    last_read_offset: int
+    "Last read offset from this partition."
+
+    committed_offset: int
+    "Committed offset for this partition."
+
+    read_session_id: str
+    "Reading this partition read session identifier."
+
+    partition_read_session_create_time: Optional[datetime.datetime]
+    "Timestamp of providing this partition to this session by server."
+
+    last_read_time: Optional[datetime.datetime]
+    "Timestamp of last read from this partition."
+
+    max_read_time_lag: Optional[datetime.timedelta]
+    "Maximum of differences between timestamp of read and write timestamp for all messages, read during last minute."
+
+    max_write_time_lag: Optional[datetime.timedelta]
+    "Maximum of differences between write timestamp and create timestamp for all messages, read during last minute."
+
+    max_committed_time_lag: Optional[datetime.timedelta]
+    "The difference between the write timestamp of the last committed message and the current time."
+
+    bytes_read: Optional["PublicMultipleWindowsStat"]
+    "How much bytes were read during several windows statistics from this partition."
+
+    reader_name: str
+    "Read session name, provided by client."
+
+    connection_node_id: int
+    "Host where read session connected."
+
+
+@dataclass
+class PublicDescribeConsumerResult:
+    self: "SchemeEntry"
+    "Description of scheme object."
+
+    consumer: "PublicConsumer"
+    "Consumer description."
+
+    partitions: List["PublicDescribeConsumerResult.PartitionInfo"]
+    "Partitions description."
+
+    @dataclass
+    class PartitionInfo:
+        partition_id: int
+        "Partition identifier."
+
+        active: bool
+        "Is partition open for write."
+
+        child_partition_ids: List[int]
+        "Ids of partitions which was formed when this partition was split or merged."
+
+        parent_partition_ids: List[int]
+        "Ids of partitions from which this partition was formed by split or merge."
+
+        partition_stats: Optional["PublicPartitionStats"]
+        "Stats for partition, filled only when include_stats in request is true."
+
+        partition_consumer_stats: Optional["PublicPartitionConsumerStats"]
+        "Stats for consumer of this partition, filled only when include_stats in request is true."
+
+        partition_location: Optional["PublicPartitionLocation"]
+        "Partition location, filled only when include_location in request is true."
