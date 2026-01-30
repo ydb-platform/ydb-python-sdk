@@ -435,9 +435,9 @@ class WriterAsyncIOReconnector:
 
     async def _connection_loop(self):
         retry_settings = RetrySettings(retry_cancelled=True)  # todo
+        attempt = 0
 
         while True:
-            attempt = 0  # todo calc and reset
             tasks = []
 
             # noinspection PyBroadException
@@ -456,6 +456,7 @@ class WriterAsyncIOReconnector:
                     self._id,
                     stream_writer._id,
                 )
+                attempt = 0  # Reset after successful connect
                 try:
                     if self._init_info is None:
                         self._last_known_seq_no = stream_writer.last_seqno
@@ -495,8 +496,18 @@ class WriterAsyncIOReconnector:
                     err_info.sleep_timeout_seconds,
                 )
                 await asyncio.sleep(err_info.sleep_timeout_seconds)
+                attempt += 1
 
-            except (asyncio.CancelledError, Exception) as err:
+            except asyncio.CancelledError:
+                # CancelledError from close() - exit cleanly
+                if self._closed:
+                    return
+                # gRPC wrapper converts gRPC CancelledError to ConnectionLost (retriable).
+                # In Python 3.11+, external task.cancel() is detected in wrapper and re-raised.
+                # Any CancelledError reaching here is external cancellation - propagate it.
+                raise
+
+            except Exception as err:
                 self._stop(err)
                 return
             finally:

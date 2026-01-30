@@ -1566,3 +1566,60 @@ class TestReaderReconnector:
 
         reader_stream_mock_with_error.wait_error.assert_any_await()
         reader_stream_mock_with_error.wait_messages.assert_any_await()
+
+    async def test_reconnect_on_connection_lost(self, monkeypatch):
+        """Test that ConnectionLost (from gRPC CancelledError) is treated as retriable.
+
+        This tests the fix for issue #735 - gRPC wrapper converts CancelledError to
+        ConnectionLost, which should cause reconnection, not permanent failure.
+        """
+
+        async def wait_error_with_connection_lost():
+            raise issues.ConnectionLost("gRPC stream cancelled")
+
+        reader_stream_mock_with_error = mock.Mock(ReaderStream)
+        reader_stream_mock_with_error._id = 0
+        reader_stream_mock_with_error.wait_error = mock.AsyncMock(side_effect=wait_error_with_connection_lost)
+        reader_stream_mock_with_error.close = mock.AsyncMock()
+
+        # First stream's wait_messages should also fail (simulating connection issue)
+        async def wait_messages_with_error():
+            raise issues.ConnectionLost("connection lost")
+
+        reader_stream_mock_with_error.wait_messages = mock.AsyncMock(side_effect=wait_messages_with_error)
+
+        async def wait_forever():
+            f = asyncio.Future()
+            await f
+
+        reader_stream_with_messages = mock.Mock(ReaderStream)
+        reader_stream_with_messages._id = 1
+        reader_stream_with_messages.wait_error = mock.AsyncMock(side_effect=wait_forever)
+        reader_stream_with_messages.wait_messages.return_value = None
+        reader_stream_with_messages.close = mock.AsyncMock()
+
+        stream_index = 0
+
+        async def stream_create(
+            reader_reconnector_id: int,
+            driver: SupportedDriverType,
+            settings: PublicReaderSettings,
+        ):
+            nonlocal stream_index
+            stream_index += 1
+            if stream_index == 1:
+                return reader_stream_mock_with_error
+            elif stream_index == 2:
+                return reader_stream_with_messages
+            else:
+                raise Exception("unexpected create stream")
+
+        with mock.patch.object(ReaderStream, "create", stream_create):
+            reconnector = ReaderReconnector(mock.Mock(), PublicReaderSettings("", ""))
+            # This would hang/fail before the fix because gRPC errors weren't retriable
+            await asyncio.wait_for(reconnector.wait_message(), timeout=5)
+            await reconnector.close(flush=False)
+
+        # Verify that reconnection happened (ConnectionLost from wait_error triggered reconnect)
+        reader_stream_mock_with_error.wait_error.assert_any_await()
+        assert stream_index == 2, "Should have created second stream after ConnectionLost"
