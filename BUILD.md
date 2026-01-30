@@ -20,7 +20,7 @@ git clone https://github.com/ydb-platform/ydb-python-sdk
 Use the command below to prepare `virtualenv` and to run style tests using `flake8`.
 
 ```sh
-tox -estyle
+tox -e style
 ```
 
 ### Run formatting checks
@@ -29,13 +29,13 @@ Use the command below to prepare `virtualenv` and to run style tests using `blac
 See [documentation](https://black.readthedocs.io/en/stable/) about Black project.
 
 ```sh
-tox -eblack
+tox -e black
 ```
 
 To automatically format code using the `black` formatting style, use the command below.
 
 ```sh
-tox -eblack-format
+tox -e black-format
 ```
 
 ### Run unit tests
@@ -43,7 +43,15 @@ tox -eblack-format
 Use the command below to run unit tests.
 
 ```sh
-tox -epy38
+tox -e py -- ydb
+```
+
+### Run integration tests
+
+Use the command below to run integration tests.
+
+```sh
+tox -e py -- tests
 ```
 
 ### Regenerate protobuf
