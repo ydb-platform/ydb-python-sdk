@@ -208,6 +208,7 @@ class ReaderReconnector:
     _static_reader_reconnector_counter = AtomicCounter()
 
     _id: int
+    _closed: bool
     _settings: topic_reader.PublicReaderSettings
     _driver: Driver
     _background_tasks: Set[Task]
@@ -224,6 +225,7 @@ class ReaderReconnector:
         loop: Optional[asyncio.AbstractEventLoop] = None,
     ):
         self._id = ReaderReconnector._static_reader_reconnector_counter.inc_and_get()
+        self._closed = False
         self._settings = settings
         self._driver = driver
         self._loop = loop if loop is not None else asyncio.get_running_loop()
@@ -239,6 +241,7 @@ class ReaderReconnector:
 
     async def _connection_loop(self):
         attempt = 0
+        retry_settings = self._settings._retry_settings()
         while True:
             try:
                 logger.debug("reader %s connect attempt %s", self._id, attempt)
@@ -247,9 +250,17 @@ class ReaderReconnector:
                 attempt = 0
                 self._state_changed.set()
                 await self._stream_reader.wait_error()
+            except asyncio.CancelledError:
+                # CancelledError from close() - exit cleanly
+                if self._closed:
+                    return
+                # gRPC wrapper converts gRPC CancelledError to ConnectionLost (retriable).
+                # In Python 3.11+, external task.cancel() is detected in wrapper and re-raised.
+                # Any CancelledError reaching here is external cancellation - propagate it.
+                raise
             except BaseException as err:
                 logger.debug("reader %s, attempt %s connection loop error %s", self._id, attempt, err)
-                retry_info = check_retriable_error(err, self._settings._retry_settings(), attempt)
+                retry_info = check_retriable_error(err, retry_settings, attempt)
                 if not retry_info.is_retriable:
                     logger.debug("reader %s stop connection loop due to %s", self._id, err)
                     self._set_first_error(err)
@@ -374,6 +385,10 @@ class ReaderReconnector:
         return self._stream_reader.commit(batch)
 
     async def close(self, flush: bool):
+        if self._closed:
+            return
+        self._closed = True
+
         logger.debug("reader reconnector %s close", self._id)
         if self._stream_reader:
             await self._stream_reader.close(flush)

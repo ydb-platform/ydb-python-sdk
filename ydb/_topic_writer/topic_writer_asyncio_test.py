@@ -320,7 +320,7 @@ class TestWriterAsyncIOReconnector:
                 raise Exception("read from closed StreamWriterMock")
 
             item = await self.from_server.get()
-            if isinstance(item, Exception):
+            if isinstance(item, BaseException):
                 raise item
             return item
 
@@ -450,6 +450,51 @@ class TestWriterAsyncIOReconnector:
 
         second_writer = get_stream_writer()
         second_sent_msg = await second_writer.from_client.get()
+
+        expected_messages = [InternalMessage(message2)]
+        assert second_sent_msg == expected_messages
+
+        second_writer.from_server.put_nowait(self.make_default_ack_message(seq_no=2))
+        await reconnector.close(flush=True)
+
+    async def test_reconnect_on_connection_lost(
+        self,
+        reconnector: WriterAsyncIOReconnector,
+        get_stream_writer,
+    ):
+        """Test that ConnectionLost (from gRPC CancelledError) is treated as retriable."""
+        now = datetime.datetime.now(datetime.timezone.utc)
+        data = "123".encode()
+
+        message1 = PublicMessage(
+            data=data,
+            seqno=1,
+            created_at=now,
+        )
+        message2 = PublicMessage(
+            data=data,
+            seqno=2,
+            created_at=now,
+        )
+        await reconnector.write_with_ack_future([message1, message2])
+
+        # sent to first stream
+        stream_writer = get_stream_writer()
+
+        messages = await stream_writer.from_client.get()
+        assert [InternalMessage(message1)] == messages
+        messages = await stream_writer.from_client.get()
+        assert [InternalMessage(message2)] == messages
+
+        # ack first message
+        stream_writer.from_server.put_nowait(self.make_default_ack_message(seq_no=1))
+
+        # simulate gRPC connection lost (gRPC wrapper converts CancelledError to ConnectionLost)
+        stream_writer.from_server.put_nowait(issues.ConnectionLost("gRPC stream cancelled"))
+
+        # writer should reconnect and resend non-acked message
+        second_writer = get_stream_writer()
+        second_sent_msg = await asyncio.wait_for(second_writer.from_client.get(), timeout=5)
 
         expected_messages = [InternalMessage(message2)]
         assert second_sent_msg == expected_messages
