@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import asyncio
 import concurrent.futures
 import datetime
@@ -253,7 +255,7 @@ class WriterAsyncIOReconnector:
     _init_message: StreamWriteMessage.InitRequest
     _stream_connected: asyncio.Event
     _settings: WriterSettings
-    _codec: PublicCodec
+    _codec: Optional[PublicCodec]
     _codec_functions: Dict[PublicCodec, Callable[[bytes], bytes]]
     _encode_executor: Optional[concurrent.futures.Executor]
     _codec_selector_batch_num: int
@@ -283,7 +285,7 @@ class WriterAsyncIOReconnector:
         self._closed = False
         self._id = WriterAsyncIOReconnector._static_id_counter.inc_and_get()
         self._loop = asyncio.get_running_loop()
-        self._driver = driver
+        self._driver = driver  # type: ignore[assignment]
         self._credentials = driver._credentials
         self._init_message = settings.create_init_request()
         self._new_messages = asyncio.Queue()
@@ -292,9 +294,9 @@ class WriterAsyncIOReconnector:
         self._settings = settings
         self._tx = tx
 
-        self._codec_functions = {
-            PublicCodec.RAW: lambda data: data,
-            PublicCodec.GZIP: gzip.compress,
+        self._codec_functions: Dict[PublicCodec, Callable[[bytes], bytes]] = {
+            PublicCodec(PublicCodec.RAW): lambda data: data,
+            PublicCodec(PublicCodec.GZIP): gzip.compress,
         }
 
         if settings.encoders:
@@ -306,8 +308,8 @@ class WriterAsyncIOReconnector:
         self._codec_selector_last_codec = None
         self._codec_selector_check_batches_interval = 10000
 
-        self._codec = self._settings.codec
-        if self._codec and self._codec not in self._codec_functions:
+        self._codec: Optional[PublicCodec] = self._settings.codec
+        if self._codec is not None and self._codec not in self._codec_functions:
             known_codecs = sorted(self._codec_functions.keys())
             raise ValueError("Unknown codec for writer: %s, supported codecs: %s" % (self._codec, known_codecs))
 
@@ -357,7 +359,10 @@ class WriterAsyncIOReconnector:
     async def wait_init(self) -> PublicWriterInitInfo:
         while True:
             if self._stop_reason.done():
-                raise self._stop_reason.exception()
+                exc = self._stop_reason.exception()
+                if exc is not None:
+                    raise exc
+                raise TopicWriterError("Writer stopped without exception")
 
             if self._init_info:
                 return self._init_info
@@ -367,6 +372,7 @@ class WriterAsyncIOReconnector:
     async def wait_stop(self) -> BaseException:
         try:
             await self._stop_reason
+            return TopicWriterError("Writer stopped without exception")
         except BaseException as stop_reason:
             return stop_reason
 
@@ -382,7 +388,7 @@ class WriterAsyncIOReconnector:
 
         self._messages_future.extend(messages_future)
 
-        if self._codec == PublicCodec.RAW:
+        if self._codec is not None and self._codec == PublicCodec.RAW:
             self._add_messages_to_send_queue(internal_messages)
         else:
             self._messages_for_encode.put_nowait(internal_messages)
@@ -404,7 +410,7 @@ class WriterAsyncIOReconnector:
         for m in messages:
             internal_message = InternalMessage(m)
             if self._settings.auto_seqno:
-                if internal_message.seq_no is None:
+                if internal_message.seq_no is None or internal_message.seq_no == 0:
                     self._last_known_seq_no += 1
                     internal_message.seq_no = self._last_known_seq_no
                 else:
@@ -572,7 +578,7 @@ class WriterAsyncIOReconnector:
         info = await self.wait_init()
         topic_supported_codecs = info.supported_codecs
         if not topic_supported_codecs:
-            topic_supported_codecs = [PublicCodec.RAW, PublicCodec.GZIP]
+            topic_supported_codecs = [PublicCodec(PublicCodec.RAW), PublicCodec(PublicCodec.GZIP)]
 
         res = []
         for codec in topic_supported_codecs:
@@ -672,13 +678,13 @@ class WriterAsyncIOReconnector:
                 last_seq_no = m.seq_no
 
             while True:
-                m = await self._new_messages.get()  # type: InternalMessage
-                if m.seq_no > last_seq_no:
-                    writer.write([m])
+                new_msg: InternalMessage = await self._new_messages.get()
+                if new_msg.seq_no > last_seq_no:
+                    writer.write([new_msg])
                     logger.debug(
                         "writer reconnector %s sent message seqno=%s",
                         self._id,
-                        m.seq_no,
+                        new_msg.seq_no,
                     )
         except asyncio.CancelledError:
             # the loop task cancelled be parent code, for example for reconnection
@@ -811,7 +817,7 @@ class WriterAsyncIOStream:
         if not isinstance(resp, StreamWriteMessage.InitResponse):
             raise TopicWriterError("Unexpected answer for init request: %s" % resp)
 
-        self.last_seqno = resp.last_seq_no
+        self.last_seqno = resp.last_seq_no if resp.last_seq_no is not None else 0
         self.supported_codecs = [PublicCodec(codec) for codec in resp.supported_codecs]
         logger.debug(
             "writer stream %s init done last_seqno=%s",
@@ -830,7 +836,7 @@ class WriterAsyncIOStream:
 
     @staticmethod
     def _ensure_ok(message: WriterMessagesFromServerToClient):
-        if not message.status.is_success():
+        if message.status is None or not message.status.is_success():
             raise TopicWriterError(f"status error from server in writer: {message.status}")
 
     def write(self, messages: List[InternalMessage]):

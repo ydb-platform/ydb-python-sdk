@@ -16,7 +16,8 @@ from typing import (
     Callable,
     Iterable,
     Union,
-    Coroutine,
+    Generic,
+    TypeVar,
 )
 from dataclasses import dataclass
 
@@ -25,8 +26,7 @@ from google.protobuf.message import Message
 from google.protobuf.duration_pb2 import Duration as ProtoDuration
 from google.protobuf.timestamp_pb2 import Timestamp as ProtoTimeStamp
 
-from ...driver import Driver
-from ...aio.driver import Driver as DriverIO
+from ..._typing import SupportedDriverType
 
 # Workaround for good IDE and universal for runtime
 if typing.TYPE_CHECKING:
@@ -40,18 +40,27 @@ from ..._constants import DEFAULT_LONG_STREAM_TIMEOUT
 
 logger = logging.getLogger(__name__)
 
+# Type variables for generic proto conversion interfaces
+# ProtoT can be a Message or Optional[Message] to support nullable proto fields
+ProtoT = TypeVar("ProtoT")
+ResultT = TypeVar("ResultT")
 
-class IFromProto(abc.ABC):
+
+class IFromProto(abc.ABC, Generic[ProtoT, ResultT]):
+    """Interface for classes that can be constructed from protobuf messages."""
+
     @staticmethod
     @abc.abstractmethod
-    def from_proto(msg: Message) -> Any:
+    def from_proto(msg: ProtoT) -> ResultT:
         ...
 
 
-class IFromProtoWithProtoType(IFromProto):
+class IFromProtoWithProtoType(IFromProto[ProtoT, ResultT]):
+    """Extended interface that also knows which proto message type to create."""
+
     @staticmethod
     @abc.abstractmethod
-    def empty_proto_message() -> Message:
+    def empty_proto_message() -> ProtoT:
         ...
 
 
@@ -148,7 +157,7 @@ class IGrpcWrapperAsyncIO(abc.ABC):
         ...
 
 
-SupportedDriverType = Union[Driver, DriverIO]
+# SupportedDriverType imported from ydb._typing
 
 
 class GrpcWrapperAsyncIO(IGrpcWrapperAsyncIO):
@@ -194,7 +203,7 @@ class GrpcWrapperAsyncIO(IGrpcWrapperAsyncIO):
         if self._wait_executor:
             self._wait_executor.shutdown(wait)
 
-    async def _start_asyncio_driver(self, driver: DriverIO, stub, method):
+    async def _start_asyncio_driver(self, driver, stub, method):
         requests_iterator = QueueToIteratorAsyncIO(self.from_client_grpc)
         stream_call = await driver(
             requests_iterator,
@@ -205,7 +214,7 @@ class GrpcWrapperAsyncIO(IGrpcWrapperAsyncIO):
         self._stream_call = stream_call
         self.from_server_grpc = stream_call.__aiter__()
 
-    async def _start_sync_driver(self, driver: Driver, stub, method):
+    async def _start_sync_driver(self, driver, stub, method):
         requests_iterator = AsyncQueueToSyncIteratorAsyncIO(self.from_client_grpc)
         self._wait_executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
 
@@ -251,7 +260,15 @@ class GrpcWrapperAsyncIO(IGrpcWrapperAsyncIO):
 
 
 @dataclass(init=False)
-class ServerStatus(IFromProto):
+class ServerStatus(
+    IFromProto[
+        Union[
+            ydb_topic_pb2.StreamReadMessage.FromServer,
+            ydb_topic_pb2.StreamWriteMessage.FromServer,
+        ],
+        "ServerStatus",
+    ]
+):
     __slots__ = ("_grpc_status_code", "_issues")
 
     def __init__(
@@ -286,7 +303,7 @@ class ServerStatus(IFromProto):
         return res
 
 
-def callback_from_asyncio(callback: Union[Callable, Coroutine]) -> [asyncio.Future, asyncio.Task]:
+def callback_from_asyncio(callback: Callable[[], Any]) -> Union[asyncio.Future[Any], asyncio.Task[Any]]:
     loop = asyncio.get_running_loop()
 
     if asyncio.iscoroutinefunction(callback):

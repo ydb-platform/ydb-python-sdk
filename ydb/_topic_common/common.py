@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import asyncio
 import concurrent.futures
 import sys
@@ -56,7 +58,7 @@ def _get_shared_event_loop() -> asyncio.AbstractEventLoop:
         if _shared_event_loop is not None:
             return _shared_event_loop
 
-        event_loop_set_done = concurrent.futures.Future()
+        event_loop_set_done: concurrent.futures.Future[asyncio.AbstractEventLoop] = concurrent.futures.Future()
 
         def start_event_loop():
             event_loop = asyncio.new_event_loop()
@@ -125,12 +127,12 @@ class CallFromSyncToAsync:
 
         return asyncio.run_coroutine_threadsafe(call_coro(), self._loop).result()
 
-    def _safe_call_fast(self, coro: typing.Coroutine):
+    def _safe_call_fast(self, coro: typing.Coroutine) -> typing.Any:
         """
         no lost returned value from coro, but may be slower especially timeout latency - it wait coroutine cancelation.
         Wait coroutine result only one loop.
         """
-        res = concurrent.futures.Future()
+        res: concurrent.futures.Future[typing.Any] = concurrent.futures.Future()
 
         async def call_coro():
             try:
@@ -144,7 +146,7 @@ class CallFromSyncToAsync:
         return res.result()
 
     def call_sync(self, callback: typing.Callable[[], typing.Any]) -> typing.Any:
-        result = concurrent.futures.Future()
+        result: concurrent.futures.Future[typing.Any] = concurrent.futures.Future()
 
         def call_callback():
             try:

@@ -1,7 +1,8 @@
+from __future__ import annotations
+
 import logging
 import asyncio
-import typing
-from typing import Any, Tuple, Callable, Iterable
+from typing import Any, Callable, Dict, List, Optional, Tuple, TYPE_CHECKING
 import collections
 import grpc
 
@@ -27,7 +28,7 @@ from ydb.settings import BaseRequestSettings
 from ydb import issues
 
 # Workaround for good IDE and universal for runtime
-if typing.TYPE_CHECKING:
+if TYPE_CHECKING:
     from ydb._grpc.v4 import ydb_topic_v1_pb2_grpc
 else:
     from ydb._grpc.common import ydb_topic_v1_pb2_grpc
@@ -43,14 +44,17 @@ _stubs_list = (
 logger = logging.getLogger(__name__)
 
 
-async def _construct_metadata(driver_config, settings):
+async def _construct_metadata(
+    driver_config: DriverConfig,
+    settings: Optional[BaseRequestSettings],
+) -> List[Tuple[str, str]]:
     """
     Translates request settings into RPC metadata
     :param driver_config: A driver config
     :param settings: An instance of BaseRequestSettings
     :return: RPC metadata
     """
-    metadata = []
+    metadata: List[Tuple[str, str]] = []
     if driver_config.database is not None:
         metadata.append((YDB_DATABASE_HEADER, driver_config.database))
 
@@ -150,9 +154,9 @@ class Connection:
     def __init__(
         self,
         endpoint: str,
-        driver_config: DriverConfig = None,
-        endpoint_options: EndpointOptions = None,
-    ):
+        driver_config: Optional[DriverConfig] = None,
+        endpoint_options: Optional[EndpointOptions] = None,
+    ) -> None:
         global _stubs_list
         self.endpoint = endpoint
         self.endpoint_key = EndpointKey(self.endpoint, getattr(endpoint_options, "node_id", None))
@@ -160,22 +164,23 @@ class Connection:
         self._channel = channel_factory(self.endpoint, driver_config, grpc.aio, endpoint_options=endpoint_options)
         self._driver_config = driver_config
 
-        self._stub_instances = {}
-        self._cleanup_callbacks = []
+        self._stub_instances: Dict[Any, Any] = {}
+        self._cleanup_callbacks: List[Callable[["Connection"], None]] = []
         for stub in _stubs_list:
             self._stub_instances[stub] = stub(self._channel)
 
-        self.calls = {}
+        self.calls: Dict[Any, asyncio.Future[Any]] = {}
         self.closing = False
 
-    def _prepare_stub_instance(self, stub: Any):
+    def _prepare_stub_instance(self, stub: Any) -> None:
         if stub not in self._stub_instances:
             self._stub_instances[stub] = stub(self._channel)
 
     async def _prepare_call(
-        self, stub: Any, rpc_name: str, request: Any, settings: BaseRequestSettings
-    ) -> Tuple[_RpcState, float, Any]:
-
+        self, stub: Any, rpc_name: str, request: Any, settings: Optional[BaseRequestSettings]
+    ) -> Tuple[_RpcState, float, List[Tuple[str, str]]]:
+        if self._driver_config is None:
+            raise issues.ConnectionLost("Driver config is not set")
         timeout, metadata = _get_request_timeout(settings), await _construct_metadata(self._driver_config, settings)
         _set_server_timeouts(request, settings, timeout)
         self._prepare_stub_instance(stub)
@@ -194,10 +199,10 @@ class Connection:
         request: Any,
         stub: Any,
         rpc_name: str,
-        wrap_result: Callable = None,
-        settings: BaseRequestSettings = None,
-        wrap_args: Iterable = (),
-        on_disconnected: Callable = None,
+        wrap_result: Optional[Callable[..., Any]] = None,
+        settings: Optional[BaseRequestSettings] = None,
+        wrap_args: Tuple[Any, ...] = (),
+        on_disconnected: Optional[Callable[..., Any]] = None,
     ) -> Any:
         """
         Async method to execute request
@@ -236,10 +241,10 @@ class Connection:
         finally:
             self._finish_call(rpc_state)
 
-    def _finish_call(self, call_state: _RpcState):
-        self.calls.pop(call_state.request_id)
+    def _finish_call(self, call_state: _RpcState) -> None:
+        self.calls.pop(call_state.request_id, None)
 
-    async def destroy(self, grace: float = 0):
+    async def destroy(self, grace: float = 0) -> None:
         """
         Destroys the underlying gRPC channel
         This method does not cancel tasks, but destroys them.
@@ -249,10 +254,10 @@ class Connection:
         if hasattr(self, "_channel") and hasattr(self._channel, "close"):
             await self._channel.close(grace)
 
-    def add_cleanup_callback(self, callback):
+    def add_cleanup_callback(self, callback: Callable[["Connection"], None]) -> None:
         self._cleanup_callbacks.append(callback)
 
-    async def connection_ready(self, ready_timeout=10):
+    async def connection_ready(self, ready_timeout: float = 10) -> None:
         """
         Awaits until channel is ready
         :return: None
@@ -260,7 +265,7 @@ class Connection:
 
         await asyncio.wait_for(self._channel.channel_ready(), timeout=ready_timeout)
 
-    async def close(self, grace: float = 30):
+    async def close(self, grace: float = 30) -> None:
         """
         Closes the underlying gRPC channel
         :param: grace: If a grace period is specified, this method wait until all active
