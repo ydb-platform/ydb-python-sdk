@@ -26,6 +26,14 @@ def _get_operation_request(self):
     return request
 
 
+def _list_operations_response(rpc_state, response):  # pylint: disable=W0613
+    issues._process_response(response)
+
+
+def _list_operations_request(kind: str, page_size: int, page_token: str):
+    return _apis.ydb_operation.ListOperationsRequest(kind=kind, page_size=page_size, page_token=page_token)
+
+
 class OperationClient(object):
     def __init__(self, driver):
         self._driver = driver
@@ -45,6 +53,15 @@ class OperationClient(object):
             _apis.OperationService.Stub,
             _apis.OperationService.ForgetOperation,
             _forget_operation_response,
+            settings,
+        )
+
+    def list(self, kind: str, page_size: int, page_token: str, settings=None):
+        return self._driver(
+            _list_operations_request(kind, page_size, page_token),
+            _apis.OperationService.Stub,
+            _apis.OperationService.ListOperations,
+            _list_operations_response,
             settings,
         )
 
@@ -95,6 +112,17 @@ class Operation(object):
             _get_operation_request(self),
             _apis.OperationService.Stub,
             _apis.OperationService.GetOperation,
+            self.__class__,
+            settings,
+            (self._driver,),
+        )
+
+    def list(self, kind: str, page_size: int, page_token: str, settings=None):
+        self._ensure_implements()
+        return self._driver(
+            _list_operations_request(kind, page_size, page_token),
+            _apis.OperationService.Stub,
+            _apis.OperationService.ListOperations,
             self.__class__,
             settings,
             (self._driver,),
