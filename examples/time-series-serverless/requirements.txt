@@ -1,4 +1,4 @@
 iso8601==0.1.14
 yandexcloud==0.80.0
 ydb==0.0.50.843132462
-protobuf==3.20.2
+protobuf==6.33.5
