@@ -1,3 +1,5 @@
+* Basic mypy support and extended typehints
+
 ## 3.25.0 ##
 * Add protobuf 6 support
 
