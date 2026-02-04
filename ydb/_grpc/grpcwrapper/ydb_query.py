@@ -70,7 +70,8 @@ class TransactionSettings(IFromPublic, IToProto):
         return TransactionSettings(tx_mode=tx_mode)
 
     def to_proto(self) -> ydb_query_pb2.TransactionSettings:
-        return ydb_query_pb2.TransactionSettings(**{self.tx_mode.name: self.tx_mode.to_proto()})  # type: ignore[arg-type]
+        args = {self.tx_mode.name: self.tx_mode.to_proto()}
+        return ydb_query_pb2.TransactionSettings(**args)  # type: ignore[arg-type]
 
 
 @dataclass

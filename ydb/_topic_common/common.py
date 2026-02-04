@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import asyncio
 import concurrent.futures
-import sys
 import threading
 import typing
 from typing import Optional
@@ -30,18 +29,6 @@ def create_result_wrapper(
         return result_type.from_proto(msg)
 
     return wrapper
-
-
-if sys.hexversion < 0x03080000:
-
-    def wrap_set_name_for_asyncio_task(task: asyncio.Task, task_name: str) -> asyncio.Task:
-        return task
-
-else:
-
-    def wrap_set_name_for_asyncio_task(task: asyncio.Task, task_name: str) -> asyncio.Task:
-        task.set_name(task_name)
-        return task
 
 
 _shared_event_loop_lock = threading.Lock()

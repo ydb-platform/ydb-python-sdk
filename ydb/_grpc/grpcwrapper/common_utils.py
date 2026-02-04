@@ -18,6 +18,7 @@ from typing import (
     Union,
     Generic,
     TypeVar,
+    cast,
 )
 from dataclasses import dataclass
 
@@ -31,6 +32,8 @@ from ..._typing import SupportedDriverType
 # Workaround for good IDE and universal for runtime
 if typing.TYPE_CHECKING:
     from ..v4.protos import ydb_topic_pb2, ydb_issue_message_pb2
+    from ...driver import Driver as SyncDriver
+    from ...aio.driver import Driver as AsyncDriver
 else:
     from ..common.protos import ydb_topic_pb2, ydb_issue_message_pb2
 
@@ -168,7 +171,7 @@ class GrpcWrapperAsyncIO(IGrpcWrapperAsyncIO):
     _stream_call: Optional[Union[grpc.aio.StreamStreamCall, "grpc._channel._MultiThreadedRendezvous"]]
     _wait_executor: Optional[concurrent.futures.ThreadPoolExecutor]
 
-    def __init__(self, convert_server_grpc_to_wrapper):
+    def __init__(self, convert_server_grpc_to_wrapper: Callable[[Any], Any]) -> None:
         self.from_client_grpc = asyncio.Queue()
         self.convert_server_grpc_to_wrapper = convert_server_grpc_to_wrapper
         self._connection_state = "new"
@@ -182,28 +185,28 @@ class GrpcWrapperAsyncIO(IGrpcWrapperAsyncIO):
             .with_timeout(DEFAULT_LONG_STREAM_TIMEOUT)
         )
 
-    def __del__(self):
+    def __del__(self) -> None:
         self._clean_executor(wait=False)
 
-    async def start(self, driver: SupportedDriverType, stub, method):
+    async def start(self, driver: SupportedDriverType, stub: Any, method: str) -> None:
         if asyncio.iscoroutinefunction(driver.__call__):
-            await self._start_asyncio_driver(driver, stub, method)
+            await self._start_asyncio_driver(cast("AsyncDriver", driver), stub, method)
         else:
-            await self._start_sync_driver(driver, stub, method)
+            await self._start_sync_driver(cast("SyncDriver", driver), stub, method)
         self._connection_state = "started"
 
-    def close(self):
+    def close(self) -> None:
         self.from_client_grpc.put_nowait(_stop_grpc_connection_marker)
         if self._stream_call:
             self._stream_call.cancel()
 
         self._clean_executor(wait=True)
 
-    def _clean_executor(self, wait: bool):
+    def _clean_executor(self, wait: bool) -> None:
         if self._wait_executor:
             self._wait_executor.shutdown(wait)
 
-    async def _start_asyncio_driver(self, driver, stub, method):
+    async def _start_asyncio_driver(self, driver: "AsyncDriver", stub: Any, method: str) -> None:
         requests_iterator = QueueToIteratorAsyncIO(self.from_client_grpc)
         stream_call = await driver(
             requests_iterator,
@@ -214,7 +217,7 @@ class GrpcWrapperAsyncIO(IGrpcWrapperAsyncIO):
         self._stream_call = stream_call
         self.from_server_grpc = stream_call.__aiter__()
 
-    async def _start_sync_driver(self, driver, stub, method):
+    async def _start_sync_driver(self, driver: "SyncDriver", stub: Any, method: str) -> None:
         requests_iterator = AsyncQueueToSyncIteratorAsyncIO(self.from_client_grpc)
         self._wait_executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
 
@@ -229,7 +232,7 @@ class GrpcWrapperAsyncIO(IGrpcWrapperAsyncIO):
         self._stream_call = stream_call
         self.from_server_grpc = SyncToAsyncIterator(stream_call.__iter__(), self._wait_executor)
 
-    async def receive(self, timeout: Optional[int] = None, is_coordination_calls=False) -> Any:
+    async def receive(self, timeout: Optional[int] = None, is_coordination_calls: bool = False) -> Any:
         # todo handle grpc exceptions and convert it to internal exceptions
         try:
             if timeout is None:
@@ -253,7 +256,7 @@ class GrpcWrapperAsyncIO(IGrpcWrapperAsyncIO):
         # print("rekby, grpc, received", grpc_message)
         return self.convert_server_grpc_to_wrapper(grpc_message)
 
-    def write(self, wrap_message: IToProto):
+    def write(self, wrap_message: IToProto) -> None:
         grpc_message = wrap_message.to_proto()
         # print("rekby, grpc, send", grpc_message)
         self.from_client_grpc.put_nowait(grpc_message)

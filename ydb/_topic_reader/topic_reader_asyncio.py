@@ -103,7 +103,7 @@ class PublicAsyncIOReader:
             try:
                 logger.debug("Topic reader was not closed properly. Consider using method close().")
                 task = self._loop.create_task(self.close(flush=False))
-                topic_common.wrap_set_name_for_asyncio_task(task, task_name="close reader")
+                task.set_name("close reader")
             except BaseException:
                 logger.warning("Something went wrong during reader close in __del__")
 
@@ -535,31 +535,22 @@ class ReaderStream:
 
         self._update_token_event.set()
 
-        self._background_tasks.add(
-            topic_common.wrap_set_name_for_asyncio_task(
-                asyncio.create_task(self._read_messages_loop()),
-                task_name="read_messages_loop",
-            ),
-        )
-        self._background_tasks.add(
-            topic_common.wrap_set_name_for_asyncio_task(
-                asyncio.create_task(self._decode_batches_loop()),
-                task_name="decode_batches",
-            ),
-        )
+        read_task = asyncio.create_task(self._read_messages_loop())
+        read_task.set_name("read_messages_loop")
+        self._background_tasks.add(read_task)
+
+        decode_task = asyncio.create_task(self._decode_batches_loop())
+        decode_task.set_name("decode_batches")
+        self._background_tasks.add(decode_task)
+
         if self._get_token_function:
-            self._background_tasks.add(
-                topic_common.wrap_set_name_for_asyncio_task(
-                    asyncio.create_task(self._update_token_loop()),
-                    task_name="update_token_loop",
-                ),
-            )
-        self._background_tasks.add(
-            topic_common.wrap_set_name_for_asyncio_task(
-                asyncio.create_task(self._handle_background_errors()),
-                task_name="handle_background_errors",
-            ),
-        )
+            update_token_task = asyncio.create_task(self._update_token_loop())
+            update_token_task.set_name("update_token_loop")
+            self._background_tasks.add(update_token_task)
+
+        errors_task = asyncio.create_task(self._handle_background_errors())
+        errors_task.set_name("handle_background_errors")
+        self._background_tasks.add(errors_task)
 
     async def wait_error(self):
         raise await self._first_error

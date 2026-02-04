@@ -30,7 +30,6 @@ from .. import (
 )
 from .._utilities import AtomicCounter
 from .._errors import check_retriable_error
-from .._topic_common import common as topic_common
 from ..retries import RetrySettings
 from .._grpc.grpcwrapper.ydb_topic_public_types import PublicCodec
 from .._grpc.grpcwrapper.ydb_topic import (
@@ -89,7 +88,7 @@ class WriterAsyncIO:
         try:
             logger.debug("Topic writer was not closed properly. Consider using method close().")
             task = self._loop.create_task(self.close(flush=False))
-            topic_common.wrap_set_name_for_asyncio_task(task, task_name="close writer")
+            task.set_name("close writer")
         except BaseException:
             logger.warning("Something went wrong during writer close in __del__")
 
@@ -319,16 +318,11 @@ class WriterAsyncIOReconnector:
         self._messages_future = deque()
         self._new_messages = asyncio.Queue()
         self._stop_reason = self._loop.create_future()
-        self._background_tasks = [
-            topic_common.wrap_set_name_for_asyncio_task(
-                asyncio.create_task(self._connection_loop()),
-                task_name="connection_loop",
-            ),
-            topic_common.wrap_set_name_for_asyncio_task(
-                asyncio.create_task(self._encode_loop()),
-                task_name="encode_loop",
-            ),
-        ]
+        connection_task = asyncio.create_task(self._connection_loop())
+        connection_task.set_name("connection_loop")
+        encode_task = asyncio.create_task(self._encode_loop())
+        encode_task.set_name("encode_loop")
+        self._background_tasks = [connection_task, encode_task]
 
         self._state_changed = asyncio.Event()
         logger.debug("init writer reconnector id=%s", self._id)
@@ -476,14 +470,10 @@ class WriterAsyncIOReconnector:
 
                 self._stream_connected.set()
 
-                send_loop = topic_common.wrap_set_name_for_asyncio_task(
-                    asyncio.create_task(self._send_loop(stream_writer)),
-                    task_name="writer send loop",
-                )
-                receive_loop = topic_common.wrap_set_name_for_asyncio_task(
-                    asyncio.create_task(self._read_loop(stream_writer)),
-                    task_name="writer receive loop",
-                )
+                send_loop = asyncio.create_task(self._send_loop(stream_writer))
+                send_loop.set_name("writer send loop")
+                receive_loop = asyncio.create_task(self._read_loop(stream_writer))
+                receive_loop.set_name("writer receive loop")
 
                 tasks = [send_loop, receive_loop]
                 done, _ = await asyncio.wait([send_loop, receive_loop], return_when=asyncio.FIRST_COMPLETED)
@@ -829,10 +819,8 @@ class WriterAsyncIOStream:
 
         if self._update_token_interval is not None:
             self._update_token_event.set()
-            self._update_token_task = topic_common.wrap_set_name_for_asyncio_task(
-                asyncio.create_task(self._update_token_loop()),
-                task_name="update_token_loop",
-            )
+            self._update_token_task = asyncio.create_task(self._update_token_loop())
+            self._update_token_task.set_name("update_token_loop")
 
     @staticmethod
     def _ensure_ok(message: WriterMessagesFromServerToClient):
