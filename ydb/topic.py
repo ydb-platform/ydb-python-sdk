@@ -218,8 +218,8 @@ class TopicClientAsyncIO:
         logger.debug("Alter topic request: path=%s", path)
         args = locals().copy()
         del args["self"]
-        req = _ydb_topic_public_types.AlterTopicRequestParams(**args)
-        req = _ydb_topic.AlterTopicRequest.from_public(req)
+        req_params = _ydb_topic_public_types.AlterTopicRequestParams(**args)
+        req = _ydb_topic.AlterTopicRequest.from_public(req_params)
         await self._driver(
             req.to_proto(),
             _apis.TopicService.Stub,
@@ -540,8 +540,8 @@ class TopicClient:
         del args["self"]
         self._check_closed()
 
-        req = _ydb_topic_public_types.AlterTopicRequestParams(**args)
-        req = _ydb_topic.AlterTopicRequest.from_public(req)
+        req_params = _ydb_topic_public_types.AlterTopicRequestParams(**args)
+        req = _ydb_topic.AlterTopicRequest.from_public(req_params)
         self._driver(
             req.to_proto(),
             _apis.TopicService.Stub,
