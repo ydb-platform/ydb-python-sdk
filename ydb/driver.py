@@ -251,10 +251,12 @@ def get_config(
                 connection_string, root_certificates, credentials, **kwargs
             )
         else:
-            if endpoint is None:
-                raise ValueError("endpoint is required when driver_config and connection_string are not provided")
             driver_config = config_class.default_from_endpoint_and_database(
-                endpoint, database, root_certificates, credentials, **kwargs
+                endpoint,  # type: ignore[arg-type]
+                database,
+                root_certificates,
+                credentials,
+                **kwargs,
             )
     else:
         kwargs["endpoint"] = endpoint
