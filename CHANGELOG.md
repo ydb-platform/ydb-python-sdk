@@ -1,3 +1,5 @@
+* Fix discovery timeout
+
 ## 3.26.0 ##
 * Basic mypy support and extended typehints
 * Drop compatibility with python 3.7
