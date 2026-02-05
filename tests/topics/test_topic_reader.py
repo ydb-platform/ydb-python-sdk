@@ -494,7 +494,6 @@ class TestTopicNoConsumerReaderAsyncIO:
 
         class CustomEventHandler(ydb.TopicReaderEvents.EventHandler):
             def on_partition_get_start_offset(self, event):
-                nonlocal current_offset
                 return ydb.TopicReaderEvents.OnPartitionGetStartOffsetResponse(current_offset)
 
         reader = driver.topic_client.reader(
@@ -616,7 +615,6 @@ class TestTopicReaderWithoutConsumer:
 
         class CustomEventHandler(ydb.TopicReaderEvents.EventHandler):
             def on_partition_get_start_offset(self, event):
-                nonlocal current_offset
                 return ydb.TopicReaderEvents.OnPartitionGetStartOffsetResponse(current_offset)
 
         reader = driver_sync.topic_client.reader(

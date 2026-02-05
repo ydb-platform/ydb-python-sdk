@@ -64,7 +64,10 @@ def _get_shared_event_loop() -> asyncio.AbstractEventLoop:
         t.start()
 
         loop_ready.wait()
-        assert _shared_event_loop is not None
+
+        if _shared_event_loop is None:
+            raise RuntimeError("Event loop was not properly initialized")
+
         return _shared_event_loop
 
 
