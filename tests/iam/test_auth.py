@@ -14,7 +14,7 @@ class FakeAuth(BaseJWTCredentials):
         self.iam_channel_credentials = iam_channel_credentials
 
     def __eq__(self, other):
-        return self.__dict__ == other.__dict__ if type(self) == type(other) else False
+        return self.__dict__ == other.__dict__ if type(self) is type(other) else False
 
 
 @patch("builtins.open", new_callable=mock_open, read_data=CONTENT1)

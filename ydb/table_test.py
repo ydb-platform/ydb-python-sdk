@@ -14,7 +14,7 @@ def test_retry_operation_impl(monkeypatch):
     monkeypatch.setattr(
         issues.Error,
         "__eq__",
-        lambda self, other: type(self) == type(other) and self.message == other.message,
+        lambda self, other: type(self) is type(other) and self.message == other.message,
     )
 
     retry_once_settings = RetrySettings(
@@ -43,7 +43,7 @@ def test_retry_operation_impl(monkeypatch):
             self.message = message
 
         def __eq__(self, other):
-            return type(self) == type(other) and self.message == other.message
+            return type(self) is type(other) and self.message == other.message
 
     def check_unretriable_error(err_type, call_ydb_handler):
         retry_once_settings.on_ydb_error_callback.reset_mock()
