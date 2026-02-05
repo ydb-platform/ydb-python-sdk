@@ -4,7 +4,7 @@ import threading
 import logging
 import random
 import time
-from typing import List, Dict, Optional
+from typing import Any, Dict, List, Optional
 
 from . import resolver
 
@@ -29,7 +29,7 @@ def _check_fastest_endpoint(
     if not endpoints:
         return None
 
-    result = {"endpoint": None, "lock": threading.Lock()}
+    result: Dict[str, Any] = {"endpoint": None, "lock": threading.Lock()}
     stop_event = threading.Event()
     deadline = time.monotonic() + timeout
 
@@ -77,7 +77,7 @@ def _split_endpoints_by_location(endpoints: List[resolver.EndpointInfo]) -> Dict
     :param endpoints: List of resolver.EndpointInfo objects
     :return: Dictionary mapping location -> list of resolver.EndpointInfo
     """
-    result = {}
+    result: Dict[str, List[resolver.EndpointInfo]] = {}
     for endpoint in endpoints:
         location = endpoint.location
         if location not in result:
