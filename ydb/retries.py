@@ -77,7 +77,7 @@ class YdbRetryOperationSleepOpt:
 
     def __eq__(self, other: object) -> bool:
         return (
-            type(self) == type(other) and isinstance(other, YdbRetryOperationSleepOpt) and self.timeout == other.timeout
+            type(self) is type(other) and isinstance(other, YdbRetryOperationSleepOpt) and self.timeout == other.timeout
         )
 
     def __repr__(self) -> str:
@@ -91,7 +91,7 @@ class YdbRetryOperationFinalResult:
 
     def __eq__(self, other: object) -> bool:
         return (
-            type(self) == type(other)
+            type(self) is type(other)
             and isinstance(other, YdbRetryOperationFinalResult)
             and self.result == other.result
             and self.exc == other.exc
