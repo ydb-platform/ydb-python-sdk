@@ -64,6 +64,8 @@ FROM AS_TABLE($episodesData);
 
 
 def fill_tables_with_data(pool, path):
+    global FillDataQuery
+
     def callee(session):
         prepared_query = session.prepare(FillDataQuery.format(path))
         session.transaction(ydb.SerializableReadWrite()).execute(

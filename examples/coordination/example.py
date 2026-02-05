@@ -43,7 +43,7 @@ def run(endpoint, database):
         threads = []
 
         for i in range(4):
-            worker_name = f"worker {i + 1}"
+            worker_name = f"worker {i+1}"
             if i < 2:
                 thread = threading.Thread(target=linear_workload, args=(driver.coordination_client, worker_name))
             else:

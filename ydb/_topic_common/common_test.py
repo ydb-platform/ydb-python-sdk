@@ -248,7 +248,7 @@ class TestCallFromSyncToAsync:
 
         async def callback():
             try:
-                nonlocal callback_loop, cancelled  # noqa: F824
+                nonlocal callback_loop, cancelled
 
                 callback_loop = asyncio.get_running_loop()
                 await asyncio.sleep(1)

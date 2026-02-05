@@ -416,6 +416,7 @@ class Connection(object):
         discovered by the YDB endpoint discovery mechanism
         :param driver_config: A driver config instance to be used for RPC call interception
         """
+        global _stubs_list
         self.endpoint = endpoint
         self.node_id = getattr(endpoint_options, "node_id", None)
         self.endpoint_key = EndpointKey(endpoint, getattr(endpoint_options, "node_id", None))

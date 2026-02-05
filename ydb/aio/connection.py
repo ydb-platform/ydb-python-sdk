@@ -157,6 +157,7 @@ class Connection:
         driver_config: Optional[DriverConfig] = None,
         endpoint_options: Optional[EndpointOptions] = None,
     ) -> None:
+        global _stubs_list
         self.endpoint = endpoint
         self.endpoint_key = EndpointKey(self.endpoint, getattr(endpoint_options, "node_id", None))
         self.node_id = getattr(endpoint_options, "node_id", None)

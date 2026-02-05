@@ -1,4 +1,4 @@
-import typing  # noqa: F401
+import typing
 import pytest
 
 import ydb
