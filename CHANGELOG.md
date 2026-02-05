@@ -1,3 +1,5 @@
+* Fix possible race condition in topic common
+
 ## 3.26.1 ##
 * Fix discovery timeout
 
