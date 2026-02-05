@@ -49,11 +49,13 @@ def _get_shared_event_loop() -> asyncio.AbstractEventLoop:
             event_loop = asyncio.new_event_loop()
             asyncio.set_event_loop(event_loop)
 
-            global _shared_event_loop
-            _shared_event_loop = event_loop
+            def on_loop_started():
+                # Set global only when loop is actually running
+                global _shared_event_loop
+                _shared_event_loop = event_loop
+                loop_ready.set()
 
-            # Signal that loop is running and ready to accept tasks
-            event_loop.call_soon(loop_ready.set)
+            event_loop.call_soon(on_loop_started)
             event_loop.run_forever()
 
         t = threading.Thread(
