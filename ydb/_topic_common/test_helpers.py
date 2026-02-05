@@ -15,7 +15,7 @@ class StreamMock(IGrpcWrapperAsyncIO):
         self.from_client = asyncio.Queue()
         self._closed = False
 
-    async def receive(self) -> typing.Any:
+    async def receive(self, timeout: typing.Optional[int] = None) -> typing.Any:
         if self._closed:
             raise Exception("read from closed StreamMock")
 

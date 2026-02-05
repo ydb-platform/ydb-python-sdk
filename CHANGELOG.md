@@ -1,3 +1,84 @@
+## 3.26.2 ##
+* Fix possible race condition in topic common
+
+## 3.26.1 ##
+* Fix discovery timeout
+
+## 3.26.0 ##
+* Basic mypy support and extended typehints
+* Drop compatibility with python 3.7
+
+## 3.25.0 ##
+* Add protobuf 6 support
+
+## 3.24.1 ##
+* Use session's node_id as preferred endpoint
+* Fix attach stream finish logic
+
+## 3.24.0 ##
+* Refactor session lifecycle
+* Make DeadlineExceeded not retriable
+
+## 3.23.4 ##
+* Allow rollback after TLI 
+
+## 3.23.3 ##
+* Make attach session error readable
+
+## 3.23.2 ##
+* QuerySessionPool: Cancel queue.get in case of cancel of parent coroutine
+
+## 3.23.1 ##
+* Added SysView scheme type
+
+## 3.23.0 ##
+* Coordination Service experimental support
+
+## 3.22.4 ##
+* Update default keepalive time to 10s
+
+## 3.22.3 ##
+* Make commit_offset call retryable
+
+## 3.22.2 ##
+* Make use_all_nodes True by default
+
+## 3.22.1 ##
+* Fix crash on discovery thread
+
+## 3.22.0 ##
+* Support Arrow format of result sets in QueryService
+
+## 3.21.14 ##
+* Fixed bug with param read_from for topic reader
+
+## 3.21.13 ##
+* Refactor auth token refresh logic
+
+## 3.21.12 ##
+* Fix getattr propagation to wrapped stream
+
+## 3.21.11 ##
+* Fix is_view, is_resource_pool for SchemeEntryType
+
+## 3.21.10 ##
+* Fix stream error handling
+
+## 3.21.9 ##
+* Add method explain for explain query to QuerySession and QuerySessionPool classes
+
+## 3.21.8 ##
+* Fix: convert gRPC stream termination to YDB errors in async query client
+
+## 3.21.7 ##
+* Remove default timeout from topic stream
+
+## 3.21.6 ##
+* Wrap prepare execute request exceptions to ydb.Error
+* Add async methods to QuerySessionPool
+* Add default grpc keepalive value
+* Add detailed debug logs to topic instances
+
 ## 3.21.5 ##
 * Ability to create Date type from datetime
 
@@ -71,7 +152,7 @@
 * Fix attach session timeouts
 
 ## 3.18.8 ##
-* Refactor aio tableclient destructor 
+* Refactor aio tableclient destructor
 
 ## 3.18.7 ##
 * Add an ability to pass custom event loop to QuerySessionPool
@@ -84,9 +165,9 @@
 
 ## 3.18.4 ##
 * Fix table_client desctructor
-  
+
 ## 3.18.3 ##
-* Hide session management for table client methods 
+* Hide session management for table client methods
 * Add build method to QueryOnlineReadOnly mode
 
 ## 3.18.2 ##

@@ -1,43 +1,48 @@
+import json
+
 import pytest
+
+import ydb
+from ydb import QueryExplainResultFormat
 from ydb.aio.query.session import QuerySession
+from ydb.connection import EndpointKey
 
 
-def _check_session_state_empty(session: QuerySession):
-    assert session._state.session_id is None
-    assert session._state.node_id is None
-    assert not session._state.attached
+def _check_session_not_ready(session: QuerySession):
+    assert not session.is_active
 
 
-def _check_session_state_full(session: QuerySession):
-    assert session._state.session_id is not None
-    assert session._state.node_id is not None
-    assert session._state.attached
+def _check_session_ready(session: QuerySession):
+    assert session.session_id is not None
+    assert session.node_id is not None
+    assert session.is_active
+    assert not session.is_closed
 
 
 class TestAsyncQuerySession:
     @pytest.mark.asyncio
     async def test_session_normal_lifecycle(self, session: QuerySession):
-        _check_session_state_empty(session)
+        _check_session_not_ready(session)
 
         await session.create()
-        _check_session_state_full(session)
+        _check_session_ready(session)
 
         await session.delete()
-        _check_session_state_empty(session)
+        assert session.is_closed
 
     @pytest.mark.asyncio
     async def test_second_create_do_nothing(self, session: QuerySession):
         await session.create()
-        _check_session_state_full(session)
+        _check_session_ready(session)
 
-        session_id_before = session._state.session_id
-        node_id_before = session._state.node_id
+        session_id_before = session.session_id
+        node_id_before = session.node_id
 
         await session.create()
-        _check_session_state_full(session)
+        _check_session_ready(session)
 
-        assert session._state.session_id == session_id_before
-        assert session._state.node_id == node_id_before
+        assert session.session_id == session_id_before
+        assert session.node_id == node_id_before
 
     @pytest.mark.asyncio
     async def test_second_delete_do_nothing(self, session: QuerySession):
@@ -47,9 +52,9 @@ class TestAsyncQuerySession:
         await session.delete()
 
     @pytest.mark.asyncio
-    async def test_delete_before_create_not_possible(self, session: QuerySession):
-        with pytest.raises(RuntimeError):
-            await session.delete()
+    async def test_delete_before_create_is_noop(self, session: QuerySession):
+        await session.delete()
+        assert session.is_closed
 
     @pytest.mark.asyncio
     async def test_create_after_delete_not_possible(self, session: QuerySession):
@@ -113,3 +118,126 @@ class TestAsyncQuerySession:
 
         assert res == [[1], [2]]
         assert counter == 2
+
+    @pytest.mark.asyncio
+    @pytest.mark.usefixtures("ydb_terminates_streams_with_unavailable")
+    async def test_terminated_stream_raises_ydb_error(self, session: QuerySession):
+        await session.create()
+
+        with pytest.raises(ydb.Unavailable):
+            async with await session.execute("select 1") as results:
+                async for _ in results:
+                    pass
+
+    @pytest.mark.asyncio
+    async def test_explain(self, pool: ydb.aio.query.QuerySessionPool):
+        await pool.execute_with_retries("DROP TABLE IF EXISTS test_explain")
+        await pool.execute_with_retries("CREATE TABLE test_explain (id Int64, PRIMARY KEY (id))")
+        try:
+            plan_fullscan = ""
+            plan_lookup = ""
+
+            async def callee(session: QuerySession):
+                nonlocal plan_fullscan, plan_lookup
+
+                plan = await session.explain("SELECT * FROM test_explain", result_format=QueryExplainResultFormat.STR)
+                isinstance(plan, str)
+                assert "FullScan" in plan
+
+                plan_fullscan = await session.explain(
+                    "SELECT * FROM test_explain", result_format=QueryExplainResultFormat.DICT
+                )
+                plan_lookup = await session.explain(
+                    "SELECT * FROM test_explain WHERE id = $id",
+                    {"$id": 1},
+                    result_format=QueryExplainResultFormat.DICT,
+                )
+
+            await pool.retry_operation_async(callee)
+
+            plan_fulltext_string = json.dumps(plan_fullscan)
+            assert "FullScan" in plan_fulltext_string
+
+            plan_lookup_string = json.dumps(plan_lookup)
+            assert "Lookup" in plan_lookup_string
+        finally:
+            await pool.execute_with_retries("DROP TABLE test_explain")
+
+
+class TestAsyncQuerySessionPreferredEndpoint:
+    def test_endpoint_key_is_none_before_create(self, session: QuerySession):
+        assert session._endpoint_key is None
+
+    @pytest.mark.asyncio
+    async def test_endpoint_key_is_set_after_create(self, session: QuerySession):
+        await session.create()
+        assert session.node_id is not None
+        assert session._endpoint_key is not None
+        assert isinstance(session._endpoint_key, EndpointKey)
+        assert session._endpoint_key.node_id == session.node_id
+
+    @pytest.mark.asyncio
+    async def test_session_uses_preferred_endpoint_on_execute(self, session: QuerySession):
+        await session.create()
+        original_driver_call = session._driver
+
+        calls = []
+
+        async def mock_driver_call(*args, **kwargs):
+            calls.append(kwargs)
+            return await original_driver_call(*args, **kwargs)
+
+        session._driver = mock_driver_call
+
+        async with await session.execute("select 1;") as results:
+            async for _ in results:
+                pass
+
+        assert len(calls) > 0
+        assert "preferred_endpoint" in calls[0]
+        assert calls[0]["preferred_endpoint"] is not None
+        assert calls[0]["preferred_endpoint"].node_id == session.node_id
+
+    @pytest.mark.asyncio
+    async def test_session_uses_preferred_endpoint_on_delete(self, session: QuerySession):
+        await session.create()
+        original_driver_call = session._driver
+
+        calls = []
+
+        async def mock_driver_call(*args, **kwargs):
+            calls.append(kwargs)
+            return await original_driver_call(*args, **kwargs)
+
+        session._driver = mock_driver_call
+
+        await session.delete()
+
+        assert len(calls) > 0
+        assert "preferred_endpoint" in calls[0]
+        assert calls[0]["preferred_endpoint"] is not None
+        assert calls[0]["preferred_endpoint"].node_id == session.node_id
+
+    @pytest.mark.asyncio
+    async def test_transaction_uses_preferred_endpoint(self, session: QuerySession):
+        await session.create()
+        original_driver_call = session._driver
+
+        calls = []
+
+        async def mock_driver_call(*args, **kwargs):
+            calls.append(kwargs)
+            return await original_driver_call(*args, **kwargs)
+
+        session._driver = mock_driver_call
+
+        async with session.transaction() as tx:
+            async with await tx.execute("select 1;") as results:
+                async for _ in results:
+                    pass
+
+        execute_calls = [c for c in calls if "preferred_endpoint" in c]
+        assert len(execute_calls) > 0
+        for call in execute_calls:
+            assert call["preferred_endpoint"] is not None
+            assert call["preferred_endpoint"].node_id == session.node_id

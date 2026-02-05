@@ -24,6 +24,11 @@ class ExportServiceStub(object):
                 request_serializer=protos_dot_ydb__export__pb2.ExportToS3Request.SerializeToString,
                 response_deserializer=protos_dot_ydb__export__pb2.ExportToS3Response.FromString,
                 )
+        self.ExportToFs = channel.unary_unary(
+                '/Ydb.Export.V1.ExportService/ExportToFs',
+                request_serializer=protos_dot_ydb__export__pb2.ExportToFsRequest.SerializeToString,
+                response_deserializer=protos_dot_ydb__export__pb2.ExportToFsResponse.FromString,
+                )
 
 
 class ExportServiceServicer(object):
@@ -45,6 +50,14 @@ class ExportServiceServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def ExportToFs(self, request, context):
+        """Exports data to file system.
+        Method starts an asynchronous operation that can be cancelled while it is in progress.
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
 
 def add_ExportServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
@@ -57,6 +70,11 @@ def add_ExportServiceServicer_to_server(servicer, server):
                     servicer.ExportToS3,
                     request_deserializer=protos_dot_ydb__export__pb2.ExportToS3Request.FromString,
                     response_serializer=protos_dot_ydb__export__pb2.ExportToS3Response.SerializeToString,
+            ),
+            'ExportToFs': grpc.unary_unary_rpc_method_handler(
+                    servicer.ExportToFs,
+                    request_deserializer=protos_dot_ydb__export__pb2.ExportToFsRequest.FromString,
+                    response_serializer=protos_dot_ydb__export__pb2.ExportToFsResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -99,5 +117,22 @@ class ExportService(object):
         return grpc.experimental.unary_unary(request, target, '/Ydb.Export.V1.ExportService/ExportToS3',
             protos_dot_ydb__export__pb2.ExportToS3Request.SerializeToString,
             protos_dot_ydb__export__pb2.ExportToS3Response.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def ExportToFs(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/Ydb.Export.V1.ExportService/ExportToFs',
+            protos_dot_ydb__export__pb2.ExportToFsRequest.SerializeToString,
+            protos_dot_ydb__export__pb2.ExportToFsResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)

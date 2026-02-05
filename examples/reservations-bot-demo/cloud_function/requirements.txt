@@ -6,12 +6,12 @@ enum-compat==0.0.3
 googleapis-common-protos==1.52.0
 grpcio==1.53.2
 idna==2.10
-protobuf==3.18.3
+protobuf==6.33.5
 pycparser==2.20
 pydantic==1.6.2
 PyJWT==2.4.0
 requests==2.31.0
-urllib3==1.26.5
+urllib3==2.6.3
 yandexcloud==0.48.0
 ydb==0.0.41
 

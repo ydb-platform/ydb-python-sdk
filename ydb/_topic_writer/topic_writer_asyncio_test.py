@@ -43,6 +43,8 @@ from .topic_writer_asyncio import (
 
 from ..credentials import AnonymousCredentials
 
+from .._constants import DEFAULT_INITIAL_RESPONSE_TIMEOUT
+
 
 FAKE_TRANSACTION_IDENTITY = TransactionIdentity(
     tx_id="transaction_id",
@@ -231,6 +233,55 @@ class TestWriterAsyncIOStream:
 
         await writer.close()
 
+    async def test_init_timeout_parameter(self, stream):
+        """Test that WriterAsyncIOStream._start calls stream.receive with timeout=10"""
+        writer_id = 1
+        settings = WriterSettings(PublicWriterSettings("test-topic", "test-producer"))
+
+        # Mock stream.receive to check if timeout is passed
+        with mock.patch.object(stream, "receive") as mock_receive:
+            mock_receive.return_value = StreamWriteMessage.InitResponse(
+                last_seq_no=0,
+                session_id="test_session",
+                partition_id=1,
+                supported_codecs=[Codec.CODEC_RAW],
+                status=ServerStatus(StatusCode.SUCCESS, []),
+            )
+
+            writer = WriterAsyncIOStream(writer_id, settings)
+            await writer._start(stream, settings.create_init_request())
+
+            # Verify that receive was called with timeout
+            mock_receive.assert_called_with(timeout=DEFAULT_INITIAL_RESPONSE_TIMEOUT)
+
+        await writer.close()
+
+    async def test_init_timeout_behavior(self, stream):
+        """Test that WriterAsyncIOStream._start raises TopicWriterError when receive times out"""
+        writer_id = 1
+        settings = WriterSettings(PublicWriterSettings("test-topic", "test-producer"))
+
+        # Mock stream.receive to directly raise TimeoutError when called with timeout
+        async def timeout_receive(timeout=None):
+            if timeout == DEFAULT_INITIAL_RESPONSE_TIMEOUT:
+                raise asyncio.TimeoutError("Simulated timeout")
+            return StreamWriteMessage.InitResponse(
+                last_seq_no=0,
+                session_id="test_session",
+                partition_id=1,
+                supported_codecs=[Codec.CODEC_RAW],
+                status=ServerStatus(StatusCode.SUCCESS, []),
+            )
+
+        with mock.patch.object(stream, "receive", side_effect=timeout_receive):
+            writer = WriterAsyncIOStream(writer_id, settings)
+
+            # Should raise TopicWriterError with timeout message
+            with pytest.raises(TopicWriterError, match="Timeout waiting for init response"):
+                await writer._start(stream, settings.create_init_request())
+
+        # Don't close writer since _start failed and _stream was never set
+
 
 @pytest.mark.asyncio
 class TestWriterAsyncIOReconnector:
@@ -251,6 +302,7 @@ class TestWriterAsyncIOReconnector:
             update_token_interval: Optional[int, float] = None,
             get_token_function: Optional[Callable[[], str]] = None,
         ):
+            self._id = 0
             self.last_seqno = 0
             self.from_server = asyncio.Queue()
             self.from_client = asyncio.Queue()

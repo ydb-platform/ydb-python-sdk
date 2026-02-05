@@ -12,3 +12,4 @@ def test_connect_secure(secure_endpoint, database):
     ) as driver:
         driver.wait(timeout=10)
         driver.scheme_client.make_directory("/local/test")
+        driver.scheme_client.remove_directory("/local/test")

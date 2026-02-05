@@ -38,6 +38,8 @@ from ..query.base import TxEvent
 if typing.TYPE_CHECKING:
     from ..query.transaction import BaseQueryTxContext
 
+from .._constants import DEFAULT_INITIAL_RESPONSE_TIMEOUT
+
 logger = logging.getLogger(__name__)
 
 
@@ -99,9 +101,9 @@ class PublicAsyncIOReader:
     def __del__(self):
         if not self._closed:
             try:
-                logger.warning("Topic reader was not closed properly. Consider using method close().")
+                logger.debug("Topic reader was not closed properly. Consider using method close().")
                 task = self._loop.create_task(self.close(flush=False))
-                topic_common.wrap_set_name_for_asyncio_task(task, task_name="close reader")
+                task.set_name("close reader")
             except BaseException:
                 logger.warning("Something went wrong during reader close in __del__")
 
@@ -121,6 +123,7 @@ class PublicAsyncIOReader:
 
         use asyncio.wait_for for wait with timeout.
         """
+        logger.debug("receive_batch max_messages=%s", max_messages)
         await self._reconnector.wait_message()
         return self._reconnector.receive_batch_nowait(
             max_messages=max_messages,
@@ -137,6 +140,7 @@ class PublicAsyncIOReader:
 
         use asyncio.wait_for for wait with timeout.
         """
+        logger.debug("receive_batch_with_tx tx=%s max_messages=%s", tx, max_messages)
         await self._reconnector.wait_message()
         return self._reconnector.receive_batch_with_tx_nowait(
             tx=tx,
@@ -149,6 +153,7 @@ class PublicAsyncIOReader:
 
         use asyncio.wait_for for wait with timeout.
         """
+        logger.debug("receive_message")
         await self._reconnector.wait_message()
         return self._reconnector.receive_message_nowait()
 
@@ -159,6 +164,7 @@ class PublicAsyncIOReader:
         For the method no way check the commit result
         (for example if lost connection - commits will not re-send and committed messages will receive again).
         """
+        logger.debug("commit message or batch")
         if self._settings.consumer is None:
             raise issues.Error("Commit operations are not supported for topic reader without consumer.")
 
@@ -177,6 +183,7 @@ class PublicAsyncIOReader:
         before receive commit ack. Message may be acked or not (if not - it will send in other read session,
         to this or other reader).
         """
+        logger.debug("commit_with_ack message or batch")
         if self._settings.consumer is None:
             raise issues.Error("Commit operations are not supported for topic reader without consumer.")
 
@@ -187,8 +194,10 @@ class PublicAsyncIOReader:
         if self._closed:
             raise TopicReaderClosedError()
 
+        logger.debug("Close topic reader")
         self._closed = True
         await self._reconnector.close(flush)
+        logger.debug("Topic reader was closed")
 
     @property
     def read_session_id(self) -> Optional[str]:
@@ -214,11 +223,12 @@ class ReaderReconnector:
         settings: topic_reader.PublicReaderSettings,
         loop: Optional[asyncio.AbstractEventLoop] = None,
     ):
-        self._id = self._static_reader_reconnector_counter.inc_and_get()
+        self._id = ReaderReconnector._static_reader_reconnector_counter.inc_and_get()
         self._settings = settings
         self._driver = driver
         self._loop = loop if loop is not None else asyncio.get_running_loop()
         self._background_tasks = set()
+        logger.debug("init reader reconnector id=%s", self._id)
 
         self._state_changed = asyncio.Event()
         self._stream_reader = None
@@ -231,15 +241,21 @@ class ReaderReconnector:
         attempt = 0
         while True:
             try:
+                logger.debug("reader %s connect attempt %s", self._id, attempt)
                 self._stream_reader = await ReaderStream.create(self._id, self._driver, self._settings)
+                logger.debug("reader %s connected stream %s", self._id, self._stream_reader._id)
                 attempt = 0
                 self._state_changed.set()
                 await self._stream_reader.wait_error()
             except BaseException as err:
+                logger.debug("reader %s, attempt %s connection loop error %s", self._id, attempt, err)
                 retry_info = check_retriable_error(err, self._settings._retry_settings(), attempt)
                 if not retry_info.is_retriable:
+                    logger.debug("reader %s stop connection loop due to %s", self._id, err)
                     self._set_first_error(err)
                     return
+
+                logger.debug("sleep before retry for %s seconds", retry_info.sleep_timeout_seconds)
 
                 await asyncio.sleep(retry_info.sleep_timeout_seconds)
 
@@ -269,18 +285,25 @@ class ReaderReconnector:
             self._state_changed.clear()
 
     def receive_batch_nowait(self, max_messages: Optional[int] = None):
+        if self._stream_reader is None:
+            return None
         return self._stream_reader.receive_batch_nowait(
             max_messages=max_messages,
         )
 
     def receive_batch_with_tx_nowait(self, tx: "BaseQueryTxContext", max_messages: Optional[int] = None):
+        if self._stream_reader is None:
+            return None
         batch = self._stream_reader.receive_batch_nowait(
             max_messages=max_messages,
         )
 
         self._init_tx(tx)
 
-        self._tx_to_batches_map[tx.tx_id].append(batch)
+        tx_id = tx.tx_id
+        if tx_id is None:
+            raise TopicReaderError("Transaction ID is None")
+        self._tx_to_batches_map[tx_id].append(batch)
 
         tx._add_callback(TxEvent.AFTER_COMMIT, batch._update_partition_offsets, self._loop)
 
@@ -290,18 +313,29 @@ class ReaderReconnector:
         return self._stream_reader.receive_message_nowait()
 
     def _init_tx(self, tx: "BaseQueryTxContext"):
-        if tx.tx_id not in self._tx_to_batches_map:  # Init tx callbacks
-            self._tx_to_batches_map[tx.tx_id] = []
+        tx_id = tx.tx_id
+        if tx_id is None:
+            raise TopicReaderError("Transaction ID is None")
+        if tx_id not in self._tx_to_batches_map:  # Init tx callbacks
+            self._tx_to_batches_map[tx_id] = []
             tx._add_callback(TxEvent.BEFORE_COMMIT, self._commit_batches_with_tx, self._loop)
             tx._add_callback(TxEvent.AFTER_COMMIT, self._handle_after_tx_commit, self._loop)
             tx._add_callback(TxEvent.AFTER_ROLLBACK, self._handle_after_tx_rollback, self._loop)
 
     async def _commit_batches_with_tx(self, tx: "BaseQueryTxContext"):
-        grouped_batches = defaultdict(lambda: defaultdict(list))
-        for batch in self._tx_to_batches_map[tx.tx_id]:
+        tx_id = tx.tx_id
+        if tx_id is None:
+            raise TopicReaderError("Transaction ID is None")
+        grouped_batches: Dict[str, Dict[int, typing.List[datatypes.PublicBatch]]] = defaultdict(
+            lambda: defaultdict(list)
+        )
+        for batch in self._tx_to_batches_map[tx_id]:
             grouped_batches[batch._partition_session.topic_path][batch._partition_session.partition_id].append(batch)
 
-        request = UpdateOffsetsInTransactionRequest(tx=tx._tx_identity(), consumer=self._settings.consumer, topics=[])
+        consumer = self._settings.consumer
+        if consumer is None:
+            raise TopicReaderError("Consumer is None")
+        request = UpdateOffsetsInTransactionRequest(tx=tx._tx_identity(), consumer=consumer, topics=[])
 
         for topic_path in grouped_batches:
             topic_offsets = UpdateOffsetsInTransactionRequest.TopicOffsets(path=topic_path, partitions=[])
@@ -318,11 +352,13 @@ class ReaderReconnector:
         try:
             return await self._do_commit_batches_with_tx_call(request)
         except BaseException:
-            exc = issues.ClientInternalError("Failed to update offsets in tx.")
-            tx._set_external_error(exc)
-            self._stream_reader._set_first_error(exc)
+            err = issues.ClientInternalError("Failed to update offsets in tx.")
+            tx._set_external_error(err)
+            if self._stream_reader is not None:
+                self._stream_reader._set_first_error(err)
         finally:
-            del self._tx_to_batches_map[tx.tx_id]
+            if tx_id in self._tx_to_batches_map:
+                del self._tx_to_batches_map[tx_id]
 
     async def _do_commit_batches_with_tx_call(self, request: UpdateOffsetsInTransactionRequest):
         args = [
@@ -340,24 +376,30 @@ class ReaderReconnector:
         return res
 
     async def _handle_after_tx_rollback(self, tx: "BaseQueryTxContext", exc: Optional[BaseException]) -> None:
-        if tx.tx_id in self._tx_to_batches_map:
-            del self._tx_to_batches_map[tx.tx_id]
-        exc = issues.ClientInternalError("Reconnect due to transaction rollback")
-        self._stream_reader._set_first_error(exc)
+        tx_id = tx.tx_id
+        if tx_id is not None and tx_id in self._tx_to_batches_map:
+            del self._tx_to_batches_map[tx_id]
+        err = issues.ClientInternalError("Reconnect due to transaction rollback")
+        if self._stream_reader is not None:
+            self._stream_reader._set_first_error(err)
 
     async def _handle_after_tx_commit(self, tx: "BaseQueryTxContext", exc: Optional[BaseException]) -> None:
-        if tx.tx_id in self._tx_to_batches_map:
-            del self._tx_to_batches_map[tx.tx_id]
+        tx_id = tx.tx_id
+        if tx_id is not None and tx_id in self._tx_to_batches_map:
+            del self._tx_to_batches_map[tx_id]
 
-        if exc is not None:
+        if exc is not None and self._stream_reader is not None:
             self._stream_reader._set_first_error(
                 issues.ClientInternalError("Reconnect due to transaction commit failed")
             )
 
     def commit(self, batch: datatypes.ICommittable) -> datatypes.PartitionSession.CommitAckWaiter:
+        if self._stream_reader is None:
+            raise TopicReaderError("Stream reader is not connected")
         return self._stream_reader.commit(batch)
 
     async def close(self, flush: bool):
+        logger.debug("reader reconnector %s close", self._id)
         if self._stream_reader:
             await self._stream_reader.close(flush)
         for task in self._background_tasks:
@@ -396,7 +438,7 @@ class ReaderStream:
     _background_tasks: Set[asyncio.Task]
     _partition_sessions: Dict[int, datatypes.PartitionSession]
     _buffer_size_bytes: int  # use for init request, then for debug purposes only
-    _decode_executor: concurrent.futures.Executor
+    _decode_executor: Optional[concurrent.futures.Executor]
     _decoders: Dict[int, typing.Callable[[bytes], bytes]]  # dict[codec_code] func(encoded_bytes)->decoded_bytes
 
     if typing.TYPE_CHECKING:
@@ -406,12 +448,12 @@ class ReaderStream:
 
     _state_changed: asyncio.Event
     _closed: bool
-    _message_batches: typing.Dict[int, datatypes.PublicBatch]  # keys are partition session ID
+    _message_batches: "OrderedDict[int, datatypes.PublicBatch]"  # keys are partition session ID
     _first_error: asyncio.Future[YdbError]
 
     _update_token_interval: Union[int, float]
     _update_token_event: asyncio.Event
-    _get_token_function: Callable[[], str]
+    _get_token_function: Optional[Callable[[], str]]
     _settings: topic_reader.PublicReaderSettings
 
     def __init__(
@@ -447,6 +489,8 @@ class ReaderStream:
 
         self._settings = settings
 
+        logger.debug("created ReaderStream id=%s reconnector=%s", self._id, self._reader_reconnector_id)
+
     @staticmethod
     async def create(
         reader_reconnector_id: int,
@@ -464,6 +508,7 @@ class ReaderStream:
             get_token_function=creds.get_auth_token if creds else None,
         )
         await reader._start(stream, settings._init_message())
+        logger.debug("reader stream %s started session=%s", reader._id, reader._session_id)
         return reader
 
     async def _start(self, stream: IGrpcWrapperAsyncIO, init_message: StreamReadMessage.InitRequest):
@@ -472,49 +517,49 @@ class ReaderStream:
 
         self._started = True
         self._stream = stream
+        logger.debug("reader stream %s send init request", self._id)
 
         stream.write(StreamReadMessage.FromClient(client_message=init_message))
-        init_response = await stream.receive()  # type: StreamReadMessage.FromServer
+        try:
+            init_response = await stream.receive(
+                timeout=DEFAULT_INITIAL_RESPONSE_TIMEOUT
+            )  # type: StreamReadMessage.FromServer
+        except asyncio.TimeoutError:
+            raise TopicReaderError("Timeout waiting for init response")
+
         if isinstance(init_response.server_message, StreamReadMessage.InitResponse):
             self._session_id = init_response.server_message.session_id
+            logger.debug("reader stream %s initialized session=%s", self._id, self._session_id)
         else:
-            raise TopicReaderError("Unexpected message after InitRequest: %s", init_response)
+            raise TopicReaderError("Unexpected message after InitRequest: %s" % init_response)
 
         self._update_token_event.set()
 
-        self._background_tasks.add(
-            topic_common.wrap_set_name_for_asyncio_task(
-                asyncio.create_task(self._read_messages_loop()),
-                task_name="read_messages_loop",
-            ),
-        )
-        self._background_tasks.add(
-            topic_common.wrap_set_name_for_asyncio_task(
-                asyncio.create_task(self._decode_batches_loop()),
-                task_name="decode_batches",
-            ),
-        )
+        read_task = asyncio.create_task(self._read_messages_loop())
+        read_task.set_name("read_messages_loop")
+        self._background_tasks.add(read_task)
+
+        decode_task = asyncio.create_task(self._decode_batches_loop())
+        decode_task.set_name("decode_batches")
+        self._background_tasks.add(decode_task)
+
         if self._get_token_function:
-            self._background_tasks.add(
-                topic_common.wrap_set_name_for_asyncio_task(
-                    asyncio.create_task(self._update_token_loop()),
-                    task_name="update_token_loop",
-                ),
-            )
-        self._background_tasks.add(
-            topic_common.wrap_set_name_for_asyncio_task(
-                asyncio.create_task(self._handle_background_errors()),
-                task_name="handle_background_errors",
-            ),
-        )
+            update_token_task = asyncio.create_task(self._update_token_loop())
+            update_token_task.set_name("update_token_loop")
+            self._background_tasks.add(update_token_task)
+
+        errors_task = asyncio.create_task(self._handle_background_errors())
+        errors_task.set_name("handle_background_errors")
+        self._background_tasks.add(errors_task)
 
     async def wait_error(self):
         raise await self._first_error
 
     async def wait_messages(self):
         while True:
-            if self._get_first_error():
-                raise self._get_first_error()
+            first_error = self._get_first_error()
+            if first_error is not None:
+                raise first_error
 
             if self._message_batches:
                 return
@@ -535,8 +580,9 @@ class ReaderStream:
             self._message_batches.move_to_end(part_sess_id, last=False)
 
     def receive_batch_nowait(self, max_messages: Optional[int] = None):
-        if self._get_first_error():
-            raise self._get_first_error()
+        first_error = self._get_first_error()
+        if first_error is not None:
+            raise first_error
 
         if not self._message_batches:
             return None
@@ -556,8 +602,9 @@ class ReaderStream:
         return cutted_batch
 
     def receive_message_nowait(self):
-        if self._get_first_error():
-            raise self._get_first_error()
+        first_error = self._get_first_error()
+        if first_error is not None:
+            raise first_error
 
         if not self._message_batches:
             return None
@@ -598,7 +645,8 @@ class ReaderStream:
                     )
                 ]
             )
-            self._stream.write(StreamReadMessage.FromClient(client_message=client_message))
+            if self._stream is not None:
+                self._stream.write(StreamReadMessage.FromClient(client_message=client_message))
 
         return waiter
 
@@ -615,6 +663,7 @@ class ReaderStream:
 
     async def _read_messages_loop(self):
         try:
+            logger.debug("reader stream %s start read loop", self._id)
             self._stream.write(
                 StreamReadMessage.FromClient(
                     client_message=StreamReadMessage.ReadRequest(
@@ -628,6 +677,7 @@ class ReaderStream:
                     _process_response(message.server_status)
 
                     if isinstance(message.server_message, StreamReadMessage.ReadResponse):
+                        logger.debug("reader stream %s read %s bytes", self._id, message.server_message.bytes_size)
                         self._on_read_response(message.server_message)
 
                     elif isinstance(message.server_message, StreamReadMessage.CommitOffsetResponse):
@@ -637,18 +687,33 @@ class ReaderStream:
                         message.server_message,
                         StreamReadMessage.StartPartitionSessionRequest,
                     ):
+                        logger.debug(
+                            "reader stream %s start partition %s",
+                            self._id,
+                            message.server_message.partition_session.partition_session_id,
+                        )
                         await self._on_start_partition_session(message.server_message)
 
                     elif isinstance(
                         message.server_message,
                         StreamReadMessage.StopPartitionSessionRequest,
                     ):
+                        logger.debug(
+                            "reader stream %s stop partition %s",
+                            self._id,
+                            message.server_message.partition_session_id,
+                        )
                         self._on_partition_session_stop(message.server_message)
 
                     elif isinstance(
                         message.server_message,
                         StreamReadMessage.EndPartitionSession,
                     ):
+                        logger.debug(
+                            "reader stream %s end partition %s",
+                            self._id,
+                            message.server_message.partition_session_id,
+                        )
                         self._on_end_partition_session(message.server_message)
 
                     elif isinstance(message.server_message, UpdateTokenResponse):
@@ -663,12 +728,15 @@ class ReaderStream:
 
                 self._state_changed.set()
         except Exception as e:
+            logger.debug("reader stream %s error: %s", self._id, e)
             self._set_first_error(e)
             return
 
     async def _update_token_loop(self):
         while True:
             await asyncio.sleep(self._update_token_interval)
+            if self._get_token_function is None:
+                return
             token = self._get_token_function()
             if asyncio.iscoroutine(token):
                 token = await token
@@ -678,7 +746,8 @@ class ReaderStream:
         await self._update_token_event.wait()
         try:
             msg = StreamReadMessage.FromClient(UpdateTokenRequest(token))
-            self._stream.write(msg)
+            if self._stream is not None:
+                self._stream.write(msg)
         finally:
             self._update_token_event.clear()
 
@@ -710,15 +779,16 @@ class ReaderStream:
                 )
                 read_offset = None if resp is None else resp.start_offset
 
-            self._stream.write(
-                StreamReadMessage.FromClient(
-                    client_message=StreamReadMessage.StartPartitionSessionResponse(
-                        partition_session_id=message.partition_session.partition_session_id,
-                        read_offset=read_offset,
-                        commit_offset=None,
-                    )
-                ),
-            )
+            if self._stream is not None:
+                self._stream.write(
+                    StreamReadMessage.FromClient(
+                        client_message=StreamReadMessage.StartPartitionSessionResponse(
+                            partition_session_id=message.partition_session.partition_session_id,
+                            read_offset=read_offset,
+                            commit_offset=None,
+                        )
+                    ),
+                )
         except YdbError as err:
             self._set_first_error(err)
 
@@ -731,7 +801,7 @@ class ReaderStream:
         partition = self._partition_sessions.pop(message.partition_session_id)
         partition.close()
 
-        if message.graceful:
+        if message.graceful and self._stream is not None:
             self._stream.write(
                 StreamReadMessage.FromClient(
                     client_message=StreamReadMessage.StopPartitionSessionResponse(
@@ -779,7 +849,7 @@ class ReaderStream:
         )
 
     def _read_response_to_batches(self, message: StreamReadMessage.ReadResponse) -> typing.List[datatypes.PublicBatch]:
-        batches = []
+        batches: typing.List[datatypes.PublicBatch] = []
 
         batch_count = sum(len(p.batches) for p in message.partition_data)
         if batch_count == 0:
@@ -825,6 +895,7 @@ class ReaderStream:
     async def _decode_batches_loop(self):
         while True:
             batch = await self._batches_to_decode.get()
+            logger.debug("reader stream %s decode batch %s messages", self._id, len(batch.messages))
             await self._decode_batch_inplace(batch)
             self._add_batch_to_queue(batch)
             self._state_changed.set()
@@ -833,9 +904,21 @@ class ReaderStream:
         part_sess_id = batch._partition_session.id
         if part_sess_id in self._message_batches:
             self._message_batches[part_sess_id]._extend(batch)
+            logger.debug(
+                "reader stream %s extend batch partition=%s size=%s",
+                self._id,
+                part_sess_id,
+                len(batch.messages),
+            )
             return
 
         self._message_batches[part_sess_id] = batch
+        logger.debug(
+            "reader stream %s new batch partition=%s size=%s",
+            self._id,
+            part_sess_id,
+            len(batch.messages),
+        )
 
     async def _decode_batch_inplace(self, batch):
         if batch._codec == Codec.CODEC_RAW:
@@ -868,6 +951,7 @@ class ReaderStream:
     def _get_first_error(self) -> Optional[YdbError]:
         if self._first_error.done():
             return self._first_error.result()
+        return None
 
     async def flush(self):
         futures = []
@@ -882,13 +966,15 @@ class ReaderStream:
             return
 
         self._closed = True
+        logger.debug("reader stream %s close", self._id)
 
         if flush:
             await self.flush()
 
         self._set_first_error(TopicReaderStreamClosedError())
         self._state_changed.set()
-        self._stream.close()
+        if self._stream is not None:
+            self._stream.close()
 
         for session in self._partition_sessions.values():
             session.close()
@@ -899,3 +985,5 @@ class ReaderStream:
 
         if self._background_tasks:
             await asyncio.wait(self._background_tasks)
+
+        logger.debug("reader stream %s was closed", self._id)

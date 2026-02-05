@@ -66,7 +66,7 @@ async def main():
     args = parser.parse_args()
 
     if args.verbose:
-        logger = logging.getLogger("topicexample")
+        logger = logging.getLogger("ydb")
         logger.setLevel(logging.DEBUG)
         logger.addHandler(logging.StreamHandler())
 
@@ -78,6 +78,8 @@ async def main():
         write_messages(driver, args.path),
         read_messages(driver, args.path, args.consumer),
     )
+
+    await driver.stop()
 
 
 if __name__ == "__main__":

@@ -21,7 +21,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   syntax='proto3',
   serialized_options=b'\n\030tech.ydb.proto.export.v1Z5github.com/ydb-platform/ydb-go-genproto/Ydb_Export_V1',
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n\x13ydb_export_v1.proto\x12\rYdb.Export.V1\x1a\x17protos/ydb_export.proto2\xa9\x01\n\rExportService\x12K\n\nExportToYt\x12\x1d.Ydb.Export.ExportToYtRequest\x1a\x1e.Ydb.Export.ExportToYtResponse\x12K\n\nExportToS3\x12\x1d.Ydb.Export.ExportToS3Request\x1a\x1e.Ydb.Export.ExportToS3ResponseBQ\n\x18tech.ydb.proto.export.v1Z5github.com/ydb-platform/ydb-go-genproto/Ydb_Export_V1b\x06proto3'
+  serialized_pb=b'\n\x13ydb_export_v1.proto\x12\rYdb.Export.V1\x1a\x17protos/ydb_export.proto2\xf6\x01\n\rExportService\x12K\n\nExportToYt\x12\x1d.Ydb.Export.ExportToYtRequest\x1a\x1e.Ydb.Export.ExportToYtResponse\x12K\n\nExportToS3\x12\x1d.Ydb.Export.ExportToS3Request\x1a\x1e.Ydb.Export.ExportToS3Response\x12K\n\nExportToFs\x12\x1d.Ydb.Export.ExportToFsRequest\x1a\x1e.Ydb.Export.ExportToFsResponseBQ\n\x18tech.ydb.proto.export.v1Z5github.com/ydb-platform/ydb-go-genproto/Ydb_Export_V1b\x06proto3'
   ,
   dependencies=[protos_dot_ydb__export__pb2.DESCRIPTOR,])
 
@@ -40,7 +40,7 @@ _EXPORTSERVICE = _descriptor.ServiceDescriptor(
   serialized_options=None,
   create_key=_descriptor._internal_create_key,
   serialized_start=64,
-  serialized_end=233,
+  serialized_end=310,
   methods=[
   _descriptor.MethodDescriptor(
     name='ExportToYt',
@@ -59,6 +59,16 @@ _EXPORTSERVICE = _descriptor.ServiceDescriptor(
     containing_service=None,
     input_type=protos_dot_ydb__export__pb2._EXPORTTOS3REQUEST,
     output_type=protos_dot_ydb__export__pb2._EXPORTTOS3RESPONSE,
+    serialized_options=None,
+    create_key=_descriptor._internal_create_key,
+  ),
+  _descriptor.MethodDescriptor(
+    name='ExportToFs',
+    full_name='Ydb.Export.V1.ExportService.ExportToFs',
+    index=2,
+    containing_service=None,
+    input_type=protos_dot_ydb__export__pb2._EXPORTTOFSREQUEST,
+    output_type=protos_dot_ydb__export__pb2._EXPORTTOFSRESPONSE,
     serialized_options=None,
     create_key=_descriptor._internal_create_key,
   ),

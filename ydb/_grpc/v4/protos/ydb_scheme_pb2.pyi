@@ -47,11 +47,14 @@ class Entry(_message.Message):
     PERMISSIONS_FIELD_NUMBER: _ClassVar[int]
     PERS_QUEUE_GROUP: Entry.Type
     REPLICATION: Entry.Type
+    RESOURCE_POOL: Entry.Type
     RTMR_VOLUME: Entry.Type
     SEQUENCE: Entry.Type
     SIZE_BYTES_FIELD_NUMBER: _ClassVar[int]
+    SYS_VIEW: Entry.Type
     TABLE: Entry.Type
     TOPIC: Entry.Type
+    TRANSFER: Entry.Type
     TYPE_FIELD_NUMBER: _ClassVar[int]
     TYPE_UNSPECIFIED: Entry.Type
     VIEW: Entry.Type

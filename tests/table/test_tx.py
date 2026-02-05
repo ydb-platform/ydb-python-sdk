@@ -78,6 +78,9 @@ def test_tx_snapshot_ro(driver_sync, database):
     )
     assert data[0].rows == [{"value": 2}]
 
+    with suppress(ydb.issues.SchemeError):
+        session.drop_table(tb_name)
+
 
 def test_split_transactions_deny_split(driver_sync, table_name):
     with ydb.SessionPool(driver_sync, 1) as pool:

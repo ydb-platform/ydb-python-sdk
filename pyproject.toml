@@ -1,2 +1,50 @@
 [tool.black]
 line-length = 120
+
+[tool.mypy]
+python_version = "3.9"
+warn_unused_configs = true
+warn_redundant_casts = true
+strict_equality = true
+show_error_codes = true
+
+# Roadmap: these can be enabled after fixing the errors
+no_implicit_optional = false  # 24 errors
+disallow_untyped_decorators = false  # 10 errors
+check_untyped_defs = false  # 58 errors
+warn_return_any = false  # 62 errors
+
+exclude = [
+    "ydb/_grpc/v3/",
+    "ydb/_grpc/v4/",
+    "ydb/_grpc/v5/",
+    "ydb/_grpc/v6/",
+    "ydb.sqlalchemy.*",
+    "tests/",
+    "examples/",
+    "docs/",
+    # Exclude test files inside ydb directory
+    ".*_test\\.py$",
+]
+
+# External dependencies - ignore missing imports
+[[tool.mypy.overrides]]
+module = [
+    "google.protobuf.*",
+    "grpc.*",
+    "aiohttp.*",
+    "yandexcloud.*",
+    "yandex.cloud.*",
+    "jwt.*",
+    "kikimr.*",
+    "sqlalchemy.*",
+    "requests.*",
+    "ydb.public.api.*",
+    "contrib.ydb.public.api.*",
+]
+ignore_missing_imports = true
+
+# Types and Table modules - protobuf stubs don't expose enum values correctly
+[[tool.mypy.overrides]]
+module = ["ydb.types", "ydb.table"]
+disable_error_code = ["attr-defined"]

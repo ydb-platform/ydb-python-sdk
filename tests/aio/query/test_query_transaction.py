@@ -1,5 +1,6 @@
 import pytest
 
+import ydb
 from ydb.aio.query.transaction import QueryTxContext
 from ydb.query.transaction import QueryTxStateEnum
 
@@ -107,3 +108,38 @@ class TestAsyncQueryTransaction:
 
         assert res == [[1], [2]]
         assert counter == 2
+
+    @pytest.mark.asyncio
+    @pytest.mark.usefixtures("ydb_terminates_streams_with_unavailable")
+    async def test_terminated_stream_raises_ydb_error(self, tx: QueryTxContext):
+        await tx.begin()
+
+        with pytest.raises(ydb.Unavailable):
+            async with await tx.execute("select 1") as results:
+                async for _ in results:
+                    pass
+
+    @pytest.mark.asyncio
+    async def test_rollback_after_tli_aborted_is_safe(self, pool, table_path: str):
+        # Given: a row in a table
+        table_ref = f"`{table_path}`"
+        await pool.execute_with_retries(f"UPSERT INTO {table_ref} (id, i64Val) VALUES (1, 0);")
+
+        # When: two concurrent transactions try to modify this row.
+        async with pool.checkout() as session1, pool.checkout() as session2:
+            tx1 = session1.transaction()
+            tx2 = session2.transaction()
+
+            async with await tx1.execute(f"SELECT i64Val FROM {table_ref} WHERE id = 1;") as _:
+                pass
+
+            async with await tx2.execute(f"UPSERT INTO {table_ref} (id, i64Val) VALUES (1, 1);", commit_tx=True) as _:
+                pass
+
+            async with await tx1.execute(f"UPSERT INTO {table_ref} (id, i64Val) VALUES (1, 2);") as _:
+                pass
+            with pytest.raises(ydb.Aborted):
+                await tx1.commit()  # receive TLI here
+
+            # Then: rollback (as a handling of Aborted exception) must be successful.
+            await tx1.rollback()

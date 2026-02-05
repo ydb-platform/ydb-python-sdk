@@ -13,7 +13,7 @@ with open("requirements.txt") as r:
 
 setuptools.setup(
     name="ydb",
-    version="3.21.5",  # AUTOVERSION
+    version="3.26.2",  # AUTOVERSION
     description="YDB Python SDK",
     author="Yandex LLC",
     author_email="ydb@yandex-team.ru",
@@ -24,11 +24,14 @@ setuptools.setup(
     long_description_content_type='text/markdown',
     packages=setuptools.find_packages("."),
     classifiers=[
-        "Programming Language :: Python",
-        "Programming Language :: Python :: 2",
-        "Programming Language :: Python :: 2.7",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
+        "Programming Language :: Python :: 3.13",
+        "Programming Language :: Python :: 3 :: Only",
     ],
     install_requires=requirements,  # requirements.txt
     options={"bdist_wheel": {"universal": True}},

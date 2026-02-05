@@ -1,4 +1,5 @@
 import pytest
+import ydb
 
 from ydb.query.base import QueryStatsMode
 from ydb.query.transaction import QueryTxContext
@@ -134,3 +135,27 @@ class TestQueryTransaction:
             assert len(stats.query_plan) > 0
         else:
             assert stats.query_plan == ""
+
+    def test_rollback_after_tli_aborted_is_safe(self, pool, table_path: str):
+        # Given: a row in a table
+        table_ref = f"`{table_path}`"
+        pool.execute_with_retries(f"UPSERT INTO {table_ref} (id, i64Val) VALUES (1, 0);")
+
+        # When: two concurrent transactions try to modify this row.
+        with pool.checkout() as session1, pool.checkout() as session2:
+            tx1 = session1.transaction()
+            tx2 = session2.transaction()
+
+            with tx1.execute(f"SELECT i64Val FROM {table_ref} WHERE id = 1;") as _:
+                pass
+
+            with tx2.execute(f"UPSERT INTO {table_ref} (id, i64Val) VALUES (1, 1);", commit_tx=True) as _:
+                pass
+
+            with tx1.execute(f"UPSERT INTO {table_ref} (id, i64Val) VALUES (1, 2);") as _:
+                pass
+            with pytest.raises(ydb.Aborted):
+                tx1.commit()  # receive TLI here
+
+            # Then: rollback (as a handling of Aborted exception) must be successful.
+            tx1.rollback()

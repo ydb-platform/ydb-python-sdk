@@ -19,10 +19,20 @@ class ImportServiceStub(object):
                 request_serializer=protos_dot_ydb__import__pb2.ImportFromS3Request.SerializeToString,
                 response_deserializer=protos_dot_ydb__import__pb2.ImportFromS3Response.FromString,
                 )
+        self.ImportFromFs = channel.unary_unary(
+                '/Ydb.Import.V1.ImportService/ImportFromFs',
+                request_serializer=protos_dot_ydb__import__pb2.ImportFromFsRequest.SerializeToString,
+                response_deserializer=protos_dot_ydb__import__pb2.ImportFromFsResponse.FromString,
+                )
         self.ListObjectsInS3Export = channel.unary_unary(
                 '/Ydb.Import.V1.ImportService/ListObjectsInS3Export',
                 request_serializer=protos_dot_ydb__import__pb2.ListObjectsInS3ExportRequest.SerializeToString,
                 response_deserializer=protos_dot_ydb__import__pb2.ListObjectsInS3ExportResponse.FromString,
+                )
+        self.ListObjectsInFsExport = channel.unary_unary(
+                '/Ydb.Import.V1.ImportService/ListObjectsInFsExport',
+                request_serializer=protos_dot_ydb__import__pb2.ListObjectsInFsExportRequest.SerializeToString,
+                response_deserializer=protos_dot_ydb__import__pb2.ListObjectsInFsExportResponse.FromString,
                 )
         self.ImportData = channel.unary_unary(
                 '/Ydb.Import.V1.ImportService/ImportData',
@@ -42,8 +52,23 @@ class ImportServiceServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def ImportFromFs(self, request, context):
+        """Imports data from file system.
+        Method starts an asynchronous operation that can be cancelled while it is in progress.
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
     def ListObjectsInS3Export(self, request, context):
         """List objects from existing export stored in S3 bucket
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def ListObjectsInFsExport(self, request, context):
+        """List objects from existing export stored in FS
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -65,10 +90,20 @@ def add_ImportServiceServicer_to_server(servicer, server):
                     request_deserializer=protos_dot_ydb__import__pb2.ImportFromS3Request.FromString,
                     response_serializer=protos_dot_ydb__import__pb2.ImportFromS3Response.SerializeToString,
             ),
+            'ImportFromFs': grpc.unary_unary_rpc_method_handler(
+                    servicer.ImportFromFs,
+                    request_deserializer=protos_dot_ydb__import__pb2.ImportFromFsRequest.FromString,
+                    response_serializer=protos_dot_ydb__import__pb2.ImportFromFsResponse.SerializeToString,
+            ),
             'ListObjectsInS3Export': grpc.unary_unary_rpc_method_handler(
                     servicer.ListObjectsInS3Export,
                     request_deserializer=protos_dot_ydb__import__pb2.ListObjectsInS3ExportRequest.FromString,
                     response_serializer=protos_dot_ydb__import__pb2.ListObjectsInS3ExportResponse.SerializeToString,
+            ),
+            'ListObjectsInFsExport': grpc.unary_unary_rpc_method_handler(
+                    servicer.ListObjectsInFsExport,
+                    request_deserializer=protos_dot_ydb__import__pb2.ListObjectsInFsExportRequest.FromString,
+                    response_serializer=protos_dot_ydb__import__pb2.ListObjectsInFsExportResponse.SerializeToString,
             ),
             'ImportData': grpc.unary_unary_rpc_method_handler(
                     servicer.ImportData,
@@ -103,6 +138,23 @@ class ImportService(object):
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
+    def ImportFromFs(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/Ydb.Import.V1.ImportService/ImportFromFs',
+            protos_dot_ydb__import__pb2.ImportFromFsRequest.SerializeToString,
+            protos_dot_ydb__import__pb2.ImportFromFsResponse.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
     def ListObjectsInS3Export(request,
             target,
             options=(),
@@ -116,6 +168,23 @@ class ImportService(object):
         return grpc.experimental.unary_unary(request, target, '/Ydb.Import.V1.ImportService/ListObjectsInS3Export',
             protos_dot_ydb__import__pb2.ListObjectsInS3ExportRequest.SerializeToString,
             protos_dot_ydb__import__pb2.ListObjectsInS3ExportResponse.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def ListObjectsInFsExport(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/Ydb.Import.V1.ImportService/ListObjectsInFsExport',
+            protos_dot_ydb__import__pb2.ListObjectsInFsExportRequest.SerializeToString,
+            protos_dot_ydb__import__pb2.ListObjectsInFsExportResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 

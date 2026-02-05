@@ -2,16 +2,18 @@ name: Style checks
 
 on:
   push:
+    branches:
+      - main
   pull_request:
 
 jobs:
-  build:
+  lint:
     runs-on: ubuntu-latest
     strategy:
       max-parallel: 4
       matrix:
-        python-version: [3.8]
-        environment: [style, black]
+        python-version: [3.9]
+        environment: [style, black, mypy]
 
     steps:
     - uses: actions/checkout@v1

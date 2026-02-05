@@ -1,4 +1,4 @@
-name: Functional tests
+name: Tests
 
 on:
   push:
@@ -7,26 +7,18 @@ on:
   pull_request:
 
 jobs:
-  build:
+  integration:
     runs-on: ubuntu-latest
 
     concurrency:
-      group: unit-${{ github.ref }}-${{ matrix.environment }}-${{ matrix.python-version }}-${{ matrix.folder }}
+      group: integration-${{ github.ref }}-${{ matrix.python-version }}-${{ matrix.protobuf-version }}
       cancel-in-progress: true
 
     strategy:
       fail-fast: false
       matrix:
-        python-version: [3.8, 3.9]
-        environment: [py, py-tls, py-proto4, py-tls-proto4, py-proto3, py-tls-proto3]
-        folder: [ydb, tests]
-        exclude:
-          - environment: py-tls
-            folder: ydb
-          - environment: py-tls-proto4
-            folder: ydb
-          - environment: py-tls-proto3
-            folder: ydb
+        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12", "3.13"]
+        protobuf-version: [proto3, proto4, proto5, proto6]
 
     steps:
     - uses: actions/checkout@v1
@@ -41,4 +33,31 @@ jobs:
         pip install tox==4.2.6
 
     - name: Run unit tests
-      run: tox -e ${{ matrix.environment }} -- ${{ matrix.folder }}
+      run: tox -e py-${{ matrix.protobuf-version }} -- tests
+
+  unit:
+    runs-on: ubuntu-latest
+
+    concurrency:
+      group: unit-${{ github.ref }}-${{ matrix.python-version }}
+      cancel-in-progress: true
+
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12", "3.13"]
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Install tox
+      run: |
+        python -m pip install --upgrade pip
+        pip install tox==4.2.6
+
+    - name: Run unit tests
+      run: tox -e py -- ydb
