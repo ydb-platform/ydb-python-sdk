@@ -1,3 +1,4 @@
+## 3.26.1 ##
 * Fix discovery timeout
 
 ## 3.26.0 ##
