@@ -270,7 +270,7 @@ class ConnectionPool(IConnectionPool):
     ) -> Any:
         if self._stopped:
             raise issues.Error("Driver was stopped")
-        wait_timeout = int(settings.timeout) if settings and settings.timeout else 10
+        wait_timeout: float = settings.timeout if settings else 10  # type: ignore[assignment]
         try:
             connection = await self._store.get(preferred_endpoint, fast_fail=fast_fail, wait_timeout=wait_timeout)
         except BaseException:

@@ -179,9 +179,7 @@ class Connection:
     async def _prepare_call(
         self, stub: Any, rpc_name: str, request: Any, settings: Optional[BaseRequestSettings]
     ) -> Tuple[_RpcState, float, List[Tuple[str, str]]]:
-        if self._driver_config is None:
-            raise issues.ConnectionLost("Driver config is not set")
-        timeout, metadata = _get_request_timeout(settings), await _construct_metadata(self._driver_config, settings)
+        timeout, metadata = _get_request_timeout(settings), await _construct_metadata(self._driver_config, settings)  # type: ignore[arg-type]
         _set_server_timeouts(request, settings, timeout)
         self._prepare_stub_instance(stub)
         rpc_state = _RpcState(self._stub_instances[stub], rpc_name, self.endpoint, self.endpoint_key)
