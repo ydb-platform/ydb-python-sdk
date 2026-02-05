@@ -1,3 +1,4 @@
+## 3.26.2 ##
 * Fix possible race condition in topic common
 
 ## 3.26.1 ##
