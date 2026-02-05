@@ -3,7 +3,7 @@ import asyncio
 import logging
 import random
 import time
-from typing import List, Dict, Optional
+from typing import Dict, List, Optional
 
 from .. import resolver
 
@@ -73,7 +73,7 @@ def _split_endpoints_by_location(
     :param endpoints: List of resolver.EndpointInfo objects
     :return: Dictionary mapping location -> list of resolver.EndpointInfo
     """
-    result = {}
+    result: Dict[str, List[resolver.EndpointInfo]] = {}
     for endpoint in endpoints:
         location = endpoint.location
         if location not in result:
