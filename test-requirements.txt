@@ -38,7 +38,7 @@ zipp==3.19.1
 aiohttp>=3.9.0
 pytest-pep8
 pytest-flake8
-flake8==3.9.2
+flake8>=5.0.0
 sqlalchemy==1.4.26
 pylint-protobuf
 cython

@@ -36,8 +36,6 @@ _shared_event_loop: Optional[asyncio.AbstractEventLoop] = None
 
 
 def _get_shared_event_loop() -> asyncio.AbstractEventLoop:
-    global _shared_event_loop
-
     if _shared_event_loop is not None:
         return _shared_event_loop
 
@@ -45,12 +43,17 @@ def _get_shared_event_loop() -> asyncio.AbstractEventLoop:
         if _shared_event_loop is not None:
             return _shared_event_loop
 
-        event_loop_set_done: concurrent.futures.Future[asyncio.AbstractEventLoop] = concurrent.futures.Future()
+        loop_ready: threading.Event = threading.Event()
 
         def start_event_loop():
             event_loop = asyncio.new_event_loop()
-            event_loop_set_done.set_result(event_loop)
             asyncio.set_event_loop(event_loop)
+
+            global _shared_event_loop
+            _shared_event_loop = event_loop
+
+            # Signal that loop is running and ready to accept tasks
+            event_loop.call_soon(loop_ready.set)
             event_loop.run_forever()
 
         t = threading.Thread(
@@ -60,7 +63,8 @@ def _get_shared_event_loop() -> asyncio.AbstractEventLoop:
         )
         t.start()
 
-        _shared_event_loop = event_loop_set_done.result()
+        loop_ready.wait()
+        assert _shared_event_loop is not None
         return _shared_event_loop
 
 
