@@ -1,3 +1,4 @@
+## 3.26.3 ##
 * Fix GrpcWrapperAsyncIO.close for OpenTelemetry intercepted streams
 
 ## 3.26.2 ##
