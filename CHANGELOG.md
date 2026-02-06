@@ -1,3 +1,5 @@
+* Fix GrpcWrapperAsyncIO.close for OpenTelemetry intercepted streams
+
 ## 3.26.2 ##
 * Fix possible race condition in topic common
 
