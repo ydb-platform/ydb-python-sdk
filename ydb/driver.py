@@ -131,7 +131,7 @@ class DriverConfig(object):
         discovery_request_timeout: int = 10,
         compression: Optional[grpc.Compression] = None,
         disable_discovery: bool = False,
-        detect_local_dc=False,
+        detect_local_dc: bool = False,
     ) -> None:
         """
         A driver config to initialize a driver instance

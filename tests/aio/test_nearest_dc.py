@@ -98,7 +98,7 @@ async def test_detect_local_dc_single_location_returns_immediately(monkeypatch):
 
 
 @pytest.mark.asyncio
-async def test_detect_local_dc_fallback_to_first_location_when_all_fail(monkeypatch):
+async def test_detect_local_dc_returns_none_when_all_fail(monkeypatch):
     async def fake_open_connection(host, port):
         raise OSError("connect failed")
 
@@ -108,7 +108,7 @@ async def test_detect_local_dc_fallback_to_first_location_when_all_fail(monkeypa
         MockEndpoint("bad1", 9999, "dc1"),
         MockEndpoint("bad2", 9999, "dc2"),
     ]
-    assert await nearest_dc.detect_local_dc(endpoints, timeout=0.05) == "dc1"
+    assert await nearest_dc.detect_local_dc(endpoints, timeout=0.05) is None
 
 
 @pytest.mark.asyncio

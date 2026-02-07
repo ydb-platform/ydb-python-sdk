@@ -247,6 +247,11 @@ class Discovery(threading.Thread):
                             local_dc,
                             resolve_details.self_location,
                         )
+                    else:
+                        self.logger.warning(
+                            "Failed to detect local DC via TCP latency, using server location: %s",
+                            resolve_details.self_location,
+                        )
                 except Exception as e:
                     self.logger.warning(
                         "Failed to detect local DC via TCP latency, using server location: %s. Error: %s",
