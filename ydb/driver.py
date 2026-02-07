@@ -137,7 +137,7 @@ class DriverConfig(object):
         discovery_request_timeout: int = 10,
         compression: Optional[grpc.Compression] = None,
         disable_discovery: bool = False,
-        detect_local_dc=False,
+        detect_local_dc: bool = False,
         *,
         _additional_sdk_headers: Tuple[str, ...] = (),
     ) -> None:

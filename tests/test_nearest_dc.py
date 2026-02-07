@@ -86,7 +86,7 @@ def test_detect_local_dc_single_location_returns_immediately(monkeypatch):
     assert nearest_dc.detect_local_dc(endpoints) == "dc1"
 
 
-def test_detect_local_dc_fallback_to_first_location_when_all_fail(monkeypatch):
+def test_detect_local_dc_returns_none_when_all_fail(monkeypatch):
     def fake_create_connection(addr_port, timeout=None):
         raise OSError("connect failed")
 
@@ -96,7 +96,7 @@ def test_detect_local_dc_fallback_to_first_location_when_all_fail(monkeypatch):
         MockEndpoint("bad1", 9999, "dc1"),
         MockEndpoint("bad2", 9999, "dc2"),
     ]
-    assert nearest_dc.detect_local_dc(endpoints, timeout=0.05) == "dc1"
+    assert nearest_dc.detect_local_dc(endpoints, timeout=0.05) is None
 
 
 def test_detect_local_dc_returns_location_of_fastest(monkeypatch):

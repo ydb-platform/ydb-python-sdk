@@ -51,8 +51,10 @@ def _check_fastest_endpoint(
             finally:
                 sock.close()
 
+        except (OSError, socket.timeout):
+            pass
         except Exception as e:
-            logger.warning("Unexpected error connecting to %s: %s", endpoint.endpoint, e)
+            logger.debug("Unexpected error connecting to %s: %s", endpoint.endpoint, e)
 
     threads: List[threading.Thread] = []
     for ep in endpoints:
@@ -60,12 +62,7 @@ def _check_fastest_endpoint(
         thread.start()
         threads.append(thread)
 
-    for thread in threads:
-        remaining = deadline - time.monotonic()
-        if remaining <= 0 or stop_event.is_set():
-            break
-
-        thread.join(timeout=remaining)
+    stop_event.wait(timeout=max(0.0, deadline - time.monotonic()))
 
     return result["endpoint"]
 
@@ -102,7 +99,9 @@ def _get_random_endpoints(endpoints: List[resolver.EndpointInfo], count: int) ->
     return endpoints_copy[:count]
 
 
-def detect_local_dc(endpoints: List[resolver.EndpointInfo], max_per_location: int = 3, timeout: float = 5.0) -> str:
+def detect_local_dc(
+    endpoints: List[resolver.EndpointInfo], max_per_location: int = 3, timeout: float = 5.0
+) -> Optional[str]:
     """
     Detect nearest datacenter by performing TCP race between endpoints.
 
@@ -116,12 +115,13 @@ def detect_local_dc(endpoints: List[resolver.EndpointInfo], max_per_location: in
     3. Select up to max_per_location random endpoints from each location
     4. Perform TCP race: connect to all selected endpoints simultaneously
     5. Return the location of the first endpoint that connects successfully
+    6. If all connections fail, return None
 
     :param endpoints: List of resolver.EndpointInfo objects from discovery
     :param max_per_location: Maximum number of endpoints to test per location (default: 3)
     :param timeout: TCP connection timeout in seconds (default: 5.0)
-    :return: Location string of the nearest datacenter
-    :raises ValueError: If endpoints list is empty or detection fails
+    :return: Location string of the nearest datacenter, or None if detection failed
+    :raises ValueError: If endpoints list is empty
     """
     if not endpoints:
         raise ValueError("Empty endpoints list for local DC detection")
@@ -153,12 +153,8 @@ def detect_local_dc(endpoints: List[resolver.EndpointInfo], max_per_location: in
     fastest_endpoint = _check_fastest_endpoint(endpoints_to_test, timeout=timeout)
 
     if fastest_endpoint is None:
-        fallback_location = endpoints[0].location
-        logger.warning(
-            "Failed to detect local DC via TCP race, falling back to first endpoint location: %s",
-            fallback_location,
-        )
-        return fallback_location
+        logger.warning("Failed to detect local DC via TCP race: no endpoint connected in time")
+        return None
 
     detected_location = fastest_endpoint.location
     logger.info("Detected local DC: %s", detected_location)
