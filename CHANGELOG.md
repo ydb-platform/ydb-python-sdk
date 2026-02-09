@@ -1,3 +1,5 @@
+* Make fail to create session log warn
+
 ## 3.26.3 ##
 * Fix GrpcWrapperAsyncIO.close for OpenTelemetry intercepted streams
 
