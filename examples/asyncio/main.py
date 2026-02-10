@@ -1,8 +1,8 @@
+import asyncio
 import os
 
 import ydb
 import ydb.aio
-import asyncio
 
 
 async def execute_query(pool):

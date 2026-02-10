@@ -11,24 +11,25 @@ from unittest import mock
 import pytest
 
 from ydb import issues
-from . import datatypes, topic_reader_asyncio
-from .datatypes import PublicBatch, PublicMessage
-from .topic_reader import PublicReaderSettings
-from .topic_reader_asyncio import ReaderStream, ReaderReconnector, TopicReaderError
-from .._grpc.grpcwrapper.common_utils import SupportedDriverType, ServerStatus
+
+from .._grpc.grpcwrapper.common_utils import ServerStatus, SupportedDriverType
 from .._grpc.grpcwrapper.ydb_topic import (
-    StreamReadMessage,
     Codec,
     OffsetsRange,
+    StreamReadMessage,
     UpdateTokenRequest,
     UpdateTokenResponse,
 )
 from .._topic_common.test_helpers import (
     StreamMock,
+    WaitConditionError,
     wait_condition,
     wait_for_fast,
-    WaitConditionError,
 )
+from . import datatypes, topic_reader_asyncio
+from .datatypes import PublicBatch, PublicMessage
+from .topic_reader import PublicReaderSettings
+from .topic_reader_asyncio import ReaderReconnector, ReaderStream, TopicReaderError
 
 # Workaround for good IDE and universal for runtime
 if typing.TYPE_CHECKING:
@@ -872,38 +873,40 @@ class TestReaderStream:
 
         expected_message_offset = partition_session.committed_offset
 
-        stream.from_server.put_nowait(
-            StreamReadMessage.FromServer(
-                server_status=ServerStatus(ydb_status_codes_pb2.StatusIds.SUCCESS, []),
-                server_message=StreamReadMessage.ReadResponse(
-                    bytes_size=bytes_size,
-                    partition_data=[
-                        StreamReadMessage.ReadResponse.PartitionData(
-                            partition_session_id=partition_session.id,
-                            batches=[
-                                StreamReadMessage.ReadResponse.Batch(
-                                    message_data=[
-                                        StreamReadMessage.ReadResponse.MessageData(
-                                            offset=expected_message_offset,
-                                            seq_no=2,
-                                            created_at=created_at,
-                                            data=data,
-                                            uncompresed_size=len(data),
-                                            metadata_items={},
-                                            message_group_id=message_group_id,
-                                        )
-                                    ],
-                                    producer_id=producer_id,
-                                    write_session_meta=session_meta,
-                                    codec=Codec.CODEC_RAW,
-                                    written_at=written_at,
-                                )
-                            ],
-                        )
-                    ],
-                ),
-            )
-        ),
+        (
+            stream.from_server.put_nowait(
+                StreamReadMessage.FromServer(
+                    server_status=ServerStatus(ydb_status_codes_pb2.StatusIds.SUCCESS, []),
+                    server_message=StreamReadMessage.ReadResponse(
+                        bytes_size=bytes_size,
+                        partition_data=[
+                            StreamReadMessage.ReadResponse.PartitionData(
+                                partition_session_id=partition_session.id,
+                                batches=[
+                                    StreamReadMessage.ReadResponse.Batch(
+                                        message_data=[
+                                            StreamReadMessage.ReadResponse.MessageData(
+                                                offset=expected_message_offset,
+                                                seq_no=2,
+                                                created_at=created_at,
+                                                data=data,
+                                                uncompresed_size=len(data),
+                                                metadata_items={},
+                                                message_group_id=message_group_id,
+                                            )
+                                        ],
+                                        producer_id=producer_id,
+                                        write_session_meta=session_meta,
+                                        codec=Codec.CODEC_RAW,
+                                        written_at=written_at,
+                                    )
+                                ],
+                            )
+                        ],
+                    ),
+                )
+            ),
+        )
 
         await wait_condition(lambda: reader_batch_count() == initial_batch_count + 1)
 

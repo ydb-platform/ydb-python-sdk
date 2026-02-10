@@ -3,12 +3,12 @@ from __future__ import absolute_import, unicode_literals
 import posixpath
 
 import ydb
+
 from .cursor import Cursor
 from .errors import DatabaseError
 
 
 class Connection(object):
-
     deiver = None
     pool = None
 
@@ -72,7 +72,7 @@ class Connection(object):
             .with_native_date_in_result_sets(True)
             .with_native_datetime_in_result_sets(True)
             .with_native_json_in_result_sets(True),
-            **conn_kwargs
+            **conn_kwargs,
         )
         driver = ydb.Driver(driver_config)
         try:

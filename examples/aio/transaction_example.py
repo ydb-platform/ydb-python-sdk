@@ -1,10 +1,10 @@
 import asyncio
-
-import ydb
 import os
 
 # Query to insert data into tables from session_pool_example.py
 import example_data
+
+import ydb
 
 FillDataQuery = """PRAGMA TablePathPrefix("{}");
 

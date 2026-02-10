@@ -1,5 +1,5 @@
-from dataclasses import dataclass
 import typing
+from dataclasses import dataclass
 from typing import Optional
 
 # Workaround for good IDE and universal for runtime
@@ -8,16 +8,14 @@ if typing.TYPE_CHECKING:
 else:
     from ..common.protos import ydb_query_pb2
 
+from ... import convert
 from . import ydb_query_public_types as public_types
-
 from .common_utils import (
     IFromProto,
     IFromPublic,
     IToProto,
     ServerStatus,
 )
-
-from ... import convert
 
 
 @dataclass

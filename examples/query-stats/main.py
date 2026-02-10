@@ -1,6 +1,6 @@
 import os
-import ydb
 
+import ydb
 
 SESSION_QUERY = "SELECT 1"
 TX_QUERY = "SELECT 1"

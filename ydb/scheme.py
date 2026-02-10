@@ -2,9 +2,10 @@
 import abc
 import enum
 from abc import abstractmethod
-from typing import Generic, TYPE_CHECKING
+from typing import TYPE_CHECKING, Generic
 
-from . import issues, operation, settings as settings_impl, _apis
+from . import _apis, issues, operation
+from . import settings as settings_impl
 from ._typing import DriverT
 
 if TYPE_CHECKING:
@@ -428,7 +429,7 @@ def _wrap_scheme_entry(entry_pb, scheme_entry_cls=None, *args, **kwargs):
         _wrap_permissions(entry_pb.permissions),
         entry_pb.size_bytes,
         *args,
-        **kwargs
+        **kwargs,
     )
 
 

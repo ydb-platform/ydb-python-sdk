@@ -1,12 +1,11 @@
-import jwt
 import concurrent.futures
-import grpc
 import time
 
-import ydb.iam
+import grpc
+import jwt
+from yandex.cloud.iam.v1 import iam_token_service_pb2, iam_token_service_pb2_grpc
 
-from yandex.cloud.iam.v1 import iam_token_service_pb2_grpc
-from yandex.cloud.iam.v1 import iam_token_service_pb2
+import ydb.iam
 
 SERVICE_ACCOUNT_ID = "sa_id"
 ACCESS_KEY_ID = "key_id"

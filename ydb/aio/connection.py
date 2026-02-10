@@ -1,31 +1,32 @@
 from __future__ import annotations
 
-import logging
 import asyncio
-from typing import Any, Callable, Dict, List, Optional, Tuple, TYPE_CHECKING
 import collections
+import logging
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple
+
 import grpc
 
-from ydb import _apis, _utilities
-
+from ydb import _apis, _utilities, issues
 from ydb.connection import (
+    YDB_DATABASE_HEADER,
+    YDB_REQUEST_TYPE_HEADER,
+    YDB_TRACE_ID_HEADER,
+    EndpointKey,
+    EndpointOptions,
+    _get_request_timeout,
+    _is_disconnect_needed,
     _log_request,
     _log_response,
     _rpc_error_handler,
-    _is_disconnect_needed,
-    _get_request_timeout,
     _set_server_timeouts,
-    _RpcState as RpcState,
-    EndpointOptions,
     channel_factory,
-    YDB_DATABASE_HEADER,
-    YDB_TRACE_ID_HEADER,
-    YDB_REQUEST_TYPE_HEADER,
-    EndpointKey,
+)
+from ydb.connection import (
+    _RpcState as RpcState,
 )
 from ydb.driver import DriverConfig
 from ydb.settings import BaseRequestSettings
-from ydb import issues
 
 # Workaround for good IDE and universal for runtime
 if TYPE_CHECKING:

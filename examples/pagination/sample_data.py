@@ -57,9 +57,7 @@ def fill_table(session, path):
         number,
         address
     FROM AS_TABLE($schoolsData);
-    """.format(
-        path=path
-    )
+    """.format(path=path)
     prepared_query = session.prepare(query)
     session.transaction(ydb.SerializableReadWrite()).execute(
         prepared_query,

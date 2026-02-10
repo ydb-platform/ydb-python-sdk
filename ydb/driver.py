@@ -1,18 +1,17 @@
 # -*- coding: utf-8 -*-
-import grpc
 import logging
 import os
-from typing import Any, List, Optional, Tuple, Type, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, List, Optional, Tuple, Type
 
-from . import credentials as credentials_impl, table, scheme, pool
-from . import tracing
-from . import iam
-from . import _utilities
+import grpc
+
+from . import _utilities, iam, pool, scheme, table, tracing
+from . import credentials as credentials_impl
 
 if TYPE_CHECKING:
     from .credentials import Credentials
-    from .table import TableClientSettings
     from .query.base import QueryClientSettings
+    from .table import TableClientSettings
 
 
 logger = logging.getLogger(__name__)
@@ -134,7 +133,8 @@ class DriverConfig(object):
         """
         A driver config to initialize a driver instance
 
-        :param endpoint: A endpoint specified in pattern host:port to be used for initial channel initialization and for YDB endpoint discovery mechanism
+        :param endpoint: A endpoint specified in pattern host:port to be used for initial channel initialization and
+            for YDB endpoint discovery mechanism
         :param database: A name of the database
         :param ca_cert: A CA certificate when SSL should be used
         :param auth_token: A authentication token
@@ -148,9 +148,11 @@ class DriverConfig(object):
         :param grpc_keep_alive_timeout: GRpc KeepAlive timeout, ms
         :param ydb.Tracer tracer: ydb.Tracer instance to trace requests in driver.\
         If tracing aio ScopeManager must be ContextVarsScopeManager
-        :param grpc_lb_policy_name: A load balancing policy to be used for discovery channel construction. Default value is `round_round`
+        :param grpc_lb_policy_name: A load balancing policy to be used for discovery channel construction.
+            Default value is `round_round`
         :param discovery_request_timeout: A default timeout to complete the discovery. The default value is 10 seconds.
-        :param disable_discovery: If True, endpoint discovery is disabled and only the start endpoint is used for all requests.
+        :param disable_discovery: If True, endpoint discovery is disabled and only the start endpoint is used for
+            all requests.
 
         """
         self.endpoint = endpoint
@@ -296,8 +298,10 @@ class Driver(pool.ConnectionPool):
         :param database: A database path
         :param credentials: A credentials. If not specifed credentials constructed by default.
         """
-        from . import topic  # local import for prevent cycle import error
-        from . import coordination  # local import for prevent cycle import error
+        from . import (
+            coordination,  # local import for prevent cycle import error
+            topic,  # local import for prevent cycle import error
+        )
 
         driver_config = get_config(
             driver_config,

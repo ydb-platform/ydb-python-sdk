@@ -1,15 +1,15 @@
 import json
-
-import pytest
 import threading
 import time
 from concurrent.futures import _base as b
 from unittest import mock
 
+import pytest
+
 from ydb import QuerySessionPool
-from ydb.query.base import QueryStatsMode, QueryExplainResultFormat
-from ydb.query.session import QuerySession
 from ydb.connection import EndpointKey
+from ydb.query.base import QueryExplainResultFormat, QueryStatsMode
+from ydb.query.session import QuerySession
 
 
 def _check_session_not_ready(session: QuerySession):

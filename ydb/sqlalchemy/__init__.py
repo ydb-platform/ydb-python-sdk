@@ -5,25 +5,22 @@ Work in progress, breaking changes are possible.
 
 from __future__ import absolute_import, unicode_literals
 
-
 try:
+    import sqlalchemy as sa
+    from sqlalchemy import Table, exc
+    from sqlalchemy.engine.default import DefaultDialect
+    from sqlalchemy.sql import functions, literal_column
+    from sqlalchemy.sql.compiler import (
+        GenericTypeCompiler,
+        IdentifierPreparer,
+        SQLCompiler,
+    )
+    from sqlalchemy.sql.elements import ClauseList
+    from sqlalchemy.util.compat import inspect_getfullargspec
+
     import ydb
     from ydb.dbapi.errors import NotSupportedError
     from ydb.sqlalchemy.types import UInt32, UInt64
-
-    from sqlalchemy.engine.default import DefaultDialect
-    from sqlalchemy.sql.compiler import (
-        IdentifierPreparer,
-        GenericTypeCompiler,
-        SQLCompiler,
-    )
-    from sqlalchemy import Table
-    from sqlalchemy.sql.elements import ClauseList
-    from sqlalchemy.sql import functions
-    import sqlalchemy as sa
-    from sqlalchemy import exc
-    from sqlalchemy.util.compat import inspect_getfullargspec
-    from sqlalchemy.sql import literal_column
 
     SQLALCHEMY_VERSION = tuple(sa.__version__.split("."))
     SA_14 = SQLALCHEMY_VERSION >= ("1", "4")

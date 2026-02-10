@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import argparse
-import pagination
 
+import pagination
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(

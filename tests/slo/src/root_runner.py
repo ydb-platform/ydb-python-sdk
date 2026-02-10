@@ -1,12 +1,13 @@
 import asyncio
-import ydb
-import ydb.aio
 import logging
 from typing import Dict
 
-from runners.topic_runner import TopicRunner
-from runners.table_runner import TableRunner
 from runners.base import BaseRunner
+from runners.table_runner import TableRunner
+from runners.topic_runner import TopicRunner
+
+import ydb
+import ydb.aio
 
 logger = logging.getLogger(__name__)
 

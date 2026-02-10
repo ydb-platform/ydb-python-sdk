@@ -6,7 +6,7 @@ import threading
 import typing
 from typing import Optional
 
-from .. import operation, issues
+from .. import issues, operation
 from .._grpc.grpcwrapper.common_utils import IFromProtoWithProtoType
 
 TimeoutType = typing.Union[int, float, None]

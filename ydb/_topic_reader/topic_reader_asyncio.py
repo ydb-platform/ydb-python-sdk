@@ -3,37 +3,36 @@ from __future__ import annotations
 import asyncio
 import concurrent.futures
 import gzip
+import logging
 import typing
 from asyncio import Task
-from collections import defaultdict, OrderedDict
-from typing import Optional, Set, Dict, Union, Callable
+from collections import OrderedDict, defaultdict
+from typing import Callable, Dict, Optional, Set, Union
 
 import ydb
+
 from .. import _apis, issues
-from .._topic_common import common as topic_common
-from .._utilities import AtomicCounter
-from ..aio import Driver
-from ..issues import Error as YdbError, _process_response
-from . import datatypes
-from . import events
-from . import topic_reader
+from .._errors import check_retriable_error
 from .._grpc.grpcwrapper.common_utils import (
+    GrpcWrapperAsyncIO,
     IGrpcWrapperAsyncIO,
     SupportedDriverType,
     to_thread,
-    GrpcWrapperAsyncIO,
 )
 from .._grpc.grpcwrapper.ydb_topic import (
+    Codec,
     StreamReadMessage,
+    UpdateOffsetsInTransactionRequest,
     UpdateTokenRequest,
     UpdateTokenResponse,
-    UpdateOffsetsInTransactionRequest,
-    Codec,
 )
-from .._errors import check_retriable_error
-import logging
-
+from .._topic_common import common as topic_common
+from .._utilities import AtomicCounter
+from ..aio import Driver
+from ..issues import Error as YdbError
+from ..issues import _process_response
 from ..query.base import TxEvent
+from . import datatypes, events, topic_reader
 
 if typing.TYPE_CHECKING:
     from ..query.transaction import BaseQueryTxContext
@@ -521,9 +520,7 @@ class ReaderStream:
 
         stream.write(StreamReadMessage.FromClient(client_message=init_message))
         try:
-            init_response = await stream.receive(
-                timeout=DEFAULT_INITIAL_RESPONSE_TIMEOUT
-            )  # type: StreamReadMessage.FromServer
+            init_response = await stream.receive(timeout=DEFAULT_INITIAL_RESPONSE_TIMEOUT)  # type: StreamReadMessage.FromServer
         except asyncio.TimeoutError:
             raise TopicReaderError("Timeout waiting for init response")
 

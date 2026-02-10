@@ -20,33 +20,30 @@ __all__ = [
 ]
 
 import logging
-from typing import Optional, TYPE_CHECKING
-
-from .base import (
-    QueryClientSettings,
-    QueryExplainResultFormat,
-    QueryStatsMode,
-    QuerySchemaInclusionMode,
-    QueryResultSetFormat,
-)
-
-from .session import QuerySession
-from .transaction import QueryTxContext
+from typing import TYPE_CHECKING, Optional
 
 from .._grpc.grpcwrapper.ydb_query_public_types import (
+    ArrowCompressionCodec,
+    ArrowCompressionCodecType,
+    ArrowFormatMeta,
+    ArrowFormatSettings,
     BaseQueryTxMode,
     QueryOnlineReadOnly,
     QuerySerializableReadWrite,
     QuerySnapshotReadOnly,
     QuerySnapshotReadWrite,
     QueryStaleReadOnly,
-    ArrowCompressionCodecType,
-    ArrowCompressionCodec,
-    ArrowFormatSettings,
-    ArrowFormatMeta,
 )
-
+from .base import (
+    QueryClientSettings,
+    QueryExplainResultFormat,
+    QueryResultSetFormat,
+    QuerySchemaInclusionMode,
+    QueryStatsMode,
+)
 from .pool import QuerySessionPool
+from .session import QuerySession
+from .transaction import QueryTxContext
 
 if TYPE_CHECKING:
     from ..driver import Driver as SyncDriver

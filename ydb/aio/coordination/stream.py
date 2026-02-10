@@ -4,12 +4,12 @@ import asyncio
 import logging
 from typing import Optional
 
-from ... import issues, _apis
-from ..._grpc.grpcwrapper.common_utils import IToProto, GrpcWrapperAsyncIO
+from ... import _apis, issues
+from ..._grpc.grpcwrapper.common_utils import GrpcWrapperAsyncIO, IToProto
 from ..._grpc.grpcwrapper.ydb_coordination import (
     FromServer,
-    SessionStart,
     Ping,
+    SessionStart,
 )
 
 logger = logging.getLogger(__name__)

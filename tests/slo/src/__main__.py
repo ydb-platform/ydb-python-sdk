@@ -4,7 +4,6 @@ import logging
 from options import parse_options
 from root_runner import run_from_args
 
-
 if __name__ == "__main__":
     args = parse_options()
     gc.disable()

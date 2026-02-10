@@ -2,7 +2,7 @@ import datetime
 import typing
 from dataclasses import dataclass, field
 from enum import IntEnum
-from typing import Optional, List, Union, Dict
+from typing import Dict, List, Optional, Union
 
 # Workaround for good IDE and universal for runtime
 if typing.TYPE_CHECKING:
@@ -10,8 +10,8 @@ if typing.TYPE_CHECKING:
 else:
     from ..common.protos import ydb_topic_pb2
 
-from .common_utils import IToProto
 from ...scheme import SchemeEntry
+from .common_utils import IToProto
 
 
 @dataclass
