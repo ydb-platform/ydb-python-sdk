@@ -52,6 +52,7 @@ def _check_fastest_endpoint(
                 sock.close()
 
         except (OSError, socket.timeout):
+            # Ignore expected connection errors; endpoints that fail simply lose the TCP race.
             pass
         except Exception as e:
             logger.debug("Unexpected error connecting to %s: %s", endpoint.endpoint, e)
@@ -136,7 +137,7 @@ def detect_local_dc(
 
     if len(endpoints_by_location) == 1:
         location = list(endpoints_by_location.keys())[0]
-        logger.info("Only one location found: %s", location)
+        logger.debug("Only one location found: %s", location)
         return location
 
     endpoints_to_test = []
@@ -153,10 +154,10 @@ def detect_local_dc(
     fastest_endpoint = _check_fastest_endpoint(endpoints_to_test, timeout=timeout)
 
     if fastest_endpoint is None:
-        logger.warning("Failed to detect local DC via TCP race: no endpoint connected in time")
+        logger.debug("Failed to detect local DC via TCP race: no endpoint connected in time")
         return None
 
     detected_location = fastest_endpoint.location
-    logger.info("Detected local DC: %s", detected_location)
+    logger.debug("Detected local DC: %s", detected_location)
 
     return detected_location
