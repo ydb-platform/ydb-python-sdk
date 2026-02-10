@@ -153,7 +153,9 @@ class DriverConfig(object):
         :param grpc_lb_policy_name: A load balancing policy to be used for discovery channel construction. Default value is `round_round`
         :param discovery_request_timeout: A default timeout to complete the discovery. The default value is 10 seconds.
         :param disable_discovery: If True, endpoint discovery is disabled and only the start endpoint is used for all requests.
-        :param detect_local_dc: If True, detect nearest datacenter using TCP latency measurement instead of using server-provided self_location.
+        :param detect_local_dc: If True, detect nearest datacenter using TCP latency measurement instead of using\
+        server-provided self_location. **Note**: This option only affects endpoint selection when use_all_nodes=False.\
+        When use_all_nodes=True (default), all endpoints are used regardless of detected location.
 
         """
         self.endpoint = endpoint
