@@ -84,7 +84,10 @@ def make_table_run_parser(subparsers):
         "--otlp-endpoint",
         default="http://localhost:9090/api/v1/otlp/v1/metrics",
         type=str,
-        help="Full Prometheus OTLP metrics endpoint (e.g. http://ydb-prometheus:9090/api/v1/otlp/v1/metrics). Empty to disable.",
+        help=(
+            "Full Prometheus OTLP metrics endpoint "
+            "(e.g. http://ydb-prometheus:9090/api/v1/otlp/v1/metrics). Empty to disable."
+        ),
     )
     table_run_parser.add_argument("--report-period", default=1000, type=int, help="Prometheus push period in [ms]")
 
@@ -142,7 +145,10 @@ def make_topic_run_parser(subparsers):
         "--otlp-endpoint",
         default="http://localhost:9090/api/v1/otlp/v1/metrics",
         type=str,
-        help="Full Prometheus OTLP metrics endpoint (e.g. http://ydb-prometheus:9090/api/v1/otlp/v1/metrics). Empty to disable.",
+        help=(
+            "Full Prometheus OTLP metrics endpoint "
+            "(e.g. http://ydb-prometheus:9090/api/v1/otlp/v1/metrics). Empty to disable."
+        ),
     )
     topic_parser.add_argument("--report-period", default=1000, type=int, help="Prometheus push period in [ms]")
 

@@ -1,18 +1,18 @@
 import concurrent.futures
-import enum
 import datetime
+import enum
 from dataclasses import dataclass
 from typing import (
-    Union,
-    Optional,
+    Callable,
     List,
     Mapping,
-    Callable,
+    Optional,
+    Union,
 )
 
-from .events import EventHandler
+from .._grpc.grpcwrapper.ydb_topic import OffsetsRange, StreamReadMessage
 from ..retries import RetrySettings
-from .._grpc.grpcwrapper.ydb_topic import StreamReadMessage, OffsetsRange
+from .events import EventHandler
 
 
 @dataclass

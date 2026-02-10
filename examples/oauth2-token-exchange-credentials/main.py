@@ -1,4 +1,5 @@
 import argparse
+
 import ydb
 import ydb.oauth2_token_exchange
 
@@ -65,7 +66,6 @@ def main():
         # The context manager automatically stops the session pool.
         # On the session pool termination all YDB sessions are closed.
         with ydb.SessionPool(driver) as pool:
-
             # Execute the query with the `retry_operation_helper` the.
             # The `retry_operation_sync` helper used to help developers
             # to retry YDB specific errors like locks invalidation.

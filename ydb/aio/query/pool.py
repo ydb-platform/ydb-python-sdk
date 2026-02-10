@@ -3,26 +3,25 @@ from __future__ import annotations
 import asyncio
 import logging
 from typing import (
-    Callable,
-    Optional,
-    List,
-    Dict,
     Any,
+    Callable,
+    Dict,
+    List,
+    Optional,
     Union,
 )
 
-from .session import (
-    QuerySession,
-)
+from ... import convert
+from ..._grpc.grpcwrapper import common_utils
+from ..._grpc.grpcwrapper import ydb_query_public_types as _ydb_query_public
+from ...query.base import BaseQueryTxMode, QueryClientSettings, QueryExplainResultFormat
 from ...retries import (
     RetrySettings,
     retry_operation_async,
 )
-from ...query.base import BaseQueryTxMode, QueryExplainResultFormat
-from ...query.base import QueryClientSettings
-from ... import convert
-from ..._grpc.grpcwrapper import common_utils
-from ..._grpc.grpcwrapper import ydb_query_public_types as _ydb_query_public
+from .session import (
+    QuerySession,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -107,7 +106,8 @@ class QuerySessionPool:
         try:
             session = await self._create_new_session()
         except Exception as e:
-            # TODO: this exception could be retried via retrier, so no need to log error here. Probably we should retry this right in create_new_session method.
+            # TODO: this exception could be retried via retrier, so no need to log error here.
+            # Probably we should retry this right in create_new_session method.
             logger.warning("Failed to create new session")
             self._current_size -= 1
             raise e

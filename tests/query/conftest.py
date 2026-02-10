@@ -1,6 +1,7 @@
 import pytest
-from ydb.query.session import QuerySession
+
 from ydb.query.pool import QuerySessionPool
+from ydb.query.session import QuerySession
 
 
 @pytest.fixture

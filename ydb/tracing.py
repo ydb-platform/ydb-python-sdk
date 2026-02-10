@@ -1,7 +1,7 @@
-from enum import IntEnum
 import functools
-from typing import Any, Callable, Dict, Optional, Type
+from enum import IntEnum
 from types import TracebackType
+from typing import Any, Callable, Dict, Optional, Type
 
 
 class TraceLevel(IntEnum):

@@ -1,28 +1,24 @@
 import asyncio
 import json
-
+import logging
 from typing import (
-    Optional,
-    Dict,
-    Any,
-    Union,
     TYPE_CHECKING,
+    Any,
+    Dict,
+    Optional,
+    Union,
 )
 
-from .base import AsyncResponseContextIterator
-from .transaction import QueryTxContext
-from .. import _utilities
 from ... import issues
-from ...settings import BaseRequestSettings
+from ..._constants import DEFAULT_INITIAL_RESPONSE_TIMEOUT
 from ..._grpc.grpcwrapper import common_utils
 from ..._grpc.grpcwrapper import ydb_query_public_types as _ydb_query_public
-
 from ...query import base
 from ...query.session import BaseQuerySession
-
-from ..._constants import DEFAULT_INITIAL_RESPONSE_TIMEOUT
-
-import logging
+from ...settings import BaseRequestSettings
+from .. import _utilities
+from .base import AsyncResponseContextIterator
+from .transaction import QueryTxContext
 
 if TYPE_CHECKING:
     from ...aio.driver import Driver as AsyncDriver

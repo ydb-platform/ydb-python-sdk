@@ -1,14 +1,14 @@
 import abc
-import logging
 import enum
 import functools
+import logging
 from typing import (
+    TYPE_CHECKING,
     Any,
     Awaitable,
     Generic,
     Iterable,
     Optional,
-    TYPE_CHECKING,
     Union,
     overload,
 )
@@ -17,18 +17,17 @@ from .. import (
     _apis,
     issues,
 )
-from .._grpc.grpcwrapper import ydb_topic as _ydb_topic
 from .._grpc.grpcwrapper import ydb_query as _ydb_query
-from ..connection import _RpcState as RpcState
+from .._grpc.grpcwrapper import ydb_topic as _ydb_topic
 from .._typing import DriverT
-
-from . import base
+from ..connection import _RpcState as RpcState
 from ..settings import BaseRequestSettings
+from . import base
 
 if TYPE_CHECKING:
-    from .session import BaseQuerySession
-    from ..driver import Driver as SyncDriver
     from ..aio.driver import Driver as AsyncDriver
+    from ..driver import Driver as SyncDriver
+    from .session import BaseQuerySession
 
 logger = logging.getLogger(__name__)
 
@@ -224,7 +223,8 @@ class BaseQueryTxContext(base.CallbackHandler, Generic[DriverT]):
         transaction control logic, and opens new transaction if:
 
         1) By explicit .begin() method;
-        2) On execution of a first statement, which is strictly recommended method, because that avoids useless round trip
+        2) On execution of a first statement, which is strictly recommended method, because that avoids useless
+           round trip
 
         This context manager is not thread-safe, so you should not manipulate on it concurrently.
 
@@ -285,14 +285,12 @@ class BaseQueryTxContext(base.CallbackHandler, Generic[DriverT]):
     @overload
     def _begin_call(
         self: "BaseQueryTxContext[SyncDriver]", settings: Optional[BaseRequestSettings]
-    ) -> "BaseQueryTxContext[SyncDriver]":
-        ...
+    ) -> "BaseQueryTxContext[SyncDriver]": ...
 
     @overload
     def _begin_call(
         self: "BaseQueryTxContext[AsyncDriver]", settings: Optional[BaseRequestSettings]
-    ) -> Awaitable["BaseQueryTxContext[AsyncDriver]"]:
-        ...
+    ) -> Awaitable["BaseQueryTxContext[AsyncDriver]"]: ...
 
     def _begin_call(
         self, settings: Optional[BaseRequestSettings]
@@ -314,14 +312,12 @@ class BaseQueryTxContext(base.CallbackHandler, Generic[DriverT]):
     @overload
     def _commit_call(
         self: "BaseQueryTxContext[SyncDriver]", settings: Optional[BaseRequestSettings]
-    ) -> "BaseQueryTxContext[SyncDriver]":
-        ...
+    ) -> "BaseQueryTxContext[SyncDriver]": ...
 
     @overload
     def _commit_call(
         self: "BaseQueryTxContext[AsyncDriver]", settings: Optional[BaseRequestSettings]
-    ) -> Awaitable["BaseQueryTxContext[AsyncDriver]"]:
-        ...
+    ) -> Awaitable["BaseQueryTxContext[AsyncDriver]"]: ...
 
     def _commit_call(
         self, settings: Optional[BaseRequestSettings]
@@ -344,14 +340,12 @@ class BaseQueryTxContext(base.CallbackHandler, Generic[DriverT]):
     @overload
     def _rollback_call(
         self: "BaseQueryTxContext[SyncDriver]", settings: Optional[BaseRequestSettings]
-    ) -> "BaseQueryTxContext[SyncDriver]":
-        ...
+    ) -> "BaseQueryTxContext[SyncDriver]": ...
 
     @overload
     def _rollback_call(
         self: "BaseQueryTxContext[AsyncDriver]", settings: Optional[BaseRequestSettings]
-    ) -> Awaitable["BaseQueryTxContext[AsyncDriver]"]:
-        ...
+    ) -> Awaitable["BaseQueryTxContext[AsyncDriver]"]: ...
 
     def _rollback_call(
         self, settings: Optional[BaseRequestSettings]
@@ -385,8 +379,7 @@ class BaseQueryTxContext(base.CallbackHandler, Generic[DriverT]):
         arrow_format_settings: Optional[base.ArrowFormatSettings],
         concurrent_result_sets: Optional[bool],
         settings: Optional[BaseRequestSettings],
-    ) -> Iterable[_apis.ydb_query.ExecuteQueryResponsePart]:
-        ...
+    ) -> Iterable[_apis.ydb_query.ExecuteQueryResponsePart]: ...
 
     @overload
     def _execute_call(
@@ -402,8 +395,7 @@ class BaseQueryTxContext(base.CallbackHandler, Generic[DriverT]):
         arrow_format_settings: Optional[base.ArrowFormatSettings],
         concurrent_result_sets: Optional[bool],
         settings: Optional[BaseRequestSettings],
-    ) -> Awaitable[Iterable[_apis.ydb_query.ExecuteQueryResponsePart]]:
-        ...
+    ) -> Awaitable[Iterable[_apis.ydb_query.ExecuteQueryResponsePart]]: ...
 
     def _execute_call(
         self,
@@ -476,7 +468,8 @@ class QueryTxContext(BaseQueryTxContext["SyncDriver"]):
         transaction control logic, and opens new transaction if:
 
         1) By explicit .begin() method;
-        2) On execution of a first statement, which is strictly recommended method, because that avoids useless round trip
+        2) On execution of a first statement, which is strictly recommended method, because that avoids useless
+           round trip
 
         This context manager is not thread-safe, so you should not manipulate on it concurrently.
 

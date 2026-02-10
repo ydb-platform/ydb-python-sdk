@@ -1,9 +1,10 @@
 import asyncio
 from unittest.mock import MagicMock
 
-from ydb.aio.driver import Driver
 import pytest
+
 import ydb
+from ydb.aio.driver import Driver
 
 
 @pytest.mark.asyncio

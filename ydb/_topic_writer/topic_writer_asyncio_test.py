@@ -6,15 +6,16 @@ import dataclasses
 import datetime
 import gzip
 import typing
-from queue import Queue, Empty
-from typing import List, Callable, Optional
+from queue import Empty, Queue
+from typing import Callable, List, Optional
 from unittest import mock
 
 import freezegun
 import pytest
 
-from .. import aio
-from .. import StatusCode, issues
+from .. import StatusCode, aio, issues
+from .._constants import DEFAULT_INITIAL_RESPONSE_TIMEOUT
+from .._grpc.grpcwrapper.common_utils import ServerStatus
 from .._grpc.grpcwrapper.ydb_topic import (
     Codec,
     StreamWriteMessage,
@@ -22,29 +23,23 @@ from .._grpc.grpcwrapper.ydb_topic import (
     UpdateTokenRequest,
     UpdateTokenResponse,
 )
-from .._grpc.grpcwrapper.common_utils import ServerStatus
+from .._grpc.grpcwrapper.ydb_topic_public_types import PublicCodec
+from .._topic_common.test_helpers import StreamMock, wait_for_fast
+from ..credentials import AnonymousCredentials
 from .topic_writer import (
     InternalMessage,
     PublicMessage,
-    WriterSettings,
-    PublicWriterSettings,
-    PublicWriterInitInfo,
     PublicWriteResult,
+    PublicWriterInitInfo,
+    PublicWriterSettings,
     TopicWriterError,
+    WriterSettings,
 )
-from .._grpc.grpcwrapper.ydb_topic_public_types import PublicCodec
-from .._topic_common.test_helpers import StreamMock, wait_for_fast
-
 from .topic_writer_asyncio import (
-    WriterAsyncIOStream,
-    WriterAsyncIOReconnector,
     WriterAsyncIO,
+    WriterAsyncIOReconnector,
+    WriterAsyncIOStream,
 )
-
-from ..credentials import AnonymousCredentials
-
-from .._constants import DEFAULT_INITIAL_RESPONSE_TIMEOUT
-
 
 FAKE_TRANSACTION_IDENTITY = TransactionIdentity(
     tx_id="transaction_id",

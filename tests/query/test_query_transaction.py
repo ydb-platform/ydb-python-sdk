@@ -1,9 +1,8 @@
 import pytest
-import ydb
 
+import ydb
 from ydb.query.base import QueryStatsMode
-from ydb.query.transaction import QueryTxContext
-from ydb.query.transaction import QueryTxStateEnum
+from ydb.query.transaction import QueryTxContext, QueryTxStateEnum
 
 
 class TestQueryTransaction:

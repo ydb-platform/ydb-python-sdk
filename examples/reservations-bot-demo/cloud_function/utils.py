@@ -1,5 +1,6 @@
-import logging
 import contextlib
+import logging
+
 import ydb
 
 
@@ -20,7 +21,7 @@ def session_pool_context(driver_config: ydb.DriverConfig, size=1, workers_thread
             driver.wait(timeout=15)
         except TimeoutError:
             logging.critical(
-                f"connection failed\n" f"last reported errors by discovery: {driver.discovery_debug_details()}"
+                f"connection failed\nlast reported errors by discovery: {driver.discovery_debug_details()}"
             )
             raise
         with ydb.SessionPool(driver, size=size, workers_threads_count=workers_threads_count) as session_pool:

@@ -1,21 +1,21 @@
 import logging
 from typing import (
-    Optional,
     TYPE_CHECKING,
+    Optional,
 )
 
-from .base import AsyncResponseContextIterator
 from ... import issues
-from ...settings import BaseRequestSettings
 from ...query import base
 from ...query.transaction import (
     BaseQueryTxContext,
     QueryTxStateEnum,
 )
+from ...settings import BaseRequestSettings
+from .base import AsyncResponseContextIterator
 
 if TYPE_CHECKING:
-    from .session import QuerySession
     from ...aio.driver import Driver as AsyncDriver
+    from .session import QuerySession
 
 logger = logging.getLogger(__name__)
 
@@ -30,7 +30,8 @@ class QueryTxContext(BaseQueryTxContext["AsyncDriver"]):
         transaction control logic, and opens new transaction if:
 
         1) By explicit .begin() method;
-        2) On execution of a first statement, which is strictly recommended method, because that avoids useless round trip
+        2) On execution of a first statement, which is strictly recommended method, because that avoids useless
+           round trip
 
         This context manager is not thread-safe, so you should not manipulate on it concurrently.
 

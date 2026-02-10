@@ -1,5 +1,6 @@
-import ydb
 import pyarrow as pa
+
+import ydb
 
 
 def main():

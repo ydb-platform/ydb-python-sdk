@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 import posixpath
-import ydb
+
 import basic_example_data
+
+import ydb
 
 # Table path prefix allows to put the working tables into the specific directory
 # inside the YDB database. Putting `PRAGMA TablePathPrefix("some/path")`
@@ -93,12 +95,11 @@ def select_simple(pool, path):
             SELECT
                 series_id,
                 title,
-                $format(DateTime::FromSeconds(CAST(DateTime::ToSeconds(DateTime::IntervalFromDays(CAST(release_date AS Int16))) AS Uint32))) AS release_date
+                $format(DateTime::FromSeconds(CAST(DateTime::ToSeconds(
+                    DateTime::IntervalFromDays(CAST(release_date AS Int16))) AS Uint32))) AS release_date
             FROM series
             WHERE series_id = 1;
-            """.format(
-                path
-            ),
+            """.format(path),
             commit_tx=True,
         )
         print("\n> select_simple_transaction:")
@@ -124,9 +125,7 @@ def upsert_simple(pool, path):
             PRAGMA TablePathPrefix("{}");
             UPSERT INTO episodes (series_id, season_id, episode_id, title) VALUES
                 (2, 6, 1, "TBD");
-            """.format(
-                path
-            ),
+            """.format(path),
             commit_tx=True,
         )
 
@@ -145,12 +144,11 @@ def select_parametrized(pool, path, series_id, season_id, episode_id):
         $format = DateTime::Format("%Y-%m-%d");
         SELECT
             title,
-            $format(DateTime::FromSeconds(CAST(DateTime::ToSeconds(DateTime::IntervalFromDays(CAST(air_date AS Int16))) AS Uint32))) AS air_date
+            $format(DateTime::FromSeconds(CAST(DateTime::ToSeconds(
+                DateTime::IntervalFromDays(CAST(air_date AS Int16))) AS Uint32))) AS air_date
         FROM episodes
         WHERE series_id = $seriesId AND season_id = $seasonId AND episode_id = $episodeId;
-        """.format(
-            path
-        )
+        """.format(path)
 
         data_query = ydb.types.DataQuery(
             query,
@@ -193,12 +191,11 @@ def select_prepared(pool, path, series_id, season_id, episode_id):
         $format = DateTime::Format("%Y-%m-%d");
         SELECT
             title,
-            $format(DateTime::FromSeconds(CAST(DateTime::ToSeconds(DateTime::IntervalFromDays(CAST(air_date AS Int16))) AS Uint32))) AS air_date
+            $format(DateTime::FromSeconds(CAST(DateTime::ToSeconds(
+                DateTime::IntervalFromDays(CAST(air_date AS Int16))) AS Uint32))) AS air_date
         FROM episodes
         WHERE series_id = $seriesId AND season_id = $seasonId AND episode_id = $episodeId;
-        """.format(
-            path
-        )
+        """.format(path)
 
         prepared_query = session.prepare(query)
         result_sets = session.transaction(ydb.SerializableReadWrite()).execute(
@@ -235,9 +232,7 @@ def explicit_tcl(pool, path, series_id, season_id, episode_id):
         UPDATE episodes
         SET air_date = CAST(CurrentUtcDate() AS Uint64)
         WHERE series_id = $seriesId AND season_id = $seasonId AND episode_id = $episodeId;
-        """.format(
-            path
-        )
+        """.format(path)
         prepared_query = session.prepare(query)
 
         # Get newly created transaction id
@@ -271,9 +266,7 @@ def create_tables(pool, path):
                     `release_date` Uint64,
                     PRIMARY KEY (`series_id`)
                 )
-                """.format(
-                path
-            )
+                """.format(path)
         )
 
         # Creating Seasons table
@@ -288,9 +281,7 @@ def create_tables(pool, path):
                    `last_aired` Uint64,
                    PRIMARY KEY (`series_id`, `season_id`)
                )
-               """.format(
-                path
-            )
+               """.format(path)
         )
 
         # Creating Episodes table
@@ -305,9 +296,7 @@ def create_tables(pool, path):
                 `air_date` Uint64,
                 PRIMARY KEY (`series_id`, `season_id`, `episode_id`)
             )
-            """.format(
-                path
-            )
+            """.format(path)
         )
 
     return pool.retry_operation_sync(callee)
@@ -369,7 +358,6 @@ def run(endpoint, database, path):
         driver.wait(timeout=5, fail_fast=True)
 
         with ydb.SessionPool(driver) as pool:
-
             ensure_path_exists(driver, database, path)
 
             # absolute path - prefix to the table's names,

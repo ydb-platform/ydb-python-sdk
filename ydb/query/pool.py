@@ -1,33 +1,31 @@
 from __future__ import annotations
 
 import logging
+import queue
+import threading
+import time
 from concurrent import futures
 from typing import (
-    Callable,
-    Optional,
-    List,
-    Dict,
-    Any,
-    Union,
     TYPE_CHECKING,
+    Any,
+    Callable,
+    Dict,
+    List,
+    Optional,
+    Union,
 )
-import time
-import threading
-import queue
 
-from .base import BaseQueryTxMode, QueryExplainResultFormat
-from .base import QueryClientSettings
-from .session import (
-    QuerySession,
-)
+from .. import convert, issues
+from .._grpc.grpcwrapper import ydb_query_public_types as _ydb_query_public
 from ..retries import (
     RetrySettings,
     retry_operation_sync,
 )
-from .. import issues
-from .. import convert
 from ..settings import BaseRequestSettings
-from .._grpc.grpcwrapper import ydb_query_public_types as _ydb_query_public
+from .base import BaseQueryTxMode, QueryClientSettings, QueryExplainResultFormat
+from .session import (
+    QuerySession,
+)
 
 if TYPE_CHECKING:
     from ..driver import Driver as SyncDriver

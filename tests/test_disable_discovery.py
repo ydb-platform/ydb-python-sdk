@@ -1,9 +1,10 @@
-import pytest
-import unittest.mock
-import ydb
 import asyncio
-from ydb import _apis
+import unittest.mock
 
+import pytest
+
+import ydb
+from ydb import _apis
 
 TEST_ERROR = "Test error"
 TEST_QUERY = "SELECT 1 + 2 AS sum"
@@ -134,9 +135,9 @@ def test_sync_driver_discovery_disabled_mock(
                 pass  # Expected exception, we just want to ensure no discovery occurs
 
             # Verify the mock wasn't called
-            assert (
-                not mock_discovery_resolver.called
-            ), "Discovery resolver should not be called when discovery is disabled"
+            assert not mock_discovery_resolver.called, (
+                "Discovery resolver should not be called when discovery is disabled"
+            )
         finally:
             # Clean up
             driver.stop()
@@ -228,9 +229,9 @@ async def test_aio_driver_discovery_disabled_mock(
                     pass  # Other exceptions are expected as we're using mocks
 
                 # Verify the mock wasn't called
-                assert (
-                    not mock_aio_discovery_resolver.called
-                ), "Discovery resolver should not be called when discovery is disabled"
+                assert not mock_aio_discovery_resolver.called, (
+                    "Discovery resolver should not be called when discovery is disabled"
+                )
             finally:
                 # The stop method is already mocked, so we don't need to await it
                 pass

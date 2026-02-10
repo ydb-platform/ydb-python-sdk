@@ -2,7 +2,6 @@ from dataclasses import dataclass
 
 from exception import ValidationError
 
-
 US_IN_MSEC = 1000
 
 

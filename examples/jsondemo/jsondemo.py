@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
+import base64
+import json
 import os
 import random
-import json
-import base64
+
 import ydb
 
 
@@ -44,9 +45,7 @@ def insert_json_rows(pool: ydb.SessionPool, table_path: str, num: int):
         inputData.append({"key": i + 1, "jsonb_value": make_json(i)})
     qtext = """
 DECLARE $input AS List<Struct<key: Int32, jsonb_value: JsonDocument>>;
-UPSERT INTO `%s` SELECT * FROM AS_TABLE($input);""" % (
-        table_path
-    )
+UPSERT INTO `%s` SELECT * FROM AS_TABLE($input);""" % (table_path)
 
     def fun(session: ydb.Session):
         session.transaction(ydb.SerializableReadWrite()).execute(
@@ -61,9 +60,7 @@ UPSERT INTO `%s` SELECT * FROM AS_TABLE($input);""" % (
 def find_json_row(pool: ydb.SessionPool, table_path: str, id: int):
     qtext = """
 DECLARE $key AS Int32; SELECT jsonb_value FROM `%s` WHERE key=$key;
-    """ % (
-        table_path
-    )
+    """ % (table_path)
 
     def fun(session: ydb.Session):
         rs = session.transaction().execute(

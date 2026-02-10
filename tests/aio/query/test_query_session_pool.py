@@ -1,11 +1,10 @@
 import asyncio
 import json
-
-import pytest
-import ydb
-
 from typing import Optional
 
+import pytest
+
+import ydb
 from ydb import QueryExplainResultFormat
 from ydb.aio.query.pool import QuerySessionPool
 from ydb.aio.query.session import QuerySession

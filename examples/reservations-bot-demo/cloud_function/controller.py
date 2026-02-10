@@ -1,16 +1,16 @@
-import typing
 import logging
-from storage import Storage
+import typing
+
 from models import (
-    ReservationCreateResponse,
-    ReservationCreateRequest,
     ReservationCancelRequest,
     ReservationCancelResponse,
+    ReservationCreateRequest,
+    ReservationCreateResponse,
 )
+from storage import Storage
 
 
 class Controller(object):
-
     __slots__ = ("_storage",)
 
     def __init__(self, storage: Storage):
@@ -47,5 +47,5 @@ class Controller(object):
             logging.warning(f"reservation {request.phone} {request.dt} cancelled")
             return ReservationCancelResponse(success=True)
         except Exception as e:
-            logging.warning(f"failed to cancel reservation for {request.phone} " f"{request.dt} due to {repr(e)}")
+            logging.warning(f"failed to cancel reservation for {request.phone} {request.dt} due to {repr(e)}")
             return ReservationCancelResponse(success=False)

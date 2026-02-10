@@ -1,12 +1,11 @@
 # -*- coding: utf-8 -*-
-from typing import Any, Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Optional
 
-from . import issues
-from . import _apis
+from . import _apis, issues
 
 if TYPE_CHECKING:
-    from .settings import BaseRequestSettings
     from .connection import _RpcState
+    from .settings import BaseRequestSettings
 
 
 def _forget_operation_request(operation_id: str) -> Any:

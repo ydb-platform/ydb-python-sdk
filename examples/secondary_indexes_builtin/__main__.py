@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 import argparse
-import secondary_indexes_builtin
 import logging
+
+import secondary_indexes_builtin
 
 INTERESTING_TARGETS = [
     "ydb.resolver.DiscoveryEndpointsResolver",

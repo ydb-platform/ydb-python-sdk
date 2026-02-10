@@ -1,18 +1,17 @@
-from __future__ import absolute_import
-from __future__ import unicode_literals
+from __future__ import absolute_import, unicode_literals
 
 from .connection import Connection
 from .errors import (
-    Warning,
-    Error,
-    InterfaceError,
     DatabaseError,
     DataError,
-    OperationalError,
+    Error,
     IntegrityError,
+    InterfaceError,
     InternalError,
-    ProgrammingError,
     NotSupportedError,
+    OperationalError,
+    ProgrammingError,
+    Warning,
 )
 
 version = "0.0.31"

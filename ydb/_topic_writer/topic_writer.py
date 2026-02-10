@@ -2,19 +2,18 @@ import concurrent.futures
 import datetime
 import enum
 import itertools
+import typing
 import uuid
 from dataclasses import dataclass
 from enum import Enum
-from typing import List, Union, Optional, Any, Dict
-
-import typing
+from typing import Any, Dict, List, Optional, Union
 
 import ydb.aio
-from .._grpc.grpcwrapper.ydb_topic import StreamWriteMessage
-from .._grpc.grpcwrapper.ydb_topic import TransactionIdentity
-from .._grpc.grpcwrapper.common_utils import IToProto
-from .._grpc.grpcwrapper.ydb_topic_public_types import PublicCodec
+
 from .. import connection
+from .._grpc.grpcwrapper.common_utils import IToProto
+from .._grpc.grpcwrapper.ydb_topic import StreamWriteMessage, TransactionIdentity
+from .._grpc.grpcwrapper.ydb_topic_public_types import PublicCodec
 
 Message = typing.Union["PublicMessage", "PublicMessage.SimpleSourceType"]
 

@@ -3,14 +3,15 @@ import datetime
 from google.protobuf.json_format import MessageToDict
 
 from ydb._grpc.grpcwrapper.ydb_topic import OffsetsRange
+
 from .ydb_topic import AlterTopicRequest
 from .ydb_topic_public_types import (
     AlterTopicRequestParams,
-    PublicAlterConsumer,
     PublicAlterAutoPartitioningSettings,
+    PublicAlterConsumer,
     PublicAutoPartitioningStrategy,
-    PublicConsumer,
     PublicCodec,
+    PublicConsumer,
 )
 
 
