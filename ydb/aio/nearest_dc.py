@@ -94,10 +94,7 @@ def _get_random_endpoints(endpoints: List[resolver.EndpointInfo], count: int) ->
     """
     if len(endpoints) <= count:
         return endpoints
-
-    endpoints_copy = list(endpoints)
-    random.shuffle(endpoints_copy)
-    return endpoints_copy[:count]
+    return random.sample(endpoints, count)
 
 
 async def detect_local_dc(

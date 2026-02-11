@@ -1,26 +1,37 @@
 # -*- coding: utf-8 -*-
+import atexit
+import concurrent.futures
 import socket
 import threading
 import logging
 import random
 import time
-from typing import Any, Dict, List, Optional
+from typing import Dict, List, Optional
 
 from . import resolver
 
 
 logger = logging.getLogger(__name__)
 
+# Module-level thread pool for TCP race (reused across discovery cycles)
+_TCP_RACE_MAX_WORKERS = 15
+_TCP_RACE_EXECUTOR = concurrent.futures.ThreadPoolExecutor(
+    max_workers=_TCP_RACE_MAX_WORKERS,
+    thread_name_prefix="ydb-tcp-race",
+)
+
+# Ensure executor is shut down on process exit
+atexit.register(lambda: _TCP_RACE_EXECUTOR.shutdown(wait=False, cancel_futures=True))
+
 
 def _check_fastest_endpoint(
     endpoints: List[resolver.EndpointInfo], timeout: float = 5.0
 ) -> Optional[resolver.EndpointInfo]:
     """
-    Perform TCP race: connect to all endpoints simultaneously and return the fastest one.
+    Perform TCP race using a bounded thread pool and return the fastest endpoint.
 
-    This function starts TCP connections to all provided endpoints in parallel
-    and returns the first one that successfully connects. Other connection attempts
-    will continue until their socket timeout expires (they cannot be interrupted).
+    Uses a module-level ThreadPoolExecutor to avoid creating new threads on every
+    discovery cycle. Returns immediately when the first endpoint connects successfully.
 
     :param endpoints: List of resolver.EndpointInfo objects
     :param timeout: Maximum time to wait for any connection (seconds)
@@ -29,43 +40,50 @@ def _check_fastest_endpoint(
     if not endpoints:
         return None
 
-    result: Dict[str, Any] = {"endpoint": None, "lock": threading.Lock()}
+    endpoints = _get_random_endpoints(endpoints, _TCP_RACE_MAX_WORKERS)
+
     stop_event = threading.Event()
+    winner_lock = threading.Lock()
     deadline = time.monotonic() + timeout
 
-    def try_connect(endpoint: resolver.EndpointInfo):
-        """Try to connect to endpoint and report if successful."""
+    def try_connect(endpoint: resolver.EndpointInfo) -> Optional[resolver.EndpointInfo]:
+        """Try to connect to endpoint and return it if successful."""
         remaining = deadline - time.monotonic()
         if remaining <= 0 or stop_event.is_set():
-            return
+            return None
 
         try:
             sock = socket.create_connection((endpoint.address, endpoint.port), timeout=remaining)
-
             try:
-                with result["lock"]:
-                    if result["endpoint"] is None:
-                        result["endpoint"] = endpoint
-                        stop_event.set()
-                        logger.debug("TCP race winner: %s (location: %s)", endpoint.endpoint, endpoint.location)
+                with winner_lock:
+                    if stop_event.is_set():
+                        return None
+                    stop_event.set()
+                    return endpoint
             finally:
                 sock.close()
-
         except (OSError, socket.timeout):
             # Ignore expected connection errors; endpoints that fail simply lose the TCP race.
-            pass
+            return None
         except Exception as e:
             logger.debug("Unexpected error connecting to %s: %s", endpoint.endpoint, e)
+            return None
 
-    threads: List[threading.Thread] = []
-    for ep in endpoints:
-        thread = threading.Thread(target=try_connect, args=(ep,), daemon=True)
-        thread.start()
-        threads.append(thread)
+    futures: List[concurrent.futures.Future] = [_TCP_RACE_EXECUTOR.submit(try_connect, ep) for ep in endpoints]
 
-    stop_event.wait(timeout=max(0.0, deadline - time.monotonic()))
+    try:
+        for fut in concurrent.futures.as_completed(futures, timeout=timeout):
+            result = fut.result()
+            if result is not None:
+                return result
+    except concurrent.futures.TimeoutError:
+        # Overall timeout expired
+        pass
+    finally:
+        for f in futures:
+            f.cancel()
 
-    return result["endpoint"]
+    return None
 
 
 def _split_endpoints_by_location(endpoints: List[resolver.EndpointInfo]) -> Dict[str, List[resolver.EndpointInfo]]:
@@ -94,10 +112,7 @@ def _get_random_endpoints(endpoints: List[resolver.EndpointInfo], count: int) ->
     """
     if len(endpoints) <= count:
         return endpoints
-
-    endpoints_copy = list(endpoints)
-    random.shuffle(endpoints_copy)
-    return endpoints_copy[:count]
+    return random.sample(endpoints, count)
 
 
 def detect_local_dc(

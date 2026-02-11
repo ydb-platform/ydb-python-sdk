@@ -257,6 +257,7 @@ class Discovery(threading.Thread):
                         "Failed to detect local DC via TCP latency, using server location: %s. Error: %s",
                         resolve_details.self_location,
                         e,
+                        exc_info=True,
                     )
 
             for resolved_endpoint in resolve_details.endpoints:
