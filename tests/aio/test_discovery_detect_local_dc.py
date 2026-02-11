@@ -49,9 +49,11 @@ async def test_detect_local_dc_overrides_server_location():
                 with patch("ydb.aio.connection.Connection.close", AsyncMock()):
                     with patch("ydb.aio.connection.Connection.add_cleanup_callback", lambda *a: None):
                         config = driver.DriverConfig(
-                            endpoint="grpc://test:2135", database="/local", detect_local_dc=True
+                            endpoint="grpc://test:2135", database="/local", detect_local_dc=True, use_all_nodes=False
                         )
-                        discovery = pool.Discovery(store=pool.ConnectionsCache(), driver_config=config)
+                        discovery = pool.Discovery(
+                            store=pool.ConnectionsCache(config.use_all_nodes), driver_config=config
+                        )
                         discovery._resolver = mock_resolver
 
                         original_add = discovery._cache.add
@@ -90,9 +92,11 @@ async def test_detect_local_dc_failure_fallback():
                 with patch("ydb.aio.connection.Connection.close", AsyncMock()):
                     with patch("ydb.aio.connection.Connection.add_cleanup_callback", lambda *a: None):
                         config = driver.DriverConfig(
-                            endpoint="grpc://test:2135", database="/local", detect_local_dc=True
+                            endpoint="grpc://test:2135", database="/local", detect_local_dc=True, use_all_nodes=False
                         )
-                        discovery = pool.Discovery(store=pool.ConnectionsCache(), driver_config=config)
+                        discovery = pool.Discovery(
+                            store=pool.ConnectionsCache(config.use_all_nodes), driver_config=config
+                        )
                         discovery._resolver = mock_resolver
 
                         original_add = discovery._cache.add
