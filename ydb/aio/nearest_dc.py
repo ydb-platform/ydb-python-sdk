@@ -111,18 +111,23 @@ async def detect_local_dc(
     1. Group endpoints by location
     2. If only one location exists, return it immediately
     3. Select up to max_per_location random endpoints from each location
-    4. Perform TCP race: connect to all selected endpoints simultaneously
-    5. Return the location of the first endpoint that connects successfully
-    6. If all connections fail, return None
+    4. If too many endpoints, reduce to one per location and cap at limit
+    5. Perform TCP race: connect to all selected endpoints simultaneously
+    6. Return the location of the first endpoint that connects successfully
+    7. If all connections fail, return None
 
     :param endpoints: List of resolver.EndpointInfo objects from discovery
-    :param max_per_location: Maximum number of endpoints to test per location (default: 3)
-    :param timeout: TCP connection timeout in seconds (default: 5.0)
+    :param max_per_location: Maximum number of endpoints to test per location (default: 3, must be >= 1)
+    :param timeout: TCP connection timeout in seconds (default: 5.0, must be > 0)
     :return: Location string of the nearest datacenter, or None if detection failed
-    :raises ValueError: If endpoints list is empty
+    :raises ValueError: If endpoints list is empty, max_per_location < 1, or timeout <= 0
     """
     if not endpoints:
         raise ValueError("Empty endpoints list for local DC detection")
+    if max_per_location < 1:
+        raise ValueError(f"max_per_location must be >= 1, got {max_per_location}")
+    if timeout <= 0:
+        raise ValueError(f"timeout must be > 0, got {timeout}")
 
     endpoints_by_location = _split_endpoints_by_location(endpoints)
 
@@ -137,6 +142,8 @@ async def detect_local_dc(
         logger.debug("Only one location found: %s", location)
         return location
 
+    _MAX_CONCURRENT_TASKS = 99
+
     endpoints_to_test = []
     for location, location_endpoints in endpoints_by_location.items():
         sample = _get_random_endpoints(location_endpoints, max_per_location)
@@ -147,6 +154,14 @@ async def detect_local_dc(
             len(location_endpoints),
             location,
         )
+
+    if len(endpoints_to_test) > _MAX_CONCURRENT_TASKS:
+        endpoints_to_test = [random.choice(location_eps) for location_eps in endpoints_by_location.values()]
+
+        if len(endpoints_to_test) > _MAX_CONCURRENT_TASKS:
+            endpoints_to_test = random.sample(endpoints_to_test, _MAX_CONCURRENT_TASKS)
+
+        logger.debug("Capped endpoints to %d to limit concurrent tasks", len(endpoints_to_test))
 
     fastest_endpoint = await _check_fastest_endpoint(endpoints_to_test, timeout=timeout)
 

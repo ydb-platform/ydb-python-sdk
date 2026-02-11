@@ -143,3 +143,17 @@ async def test_detect_local_dc_respects_max_per_location(monkeypatch):
     await nearest_dc.detect_local_dc(endpoints, max_per_location=2, timeout=0.2)
 
     assert len(calls) == 4
+
+
+@pytest.mark.asyncio
+async def test_detect_local_dc_validates_max_per_location():
+    endpoints = [MockEndpoint("h1", 1, "dc1")]
+    with pytest.raises(ValueError, match="max_per_location must be >= 1"):
+        await nearest_dc.detect_local_dc(endpoints, max_per_location=0)
+
+
+@pytest.mark.asyncio
+async def test_detect_local_dc_validates_timeout():
+    endpoints = [MockEndpoint("h1", 1, "dc1")]
+    with pytest.raises(ValueError, match="timeout must be > 0"):
+        await nearest_dc.detect_local_dc(endpoints, timeout=0)

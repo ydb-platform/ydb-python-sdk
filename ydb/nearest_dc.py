@@ -42,7 +42,8 @@ def _check_fastest_endpoint(
     discovery cycle. Returns immediately when the first endpoint connects successfully.
 
     If there are more endpoints than the thread pool size, takes one random endpoint
-    per location to ensure fair representation of all locations in the race.
+    per location to ensure fair representation of all locations in the race. If there
+    are still too many locations, randomly samples them to stay within the limit.
 
     :param endpoints: List of resolver.EndpointInfo objects
     :param timeout: Maximum time to wait for any connection (seconds)
@@ -54,6 +55,9 @@ def _check_fastest_endpoint(
     if len(endpoints) > _TCP_RACE_MAX_WORKERS:
         endpoints_by_location = _split_endpoints_by_location(endpoints)
         endpoints = [random.choice(location_eps) for location_eps in endpoints_by_location.values()]
+
+        if len(endpoints) > _TCP_RACE_MAX_WORKERS:
+            endpoints = random.sample(endpoints, _TCP_RACE_MAX_WORKERS)
 
     stop_event = threading.Event()
     winner_lock = threading.Lock()
@@ -147,13 +151,17 @@ def detect_local_dc(
     6. If all connections fail, return None
 
     :param endpoints: List of resolver.EndpointInfo objects from discovery
-    :param max_per_location: Maximum number of endpoints to test per location (default: 3)
-    :param timeout: TCP connection timeout in seconds (default: 5.0)
+    :param max_per_location: Maximum number of endpoints to test per location (default: 3, must be >= 1)
+    :param timeout: TCP connection timeout in seconds (default: 5.0, must be > 0)
     :return: Location string of the nearest datacenter, or None if detection failed
-    :raises ValueError: If endpoints list is empty
+    :raises ValueError: If endpoints list is empty, max_per_location < 1, or timeout <= 0
     """
     if not endpoints:
         raise ValueError("Empty endpoints list for local DC detection")
+    if max_per_location < 1:
+        raise ValueError(f"max_per_location must be >= 1, got {max_per_location}")
+    if timeout <= 0:
+        raise ValueError(f"timeout must be > 0, got {timeout}")
 
     endpoints_by_location = _split_endpoints_by_location(endpoints)
 
