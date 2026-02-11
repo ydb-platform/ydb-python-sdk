@@ -16,20 +16,42 @@ logger = logging.getLogger(__name__)
 
 # Module-level thread pool for TCP race (reused across discovery cycles)
 _TCP_RACE_MAX_WORKERS = 30
-_TCP_RACE_EXECUTOR = concurrent.futures.ThreadPoolExecutor(
-    max_workers=_TCP_RACE_MAX_WORKERS,
-    thread_name_prefix="ydb-tcp-race",
-)
+_TCP_RACE_EXECUTOR: Optional[concurrent.futures.ThreadPoolExecutor] = None
+_EXECUTOR_LOCK = threading.Lock()
+_ATEXIT_REGISTERED = False
+
+
+def _get_executor() -> concurrent.futures.ThreadPoolExecutor:
+    """
+    Lazily create and return the thread pool executor.
+
+    The executor is created on first use to avoid import-time side effects.
+    The atexit hook is registered only when the executor is actually created.
+    """
+    global _TCP_RACE_EXECUTOR, _ATEXIT_REGISTERED
+
+    if _TCP_RACE_EXECUTOR is None:
+        with _EXECUTOR_LOCK:
+            if _TCP_RACE_EXECUTOR is None:
+                _TCP_RACE_EXECUTOR = concurrent.futures.ThreadPoolExecutor(
+                    max_workers=_TCP_RACE_MAX_WORKERS,
+                    thread_name_prefix="ydb-tcp-race",
+                )
+
+                if not _ATEXIT_REGISTERED:
+                    atexit.register(_shutdown_executor)
+                    _ATEXIT_REGISTERED = True
+
+    return _TCP_RACE_EXECUTOR
 
 
 def _shutdown_executor():
-    if sys.version_info >= (3, 9):
-        _TCP_RACE_EXECUTOR.shutdown(wait=False, cancel_futures=True)
-    else:
-        _TCP_RACE_EXECUTOR.shutdown(wait=False)
-
-
-atexit.register(_shutdown_executor)
+    """Shutdown the executor if it was created."""
+    if _TCP_RACE_EXECUTOR is not None:
+        if sys.version_info >= (3, 9):
+            _TCP_RACE_EXECUTOR.shutdown(wait=False, cancel_futures=True)
+        else:
+            _TCP_RACE_EXECUTOR.shutdown(wait=False)
 
 
 def _check_fastest_endpoint(
@@ -86,7 +108,8 @@ def _check_fastest_endpoint(
             logger.debug("Unexpected error connecting to %s: %s", endpoint.endpoint, e)
             return None
 
-    futures: List[concurrent.futures.Future] = [_TCP_RACE_EXECUTOR.submit(try_connect, ep) for ep in endpoints]
+    executor = _get_executor()
+    futures: List[concurrent.futures.Future] = [executor.submit(try_connect, ep) for ep in endpoints]
 
     try:
         for fut in concurrent.futures.as_completed(futures, timeout=timeout):
