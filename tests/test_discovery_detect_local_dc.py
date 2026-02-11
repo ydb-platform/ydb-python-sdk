@@ -92,3 +92,29 @@ def test_detect_local_dc_failure_fallback():
             discovery.execute_discovery()
 
     assert any("dc1" in ep for ep in preferred), "dc1 should be preferred (server fallback)"
+
+
+def test_detect_local_dc_skipped_when_use_all_nodes_true():
+    """Test that detect_local_dc is NOT called when use_all_nodes=True."""
+    endpoints = [
+        MockEndpointInfo("dc1-host", 2135, "dc1"),
+        MockEndpointInfo("dc2-host", 2135, "dc2"),
+    ]
+    mock_result = MockDiscoveryResult(self_location="dc1", endpoints=endpoints)
+
+    mock_resolver = MagicMock()
+    mock_resolver.context_resolve.return_value.__enter__.return_value = mock_result
+    mock_resolver.context_resolve.return_value.__exit__.return_value = None
+
+    with patch.object(nearest_dc, "detect_local_dc", Mock(return_value="dc2")) as detect_mock:
+        with patch(
+            "ydb.connection.Connection.ready_factory", lambda *args, **kw: MagicMock(endpoint=args[0], node_id=1)
+        ):
+            config = driver.DriverConfig(
+                endpoint="grpc://test:2135", database="/local", detect_local_dc=True, use_all_nodes=True
+            )
+            discovery = pool.Discovery(store=pool.ConnectionsCache(config.use_all_nodes), driver_config=config)
+            discovery._resolver = mock_resolver
+            discovery.execute_discovery()
+
+        assert detect_mock.call_count == 0, "detect_local_dc should NOT be called when use_all_nodes=True"

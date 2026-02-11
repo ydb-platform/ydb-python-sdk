@@ -108,3 +108,36 @@ async def test_detect_local_dc_failure_fallback():
                         await discovery.execute_discovery()
 
     assert any("dc1" in ep for ep in preferred), "dc1 should be preferred (server fallback)"
+
+
+@pytest.mark.asyncio
+async def test_detect_local_dc_skipped_when_use_all_nodes_true():
+    """Test that detect_local_dc is NOT called when use_all_nodes=True."""
+    endpoints = [
+        MockEndpointInfo("dc1-host", 2135, "dc1"),
+        MockEndpointInfo("dc2-host", 2135, "dc2"),
+    ]
+    mock_result = MockDiscoveryResult(self_location="dc1", endpoints=endpoints)
+
+    mock_resolver = MagicMock()
+    mock_resolver.resolve = AsyncMock(return_value=mock_result)
+
+    def mock_init(self, endpoint, driver_config, endpoint_options=None):
+        self.endpoint = endpoint
+        self.node_id = 1
+
+    with patch.object(nearest_dc, "detect_local_dc", AsyncMock(return_value="dc2")) as detect_mock:
+        with patch("ydb.aio.connection.Connection.__init__", mock_init):
+            with patch("ydb.aio.connection.Connection.connection_ready", AsyncMock()):
+                with patch("ydb.aio.connection.Connection.close", AsyncMock()):
+                    with patch("ydb.aio.connection.Connection.add_cleanup_callback", lambda *a: None):
+                        config = driver.DriverConfig(
+                            endpoint="grpc://test:2135", database="/local", detect_local_dc=True, use_all_nodes=True
+                        )
+                        discovery = pool.Discovery(
+                            store=pool.ConnectionsCache(config.use_all_nodes), driver_config=config
+                        )
+                        discovery._resolver = mock_resolver
+                        await discovery.execute_discovery()
+
+    assert detect_mock.call_count == 0, "detect_local_dc should NOT be called when use_all_nodes=True"
