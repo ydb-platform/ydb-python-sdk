@@ -91,8 +91,15 @@ def _check_fastest_endpoint(
         if remaining <= 0 or stop_event.is_set():
             return None
 
+        if endpoint.ipv6_addrs:
+            target_host = endpoint.ipv6_addrs[0]
+        elif endpoint.ipv4_addrs:
+            target_host = endpoint.ipv4_addrs[0]
+        else:
+            target_host = endpoint.address
+
         try:
-            sock = socket.create_connection((endpoint.address, endpoint.port), timeout=remaining)
+            sock = socket.create_connection((target_host, endpoint.port), timeout=remaining)
             try:
                 with winner_lock:
                     if stop_event.is_set():

@@ -35,9 +35,16 @@ async def _check_fastest_endpoint(
         if remaining <= 0:
             return None
 
+        if endpoint.ipv6_addrs:
+            target_host = endpoint.ipv6_addrs[0]
+        elif endpoint.ipv4_addrs:
+            target_host = endpoint.ipv4_addrs[0]
+        else:
+            target_host = endpoint.address
+
         try:
             _, writer = await asyncio.wait_for(
-                asyncio.open_connection(endpoint.address, endpoint.port),
+                asyncio.open_connection(target_host, endpoint.port),
                 timeout=remaining,
             )
             writer.close()

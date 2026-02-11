@@ -4,11 +4,13 @@ from ydb.aio import nearest_dc
 
 
 class MockEndpoint:
-    def __init__(self, address, port, location):
+    def __init__(self, address, port, location, ipv4_addrs=(), ipv6_addrs=()):
         self.address = address
         self.port = port
         self.endpoint = f"{address}:{port}"
         self.location = location
+        self.ipv4_addrs = ipv4_addrs
+        self.ipv6_addrs = ipv6_addrs
 
 
 class MockWriter:
