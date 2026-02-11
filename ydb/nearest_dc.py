@@ -2,6 +2,7 @@
 import atexit
 import concurrent.futures
 import socket
+import sys
 import threading
 import logging
 import random
@@ -14,14 +15,21 @@ from . import resolver
 logger = logging.getLogger(__name__)
 
 # Module-level thread pool for TCP race (reused across discovery cycles)
-_TCP_RACE_MAX_WORKERS = 15
+_TCP_RACE_MAX_WORKERS = 30
 _TCP_RACE_EXECUTOR = concurrent.futures.ThreadPoolExecutor(
     max_workers=_TCP_RACE_MAX_WORKERS,
     thread_name_prefix="ydb-tcp-race",
 )
 
-# Ensure executor is shut down on process exit
-atexit.register(lambda: _TCP_RACE_EXECUTOR.shutdown(wait=False, cancel_futures=True))
+
+def _shutdown_executor():
+    if sys.version_info >= (3, 9):
+        _TCP_RACE_EXECUTOR.shutdown(wait=False, cancel_futures=True)
+    else:
+        _TCP_RACE_EXECUTOR.shutdown(wait=False)
+
+
+atexit.register(_shutdown_executor)
 
 
 def _check_fastest_endpoint(
@@ -33,6 +41,9 @@ def _check_fastest_endpoint(
     Uses a module-level ThreadPoolExecutor to avoid creating new threads on every
     discovery cycle. Returns immediately when the first endpoint connects successfully.
 
+    If there are more endpoints than the thread pool size, takes one random endpoint
+    per location to ensure fair representation of all locations in the race.
+
     :param endpoints: List of resolver.EndpointInfo objects
     :param timeout: Maximum time to wait for any connection (seconds)
     :return: Fastest endpoint that connected successfully, or None if all failed
@@ -40,7 +51,9 @@ def _check_fastest_endpoint(
     if not endpoints:
         return None
 
-    endpoints = _get_random_endpoints(endpoints, _TCP_RACE_MAX_WORKERS)
+    if len(endpoints) > _TCP_RACE_MAX_WORKERS:
+        endpoints_by_location = _split_endpoints_by_location(endpoints)
+        endpoints = [random.choice(location_eps) for location_eps in endpoints_by_location.values()]
 
     stop_event = threading.Event()
     winner_lock = threading.Lock()

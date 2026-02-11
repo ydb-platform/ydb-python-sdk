@@ -41,8 +41,10 @@ def test_detect_local_dc_overrides_server_location():
         with patch(
             "ydb.connection.Connection.ready_factory", lambda *args, **kw: MagicMock(endpoint=args[0], node_id=1)
         ):
-            config = driver.DriverConfig(endpoint="grpc://test:2135", database="/local", detect_local_dc=True)
-            discovery = pool.Discovery(store=pool.ConnectionsCache(), driver_config=config)
+            config = driver.DriverConfig(
+                endpoint="grpc://test:2135", database="/local", detect_local_dc=True, use_all_nodes=False
+            )
+            discovery = pool.Discovery(store=pool.ConnectionsCache(config.use_all_nodes), driver_config=config)
             discovery._resolver = mock_resolver
 
             original_add = discovery._cache.add
@@ -75,8 +77,10 @@ def test_detect_local_dc_failure_fallback():
         with patch(
             "ydb.connection.Connection.ready_factory", lambda *args, **kw: MagicMock(endpoint=args[0], node_id=1)
         ):
-            config = driver.DriverConfig(endpoint="grpc://test:2135", database="/local", detect_local_dc=True)
-            discovery = pool.Discovery(store=pool.ConnectionsCache(), driver_config=config)
+            config = driver.DriverConfig(
+                endpoint="grpc://test:2135", database="/local", detect_local_dc=True, use_all_nodes=False
+            )
+            discovery = pool.Discovery(store=pool.ConnectionsCache(config.use_all_nodes), driver_config=config)
             discovery._resolver = mock_resolver
 
             original_add = discovery._cache.add
