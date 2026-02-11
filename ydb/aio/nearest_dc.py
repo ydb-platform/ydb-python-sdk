@@ -63,7 +63,6 @@ async def _check_fastest_endpoint(
         for t in tasks:
             if not t.done():
                 t.cancel()
-        await asyncio.gather(*tasks, return_exceptions=True)
 
 
 def _split_endpoints_by_location(
@@ -142,7 +141,7 @@ async def detect_local_dc(
         logger.debug("Only one location found: %s", location)
         return location
 
-    _MAX_CONCURRENT_TASKS = 99
+    _MAX_CONCURRENT_TASKS = 30
 
     endpoints_to_test = []
     for location, location_endpoints in endpoints_by_location.items():
