@@ -1,3 +1,4 @@
+## 3.26.5 ##
 * Retry SessionExpired in topic streams
 
 ## 3.26.4 ##
