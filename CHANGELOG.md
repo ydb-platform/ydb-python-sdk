@@ -1,3 +1,5 @@
+* Retry SessionExpired in topic streams
+
 ## 3.26.4 ##
 * Make fail to create session log warn
 
