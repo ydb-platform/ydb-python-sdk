@@ -1,8 +1,14 @@
 import os
 import ydb
 
+
+driver_config = ydb.DriverConfig(
+    endpoint=os.getenv("YDB_ENDPOINT"),
+    database=os.getenv("YDB_DATABASE"),
+    disable_discovery=True,  # it is recommended to disable discovery for cloud functions
+)
 # create driver in global space.
-driver = ydb.Driver(endpoint=os.getenv("YDB_ENDPOINT"), database=os.getenv("YDB_DATABASE"))
+driver = ydb.Driver(driver_config)
 # Wait for the driver to become active for requests.
 driver.wait(fail_fast=True, timeout=5)
 # Create the session pool instance to manage YDB sessions.
