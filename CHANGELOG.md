@@ -1,3 +1,5 @@
+* Support YDB_USER and YDB_PASSWORD in the environment
+
 ## 3.26.5 ##
 * Retry SessionExpired in topic streams
 
