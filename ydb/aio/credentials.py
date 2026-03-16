@@ -62,7 +62,7 @@ class AbstractExpiringTokenCredentials(credentials.AbstractExpiringTokenCredenti
 
         except Exception as e:
             self.last_error = str(e)
-            self.logger.error("Failed to refresh token async: %s", e, exc_info=e)
+            self.logger.error("Failed to refresh token async: %s", e, exc_info=True)
             if should_raise:
                 raise issues.ConnectionError(
                     "%s: %s.\n%s" % (self.__class__.__name__, self.last_error, self.extra_error_message)
