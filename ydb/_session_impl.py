@@ -1,6 +1,8 @@
 import functools
+
 from google.protobuf.empty_pb2 import Empty
-from . import issues, types, _apis, convert, scheme, operation, _utilities
+
+from . import _apis, _utilities, convert, issues, operation, scheme, types
 
 X_YDB_SERVER_HINTS = "x-ydb-server-hints"
 X_YDB_SESSION_CLOSE = "session-close"

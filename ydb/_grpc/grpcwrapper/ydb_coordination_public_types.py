@@ -1,6 +1,6 @@
+import typing
 from dataclasses import dataclass
 from enum import IntEnum
-import typing
 
 if typing.TYPE_CHECKING:
     from ..v4.protos import ydb_coordination_pb2

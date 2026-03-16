@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import argparse
-from example import run
 
+from example import run
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(

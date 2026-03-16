@@ -1,9 +1,11 @@
-import grpc.aio
-import time
-
 import abc
 import logging
+import time
+
+import grpc.aio
+
 from ydb.iam import auth
+
 from .credentials import AbstractExpiringTokenCredentials
 
 logger = logging.getLogger(__name__)
@@ -14,8 +16,7 @@ except ImportError:
     jwt = None  # type: ignore[assignment]
 
 try:
-    from yandex.cloud.iam.v1 import iam_token_service_pb2_grpc
-    from yandex.cloud.iam.v1 import iam_token_service_pb2
+    from yandex.cloud.iam.v1 import iam_token_service_pb2, iam_token_service_pb2_grpc
 except ImportError:
     iam_token_service_pb2_grpc = None
     iam_token_service_pb2 = None
@@ -102,7 +103,10 @@ class MetadataUrlCredentials(AbstractExpiringTokenCredentials):
         super(MetadataUrlCredentials, self).__init__()
         assert aiohttp is not None, "Install aiohttp library to use metadata credentials provider"
         self._metadata_url = auth.DEFAULT_METADATA_URL if metadata_url is None else metadata_url
-        self.extra_error_message = "Check that metadata service configured properly and application deployed in VM or function at Yandex.Cloud."
+        self.extra_error_message = (
+            "Check that metadata service configured properly and application deployed in VM or "
+            "function at Yandex.Cloud."
+        )
         self._tp.submit(self._refresh_token)
 
     async def _make_token_request(self):

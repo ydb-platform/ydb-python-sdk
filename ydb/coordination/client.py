@@ -1,10 +1,10 @@
 import logging
-from typing import Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 from .._grpc.grpcwrapper.ydb_coordination import (
+    AlterNodeRequest,
     CreateNodeRequest,
     DescribeNodeRequest,
-    AlterNodeRequest,
     DropNodeRequest,
 )
 from .._grpc.grpcwrapper.ydb_coordination_public_types import NodeConfig

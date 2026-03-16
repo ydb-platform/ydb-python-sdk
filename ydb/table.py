@@ -1,21 +1,21 @@
 # -*- coding: utf-8 -*-
 import abc
-from dataclasses import dataclass
-import ydb
-from abc import abstractmethod
-import logging
 import enum
+import logging
 import typing
-
+from abc import abstractmethod
+from dataclasses import dataclass
 from typing import (
+    TYPE_CHECKING,
     Any,
     Dict,
     Generic,
     List,
     Optional,
     Tuple,
-    TYPE_CHECKING,
 )
+
+import ydb
 
 from ._typing import DriverT
 
@@ -23,25 +23,26 @@ if TYPE_CHECKING:
     from .driver import Driver as SyncDriver
 
 from . import (
-    issues,
-    convert,
-    settings as settings_impl,
-    scheme,
-    types,
-    _utilities,
     _apis,
-    _sp_impl,
     _session_impl,
+    _sp_impl,
     _tx_ctx_impl,
+    _utilities,
+    convert,
+    issues,
+    scheme,
     tracing,
+    types,
 )
-
+from . import (
+    settings as settings_impl,
+)
 from .retries import (
+    BackoffSettings,  # noqa
+    RetrySettings,
     YdbRetryOperationFinalResult,  # noqa
     YdbRetryOperationSleepOpt,  # noqa
-    BackoffSettings,  # noqa
     retry_operation_impl,  # noqa
-    RetrySettings,
     retry_operation_sync,
 )
 
@@ -1520,7 +1521,7 @@ class TableSchemeEntry(scheme.SchemeEntry):
         read_replicas_settings,
         storage_settings,
         *args,
-        **kwargs
+        **kwargs,
     ):
 
         super(TableSchemeEntry, self).__init__(
@@ -2323,7 +2324,8 @@ class BaseTxContext(ITxContext):
         transaction control logic, and opens new transaction if:
 
         1) By explicit .begin() and .async_begin() methods;
-        2) On execution of a first statement, which is strictly recommended method, because that avoids useless round trip
+        2) On execution of a first statement, which is strictly recommended method, because that avoids useless
+           round trip
 
         This context manager is not thread-safe, so you should not manipulate on it concurrently.
 

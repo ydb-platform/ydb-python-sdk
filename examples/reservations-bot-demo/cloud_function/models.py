@@ -1,5 +1,6 @@
-import typing
 import datetime
+import typing
+
 from pydantic import BaseModel
 
 

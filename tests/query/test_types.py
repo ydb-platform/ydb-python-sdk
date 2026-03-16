@@ -1,9 +1,10 @@
-import pytest
-import ydb
-
 from datetime import date, datetime, timedelta, timezone
 from decimal import Decimal
 from uuid import uuid4
+
+import pytest
+
+import ydb
 
 
 @pytest.mark.parametrize(

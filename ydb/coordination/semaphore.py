@@ -1,9 +1,8 @@
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
 
 from .. import issues
-from .._topic_common.common import _get_shared_event_loop, CallFromSyncToAsync
+from .._topic_common.common import CallFromSyncToAsync, _get_shared_event_loop
 from ..aio.coordination.semaphore import CoordinationSemaphore as CoordinationSemaphoreAio
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from .session import CoordinationSession

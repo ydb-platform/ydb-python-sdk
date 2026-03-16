@@ -1,7 +1,7 @@
 import asyncio
+import os
 
 import ydb
-import os
 
 
 async def create_tables():

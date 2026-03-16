@@ -1,5 +1,6 @@
-import pytest
 from contextlib import suppress
+
+import pytest
 
 import ydb.iam
 

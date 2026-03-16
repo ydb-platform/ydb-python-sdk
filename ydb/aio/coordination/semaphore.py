@@ -1,11 +1,10 @@
 from ... import StatusCode, issues
-
 from ..._grpc.grpcwrapper.ydb_coordination import (
     AcquireSemaphore,
+    CreateSemaphore,
+    DescribeSemaphore,
     ReleaseSemaphore,
     UpdateSemaphore,
-    DescribeSemaphore,
-    CreateSemaphore,
 )
 from ..._grpc.grpcwrapper.ydb_coordination_public_types import (
     DescribeLockResult,

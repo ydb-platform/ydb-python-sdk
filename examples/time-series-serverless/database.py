@@ -1,8 +1,9 @@
-import ydb
 from typing import List
 
 from config import ydb_configuration
 from exception import ConnectionFailure
+
+import ydb
 
 
 class YDBClient:

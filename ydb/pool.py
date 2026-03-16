@@ -2,16 +2,16 @@
 from __future__ import annotations
 
 import abc
-import threading
-import logging
-from concurrent import futures
 import collections
+import logging
 import random
-from typing import Any, Callable, ContextManager, List, Optional, Set, Tuple, TYPE_CHECKING
-
-from . import connection as connection_impl, issues, resolver, _utilities, tracing
+import threading
 from abc import abstractmethod
+from concurrent import futures
+from typing import TYPE_CHECKING, Any, Callable, ContextManager, List, Optional, Set, Tuple
 
+from . import _utilities, issues, resolver, tracing
+from . import connection as connection_impl
 from .connection import Connection, EndpointKey
 
 if TYPE_CHECKING:

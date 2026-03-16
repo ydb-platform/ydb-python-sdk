@@ -2,31 +2,29 @@ import asyncio
 import logging
 import time
 import typing
-
 from typing import (
+    TYPE_CHECKING,
     Any,
     Dict,
     List,
     Optional,
     Tuple,
-    TYPE_CHECKING,
 )
 
 import ydb
-
-from ydb import issues, settings as settings_impl, table
-
+from ydb import _apis, _session_impl, issues, table
+from ydb import settings as settings_impl
 from ydb.table import (
     BaseSession,
     BaseTableClient,
-    _scan_query_request_factory,
-    _wrap_scan_query_response,
     BaseTxContext,
     TableClientSettings,
     TableDescription,
+    _scan_query_request_factory,
+    _wrap_scan_query_response,
 )
+
 from . import _utilities
-from ydb import _apis, _session_impl
 
 if TYPE_CHECKING:
     from .driver import Driver as AsyncDriver
@@ -619,7 +617,7 @@ class SessionPool:
 
         if self._active_count < self._size:
             self._logger.debug(
-                "Session pool is not large enough (active_count < size: %d < %d). " "will create a new session.",
+                "Session pool is not large enough (active_count < size: %d < %d). will create a new session.",
                 self._active_count,
                 self._size,
             )

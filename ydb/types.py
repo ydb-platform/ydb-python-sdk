@@ -2,18 +2,17 @@
 from __future__ import annotations
 
 import abc
-from dataclasses import dataclass
 import enum
 import json
-from . import _utilities, _apis
-from datetime import date, datetime, timedelta, timezone
+import struct
 import typing
 import uuid
-import struct
+from dataclasses import dataclass
+from datetime import date, datetime, timedelta, timezone
+
 from google.protobuf import struct_pb2
 
-from . import table
-
+from . import _apis, _utilities, table
 
 # Workaround for good IDE and universal for runtime
 if typing.TYPE_CHECKING:

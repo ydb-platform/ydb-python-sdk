@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 import abc
-import typing
-import time
 import os
+import time
+import typing
 from datetime import datetime
 
 try:

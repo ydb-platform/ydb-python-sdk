@@ -1,8 +1,8 @@
 try:
-    from sqlalchemy.types import Integer
+    from sqlalchemy import exc, util
     from sqlalchemy.sql import type_api
     from sqlalchemy.sql.elements import ColumnElement
-    from sqlalchemy import util, exc
+    from sqlalchemy.types import Integer
 except ImportError:
     Integer = object
     ColumnElement = object
@@ -21,7 +21,6 @@ class UInt8(Integer):
 
 
 class Lambda(ColumnElement):
-
     __visit_name__ = "lambda"
 
     def __init__(self, func):

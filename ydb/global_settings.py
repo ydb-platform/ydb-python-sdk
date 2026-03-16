@@ -1,7 +1,6 @@
 import warnings
 
-from . import convert
-from . import table
+from . import convert, table
 
 
 def global_allow_truncated_result(enabled: bool = True):

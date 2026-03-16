@@ -1,13 +1,13 @@
-from typing import Dict
 import random
-
-import ydb
+from typing import Dict
 
 from database import ydb_client
 from entry import Entry
 from exception import ConnectionFailure, ValidationError
 from parameters import Parameters
-from response import Response, Conflict, BadRequest, Ok
+from response import BadRequest, Conflict, Ok, Response
+
+import ydb
 
 
 def generate_time_series(parameters: Parameters):

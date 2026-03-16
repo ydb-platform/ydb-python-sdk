@@ -1,7 +1,8 @@
 import abc
 from abc import abstractmethod
-from . import _apis
+
 from .. import issues, operation
+from . import _apis
 
 
 class IDynamicConfigClient(abc.ABC):

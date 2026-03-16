@@ -2,7 +2,7 @@ import logging
 from typing import Generic
 
 from .. import _apis, issues
-from .._grpc.grpcwrapper.ydb_coordination_public_types import NodeConfig, DescribeResult
+from .._grpc.grpcwrapper.ydb_coordination_public_types import DescribeResult, NodeConfig
 from .._typing import DriverT
 
 logger = logging.getLogger(__name__)

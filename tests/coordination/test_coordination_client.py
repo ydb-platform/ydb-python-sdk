@@ -4,14 +4,13 @@ import threading
 import pytest
 
 import ydb
-from ydb.aio.coordination import CoordinationClient as AioCoordinationClient
 from ydb import StatusCode
-
+from ydb.aio.coordination import CoordinationClient as AioCoordinationClient
 from ydb.coordination import (
-    NodeConfig,
     ConsistencyMode,
-    RateLimiterCountersMode,
     CoordinationClient,
+    NodeConfig,
+    RateLimiterCountersMode,
 )
 
 

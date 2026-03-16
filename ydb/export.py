@@ -2,16 +2,15 @@ import enum
 import typing
 
 from . import _apis
-
 from . import settings_impl as s_impl
 
 # Workaround for good IDE and universal for runtime
 if typing.TYPE_CHECKING:
-    from ._grpc.v4.protos import ydb_export_pb2
     from ._grpc.v4 import ydb_export_v1_pb2_grpc
+    from ._grpc.v4.protos import ydb_export_pb2
 else:
-    from ._grpc.common.protos import ydb_export_pb2
     from ._grpc.common import ydb_export_v1_pb2_grpc
+    from ._grpc.common.protos import ydb_export_pb2
 
 from . import operation
 

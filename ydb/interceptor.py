@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
-import grpc
 from concurrent import futures
+
+import grpc
+from grpc._channel import _EMPTY_FLAGS, _handle_event
 from grpc._cython import cygrpc
-from grpc._channel import _handle_event, _EMPTY_FLAGS
 
 
 def _event_handler(state, response_deserializer):

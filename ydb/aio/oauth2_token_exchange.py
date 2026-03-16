@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
-from .credentials import AbstractExpiringTokenCredentials
-from ydb.oauth2_token_exchange.token_source import TokenSource
-from ydb.oauth2_token_exchange.token_exchange import Oauth2TokenExchangeCredentialsBase
 import typing
+
+from ydb.oauth2_token_exchange.token_exchange import Oauth2TokenExchangeCredentialsBase
+from ydb.oauth2_token_exchange.token_source import TokenSource
+
+from .credentials import AbstractExpiringTokenCredentials
 
 aiohttp: typing.Any
 try:

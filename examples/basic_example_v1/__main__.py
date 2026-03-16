@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 import argparse
-import basic_example
 import logging
 
+import basic_example
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(

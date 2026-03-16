@@ -1,9 +1,8 @@
 import asyncio
+import os
 
 import ydb
 import ydb.aio
-import os
-
 
 queries = [  # Tables description to create
     """

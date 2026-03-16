@@ -3,14 +3,14 @@ from __future__ import annotations
 import asyncio
 import logging
 import random
-from typing import Any, Callable, Optional, Tuple, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Callable, Optional, Tuple
 
 from ydb import issues
-from ydb.pool import ConnectionsCache as _ConnectionsCache, IConnectionPool
-
-from .connection import Connection, EndpointKey
+from ydb.pool import ConnectionsCache as _ConnectionsCache
+from ydb.pool import IConnectionPool
 
 from . import resolver
+from .connection import Connection, EndpointKey
 
 if TYPE_CHECKING:
     from ydb.driver import DriverConfig

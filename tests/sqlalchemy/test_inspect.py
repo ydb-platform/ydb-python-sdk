@@ -1,8 +1,7 @@
+import sqlalchemy as sa
 from sqlalchemy import text
 
 import ydb
-
-import sqlalchemy as sa
 
 
 def test_get_columns(driver_sync, sa_engine):

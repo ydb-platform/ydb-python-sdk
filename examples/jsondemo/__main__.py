@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import argparse
-import jsondemo
 
+import jsondemo
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(

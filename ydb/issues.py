@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
 from __future__ import annotations
 
-from google.protobuf import text_format
 import enum
 import queue
 import typing
-from typing import ClassVar, Optional, Iterable, Any, Union, Protocol, runtime_checkable
+from typing import Any, ClassVar, Iterable, Optional, Protocol, Union, runtime_checkable
+
+from google.protobuf import text_format
 
 from . import _apis
 
@@ -21,12 +22,10 @@ class _StatusResponseProtocol(Protocol):
     """Protocol for objects that have status and issues attributes."""
 
     @property
-    def status(self) -> Union[StatusCode, int]:
-        ...
+    def status(self) -> Union[StatusCode, int]: ...
 
     @property
-    def issues(self) -> Iterable[Any]:
-        ...
+    def issues(self) -> Iterable[Any]: ...
 
 
 _TRANSPORT_STATUSES_FIRST = 401000

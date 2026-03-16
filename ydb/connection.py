@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
-import logging
-import copy
-from concurrent import futures
-import uuid
-import threading
 import collections
+import copy
+import logging
+import threading
+import uuid
+from concurrent import futures
 from typing import (
+    TYPE_CHECKING,
     Any,
     Callable,
     Dict,
@@ -13,17 +14,16 @@ from typing import (
     Optional,
     Tuple,
     Union,
-    TYPE_CHECKING,
 )
 
 if TYPE_CHECKING:
-    from .settings import BaseRequestSettings
     from .driver import DriverConfig
+    from .settings import BaseRequestSettings
 
-from google.protobuf import text_format
 import grpc
-from . import issues, _apis, _utilities
-from . import default_pem
+from google.protobuf import text_format
+
+from . import _apis, _utilities, default_pem, issues
 
 _stubs_list = (
     _apis.TableService.Stub,

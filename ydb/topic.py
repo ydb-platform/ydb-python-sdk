@@ -36,70 +36,91 @@ __all__ = [
 
 import concurrent.futures
 import datetime
-from dataclasses import dataclass
 import logging
-from typing import List, Union, Mapping, Optional, Dict, Callable
-
-from . import aio, Credentials, _apis, issues
-
-from . import driver
-
-from ._topic_reader import events as TopicReaderEvents
-
-from ._topic_reader.datatypes import (
-    PublicBatch as TopicReaderBatch,
-    PublicMessage as TopicReaderMessage,
-)
-
-from ._topic_reader.topic_reader import (
-    PublicReaderSettings as TopicReaderSettings,
-    PublicTopicSelector as TopicReaderSelector,
-)
-
-from ._topic_reader.topic_reader_sync import (
-    TopicReaderSync as TopicReader,
-)
-
-from ._topic_reader.topic_reader_asyncio import (
-    PublicAsyncIOReader as TopicReaderAsyncIO,
-    PublicTopicReaderPartitionExpiredError as TopicReaderPartitionExpiredError,
-    PublicTopicReaderUnexpectedCodecError as TopicReaderUnexpectedCodecError,
-)
-
-from ._topic_writer.topic_writer import (  # noqa: F401
-    PublicWriterSettings as TopicWriterSettings,
-    PublicMessage as TopicWriterMessage,
-    RetryPolicy as TopicWriterRetryPolicy,
-    PublicWriterInitInfo as TopicWriterInitInfo,
-    PublicWriteResult as TopicWriteResult,
-)
+from dataclasses import dataclass
+from typing import Callable, Dict, List, Mapping, Optional, Union
 
 from ydb._topic_writer.topic_writer_asyncio import TxWriterAsyncIO as TopicTxWriterAsyncIO
 from ydb._topic_writer.topic_writer_asyncio import WriterAsyncIO as TopicWriterAsyncIO
-from ._topic_writer.topic_writer_sync import WriterSync as TopicWriter
-from ._topic_writer.topic_writer_sync import TxWriterSync as TopicTxWriter
 
-from ._topic_common.common import (
-    wrap_operation as _wrap_operation,
-    create_result_wrapper as _create_result_wrapper,
-)
-
+from . import Credentials, _apis, aio, driver, issues
 from ._grpc.grpcwrapper import ydb_topic as _ydb_topic
 from ._grpc.grpcwrapper import ydb_topic_public_types as _ydb_topic_public_types
-from ._grpc.grpcwrapper.ydb_topic_public_types import (  # noqa: F401
-    PublicDescribeTopicResult as TopicDescription,
-    PublicDescribeConsumerResult as TopicConsumerDescription,
-    PublicMultipleWindowsStat as TopicStatWindow,
-    PublicPartitionStats as TopicPartitionStats,
-    PublicCodec as TopicCodec,
-    PublicConsumer as TopicConsumer,
-    PublicAlterConsumer as TopicAlterConsumer,
-    PublicMeteringMode as TopicMeteringMode,
-    PublicAutoPartitioningStrategy as TopicAutoPartitioningStrategy,
-    PublicAutoPartitioningSettings as TopicAutoPartitioningSettings,
+from ._grpc.grpcwrapper.ydb_topic_public_types import (
     PublicAlterAutoPartitioningSettings as TopicAlterAutoPartitioningSettings,
 )
-
+from ._grpc.grpcwrapper.ydb_topic_public_types import (
+    PublicAlterConsumer as TopicAlterConsumer,
+)
+from ._grpc.grpcwrapper.ydb_topic_public_types import (
+    PublicAutoPartitioningSettings as TopicAutoPartitioningSettings,
+)
+from ._grpc.grpcwrapper.ydb_topic_public_types import (
+    PublicAutoPartitioningStrategy as TopicAutoPartitioningStrategy,
+)
+from ._grpc.grpcwrapper.ydb_topic_public_types import (
+    PublicCodec as TopicCodec,
+)
+from ._grpc.grpcwrapper.ydb_topic_public_types import (
+    PublicConsumer as TopicConsumer,
+)
+from ._grpc.grpcwrapper.ydb_topic_public_types import (
+    PublicDescribeConsumerResult as TopicConsumerDescription,
+)
+from ._grpc.grpcwrapper.ydb_topic_public_types import (  # noqa: F401
+    PublicDescribeTopicResult as TopicDescription,
+)
+from ._grpc.grpcwrapper.ydb_topic_public_types import (
+    PublicMeteringMode as TopicMeteringMode,
+)
+from ._grpc.grpcwrapper.ydb_topic_public_types import (
+    PublicMultipleWindowsStat as TopicStatWindow,
+)
+from ._topic_common.common import (
+    create_result_wrapper as _create_result_wrapper,
+)
+from ._topic_common.common import (
+    wrap_operation as _wrap_operation,
+)
+from ._topic_reader import events as TopicReaderEvents
+from ._topic_reader.datatypes import (
+    PublicBatch as TopicReaderBatch,
+)
+from ._topic_reader.datatypes import (
+    PublicMessage as TopicReaderMessage,
+)
+from ._topic_reader.topic_reader import (
+    PublicReaderSettings as TopicReaderSettings,
+)
+from ._topic_reader.topic_reader import (
+    PublicTopicSelector as TopicReaderSelector,
+)
+from ._topic_reader.topic_reader_asyncio import (
+    PublicAsyncIOReader as TopicReaderAsyncIO,
+)
+from ._topic_reader.topic_reader_asyncio import (
+    PublicTopicReaderPartitionExpiredError as TopicReaderPartitionExpiredError,
+)
+from ._topic_reader.topic_reader_asyncio import (
+    PublicTopicReaderUnexpectedCodecError as TopicReaderUnexpectedCodecError,
+)
+from ._topic_reader.topic_reader_sync import (
+    TopicReaderSync as TopicReader,
+)
+from ._topic_writer.topic_writer import (
+    PublicMessage as TopicWriterMessage,
+)
+from ._topic_writer.topic_writer import (
+    PublicWriteResult as TopicWriteResult,
+)
+from ._topic_writer.topic_writer import (
+    PublicWriterInitInfo as TopicWriterInitInfo,
+)
+from ._topic_writer.topic_writer import (  # noqa: F401
+    PublicWriterSettings as TopicWriterSettings,
+)
+from ._topic_writer.topic_writer_sync import TxWriterSync as TopicTxWriter
+from ._topic_writer.topic_writer_sync import WriterSync as TopicWriter
 from .retries import ydb_retry
 
 logger = logging.getLogger(__name__)
@@ -212,8 +233,8 @@ class TopicClientAsyncIO:
         :param set_partition_write_burst_bytes: Burst size for write in partition, in bytes
         :param set_retention_period: How long data in partition should be stored
         :param set_retention_storage_mb: How much data in partition should be stored
-        :param set_supported_codecs: List of allowed codecs for writers. Writes with codec not from this list are forbidden.
-            Empty list mean disable codec compatibility checks for the topic.
+        :param set_supported_codecs: List of allowed codecs for writers. Writes with codec not from this list are
+            forbidden. Empty list mean disable codec compatibility checks for the topic.
         """
         logger.debug("Alter topic request: path=%s", path)
         args = locals().copy()
@@ -532,8 +553,8 @@ class TopicClient:
         :param set_partition_write_burst_bytes: Burst size for write in partition, in bytes
         :param set_retention_period: How long data in partition should be stored
         :param set_retention_storage_mb: How much data in partition should be stored
-        :param set_supported_codecs: List of allowed codecs for writers. Writes with codec not from this list are forbidden.
-            Empty list mean disable codec compatibility checks for the topic.
+        :param set_supported_codecs: List of allowed codecs for writers. Writes with codec not from this list are
+            forbidden. Empty list mean disable codec compatibility checks for the topic.
         """
         logger.debug("Alter topic request: path=%s", path)
         args = locals().copy()

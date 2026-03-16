@@ -6,9 +6,9 @@ from .common_utils import IFromProto, IToProto
 
 # Workaround for good IDE and universal for runtime
 if typing.TYPE_CHECKING:
-    from ..v4.protos import ydb_query_pb2, ydb_formats_pb2
+    from ..v4.protos import ydb_formats_pb2, ydb_query_pb2
 else:
-    from ..common.protos import ydb_query_pb2, ydb_formats_pb2
+    from ..common.protos import ydb_formats_pb2, ydb_query_pb2
 
 
 class BaseQueryTxMode(IToProto):

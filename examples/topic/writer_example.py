@@ -1,7 +1,7 @@
 import concurrent.futures
 import datetime
-from typing import Dict, List
 from concurrent.futures import Future, wait  # noqa: F401
+from typing import Dict, List
 
 import ydb
 from ydb import TopicWriterMessage

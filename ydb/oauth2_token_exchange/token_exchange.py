@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
-import typing
-import json
 import abc
-import os
 import base64
+import json
+import os
+import typing
 
 requests: typing.Any
 try:
@@ -11,9 +11,9 @@ try:
 except ImportError:
     requests = None
 
-from ydb import credentials, tracing, issues  # noqa: E402
-from .token_source import TokenSource, FixedTokenSource, JwtTokenSource  # noqa: E402
+from ydb import credentials, issues, tracing  # noqa: E402
 
+from .token_source import FixedTokenSource, JwtTokenSource, TokenSource  # noqa: E402
 
 # method -> is HMAC
 _supported_uppercase_jwt_algs = {
@@ -232,11 +232,13 @@ class Oauth2TokenExchangeCredentialsBase(abc.ABC):
         Config file must be a valid json file
 
         Fields of json file
-            grant-type:           [string] Grant type option (default: "urn:ietf:params:oauth:grant-type:token-exchange")
+            grant-type:           [string] Grant type option
+                (default: "urn:ietf:params:oauth:grant-type:token-exchange")
             res:                  [string | list of strings] Resource option (optional)
             aud:                  [string | list of strings] Audience option for token exchange request (optional)
             scope:                [string | list of strings] Scope option (optional)
-            requested-token-type: [string] Requested token type option (default: "urn:ietf:params:oauth:token-type:access_token")
+            requested-token-type: [string] Requested token type option
+                (default: "urn:ietf:params:oauth:token-type:access_token")
             subject-credentials:  [creds_json] Subject credentials options (optional)
             actor-credentials:    [creds_json] Actor credentials options (optional)
             token-endpoint:       [string] Token endpoint
@@ -244,9 +246,10 @@ class Oauth2TokenExchangeCredentialsBase(abc.ABC):
         Fields of creds_json (JWT):
             type:                 [string] Token source type. Set JWT
             alg:                  [string] Algorithm for JWT signature.
-                                        Supported algorithms can be listed
-                                        with GetSupportedOauth2TokenExchangeJwtAlgorithms()
-            private-key:          [string] (Private) key in PEM format (RSA, EC) or Base64 format (HMAC) for JWT signature
+                                        Supported algorithms can be listed with
+                                        GetSupportedOauth2TokenExchangeJwtAlgorithms()
+            private-key:          [string] (Private) key in PEM format (RSA, EC) or Base64 format (HMAC)
+                for JWT signature
             kid:                  [string] Key id JWT standard claim (optional)
             iss:                  [string] Issuer JWT standard claim (optional)
             sub:                  [string] Subject JWT standard claim (optional)
@@ -330,9 +333,9 @@ class Oauth2TokenExchangeCredentials(credentials.AbstractExpiringTokenCredential
 
     @tracing.with_trace()
     def _make_token_request(self):
-        assert (
-            requests is not None
-        ), "Install requests library to use Oauth2TokenExchangeCredentials credentials provider"
+        assert requests is not None, (
+            "Install requests library to use Oauth2TokenExchangeCredentials credentials provider"
+        )
 
         params = self._make_token_request_params()
         headers = {"Content-Type": "application/x-www-form-urlencoded"}

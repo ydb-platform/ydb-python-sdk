@@ -2,6 +2,7 @@ import sys
 
 import google.protobuf
 from packaging.version import Version
+
 from ... import _utilities
 
 # generated files are incompatible between 3 and 4 protobuf versions

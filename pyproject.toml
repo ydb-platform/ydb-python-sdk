@@ -1,5 +1,20 @@
-[tool.black]
+[tool.ruff]
 line-length = 120
+target-version = "py38"
+extend-exclude = [
+    "ydb/_grpc/v[3-6]",
+    "ydb/default_pem.py",
+    "docs",
+]
+
+[tool.ruff.lint]
+# E,W = pycodestyle, F = Pyflakes, I = isort
+select = ["E", "F", "W", "I"]
+ignore = ["E203"]
+per-file-ignores = { "ydb/table.py" = ["F401"] }
+
+[tool.ruff.format]
+quote-style = "double"
 
 [tool.mypy]
 python_version = "3.9"

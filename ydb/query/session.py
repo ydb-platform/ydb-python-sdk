@@ -3,35 +3,33 @@ import json
 import logging
 import threading
 from typing import (
+    TYPE_CHECKING,
+    Any,
     Awaitable,
+    Dict,
     Generic,
     Iterable,
     Optional,
-    Dict,
-    Any,
-    TYPE_CHECKING,
     Union,
     overload,
 )
 
-from . import base
-from .base import QueryExplainResultFormat
-
-from .. import _apis, issues, _utilities
-from ..settings import BaseRequestSettings
-from ..connection import _RpcState as RpcState, EndpointKey
+from .. import _apis, _utilities, issues
+from .._constants import DEFAULT_INITIAL_RESPONSE_TIMEOUT, DEFAULT_LONG_STREAM_TIMEOUT
 from .._grpc.grpcwrapper import common_utils
 from .._grpc.grpcwrapper import ydb_query as _ydb_query
 from .._grpc.grpcwrapper import ydb_query_public_types as _ydb_query_public
 from .._typing import DriverT, GrpcStreamCall, SupportedDriverType
-
+from ..connection import EndpointKey
+from ..connection import _RpcState as RpcState
+from ..settings import BaseRequestSettings
+from . import base
+from .base import QueryExplainResultFormat
 from .transaction import QueryTxContext
 
-from .._constants import DEFAULT_INITIAL_RESPONSE_TIMEOUT, DEFAULT_LONG_STREAM_TIMEOUT
-
 if TYPE_CHECKING:
-    from ..driver import Driver as SyncDriver
     from ..aio.driver import Driver as AsyncDriver
+    from ..driver import Driver as SyncDriver
 
 
 logger = logging.getLogger(__name__)
@@ -144,14 +142,12 @@ class BaseQuerySession(abc.ABC, Generic[DriverT]):
     @overload
     def _create_call(
         self: "BaseQuerySession[SyncDriver]", settings: Optional[BaseRequestSettings] = None
-    ) -> "BaseQuerySession[SyncDriver]":
-        ...
+    ) -> "BaseQuerySession[SyncDriver]": ...
 
     @overload
     def _create_call(
         self: "BaseQuerySession[AsyncDriver]", settings: Optional[BaseRequestSettings] = None
-    ) -> Awaitable["BaseQuerySession[AsyncDriver]"]:
-        ...
+    ) -> Awaitable["BaseQuerySession[AsyncDriver]"]: ...
 
     def _create_call(
         self, settings: Optional[BaseRequestSettings] = None
@@ -170,14 +166,12 @@ class BaseQuerySession(abc.ABC, Generic[DriverT]):
     @overload
     def _delete_call(
         self: "BaseQuerySession[SyncDriver]", settings: Optional[BaseRequestSettings] = None
-    ) -> "BaseQuerySession[SyncDriver]":
-        ...
+    ) -> "BaseQuerySession[SyncDriver]": ...
 
     @overload
     def _delete_call(
         self: "BaseQuerySession[AsyncDriver]", settings: Optional[BaseRequestSettings] = None
-    ) -> Awaitable["BaseQuerySession[AsyncDriver]"]:
-        ...
+    ) -> Awaitable["BaseQuerySession[AsyncDriver]"]: ...
 
     def _delete_call(
         self, settings: Optional[BaseRequestSettings] = None
@@ -197,14 +191,12 @@ class BaseQuerySession(abc.ABC, Generic[DriverT]):
     @overload
     def _attach_call(
         self: "BaseQuerySession[SyncDriver]",
-    ) -> GrpcStreamCall[_apis.ydb_query.SessionState]:
-        ...
+    ) -> GrpcStreamCall[_apis.ydb_query.SessionState]: ...
 
     @overload
     def _attach_call(
         self: "BaseQuerySession[AsyncDriver]",
-    ) -> Awaitable[GrpcStreamCall[_apis.ydb_query.SessionState]]:
-        ...
+    ) -> Awaitable[GrpcStreamCall[_apis.ydb_query.SessionState]]: ...
 
     def _attach_call(
         self,
@@ -233,8 +225,7 @@ class BaseQuerySession(abc.ABC, Generic[DriverT]):
         arrow_format_settings: Optional[base.ArrowFormatSettings] = None,
         concurrent_result_sets: bool = False,
         settings: Optional[BaseRequestSettings] = None,
-    ) -> Iterable[_apis.ydb_query.ExecuteQueryResponsePart]:
-        ...
+    ) -> Iterable[_apis.ydb_query.ExecuteQueryResponsePart]: ...
 
     @overload
     def _execute_call(
@@ -250,8 +241,7 @@ class BaseQuerySession(abc.ABC, Generic[DriverT]):
         arrow_format_settings: Optional[base.ArrowFormatSettings] = None,
         concurrent_result_sets: bool = False,
         settings: Optional[BaseRequestSettings] = None,
-    ) -> Awaitable[Iterable[_apis.ydb_query.ExecuteQueryResponsePart]]:
-        ...
+    ) -> Awaitable[Iterable[_apis.ydb_query.ExecuteQueryResponsePart]]: ...
 
     def _execute_call(
         self,

@@ -2,7 +2,7 @@ import asyncio
 import time
 import typing
 
-from .._grpc.grpcwrapper.common_utils import IToProto, IGrpcWrapperAsyncIO
+from .._grpc.grpcwrapper.common_utils import IGrpcWrapperAsyncIO, IToProto
 
 
 class StreamMock(IGrpcWrapperAsyncIO):

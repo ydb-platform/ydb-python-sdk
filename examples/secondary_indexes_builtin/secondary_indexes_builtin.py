@@ -1,8 +1,9 @@
-import iso8601
 import os
-import ydb
 from concurrent.futures import TimeoutError
 
+import iso8601
+
+import ydb
 
 FILL_DATA_QUERY = """
 --!syntax_v1

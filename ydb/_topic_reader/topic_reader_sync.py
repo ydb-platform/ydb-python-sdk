@@ -2,20 +2,20 @@ import asyncio
 import concurrent.futures
 import logging
 import typing
-from typing import List, Union, Optional
+from typing import List, Optional, Union
 
 from ydb import issues
 from ydb._grpc.grpcwrapper.common_utils import SupportedDriverType
 from ydb._topic_common.common import (
-    _get_shared_event_loop,
     CallFromSyncToAsync,
     TimeoutType,
+    _get_shared_event_loop,
 )
 from ydb._topic_reader import datatypes
 from ydb._topic_reader.datatypes import PublicBatch
 from ydb._topic_reader.topic_reader import (
-    PublicReaderSettings,
     CommitResult,
+    PublicReaderSettings,
 )
 from ydb._topic_reader.topic_reader_asyncio import (
     PublicAsyncIOReader,
@@ -78,12 +78,13 @@ class TopicReaderSync:
     def receive_message(self, *, timeout: TimeoutType = None) -> datatypes.PublicMessage:
         """
         Block until receive new message
-        It has no async_ version for prevent lost messages, use async_wait_message as signal for new batches available.
-        receive_message(timeout=0) may return None even right after async_wait_message() is ok - because lost of partition
-        or connection to server lost
+        It has no async_ version for prevent lost messages, use async_wait_message as signal for new batches.
+        receive_message(timeout=0) may return None even right after async_wait_message() is ok -
+        because lost of partition or connection to server lost
 
         if no new message in timeout seconds (default - infinite): raise TimeoutError()
-        if timeout <= 0 - it will fast wait only one event loop cycle - without wait any i/o operations or pauses, get messages from internal buffer only.
+        if timeout <= 0 - it will fast wait only one event loop cycle - without wait any i/o operations or pauses,
+        get messages from internal buffer only.
         """
         self._check_closed()
 
@@ -110,10 +111,11 @@ class TopicReaderSync:
     ) -> Union[PublicBatch, None]:
         """
         Get one messages batch from reader
-        It has no async_ version for prevent lost messages, use async_wait_message as signal for new batches available.
+        It has no async_ version for prevent lost messages, use async_wait_message as signal for new batches.
 
         if no new message in timeout seconds (default - infinite): raise TimeoutError()
-        if timeout <= 0 - it will fast wait only one event loop cycle - without wait any i/o operations or pauses, get messages from internal buffer only.
+        if timeout <= 0 - it will fast wait only one event loop cycle - without wait any i/o operations or pauses,
+        get messages from internal buffer only.
         """
         self._check_closed()
 
@@ -134,10 +136,11 @@ class TopicReaderSync:
     ) -> Union[PublicBatch, None]:
         """
         Get one messages batch with tx from reader
-        It has no async_ version for prevent lost messages, use async_wait_message as signal for new batches available.
+        It has no async_ version for prevent lost messages, use async_wait_message as signal for new batches.
 
         if no new message in timeout seconds (default - infinite): raise TimeoutError()
-        if timeout <= 0 - it will fast wait only one event loop cycle - without wait any i/o operations or pauses, get messages from internal buffer only.
+        if timeout <= 0 - it will fast wait only one event loop cycle - without wait any i/o operations or pauses,
+        get messages from internal buffer only.
         """
         self._check_closed()
 

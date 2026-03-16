@@ -1,9 +1,9 @@
 import argparse
 import asyncio
-from example import run as run_sync
-from example_async import run as run_async
 import logging
 
+from example import run as run_sync
+from example_async import run as run_async
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(

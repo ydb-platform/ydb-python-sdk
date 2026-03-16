@@ -6,7 +6,6 @@ if typing.TYPE_CHECKING:
     from .._grpc.v4.draft import (
         ydb_dynamic_config_v1_pb2_grpc,
     )
-
     from .._grpc.v4.draft.protos import (
         ydb_dynamic_config_pb2,
     )

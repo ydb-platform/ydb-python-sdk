@@ -1,9 +1,10 @@
-from typing import Any, Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Optional
 
-from . import pool, scheme, table
 import ydb
+from ydb.driver import default_credentials, get_config
+
 from .. import _utilities
-from ydb.driver import get_config, default_credentials
+from . import pool, scheme, table
 
 if TYPE_CHECKING:
     from ydb.credentials import Credentials

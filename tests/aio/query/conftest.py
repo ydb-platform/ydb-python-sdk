@@ -4,8 +4,8 @@ import grpc
 import pytest
 from grpc._cython import cygrpc
 
-from ydb.aio.query.session import QuerySession
 from ydb.aio.query.pool import QuerySessionPool
+from ydb.aio.query.session import QuerySession
 
 
 @pytest.fixture

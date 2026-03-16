@@ -1,8 +1,9 @@
 import asyncio
 
-from ydb.aio.connection import Connection
 import pytest
+
 from ydb import _apis
+from ydb.aio.connection import Connection
 
 
 @pytest.mark.asyncio

@@ -4,27 +4,25 @@ import asyncio
 import logging
 import typing
 from concurrent.futures import Future
-from typing import Union, List, Optional
+from typing import List, Optional, Union
 
 from .._grpc.grpcwrapper.common_utils import SupportedDriverType
+from .._topic_common.common import (
+    CallFromSyncToAsync,
+    TimeoutType,
+    _get_shared_event_loop,
+)
+from ..query.base import TxEvent
 from .topic_writer import (
-    PublicWriterSettings,
-    PublicWriterInitInfo,
-    PublicWriteResult,
     Message,
+    PublicWriteResult,
+    PublicWriterInitInfo,
+    PublicWriterSettings,
     TopicWriterClosedError,
 )
-
-from ..query.base import TxEvent
-
 from .topic_writer_asyncio import (
     TxWriterAsyncIO,
     WriterAsyncIO,
-)
-from .._topic_common.common import (
-    _get_shared_event_loop,
-    TimeoutType,
-    CallFromSyncToAsync,
 )
 
 if typing.TYPE_CHECKING:

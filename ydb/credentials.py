@@ -1,21 +1,21 @@
 # -*- coding: utf-8 -*-
 import abc
-import typing
-
-from . import tracing, issues, connection
-from . import settings as settings_impl
-from concurrent import futures
-import threading
 import logging
+import threading
 import time
+import typing
+from concurrent import futures
+
+from . import connection, issues, tracing
+from . import settings as settings_impl
 
 # Workaround for good IDE and universal for runtime
 if typing.TYPE_CHECKING:
-    from ._grpc.v4.protos import ydb_auth_pb2
     from ._grpc.v4 import ydb_auth_v1_pb2_grpc
+    from ._grpc.v4.protos import ydb_auth_pb2
 else:
-    from ._grpc.common.protos import ydb_auth_pb2
     from ._grpc.common import ydb_auth_v1_pb2_grpc
+    from ._grpc.common.protos import ydb_auth_pb2
 
 
 YDB_AUTH_TICKET_HEADER = "x-ydb-auth-ticket"

@@ -1,8 +1,8 @@
+from datetime import date, datetime, timedelta
+
 import pytest
 
 import ydb
-
-from datetime import date, datetime, timedelta
 
 
 @pytest.fixture

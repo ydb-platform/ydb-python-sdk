@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 import argparse
 import asyncio
-from basic_example import run as run_sync
-from basic_example_async import run as run_async
 import logging
 
+from basic_example import run as run_sync
+from basic_example_async import run as run_async
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(

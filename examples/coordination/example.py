@@ -1,5 +1,6 @@
-import time
 import threading
+import time
+
 import ydb
 
 NODE_PATH = "/local/node_name1"

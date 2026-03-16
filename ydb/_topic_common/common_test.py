@@ -6,13 +6,13 @@ import typing
 import grpc
 import pytest
 
-from .common import CallFromSyncToAsync
+from .. import issues
 from .._grpc.grpcwrapper.common_utils import (
     GrpcWrapperAsyncIO,
     ServerStatus,
     callback_from_asyncio,
 )
-from .. import issues
+from .common import CallFromSyncToAsync
 
 # Workaround for good IDE and universal for runtime
 if typing.TYPE_CHECKING:

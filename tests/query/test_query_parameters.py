@@ -1,8 +1,8 @@
 import uuid
 
 import pytest
-import ydb
 
+import ydb
 
 query_template = "DECLARE $a as %s; SELECT $a AS value"
 

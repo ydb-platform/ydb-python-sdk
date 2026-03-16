@@ -1,12 +1,11 @@
 import json
-
-import pytest
-import ydb
 import time
 from concurrent import futures
-
 from typing import Optional
 
+import pytest
+
+import ydb
 from ydb import QueryExplainResultFormat
 from ydb.query.pool import QuerySessionPool
 from ydb.query.session import QuerySession
@@ -209,7 +208,6 @@ class TestQuerySessionPool:
         pool.execute_with_retries("DROP TABLE IF EXISTS test_explain")
         pool.execute_with_retries("CREATE TABLE test_explain (id Int64, PRIMARY KEY (id))")
         try:
-
             plan = pool.explain_with_retries("SELECT * FROM test_explain", result_format=QueryExplainResultFormat.STR)
             isinstance(plan, str)
             assert "FullScan" in plan

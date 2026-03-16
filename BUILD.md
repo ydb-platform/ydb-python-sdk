@@ -15,27 +15,18 @@ This document has detailed instructions on how to build ydb-python-sdk from sour
 git clone https://github.com/ydb-platform/ydb-python-sdk
 ```
 
-### Run style tests
+### Run lint and formatting checks
 
-Use the command below to prepare `virtualenv` and to run style tests using `flake8`.
+Use the command below to run lint (ruff check) and format check (ruff format).
 
 ```sh
-tox -e style
+tox -e ruff
 ```
 
-### Run formatting checks
-
-Use the command below to prepare `virtualenv` and to run style tests using `black`.
-See [documentation](https://black.readthedocs.io/en/stable/) about Black project.
+To automatically format code:
 
 ```sh
-tox -e black
-```
-
-To automatically format code using the `black` formatting style, use the command below.
-
-```sh
-tox -e black-format
+tox -e ruff-format
 ```
 
 ### Run unit tests

@@ -6,8 +6,8 @@ import itertools
 import logging
 
 import ydb
-from .errors import DatabaseError
 
+from .errors import DatabaseError
 
 LOGGER = logging.getLogger(__name__)
 

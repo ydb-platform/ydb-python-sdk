@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
-from ydb import credentials, tracing
-import grpc
-import time
 import abc
-from datetime import datetime, timezone
 import json
 import os
+import time
+from datetime import datetime, timezone
+
+import grpc
+
+from ydb import credentials, tracing
 
 try:
     import jwt
@@ -13,18 +15,15 @@ except ImportError:
     jwt = None  # type: ignore[assignment]
 
 try:
-    from yandex.cloud.iam.v1 import iam_token_service_pb2_grpc
-    from yandex.cloud.iam.v1 import iam_token_service_pb2
+    from yandex.cloud.iam.v1 import iam_token_service_pb2, iam_token_service_pb2_grpc
 except ImportError:
     try:
         # This attempt is to enable the IAM auth inside the YDB repository on GitHub
-        from ydb.public.api.client.yc_public.iam import iam_token_service_pb2_grpc
-        from ydb.public.api.client.yc_public.iam import iam_token_service_pb2
+        from ydb.public.api.client.yc_public.iam import iam_token_service_pb2, iam_token_service_pb2_grpc
     except ImportError:
         try:
             # This attempt is to enable the IAM auth inside the YDB repository on Arcadia
-            from contrib.ydb.public.api.client.yc_public.iam import iam_token_service_pb2_grpc
-            from contrib.ydb.public.api.client.yc_public.iam import iam_token_service_pb2
+            from contrib.ydb.public.api.client.yc_public.iam import iam_token_service_pb2, iam_token_service_pb2_grpc
         except ImportError:
             iam_token_service_pb2_grpc = None
             iam_token_service_pb2 = None

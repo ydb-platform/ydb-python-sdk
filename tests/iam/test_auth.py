@@ -1,5 +1,6 @@
+from unittest.mock import mock_open, patch
+
 from ydb.iam.auth import BaseJWTCredentials
-from unittest.mock import patch, mock_open
 
 CONTENT1 = '{"service_account_id":"my_sa", "id":"123", "private_key":"pppp", "user_account_id":"ua_id"}'
 CONTENT2 = '{"id":"123", "private_key":"pppp", "user_account_id":"ua_id"}'

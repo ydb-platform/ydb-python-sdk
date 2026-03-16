@@ -2,14 +2,16 @@
 from __future__ import annotations
 
 import contextlib
-import logging
-import threading
-import random
 import itertools
+import logging
+import random
+import threading
 import typing
-from typing import Any, ContextManager, List, Optional, Iterator
-from . import connection as conn_impl, driver, issues, settings as settings_impl, _apis
+from typing import Any, ContextManager, Iterator, List, Optional
 
+from . import _apis, driver, issues
+from . import connection as conn_impl
+from . import settings as settings_impl
 
 # Workaround for good IDE and universal for runtime
 if typing.TYPE_CHECKING:
@@ -205,7 +207,6 @@ class DiscoveryEndpointsResolver(object):
 
             yield resolved
         except Exception as e:
-
             self._add_debug_details(
                 'Failed to resolve endpoints for database %s. Endpoint: "%s". Error details:\n %s',
                 self._driver_config.database,

@@ -1,7 +1,9 @@
 import asyncio
 from asyncio import wait_for
-import pytest
 from unittest import mock
+
+import pytest
+
 import ydb
 
 DEFAULT_TIMEOUT = 0.5

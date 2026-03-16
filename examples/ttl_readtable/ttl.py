@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 from __future__ import print_function
+
 import os
 from concurrent.futures import TimeoutError
 
 import ydb
-
 
 DOC_TABLE_PARTITION_COUNT = 4
 DELETE_BATCH_SIZE = 10

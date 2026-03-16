@@ -4,48 +4,47 @@ import asyncio
 import concurrent.futures
 import datetime
 import gzip
+import logging
 import typing
 from collections import deque
-from typing import Deque, AsyncIterator, Union, List, Optional, Dict, Callable
-
-import logging
+from typing import AsyncIterator, Callable, Deque, Dict, List, Optional, Union
 
 import ydb
-from .topic_writer import (
-    PublicWriterSettings,
-    WriterSettings,
-    PublicMessage,
-    PublicWriterInitInfo,
-    InternalMessage,
-    TopicWriterStopped,
-    TopicWriterError,
-    messages_to_proto_requests,
-    PublicWriteResult,
-    PublicWriteResultTypes,
-    Message,
-)
+
 from .. import (
     _apis,
     issues,
 )
-from .._utilities import AtomicCounter
 from .._errors import check_retriable_error
-from ..retries import RetrySettings
-from .._grpc.grpcwrapper.ydb_topic_public_types import PublicCodec
-from .._grpc.grpcwrapper.ydb_topic import (
-    UpdateTokenRequest,
-    UpdateTokenResponse,
-    StreamWriteMessage,
-    TransactionIdentity,
-    WriterMessagesFromServerToClient,
-)
 from .._grpc.grpcwrapper.common_utils import (
+    GrpcWrapperAsyncIO,
     IGrpcWrapperAsyncIO,
     SupportedDriverType,
-    GrpcWrapperAsyncIO,
 )
-
+from .._grpc.grpcwrapper.ydb_topic import (
+    StreamWriteMessage,
+    TransactionIdentity,
+    UpdateTokenRequest,
+    UpdateTokenResponse,
+    WriterMessagesFromServerToClient,
+)
+from .._grpc.grpcwrapper.ydb_topic_public_types import PublicCodec
+from .._utilities import AtomicCounter
 from ..query.base import TxEvent
+from ..retries import RetrySettings
+from .topic_writer import (
+    InternalMessage,
+    Message,
+    PublicMessage,
+    PublicWriteResult,
+    PublicWriteResultTypes,
+    PublicWriterInitInfo,
+    PublicWriterSettings,
+    TopicWriterError,
+    TopicWriterStopped,
+    WriterSettings,
+    messages_to_proto_requests,
+)
 
 if typing.TYPE_CHECKING:
     from ..query.transaction import BaseQueryTxContext

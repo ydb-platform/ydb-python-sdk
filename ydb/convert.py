@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 import decimal
+
 from google.protobuf import struct_pb2
 
-from . import issues, types, _apis
-
+from . import _apis, issues, types
 
 _SHIFT_BIT_COUNT = 64
 _SHIFT = 2**64
@@ -317,7 +317,7 @@ def _type_from_python_native(value):
     if t in _from_python_type_map:
         return _from_python_type_map[t]
 
-    if t == list:
+    if t is list:
         if len(value) == 0:
             raise ValueError(
                 "Could not map empty list to any type, please specify "
@@ -326,7 +326,7 @@ def _type_from_python_native(value):
         entry_type = _type_from_python_native(value[0])
         return types.ListType(entry_type)
 
-    if t == dict:
+    if t is dict:
         if len(value) == 0:
             raise ValueError(
                 "Could not map empty dict to any type, please specify "
@@ -391,7 +391,7 @@ class _ResultSet(object):
                 row[column.name] = column_parser(unwrapped_type, value, table_client_settings)
             rows.append(row)
 
-        from ydb.query import QueryResultSetFormat, ArrowFormatMeta
+        from ydb.query import ArrowFormatMeta, QueryResultSetFormat
 
         result_format = message.format if message.format else QueryResultSetFormat.VALUE
 
@@ -405,7 +405,7 @@ class _ResultSet(object):
 
     @classmethod
     def lazy_from_message(cls, message, table_client_settings=None, snapshot=None):
-        from ydb.query import QueryResultSetFormat, ArrowFormatMeta
+        from ydb.query import ArrowFormatMeta, QueryResultSetFormat
 
         rows = _LazyRows(message.rows, table_client_settings, message.columns)
         result_format = message.format if message.format else QueryResultSetFormat.VALUE
@@ -436,7 +436,6 @@ class _Row(_DotDict):
 
 
 class _LazyRowItem:
-
     __slots__ = ["_item", "_type", "_table_client_settings", "_processed", "_parser"]
 
     def __init__(self, proto_item, proto_type, table_client_settings, parser):
@@ -448,7 +447,6 @@ class _LazyRowItem:
 
     def get(self):
         if not self._processed:
-
             self._item = self._parser(self._type, self._item, self._table_client_settings)
             self._processed = True
         return self._item

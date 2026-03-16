@@ -6,20 +6,20 @@ used across the SDK for proper typing support.
 """
 
 from typing import (
+    TYPE_CHECKING,
     Any,
     Callable,
     Iterable,
     Tuple,
     TypeVar,
     Union,
-    TYPE_CHECKING,
 )
 
 import grpc
 
 if TYPE_CHECKING:
-    from .driver import Driver as _SyncDriver
     from .aio.driver import Driver as _AsyncDriver
+    from .driver import Driver as _SyncDriver
 
 
 # =============================================================================

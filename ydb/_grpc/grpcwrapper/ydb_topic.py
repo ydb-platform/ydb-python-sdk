@@ -4,13 +4,12 @@ import datetime
 import enum
 import typing
 from dataclasses import dataclass, field
-from typing import List, Union, Dict, Optional
+from typing import Dict, List, Optional, Union
 
 from google.protobuf.message import Message
 
+from ... import issues, scheme
 from . import ydb_topic_public_types
-from ... import scheme
-from ... import issues
 
 # Workaround for good IDE and universal for runtime
 if typing.TYPE_CHECKING:
@@ -21,14 +20,14 @@ else:
 from .common_utils import (
     IFromProto,
     IFromProtoWithProtoType,
+    IFromPublic,
     IToProto,
     IToPublic,
-    IFromPublic,
     ServerStatus,
     UnknownGrpcMessageError,
+    datetime_from_proto_timestamp,
     proto_duration_from_timedelta,
     proto_timestamp_from_datetime,
-    datetime_from_proto_timestamp,
     timedelta_from_proto_duration,
 )
 
@@ -80,7 +79,7 @@ class SupportedCodecs(
 
     @staticmethod
     def from_public(
-        codecs: Optional[List[Union[ydb_topic_public_types.PublicCodec, int]]]
+        codecs: Optional[List[Union[ydb_topic_public_types.PublicCodec, int]]],
     ) -> Optional["SupportedCodecs"]:
         if codecs is None:
             return None

@@ -3,8 +3,7 @@ import asyncio
 import logging
 import time
 
-from ydb import credentials
-from ydb import issues
+from ydb import credentials, issues
 
 logger = logging.getLogger(__name__)
 YDB_AUTH_TICKET_HEADER = "x-ydb-auth-ticket"

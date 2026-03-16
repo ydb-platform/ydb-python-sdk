@@ -3,24 +3,22 @@ from __future__ import annotations
 import abc
 import asyncio
 import bisect
+import datetime
 import enum
 from collections import deque
 from dataclasses import dataclass, field
-import datetime
-from typing import Union, Any, List, Dict, Deque, Optional, Tuple
+from typing import Any, Deque, Dict, List, Optional, Tuple, Union
 
-from ydb._grpc.grpcwrapper.ydb_topic import OffsetsRange, Codec
+from ydb._grpc.grpcwrapper.ydb_topic import Codec, OffsetsRange
 from ydb._topic_reader import topic_reader_asyncio
 
 
 class ICommittable(abc.ABC):
     @abc.abstractmethod
-    def _commit_get_partition_session(self) -> PartitionSession:
-        ...
+    def _commit_get_partition_session(self) -> PartitionSession: ...
 
     @abc.abstractmethod
-    def _commit_get_offsets_range(self) -> OffsetsRange:
-        ...
+    def _commit_get_offsets_range(self) -> OffsetsRange: ...
 
 
 class ISessionAlive(abc.ABC):

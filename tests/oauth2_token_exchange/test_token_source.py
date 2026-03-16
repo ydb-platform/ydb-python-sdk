@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
-import jwt
 import time
+
+import jwt
 
 from ydb.oauth2_token_exchange import JwtTokenSource
 

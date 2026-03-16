@@ -1,15 +1,15 @@
 # -*- coding: utf-8 -*-
-import importlib.util
-import threading
 import codecs
-from concurrent import futures
+import collections
 import functools
 import hashlib
-import collections
-import urllib.parse
-from . import ydb_version
-
+import importlib.util
+import threading
 import typing
+import urllib.parse
+from concurrent import futures
+
+from . import ydb_version
 
 interceptor: typing.Any
 try:

@@ -1,36 +1,31 @@
 import asyncio
 import enum
 import functools
-from collections import defaultdict
-
 import typing
+from collections import defaultdict
 from typing import (
-    Optional,
     Any,
     Callable,
-    List,
     DefaultDict,
+    List,
+    Optional,
     Union,
 )
 
+from ydb._grpc.grpcwrapper.common_utils import to_thread
+from ydb._topic_common.common import CallFromSyncToAsync, _get_shared_event_loop
+
+from .. import _apis, _utilities, convert, issues
 from .._grpc.grpcwrapper import ydb_query
 from .._grpc.grpcwrapper.ydb_query_public_types import (
-    BaseQueryTxMode,
     ArrowFormatSettings,
+    BaseQueryTxMode,
 )
 from ..connection import _RpcState as RpcState
-from .. import convert
-from .. import issues
-from .. import _utilities
-from .. import _apis
-
-from ydb._topic_common.common import CallFromSyncToAsync, _get_shared_event_loop
-from ydb._grpc.grpcwrapper.common_utils import to_thread
-
 
 if typing.TYPE_CHECKING:
-    from .transaction import BaseQueryTxContext
     from .session import BaseQuerySession
+    from .transaction import BaseQueryTxContext
 
 
 class QuerySyntax(enum.IntEnum):

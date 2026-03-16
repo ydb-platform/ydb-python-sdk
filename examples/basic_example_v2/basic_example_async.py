@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-import ydb
 import basic_example_data
 
+import ydb
 
 DropTablesQuery = """
 DROP TABLE IF EXISTS series;

@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 import collections
-from concurrent import futures
 import queue
-import time
 import threading
-from . import settings, issues, _utilities, tracing
+import time
+from concurrent import futures
+
+from . import _utilities, issues, settings, tracing
 
 
 class SessionPoolImpl(object):
@@ -280,8 +281,7 @@ class SessionPoolImpl(object):
                 self._waiters[waiter] = waiter
                 if self._active_count < self._size:
                     self._logger.debug(
-                        "Session pool is not large enough (active_count < size: %d < %d). "
-                        "will create a new session.",
+                        "Session pool is not large enough (active_count < size: %d < %d). will create a new session.",
                         self._active_count,
                         self._size,
                     )

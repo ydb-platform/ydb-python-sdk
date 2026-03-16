@@ -1,7 +1,8 @@
-import ydb
+from os import path
+
 import pytest
 
-from os import path
+import ydb
 
 
 def test_scheme_error(driver_sync, database):
