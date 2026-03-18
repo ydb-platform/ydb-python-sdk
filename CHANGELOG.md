@@ -1,3 +1,4 @@
+## 3.26.7 ##
 * Ability to pass additional info to sdk header
 
 ## 3.26.6 ##
