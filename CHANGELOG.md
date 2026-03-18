@@ -1,3 +1,5 @@
+* Ability to pass additional info to sdk header
+
 ## 3.26.6 ##
 * Support YDB_USER and YDB_PASSWORD in the environment
 
