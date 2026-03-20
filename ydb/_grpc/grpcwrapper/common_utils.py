@@ -251,6 +251,9 @@ class GrpcWrapperAsyncIO(IGrpcWrapperAsyncIO):
 
         except (grpc.RpcError, grpc.aio.AioRpcError) as e:
             raise connection._rpc_error_handler(self._connection_state, e)
+        except asyncio.CancelledError:
+            # gRPC CancelledError - convert to YDB error for retry logic
+            raise issues.ConnectionLost("gRPC stream cancelled")
 
         if not is_coordination_calls:
             issues._process_response(grpc_message)
