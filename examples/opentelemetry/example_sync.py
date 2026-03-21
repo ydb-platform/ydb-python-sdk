@@ -11,7 +11,7 @@ resource = Resource(attributes={"service.name": "ydb-python-test"})
 provider = TracerProvider(resource=resource)
 
 provider.add_span_processor(
-    BatchSpanProcessor(OTLPSpanExporter(endpoint="http://localhost:4317/v1/traces"))  # или 4317 grpc
+    BatchSpanProcessor(OTLPSpanExporter(endpoint="http://localhost:4317/v1/traces"))
 )
 trace.set_tracer_provider(provider)
 
@@ -31,10 +31,9 @@ with ydb.Driver(endpoint=endpoint, database=database, credentials=ydb.default_cr
     with tracer.start_as_current_span("ydb-load-test"):
         with ydb.QuerySessionPool(driver) as pool:
             pool.execute_with_retries("CREATE TABLE IF NOT EXISTS example(key UInt64, value String, PRIMARY KEY (key))")
-            rand_value = randint(10000, 99999)
-            for i in range(rand_value, rand_value + 3):
-                val = f"value{i}"
-                pool.execute_with_retries(f"INSERT INTO example (key, value) VALUES ({i}, '{val}')")
+            rand_value = randint(10000, 100000)
+            val = f"value{rand_value}"
+            pool.execute_with_retries(f"INSERT INTO example (key, value) VALUES ({rand_value}, '{val}')")
 
             res = pool.execute_with_retries("SELECT * FROM example")
             print(res.pop().rows)

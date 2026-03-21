@@ -6,6 +6,7 @@ import random
 from typing import Any, Callable, Optional, Tuple, TYPE_CHECKING
 
 from ydb import issues
+from ydb.opentelemetry.tracing import create_ydb_span
 from ydb.pool import ConnectionsCache as _ConnectionsCache, IConnectionPool
 
 from .connection import Connection, EndpointKey
@@ -244,7 +245,8 @@ class ConnectionPool(IConnectionPool):
         return __wrapper__
 
     async def wait(self, timeout: Optional[float] = 7.0, fail_fast: bool = False) -> None:  # type: ignore[override]  # async override of sync method
-        await self._store.get(fast_fail=fail_fast, wait_timeout=timeout if timeout is not None else 7.0)
+        with create_ydb_span("ydb.Driver.Initialize", self._driver_config, kind="internal"):
+            await self._store.get(fast_fail=fail_fast, wait_timeout=timeout if timeout is not None else 7.0)
 
     def discovery_debug_details(self) -> str:
         if self._discovery:
