@@ -10,6 +10,7 @@ import random
 from typing import Any, Callable, ContextManager, List, Optional, Set, Tuple, TYPE_CHECKING
 
 from . import connection as connection_impl, issues, resolver, _utilities, tracing
+from .opentelemetry.tracing import create_ydb_span
 from abc import abstractmethod
 
 from .connection import Connection, EndpointKey
@@ -412,10 +413,11 @@ class ConnectionPool(IConnectionPool):
         :param timeout: A timeout to wait in seconds
         :return: None
         """
-        if fail_fast:
-            self._store.add_fast_fail().result(timeout)
-        else:
-            self._store.subscribe().result(timeout)
+        with create_ydb_span("ydb.Driver.Initialize", self._driver_config, kind="internal"):
+            if fail_fast:
+                self._store.add_fast_fail().result(timeout)
+            else:
+                self._store.subscribe().result(timeout)
 
     def _on_disconnected(self, connection: Connection) -> None:
         """
