@@ -1,3 +1,5 @@
+* Better observability for errors in token refresh
+
 ## 3.26.7 ##
 * Ability to pass additional info to sdk header
 
