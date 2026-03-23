@@ -24,6 +24,7 @@ from google.protobuf import text_format
 import grpc
 from . import issues, _apis, _utilities
 from . import default_pem
+from .opentelemetry.tracing import get_trace_metadata
 
 _stubs_list = (
     _apis.TableService.Stub,
@@ -176,6 +177,9 @@ def _construct_metadata(driver_config, settings):
         metadata.extend(getattr(settings, "headers", []))
 
     metadata.append(_utilities.x_ydb_sdk_build_info_header(getattr(driver_config, "_additional_sdk_headers", ())))
+
+    metadata.extend(get_trace_metadata())
+
     return metadata
 
 
