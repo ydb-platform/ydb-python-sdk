@@ -1,82 +1,77 @@
-from contextlib import contextmanager
+from opentelemetry import context, trace
+from opentelemetry.propagate import inject
+from opentelemetry.trace import StatusCode
 
-_MIN_OTEL_VERSION = "1.0.0"
+from ydb import issues
+from ydb.opentelemetry.tracing import _registry
 
 _tracer = None
 _enabled = False
 
-
-def _check_dependencies():
-    try:
-        from opentelemetry.version import __version__ as otel_version
-    except ImportError:
-        raise ImportError(
-            "OpenTelemetry packages are required for tracing support. "
-            "Install them with: pip install ydb[tracing]"
-        ) from None
-
-    from packaging.version import Version
-
-    if Version(otel_version) < Version(_MIN_OTEL_VERSION):
-        raise ImportError(
-            f"OpenTelemetry >= {_MIN_OTEL_VERSION} is required, "
-            f"but {otel_version} is installed. "
-            "Upgrade with: pip install ydb[tracing]"
-        )
+_KIND_MAP = {
+    "client": trace.SpanKind.CLIENT,
+    "internal": trace.SpanKind.INTERNAL,
+}
 
 
 def _otel_metadata_hook():
     """Injects W3C Trace Context (traceparent/tracestate) into gRPC metadata."""
-    from opentelemetry.propagate import inject
-
     headers = {}
     inject(headers)
     return list(headers.items())
 
 
-@contextmanager
-def _otel_span(name, attributes=None, kind=None):
-    from opentelemetry import trace
-
-    kind_map = {
-        "client": trace.SpanKind.CLIENT,
-        "internal": trace.SpanKind.INTERNAL,
-    }
-    otel_kind = kind_map.get(kind, trace.SpanKind.CLIENT)
-    with _tracer.start_as_current_span(
-        name,
-        kind=otel_kind,
-        attributes=attributes or {},
-    ) as span:
-        try:
-            yield span
-        except Exception as e:
-            _otel_set_error(span, e)
-            raise
-
-
-def _otel_set_error(span, exception):
-    """Records an exception on the span and sets ERROR status."""
-    if span is None:
-        return
-
-    from opentelemetry.trace import StatusCode
-    from ydb import issues
-
-    attrs = {}
-    if isinstance(exception, issues.Error):
-        status_code = getattr(exception, "status", None)
-        if status_code is not None:
-            attrs["db.response.status_code"] = str(status_code)
-            attrs["error.type"] = status_code.name
-        else:
-            attrs["error.type"] = type(exception).__qualname__
+def _set_error_on_span(span, exception):
+    if isinstance(exception, issues.Error) and exception.status is not None:
+        error_type = exception.status.name
+        span.set_attribute("db.response.status_code", error_type)
     else:
-        attrs["error.type"] = type(exception).__qualname__
+        error_type = type(exception).__qualname__
 
-    span.set_attributes(attrs)
+    span.set_attribute("error.type", error_type)
     span.set_status(StatusCode.ERROR, str(exception))
     span.record_exception(exception)
+
+
+class TracingSpan:
+    """Wrapper around an OTel span that manages context lifecycle.
+
+    Can be used as a context manager or manually
+    """
+
+    def __init__(self, span, token):
+        self._span = span
+        self._token = token
+
+    def set_error(self, exception):
+        _set_error_on_span(self._span, exception)
+
+    def end(self):
+        self._span.end()
+        if self._token is not None:
+            context.detach(self._token)
+            self._token = None
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        if exc_val is not None:
+            self.set_error(exc_val)
+        self.end()
+        return False
+
+
+def _create_span(name, attributes=None, kind=None):
+    # Can be used as a context manager or manually
+    span = _tracer.start_span(
+        name,
+        kind=_KIND_MAP.get(kind, trace.SpanKind.CLIENT),
+        attributes=attributes or {},
+    )
+    ctx = trace.set_span_in_context(span)
+    token = context.attach(ctx)
+    return TracingSpan(span, token)
 
 
 def _enable_tracing():
@@ -85,12 +80,7 @@ def _enable_tracing():
     if _enabled:
         return
 
-    _check_dependencies()
-
-    from opentelemetry import trace
-    from ydb.opentelemetry.tracing import _registry
-
     _tracer = trace.get_tracer("ydb.sdk")
     _enabled = True
     _registry.set_metadata_hook(_otel_metadata_hook)
-    _registry.set_span_factory(_otel_span)
+    _registry.set_create_span(_create_span)

@@ -107,10 +107,13 @@ class QueryTxContext(BaseQueryTxContext["AsyncDriver"]):
 
         await self._ensure_prev_stream_finished()
 
-        with create_ydb_span("ydb.Commit", self._driver._driver_config,
-                             session_id=self.session.session_id,
-                             node_id=self.session.node_id,
-                             tx_id=self._tx_state.tx_id):
+        with create_ydb_span(
+            "ydb.Commit",
+            self._driver._driver_config,
+            session_id=self.session.session_id,
+            node_id=self.session.node_id,
+            tx_id=self._tx_state.tx_id,
+        ):
             try:
                 await self._execute_callbacks_async(base.TxEvent.BEFORE_COMMIT)
                 await self._commit_call(settings)
@@ -138,10 +141,13 @@ class QueryTxContext(BaseQueryTxContext["AsyncDriver"]):
 
         await self._ensure_prev_stream_finished()
 
-        with create_ydb_span("ydb.Rollback", self._driver._driver_config,
-                             session_id=self.session.session_id,
-                             node_id=self.session.node_id,
-                             tx_id=self._tx_state.tx_id):
+        with create_ydb_span(
+            "ydb.Rollback",
+            self._driver._driver_config,
+            session_id=self.session.session_id,
+            node_id=self.session.node_id,
+            tx_id=self._tx_state.tx_id,
+        ):
             try:
                 await self._execute_callbacks_async(base.TxEvent.BEFORE_ROLLBACK)
                 await self._rollback_call(settings)
@@ -196,10 +202,15 @@ class QueryTxContext(BaseQueryTxContext["AsyncDriver"]):
         """
         await self._ensure_prev_stream_finished()
 
-        with create_ydb_span("ydb.ExecuteQuery", self._driver._driver_config,
-                             session_id=self.session.session_id,
-                             node_id=self.session.node_id,
-                             tx_id=self._tx_state.tx_id):
+        span = create_ydb_span(
+            "ydb.ExecuteQuery",
+            self._driver._driver_config,
+            session_id=self.session.session_id,
+            node_id=self.session.node_id,
+            tx_id=self._tx_state.tx_id,
+        )
+
+        try:
             stream_it = await self._execute_call(
                 query=query,
                 parameters=parameters,
@@ -225,5 +236,11 @@ class QueryTxContext(BaseQueryTxContext["AsyncDriver"]):
                     settings=self.session._settings,
                 ),
                 on_error=self.session._on_execute_stream_error,
+                span=span,
             )
             return self._prev_stream
+        except Exception as e:
+            if span is not None:
+                span.set_error(e)
+                span.end()
+            raise

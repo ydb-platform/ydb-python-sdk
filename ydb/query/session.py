@@ -437,8 +437,11 @@ class QuerySession(BaseQuerySession["SyncDriver"]):
         """
         self._check_session_ready_to_use()
 
-        with create_ydb_span("ydb.ExecuteQuery", self._driver._driver_config,
-                             session_id=self._session_id, node_id=self._node_id):
+        span = create_ydb_span(
+            "ydb.ExecuteQuery", self._driver._driver_config, session_id=self._session_id, node_id=self._node_id
+        )
+
+        try:
             stream_it = self._execute_call(
                 query=query,
                 parameters=parameters,
@@ -462,7 +465,13 @@ class QuerySession(BaseQuerySession["SyncDriver"]):
                     settings=self._settings,
                 ),
                 on_error=self._on_execute_stream_error,
+                span=span,
             )
+        except Exception as e:
+            if span is not None:
+                span.set_error(e)
+                span.end()
+            raise
 
     def explain(
         self,
