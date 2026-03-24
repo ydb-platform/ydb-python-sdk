@@ -11,6 +11,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import asyncio
 import pytest
 
+
 async def _empty_async_iter():
     return
     yield  # noqa: makes this an async generator
@@ -25,7 +26,9 @@ def _get_spans(exporter, name=None):
 
 def _get_single_span(exporter, name):
     spans = _get_spans(exporter, name)
-    assert len(spans) == 1, f"Expected 1 span named '{name}', got {len(spans)}: {[s.name for s in exporter.get_finished_spans()]}"
+    assert (
+        len(spans) == 1
+    ), f"Expected 1 span named '{name}', got {len(spans)}: {[s.name for s in exporter.get_finished_spans()]}"
     return spans[0]
 
 

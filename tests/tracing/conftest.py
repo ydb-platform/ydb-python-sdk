@@ -13,7 +13,6 @@ from opentelemetry.sdk.trace.export.in_memory_span_exporter import InMemorySpanE
 
 from ydb.opentelemetry.tracing import _registry
 
-
 _provider = TracerProvider()
 _exporter = InMemorySpanExporter()
 _provider.add_span_processor(SimpleSpanProcessor(_exporter))

@@ -27,7 +27,6 @@ from .. import _apis
 from ydb._topic_common.common import CallFromSyncToAsync, _get_shared_event_loop
 from ydb._grpc.grpcwrapper.common_utils import to_thread
 
-
 if typing.TYPE_CHECKING:
     from .transaction import BaseQueryTxContext
     from .session import BaseQuerySession

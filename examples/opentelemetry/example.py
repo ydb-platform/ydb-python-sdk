@@ -59,6 +59,7 @@ async def async_example():
 
                 await pool.retry_operation_async(tx_callee)
 
+
 sync_example()
 asyncio.run(async_example())
 

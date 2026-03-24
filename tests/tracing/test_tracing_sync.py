@@ -14,6 +14,7 @@ from .conftest import FakeDriverConfig
 
 import pytest
 
+
 def _get_spans(exporter, name=None):
     spans = exporter.get_finished_spans()
     if name is not None:
@@ -23,7 +24,9 @@ def _get_spans(exporter, name=None):
 
 def _get_single_span(exporter, name):
     spans = _get_spans(exporter, name)
-    assert len(spans) == 1, f"Expected 1 span named '{name}', got {len(spans)}: {[s.name for s in exporter.get_finished_spans()]}"
+    assert (
+        len(spans) == 1
+    ), f"Expected 1 span named '{name}', got {len(spans)}: {[s.name for s in exporter.get_finished_spans()]}"
     return spans[0]
 
 
@@ -263,10 +266,13 @@ class TestDriverInitializeSpan:
 
 
 class TestCommonAttributes:
-    @pytest.mark.parametrize("endpoint,expected_host,expected_port", [
-        ("grpc://host.example.com:2136", "grpc://host.example.com", 2136),
-        ("localhost:2136", "localhost", 2136),
-    ])
+    @pytest.mark.parametrize(
+        "endpoint,expected_host,expected_port",
+        [
+            ("grpc://host.example.com:2136", "grpc://host.example.com", 2136),
+            ("localhost:2136", "localhost", 2136),
+        ],
+    )
     def test_endpoint_parsing(self, otel_setup, endpoint, expected_host, expected_port):
         exporter = otel_setup
         cfg = FakeDriverConfig(endpoint=endpoint, database="/mydb")
