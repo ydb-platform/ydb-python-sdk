@@ -246,6 +246,10 @@ class BaseQueryTxContext(base.CallbackHandler, Generic[DriverT]):
         self._last_query_stats = None
 
     @property
+    def _driver_config(self):
+        return getattr(self._driver, "_driver_config", None)
+
+    @property
     def session_id(self) -> Optional[str]:
         """
         A transaction's session id
@@ -556,7 +560,7 @@ class QueryTxContext(BaseQueryTxContext["SyncDriver"]):
 
         with create_ydb_span(
             "ydb.Commit",
-            self._driver._driver_config,
+            self._driver_config,
             session_id=self.session.session_id,
             node_id=self.session.node_id,
             tx_id=self._tx_state.tx_id,
@@ -589,7 +593,7 @@ class QueryTxContext(BaseQueryTxContext["SyncDriver"]):
 
         with create_ydb_span(
             "ydb.Rollback",
-            self._driver._driver_config,
+            self._driver_config,
             session_id=self.session.session_id,
             node_id=self.session.node_id,
             tx_id=self._tx_state.tx_id,
@@ -651,7 +655,7 @@ class QueryTxContext(BaseQueryTxContext["SyncDriver"]):
 
         span = create_ydb_span(
             "ydb.ExecuteQuery",
-            self._driver._driver_config,
+            self._driver_config,
             session_id=self.session.session_id,
             node_id=self.session.node_id,
             tx_id=self._tx_state.tx_id,

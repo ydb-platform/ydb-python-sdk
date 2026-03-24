@@ -109,7 +109,7 @@ class QueryTxContext(BaseQueryTxContext["AsyncDriver"]):
 
         with create_ydb_span(
             "ydb.Commit",
-            self._driver._driver_config,
+            self._driver_config,
             session_id=self.session.session_id,
             node_id=self.session.node_id,
             tx_id=self._tx_state.tx_id,
@@ -143,7 +143,7 @@ class QueryTxContext(BaseQueryTxContext["AsyncDriver"]):
 
         with create_ydb_span(
             "ydb.Rollback",
-            self._driver._driver_config,
+            self._driver_config,
             session_id=self.session.session_id,
             node_id=self.session.node_id,
             tx_id=self._tx_state.tx_id,
@@ -204,7 +204,7 @@ class QueryTxContext(BaseQueryTxContext["AsyncDriver"]):
 
         span = create_ydb_span(
             "ydb.ExecuteQuery",
-            self._driver._driver_config,
+            self._driver_config,
             session_id=self.session.session_id,
             node_id=self.session.node_id,
             tx_id=self._tx_state.tx_id,

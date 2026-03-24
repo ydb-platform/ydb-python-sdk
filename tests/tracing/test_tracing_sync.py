@@ -223,7 +223,7 @@ class TestParentChildRelationship:
 
         tracer = trace.get_tracer("test.tracer")
 
-        with tracer.start_as_current_span("user.operation") as parent_span:
+        with tracer.start_as_current_span("user.operation"):
             with create_ydb_span("ydb.ExecuteQuery", FakeDriverConfig(), session_id="s1", node_id=1):
                 pass
 

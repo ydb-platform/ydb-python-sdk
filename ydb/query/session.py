@@ -31,7 +31,7 @@ from .transaction import QueryTxContext
 from .._constants import DEFAULT_INITIAL_RESPONSE_TIMEOUT, DEFAULT_LONG_STREAM_TIMEOUT
 
 if TYPE_CHECKING:
-    from ..driver import Driver as SyncDriver
+    from ..driver import Driver as SyncDriver, DriverConfig
     from ..aio.driver import Driver as AsyncDriver
 
 
@@ -84,6 +84,10 @@ class BaseQuerySession(abc.ABC, Generic[DriverT]):
         )
 
         self._last_query_stats = None
+
+    @property
+    def _driver_config(self) -> Optional["DriverConfig"]:
+        return getattr(self._driver, "_driver_config", None)
 
     @property
     def session_id(self) -> Optional[str]:
@@ -369,7 +373,7 @@ class QuerySession(BaseQuerySession["SyncDriver"]):
         if self._closed:
             raise RuntimeError("Session is already closed.")
 
-        with create_ydb_span("ydb.CreateSession", self._driver._driver_config):
+        with create_ydb_span("ydb.CreateSession", self._driver_config):
             self._create_call(settings=settings)
             self._attach()
 
@@ -438,7 +442,7 @@ class QuerySession(BaseQuerySession["SyncDriver"]):
         self._check_session_ready_to_use()
 
         span = create_ydb_span(
-            "ydb.ExecuteQuery", self._driver._driver_config, session_id=self._session_id, node_id=self._node_id
+            "ydb.ExecuteQuery", self._driver_config, session_id=self._session_id, node_id=self._node_id
         )
 
         try:

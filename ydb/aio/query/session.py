@@ -106,7 +106,7 @@ class QuerySession(BaseQuerySession["AsyncDriver"]):
         if self._closed:
             raise RuntimeError("Session is already closed")
 
-        with create_ydb_span("ydb.CreateSession", self._driver._driver_config):
+        with create_ydb_span("ydb.CreateSession", self._driver_config):
             await self._create_call(settings=settings)
             await self._attach()
 
@@ -162,7 +162,7 @@ class QuerySession(BaseQuerySession["AsyncDriver"]):
         self._check_session_ready_to_use()
 
         span = create_ydb_span(
-            "ydb.ExecuteQuery", self._driver._driver_config, session_id=self._session_id, node_id=self._node_id
+            "ydb.ExecuteQuery", self._driver_config, session_id=self._session_id, node_id=self._node_id
         )
 
         try:
