@@ -1,3 +1,4 @@
+* Make "Sent message larger than max" error non retryable
 * Better observability for errors in token refresh
 
 ## 3.26.7 ##
