@@ -10,7 +10,7 @@ protobuf==6.33.5
 pycparser==2.20
 pydantic==1.6.2
 PyJWT==2.12.0
-requests==2.31.0
+requests==2.33.0
 urllib3==2.6.3
 yandexcloud==0.48.0
 ydb==0.0.41
