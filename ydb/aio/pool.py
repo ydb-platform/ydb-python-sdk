@@ -10,7 +10,7 @@ from ydb.pool import ConnectionsCache as _ConnectionsCache, IConnectionPool
 
 from .connection import Connection, EndpointKey
 
-from . import nearest_dc, resolver
+from . import resolver, _utilities
 
 if TYPE_CHECKING:
     from ydb.driver import DriverConfig
@@ -158,7 +158,7 @@ class Discovery:
 
             if ssl_filtered_endpoints:
                 try:
-                    detected_location = await nearest_dc.detect_local_dc(
+                    detected_location = await _utilities.detect_local_dc(
                         ssl_filtered_endpoints, max_per_location=3, timeout=self._ready_timeout
                     )
                     if detected_location:

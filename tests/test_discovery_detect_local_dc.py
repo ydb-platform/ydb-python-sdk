@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from unittest.mock import Mock, MagicMock, patch
-from ydb import driver, pool, nearest_dc, connection
+from ydb import driver, pool, _utilities, connection
 
 
 class MockEndpointInfo:
@@ -37,7 +37,7 @@ def test_detect_local_dc_overrides_server_location():
 
     preferred = []
 
-    with patch.object(nearest_dc, "detect_local_dc", Mock(return_value="dc2")):
+    with patch.object(_utilities, "detect_local_dc", Mock(return_value="dc2")):
         with patch(
             "ydb.connection.Connection.ready_factory", lambda *args, **kw: MagicMock(endpoint=args[0], node_id=1)
         ):
@@ -73,7 +73,7 @@ def test_detect_local_dc_failure_fallback():
 
     preferred = []
 
-    with patch.object(nearest_dc, "detect_local_dc", Mock(return_value=None)):
+    with patch.object(_utilities, "detect_local_dc", Mock(return_value=None)):
         with patch(
             "ydb.connection.Connection.ready_factory", lambda *args, **kw: MagicMock(endpoint=args[0], node_id=1)
         ):
@@ -106,7 +106,7 @@ def test_detect_local_dc_skipped_when_use_all_nodes_true():
     mock_resolver.context_resolve.return_value.__enter__.return_value = mock_result
     mock_resolver.context_resolve.return_value.__exit__.return_value = None
 
-    with patch.object(nearest_dc, "detect_local_dc", Mock(return_value="dc2")) as detect_mock:
+    with patch.object(_utilities, "detect_local_dc", Mock(return_value="dc2")) as detect_mock:
         with patch(
             "ydb.connection.Connection.ready_factory", lambda *args, **kw: MagicMock(endpoint=args[0], node_id=1)
         ):

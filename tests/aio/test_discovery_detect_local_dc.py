@@ -2,7 +2,7 @@
 import pytest
 from unittest.mock import MagicMock, patch, AsyncMock
 from ydb import driver, connection
-from ydb.aio import pool, nearest_dc
+from ydb.aio import pool, _utilities
 
 
 class MockEndpointInfo:
@@ -43,7 +43,7 @@ async def test_detect_local_dc_overrides_server_location():
         self.endpoint = endpoint
         self.node_id = 1
 
-    with patch.object(nearest_dc, "detect_local_dc", AsyncMock(return_value="dc2")):
+    with patch.object(_utilities, "detect_local_dc", AsyncMock(return_value="dc2")):
         with patch("ydb.aio.connection.Connection.__init__", mock_init):
             with patch("ydb.aio.connection.Connection.connection_ready", AsyncMock()):
                 with patch("ydb.aio.connection.Connection.close", AsyncMock()):
@@ -86,7 +86,7 @@ async def test_detect_local_dc_failure_fallback():
         self.endpoint = endpoint
         self.node_id = 1
 
-    with patch.object(nearest_dc, "detect_local_dc", AsyncMock(return_value=None)):
+    with patch.object(_utilities, "detect_local_dc", AsyncMock(return_value=None)):
         with patch("ydb.aio.connection.Connection.__init__", mock_init):
             with patch("ydb.aio.connection.Connection.connection_ready", AsyncMock()):
                 with patch("ydb.aio.connection.Connection.close", AsyncMock()):
@@ -126,7 +126,7 @@ async def test_detect_local_dc_skipped_when_use_all_nodes_true():
         self.endpoint = endpoint
         self.node_id = 1
 
-    with patch.object(nearest_dc, "detect_local_dc", AsyncMock(return_value="dc2")) as detect_mock:
+    with patch.object(_utilities, "detect_local_dc", AsyncMock(return_value="dc2")) as detect_mock:
         with patch("ydb.aio.connection.Connection.__init__", mock_init):
             with patch("ydb.aio.connection.Connection.connection_ready", AsyncMock()):
                 with patch("ydb.aio.connection.Connection.close", AsyncMock()):

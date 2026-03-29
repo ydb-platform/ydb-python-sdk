@@ -9,7 +9,7 @@ import collections
 import random
 from typing import Any, Callable, ContextManager, List, Optional, Set, Tuple, TYPE_CHECKING
 
-from . import connection as connection_impl, issues, nearest_dc, resolver, _utilities, tracing
+from . import connection as connection_impl, issues, resolver, _utilities, tracing
 from abc import abstractmethod
 
 from .connection import Connection, EndpointKey
@@ -245,7 +245,7 @@ class Discovery(threading.Thread):
 
                 if ssl_filtered_endpoints:
                     try:
-                        detected_location = nearest_dc.detect_local_dc(
+                        detected_location = _utilities.detect_local_dc(
                             ssl_filtered_endpoints, max_per_location=3, timeout=self._ready_timeout
                         )
                         if detected_location:
