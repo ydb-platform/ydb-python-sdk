@@ -110,7 +110,6 @@ async def _check_fastest_endpoint(
         for t in tasks:
             if not t.done():
                 t.cancel()
-
         await asyncio.gather(*tasks, return_exceptions=True)
 
 
