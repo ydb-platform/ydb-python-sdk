@@ -111,8 +111,6 @@ async def _check_fastest_endpoint(
             if not t.done():
                 t.cancel()
 
-        await asyncio.gather(*tasks, return_exceptions=True)
-
 
 def _split_endpoints_by_location(
     endpoints: List[resolver.EndpointInfo],
