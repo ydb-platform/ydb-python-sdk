@@ -158,7 +158,7 @@ async def aio_connection(endpoint, database):
 
 
 @pytest.fixture()
-async def driver(endpoint, database, event_loop):
+async def driver(endpoint, database):
     driver_config = ydb.DriverConfig(
         endpoint,
         database,
@@ -173,7 +173,7 @@ async def driver(endpoint, database, event_loop):
 
 
 @pytest.fixture()
-async def driver_sync(endpoint, database, event_loop):
+async def driver_sync(endpoint, database):
     driver_config = ydb.DriverConfig(
         endpoint,
         database,
@@ -261,7 +261,6 @@ def topic_consumer():
 
 
 @pytest.fixture()
-@pytest.mark.asyncio()
 async def topic_path(driver, topic_consumer, database) -> str:
     topic_path = database + "/test-topic"
 
@@ -279,7 +278,6 @@ async def topic_path(driver, topic_consumer, database) -> str:
 
 
 @pytest.fixture()
-@pytest.mark.asyncio()
 async def topic2_path(driver, topic_consumer, database) -> str:
     topic_path = database + "/test-topic2"
 
@@ -297,7 +295,6 @@ async def topic2_path(driver, topic_consumer, database) -> str:
 
 
 @pytest.fixture()
-@pytest.mark.asyncio()
 async def topic_with_two_partitions_path(driver, topic_consumer, database) -> str:
     topic_path = database + "/test-topic-two-partitions"
 
@@ -317,7 +314,6 @@ async def topic_with_two_partitions_path(driver, topic_consumer, database) -> st
 
 
 @pytest.fixture()
-@pytest.mark.asyncio()
 async def topic_with_messages(driver, topic_consumer, database):
     topic_path = database + "/test-topic-with-messages"
     try:
@@ -348,7 +344,6 @@ async def topic_with_messages(driver, topic_consumer, database):
 
 
 @pytest.fixture()
-@pytest.mark.asyncio()
 async def topic_with_messages_with_metadata(driver, topic_consumer, database):
     topic_path = database + "/test-topic-with-messages-with-metadata"
     try:
@@ -373,7 +368,6 @@ async def topic_with_messages_with_metadata(driver, topic_consumer, database):
 
 
 @pytest.fixture()
-@pytest.mark.asyncio()
 async def topic_reader(driver, topic_consumer, topic_path) -> ydb.TopicReaderAsyncIO:
     reader = driver.topic_client.reader(topic=topic_path, consumer=topic_consumer)
     yield reader

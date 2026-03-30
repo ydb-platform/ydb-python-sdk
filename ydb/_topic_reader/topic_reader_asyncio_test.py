@@ -40,11 +40,11 @@ from .._constants import DEFAULT_INITIAL_RESPONSE_TIMEOUT
 
 
 @pytest.fixture(autouse=True)
-def handle_exceptions(event_loop):
+async def handle_exceptions():
     def handler(loop, context):
         print(context)
 
-    event_loop.set_exception_handler(handler)
+    asyncio.get_running_loop().set_exception_handler(handler)
 
 
 @pytest.fixture()
