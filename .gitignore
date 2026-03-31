@@ -12,3 +12,9 @@ ydb.egg-info/
 /cov_html
 /build
 .DS_Store
+
+# AI tools
+.claude/
+.cursor/
+.aider*
+.windsurf/
