@@ -1,3 +1,4 @@
+## 3.26.10 ##
 * Fix asyncio.Cancelled error propagated to writer/reader
 
 ## 3.26.9 ##
