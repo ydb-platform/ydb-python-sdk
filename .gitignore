@@ -11,6 +11,7 @@ ydb.egg-info/
 .coverage
 /cov_html
 /build
+docs/_build
 .DS_Store
 
 # AI tools
