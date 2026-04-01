@@ -37,6 +37,11 @@ class PublicWriterSettings:
     encoder_executor: Optional[concurrent.futures.Executor] = None  # default shared client executor pool
     encoders: Optional[typing.Mapping[PublicCodec, typing.Callable[[bytes], bytes]]] = None
     update_token_interval: Union[int, float] = 3600
+    max_buffer_size_bytes: Optional[int] = None  # None = no limit
+    max_buffer_messages: Optional[int] = None  # None = no limit
+    # Backpressure is enabled when at least one of the limits above is set.
+    # None = wait indefinitely for buffer space; positive value = raise TopicWriterBufferFullError on timeout.
+    buffer_wait_timeout_sec: Optional[float] = None
 
     def __post_init__(self):
         if self.producer_id is None:
@@ -218,6 +223,12 @@ class TopicWriterStopped(TopicWriterError):
         super(TopicWriterStopped, self).__init__("topic writer was stopped by call close")
 
 
+class TopicWriterBufferFullError(TopicWriterError):
+    """Raised when write cannot proceed: buffer is full and timeout expired waiting for free space."""
+
+    pass
+
+
 def default_serializer_message_content(data: Any) -> bytes:
     if data is None:
         return bytes()
@@ -297,6 +308,15 @@ def _split_messages_by_size_with_default_overhead(
         return len(msg.data) + _message_data_overhead
 
     return _split_messages_by_size(messages, connection._DEFAULT_MAX_GRPC_MESSAGE_SIZE, get_message_size)
+
+
+def internal_message_size_bytes(msg: InternalMessage) -> int:
+    """Approximate size in bytes for buffer accounting (data + metadata + overhead).
+
+    Uses uncompressed_size so the value stays consistent before and after encoding.
+    """
+    meta_len = sum(len(k) + len(v) for k, v in msg.metadata_items.items()) if msg.metadata_items else 0
+    return msg.uncompressed_size + meta_len + 64  # 64 bytes overhead per message (seq_no, timestamps, etc.)
 
 
 def _split_messages_by_size(
