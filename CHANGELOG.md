@@ -1,3 +1,5 @@
+* Fix asyncio.Cancelled error propagated to writer/reader
+
 ## 3.26.9 ##
 * Send writers messages as one batch
 
