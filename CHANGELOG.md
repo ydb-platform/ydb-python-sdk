@@ -1,3 +1,4 @@
+## 3.26.9 ##
 * Send writers messages as one batch
 
 ## 3.26.8 ##
