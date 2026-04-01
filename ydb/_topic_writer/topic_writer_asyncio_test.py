@@ -455,6 +455,44 @@ class TestWriterAsyncIOReconnector:
         second_writer.from_server.put_nowait(self.make_default_ack_message(seq_no=2))
         await reconnector.close(flush=True)
 
+    async def test_reconnect_on_cancelled_error_from_receive(self, default_driver, default_settings, monkeypatch):
+        stream_creates = 0
+        stream_2_created = asyncio.Event()
+
+        class StreamWriterCancelOnFirstReceive(TestWriterAsyncIOReconnector.StreamWriterMock):
+            def __init__(self):
+                super().__init__()
+                self._first_receive = True
+
+            async def receive(self):
+                if self._first_receive:
+                    self._first_receive = False
+                    raise asyncio.CancelledError()
+                await asyncio.Future()  # stream 2 stays alive
+
+        async def create_mock(*args, **kwargs):
+            nonlocal stream_creates
+            stream_creates += 1
+            writer = StreamWriterCancelOnFirstReceive()
+            writer.last_seqno = TestWriterAsyncIOReconnector.init_last_seqno
+            if stream_creates >= 2:
+                stream_2_created.set()
+            return writer
+
+        with mock.patch.object(WriterAsyncIOStream, "create", create_mock):
+            reconnector = WriterAsyncIOReconnector(default_driver, default_settings)
+            try:
+                # Bug: stream 2 is never created — _stop(CancelledError) kills the writer permanently.
+                # After the fix: writer reconnects and stream 2 is created.
+                await asyncio.wait_for(stream_2_created.wait(), timeout=2.0)
+            except asyncio.TimeoutError:
+                pytest.fail(
+                    "Writer did not reconnect after CancelledError from receive() — "
+                    "bug: _stop(CancelledError) permanently kills writer"
+                )
+            finally:
+                await reconnector.close(False)
+
     async def test_stop_on_unexpected_exception(self, reconnector: WriterAsyncIOReconnector, get_stream_writer):
         class TestException(Exception):
             pass
