@@ -439,9 +439,7 @@ class TestWriterAsyncIOReconnector:
         stream_writer = get_stream_writer()
 
         messages = await stream_writer.from_client.get()
-        assert [InternalMessage(message1)] == messages
-        messages = await stream_writer.from_client.get()
-        assert [InternalMessage(message2)] == messages
+        assert [InternalMessage(message1), InternalMessage(message2)] == messages
 
         # ack first message
         stream_writer.from_server.put_nowait(self.make_default_ack_message(seq_no=1))
@@ -529,15 +527,63 @@ class TestWriterAsyncIOReconnector:
             stream_writer = get_stream_writer()
 
             sent = await stream_writer.from_client.get()
-            assert [InternalMessage(PublicMessage(seqno=last_seq_no + 1, data="123"))] == sent
-
-            sent = await stream_writer.from_client.get()
-            assert [InternalMessage(PublicMessage(seqno=last_seq_no + 2, data="456"))] == sent
+            assert [
+                InternalMessage(PublicMessage(seqno=last_seq_no + 1, data="123")),
+                InternalMessage(PublicMessage(seqno=last_seq_no + 2, data="456")),
+            ] == sent
 
         with pytest.raises(TopicWriterError):
             await reconnector.write_with_ack_future([PublicMessage(seqno=last_seq_no + 3, data="123")])
 
         await reconnector.close(flush=False)
+
+    async def test_write_multiple_messages_batched_into_single_send(
+        self, reconnector: WriterAsyncIOReconnector, get_stream_writer
+    ):
+        stream_writer = get_stream_writer()
+        messages = [
+            PublicMessage(data="msg1", seqno=1),
+            PublicMessage(data="msg2", seqno=2),
+            PublicMessage(data="msg3", seqno=3),
+        ]
+        await reconnector.write_with_ack_future(messages)
+
+        sent = await asyncio.wait_for(stream_writer.from_client.get(), 1)
+        assert sent == [InternalMessage(m) for m in messages]
+        assert stream_writer.from_client.empty()
+
+        await reconnector.close(flush=False)
+
+    async def test_buffered_messages_on_reconnect_sent_as_single_batch(
+        self,
+        reconnector: WriterAsyncIOReconnector,
+        get_stream_writer,
+    ):
+        stream_writer = get_stream_writer()
+        messages = [
+            PublicMessage(data="msg1", seqno=1),
+            PublicMessage(data="msg2", seqno=2),
+            PublicMessage(data="msg3", seqno=3),
+        ]
+        await reconnector.write_with_ack_future(messages)
+
+        sent = await asyncio.wait_for(stream_writer.from_client.get(), 1)
+        assert len(sent) == 3
+
+        # ack first message, then trigger retriable error
+        stream_writer.from_server.put_nowait(self.make_default_ack_message(seq_no=1))
+        stream_writer.from_server.put_nowait(issues.Overloaded("test"))
+
+        second_writer = get_stream_writer()
+        resent = await asyncio.wait_for(second_writer.from_client.get(), 1)
+
+        # msg2 and msg3 must arrive as a single batch, not two separate sends
+        assert resent == [InternalMessage(messages[1]), InternalMessage(messages[2])]
+        assert second_writer.from_client.empty()
+
+        second_writer.from_server.put_nowait(self.make_default_ack_message(seq_no=2))
+        second_writer.from_server.put_nowait(self.make_default_ack_message(seq_no=3))
+        await reconnector.close(flush=True)
 
     async def test_deny_double_seqno(self, reconnector: WriterAsyncIOReconnector, get_stream_writer):
         writer = get_stream_writer()
