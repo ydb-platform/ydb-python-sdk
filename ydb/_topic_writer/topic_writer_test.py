@@ -1,4 +1,7 @@
+import asyncio
+import threading
 from typing import List
+from unittest import mock
 
 import pytest
 
@@ -6,10 +9,14 @@ from .._grpc.grpcwrapper.ydb_topic_public_types import PublicCodec
 from .topic_writer import (
     InternalMessage,
     PublicMessage,
+    PublicWriterSettings,
+    TopicWriterBufferFullError,
     _split_messages_by_size,
     _split_messages_for_send,
     messages_to_proto_requests,
 )
+from .topic_writer_asyncio import WriterAsyncIOReconnector
+from .topic_writer_sync import WriterSync
 
 
 @pytest.mark.parametrize(
@@ -166,3 +173,100 @@ class TestMessagesToProtoRequests:
         assert len(requests) == 1
         seq_nos = [m.seq_no for m in requests[0].value.messages]
         assert seq_nos == [1, 2, 3, 4]
+
+
+@pytest.fixture
+def background_loop():
+    loop = asyncio.new_event_loop()
+    ready = threading.Event()
+
+    def run():
+        asyncio.set_event_loop(loop)
+        loop.call_soon(ready.set)
+        loop.run_forever()
+
+    t = threading.Thread(target=run, daemon=True)
+    t.start()
+    assert ready.wait(timeout=5), "background event loop thread did not start in time"
+    yield loop
+    loop.call_soon_threadsafe(loop.stop)
+    t.join(timeout=5)
+    assert not t.is_alive(), "background event loop thread did not stop in time"
+    loop.close()
+
+
+@pytest.fixture
+def mock_reconnector(monkeypatch):
+    def factory(reconnector_instance):
+        monkeypatch.setattr(WriterAsyncIOReconnector, "__new__", lambda cls, *a, **kw: reconnector_instance)
+        return reconnector_instance
+
+    return factory
+
+
+class TestWriterSyncBuffer:
+    def _make_writer(self, background_loop, reconnector, mock_reconnector):
+        mock_reconnector(reconnector)
+        settings = PublicWriterSettings(topic="/local/topic", producer_id="test-producer")
+        return WriterSync(mock.Mock(), settings, eventloop=background_loop)
+
+    def test_buffer_full_error_propagates(self, background_loop, mock_reconnector):
+        class ImmediateFullReconnector:
+            async def write_with_ack_future(self, messages):
+                raise TopicWriterBufferFullError("buffer full")
+
+            async def close(self, flush):
+                pass
+
+        writer = self._make_writer(background_loop, ImmediateFullReconnector(), mock_reconnector)
+        with pytest.raises(TopicWriterBufferFullError):
+            writer.write(PublicMessage(data=b"hello", seqno=1))
+        writer.close(flush=False)
+
+    def test_write_blocks_until_buffer_freed(self, background_loop, mock_reconnector):
+        write_started = threading.Event()
+
+        class BlockingReconnector:
+            _release_event = None
+
+            async def write_with_ack_future(self, messages):
+                self._release_event = asyncio.Event()
+                write_started.set()
+                await self._release_event.wait()
+                loop = asyncio.get_running_loop()
+                futures = [loop.create_future() for _ in messages]
+                for f in futures:
+                    f.set_result(None)
+                return futures
+
+            async def release(self):
+                if self._release_event:
+                    self._release_event.set()
+
+            async def close(self, flush):
+                pass
+
+        reconnector = BlockingReconnector()
+        writer = self._make_writer(background_loop, reconnector, mock_reconnector)
+
+        write_errors = []
+
+        def do_write():
+            try:
+                writer.write(PublicMessage(data=b"hello", seqno=1))
+            except Exception as e:
+                write_errors.append(e)
+
+        write_thread = threading.Thread(target=do_write, daemon=True)
+        write_thread.start()
+
+        assert write_started.wait(timeout=1.0), "write did not start"
+
+        # Write thread is now blocked; release the mock to simulate buffer freed
+        asyncio.run_coroutine_threadsafe(reconnector.release(), background_loop).result(timeout=1.0)
+
+        write_thread.join(timeout=1.0)
+        assert not write_thread.is_alive(), "write should have completed after buffer was freed"
+        assert not write_errors, f"unexpected error: {write_errors}"
+
+        writer.close(flush=False)
