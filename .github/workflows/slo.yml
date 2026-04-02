@@ -151,7 +151,7 @@ jobs:
           workload_current_image: ydb-app-current
           workload_current_command: ${{ matrix.sdk.command }}
           workload_baseline_ref: ${{ steps.baseline.outputs.ref }}
-          workload_baseline_image: ydb-app-baseline
+          workload_baseline_image: ydb-app-current
           workload_baseline_command: ${{ matrix.sdk.command }}
 
   ydb-slo-action-report:
