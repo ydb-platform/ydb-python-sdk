@@ -1,4 +1,3 @@
-import asyncio
 import logging
 
 from core.metrics import WORKLOAD_NAME

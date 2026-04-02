@@ -2,6 +2,7 @@ import logging
 import threading
 import time
 from abc import ABC, abstractmethod
+from typing import Any
 
 import ydb
 
@@ -53,7 +54,7 @@ class BaseJobManager(ABC):
     def run_tests(self):
         pass
 
-    def _run_metric_job(self):
+    def _run_metric_job(self) -> list[Any]:
         report_period_ms = max(1, int(self.args.report_period))
         limiter = SyncRateLimiter(min_interval_s=report_period_ms / 1000.0)
 

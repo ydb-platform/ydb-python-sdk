@@ -15,6 +15,27 @@ def parse_options():
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
 
+    # Positional args with env var fallback — pass explicitly for local runs,
+    # or rely on env vars (YDB_ENDPOINT / YDB_DATABASE / WORKLOAD_DURATION) in Docker/CI.
+    parser.add_argument(
+        "endpoint",
+        nargs="?",
+        default=os.environ.get("YDB_ENDPOINT", "grpc://localhost:2136"),
+        help="YDB endpoint (default: $YDB_ENDPOINT)",
+    )
+    parser.add_argument(
+        "db",
+        nargs="?",
+        default=os.environ.get("YDB_DATABASE", "/local"),
+        help="YDB database (default: $YDB_DATABASE)",
+    )
+    parser.add_argument(
+        "--time",
+        default=int(os.environ.get("WORKLOAD_DURATION", "600")),
+        type=int,
+        help="Workload duration in seconds (default: $WORKLOAD_DURATION)",
+    )
+
     parser.add_argument("--debug", action="store_true", help="Enable debug logging")
 
     # Table params
@@ -48,11 +69,6 @@ def parse_options():
     parser.add_argument("--message-size", default=100, type=int, help="Topic message size [bytes]")
 
     args = parser.parse_args()
-
-    # Inject env-var-driven config as attributes so the rest of the code can use args.* uniformly
-    args.endpoint = os.environ.get("YDB_ENDPOINT", "grpc://localhost:2136")
-    args.db = os.environ.get("YDB_DATABASE", "/local")
-    args.time = int(os.environ.get("WORKLOAD_DURATION", "600"))
 
     # Aliases used by topic runner
     args.path = args.topic_path
