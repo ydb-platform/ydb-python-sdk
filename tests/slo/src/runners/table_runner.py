@@ -88,7 +88,7 @@ class TableRunner(BaseRunner):
             self.logger.info("Table creation completed")
 
     def run(self, args):
-        metrics = create_metrics(args.otlp_endpoint)
+        metrics = create_metrics()
 
         self.logger.info("Starting table SLO tests")
 

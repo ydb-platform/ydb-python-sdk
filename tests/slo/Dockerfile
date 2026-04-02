@@ -1,13 +1,21 @@
 # syntax=docker/dockerfile:1
 
 # This image packages the Python SLO workload runner.
-# It expects to be run with arguments like:
-#   docker run --rm <image> table-run <endpoint> <db> --otlp-endpoint http://prometheus:9090/api/v1/otlp/v1/metrics ...
+#
+# Connection and workload identity are configured via environment variables:
+#   YDB_ENDPOINT          grpc://ydb:2136
+#   YDB_DATABASE          /Root/testdb
+#   WORKLOAD_DURATION     600
+#   WORKLOAD_NAME         sync-query | sync-table | topic
+#   WORKLOAD_REF          <branch/ref label for metrics>
+#   OTEL_EXPORTER_OTLP_METRICS_ENDPOINT  http://ydb-prometheus:9090/api/v1/otlp/v1/metrics
+#
+# Additional tuning flags (read/write RPS, timeouts, thread counts) are passed via
+# the Docker CMD, e.g.:
+#   docker run --rm --env-file ... <image> --read-rps 1000 --write-rps 100
 #
 # Notes:
 # - OpenTelemetry 1.39.x requires Python >= 3.9.
-# - The entrypoint is `python ./tests/slo/src`, i.e. it runs the `__main__.py`
-#   from that directory (same as `python tests/slo/src ...` in CI).
 
 FROM python:3.11-slim AS build
 
@@ -36,3 +44,5 @@ COPY --from=build /opt/venv /opt/venv
 COPY --from=build /src/tests/slo/src /app/tests/slo/src
 
 ENTRYPOINT ["python", "./tests/slo/src"]
+
+CMD ["--read-rps", "1000", "--write-rps", "100"]

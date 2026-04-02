@@ -1,182 +1,78 @@
 import argparse
-
-
-def add_common_options(parser):
-    parser.add_argument("endpoint", help="YDB endpoint")
-    parser.add_argument("db", help="YDB database name")
-    parser.add_argument("-t", "--table-name", default="key_value", help="Table name")
-    parser.add_argument("--debug", action="store_true", help="Enable debug logging")
-    parser.add_argument("--async", action="store_true", help="Use async mode for operations")
-
-
-def make_table_create_parser(subparsers):
-    table_create_parser = subparsers.add_parser("table-create", help="Create tables and fill with initial content")
-    add_common_options(table_create_parser)
-
-    table_create_parser.add_argument(
-        "-p-min",
-        "--min-partitions-count",
-        default=6,
-        type=int,
-        help="Minimum amount of partitions in table",
-    )
-    table_create_parser.add_argument(
-        "-p-max",
-        "--max-partitions-count",
-        default=1000,
-        type=int,
-        help="Maximum amount of partitions in table",
-    )
-    table_create_parser.add_argument("-p-size", "--partition-size", default=100, type=int, help="Partition size [mb]")
-    table_create_parser.add_argument(
-        "-c",
-        "--initial-data-count",
-        default=1000,
-        type=int,
-        help="Total number of records to generate",
-    )
-
-    table_create_parser.add_argument(
-        "--write-timeout",
-        default=20000,
-        type=int,
-        help="Write requests execution timeout [ms]",
-    )
-
-    table_create_parser.add_argument(
-        "--batch-size",
-        default=100,
-        type=int,
-        help="Number of new records in each create request",
-    )
-    table_create_parser.add_argument("--threads", default=10, type=int, help="Number of threads to use")
-
-
-def make_table_run_parser(subparsers):
-    table_run_parser = subparsers.add_parser("table-run", help="Run table SLO workload")
-    add_common_options(table_run_parser)
-
-    table_run_parser.add_argument("--read-rps", default=100, type=int, help="Read request rps")
-    table_run_parser.add_argument(
-        "--read-timeout",
-        default=10000,
-        type=int,
-        help="Read requests execution timeout [ms]",
-    )
-
-    table_run_parser.add_argument("--write-rps", default=10, type=int, help="Write request rps")
-    table_run_parser.add_argument(
-        "--write-timeout",
-        default=20000,
-        type=int,
-        help="Write requests execution timeout [ms]",
-    )
-
-    table_run_parser.add_argument("--time", default=10, type=int, help="Time to run in seconds")
-    table_run_parser.add_argument(
-        "--shutdown-time",
-        default=10,
-        type=int,
-        help="Graceful shutdown time in seconds",
-    )
-
-    table_run_parser.add_argument(
-        "--otlp-endpoint",
-        default="http://localhost:9090/api/v1/otlp/v1/metrics",
-        type=str,
-        help="Full Prometheus OTLP metrics endpoint (e.g. http://ydb-prometheus:9090/api/v1/otlp/v1/metrics). Empty to disable.",
-    )
-    table_run_parser.add_argument("--report-period", default=1000, type=int, help="Prometheus push period in [ms]")
-
-    table_run_parser.add_argument("--read-threads", default=8, type=int, help="Number of threads to use for write")
-    table_run_parser.add_argument("--write-threads", default=4, type=int, help="Number of threads to use for read")
-
-
-def make_table_cleanup_parser(subparsers):
-    table_cleanup_parser = subparsers.add_parser("table-cleanup", help="Drop tables")
-    add_common_options(table_cleanup_parser)
-
-
-def make_topic_create_parser(subparsers):
-    topic_create_parser = subparsers.add_parser("topic-create", help="Create topic with consumer")
-    add_common_options(topic_create_parser)
-
-    topic_create_parser.add_argument("--path", default="/local/slo_topic", type=str, help="Topic path")
-    topic_create_parser.add_argument("--consumer", default="slo_consumer", type=str, help="Topic consumer name")
-    topic_create_parser.add_argument("--partitions-count", default=1, type=int, help="Partition count")
-
-
-def make_topic_run_parser(subparsers):
-    topic_parser = subparsers.add_parser("topic-run", help="Run topic SLO workload")
-    add_common_options(topic_parser)
-
-    topic_parser.add_argument("--path", default="/local/slo_topic", type=str, help="Topic path")
-    topic_parser.add_argument("--consumer", default="slo_consumer", type=str, help="Topic consumer name")
-    topic_parser.add_argument("--partitions-count", default=1, type=int, help="Partition count")
-    topic_parser.add_argument("--read-rps", default=100, type=int, help="Topic read request rps")
-    topic_parser.add_argument("--read-timeout", default=5000, type=int, help="Topic read timeout [ms]")
-    topic_parser.add_argument("--write-rps", default=100, type=int, help="Topic write request rps")
-    topic_parser.add_argument("--write-timeout", default=5000, type=int, help="Topic write timeout [ms]")
-    topic_parser.add_argument(
-        "--read-threads",
-        default=1,
-        type=int,
-        help="Number of threads for topic reading",
-    )
-    topic_parser.add_argument(
-        "--write-threads",
-        default=1,
-        type=int,
-        help="Number of threads for topic writing",
-    )
-    topic_parser.add_argument("--message-size", default=100, type=int, help="Topic message size in bytes")
-
-    topic_parser.add_argument("--time", default=10, type=int, help="Time to run in seconds")
-    topic_parser.add_argument(
-        "--shutdown-time",
-        default=10,
-        type=int,
-        help="Graceful shutdown time in seconds",
-    )
-    topic_parser.add_argument(
-        "--otlp-endpoint",
-        default="http://localhost:9090/api/v1/otlp/v1/metrics",
-        type=str,
-        help="Full Prometheus OTLP metrics endpoint (e.g. http://ydb-prometheus:9090/api/v1/otlp/v1/metrics). Empty to disable.",
-    )
-    topic_parser.add_argument("--report-period", default=1000, type=int, help="Prometheus push period in [ms]")
-
-
-def make_topic_cleanup_parser(subparsers):
-    topic_cleanup_parser = subparsers.add_parser("topic-cleanup", help="Drop topic")
-    add_common_options(topic_cleanup_parser)
-
-    topic_cleanup_parser.add_argument("--path", default="/local/slo_topic", type=str, help="Topic path")
-
-
-def get_root_parser():
-    parser = argparse.ArgumentParser(
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-        description="YDB Python SLO application",
-    )
-
-    subparsers = parser.add_subparsers(
-        title="subcommands",
-        dest="subcommand",
-        help="List of subcommands",
-    )
-
-    make_table_create_parser(subparsers)
-    make_table_run_parser(subparsers)
-    make_table_cleanup_parser(subparsers)
-
-    make_topic_create_parser(subparsers)
-    make_topic_run_parser(subparsers)
-    make_topic_cleanup_parser(subparsers)
-
-    return parser
+import os
 
 
 def parse_options():
-    parser = get_root_parser()
-    return parser.parse_args()
+    """
+    Parse CLI arguments (passed via Docker CMD section).
+    Connection, duration, and workload identity are configured via environment variables:
+      YDB_ENDPOINT          — YDB endpoint (e.g. grpc://ydb:2136)
+      YDB_DATABASE          — YDB database path (e.g. /Root/testdb)
+      WORKLOAD_DURATION     — total run duration in seconds (default: 600)
+    """
+    parser = argparse.ArgumentParser(
+        description="YDB Python SLO workload",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+
+    # Positional args with env var fallback — pass explicitly for local runs,
+    # or rely on env vars (YDB_ENDPOINT / YDB_DATABASE / WORKLOAD_DURATION) in Docker/CI.
+    parser.add_argument(
+        "endpoint",
+        nargs="?",
+        default=os.environ.get("YDB_ENDPOINT", "grpc://localhost:2136"),
+        help="YDB endpoint (default: $YDB_ENDPOINT)",
+    )
+    parser.add_argument(
+        "db",
+        nargs="?",
+        default=os.environ.get("YDB_DATABASE", "/local"),
+        help="YDB database (default: $YDB_DATABASE)",
+    )
+    parser.add_argument(
+        "--time",
+        default=int(os.environ.get("WORKLOAD_DURATION", "600")),
+        type=int,
+        help="Workload duration in seconds (default: $WORKLOAD_DURATION)",
+    )
+
+    parser.add_argument("--debug", action="store_true", help="Enable debug logging")
+
+    # Table params
+    parser.add_argument("--table-name", default="key_value", help="Table name")
+    parser.add_argument("--min-partitions-count", default=6, type=int)
+    parser.add_argument("--max-partitions-count", default=1000, type=int)
+    parser.add_argument("--partition-size", default=100, type=int, help="Partition size [mb]")
+    parser.add_argument(
+        "--initial-data-count",
+        default=1000,
+        type=int,
+        help="Number of rows to pre-fill",
+    )
+    parser.add_argument("--batch-size", default=100, type=int, help="Rows per insert batch")
+    parser.add_argument("--threads", default=10, type=int, help="Threads for initial data fill")
+
+    # Run params
+    parser.add_argument("--read-rps", default=100, type=int, help="Read RPS limit")
+    parser.add_argument("--read-timeout", default=10000, type=int, help="Read timeout [ms]")
+    parser.add_argument("--write-rps", default=10, type=int, help="Write RPS limit")
+    parser.add_argument("--write-timeout", default=20000, type=int, help="Write timeout [ms]")
+    parser.add_argument("--read-threads", default=8, type=int, help="Read worker threads")
+    parser.add_argument("--write-threads", default=4, type=int, help="Write worker threads")
+    parser.add_argument("--shutdown-time", default=10, type=int, help="Graceful shutdown time [s]")
+    parser.add_argument("--report-period", default=1000, type=int, help="Metrics push period [ms]")
+
+    # Topic params (used when WORKLOAD_NAME contains 'topic')
+    parser.add_argument("--topic-path", default="/local/slo_topic", help="Topic path")
+    parser.add_argument("--topic-consumer", default="slo_consumer", help="Topic consumer name")
+    parser.add_argument("--topic-partitions", default=1, type=int, help="Topic partition count")
+    parser.add_argument("--message-size", default=100, type=int, help="Topic message size [bytes]")
+
+    args = parser.parse_args()
+
+    # Aliases used by topic runner
+    args.path = args.topic_path
+    args.consumer = args.topic_consumer
+    args.partitions_count = args.topic_partitions
+
+    return args

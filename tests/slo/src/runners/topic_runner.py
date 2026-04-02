@@ -70,7 +70,7 @@ class TopicRunner(BaseRunner):
 
     def run(self, args):
         assert self.driver is not None, "Driver is not initialized. Call set_driver() before run()."
-        metrics = create_metrics(args.otlp_endpoint)
+        metrics = create_metrics()
 
         self.logger.info("Starting topic SLO tests")
 
@@ -85,7 +85,7 @@ class TopicRunner(BaseRunner):
     async def run_async(self, args):
         """Async version of topic SLO tests using ydb.aio.Driver"""
         assert self.driver is not None, "Driver is not initialized. Call set_driver() before run_async()."
-        metrics = create_metrics(args.otlp_endpoint)
+        metrics = create_metrics()
 
         self.logger.info("Starting async topic SLO tests")
 
