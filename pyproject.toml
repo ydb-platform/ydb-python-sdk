@@ -1,3 +1,6 @@
+[tool.ty.environment]
+extra-paths = ["tests/slo/src"]
+
 [tool.black]
 line-length = 120
 

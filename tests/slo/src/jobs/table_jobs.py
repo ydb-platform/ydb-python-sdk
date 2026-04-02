@@ -92,9 +92,9 @@ class TableJobManager(BaseJobManager):
         self.table_name = table_name
         self.max_id = max_id
 
-        from core.metrics import WORKLOAD
+        from core.metrics import WORKLOAD_NAME
 
-        self.workload_type = WORKLOAD
+        self.workload_type = WORKLOAD_NAME
 
     def run_tests(self):
         if self.workload_type == "sync-table":

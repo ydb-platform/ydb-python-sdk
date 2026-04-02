@@ -1,6 +1,6 @@
 requests==2.33.0
 aiolimiter==1.1.0
-quantile-estimator==0.1.2
+hdrhistogram
 
 # OpenTelemetry (OTLP/HTTP exporter)
 # NOTE: OpenTelemetry 1.39.1 requires Python >= 3.9.

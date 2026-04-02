@@ -120,10 +120,6 @@ class AsyncTopicJobManager(BaseJobManager):
         logger.info("Stop async topic read workload")
 
     def _run_metric_job(self):
-        # Metrics are enabled only if an OTLP endpoint is provided (CLI: --otlp-endpoint).
-        if not getattr(self.args, "otlp_endpoint", None):
-            return []
-
         task = asyncio.create_task(
             self._async_metric_sender(self.args.time),
             name="slo_metrics_sender",
