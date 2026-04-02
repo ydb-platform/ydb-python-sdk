@@ -132,9 +132,7 @@ class OtlpMetrics(BaseMetrics):
         resource = Resource.create(
             {
                 "service.name": f"workload-{WORKLOAD_NAME}",
-                "service.instance.id": environ.get(
-                    "SLO_INSTANCE_ID", f"{WORKLOAD_REF}-{WORKLOAD_NAME}"
-                ),
+                "service.instance.id": environ.get("SLO_INSTANCE_ID", f"{WORKLOAD_REF}-{WORKLOAD_NAME}"),
                 "ref": WORKLOAD_REF,
                 "sdk": "ydb-python-sdk",
                 "sdk_version": version("ydb"),
@@ -281,9 +279,7 @@ def create_metrics() -> BaseMetrics:
     DummyMetrics is returned.
     """
     endpoint = (
-        environ.get("OTEL_EXPORTER_OTLP_METRICS_ENDPOINT")
-        or environ.get("OTEL_EXPORTER_OTLP_ENDPOINT")
-        or ""
+        environ.get("OTEL_EXPORTER_OTLP_METRICS_ENDPOINT") or environ.get("OTEL_EXPORTER_OTLP_ENDPOINT") or ""
     ).strip()
 
     if not endpoint:
@@ -294,7 +290,5 @@ def create_metrics() -> BaseMetrics:
     try:
         return OtlpMetrics()
     except Exception:
-        logger.exception(
-            "Failed to initialize OTLP metrics — falling back to DummyMetrics"
-        )
+        logger.exception("Failed to initialize OTLP metrics — falling back to DummyMetrics")
         return DummyMetrics()

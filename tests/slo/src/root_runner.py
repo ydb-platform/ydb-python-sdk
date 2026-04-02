@@ -20,9 +20,7 @@ _RUNNERS = {
 def _get_runner():
     runner_cls = _RUNNERS.get(WORKLOAD_NAME)
     if runner_cls is None:
-        raise ValueError(
-            f"Unknown WORKLOAD_NAME: {WORKLOAD_NAME!r}. Known: {list(_RUNNERS)}"
-        )
+        raise ValueError(f"Unknown WORKLOAD_NAME: {WORKLOAD_NAME!r}. Known: {list(_RUNNERS)}")
     return runner_cls()
 
 
