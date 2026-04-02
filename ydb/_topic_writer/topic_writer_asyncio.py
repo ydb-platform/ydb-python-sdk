@@ -516,13 +516,20 @@ class WriterAsyncIOReconnector:
                     messages.extend(self._messages_for_encode.get_nowait())
 
                 logger.debug(
-                    "writer reconnector %s encode %s messages",
+                    "writer reconnector %s start encoding %s messages",
                     self._id,
                     len(messages),
                 )
 
                 batch_codec = await self._codec_selector(messages)
                 await self._encode_data_inplace(batch_codec, messages)
+
+                logger.debug(
+                    "writer reconnector %s encoded %s messages",
+                    self._id,
+                    len(messages),
+                )
+
                 self._add_messages_to_send_queue(messages)
         except BaseException as err:
             self._stop(err)
@@ -631,6 +638,8 @@ class WriterAsyncIOReconnector:
             for ack in resp.acks:
                 self._handle_receive_ack(ack)
 
+            logger.debug("writer reconnector %s handled %s acks", self._id, len(resp.acks))
+
     def _handle_receive_ack(self, ack):
         current_message = self._messages.popleft()
         message_future = self._messages_future.popleft()
@@ -650,12 +659,6 @@ class WriterAsyncIOReconnector:
         else:
             raise TopicWriterError("internal error - receive unexpected ack message.")
         message_future.set_result(result)
-        logger.debug(
-            "writer reconnector %s ack seqno=%s result=%s",
-            self._id,
-            ack.seq_no,
-            type(result).__name__,
-        )
 
     async def _send_loop(self, writer: "WriterAsyncIOStream"):
         try:
