@@ -49,7 +49,7 @@ jobs:
             command: "--read-rps ${{ inputs.slo_workload_read_max_rps || '1000' }} --write-rps ${{ inputs.slo_workload_write_max_rps || '100' }}"
 
     concurrency:
-      group: slo-${{ github.ref }}-${{ matrix.workload }}
+      group: slo-${{ github.ref }}-${{ matrix.sdk.name }}
       cancel-in-progress: true
 
     steps:
