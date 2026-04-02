@@ -1,5 +1,6 @@
 ## 3.26.10 ##
 * Fix asyncio.Cancelled error propagated to writer/reader
+* add nearest DC detection with TCP race
 
 ## 3.26.9 ##
 * Send writers messages as one batch
