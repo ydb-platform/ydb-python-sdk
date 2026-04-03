@@ -18,6 +18,7 @@ from . import base
 from .base import QueryExplainResultFormat
 
 from .. import _apis, issues, _utilities
+from ..opentelemetry.tracing import create_ydb_span
 from ..settings import BaseRequestSettings
 from ..connection import _RpcState as RpcState, EndpointKey
 from .._grpc.grpcwrapper import common_utils
@@ -30,7 +31,7 @@ from .transaction import QueryTxContext
 from .._constants import DEFAULT_INITIAL_RESPONSE_TIMEOUT, DEFAULT_LONG_STREAM_TIMEOUT
 
 if TYPE_CHECKING:
-    from ..driver import Driver as SyncDriver
+    from ..driver import Driver as SyncDriver, DriverConfig
     from ..aio.driver import Driver as AsyncDriver
 
 
@@ -83,6 +84,10 @@ class BaseQuerySession(abc.ABC, Generic[DriverT]):
         )
 
         self._last_query_stats = None
+
+    @property
+    def _driver_config(self) -> Optional["DriverConfig"]:
+        return getattr(self._driver, "_driver_config", None)
 
     @property
     def session_id(self) -> Optional[str]:
@@ -368,8 +373,9 @@ class QuerySession(BaseQuerySession["SyncDriver"]):
         if self._closed:
             raise RuntimeError("Session is already closed.")
 
-        self._create_call(settings=settings)
-        self._attach()
+        with create_ydb_span("ydb.CreateSession", self._driver_config):
+            self._create_call(settings=settings)
+            self._attach()
 
         return self
 
@@ -435,30 +441,41 @@ class QuerySession(BaseQuerySession["SyncDriver"]):
         """
         self._check_session_ready_to_use()
 
-        stream_it = self._execute_call(
-            query=query,
-            parameters=parameters,
-            commit_tx=True,
-            syntax=syntax,
-            exec_mode=exec_mode,
-            stats_mode=stats_mode,
-            schema_inclusion_mode=schema_inclusion_mode,
-            result_set_format=result_set_format,
-            arrow_format_settings=arrow_format_settings,
-            concurrent_result_sets=concurrent_result_sets,
-            settings=settings,
+        span = create_ydb_span(
+            "ydb.ExecuteQuery", self._driver_config, session_id=self._session_id, node_id=self._node_id
         )
 
-        return base.SyncResponseContextIterator(
-            stream_it,
-            lambda resp: base.wrap_execute_query_response(
-                rpc_state=None,
-                response_pb=resp,
-                session=self,
-                settings=self._settings,
-            ),
-            on_error=self._on_execute_stream_error,
-        )
+        try:
+            stream_it = self._execute_call(
+                query=query,
+                parameters=parameters,
+                commit_tx=True,
+                syntax=syntax,
+                exec_mode=exec_mode,
+                stats_mode=stats_mode,
+                schema_inclusion_mode=schema_inclusion_mode,
+                result_set_format=result_set_format,
+                arrow_format_settings=arrow_format_settings,
+                concurrent_result_sets=concurrent_result_sets,
+                settings=settings,
+            )
+
+            return base.SyncResponseContextIterator(
+                stream_it,
+                lambda resp: base.wrap_execute_query_response(
+                    rpc_state=None,
+                    response_pb=resp,
+                    session=self,
+                    settings=self._settings,
+                ),
+                on_error=self._on_execute_stream_error,
+                span=span,
+            )
+        except Exception as e:
+            if span is not None:
+                span.set_error(e)
+                span.end()
+            raise
 
     def explain(
         self,

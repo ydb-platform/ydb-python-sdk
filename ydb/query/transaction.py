@@ -17,6 +17,7 @@ from .. import (
     _apis,
     issues,
 )
+from ..opentelemetry.tracing import create_ydb_span
 from .._grpc.grpcwrapper import ydb_topic as _ydb_topic
 from .._grpc.grpcwrapper import ydb_query as _ydb_query
 from ..connection import _RpcState as RpcState
@@ -243,6 +244,10 @@ class BaseQueryTxContext(base.CallbackHandler, Generic[DriverT]):
         self._prev_stream = None
         self._external_error = None
         self._last_query_stats = None
+
+    @property
+    def _driver_config(self):
+        return getattr(self._driver, "_driver_config", None)
 
     @property
     def session_id(self) -> Optional[str]:
@@ -553,13 +558,20 @@ class QueryTxContext(BaseQueryTxContext["SyncDriver"]):
 
         self._ensure_prev_stream_finished()
 
-        try:
-            self._execute_callbacks_sync(base.TxEvent.BEFORE_COMMIT)
-            self._commit_call(settings)
-            self._execute_callbacks_sync(base.TxEvent.AFTER_COMMIT, exc=None)
-        except BaseException as e:  # TODO: probably should be less wide
-            self._execute_callbacks_sync(base.TxEvent.AFTER_COMMIT, exc=e)
-            raise e
+        with create_ydb_span(
+            "ydb.Commit",
+            self._driver_config,
+            session_id=self.session.session_id,
+            node_id=self.session.node_id,
+            tx_id=self._tx_state.tx_id,
+        ):
+            try:
+                self._execute_callbacks_sync(base.TxEvent.BEFORE_COMMIT)
+                self._commit_call(settings)
+                self._execute_callbacks_sync(base.TxEvent.AFTER_COMMIT, exc=None)
+            except BaseException as e:  # TODO: probably should be less wide
+                self._execute_callbacks_sync(base.TxEvent.AFTER_COMMIT, exc=e)
+                raise e
 
     def rollback(self, settings: Optional[BaseRequestSettings] = None) -> None:
         """Calls rollback on a transaction if it is open otherwise is no-op. If transaction execution
@@ -579,13 +591,20 @@ class QueryTxContext(BaseQueryTxContext["SyncDriver"]):
 
         self._ensure_prev_stream_finished()
 
-        try:
-            self._execute_callbacks_sync(base.TxEvent.BEFORE_ROLLBACK)
-            self._rollback_call(settings)
-            self._execute_callbacks_sync(base.TxEvent.AFTER_ROLLBACK, exc=None)
-        except BaseException as e:  # TODO: probably should be less wide
-            self._execute_callbacks_sync(base.TxEvent.AFTER_ROLLBACK, exc=e)
-            raise e
+        with create_ydb_span(
+            "ydb.Rollback",
+            self._driver_config,
+            session_id=self.session.session_id,
+            node_id=self.session.node_id,
+            tx_id=self._tx_state.tx_id,
+        ):
+            try:
+                self._execute_callbacks_sync(base.TxEvent.BEFORE_ROLLBACK)
+                self._rollback_call(settings)
+                self._execute_callbacks_sync(base.TxEvent.AFTER_ROLLBACK, exc=None)
+            except BaseException as e:  # TODO: probably should be less wide
+                self._execute_callbacks_sync(base.TxEvent.AFTER_ROLLBACK, exc=e)
+                raise e
 
     def execute(
         self,
@@ -634,30 +653,45 @@ class QueryTxContext(BaseQueryTxContext["SyncDriver"]):
         """
         self._ensure_prev_stream_finished()
 
-        stream_it = self._execute_call(
-            query=query,
-            commit_tx=commit_tx,
-            syntax=syntax,
-            exec_mode=exec_mode,
-            stats_mode=stats_mode,
-            schema_inclusion_mode=schema_inclusion_mode,
-            result_set_format=result_set_format,
-            arrow_format_settings=arrow_format_settings,
-            parameters=parameters,
-            concurrent_result_sets=concurrent_result_sets,
-            settings=settings,
+        span = create_ydb_span(
+            "ydb.ExecuteQuery",
+            self._driver_config,
+            session_id=self.session.session_id,
+            node_id=self.session.node_id,
+            tx_id=self._tx_state.tx_id,
         )
 
-        self._prev_stream = base.SyncResponseContextIterator(
-            stream_it,
-            lambda resp: base.wrap_execute_query_response(
-                rpc_state=None,
-                response_pb=resp,
-                session=self.session,
-                tx=self,
+        try:
+            stream_it = self._execute_call(
+                query=query,
                 commit_tx=commit_tx,
-                settings=self.session._settings,
-            ),
-            on_error=self.session._on_execute_stream_error,
-        )
-        return self._prev_stream
+                syntax=syntax,
+                exec_mode=exec_mode,
+                stats_mode=stats_mode,
+                schema_inclusion_mode=schema_inclusion_mode,
+                result_set_format=result_set_format,
+                arrow_format_settings=arrow_format_settings,
+                parameters=parameters,
+                concurrent_result_sets=concurrent_result_sets,
+                settings=settings,
+            )
+
+            self._prev_stream = base.SyncResponseContextIterator(
+                stream_it,
+                lambda resp: base.wrap_execute_query_response(
+                    rpc_state=None,
+                    response_pb=resp,
+                    session=self.session,
+                    tx=self,
+                    commit_tx=commit_tx,
+                    settings=self.session._settings,
+                ),
+                on_error=self.session._on_execute_stream_error,
+                span=span,
+            )
+            return self._prev_stream
+        except Exception as e:
+            if span is not None:
+                span.set_error(e)
+                span.end()
+            raise
