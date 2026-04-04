@@ -1,3 +1,14 @@
+## 3.26.10 ##
+* Fix asyncio.Cancelled error propagated to writer/reader
+* add nearest DC detection with TCP race
+
+## 3.26.9 ##
+* Send writers messages as one batch
+
+## 3.26.8 ##
+* Make "Sent message larger than max" error non retryable
+* Better observability for errors in token refresh
+
 ## 3.26.7 ##
 * Ability to pass additional info to sdk header
 

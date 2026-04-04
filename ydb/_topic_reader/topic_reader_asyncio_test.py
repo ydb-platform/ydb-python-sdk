@@ -1566,3 +1566,40 @@ class TestReaderReconnector:
 
         reader_stream_mock_with_error.wait_error.assert_any_await()
         reader_stream_mock_with_error.wait_messages.assert_any_await()
+
+    async def test_wait_error_returns_on_cancelled_error_from_receive(self, default_reader_settings):
+        receive_call = 0
+
+        async def receive(timeout=None):
+            nonlocal receive_call
+            receive_call += 1
+            if receive_call == 1:
+                # first call: return init response (from _start)
+                return StreamReadMessage.FromServer(
+                    server_status=ServerStatus(ydb_status_codes_pb2.StatusIds.SUCCESS, []),
+                    server_message=StreamReadMessage.InitResponse(session_id="test-session"),
+                )
+            # subsequent calls (from _read_messages_loop): simulate gRPC-level CancelledError
+            raise asyncio.CancelledError()
+
+        stream = mock.MagicMock(spec=StreamMock)
+        stream.receive = receive
+        stream.write = mock.Mock()
+        stream.close = mock.Mock()
+
+        reader = ReaderStream(4, default_reader_settings)
+        await reader._start(stream, default_reader_settings._init_message())
+
+        # Bug: wait_error() hangs forever because _first_error is never set.
+        # After the fix: wait_error() returns with a retriable ConnectionLost error.
+        try:
+            await asyncio.wait_for(reader.wait_error(), timeout=1.0)
+        except asyncio.TimeoutError:
+            pytest.fail(
+                "wait_error() hung forever after CancelledError from receive() — "
+                "bug: CancelledError bypasses 'except Exception' in _read_messages_loop"
+            )
+        except Exception:
+            pass  # any error is fine, we just need wait_error() to not hang
+
+        await reader.close(False)

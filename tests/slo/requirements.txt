@@ -1,4 +1,4 @@
-requests==2.28.2
+requests==2.33.0
 aiolimiter==1.1.0
 quantile-estimator==0.1.2
 
