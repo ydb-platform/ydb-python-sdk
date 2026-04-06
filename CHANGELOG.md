@@ -1,3 +1,6 @@
+* Topic Writer Backpressure
+* Update writer debug logs
+
 ## 3.26.10 ##
 * Fix asyncio.Cancelled error propagated to writer/reader
 * add nearest DC detection with TCP race
