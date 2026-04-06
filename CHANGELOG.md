@@ -1,3 +1,4 @@
+## 3.27.0 ##
 * Topic Writer Backpressure
 * Update writer debug logs
 
