@@ -76,6 +76,10 @@ source .venv/bin/activate && tox -e py -- tests/path/to/test_file.py -v
 
 - Update `docs/` for any user-facing changes; create new sections if needed.
 - Extend `examples/` when adding new features.
+- **After every change to `docs/`**, rebuild the HTML output and verify there are no new errors:
+  ```sh
+  source .venv/bin/activate && sphinx-build -b html docs docs/_build/html -q
+  ```
 
 ## Auto-generated Files — Do NOT Edit
 

@@ -259,6 +259,89 @@ For high-throughput pipelines, buffer writes and gather futures:
             raise f.exception()
 
 
+Writer Backpressure
+^^^^^^^^^^^^^^^^^^^
+
+By default the writer's internal buffer is unbounded — ``write()`` always returns immediately
+regardless of how many unacknowledged messages are in flight. Enable backpressure by setting
+one or both limits:
+
+.. code-block:: python
+
+    writer = driver.topic_client.writer(
+        "/local/my-topic",
+        max_buffer_size_bytes=50 * 1024 * 1024,  # pause when 50 MB in flight
+        max_buffer_messages=1000,                # pause when 1000 messages in flight
+    )
+
+A message is counted as occupying the buffer from the moment it is passed to ``write()``
+until the server acknowledges it. Backpressure is active when **at least one** limit is set;
+setting both means either limit can trigger a wait (OR semantics).
+
+The limits are **soft**: ``write()`` blocks only if the buffer is *already* at or above the
+limit when the call starts. Once unblocked, the entire batch is admitted regardless of its
+size. This means callers that batch multiple messages in a single ``write()`` call will never
+deadlock even when the batch is larger than the limit.
+
+**Blocking behavior (default)**
+
+When the buffer is at or above the limit, ``write()`` blocks until enough messages are
+acknowledged by the server. There is no timeout by default — the call waits indefinitely:
+
+.. code-block:: python
+
+    # Producer pauses here if the buffer is full, then proceeds once space is freed.
+    writer.write("message")
+
+**Timeout**
+
+Set ``buffer_wait_timeout_sec`` to raise :class:`~ydb.TopicWriterBufferFullError` if space
+does not free up in time. Use a positive value to wait up to that many seconds, or ``0`` to
+fail immediately without waiting (non-blocking):
+
+.. code-block:: python
+
+    writer = driver.topic_client.writer(
+        "/local/my-topic",
+        max_buffer_messages=500,
+        buffer_wait_timeout_sec=5.0,  # raise after 5 seconds; use 0 to fail immediately
+    )
+
+    try:
+        writer.write("message")
+    except ydb.TopicWriterBufferFullError:
+        # handle overload — log, drop, or apply back-off
+        ...
+
+**Async client**
+
+The async writer behaves identically — ``await writer.write()`` suspends the coroutine
+instead of blocking the thread:
+
+.. code-block:: python
+
+    writer = driver.topic_client.writer(
+        "/local/my-topic",
+        max_buffer_size_bytes=4 * 1024 * 1024,
+        buffer_wait_timeout_sec=10.0,
+    )
+
+    try:
+        await writer.write("message")
+    except ydb.TopicWriterBufferFullError:
+        ...
+
+To apply your own timeout without raising an error, wrap the call with
+``asyncio.wait_for``:
+
+.. code-block:: python
+
+    try:
+        await asyncio.wait_for(writer.write("message"), timeout=2.0)
+    except asyncio.TimeoutError:
+        ...  # timed out waiting for buffer space
+
+
 Reading Messages
 ----------------
 
