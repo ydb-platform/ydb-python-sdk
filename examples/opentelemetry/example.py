@@ -16,9 +16,8 @@ provider = TracerProvider(resource=resource)
 provider.add_span_processor(BatchSpanProcessor(OTLPSpanExporter(endpoint="http://localhost:4317")))
 trace.set_tracer_provider(provider)
 
-enable_tracing()
-
 tracer = trace.get_tracer(__name__)
+enable_tracing(tracer)
 
 ENDPOINT = "grpc://localhost:2136"
 DATABASE = "/local"

@@ -28,6 +28,12 @@ Python client for `YDB <https://ydb.tech/>`_ — a fault-tolerant distributed SQ
 
 .. toctree::
    :hidden:
+   :caption: Observability
+
+   opentelemetry
+
+.. toctree::
+   :hidden:
    :caption: Reference
 
    types
@@ -82,7 +88,7 @@ Distributed Coordination
 ------------------------
 
 The :doc:`coordination` page covers distributed semaphores and leader election. If you
-need to limit concurrent access to a shared resource across multiple processes or hosts,
+need to limit concurrent access to aЗе shared resource across multiple processes or hosts,
 this is the service to use.
 
 Schema Management
@@ -101,6 +107,15 @@ structured error codes, and the SDK's retry logic depends on them. This page exp
 which errors are safe to retry, which are not, how to tune backoff settings, and how to
 use the ``@ydb_retry`` decorator. Skipping this section is a common source of production
 incidents.
+
+
+Observability
+-------------
+
+The :doc:`opentelemetry` page explains how to add distributed tracing to your
+application using OpenTelemetry. One call to ``enable_tracing()`` instruments
+query sessions, transactions, and connection pool operations — so you can
+visualize request flow in Jaeger, Grafana, or any OpenTelemetry-compatible backend.
 
 
 API Reference

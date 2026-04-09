@@ -3,7 +3,18 @@ from opentelemetry.propagate import inject
 from opentelemetry.trace import StatusCode
 
 from ydb import issues
+from ydb.issues import StatusCode as YdbStatusCode
 from ydb.opentelemetry.tracing import _registry
+
+_TRANSPORT_STATUSES = frozenset(
+    {
+        YdbStatusCode.CONNECTION_LOST,
+        YdbStatusCode.CONNECTION_FAILURE,
+        YdbStatusCode.DEADLINE_EXCEEDED,
+        YdbStatusCode.CLIENT_INTERNAL_ERROR,
+        YdbStatusCode.UNIMPLEMENTED,
+    }
+)
 
 _tracer = None
 _enabled = False
@@ -23,8 +34,8 @@ def _otel_metadata_hook():
 
 def _set_error_on_span(span, exception):
     if isinstance(exception, issues.Error) and exception.status is not None:
-        error_type = exception.status.name
-        span.set_attribute("db.response.status_code", error_type)
+        span.set_attribute("db.response.status_code", exception.status.name)
+        error_type = "transport_error" if exception.status in _TRANSPORT_STATUSES else "ydb_error"
     else:
         error_type = type(exception).__qualname__
 
@@ -74,13 +85,13 @@ def _create_span(name, attributes=None, kind=None):
     return TracingSpan(span, token)
 
 
-def _enable_tracing():
+def _enable_tracing(tracer=None):
     global _enabled, _tracer
 
     if _enabled:
         return
 
-    _tracer = trace.get_tracer("ydb.sdk")
+    _tracer = tracer if tracer is not None else trace.get_tracer("ydb.sdk")
     _enabled = True
     _registry.set_metadata_hook(_otel_metadata_hook)
     _registry.set_create_span(_create_span)
