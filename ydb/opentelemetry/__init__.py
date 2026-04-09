@@ -8,7 +8,8 @@ def enable_tracing(tracer=None):
         from ydb.opentelemetry._plugin import _enable_tracing
     except ImportError:
         raise ImportError(
-            "OpenTelemetry packages are required for tracing support. " "Install them with: pip install ydb[opentelemetry]"
+            "OpenTelemetry packages are required for tracing support. "
+            "Install them with: pip install ydb[opentelemetry]"
         ) from None
 
     _enable_tracing(tracer)

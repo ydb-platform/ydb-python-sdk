@@ -196,7 +196,7 @@ class TestErrorHandling:
         span = _get_single_span(exporter, "ydb.ExecuteQuery")
         assert span.status.status_code == StatusCode.ERROR
         attrs = dict(span.attributes)
-        assert attrs["error.type"] == "SCHEME_ERROR"
+        assert attrs["error.type"] == "ydb_error"
         assert attrs["db.response.status_code"] == "SCHEME_ERROR"
         assert len(span.events) > 0
 

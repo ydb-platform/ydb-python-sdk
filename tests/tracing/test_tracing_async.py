@@ -169,16 +169,12 @@ class TestAsyncRollbackSpan:
 
 class TestAsyncErrorHandling:
     @pytest.mark.asyncio
-    async def test_error_sets_error_status(self, otel_setup):
+    async def test_error_sets_error_status_and_attributes(self, otel_setup):
         exporter = otel_setup
 
         from ydb import issues
 
-        class FakeStatus:
-            name = "SCHEME_ERROR"
-
         exc = issues.SchemeError("Table not found")
-        exc.status = FakeStatus()
 
         from ydb.aio.query.session import QuerySession
 
@@ -198,7 +194,8 @@ class TestAsyncErrorHandling:
         span = _get_single_span(exporter, "ydb.ExecuteQuery")
         assert span.status.status_code == StatusCode.ERROR
         attrs = dict(span.attributes)
-        assert attrs["error.type"] == "SCHEME_ERROR"
+        assert attrs["error.type"] == "ydb_error"
+        assert attrs["db.response.status_code"] == "SCHEME_ERROR"
         assert len(span.events) > 0
 
 
