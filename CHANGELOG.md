@@ -1,3 +1,4 @@
+## 3.28.0 ##
 * Reader buffer release threshold feature
 
 ## 3.27.0 ##
