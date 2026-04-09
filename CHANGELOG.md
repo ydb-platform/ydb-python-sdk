@@ -1,3 +1,5 @@
+* Reader buffer release threshold feature
+
 ## 3.27.0 ##
 * Topic Writer Backpressure
 * Update writer debug logs
