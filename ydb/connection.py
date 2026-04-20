@@ -198,11 +198,14 @@ def _get_request_timeout(settings):
 
 
 class EndpointOptions(object):
-    __slots__ = ("ssl_target_name_override", "node_id")
+    __slots__ = ("ssl_target_name_override", "node_id", "address", "port", "location")
 
-    def __init__(self, ssl_target_name_override=None, node_id=None):
+    def __init__(self, ssl_target_name_override=None, node_id=None, address=None, port=None, location=None):
         self.ssl_target_name_override = ssl_target_name_override
         self.node_id = node_id
+        self.address = address
+        self.port = port
+        self.location = location
 
 
 def _construct_channel_options(driver_config, endpoint_options=None):
@@ -409,6 +412,9 @@ class Connection(object):
         "closing",
         "endpoint_key",
         "node_id",
+        "peer_address",
+        "peer_port",
+        "peer_location",
     )
 
     def __init__(
@@ -425,6 +431,9 @@ class Connection(object):
         """
         self.endpoint = endpoint
         self.node_id = getattr(endpoint_options, "node_id", None)
+        self.peer_address = getattr(endpoint_options, "address", None)
+        self.peer_port = getattr(endpoint_options, "port", None)
+        self.peer_location = getattr(endpoint_options, "location", None)
         self.endpoint_key = EndpointKey(endpoint, getattr(endpoint_options, "node_id", None))
         self._channel = channel_factory(self.endpoint, driver_config, endpoint_options=endpoint_options)
         self._driver_config = driver_config

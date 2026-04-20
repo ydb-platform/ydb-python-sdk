@@ -110,10 +110,8 @@ class QueryTxContext(BaseQueryTxContext["AsyncDriver"]):
         with create_ydb_span(
             "ydb.Commit",
             self._driver_config,
-            session_id=self.session.session_id,
             node_id=self.session.node_id,
-            tx_id=self._tx_state.tx_id,
-            peer_endpoint=getattr(self.session, "_peer_endpoint", None),
+            peer=getattr(self.session, "_peer", None),
         ):
             try:
                 await self._execute_callbacks_async(base.TxEvent.BEFORE_COMMIT)
@@ -145,10 +143,8 @@ class QueryTxContext(BaseQueryTxContext["AsyncDriver"]):
         with create_ydb_span(
             "ydb.Rollback",
             self._driver_config,
-            session_id=self.session.session_id,
             node_id=self.session.node_id,
-            tx_id=self._tx_state.tx_id,
-            peer_endpoint=getattr(self.session, "_peer_endpoint", None),
+            peer=getattr(self.session, "_peer", None),
         ):
             try:
                 await self._execute_callbacks_async(base.TxEvent.BEFORE_ROLLBACK)
@@ -207,10 +203,8 @@ class QueryTxContext(BaseQueryTxContext["AsyncDriver"]):
         span = create_ydb_span(
             "ydb.ExecuteQuery",
             self._driver_config,
-            session_id=self.session.session_id,
             node_id=self.session.node_id,
-            tx_id=self._tx_state.tx_id,
-            peer_endpoint=getattr(self.session, "_peer_endpoint", None),
+            peer=getattr(self.session, "_peer", None),
         )
 
         try:

@@ -137,9 +137,11 @@ Every YDB RPC (CLIENT-kind) span carries these semantic attributes:
    * - ``server.port``
      - Port from the connection string.
    * - ``network.peer.address``
-     - Actual node host used for this call (set once the session is attached to a node).
+     - Actual node host from the discovery endpoint map (set once the session is attached to a node).
    * - ``network.peer.port``
-     - Actual node port used for this call.
+     - Actual node port from the discovery endpoint map.
+   * - ``ydb.node.dc``
+     - Data-center / location reported by discovery for the node (e.g. ``"vla"``, ``"sas"``).
 
 Additional attributes are set when available:
 
@@ -149,12 +151,8 @@ Additional attributes are set when available:
 
    * - Attribute
      - Description
-   * - ``ydb.session.id``
-     - Session identifier.
    * - ``ydb.node.id``
      - YDB node that handled the request.
-   * - ``ydb.tx.id``
-     - Transaction identifier.
 
 On errors, the span also records:
 

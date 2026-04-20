@@ -32,7 +32,7 @@ def _get_single_span(exporter, name):
     return spans[0]
 
 
-def _make_async_session_mock(driver_config=None, peer_endpoint=None):
+def _make_async_session_mock(driver_config=None, peer=None):
     """Create a mock that behaves like an async QuerySession after create()."""
     cfg = driver_config or FakeDriverConfig()
     driver = MagicMock()
@@ -42,7 +42,7 @@ def _make_async_session_mock(driver_config=None, peer_endpoint=None):
     session._driver = driver
     session._session_id = "test-session-id"
     session._node_id = 12345
-    session._peer_endpoint = peer_endpoint
+    session._peer = peer
     session.session_id = "test-session-id"
     session.node_id = 12345
     return session, driver
@@ -101,6 +101,7 @@ class TestAsyncExecuteQuerySpan:
         qs._driver = driver
         qs._session_id = "test-session-id"
         qs._node_id = 12345
+        qs._peer = ("n1", 2136, "dc-a")
         qs._closed = False
 
         fake_stream = _empty_async_iter()
@@ -111,13 +112,15 @@ class TestAsyncExecuteQuerySpan:
 
         span = _get_single_span(exporter, "ydb.ExecuteQuery")
         attrs = dict(span.attributes)
-        assert attrs["ydb.session.id"] == "test-session-id"
         assert attrs["ydb.node.id"] == 12345
+        assert attrs["network.peer.address"] == "n1"
+        assert attrs["ydb.node.dc"] == "dc-a"
+        assert "ydb.session.id" not in attrs
 
     @pytest.mark.asyncio
-    async def test_tx_execute_emits_span_with_tx_id(self, otel_setup):
+    async def test_tx_execute_emits_span(self, otel_setup):
         exporter = otel_setup
-        session, driver = _make_async_session_mock()
+        session, driver = _make_async_session_mock(peer=("n1", 2136, "dc-a"))
         tx = _make_async_tx(session, driver)
 
         fake_stream = _empty_async_iter()
@@ -129,16 +132,18 @@ class TestAsyncExecuteQuerySpan:
 
         span = _get_single_span(exporter, "ydb.ExecuteQuery")
         attrs = dict(span.attributes)
-        assert attrs["ydb.tx.id"] == "test-tx-id"
-        assert attrs["ydb.session.id"] == "test-session-id"
         assert attrs["ydb.node.id"] == 12345
+        assert attrs["network.peer.address"] == "n1"
+        assert attrs["ydb.node.dc"] == "dc-a"
+        assert "ydb.tx.id" not in attrs
+        assert "ydb.session.id" not in attrs
 
 
 class TestAsyncCommitSpan:
     @pytest.mark.asyncio
     async def test_commit_emits_span(self, otel_setup):
         exporter = otel_setup
-        session, driver = _make_async_session_mock()
+        session, driver = _make_async_session_mock(peer=("n1", 2136, "dc-a"))
         tx = _make_async_tx(session, driver)
 
         with patch.object(type(tx), "_commit_call", new_callable=AsyncMock):
@@ -147,15 +152,17 @@ class TestAsyncCommitSpan:
         span = _get_single_span(exporter, "ydb.Commit")
         assert span.kind == SpanKind.CLIENT
         attrs = dict(span.attributes)
-        assert attrs["ydb.tx.id"] == "test-tx-id"
-        assert attrs["ydb.session.id"] == "test-session-id"
+        assert attrs["network.peer.address"] == "n1"
+        assert attrs["ydb.node.dc"] == "dc-a"
+        assert "ydb.tx.id" not in attrs
+        assert "ydb.session.id" not in attrs
 
 
 class TestAsyncRollbackSpan:
     @pytest.mark.asyncio
     async def test_rollback_emits_span(self, otel_setup):
         exporter = otel_setup
-        session, driver = _make_async_session_mock()
+        session, driver = _make_async_session_mock(peer=("n1", 2136, "dc-a"))
         tx = _make_async_tx(session, driver)
 
         with patch.object(type(tx), "_rollback_call", new_callable=AsyncMock):
@@ -164,8 +171,10 @@ class TestAsyncRollbackSpan:
         span = _get_single_span(exporter, "ydb.Rollback")
         assert span.kind == SpanKind.CLIENT
         attrs = dict(span.attributes)
-        assert attrs["ydb.tx.id"] == "test-tx-id"
-        assert attrs["ydb.session.id"] == "test-session-id"
+        assert attrs["network.peer.address"] == "n1"
+        assert attrs["ydb.node.dc"] == "dc-a"
+        assert "ydb.tx.id" not in attrs
+        assert "ydb.session.id" not in attrs
 
 
 class TestAsyncErrorHandling:

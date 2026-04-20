@@ -30,7 +30,7 @@ def _get_single_span(exporter, name):
     return spans[0]
 
 
-def _make_session_mock(driver_config=None, peer_endpoint=None):
+def _make_session_mock(driver_config=None, peer=None):
     """Create a mock that behaves like a sync QuerySession after create()."""
     cfg = driver_config or FakeDriverConfig()
     driver = MagicMock()
@@ -40,7 +40,7 @@ def _make_session_mock(driver_config=None, peer_endpoint=None):
     session._driver = driver
     session._session_id = "test-session-id"
     session._node_id = 12345
-    session._peer_endpoint = peer_endpoint
+    session._peer = peer
     session.session_id = "test-session-id"
     session.node_id = 12345
     return session, driver
@@ -99,7 +99,7 @@ class TestExecuteQuerySpan:
         qs._driver = driver
         qs._session_id = "test-session-id"
         qs._node_id = 12345
-        qs._peer_endpoint = "node-7.cluster:2136"
+        qs._peer = ("node-7.cluster", 2136, "dc-east")
         qs._closed = False
 
         fake_stream = iter([])  # empty stream that raises StopIteration immediately
@@ -117,12 +117,14 @@ class TestExecuteQuerySpan:
         assert attrs["server.port"] == 1337
         assert attrs["network.peer.address"] == "node-7.cluster"
         assert attrs["network.peer.port"] == 2136
-        assert attrs["ydb.session.id"] == "test-session-id"
+        assert attrs["ydb.node.dc"] == "dc-east"
         assert attrs["ydb.node.id"] == 12345
+        assert "ydb.session.id" not in attrs
+        assert "ydb.tx.id" not in attrs
 
-    def test_tx_execute_emits_span_with_tx_id(self, otel_setup):
+    def test_tx_execute_emits_span(self, otel_setup):
         exporter = otel_setup
-        session, driver = _make_session_mock()
+        session, driver = _make_session_mock(peer=("n1", 2136, "dc-a"))
         tx = _make_tx(session, driver)
 
         fake_stream = iter([])
@@ -133,15 +135,18 @@ class TestExecuteQuerySpan:
 
         span = _get_single_span(exporter, "ydb.ExecuteQuery")
         attrs = dict(span.attributes)
-        assert attrs["ydb.tx.id"] == "test-tx-id"
-        assert attrs["ydb.session.id"] == "test-session-id"
         assert attrs["ydb.node.id"] == 12345
+        assert attrs["network.peer.address"] == "n1"
+        assert attrs["network.peer.port"] == 2136
+        assert attrs["ydb.node.dc"] == "dc-a"
+        assert "ydb.session.id" not in attrs
+        assert "ydb.tx.id" not in attrs
 
 
 class TestCommitSpan:
     def test_commit_emits_span(self, otel_setup):
         exporter = otel_setup
-        session, driver = _make_session_mock()
+        session, driver = _make_session_mock(peer=("n1", 2136, "dc-a"))
         tx = _make_tx(session, driver)
 
         with patch.object(type(tx), "_commit_call", return_value=None):
@@ -151,15 +156,17 @@ class TestCommitSpan:
         assert span.kind == SpanKind.CLIENT
         attrs = dict(span.attributes)
         assert attrs["db.system.name"] == "ydb"
-        assert attrs["ydb.tx.id"] == "test-tx-id"
-        assert attrs["ydb.session.id"] == "test-session-id"
         assert attrs["ydb.node.id"] == 12345
+        assert attrs["network.peer.address"] == "n1"
+        assert attrs["ydb.node.dc"] == "dc-a"
+        assert "ydb.session.id" not in attrs
+        assert "ydb.tx.id" not in attrs
 
 
 class TestRollbackSpan:
     def test_rollback_emits_span(self, otel_setup):
         exporter = otel_setup
-        session, driver = _make_session_mock()
+        session, driver = _make_session_mock(peer=("n1", 2136, "dc-a"))
         tx = _make_tx(session, driver)
 
         with patch.object(type(tx), "_rollback_call", return_value=None):
@@ -169,9 +176,11 @@ class TestRollbackSpan:
         assert span.kind == SpanKind.CLIENT
         attrs = dict(span.attributes)
         assert attrs["db.system.name"] == "ydb"
-        assert attrs["ydb.tx.id"] == "test-tx-id"
-        assert attrs["ydb.session.id"] == "test-session-id"
         assert attrs["ydb.node.id"] == 12345
+        assert attrs["network.peer.address"] == "n1"
+        assert attrs["ydb.node.dc"] == "dc-a"
+        assert "ydb.session.id" not in attrs
+        assert "ydb.tx.id" not in attrs
 
 
 class TestErrorHandling:
@@ -228,7 +237,7 @@ class TestParentChildRelationship:
         tracer = trace.get_tracer("test.tracer")
 
         with tracer.start_as_current_span("user.operation"):
-            with create_ydb_span("ydb.ExecuteQuery", FakeDriverConfig(), session_id="s1", node_id=1):
+            with create_ydb_span("ydb.ExecuteQuery", FakeDriverConfig(), node_id=1):
                 pass
 
         spans = exporter.get_finished_spans()
@@ -306,13 +315,45 @@ class TestCommonAttributes:
         exporter = otel_setup
         cfg = FakeDriverConfig()
 
-        with create_ydb_span("ydb.Test", cfg, peer_endpoint="peer.example.com:2137"):
+        with create_ydb_span("ydb.Test", cfg, peer=("peer.example.com", 2137, "dc-west")):
             pass
 
         span = _get_single_span(exporter, "ydb.Test")
         attrs = dict(span.attributes)
         assert attrs["network.peer.address"] == "peer.example.com"
         assert attrs["network.peer.port"] == 2137
+        assert attrs["ydb.node.dc"] == "dc-west"
+
+
+class TestPeerFromEndpointMap:
+    def test_wrapper_create_session_pulls_peer_from_store(self, otel_setup):
+        """wrapper_create_session must resolve peer (host, port, dc) via the driver's
+        connections_by_node_id cache, not via the grpc target string of the rpc call.
+        """
+        from ydb.query.session import wrapper_create_session
+
+        connection = MagicMock()
+        connection.endpoint = "ipv4:10.0.0.1:2136"
+        connection.peer_address = "node-42.dc-west.example"
+        connection.peer_port = 2136
+        connection.peer_location = "dc-west"
+
+        driver = MagicMock()
+        driver._store.connections_by_node_id = {42: connection}
+
+        session = MagicMock()
+        session._driver = driver
+
+        rpc_state = MagicMock()
+        rpc_state.endpoint = "ipv4:10.0.0.1:2136"  # grpc-target string — should be ignored
+
+        proto = MagicMock()
+        with patch("ydb.query.session._ydb_query.CreateSessionResponse.from_proto") as from_proto:
+            from_proto.return_value = MagicMock(session_id="s-1", node_id=42, status=MagicMock())
+            with patch("ydb.issues._process_response"):
+                wrapper_create_session(rpc_state, proto, session)
+
+        assert session._peer == ("node-42.dc-west.example", 2136, "dc-west")
 
 
 class TestRetryPolicySpans:

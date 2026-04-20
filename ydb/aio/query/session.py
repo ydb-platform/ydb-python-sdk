@@ -108,7 +108,7 @@ class QuerySession(BaseQuerySession["AsyncDriver"]):
 
         with create_ydb_span("ydb.CreateSession", self._driver_config) as span:
             await self._create_call(settings=settings)
-            set_peer_attributes(span, self._peer_endpoint)
+            set_peer_attributes(span, self._peer)
             await self._attach()
 
         return self
@@ -165,9 +165,8 @@ class QuerySession(BaseQuerySession["AsyncDriver"]):
         span = create_ydb_span(
             "ydb.ExecuteQuery",
             self._driver_config,
-            session_id=self._session_id,
             node_id=self._node_id,
-            peer_endpoint=self._peer_endpoint,
+            peer=self._peer,
         )
 
         try:

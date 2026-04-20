@@ -47,8 +47,28 @@ def wrapper_create_session(
     issues._process_response(message.status)
     session._session_id = message.session_id
     session._node_id = message.node_id
-    session._peer_endpoint = getattr(rpc_state, "endpoint", None)
+    session._peer = _resolve_peer(session._driver, message.node_id)
     return session
+
+
+def _resolve_peer(driver, node_id):
+    """Look up network.peer.* / ydb.node.dc for a node in the driver's endpoint map."""
+    if node_id is None:
+        return None
+    store = getattr(driver, "_store", None)
+    if store is None:
+        return None
+    by_node = getattr(store, "connections_by_node_id", None)
+    if not by_node:
+        return None
+    connection = by_node.get(node_id)
+    if connection is None:
+        return None
+    return (
+        getattr(connection, "peer_address", None),
+        getattr(connection, "peer_port", None),
+        getattr(connection, "peer_location", None),
+    )
 
 
 def wrapper_delete_session(
@@ -72,7 +92,7 @@ class BaseQuerySession(abc.ABC, Generic[DriverT]):
     # Session data
     _session_id: Optional[str] = None
     _node_id: Optional[int] = None
-    _peer_endpoint: Optional[str] = None
+    _peer: Optional[tuple] = None
     _closed: bool = False
 
     def __init__(self, driver: DriverT, settings: Optional[base.QueryClientSettings] = None):
@@ -377,7 +397,7 @@ class QuerySession(BaseQuerySession["SyncDriver"]):
 
         with create_ydb_span("ydb.CreateSession", self._driver_config) as span:
             self._create_call(settings=settings)
-            set_peer_attributes(span, self._peer_endpoint)
+            set_peer_attributes(span, self._peer)
             self._attach()
 
         return self
@@ -447,9 +467,8 @@ class QuerySession(BaseQuerySession["SyncDriver"]):
         span = create_ydb_span(
             "ydb.ExecuteQuery",
             self._driver_config,
-            session_id=self._session_id,
             node_id=self._node_id,
-            peer_endpoint=self._peer_endpoint,
+            peer=self._peer,
         )
 
         try:
