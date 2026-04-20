@@ -4,6 +4,9 @@ class _NoopSpan:
     def set_error(self, exception):
         pass
 
+    def set_attribute(self, key, value):
+        pass
+
     def end(self):
         pass
 
@@ -54,15 +57,24 @@ def get_trace_metadata():
     return _registry.get_trace_metadata()
 
 
-def _build_ydb_attrs(driver_config, session_id=None, node_id=None, tx_id=None):
-    endpoint = getattr(driver_config, "endpoint", None) or ""
+def _split_endpoint(endpoint):
+    endpoint = endpoint or ""
     host, _, port = endpoint.rpartition(":")
+    return host, int(port) if port.isdigit() else 0
+
+
+def _build_ydb_attrs(driver_config, session_id=None, node_id=None, tx_id=None, peer_endpoint=None):
+    host, port = _split_endpoint(getattr(driver_config, "endpoint", None))
     attrs = {
         "db.system.name": "ydb",
         "db.namespace": getattr(driver_config, "database", None) or "",
         "server.address": host,
-        "server.port": int(port) if port.isdigit() else 0,
+        "server.port": port,
     }
+    if peer_endpoint is not None:
+        peer_host, peer_port = _split_endpoint(peer_endpoint)
+        attrs["network.peer.address"] = peer_host
+        attrs["network.peer.port"] = peer_port
     if session_id is not None:
         attrs["ydb.session.id"] = session_id or ""
     if node_id is not None:
@@ -72,9 +84,18 @@ def _build_ydb_attrs(driver_config, session_id=None, node_id=None, tx_id=None):
     return attrs
 
 
-def create_ydb_span(name, driver_config, session_id=None, node_id=None, tx_id=None, kind=None):
+def create_ydb_span(name, driver_config, session_id=None, node_id=None, tx_id=None, kind=None, peer_endpoint=None):
     """Create a span pre-filled with standard YDB attributes.
     Can be used as a context manager or manually.
     """
-    attrs = _build_ydb_attrs(driver_config, session_id, node_id, tx_id)
+    attrs = _build_ydb_attrs(driver_config, session_id, node_id, tx_id, peer_endpoint)
     return _registry.create_span(name, attributes=attrs, kind=kind)
+
+
+def set_peer_attributes(span, peer_endpoint):
+    """Fill in network.peer.* attributes on an existing span once the peer is known."""
+    if peer_endpoint is None:
+        return
+    peer_host, peer_port = _split_endpoint(peer_endpoint)
+    span.set_attribute("network.peer.address", peer_host)
+    span.set_attribute("network.peer.port", peer_port)

@@ -72,8 +72,9 @@ class RetrySettings:
 
 
 class YdbRetryOperationSleepOpt:
-    def __init__(self, timeout: float) -> None:
+    def __init__(self, timeout: float, exception: Optional[BaseException] = None) -> None:
         self.timeout = timeout
+        self.exception = exception
 
     def __eq__(self, other: object) -> bool:
         return (
@@ -142,7 +143,7 @@ def retry_operation_impl(
                     yield_sleep = False
 
             if yield_sleep:
-                yield YdbRetryOperationSleepOpt(retriable_info.sleep_timeout_seconds)
+                yield YdbRetryOperationSleepOpt(retriable_info.sleep_timeout_seconds, exception=e)
 
         except Exception as e:
             # you should provide your own handler you want

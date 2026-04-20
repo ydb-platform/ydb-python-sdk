@@ -32,7 +32,7 @@ def _get_single_span(exporter, name):
     return spans[0]
 
 
-def _make_async_session_mock(driver_config=None):
+def _make_async_session_mock(driver_config=None, peer_endpoint=None):
     """Create a mock that behaves like an async QuerySession after create()."""
     cfg = driver_config or FakeDriverConfig()
     driver = MagicMock()
@@ -42,6 +42,7 @@ def _make_async_session_mock(driver_config=None):
     session._driver = driver
     session._session_id = "test-session-id"
     session._node_id = 12345
+    session._peer_endpoint = peer_endpoint
     session.session_id = "test-session-id"
     session.node_id = 12345
     return session, driver
@@ -197,6 +198,71 @@ class TestAsyncErrorHandling:
         assert attrs["error.type"] == "ydb_error"
         assert attrs["db.response.status_code"] == "SCHEME_ERROR"
         assert len(span.events) > 0
+
+
+class TestAsyncRetryPolicySpans:
+    @pytest.mark.asyncio
+    async def test_success_emits_single_try(self, otel_setup):
+        from ydb.query._retries import retry_operation_async
+
+        exporter = otel_setup
+
+        async def callee():
+            return 7
+
+        assert await retry_operation_async(callee) == 7
+
+        run = _get_single_span(exporter, "ydb.RunWithRetry")
+        assert run.kind == SpanKind.INTERNAL
+
+        tries = _get_spans(exporter, "ydb.Try")
+        assert len(tries) == 1
+        assert tries[0].parent.span_id == run.context.span_id
+        assert dict(tries[0].attributes)["ydb.retry.backoff_ms"] == 0
+
+    @pytest.mark.asyncio
+    async def test_context_cancel_during_backoff_records_exception(self, otel_setup):
+        """Backoff sleep is the timeline of the next Try; a cancel hitting it
+        must be recorded on that Try span and propagate out through RunWithRetry.
+        """
+        from ydb import issues
+        from ydb.query._retries import retry_operation_async
+        from ydb.retries import BackoffSettings, RetrySettings
+
+        exporter = otel_setup
+        calls = {"n": 0}
+
+        async def flaky():
+            calls["n"] += 1
+            raise issues.Unavailable("transient")
+
+        retry_settings = RetrySettings(
+            max_retries=10,
+            fast_backoff_settings=BackoffSettings(ceiling=0, slot_duration=10.0),
+            slow_backoff_settings=BackoffSettings(ceiling=0, slot_duration=10.0),
+        )
+
+        task = asyncio.ensure_future(retry_operation_async(flaky, retry_settings))
+        # Let the first attempt fail and the backoff sleep start.
+        for _ in range(10):
+            await asyncio.sleep(0.01)
+            if calls["n"] >= 1:
+                break
+        task.cancel()
+        with pytest.raises(asyncio.CancelledError):
+            await task
+
+        run = _get_single_span(exporter, "ydb.RunWithRetry")
+        assert run.status.status_code == StatusCode.ERROR
+
+        tries = _get_spans(exporter, "ydb.Try")
+        assert len(tries) >= 2
+        # Try span that carried the cancelled backoff must be errored.
+        backoff_try = tries[-1]
+        assert backoff_try.status.status_code == StatusCode.ERROR
+        assert dict(backoff_try.attributes)["ydb.retry.backoff_ms"] > 0
+        error_types = {dict(s.attributes).get("error.type") for s in tries}
+        assert "CancelledError" in error_types
 
 
 class TestAsyncConcurrentSpansIsolation:

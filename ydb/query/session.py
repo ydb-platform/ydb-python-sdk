@@ -18,7 +18,7 @@ from . import base
 from .base import QueryExplainResultFormat
 
 from .. import _apis, issues, _utilities
-from ..opentelemetry.tracing import create_ydb_span
+from ..opentelemetry.tracing import create_ydb_span, set_peer_attributes
 from ..settings import BaseRequestSettings
 from ..connection import _RpcState as RpcState, EndpointKey
 from .._grpc.grpcwrapper import common_utils
@@ -47,6 +47,7 @@ def wrapper_create_session(
     issues._process_response(message.status)
     session._session_id = message.session_id
     session._node_id = message.node_id
+    session._peer_endpoint = getattr(rpc_state, "endpoint", None)
     return session
 
 
@@ -71,6 +72,7 @@ class BaseQuerySession(abc.ABC, Generic[DriverT]):
     # Session data
     _session_id: Optional[str] = None
     _node_id: Optional[int] = None
+    _peer_endpoint: Optional[str] = None
     _closed: bool = False
 
     def __init__(self, driver: DriverT, settings: Optional[base.QueryClientSettings] = None):
@@ -373,8 +375,9 @@ class QuerySession(BaseQuerySession["SyncDriver"]):
         if self._closed:
             raise RuntimeError("Session is already closed.")
 
-        with create_ydb_span("ydb.CreateSession", self._driver_config):
+        with create_ydb_span("ydb.CreateSession", self._driver_config) as span:
             self._create_call(settings=settings)
+            set_peer_attributes(span, self._peer_endpoint)
             self._attach()
 
         return self
@@ -442,7 +445,11 @@ class QuerySession(BaseQuerySession["SyncDriver"]):
         self._check_session_ready_to_use()
 
         span = create_ydb_span(
-            "ydb.ExecuteQuery", self._driver_config, session_id=self._session_id, node_id=self._node_id
+            "ydb.ExecuteQuery",
+            self._driver_config,
+            session_id=self._session_id,
+            node_id=self._node_id,
+            peer_endpoint=self._peer_endpoint,
         )
 
         try:

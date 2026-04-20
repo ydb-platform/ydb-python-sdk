@@ -57,6 +57,9 @@ class TracingSpan:
     def set_error(self, exception):
         _set_error_on_span(self._span, exception)
 
+    def set_attribute(self, key, value):
+        self._span.set_attribute(key, value)
+
     def end(self):
         self._span.end()
         if self._token is not None:

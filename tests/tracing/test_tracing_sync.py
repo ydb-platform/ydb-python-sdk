@@ -30,7 +30,7 @@ def _get_single_span(exporter, name):
     return spans[0]
 
 
-def _make_session_mock(driver_config=None):
+def _make_session_mock(driver_config=None, peer_endpoint=None):
     """Create a mock that behaves like a sync QuerySession after create()."""
     cfg = driver_config or FakeDriverConfig()
     driver = MagicMock()
@@ -40,6 +40,7 @@ def _make_session_mock(driver_config=None):
     session._driver = driver
     session._session_id = "test-session-id"
     session._node_id = 12345
+    session._peer_endpoint = peer_endpoint
     session.session_id = "test-session-id"
     session.node_id = 12345
     return session, driver
@@ -98,6 +99,7 @@ class TestExecuteQuerySpan:
         qs._driver = driver
         qs._session_id = "test-session-id"
         qs._node_id = 12345
+        qs._peer_endpoint = "node-7.cluster:2136"
         qs._closed = False
 
         fake_stream = iter([])  # empty stream that raises StopIteration immediately
@@ -113,6 +115,8 @@ class TestExecuteQuerySpan:
         assert attrs["db.namespace"] == "/test_database"
         assert attrs["server.address"] == "test_endpoint"
         assert attrs["server.port"] == 1337
+        assert attrs["network.peer.address"] == "node-7.cluster"
+        assert attrs["network.peer.port"] == 2136
         assert attrs["ydb.session.id"] == "test-session-id"
         assert attrs["ydb.node.id"] == 12345
 
@@ -285,3 +289,105 @@ class TestCommonAttributes:
         assert attrs["server.address"] == expected_host
         assert attrs["server.port"] == expected_port
         assert attrs["db.namespace"] == "/mydb"
+
+    def test_peer_attributes_are_optional(self, otel_setup):
+        exporter = otel_setup
+        cfg = FakeDriverConfig()
+
+        with create_ydb_span("ydb.Test", cfg):
+            pass
+
+        span = _get_single_span(exporter, "ydb.Test")
+        attrs = dict(span.attributes)
+        assert "network.peer.address" not in attrs
+        assert "network.peer.port" not in attrs
+
+    def test_peer_attributes_emitted_when_known(self, otel_setup):
+        exporter = otel_setup
+        cfg = FakeDriverConfig()
+
+        with create_ydb_span("ydb.Test", cfg, peer_endpoint="peer.example.com:2137"):
+            pass
+
+        span = _get_single_span(exporter, "ydb.Test")
+        attrs = dict(span.attributes)
+        assert attrs["network.peer.address"] == "peer.example.com"
+        assert attrs["network.peer.port"] == 2137
+
+
+class TestRetryPolicySpans:
+    def test_success_on_first_try_emits_single_try(self, otel_setup):
+        from ydb.query._retries import retry_operation_sync
+
+        exporter = otel_setup
+
+        def callee():
+            return 42
+
+        assert retry_operation_sync(callee) == 42
+
+        run = _get_single_span(exporter, "ydb.RunWithRetry")
+        assert run.kind == SpanKind.INTERNAL
+        assert run.status.status_code == StatusCode.UNSET
+
+        tries = _get_spans(exporter, "ydb.Try")
+        assert len(tries) == 1
+        assert tries[0].kind == SpanKind.INTERNAL
+        assert dict(tries[0].attributes)["ydb.retry.backoff_ms"] == 0
+        assert tries[0].parent.span_id == run.context.span_id
+
+    def test_retry_backoff_ms_on_each_try(self, otel_setup):
+        from ydb import issues
+        from ydb.query._retries import retry_operation_sync
+        from ydb.retries import RetrySettings, BackoffSettings
+
+        exporter = otel_setup
+        counter = {"n": 0}
+
+        def flaky():
+            counter["n"] += 1
+            if counter["n"] < 3:
+                raise issues.Unavailable("transient")
+            return "ok"
+
+        retry_settings = RetrySettings(
+            max_retries=5,
+            fast_backoff_settings=BackoffSettings(ceiling=0, slot_duration=0.05),
+            slow_backoff_settings=BackoffSettings(ceiling=0, slot_duration=0.05),
+        )
+
+        assert retry_operation_sync(flaky, retry_settings) == "ok"
+
+        tries = _get_spans(exporter, "ydb.Try")
+        assert len(tries) == 3
+        # first attempt has no preceding backoff, later ones have a positive one
+        backoff_values = [dict(s.attributes)["ydb.retry.backoff_ms"] for s in tries]
+        assert backoff_values[0] == 0
+        assert all(v >= 0 for v in backoff_values)
+        assert any(v > 0 for v in backoff_values[1:])
+        # failed Try spans record the exception
+        assert tries[0].status.status_code == StatusCode.ERROR
+        assert tries[1].status.status_code == StatusCode.ERROR
+        assert tries[2].status.status_code == StatusCode.UNSET
+
+    def test_non_retryable_error_propagates_to_run_span(self, otel_setup):
+        from ydb import issues
+        from ydb.query._retries import retry_operation_sync
+
+        exporter = otel_setup
+
+        def broken():
+            raise issues.SchemeError("boom")
+
+        with pytest.raises(issues.SchemeError):
+            retry_operation_sync(broken)
+
+        run = _get_single_span(exporter, "ydb.RunWithRetry")
+        assert run.status.status_code == StatusCode.ERROR
+
+        tries = _get_spans(exporter, "ydb.Try")
+        assert len(tries) == 1
+        assert tries[0].status.status_code == StatusCode.ERROR
+        attrs = dict(tries[0].attributes)
+        assert attrs["error.type"] == "ydb_error"
+        assert attrs["db.response.status_code"] == "SCHEME_ERROR"

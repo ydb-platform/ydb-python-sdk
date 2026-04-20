@@ -19,7 +19,7 @@ from ..._grpc.grpcwrapper import ydb_query_public_types as _ydb_query_public
 
 from ...query import base
 from ...query.session import BaseQuerySession
-from ...opentelemetry.tracing import create_ydb_span
+from ...opentelemetry.tracing import create_ydb_span, set_peer_attributes
 
 from ..._constants import DEFAULT_INITIAL_RESPONSE_TIMEOUT
 
@@ -106,8 +106,9 @@ class QuerySession(BaseQuerySession["AsyncDriver"]):
         if self._closed:
             raise RuntimeError("Session is already closed")
 
-        with create_ydb_span("ydb.CreateSession", self._driver_config):
+        with create_ydb_span("ydb.CreateSession", self._driver_config) as span:
             await self._create_call(settings=settings)
+            set_peer_attributes(span, self._peer_endpoint)
             await self._attach()
 
         return self
@@ -162,7 +163,11 @@ class QuerySession(BaseQuerySession["AsyncDriver"]):
         self._check_session_ready_to_use()
 
         span = create_ydb_span(
-            "ydb.ExecuteQuery", self._driver_config, session_id=self._session_id, node_id=self._node_id
+            "ydb.ExecuteQuery",
+            self._driver_config,
+            session_id=self._session_id,
+            node_id=self._node_id,
+            peer_endpoint=self._peer_endpoint,
         )
 
         try:

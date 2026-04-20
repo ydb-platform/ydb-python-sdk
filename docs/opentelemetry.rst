@@ -1,4 +1,4 @@
-ПрOpenTelemetry Tracing
+OpenTelemetry Tracing
 =====================
 
 The SDK provides built-in distributed tracing via `OpenTelemetry <https://opentelemetry.io/>`_.
@@ -91,12 +91,18 @@ The following operations produce spans:
    * - ``ydb.ExecuteQuery``
      - CLIENT
      - Executing a query (including ``execute_with_retries``).
-   * - ``ydb.CommitTransaction``
+   * - ``ydb.Commit``
      - CLIENT
      - Committing an explicit transaction.
-   * - ``ydb.RollbackTransaction``
+   * - ``ydb.Rollback``
      - CLIENT
      - Rolling back a transaction.
+   * - ``ydb.RunWithRetry``
+     - INTERNAL
+     - Umbrella span wrapping the whole retryable block (``retry_operation_*`` / ``retry_tx_*`` / ``execute_with_retries``).
+   * - ``ydb.Try``
+     - INTERNAL
+     - A single retry attempt. Carries ``ydb.retry.backoff_ms`` — how long the retrier slept before starting this attempt (``0`` for the first one).
 
 All spans are nested under the currently active span, so wrapping your application
 logic in a parent span produces a complete trace tree:
@@ -114,7 +120,7 @@ logic in a parent span produces a complete trace tree:
 Span Attributes
 ---------------
 
-Every YDB span carries these semantic attributes:
+Every YDB RPC (CLIENT-kind) span carries these semantic attributes:
 
 .. list-table::
    :header-rows: 1
@@ -127,9 +133,13 @@ Every YDB span carries these semantic attributes:
    * - ``db.namespace``
      - Database path (e.g. ``"/local"``).
    * - ``server.address``
-     - Endpoint host.
+     - Host from the connection string.
    * - ``server.port``
-     - Endpoint port.
+     - Port from the connection string.
+   * - ``network.peer.address``
+     - Actual node host used for this call (set once the session is attached to a node).
+   * - ``network.peer.port``
+     - Actual node port used for this call.
 
 Additional attributes are set when available:
 
