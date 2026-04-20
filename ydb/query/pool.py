@@ -20,8 +20,10 @@ from .base import QueryClientSettings
 from .session import (
     QuerySession,
 )
-from ..retries import RetrySettings
-from ._retries import retry_operation_sync
+from ..retries import (
+    RetrySettings,
+    retry_operation_sync,
+)
 from .. import issues
 from .. import convert
 from ..settings import BaseRequestSettings

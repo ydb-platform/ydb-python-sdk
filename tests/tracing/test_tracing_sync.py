@@ -317,7 +317,7 @@ class TestCommonAttributes:
 
 class TestRetryPolicySpans:
     def test_success_on_first_try_emits_single_try(self, otel_setup):
-        from ydb.query._retries import retry_operation_sync
+        from ydb.retries import retry_operation_sync
 
         exporter = otel_setup
 
@@ -338,7 +338,7 @@ class TestRetryPolicySpans:
 
     def test_retry_backoff_ms_on_each_try(self, otel_setup):
         from ydb import issues
-        from ydb.query._retries import retry_operation_sync
+        from ydb.retries import retry_operation_sync
         from ydb.retries import RetrySettings, BackoffSettings
 
         exporter = otel_setup
@@ -372,7 +372,7 @@ class TestRetryPolicySpans:
 
     def test_non_retryable_error_propagates_to_run_span(self, otel_setup):
         from ydb import issues
-        from ydb.query._retries import retry_operation_sync
+        from ydb.retries import retry_operation_sync
 
         exporter = otel_setup
 

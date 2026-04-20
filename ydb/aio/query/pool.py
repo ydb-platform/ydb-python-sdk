@@ -14,8 +14,10 @@ from typing import (
 from .session import (
     QuerySession,
 )
-from ...retries import RetrySettings
-from ...query._retries import retry_operation_async
+from ...retries import (
+    RetrySettings,
+    retry_operation_async,
+)
 from ...query.base import BaseQueryTxMode, QueryExplainResultFormat
 from ...query.base import QueryClientSettings
 from ... import convert

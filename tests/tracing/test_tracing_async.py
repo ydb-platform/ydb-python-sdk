@@ -203,7 +203,7 @@ class TestAsyncErrorHandling:
 class TestAsyncRetryPolicySpans:
     @pytest.mark.asyncio
     async def test_success_emits_single_try(self, otel_setup):
-        from ydb.query._retries import retry_operation_async
+        from ydb.retries import retry_operation_async
 
         exporter = otel_setup
 
@@ -226,7 +226,7 @@ class TestAsyncRetryPolicySpans:
         must be recorded on that Try span and propagate out through RunWithRetry.
         """
         from ydb import issues
-        from ydb.query._retries import retry_operation_async
+        from ydb.retries import retry_operation_async
         from ydb.retries import BackoffSettings, RetrySettings
 
         exporter = otel_setup

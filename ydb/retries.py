@@ -7,6 +7,16 @@ from typing import Any, Callable, Generator, Optional, Union
 
 from . import issues
 from ._errors import check_retriable_error
+from .opentelemetry.tracing import _registry as _tracing_registry
+
+
+_RUN_WITH_RETRY_SPAN = "ydb.RunWithRetry"
+_TRY_SPAN = "ydb.Try"
+_BACKOFF_ATTR = "ydb.retry.backoff_ms"
+
+
+def _start_try_span(backoff_ms: int):
+    return _tracing_registry.create_span(_TRY_SPAN, attributes={_BACKOFF_ATTR: backoff_ms}, kind="internal")
 
 
 class BackoffSettings:
@@ -160,12 +170,29 @@ def retry_operation_sync(
     *args: Any,
     **kwargs: Any,
 ) -> Any:
-    opt_generator = retry_operation_impl(callee, retry_settings, *args, **kwargs)
-    for next_opt in opt_generator:
-        if isinstance(next_opt, YdbRetryOperationSleepOpt):
-            time.sleep(next_opt.timeout)
-        else:
-            return next_opt.result
+    with _tracing_registry.create_span(_RUN_WITH_RETRY_SPAN, kind="internal"):
+        opt_generator = retry_operation_impl(callee, retry_settings, *args, **kwargs)
+        try_span = _start_try_span(0)
+        try:
+            for next_opt in opt_generator:
+                if isinstance(next_opt, YdbRetryOperationSleepOpt):
+                    exc = next_opt.exception
+                    if exc is not None:
+                        try_span.set_error(exc)
+                    try_span.end()
+                    try_span = _start_try_span(int(next_opt.timeout * 1000))
+                    time.sleep(next_opt.timeout)
+                else:
+                    try_span.end()
+                    try_span = None
+                    return next_opt.result
+        except BaseException as e:
+            if try_span is not None:
+                try_span.set_error(e)
+                try_span.end()
+            raise
+        if try_span is not None:
+            try_span.end()
     return None
 
 
@@ -187,15 +214,33 @@ async def retry_operation_async(  # pylint: disable=W1113
 
     Returns awaitable result of coroutine. If retries are not succussful exception is raised.
     """
-    opt_generator = retry_operation_impl(callee, retry_settings, *args, **kwargs)
-    for next_opt in opt_generator:
-        if isinstance(next_opt, YdbRetryOperationSleepOpt):
-            await asyncio.sleep(next_opt.timeout)
-        else:
-            try:
-                return await next_opt.result
-            except BaseException as e:  # pylint: disable=W0703
-                next_opt.set_exception(e)
+    with _tracing_registry.create_span(_RUN_WITH_RETRY_SPAN, kind="internal"):
+        opt_generator = retry_operation_impl(callee, retry_settings, *args, **kwargs)
+        try_span = _start_try_span(0)
+        try:
+            for next_opt in opt_generator:
+                if isinstance(next_opt, YdbRetryOperationSleepOpt):
+                    exc = next_opt.exception
+                    if exc is not None:
+                        try_span.set_error(exc)
+                    try_span.end()
+                    try_span = _start_try_span(int(next_opt.timeout * 1000))
+                    await asyncio.sleep(next_opt.timeout)
+                else:
+                    try:
+                        result = await next_opt.result
+                        try_span.end()
+                        try_span = None
+                        return result
+                    except BaseException as e:  # pylint: disable=W0703
+                        next_opt.set_exception(e)
+        except BaseException as e:
+            if try_span is not None:
+                try_span.set_error(e)
+                try_span.end()
+            raise
+        if try_span is not None:
+            try_span.end()
     return None
 
 
