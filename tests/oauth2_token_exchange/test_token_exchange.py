@@ -640,7 +640,7 @@ def test_oauth2_token_exchange_credentials_file():
                 },
             },
             http_request_is_expected=False,
-            get_token_error_text_part="Could not parse the provided public key.",
+            get_token_error_text_part="Unable to load PEM file",
         ),
         DataForConfigTest(
             cfg={
@@ -651,7 +651,7 @@ def test_oauth2_token_exchange_credentials_file():
                 },
             },
             http_request_is_expected=False,
-            get_token_error_text_part="sign() missing 1 required positional argument",
+            get_token_error_text_part="Wrong key provided for ECDSA algorithms",
         ),
         DataForConfigTest(
             cfg_file="~/unknown-file.cfg",
