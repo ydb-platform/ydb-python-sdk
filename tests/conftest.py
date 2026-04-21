@@ -1,9 +1,36 @@
 import os
+import subprocess
 
 import docker
 import pytest
 import ydb
 from ydb import issues
+
+
+def _docker_client():
+    """Build a Docker SDK client that works with non-default sockets.
+
+    `docker.from_env()` only honors `DOCKER_HOST` and a couple of fixed
+    paths, so it fails on Colima / OrbStack / Docker Desktop on macOS where
+    the socket lives elsewhere. Fall back to whatever the CLI's active
+    context says — that's a one-shot subprocess call before any driver is
+    running, so the gRPC fork race we worry about elsewhere doesn't apply.
+    """
+    try:
+        return docker.from_env()
+    except docker.errors.DockerException:
+        pass
+    try:
+        host = subprocess.check_output(
+            ["docker", "context", "inspect", "--format", "{{.Endpoints.docker.Host}}"],
+            stderr=subprocess.DEVNULL,
+        ).decode().strip()
+    except (subprocess.CalledProcessError, FileNotFoundError) as exc:
+        raise RuntimeError(
+            "Could not locate the Docker daemon socket. "
+            "Set DOCKER_HOST or make sure `docker context` is configured."
+        ) from exc
+    return docker.DockerClient(base_url=host)
 
 
 def pytest_addoption(parser):
@@ -52,7 +79,7 @@ class DockerProject:
         self._docker_compose = docker_compose
         self._docker_services = docker_services
         self._endpoint = endpoint
-        self._docker = docker.from_env()
+        self._docker = _docker_client()
         self._stopped = False
 
     def _ydb_container(self):
