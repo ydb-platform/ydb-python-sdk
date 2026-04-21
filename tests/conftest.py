@@ -21,14 +21,17 @@ def _docker_client():
     except docker.errors.DockerException:
         pass
     try:
-        host = subprocess.check_output(
-            ["docker", "context", "inspect", "--format", "{{.Endpoints.docker.Host}}"],
-            stderr=subprocess.DEVNULL,
-        ).decode().strip()
+        host = (
+            subprocess.check_output(
+                ["docker", "context", "inspect", "--format", "{{.Endpoints.docker.Host}}"],
+                stderr=subprocess.DEVNULL,
+            )
+            .decode()
+            .strip()
+        )
     except (subprocess.CalledProcessError, FileNotFoundError) as exc:
         raise RuntimeError(
-            "Could not locate the Docker daemon socket. "
-            "Set DOCKER_HOST or make sure `docker context` is configured."
+            "Could not locate the Docker daemon socket. " "Set DOCKER_HOST or make sure `docker context` is configured."
         ) from exc
     return docker.DockerClient(base_url=host)
 
