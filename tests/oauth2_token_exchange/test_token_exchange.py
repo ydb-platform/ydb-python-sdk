@@ -629,7 +629,7 @@ def test_oauth2_token_exchange_credentials_file():
                 },
             },
             http_request_is_expected=False,
-            get_token_error_text_part="Could not deserialize key data.",
+            get_token_error_text_part="Could not parse the provided public key.",
         ),
         DataForConfigTest(
             cfg={
@@ -640,7 +640,7 @@ def test_oauth2_token_exchange_credentials_file():
                 },
             },
             http_request_is_expected=False,
-            get_token_error_text_part="Could not deserialize key data.",
+            get_token_error_text_part="Could not parse the provided public key.",
         ),
         DataForConfigTest(
             cfg={
