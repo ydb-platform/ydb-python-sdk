@@ -1,5 +1,6 @@
 import os
 
+import docker
 import pytest
 import ydb
 from ydb import issues
@@ -29,24 +30,53 @@ def docker_cleanup():
 
 
 class DockerProject:
-    """Compatibility wrapper for pytest-docker-compose docker_project fixture."""
+    """Compatibility wrapper for pytest-docker-compose docker_project fixture.
 
-    def __init__(self, docker_compose, docker_services, endpoint):
+    The `stop()` method talks to the Docker daemon via the SDK (unix socket)
+    instead of forking a `docker compose kill` subprocess. Forking from a
+    python process that has active gRPC threads crashes the child with
+    SIGABRT on Python 3.9 (long-standing gRPC fork-handler issue), and
+    `stop()` is the worst offender because the driver is in the middle of
+    busy traffic when it's called.
+
+    `start()` still uses `docker compose up -d --force-recreate` because
+    recreating a YDB container after SIGKILL needs the full compose config
+    (in-memory PDisks lose state, plain `container.start()` can't recover
+    them). By the time `start()` runs, the driver's connections are already
+    broken and its background threads are sleeping in retry backoff, so
+    forking a subprocess is safe.
+    """
+
+    def __init__(self, project_name, docker_compose, docker_services, endpoint):
+        self._project_name = project_name
         self._docker_compose = docker_compose
         self._docker_services = docker_services
         self._endpoint = endpoint
+        self._docker = docker.from_env()
         self._stopped = False
 
+    def _ydb_container(self):
+        containers = self._docker.containers.list(
+            all=True,
+            filters={
+                "label": [
+                    f"com.docker.compose.project={self._project_name}",
+                    "com.docker.compose.service=ydb",
+                ]
+            },
+        )
+        if not containers:
+            raise RuntimeError(f"YDB container for compose project '{self._project_name}' not found")
+        return containers[0]
+
     def stop(self):
-        """Stop all containers (marks as stopped, actual restart happens in start())."""
+        """Instantly kill the YDB container (simulates network failure)."""
         self._stopped = True
-        # Use 'kill' for instant stop (simulates network failure better than graceful stop)
-        self._docker_compose.execute("kill")
+        self._ydb_container().kill()
 
     def start(self):
-        """Restart containers and wait for YDB to be ready."""
+        """Restart containers and wait until YDB is responsive."""
         if self._stopped:
-            # After kill, we need to recreate the container to restore YDB properly
             self._docker_compose.execute("up -d --force-recreate")
             self._stopped = False
         else:
@@ -60,9 +90,9 @@ class DockerProject:
 
 
 @pytest.fixture(scope="module")
-def docker_project(docker_services, endpoint):
+def docker_project(docker_compose_project_name, docker_services, endpoint):
     """Compatibility fixture providing stop/start methods like pytest-docker-compose."""
-    return DockerProject(docker_services._docker_compose, docker_services, endpoint)
+    return DockerProject(docker_compose_project_name, docker_services._docker_compose, docker_services, endpoint)
 
 
 def is_ydb_responsive(endpoint):
