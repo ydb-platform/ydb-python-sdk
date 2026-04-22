@@ -756,7 +756,7 @@ class TestWriterAsyncIOReconnector:
         ]
         await reconnector.write_with_ack_future(messages)
 
-        sent = await asyncio.wait_for(stream_writer.from_client.get(), 1)
+        sent = await asyncio.wait_for(stream_writer.from_client.get(), 5)
         assert len(sent) == 3
 
         # ack first message, then trigger retriable error
@@ -764,7 +764,8 @@ class TestWriterAsyncIOReconnector:
         stream_writer.from_server.put_nowait(issues.Overloaded("test"))
 
         second_writer = get_stream_writer()
-        resent = await asyncio.wait_for(second_writer.from_client.get(), 1)
+        # backoff after Overloaded can sleep up to 1s, so allow generous timeout
+        resent = await asyncio.wait_for(second_writer.from_client.get(), 5)
 
         # msg2 and msg3 must arrive as a single batch, not two separate sends
         assert resent == [InternalMessage(messages[1]), InternalMessage(messages[2])]

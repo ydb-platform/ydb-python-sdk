@@ -1,8 +1,39 @@
 import os
+import subprocess
 
+import docker
 import pytest
 import ydb
 from ydb import issues
+
+
+def _docker_client():
+    """Build a Docker SDK client that works with non-default sockets.
+
+    `docker.from_env()` only honors `DOCKER_HOST` and a couple of fixed
+    paths, so it fails on Colima / OrbStack / Docker Desktop on macOS where
+    the socket lives elsewhere. Fall back to whatever the CLI's active
+    context says — that's a one-shot subprocess call before any driver is
+    running, so the gRPC fork race we worry about elsewhere doesn't apply.
+    """
+    try:
+        return docker.from_env()
+    except docker.errors.DockerException:
+        pass
+    try:
+        host = (
+            subprocess.check_output(
+                ["docker", "context", "inspect", "--format", "{{.Endpoints.docker.Host}}"],
+                stderr=subprocess.DEVNULL,
+            )
+            .decode()
+            .strip()
+        )
+    except (subprocess.CalledProcessError, FileNotFoundError) as exc:
+        raise RuntimeError(
+            "Could not locate the Docker daemon socket. " "Set DOCKER_HOST or make sure `docker context` is configured."
+        ) from exc
+    return docker.DockerClient(base_url=host)
 
 
 def pytest_addoption(parser):
@@ -29,24 +60,53 @@ def docker_cleanup():
 
 
 class DockerProject:
-    """Compatibility wrapper for pytest-docker-compose docker_project fixture."""
+    """Compatibility wrapper for pytest-docker-compose docker_project fixture.
 
-    def __init__(self, docker_compose, docker_services, endpoint):
+    The `stop()` method talks to the Docker daemon via the SDK (unix socket)
+    instead of forking a `docker compose kill` subprocess. Forking from a
+    python process that has active gRPC threads crashes the child with
+    SIGABRT on Python 3.9 (long-standing gRPC fork-handler issue), and
+    `stop()` is the worst offender because the driver is in the middle of
+    busy traffic when it's called.
+
+    `start()` still uses `docker compose up -d --force-recreate` because
+    recreating a YDB container after SIGKILL needs the full compose config
+    (in-memory PDisks lose state, plain `container.start()` can't recover
+    them). By the time `start()` runs, the driver's connections are already
+    broken and its background threads are sleeping in retry backoff, so
+    forking a subprocess is safe.
+    """
+
+    def __init__(self, project_name, docker_compose, docker_services, endpoint):
+        self._project_name = project_name
         self._docker_compose = docker_compose
         self._docker_services = docker_services
         self._endpoint = endpoint
+        self._docker = _docker_client()
         self._stopped = False
 
+    def _ydb_container(self):
+        containers = self._docker.containers.list(
+            all=True,
+            filters={
+                "label": [
+                    f"com.docker.compose.project={self._project_name}",
+                    "com.docker.compose.service=ydb",
+                ]
+            },
+        )
+        if not containers:
+            raise RuntimeError(f"YDB container for compose project '{self._project_name}' not found")
+        return containers[0]
+
     def stop(self):
-        """Stop all containers (marks as stopped, actual restart happens in start())."""
+        """Instantly kill the YDB container (simulates network failure)."""
         self._stopped = True
-        # Use 'kill' for instant stop (simulates network failure better than graceful stop)
-        self._docker_compose.execute("kill")
+        self._ydb_container().kill()
 
     def start(self):
-        """Restart containers and wait for YDB to be ready."""
+        """Restart containers and wait until YDB is responsive."""
         if self._stopped:
-            # After kill, we need to recreate the container to restore YDB properly
             self._docker_compose.execute("up -d --force-recreate")
             self._stopped = False
         else:
@@ -60,9 +120,9 @@ class DockerProject:
 
 
 @pytest.fixture(scope="module")
-def docker_project(docker_services, endpoint):
+def docker_project(docker_compose_project_name, docker_services, endpoint):
     """Compatibility fixture providing stop/start methods like pytest-docker-compose."""
-    return DockerProject(docker_services._docker_compose, docker_services, endpoint)
+    return DockerProject(docker_compose_project_name, docker_services._docker_compose, docker_services, endpoint)
 
 
 def is_ydb_responsive(endpoint):
