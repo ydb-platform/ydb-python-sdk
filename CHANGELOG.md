@@ -1,3 +1,6 @@
+* Invalidate session on interrupted rollback
+* Added acquire timeout to QuerySessionPool
+
 ## 3.28.0 ##
 * Reader buffer release threshold feature
 
