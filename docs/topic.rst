@@ -391,6 +391,7 @@ signals that it is ready for more. The server will not exceed this limit.
 * ``> 0.0`` — accumulate freed bytes until they reach
   ``threshold × buffer_size_bytes``, then send a single ``ReadRequest`` covering the
   accumulated amount. This reduces network round-trips. The default is ``0.5``.
+
 Example — reduce round-trips for a high-throughput reader with many small messages:
 
 .. code-block:: python
