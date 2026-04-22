@@ -1,3 +1,6 @@
+import asyncio
+from unittest import mock
+
 import pytest
 
 import ydb
@@ -118,6 +121,42 @@ class TestAsyncQueryTransaction:
             async with await tx.execute("select 1") as results:
                 async for _ in results:
                     pass
+
+    @pytest.mark.asyncio
+    async def test_cancelled_rollback_in_aexit_invalidates_session(self, session):
+        await session.create()
+        tx = session.transaction()
+        await tx.begin()
+
+        async def slow_rollback_call(settings=None):
+            await asyncio.sleep(10)
+
+        with mock.patch.object(tx, "_rollback_call", slow_rollback_call):
+            task = asyncio.ensure_future(tx.__aexit__(None, None, None))
+            await asyncio.sleep(0)
+            task.cancel()
+            await task  # completes normally; CancelledError is swallowed to preserve original exception
+
+        assert not session.is_active
+
+    @pytest.mark.asyncio
+    async def test_cancelled_rollback_in_aexit_session_not_reused(self, pool):
+        async with pool.checkout() as session:
+            session_id_before = session.session_id
+            tx = session.transaction()
+            await tx.begin()
+
+            async def slow_rollback_call(settings=None):
+                await asyncio.sleep(10)
+
+            with mock.patch.object(tx, "_rollback_call", slow_rollback_call):
+                task = asyncio.ensure_future(tx.__aexit__(None, None, None))
+                await asyncio.sleep(0)
+                task.cancel()
+                await task
+
+        async with pool.checkout() as session:
+            assert session.session_id != session_id_before
 
     @pytest.mark.asyncio
     async def test_rollback_after_tli_aborted_is_safe(self, pool, table_path: str):
