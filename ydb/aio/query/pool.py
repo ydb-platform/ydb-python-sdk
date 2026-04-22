@@ -49,7 +49,6 @@ class QuerySessionPool:
         self._should_stop = asyncio.Event()
         self._queue: asyncio.Queue[QuerySession] = asyncio.Queue()
         self._current_size = 0
-        self._waiters = 0
         self._loop = asyncio.get_running_loop() if loop is None else loop
         self._query_client_settings = query_client_settings
 
@@ -77,7 +76,7 @@ class QuerySessionPool:
 
         if session is None and self._current_size == self._size:
             queue_get = asyncio.ensure_future(self._queue.get())
-            task_stop = asyncio.ensure_future(asyncio.ensure_future(self._should_stop.wait()))
+            task_stop = asyncio.ensure_future(self._should_stop.wait())
             try:
                 done, _ = await asyncio.wait((queue_get, task_stop), return_when=asyncio.FIRST_COMPLETED)
             except asyncio.CancelledError:
