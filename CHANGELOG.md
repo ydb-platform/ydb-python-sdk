@@ -1,3 +1,5 @@
+* Invalidate session on cancelled / transport stream errors
+
 ## 3.28.1 ##
 * Invalidate session on interrupted rollback
 * Added acquire timeout to QuerySessionPool
