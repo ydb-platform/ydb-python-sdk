@@ -159,6 +159,118 @@ class TestAsyncQueryTransaction:
             assert session.session_id != session_id_before
 
     @pytest.mark.asyncio
+    async def test_successful_stream_keeps_session_active(self, tx: QueryTxContext):
+        # Guard for issue #812 fix: the widened _next handler (BaseException
+        # instead of Exception) must still let StopAsyncIteration terminate
+        # the stream without feeding it to _on_execute_stream_error — which
+        # would then invalidate the session on every normal SELECT.
+        await tx.begin()
+
+        async with await tx.execute("SELECT 1") as results:
+            async for _ in results:
+                pass
+
+        assert tx.session.is_active
+
+    @pytest.mark.asyncio
+    async def test_query_level_error_keeps_session_active(self, pool):
+        # Guard for issue #812 fix: _on_execute_stream_error now invalidates
+        # the session on a broader set of errors (CancelledError, SessionBusy,
+        # BadSession, ConnectionError, Cancelled, DeadlineExceed). Query-level
+        # errors like syntax errors must NOT invalidate — the session is fine,
+        # only the statement is bad.
+        async with pool.checkout() as session:
+            session_id_before = session.session_id
+            with pytest.raises(ydb.issues.Error):
+                async with await session.execute("this is not valid SQL") as results:
+                    async for _ in results:
+                        pass
+            assert session.is_active
+            # And the session must remain reusable for the next statement.
+            async with await session.execute("SELECT 1") as results:
+                async for _ in results:
+                    pass
+            assert session.session_id == session_id_before
+            assert session.is_active
+
+    @pytest.mark.asyncio
+    async def test_cancelled_error_during_stream_invalidates_session(self, tx: QueryTxContext):
+        # Regression for issue #812: once a gRPC aio call is cancelled, every
+        # subsequent read on it raises asyncio.CancelledError. Because
+        # CancelledError inherits from BaseException, the old _next handler
+        # (which caught Exception) never invoked _on_error, and the session
+        # was returned to the pool in a bad state. Verify the hook now runs
+        # on CancelledError and invalidates the session.
+        await tx.begin()
+
+        from ydb.aio._utilities import AsyncResponseIterator
+
+        results = await tx.execute("SELECT 1")
+
+        async def raising_next(self):
+            raise asyncio.CancelledError("simulated grpc.aio call cancellation")
+
+        with mock.patch.object(AsyncResponseIterator, "_next", raising_next):
+            with pytest.raises(asyncio.CancelledError):
+                async for _ in results:
+                    pass
+
+        assert not tx.session.is_active
+
+    @pytest.mark.asyncio
+    async def test_session_busy_during_stream_invalidates_session(self, tx: QueryTxContext):
+        # Regression for issue #812, case 2: SessionBusy from the stream means
+        # the server still considers the previous query in flight; continuing
+        # to use this session poisons the next caller. Must invalidate.
+        await tx.begin()
+
+        from ydb.aio._utilities import AsyncResponseIterator
+
+        results = await tx.execute("SELECT 1")
+
+        async def raising_next(self):
+            raise ydb.issues.SessionBusy("simulated SessionBusy from stream")
+
+        with mock.patch.object(AsyncResponseIterator, "_next", raising_next):
+            with pytest.raises(ydb.issues.SessionBusy):
+                async for _ in results:
+                    pass
+
+        assert not tx.session.is_active
+
+    @pytest.mark.asyncio
+    async def test_cancelled_stream_in_pool_does_not_poison_next_caller(self, pool):
+        # Regression for issue #812: a single mis-timed cancel during
+        # tx.execute(...) iteration should not leave the session in a state
+        # where the next unrelated caller sees SessionBusy or otherwise reuses
+        # a session the server considers busy.
+        from ydb.aio._utilities import AsyncResponseIterator
+
+        victim_sid = None
+
+        async def victim(tx):
+            nonlocal victim_sid
+            victim_sid = tx.session.session_id
+            results = await tx.execute("SELECT 1")
+
+            orig_next = AsyncResponseIterator._next
+
+            async def raising_next(self):
+                raise asyncio.CancelledError("simulated grpc.aio call cancellation")
+
+            with mock.patch.object(AsyncResponseIterator, "_next", raising_next):
+                async for _ in results:
+                    pass
+            # Restore so later operations in this session (if any) would work.
+            AsyncResponseIterator._next = orig_next
+
+        with pytest.raises(asyncio.CancelledError):
+            await pool.retry_tx_async(victim)
+
+        async with pool.checkout() as session:
+            assert session.session_id != victim_sid
+
+    @pytest.mark.asyncio
     async def test_rollback_after_tli_aborted_is_safe(self, pool, table_path: str):
         # Given: a row in a table
         table_ref = f"`{table_path}`"

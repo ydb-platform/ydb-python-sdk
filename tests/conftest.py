@@ -44,6 +44,31 @@ def pytest_addoption(parser):
         default="docker-compose.yml",
         help="Path to docker-compose file (relative to project root)",
     )
+    parser.addoption(
+        "--ydb-endpoint",
+        action="store",
+        default=None,
+        help=(
+            "Use an already-running YDB endpoint (e.g. localhost:2136) instead of spinning "
+            "a container via docker-compose. Also honored from the YDB_ENDPOINT env var. "
+            "Tests that explicitly restart the container via the `docker_project` fixture "
+            "(chaos-style) are incompatible with this mode."
+        ),
+    )
+
+
+def _running_ydb_endpoint(pytestconfig):
+    """Return a pre-running endpoint if the user asked for one, else None."""
+    existing = pytestconfig.getoption("--ydb-endpoint") or os.environ.get("YDB_ENDPOINT")
+    if not existing:
+        return None
+    # Strip scheme if present — the `endpoint` fixture is expected to return
+    # the "host:port" form that is_ydb_responsive / driver construction use.
+    for prefix in ("grpcs://", "grpc://"):
+        if existing.startswith(prefix):
+            existing = existing[len(prefix) :]
+            break
+    return existing
 
 
 @pytest.fixture(scope="session")
@@ -156,8 +181,24 @@ def is_ydb_secure_responsive(endpoint, root_certificates):
 
 
 @pytest.fixture(scope="module")
-def endpoint(docker_ip, docker_services):
-    """Wait for YDB to be responsive and return endpoint."""
+def endpoint(pytestconfig, request):
+    """Wait for YDB to be responsive and return endpoint.
+
+    If --ydb-endpoint / YDB_ENDPOINT is set, return it directly without
+    touching pytest-docker — this lets tests run against an already-running
+    container.
+    """
+    existing = _running_ydb_endpoint(pytestconfig)
+    if existing is not None:
+        if not is_ydb_responsive(existing):
+            raise RuntimeError(f"--ydb-endpoint={existing} is not responsive")
+        yield existing
+        return
+
+    # Pytest-docker path: resolve docker_services lazily so the fixtures are
+    # only requested when we actually need to spin a container.
+    docker_ip = request.getfixturevalue("docker_ip")
+    docker_services = request.getfixturevalue("docker_services")
     port = docker_services.port_for("ydb", 2136)
     endpoint_url = f"{docker_ip}:{port}"
     docker_services.wait_until_responsive(
