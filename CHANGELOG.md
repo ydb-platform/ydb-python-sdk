@@ -1,3 +1,4 @@
+## 3.28.2 ##
 * Invalidate session on cancelled / transport stream errors
 
 ## 3.28.1 ##
