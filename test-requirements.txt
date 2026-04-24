@@ -14,7 +14,7 @@ importlib-metadata==4.6.1
 iniconfig==1.1.1
 jsonschema==3.2.0
 packaging>=21.0
-paramiko==2.10.1
+paramiko==3.4.0
 pluggy>=1.0.0
 protobuf>=3.13.0,<7.0.0
 py>=1.11.0
