@@ -1,3 +1,5 @@
+* Fix session invalidation scheme
+
 ## 3.28.2 ##
 * Invalidate session on cancelled / transport stream errors
 
