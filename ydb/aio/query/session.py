@@ -92,7 +92,12 @@ class QuerySession(BaseQuerySession["AsyncDriver"]):
             except Exception:
                 pass
 
-        self._invalidate()
+        self._closed = True
+        if self._stream is not None:
+            try:
+                self._stream.cancel()
+            except Exception:
+                pass
 
     async def create(self, settings: Optional[BaseRequestSettings] = None) -> "QuerySession":
         """Creates a Session of Query Service on server side and attaches it.

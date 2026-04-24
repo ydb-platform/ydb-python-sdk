@@ -71,6 +71,7 @@ class BaseQuerySession(abc.ABC, Generic[DriverT]):
     _session_id: Optional[str] = None
     _node_id: Optional[int] = None
     _closed: bool = False
+    _invalidated: bool = False
 
     def __init__(self, driver: DriverT, settings: Optional[base.QueryClientSettings] = None):
         self._driver = driver
@@ -122,12 +123,17 @@ class BaseQuerySession(abc.ABC, Generic[DriverT]):
         return base.QueryClientSettings()
 
     def _check_session_ready_to_use(self) -> None:
-        if not self.is_active:
+        if self._session_id is None:
+            raise RuntimeError("Session is not initialized")
+        if self._invalidated:
+            raise issues.BadSession(f"Session is not active, session_id: {self._session_id}, closed: {self._closed}")
+        if self._closed:
             raise RuntimeError(f"Session is not active, session_id: {self._session_id}, closed: {self._closed}")
 
     def _invalidate(self) -> None:
         if self._closed:
             return
+        self._invalidated = True
         self._closed = True
 
         if self._stream is not None:
@@ -372,7 +378,12 @@ class QuerySession(BaseQuerySession["SyncDriver"]):
             except Exception:
                 pass
 
-        self._invalidate()
+        self._closed = True
+        if self._stream is not None:
+            try:
+                self._stream.cancel()
+            except Exception:
+                pass
 
     def create(self, settings: Optional[BaseRequestSettings] = None) -> "QuerySession":
         """Creates a Session of Query Service on server side and attaches it.
