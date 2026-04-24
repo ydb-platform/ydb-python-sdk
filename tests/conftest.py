@@ -6,6 +6,9 @@ import pytest
 import ydb
 from ydb import issues
 
+YDB_ENDPOINT_PORT = 2136
+YDB_SECURE_ENDPOINT_PORT = 2135
+
 
 def _docker_client():
     """Build a Docker SDK client that works with non-default sockets.
@@ -44,31 +47,6 @@ def pytest_addoption(parser):
         default="docker-compose.yml",
         help="Path to docker-compose file (relative to project root)",
     )
-    parser.addoption(
-        "--ydb-endpoint",
-        action="store",
-        default=None,
-        help=(
-            "Use an already-running YDB endpoint (e.g. localhost:2136) instead of spinning "
-            "a container via docker-compose. Also honored from the YDB_ENDPOINT env var. "
-            "Tests that explicitly restart the container via the `docker_project` fixture "
-            "(chaos-style) are incompatible with this mode."
-        ),
-    )
-
-
-def _running_ydb_endpoint(pytestconfig):
-    """Return a pre-running endpoint if the user asked for one, else None."""
-    existing = pytestconfig.getoption("--ydb-endpoint") or os.environ.get("YDB_ENDPOINT")
-    if not existing:
-        return None
-    # Strip scheme if present — the `endpoint` fixture is expected to return
-    # the "host:port" form that is_ydb_responsive / driver construction use.
-    for prefix in ("grpcs://", "grpc://"):
-        if existing.startswith(prefix):
-            existing = existing[len(prefix) :]
-            break
-    return existing
 
 
 @pytest.fixture(scope="session")
@@ -181,26 +159,15 @@ def is_ydb_secure_responsive(endpoint, root_certificates):
 
 
 @pytest.fixture(scope="module")
-def endpoint(pytestconfig, request):
-    """Wait for YDB to be responsive and return endpoint.
-
-    If --ydb-endpoint / YDB_ENDPOINT is set, return it directly without
-    touching pytest-docker — this lets tests run against an already-running
-    container.
-    """
-    existing = _running_ydb_endpoint(pytestconfig)
-    if existing is not None:
-        if not is_ydb_responsive(existing):
-            raise RuntimeError(f"--ydb-endpoint={existing} is not responsive")
-        yield existing
-        return
-
-    # Pytest-docker path: resolve docker_services lazily so the fixtures are
-    # only requested when we actually need to spin a container.
-    docker_ip = request.getfixturevalue("docker_ip")
+def endpoint(request):
+    """Wait for YDB to be responsive and return endpoint."""
+    # Resolve docker_services lazily so the fixture is only requested when a
+    # test actually needs the container. The compose file publishes a fixed
+    # host port, so avoid `port_for()` — it shells out to `docker compose
+    # port`, which is exactly the late subprocess path that can trip the
+    # Python 3.9 gRPC fork race.
     docker_services = request.getfixturevalue("docker_services")
-    port = docker_services.port_for("ydb", 2136)
-    endpoint_url = f"{docker_ip}:{port}"
+    endpoint_url = f"localhost:{YDB_ENDPOINT_PORT}"
     docker_services.wait_until_responsive(
         timeout=60.0,
         pause=1.0,
@@ -210,7 +177,7 @@ def endpoint(pytestconfig, request):
 
 
 @pytest.fixture(scope="session")
-def secure_endpoint(pytestconfig, docker_ip, docker_services):
+def secure_endpoint(pytestconfig, docker_services):
     """Wait for YDB TLS endpoint to be responsive."""
     ca_path = os.path.join(str(pytestconfig.rootdir), "ydb_certs/ca.pem")
 
@@ -228,9 +195,7 @@ def secure_endpoint(pytestconfig, docker_ip, docker_services):
     os.environ["YDB_SSL_ROOT_CERTIFICATES_FILE"] = ca_path
     root_certificates = ydb.load_ydb_root_certificate()
 
-    port = docker_services.port_for("ydb", 2135)
-    # Use 'localhost' instead of docker_ip because SSL certificate is issued for 'localhost'
-    endpoint_url = f"localhost:{port}"
+    endpoint_url = f"localhost:{YDB_SECURE_ENDPOINT_PORT}"
 
     docker_services.wait_until_responsive(
         timeout=60.0,

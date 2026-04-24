@@ -6,6 +6,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 from ydb import issues
 from ydb.aio.query.pool import QuerySessionPool
+from ydb.aio.query.session import QuerySession
 
 
 def _make_pool(size=1):
@@ -92,3 +93,25 @@ class TestAcquireTimeout(unittest.IsolatedAsyncioTestCase):
         await asyncio.sleep(0.05)
         total = pool._queue.qsize() + len(released_sessions)
         self.assertGreaterEqual(total, 0)
+
+    async def test_retry_reacquires_invalidated_session_before_first_use(self):
+        pool = _make_pool(size=1)
+
+        invalidated_session = QuerySession.__new__(QuerySession)
+        invalidated_session._session_id = "invalidated-session"
+        invalidated_session._closed = False
+        invalidated_session._invalidated = False
+        invalidated_session._stream = None
+        invalidated_session._close_session(invalidate=True)
+
+        live_session = MagicMock()
+        live_session.explain = AsyncMock(return_value="ok")
+
+        sessions = iter([invalidated_session, live_session])
+        pool.acquire = AsyncMock(side_effect=lambda timeout=None: next(sessions))
+        pool.release = AsyncMock()
+
+        result = await pool.retry_operation_async(lambda session: session.explain("SELECT 1"))
+
+        self.assertEqual(result, "ok")
+        live_session.explain.assert_awaited_once_with("SELECT 1")

@@ -56,7 +56,6 @@ def wrapper_delete_session(
 ) -> "BaseQuerySession":
     message = _ydb_query.DeleteSessionResponse.from_proto(response_pb)
     issues._process_response(message.status)
-    session._closed = True
     return session
 
 
@@ -130,10 +129,11 @@ class BaseQuerySession(abc.ABC, Generic[DriverT]):
         if self._closed:
             raise RuntimeError(f"Session is not active, session_id: {self._session_id}, closed: {self._closed}")
 
-    def _invalidate(self) -> None:
+    def _close_session(self, invalidate: bool = False) -> None:
         if self._closed:
             return
-        self._invalidated = True
+        if invalidate:
+            self._invalidated = True
         self._closed = True
 
         if self._stream is not None:
@@ -167,9 +167,9 @@ class BaseQuerySession(abc.ABC, Generic[DriverT]):
                     issues.Cancelled,
                 ),
             ):
-                self._invalidate()
+                self._close_session(invalidate=True)
         else:
-            self._invalidate()
+            self._close_session(invalidate=True)
 
     # Overloads for _create_call
     @overload
@@ -345,7 +345,7 @@ class QuerySession(BaseQuerySession["SyncDriver"]):
             )
             issues._process_response(first_response)
         except Exception as e:
-            self._invalidate()
+            self._close_session(invalidate=True)
             raise e
 
         threading.Thread(
@@ -362,7 +362,7 @@ class QuerySession(BaseQuerySession["SyncDriver"]):
             logger.debug("Attach stream closed, session_id: %s", self._session_id)
         except Exception as e:
             logger.debug("Attach stream error: %s, session_id: %s", e, self._session_id)
-            self._invalidate()
+            self._close_session(invalidate=True)
 
     def delete(self, settings: Optional[BaseRequestSettings] = None) -> None:
         """Deletes a Session of Query Service on server side and releases resources.
@@ -378,12 +378,7 @@ class QuerySession(BaseQuerySession["SyncDriver"]):
             except Exception:
                 pass
 
-        self._closed = True
-        if self._stream is not None:
-            try:
-                self._stream.cancel()
-            except Exception:
-                pass
+        self._close_session()
 
     def create(self, settings: Optional[BaseRequestSettings] = None) -> "QuerySession":
         """Creates a Session of Query Service on server side and attaches it.

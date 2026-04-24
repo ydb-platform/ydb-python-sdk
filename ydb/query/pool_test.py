@@ -63,7 +63,7 @@ class TestRetryOperationSync(unittest.TestCase):
 
         invalidated_session = QuerySession(pool._driver)
         invalidated_session._session_id = "invalidated-session"
-        invalidated_session._invalidate()
+        invalidated_session._close_session(invalidate=True)
 
         live_session = MagicMock()
         live_session.explain.return_value = "ok"
