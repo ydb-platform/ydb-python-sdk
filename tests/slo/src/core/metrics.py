@@ -132,9 +132,7 @@ class OtlpMetrics(BaseMetrics):
         resource = Resource.create(
             {
                 "service.name": f"workload-{workload_name}",
-                "service.instance.id": environ.get(
-                    "SLO_INSTANCE_ID", f"{workload_ref}-{workload_name}"
-                ),
+                "service.instance.id": environ.get("SLO_INSTANCE_ID", f"{workload_ref}-{workload_name}"),
                 "ref": workload_ref,
                 "sdk": "ydb-python-sdk",
                 "sdk_version": version("ydb"),
@@ -227,9 +225,7 @@ class OtlpMetrics(BaseMetrics):
 
         self._retry_attempts_total.add(int(attempts), attributes=base_attrs)
         self._pending.add(-1, attributes=base_attrs)
-        self._operations_total.add(
-            1, attributes={**base_attrs, "operation_status": op_status}
-        )
+        self._operations_total.add(1, attributes={**base_attrs, "operation_status": op_status})
 
         if error is not None:
             self._errors.add(
@@ -291,7 +287,5 @@ def create_metrics(args) -> BaseMetrics:
     try:
         return OtlpMetrics(args.workload_name, args.workload_ref)
     except Exception:
-        logger.exception(
-            "Failed to initialize OTLP metrics — falling back to DummyMetrics"
-        )
+        logger.exception("Failed to initialize OTLP metrics — falling back to DummyMetrics")
         return DummyMetrics()

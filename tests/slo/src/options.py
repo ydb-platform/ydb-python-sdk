@@ -1,5 +1,50 @@
 import argparse
 import os
+import sys
+
+_WORKLOADS = {"sync-table", "sync-query", "topic"}
+
+_TABLE_OPTIONS = {
+    "--table-name",
+    "--min-partitions-count",
+    "--max-partitions-count",
+    "--partition-size",
+    "--initial-data-count",
+    "--batch-size",
+    "--threads",
+}
+
+_TOPIC_OPTIONS = {
+    "--topic-path",
+    "--topic-consumer",
+    "--topic-partitions",
+    "--message-size",
+}
+
+
+def _provided_options(argv):
+    options = set()
+    for arg in argv:
+        option = arg.split("=", 1)[0]
+        if option.startswith("--"):
+            options.add(option)
+    return options
+
+
+def _validate_options(parser, args, provided_options):
+    if args.workload_name not in _WORKLOADS:
+        parser.error(f"Unknown workload-name: {args.workload_name}. Expected one of: {', '.join(sorted(_WORKLOADS))}")
+
+    if args.workload_name == "topic":
+        invalid_options = sorted(provided_options & _TABLE_OPTIONS)
+    else:
+        invalid_options = sorted(provided_options & _TOPIC_OPTIONS)
+
+    if invalid_options:
+        parser.error(f"{args.workload_name} workload does not accept options: {', '.join(invalid_options)}")
+
+    if args.async_mode and args.workload_name != "topic":
+        parser.error("--async is supported only for topic workload")
 
 
 def parse_options():
@@ -48,7 +93,12 @@ def parse_options():
     )
 
     parser.add_argument("--debug", action="store_true", help="Enable debug logging")
-    parser.add_argument("--async", dest="async_mode", action="store_true", help="Run workload in async mode")
+    parser.add_argument(
+        "--async",
+        dest="async_mode",
+        action="store_true",
+        help="Run workload in async mode",
+    )
 
     # Table params
     parser.add_argument("--table-name", default="key_value", help="Table name")
@@ -81,10 +131,7 @@ def parse_options():
     parser.add_argument("--message-size", default=100, type=int, help="Topic message size [bytes]")
 
     args = parser.parse_args()
-
-    # Aliases used by topic runner
-    args.path = args.topic_path
-    args.consumer = args.topic_consumer
-    args.partitions_count = args.topic_partitions
+    provided_options = _provided_options(sys.argv[1:])
+    _validate_options(parser, args, provided_options)
 
     return args

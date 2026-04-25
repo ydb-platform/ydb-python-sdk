@@ -58,14 +58,12 @@ class AsyncTopicJobManager(BaseJobManager):
 
         return tasks
 
-    async def _run_topic_writes(
-        self, limiter: AsyncLimiter, partition_id: Optional[int] = None
-    ):
+    async def _run_topic_writes(self, limiter: AsyncLimiter, partition_id: Optional[int] = None):
         start_time = time.time()
         logger.info("Start async topic write workload")
 
         async with self.aio_driver.topic_client.writer(
-            self.args.path,
+            self.args.topic_path,
             codec=getattr(ydb, "PublicCodec", ydb.TopicCodec).GZIP,
             partition_id=partition_id,
         ) as writer:
@@ -100,8 +98,8 @@ class AsyncTopicJobManager(BaseJobManager):
         logger.info("Start async topic read workload")
 
         async with self.aio_driver.topic_client.reader(
-            self.args.path,
-            self.args.consumer,
+            self.args.topic_path,
+            self.args.topic_consumer,
         ) as reader:
             logger.info("Async topic reader created")
 

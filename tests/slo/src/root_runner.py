@@ -77,13 +77,13 @@ async def _run_all_async(args):
 
         try:
             logger.info("[%s][async] Creating resources", workload_name)
-            runner.create(args)
+            await runner.create_async(args)
 
             logger.info("[%s][async] Running workload for %d s", workload_name, args.time)
             await runner.run_async(args)
         finally:
             logger.info("[%s][async] Cleaning up resources", workload_name)
             try:
-                runner.cleanup(args)
+                await runner.cleanup_async(args)
             except Exception:
                 logger.exception("Cleanup failed — ignoring")

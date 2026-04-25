@@ -137,7 +137,7 @@ jobs:
         uses: ydb-platform/ydb-slo-action/init@v2
         timeout-minutes: 30
         with:
-          github_issue: ${{ github.event.inputs.github_issue }}
+          github_issue: ${{ github.event.pull_request.number || inputs.github_issue }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
           workload_name: ${{ matrix.sdk.name }}
           workload_duration: ${{ inputs.slo_workload_duration_seconds || '600' }}

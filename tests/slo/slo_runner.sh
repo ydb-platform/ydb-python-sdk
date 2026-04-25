@@ -23,6 +23,7 @@ set -euo pipefail
 #   MESSAGE_SIZE    : topic message size bytes (default: 100)
 #   REPORT_PERIOD_MS: metrics flush period ms (default: 1000)
 #   DEBUG           : 1 to enable --debug for workload (default: 0)
+#   ASYNC           : 1 to enable --async for workload (default: 0)
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
@@ -39,6 +40,7 @@ WRITE_THREADS="${WRITE_THREADS:-1}"
 MESSAGE_SIZE="${MESSAGE_SIZE:-100}"
 REPORT_PERIOD_MS="${REPORT_PERIOD_MS:-1000}"
 DEBUG="${DEBUG:-0}"
+ASYNC="${ASYNC:-0}"
 
 WORKLOAD_IMAGE="${WORKLOAD_IMAGE:-ydb-python-slo:local}"
 
@@ -78,9 +80,14 @@ build_workload_command() {
     --read-threads "${READ_THREADS}"
     --write-threads "${WRITE_THREADS}"
     --write-rps "${WRITE_RPS}"
-    --message-size "${MESSAGE_SIZE}"
     --time "${RUN_TIME_SEC}"
   )
+  if [[ "${WORKLOAD_NAME}" == "topic" ]]; then
+    cmd+=(--message-size "${MESSAGE_SIZE}")
+    if [[ "${ASYNC}" == "1" ]]; then
+      cmd+=(--async)
+    fi
+  fi
   if [[ "${DEBUG}" == "1" ]]; then
     cmd+=(--debug)
   fi
