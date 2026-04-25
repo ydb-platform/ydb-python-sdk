@@ -4,20 +4,18 @@ set -euo pipefail
 # Local SLO runner.
 #
 # This script:
-#   1) checks that the infra docker network exists (default: ydb_cluster)
+#   1) clones / updates ydb-slo-action deploy configs
 #   2) builds the workload image
-#   3) runs topic-create + topic-run inside that network
+#   3) starts everything via docker compose (YDB + Prometheus + workload)
+#   4) tears down on exit
 #
-# Why it runs the workload as a container:
-# - infra compose does not necessarily publish YDB/Prometheus ports to localhost
-# - attaching to the compose network makes service discovery reliable (DNS)
+# The workload runs as the "workload-current" service from the compose file,
+# configured via WORKLOAD_CURRENT_IMAGE and WORKLOAD_CURRENT_COMMAND env vars.
+#
+# Infra configs: https://github.com/ydb-platform/ydb-slo-action/tree/v2/deploy
 #
 # Configuration (env vars):
-#   NETWORK_NAME    : docker network to attach workload container to (default: ydb_cluster)
-#   YDB_ENDPOINT    : grpc endpoint inside the network (default: grpc://ydb-storage-1:2136)
-#   YDB_DATABASE    : database (default: /Root/testdb)
-#   TOPIC_PATH      : topic path (default: /Root/testdb/slo_topic)
-#   OTLP_ENDPOINT   : Prometheus OTLP receiver URL (default: http://prometheus:9090/api/v1/otlp/v1/metrics)
+#   WORKLOAD_NAME   : workload type (default: topic)
 #   RUN_TIME_SEC    : workload run time seconds (default: 120)
 #   WRITE_RPS       : topic write rps (default: 1)
 #   READ_THREADS    : topic read threads (default: 0)
@@ -29,12 +27,11 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
 
-NETWORK_NAME="${NETWORK_NAME:-ydb_cluster}"
+INFRA_DIR="${SCRIPT_DIR}/.infra"
+INFRA_REPO="https://github.com/ydb-platform/ydb-slo-action.git"
+INFRA_BRANCH="v2"
 
-YDB_DATABASE="${YDB_DATABASE:-/Root/testdb}"
-TOPIC_PATH="${TOPIC_PATH:-${YDB_DATABASE}/slo_topic}"
-
-OTLP_ENDPOINT="${OTLP_ENDPOINT:-http://prometheus:9090/api/v1/otlp/v1/metrics}"
+WORKLOAD_NAME="${WORKLOAD_NAME:-topic}"
 RUN_TIME_SEC="${RUN_TIME_SEC:-120}"
 WRITE_RPS="${WRITE_RPS:-1}"
 READ_THREADS="${READ_THREADS:-0}"
@@ -45,74 +42,85 @@ DEBUG="${DEBUG:-0}"
 
 WORKLOAD_IMAGE="${WORKLOAD_IMAGE:-ydb-python-slo:local}"
 
-# Infra configuration
-#
-# Infra is expected to be started separately (see https://github.com/ydb-platform/ydb-slo-action/tree/main/deploy).
-# This runner only attaches the workload container to the existing docker network "${NETWORK_NAME}".
-YDB_ENDPOINT="${YDB_ENDPOINT:-grpc://ydb-storage-1:2136}"
+# ---------------------------------------------------------------------------
+# Infra management (ydb-slo-action/v2/deploy)
+# ---------------------------------------------------------------------------
 
-ensure_network() {
-  if docker network inspect "${NETWORK_NAME}" >/dev/null 2>&1; then
-    return 0
+fetch_infra() {
+  if [[ -d "${INFRA_DIR}/.git" ]]; then
+    echo "[slo_runner] updating infra configs..."
+    git -C "${INFRA_DIR}" fetch origin "${INFRA_BRANCH}" --depth 1 --quiet
+    git -C "${INFRA_DIR}" -c advice.detachedHead=false checkout FETCH_HEAD --quiet
+  else
+    echo "[slo_runner] cloning infra configs (${INFRA_REPO} @ ${INFRA_BRANCH}, sparse: deploy/)..."
+    git clone --no-checkout --depth 1 --branch "${INFRA_BRANCH}" --filter=blob:none "${INFRA_REPO}" "${INFRA_DIR}"
+    git -C "${INFRA_DIR}" sparse-checkout init --cone
+    git -C "${INFRA_DIR}" sparse-checkout set deploy
+    git -C "${INFRA_DIR}" checkout "${INFRA_BRANCH}"
   fi
-
-  echo "[slo_runner] docker network '${NETWORK_NAME}' not found." >&2
-  echo "[slo_runner] Start infra and ensure it creates/uses this network, then re-run." >&2
-  echo "[slo_runner] Infra configs: https://github.com/ydb-platform/ydb-slo-action/tree/main/deploy" >&2
-  exit 2
 }
 
-workload_run() {
-  # Runs workload as a container attached to the infra compose network.
-  # Usage:
-  #   workload_run <subcommand> <args...>
-  docker run --rm --network "${NETWORK_NAME}" "${WORKLOAD_IMAGE}" "$@"
-}
+COMPOSE_FILE="${INFRA_DIR}/deploy/compose.yml"
 
 build_workload_image() {
-  docker build -f "${REPO_ROOT}/tests/slo/Dockerfile" -t "${WORKLOAD_IMAGE}" "${REPO_ROOT}"
+  echo "[slo_runner] building workload image: ${WORKLOAD_IMAGE} ..."
+  docker build --platform linux/amd64 -f "${REPO_ROOT}/tests/slo/Dockerfile" -t "${WORKLOAD_IMAGE}" "${REPO_ROOT}"
 }
 
-echo "[slo_runner] repo root: ${REPO_ROOT}"
-echo "[slo_runner] compose network: ${NETWORK_NAME}"
-echo "[slo_runner] ydb endpoint: ${YDB_ENDPOINT}"
-echo "[slo_runner] ydb db: ${YDB_DATABASE}"
-echo "[slo_runner] topic path: ${TOPIC_PATH}"
-echo "[slo_runner] otlp endpoint: ${OTLP_ENDPOINT}"
-echo "[slo_runner] checking docker network: ${NETWORK_NAME}..."
-ensure_network
-echo "[slo_runner] building workload image: ${WORKLOAD_IMAGE} ..."
+# ---------------------------------------------------------------------------
+# Build workload command
+# ---------------------------------------------------------------------------
+
+build_workload_command() {
+  local cmd=(
+    --workload-name "${WORKLOAD_NAME}"
+    --report-period "${REPORT_PERIOD_MS}"
+    --read-threads "${READ_THREADS}"
+    --write-threads "${WRITE_THREADS}"
+    --write-rps "${WRITE_RPS}"
+    --message-size "${MESSAGE_SIZE}"
+    --time "${RUN_TIME_SEC}"
+  )
+  if [[ "${DEBUG}" == "1" ]]; then
+    cmd+=(--debug)
+  fi
+  echo "${cmd[*]}"
+}
+
+# ---------------------------------------------------------------------------
+# Main
+# ---------------------------------------------------------------------------
+
+fetch_infra
 build_workload_image
 
-echo "[slo_runner] topic-create..."
-topic_create_args=(
-  topic-create
-  "${YDB_ENDPOINT}"
-  "${YDB_DATABASE}"
-  --path "${TOPIC_PATH}"
-)
-if [[ "${DEBUG}" == "1" ]]; then
-  topic_create_args+=(--debug)
-fi
-workload_run "${topic_create_args[@]}"
+echo "[slo_runner] starting infra + workload..."
+echo "[slo_runner] workload image: ${WORKLOAD_IMAGE}"
+echo "[slo_runner] workload name: ${WORKLOAD_NAME}"
+echo "[slo_runner] run time: ${RUN_TIME_SEC}s"
 
-echo "[slo_runner] topic-run..."
-topic_run_args=(
-  topic-run
-  "${YDB_ENDPOINT}"
-  "${YDB_DATABASE}"
-  --path "${TOPIC_PATH}"
-  --otlp-endpoint "${OTLP_ENDPOINT}"
-  --report-period "${REPORT_PERIOD_MS}"
-  --read-threads "${READ_THREADS}"
-  --write-threads "${WRITE_THREADS}"
-  --write-rps "${WRITE_RPS}"
-  --message-size "${MESSAGE_SIZE}"
-  --time "${RUN_TIME_SEC}"
-)
-if [[ "${DEBUG}" == "1" ]]; then
-  topic_run_args+=(--debug)
-fi
-workload_run "${topic_run_args[@]}"
+export WORKLOAD_CURRENT_IMAGE="${WORKLOAD_IMAGE}"
+export WORKLOAD_CURRENT_COMMAND="$(build_workload_command)"
+export WORKLOAD_NAME
+export WORKLOAD_DURATION="${RUN_TIME_SEC}"
 
-echo "[slo_runner] done"
+COMPOSE="docker compose -f ${COMPOSE_FILE} --profile telemetry --profile workload-current"
+trap '${COMPOSE} down' EXIT
+
+echo "[slo_runner] starting infra..."
+${COMPOSE} up -d --wait
+
+prom_port=$(docker port ydb-prometheus 9090 2>/dev/null | head -1 || true)
+if [[ -n "${prom_port}" ]]; then
+  echo "[slo_runner] prometheus: http://${prom_port}"
+fi
+
+echo "[slo_runner] waiting for workload to finish..."
+${COMPOSE} logs -f workload-current &
+LOGS_PID=$!
+
+exit_code=$(docker wait ydb-workload-current)
+
+kill "${LOGS_PID}" 2>/dev/null || true
+echo "[slo_runner] workload exited with code ${exit_code}"
+exit "${exit_code}"

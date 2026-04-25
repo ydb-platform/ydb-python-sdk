@@ -42,16 +42,14 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - id: sync-table
-            prefix: table
-            workload: sync-table
-          - id: sync-query
-            prefix: table
-            workload: sync-query
+        sdk:
+          - name: sync-table
+            command: "--read-rps ${{ inputs.slo_workload_read_max_rps || '1000' }} --write-rps ${{ inputs.slo_workload_write_max_rps || '100' }}"
+          - name: sync-query
+            command: "--read-rps ${{ inputs.slo_workload_read_max_rps || '1000' }} --write-rps ${{ inputs.slo_workload_write_max_rps || '100' }}"
 
     concurrency:
-      group: slo-${{ github.ref }}-${{ matrix.workload }}
+      group: slo-${{ github.ref }}-${{ matrix.sdk.name }}
       cancel-in-progress: true
 
     steps:
@@ -84,7 +82,7 @@ jobs:
           docker compose version
 
       - name: Checkout current version
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           path: current
           fetch-depth: 0
@@ -118,16 +116,10 @@ jobs:
           echo "ref=$BASELINE_REF" >> $GITHUB_OUTPUT
 
       - name: Checkout baseline version
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           ref: ${{ steps.baseline.outputs.sha }}
           path: baseline
-          fetch-depth: 1
-
-      - name: Show Docker versions
-        run: |
-          docker --version
-          docker compose version
 
       - name: Build workload images (current + baseline)
         run: |
@@ -141,125 +133,32 @@ jobs:
             -t "ydb-app-baseline" \
             "$GITHUB_WORKSPACE/baseline"
 
-      - name: Initialize YDB SLO
-        id: ydb_slo
-        uses: ydb-platform/ydb-slo-action/init@13c687b7d4b2879da79dd12932dee0ed2b65dd1c
+      - name: Run SLO Tests
+        uses: ydb-platform/ydb-slo-action/init@v2
+        timeout-minutes: 30
         with:
-          github_issue: ${{ github.event.pull_request.number || inputs.github_issue }}
+          github_issue: ${{ github.event.inputs.github_issue }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          workload_name: ydb-python-${{ matrix.workload }}
+          workload_name: ${{ matrix.sdk.name }}
+          workload_duration: ${{ inputs.slo_workload_duration_seconds || '600' }}
           workload_current_ref: ${{ github.head_ref || github.ref_name }}
+          workload_current_image: ydb-app-current
+          workload_current_command: ${{ matrix.sdk.command }}
           workload_baseline_ref: ${{ steps.baseline.outputs.ref }}
+          workload_baseline_image: ydb-app-current
+          workload_baseline_command: ${{ matrix.sdk.command }}
 
-      - name: Prepare SLO Database
-        run: |
-          docker run --rm \
-            --network ydb_ydb-net \
-            --add-host "ydb:172.28.0.11" \
-            --add-host "ydb:172.28.0.12" \
-            --add-host "ydb:172.28.0.13" \
-            --add-host "ydb:172.28.0.99" \
-            -e "WORKLOAD=${{ matrix.workload }}" \
-            -e "REF=${{ github.head_ref || github.ref_name }}" \
-            ydb-app-current \
-            ${{ matrix.prefix }}-create grpc://ydb:2136 /Root/testdb
-
-      - name: Run SLO Tests (current + baseline in parallel)
-        timeout-minutes: 15
-        env:
-          WORKLOAD: ${{ matrix.workload }}
-          DURATION: ${{ inputs.slo_workload_duration_seconds || 600 }}
-          READ_RPS: ${{ inputs.slo_workload_read_max_rps || 1000 }}
-          WRITE_RPS: ${{ inputs.slo_workload_write_max_rps || 100 }}
-          CURRENT_REF: ${{ github.head_ref || github.ref_name }}
-          BASELINE_REF: ${{ steps.baseline.outputs.ref }}
-        run: |
-          ARGS="${{ matrix.prefix }}-run grpc://ydb:2136 /Root/testdb \
-            --otlp-endpoint http://prometheus:9090/api/v1/otlp/v1/metrics \
-            --report-period 250 \
-            --time ${DURATION} \
-            --read-rps ${READ_RPS} \
-            --write-rps ${WRITE_RPS} \
-            --read-timeout 1000 \
-            --write-timeout 1000"
-
-          echo "Starting current workload (ref=${CURRENT_REF}, workload=${WORKLOAD})..."
-          docker run -d \
-            --name ydb-app-current \
-            --network ydb_ydb-net \
-            --add-host "ydb:172.28.0.11" \
-            --add-host "ydb:172.28.0.12" \
-            --add-host "ydb:172.28.0.13" \
-            --add-host "ydb:172.28.0.99" \
-            -e "REF=${CURRENT_REF}" \
-            -e "WORKLOAD=${WORKLOAD}" \
-            ydb-app-current \
-            $ARGS
-
-          echo "Starting baseline workload (ref=${BASELINE_REF}, workload=${WORKLOAD})..."
-          docker run -d \
-            --name ydb-app-baseline \
-            --network ydb_ydb-net \
-            --add-host "ydb:172.28.0.11" \
-            --add-host "ydb:172.28.0.12" \
-            --add-host "ydb:172.28.0.13" \
-            --add-host "ydb:172.28.0.99" \
-            -e "REF=${BASELINE_REF}" \
-            -e "WORKLOAD=${WORKLOAD}" \
-            ydb-app-baseline \
-            $ARGS
-
-          echo ""
-          echo "==================== INITIAL CURRENT LOGS ===================="
-          docker logs -n 15 ydb-app-current 2>&1 || echo "No current container"
-          echo ""
-          echo "==================== INITIAL BASELINE LOGS ===================="
-          docker logs -n 15 ydb-app-baseline 2>&1 || echo "No baseline container"
-          echo ""
-
-          echo "Waiting for workloads to complete (${DURATION}s)..."
-          sleep ${DURATION}
-
-          echo "Stopping containers after ${DURATION}s..."
-          docker stop --timeout=30 ydb-app-current ydb-app-baseline 2>&1 || true
-
-          # Force kill if still running
-          docker kill ydb-app-current ydb-app-baseline 2>&1 || true
-
-          # Check exit codes
-          CURRENT_EXIT=$(docker inspect ydb-app-current --format='{{.State.ExitCode}}' 2>/dev/null || echo "1")
-          BASELINE_EXIT=$(docker inspect ydb-app-baseline --format='{{.State.ExitCode}}' 2>/dev/null || echo "1")
-
-          echo "Current exit code: ${CURRENT_EXIT}"
-          echo "Baseline exit code: ${BASELINE_EXIT}"
-
-          echo ""
-          echo "==================== FINAL CURRENT LOGS ===================="
-          docker logs -n 15 ydb-app-current 2>&1 || echo "No current container"
-          echo ""
-          echo "==================== FINAL BASELINE LOGS ===================="
-          docker logs -n 15 ydb-app-baseline 2>&1 || echo "No baseline container"
-          echo ""
-
-          if [[ "${CURRENT_EXIT}" != "0" || "${BASELINE_EXIT}" != "0" ]]; then
-            echo "One or both workloads failed."
-            exit 0
-          fi
-
-          echo "SUCCESS: Workloads completed successfully"
-
-      - if: always()
-        name: Store logs
-        run: |
-          docker logs ydb-app-current > current.log 2>&1 || echo "No current container" > current.log
-          docker logs ydb-app-baseline > baseline.log 2>&1 || echo "No baseline container" > baseline.log
-
-      - if: always()
-        name: Upload logs
-        uses: actions/upload-artifact@v4
+  ydb-slo-action-report:
+    runs-on: ubuntu-latest
+    name: Publish YDB SLO Report
+    needs: ydb-slo-action
+    permissions:
+      checks: write
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Publish YDB SLO Report
+        uses: ydb-platform/ydb-slo-action/report@v2
         with:
-          name: ydb-python-${{ matrix.workload }}-logs
-          path: |
-            ./current.log
-            ./baseline.log
-          retention-days: 1
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          github_run_id: ${{ github.run_id }}
