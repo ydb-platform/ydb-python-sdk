@@ -3,6 +3,7 @@ import subprocess
 
 import docker
 import pytest
+from pytest_docker.plugin import DockerComposeExecutor, Services, containers_scope
 import ydb
 from ydb import issues
 
@@ -60,6 +61,48 @@ def docker_compose_file(pytestconfig):
 def docker_cleanup():
     """Remove volumes after tests (equivalent to --docker-compose-remove-volumes)."""
     return ["down -v --remove-orphans"]
+
+
+def _cleanup_docker_project(project_name):
+    docker_client = _docker_client()
+    project_filter = {"label": f"com.docker.compose.project={project_name}"}
+
+    for container in docker_client.containers.list(all=True, filters=project_filter):
+        container.remove(force=True, v=True)
+
+    for network in docker_client.networks.list(filters=project_filter):
+        network.remove()
+
+    for volume in docker_client.volumes.list(filters=project_filter):
+        volume.remove(force=True)
+
+
+@pytest.fixture(scope=containers_scope)
+def docker_services(
+    docker_compose_command,
+    docker_compose_file,
+    docker_compose_project_name,
+    docker_setup,
+    docker_cleanup,
+):
+    """Start compose services and clean them up without forking during teardown."""
+    docker_compose = DockerComposeExecutor(
+        docker_compose_command,
+        docker_compose_file,
+        docker_compose_project_name,
+    )
+
+    if docker_setup:
+        if isinstance(docker_setup, str):
+            docker_setup = [docker_setup]
+        for command in docker_setup:
+            docker_compose.execute(command)
+
+    try:
+        yield Services(docker_compose)
+    finally:
+        if docker_cleanup:
+            _cleanup_docker_project(docker_compose_project_name)
 
 
 class DockerProject:
