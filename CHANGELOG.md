@@ -1,3 +1,5 @@
+* Fix iam module lazy loading
+
 ## 3.28.3 ##
 * Fix session invalidation scheme
 
