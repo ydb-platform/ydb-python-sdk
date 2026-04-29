@@ -30,3 +30,20 @@ try:
     import ydb.aio as aio  # noqa
 except Exception:
     pass
+
+
+_LAZY_MODULES = {"iam"}
+
+
+def __getattr__(name):
+    if name in _LAZY_MODULES:
+        import importlib
+
+        module = importlib.import_module("." + name, __name__)
+        globals()[name] = module
+        return module
+    raise AttributeError("module {!r} has no attribute {!r}".format(__name__, name))
+
+
+def __dir__():
+    return sorted(set(globals()) | _LAZY_MODULES)
