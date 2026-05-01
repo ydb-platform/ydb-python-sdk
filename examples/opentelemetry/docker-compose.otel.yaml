@@ -7,8 +7,6 @@
 # Or from the repository root:
 #   docker compose -f examples/opentelemetry/docker-compose.otel.yaml up
 
-version: "3.3"
-
 services:
   ydb:
     image: ydbplatform/local-ydb:trunk
