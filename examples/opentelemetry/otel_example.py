@@ -17,14 +17,14 @@ _repo_root = Path(__file__).resolve().parent.parent.parent
 if str(_repo_root) not in sys.path:
     sys.path.insert(0, str(_repo_root))
 
-import ydb
-from ydb import _utilities as _yutil
-from opentelemetry import trace
-from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
-from opentelemetry.sdk.resources import Resource
-from opentelemetry.sdk.trace import TracerProvider
-from opentelemetry.sdk.trace.export import BatchSpanProcessor
-from ydb.opentelemetry import enable_tracing
+import ydb  # noqa: E402
+from ydb import _utilities as _yutil  # noqa: E402
+from opentelemetry import trace  # noqa: E402
+from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter  # noqa: E402
+from opentelemetry.sdk.resources import Resource  # noqa: E402
+from opentelemetry.sdk.trace import TracerProvider  # noqa: E402
+from opentelemetry.sdk.trace.export import BatchSpanProcessor  # noqa: E402
+from ydb.opentelemetry import enable_tracing  # noqa: E402
 
 
 def _env(name: str, default: str) -> str:
@@ -98,9 +98,7 @@ async def main() -> None:
                 startup.set_attribute("app.message", "hello")
 
                 await pool.execute_with_retries("DROP TABLE IF EXISTS bank")
-                await pool.execute_with_retries(
-                    "CREATE TABLE bank (id Int32, amount Int32, PRIMARY KEY (id))"
-                )
+                await pool.execute_with_retries("CREATE TABLE bank (id Int32, amount Int32, PRIMARY KEY (id))")
 
             print("Insert row...")
             await pool.execute_with_retries("INSERT INTO bank (id, amount) VALUES (1, 0)")
