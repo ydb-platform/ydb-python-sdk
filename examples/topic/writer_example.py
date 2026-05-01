@@ -71,6 +71,23 @@ def send_message_without_block_if_internal_buffer_is_full(writer: ydb.TopicWrite
         return False
 
 
+def writer_with_buffer_limit(db: ydb.Driver, topic_path: str):
+    """Writer with backpressure: waits for buffer space, raises TopicWriterBufferFullError on timeout."""
+    writer = db.topic_client.writer(
+        topic_path,
+        producer_id="producer-id",
+        max_buffer_size_bytes=10 * 1024 * 1024,  # 10 MB
+        buffer_wait_timeout_sec=30.0,
+    )
+    try:
+        writer.write(ydb.TopicWriterMessage("data"))
+    except ydb.TopicWriterBufferFullError:
+        # Buffer did not free up within timeout (e.g. server slow or disconnected)
+        pass  # handle: retry, drop, or back off
+    finally:
+        writer.close()
+
+
 def send_messages_with_manual_seqno(writer: ydb.TopicWriter):
     writer.write(ydb.TopicWriterMessage("mess"))  # send text
 

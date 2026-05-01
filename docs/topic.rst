@@ -259,6 +259,89 @@ For high-throughput pipelines, buffer writes and gather futures:
             raise f.exception()
 
 
+Writer Backpressure
+^^^^^^^^^^^^^^^^^^^
+
+By default the writer's internal buffer is unbounded — ``write()`` always returns immediately
+regardless of how many unacknowledged messages are in flight. Enable backpressure by setting
+one or both limits:
+
+.. code-block:: python
+
+    writer = driver.topic_client.writer(
+        "/local/my-topic",
+        max_buffer_size_bytes=50 * 1024 * 1024,  # pause when 50 MB in flight
+        max_buffer_messages=1000,                # pause when 1000 messages in flight
+    )
+
+A message is counted as occupying the buffer from the moment it is passed to ``write()``
+until the server acknowledges it. Backpressure is active when **at least one** limit is set;
+setting both means either limit can trigger a wait (OR semantics).
+
+The limits are **soft**: ``write()`` blocks only if the buffer is *already* at or above the
+limit when the call starts. Once unblocked, the entire batch is admitted regardless of its
+size. This means callers that batch multiple messages in a single ``write()`` call will never
+deadlock even when the batch is larger than the limit.
+
+**Blocking behavior (default)**
+
+When the buffer is at or above the limit, ``write()`` blocks until enough messages are
+acknowledged by the server. There is no timeout by default — the call waits indefinitely:
+
+.. code-block:: python
+
+    # Producer pauses here if the buffer is full, then proceeds once space is freed.
+    writer.write("message")
+
+**Timeout**
+
+Set ``buffer_wait_timeout_sec`` to raise :class:`~ydb.TopicWriterBufferFullError` if space
+does not free up in time. Use a positive value to wait up to that many seconds, or ``0`` to
+fail immediately without waiting (non-blocking):
+
+.. code-block:: python
+
+    writer = driver.topic_client.writer(
+        "/local/my-topic",
+        max_buffer_messages=500,
+        buffer_wait_timeout_sec=5.0,  # raise after 5 seconds; use 0 to fail immediately
+    )
+
+    try:
+        writer.write("message")
+    except ydb.TopicWriterBufferFullError:
+        # handle overload — log, drop, or apply back-off
+        ...
+
+**Async client**
+
+The async writer behaves identically — ``await writer.write()`` suspends the coroutine
+instead of blocking the thread:
+
+.. code-block:: python
+
+    writer = driver.topic_client.writer(
+        "/local/my-topic",
+        max_buffer_size_bytes=4 * 1024 * 1024,
+        buffer_wait_timeout_sec=10.0,
+    )
+
+    try:
+        await writer.write("message")
+    except ydb.TopicWriterBufferFullError:
+        ...
+
+To apply your own timeout without raising an error, wrap the call with
+``asyncio.wait_for``:
+
+.. code-block:: python
+
+    try:
+        await asyncio.wait_for(writer.write("message"), timeout=2.0)
+    except asyncio.TimeoutError:
+        ...  # timed out waiting for buffer space
+
+
 Reading Messages
 ----------------
 
@@ -294,6 +377,30 @@ Reader Parameters
         topic="/local/my-topic",           # str, TopicReaderSelector, or a list of these
         consumer="my-consumer",
         buffer_size_bytes=50 * 1024 * 1024,  # client-side buffer (default: 50 MB)
+        buffer_release_threshold=0.5,        # see below (default: 0.5)
+    )
+
+``buffer_size_bytes`` controls how many bytes the server is allowed to send before the client
+signals that it is ready for more. The server will not exceed this limit.
+
+``buffer_release_threshold`` (float in ``[0.0, 1.0]``) controls when the client sends a new
+``ReadRequest`` to the server after consuming messages from the local buffer:
+
+* ``0.0`` — send a ``ReadRequest`` immediately after every batch is consumed.
+  Produces more round-trips when many small batches arrive.
+* ``> 0.0`` — accumulate freed bytes until they reach
+  ``threshold × buffer_size_bytes``, then send a single ``ReadRequest`` covering the
+  accumulated amount. This reduces network round-trips. The default is ``0.5``.
+
+Example — reduce round-trips for a high-throughput reader with many small messages:
+
+.. code-block:: python
+
+    reader = driver.topic_client.reader(
+        "/local/my-topic",
+        consumer="my-consumer",
+        buffer_size_bytes=50 * 1024 * 1024,
+        buffer_release_threshold=0.2,  # send ReadRequest after freeing 10 MiB
     )
 
 To read from multiple topics at once, pass a list:

@@ -5,6 +5,26 @@
   ``create_ydb_span`` when tracing is off; one ``ydb.Try`` per attempt for fast retriable
   errors in sync retries.
 
+## 3.28.4 ##
+* Fix iam module lazy loading
+
+## 3.28.3 ##
+* Fix session invalidation scheme
+
+## 3.28.2 ##
+* Invalidate session on cancelled / transport stream errors
+
+## 3.28.1 ##
+* Invalidate session on interrupted rollback
+* Added acquire timeout to QuerySessionPool
+
+## 3.28.0 ##
+* Reader buffer release threshold feature
+
+## 3.27.0 ##
+* Topic Writer Backpressure
+* Update writer debug logs
+
 ## 3.26.10 ##
 * Fix asyncio.Cancelled error propagated to writer/reader
 * add nearest DC detection with TCP race

@@ -1388,11 +1388,7 @@ class TestReaderStream:
             _codec=Codec.CODEC_RAW,
         )
 
-        assert stream_reader._buffer_size_bytes == initial_buffer_size
-
-        assert (
-            StreamReadMessage.ReadRequest(self.default_batch_size * 2) == stream.from_client.get_nowait().client_message
-        )
+        assert stream_reader._buffer_size_bytes == initial_buffer_size - 2 * self.default_batch_size
 
         with pytest.raises(asyncio.QueueEmpty):
             stream.from_client.get_nowait()
@@ -1423,7 +1419,7 @@ class TestReaderStream:
             mess = stream_reader.receive_message_nowait()
             assert mess.seqno == expected_seqno
 
-        assert stream_reader._buffer_size_bytes == initial_buffer_size
+        assert stream_reader._buffer_size_bytes == initial_buffer_size - 2 * self.default_batch_size
 
     async def test_update_token(self, stream):
         settings = PublicReaderSettings(
@@ -1601,5 +1597,187 @@ class TestReaderReconnector:
             )
         except Exception:
             pass  # any error is fine, we just need wait_error() to not hang
+
+        await reader.close(False)
+
+
+@pytest.mark.asyncio
+class TestReaderStreamBufferReleaseThreshold:
+    default_reader_reconnector_id = 4
+
+    @pytest.fixture()
+    def stream(self):
+        return StreamMock()
+
+    async def _get_started_reader(self, stream, threshold, buffer_size_bytes, default_executor) -> ReaderStream:
+        settings = PublicReaderSettings(
+            consumer="test-consumer",
+            topic="test-topic",
+            buffer_size_bytes=buffer_size_bytes,
+            buffer_release_threshold=threshold,
+            decoder_executor=default_executor,
+        )
+        reader = ReaderStream(self.default_reader_reconnector_id, settings)
+        init_message = object()
+        start = asyncio.create_task(reader._start(stream, init_message))
+
+        stream.from_server.put_nowait(
+            StreamReadMessage.FromServer(
+                server_status=ServerStatus(ydb_status_codes_pb2.StatusIds.SUCCESS, []),
+                server_message=StreamReadMessage.InitResponse(session_id="test-session"),
+            )
+        )
+
+        await wait_for_fast(stream.from_client.get())  # init request
+        initial_read_req = await wait_for_fast(stream.from_client.get())
+        assert isinstance(initial_read_req.client_message, StreamReadMessage.ReadRequest)
+        assert initial_read_req.client_message.bytes_size == buffer_size_bytes
+
+        await start
+        return reader
+
+    def _make_partition_session(self, reader: ReaderStream, session_id: int) -> datatypes.PartitionSession:
+        ps = datatypes.PartitionSession(
+            id=session_id,
+            state=datatypes.PartitionSession.State.Active,
+            topic_path="test-topic",
+            partition_id=session_id,
+            committed_offset=0,
+            reader_reconnector_id=self.default_reader_reconnector_id,
+            reader_stream_id=reader._id,
+        )
+        reader._partition_sessions[ps.id] = ps
+        return ps
+
+    def _make_batch(self, partition_session: datatypes.PartitionSession, bytes_size: int) -> datatypes.PublicBatch:
+        return datatypes.PublicBatch(
+            messages=[stub_message(1)],
+            _partition_session=partition_session,
+            _bytes_size=bytes_size,
+            _codec=Codec.CODEC_RAW,
+        )
+
+    async def test_threshold_zero_sends_immediately(self, stream, default_executor):
+        """threshold=0.0: every release sends a ReadRequest immediately."""
+        reader = await self._get_started_reader(
+            stream, threshold=0.0, buffer_size_bytes=1000, default_executor=default_executor
+        )
+        ps = self._make_partition_session(reader, session_id=1)
+
+        reader._message_batches[ps.id] = self._make_batch(ps, 200)
+
+        batch = reader.receive_batch_nowait()
+        assert batch is not None
+
+        msg = stream.from_client.get_nowait()
+        assert isinstance(msg.client_message, StreamReadMessage.ReadRequest)
+        assert msg.client_message.bytes_size == 200
+
+        with pytest.raises(asyncio.QueueEmpty):
+            stream.from_client.get_nowait()
+
+        await reader.close(False)
+
+    async def test_threshold_delays_release_while_messages_pending(self, stream, default_executor):
+        """threshold=0.5: releases below threshold are not flushed, even when queue becomes empty."""
+        reader = await self._get_started_reader(
+            stream, threshold=0.5, buffer_size_bytes=1000, default_executor=default_executor
+        )
+        # min_bytes_to_flush = ceil(1000 * 0.5) = 500
+        ps1 = self._make_partition_session(reader, session_id=1)
+        ps2 = self._make_partition_session(reader, session_id=2)
+
+        reader._message_batches[ps1.id] = self._make_batch(ps1, 200)
+        reader._message_batches[ps2.id] = self._make_batch(ps2, 200)
+
+        # Read first batch: 200 bytes freed, 200 < 500 threshold → no flush
+        batch1 = reader.receive_batch_nowait()
+        assert batch1 is not None
+        with pytest.raises(asyncio.QueueEmpty):
+            stream.from_client.get_nowait()
+
+        # Read second batch: 400 bytes freed total, 400 < 500 threshold → no flush even with empty queue
+        batch2 = reader.receive_batch_nowait()
+        assert batch2 is not None
+        with pytest.raises(asyncio.QueueEmpty):
+            stream.from_client.get_nowait()
+
+        await reader.close(False)
+
+    async def test_threshold_flushes_when_bytes_reach_threshold(self, stream, default_executor):
+        """threshold=0.3: flush when accumulated bytes reach threshold, even with items still queued."""
+        reader = await self._get_started_reader(
+            stream, threshold=0.3, buffer_size_bytes=1000, default_executor=default_executor
+        )
+        # min_bytes_to_flush = ceil(1000 * 0.3) = 300
+        ps1 = self._make_partition_session(reader, session_id=1)
+        ps2 = self._make_partition_session(reader, session_id=2)
+        ps3 = self._make_partition_session(reader, session_id=3)
+
+        reader._message_batches[ps1.id] = self._make_batch(ps1, 150)
+        reader._message_batches[ps2.id] = self._make_batch(ps2, 150)
+        reader._message_batches[ps3.id] = self._make_batch(ps3, 150)
+
+        # Read first batch: 150 bytes, 150 < 300 threshold, queue not empty → no flush
+        batch1 = reader.receive_batch_nowait()
+        assert batch1 is not None
+        with pytest.raises(asyncio.QueueEmpty):
+            stream.from_client.get_nowait()
+
+        # Read second batch: 300 bytes total, 300 >= 300 threshold → flush with 300 bytes
+        batch2 = reader.receive_batch_nowait()
+        assert batch2 is not None
+
+        msg = stream.from_client.get_nowait()
+        assert isinstance(msg.client_message, StreamReadMessage.ReadRequest)
+        assert msg.client_message.bytes_size == 300
+
+        # pending is reset; read third batch: 150 bytes, 150 < 300 threshold → no flush
+        batch3 = reader.receive_batch_nowait()
+        assert batch3 is not None
+
+        with pytest.raises(asyncio.QueueEmpty):
+            stream.from_client.get_nowait()
+
+        await reader.close(False)
+
+    async def test_threshold_validation_rejects_invalid_values(self, default_executor):
+        with pytest.raises(ValueError):
+            PublicReaderSettings(
+                consumer="test",
+                topic="test-topic",
+                buffer_release_threshold=1.1,
+                decoder_executor=default_executor,
+            )
+
+        with pytest.raises(ValueError):
+            PublicReaderSettings(
+                consumer="test",
+                topic="test-topic",
+                buffer_release_threshold=-0.1,
+                decoder_executor=default_executor,
+            )
+
+    async def test_threshold_one_flushes_when_bytes_match_buffer_size(self, stream, default_executor):
+        """threshold=1.0: flush only when accumulated bytes reach the full buffer size."""
+        reader = await self._get_started_reader(
+            stream, threshold=1.0, buffer_size_bytes=1000, default_executor=default_executor
+        )
+        ps1 = self._make_partition_session(reader, session_id=1)
+        ps2 = self._make_partition_session(reader, session_id=2)
+
+        reader._message_batches[ps1.id] = self._make_batch(ps1, 500)
+        reader._message_batches[ps2.id] = self._make_batch(ps2, 500)
+
+        # Read first batch: 500 bytes freed, 500 < 1000 threshold → no flush
+        reader.receive_batch_nowait()
+        with pytest.raises(asyncio.QueueEmpty):
+            stream.from_client.get_nowait()
+
+        # Read second batch: 1000 bytes freed, 1000 >= 1000 threshold → flush
+        reader.receive_batch_nowait()
+        msg = stream.from_client.get_nowait()
+        assert isinstance(msg.client_message, StreamReadMessage.ReadRequest)
+        assert msg.client_message.bytes_size == 1000
 
         await reader.close(False)

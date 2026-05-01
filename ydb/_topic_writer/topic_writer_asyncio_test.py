@@ -31,6 +31,7 @@ from .topic_writer import (
     PublicWriterInitInfo,
     PublicWriteResult,
     TopicWriterError,
+    TopicWriterBufferFullError,
 )
 from .._grpc.grpcwrapper.ydb_topic_public_types import PublicCodec
 from .._topic_common.test_helpers import StreamMock, wait_for_fast
@@ -551,6 +552,156 @@ class TestWriterAsyncIOReconnector:
 
         await reconnector.close(flush=False)
 
+    async def test_buffer_full_timeout_raises(self, default_driver, get_stream_writer):
+        # Soft limit: blocking starts when buffer >= limit.
+        # First message is 10 bytes data + 64 overhead = 74 bytes; set limit=74 so the
+        # second write finds buffer already at the limit and must wait.
+        settings = WriterSettings(
+            PublicWriterSettings(
+                topic="/local/topic",
+                producer_id="test-producer",
+                auto_seqno=False,
+                auto_created_at=False,
+                codec=PublicCodec.RAW,
+                max_buffer_size_bytes=74,
+                buffer_wait_timeout_sec=0.1,
+            )
+        )
+        reconnector = WriterAsyncIOReconnector(default_driver, settings)
+        stream_writer = get_stream_writer()
+
+        await reconnector.write_with_ack_future([PublicMessage(data=b"x" * 10, seqno=1)])
+        await stream_writer.from_client.get()
+
+        # buffer == limit (74) → second write blocks and times out
+        with pytest.raises(TopicWriterBufferFullError, match="buffer full"):
+            await reconnector.write_with_ack_future([PublicMessage(data=b"y" * 10, seqno=2)])
+
+        await reconnector.close(flush=False)
+
+    async def test_buffer_freed_by_ack_allows_next_write(self, default_driver, get_stream_writer):
+        # limit=74 matches one message (10 data + 64 overhead); second write blocks
+        # until the first is acked and buffer drops to 0 < 74.
+        settings = WriterSettings(
+            PublicWriterSettings(
+                topic="/local/topic",
+                producer_id="test-producer",
+                auto_seqno=False,
+                auto_created_at=False,
+                codec=PublicCodec.RAW,
+                max_buffer_size_bytes=74,
+                buffer_wait_timeout_sec=5.0,
+            )
+        )
+        reconnector = WriterAsyncIOReconnector(default_driver, settings)
+        stream_writer = get_stream_writer()
+
+        await reconnector.write_with_ack_future([PublicMessage(data=b"x" * 10, seqno=1)])
+        await stream_writer.from_client.get()
+
+        # Ack the first message to free buffer space
+        stream_writer.from_server.put_nowait(self.make_default_ack_message(seq_no=1))
+
+        # Second write must succeed once buffer is freed
+        await reconnector.write_with_ack_future([PublicMessage(data=b"y" * 10, seqno=2)])
+
+        stream_writer.from_server.put_nowait(self.make_default_ack_message(seq_no=2))
+        await reconnector.close(flush=True)
+
+    async def test_concurrent_writers_only_one_proceeds_after_ack(self, default_driver, get_stream_writer):
+        # Soft-limit semantics: blocking starts when buffer >= limit.
+        # limit=74 (one message: 10 data + 64 overhead).
+        # msg1 fills buffer to 74 >= 74 → tasks 2 and 3 both block.
+        # Ack msg1 → buffer=0 < 74 → event fires, both tasks wake up.
+        # First task to run adds 94 bytes (30+64) → buffer=94 >= 74.
+        # Second task checks again and finds buffer still at limit → stays blocked.
+        settings = WriterSettings(
+            PublicWriterSettings(
+                topic="/local/topic",
+                producer_id="test-producer",
+                auto_seqno=False,
+                auto_created_at=False,
+                codec=PublicCodec.RAW,
+                max_buffer_size_bytes=74,
+                buffer_wait_timeout_sec=5.0,
+            )
+        )
+        reconnector = WriterAsyncIOReconnector(default_driver, settings)
+        stream_writer = get_stream_writer()
+
+        await reconnector.write_with_ack_future([PublicMessage(data=b"x" * 10, seqno=1)])
+        await stream_writer.from_client.get()
+
+        task2 = asyncio.create_task(reconnector.write_with_ack_future([PublicMessage(data=b"y" * 30, seqno=2)]))
+        task3 = asyncio.create_task(reconnector.write_with_ack_future([PublicMessage(data=b"z" * 30, seqno=3)]))
+
+        # Let both tasks start and reach their buffer-wait await point
+        await asyncio.sleep(0)
+        await asyncio.sleep(0)
+        assert not task2.done()
+        assert not task3.done()
+
+        # Ack msg1: buffer drops 74 → 0 < 74; one task proceeds and fills buffer again
+        stream_writer.from_server.put_nowait(self.make_default_ack_message(seq_no=1))
+
+        done, pending = await asyncio.wait([task2, task3], timeout=1.0, return_when=asyncio.FIRST_COMPLETED)
+        assert len(done) == 1, "exactly one write should proceed after ack"
+        assert len(pending) == 1, "other write should still be waiting for buffer space"
+        assert not next(iter(pending)).done()
+
+        pending_task = next(iter(pending))
+        pending_task.cancel()
+        with pytest.raises(asyncio.CancelledError):
+            await pending_task
+        await reconnector.close(flush=False)
+
+    async def test_buffer_messages_limit_raises_on_timeout(self, default_driver, get_stream_writer):
+        settings = WriterSettings(
+            PublicWriterSettings(
+                topic="/local/topic",
+                producer_id="test-producer",
+                auto_seqno=False,
+                auto_created_at=False,
+                codec=PublicCodec.RAW,
+                max_buffer_messages=1,
+                buffer_wait_timeout_sec=0.1,
+            )
+        )
+        reconnector = WriterAsyncIOReconnector(default_driver, settings)
+        get_stream_writer()
+
+        await reconnector.write_with_ack_future([PublicMessage(data=b"x", seqno=1)])
+
+        with pytest.raises(TopicWriterBufferFullError, match="buffer full"):
+            await reconnector.write_with_ack_future([PublicMessage(data=b"y", seqno=2)])
+
+        await reconnector.close(flush=False)
+
+    async def test_buffer_messages_limit_freed_by_ack(self, default_driver, get_stream_writer):
+        settings = WriterSettings(
+            PublicWriterSettings(
+                topic="/local/topic",
+                producer_id="test-producer",
+                auto_seqno=False,
+                auto_created_at=False,
+                codec=PublicCodec.RAW,
+                max_buffer_messages=1,
+                buffer_wait_timeout_sec=5.0,
+            )
+        )
+        reconnector = WriterAsyncIOReconnector(default_driver, settings)
+        stream_writer = get_stream_writer()
+
+        await reconnector.write_with_ack_future([PublicMessage(data=b"x", seqno=1)])
+        await stream_writer.from_client.get()
+
+        stream_writer.from_server.put_nowait(self.make_default_ack_message(seq_no=1))
+
+        await reconnector.write_with_ack_future([PublicMessage(data=b"y", seqno=2)])
+
+        stream_writer.from_server.put_nowait(self.make_default_ack_message(seq_no=2))
+        await reconnector.close(flush=True)
+
     async def test_auto_seq_no(self, default_driver, default_settings, get_stream_writer):
         last_seq_no = 100
         with mock.patch.object(TestWriterAsyncIOReconnector, "init_last_seqno", last_seq_no):
@@ -605,7 +756,7 @@ class TestWriterAsyncIOReconnector:
         ]
         await reconnector.write_with_ack_future(messages)
 
-        sent = await asyncio.wait_for(stream_writer.from_client.get(), 1)
+        sent = await asyncio.wait_for(stream_writer.from_client.get(), 5)
         assert len(sent) == 3
 
         # ack first message, then trigger retriable error
@@ -613,7 +764,8 @@ class TestWriterAsyncIOReconnector:
         stream_writer.from_server.put_nowait(issues.Overloaded("test"))
 
         second_writer = get_stream_writer()
-        resent = await asyncio.wait_for(second_writer.from_client.get(), 1)
+        # backoff after Overloaded can sleep up to 1s, so allow generous timeout
+        resent = await asyncio.wait_for(second_writer.from_client.get(), 5)
 
         # msg2 and msg3 must arrive as a single batch, not two separate sends
         assert resent == [InternalMessage(messages[1]), InternalMessage(messages[2])]

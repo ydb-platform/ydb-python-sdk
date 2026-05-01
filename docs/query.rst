@@ -42,6 +42,77 @@ explicitly if not using ``with``.
                 # ... use pool
 
 
+Session Acquire Timeout
+^^^^^^^^^^^^^^^^^^^^^^^
+
+When the pool is exhausted (all sessions are in use), ``acquire()`` and ``checkout()``
+block until a session becomes free. The default behavior is to wait indefinitely.
+
+**Wait indefinitely (default):**
+
+.. code-block:: python
+
+    session = pool.acquire()          # blocks until a session is available
+    session = pool.acquire(timeout=None)  # explicit, same behavior
+
+**Fail immediately if no session is available:**
+
+.. code-block:: python
+
+    from ydb import SessionPoolEmpty
+
+    try:
+        session = pool.acquire(timeout=0)
+    except SessionPoolEmpty:
+        # no session was available right now
+        ...
+
+**Fail after a deadline:**
+
+.. code-block:: python
+
+    try:
+        session = pool.acquire(timeout=5.0)
+    except SessionPoolEmpty:
+        # no session became available within 5 seconds
+        ...
+
+The same ``timeout`` parameter is available on ``checkout()``:
+
+.. code-block:: python
+
+    with pool.checkout(timeout=5.0) as session:
+        ...
+
+When using the retry helpers, set ``max_session_acquire_timeout`` in
+:class:`~ydb.RetrySettings` to apply a per-call timeout across all retry attempts:
+
+.. code-block:: python
+
+    import ydb
+
+    settings = ydb.RetrySettings(max_session_acquire_timeout=5.0)
+    pool.retry_tx_sync(callee, retry_settings=settings)
+
+.. warning::
+
+   **Never call a retry helper from inside another retry helper on the same pool.**
+   Each retry helper holds a session for the duration of the call. If the inner call
+   also needs a session and the pool is full, both sides wait for each other and the
+   program deadlocks silently.
+
+   .. code-block:: python
+
+       # WRONG — if pool size == 1 (or all sessions are taken), this deadlocks:
+       def outer(tx):
+           pool.retry_tx_sync(inner)   # tries to acquire a second session while one is held
+
+       pool.retry_tx_sync(outer)
+
+   If you need auxiliary data, load it before entering the outer retry call, or use a
+   separate pool.
+
+
 execute_with_retries
 --------------------
 

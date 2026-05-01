@@ -68,7 +68,7 @@ class QuerySession(BaseQuerySession["AsyncDriver"]):
             )
             issues._process_response(first_response)
         except Exception as e:
-            self._invalidate()
+            self._close_session(invalidate=True)
             raise e
 
         self._loop.create_task(self._check_session_status_loop(), name="check session status task")
@@ -82,7 +82,7 @@ class QuerySession(BaseQuerySession["AsyncDriver"]):
             logger.debug("Attach stream closed, session_id: %s", self._session_id)
         except Exception as e:
             logger.debug("Attach stream error: %s, session_id: %s", e, self._session_id)
-            self._invalidate()
+            self._close_session(invalidate=True)
 
     async def delete(self, settings: Optional[BaseRequestSettings] = None) -> None:
         """Deletes a Session of Query Service on server side and releases resources.
@@ -98,7 +98,7 @@ class QuerySession(BaseQuerySession["AsyncDriver"]):
             except Exception:
                 pass
 
-        self._invalidate()
+        self._close_session()
 
     async def create(self, settings: Optional[BaseRequestSettings] = None) -> "QuerySession":
         """Creates a Session of Query Service on server side and attaches it.

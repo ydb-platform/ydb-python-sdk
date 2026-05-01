@@ -92,13 +92,20 @@ class SyncResponseContextIterator(_utilities.SyncResponseIterator):
         try:
             return super()._next()
         except StopIteration:
+            # Normal stream termination is not an error and must not invalidate
+            # the session.
             self._finish_span()
             raise
-        except Exception as e:
+        except BaseException as e:
+            # BaseException (not Exception) for parity with the async iterator:
+            # KeyboardInterrupt / SystemExit should still invalidate the session
+            # before they propagate, otherwise the next caller that reuses the
+            # session races the undrained stream and the server can reply with
+            # SessionBusy.
             if self._on_error:
                 self._on_error(e)
             self._finish_span(e)
-            raise e
+            raise
 
     def _finish_span(self, exception=None):
         # Pop gRPC propagation before ending span so metadata hooks do not outlive the span.
@@ -117,8 +124,14 @@ class SyncResponseContextIterator(_utilities.SyncResponseIterator):
         self._finish_span()
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        #  To close stream on YDB it is necessary to scroll through it to the end
-        for _ in self:
+        #  To close stream on YDB it is necessary to scroll through it to the end.
+        # Errors during the cleanup drain have already been reported to _on_error
+        # inside _next; swallow them here so __exit__ does not mask a primary
+        # exception and the caller's own cleanup (e.g. tx rollback) can still run.
+        try:
+            for _ in self:
+                pass
+        except BaseException:
             pass
         self._finish_span()
 
@@ -219,7 +232,7 @@ def bad_session_handler(func):
         try:
             return func(rpc_state, response_pb, session, *args, **kwargs)
         except issues.BadSession:
-            session._invalidate()
+            session._close_session(invalidate=True)
             raise
 
     return decorator

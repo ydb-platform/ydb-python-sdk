@@ -5,6 +5,7 @@ from typing import List  # noqa: F401
 
 import pytest
 
+import ydb
 import ydb.aio
 
 
@@ -134,6 +135,53 @@ class TestTopicWriterAsyncIO:
                     await writer.write_with_ack("123")
 
                 raise TestException()
+
+
+@pytest.mark.asyncio
+class TestTopicWriterBackpressureAsyncIO:
+    async def test_write_and_read_with_backpressure_settings(
+        self, driver: ydb.aio.Driver, topic_path: str, topic_consumer: str
+    ):
+        messages = [b"msg-1", b"msg-2", b"msg-3"]
+
+        async with driver.topic_client.writer(
+            topic_path,
+            producer_id="bp-test",
+            max_buffer_size_bytes=1024 * 1024,
+            max_buffer_messages=100,
+            buffer_wait_timeout_sec=10.0,
+        ) as writer:
+            for data in messages:
+                await writer.write(ydb.TopicWriterMessage(data=data))
+
+        async with driver.topic_client.reader(topic_path, consumer=topic_consumer) as reader:
+            for expected in messages:
+                msg = await asyncio.wait_for(reader.receive_message(), timeout=10)
+                assert msg.data == expected
+                reader.commit(msg)
+
+
+class TestTopicWriterBackpressureSync:
+    def test_write_and_read_with_backpressure_settings(
+        self, driver_sync: ydb.Driver, topic_path: str, topic_consumer: str
+    ):
+        messages = [b"msg-1", b"msg-2", b"msg-3"]
+
+        with driver_sync.topic_client.writer(
+            topic_path,
+            producer_id="bp-sync-test",
+            max_buffer_size_bytes=1024 * 1024,
+            max_buffer_messages=100,
+            buffer_wait_timeout_sec=10.0,
+        ) as writer:
+            for data in messages:
+                writer.write(ydb.TopicWriterMessage(data=data))
+
+        with driver_sync.topic_client.reader(topic_path, consumer=topic_consumer) as reader:
+            for expected in messages:
+                msg = reader.receive_message(timeout=10)
+                assert msg.data == expected
+                reader.commit(msg)
 
 
 class TestTopicWriterSync:
