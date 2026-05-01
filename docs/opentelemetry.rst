@@ -230,13 +230,13 @@ Docker (YDB or the full stack) first**, then install and run on the host — see
 
 .. code-block:: sh
 
-    cd examples/opentelemetry && docker compose -f docker-compose.otel.yml up
+    cd examples/opentelemetry && docker compose -f docker-compose.otel.yaml up
 
 **Alternative** (same file, from the repository root):
 
 .. code-block:: sh
 
-    docker compose -f examples/opentelemetry/docker-compose.otel.yml up
+    docker compose -f examples/opentelemetry/docker-compose.otel.yaml up
 
 **Typical local run** (YDB in Docker, script on the host — Compose **before** ``pip`` / ``python``):
 
@@ -245,13 +245,6 @@ Docker (YDB or the full stack) first**, then install and run on the host — see
     docker compose up -d
     pip install -e '.[opentelemetry]' -r examples/opentelemetry/requirements.txt
     python examples/opentelemetry/otel_example.py
-
-**Stack from** ``examples/opentelemetry/`` **only** (then install and run from repo root as above):
-
-.. code-block:: sh
-
-    cd examples/opentelemetry
-    docker compose -f compose-e2e.yaml up -d
     cd ../..
     pip install -e '.[opentelemetry]' -r examples/opentelemetry/requirements.txt
     python examples/opentelemetry/otel_example.py

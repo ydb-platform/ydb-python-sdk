@@ -35,14 +35,6 @@ Grafana: http://localhost:3000
 
 **Logs for `otel-example`:** the container name is prefixed (e.g. `opentelemetry-otel-example-1`); use `docker compose -f docker-compose.otel.yaml ps` or `docker ps -a` to find it. The service is one-shot (`restart: "no"`) — it may already have exited.
 
-**Only configs from this folder** (same idea, from `examples/opentelemetry`):
-
-```sh
-cd /path/to/ydb-python-sdk/examples/opentelemetry
-docker compose -f compose-e2e.yaml up -d
-cd ../..
-```
-
 ## 2. Install dependencies (on the host, for a local `python` run)
 
 **From the repository root** (editable SDK + pins from this example):
