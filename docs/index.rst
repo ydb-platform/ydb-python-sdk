@@ -88,7 +88,7 @@ Distributed Coordination
 ------------------------
 
 The :doc:`coordination` page covers distributed semaphores and leader election. If you
-need to limit concurrent access to aЗе shared resource across multiple processes or hosts,
+need to limit concurrent access to a shared resource across multiple processes or hosts,
 this is the service to use.
 
 Schema Management

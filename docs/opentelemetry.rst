@@ -69,6 +69,9 @@ and **before** creating a ``Driver``:
 ``enable_tracing()`` accepts an optional ``tracer`` argument. If omitted, the SDK
 obtains a tracer named ``"ydb.sdk"`` from the global tracer provider.
 
+Repeated calls to ``enable_tracing()`` do nothing until you call ``disable_tracing()``,
+which removes hooks so you can reconfigure or turn instrumentation off.
+
 
 What Is Instrumented
 --------------------
@@ -218,16 +221,39 @@ To use a specific tracer instead of the global one:
 Running the Examples
 --------------------
 
-The ``examples/opentelemetry/`` directory contains ready-to-run examples with a Docker
-Compose setup that starts YDB, an OTLP collector, Tempo, Prometheus, and Grafana:
+The runnable script is ``examples/opentelemetry/otel_example.py`` (bank table + concurrent
+Serializable transactions and ``app_startup`` / ``example_tli`` application spans). **Start
+Docker (YDB or the full stack) first**, then install and run on the host — see
+``examples/opentelemetry/README.md`` for the full order of commands and environment variables.
+
+**Full stack in one command** (YDB + OTLP + Tempo + Grafana; includes a one-shot ``otel-example`` container; compose file in ``examples/opentelemetry/``):
+
+.. code-block:: sh
+
+    cd examples/opentelemetry && docker compose -f docker-compose.otel.yml up
+
+**Alternative** (same file, from the repository root):
+
+.. code-block:: sh
+
+    docker compose -f examples/opentelemetry/docker-compose.otel.yml up
+
+**Typical local run** (YDB in Docker, script on the host — Compose **before** ``pip`` / ``python``):
+
+.. code-block:: sh
+
+    docker compose up -d
+    pip install -e '.[opentelemetry]' -r examples/opentelemetry/requirements.txt
+    python examples/opentelemetry/otel_example.py
+
+**Stack from** ``examples/opentelemetry/`` **only** (then install and run from repo root as above):
 
 .. code-block:: sh
 
     cd examples/opentelemetry
     docker compose -f compose-e2e.yaml up -d
+    cd ../..
+    pip install -e '.[opentelemetry]' -r examples/opentelemetry/requirements.txt
+    python examples/opentelemetry/otel_example.py
 
-    # Run the example
-    python example.py
-
-Open `http://localhost:3000 <http://localhost:3000>`_ (Grafana) to explore the
-collected traces via the Tempo data source.
+Open `http://localhost:3000 <http://localhost:3000>`_ (Grafana) to explore traces via Tempo.

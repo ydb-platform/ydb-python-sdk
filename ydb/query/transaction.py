@@ -17,7 +17,7 @@ from .. import (
     _apis,
     issues,
 )
-from ..opentelemetry.tracing import create_ydb_span
+from ..opentelemetry.tracing import create_ydb_span, pop_otel_span_for_grpc, push_otel_span_for_grpc
 from .._grpc.grpcwrapper import ydb_topic as _ydb_topic
 from .._grpc.grpcwrapper import ydb_query as _ydb_query
 from ..connection import _RpcState as RpcState
@@ -659,19 +659,25 @@ class QueryTxContext(BaseQueryTxContext["SyncDriver"]):
         )
 
         try:
-            stream_it = self._execute_call(
-                query=query,
-                commit_tx=commit_tx,
-                syntax=syntax,
-                exec_mode=exec_mode,
-                stats_mode=stats_mode,
-                schema_inclusion_mode=schema_inclusion_mode,
-                result_set_format=result_set_format,
-                arrow_format_settings=arrow_format_settings,
-                parameters=parameters,
-                concurrent_result_sets=concurrent_result_sets,
-                settings=settings,
-            )
+            # PR #786: same propagation contract as QuerySession.execute (see session.py).
+            tok = push_otel_span_for_grpc(span)
+            try:
+                stream_it = self._execute_call(
+                    query=query,
+                    commit_tx=commit_tx,
+                    syntax=syntax,
+                    exec_mode=exec_mode,
+                    stats_mode=stats_mode,
+                    schema_inclusion_mode=schema_inclusion_mode,
+                    result_set_format=result_set_format,
+                    arrow_format_settings=arrow_format_settings,
+                    parameters=parameters,
+                    concurrent_result_sets=concurrent_result_sets,
+                    settings=settings,
+                )
+            except BaseException:
+                pop_otel_span_for_grpc(tok)
+                raise
 
             self._prev_stream = base.SyncResponseContextIterator(
                 stream_it,
@@ -685,6 +691,7 @@ class QueryTxContext(BaseQueryTxContext["SyncDriver"]):
                 ),
                 on_error=self.session._on_execute_stream_error,
                 span=span,
+                grpc_propagation_token=tok,
             )
             return self._prev_stream
         except Exception as e:

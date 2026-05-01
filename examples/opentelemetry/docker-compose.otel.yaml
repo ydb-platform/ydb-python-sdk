@@ -1,9 +1,18 @@
+# Full OpenTelemetry demo: YDB (server-side tracing config), collector, Tempo, Prometheus, Grafana,
+# and a one-shot container that runs otel_example.py once.
+#
+# Run from this directory (paths below are relative to this file):
+#   cd examples/opentelemetry && docker compose -f docker-compose.otel.yaml up
+#
+# Or from the repository root:
+#   docker compose -f examples/opentelemetry/docker-compose.otel.yaml up
+
 version: "3.3"
+
 services:
   ydb:
     image: ydbplatform/local-ydb:trunk
     restart: always
-    hostname: localhost
     platform: linux/amd64
     environment:
       YDB_DEFAULT_LOG_LEVEL: NOTICE
@@ -11,7 +20,7 @@ services:
       GRPC_PORT: "2136"
       MON_PORT: "8765"
       YDB_USE_IN_MEMORY_PDISKS: "true"
-    command: [ "--config-path", "/ydb_config/ydb-config-with-tracing.yaml" ]
+    command: ["--config-path", "/ydb_config/ydb-config-with-tracing.yaml"]
     ports:
       - "2135:2135"
       - "2136:2136"
@@ -21,7 +30,7 @@ services:
 
   otel-collector:
     image: otel/opentelemetry-collector-contrib:latest
-    command: [ "--config=/etc/otelcol/config.yaml" ]
+    command: ["--config=/etc/otelcol/config.yaml"]
     volumes:
       - ./otel-collector-config.yaml:/etc/otelcol/config.yaml:ro
     ports:
@@ -37,16 +46,16 @@ services:
       - ./prometheus.yaml:/etc/prometheus/prometheus.yml:ro
     ports:
       - "9090:9090"
-    depends_on: [ otel-collector ]
+    depends_on: [otel-collector]
 
   tempo:
     image: grafana/tempo:2.4.1
-    command: [ "-config.file=/etc/tempo.yaml" ]
+    command: ["-config.file=/etc/tempo.yaml"]
     volumes:
       - ./tempo.yaml:/etc/tempo.yaml:ro
     ports:
       - "3200:3200"
-    depends_on: [ otel-collector ]
+    depends_on: [otel-collector]
 
   grafana:
     image: grafana/grafana:10.4.2
@@ -58,13 +67,14 @@ services:
       - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
     ports:
       - "3000:3000"
-    depends_on: [ prometheus, tempo ]
+    depends_on: [prometheus, tempo]
 
   otel-example:
     image: python:3.11-slim
     working_dir: /workspace
     volumes:
-      - ../..:/workspace
+      # repository root (../../ from this file) for editable `pip install -e .[opentelemetry]`
+      - ../../:/workspace
     environment:
       YDB_ENDPOINT: grpc://ydb:2136
       YDB_DATABASE: /local
@@ -76,5 +86,5 @@ services:
     restart: "no"
     command: >
       bash -c "set -euo pipefail
-      pip install --no-cache-dir -e '.[opentelemetry]' -r requirements.txt
-      python otel_example.py"
+      pip install --no-cache-dir -e '.[opentelemetry]' -r examples/opentelemetry/requirements.txt
+      python examples/opentelemetry/otel_example.py"

@@ -1,3 +1,10 @@
+## Unreleased ##
+* OpenTelemetry: W3C trace context for gRPC stays bound for the whole ``ExecuteQuery`` stream
+  (until the result iterator finishes); no long-lived ``context.attach`` on the span;
+  ``disable_tracing()``; correct ``server.*`` from ``grpc://`` endpoints; zero work in
+  ``create_ydb_span`` when tracing is off; one ``ydb.Try`` per attempt for fast retriable
+  errors in sync retries.
+
 ## 3.26.10 ##
 * Fix asyncio.Cancelled error propagated to writer/reader
 * add nearest DC detection with TCP race

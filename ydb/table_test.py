@@ -80,7 +80,13 @@ def test_retry_operation_impl(monkeypatch):
                 YdbRetryOperationSleepOpt(backoff.calc_timeout(1)),
             ] == yields
         else:
-            assert [] == yields
+            # PR #786: retry_operation_impl now yields SleepOpt(0, exc) for these types so
+            # ``retry_operation_sync`` matches async behaviour (one ``ydb.Try`` per attempt).
+            assert len(yields) == 2
+            assert all(
+                isinstance(y, YdbRetryOperationSleepOpt) and y.timeout == 0.0 and y.exception is not None
+                for y in yields
+            )
 
         assert exc == err_type("test2")
 

@@ -282,8 +282,9 @@ class TestCommonAttributes:
     @pytest.mark.parametrize(
         "endpoint,expected_host,expected_port",
         [
-            ("grpc://host.example.com:2136", "grpc://host.example.com", 2136),
+            ("grpc://host.example.com:2136", "host.example.com", 2136),
             ("localhost:2136", "localhost", 2136),
+            ("[::1]:2136", "[::1]", 2136),
         ],
     )
     def test_endpoint_parsing(self, otel_setup, endpoint, expected_host, expected_port):
@@ -374,7 +375,7 @@ class TestRetryPolicySpans:
         tries = _get_spans(exporter, "ydb.Try")
         assert len(tries) == 1
         assert tries[0].kind == SpanKind.INTERNAL
-        assert dict(tries[0].attributes)["ydb.retry.backoff_ms"] == 0
+        assert "ydb.retry.backoff_ms" not in dict(tries[0].attributes)
         assert tries[0].parent.span_id == run.context.span_id
 
     def test_retry_backoff_ms_on_each_try(self, otel_setup):
@@ -401,15 +402,45 @@ class TestRetryPolicySpans:
 
         tries = _get_spans(exporter, "ydb.Try")
         assert len(tries) == 3
-        # first attempt has no preceding backoff, later ones have a positive one
-        backoff_values = [dict(s.attributes)["ydb.retry.backoff_ms"] for s in tries]
-        assert backoff_values[0] == 0
-        assert all(v >= 0 for v in backoff_values)
-        assert any(v > 0 for v in backoff_values[1:])
+        # First attempt has no preceding backoff, so no attribute at all; later ones
+        # carry a positive integer ms.
+        attrs0 = dict(tries[0].attributes)
+        assert "ydb.retry.backoff_ms" not in attrs0
+        later_values = [dict(s.attributes).get("ydb.retry.backoff_ms") for s in tries[1:]]
+        assert all(isinstance(v, int) and v > 0 for v in later_values)
         # failed Try spans record the exception
         assert tries[0].status.status_code == StatusCode.ERROR
         assert tries[1].status.status_code == StatusCode.ERROR
         assert tries[2].status.status_code == StatusCode.UNSET
+
+    def test_skip_backoff_errors_still_emit_one_try_per_attempt(self, otel_setup):
+        """Aborted/BadSession path yields zero sleep but must rotate ydb.Try spans (sync loop)."""
+        from ydb import issues
+        from ydb.retries import RetrySettings, retry_operation_sync
+
+        exporter = otel_setup
+        counter = {"n": 0}
+
+        def flaky():
+            counter["n"] += 1
+            if counter["n"] < 3:
+                raise issues.Aborted("retry me")
+            return "ok"
+
+        assert retry_operation_sync(flaky, RetrySettings(max_retries=5)) == "ok"
+
+        tries = _get_spans(exporter, "ydb.Try")
+        assert len(tries) == 3
+        assert tries[0].status.status_code == StatusCode.ERROR
+        assert tries[1].status.status_code == StatusCode.ERROR
+        assert tries[2].status.status_code == StatusCode.UNSET
+        # First Try has no preceding sleep -> attribute is absent.
+        # Skip-yield path means subsequent Tries had no real wait either, but the
+        # attribute is still set to 0 to make "we did go through a retry boundary"
+        # explicit.
+        assert "ydb.retry.backoff_ms" not in dict(tries[0].attributes)
+        assert dict(tries[1].attributes)["ydb.retry.backoff_ms"] == 0
+        assert dict(tries[2].attributes)["ydb.retry.backoff_ms"] == 0
 
     def test_non_retryable_error_propagates_to_run_span(self, otel_setup):
         from ydb import issues
@@ -432,3 +463,37 @@ class TestRetryPolicySpans:
         attrs = dict(tries[0].attributes)
         assert attrs["error.type"] == "ydb_error"
         assert attrs["db.response.status_code"] == "SCHEME_ERROR"
+
+    def test_execute_query_is_child_of_try_under_run_with_retry(self, otel_setup):
+        """``ydb.RunWithRetry`` -> ``ydb.Try`` -> ``ydb.ExecuteQuery`` (sync path)."""
+        from ydb.query.session import QuerySession
+        from ydb.retries import retry_operation_sync
+
+        exporter = otel_setup
+
+        qs = QuerySession.__new__(QuerySession)
+        cfg = FakeDriverConfig()
+        driver = MagicMock()
+        driver._driver_config = cfg
+        qs._driver = driver
+        qs._session_id = "test-session-id"
+        qs._node_id = 12345
+        qs._peer = ("n1", 2136, "dc-a")
+        qs._closed = False
+
+        def callee():
+            fake_stream = iter([])
+            with patch.object(QuerySession, "_execute_call", return_value=fake_stream):
+                result = qs.execute("SELECT 1;")
+                list(result)
+            return "ok"
+
+        assert retry_operation_sync(callee) == "ok"
+
+        run = _get_single_span(exporter, "ydb.RunWithRetry")
+        try_span = _get_single_span(exporter, "ydb.Try")
+        exec_span = _get_single_span(exporter, "ydb.ExecuteQuery")
+
+        assert try_span.parent.span_id == run.context.span_id
+        assert exec_span.parent.span_id == try_span.context.span_id
+        assert exec_span.context.trace_id == run.context.trace_id

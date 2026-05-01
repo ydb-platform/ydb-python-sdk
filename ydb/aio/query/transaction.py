@@ -12,7 +12,7 @@ from ...query.transaction import (
     BaseQueryTxContext,
     QueryTxStateEnum,
 )
-from ...opentelemetry.tracing import create_ydb_span
+from ...opentelemetry.tracing import create_ydb_span, pop_otel_span_for_grpc, push_otel_span_for_grpc
 
 if TYPE_CHECKING:
     from .session import QuerySession
@@ -208,19 +208,25 @@ class QueryTxContext(BaseQueryTxContext["AsyncDriver"]):
         )
 
         try:
-            stream_it = await self._execute_call(
-                query=query,
-                parameters=parameters,
-                commit_tx=commit_tx,
-                syntax=syntax,
-                exec_mode=exec_mode,
-                stats_mode=stats_mode,
-                schema_inclusion_mode=schema_inclusion_mode,
-                result_set_format=result_set_format,
-                arrow_format_settings=arrow_format_settings,
-                concurrent_result_sets=concurrent_result_sets,
-                settings=settings,
-            )
+            # PR #786: async mirror of sync transaction.execute propagation.
+            tok = push_otel_span_for_grpc(span)
+            try:
+                stream_it = await self._execute_call(
+                    query=query,
+                    parameters=parameters,
+                    commit_tx=commit_tx,
+                    syntax=syntax,
+                    exec_mode=exec_mode,
+                    stats_mode=stats_mode,
+                    schema_inclusion_mode=schema_inclusion_mode,
+                    result_set_format=result_set_format,
+                    arrow_format_settings=arrow_format_settings,
+                    concurrent_result_sets=concurrent_result_sets,
+                    settings=settings,
+                )
+            except BaseException:
+                pop_otel_span_for_grpc(tok)
+                raise
 
             self._prev_stream = AsyncResponseContextIterator(
                 it=stream_it,
@@ -234,6 +240,7 @@ class QueryTxContext(BaseQueryTxContext["AsyncDriver"]):
                 ),
                 on_error=self.session._on_execute_stream_error,
                 span=span,
+                grpc_propagation_token=tok,
             )
             return self._prev_stream
         except Exception as e:

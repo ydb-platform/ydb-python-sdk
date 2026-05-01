@@ -24,32 +24,32 @@ _errors_retriable_slow_backoff_idempotent_types = [
 def check_retriable_error(err, retry_settings, attempt):
     if isinstance(err, issues.Cancelled):
         if retry_settings.retry_cancelled:
-            return ErrorRetryInfo(True, retry_settings.fast_backoff.calc_timeout(attempt))
+            return ErrorRetryInfo(True, retry_settings.fast_backoff.calc_backoff_ms(attempt))
 
     if isinstance(err, issues.NotFound):
         if retry_settings.retry_not_found:
-            return ErrorRetryInfo(True, retry_settings.fast_backoff.calc_timeout(attempt))
+            return ErrorRetryInfo(True, retry_settings.fast_backoff.calc_backoff_ms(attempt))
         else:
             return ErrorRetryInfo(False, None)
 
     if isinstance(err, issues.InternalError):
         if retry_settings.retry_internal_error:
-            return ErrorRetryInfo(True, retry_settings.slow_backoff.calc_timeout(attempt))
+            return ErrorRetryInfo(True, retry_settings.slow_backoff.calc_backoff_ms(attempt))
         else:
             return ErrorRetryInfo(False, None)
 
     for t in _errors_retriable_fast_backoff_types:
         if isinstance(err, t):
-            return ErrorRetryInfo(True, retry_settings.fast_backoff.calc_timeout(attempt))
+            return ErrorRetryInfo(True, retry_settings.fast_backoff.calc_backoff_ms(attempt))
 
     for t in _errors_retriable_slow_backoff_types:
         if isinstance(err, t):
-            return ErrorRetryInfo(True, retry_settings.slow_backoff.calc_timeout(attempt))
+            return ErrorRetryInfo(True, retry_settings.slow_backoff.calc_backoff_ms(attempt))
 
     if retry_settings.idempotent:
         for t in _errors_retriable_slow_backoff_idempotent_types:
             if isinstance(err, t):
-                return ErrorRetryInfo(True, retry_settings.slow_backoff.calc_timeout(attempt))
+                return ErrorRetryInfo(True, retry_settings.slow_backoff.calc_backoff_ms(attempt))
 
     return ErrorRetryInfo(False, None)
 
@@ -57,4 +57,11 @@ def check_retriable_error(err, retry_settings, attempt):
 @dataclass
 class ErrorRetryInfo:
     is_retriable: bool
-    sleep_timeout_seconds: Optional[float]
+    # Single source: integer ms from ``BackoffSettings.calc_backoff_ms`` (before ``/ 1000`` to seconds).
+    sleep_backoff_ms: Optional[int] = None
+
+    @property
+    def sleep_timeout_seconds(self) -> Optional[float]:
+        if self.sleep_backoff_ms is None:
+            return None
+        return self.sleep_backoff_ms / 1000.0

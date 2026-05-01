@@ -18,7 +18,12 @@ from . import base
 from .base import QueryExplainResultFormat
 
 from .. import _apis, issues, _utilities
-from ..opentelemetry.tracing import create_ydb_span, set_peer_attributes
+from ..opentelemetry.tracing import (
+    create_ydb_span,
+    pop_otel_span_for_grpc,
+    push_otel_span_for_grpc,
+    set_peer_attributes,
+)
 from ..settings import BaseRequestSettings
 from ..connection import _RpcState as RpcState, EndpointKey
 from .._grpc.grpcwrapper import common_utils
@@ -472,19 +477,26 @@ class QuerySession(BaseQuerySession["SyncDriver"]):
         )
 
         try:
-            stream_it = self._execute_call(
-                query=query,
-                parameters=parameters,
-                commit_tx=True,
-                syntax=syntax,
-                exec_mode=exec_mode,
-                stats_mode=stats_mode,
-                schema_inclusion_mode=schema_inclusion_mode,
-                result_set_format=result_set_format,
-                arrow_format_settings=arrow_format_settings,
-                concurrent_result_sets=concurrent_result_sets,
-                settings=settings,
-            )
+            # PR #786: push before _execute_call; token lives on SyncResponseContextIterator until
+            # the stream is fully read so W3C inject matches the whole ExecuteQuery (vgvoleg).
+            tok = push_otel_span_for_grpc(span)
+            try:
+                stream_it = self._execute_call(
+                    query=query,
+                    parameters=parameters,
+                    commit_tx=True,
+                    syntax=syntax,
+                    exec_mode=exec_mode,
+                    stats_mode=stats_mode,
+                    schema_inclusion_mode=schema_inclusion_mode,
+                    result_set_format=result_set_format,
+                    arrow_format_settings=arrow_format_settings,
+                    concurrent_result_sets=concurrent_result_sets,
+                    settings=settings,
+                )
+            except BaseException:
+                pop_otel_span_for_grpc(tok)
+                raise
 
             return base.SyncResponseContextIterator(
                 stream_it,
@@ -496,6 +508,7 @@ class QuerySession(BaseQuerySession["SyncDriver"]):
                 ),
                 on_error=self._on_execute_stream_error,
                 span=span,
+                grpc_propagation_token=tok,
             )
         except Exception as e:
             if span is not None:

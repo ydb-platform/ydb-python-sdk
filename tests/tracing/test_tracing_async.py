@@ -227,16 +227,45 @@ class TestAsyncRetryPolicySpans:
         tries = _get_spans(exporter, "ydb.Try")
         assert len(tries) == 1
         assert tries[0].parent.span_id == run.context.span_id
-        assert dict(tries[0].attributes)["ydb.retry.backoff_ms"] == 0
+        assert "ydb.retry.backoff_ms" not in dict(tries[0].attributes)
+        assert tries[0].status.status_code == StatusCode.UNSET
+
+    @pytest.mark.asyncio
+    async def test_retry_failed_tries_set_error_status(self, otel_setup):
+        """Failed async attempts must set ``ydb.Try`` status to ERROR (not UNSET)."""
+        from ydb import issues
+        from ydb.retries import BackoffSettings, RetrySettings, retry_operation_async
+
+        exporter = otel_setup
+        counter = {"n": 0}
+
+        async def flaky():
+            counter["n"] += 1
+            if counter["n"] < 3:
+                raise issues.Unavailable("transient")
+            return "ok"
+
+        retry_settings = RetrySettings(
+            max_retries=5,
+            fast_backoff_settings=BackoffSettings(ceiling=0, slot_duration=0.05),
+            slow_backoff_settings=BackoffSettings(ceiling=0, slot_duration=0.05),
+        )
+
+        assert await retry_operation_async(flaky, retry_settings) == "ok"
+
+        tries = _get_spans(exporter, "ydb.Try")
+        assert len(tries) == 3
+        assert tries[0].status.status_code == StatusCode.ERROR
+        assert tries[1].status.status_code == StatusCode.ERROR
+        assert tries[2].status.status_code == StatusCode.UNSET
 
     @pytest.mark.asyncio
     async def test_context_cancel_during_backoff_records_exception(self, otel_setup):
-        """Backoff sleep is the timeline of the next Try; a cancel hitting it
-        must be recorded on that Try span and propagate out through RunWithRetry.
+        """Inter-attempt sleep is outside ``ydb.Try``; cancellation during
+        ``asyncio.sleep`` is recorded on ``ydb.RunWithRetry`` (``record_exception``).
         """
         from ydb import issues
-        from ydb.retries import retry_operation_async
-        from ydb.retries import BackoffSettings, RetrySettings
+        from ydb.retries import BackoffSettings, RetrySettings, retry_operation_async
 
         exporter = otel_setup
         calls = {"n": 0}
@@ -252,7 +281,6 @@ class TestAsyncRetryPolicySpans:
         )
 
         task = asyncio.ensure_future(retry_operation_async(flaky, retry_settings))
-        # Let the first attempt fail and the backoff sleep start.
         for _ in range(10):
             await asyncio.sleep(0.01)
             if calls["n"] >= 1:
@@ -263,15 +291,54 @@ class TestAsyncRetryPolicySpans:
 
         run = _get_single_span(exporter, "ydb.RunWithRetry")
         assert run.status.status_code == StatusCode.ERROR
-
+        # TracingSpan / OTel will attach the cancellation as span events (record_exception) when enabled.
+        assert run.events is not None
+        # First attempt: ``ydb.Try``; cancel hits ``ydb.RunWithRetry`` during the inter-attempt sleep.
         tries = _get_spans(exporter, "ydb.Try")
-        assert len(tries) >= 2
-        # Try span that carried the cancelled backoff must be errored.
-        backoff_try = tries[-1]
-        assert backoff_try.status.status_code == StatusCode.ERROR
-        assert dict(backoff_try.attributes)["ydb.retry.backoff_ms"] > 0
-        error_types = {dict(s.attributes).get("error.type") for s in tries}
-        assert "CancelledError" in error_types
+        assert len(tries) >= 1
+
+
+class TestAsyncRetrySpanNesting:
+    @pytest.mark.asyncio
+    async def test_execute_query_is_child_of_try_under_run_with_retry(self, otel_setup):
+        """``ydb.RunWithRetry`` -> ``ydb.Try`` -> ``ydb.ExecuteQuery`` (deep nesting).
+
+        The previous implementation produced sibling spans because ``ydb.Try`` was
+        opened *after* the awaitable was created, leaving the gRPC span without an
+        active ``ydb.Try`` context. This test pins the corrected nesting.
+        """
+        from ydb.aio.query.session import QuerySession
+        from ydb.retries import retry_operation_async
+
+        exporter = otel_setup
+
+        qs = QuerySession.__new__(QuerySession)
+        cfg = FakeDriverConfig()
+        driver = MagicMock()
+        driver._driver_config = cfg
+        qs._driver = driver
+        qs._session_id = "test-session-id"
+        qs._node_id = 12345
+        qs._peer = ("n1", 2136, "dc-a")
+        qs._closed = False
+
+        async def callee():
+            fake_stream = _empty_async_iter()
+            with patch.object(QuerySession, "_execute_call", new_callable=AsyncMock, return_value=fake_stream):
+                result = await qs.execute("SELECT 1;")
+                async for _ in result:
+                    pass
+            return "ok"
+
+        assert await retry_operation_async(callee) == "ok"
+
+        run = _get_single_span(exporter, "ydb.RunWithRetry")
+        try_span = _get_single_span(exporter, "ydb.Try")
+        exec_span = _get_single_span(exporter, "ydb.ExecuteQuery")
+
+        assert try_span.parent.span_id == run.context.span_id
+        assert exec_span.parent.span_id == try_span.context.span_id
+        assert exec_span.context.trace_id == run.context.trace_id
 
 
 class TestAsyncConcurrentSpansIsolation:

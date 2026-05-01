@@ -2,10 +2,13 @@ from .. import _utilities
 
 
 class AsyncResponseContextIterator(_utilities.AsyncResponseIterator):
-    def __init__(self, it, wrapper, on_error=None, span=None):
+    """Async ExecuteQuery result stream; span + gRPC propagation token (see sync class doc)."""
+
+    def __init__(self, it, wrapper, on_error=None, span=None, grpc_propagation_token=None):
         super().__init__(it, wrapper)
         self._on_error = on_error
         self._span = span
+        self._grpc_propagation_token = grpc_propagation_token
 
     async def __aenter__(self) -> "AsyncResponseContextIterator":
         return self
@@ -23,6 +26,12 @@ class AsyncResponseContextIterator(_utilities.AsyncResponseIterator):
             raise e
 
     def _finish_span(self, exception=None):
+        # Pop gRPC propagation before ending span (same contract as sync iterator).
+        if self._grpc_propagation_token is not None:
+            from ydb.opentelemetry.tracing import pop_otel_span_for_grpc
+
+            pop_otel_span_for_grpc(self._grpc_propagation_token)
+            self._grpc_propagation_token = None
         if self._span is not None:
             if exception is not None:
                 self._span.set_error(exception)

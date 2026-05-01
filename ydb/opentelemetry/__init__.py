@@ -1,8 +1,20 @@
+"""Public OpenTelemetry entrypoints for YDB (PR #786).
+
+``disable_tracing`` exists because ``enable_tracing`` is idempotent: reviewers asked for
+either documentation or an explicit reset before changing the tracer (vgvoleg).
+"""
+
+
 def enable_tracing(tracer=None):
     """Enable OpenTelemetry trace context propagation and span creation for all YDB gRPC calls.
 
+    This call is **idempotent**: if tracing is already enabled, later calls do nothing
+    (including passing a different ``tracer``). Call :func:`disable_tracing` first to
+    reconfigure or turn instrumentation off.
+
     Args:
-        tracer: Optional OTel tracer to use. If not provided, the default tracer from the global tracer provider will be used.
+        tracer: Optional OTel tracer to use. If not provided, the default tracer named
+            ``ydb.sdk`` from the global tracer provider will be used.
     """
     try:
         from ydb.opentelemetry._plugin import _enable_tracing
@@ -15,4 +27,14 @@ def enable_tracing(tracer=None):
     _enable_tracing(tracer)
 
 
-__all__ = ["enable_tracing"]
+def disable_tracing():
+    """Disable YDB OpenTelemetry hooks and allow :func:`enable_tracing` to run again."""
+    try:
+        from ydb.opentelemetry._plugin import _disable_tracing
+    except ImportError:
+        return
+
+    _disable_tracing()
+
+
+__all__ = ["disable_tracing", "enable_tracing"]

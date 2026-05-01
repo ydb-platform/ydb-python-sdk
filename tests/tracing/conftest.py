@@ -11,8 +11,6 @@ from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import SimpleSpanProcessor
 from opentelemetry.sdk.trace.export.in_memory_span_exporter import InMemorySpanExporter
 
-from ydb.opentelemetry.tracing import _registry
-
 _provider = TracerProvider()
 _exporter = InMemorySpanExporter()
 _provider.add_span_processor(SimpleSpanProcessor(_exporter))
@@ -25,24 +23,17 @@ def otel_setup():
 
     Each test gets a clean exporter (cleared before and after).
     """
-    import ydb.opentelemetry._plugin as _plugin
-
     _exporter.clear()
 
-    _plugin._enabled = False
-    _plugin._tracer = None
+    from ydb.opentelemetry import disable_tracing, enable_tracing
 
-    from ydb.opentelemetry import enable_tracing
-
+    disable_tracing()
     enable_tracing()
 
     yield _exporter
 
     # Restore noop state
-    _registry.set_create_span(None)
-    _registry.set_metadata_hook(None)
-    _plugin._enabled = False
-    _plugin._tracer = None
+    disable_tracing()
     _exporter.clear()
 
 

@@ -19,7 +19,12 @@ from ..._grpc.grpcwrapper import ydb_query_public_types as _ydb_query_public
 
 from ...query import base
 from ...query.session import BaseQuerySession
-from ...opentelemetry.tracing import create_ydb_span, set_peer_attributes
+from ...opentelemetry.tracing import (
+    create_ydb_span,
+    pop_otel_span_for_grpc,
+    push_otel_span_for_grpc,
+    set_peer_attributes,
+)
 
 from ..._constants import DEFAULT_INITIAL_RESPONSE_TIMEOUT
 
@@ -170,19 +175,25 @@ class QuerySession(BaseQuerySession["AsyncDriver"]):
         )
 
         try:
-            stream_it = await self._execute_call(
-                query=query,
-                parameters=parameters,
-                commit_tx=True,
-                syntax=syntax,
-                exec_mode=exec_mode,
-                stats_mode=stats_mode,
-                schema_inclusion_mode=schema_inclusion_mode,
-                result_set_format=result_set_format,
-                arrow_format_settings=arrow_format_settings,
-                concurrent_result_sets=concurrent_result_sets,
-                settings=settings,
-            )
+            # PR #786: async mirror of sync session.execute propagation (vgvoleg).
+            tok = push_otel_span_for_grpc(span)
+            try:
+                stream_it = await self._execute_call(
+                    query=query,
+                    parameters=parameters,
+                    commit_tx=True,
+                    syntax=syntax,
+                    exec_mode=exec_mode,
+                    stats_mode=stats_mode,
+                    schema_inclusion_mode=schema_inclusion_mode,
+                    result_set_format=result_set_format,
+                    arrow_format_settings=arrow_format_settings,
+                    concurrent_result_sets=concurrent_result_sets,
+                    settings=settings,
+                )
+            except BaseException:
+                pop_otel_span_for_grpc(tok)
+                raise
 
             return AsyncResponseContextIterator(
                 it=stream_it,
@@ -194,6 +205,7 @@ class QuerySession(BaseQuerySession["AsyncDriver"]):
                 ),
                 on_error=self._on_execute_stream_error,
                 span=span,
+                grpc_propagation_token=tok,
             )
         except Exception as e:
             if span is not None:
