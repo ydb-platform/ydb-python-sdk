@@ -519,6 +519,7 @@ class QuerySession(BaseQuerySession["SyncDriver"]):
                 )
             except BaseException:
                 pop_otel_span_for_grpc(tok)
+                tok = None  # mark popped so the outer ``except`` is a no-op
                 raise
 
             return base.SyncResponseContextIterator(
@@ -534,6 +535,12 @@ class QuerySession(BaseQuerySession["SyncDriver"]):
                 grpc_propagation_token=tok,
             )
         except Exception as e:
+            # If the iterator constructor (above) raises, the gRPC propagation
+            # ContextVar would otherwise leak the now-ended span into the next
+            # gRPC call on this context.  ``tok`` is ``None`` when the inner
+            # ``except BaseException`` already popped it, in which case
+            # ``pop_otel_span_for_grpc`` is a no-op.
+            pop_otel_span_for_grpc(tok)
             if span is not None:
                 span.set_error(e)
                 span.end()

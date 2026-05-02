@@ -669,6 +669,7 @@ class QueryTxContext(BaseQueryTxContext["SyncDriver"]):
                 )
             except BaseException:
                 pop_otel_span_for_grpc(tok)
+                tok = None
                 raise
 
             self._prev_stream = base.SyncResponseContextIterator(
@@ -687,6 +688,10 @@ class QueryTxContext(BaseQueryTxContext["SyncDriver"]):
             )
             return self._prev_stream
         except Exception as e:
+            # Same fall-through as in QuerySession.execute: pop the gRPC
+            # propagation ContextVar so a failed iterator construction does not
+            # leak the now-ended span into the next gRPC call on this context.
+            pop_otel_span_for_grpc(tok)
             if span is not None:
                 span.set_error(e)
                 span.end()

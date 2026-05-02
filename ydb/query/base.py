@@ -121,7 +121,16 @@ class SyncResponseContextIterator(_utilities.SyncResponseIterator):
             self._span = None
 
     def __del__(self):
-        self._finish_span()
+        # GC may finalize this iterator in a different execution context than the
+        # one that produced ``_grpc_propagation_token`` (CPython runs GC in
+        # whichever thread triggers collection). ``ContextVar.reset`` raises
+        # ``ValueError`` in that case; skip the pop here — the ContextVar is
+        # context-local, the leaked entry is harmless, only the span needs to be
+        # ended cleanly.
+        if self._span is not None:
+            self._span.end()
+            self._span = None
+        self._grpc_propagation_token = None
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         #  To close stream on YDB it is necessary to scroll through it to the end.

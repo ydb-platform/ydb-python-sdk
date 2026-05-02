@@ -229,6 +229,7 @@ class QueryTxContext(BaseQueryTxContext["AsyncDriver"]):
                 )
             except BaseException:
                 pop_otel_span_for_grpc(tok)
+                tok = None
                 raise
 
             self._prev_stream = AsyncResponseContextIterator(
@@ -247,6 +248,7 @@ class QueryTxContext(BaseQueryTxContext["AsyncDriver"]):
             )
             return self._prev_stream
         except Exception as e:
+            pop_otel_span_for_grpc(tok)
             if span is not None:
                 span.set_error(e)
                 span.end()

@@ -105,7 +105,12 @@ The following operations produce spans:
      - Umbrella span wrapping the whole retryable block (``retry_operation_*`` / ``retry_tx_*`` / ``execute_with_retries``).
    * - ``ydb.Try``
      - INTERNAL
-     - A single retry attempt. Carries ``ydb.retry.backoff_ms`` — how long the retrier slept before starting this attempt (``0`` for the first one).
+     - A single retry attempt. From the **second** attempt onward carries
+       ``ydb.retry.backoff_ms`` — how long the retrier slept before starting this
+       attempt (``0`` on the skip-yield retry path: ``Aborted`` / ``BadSession`` /
+       ``NotFound`` / ``InternalError``, where the protocol prescribes immediate
+       retry without backoff). The very first ``ydb.Try`` omits the attribute
+       entirely because nothing preceded it.
 
 All spans are nested under the currently active span, so wrapping your application
 logic in a parent span produces a complete trace tree:
@@ -239,9 +244,6 @@ The first run builds the ``otel-example`` image from the local SDK source; subse
 .. code-block:: sh
 
     docker compose up -d
-    pip install -e '.[opentelemetry]' -r examples/opentelemetry/requirements.txt
-    python examples/opentelemetry/otel_example.py
-    cd ../..
     pip install -e '.[opentelemetry]' -r examples/opentelemetry/requirements.txt
     python examples/opentelemetry/otel_example.py
 

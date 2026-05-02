@@ -413,6 +413,50 @@ class TestRetryPolicySpans:
         assert tries[1].status.status_code == StatusCode.ERROR
         assert tries[2].status.status_code == StatusCode.UNSET
 
+    def test_backoff_ms_attribute_matches_actual_sleep(self, otel_setup, monkeypatch):
+        """Pin the closure: ``ydb.retry.backoff_ms`` on the n-th ``ydb.Try`` equals
+        the sleep that preceded it, regardless of which retry attempt triggered it.
+
+        Both ``random.random`` and ``time.sleep`` are mocked so the math is fully
+        deterministic and the test does not actually wait. With
+        ``ceiling=0, slot_duration=0.1, uncertain_ratio=0.5`` and ``random()=0.5``::
+
+            slots_count    = 1
+            max_duration   = 1 * 0.1 * 1000  = 100 ms
+            duration       = 100 * (0.5*0.5 + 0.5) = 75 ms
+        """
+        from ydb import issues
+        from ydb.retries import retry_operation_sync, RetrySettings, BackoffSettings
+
+        monkeypatch.setattr("random.random", lambda: 0.5)
+        sleeps = []
+        monkeypatch.setattr("time.sleep", sleeps.append)
+
+        exporter = otel_setup
+        counter = {"n": 0}
+
+        def flaky():
+            counter["n"] += 1
+            if counter["n"] < 3:
+                raise issues.Unavailable("transient")
+            return "ok"
+
+        settings = RetrySettings(
+            max_retries=5,
+            fast_backoff_settings=BackoffSettings(ceiling=0, slot_duration=0.1, uncertain_ratio=0.5),
+            slow_backoff_settings=BackoffSettings(ceiling=0, slot_duration=0.1, uncertain_ratio=0.5),
+        )
+        assert retry_operation_sync(flaky, settings) == "ok"
+
+        expected_ms = 75
+
+        tries = _get_spans(exporter, "ydb.Try")
+        assert len(tries) == 3
+        assert "ydb.retry.backoff_ms" not in dict(tries[0].attributes)
+        assert dict(tries[1].attributes)["ydb.retry.backoff_ms"] == expected_ms
+        assert dict(tries[2].attributes)["ydb.retry.backoff_ms"] == expected_ms
+        assert sleeps == [expected_ms / 1000.0, expected_ms / 1000.0]
+
     def test_skip_backoff_errors_still_emit_one_try_per_attempt(self, otel_setup):
         """Aborted/BadSession path yields zero sleep but must rotate ydb.Try spans (sync loop)."""
         from ydb import issues

@@ -47,7 +47,12 @@ class AsyncResponseContextIterator(_utilities.AsyncResponseIterator):
             self._span = None
 
     def __del__(self):
-        self._finish_span()
+        # See sync iterator: GC may run in a different ContextVar context, where
+        # ``reset(token)`` would raise ValueError. End the span only.
+        if self._span is not None:
+            self._span.end()
+            self._span = None
+        self._grpc_propagation_token = None
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         #  To close stream on YDB it is necessary to scroll through it to the end.

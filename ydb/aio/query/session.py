@@ -193,6 +193,7 @@ class QuerySession(BaseQuerySession["AsyncDriver"]):
                 )
             except BaseException:
                 pop_otel_span_for_grpc(tok)
+                tok = None
                 raise
 
             return AsyncResponseContextIterator(
@@ -208,6 +209,7 @@ class QuerySession(BaseQuerySession["AsyncDriver"]):
                 grpc_propagation_token=tok,
             )
         except Exception as e:
+            pop_otel_span_for_grpc(tok)
             if span is not None:
                 span.set_error(e)
                 span.end()
