@@ -62,13 +62,27 @@ async def _first_amount(tx) -> int:
     raise RuntimeError("no row for id=1")
 
 
-async def _bank_read_update(tx) -> None:
-    count = await _first_amount(tx)
-    async with await tx.execute(
-        "UPDATE bank SET amount = $amt + 1 WHERE id = 1",
-        {"$amt": (count, ydb.PrimitiveType.Int32)},
-    ):
-        pass
+async def _bank_read_update_tx(pool: "ydb.aio.QuerySessionPool") -> None:
+    """Read-modify-write under a Serializable transaction.
+
+    Begins the tx implicitly via ``TransactionControl.begin_tx`` on the first
+    ``tx.execute(...)``: avoids a separate ``BeginTransaction`` round trip and
+    keeps the trace tree clean (no client-side gap between ``ydb.Try`` and the
+    server-side ``BeginTransactionRequest``).
+    """
+
+    async def _do() -> None:
+        async with pool.checkout() as session:
+            async with session.transaction() as tx:
+                count = await _first_amount(tx)
+                async with await tx.execute(
+                    "UPDATE bank SET amount = $amt + 1 WHERE id = 1",
+                    {"$amt": (count, ydb.PrimitiveType.Int32)},
+                ):
+                    pass
+                await tx.commit()
+
+    await pool.retry_operation_async(_do)
 
 
 async def main() -> None:
@@ -104,14 +118,14 @@ async def main() -> None:
             await pool.execute_with_retries("INSERT INTO bank (id, amount) VALUES (1, 0)")
 
             print("Preparing queries...")
-            await pool.retry_tx_async(_bank_read_update)
+            await _bank_read_update_tx(pool)
 
             print("Emulation TLI...")
 
             async def concurrent_task(task_num: int) -> None:
                 with tracer.start_as_current_span("example_tli") as act:
                     act.set_attribute("app.message", f"concurrent task {task_num}")
-                    await pool.retry_tx_async(_bank_read_update)
+                    await _bank_read_update_tx(pool)
 
             await asyncio.gather(*(concurrent_task(i) for i in range(10)))
 
