@@ -528,7 +528,13 @@ class QueryTxContext(BaseQueryTxContext["SyncDriver"]):
 
         :return: Transaction object or exception if begin is failed
         """
-        self._begin_call(settings)
+        with create_ydb_span(
+            "ydb.BeginTransaction",
+            self._driver_config,
+            node_id=self.session.node_id,
+            peer=getattr(self.session, "_peer", None),
+        ):
+            self._begin_call(settings)
 
         return self
 

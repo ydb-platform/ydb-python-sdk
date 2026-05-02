@@ -88,7 +88,13 @@ class QueryTxContext(BaseQueryTxContext["AsyncDriver"]):
 
         :return: None or exception if begin is failed
         """
-        await self._begin_call(settings)
+        with create_ydb_span(
+            "ydb.BeginTransaction",
+            self._driver_config,
+            node_id=self.session.node_id,
+            peer=getattr(self.session, "_peer", None),
+        ):
+            await self._begin_call(settings)
         return self
 
     async def commit(self, settings: Optional[BaseRequestSettings] = None) -> None:

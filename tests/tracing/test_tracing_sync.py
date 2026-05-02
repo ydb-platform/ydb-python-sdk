@@ -58,6 +58,14 @@ def _make_tx(session, driver):
     return tx
 
 
+def _make_fresh_tx(session, driver):
+    """Create a real QueryTxContext in NOT_INITIALIZED state (for begin())."""
+    from ydb._grpc.grpcwrapper.ydb_query_public_types import QuerySerializableReadWrite
+    from ydb.query.transaction import QueryTxContext
+
+    return QueryTxContext(driver, session, QuerySerializableReadWrite())
+
+
 class TestCreateSessionSpan:
     def test_create_session_emits_span(self, otel_setup):
         exporter = otel_setup
@@ -141,6 +149,48 @@ class TestExecuteQuerySpan:
         assert attrs["ydb.node.dc"] == "dc-a"
         assert "ydb.session.id" not in attrs
         assert "ydb.tx.id" not in attrs
+
+
+class TestBeginTransactionSpan:
+    def test_begin_emits_span(self, otel_setup):
+        exporter = otel_setup
+        session, driver = _make_session_mock(peer=("n1", 2136, "dc-a"))
+        tx = _make_fresh_tx(session, driver)
+
+        with patch.object(type(tx), "_begin_call", return_value=None):
+            tx.begin()
+
+        span = _get_single_span(exporter, "ydb.BeginTransaction")
+        assert span.kind == SpanKind.CLIENT
+        attrs = dict(span.attributes)
+        assert attrs["db.system.name"] == "ydb"
+        assert attrs["db.namespace"] == "/test_database"
+        assert attrs["ydb.node.id"] == 12345
+        assert attrs["network.peer.address"] == "n1"
+        assert attrs["network.peer.port"] == 2136
+        assert attrs["ydb.node.dc"] == "dc-a"
+        assert "ydb.session.id" not in attrs
+        assert "ydb.tx.id" not in attrs
+        assert span.status.status_code == StatusCode.UNSET
+
+    def test_begin_sets_error_status_on_failure(self, otel_setup):
+        from ydb import issues
+
+        exporter = otel_setup
+        session, driver = _make_session_mock(peer=("n1", 2136, "dc-a"))
+        tx = _make_fresh_tx(session, driver)
+
+        exc = issues.Unavailable("bad node")
+        with patch.object(type(tx), "_begin_call", side_effect=exc):
+            with pytest.raises(issues.Unavailable):
+                tx.begin()
+
+        span = _get_single_span(exporter, "ydb.BeginTransaction")
+        assert span.status.status_code == StatusCode.ERROR
+        attrs = dict(span.attributes)
+        assert attrs["error.type"] == "ydb_error"
+        assert attrs["db.response.status_code"] == "UNAVAILABLE"
+        assert len(span.events) > 0
 
 
 class TestCommitSpan:
