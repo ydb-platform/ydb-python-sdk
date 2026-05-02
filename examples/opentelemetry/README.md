@@ -17,23 +17,25 @@ docker compose up -d
 # wait until the ydb container is healthy / port 2136 is open, then continue
 ```
 
-**Full stack** (YDB + OTLP collector + Tempo + Grafana; the `otel-example` service also runs the script once inside Compose). The compose file is `docker-compose.otel.yaml` next to this README.
-
-```sh
-cd /path/to/ydb-python-sdk/examples/opentelemetry
-docker compose -f docker-compose.otel.yaml up
-```
-
-From the repository root you can use the same file with:
+**Full stack** (YDB + OTLP collector + Tempo + Grafana; the `otel-example` service is built from a `Dockerfile` and runs the script once inside Compose). The compose file is `docker-compose.otel.yaml` next to this README.
 
 ```sh
 cd /path/to/ydb-python-sdk
-docker compose -f examples/opentelemetry/docker-compose.otel.yaml up
+docker compose -f examples/opentelemetry/docker-compose.otel.yaml up --build
 ```
+
+From this folder the build context is still resolved correctly (it is `../..` relative to the compose file):
+
+```sh
+cd /path/to/ydb-python-sdk/examples/opentelemetry
+docker compose -f docker-compose.otel.yaml up --build
+```
+
+The first run builds the `otel-example` image from the local SDK source (`Dockerfile` in this folder, `.dockerignore` at the repo root keeps the context small). Subsequent runs reuse the cached image; pass `--build` if you change the SDK or the demo script.
 
 Grafana: http://localhost:3000
 
-**Logs for `otel-example`:** the container name is prefixed (e.g. `opentelemetry-otel-example-1`); use `docker compose -f docker-compose.otel.yaml ps` or `docker ps -a` to find it. The service is one-shot (`restart: "no"`) — it may already have exited.
+**Logs for `otel-example`:** the container name is prefixed (e.g. `opentelemetry-otel-example-1`); use `docker compose -f examples/opentelemetry/docker-compose.otel.yaml ps` or `docker ps -a` to find it. The service is one-shot (`restart: "no"`) — it may already have exited.
 
 ## 2. Install dependencies (on the host, for a local `python` run)
 

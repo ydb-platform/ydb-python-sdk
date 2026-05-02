@@ -226,17 +226,13 @@ Serializable transactions and ``app_startup`` / ``example_tli`` application span
 Docker (YDB or the full stack) first**, then install and run on the host — see
 ``examples/opentelemetry/README.md`` for the full order of commands and environment variables.
 
-**Full stack in one command** (YDB + OTLP + Tempo + Grafana; includes a one-shot ``otel-example`` container; compose file in ``examples/opentelemetry/``):
+**Full stack in one command** (YDB + OTLP + Tempo + Grafana; the ``otel-example`` service is built from ``examples/opentelemetry/Dockerfile`` and runs the script once):
 
 .. code-block:: sh
 
-    cd examples/opentelemetry && docker compose -f docker-compose.otel.yaml up
+    docker compose -f examples/opentelemetry/docker-compose.otel.yaml up --build
 
-**Alternative** (same file, from the repository root):
-
-.. code-block:: sh
-
-    docker compose -f examples/opentelemetry/docker-compose.otel.yaml up
+The first run builds the ``otel-example`` image from the local SDK source; subsequent runs reuse the cached image. Pass ``--build`` again if you change the SDK or the demo script.
 
 **Typical local run** (YDB in Docker, script on the host — Compose **before** ``pip`` / ``python``):
 

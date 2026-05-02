@@ -68,11 +68,10 @@ services:
     depends_on: [prometheus, tempo]
 
   otel-example:
-    image: python:3.11-slim
-    working_dir: /workspace
-    volumes:
-      # repository root (../../ from this file) for editable `pip install -e .[opentelemetry]`
-      - ../../:/workspace
+    # Built from the local SDK source (no volume mount, no relative-path tricks).
+    build:
+      context: ../..
+      dockerfile: examples/opentelemetry/Dockerfile
     environment:
       YDB_ENDPOINT: grpc://ydb:2136
       YDB_DATABASE: /local
@@ -82,7 +81,3 @@ services:
       - ydb
       - otel-collector
     restart: "no"
-    command: >
-      bash -c "set -euo pipefail
-      pip install --no-cache-dir -e '.[opentelemetry]' -r examples/opentelemetry/requirements.txt
-      python examples/opentelemetry/otel_example.py"

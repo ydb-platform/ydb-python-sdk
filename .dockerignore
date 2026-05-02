@@ -5,3 +5,5 @@
 !requirements.txt
 !pyproject.toml
 !setup.py
+!examples/opentelemetry/otel_example.py
+!examples/opentelemetry/requirements.txt
