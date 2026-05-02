@@ -31,29 +31,6 @@ def _env(name: str, default: str) -> str:
     v = os.environ.get(name)
     return v if v is not None and v != "" else default
 
-
-def _assert_tcp_reachable_for_endpoint(endpoint: str) -> None:
-    """Before ``Driver`` starts: fail fast if nothing listens (clearer than ``driver.wait`` timeout)."""
-    bare = _yutil.wrap_endpoint(endpoint)
-    if bare.count(":") < 1:
-        return
-    host, _, port_s = bare.rpartition(":")
-    if not port_s or not host:
-        return
-    try:
-        port = int(port_s)
-    except ValueError:
-        return
-    try:
-        with socket.create_connection((host, port), timeout=3.0):
-            pass
-    except OSError as e:
-        raise RuntimeError(
-            f"Nothing accepts TCP on {host}:{port} — start YDB first, e.g. from the repository root: "
-            f"docker compose up -d   (then the script at grpc://{host}:{port} can connect).  Original error: {e!s}"
-        ) from e
-
-
 async def _first_amount(tx) -> int:
     async with await tx.execute("SELECT amount FROM bank WHERE id = 1") as results:
         async for rs in results:
@@ -83,8 +60,6 @@ async def main() -> None:
 
     tracer = trace.get_tracer(__name__)
     enable_tracing(tracer)
-
-    _assert_tcp_reachable_for_endpoint(endpoint)
 
     async with ydb.aio.Driver(
         endpoint=endpoint,
