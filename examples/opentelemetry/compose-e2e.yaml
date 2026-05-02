@@ -25,6 +25,12 @@ services:
       - "8765:8765"
     volumes:
       - ./ydb_config:/ydb_config:ro
+    healthcheck:
+      test: bash -c "exec 6<> /dev/tcp/localhost/2136"
+      interval: 5s
+      timeout: 2s
+      retries: 30
+      start_period: 30s
 
   otel-collector:
     image: otel/opentelemetry-collector-contrib:latest
@@ -78,6 +84,8 @@ services:
       OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4317
       OTEL_SERVICE_NAME: ydb-otel-example
     depends_on:
-      - ydb
-      - otel-collector
+      ydb:
+        condition: service_healthy
+      otel-collector:
+        condition: service_started
     restart: "no"
