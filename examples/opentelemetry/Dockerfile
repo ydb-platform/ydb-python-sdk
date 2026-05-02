@@ -1,6 +1,6 @@
 # Isolated image for the OpenTelemetry demo. Build context is the repository root.
 #
-#   docker compose -f examples/opentelemetry/docker-compose.otel.yaml build otel-example
+#   docker compose -f examples/opentelemetry/compose-e2e.yaml build otel-example
 #
 # A separate ``.dockerignore`` at the repo root keeps the context small.
 

@@ -235,7 +235,7 @@ Docker (YDB or the full stack) first**, then install and run on the host — see
 
 .. code-block:: sh
 
-    docker compose -f examples/opentelemetry/docker-compose.otel.yaml up --build
+    docker compose -f examples/opentelemetry/compose-e2e.yaml up --build
 
 The first run builds the ``otel-example`` image from the local SDK source; subsequent runs reuse the cached image. Pass ``--build`` again if you change the SDK or the demo script.
 

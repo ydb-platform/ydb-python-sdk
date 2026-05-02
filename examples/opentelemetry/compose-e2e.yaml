@@ -2,10 +2,10 @@
 # and a one-shot container that runs otel_example.py once.
 #
 # Run from this directory (paths below are relative to this file):
-#   cd examples/opentelemetry && docker compose -f docker-compose.otel.yaml up
+#   cd examples/opentelemetry && docker compose -f compose-e2e.yaml up
 #
 # Or from the repository root:
-#   docker compose -f examples/opentelemetry/docker-compose.otel.yaml up
+#   docker compose -f examples/opentelemetry/compose-e2e.yaml up
 
 services:
   ydb:

@@ -19,10 +19,10 @@ Default service name (so you can find it in Tempo/Grafana): `ydb`
 
 ## 3) Run with the overridden config
 
-Restart YDB (the main `docker-compose.otel.yaml` will automatically use `--config-path` if `ydb-config.yaml` exists):
+Restart YDB (the main `compose-e2e.yaml` will automatically use `--config-path` if `ydb-config.yaml` exists):
 
 ```bash
-docker compose -f docker-compose.otel.yaml up -d --force-recreate ydb
+docker compose -f compose-e2e.yaml up -d --force-recreate ydb
 ```
 
 Now you should see additional server-side traces in Tempo/Grafana (service name defaults to `ydb-local` in the snippet).
