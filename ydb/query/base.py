@@ -72,18 +72,12 @@ class QueryResultSetFormat(enum.IntEnum):
 
 
 class SyncResponseContextIterator(_utilities.SyncResponseIterator):
-    """Streams ExecuteQuery results; ends the OTel span when the stream is fully consumed.
+    """Streams ExecuteQuery results; ends the attached OTel span when the stream is consumed."""
 
-    ``grpc_propagation_token`` (PR #786): keeps W3C inject bound for the *entire* execute
-    (from first gRPC metadata until this iterator finishes), without a long-lived OTel
-    ``context.attach`` on the span (review: vgvoleg + execute lifecycle expectation).
-    """
-
-    def __init__(self, it, wrapper, on_error=None, span=None, grpc_propagation_token=None):
+    def __init__(self, it, wrapper, on_error=None, span=None):
         super().__init__(it, wrapper)
         self._on_error = on_error
         self._span = span
-        self._grpc_propagation_token = grpc_propagation_token
 
     def __enter__(self) -> "SyncResponseContextIterator":
         return self
@@ -108,12 +102,6 @@ class SyncResponseContextIterator(_utilities.SyncResponseIterator):
             raise
 
     def _finish_span(self, exception=None):
-        # Pop gRPC propagation before ending span so metadata hooks do not outlive the span.
-        if self._grpc_propagation_token is not None:
-            from ydb.opentelemetry.tracing import pop_otel_span_for_grpc
-
-            pop_otel_span_for_grpc(self._grpc_propagation_token)
-            self._grpc_propagation_token = None
         if self._span is not None:
             if exception is not None:
                 self._span.set_error(exception)
@@ -121,16 +109,9 @@ class SyncResponseContextIterator(_utilities.SyncResponseIterator):
             self._span = None
 
     def __del__(self):
-        # GC may finalize this iterator in a different execution context than the
-        # one that produced ``_grpc_propagation_token`` (CPython runs GC in
-        # whichever thread triggers collection). ``ContextVar.reset`` raises
-        # ``ValueError`` in that case; skip the pop here — the ContextVar is
-        # context-local, the leaked entry is harmless, only the span needs to be
-        # ended cleanly.
         if self._span is not None:
             self._span.end()
             self._span = None
-        self._grpc_propagation_token = None
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         #  To close stream on YDB it is necessary to scroll through it to the end.

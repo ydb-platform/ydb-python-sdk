@@ -2,13 +2,12 @@ from .. import _utilities
 
 
 class AsyncResponseContextIterator(_utilities.AsyncResponseIterator):
-    """Async ExecuteQuery result stream; span + gRPC propagation token (see sync class doc)."""
+    """Async ExecuteQuery result stream; ends the attached OTel span when consumed."""
 
-    def __init__(self, it, wrapper, on_error=None, span=None, grpc_propagation_token=None):
+    def __init__(self, it, wrapper, on_error=None, span=None):
         super().__init__(it, wrapper)
         self._on_error = on_error
         self._span = span
-        self._grpc_propagation_token = grpc_propagation_token
 
     async def __aenter__(self) -> "AsyncResponseContextIterator":
         return self
@@ -34,12 +33,6 @@ class AsyncResponseContextIterator(_utilities.AsyncResponseIterator):
             raise
 
     def _finish_span(self, exception=None):
-        # Pop gRPC propagation before ending span (same contract as sync iterator).
-        if self._grpc_propagation_token is not None:
-            from ydb.opentelemetry.tracing import pop_otel_span_for_grpc
-
-            pop_otel_span_for_grpc(self._grpc_propagation_token)
-            self._grpc_propagation_token = None
         if self._span is not None:
             if exception is not None:
                 self._span.set_error(exception)
@@ -47,12 +40,9 @@ class AsyncResponseContextIterator(_utilities.AsyncResponseIterator):
             self._span = None
 
     def __del__(self):
-        # See sync iterator: GC may run in a different ContextVar context, where
-        # ``reset(token)`` would raise ValueError. End the span only.
         if self._span is not None:
             self._span.end()
             self._span = None
-        self._grpc_propagation_token = None
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         #  To close stream on YDB it is necessary to scroll through it to the end.

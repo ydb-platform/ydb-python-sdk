@@ -17,7 +17,7 @@ from .. import (
     _apis,
     issues,
 )
-from ..opentelemetry.tracing import create_ydb_span, pop_otel_span_for_grpc, push_otel_span_for_grpc
+from ..opentelemetry.tracing import create_ydb_span
 from .._grpc.grpcwrapper import ydb_topic as _ydb_topic
 from .._grpc.grpcwrapper import ydb_query as _ydb_query
 from ..connection import _RpcState as RpcState
@@ -651,9 +651,7 @@ class QueryTxContext(BaseQueryTxContext["SyncDriver"]):
         )
 
         try:
-            # PR #786: same propagation contract as QuerySession.execute (see session.py).
-            tok = push_otel_span_for_grpc(span)
-            try:
+            with span.attach_context():
                 stream_it = self._execute_call(
                     query=query,
                     commit_tx=commit_tx,
@@ -667,11 +665,6 @@ class QueryTxContext(BaseQueryTxContext["SyncDriver"]):
                     concurrent_result_sets=concurrent_result_sets,
                     settings=settings,
                 )
-            except BaseException:
-                pop_otel_span_for_grpc(tok)
-                tok = None
-                raise
-
             self._prev_stream = base.SyncResponseContextIterator(
                 stream_it,
                 lambda resp: base.wrap_execute_query_response(
@@ -684,15 +677,9 @@ class QueryTxContext(BaseQueryTxContext["SyncDriver"]):
                 ),
                 on_error=self.session._on_execute_stream_error,
                 span=span,
-                grpc_propagation_token=tok,
             )
             return self._prev_stream
         except Exception as e:
-            # Same fall-through as in QuerySession.execute: pop the gRPC
-            # propagation ContextVar so a failed iterator construction does not
-            # leak the now-ended span into the next gRPC call on this context.
-            pop_otel_span_for_grpc(tok)
-            if span is not None:
-                span.set_error(e)
-                span.end()
+            span.set_error(e)
+            span.end()
             raise

@@ -12,7 +12,7 @@ from ...query.transaction import (
     BaseQueryTxContext,
     QueryTxStateEnum,
 )
-from ...opentelemetry.tracing import create_ydb_span, pop_otel_span_for_grpc, push_otel_span_for_grpc
+from ...opentelemetry.tracing import create_ydb_span
 
 if TYPE_CHECKING:
     from .session import QuerySession
@@ -211,9 +211,7 @@ class QueryTxContext(BaseQueryTxContext["AsyncDriver"]):
         )
 
         try:
-            # PR #786: async mirror of sync transaction.execute propagation.
-            tok = push_otel_span_for_grpc(span)
-            try:
+            with span.attach_context():
                 stream_it = await self._execute_call(
                     query=query,
                     parameters=parameters,
@@ -227,11 +225,6 @@ class QueryTxContext(BaseQueryTxContext["AsyncDriver"]):
                     concurrent_result_sets=concurrent_result_sets,
                     settings=settings,
                 )
-            except BaseException:
-                pop_otel_span_for_grpc(tok)
-                tok = None
-                raise
-
             self._prev_stream = AsyncResponseContextIterator(
                 it=stream_it,
                 wrapper=lambda resp: base.wrap_execute_query_response(
@@ -244,12 +237,9 @@ class QueryTxContext(BaseQueryTxContext["AsyncDriver"]):
                 ),
                 on_error=self.session._on_execute_stream_error,
                 span=span,
-                grpc_propagation_token=tok,
             )
             return self._prev_stream
         except Exception as e:
-            pop_otel_span_for_grpc(tok)
-            if span is not None:
-                span.set_error(e)
-                span.end()
+            span.set_error(e)
+            span.end()
             raise

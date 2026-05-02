@@ -18,12 +18,7 @@ from . import base
 from .base import QueryExplainResultFormat
 
 from .. import _apis, issues, _utilities
-from ..opentelemetry.tracing import (
-    create_ydb_span,
-    pop_otel_span_for_grpc,
-    push_otel_span_for_grpc,
-    set_peer_attributes,
-)
+from ..opentelemetry.tracing import create_ydb_span, set_peer_attributes
 from ..settings import BaseRequestSettings
 from ..connection import _RpcState as RpcState, EndpointKey
 from .._grpc.grpcwrapper import common_utils
@@ -500,10 +495,11 @@ class QuerySession(BaseQuerySession["SyncDriver"]):
         )
 
         try:
-            # PR #786: push before _execute_call; token lives on SyncResponseContextIterator until
-            # the stream is fully read so W3C inject matches the whole ExecuteQuery (vgvoleg).
-            tok = push_otel_span_for_grpc(span)
-            try:
+            # Make ``ydb.ExecuteQuery`` the active OTel context only around the
+            # initial gRPC call so ``inject()`` writes ``traceparent`` into the
+            # request metadata. The span itself outlives this block — the result
+            # iterator owns ``end()``.
+            with span.attach_context():
                 stream_it = self._execute_call(
                     query=query,
                     parameters=parameters,
@@ -517,11 +513,6 @@ class QuerySession(BaseQuerySession["SyncDriver"]):
                     concurrent_result_sets=concurrent_result_sets,
                     settings=settings,
                 )
-            except BaseException:
-                pop_otel_span_for_grpc(tok)
-                tok = None  # mark popped so the outer ``except`` is a no-op
-                raise
-
             return base.SyncResponseContextIterator(
                 stream_it,
                 lambda resp: base.wrap_execute_query_response(
@@ -532,18 +523,10 @@ class QuerySession(BaseQuerySession["SyncDriver"]):
                 ),
                 on_error=self._on_execute_stream_error,
                 span=span,
-                grpc_propagation_token=tok,
             )
         except Exception as e:
-            # If the iterator constructor (above) raises, the gRPC propagation
-            # ContextVar would otherwise leak the now-ended span into the next
-            # gRPC call on this context.  ``tok`` is ``None`` when the inner
-            # ``except BaseException`` already popped it, in which case
-            # ``pop_otel_span_for_grpc`` is a no-op.
-            pop_otel_span_for_grpc(tok)
-            if span is not None:
-                span.set_error(e)
-                span.end()
+            span.set_error(e)
+            span.end()
             raise
 
     def explain(

@@ -19,12 +19,7 @@ from ..._grpc.grpcwrapper import ydb_query_public_types as _ydb_query_public
 
 from ...query import base
 from ...query.session import BaseQuerySession
-from ...opentelemetry.tracing import (
-    create_ydb_span,
-    pop_otel_span_for_grpc,
-    push_otel_span_for_grpc,
-    set_peer_attributes,
-)
+from ...opentelemetry.tracing import create_ydb_span, set_peer_attributes
 
 from ..._constants import DEFAULT_INITIAL_RESPONSE_TIMEOUT
 
@@ -175,9 +170,7 @@ class QuerySession(BaseQuerySession["AsyncDriver"]):
         )
 
         try:
-            # PR #786: async mirror of sync session.execute propagation (vgvoleg).
-            tok = push_otel_span_for_grpc(span)
-            try:
+            with span.attach_context():
                 stream_it = await self._execute_call(
                     query=query,
                     parameters=parameters,
@@ -191,11 +184,6 @@ class QuerySession(BaseQuerySession["AsyncDriver"]):
                     concurrent_result_sets=concurrent_result_sets,
                     settings=settings,
                 )
-            except BaseException:
-                pop_otel_span_for_grpc(tok)
-                tok = None
-                raise
-
             return AsyncResponseContextIterator(
                 it=stream_it,
                 wrapper=lambda resp: base.wrap_execute_query_response(
@@ -206,13 +194,10 @@ class QuerySession(BaseQuerySession["AsyncDriver"]):
                 ),
                 on_error=self._on_execute_stream_error,
                 span=span,
-                grpc_propagation_token=tok,
             )
         except Exception as e:
-            pop_otel_span_for_grpc(tok)
-            if span is not None:
-                span.set_error(e)
-                span.end()
+            span.set_error(e)
+            span.end()
             raise
 
     async def explain(
