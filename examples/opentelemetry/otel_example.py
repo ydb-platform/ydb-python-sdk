@@ -8,7 +8,6 @@ from __future__ import annotations
 
 import asyncio
 import os
-import socket
 import sys
 from pathlib import Path
 
@@ -17,19 +16,19 @@ _repo_root = Path(__file__).resolve().parent.parent.parent
 if str(_repo_root) not in sys.path:
     sys.path.insert(0, str(_repo_root))
 
-import ydb  # noqa: E402
-from ydb import _utilities as _yutil  # noqa: E402
-from opentelemetry import trace  # noqa: E402
-from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter  # noqa: E402
-from opentelemetry.sdk.resources import Resource  # noqa: E402
-from opentelemetry.sdk.trace import TracerProvider  # noqa: E402
-from opentelemetry.sdk.trace.export import BatchSpanProcessor  # noqa: E402
-from ydb.opentelemetry import enable_tracing  # noqa: E402
+import ydb
+from opentelemetry import trace
+from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
+from opentelemetry.sdk.resources import Resource
+from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.sdk.trace.export import BatchSpanProcessor
+from ydb.opentelemetry import enable_tracing
 
 
 def _env(name: str, default: str) -> str:
     v = os.environ.get(name)
     return v if v is not None and v != "" else default
+
 
 async def _first_amount(tx) -> int:
     async with await tx.execute("SELECT amount FROM bank WHERE id = 1") as results:
@@ -42,8 +41,8 @@ async def _first_amount(tx) -> int:
 async def _bank_read_update(tx) -> None:
     count = await _first_amount(tx)
     async with await tx.execute(
-        "UPDATE bank SET amount = $amt + 1 WHERE id = 1",
-        {"$amt": (count, ydb.PrimitiveType.Int32)},
+            "UPDATE bank SET amount = $amt + 1 WHERE id = 1",
+            {"$amt": (count, ydb.PrimitiveType.Int32)},
     ):
         pass
 
@@ -62,9 +61,9 @@ async def main() -> None:
     enable_tracing(tracer)
 
     async with ydb.aio.Driver(
-        endpoint=endpoint,
-        database=database,
-        disable_discovery=True,
+            endpoint=endpoint,
+            database=database,
+            disable_discovery=True,
     ) as driver:
         await driver.wait(timeout=60)
 
