@@ -8,21 +8,13 @@ from __future__ import annotations
 
 import asyncio
 import os
-import sys
-from pathlib import Path
-
-# For ``python otel_example.py`` in this tree without an installed ``ydb`` package.
-_repo_root = Path(__file__).resolve().parent.parent.parent
-if str(_repo_root) not in sys.path:
-    sys.path.insert(0, str(_repo_root))
-
 import ydb
+from ydb.opentelemetry import enable_tracing
 from opentelemetry import trace
 from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
 from opentelemetry.sdk.resources import Resource
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
-from ydb.opentelemetry import enable_tracing
 
 
 def _env(name: str, default: str) -> str:
@@ -41,8 +33,8 @@ async def _first_amount(tx) -> int:
 async def _bank_read_update(tx) -> None:
     count = await _first_amount(tx)
     async with await tx.execute(
-        "UPDATE bank SET amount = $amt + 1 WHERE id = 1",
-        {"$amt": (count, ydb.PrimitiveType.Int32)},
+            "UPDATE bank SET amount = $amt + 1 WHERE id = 1",
+            {"$amt": (count, ydb.PrimitiveType.Int32)},
     ):
         pass
 
@@ -61,9 +53,9 @@ async def main() -> None:
     enable_tracing(tracer)
 
     async with ydb.aio.Driver(
-        endpoint=endpoint,
-        database=database,
-        disable_discovery=True,
+            endpoint=endpoint,
+            database=database,
+            disable_discovery=True,
     ) as driver:
         await driver.wait(timeout=60)
 
