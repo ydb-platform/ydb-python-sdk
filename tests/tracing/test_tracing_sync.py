@@ -233,6 +233,52 @@ class TestRollbackSpan:
         assert "ydb.tx.id" not in attrs
 
 
+class TestCommitRollbackErrorRecording:
+    """When the underlying RPC raises, the span must:
+    - end with ``StatusCode.ERROR``
+    - have ``error.type`` and ``db.response.status_code`` set
+    - have the exception recorded as a span event (``record_exception``)
+    """
+
+    def test_commit_records_exception_on_failure(self, otel_setup):
+        from ydb import issues
+
+        exporter = otel_setup
+        session, driver = _make_session_mock(peer=("n1", 2136, "dc-a"))
+        tx = _make_tx(session, driver)
+
+        exc = issues.Aborted("boom")
+        with patch.object(type(tx), "_commit_call", side_effect=exc):
+            with pytest.raises(issues.Aborted):
+                tx.commit()
+
+        span = _get_single_span(exporter, "ydb.Commit")
+        assert span.status.status_code == StatusCode.ERROR
+        attrs = dict(span.attributes)
+        assert attrs["error.type"] == "ydb_error"
+        assert attrs["db.response.status_code"] == "ABORTED"
+        assert any(e.name == "exception" for e in span.events)
+
+    def test_rollback_records_exception_on_failure(self, otel_setup):
+        from ydb import issues
+
+        exporter = otel_setup
+        session, driver = _make_session_mock(peer=("n1", 2136, "dc-a"))
+        tx = _make_tx(session, driver)
+
+        exc = issues.Unavailable("boom")
+        with patch.object(type(tx), "_rollback_call", side_effect=exc):
+            with pytest.raises(issues.Unavailable):
+                tx.rollback()
+
+        span = _get_single_span(exporter, "ydb.Rollback")
+        assert span.status.status_code == StatusCode.ERROR
+        attrs = dict(span.attributes)
+        assert attrs["error.type"] == "ydb_error"
+        assert attrs["db.response.status_code"] == "UNAVAILABLE"
+        assert any(e.name == "exception" for e in span.events)
+
+
 class TestErrorHandling:
     def test_error_sets_error_status_and_attributes(self, otel_setup):
         exporter = otel_setup

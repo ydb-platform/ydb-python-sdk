@@ -229,6 +229,53 @@ class TestAsyncRollbackSpan:
         assert "ydb.session.id" not in attrs
 
 
+class TestAsyncCommitRollbackErrorRecording:
+    """Async commit/rollback: the span must record the exception (event +
+    StatusCode.ERROR + error.type + db.response.status_code) when the underlying
+    RPC raises, just like the sync path.
+    """
+
+    @pytest.mark.asyncio
+    async def test_commit_records_exception_on_failure(self, otel_setup):
+        from ydb import issues
+
+        exporter = otel_setup
+        session, driver = _make_async_session_mock(peer=("n1", 2136, "dc-a"))
+        tx = _make_async_tx(session, driver)
+
+        exc = issues.Aborted("boom")
+        with patch.object(type(tx), "_commit_call", new_callable=AsyncMock, side_effect=exc):
+            with pytest.raises(issues.Aborted):
+                await tx.commit()
+
+        span = _get_single_span(exporter, "ydb.Commit")
+        assert span.status.status_code == StatusCode.ERROR
+        attrs = dict(span.attributes)
+        assert attrs["error.type"] == "ydb_error"
+        assert attrs["db.response.status_code"] == "ABORTED"
+        assert any(e.name == "exception" for e in span.events)
+
+    @pytest.mark.asyncio
+    async def test_rollback_records_exception_on_failure(self, otel_setup):
+        from ydb import issues
+
+        exporter = otel_setup
+        session, driver = _make_async_session_mock(peer=("n1", 2136, "dc-a"))
+        tx = _make_async_tx(session, driver)
+
+        exc = issues.Unavailable("boom")
+        with patch.object(type(tx), "_rollback_call", new_callable=AsyncMock, side_effect=exc):
+            with pytest.raises(issues.Unavailable):
+                await tx.rollback()
+
+        span = _get_single_span(exporter, "ydb.Rollback")
+        assert span.status.status_code == StatusCode.ERROR
+        attrs = dict(span.attributes)
+        assert attrs["error.type"] == "ydb_error"
+        assert attrs["db.response.status_code"] == "UNAVAILABLE"
+        assert any(e.name == "exception" for e in span.events)
+
+
 class TestAsyncErrorHandling:
     @pytest.mark.asyncio
     async def test_error_sets_error_status_and_attributes(self, otel_setup):
