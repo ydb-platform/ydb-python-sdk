@@ -554,7 +554,7 @@ class TestRetryPolicySpans:
         assert sleeps == [expected_ms / 1000.0, expected_ms / 1000.0]
 
     def test_skip_backoff_errors_still_emit_one_try_per_attempt(self, otel_setup):
-        """Aborted/BadSession path yields zero sleep but must rotate ydb.Try spans (sync loop)."""
+        """Aborted/BadSession path skips the inter-attempt sleep but must still rotate ydb.Try spans."""
         from ydb import issues
         from ydb.retries import RetrySettings, retry_operation_sync
 
@@ -575,9 +575,8 @@ class TestRetryPolicySpans:
         assert tries[1].status.status_code == StatusCode.ERROR
         assert tries[2].status.status_code == StatusCode.UNSET
         # First Try has no preceding sleep -> attribute is absent.
-        # Skip-yield path means subsequent Tries had no real wait either, but the
-        # attribute is still set to 0 to make "we did go through a retry boundary"
-        # explicit.
+        # Skip-yield path means the inter-attempt sleep was zero, so backoff_ms = 0
+        # is recorded on retries to make "we did go through a retry boundary" explicit.
         assert "ydb.retry.backoff_ms" not in dict(tries[0].attributes)
         assert dict(tries[1].attributes)["ydb.retry.backoff_ms"] == 0
         assert dict(tries[2].attributes)["ydb.retry.backoff_ms"] == 0

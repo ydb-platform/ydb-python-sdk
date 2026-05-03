@@ -3,7 +3,7 @@ import functools
 import inspect
 import random
 import time
-from typing import Any, Awaitable, Callable, Generator, Optional, Union
+from typing import Any, Callable, Generator, Optional, Union
 
 from . import issues
 from ._errors import check_retriable_error
@@ -20,9 +20,6 @@ def _start_run_with_retry_span():
 
 
 def _start_try_span(backoff_ms: Optional[int]):
-    # ``backoff_ms is None`` for the first attempt — the attribute is omitted because
-    # there was no preceding sleep at all. For every subsequent attempt the attribute
-    # is set, including ``0`` on the skip-yield retry path (Aborted/BadSession/...).
     attrs = {_BACKOFF_ATTR: backoff_ms} if backoff_ms is not None else None
     return _tracing_registry.create_span(_TRY_SPAN, attributes=attrs, kind="internal")
 
@@ -38,16 +35,12 @@ class BackoffSettings:
         self.slot_duration = slot_duration
         self.uncertain_ratio = uncertain_ratio
 
-    def calc_backoff_ms(self, retry_number: int) -> int:
+    def calc_timeout(self, retry_number: int) -> float:
         slots_count = 1 << min(retry_number, self.ceiling)
         max_duration_ms = slots_count * self.slot_duration * 1000.0
-        # duration_ms = random.random() * max_duration_ms * uncertain_ratio + max_duration_ms * (1 - uncertain_ratio)
+        # duration_ms = random.random() * max_duration_ms * uncertain_ratio) + max_duration_ms * (1 - uncertain_ratio)
         duration_ms = max_duration_ms * (random.random() * self.uncertain_ratio + 1.0 - self.uncertain_ratio)
-        return int(duration_ms)
-
-    def calc_timeout(self, retry_number: int) -> float:
-        """Backward-compatible alias returning seconds."""
-        return self.calc_backoff_ms(retry_number) / 1000.0
+        return duration_ms / 1000.0
 
 
 class RetrySettings:
@@ -94,22 +87,8 @@ class RetrySettings:
 
 
 class YdbRetryOperationSleepOpt:
-    """Yielded by :func:`retry_operation_impl` between attempts.
-
-    ``timeout`` is the wait in seconds (``time.sleep`` / ``asyncio.sleep``); for the
-    "skip yield" YDB error path (``Aborted``/``BadSession``/``NotFound``/``InternalError``)
-    it is ``0.0`` and ``exception`` is set so consumers still emit one artefact per
-    attempt (e.g. a ``ydb.Try`` span). ``backoff_ms`` exposes the same value as integer
-    milliseconds for OpenTelemetry attributes.
-    """
-
-    def __init__(self, timeout: float, exception: Optional[BaseException] = None) -> None:
+    def __init__(self, timeout: float) -> None:
         self.timeout = timeout
-        self.exception = exception
-
-    @property
-    def backoff_ms(self) -> int:
-        return int(self.timeout * 1000)
 
     def __eq__(self, other: object) -> bool:
         return (
@@ -146,14 +125,6 @@ def retry_operation_impl(
     *args: Any,
     **kwargs: Any,
 ) -> Generator[Union[YdbRetryOperationSleepOpt, YdbRetryOperationFinalResult], None, None]:
-    """Pure retry-policy generator.
-
-    Yields ``YdbRetryOperationFinalResult`` (callee's return value, or coroutine for an
-    async callee) and, between attempts, ``YdbRetryOperationSleepOpt`` carrying the wait
-    time in seconds plus the original exception. OpenTelemetry spans are created by the
-    callers (``retry_operation_sync`` / ``retry_operation_async``), not here, so the
-    generator stays unaware of tracing.
-    """
     retry_settings = RetrySettings() if retry_settings is None else retry_settings
     status: Optional[issues.Error] = None
 
@@ -181,15 +152,14 @@ def retry_operation_impl(
             )
 
             if isinstance(e, skip_yield_error_types):
-                # Fast retry path: no inter-attempt sleep, but we still yield a marker
-                # SleepOpt(0.0) so consumers (e.g. the sync wrapper) advance per-attempt
-                # bookkeeping such as ``ydb.Try`` spans.
-                yield YdbRetryOperationSleepOpt(0.0, exception=e)
+                # Skip the inter-attempt sleep but still emit a marker so consumers
+                # advance per-attempt bookkeeping (e.g. ``ydb.Try`` spans get backoff=0).
+                yield YdbRetryOperationSleepOpt(0.0)
             else:
-                sleep_seconds = retriable_info.sleep_timeout_seconds or 0.0
-                yield YdbRetryOperationSleepOpt(sleep_seconds, exception=e)
+                yield YdbRetryOperationSleepOpt(retriable_info.sleep_timeout_seconds)
 
         except Exception as e:
+            # you should provide your own handler you want
             retry_settings.unknown_error_handler(e)
             raise
 
@@ -203,37 +173,18 @@ def retry_operation_sync(
     *args: Any,
     **kwargs: Any,
 ) -> Any:
-    """Drive :func:`retry_operation_impl` synchronously with OpenTelemetry spans.
-
-    ``ydb.RunWithRetry`` is the outer ``INTERNAL`` span; each attempt runs inside a
-    ``ydb.Try`` whose ``ydb.retry.backoff_ms`` is the wait that preceded it. The first
-    ``ydb.Try`` has no such wait so the attribute is omitted; subsequent attempts
-    always carry it (``0`` on the skip-yield retry path). RPC spans
-    (``ydb.ExecuteQuery``/``ydb.Commit``/``ydb.Rollback``) nest under the active
-    ``ydb.Try`` because the sync callee runs while ``TracingSpan.__enter__`` has the
-    OTel context attached.
-    """
     backoff_ms: Optional[int] = None
 
-    if inspect.iscoroutinefunction(callee):
-        # Async callee with a sync driver: keep current legacy behaviour — the impl just
-        # creates the coroutine, the caller is responsible for awaiting it. No ``ydb.Try``
-        # is opened around the bare coroutine creation; tracing for that case lives in
-        # ``retry_operation_async``.
-        traced_callee: Callable[..., Any] = callee
-    else:
-
-        @functools.wraps(callee)
-        def traced_callee(*a: Any, **kw: Any) -> Any:
-            with _start_try_span(backoff_ms):
-                return callee(*a, **kw)
+    @functools.wraps(callee)
+    def traced_callee(*a: Any, **kw: Any) -> Any:
+        with _start_try_span(backoff_ms):
+            return callee(*a, **kw)
 
     with _start_run_with_retry_span():
         for next_opt in retry_operation_impl(traced_callee, retry_settings, *args, **kwargs):
             if isinstance(next_opt, YdbRetryOperationSleepOpt):
-                backoff_ms = next_opt.backoff_ms
-                if next_opt.timeout > 0:
-                    time.sleep(next_opt.timeout)
+                backoff_ms = int(next_opt.timeout * 1000)
+                time.sleep(next_opt.timeout)
             else:
                 return next_opt.result
     return None
@@ -245,29 +196,29 @@ async def retry_operation_async(  # pylint: disable=W1113
     *args: Any,
     **kwargs: Any,
 ) -> Any:
-    """Drive :func:`retry_operation_impl` asynchronously with OpenTelemetry spans.
+    """
+    The retry operation helper can be used to retry a coroutine that raises YDB specific
+    exceptions.
 
-    Mirrors :func:`retry_operation_sync`. The inter-attempt ``await asyncio.sleep`` runs
-    *outside* ``ydb.Try`` so an `asyncio.CancelledError` during the wait is recorded on
-    ``ydb.RunWithRetry`` (the outer span), not on a misleading per-attempt span.
+    :param callee: A coroutine to retry.
+    :param retry_settings: An instance of ydb.RetrySettings that describes how the coroutine
+    should be retried. If None, default instance of retry settings will be used.
+    :param args: A tuple with positional arguments to be passed into the coroutine.
+    :param kwargs: A dictionary with keyword arguments to be passed into the coroutine.
+
+    Returns awaitable result of coroutine. If retries are not succussful exception is raised.
     """
     backoff_ms: Optional[int] = None
     with _start_run_with_retry_span():
         for next_opt in retry_operation_impl(callee, retry_settings, *args, **kwargs):
             if isinstance(next_opt, YdbRetryOperationSleepOpt):
-                backoff_ms = next_opt.backoff_ms
-                if next_opt.timeout > 0:
-                    await asyncio.sleep(next_opt.timeout)
+                backoff_ms = int(next_opt.timeout * 1000)
+                await asyncio.sleep(next_opt.timeout)
             else:
                 with _start_try_span(backoff_ms) as try_span:
-                    awaitable: Awaitable[Any] = next_opt.result
                     try:
-                        return await awaitable
-                    except BaseException as e:  # noqa: BLE001
-                        # Exception is swallowed by ``next_opt.set_exception`` so the
-                        # impl re-raises it on the next ``next()`` call; the ``with``
-                        # would not see it via ``__exit__``, so mark ``ydb.Try`` failed
-                        # explicitly.
+                        return await next_opt.result
+                    except BaseException as e:  # pylint: disable=W0703
                         try_span.set_error(e)
                         next_opt.set_exception(e)
     return None
@@ -323,11 +274,12 @@ def ydb_retry(
                 return await retry_operation_async(func, retry_settings, *args, **kwargs)
 
             return async_wrapper
+        else:
 
-        @functools.wraps(func)
-        def sync_wrapper(*args: Any, **kwargs: Any) -> Any:
-            return retry_operation_sync(func, retry_settings, *args, **kwargs)
+            @functools.wraps(func)
+            def sync_wrapper(*args: Any, **kwargs: Any) -> Any:
+                return retry_operation_sync(func, retry_settings, *args, **kwargs)
 
-        return sync_wrapper
+            return sync_wrapper
 
     return decorator

@@ -495,10 +495,6 @@ class QuerySession(BaseQuerySession["SyncDriver"]):
         )
 
         try:
-            # Make ``ydb.ExecuteQuery`` the active OTel context only around the
-            # initial gRPC call so ``inject()`` writes ``traceparent`` into the
-            # request metadata. The span itself outlives this block — the result
-            # iterator owns ``end()``.
             with span.attach_context():
                 stream_it = self._execute_call(
                     query=query,

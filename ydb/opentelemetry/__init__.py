@@ -1,8 +1,4 @@
-"""Public OpenTelemetry entrypoints for YDB (PR #786).
-
-``disable_tracing`` exists because ``enable_tracing`` is idempotent: reviewers asked for
-either documentation or an explicit reset before changing the tracer (vgvoleg).
-"""
+"""Public OpenTelemetry entrypoints for YDB."""
 
 
 def enable_tracing(tracer=None):

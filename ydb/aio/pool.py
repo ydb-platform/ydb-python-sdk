@@ -39,25 +39,7 @@ class ConnectionsCache(_ConnectionsCache):
             if self._fast_fail_error:
                 raise self._fast_fail_error
         else:
-            # With ``disable_discovery``, the initial connection can fail (gRPC / TLS / etc.).
-            # ``_event`` is then never set; without also waiting on ``_fast_fail_event`` the caller
-            # would block until *wait_timeout* with no useful error.
-            wait_conn = asyncio.create_task(self._event.wait())
-            wait_fail = asyncio.create_task(self._fast_fail_event.wait())
-            try:
-                done, pending = await asyncio.wait(
-                    (wait_conn, wait_fail),
-                    timeout=wait_timeout,
-                    return_when=asyncio.FIRST_COMPLETED,
-                )
-            finally:
-                for t in (wait_conn, wait_fail):
-                    if not t.done():
-                        t.cancel()
-            if self._fast_fail_error is not None:
-                raise self._fast_fail_error
-            if not done:
-                raise asyncio.TimeoutError
+            await asyncio.wait_for(self._event.wait(), timeout=wait_timeout)
 
         if preferred_endpoint is not None and preferred_endpoint.node_id in self.connections_by_node_id:
             return self.connections_by_node_id[preferred_endpoint.node_id]  # type: ignore[return-value]
@@ -272,15 +254,11 @@ class ConnectionPool(IConnectionPool):
         if driver_config.disable_discovery:
             # If discovery is disabled, just add the initial endpoint to the store
             async def init_connection() -> None:
-                try:
-                    ready_connection = Connection(self._driver_config.endpoint, self._driver_config)
-                    await ready_connection.connection_ready(
-                        ready_timeout=getattr(self._driver_config, "discovery_request_timeout", 10)
-                    )
-                    self._store.add(ready_connection)
-                except Exception as e:  # noqa: BLE001 — surface to wait() via complete_discovery
-                    self._store.complete_discovery(e)
-                    return
+                ready_connection = Connection(self._driver_config.endpoint, self._driver_config)
+                await ready_connection.connection_ready(
+                    ready_timeout=getattr(self._driver_config, "discovery_request_timeout", 10)
+                )
+                self._store.add(ready_connection)
 
             # Create and schedule the task to initialize the connection
             self._discovery_task = asyncio.get_event_loop().create_task(init_connection())
