@@ -33,8 +33,8 @@ async def _first_amount(tx) -> int:
 async def _bank_read_update(tx) -> None:
     count = await _first_amount(tx)
     async with await tx.execute(
-            "UPDATE bank SET amount = $amt + 1 WHERE id = 1",
-            {"$amt": (count, ydb.PrimitiveType.Int32)},
+        "UPDATE bank SET amount = $amt + 1 WHERE id = 1",
+        {"$amt": (count, ydb.PrimitiveType.Int32)},
     ):
         pass
 
@@ -53,9 +53,9 @@ async def main() -> None:
     enable_tracing(tracer)
 
     async with ydb.aio.Driver(
-            endpoint=endpoint,
-            database=database,
-            disable_discovery=True,
+        endpoint=endpoint,
+        database=database,
+        disable_discovery=True,
     ) as driver:
         await driver.wait(timeout=60)
 
