@@ -27,7 +27,6 @@ from .. import _apis
 from ydb._topic_common.common import CallFromSyncToAsync, _get_shared_event_loop
 from ydb._grpc.grpcwrapper.common_utils import to_thread
 
-
 if typing.TYPE_CHECKING:
     from .transaction import BaseQueryTxContext
     from .session import BaseQuerySession
@@ -73,9 +72,12 @@ class QueryResultSetFormat(enum.IntEnum):
 
 
 class SyncResponseContextIterator(_utilities.SyncResponseIterator):
-    def __init__(self, it, wrapper, on_error=None):
+    """Streams ExecuteQuery results; ends the attached OTel span when the stream is consumed."""
+
+    def __init__(self, it, wrapper, on_error=None, span=None):
         super().__init__(it, wrapper)
         self._on_error = on_error
+        self._span = span
 
     def __enter__(self) -> "SyncResponseContextIterator":
         return self
@@ -86,6 +88,7 @@ class SyncResponseContextIterator(_utilities.SyncResponseIterator):
         except StopIteration:
             # Normal stream termination is not an error and must not invalidate
             # the session.
+            self._finish_span()
             raise
         except BaseException as e:
             # BaseException (not Exception) for parity with the async iterator:
@@ -95,7 +98,20 @@ class SyncResponseContextIterator(_utilities.SyncResponseIterator):
             # SessionBusy.
             if self._on_error:
                 self._on_error(e)
+            self._finish_span(e)
             raise
+
+    def _finish_span(self, exception=None):
+        if self._span is not None:
+            if exception is not None:
+                self._span.set_error(exception)
+            self._span.end()
+            self._span = None
+
+    def __del__(self):
+        if self._span is not None:
+            self._span.end()
+            self._span = None
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         #  To close stream on YDB it is necessary to scroll through it to the end.
@@ -107,6 +123,7 @@ class SyncResponseContextIterator(_utilities.SyncResponseIterator):
                 pass
         except BaseException:
             pass
+        self._finish_span()
 
 
 class QueryClientSettings:

@@ -12,6 +12,7 @@ from ...query.transaction import (
     BaseQueryTxContext,
     QueryTxStateEnum,
 )
+from ...opentelemetry.tracing import create_ydb_span
 
 if TYPE_CHECKING:
     from .session import QuerySession
@@ -87,7 +88,13 @@ class QueryTxContext(BaseQueryTxContext["AsyncDriver"]):
 
         :return: None or exception if begin is failed
         """
-        await self._begin_call(settings)
+        with create_ydb_span(
+            "ydb.BeginTransaction",
+            self._driver_config,
+            node_id=self.session.node_id,
+            peer=getattr(self.session, "_peer", None),
+        ):
+            await self._begin_call(settings)
         return self
 
     async def commit(self, settings: Optional[BaseRequestSettings] = None) -> None:
@@ -109,13 +116,19 @@ class QueryTxContext(BaseQueryTxContext["AsyncDriver"]):
 
         await self._ensure_prev_stream_finished()
 
-        try:
-            await self._execute_callbacks_async(base.TxEvent.BEFORE_COMMIT)
-            await self._commit_call(settings)
-            await self._execute_callbacks_async(base.TxEvent.AFTER_COMMIT, exc=None)
-        except BaseException as e:
-            await self._execute_callbacks_async(base.TxEvent.AFTER_COMMIT, exc=e)
-            raise e
+        with create_ydb_span(
+            "ydb.Commit",
+            self._driver_config,
+            node_id=self.session.node_id,
+            peer=getattr(self.session, "_peer", None),
+        ):
+            try:
+                await self._execute_callbacks_async(base.TxEvent.BEFORE_COMMIT)
+                await self._commit_call(settings)
+                await self._execute_callbacks_async(base.TxEvent.AFTER_COMMIT, exc=None)
+            except BaseException as e:
+                await self._execute_callbacks_async(base.TxEvent.AFTER_COMMIT, exc=e)
+                raise e
 
     async def rollback(self, settings: Optional[BaseRequestSettings] = None) -> None:
         """Calls rollback on a transaction if it is open otherwise is no-op. If transaction execution
@@ -136,13 +149,19 @@ class QueryTxContext(BaseQueryTxContext["AsyncDriver"]):
 
         await self._ensure_prev_stream_finished()
 
-        try:
-            await self._execute_callbacks_async(base.TxEvent.BEFORE_ROLLBACK)
-            await self._rollback_call(settings)
-            await self._execute_callbacks_async(base.TxEvent.AFTER_ROLLBACK, exc=None)
-        except BaseException as e:
-            await self._execute_callbacks_async(base.TxEvent.AFTER_ROLLBACK, exc=e)
-            raise e
+        with create_ydb_span(
+            "ydb.Rollback",
+            self._driver_config,
+            node_id=self.session.node_id,
+            peer=getattr(self.session, "_peer", None),
+        ):
+            try:
+                await self._execute_callbacks_async(base.TxEvent.BEFORE_ROLLBACK)
+                await self._rollback_call(settings)
+                await self._execute_callbacks_async(base.TxEvent.AFTER_ROLLBACK, exc=None)
+            except BaseException as e:
+                await self._execute_callbacks_async(base.TxEvent.AFTER_ROLLBACK, exc=e)
+                raise e
 
     async def execute(
         self,
@@ -190,30 +209,43 @@ class QueryTxContext(BaseQueryTxContext["AsyncDriver"]):
         """
         await self._ensure_prev_stream_finished()
 
-        stream_it = await self._execute_call(
-            query=query,
-            parameters=parameters,
-            commit_tx=commit_tx,
-            syntax=syntax,
-            exec_mode=exec_mode,
-            stats_mode=stats_mode,
-            schema_inclusion_mode=schema_inclusion_mode,
-            result_set_format=result_set_format,
-            arrow_format_settings=arrow_format_settings,
-            concurrent_result_sets=concurrent_result_sets,
-            settings=settings,
+        span = create_ydb_span(
+            "ydb.ExecuteQuery",
+            self._driver_config,
+            node_id=self.session.node_id,
+            peer=getattr(self.session, "_peer", None),
         )
 
-        self._prev_stream = AsyncResponseContextIterator(
-            it=stream_it,
-            wrapper=lambda resp: base.wrap_execute_query_response(
-                rpc_state=None,
-                response_pb=resp,
-                session=self.session,
-                tx=self,
-                commit_tx=commit_tx,
-                settings=self.session._settings,
-            ),
-            on_error=self.session._on_execute_stream_error,
-        )
-        return self._prev_stream
+        try:
+            with span.attach_context():
+                stream_it = await self._execute_call(
+                    query=query,
+                    parameters=parameters,
+                    commit_tx=commit_tx,
+                    syntax=syntax,
+                    exec_mode=exec_mode,
+                    stats_mode=stats_mode,
+                    schema_inclusion_mode=schema_inclusion_mode,
+                    result_set_format=result_set_format,
+                    arrow_format_settings=arrow_format_settings,
+                    concurrent_result_sets=concurrent_result_sets,
+                    settings=settings,
+                )
+            self._prev_stream = AsyncResponseContextIterator(
+                it=stream_it,
+                wrapper=lambda resp: base.wrap_execute_query_response(
+                    rpc_state=None,
+                    response_pb=resp,
+                    session=self.session,
+                    tx=self,
+                    commit_tx=commit_tx,
+                    settings=self.session._settings,
+                ),
+                on_error=self.session._on_execute_stream_error,
+                span=span,
+            )
+            return self._prev_stream
+        except Exception as e:
+            span.set_error(e)
+            span.end()
+            raise

@@ -2,9 +2,12 @@ from .. import _utilities
 
 
 class AsyncResponseContextIterator(_utilities.AsyncResponseIterator):
-    def __init__(self, it, wrapper, on_error=None):
+    """Async ExecuteQuery result stream; ends the attached OTel span when consumed."""
+
+    def __init__(self, it, wrapper, on_error=None, span=None):
         super().__init__(it, wrapper)
         self._on_error = on_error
+        self._span = span
 
     async def __aenter__(self) -> "AsyncResponseContextIterator":
         return self
@@ -15,6 +18,7 @@ class AsyncResponseContextIterator(_utilities.AsyncResponseIterator):
         except StopAsyncIteration:
             # Normal stream termination is not an error and must not invalidate
             # the session.
+            self._finish_span()
             raise
         except BaseException as e:
             # BaseException (not Exception) because asyncio.CancelledError
@@ -25,7 +29,20 @@ class AsyncResponseContextIterator(_utilities.AsyncResponseIterator):
             # reply with SessionBusy.
             if self._on_error:
                 self._on_error(e)
+            self._finish_span(e)
             raise
+
+    def _finish_span(self, exception=None):
+        if self._span is not None:
+            if exception is not None:
+                self._span.set_error(exception)
+            self._span.end()
+            self._span = None
+
+    def __del__(self):
+        if self._span is not None:
+            self._span.end()
+            self._span = None
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         #  To close stream on YDB it is necessary to scroll through it to the end.
@@ -39,3 +56,4 @@ class AsyncResponseContextIterator(_utilities.AsyncResponseIterator):
                 pass
         except BaseException:
             pass
+        self._finish_span()

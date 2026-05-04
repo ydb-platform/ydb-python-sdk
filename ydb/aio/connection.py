@@ -26,6 +26,7 @@ from ydb.connection import (
 from ydb.driver import DriverConfig
 from ydb.settings import BaseRequestSettings
 from ydb import issues
+from ydb.opentelemetry.tracing import get_trace_metadata
 
 # Workaround for good IDE and universal for runtime
 if TYPE_CHECKING:
@@ -71,6 +72,9 @@ async def _construct_metadata(
             metadata.append((YDB_REQUEST_TYPE_HEADER, settings.request_type))
 
     metadata.append(_utilities.x_ydb_sdk_build_info_header(getattr(driver_config, "_additional_sdk_headers", ())))
+
+    metadata.extend(get_trace_metadata())
+
     return metadata
 
 
@@ -149,6 +153,9 @@ class Connection:
         "closing",
         "endpoint_key",
         "node_id",
+        "peer_address",
+        "peer_port",
+        "peer_location",
     )
 
     def __init__(
@@ -157,10 +164,12 @@ class Connection:
         driver_config: Optional[DriverConfig] = None,
         endpoint_options: Optional[EndpointOptions] = None,
     ) -> None:
-        global _stubs_list
         self.endpoint = endpoint
         self.endpoint_key = EndpointKey(self.endpoint, getattr(endpoint_options, "node_id", None))
         self.node_id = getattr(endpoint_options, "node_id", None)
+        self.peer_address = getattr(endpoint_options, "address", None)
+        self.peer_port = getattr(endpoint_options, "port", None)
+        self.peer_location = getattr(endpoint_options, "location", None)
         self._channel = channel_factory(self.endpoint, driver_config, grpc.aio, endpoint_options=endpoint_options)
         self._driver_config = driver_config
 
