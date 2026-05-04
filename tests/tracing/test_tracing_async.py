@@ -94,6 +94,48 @@ class TestAsyncCreateSessionSpan:
         assert attrs["server.address"] == "test_endpoint"
         assert attrs["server.port"] == 1337
 
+    def test_async_connection_peer_attributes_are_resolved(self, otel_setup):
+        exporter = otel_setup
+
+        from ydb.aio.connection import Connection
+        from ydb.connection import EndpointOptions
+        from ydb.opentelemetry.tracing import create_ydb_span
+        from ydb.query.session import _resolve_peer
+
+        cfg = FakeDriverConfig()
+        endpoint_options = EndpointOptions(
+            node_id=12345,
+            address="node.example.net",
+            port=2136,
+            location="dc-a",
+        )
+
+        with patch("ydb.aio.connection.channel_factory", return_value=MagicMock()):
+            with patch("ydb.aio.connection._stubs_list", ()):
+                connection = Connection(
+                    endpoint="grpc://node.example.net:2136",
+                    driver_config=cfg,
+                    endpoint_options=endpoint_options,
+                )
+
+        driver = MagicMock()
+        driver._store.connections_by_node_id = {12345: connection}
+
+        span = create_ydb_span(
+            "ydb.CreateSession",
+            cfg,
+            node_id=12345,
+            peer=_resolve_peer(driver, 12345),
+        )
+        span.end()
+
+        span = _get_single_span(exporter, "ydb.CreateSession")
+        attrs = dict(span.attributes)
+        assert attrs["ydb.node.id"] == 12345
+        assert attrs["network.peer.address"] == "node.example.net"
+        assert attrs["network.peer.port"] == 2136
+        assert attrs["ydb.node.dc"] == "dc-a"
+
 
 class TestAsyncExecuteQuerySpan:
     @pytest.mark.asyncio
