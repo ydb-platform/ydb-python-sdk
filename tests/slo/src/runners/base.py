@@ -22,6 +22,9 @@ class BaseRunner(ABC):
     def create(self, args):
         pass
 
+    async def create_async(self, args):
+        raise NotImplementedError(f"Async create is not supported for {self.prefix}")
+
     @abstractmethod
     def run(self, args):
         pass
@@ -32,3 +35,6 @@ class BaseRunner(ABC):
     @abstractmethod
     def cleanup(self, args):
         pass
+
+    async def cleanup_async(self, args):
+        raise NotImplementedError(f"Async cleanup is not supported for {self.prefix}")

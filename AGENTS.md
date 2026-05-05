@@ -108,25 +108,25 @@ docker compose -f tests/slo/playground/configs/compose.yaml up -d
 docker ps --format "table {{.Names}}\t{{.Status}}" | grep ydb
 ```
 
-**3. Create a test topic** (from `tests/slo/` directory):
+**3. Activate virtual environment** (from `tests/slo/` directory):
 ```sh
-source .venv/bin/activate
-python ./src topic-create grpc://localhost:2135 /Root/testdb \
-    --path /Root/testdb/slo_topic --debug
+source ../../.venv/bin/activate
 ```
 
 **4. Test writer** (60 sec):
 ```sh
-python ./src topic-run grpc://localhost:2135 /Root/testdb \
-    --path /Root/testdb/slo_topic --otlp-endpoint "" \
-    --read-threads 0 --write-rps 1 --time 60 --debug
+python ./src grpc://localhost:2135 /Root/testdb \
+    --workload-name topic --topic-path /Root/testdb/slo_topic \
+    --otlp-endpoint "" --read-threads 0 --write-rps 1 \
+    --time 60 --debug
 ```
 
 **5. Test reader** (60 sec):
 ```sh
-python ./src topic-run grpc://localhost:2135 /Root/testdb \
-    --path /Root/testdb/slo_topic --otlp-endpoint "" \
-    --read-rps 1 --write-threads 0 --time 60 --debug
+python ./src grpc://localhost:2135 /Root/testdb \
+    --workload-name topic --topic-path /Root/testdb/slo_topic \
+    --otlp-endpoint "" --read-rps 1 --write-rps 1 \
+    --time 60 --debug
 ```
 
 **6. Tear down:**
