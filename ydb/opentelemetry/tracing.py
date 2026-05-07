@@ -101,7 +101,9 @@ def _split_endpoint(endpoint: Optional[str]) -> Tuple[str, int]:
             port_s = ep[close + 2 :]
             return host, int(port_s) if port_s.isdigit() else 0
 
-    host, _, port_s = ep.rpartition(":")
+    host, sep, port_s = ep.rpartition(":")
+    if not sep:
+        return ep, 0
     return host, int(port_s) if port_s.isdigit() else 0
 
 
@@ -122,7 +124,7 @@ def _build_ydb_attrs(driver_config, node_id=None, peer=None):
         if location:
             attrs["ydb.node.dc"] = location
     if node_id is not None:
-        attrs["ydb.node.id"] = node_id or 0
+        attrs["ydb.node.id"] = node_id
     return attrs
 
 

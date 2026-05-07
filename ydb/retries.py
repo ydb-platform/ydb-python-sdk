@@ -174,7 +174,8 @@ def retry_operation_sync(
         for next_opt in retry_operation_impl(traced_callee, retry_settings, *args, **kwargs):
             if isinstance(next_opt, YdbRetryOperationSleepOpt):
                 backoff_ms = int(next_opt.timeout * 1000)
-                time.sleep(next_opt.timeout)
+                if next_opt.timeout > 0:
+                    time.sleep(next_opt.timeout)
             else:
                 return next_opt.result
     return None
