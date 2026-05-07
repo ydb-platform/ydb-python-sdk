@@ -94,6 +94,9 @@ The following operations produce spans:
    * - ``ydb.ExecuteQuery``
      - CLIENT
      - Executing a query (including ``execute_with_retries``).
+   * - ``ydb.BeginTransaction``
+     - CLIENT
+     - Explicitly beginning a transaction via ``.begin()``.
    * - ``ydb.Commit``
      - CLIENT
      - Committing an explicit transaction.

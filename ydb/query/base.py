@@ -72,12 +72,12 @@ class QueryResultSetFormat(enum.IntEnum):
 
 
 class SyncResponseContextIterator(_utilities.SyncResponseIterator):
-    """Streams ExecuteQuery results; ends the attached OTel span when the stream is consumed."""
+    """Streams ExecuteQuery results."""
 
-    def __init__(self, it, wrapper, on_error=None, span=None):
+    def __init__(self, it, wrapper, on_error=None, on_finish=None):
         super().__init__(it, wrapper)
         self._on_error = on_error
-        self._span = span
+        self._on_finish = on_finish
 
     def __enter__(self) -> "SyncResponseContextIterator":
         return self
@@ -88,7 +88,7 @@ class SyncResponseContextIterator(_utilities.SyncResponseIterator):
         except StopIteration:
             # Normal stream termination is not an error and must not invalidate
             # the session.
-            self._finish_span()
+            self._call_on_finish()
             raise
         except BaseException as e:
             # BaseException (not Exception) for parity with the async iterator:
@@ -98,20 +98,16 @@ class SyncResponseContextIterator(_utilities.SyncResponseIterator):
             # SessionBusy.
             if self._on_error:
                 self._on_error(e)
-            self._finish_span(e)
+            self._call_on_finish(e)
             raise
 
-    def _finish_span(self, exception=None):
-        if self._span is not None:
-            if exception is not None:
-                self._span.set_error(exception)
-            self._span.end()
-            self._span = None
+    def _call_on_finish(self, exception=None):
+        if self._on_finish is not None:
+            self._on_finish(exception)
+            self._on_finish = None
 
     def __del__(self):
-        if self._span is not None:
-            self._span.end()
-            self._span = None
+        self._call_on_finish()
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         #  To close stream on YDB it is necessary to scroll through it to the end.
@@ -123,7 +119,7 @@ class SyncResponseContextIterator(_utilities.SyncResponseIterator):
                 pass
         except BaseException:
             pass
-        self._finish_span()
+        self._call_on_finish()
 
 
 class QueryClientSettings:

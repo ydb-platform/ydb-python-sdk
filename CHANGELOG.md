@@ -1,9 +1,4 @@
-## Unreleased ##
-* OpenTelemetry: W3C trace context for gRPC stays bound for the whole ``ExecuteQuery`` stream
-  (until the result iterator finishes); no long-lived ``context.attach`` on the span;
-  ``disable_tracing()``; correct ``server.*`` from ``grpc://`` endpoints; zero work in
-  ``create_ydb_span`` when tracing is off; one ``ydb.Try`` per attempt for fast retriable
-  errors in sync retries.
+* Added OpenTelemetry tracing support via `ydb.opentelemetry.enable_tracing()`
 
 ## 3.28.4 ##
 * Fix iam module lazy loading
@@ -73,7 +68,7 @@
 * Make DeadlineExceeded not retriable
 
 ## 3.23.4 ##
-* Allow rollback after TLI 
+* Allow rollback after TLI
 
 ## 3.23.3 ##
 * Make attach session error readable

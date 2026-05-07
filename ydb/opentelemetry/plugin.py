@@ -49,45 +49,46 @@ def _set_error_on_span(span, exception):
 
 
 class _AttachContext:
-    """Make a span the active OTel context for a ``with`` block, without ending it.
+    """Make a span the active OTel context for a ``with`` block.
 
-    Used around the initial gRPC call of a streaming RPC: the span outlives the
-    ``with`` block — the result iterator owns ``end()``. For non-streaming RPCs
-    use ``with create_ydb_span(...)`` directly.
+    When ``end_on_exit=True`` (default) the span is ended on exit — used for
+    single-shot RPCs. When ``end_on_exit=False`` the span is only ended on
+    exception — used for streaming RPCs where the result iterator owns ``end()``.
     """
 
-    def __init__(self, raw_span):
-        self._raw = raw_span
+    def __init__(self, span, end_on_exit):
+        self._span = span
+        self._end_on_exit = end_on_exit
         self._token = None
 
     def __enter__(self):
-        ctx = trace.set_span_in_context(self._raw)
+        ctx = trace.set_span_in_context(self._span._span)
         self._token = otel_context.attach(ctx)
-        return self
+        return self._span
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         if self._token is not None:
             otel_context.detach(self._token)
             self._token = None
+        if exc_val is not None:
+            self._span.set_error(exc_val)
+            self._span.end()
+        elif self._end_on_exit:
+            self._span.end()
         return False
 
 
 class TracingSpan:
     """Wrapper around an OTel span.
 
-    As context manager: ``__enter__`` attaches the OTel context (so child spans
-    nest correctly and ``inject()`` sees this span when building gRPC metadata)
-    and ``__exit__`` detaches and ends the span. Used by Commit / Rollback /
-    RunWithRetry / Try and similar single-shot operations.
-
-    For ExecuteQuery streams the span outlives the ``with`` block: call
-    :meth:`attach_context` around the initial gRPC call only, and let the result
-    iterator own ``end()``.
+    Use :meth:`attach_context` as a context manager around any RPC call.
+    The default (``end_on_exit=True``) is for single-shot operations; pass
+    ``end_on_exit=False`` for streaming RPCs where the result iterator owns
+    ``end()``.
     """
 
     def __init__(self, span):
         self._span = span
-        self._otel_context_token = None
 
     def set_error(self, exception):
         _set_error_on_span(self._span, exception)
@@ -98,22 +99,8 @@ class TracingSpan:
     def end(self):
         self._span.end()
 
-    def attach_context(self):
-        return _AttachContext(self._span)
-
-    def __enter__(self):
-        ctx = trace.set_span_in_context(self._span)
-        self._otel_context_token = otel_context.attach(ctx)
-        return self
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        if self._otel_context_token is not None:
-            otel_context.detach(self._otel_context_token)
-            self._otel_context_token = None
-        if exc_val is not None:
-            self.set_error(exc_val)
-        self.end()
-        return False
+    def attach_context(self, end_on_exit=True):
+        return _AttachContext(self, end_on_exit)
 
 
 def _create_span(name, attributes=None, kind=None):

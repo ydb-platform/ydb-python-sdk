@@ -8,7 +8,7 @@ No real YDB connection is needed.
 from unittest.mock import MagicMock, patch
 from opentelemetry import trace
 from opentelemetry.trace import StatusCode, SpanKind
-from ydb.opentelemetry.tracing import _registry, create_ydb_span
+from ydb.opentelemetry.tracing import SpanName, _registry, create_ydb_span
 from ydb.query.transaction import QueryTxStateEnum
 from .conftest import FakeDriverConfig
 
@@ -84,7 +84,7 @@ class TestCreateSessionSpan:
             with patch.object(QuerySession, "_attach", return_value=None):
                 qs.create()
 
-        span = _get_single_span(exporter, "ydb.CreateSession")
+        span = _get_single_span(exporter, SpanName.CREATE_SESSION)
         assert span.kind == SpanKind.CLIENT
         attrs = dict(span.attributes)
         assert attrs["db.system.name"] == "ydb"
@@ -116,7 +116,7 @@ class TestExecuteQuerySpan:
             # Consume the iterator to finish the span
             list(result)
 
-        span = _get_single_span(exporter, "ydb.ExecuteQuery")
+        span = _get_single_span(exporter, SpanName.EXECUTE_QUERY)
         assert span.kind == SpanKind.CLIENT
         attrs = dict(span.attributes)
         assert attrs["db.system.name"] == "ydb"
@@ -141,7 +141,7 @@ class TestExecuteQuerySpan:
             result = tx.execute("SELECT 1;")
             list(result)
 
-        span = _get_single_span(exporter, "ydb.ExecuteQuery")
+        span = _get_single_span(exporter, SpanName.EXECUTE_QUERY)
         attrs = dict(span.attributes)
         assert attrs["ydb.node.id"] == 12345
         assert attrs["network.peer.address"] == "n1"
@@ -160,7 +160,7 @@ class TestBeginTransactionSpan:
         with patch.object(type(tx), "_begin_call", return_value=None):
             tx.begin()
 
-        span = _get_single_span(exporter, "ydb.BeginTransaction")
+        span = _get_single_span(exporter, SpanName.BEGIN_TRANSACTION)
         assert span.kind == SpanKind.CLIENT
         attrs = dict(span.attributes)
         assert attrs["db.system.name"] == "ydb"
@@ -185,7 +185,7 @@ class TestBeginTransactionSpan:
             with pytest.raises(issues.Unavailable):
                 tx.begin()
 
-        span = _get_single_span(exporter, "ydb.BeginTransaction")
+        span = _get_single_span(exporter, SpanName.BEGIN_TRANSACTION)
         assert span.status.status_code == StatusCode.ERROR
         attrs = dict(span.attributes)
         assert attrs["error.type"] == "ydb_error"
@@ -202,7 +202,7 @@ class TestCommitSpan:
         with patch.object(type(tx), "_commit_call", return_value=None):
             tx.commit()
 
-        span = _get_single_span(exporter, "ydb.Commit")
+        span = _get_single_span(exporter, SpanName.COMMIT)
         assert span.kind == SpanKind.CLIENT
         attrs = dict(span.attributes)
         assert attrs["db.system.name"] == "ydb"
@@ -222,7 +222,7 @@ class TestRollbackSpan:
         with patch.object(type(tx), "_rollback_call", return_value=None):
             tx.rollback()
 
-        span = _get_single_span(exporter, "ydb.Rollback")
+        span = _get_single_span(exporter, SpanName.ROLLBACK)
         assert span.kind == SpanKind.CLIENT
         attrs = dict(span.attributes)
         assert attrs["db.system.name"] == "ydb"
@@ -252,7 +252,7 @@ class TestCommitRollbackErrorRecording:
             with pytest.raises(issues.Aborted):
                 tx.commit()
 
-        span = _get_single_span(exporter, "ydb.Commit")
+        span = _get_single_span(exporter, SpanName.COMMIT)
         assert span.status.status_code == StatusCode.ERROR
         attrs = dict(span.attributes)
         assert attrs["error.type"] == "ydb_error"
@@ -271,7 +271,7 @@ class TestCommitRollbackErrorRecording:
             with pytest.raises(issues.Unavailable):
                 tx.rollback()
 
-        span = _get_single_span(exporter, "ydb.Rollback")
+        span = _get_single_span(exporter, SpanName.ROLLBACK)
         assert span.status.status_code == StatusCode.ERROR
         attrs = dict(span.attributes)
         assert attrs["error.type"] == "ydb_error"
@@ -302,7 +302,7 @@ class TestErrorHandling:
             with pytest.raises(issues.SchemeError):
                 qs.execute("SELECT * FROM non_existing_table")
 
-        span = _get_single_span(exporter, "ydb.ExecuteQuery")
+        span = _get_single_span(exporter, SpanName.EXECUTE_QUERY)
         assert span.status.status_code == StatusCode.ERROR
         attrs = dict(span.attributes)
         assert attrs["error.type"] == "ydb_error"
@@ -320,7 +320,7 @@ class TestNoSpansWhenDisabled:
         _registry.set_metadata_hook(None)
         _exporter.clear()
 
-        with create_ydb_span("ydb.CreateSession", FakeDriverConfig()):
+        with create_ydb_span(SpanName.CREATE_SESSION, FakeDriverConfig()).attach_context():
             pass
 
         assert len(_exporter.get_finished_spans()) == 0
@@ -333,11 +333,11 @@ class TestParentChildRelationship:
         tracer = trace.get_tracer("test.tracer")
 
         with tracer.start_as_current_span("user.operation"):
-            with create_ydb_span("ydb.ExecuteQuery", FakeDriverConfig(), node_id=1):
+            with create_ydb_span(SpanName.EXECUTE_QUERY, FakeDriverConfig(), node_id=1).attach_context():
                 pass
 
         spans = exporter.get_finished_spans()
-        ydb_span = next(s for s in spans if s.name == "ydb.ExecuteQuery")
+        ydb_span = next(s for s in spans if s.name == SpanName.EXECUTE_QUERY)
         user_span = next(s for s in spans if s.name == "user.operation")
 
         assert ydb_span.parent is not None
@@ -364,10 +364,10 @@ class TestDriverInitializeSpan:
 
         cfg = FakeDriverConfig()
 
-        with create_ydb_span("ydb.Driver.Initialize", cfg, kind="internal"):
+        with create_ydb_span(SpanName.DRIVER_INITIALIZE, cfg, kind="internal").attach_context():
             pass
 
-        span = _get_single_span(exporter, "ydb.Driver.Initialize")
+        span = _get_single_span(exporter, SpanName.DRIVER_INITIALIZE)
         assert span.kind == SpanKind.INTERNAL
         attrs = dict(span.attributes)
         assert attrs["db.system.name"] == "ydb"
@@ -387,7 +387,7 @@ class TestCommonAttributes:
         exporter = otel_setup
         cfg = FakeDriverConfig(endpoint=endpoint, database="/mydb")
 
-        with create_ydb_span("ydb.Test", cfg):
+        with create_ydb_span("ydb.Test", cfg).attach_context():
             pass
 
         span = _get_single_span(exporter, "ydb.Test")
@@ -400,7 +400,7 @@ class TestCommonAttributes:
         exporter = otel_setup
         cfg = FakeDriverConfig()
 
-        with create_ydb_span("ydb.Test", cfg):
+        with create_ydb_span("ydb.Test", cfg).attach_context():
             pass
 
         span = _get_single_span(exporter, "ydb.Test")
@@ -412,7 +412,7 @@ class TestCommonAttributes:
         exporter = otel_setup
         cfg = FakeDriverConfig()
 
-        with create_ydb_span("ydb.Test", cfg, peer=("peer.example.com", 2137, "dc-west")):
+        with create_ydb_span("ydb.Test", cfg, peer=("peer.example.com", 2137, "dc-west")).attach_context():
             pass
 
         span = _get_single_span(exporter, "ydb.Test")
@@ -464,11 +464,11 @@ class TestRetryPolicySpans:
 
         assert retry_operation_sync(callee) == 42
 
-        run = _get_single_span(exporter, "ydb.RunWithRetry")
+        run = _get_single_span(exporter, SpanName.RUN_WITH_RETRY)
         assert run.kind == SpanKind.INTERNAL
         assert run.status.status_code == StatusCode.UNSET
 
-        tries = _get_spans(exporter, "ydb.Try")
+        tries = _get_spans(exporter, SpanName.TRY)
         assert len(tries) == 1
         assert tries[0].kind == SpanKind.INTERNAL
         assert "ydb.retry.backoff_ms" not in dict(tries[0].attributes)
@@ -496,7 +496,7 @@ class TestRetryPolicySpans:
 
         assert retry_operation_sync(flaky, retry_settings) == "ok"
 
-        tries = _get_spans(exporter, "ydb.Try")
+        tries = _get_spans(exporter, SpanName.TRY)
         assert len(tries) == 3
         # First attempt has no preceding backoff, so no attribute at all; later ones
         # carry a positive integer ms.
@@ -546,7 +546,7 @@ class TestRetryPolicySpans:
 
         expected_ms = 75
 
-        tries = _get_spans(exporter, "ydb.Try")
+        tries = _get_spans(exporter, SpanName.TRY)
         assert len(tries) == 3
         assert "ydb.retry.backoff_ms" not in dict(tries[0].attributes)
         assert dict(tries[1].attributes)["ydb.retry.backoff_ms"] == expected_ms
@@ -569,7 +569,7 @@ class TestRetryPolicySpans:
 
         assert retry_operation_sync(flaky, RetrySettings(max_retries=5)) == "ok"
 
-        tries = _get_spans(exporter, "ydb.Try")
+        tries = _get_spans(exporter, SpanName.TRY)
         assert len(tries) == 3
         assert tries[0].status.status_code == StatusCode.ERROR
         assert tries[1].status.status_code == StatusCode.ERROR
@@ -593,10 +593,10 @@ class TestRetryPolicySpans:
         with pytest.raises(issues.SchemeError):
             retry_operation_sync(broken)
 
-        run = _get_single_span(exporter, "ydb.RunWithRetry")
+        run = _get_single_span(exporter, SpanName.RUN_WITH_RETRY)
         assert run.status.status_code == StatusCode.ERROR
 
-        tries = _get_spans(exporter, "ydb.Try")
+        tries = _get_spans(exporter, SpanName.TRY)
         assert len(tries) == 1
         assert tries[0].status.status_code == StatusCode.ERROR
         attrs = dict(tries[0].attributes)
@@ -629,9 +629,9 @@ class TestRetryPolicySpans:
 
         assert retry_operation_sync(callee) == "ok"
 
-        run = _get_single_span(exporter, "ydb.RunWithRetry")
-        try_span = _get_single_span(exporter, "ydb.Try")
-        exec_span = _get_single_span(exporter, "ydb.ExecuteQuery")
+        run = _get_single_span(exporter, SpanName.RUN_WITH_RETRY)
+        try_span = _get_single_span(exporter, SpanName.TRY)
+        exec_span = _get_single_span(exporter, SpanName.EXECUTE_QUERY)
 
         assert try_span.parent.span_id == run.context.span_id
         assert exec_span.parent.span_id == try_span.context.span_id

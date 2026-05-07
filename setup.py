@@ -37,7 +37,6 @@ setuptools.setup(
     options={"bdist_wheel": {"universal": True}},
     extras_require={
         "yc": ["yandexcloud", ],
-        # Named ``opentelemetry`` (not ``tracing``): avoids clashing with ``ydb.tracing`` (PR #786, vgvoleg).
         "opentelemetry": ["opentelemetry-api>=1.0.0"],
     }
 )
