@@ -1,0 +1,91 @@
+# Full OpenTelemetry demo: YDB (server-side tracing config), collector, Tempo, Prometheus, Grafana,
+# and a one-shot container that runs otel_example.py once.
+#
+# Run from this directory (paths below are relative to this file):
+#   cd examples/opentelemetry && docker compose -f compose-e2e.yaml up
+#
+# Or from the repository root:
+#   docker compose -f examples/opentelemetry/compose-e2e.yaml up
+
+services:
+  ydb:
+    image: ydbplatform/local-ydb:trunk
+    restart: always
+    platform: linux/amd64
+    environment:
+      YDB_DEFAULT_LOG_LEVEL: NOTICE
+      GRPC_TLS_PORT: "2135"
+      GRPC_PORT: "2136"
+      MON_PORT: "8765"
+      YDB_USE_IN_MEMORY_PDISKS: "true"
+    command: ["--config-path", "/ydb_config/ydb-config-with-tracing.yaml"]
+    ports:
+      - "2135:2135"
+      - "2136:2136"
+      - "8765:8765"
+    volumes:
+      - ./ydb_config:/ydb_config:ro
+    healthcheck:
+      test: bash -c "exec 6<> /dev/tcp/localhost/2136"
+      interval: 5s
+      timeout: 2s
+      retries: 30
+      start_period: 30s
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:latest
+    command: ["--config=/etc/otelcol/config.yaml"]
+    volumes:
+      - ./otel-collector-config.yaml:/etc/otelcol/config.yaml:ro
+    ports:
+      - "4317:4317"
+      - "4318:4318"
+      - "9464:9464"
+      - "13133:13133"
+      - "13317:55679"
+
+  prometheus:
+    image: prom/prometheus:latest
+    volumes:
+      - ./prometheus.yaml:/etc/prometheus/prometheus.yml:ro
+    ports:
+      - "9090:9090"
+    depends_on: [otel-collector]
+
+  tempo:
+    image: grafana/tempo:2.4.1
+    command: ["-config.file=/etc/tempo.yaml"]
+    volumes:
+      - ./tempo.yaml:/etc/tempo.yaml:ro
+    ports:
+      - "3200:3200"
+    depends_on: [otel-collector]
+
+  grafana:
+    image: grafana/grafana:10.4.2
+    environment:
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: "Admin"
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+    ports:
+      - "3000:3000"
+    depends_on: [prometheus, tempo]
+
+  otel-example:
+    # Built from the local SDK source (no volume mount, no relative-path tricks).
+    build:
+      context: ../..
+      dockerfile: examples/opentelemetry/Dockerfile
+    environment:
+      YDB_ENDPOINT: grpc://ydb:2136
+      YDB_DATABASE: /local
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4317
+      OTEL_SERVICE_NAME: ydb-otel-example
+    depends_on:
+      ydb:
+        condition: service_healthy
+      otel-collector:
+        condition: service_started
+    restart: "no"

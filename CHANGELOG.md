@@ -1,3 +1,5 @@
+* Added OpenTelemetry tracing support via `ydb.opentelemetry.enable_tracing()`
+
 ## 3.28.4 ##
 * Fix iam module lazy loading
 
@@ -66,7 +68,7 @@
 * Make DeadlineExceeded not retriable
 
 ## 3.23.4 ##
-* Allow rollback after TLI 
+* Allow rollback after TLI
 
 ## 3.23.3 ##
 * Make attach session error readable

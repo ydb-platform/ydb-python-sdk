@@ -41,6 +41,7 @@ module = [
     "requests.*",
     "ydb.public.api.*",
     "contrib.ydb.public.api.*",
+    "opentelemetry.*",
 ]
 ignore_missing_imports = true
 

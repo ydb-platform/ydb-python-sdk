@@ -1,0 +1,10 @@
+# Core ydb import/runtime (grpc, ``packaging``, etc.) — same as repository root ``requirements.txt``.
+-r ../../requirements.txt
+# Extras and OTLP (``ydb[opentelemetry]`` only brings ``opentelemetry-api``)
+# With editable install:
+#   (repository root)  pip install -e '.[opentelemetry]' -r examples/opentelemetry/requirements.txt
+#   (this directory)  pip install -e '../..[opentelemetry]' -r requirements.txt
+# Without ``pip -e``, set ``sys.path`` is enough for ``ydb`` from the checkout, but you still need these lines:
+#   pip install -r requirements.txt
+opentelemetry-sdk>=1.0.0
+opentelemetry-exporter-otlp-proto-grpc>=1.0.0

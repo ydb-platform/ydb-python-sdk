@@ -37,5 +37,6 @@ setuptools.setup(
     options={"bdist_wheel": {"universal": True}},
     extras_require={
         "yc": ["yandexcloud", ],
+        "opentelemetry": ["opentelemetry-api>=1.0.0"],
     }
 )
