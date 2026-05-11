@@ -17,7 +17,7 @@ from .. import (
     _apis,
     issues,
 )
-from ..opentelemetry.tracing import create_ydb_span
+from ..opentelemetry.tracing import SpanName, create_ydb_span, span_finish_callback
 from .._grpc.grpcwrapper import ydb_topic as _ydb_topic
 from .._grpc.grpcwrapper import ydb_query as _ydb_query
 from ..connection import _RpcState as RpcState
@@ -529,11 +529,11 @@ class QueryTxContext(BaseQueryTxContext["SyncDriver"]):
         :return: Transaction object or exception if begin is failed
         """
         with create_ydb_span(
-            "ydb.BeginTransaction",
+            SpanName.BEGIN_TRANSACTION,
             self._driver_config,
             node_id=self.session.node_id,
             peer=getattr(self.session, "_peer", None),
-        ):
+        ).attach_context():
             self._begin_call(settings)
 
         return self
@@ -557,11 +557,11 @@ class QueryTxContext(BaseQueryTxContext["SyncDriver"]):
         self._ensure_prev_stream_finished()
 
         with create_ydb_span(
-            "ydb.Commit",
+            SpanName.COMMIT,
             self._driver_config,
             node_id=self.session.node_id,
             peer=getattr(self.session, "_peer", None),
-        ):
+        ).attach_context():
             try:
                 self._execute_callbacks_sync(base.TxEvent.BEFORE_COMMIT)
                 self._commit_call(settings)
@@ -589,11 +589,11 @@ class QueryTxContext(BaseQueryTxContext["SyncDriver"]):
         self._ensure_prev_stream_finished()
 
         with create_ydb_span(
-            "ydb.Rollback",
+            SpanName.ROLLBACK,
             self._driver_config,
             node_id=self.session.node_id,
             peer=getattr(self.session, "_peer", None),
-        ):
+        ).attach_context():
             try:
                 self._execute_callbacks_sync(base.TxEvent.BEFORE_ROLLBACK)
                 self._rollback_call(settings)
@@ -650,42 +650,37 @@ class QueryTxContext(BaseQueryTxContext["SyncDriver"]):
         self._ensure_prev_stream_finished()
 
         span = create_ydb_span(
-            "ydb.ExecuteQuery",
+            SpanName.EXECUTE_QUERY,
             self._driver_config,
             node_id=self.session.node_id,
             peer=getattr(self.session, "_peer", None),
         )
 
-        try:
-            with span.attach_context():
-                stream_it = self._execute_call(
-                    query=query,
-                    commit_tx=commit_tx,
-                    syntax=syntax,
-                    exec_mode=exec_mode,
-                    stats_mode=stats_mode,
-                    schema_inclusion_mode=schema_inclusion_mode,
-                    result_set_format=result_set_format,
-                    arrow_format_settings=arrow_format_settings,
-                    parameters=parameters,
-                    concurrent_result_sets=concurrent_result_sets,
-                    settings=settings,
-                )
-            self._prev_stream = base.SyncResponseContextIterator(
-                stream_it,
-                lambda resp: base.wrap_execute_query_response(
-                    rpc_state=None,
-                    response_pb=resp,
-                    session=self.session,
-                    tx=self,
-                    commit_tx=commit_tx,
-                    settings=self.session._settings,
-                ),
-                on_error=self.session._on_execute_stream_error,
-                span=span,
+        with span.attach_context(end_on_exit=False):
+            stream_it = self._execute_call(
+                query=query,
+                commit_tx=commit_tx,
+                syntax=syntax,
+                exec_mode=exec_mode,
+                stats_mode=stats_mode,
+                schema_inclusion_mode=schema_inclusion_mode,
+                result_set_format=result_set_format,
+                arrow_format_settings=arrow_format_settings,
+                parameters=parameters,
+                concurrent_result_sets=concurrent_result_sets,
+                settings=settings,
             )
-            return self._prev_stream
-        except Exception as e:
-            span.set_error(e)
-            span.end()
-            raise
+        self._prev_stream = base.SyncResponseContextIterator(
+            stream_it,
+            lambda resp: base.wrap_execute_query_response(
+                rpc_state=None,
+                response_pb=resp,
+                session=self.session,
+                tx=self,
+                commit_tx=commit_tx,
+                settings=self.session._settings,
+            ),
+            on_error=self.session._on_execute_stream_error,
+            on_finish=span_finish_callback(span),
+        )
+        return self._prev_stream

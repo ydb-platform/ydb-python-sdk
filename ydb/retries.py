@@ -7,21 +7,11 @@ from typing import Any, Callable, Generator, Optional, Union
 
 from . import issues
 from ._errors import check_retriable_error
-from .opentelemetry.tracing import _registry as _tracing_registry
+from .opentelemetry.tracing import SpanName, create_span as _create_span
 
 
-_RUN_WITH_RETRY_SPAN = "ydb.RunWithRetry"
-_TRY_SPAN = "ydb.Try"
-_BACKOFF_ATTR = "ydb.retry.backoff_ms"
-
-
-def _start_run_with_retry_span():
-    return _tracing_registry.create_span(_RUN_WITH_RETRY_SPAN, kind="internal")
-
-
-def _start_try_span(backoff_ms: Optional[int]):
-    attrs = {_BACKOFF_ATTR: backoff_ms} if backoff_ms is not None else None
-    return _tracing_registry.create_span(_TRY_SPAN, attributes=attrs, kind="internal")
+def _try_span_attrs(backoff_ms: Optional[int]):
+    return {"ydb.retry.backoff_ms": backoff_ms} if backoff_ms is not None else None
 
 
 class BackoffSettings:
@@ -177,14 +167,15 @@ def retry_operation_sync(
 
     @functools.wraps(callee)
     def traced_callee(*a: Any, **kw: Any) -> Any:
-        with _start_try_span(backoff_ms):
+        with _create_span(SpanName.TRY, _try_span_attrs(backoff_ms)):
             return callee(*a, **kw)
 
-    with _start_run_with_retry_span():
+    with _create_span(SpanName.RUN_WITH_RETRY):
         for next_opt in retry_operation_impl(traced_callee, retry_settings, *args, **kwargs):
             if isinstance(next_opt, YdbRetryOperationSleepOpt):
                 backoff_ms = int(next_opt.timeout * 1000)
-                time.sleep(next_opt.timeout)
+                if next_opt.timeout > 0:
+                    time.sleep(next_opt.timeout)
             else:
                 return next_opt.result
     return None
@@ -209,13 +200,14 @@ async def retry_operation_async(  # pylint: disable=W1113
     Returns awaitable result of coroutine. If retries are not succussful exception is raised.
     """
     backoff_ms: Optional[int] = None
-    with _start_run_with_retry_span():
+    with _create_span(SpanName.RUN_WITH_RETRY):
         for next_opt in retry_operation_impl(callee, retry_settings, *args, **kwargs):
             if isinstance(next_opt, YdbRetryOperationSleepOpt):
                 backoff_ms = int(next_opt.timeout * 1000)
-                await asyncio.sleep(next_opt.timeout)
+                if next_opt.timeout > 0:
+                    await asyncio.sleep(next_opt.timeout)
             else:
-                with _start_try_span(backoff_ms) as try_span:
+                with _create_span(SpanName.TRY, _try_span_attrs(backoff_ms)) as try_span:
                     try:
                         return await next_opt.result
                     except BaseException as e:  # pylint: disable=W0703

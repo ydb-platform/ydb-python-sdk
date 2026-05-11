@@ -10,7 +10,7 @@ import random
 from typing import Any, Callable, ContextManager, List, Optional, Set, Tuple, TYPE_CHECKING
 
 from . import connection as connection_impl, issues, resolver, _utilities, tracing
-from .opentelemetry.tracing import create_ydb_span
+from .opentelemetry.tracing import SpanName, create_ydb_span
 from abc import abstractmethod
 
 from .connection import Connection, EndpointKey
@@ -454,7 +454,7 @@ class ConnectionPool(IConnectionPool):
         :param timeout: A timeout to wait in seconds
         :return: None
         """
-        with create_ydb_span("ydb.Driver.Initialize", self._driver_config, kind="internal"):
+        with create_ydb_span(SpanName.DRIVER_INITIALIZE, self._driver_config, kind="internal").attach_context():
             if fail_fast:
                 self._store.add_fast_fail().result(timeout)
             else:

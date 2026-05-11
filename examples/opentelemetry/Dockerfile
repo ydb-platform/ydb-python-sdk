@@ -15,7 +15,7 @@ COPY ydb ./ydb
 COPY examples/opentelemetry/requirements.txt ./examples/opentelemetry/requirements.txt
 RUN pip install --no-cache-dir -e '.[opentelemetry]' -r examples/opentelemetry/requirements.txt
 
-# Demo scripts.
-COPY examples/opentelemetry/otel_tracing_example.py ./examples/opentelemetry/otel_tracing_example.py
+# Demo script.
+COPY examples/opentelemetry/otel_example.py ./examples/opentelemetry/otel_example.py
 
-CMD ["python", "examples/opentelemetry/otel_tracing_example.py"]
+CMD ["python", "examples/opentelemetry/otel_example.py"]

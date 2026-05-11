@@ -18,6 +18,7 @@ from . import base
 from .base import QueryExplainResultFormat
 
 from .. import _apis, issues, _utilities
+from ..opentelemetry.tracing import SpanName, create_ydb_span, set_peer_attributes, span_finish_callback
 from ..opentelemetry.metrics import record_query_session_count
 from ..opentelemetry.tracing import create_ydb_span, set_peer_attributes
 from ..settings import BaseRequestSettings
@@ -428,7 +429,7 @@ class QuerySession(BaseQuerySession["SyncDriver"]):
         if self._closed:
             raise RuntimeError("Session is already closed.")
 
-        with create_ydb_span("ydb.CreateSession", self._driver_config) as span:
+        with create_ydb_span("ydb.CreateSession", self._driver_config).attach_context() as span:
             self._create_call(settings=settings)
             set_peer_attributes(span, self._peer)
             self._attach()
@@ -505,42 +506,37 @@ class QuerySession(BaseQuerySession["SyncDriver"]):
         self._check_session_ready_to_use()
 
         span = create_ydb_span(
-            "ydb.ExecuteQuery",
+            SpanName.EXECUTE_QUERY,
             self._driver_config,
             node_id=self._node_id,
             peer=self._peer,
         )
 
-        try:
-            with span.attach_context():
-                stream_it = self._execute_call(
-                    query=query,
-                    parameters=parameters,
-                    commit_tx=True,
-                    syntax=syntax,
-                    exec_mode=exec_mode,
-                    stats_mode=stats_mode,
-                    schema_inclusion_mode=schema_inclusion_mode,
-                    result_set_format=result_set_format,
-                    arrow_format_settings=arrow_format_settings,
-                    concurrent_result_sets=concurrent_result_sets,
-                    settings=settings,
-                )
-            return base.SyncResponseContextIterator(
-                stream_it,
-                lambda resp: base.wrap_execute_query_response(
-                    rpc_state=None,
-                    response_pb=resp,
-                    session=self,
-                    settings=self._settings,
-                ),
-                on_error=self._on_execute_stream_error,
-                span=span,
+        with span.attach_context(end_on_exit=False):
+            stream_it = self._execute_call(
+                query=query,
+                parameters=parameters,
+                commit_tx=True,
+                syntax=syntax,
+                exec_mode=exec_mode,
+                stats_mode=stats_mode,
+                schema_inclusion_mode=schema_inclusion_mode,
+                result_set_format=result_set_format,
+                arrow_format_settings=arrow_format_settings,
+                concurrent_result_sets=concurrent_result_sets,
+                settings=settings,
             )
-        except Exception as e:
-            span.set_error(e)
-            span.end()
-            raise
+        return base.SyncResponseContextIterator(
+            stream_it,
+            lambda resp: base.wrap_execute_query_response(
+                rpc_state=None,
+                response_pb=resp,
+                session=self,
+                settings=self._settings,
+            ),
+            on_error=self._on_execute_stream_error,
+            on_finish=span_finish_callback(span),
+        )
 
     def explain(
         self,

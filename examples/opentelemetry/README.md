@@ -1,6 +1,6 @@
 # OpenTelemetry example (YDB Python SDK)
 
-Async demo in [`otel_tracing_example.py`](otel_tracing_example.py): OTLP export, `enable_tracing()`,
+Async demo in [`otel_example.py`](otel_example.py): OTLP export, `enable_tracing()`,
 `app_startup` and `example_tli` application spans, bank table, Serializable transactions (TLI-style load).
 
 Most steps assume the **repository root** as the current directory; the install step also shows the variant from this folder.
@@ -55,12 +55,12 @@ pip install -e '../..[opentelemetry]' -r requirements.txt
 
 `requirements.txt` includes a merge of the repository’s core `requirements.txt` (grpc, ``packaging``, …) plus the OpenTelemetry lines. The `-e` install is only needed to register the package; otherwise this example prepends the repo to ``sys.path``.
 
-**Without** `pip -e` (``ydb`` from the checkout via `sys.path`): from this directory run `pip install -r requirements.txt`, then ``python otel_tracing_example.py``.
+**Without** `pip -e` (``ydb`` from the checkout via `sys.path`): from this directory run `pip install -r requirements.txt`, then ``python otel_example.py``.
 
 ## 3. Run the example (after YDB from step 1 is up)
 
 ```sh
-python examples/opentelemetry/otel_tracing_example.py
+python examples/opentelemetry/otel_example.py
 ```
 
 Defaults: YDB `grpc://localhost:2136`, OTLP `http://localhost:4317` (for a local collector, if you use one).

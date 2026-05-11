@@ -4,6 +4,7 @@ Mirrors the sync tests but exercises the async code paths in ydb.aio.query.
 """
 
 from opentelemetry.trace import StatusCode, SpanKind
+from ydb.opentelemetry.tracing import SpanName
 from ydb.query.transaction import QueryTxStateEnum
 from .conftest import FakeDriverConfig
 from unittest.mock import AsyncMock, MagicMock, patch
@@ -86,7 +87,7 @@ class TestAsyncCreateSessionSpan:
             with patch.object(QuerySession, "_attach", new_callable=AsyncMock):
                 await qs.create()
 
-        span = _get_single_span(exporter, "ydb.CreateSession")
+        span = _get_single_span(exporter, SpanName.CREATE_SESSION)
         assert span.kind == SpanKind.CLIENT
         attrs = dict(span.attributes)
         assert attrs["db.system.name"] == "ydb"
@@ -122,14 +123,14 @@ class TestAsyncCreateSessionSpan:
         driver._store.connections_by_node_id = {12345: connection}
 
         span = create_ydb_span(
-            "ydb.CreateSession",
+            SpanName.CREATE_SESSION,
             cfg,
             node_id=12345,
             peer=_resolve_peer(driver, 12345),
         )
         span.end()
 
-        span = _get_single_span(exporter, "ydb.CreateSession")
+        span = _get_single_span(exporter, SpanName.CREATE_SESSION)
         attrs = dict(span.attributes)
         assert attrs["ydb.node.id"] == 12345
         assert attrs["network.peer.address"] == "node.example.net"
@@ -160,7 +161,7 @@ class TestAsyncExecuteQuerySpan:
             async for _ in result:
                 pass
 
-        span = _get_single_span(exporter, "ydb.ExecuteQuery")
+        span = _get_single_span(exporter, SpanName.EXECUTE_QUERY)
         attrs = dict(span.attributes)
         assert attrs["ydb.node.id"] == 12345
         assert attrs["network.peer.address"] == "n1"
@@ -180,7 +181,7 @@ class TestAsyncExecuteQuerySpan:
             async for _ in result:
                 pass
 
-        span = _get_single_span(exporter, "ydb.ExecuteQuery")
+        span = _get_single_span(exporter, SpanName.EXECUTE_QUERY)
         attrs = dict(span.attributes)
         assert attrs["ydb.node.id"] == 12345
         assert attrs["network.peer.address"] == "n1"
@@ -199,7 +200,7 @@ class TestAsyncBeginTransactionSpan:
         with patch.object(type(tx), "_begin_call", new_callable=AsyncMock):
             await tx.begin()
 
-        span = _get_single_span(exporter, "ydb.BeginTransaction")
+        span = _get_single_span(exporter, SpanName.BEGIN_TRANSACTION)
         assert span.kind == SpanKind.CLIENT
         attrs = dict(span.attributes)
         assert attrs["db.system.name"] == "ydb"
@@ -225,7 +226,7 @@ class TestAsyncBeginTransactionSpan:
             with pytest.raises(issues.Unavailable):
                 await tx.begin()
 
-        span = _get_single_span(exporter, "ydb.BeginTransaction")
+        span = _get_single_span(exporter, SpanName.BEGIN_TRANSACTION)
         assert span.status.status_code == StatusCode.ERROR
         attrs = dict(span.attributes)
         assert attrs["error.type"] == "ydb_error"
@@ -243,7 +244,7 @@ class TestAsyncCommitSpan:
         with patch.object(type(tx), "_commit_call", new_callable=AsyncMock):
             await tx.commit()
 
-        span = _get_single_span(exporter, "ydb.Commit")
+        span = _get_single_span(exporter, SpanName.COMMIT)
         assert span.kind == SpanKind.CLIENT
         attrs = dict(span.attributes)
         assert attrs["network.peer.address"] == "n1"
@@ -262,7 +263,7 @@ class TestAsyncRollbackSpan:
         with patch.object(type(tx), "_rollback_call", new_callable=AsyncMock):
             await tx.rollback()
 
-        span = _get_single_span(exporter, "ydb.Rollback")
+        span = _get_single_span(exporter, SpanName.ROLLBACK)
         assert span.kind == SpanKind.CLIENT
         attrs = dict(span.attributes)
         assert attrs["network.peer.address"] == "n1"
@@ -290,7 +291,7 @@ class TestAsyncCommitRollbackErrorRecording:
             with pytest.raises(issues.Aborted):
                 await tx.commit()
 
-        span = _get_single_span(exporter, "ydb.Commit")
+        span = _get_single_span(exporter, SpanName.COMMIT)
         assert span.status.status_code == StatusCode.ERROR
         attrs = dict(span.attributes)
         assert attrs["error.type"] == "ydb_error"
@@ -310,7 +311,7 @@ class TestAsyncCommitRollbackErrorRecording:
             with pytest.raises(issues.Unavailable):
                 await tx.rollback()
 
-        span = _get_single_span(exporter, "ydb.Rollback")
+        span = _get_single_span(exporter, SpanName.ROLLBACK)
         assert span.status.status_code == StatusCode.ERROR
         attrs = dict(span.attributes)
         assert attrs["error.type"] == "ydb_error"
@@ -342,7 +343,7 @@ class TestAsyncErrorHandling:
             with pytest.raises(issues.SchemeError):
                 await qs.execute("SELECT * FROM non_existing_table")
 
-        span = _get_single_span(exporter, "ydb.ExecuteQuery")
+        span = _get_single_span(exporter, SpanName.EXECUTE_QUERY)
         assert span.status.status_code == StatusCode.ERROR
         attrs = dict(span.attributes)
         assert attrs["error.type"] == "ydb_error"
@@ -362,10 +363,10 @@ class TestAsyncRetryPolicySpans:
 
         assert await retry_operation_async(callee) == 7
 
-        run = _get_single_span(exporter, "ydb.RunWithRetry")
+        run = _get_single_span(exporter, SpanName.RUN_WITH_RETRY)
         assert run.kind == SpanKind.INTERNAL
 
-        tries = _get_spans(exporter, "ydb.Try")
+        tries = _get_spans(exporter, SpanName.TRY)
         assert len(tries) == 1
         assert tries[0].parent.span_id == run.context.span_id
         assert "ydb.retry.backoff_ms" not in dict(tries[0].attributes)
@@ -394,7 +395,7 @@ class TestAsyncRetryPolicySpans:
 
         assert await retry_operation_async(flaky, retry_settings) == "ok"
 
-        tries = _get_spans(exporter, "ydb.Try")
+        tries = _get_spans(exporter, SpanName.TRY)
         assert len(tries) == 3
         assert tries[0].status.status_code == StatusCode.ERROR
         assert tries[1].status.status_code == StatusCode.ERROR
@@ -430,12 +431,12 @@ class TestAsyncRetryPolicySpans:
         with pytest.raises(asyncio.CancelledError):
             await task
 
-        run = _get_single_span(exporter, "ydb.RunWithRetry")
+        run = _get_single_span(exporter, SpanName.RUN_WITH_RETRY)
         assert run.status.status_code == StatusCode.ERROR
         # TracingSpan / OTel will attach the cancellation as span events (record_exception) when enabled.
         assert run.events is not None
         # First attempt: ``ydb.Try``; cancel hits ``ydb.RunWithRetry`` during the inter-attempt sleep.
-        tries = _get_spans(exporter, "ydb.Try")
+        tries = _get_spans(exporter, SpanName.TRY)
         assert len(tries) >= 1
 
 
@@ -473,9 +474,9 @@ class TestAsyncRetrySpanNesting:
 
         assert await retry_operation_async(callee) == "ok"
 
-        run = _get_single_span(exporter, "ydb.RunWithRetry")
-        try_span = _get_single_span(exporter, "ydb.Try")
-        exec_span = _get_single_span(exporter, "ydb.ExecuteQuery")
+        run = _get_single_span(exporter, SpanName.RUN_WITH_RETRY)
+        try_span = _get_single_span(exporter, SpanName.TRY)
+        exec_span = _get_single_span(exporter, SpanName.EXECUTE_QUERY)
 
         assert try_span.parent.span_id == run.context.span_id
         assert exec_span.parent.span_id == try_span.context.span_id
@@ -517,7 +518,7 @@ class TestAsyncConcurrentSpansIsolation:
         qs2 = _make_session()
         await asyncio.gather(do_execute(qs1), do_execute(qs2))
 
-        spans = _get_spans(exporter, "ydb.ExecuteQuery")
+        spans = _get_spans(exporter, SpanName.EXECUTE_QUERY)
         assert len(spans) == 2
 
         ids = {s.context.span_id for s in spans}
