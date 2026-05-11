@@ -226,7 +226,7 @@ To use a specific tracer instead of the global one:
 Running the Examples
 --------------------
 
-The runnable script is ``examples/opentelemetry/otel_example.py`` (bank table + concurrent
+The runnable script is ``examples/opentelemetry/otel_tracing_example.py`` (bank table + concurrent
 Serializable transactions and ``app_startup`` / ``example_tli`` application spans). **Start
 Docker (YDB or the full stack) first**, then install and run on the host — see
 ``examples/opentelemetry/README.md`` for the full order of commands and environment variables.
@@ -245,6 +245,6 @@ The first run builds the ``otel-example`` image from the local SDK source; subse
 
     docker compose up -d
     pip install -e '.[opentelemetry]' -r examples/opentelemetry/requirements.txt
-    python examples/opentelemetry/otel_example.py
+    python examples/opentelemetry/otel_tracing_example.py
 
 Open `http://localhost:3000 <http://localhost:3000>`_ (Grafana) to explore traces via Tempo.

@@ -8,6 +8,7 @@ from opentelemetry.trace import StatusCode
 from ydb import issues
 from ydb.issues import StatusCode as YdbStatusCode
 from ydb.opentelemetry.tracing import _registry
+from ydb.opentelemetry.tracing import _registry as _tracing_registry
 
 # YDB client transport StatusCode values (401xxx band) -> OTel error.type transport_error.
 _TRANSPORT_STATUSES = frozenset(
@@ -135,6 +136,8 @@ def _enable_tracing(tracer=None):
     _enabled = True
     _registry.set_metadata_hook(_otel_metadata_hook)
     _registry.set_create_span(_create_span)
+    _tracing_registry.set_metadata_hook(_otel_metadata_hook)
+    _tracing_registry.set_create_span(_create_span)
 
 
 def _disable_tracing():
@@ -143,5 +146,7 @@ def _disable_tracing():
 
     _registry.set_create_span(None)
     _registry.set_metadata_hook(None)
+    _tracing_registry.set_create_span(None)
+    _tracing_registry.set_metadata_hook(None)
     _enabled = False
     _tracer = None

@@ -1,5 +1,5 @@
 # Full OpenTelemetry demo: YDB (server-side tracing config), collector, Tempo, Prometheus, Grafana,
-# and a one-shot container that runs otel_example.py once.
+# and a one-shot container that runs otel_tracing_example.py once.
 #
 # Run from this directory (paths below are relative to this file):
 #   cd examples/opentelemetry && docker compose -f compose-e2e.yaml up
