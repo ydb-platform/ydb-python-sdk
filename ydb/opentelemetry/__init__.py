@@ -13,7 +13,7 @@ def enable_tracing(tracer=None):
             ``ydb.sdk`` from the global tracer provider will be used.
     """
     try:
-        from ydb.opentelemetry.plugin import _enable_tracing
+        from ydb.opentelemetry._plugin import _enable_tracing
     except ImportError:
         raise ImportError(
             "OpenTelemetry packages are required for tracing support. "
@@ -26,11 +26,29 @@ def enable_tracing(tracer=None):
 def disable_tracing():
     """Disable YDB OpenTelemetry hooks and allow :func:`enable_tracing` to run again."""
     try:
-        from ydb.opentelemetry.plugin import _disable_tracing
+        from ydb.opentelemetry._plugin import _disable_tracing
     except ImportError:
         return
 
     _disable_tracing()
 
 
-__all__ = ["disable_tracing", "enable_tracing"]
+def enable_registry(meter_provider=None):
+    """Enable OpenTelemetry metrics collection for YDB SDK client metrics.
+
+    Args:
+        meter_provider: Optional OpenTelemetry MeterProvider. If not provided,
+            the global OpenTelemetry meter provider is used.
+    """
+    try:
+        from ydb.opentelemetry._plugin import _enable_metrics
+    except ImportError:
+        raise ImportError(
+            "OpenTelemetry packages are required for metrics support. "
+            "Install them with: pip install ydb[opentelemetry]"
+        ) from None
+
+    _enable_metrics(meter_provider)
+
+
+__all__ = ["disable_tracing", "enable_registry", "enable_tracing"]
