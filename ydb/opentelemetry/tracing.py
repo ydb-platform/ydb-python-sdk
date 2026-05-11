@@ -3,6 +3,8 @@
 import enum
 from typing import Optional, Tuple
 
+from ydb.opentelemetry.metrics import create_metrics_operation
+
 
 class SpanName(str, enum.Enum):
     """Canonical span names used across the YDB SDK."""
@@ -15,7 +17,6 @@ class SpanName(str, enum.Enum):
     DRIVER_INITIALIZE = "ydb.Driver.Initialize"
     RUN_WITH_RETRY = "ydb.RunWithRetry"
     TRY = "ydb.Try"
-
 
 class _NoopCtx:
     __slots__ = ("_span",)
@@ -135,9 +136,9 @@ def create_span(name, attributes=None, kind="internal"):
 
 def create_ydb_span(name, driver_config, node_id=None, kind=None, peer=None):
     """Create a span pre-filled with standard YDB attributes."""
-    if not _registry.is_active():
-        return _NOOP_SPAN
     attrs = _build_ydb_attrs(driver_config, node_id, peer)
+    if not _registry.is_active():
+        return create_metrics_operation(name, attrs)
     return _registry.create_span(name, attributes=attrs, kind=kind)
 
 
