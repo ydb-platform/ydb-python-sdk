@@ -33,4 +33,22 @@ def disable_tracing():
     _disable_tracing()
 
 
-__all__ = ["disable_tracing", "enable_tracing"]
+def enable_registry(meter_provider=None):
+    """Enable OpenTelemetry metrics collection for YDB SDK client metrics.
+
+    Args:
+        meter_provider: Optional OpenTelemetry MeterProvider. If not provided,
+            the global OpenTelemetry meter provider is used.
+    """
+    try:
+        from ydb.opentelemetry._plugin import _enable_metrics
+    except ImportError:
+        raise ImportError(
+            "OpenTelemetry packages are required for metrics support. "
+            "Install them with: pip install ydb[opentelemetry]"
+        ) from None
+
+    _enable_metrics(meter_provider)
+
+
+__all__ = ["disable_tracing", "enable_registry", "enable_tracing"]

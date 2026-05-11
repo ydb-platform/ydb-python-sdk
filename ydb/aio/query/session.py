@@ -19,6 +19,7 @@ from ..._grpc.grpcwrapper import ydb_query_public_types as _ydb_query_public
 
 from ...query import base
 from ...query.session import BaseQuerySession
+from ...opentelemetry.metrics import record_query_session_count
 from ...opentelemetry.tracing import create_ydb_span, set_peer_attributes
 
 from ..._constants import DEFAULT_INITIAL_RESPONSE_TIMEOUT
@@ -110,6 +111,13 @@ class QuerySession(BaseQuerySession["AsyncDriver"]):
             await self._create_call(settings=settings)
             set_peer_attributes(span, self._peer)
             await self._attach()
+            if not getattr(self, "_metrics_counted", False):
+                record_query_session_count(
+                    1,
+                    pool_name=getattr(self, "_metrics_pool_name", None),
+                    state=getattr(self, "_metrics_state", "used"),
+                )
+                self._metrics_counted = True
 
         return self
 

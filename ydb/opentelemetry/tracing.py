@@ -2,6 +2,8 @@
 
 from typing import Optional, Tuple
 
+from ydb.opentelemetry.metrics import create_metrics_operation
+
 
 class _NoopCtx:
     def __enter__(self):
@@ -126,9 +128,9 @@ def create_ydb_span(name, driver_config, node_id=None, kind=None, peer=None):
     map for the specific node serving the call; missing fields are skipped.
     Can be used as a context manager or manually.
     """
-    if not _registry.is_active():
-        return _NOOP_SPAN
     attrs = _build_ydb_attrs(driver_config, node_id, peer)
+    if not _registry.is_active():
+        return create_metrics_operation(name, attrs)
     return _registry.create_span(name, attributes=attrs, kind=kind)
 
 

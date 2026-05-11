@@ -66,6 +66,167 @@ def _make_fresh_tx(session, driver):
     return QueryTxContext(driver, session, QuerySerializableReadWrite())
 
 
+def _get_metric_points(metrics_data, name):
+    points = []
+    for resource_metrics in metrics_data.resource_metrics:
+        for scope_metrics in resource_metrics.scope_metrics:
+            for metric in scope_metrics.metrics:
+                if metric.name == name:
+                    points.extend(metric.data.data_points)
+    return points
+
+
+class TestMetrics:
+    def test_operation_duration_is_recorded_without_tracing(self):
+        from opentelemetry.sdk.metrics import MeterProvider
+        from opentelemetry.sdk.metrics.export import InMemoryMetricReader
+        from ydb.opentelemetry import enable_registry
+        from ydb.opentelemetry._plugin import _disable_metrics
+        from ydb.opentelemetry.tracing import create_ydb_span
+
+        _disable_metrics()
+        reader = InMemoryMetricReader()
+        provider = MeterProvider(metric_readers=[reader])
+        enable_registry(meter_provider=provider)
+
+        with create_ydb_span("ydb.TestOperation", FakeDriverConfig()):
+            pass
+
+        points = _get_metric_points(reader.get_metrics_data(), "db.client.operation.duration")
+        assert len(points) == 1
+        attrs = dict(points[0].attributes)
+        assert attrs["db.system.name"] == "ydb"
+        assert attrs["db.namespace"] == "/test_database"
+        assert attrs["server.address"] == "test_endpoint"
+        assert attrs["server.port"] == 1337
+        assert attrs["ydb.operation.name"] == "ydb.TestOperation"
+
+        _disable_metrics()
+
+    def test_operation_failure_is_recorded(self):
+        from opentelemetry.sdk.metrics import MeterProvider
+        from opentelemetry.sdk.metrics.export import InMemoryMetricReader
+        from ydb import issues
+        from ydb.opentelemetry import enable_registry
+        from ydb.opentelemetry._plugin import _disable_metrics
+        from ydb.opentelemetry.tracing import create_ydb_span
+
+        _disable_metrics()
+        reader = InMemoryMetricReader()
+        provider = MeterProvider(metric_readers=[reader])
+        enable_registry(meter_provider=provider)
+
+        with pytest.raises(issues.Unavailable):
+            with create_ydb_span("ydb.FailingOperation", FakeDriverConfig()):
+                raise issues.Unavailable("not ready")
+
+        points = _get_metric_points(reader.get_metrics_data(), "ydb.client.operation.failed")
+        assert len(points) == 1
+        assert points[0].value == 1
+        attrs = dict(points[0].attributes)
+        assert attrs["ydb.operation.name"] == "ydb.FailingOperation"
+        assert attrs["db.response.status_code"] == "UNAVAILABLE"
+
+        _disable_metrics()
+
+    def test_query_session_count_changes_on_create_and_close(self):
+        from opentelemetry.sdk.metrics import MeterProvider
+        from opentelemetry.sdk.metrics.export import InMemoryMetricReader
+        from ydb.opentelemetry import enable_registry
+        from ydb.opentelemetry._plugin import _disable_metrics
+        from ydb.query.session import QuerySession
+
+        _disable_metrics()
+        reader = InMemoryMetricReader()
+        provider = MeterProvider(metric_readers=[reader])
+        enable_registry(meter_provider=provider)
+
+        driver = MagicMock()
+        driver._driver_config = FakeDriverConfig()
+        session = QuerySession(driver)
+
+        def create_call(settings=None):
+            del settings
+            session._session_id = "test-session-id"
+
+        with patch.object(session, "_create_call", side_effect=create_call):
+            with patch.object(session, "_attach"):
+                session.create()
+
+        points = _get_metric_points(reader.get_metrics_data(), "ydb.query.session.count")
+        assert points[-1].value == 1
+        attrs = dict(points[-1].attributes)
+        assert attrs["ydb.query.session.pool.name"] == "unknown"
+        assert attrs["ydb.query.session.state"] == "used"
+
+        with patch.object(session, "_delete_call"):
+            session.delete()
+
+        reader.get_metrics_data()
+        points = _get_metric_points(reader.get_metrics_data(), "ydb.query.session.count")
+        assert points[-1].value == 0
+
+        _disable_metrics()
+
+    def test_query_session_pool_records_create_time_idle_used_and_timeouts(self):
+        from opentelemetry.sdk.metrics import MeterProvider
+        from opentelemetry.sdk.metrics.export import InMemoryMetricReader
+        from ydb import issues
+        from ydb.opentelemetry import enable_registry
+        from ydb.opentelemetry._plugin import _disable_metrics
+        from ydb.opentelemetry.metrics import record_query_session_count
+        from ydb.query.pool import QuerySessionPool
+        from ydb.query.session import QuerySession
+
+        _disable_metrics()
+        reader = InMemoryMetricReader()
+        provider = MeterProvider(metric_readers=[reader])
+        enable_registry(meter_provider=provider)
+
+        driver = MagicMock()
+        driver._driver_config = FakeDriverConfig()
+        pool = QuerySessionPool(driver, size=1, name="test-pool")
+
+        def create_session(session, settings=None):
+            del settings
+            session._session_id = "test-session-id"
+            record_query_session_count(1, session._metrics_pool_name, session._metrics_state)
+            session._metrics_counted = True
+
+        with patch.object(QuerySession, "create", create_session):
+            session = pool.acquire(timeout=1)
+
+        pool.release(session)
+        session = pool.acquire(timeout=1)
+
+        create_time_points = _get_metric_points(reader.get_metrics_data(), "ydb.query.session.create_time")
+        assert len(create_time_points) == 1
+        assert dict(create_time_points[0].attributes)["ydb.query.session.pool.name"] == "test-pool"
+
+        count_points = _get_metric_points(reader.get_metrics_data(), "ydb.query.session.count")
+        by_state = {dict(point.attributes)["ydb.query.session.state"]: point.value for point in count_points}
+        assert by_state["used"] == 1
+        assert by_state["idle"] == 0
+
+        pool_timeout = QuerySessionPool(driver, size=0, name="timeout-pool")
+        with pytest.raises(issues.SessionPoolEmpty):
+            pool_timeout.acquire(timeout=0)
+
+        metrics_data = reader.get_metrics_data()
+        pending_points = _get_metric_points(metrics_data, "ydb.query.session.pending_requests")
+        timeout_points = _get_metric_points(metrics_data, "ydb.query.session.timeouts")
+        assert any(
+            point.value == 0 and dict(point.attributes)["ydb.query.session.pool.name"] == "timeout-pool"
+            for point in pending_points
+        )
+        assert any(
+            point.value == 1 and dict(point.attributes)["ydb.query.session.pool.name"] == "timeout-pool"
+            for point in timeout_points
+        )
+
+        _disable_metrics()
+
+
 class TestCreateSessionSpan:
     def test_create_session_emits_span(self, otel_setup):
         exporter = otel_setup

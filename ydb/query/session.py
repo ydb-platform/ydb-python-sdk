@@ -18,6 +18,7 @@ from . import base
 from .base import QueryExplainResultFormat
 
 from .. import _apis, issues, _utilities
+from ..opentelemetry.metrics import record_query_session_count
 from ..opentelemetry.tracing import create_ydb_span, set_peer_attributes
 from ..settings import BaseRequestSettings
 from ..connection import _RpcState as RpcState, EndpointKey
@@ -94,6 +95,7 @@ class BaseQuerySession(abc.ABC, Generic[DriverT]):
     _peer: Optional[tuple] = None
     _closed: bool = False
     _invalidated: bool = False
+    _metrics_counted: bool = False
 
     def __init__(self, driver: DriverT, settings: Optional[base.QueryClientSettings] = None):
         self._driver = driver
@@ -106,6 +108,7 @@ class BaseQuerySession(abc.ABC, Generic[DriverT]):
         )
 
         self._last_query_stats = None
+        self._metrics_counted = False
 
     @property
     def _driver_config(self) -> Optional["DriverConfig"]:
@@ -159,6 +162,13 @@ class BaseQuerySession(abc.ABC, Generic[DriverT]):
     def _close_session(self, invalidate: bool = False) -> None:
         if self._closed:
             return
+        if self._metrics_counted:
+            record_query_session_count(
+                -1,
+                pool_name=getattr(self, "_metrics_pool_name", None),
+                state=getattr(self, "_metrics_state", "used"),
+            )
+            self._metrics_counted = False
         if invalidate:
             self._invalidated = True
         self._closed = True
@@ -422,6 +432,13 @@ class QuerySession(BaseQuerySession["SyncDriver"]):
             self._create_call(settings=settings)
             set_peer_attributes(span, self._peer)
             self._attach()
+            if not getattr(self, "_metrics_counted", False):
+                record_query_session_count(
+                    1,
+                    pool_name=getattr(self, "_metrics_pool_name", None),
+                    state=getattr(self, "_metrics_state", "used"),
+                )
+                self._metrics_counted = True
 
         return self
 

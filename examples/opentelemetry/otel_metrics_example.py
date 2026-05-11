@@ -9,6 +9,8 @@ from __future__ import annotations
 import asyncio
 import os
 import signal
+from types import FrameType
+from typing import Callable, Optional
 
 import ydb
 from opentelemetry.exporter.otlp.proto.grpc.metric_exporter import OTLPMetricExporter
@@ -21,6 +23,21 @@ from ydb.opentelemetry import enable_registry
 def _env(name: str, default: str) -> str:
     value = os.environ.get(name)
     return value if value else default
+
+
+def _create_stop_event() -> asyncio.Event:
+    stop = asyncio.Event()
+    loop = asyncio.get_running_loop()
+    request_stop: Callable[[], None] = stop.set
+    handle_stop_signal: Callable[[int, Optional[FrameType]], None] = lambda signum, frame: stop.set()
+
+    for sig in (signal.SIGINT, signal.SIGTERM):
+        try:
+            loop.add_signal_handler(sig, request_stop)
+        except NotImplementedError:
+            signal.signal(sig, handle_stop_signal)
+
+    return stop
 
 
 async def _run_workload(pool: ydb.aio.QuerySessionPool, stop: asyncio.Event) -> None:
@@ -57,13 +74,7 @@ async def main() -> None:
     meter_provider = MeterProvider(resource=resource, metric_readers=[metric_reader])
     enable_registry(meter_provider)
 
-    stop = asyncio.Event()
-    loop = asyncio.get_running_loop()
-    for sig in (signal.SIGINT, signal.SIGTERM):
-        try:
-            loop.add_signal_handler(sig, stop.set)
-        except NotImplementedError:
-            signal.signal(sig, lambda *_: stop.set())
+    stop = _create_stop_event()
 
     try:
         async with ydb.aio.Driver(endpoint=endpoint, database=database, disable_discovery=True) as driver:
