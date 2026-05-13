@@ -9,6 +9,8 @@ QUERY_SESSION_COUNT = "ydb.query.session.count"
 QUERY_SESSION_CREATE_TIME = "ydb.query.session.create_time"
 QUERY_SESSION_PENDING_REQUESTS = "ydb.query.session.pending_requests"
 QUERY_SESSION_TIMEOUTS = "ydb.query.session.timeouts"
+RETRY_ATTEMPTS = "ydb.client.retry.attempts"
+RETRY_DURATION = "ydb.client.retry.duration"
 
 _UNKNOWN_POOL = "unknown"
 
@@ -54,6 +56,22 @@ class MetricsRegistry:
                 QUERY_SESSION_TIMEOUTS,
                 unit="{connection}",
                 description="Number of YDB query session acquisition timeouts.",
+            ),
+            RETRY_DURATION: meter.create_histogram(
+                RETRY_DURATION,
+                unit="s",
+                description=(
+                    "Total user-visible duration of a logical operation executed through the retry policy, "
+                    "including all attempts and back-off delays."
+                ),
+            ),
+            RETRY_ATTEMPTS: meter.create_histogram(
+                RETRY_ATTEMPTS,
+                unit="{attempt}",
+                description=(
+                    "Total number of attempts performed by the retry policy for one logical operation. "
+                    "A value of 1 means the operation succeeded on the first try."
+                ),
             ),
         }
 
@@ -218,3 +236,8 @@ def record_query_session_pending_requests(delta: int, pool_name: Optional[str]) 
 
 def record_query_session_timeout(pool_name: Optional[str]) -> None:
     _metrics_registry.add(QUERY_SESSION_TIMEOUTS, 1, _pool_attrs(pool_name))
+
+
+def record_retry_metrics(duration: float, attempts: int) -> None:
+    _metrics_registry.record(RETRY_DURATION, duration)
+    _metrics_registry.record(RETRY_ATTEMPTS, attempts)
