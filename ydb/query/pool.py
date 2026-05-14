@@ -31,6 +31,7 @@ from ..settings import BaseRequestSettings
 from ..opentelemetry.metrics import (
     record_query_session_count,
     record_query_session_create_time,
+    record_query_session_max,
     record_query_session_pending_requests,
     record_query_session_timeout,
 )
@@ -75,6 +76,7 @@ class QuerySessionPool:
         self._lock = threading.RLock()
         self._query_client_settings = query_client_settings
         self._metrics_pool_name = name or "query-session-pool-%d" % next(_pool_name_counter)
+        record_query_session_max(self._size, self._metrics_pool_name)
 
     def _create_new_session(self, timeout: Optional[float]):
         session = QuerySession(self._driver, settings=self._query_client_settings)

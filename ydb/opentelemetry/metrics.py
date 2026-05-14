@@ -1,6 +1,7 @@
 """No-op-safe helpers for YDB OpenTelemetry metrics."""
 
 import time
+import threading
 from typing import Any, Dict, Optional
 
 CLIENT_OPERATION_DURATION = "db.client.operation.duration"
@@ -9,22 +10,35 @@ QUERY_SESSION_COUNT = "ydb.query.session.count"
 QUERY_SESSION_CREATE_TIME = "ydb.query.session.create_time"
 QUERY_SESSION_PENDING_REQUESTS = "ydb.query.session.pending_requests"
 QUERY_SESSION_TIMEOUTS = "ydb.query.session.timeouts"
+QUERY_SESSION_MAX = "ydb.query.session.max"
 RETRY_ATTEMPTS = "ydb.client.retry.attempts"
 RETRY_DURATION = "ydb.client.retry.duration"
 
 _UNKNOWN_POOL = "unknown"
-
-
-import threading
+_OPERATION_ATTR_KEYS = frozenset(
+    {
+        "db.system.name",
+        "db.namespace",
+        "server.address",
+        "server.port",
+        "ydb.operation.name",
+    }
+)
 
 
 class MetricsRegistry:
     def __init__(self) -> None:
         self._instruments: Dict[str, Any] = {}
         self._query_session_count_values: Dict[Any, int] = {}
+        self._query_session_max_values: Dict[Any, int] = {}
         self._query_session_count_lock = threading.Lock()
 
-    def set_meter(self, meter: Any, observe_query_session_count_callback: Any) -> None:
+    def set_meter(
+        self,
+        meter: Any,
+        observe_query_session_count_callback: Any,
+        observe_query_session_max_callback: Any,
+    ) -> None:
         self._instruments = {
             CLIENT_OPERATION_DURATION: meter.create_histogram(
                 CLIENT_OPERATION_DURATION,
@@ -57,6 +71,12 @@ class MetricsRegistry:
                 unit="{connection}",
                 description="Number of YDB query session acquisition timeouts.",
             ),
+            QUERY_SESSION_MAX: meter.create_observable_up_down_counter(
+                QUERY_SESSION_MAX,
+                callbacks=[observe_query_session_max_callback],
+                unit="{connection}",
+                description="Maximum configured number of YDB query sessions.",
+            ),
             RETRY_DURATION: meter.create_histogram(
                 RETRY_DURATION,
                 unit="s",
@@ -79,6 +99,7 @@ class MetricsRegistry:
         self._instruments = {}
         with self._query_session_count_lock:
             self._query_session_count_values = {}
+            self._query_session_max_values = {}
 
     def add(self, name: str, value: int, attributes: Optional[Dict[str, Any]] = None) -> None:
         """
@@ -121,6 +142,16 @@ class MetricsRegistry:
     def get_query_session_count_values(self) -> Dict[Any, int]:
         with self._query_session_count_lock:
             return dict(self._query_session_count_values)
+
+    def set_query_session_max(self, value: int, attributes: Optional[Dict[str, Any]] = None) -> None:
+        attrs = tuple(sorted((attributes or {}).items()))
+
+        with self._query_session_count_lock:
+            self._query_session_max_values[attrs] = value
+
+    def get_query_session_max_values(self) -> Dict[Any, int]:
+        with self._query_session_count_lock:
+            return dict(self._query_session_max_values)
 
 
 _metrics_registry = MetricsRegistry()
@@ -175,6 +206,7 @@ class MetricsOperation:
         self._start_time = time.monotonic()
         self._exception: Optional[BaseException] = None
         self._ended = False
+        self._end_lock = threading.Lock()
 
     def set_error(self, exception: BaseException) -> None:
         """
@@ -186,17 +218,17 @@ class MetricsOperation:
         self._exception = exception
 
     def set_attribute(self, key: str, value: Any) -> None:
-        self._attributes[key] = value
+        if key in _OPERATION_ATTR_KEYS:
+            self._attributes[key] = value
 
-    def attach_context(self, end_on_exit=True) -> "MetricsOperation":
-        return self
+    def attach_context(self, end_on_exit=True) -> _MetricsOperationContext:
+        return _MetricsOperationContext(self, end_on_exit)
 
     def end(self) -> None:
-        # todo: consider multi-thread calling
-
-        if self._ended:
-            return
-        self._ended = True
+        with self._end_lock:
+            if self._ended:
+                return
+            self._ended = True
 
         duration = time.monotonic() - self._start_time
         _metrics_registry.record(CLIENT_OPERATION_DURATION, duration, self._attributes)
@@ -213,6 +245,23 @@ class MetricsOperation:
         if exc_val is not None:
             self.set_error(exc_val)
         self.end()
+        return False
+
+
+class _MetricsOperationContext:
+    def __init__(self, operation: MetricsOperation, end_on_exit: bool) -> None:
+        self._operation = operation
+        self._end_on_exit = end_on_exit
+
+    def __enter__(self) -> MetricsOperation:
+        return self._operation
+
+    def __exit__(self, exc_type, exc_val, exc_tb) -> bool:
+        if exc_val is not None:
+            self._operation.set_error(exc_val)
+            self._operation.end()
+        elif self._end_on_exit:
+            self._operation.end()
         return False
 
 
@@ -236,6 +285,10 @@ def record_query_session_pending_requests(delta: int, pool_name: Optional[str]) 
 
 def record_query_session_timeout(pool_name: Optional[str]) -> None:
     _metrics_registry.add(QUERY_SESSION_TIMEOUTS, 1, _pool_attrs(pool_name))
+
+
+def record_query_session_max(value: int, pool_name: Optional[str]) -> None:
+    _metrics_registry.set_query_session_max(value, _pool_attrs(pool_name))
 
 
 def record_retry_metrics(duration: float, attempts: int) -> None:

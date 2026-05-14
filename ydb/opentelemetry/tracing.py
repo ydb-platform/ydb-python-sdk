@@ -18,6 +18,7 @@ class SpanName(str, enum.Enum):
     RUN_WITH_RETRY = "ydb.RunWithRetry"
     TRY = "ydb.Try"
 
+
 class _NoopCtx:
     __slots__ = ("_span",)
 
@@ -32,7 +33,7 @@ class _NoopCtx:
 
 
 class _NoopSpan:
-    """Returned by create_ydb_span when tracing is disabled."""
+    """Span-compatible object used when tracing is disabled."""
 
     def set_error(self, exception):
         pass
@@ -48,6 +49,52 @@ class _NoopSpan:
 
 
 _NOOP_SPAN = _NoopSpan()
+
+
+class _TelemetryContext:
+    """Attach both tracing and metrics lifecycle contexts for one SDK operation."""
+
+    def __init__(self, telemetry, span_context, metrics_context):
+        self._telemetry = telemetry
+        self._span_context = span_context
+        self._metrics_context = metrics_context
+
+    def __enter__(self):
+        self._metrics_context.__enter__()
+        self._span_context.__enter__()
+        return self._telemetry
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        span_result = self._span_context.__exit__(exc_type, exc_val, exc_tb)
+        metrics_result = self._metrics_context.__exit__(exc_type, exc_val, exc_tb)
+        return bool(span_result or metrics_result)
+
+
+class _TelemetryOperation:
+    """Operation telemetry facade that fans lifecycle events out to tracing and metrics."""
+
+    def __init__(self, span, metrics):
+        self._span = span
+        self._metrics = metrics
+
+    def set_error(self, exception):
+        self._span.set_error(exception)
+        self._metrics.set_error(exception)
+
+    def set_attribute(self, key, value):
+        self._span.set_attribute(key, value)
+        self._metrics.set_attribute(key, value)
+
+    def end(self):
+        self._span.end()
+        self._metrics.end()
+
+    def attach_context(self, end_on_exit=True):
+        return _TelemetryContext(
+            self,
+            self._span.attach_context(end_on_exit=end_on_exit),
+            self._metrics.attach_context(end_on_exit=end_on_exit),
+        )
 
 
 class OtelTracingRegistry:
@@ -108,14 +155,18 @@ def _split_endpoint(endpoint: Optional[str]) -> Tuple[str, int]:
     return host, int(port_s) if port_s.isdigit() else 0
 
 
-def _build_ydb_attrs(driver_config, node_id=None, peer=None):
+def _build_ydb_attrs(driver_config):
     host, port = _split_endpoint(getattr(driver_config, "endpoint", None))
-    attrs = {
+    return {
         "db.system.name": "ydb",
         "db.namespace": getattr(driver_config, "database", None) or "",
         "server.address": host,
         "server.port": port,
     }
+
+
+def _build_ydb_tracing_attrs(driver_config, node_id=None, peer=None):
+    attrs = _build_ydb_attrs(driver_config)
     if peer is not None:
         address, port_, location = peer
         if address is not None:
@@ -135,11 +186,15 @@ def create_span(name, attributes=None, kind="internal"):
 
 
 def create_ydb_span(name, driver_config, node_id=None, kind=None, peer=None):
-    """Create a span pre-filled with standard YDB attributes."""
-    attrs = _build_ydb_attrs(driver_config, node_id, peer)
-    if not _registry.is_active():
-        return create_metrics_operation(name, attrs)
-    return _registry.create_span(name, attributes=attrs, kind=kind)
+    """Create telemetry for one user-visible YDB client operation.
+
+    Tracing receives full operation context, including peer/node details. Metrics
+    receive only the stable labels defined for client operation metrics.
+    """
+    metrics_attrs = _build_ydb_attrs(driver_config)
+    tracing_attrs = _build_ydb_tracing_attrs(driver_config, node_id, peer)
+    metrics = create_metrics_operation(name, metrics_attrs)
+    return _TelemetryOperation(_registry.create_span(name, attributes=tracing_attrs, kind=kind), metrics)
 
 
 def set_peer_attributes(span, peer):
