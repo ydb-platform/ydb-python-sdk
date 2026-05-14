@@ -139,14 +139,25 @@ def _disable_tracing():
     _tracing_enabled = False
     _tracer = None
 
-def _create_query_session_count_callback():
-    """Create callback for observable query session count metric."""
 
-    def observe_query_session_count(_):
-        values = _metrics_registry.get_query_session_count_values()
+def _create_observable_callback(get_values):
+    """Create callback for observable metrics backed by the metrics registry."""
+
+    def observe(_):
+        values = get_values()
         return [Observation(value, attributes=dict(attrs)) for attrs, value in values.items()]
 
-    return observe_query_session_count
+    return observe
+
+
+def _create_query_session_count_callback():
+    """Create callback for observable query session count metric."""
+    return _create_observable_callback(_metrics_registry.get_query_session_count_values)
+
+
+def _create_query_session_max_callback():
+    """Create callback for observable query session max metric."""
+    return _create_observable_callback(_metrics_registry.get_query_session_max_values)
 
 
 def _enable_metrics(meter_provider):
@@ -162,7 +173,7 @@ def _enable_metrics(meter_provider):
     else:
         raise TypeError("meter_provider must be an OpenTelemetry MeterProvider")
 
-    _metrics_registry.set_meter(_meter, _create_query_session_count_callback())
+    _metrics_registry.set_meter(_meter, _create_query_session_count_callback(), _create_query_session_max_callback())
 
 
 def _disable_metrics():
