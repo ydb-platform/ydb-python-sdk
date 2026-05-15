@@ -20,7 +20,6 @@ from .base import QueryExplainResultFormat
 from .. import _apis, issues, _utilities
 from ..opentelemetry.tracing import SpanName, create_ydb_span, set_peer_attributes, span_finish_callback
 from ..opentelemetry.metrics import record_query_session_count
-from ..opentelemetry.tracing import create_ydb_span, set_peer_attributes
 from ..settings import BaseRequestSettings
 from ..connection import _RpcState as RpcState, EndpointKey
 from .._grpc.grpcwrapper import common_utils
@@ -97,6 +96,8 @@ class BaseQuerySession(abc.ABC, Generic[DriverT]):
     _closed: bool = False
     _invalidated: bool = False
     _metrics_counted: bool = False
+    _metrics_pool_name: Optional[str] = None
+    _metrics_state: str = "used"
 
     def __init__(self, driver: DriverT, settings: Optional[base.QueryClientSettings] = None):
         self._driver = driver
@@ -110,6 +111,8 @@ class BaseQuerySession(abc.ABC, Generic[DriverT]):
 
         self._last_query_stats = None
         self._metrics_counted = False
+        self._metrics_pool_name = None
+        self._metrics_state = "used"
 
     @property
     def _driver_config(self) -> Optional["DriverConfig"]:

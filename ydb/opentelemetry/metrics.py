@@ -8,7 +8,7 @@ which keeps metrics independent from tracing and safe to call from hot paths.
 import time
 import threading
 import itertools
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Literal, Optional
 
 CLIENT_OPERATION_DURATION = "db.client.operation.duration"
 CLIENT_OPERATION_FAILED = "ydb.client.operation.failed"
@@ -228,7 +228,7 @@ class MetricsOperation:
     def __enter__(self) -> "MetricsOperation":
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb) -> bool:
+    def __exit__(self, exc_type, exc_val, exc_tb):
         if exc_val is not None:
             self.set_error(exc_val)
         self.end()
@@ -245,7 +245,7 @@ class _MetricsOperationContext:
     def __enter__(self) -> MetricsOperation:
         return self._operation
 
-    def __exit__(self, exc_type, exc_val, exc_tb) -> bool:
+    def __exit__(self, exc_type, exc_val, exc_tb):
         if exc_val is not None:
             self._operation.set_error(exc_val)
             self._operation.end()
