@@ -8,8 +8,13 @@ from __future__ import annotations
 
 import asyncio
 import os
+
+from opentelemetry.exporter.otlp.proto.grpc.metric_exporter import OTLPMetricExporter
+from opentelemetry.sdk.metrics import MeterProvider
+from opentelemetry.sdk.metrics._internal.export import PeriodicExportingMetricReader
+
 import ydb
-from ydb.opentelemetry import enable_tracing
+from ydb.opentelemetry import enable_tracing, enable_registry, disable_registry
 from opentelemetry import trace
 from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
 from opentelemetry.sdk.resources import Resource
@@ -45,12 +50,19 @@ async def main() -> None:
     otlp_endpoint = _env("OTEL_EXPORTER_OTLP_ENDPOINT", "http://localhost:4317")
 
     resource = Resource(attributes={"service.name": _env("OTEL_SERVICE_NAME", "ydb-otel-example")})
-    provider = TracerProvider(resource=resource)
-    provider.add_span_processor(BatchSpanProcessor(OTLPSpanExporter(endpoint=otlp_endpoint)))
-    trace.set_tracer_provider(provider)
+    tracer_provider = TracerProvider(resource=resource)
+    tracer_provider.add_span_processor(BatchSpanProcessor(OTLPSpanExporter(endpoint=otlp_endpoint)))
+    trace.set_tracer_provider(tracer_provider)
 
     tracer = trace.get_tracer(__name__)
     enable_tracing(tracer)
+
+    metric_reader = PeriodicExportingMetricReader(
+        OTLPMetricExporter(endpoint=otlp_endpoint),
+        export_interval_millis=1000,
+    )
+    meter_provider = MeterProvider(resource=resource, metric_readers=[metric_reader])
+    enable_registry(meter_provider)
 
     async with ydb.aio.Driver(
         endpoint=endpoint,
@@ -84,8 +96,10 @@ async def main() -> None:
             final_rows = await pool.execute_with_retries("SELECT amount FROM bank WHERE id = 1")
             amount = int(list(final_rows[0].rows)[0]["amount"])
             print(f"Final amount (after serializable retries): {amount}")
-
-    provider.shutdown()
+    print("Application will shut down in 15 seconds...")
+    await asyncio.sleep(15)
+    tracer_provider.shutdown()
+    meter_provider.shutdown()
 
 
 if __name__ == "__main__":
