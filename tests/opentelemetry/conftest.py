@@ -8,6 +8,8 @@ import pytest
 
 from opentelemetry import trace
 from opentelemetry.sdk.metrics import MeterProvider
+from opentelemetry.sdk.metrics import Counter, Histogram, ObservableUpDownCounter, UpDownCounter
+from opentelemetry.sdk.metrics.export import AggregationTemporality
 from opentelemetry.sdk.metrics.export import InMemoryMetricReader
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import SimpleSpanProcessor
@@ -44,7 +46,14 @@ def metrics_setup():
     """Enable SDK metrics with an in-memory reader, then restore noop defaults."""
     from ydb.opentelemetry import disable_metrics, enable_metrics
 
-    reader = InMemoryMetricReader()
+    reader = InMemoryMetricReader(
+        preferred_temporality={
+            Counter: AggregationTemporality.CUMULATIVE,
+            Histogram: AggregationTemporality.CUMULATIVE,
+            ObservableUpDownCounter: AggregationTemporality.CUMULATIVE,
+            UpDownCounter: AggregationTemporality.CUMULATIVE,
+        }
+    )
     provider = MeterProvider(metric_readers=[reader])
 
     disable_metrics()
