@@ -6,6 +6,8 @@
 
 FROM python:3.11-slim
 
+ENV PYTHONUNBUFFERED=1
+
 WORKDIR /app
 
 # Dependency layer: copy only what setup.py needs so changes to the demo script do

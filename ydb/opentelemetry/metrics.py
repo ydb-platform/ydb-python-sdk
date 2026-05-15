@@ -229,7 +229,7 @@ class MetricsOperation:
         if key in _OPERATION_ATTR_KEYS:
             self._attributes[key] = value
 
-    def attach_context(self, end_on_exit=True) -> _MetricsOperationContext:
+    def attach_context(self, end_on_exit=True) -> "_MetricsOperationContext":
         return _MetricsOperationContext(self, end_on_exit)
 
     def end(self) -> None:
@@ -261,7 +261,7 @@ class _MetricsOperationContext:
         self._operation = operation
         self._end_on_exit = end_on_exit
 
-    def __enter__(self) -> MetricsOperation:
+    def __enter__(self) -> "MetricsOperation":
         return self._operation
 
     def __exit__(self, exc_type, exc_val, exc_tb) -> bool:
