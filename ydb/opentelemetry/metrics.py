@@ -2,6 +2,7 @@
 
 import time
 import threading
+import itertools
 from typing import Any, Dict, Optional
 
 CLIENT_OPERATION_DURATION = "db.client.operation.duration"
@@ -15,6 +16,8 @@ RETRY_ATTEMPTS = "ydb.client.retry.attempts"
 RETRY_DURATION = "ydb.client.retry.duration"
 
 _UNKNOWN_POOL = "unknown"
+_pool_name_counter = itertools.count(1)
+_pool_name_lock = threading.Lock()
 _OPERATION_ATTR_KEYS = frozenset(
     {
         "db.system.name",
@@ -159,6 +162,11 @@ _metrics_registry = MetricsRegistry()
 
 def _pool_attrs(pool_name: Optional[str]) -> Dict[str, Any]:
     return {"ydb.query.session.pool.name": pool_name or _UNKNOWN_POOL}
+
+
+def next_query_session_pool_name() -> str:
+    with _pool_name_lock:
+        return "query-session-pool-%d" % next(_pool_name_counter)
 
 
 def _operation_attrs(operation_name: str, attributes: Dict[str, Any]) -> Dict[str, Any]:

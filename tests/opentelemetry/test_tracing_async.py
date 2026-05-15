@@ -70,8 +70,8 @@ def _make_fresh_async_tx(session, driver):
 
 class TestAsyncCreateSessionSpan:
     @pytest.mark.asyncio
-    async def test_create_session_emits_span(self, otel_setup):
-        exporter = otel_setup
+    async def test_create_session_emits_span(self, tracing_setup):
+        exporter = tracing_setup
 
         from ydb.aio.query.session import QuerySession
 
@@ -95,8 +95,8 @@ class TestAsyncCreateSessionSpan:
         assert attrs["server.address"] == "test_endpoint"
         assert attrs["server.port"] == 1337
 
-    def test_async_connection_peer_attributes_are_resolved(self, otel_setup):
-        exporter = otel_setup
+    def test_async_connection_peer_attributes_are_resolved(self, tracing_setup):
+        exporter = tracing_setup
 
         from ydb.aio.connection import Connection
         from ydb.connection import EndpointOptions
@@ -140,8 +140,8 @@ class TestAsyncCreateSessionSpan:
 
 class TestAsyncExecuteQuerySpan:
     @pytest.mark.asyncio
-    async def test_session_execute_emits_span(self, otel_setup):
-        exporter = otel_setup
+    async def test_session_execute_emits_span(self, tracing_setup):
+        exporter = tracing_setup
 
         from ydb.aio.query.session import QuerySession
 
@@ -169,8 +169,8 @@ class TestAsyncExecuteQuerySpan:
         assert "ydb.session.id" not in attrs
 
     @pytest.mark.asyncio
-    async def test_tx_execute_emits_span(self, otel_setup):
-        exporter = otel_setup
+    async def test_tx_execute_emits_span(self, tracing_setup):
+        exporter = tracing_setup
         session, driver = _make_async_session_mock(peer=("n1", 2136, "dc-a"))
         tx = _make_async_tx(session, driver)
 
@@ -192,8 +192,8 @@ class TestAsyncExecuteQuerySpan:
 
 class TestAsyncBeginTransactionSpan:
     @pytest.mark.asyncio
-    async def test_begin_emits_span(self, otel_setup):
-        exporter = otel_setup
+    async def test_begin_emits_span(self, tracing_setup):
+        exporter = tracing_setup
         session, driver = _make_async_session_mock(peer=("n1", 2136, "dc-a"))
         tx = _make_fresh_async_tx(session, driver)
 
@@ -214,10 +214,10 @@ class TestAsyncBeginTransactionSpan:
         assert span.status.status_code == StatusCode.UNSET
 
     @pytest.mark.asyncio
-    async def test_begin_sets_error_status_on_failure(self, otel_setup):
+    async def test_begin_sets_error_status_on_failure(self, tracing_setup):
         from ydb import issues
 
-        exporter = otel_setup
+        exporter = tracing_setup
         session, driver = _make_async_session_mock(peer=("n1", 2136, "dc-a"))
         tx = _make_fresh_async_tx(session, driver)
 
@@ -236,8 +236,8 @@ class TestAsyncBeginTransactionSpan:
 
 class TestAsyncCommitSpan:
     @pytest.mark.asyncio
-    async def test_commit_emits_span(self, otel_setup):
-        exporter = otel_setup
+    async def test_commit_emits_span(self, tracing_setup):
+        exporter = tracing_setup
         session, driver = _make_async_session_mock(peer=("n1", 2136, "dc-a"))
         tx = _make_async_tx(session, driver)
 
@@ -255,8 +255,8 @@ class TestAsyncCommitSpan:
 
 class TestAsyncRollbackSpan:
     @pytest.mark.asyncio
-    async def test_rollback_emits_span(self, otel_setup):
-        exporter = otel_setup
+    async def test_rollback_emits_span(self, tracing_setup):
+        exporter = tracing_setup
         session, driver = _make_async_session_mock(peer=("n1", 2136, "dc-a"))
         tx = _make_async_tx(session, driver)
 
@@ -279,10 +279,10 @@ class TestAsyncCommitRollbackErrorRecording:
     """
 
     @pytest.mark.asyncio
-    async def test_commit_records_exception_on_failure(self, otel_setup):
+    async def test_commit_records_exception_on_failure(self, tracing_setup):
         from ydb import issues
 
-        exporter = otel_setup
+        exporter = tracing_setup
         session, driver = _make_async_session_mock(peer=("n1", 2136, "dc-a"))
         tx = _make_async_tx(session, driver)
 
@@ -299,10 +299,10 @@ class TestAsyncCommitRollbackErrorRecording:
         assert any(e.name == "exception" for e in span.events)
 
     @pytest.mark.asyncio
-    async def test_rollback_records_exception_on_failure(self, otel_setup):
+    async def test_rollback_records_exception_on_failure(self, tracing_setup):
         from ydb import issues
 
-        exporter = otel_setup
+        exporter = tracing_setup
         session, driver = _make_async_session_mock(peer=("n1", 2136, "dc-a"))
         tx = _make_async_tx(session, driver)
 
@@ -321,8 +321,8 @@ class TestAsyncCommitRollbackErrorRecording:
 
 class TestAsyncErrorHandling:
     @pytest.mark.asyncio
-    async def test_error_sets_error_status_and_attributes(self, otel_setup):
-        exporter = otel_setup
+    async def test_error_sets_error_status_and_attributes(self, tracing_setup):
+        exporter = tracing_setup
 
         from ydb import issues
 
@@ -353,10 +353,10 @@ class TestAsyncErrorHandling:
 
 class TestAsyncRetryPolicySpans:
     @pytest.mark.asyncio
-    async def test_success_emits_single_try(self, otel_setup):
+    async def test_success_emits_single_try(self, tracing_setup):
         from ydb.retries import retry_operation_async
 
-        exporter = otel_setup
+        exporter = tracing_setup
 
         async def callee():
             return 7
@@ -373,12 +373,12 @@ class TestAsyncRetryPolicySpans:
         assert tries[0].status.status_code == StatusCode.UNSET
 
     @pytest.mark.asyncio
-    async def test_retry_failed_tries_set_error_status(self, otel_setup):
+    async def test_retry_failed_tries_set_error_status(self, tracing_setup):
         """Failed async attempts must set ``ydb.Try`` status to ERROR (not UNSET)."""
         from ydb import issues
         from ydb.retries import BackoffSettings, RetrySettings, retry_operation_async
 
-        exporter = otel_setup
+        exporter = tracing_setup
         counter = {"n": 0}
 
         async def flaky():
@@ -402,14 +402,14 @@ class TestAsyncRetryPolicySpans:
         assert tries[2].status.status_code == StatusCode.UNSET
 
     @pytest.mark.asyncio
-    async def test_context_cancel_during_backoff_records_exception(self, otel_setup):
+    async def test_context_cancel_during_backoff_records_exception(self, tracing_setup):
         """Inter-attempt sleep is outside ``ydb.Try``; cancellation during
         ``asyncio.sleep`` is recorded on ``ydb.RunWithRetry`` (``record_exception``).
         """
         from ydb import issues
         from ydb.retries import BackoffSettings, RetrySettings, retry_operation_async
 
-        exporter = otel_setup
+        exporter = tracing_setup
         calls = {"n": 0}
 
         async def flaky():
@@ -442,7 +442,7 @@ class TestAsyncRetryPolicySpans:
 
 class TestAsyncRetrySpanNesting:
     @pytest.mark.asyncio
-    async def test_execute_query_is_child_of_try_under_run_with_retry(self, otel_setup):
+    async def test_execute_query_is_child_of_try_under_run_with_retry(self, tracing_setup):
         """``ydb.RunWithRetry`` -> ``ydb.Try`` -> ``ydb.ExecuteQuery`` (deep nesting).
 
         The previous implementation produced sibling spans because ``ydb.Try`` was
@@ -452,7 +452,7 @@ class TestAsyncRetrySpanNesting:
         from ydb.aio.query.session import QuerySession
         from ydb.retries import retry_operation_async
 
-        exporter = otel_setup
+        exporter = tracing_setup
 
         qs = QuerySession.__new__(QuerySession)
         cfg = FakeDriverConfig()
@@ -485,9 +485,9 @@ class TestAsyncRetrySpanNesting:
 
 class TestAsyncConcurrentSpansIsolation:
     @pytest.mark.asyncio
-    async def test_parallel_executes_do_not_become_parent_child(self, otel_setup):
+    async def test_parallel_executes_do_not_become_parent_child(self, tracing_setup):
         """Two concurrent execute calls must produce sibling spans, not parent-child."""
-        exporter = otel_setup
+        exporter = tracing_setup
 
         from ydb.aio.query.session import QuerySession
 

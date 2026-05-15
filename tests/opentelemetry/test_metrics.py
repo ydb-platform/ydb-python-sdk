@@ -1,31 +1,6 @@
 from unittest.mock import MagicMock
 
 import pytest
-from opentelemetry.sdk.metrics import MeterProvider
-from opentelemetry.sdk.metrics.export import InMemoryMetricReader
-
-
-@pytest.fixture()
-def metrics_reader():
-    from ydb.opentelemetry.metrics import _metrics_registry
-    from ydb.opentelemetry.plugin import _create_query_session_count_callback
-
-    reader = InMemoryMetricReader()
-    provider = MeterProvider(metric_readers=[reader])
-    meter = provider.get_meter("ydb.sdk")
-
-    from ydb.opentelemetry.plugin import _create_query_session_max_callback
-
-    _metrics_registry.set_meter(
-        meter,
-        _create_query_session_count_callback(),
-        _create_query_session_max_callback(),
-    )
-    try:
-        yield reader
-    finally:
-        _metrics_registry.clear()
-        provider.shutdown()
 
 
 def _metrics_by_name(reader):
@@ -56,7 +31,7 @@ def _sum_value(reader, name):
     return _single_point(reader, name).value
 
 
-def test_metrics_registry_records_all_instruments(metrics_reader, monkeypatch):
+def test_metrics_registry_records_all_instruments(metrics_setup, monkeypatch):
     from ydb import issues
     from ydb.opentelemetry.metrics import (
         CLIENT_OPERATION_DURATION,
@@ -90,7 +65,7 @@ def test_metrics_registry_records_all_instruments(metrics_reader, monkeypatch):
     record_query_session_timeout("main")
     record_retry_metrics(0.75, 3)
 
-    metrics = _metrics_by_name(metrics_reader)
+    metrics = _metrics_by_name(metrics_setup)
 
     assert set(metrics) == {
         CLIENT_OPERATION_DURATION,
@@ -135,7 +110,7 @@ def test_metrics_registry_is_noop_without_meter():
         pass
 
 
-def test_metrics_operation_records_duration_once(metrics_reader, monkeypatch):
+def test_metrics_operation_records_duration_once(metrics_setup, monkeypatch):
     from ydb.opentelemetry.metrics import CLIENT_OPERATION_DURATION, create_metrics_operation
 
     monotonic = MagicMock(side_effect=[10.0, 10.25, 11.0])
@@ -152,7 +127,7 @@ def test_metrics_operation_records_duration_once(metrics_reader, monkeypatch):
     operation.end()
     operation.end()
 
-    point = _single_point(metrics_reader, CLIENT_OPERATION_DURATION)
+    point = _single_point(metrics_setup, CLIENT_OPERATION_DURATION)
 
     assert point.sum == 0.25
     assert point.count == 1
@@ -165,7 +140,7 @@ def test_metrics_operation_records_duration_once(metrics_reader, monkeypatch):
     }
 
 
-def test_metrics_operation_records_ydb_error(metrics_reader, monkeypatch):
+def test_metrics_operation_records_ydb_error(metrics_setup, monkeypatch):
     from ydb import issues
     from ydb.opentelemetry.metrics import CLIENT_OPERATION_FAILED, create_metrics_operation
 
@@ -175,34 +150,34 @@ def test_metrics_operation_records_ydb_error(metrics_reader, monkeypatch):
         with create_metrics_operation("ExecuteQuery"):
             raise issues.Unavailable("transient")
 
-    point = _single_point(metrics_reader, CLIENT_OPERATION_FAILED)
+    point = _single_point(metrics_setup, CLIENT_OPERATION_FAILED)
 
     assert point.value == 1
     assert point.attributes["db.response.status_code"] == "UNAVAILABLE"
     assert point.attributes["ydb.operation.name"] == "ExecuteQuery"
 
 
-def test_metrics_operation_records_generic_error_status_code(metrics_reader):
+def test_metrics_operation_records_generic_error_status_code(metrics_setup):
     from ydb.opentelemetry.metrics import CLIENT_OPERATION_FAILED, create_metrics_operation
 
     with pytest.raises(ValueError):
         with create_metrics_operation("ExecuteQuery"):
             raise ValueError("bad value")
 
-    assert _single_point(metrics_reader, CLIENT_OPERATION_FAILED).attributes["db.response.status_code"] == "ValueError"
+    assert _single_point(metrics_setup, CLIENT_OPERATION_FAILED).attributes["db.response.status_code"] == "ValueError"
 
 
-def test_metrics_operation_set_attribute(metrics_reader):
+def test_metrics_operation_set_attribute(metrics_setup):
     from ydb.opentelemetry.metrics import CLIENT_OPERATION_DURATION, create_metrics_operation
 
     operation = create_metrics_operation("ExecuteQuery")
     operation.set_attribute("db.namespace", "/Root/test")
     operation.end()
 
-    assert _single_point(metrics_reader, CLIENT_OPERATION_DURATION).attributes["db.namespace"] == "/Root/test"
+    assert _single_point(metrics_setup, CLIENT_OPERATION_DURATION).attributes["db.namespace"] == "/Root/test"
 
 
-def test_metrics_operation_ignores_non_metric_attributes(metrics_reader):
+def test_metrics_operation_ignores_non_metric_attributes(metrics_setup):
     from ydb.opentelemetry.metrics import CLIENT_OPERATION_DURATION, create_metrics_operation
 
     operation = create_metrics_operation("ExecuteQuery")
@@ -212,7 +187,7 @@ def test_metrics_operation_ignores_non_metric_attributes(metrics_reader):
     operation.set_attribute("ydb.node.id", 123)
     operation.end()
 
-    attrs = _single_point(metrics_reader, CLIENT_OPERATION_DURATION).attributes
+    attrs = _single_point(metrics_setup, CLIENT_OPERATION_DURATION).attributes
 
     assert "network.peer.address" not in attrs
     assert "network.peer.port" not in attrs
@@ -220,83 +195,46 @@ def test_metrics_operation_ignores_non_metric_attributes(metrics_reader):
     assert "ydb.node.id" not in attrs
 
 
-def test_metrics_operation_respects_end_on_exit_false(metrics_reader):
+def test_metrics_operation_respects_end_on_exit_false(metrics_setup):
     from ydb.opentelemetry.metrics import CLIENT_OPERATION_DURATION, create_metrics_operation
 
     operation = create_metrics_operation("ExecuteQuery")
     with operation.attach_context(end_on_exit=False):
         pass
 
-    assert CLIENT_OPERATION_DURATION not in _metrics_by_name(metrics_reader)
+    assert CLIENT_OPERATION_DURATION not in _metrics_by_name(metrics_setup)
 
     operation.end()
 
-    point = _single_point(metrics_reader, CLIENT_OPERATION_DURATION)
+    point = _single_point(metrics_setup, CLIENT_OPERATION_DURATION)
     assert point.count == 1
     assert point.sum >= 0
 
 
-def test_create_ydb_span_records_metrics_when_tracing_is_active(metrics_reader):
+def test_create_ydb_span_records_metrics_when_tracing_is_active(metrics_setup, tracing_setup):
     from tests.opentelemetry.conftest import FakeDriverConfig
     from ydb.opentelemetry.metrics import CLIENT_OPERATION_DURATION
-    from ydb.opentelemetry.tracing import _registry, create_ydb_span
+    from ydb.opentelemetry.tracing import create_ydb_span
 
-    class FakeSpan:
-        def __init__(self):
-            self.ended = False
-            self.attributes = {}
-            self._end_on_exit = True
+    exporter = tracing_setup
 
-        def set_error(self, exception):
-            pass
+    with create_ydb_span(
+        "ydb.ExecuteQuery",
+        FakeDriverConfig(),
+        node_id=123,
+        peer=("node.example.net", 2136, "dc-a"),
+    ).attach_context():
+        pass
 
-        def set_attribute(self, key, value):
-            self.attributes[key] = value
+    spans = exporter.get_finished_spans()
+    assert len(spans) == 1
+    span_attrs = dict(spans[0].attributes)
+    assert span_attrs["network.peer.address"] == "node.example.net"
+    assert span_attrs["network.peer.port"] == 2136
+    assert span_attrs["ydb.node.dc"] == "dc-a"
+    assert span_attrs["ydb.node.id"] == 123
 
-        def end(self):
-            self.ended = True
-
-        def attach_context(self, end_on_exit=True):
-            self._end_on_exit = end_on_exit
-            return self
-
-        def __enter__(self):
-            return self
-
-        def __exit__(self, exc_type, exc_val, exc_tb):
-            if exc_val is not None or self._end_on_exit:
-                self.end()
-            return False
-
-    created_spans = []
-
-    def create_span(name, attributes=None, kind=None):
-        span = FakeSpan()
-        span.attributes.update(attributes or {})
-        created_spans.append(span)
-        return span
-
-    try:
-        _registry.set_create_span(create_span)
-
-        with create_ydb_span(
-            "ydb.ExecuteQuery",
-            FakeDriverConfig(),
-            node_id=123,
-            peer=("node.example.net", 2136, "dc-a"),
-        ).attach_context():
-            pass
-    finally:
-        _registry.set_create_span(None)
-
-    assert len(created_spans) == 1
-    assert created_spans[0].ended is True
-    assert created_spans[0].attributes["network.peer.address"] == "node.example.net"
-    assert created_spans[0].attributes["network.peer.port"] == 2136
-    assert created_spans[0].attributes["ydb.node.dc"] == "dc-a"
-    assert created_spans[0].attributes["ydb.node.id"] == 123
-
-    metric_attrs = _single_point(metrics_reader, CLIENT_OPERATION_DURATION).attributes
+    metric_attrs = _single_point(metrics_setup, CLIENT_OPERATION_DURATION).attributes
     assert metric_attrs["ydb.operation.name"] == "ydb.ExecuteQuery"
     assert "network.peer.address" not in metric_attrs
     assert "network.peer.port" not in metric_attrs
@@ -304,7 +242,7 @@ def test_create_ydb_span_records_metrics_when_tracing_is_active(metrics_reader):
     assert "ydb.node.id" not in metric_attrs
 
 
-def test_create_ydb_span_records_metrics_when_tracing_is_disabled(metrics_reader):
+def test_create_ydb_span_records_metrics_when_tracing_is_disabled(metrics_setup):
     from tests.opentelemetry.conftest import FakeDriverConfig
     from ydb.opentelemetry.metrics import CLIENT_OPERATION_DURATION
     from ydb.opentelemetry.tracing import _registry, create_ydb_span
@@ -315,18 +253,18 @@ def test_create_ydb_span_records_metrics_when_tracing_is_disabled(metrics_reader
         pass
 
     assert (
-        _single_point(metrics_reader, CLIENT_OPERATION_DURATION).attributes["ydb.operation.name"] == "ydb.ExecuteQuery"
+        _single_point(metrics_setup, CLIENT_OPERATION_DURATION).attributes["ydb.operation.name"] == "ydb.ExecuteQuery"
     )
 
 
-def test_query_session_count_accumulates_by_attributes(metrics_reader):
+def test_query_session_count_accumulates_by_attributes(metrics_setup):
     from ydb.opentelemetry.metrics import QUERY_SESSION_COUNT, record_query_session_count
 
     record_query_session_count(1, "main", "used")
     record_query_session_count(2, "main", "used")
     record_query_session_count(1, None, "idle")
 
-    metric = _metrics_by_name(metrics_reader)[QUERY_SESSION_COUNT]
+    metric = _metrics_by_name(metrics_setup)[QUERY_SESSION_COUNT]
     values = {tuple(sorted(point.attributes.items())): point.value for point in metric.data.data_points}
 
     assert (
@@ -349,7 +287,7 @@ def test_query_session_count_accumulates_by_attributes(metrics_reader):
     )
 
 
-def test_query_session_helpers_record_pool_attributes(metrics_reader):
+def test_query_session_helpers_record_pool_attributes(metrics_setup):
     from ydb.opentelemetry.metrics import (
         QUERY_SESSION_CREATE_TIME,
         QUERY_SESSION_MAX,
@@ -366,42 +304,56 @@ def test_query_session_helpers_record_pool_attributes(metrics_reader):
     record_query_session_pending_requests(1, None)
     record_query_session_timeout("main")
 
-    assert _histogram_sum(metrics_reader, QUERY_SESSION_CREATE_TIME) == 0.5
-    assert _single_point(metrics_reader, QUERY_SESSION_CREATE_TIME).attributes == {
-        "ydb.query.session.pool.name": "main"
-    }
-    assert _sum_value(metrics_reader, QUERY_SESSION_PENDING_REQUESTS) == 1
-    assert _single_point(metrics_reader, QUERY_SESSION_PENDING_REQUESTS).attributes == {
+    assert _histogram_sum(metrics_setup, QUERY_SESSION_CREATE_TIME) == 0.5
+    assert _single_point(metrics_setup, QUERY_SESSION_CREATE_TIME).attributes == {"ydb.query.session.pool.name": "main"}
+    assert _sum_value(metrics_setup, QUERY_SESSION_PENDING_REQUESTS) == 1
+    assert _single_point(metrics_setup, QUERY_SESSION_PENDING_REQUESTS).attributes == {
         "ydb.query.session.pool.name": "unknown"
     }
-    assert _sum_value(metrics_reader, QUERY_SESSION_TIMEOUTS) == 1
-    assert _single_point(metrics_reader, QUERY_SESSION_TIMEOUTS).attributes == {"ydb.query.session.pool.name": "main"}
-    assert _single_point(metrics_reader, QUERY_SESSION_MAX).value == 100
-    assert _single_point(metrics_reader, QUERY_SESSION_MAX).attributes == {"ydb.query.session.pool.name": "main"}
+    assert _sum_value(metrics_setup, QUERY_SESSION_TIMEOUTS) == 1
+    assert _single_point(metrics_setup, QUERY_SESSION_TIMEOUTS).attributes == {"ydb.query.session.pool.name": "main"}
+    assert _single_point(metrics_setup, QUERY_SESSION_MAX).value == 100
+    assert _single_point(metrics_setup, QUERY_SESSION_MAX).attributes == {"ydb.query.session.pool.name": "main"}
 
 
-def test_sync_query_session_pool_records_max(metrics_reader):
+def test_sync_query_session_pool_records_max(metrics_setup):
     from ydb.opentelemetry.metrics import QUERY_SESSION_MAX
     from ydb.query.pool import QuerySessionPool
 
     QuerySessionPool(driver=object(), size=42, name="sync-pool")
 
-    assert _single_point(metrics_reader, QUERY_SESSION_MAX).value == 42
-    assert _single_point(metrics_reader, QUERY_SESSION_MAX).attributes == {"ydb.query.session.pool.name": "sync-pool"}
+    assert _single_point(metrics_setup, QUERY_SESSION_MAX).value == 42
+    assert _single_point(metrics_setup, QUERY_SESSION_MAX).attributes == {"ydb.query.session.pool.name": "sync-pool"}
 
 
 @pytest.mark.asyncio
-async def test_async_query_session_pool_records_max(metrics_reader):
+async def test_async_query_session_pool_records_max(metrics_setup):
     from ydb.aio.query.pool import QuerySessionPool
     from ydb.opentelemetry.metrics import QUERY_SESSION_MAX
 
     QuerySessionPool(driver=object(), size=24, name="async-pool")
 
-    assert _single_point(metrics_reader, QUERY_SESSION_MAX).value == 24
-    assert _single_point(metrics_reader, QUERY_SESSION_MAX).attributes == {"ydb.query.session.pool.name": "async-pool"}
+    assert _single_point(metrics_setup, QUERY_SESSION_MAX).value == 24
+    assert _single_point(metrics_setup, QUERY_SESSION_MAX).attributes == {"ydb.query.session.pool.name": "async-pool"}
 
 
-def test_retry_operation_sync_records_retry_metrics(metrics_reader):
+@pytest.mark.asyncio
+async def test_sync_and_async_query_session_pool_auto_names_do_not_collide(metrics_setup):
+    from ydb.aio.query.pool import QuerySessionPool as AsyncQuerySessionPool
+    from ydb.opentelemetry.metrics import QUERY_SESSION_MAX
+    from ydb.query.pool import QuerySessionPool
+
+    QuerySessionPool(driver=object(), size=42)
+    AsyncQuerySessionPool(driver=object(), size=24)
+
+    metric = _metrics_by_name(metrics_setup)[QUERY_SESSION_MAX]
+    values = {point.attributes["ydb.query.session.pool.name"]: point.value for point in metric.data.data_points}
+
+    assert len(values) == 2
+    assert sorted(values.values()) == [24, 42]
+
+
+def test_retry_operation_sync_records_retry_metrics(metrics_setup):
     from ydb import issues
     from ydb.opentelemetry.metrics import RETRY_ATTEMPTS, RETRY_DURATION
     from ydb.retries import RetrySettings, retry_operation_sync
@@ -416,11 +368,11 @@ def test_retry_operation_sync_records_retry_metrics(metrics_reader):
 
     assert retry_operation_sync(flaky, RetrySettings(max_retries=5)) == "ok"
 
-    duration = _single_point(metrics_reader, RETRY_DURATION)
+    duration = _single_point(metrics_setup, RETRY_DURATION)
     assert duration.count == 1
     assert duration.sum >= 0
     assert duration.attributes == {}
-    assert _histogram_sum(metrics_reader, RETRY_ATTEMPTS) == 3
+    assert _histogram_sum(metrics_setup, RETRY_ATTEMPTS) == 3
 
 
 async def _async_value():
@@ -428,14 +380,14 @@ async def _async_value():
 
 
 @pytest.mark.asyncio
-async def test_retry_operation_async_records_retry_metrics(metrics_reader):
+async def test_retry_operation_async_records_retry_metrics(metrics_setup):
     from ydb.opentelemetry.metrics import RETRY_ATTEMPTS, RETRY_DURATION
     from ydb.retries import retry_operation_async
 
     assert await retry_operation_async(_async_value) == "ok"
 
-    duration = _single_point(metrics_reader, RETRY_DURATION)
+    duration = _single_point(metrics_setup, RETRY_DURATION)
     assert duration.count == 1
     assert duration.sum >= 0
     assert duration.attributes == {}
-    assert _histogram_sum(metrics_reader, RETRY_ATTEMPTS) == 1
+    assert _histogram_sum(metrics_setup, RETRY_ATTEMPTS) == 1

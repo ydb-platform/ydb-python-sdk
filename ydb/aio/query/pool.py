@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import asyncio
 import logging
-import itertools
 import time
 from typing import (
     Callable,
@@ -25,6 +24,7 @@ from ...query.base import QueryClientSettings
 from ... import convert
 from ... import issues
 from ...opentelemetry.metrics import (
+    next_query_session_pool_name,
     record_query_session_count,
     record_query_session_create_time,
     record_query_session_max,
@@ -35,8 +35,6 @@ from ..._grpc.grpcwrapper import common_utils
 from ..._grpc.grpcwrapper import ydb_query_public_types as _ydb_query_public
 
 logger = logging.getLogger(__name__)
-
-_pool_name_counter = itertools.count(1)
 
 
 class QuerySessionPool:
@@ -65,7 +63,7 @@ class QuerySessionPool:
         self._current_size = 0
         self._loop = asyncio.get_running_loop() if loop is None else loop
         self._query_client_settings = query_client_settings
-        self._metrics_pool_name = name or "query-session-pool-%d" % next(_pool_name_counter)
+        self._metrics_pool_name = name or next_query_session_pool_name()
         record_query_session_max(self._size, self._metrics_pool_name)
 
     async def _create_new_session(self):
