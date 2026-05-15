@@ -8,7 +8,7 @@ which keeps metrics independent from tracing and safe to call from hot paths.
 import time
 import threading
 import itertools
-from typing import Any, Dict, Literal, Optional
+from typing import Any, Dict, Optional
 
 CLIENT_OPERATION_DURATION = "db.client.operation.duration"
 CLIENT_OPERATION_FAILED = "ydb.client.operation.failed"
