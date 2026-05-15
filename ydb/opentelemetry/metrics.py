@@ -1,4 +1,9 @@
-"""No-op-safe helpers for YDB OpenTelemetry metrics."""
+"""No-op-safe helpers for YDB OpenTelemetry client metrics.
+
+The SDK records metrics only after :func:`ydb.opentelemetry.enable_metrics`
+installs OpenTelemetry instruments. Until then every helper is a cheap no-op,
+which keeps metrics independent from tracing and safe to call from hot paths.
+"""
 
 import time
 import threading
@@ -30,6 +35,13 @@ _OPERATION_ATTR_KEYS = frozenset(
 
 
 class MetricsRegistry:
+    """Process-wide metric instrument registry.
+
+    Regular instruments are recorded immediately. Observable query-session
+    instruments keep their latest values in memory and expose snapshots through
+    callbacks registered by ``ydb.opentelemetry.plugin``.
+    """
+
     def __init__(self) -> None:
         self._instruments: Dict[str, Any] = {}
         self._query_session_count_values: Dict[Any, int] = {}
@@ -105,30 +117,13 @@ class MetricsRegistry:
             self._query_session_max_values = {}
 
     def add(self, name: str, value: int, attributes: Optional[Dict[str, Any]] = None) -> None:
-        """
-        Record a metric value, accumulating for observable metrics or adding directly for others.
-
-        For observable metrics, values are accumulated by attributes and sent via callback.
-        For regular metrics, values are added immediately to the instrument.
-
-        Args:
-            name: Name of the metric.
-            value: Value to add (positive or negative).
-            attributes: Optional dictionary of metric attributes (labels).
-        """
+        """Add ``value`` to a counter-like instrument if metrics are enabled."""
         instrument = self._instruments.get(name)
         if instrument is not None:
             instrument.add(value, attributes=attributes or {})
 
     def record(self, name: str, value: float, attributes: Optional[Dict[str, Any]] = None) -> None:
-        """
-        Record a histogram or gauge metric value.
-
-        Args:
-            name: Name of the metric.
-            value: Value to record.
-            attributes: Optional dictionary of metric attributes (labels).
-        """
+        """Record ``value`` in a histogram-like instrument if metrics are enabled."""
         instrument = self._instruments.get(name)
         if instrument is not None:
             instrument.record(value, attributes=attributes or {})
@@ -165,6 +160,7 @@ def _pool_attrs(pool_name: Optional[str]) -> Dict[str, Any]:
 
 
 def next_query_session_pool_name() -> str:
+    """Return a process-unique default query session pool name for metric labels."""
     with _pool_name_lock:
         return "query-session-pool-%d" % next(_pool_name_counter)
 
@@ -187,28 +183,15 @@ def _response_status_code(exception: BaseException) -> str:
 
 
 class MetricsOperation:
-    """
-    Context manager for tracking metrics of a single YDB operation.
+    """Metric lifecycle object for one user-visible YDB client operation.
 
-    Records operation duration and captures errors. When the operation ends,
-    metrics are recorded to the registry with operation attributes.
-
-    Attributes:
-        _name: Name of the operation.
-        _attributes: Dictionary of attributes attached to all metrics from this operation.
-        _start_time: Timestamp when the operation started (using monotonic).
-        _exception: Optional exception that occurred during operation execution.
-        _ended: Flag to ensure metrics are recorded only once.
+    ``MetricsOperation`` mirrors the small span-like interface used by tracing
+    so both can be composed by ``create_ydb_span``. It records operation
+    duration once, records a failed-operation counter when an exception is
+    attached, and accepts only stable operation labels.
     """
 
     def __init__(self, name: str, attributes: Optional[Dict[str, Any]] = None) -> None:
-        """
-        Initialize a metrics operation.
-
-        Args:
-            name: Name of the operation (e.g., 'ExecuteQuery', 'CreateSession').
-            attributes: Optional dictionary of initial attributes for the operation.
-        """
         self._name = name
         self._attributes = _operation_attrs(name, attributes or {})
         self._start_time = time.monotonic()
@@ -217,15 +200,11 @@ class MetricsOperation:
         self._end_lock = threading.Lock()
 
     def set_error(self, exception: BaseException) -> None:
-        """
-        Record an exception that occurred during the operation.
-
-        Args:
-            exception: The exception to record.
-        """
+        """Remember the operation exception for the failed-operation metric."""
         self._exception = exception
 
     def set_attribute(self, key: str, value: Any) -> None:
+        """Set a metric label only when it is part of the operation metric contract."""
         if key in _OPERATION_ATTR_KEYS:
             self._attributes[key] = value
 
@@ -257,11 +236,13 @@ class MetricsOperation:
 
 
 class _MetricsOperationContext:
+    """Context manager that optionally leaves ``end()`` to a streaming result iterator."""
+
     def __init__(self, operation: MetricsOperation, end_on_exit: bool) -> None:
         self._operation = operation
         self._end_on_exit = end_on_exit
 
-    def __enter__(self) -> "MetricsOperation":
+    def __enter__(self) -> MetricsOperation:
         return self._operation
 
     def __exit__(self, exc_type, exc_val, exc_tb) -> bool:

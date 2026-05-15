@@ -33,12 +33,16 @@ def disable_tracing():
     _disable_tracing()
 
 
-def enable_registry(meter_provider=None):
+def enable_metrics(meter_provider=None):
     """Enable OpenTelemetry metrics collection for YDB SDK client metrics.
 
+    This call is **idempotent**: if metrics are already enabled, later calls do nothing
+    (including passing a different ``meter_provider``). Call :func:`disable_metrics`
+    first to reconfigure or turn instrumentation off.
+
     Args:
-        meter_provider: Optional OpenTelemetry MeterProvider. If not provided,
-            the global OpenTelemetry meter provider is used.
+        meter_provider: Optional OTel meter provider to use. If not provided, the
+            default meter named ``ydb.sdk`` from the global meter provider will be used.
     """
     try:
         from ydb.opentelemetry.plugin import _enable_metrics
@@ -51,8 +55,8 @@ def enable_registry(meter_provider=None):
     _enable_metrics(meter_provider)
 
 
-def disable_registry():
-    """Disable YDB OpenTelemetry metrics collection and allow :func:`enable_registry` to run again."""
+def disable_metrics():
+    """Disable YDB OpenTelemetry metrics collection and allow :func:`enable_metrics` to run again."""
     try:
         from ydb.opentelemetry.plugin import _disable_metrics
     except ImportError:
@@ -61,4 +65,9 @@ def disable_registry():
     _disable_metrics()
 
 
-__all__ = ["disable_tracing", "enable_tracing", "disable_registry", "enable_registry"]
+__all__ = [
+    "disable_tracing",
+    "enable_tracing",
+    "disable_metrics",
+    "enable_metrics",
+]

@@ -14,7 +14,7 @@ from opentelemetry.sdk.metrics import MeterProvider
 from opentelemetry.sdk.metrics._internal.export import PeriodicExportingMetricReader
 
 import ydb
-from ydb.opentelemetry import enable_tracing, enable_registry, disable_registry
+from ydb.opentelemetry import enable_metrics, enable_tracing
 from opentelemetry import trace
 from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
 from opentelemetry.sdk.resources import Resource
@@ -62,7 +62,7 @@ async def main() -> None:
         export_interval_millis=1000,
     )
     meter_provider = MeterProvider(resource=resource, metric_readers=[metric_reader])
-    enable_registry(meter_provider)
+    enable_metrics(meter_provider)
 
     async with ydb.aio.Driver(
         endpoint=endpoint,
