@@ -14,7 +14,6 @@ from typing import (
 import time
 import threading
 import queue
-import itertools
 
 from .base import BaseQueryTxMode, QueryExplainResultFormat
 from .base import QueryClientSettings
@@ -29,6 +28,7 @@ from .. import issues
 from .. import convert
 from ..settings import BaseRequestSettings
 from ..opentelemetry.metrics import (
+    next_query_session_pool_name,
     record_query_session_count,
     record_query_session_create_time,
     record_query_session_max,
@@ -41,8 +41,6 @@ if TYPE_CHECKING:
     from ..driver import Driver as SyncDriver
 
 logger = logging.getLogger(__name__)
-
-_pool_name_counter = itertools.count(1)
 
 
 class QuerySessionPool:
@@ -75,7 +73,7 @@ class QuerySessionPool:
         self._should_stop = threading.Event()
         self._lock = threading.RLock()
         self._query_client_settings = query_client_settings
-        self._metrics_pool_name = name or "query-session-pool-%d" % next(_pool_name_counter)
+        self._metrics_pool_name = name or next_query_session_pool_name()
         record_query_session_max(self._size, self._metrics_pool_name)
 
     def _create_new_session(self, timeout: Optional[float]):

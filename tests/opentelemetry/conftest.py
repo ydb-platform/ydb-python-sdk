@@ -7,6 +7,8 @@ can be collected and inspected without any external backend.
 import pytest
 
 from opentelemetry import trace
+from opentelemetry.sdk.metrics import MeterProvider
+from opentelemetry.sdk.metrics.export import InMemoryMetricReader
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import SimpleSpanProcessor
 from opentelemetry.sdk.trace.export.in_memory_span_exporter import InMemorySpanExporter
@@ -18,7 +20,7 @@ trace.set_tracer_provider(_provider)
 
 
 @pytest.fixture()
-def otel_setup():
+def tracing_setup():
     """Enable SDK tracing, yield the exporter, then restore noop defaults.
 
     Each test gets a clean exporter (cleared before and after).
@@ -35,6 +37,23 @@ def otel_setup():
     # Restore noop state
     disable_tracing()
     _exporter.clear()
+
+
+@pytest.fixture()
+def metrics_setup():
+    """Enable SDK metrics with an in-memory reader, then restore noop defaults."""
+    from ydb.opentelemetry import disable_registry, enable_registry
+
+    reader = InMemoryMetricReader()
+    provider = MeterProvider(metric_readers=[reader])
+
+    disable_registry()
+    enable_registry(provider)
+    try:
+        yield reader
+    finally:
+        disable_registry()
+        provider.shutdown()
 
 
 class FakeDriverConfig:
