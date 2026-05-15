@@ -2,16 +2,14 @@
 
 from opentelemetry import context as otel_context
 from opentelemetry import trace
+from opentelemetry import metrics as otel_metrics
 from opentelemetry.metrics import Observation
-from opentelemetry import metrics
 from opentelemetry.propagate import inject
 from opentelemetry.trace import StatusCode
 
 from ydb import issues
 from ydb.issues import StatusCode as YdbStatusCode
-from ydb.opentelemetry import metrics
-
-from ydb.opentelemetry.metrics import _metrics_registry, create_metrics_operation
+from ydb.opentelemetry.metrics import _metrics_registry
 from ydb.opentelemetry.tracing import _registry as _tracing_registry
 
 # YDB client transport StatusCode values (401xxx band) -> OTel error.type transport_error.
@@ -161,13 +159,14 @@ def _create_query_session_max_callback():
 
 
 def _enable_metrics(meter_provider):
+    """Create SDK metric instruments from an OTel MeterProvider and enable recording."""
     global _meter
 
     if _meter is not None:
         return
 
     if meter_provider is None:
-        _meter = metrics.get_meter("ydb.sdk")
+        _meter = otel_metrics.get_meter("ydb.sdk")
     elif hasattr(meter_provider, "get_meter"):
         _meter = meter_provider.get_meter("ydb.sdk")
     else:

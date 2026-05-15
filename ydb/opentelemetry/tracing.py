@@ -1,4 +1,4 @@
-"""Internal SDK tracing helpers and registry."""
+"""Internal SDK tracing helpers and telemetry facade."""
 
 import enum
 from typing import Optional, Tuple
@@ -52,7 +52,7 @@ _NOOP_SPAN = _NoopSpan()
 
 
 class _TelemetryContext:
-    """Attach both tracing and metrics lifecycle contexts for one SDK operation."""
+    """Attach tracing context and metrics lifecycle for one SDK operation."""
 
     def __init__(self, telemetry, span_context, metrics_context):
         self._telemetry = telemetry
@@ -71,7 +71,7 @@ class _TelemetryContext:
 
 
 class _TelemetryOperation:
-    """Operation telemetry facade that fans lifecycle events out to tracing and metrics."""
+    """Span-like facade that forwards lifecycle events to tracing and metrics."""
 
     def __init__(self, span, metrics):
         self._span = span

@@ -42,17 +42,17 @@ def tracing_setup():
 @pytest.fixture()
 def metrics_setup():
     """Enable SDK metrics with an in-memory reader, then restore noop defaults."""
-    from ydb.opentelemetry import disable_registry, enable_registry
+    from ydb.opentelemetry import disable_metrics, enable_metrics
 
     reader = InMemoryMetricReader()
     provider = MeterProvider(metric_readers=[reader])
 
-    disable_registry()
-    enable_registry(provider)
+    disable_metrics()
+    enable_metrics(provider)
     try:
         yield reader
     finally:
-        disable_registry()
+        disable_metrics()
         provider.shutdown()
 
 
