@@ -17,7 +17,11 @@ def _metrics_by_name(reader):
 
 
 def _single_point(reader, name):
-    metric = _metrics_by_name(reader)[name]
+    return _single_point_from_metrics(_metrics_by_name(reader), name)
+
+
+def _single_point_from_metrics(metrics, name):
+    metric = metrics[name]
     points = list(metric.data.data_points)
     assert len(points) == 1
     return points[0]
@@ -304,16 +308,20 @@ def test_query_session_helpers_record_pool_attributes(metrics_setup):
     record_query_session_pending_requests(1, None)
     record_query_session_timeout("main")
 
-    assert _histogram_sum(metrics_setup, QUERY_SESSION_CREATE_TIME) == 0.5
-    assert _single_point(metrics_setup, QUERY_SESSION_CREATE_TIME).attributes == {"ydb.query.session.pool.name": "main"}
-    assert _sum_value(metrics_setup, QUERY_SESSION_PENDING_REQUESTS) == 1
-    assert _single_point(metrics_setup, QUERY_SESSION_PENDING_REQUESTS).attributes == {
-        "ydb.query.session.pool.name": "unknown"
-    }
-    assert _sum_value(metrics_setup, QUERY_SESSION_TIMEOUTS) == 1
-    assert _single_point(metrics_setup, QUERY_SESSION_TIMEOUTS).attributes == {"ydb.query.session.pool.name": "main"}
-    assert _single_point(metrics_setup, QUERY_SESSION_MAX).value == 100
-    assert _single_point(metrics_setup, QUERY_SESSION_MAX).attributes == {"ydb.query.session.pool.name": "main"}
+    metrics = _metrics_by_name(metrics_setup)
+    create_time = _single_point_from_metrics(metrics, QUERY_SESSION_CREATE_TIME)
+    pending_requests = _single_point_from_metrics(metrics, QUERY_SESSION_PENDING_REQUESTS)
+    timeouts = _single_point_from_metrics(metrics, QUERY_SESSION_TIMEOUTS)
+    session_max = _single_point_from_metrics(metrics, QUERY_SESSION_MAX)
+
+    assert create_time.sum == 0.5
+    assert create_time.attributes == {"ydb.query.session.pool.name": "main"}
+    assert pending_requests.value == 1
+    assert pending_requests.attributes == {"ydb.query.session.pool.name": "unknown"}
+    assert timeouts.value == 1
+    assert timeouts.attributes == {"ydb.query.session.pool.name": "main"}
+    assert session_max.value == 100
+    assert session_max.attributes == {"ydb.query.session.pool.name": "main"}
 
 
 def test_sync_query_session_pool_records_max(metrics_setup):
@@ -368,11 +376,14 @@ def test_retry_operation_sync_records_retry_metrics(metrics_setup):
 
     assert retry_operation_sync(flaky, RetrySettings(max_retries=5)) == "ok"
 
-    duration = _single_point(metrics_setup, RETRY_DURATION)
+    metrics = _metrics_by_name(metrics_setup)
+    duration = _single_point_from_metrics(metrics, RETRY_DURATION)
+    retry_attempts = _single_point_from_metrics(metrics, RETRY_ATTEMPTS)
+
     assert duration.count == 1
     assert duration.sum >= 0
     assert duration.attributes == {}
-    assert _histogram_sum(metrics_setup, RETRY_ATTEMPTS) == 3
+    assert retry_attempts.sum == 3
 
 
 async def _async_value():
@@ -386,8 +397,11 @@ async def test_retry_operation_async_records_retry_metrics(metrics_setup):
 
     assert await retry_operation_async(_async_value) == "ok"
 
-    duration = _single_point(metrics_setup, RETRY_DURATION)
+    metrics = _metrics_by_name(metrics_setup)
+    duration = _single_point_from_metrics(metrics, RETRY_DURATION)
+    retry_attempts = _single_point_from_metrics(metrics, RETRY_ATTEMPTS)
+
     assert duration.count == 1
     assert duration.sum >= 0
     assert duration.attributes == {}
-    assert _histogram_sum(metrics_setup, RETRY_ATTEMPTS) == 1
+    assert retry_attempts.sum == 1
