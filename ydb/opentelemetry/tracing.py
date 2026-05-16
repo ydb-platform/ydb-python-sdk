@@ -3,7 +3,7 @@
 import enum
 from typing import Optional, Tuple
 
-from ydb.opentelemetry.metrics import create_metrics_operation
+from ydb.opentelemetry.metrics import create_metrics_operation, is_metrics_enabled
 
 
 class SpanName(str, enum.Enum):
@@ -191,7 +191,7 @@ def create_ydb_span(name, driver_config, node_id=None, kind=None, peer=None):
     Tracing receives full operation context, including peer/node details. Metrics
     receive only the stable labels defined for client operation metrics.
     """
-    metrics_attrs = _build_ydb_attrs(driver_config)
+    metrics_attrs = _build_ydb_attrs(driver_config) if is_metrics_enabled() else None
     tracing_attrs = _build_ydb_tracing_attrs(driver_config, node_id, peer)
     metrics = create_metrics_operation(name, metrics_attrs)
     return _TelemetryOperation(_registry.create_span(name, attributes=tracing_attrs, kind=kind), metrics)
