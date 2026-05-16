@@ -46,7 +46,7 @@ class MetricsRegistry:
         self._instruments: Dict[str, Any] = {}
         self._query_session_count_values: Dict[Any, int] = {}
         self._query_session_max_values: Dict[Any, int] = {}
-        self._query_session_count_lock = threading.Lock()
+        self._observable_values_lock = threading.Lock()
 
     def set_meter(
         self,
@@ -112,7 +112,7 @@ class MetricsRegistry:
 
     def clear(self) -> None:
         self._instruments = {}
-        with self._query_session_count_lock:
+        with self._observable_values_lock:
             self._query_session_count_values = {}
             self._query_session_max_values = {}
 
@@ -131,28 +131,98 @@ class MetricsRegistry:
     def add_query_session_count(self, value: int, attributes: Optional[Dict[str, Any]] = None) -> None:
         attrs = tuple(sorted((attributes or {}).items()))
 
-        with self._query_session_count_lock:
+        with self._observable_values_lock:
             new_value = self._query_session_count_values.get(attrs, 0) + value
 
             self._query_session_count_values.pop(attrs, None)
             self._query_session_count_values[attrs] = new_value
 
     def get_query_session_count_values(self) -> Dict[Any, int]:
-        with self._query_session_count_lock:
+        with self._observable_values_lock:
             return dict(self._query_session_count_values)
 
     def set_query_session_max(self, value: int, attributes: Optional[Dict[str, Any]] = None) -> None:
         attrs = tuple(sorted((attributes or {}).items()))
 
-        with self._query_session_count_lock:
+        with self._observable_values_lock:
             self._query_session_max_values[attrs] = value
 
     def get_query_session_max_values(self) -> Dict[Any, int]:
-        with self._query_session_count_lock:
+        with self._observable_values_lock:
             return dict(self._query_session_max_values)
 
 
-_metrics_registry = MetricsRegistry()
+_metrics_registry: Optional[MetricsRegistry] = None
+
+
+class _NoopMetricsOperation:
+    def set_error(self, exception: BaseException) -> None:
+        pass
+
+    def set_attribute(self, key: str, value: Any) -> None:
+        pass
+
+    def attach_context(self, end_on_exit=True) -> "_NoopMetricsOperationContext":
+        return _NoopMetricsOperationContext(self)
+
+    def end(self) -> None:
+        pass
+
+    def __enter__(self) -> "_NoopMetricsOperation":
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        return False
+
+
+class _NoopMetricsOperationContext:
+    def __init__(self, operation: _NoopMetricsOperation) -> None:
+        self._operation = operation
+
+    def __enter__(self) -> _NoopMetricsOperation:
+        return self._operation
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        return False
+
+
+_NOOP_METRICS_OPERATION = _NoopMetricsOperation()
+
+
+def is_metrics_enabled() -> bool:
+    return _metrics_registry is not None
+
+
+def enable_metrics_registry(
+    meter: Any,
+    observe_query_session_count_callback: Any,
+    observe_query_session_max_callback: Any,
+) -> None:
+    global _metrics_registry
+
+    if _metrics_registry is None:
+        _metrics_registry = MetricsRegistry()
+    _metrics_registry.set_meter(meter, observe_query_session_count_callback, observe_query_session_max_callback)
+
+
+def disable_metrics_registry() -> None:
+    global _metrics_registry
+
+    if _metrics_registry is not None:
+        _metrics_registry.clear()
+    _metrics_registry = None
+
+
+def get_query_session_count_values() -> Dict[Any, int]:
+    if _metrics_registry is None:
+        return {}
+    return _metrics_registry.get_query_session_count_values()
+
+
+def get_query_session_max_values() -> Dict[Any, int]:
+    if _metrics_registry is None:
+        return {}
+    return _metrics_registry.get_query_session_max_values()
 
 
 def _pool_attrs(pool_name: Optional[str]) -> Dict[str, Any]:
@@ -254,32 +324,46 @@ class _MetricsOperationContext:
         return False
 
 
-def create_metrics_operation(name: str, attributes: Optional[Dict[str, Any]] = None) -> MetricsOperation:
+def create_metrics_operation(name: str, attributes: Optional[Dict[str, Any]] = None):
+    if _metrics_registry is None:
+        return _NOOP_METRICS_OPERATION
     return MetricsOperation(name, attributes)
 
 
 def record_query_session_count(delta: int, pool_name: Optional[str] = None, state: str = "used") -> None:
+    if _metrics_registry is None:
+        return
     attrs = _pool_attrs(pool_name)
     attrs["ydb.query.session.state"] = state
     _metrics_registry.add_query_session_count(delta, attrs)
 
 
 def record_query_session_create_time(duration: float, pool_name: Optional[str]) -> None:
+    if _metrics_registry is None:
+        return
     _metrics_registry.record(QUERY_SESSION_CREATE_TIME, duration, _pool_attrs(pool_name))
 
 
 def record_query_session_pending_requests(delta: int, pool_name: Optional[str]) -> None:
+    if _metrics_registry is None:
+        return
     _metrics_registry.add(QUERY_SESSION_PENDING_REQUESTS, delta, _pool_attrs(pool_name))
 
 
 def record_query_session_timeout(pool_name: Optional[str]) -> None:
+    if _metrics_registry is None:
+        return
     _metrics_registry.add(QUERY_SESSION_TIMEOUTS, 1, _pool_attrs(pool_name))
 
 
 def record_query_session_max(value: int, pool_name: Optional[str]) -> None:
+    if _metrics_registry is None:
+        return
     _metrics_registry.set_query_session_max(value, _pool_attrs(pool_name))
 
 
 def record_retry_metrics(duration: float, attempts: int) -> None:
+    if _metrics_registry is None:
+        return
     _metrics_registry.record(RETRY_DURATION, duration)
     _metrics_registry.record(RETRY_ATTEMPTS, attempts)

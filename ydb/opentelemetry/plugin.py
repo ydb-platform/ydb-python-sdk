@@ -9,7 +9,12 @@ from opentelemetry.trace import StatusCode
 
 from ydb import issues
 from ydb.issues import StatusCode as YdbStatusCode
-from ydb.opentelemetry.metrics import _metrics_registry
+from ydb.opentelemetry.metrics import (
+    disable_metrics_registry,
+    enable_metrics_registry,
+    get_query_session_count_values,
+    get_query_session_max_values,
+)
 from ydb.opentelemetry.tracing import _registry as _tracing_registry
 
 # YDB client transport StatusCode values (401xxx band) -> OTel error.type transport_error.
@@ -150,12 +155,12 @@ def _create_observable_callback(get_values):
 
 def _create_query_session_count_callback():
     """Create callback for observable query session count metric."""
-    return _create_observable_callback(_metrics_registry.get_query_session_count_values)
+    return _create_observable_callback(get_query_session_count_values)
 
 
 def _create_query_session_max_callback():
     """Create callback for observable query session max metric."""
-    return _create_observable_callback(_metrics_registry.get_query_session_max_values)
+    return _create_observable_callback(get_query_session_max_values)
 
 
 def _enable_metrics(meter_provider):
@@ -172,12 +177,12 @@ def _enable_metrics(meter_provider):
     else:
         raise TypeError("meter_provider must be an OpenTelemetry MeterProvider")
 
-    _metrics_registry.set_meter(_meter, _create_query_session_count_callback(), _create_query_session_max_callback())
+    enable_metrics_registry(_meter, _create_query_session_count_callback(), _create_query_session_max_callback())
 
 
 def _disable_metrics():
     global _meter
 
-    _metrics_registry.clear()
+    disable_metrics_registry()
     if _meter is not None:
         _meter = None
