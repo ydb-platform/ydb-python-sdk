@@ -287,13 +287,17 @@ class MetricsOperation:
                 return
             self._ended = True
 
+        registry = _metrics_registry
+        if registry is None:
+            return
+
         duration = time.monotonic() - self._start_time
-        _metrics_registry.record(CLIENT_OPERATION_DURATION, duration, self._attributes)
+        registry.record(CLIENT_OPERATION_DURATION, duration, self._attributes)
 
         if self._exception is not None:
             attrs = dict(self._attributes)
             attrs["db.response.status_code"] = _response_status_code(self._exception)
-            _metrics_registry.add(CLIENT_OPERATION_FAILED, 1, attrs)
+            registry.add(CLIENT_OPERATION_FAILED, 1, attrs)
 
     def __enter__(self) -> "MetricsOperation":
         return self
