@@ -95,7 +95,6 @@ def test_metrics_registry_records_all_instruments(metrics_setup, monkeypatch):
 
 def test_metrics_registry_is_noop_without_meter():
     from ydb.opentelemetry.metrics import (
-        _metrics_registry,
         create_metrics_operation,
         record_query_session_create_time,
         record_query_session_pending_requests,
