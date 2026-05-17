@@ -231,8 +231,7 @@ def _pool_attrs(pool_name: Optional[str]) -> Dict[str, Any]:
 
 def next_query_session_pool_name() -> str:
     """Return a process-unique default query session pool name for metric labels."""
-    with _pool_name_lock:
-        return "query-session-pool-%d" % next(_pool_name_counter)
+    return "query-session-pool-%d" % next(_pool_name_counter)
 
 
 def _operation_attrs(operation_name: str, attributes: Dict[str, Any]) -> Dict[str, Any]:
