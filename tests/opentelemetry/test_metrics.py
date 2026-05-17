@@ -103,8 +103,6 @@ def test_metrics_registry_is_noop_without_meter():
         record_retry_metrics,
     )
 
-    _metrics_registry.clear()
-
     record_query_session_create_time(1.0, "pool")
     record_query_session_pending_requests(1, "pool")
     record_query_session_timeout("pool")
