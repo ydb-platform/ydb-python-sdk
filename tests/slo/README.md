@@ -3,240 +3,178 @@
 SLO is the type of test where app based on ydb-sdk is tested against falling YDB cluster nodes, tablets, network
 (that is possible situations for distributed DBs with hundreds of nodes)
 
-### Workload types:
+## Workload types
 
-There are two workload types:
+- **sync-query** — tests table operations via Query API (read/write)
+- **sync-table** — tests table operations via Table API (read/write)
+- **topic** — tests topic operations (publish/consume)
 
-- **Table SLO** - tests table operations (read/write)
-- **Topic SLO** - tests topic operations (publish/consume)
+## Quick start (Docker Compose)
 
-### Implementations:
+The runner script handles everything: clones [ydb-slo-action](https://github.com/ydb-platform/ydb-slo-action/tree/v2/deploy) infra configs, builds the workload image,
+starts YDB cluster + Prometheus via docker compose, runs the workload, and tears down on exit.
 
-- `sync`
-- `async` (now unimplemented)
+```sh
+cd tests/slo
 
-### Usage:
+# Run topic workload (default)
+WORKLOAD_NAME=topic ./slo_runner.sh
 
-Each workload type has 3 commands:
-
-**Table commands:**
-- `table-create`  - creates table in database
-- `table-cleanup` - drops table in database
-- `table-run`     - runs table workload (read and write to table with set RPS)
-
-**Topic commands:**
-- `topic-create`  - creates topic with consumer in database
-- `topic-cleanup` - drops topic in database
-- `topic-run`     - runs topic workload (publish and consume messages with set RPS)
-
-### Infra (Docker Compose)
-
-SLO workload is designed to run **inside the Docker Compose network** so it can reach YDB/Prometheus by service DNS names without publishing ports to localhost.
-
-Infra compose configs are maintained in a separate repo:
-- https://github.com/ydb-platform/ydb-slo-action/tree/main/deploy
-
-Expected setup:
-- Start infra using `deploy/compose.yml` from `ydb-slo-action`
-- Infra network name should be `ydb_cluster`
-- Workload container attaches to that network
-
-Example infra start (from the `ydb-slo-action` repo root):
-- `docker compose -f deploy/compose.yml --profile telemetry up -d --build`
-
-### Runner script (`tests/slo/slo_runner.sh`)
-
-This repo contains a simple maintainer convenience runner that:
-1) builds the workload image
-2) runs a basic SLO workload inside `ydb_cluster`
-
-It is intentionally minimal (not a complete interface for all workload options). For full control, use the commands in `tests/slo/src/` directly.
-
-Example usage (infra must already be running):
-- `NETWORK_NAME=ydb_cluster ./tests/slo/slo_runner.sh`
-
-Defaults used by the runner (override via env vars):
-- `NETWORK_NAME=ydb_cluster`
-- `YDB_ENDPOINT=grpc://ydb-storage-1:2136` (also commonly works as `grpc://storage-1:2136`)
-- `YDB_DATABASE=/Root/testdb`
-- `OTLP_ENDPOINT=http://prometheus:9090/api/v1/otlp/v1/metrics`
-
-### Run examples with all arguments:
-
-You can also configure the OTLP endpoint via environment variable:
-- `OTLP_ENDPOINT=http://ydb-prometheus:9090/api/v1/otlp/v1/metrics` (full OTLP metrics endpoint)
-
-**Table examples:**
-
-table-create:
-`python tests/slo/src/ table-create localhost:2136 /local -t tableName
---min-partitions-count 6 --max-partitions-count 1000 --partition-size 1 -с 1000
---write-timeout 10000`
-
-table-cleanup:
-`python tests/slo/src/ table-cleanup localhost:2136 /local -t tableName`
-
-table-run:
-`python tests/slo/src/ table-run localhost:2136 /local -t tableName
---otlp-endpoint http://ydb-prometheus:9090/api/v1/otlp/v1/metrics
---report-period 250
---read-rps 1000 --read-timeout 10000
---write-rps 100 --write-timeout 10000
---time 600 --shutdown-time 30`
-
-**Topic examples:**
-
-topic-create:
-`python tests/slo/src/ topic-create localhost:2136 /local
---topic-path /local/slo_topic --topic-consumer slo_consumer`
-
-topic-cleanup:
-`python tests/slo/src/ topic-cleanup localhost:2136 /local --topic-path /local/slo_topic`
-
-topic-run:
-`python tests/slo/src/ topic-run localhost:2136 /local
---topic-path /local/slo_topic --topic-consumer slo_consumer
---otlp-endpoint http://ydb-prometheus:9090/api/v1/otlp/v1/metrics
---report-period 250
---topic-write-rps 50 --topic-read-rps 100
---topic-write-timeout 5000 --topic-read-timeout 3000
---time 600 --shutdown-time 30`
-
-## Arguments for commands:
-
-### table-create
-`python tests/slo/src/ table-create <endpoint> <db> [options]`
-
-```
-Arguments:
-  endpoint                        YDB endpoint to connect to
-  db                              YDB database to connect to
-
-Options:
-  -t --table-name                  <string> table name to create
-
-  -p-min   --min-partitions-count  <int>    minimum amount of partitions in table
-  -p-max   --max-partitions-count  <int>    maximum amount of partitions in table
-  -p-size  --partition-size        <int>    partition size in mb
-
-  -c --initial-data-count          <int>    amount of initially created rows
-
-  --write-timeout                  <int>    write timeout milliseconds
-
-  --batch-size                     <int>    amount of new records in each create request
-  --threads                        <int>    number of threads to use
-
+# Run table workload
+WORKLOAD_NAME=sync-query ./slo_runner.sh
 ```
 
-### table-cleanup
-`python tests/slo/src/ table-cleanup <endpoint> <db> [options]`
+## Local run (against your own YDB)
 
-```
-Arguments:
-  endpoint                        YDB endpoint to connect to
-  db                              YDB database to connect to
+Start the playground cluster and run the workload directly with Python.
+All examples run from `tests/slo/` directory with activated venv.
 
-Options:
-  -t --table-name                  <string> table name to create
-```
+```sh
+# Start playground YDB cluster
+docker compose -f playground/configs/compose.yaml up -d
 
-### table-run
-`python tests/slo/src/ table-run <endpoint> <db> [options]`
-
-```
-Arguments:
-  endpoint                        YDB endpoint to connect to
-  db                              YDB database to connect to
-
-Options:
-  -t --table-name         <string> table name to create
-
-  --otlp-endpoint         <string> Prometheus OTLP metrics endpoint (e.g. http://ydb-prometheus:9090/api/v1/otlp/v1/metrics)
-  --report-period         <int>    metrics export period in milliseconds
-
-  --read-rps              <int>    read RPS
-  --read-timeout          <int>    read timeout milliseconds
-
-  --write-rps             <int>    write RPS
-  --write-timeout         <int>    write timeout milliseconds
-
-  --time                  <int>    run time in seconds
-  --shutdown-time         <int>    graceful shutdown time in seconds
-
-  --read-threads          <int>    number of threads to use for write requests
-  --write-threads         <int>    number of threads to use for read requests
+# Activate venv
+source ../../.venv/bin/activate
 ```
 
-### topic-create
-`python tests/slo/src/ topic-create <endpoint> <db> [options]`
+### Using CLI arguments
 
-```
-Arguments:
-  endpoint                        YDB endpoint to connect to
-  db                              YDB database to connect to
+```sh
+# Topic workload — write only, 60 sec, debug logging
+python ./src grpc://localhost:2136 /Root/testdb \
+    --workload-name topic \
+    --topic-path /Root/testdb/slo_topic \
+    --otlp-endpoint "" \
+    --write-rps 1 --write-threads 1 --read-threads 0 \
+    --time 60 --debug
 
-Options:
-  --topic-path                    <string> topic path to create
-  --topic-consumer                <string> consumer name
-  --topic-min-partitions          <int>    minimum active partitions
-  --topic-max-partitions          <int>    maximum active partitions
-  --topic-retention-hours         <int>    retention period in hours
-```
+# Topic workload — read + write
+python ./src grpc://localhost:2136 /Root/testdb \
+    --workload-name topic \
+    --otlp-endpoint "" \
+    --write-rps 5 --write-threads 2 --read-threads 2 --read-rps 10 \
+    --time 120
 
-### topic-cleanup
-`python tests/slo/src/ topic-cleanup <endpoint> <db> [options]`
+# Table workload (sync-query) — default RPS
+python ./src grpc://localhost:2136 /Root/testdb \
+    --workload-name sync-query \
+    --otlp-endpoint "" \
+    --time 60 --debug
 
-```
-Arguments:
-  endpoint                        YDB endpoint to connect to
-  db                              YDB database to connect to
-
-Options:
-  --topic-path                    <string> topic path to drop
-```
-
-### topic-run
-`python tests/slo/src/ topic-run <endpoint> <db> [options]`
-
-```
-Arguments:
-  endpoint                        YDB endpoint to connect to
-  db                              YDB database to connect to
-
-Options:
-  --topic-path                    <string> topic path
-  --topic-consumer                <string> consumer name
-
-  --otlp-endpoint                 <string> Prometheus OTLP metrics endpoint (e.g. http://ydb-prometheus:9090/api/v1/otlp/v1/metrics)
-  --report-period                 <int>    metrics export period in milliseconds
-
-  --topic-read-rps                <int>    read RPS for topics
-  --topic-read-timeout            <int>    read timeout milliseconds for topics
-  --topic-write-rps               <int>    write RPS for topics
-  --topic-write-timeout           <int>    write timeout milliseconds for topics
-
-  --topic-message-size            <int>    message size in bytes
-  --topic-read-threads            <int>    number of threads to use for read requests
-  --topic-write-threads           <int>    number of threads to use for write requests
-
-  --time                          <int>    run time in seconds
-  --shutdown-time                 <int>    graceful shutdown time in seconds
+# Table workload — high load
+python ./src grpc://localhost:2136 /Root/testdb \
+    --workload-name sync-query \
+    --otlp-endpoint "" \
+    --read-rps 500 --write-rps 100 --read-threads 8 --write-threads 4 \
+    --time 300
 ```
 
-## Authentication
+### Using environment variables
 
-Workload using [auth-env](https://ydb.yandex-team.ru/docs/reference/ydb-sdk/recipes/auth-env) for authentication.
+```sh
+# All settings via env vars
+YDB_ENDPOINT=grpc://localhost:2136 \
+YDB_DATABASE=/Root/testdb \
+WORKLOAD_NAME=topic \
+WORKLOAD_DURATION=60 \
+OTEL_EXPORTER_OTLP_ENDPOINT="" \
+    python ./src --debug
+
+# Mix: connection via env, tuning via args
+YDB_ENDPOINT=grpc://localhost:2136 \
+YDB_DATABASE=/Root/testdb \
+    python ./src --workload-name sync-query --otlp-endpoint "" \
+    --read-rps 200 --write-rps 50 --time 120
+```
+
+### Tear down
+
+```sh
+docker compose -f playground/configs/compose.yaml down
+```
+
+### Configuration
+
+Override defaults via environment variables:
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `WORKLOAD_NAME` | `topic` | Workload type: `sync-query`, `sync-table`, `topic` |
+| `RUN_TIME_SEC` | `120` | Workload run time in seconds |
+| `WRITE_RPS` | `1` | Write RPS |
+| `READ_THREADS` | `0` | Read worker threads |
+| `WRITE_THREADS` | `1` | Write worker threads |
+| `MESSAGE_SIZE` | `100` | Topic message size in bytes |
+| `REPORT_PERIOD_MS` | `1000` | Metrics flush period in ms |
+| `DEBUG` | `0` | Set to `1` to enable debug logging |
+| `WORKLOAD_IMAGE` | `ydb-python-slo:local` | Docker image name for the workload |
+
+## CLI arguments
+
+The workload runs as a single command that creates resources, runs the workload, and cleans up.
+Every flag supports a fallback chain: **CLI arg > environment variable > hardcoded default**.
+
+```
+python tests/slo/src [endpoint] [db] [options]
+```
+
+### Connection & identity
+
+| Argument | Env var | Default | Description |
+|----------|---------|---------|-------------|
+| `endpoint` (positional) | `YDB_ENDPOINT` | `grpc://ydb:2136` | YDB endpoint |
+| `db` (positional) | `YDB_DATABASE` | `/Root/testdb` | YDB database path |
+| `--workload-name` | `WORKLOAD_NAME` | `sync-query` | Workload type |
+| `--workload-ref` | `WORKLOAD_REF` / `REF` | `main` | Reference label for metrics |
+| `--otlp-endpoint` | `OTEL_EXPORTER_OTLP_ENDPOINT` | `http://ydb-prometheus:9090/api/v1/otlp` | OTLP endpoint |
+| `--time` | `WORKLOAD_DURATION` | `600` | Workload duration in seconds |
+| `--debug` | — | `false` | Enable debug logging |
+
+### Run parameters
+
+| Argument | Default | Description |
+|----------|---------|-------------|
+| `--read-rps` | `100` | Read RPS limit |
+| `--read-timeout` | `10000` | Read timeout in ms |
+| `--write-rps` | `10` | Write RPS limit |
+| `--write-timeout` | `20000` | Write timeout in ms |
+| `--read-threads` | `8` | Read worker threads |
+| `--write-threads` | `4` | Write worker threads |
+| `--shutdown-time` | `10` | Graceful shutdown time in seconds |
+| `--report-period` | `1000` | Metrics push period in ms |
+
+### Table parameters
+
+| Argument | Default | Description |
+|----------|---------|-------------|
+| `--table-name` | `key_value` | Table name |
+| `--min-partitions-count` | `6` | Minimum partition count |
+| `--max-partitions-count` | `1000` | Maximum partition count |
+| `--partition-size` | `100` | Partition size in MB |
+| `--initial-data-count` | `1000` | Rows to pre-fill |
+| `--batch-size` | `100` | Rows per insert batch |
+| `--threads` | `10` | Threads for initial data fill |
+
+### Topic parameters
+
+| Argument | Default | Description |
+|----------|---------|-------------|
+| `--topic-path` | `/Root/testdb/slo_topic` | Topic path |
+| `--topic-consumer` | `slo_consumer` | Consumer name |
+| `--topic-partitions` | `1` | Topic partition count |
+| `--message-size` | `100` | Message size in bytes |
 
 ## What's inside
 
 ### Table workload
-When running `table-run` command, the program creates three jobs: `readJob`, `writeJob`, `metricsJob`.
 
-- `readJob`    reads rows from the table one by one with random identifiers generated by writeJob
-- `writeJob`   generates and inserts rows
-- `metricsJob` periodically sends metrics to Prometheus
+Creates three jobs: `readJob`, `writeJob`, `metricsJob`.
 
-Table have these fields:
+- `readJob` — reads rows from the table with random identifiers
+- `writeJob` — generates and inserts rows
+- `metricsJob` — periodically sends metrics to Prometheus
+
+Table schema:
 - `object_id Uint64`
 - `object_hash Uint64 Digest::NumericHash(id)`
 - `payload_str UTF8`
@@ -246,28 +184,19 @@ Table have these fields:
 Primary key: `("object_hash", "object_id")`
 
 ### Topic workload
-When running `topic-run` command, the program creates three jobs: `readJob`, `writeJob`, `metricsJob`.
 
-- `readJob`    reads messages from topic using TopicReader and commits offsets
-- `writeJob`   generates and publishes messages to topic using TopicWriter
-- `metricsJob` periodically sends metrics to Prometheus
+Creates three jobs: `readJob`, `writeJob`, `metricsJob`.
 
-Messages contain:
-- Sequential message ID
-- Thread identifier
-- Configurable payload size (padded with 'x' characters)
+- `readJob` — reads messages from topic using TopicReader and commits offsets
+- `writeJob` — generates and publishes messages using TopicWriter
+- `metricsJob` — periodically sends metrics to Prometheus
 
 ## Collected metrics
-- `oks`      - amount of OK requests
-- `not_oks`  - amount of not OK requests
-- `inflight` - amount of requests in flight
-- `latency`  - summary of latencies in ms
-- `attempts` - summary of amount for request
 
-Metrics are collected for both table operations (`read`, `write`) and topic operations (`read`, `write`).
-
-> Note: with Prometheus OTLP receiver (no Pushgateway) counters/histograms are cumulative and cannot be reset to `0`.
-> If you need clean separation between runs, use distinct `REF`/`WORKLOAD` (and/or `SLO_INSTANCE_ID`) so each run writes into separate time series.
-
-## Look at metrics in grafana
-You can get dashboard used in that test [here](https://github.com/ydb-platform/slo-tests/blob/main/k8s/helms/grafana.yaml#L69) - you will need to import json into grafana.
+- `sdk_operations_total` — total operations (labeled by `operation_status`: success/err)
+- `sdk_errors_total` — errors by type
+- `sdk_pending_operations` — in-flight operations
+- `sdk_retry_attempts_total` — retry attempts
+- `sdk_operation_latency_p50_seconds` — P50 latency
+- `sdk_operation_latency_p95_seconds` — P95 latency
+- `sdk_operation_latency_p99_seconds` — P99 latency

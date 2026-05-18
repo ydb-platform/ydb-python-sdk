@@ -1,3 +1,4 @@
+import asyncio
 import time
 
 from core.metrics import create_metrics
@@ -19,36 +20,42 @@ class TopicRunner(BaseRunner):
         assert self.driver is not None, "Driver is not initialized. Call set_driver() before create()."
         retry_no = 0
         while retry_no < 3:
-            self.logger.info("Creating topic: %s (retry no: %d)", args.path, retry_no)
+            self.logger.info("Creating topic: %s (retry no: %d)", args.topic_path, retry_no)
 
             try:
                 self.driver.topic_client.create_topic(
-                    path=args.path,
-                    min_active_partitions=args.partitions_count,
-                    max_active_partitions=args.partitions_count,
-                    consumers=[args.consumer],
+                    path=args.topic_path,
+                    min_active_partitions=args.topic_partitions,
+                    max_active_partitions=args.topic_partitions,
+                    consumers=[args.topic_consumer],
                 )
 
-                self.logger.info("Topic created successfully: %s", args.path)
-                self.logger.info("Consumer created: %s", args.consumer)
+                self.logger.info("Topic created successfully: %s", args.topic_path)
+                self.logger.info("Consumer created: %s", args.topic_consumer)
                 return
 
             except ydb.Error as e:
                 error_msg = str(e).lower()
                 if "already exists" in error_msg:
-                    self.logger.info("Topic already exists: %s", args.path)
+                    self.logger.info("Topic already exists: %s", args.topic_path)
 
                     try:
-                        description = self.driver.topic_client.describe_topic(args.path)
-                        consumer_exists = any(c.name == args.consumer for c in description.consumers)
+                        description = self.driver.topic_client.describe_topic(args.topic_path)
+                        consumer_exists = any(c.name == args.topic_consumer for c in description.consumers)
 
                         if not consumer_exists:
-                            self.logger.info("Adding consumer %s to existing topic", args.consumer)
-                            self.driver.topic_client.alter_topic(path=args.path, add_consumers=[args.consumer])
-                            self.logger.info("Consumer added successfully: %s", args.consumer)
+                            self.logger.info(
+                                "Adding consumer %s to existing topic",
+                                args.topic_consumer,
+                            )
+                            self.driver.topic_client.alter_topic(
+                                path=args.topic_path,
+                                add_consumers=[args.topic_consumer],
+                            )
+                            self.logger.info("Consumer added successfully: %s", args.topic_consumer)
                             return
                         else:
-                            self.logger.info("Consumer already exists: %s", args.consumer)
+                            self.logger.info("Consumer already exists: %s", args.topic_consumer)
                             return
 
                     except Exception as alter_err:
@@ -68,9 +75,68 @@ class TopicRunner(BaseRunner):
 
         raise RuntimeError("Failed to create topic")
 
+    async def create_async(self, args):
+        assert self.driver is not None, "Driver is not initialized. Call set_driver() before create_async()."
+        retry_no = 0
+        while retry_no < 3:
+            self.logger.info("Creating topic: %s (retry no: %d)", args.topic_path, retry_no)
+
+            try:
+                await self.driver.topic_client.create_topic(
+                    path=args.topic_path,
+                    min_active_partitions=args.topic_partitions,
+                    max_active_partitions=args.topic_partitions,
+                    consumers=[args.topic_consumer],
+                )
+
+                self.logger.info("Topic created successfully: %s", args.topic_path)
+                self.logger.info("Consumer created: %s", args.topic_consumer)
+                return
+
+            except ydb.Error as e:
+                error_msg = str(e).lower()
+                if "already exists" in error_msg:
+                    self.logger.info("Topic already exists: %s", args.topic_path)
+
+                    try:
+                        description = await self.driver.topic_client.describe_topic(args.topic_path)
+                        consumer_exists = any(c.name == args.topic_consumer for c in description.consumers)
+
+                        if not consumer_exists:
+                            self.logger.info(
+                                "Adding consumer %s to existing topic",
+                                args.topic_consumer,
+                            )
+                            await self.driver.topic_client.alter_topic(
+                                path=args.topic_path,
+                                add_consumers=[args.topic_consumer],
+                            )
+                            self.logger.info("Consumer added successfully: %s", args.topic_consumer)
+                            return
+                        else:
+                            self.logger.info("Consumer already exists: %s", args.topic_consumer)
+                            return
+
+                    except Exception as alter_err:
+                        self.logger.warning("Failed to add consumer: %s", alter_err)
+                        raise
+                elif "storage pool" in error_msg or "pq" in error_msg:
+                    self.logger.error("YDB instance does not support topics (PersistentQueues): %s", e)
+                    self.logger.error("Please use YDB instance with topic support")
+                    raise
+                elif isinstance(e, ydb.Unavailable):
+                    self.logger.info("YDB instance is not ready, retrying in 5 seconds...")
+                    await asyncio.sleep(5)
+                    retry_no += 1
+                else:
+                    self.logger.error("Failed to create topic: %s", e)
+                    raise
+
+        raise RuntimeError("Failed to create topic")
+
     def run(self, args):
         assert self.driver is not None, "Driver is not initialized. Call set_driver() before run()."
-        metrics = create_metrics(args.otlp_endpoint)
+        metrics = create_metrics(args)
 
         self.logger.info("Starting topic SLO tests")
 
@@ -85,7 +151,7 @@ class TopicRunner(BaseRunner):
     async def run_async(self, args):
         """Async version of topic SLO tests using ydb.aio.Driver"""
         assert self.driver is not None, "Driver is not initialized. Call set_driver() before run_async()."
-        metrics = create_metrics(args.otlp_endpoint)
+        metrics = create_metrics(args)
 
         self.logger.info("Starting async topic SLO tests")
 
@@ -99,15 +165,29 @@ class TopicRunner(BaseRunner):
             metrics.reset()
 
     def cleanup(self, args):
-        self.logger.info("Cleaning up topic: %s", args.path)
+        self.logger.info("Cleaning up topic: %s", args.topic_path)
 
         assert self.driver is not None, "Driver is not initialized. Call set_driver() before cleanup()."
         try:
-            self.driver.topic_client.drop_topic(args.path)
-            self.logger.info("Topic dropped: %s", args.path)
+            self.driver.topic_client.drop_topic(args.topic_path)
+            self.logger.info("Topic dropped: %s", args.topic_path)
         except ydb.Error as e:
             if "does not exist" in str(e).lower():
-                self.logger.info("Topic does not exist: %s", args.path)
+                self.logger.info("Topic does not exist: %s", args.topic_path)
+            else:
+                self.logger.error("Failed to drop topic: %s", e)
+                raise
+
+    async def cleanup_async(self, args):
+        self.logger.info("Cleaning up topic: %s", args.topic_path)
+
+        assert self.driver is not None, "Driver is not initialized. Call set_driver() before cleanup_async()."
+        try:
+            await self.driver.topic_client.drop_topic(args.topic_path)
+            self.logger.info("Topic dropped: %s", args.topic_path)
+        except ydb.Error as e:
+            if "does not exist" in str(e).lower():
+                self.logger.info("Topic does not exist: %s", args.topic_path)
             else:
                 self.logger.error("Failed to drop topic: %s", e)
                 raise

@@ -63,7 +63,7 @@ class AsyncTopicJobManager(BaseJobManager):
         logger.info("Start async topic write workload")
 
         async with self.aio_driver.topic_client.writer(
-            self.args.path,
+            self.args.topic_path,
             codec=getattr(ydb, "PublicCodec", ydb.TopicCodec).GZIP,
             partition_id=partition_id,
         ) as writer:
@@ -98,8 +98,8 @@ class AsyncTopicJobManager(BaseJobManager):
         logger.info("Start async topic read workload")
 
         async with self.aio_driver.topic_client.reader(
-            self.args.path,
-            self.args.consumer,
+            self.args.topic_path,
+            self.args.topic_consumer,
         ) as reader:
             logger.info("Async topic reader created")
 
@@ -120,7 +120,6 @@ class AsyncTopicJobManager(BaseJobManager):
         logger.info("Stop async topic read workload")
 
     def _run_metric_job(self):
-        # Metrics are enabled only if an OTLP endpoint is provided (CLI: --otlp-endpoint).
         if not getattr(self.args, "otlp_endpoint", None):
             return []
 
@@ -134,7 +133,8 @@ class AsyncTopicJobManager(BaseJobManager):
         start_time = time.time()
         logger.info("Start push metrics (async)")
 
-        limiter = AsyncLimiter(max_rate=10**6 // self.args.report_period, time_period=1)
+        report_period_ms = max(1, int(self.args.report_period))
+        limiter = AsyncLimiter(max_rate=1, time_period=report_period_ms / 1000.0)
 
         while time.time() - start_time < runtime:
             async with limiter:

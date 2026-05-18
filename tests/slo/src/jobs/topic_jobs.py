@@ -66,7 +66,7 @@ class TopicJobManager(BaseJobManager):
         logger.info("Start topic write workload")
 
         with self.driver.topic_client.writer(
-            self.args.path,
+            self.args.topic_path,
             codec=ydb.TopicCodec.GZIP,
             partition_id=partition_id,
         ) as writer:
@@ -100,8 +100,8 @@ class TopicJobManager(BaseJobManager):
         logger.info("Start topic read workload")
 
         with self.driver.topic_client.reader(
-            self.args.path,
-            self.args.consumer,
+            self.args.topic_path,
+            self.args.topic_consumer,
         ) as reader:
             logger.info("Topic reader created")
 
