@@ -1,7 +1,8 @@
 # OpenTelemetry example (YDB Python SDK)
 
 Async demo in [`otel_example.py`](otel_example.py): OTLP export, `enable_tracing()`,
-`app_startup` and `example_tli` application spans, bank table, Serializable transactions (TLI-style load).
+`enable_metrics()`, `app_startup` and `example_tli` application spans, SDK client
+metrics, bank table, Serializable transactions (TLI-style load).
 
 Most steps assume the **repository root** as the current directory; the install step also shows the variant from this folder.
 
@@ -17,7 +18,7 @@ docker compose up -d
 # wait until the ydb container is healthy / port 2136 is open, then continue
 ```
 
-**Full stack** (YDB + OTLP collector + Tempo + Grafana; the `otel-example` service is built from a `Dockerfile` and runs the script once inside Compose). The compose file is `compose-e2e.yaml` next to this README.
+**Full stack** (YDB + OTLP collector + Tempo + Prometheus + Grafana; the `otel-example` service is built from a `Dockerfile` and runs the script once inside Compose). The compose file is `compose-e2e.yaml` next to this README.
 
 ```sh
 cd /path/to/ydb-python-sdk
@@ -34,6 +35,11 @@ docker compose -f compose-e2e.yaml up --build
 The first run builds the `otel-example` image from the local SDK source (`Dockerfile` in this folder, `.dockerignore` at the repo root keeps the context small). Subsequent runs reuse the cached image; pass `--build` if you change the SDK or the demo script.
 
 Grafana: http://localhost:3000
+Prometheus: http://localhost:9090
+
+Use Grafana to explore traces through Tempo and metrics through Prometheus. In
+Prometheus, SDK metric names are exposed in Prometheus format; search by prefixes such
+as `db_client_operation_duration` and `ydb_query_session_count`.
 
 **Logs for `otel-example`:** the container name is prefixed (e.g. `opentelemetry-otel-example-1`); use `docker compose -f examples/opentelemetry/compose-e2e.yaml ps` or `docker ps -a` to find it. The service is one-shot (`restart: "no"`) — it may already have exited.
 
@@ -63,7 +69,7 @@ pip install -e '../..[opentelemetry]' -r requirements.txt
 python examples/opentelemetry/otel_example.py
 ```
 
-Defaults: YDB `grpc://localhost:2136`, OTLP `http://localhost:4317` (for a local collector, if you use one).
+Defaults: YDB `grpc://localhost:2136`, OTLP `http://localhost:4317` (for a local collector, if you use one). The same OTLP endpoint receives both traces and metrics.
 
 ## Environment (Docker / overrides)
 

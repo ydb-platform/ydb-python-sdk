@@ -13,6 +13,7 @@ from .base import AsyncResponseContextIterator
 from .transaction import QueryTxContext
 from .. import _utilities
 from ... import issues
+from ...opentelemetry.metrics import record_query_session_count
 from ...settings import BaseRequestSettings
 from ..._grpc.grpcwrapper import common_utils
 from ..._grpc.grpcwrapper import ydb_query_public_types as _ydb_query_public
@@ -110,6 +111,13 @@ class QuerySession(BaseQuerySession["AsyncDriver"]):
             await self._create_call(settings=settings)
             set_peer_attributes(span, self._peer)
             await self._attach()
+            if not getattr(self, "_metrics_counted", False):
+                record_query_session_count(
+                    1,
+                    pool_name=getattr(self, "_metrics_pool_name", None),
+                    state=getattr(self, "_metrics_state", "used"),
+                )
+                self._metrics_counted = True
 
         return self
 

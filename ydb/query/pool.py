@@ -27,6 +27,14 @@ from ..retries import (
 from .. import issues
 from .. import convert
 from ..settings import BaseRequestSettings
+from ..opentelemetry.metrics import (
+    next_query_session_pool_name,
+    record_query_session_count,
+    record_query_session_create_time,
+    record_query_session_max,
+    record_query_session_pending_requests,
+    record_query_session_timeout,
+)
 from .._grpc.grpcwrapper import ydb_query_public_types as _ydb_query_public
 
 if TYPE_CHECKING:
@@ -47,12 +55,14 @@ class QuerySessionPool:
         *,
         query_client_settings: Optional[QueryClientSettings] = None,
         workers_threads_count: int = 4,
+        name: Optional[str] = None,
     ):
         """
         :param driver: A driver instance.
         :param size: Max size of Session Pool.
         :param query_client_settings: ydb.QueryClientSettings object to configure QueryService behavior
         :param workers_threads_count: A number of threads in executor used for ``*_async`` methods
+        :param name: Optional session pool name for OpenTelemetry metrics.
         """
 
         self._driver = driver
@@ -63,10 +73,16 @@ class QuerySessionPool:
         self._should_stop = threading.Event()
         self._lock = threading.RLock()
         self._query_client_settings = query_client_settings
+        self._metrics_pool_name = name or next_query_session_pool_name()
+        record_query_session_max(self._size, self._metrics_pool_name)
 
     def _create_new_session(self, timeout: Optional[float]):
         session = QuerySession(self._driver, settings=self._query_client_settings)
+        session._metrics_pool_name = self._metrics_pool_name
+        session._metrics_state = "used"
+        start_time = time.monotonic()
         session.create(settings=BaseRequestSettings().with_timeout(timeout))
+        record_query_session_create_time(time.monotonic() - start_time, self._metrics_pool_name)
         logger.debug(f"New session was created for pool. Session id: {session.session_id}")
         return session
 
@@ -95,17 +111,24 @@ class QuerySessionPool:
                 pass
 
             finish = time.monotonic()
-            timeout = timeout - (finish - start) if timeout is not None else None
+            timeout = max(0, timeout - (finish - start)) if timeout is not None else None
 
             start = time.monotonic()
             if session is None and self._current_size == self._size:
+                record_query_session_pending_requests(1, self._metrics_pool_name)
                 try:
                     session = self._queue.get(block=True, timeout=timeout)
                 except queue.Empty:
+                    record_query_session_timeout(self._metrics_pool_name)
                     raise issues.SessionPoolEmpty("Timeout on acquire session")
+                finally:
+                    record_query_session_pending_requests(-1, self._metrics_pool_name)
 
             if session is not None:
                 if session.is_active:
+                    record_query_session_count(-1, self._metrics_pool_name, "idle")
+                    session._metrics_state = "used"
+                    record_query_session_count(1, self._metrics_pool_name, "used")
                     logger.debug(f"Acquired active session from queue: {session.session_id}")
                     return session
                 else:
@@ -114,7 +137,7 @@ class QuerySessionPool:
 
             logger.debug(f"Session pool is not large enough: {self._current_size} < {self._size}, will create new one.")
             finish = time.monotonic()
-            time_left = timeout - (finish - start) if timeout is not None else None
+            time_left = max(0, timeout - (finish - start)) if timeout is not None else None
             session = self._create_new_session(time_left)
 
             self._current_size += 1
@@ -125,6 +148,9 @@ class QuerySessionPool:
 
     def release(self, session: QuerySession) -> None:
         """Release a session back to Session Pool."""
+        record_query_session_count(-1, self._metrics_pool_name, "used")
+        session._metrics_state = "idle"
+        record_query_session_count(1, self._metrics_pool_name, "idle")
         self._queue.put_nowait(session)
         logger.debug("Session returned to queue: %s", session.session_id)
 
