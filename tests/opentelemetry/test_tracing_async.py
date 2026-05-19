@@ -509,10 +509,10 @@ class TestAsyncConcurrentSpansIsolation:
 
         async def do_execute(qs):
             fake_stream = _slow_async_iter()
-            with patch.object(QuerySession, "_execute_call", new_callable=AsyncMock, return_value=fake_stream):
-                result = await qs.execute("SELECT 1")
-                async for _ in result:
-                    pass
+            qs._execute_call = AsyncMock(return_value=fake_stream)
+            result = await qs.execute("SELECT 1")
+            async for _ in result:
+                pass
 
         qs1 = _make_session()
         qs2 = _make_session()
