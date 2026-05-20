@@ -45,6 +45,7 @@ extensions = [
     'sphinx.ext.napoleon',
     'sphinx.ext.coverage',
     'sphinx_copybutton',
+    'sphinx_llms_txt',
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -91,8 +92,17 @@ html_theme_options = {
 
 html_logo = '_static/logo.svg'
 html_favicon = '_static/logo.svg'
+html_baseurl = 'https://ydb-platform.github.io/ydb-python-sdk/'
 
 html_show_sourcelink = False
+
+llms_txt_title = 'YDB Python SDK Documentation'
+llms_txt_summary = '''
+Official Python client documentation for YDB, covering connection setup,
+authentication, query execution, topic messaging, table operations,
+coordination primitives, error handling, and API reference.
+'''
+llms_txt_uri_template = '{base_url}{docname}.html'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the

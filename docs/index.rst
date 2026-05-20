@@ -53,6 +53,15 @@ SDK is accessed through a ``Driver`` instance, so this page is the foundation fo
 everything else.
 
 
+LLM-ready Documentation
+-----------------------
+
+For AI-assisted coding, use `llms.txt <https://ydb-platform.github.io/ydb-python-sdk/llms.txt>`_
+as the documentation index and
+`llms-full.txt <https://ydb-platform.github.io/ydb-python-sdk/llms-full.txt>`_
+as the complete documentation context.
+
+
 Running Queries
 ---------------
 
