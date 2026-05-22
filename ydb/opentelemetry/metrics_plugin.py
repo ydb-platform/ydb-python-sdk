@@ -50,11 +50,12 @@ class MetricsRegistry(NoOpMetricRegistry):
         self._query_session_max_values: Dict[Any, int] = {}
         self._observable_values_lock = threading.Lock()
         self._instruments: Dict[str, _MetricInstrument] = {
-            CLIENT_OPERATION_DURATION: meter.create_histogram(
+            CLIENT_OPERATION_DURATION: _create_histogram(
+                meter,
                 CLIENT_OPERATION_DURATION,
                 unit="s",
                 description="Duration of YDB client operations.",
-                explicit_bucket_boundaries_advisory=DURATION_BUCKETS_SECONDS,
+                bucket_boundaries=DURATION_BUCKETS_SECONDS,
             ),
             CLIENT_OPERATION_FAILED: meter.create_counter(
                 CLIENT_OPERATION_FAILED,
@@ -67,11 +68,12 @@ class MetricsRegistry(NoOpMetricRegistry):
                 unit="{connection}",
                 description="Number of open YDB query sessions.",
             ),
-            QUERY_SESSION_CREATE_TIME: meter.create_histogram(
+            QUERY_SESSION_CREATE_TIME: _create_histogram(
+                meter,
                 QUERY_SESSION_CREATE_TIME,
                 unit="s",
                 description="Duration of YDB query session creation.",
-                explicit_bucket_boundaries_advisory=DURATION_BUCKETS_SECONDS,
+                bucket_boundaries=DURATION_BUCKETS_SECONDS,
             ),
             QUERY_SESSION_PENDING_REQUESTS: meter.create_up_down_counter(
                 QUERY_SESSION_PENDING_REQUESTS,
@@ -95,23 +97,25 @@ class MetricsRegistry(NoOpMetricRegistry):
                 unit="{connection}",
                 description="Minimum configured number of YDB query sessions.",
             ),
-            RETRY_DURATION: meter.create_histogram(
+            RETRY_DURATION: _create_histogram(
+                meter,
                 RETRY_DURATION,
                 unit="s",
                 description=(
                     "Total user-visible duration of a logical operation executed through the retry policy, "
                     "including all attempts and back-off delays."
                 ),
-                explicit_bucket_boundaries_advisory=RETRY_DURATION_BUCKETS_SECONDS,
+                bucket_boundaries=RETRY_DURATION_BUCKETS_SECONDS,
             ),
-            RETRY_ATTEMPTS: meter.create_histogram(
+            RETRY_ATTEMPTS: _create_histogram(
+                meter,
                 RETRY_ATTEMPTS,
                 unit="{attempt}",
                 description=(
                     "Total number of attempts performed by the retry policy for one logical operation. "
                     "A value of 1 means the operation succeeded on the first try."
                 ),
-                explicit_bucket_boundaries_advisory=ATTEMPT_BUCKETS,
+                bucket_boundaries=ATTEMPT_BUCKETS,
             ),
         }
 
@@ -200,3 +204,28 @@ def _disable_metrics() -> None:
 
     _reset_metrics_registry()
     _meter = None
+
+
+def _create_histogram(
+    meter: Meter,
+    name: str,
+    unit: str,
+    description: str,
+    bucket_boundaries,
+) -> Histogram:
+    """Create a histogram with bucket advice when the installed OpenTelemetry SDK supports it."""
+    try:
+        return meter.create_histogram(
+            name,
+            unit=unit,
+            description=description,
+            explicit_bucket_boundaries_advisory=bucket_boundaries,
+        )
+    except TypeError as e:
+        if "explicit_bucket_boundaries_advisory" not in str(e):
+            raise
+        return meter.create_histogram(
+            name,
+            unit=unit,
+            description=description,
+        )
