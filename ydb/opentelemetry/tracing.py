@@ -1,9 +1,9 @@
 """Internal SDK tracing helpers and telemetry facade."""
 
 import enum
-from typing import Optional, Tuple
 
-from ydb.opentelemetry.metrics import create_metrics_operation, is_metrics_enabled
+from ydb.opentelemetry._endpoint import split_endpoint
+from ydb.opentelemetry.metrics import _build_ydb_metrics_attrs, create_metrics_operation, is_metrics_enabled
 
 
 class SpanName(str, enum.Enum):
@@ -135,38 +135,14 @@ def get_trace_metadata():
     return _registry.get_trace_metadata()
 
 
-def _split_endpoint(endpoint: Optional[str]) -> Tuple[str, int]:
-    ep = endpoint or ""
-    if ep.startswith("grpcs://"):
-        ep = ep[len("grpcs://") :]
-    elif ep.startswith("grpc://"):
-        ep = ep[len("grpc://") :]
-
-    if ep.startswith("["):
-        close = ep.find("]")
-        if close != -1 and len(ep) > close + 1 and ep[close + 1] == ":":
-            host = ep[: close + 1]
-            port_s = ep[close + 2 :]
-            return host, int(port_s) if port_s.isdigit() else 0
-
-    host, sep, port_s = ep.rpartition(":")
-    if not sep:
-        return ep, 0
-    return host, int(port_s) if port_s.isdigit() else 0
-
-
-def _build_ydb_attrs(driver_config):
-    host, port = _split_endpoint(getattr(driver_config, "endpoint", None))
-    return {
+def _build_ydb_tracing_attrs(driver_config, node_id=None, peer=None):
+    host, port = split_endpoint(getattr(driver_config, "endpoint", None))
+    attrs = {
         "db.system.name": "ydb",
         "db.namespace": getattr(driver_config, "database", None) or "",
         "server.address": host,
         "server.port": port,
     }
-
-
-def _build_ydb_tracing_attrs(driver_config, node_id=None, peer=None):
-    attrs = _build_ydb_attrs(driver_config)
     if peer is not None:
         address, port_, location = peer
         if address is not None:
@@ -191,7 +167,7 @@ def create_ydb_span(name, driver_config, node_id=None, kind=None, peer=None):
     Tracing receives full operation context, including peer/node details. Metrics
     receive only the stable labels defined for client operation metrics.
     """
-    metrics_attrs = _build_ydb_attrs(driver_config) if is_metrics_enabled() else None
+    metrics_attrs = _build_ydb_metrics_attrs(driver_config) if is_metrics_enabled() else None
     tracing_attrs = _build_ydb_tracing_attrs(driver_config, node_id, peer)
     metrics = create_metrics_operation(name, metrics_attrs)
     return _TelemetryOperation(_registry.create_span(name, attributes=tracing_attrs, kind=kind), metrics)

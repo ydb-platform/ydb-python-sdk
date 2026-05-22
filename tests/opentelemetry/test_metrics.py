@@ -127,9 +127,8 @@ def test_metrics_operation_records_duration_once(metrics_setup, monkeypatch):
     operation = create_metrics_operation(
         "ExecuteQuery",
         {
-            "db.namespace": "/Root/test",
-            "server.address": "localhost",
-            "server.port": 2136,
+            "database": "/Root/test",
+            "endpoint": "localhost:2136",
         },
     )
     operation.end()
@@ -140,11 +139,9 @@ def test_metrics_operation_records_duration_once(metrics_setup, monkeypatch):
     assert point.sum == 0.25
     assert point.count == 1
     assert point.attributes == {
-        "db.system.name": "ydb",
-        "db.namespace": "/Root/test",
-        "server.address": "localhost",
-        "server.port": 2136,
-        "ydb.operation.name": "ExecuteQuery",
+        "database": "/Root/test",
+        "endpoint": "localhost:2136",
+        "operation.name": "ExecuteQuery",
     }
 
 
@@ -161,8 +158,8 @@ def test_metrics_operation_records_ydb_error(metrics_setup, monkeypatch):
     point = _single_point(metrics_setup, CLIENT_OPERATION_FAILED)
 
     assert point.value == 1
-    assert point.attributes["db.response.status_code"] == "UNAVAILABLE"
-    assert point.attributes["ydb.operation.name"] == "ExecuteQuery"
+    assert point.attributes["status_code"] == "UNAVAILABLE"
+    assert point.attributes["operation.name"] == "ExecuteQuery"
 
 
 def test_metrics_operation_records_generic_error_status_code(metrics_setup):
@@ -172,23 +169,27 @@ def test_metrics_operation_records_generic_error_status_code(metrics_setup):
         with create_metrics_operation("ExecuteQuery"):
             raise ValueError("bad value")
 
-    assert _single_point(metrics_setup, CLIENT_OPERATION_FAILED).attributes["db.response.status_code"] == "ValueError"
+    assert _single_point(metrics_setup, CLIENT_OPERATION_FAILED).attributes["status_code"] == "ValueError"
 
 
 def test_metrics_operation_set_attribute(metrics_setup):
     from ydb.opentelemetry.metrics import CLIENT_OPERATION_DURATION, create_metrics_operation
 
     operation = create_metrics_operation("ExecuteQuery")
-    operation.set_attribute("db.namespace", "/Root/test")
+    operation.set_attribute("database", "/Root/test")
     operation.end()
 
-    assert _single_point(metrics_setup, CLIENT_OPERATION_DURATION).attributes["db.namespace"] == "/Root/test"
+    assert _single_point(metrics_setup, CLIENT_OPERATION_DURATION).attributes["database"] == "/Root/test"
 
 
 def test_metrics_operation_ignores_non_metric_attributes(metrics_setup):
     from ydb.opentelemetry.metrics import CLIENT_OPERATION_DURATION, create_metrics_operation
 
     operation = create_metrics_operation("ExecuteQuery")
+    operation.set_attribute("db.namespace", "/Root/test")
+    operation.set_attribute("server.address", "localhost")
+    operation.set_attribute("server.port", 2136)
+    operation.set_attribute("ydb.operation.name", "ydb.Commit")
     operation.set_attribute("network.peer.address", "node.example.net")
     operation.set_attribute("network.peer.port", 2136)
     operation.set_attribute("ydb.node.dc", "dc-a")
@@ -197,6 +198,10 @@ def test_metrics_operation_ignores_non_metric_attributes(metrics_setup):
 
     attrs = _single_point(metrics_setup, CLIENT_OPERATION_DURATION).attributes
 
+    assert "db.namespace" not in attrs
+    assert "server.address" not in attrs
+    assert "server.port" not in attrs
+    assert "ydb.operation.name" not in attrs
     assert "network.peer.address" not in attrs
     assert "network.peer.port" not in attrs
     assert "ydb.node.dc" not in attrs
@@ -217,6 +222,15 @@ def test_metrics_operation_respects_end_on_exit_false(metrics_setup):
     point = _single_point(metrics_setup, CLIENT_OPERATION_DURATION)
     assert point.count == 1
     assert point.sum >= 0
+
+
+def test_metrics_operation_ignores_unknown_operation_name(metrics_setup):
+    from ydb.opentelemetry.metrics import CLIENT_OPERATION_DURATION, create_metrics_operation
+
+    with create_metrics_operation("ydb.Driver.Initialize"):
+        pass
+
+    assert CLIENT_OPERATION_DURATION not in _metrics_by_name(metrics_setup)
 
 
 def test_create_ydb_span_records_metrics_when_tracing_is_active(metrics_setup, tracing_setup):
@@ -243,7 +257,9 @@ def test_create_ydb_span_records_metrics_when_tracing_is_active(metrics_setup, t
     assert span_attrs["ydb.node.id"] == 123
 
     metric_attrs = _single_point(metrics_setup, CLIENT_OPERATION_DURATION).attributes
-    assert metric_attrs["ydb.operation.name"] == "ydb.ExecuteQuery"
+    assert metric_attrs["database"] == "/test_database"
+    assert metric_attrs["endpoint"] == "test_endpoint:1337"
+    assert metric_attrs["operation.name"] == "ExecuteQuery"
     assert "network.peer.address" not in metric_attrs
     assert "network.peer.port" not in metric_attrs
     assert "ydb.node.dc" not in metric_attrs
@@ -260,9 +276,10 @@ def test_create_ydb_span_records_metrics_when_tracing_is_disabled(metrics_setup)
     with create_ydb_span("ydb.ExecuteQuery", FakeDriverConfig()).attach_context():
         pass
 
-    assert (
-        _single_point(metrics_setup, CLIENT_OPERATION_DURATION).attributes["ydb.operation.name"] == "ydb.ExecuteQuery"
-    )
+    metric_attrs = _single_point(metrics_setup, CLIENT_OPERATION_DURATION).attributes
+    assert metric_attrs["database"] == "/test_database"
+    assert metric_attrs["endpoint"] == "test_endpoint:1337"
+    assert metric_attrs["operation.name"] == "ExecuteQuery"
 
 
 def test_query_session_count_accumulates_by_attributes(metrics_setup):

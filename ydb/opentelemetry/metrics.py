@@ -11,6 +11,8 @@ import threading
 import itertools
 from typing import Any, Dict, Optional
 
+from ydb.opentelemetry._endpoint import split_endpoint
+
 CLIENT_OPERATION_DURATION = "db.client.operation.duration"
 CLIENT_OPERATION_FAILED = "ydb.client.operation.failed"
 QUERY_SESSION_COUNT = "ydb.query.session.count"
@@ -51,13 +53,32 @@ _pool_name_counter = itertools.count(1)
 _pool_name_lock = threading.Lock()
 _OPERATION_ATTR_KEYS = frozenset(
     {
-        "db.system.name",
-        "db.namespace",
-        "server.address",
-        "server.port",
-        "ydb.operation.name",
+        "database",
+        "endpoint",
+        "operation.name",
     }
 )
+_CLIENT_OPERATION_NAMES = frozenset(
+    {
+        "ExecuteQuery",
+        "Commit",
+        "Rollback",
+        "CreateSession",
+        "BeginTransaction",
+    }
+)
+_CLIENT_OPERATION_NAME_BY_INPUT = {
+    "ydb.ExecuteQuery": "ExecuteQuery",
+    "ExecuteQuery": "ExecuteQuery",
+    "ydb.Commit": "Commit",
+    "Commit": "Commit",
+    "ydb.Rollback": "Rollback",
+    "Rollback": "Rollback",
+    "ydb.CreateSession": "CreateSession",
+    "CreateSession": "CreateSession",
+    "ydb.BeginTransaction": "BeginTransaction",
+    "BeginTransaction": "BeginTransaction",
+}
 
 
 class MetricRegistry:
@@ -156,13 +177,25 @@ def _pool_attrs(pool_name: Optional[str]) -> Dict[str, Any]:
     return {"ydb.query.session.pool.name": pool_name or _UNKNOWN_POOL}
 
 
-def _operation_attrs(operation_name: str, attributes: Dict[str, Any]) -> Dict[str, Any]:
+def _build_ydb_metrics_attrs(driver_config) -> Dict[str, Any]:
+    host, port = split_endpoint(getattr(driver_config, "endpoint", None))
+    endpoint = "%s:%d" % (host, port) if port else host
     return {
-        "db.system.name": attributes.get("db.system.name", "ydb"),
-        "db.namespace": attributes.get("db.namespace", ""),
-        "server.address": attributes.get("server.address", ""),
-        "server.port": attributes.get("server.port", 0),
-        "ydb.operation.name": operation_name,
+        "database": getattr(driver_config, "database", None) or "",
+        "endpoint": endpoint,
+    }
+
+
+def _operation_name(operation_name: str) -> str:
+    return _CLIENT_OPERATION_NAME_BY_INPUT.get(operation_name, operation_name)
+
+
+def _operation_attrs(operation_name: str, attributes: Dict[str, Any]) -> Dict[str, Any]:
+    name = _operation_name(operation_name)
+    return {
+        "database": attributes.get("database", ""),
+        "endpoint": attributes.get("endpoint", ""),
+        "operation.name": name,
     }
 
 
@@ -213,7 +246,7 @@ class MetricsOperation:
 
         if self._exception is not None:
             attrs = dict(self._attributes)
-            attrs["db.response.status_code"] = _response_status_code(self._exception)
+            attrs["status_code"] = _response_status_code(self._exception)
             _metrics_registry.add(CLIENT_OPERATION_FAILED, 1, attrs)
 
     def __enter__(self) -> "MetricsOperation":
@@ -246,6 +279,8 @@ class _MetricsOperationContext:
 
 
 def create_metrics_operation(name: str, attributes: Optional[Dict[str, Any]] = None):
+    if _operation_name(name) not in _CLIENT_OPERATION_NAMES:
+        return _NOOP_METRICS_OPERATION
     return _metrics_registry.create_metrics_operation(name, attributes)
 
 
