@@ -110,6 +110,36 @@ def test_metrics_registry_records_all_instruments(metrics_setup, monkeypatch):
     assert _single_point_from_metrics(metrics, RETRY_ATTEMPTS).explicit_bounds == ATTEMPT_BUCKETS
 
 
+def test_metrics_registry_supports_old_histogram_api():
+    from ydb.opentelemetry.metrics_plugin import MetricsRegistry
+
+    class FakeInstrument:
+        def add(self, value, attributes=None):
+            pass
+
+        def record(self, value, attributes=None):
+            pass
+
+    class FakeMeter:
+        def create_histogram(self, name, unit="", description="", **kwargs):
+            if "explicit_bucket_boundaries_advisory" in kwargs:
+                raise TypeError(
+                    "create_histogram() got an unexpected keyword argument 'explicit_bucket_boundaries_advisory'"
+                )
+            return FakeInstrument()
+
+        def create_counter(self, name, unit="", description=""):
+            return FakeInstrument()
+
+        def create_up_down_counter(self, name, unit="", description=""):
+            return FakeInstrument()
+
+        def create_observable_up_down_counter(self, name, callbacks=None, unit="", description=""):
+            return FakeInstrument()
+
+    MetricsRegistry(FakeMeter())
+
+
 def test_metrics_registry_is_noop_without_meter():
     from ydb.opentelemetry.metrics import (
         create_metrics_operation,
