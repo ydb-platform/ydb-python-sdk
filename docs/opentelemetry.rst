@@ -284,18 +284,17 @@ Operation metrics use stable labels only:
 
    * - Attribute
      - Description
-   * - ``db.system.name``
-     - Always ``"ydb"``.
-   * - ``db.namespace``
+   * - ``database``
      - Database path.
-   * - ``server.address``
-     - Host from the configured endpoint.
-   * - ``server.port``
-     - Port from the configured endpoint.
-   * - ``ydb.operation.name``
-     - SDK operation name, for example ``"ydb.ExecuteQuery"``.
-   * - ``db.response.status_code``
+   * - ``endpoint``
+     - Configured endpoint in ``host:port`` form.
+   * - ``operation.name``
+     - SDK operation name without the ``ydb.`` prefix, for example ``"ExecuteQuery"``.
+   * - ``status_code``
      - Added only to ``ydb.client.operation.failed``.
+
+Operation metrics are recorded for ``ExecuteQuery``, ``Commit``, ``Rollback``,
+``CreateSession``, and ``BeginTransaction``.
 
 Query session metrics use ``ydb.query.session.pool.name``. The pool name is generated
 automatically, or can be set explicitly with ``QuerySessionPool(..., name="main-pool")``
