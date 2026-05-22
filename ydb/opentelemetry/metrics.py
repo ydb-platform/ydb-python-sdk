@@ -20,6 +20,31 @@ QUERY_SESSION_MAX = "ydb.query.session.max"
 RETRY_ATTEMPTS = "ydb.client.retry.attempts"
 RETRY_DURATION = "ydb.client.retry.duration"
 
+_DURATION_BUCKETS_SECONDS = (
+    0.001,
+    0.005,
+    0.01,
+    0.05,
+    0.1,
+    0.5,
+    1,
+    5,
+    10,
+)
+_RETRY_DURATION_BUCKETS_SECONDS = (
+    0.001,
+    0.005,
+    0.01,
+    0.05,
+    0.1,
+    0.5,
+    1,
+    2,
+    5,
+    10,
+    30,
+)
+_ATTEMPT_BUCKETS = (1, 2, 3, 4, 5, 7, 10, 20)
 _UNKNOWN_POOL = "unknown"
 _pool_name_counter = itertools.count(1)
 _pool_name_lock = threading.Lock()
@@ -59,6 +84,7 @@ class MetricsRegistry:
                 CLIENT_OPERATION_DURATION,
                 unit="s",
                 description="Duration of YDB client operations.",
+                explicit_bucket_boundaries_advisory=_DURATION_BUCKETS_SECONDS,
             ),
             CLIENT_OPERATION_FAILED: meter.create_counter(
                 CLIENT_OPERATION_FAILED,
@@ -75,6 +101,7 @@ class MetricsRegistry:
                 QUERY_SESSION_CREATE_TIME,
                 unit="s",
                 description="Duration of YDB query session creation.",
+                explicit_bucket_boundaries_advisory=_DURATION_BUCKETS_SECONDS,
             ),
             QUERY_SESSION_PENDING_REQUESTS: meter.create_up_down_counter(
                 QUERY_SESSION_PENDING_REQUESTS,
@@ -99,6 +126,7 @@ class MetricsRegistry:
                     "Total user-visible duration of a logical operation executed through the retry policy, "
                     "including all attempts and back-off delays."
                 ),
+                explicit_bucket_boundaries_advisory=_RETRY_DURATION_BUCKETS_SECONDS,
             ),
             RETRY_ATTEMPTS: meter.create_histogram(
                 RETRY_ATTEMPTS,
@@ -107,6 +135,7 @@ class MetricsRegistry:
                     "Total number of attempts performed by the retry policy for one logical operation. "
                     "A value of 1 means the operation succeeded on the first try."
                 ),
+                explicit_bucket_boundaries_advisory=_ATTEMPT_BUCKETS,
             ),
         }
 

@@ -54,12 +54,10 @@ Prometheus queries for SDK metrics such as `db_client_operation_duration`,
 `ydb_client_retry_duration`. Use Grafana Explore for ad-hoc traces through Tempo
 and metrics through Prometheus.
 
-The examples configure custom OpenTelemetry histogram views in
-[`metrics_views.py`](metrics_views.py). The SDK records duration values in
-seconds, but the default histogram buckets are too coarse for fast local YDB
-operations. The custom views keep the `s` unit and use sub-millisecond /
-millisecond-scale buckets so Grafana percentiles show meaningful latency
-distributions.
+The SDK configures explicit OpenTelemetry histogram bucket boundaries for its
+own duration and retry-attempt metrics. Duration values are recorded in seconds,
+with sub-millisecond and millisecond-scale buckets so Grafana percentiles show
+meaningful latency distributions for fast local YDB operations.
 
 **Logs for `otel-example`:** the container name is prefixed (e.g. `opentelemetry-otel-example-1`); use `docker compose -f examples/opentelemetry/compose-e2e.yaml ps` or `docker ps -a` to find it. The service is one-shot (`restart: "no"`) — it may already have exited.
 
