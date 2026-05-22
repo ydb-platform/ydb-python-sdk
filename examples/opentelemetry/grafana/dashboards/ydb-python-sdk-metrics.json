@@ -1,0 +1,186 @@
+{
+  "title": "YDB Python SDK Metrics",
+  "uid": "ydb-python-sdk-metrics",
+  "schemaVersion": 38,
+  "timezone": "browser",
+  "refresh": "5s",
+  "tags": ["ydb", "python", "opentelemetry"],
+  "panels": [
+    {
+      "title": "Request Rate (RPS)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+      "fieldConfig": { "defaults": { "unit": "reqps" } },
+      "options": { "legend": { "displayMode": "table", "placement": "right" } },
+      "targets": [
+        {
+          "expr": "sum by (ydb_operation_name) (rate(db_client_operation_duration_seconds_count[$__rate_interval]))",
+          "legendFormat": "{{ydb_operation_name}}",
+          "datasource": { "type": "prometheus", "uid": "prometheus" }
+        }
+      ]
+    },
+    {
+      "title": "Error Rate (RPS)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+      "fieldConfig": { "defaults": { "unit": "reqps" } },
+      "options": { "legend": { "displayMode": "table", "placement": "right" } },
+      "targets": [
+        {
+          "expr": "sum by (db_response_status_code) (rate(ydb_client_operation_failed_total[$__rate_interval]))",
+          "legendFormat": "{{db_response_status_code}}",
+          "datasource": { "type": "prometheus", "uid": "prometheus" }
+        }
+      ]
+    },
+    {
+      "title": "Query Session Pool (Used / Idle)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+      "fieldConfig": { "defaults": { "unit": "short" } },
+      "options": { "legend": { "displayMode": "table", "placement": "right" } },
+      "targets": [
+        {
+          "expr": "sum by (ydb_query_session_pool_name) (ydb_query_session_count{ydb_query_session_state=\"used\"})",
+          "legendFormat": "used - {{ydb_query_session_pool_name}}",
+          "datasource": { "type": "prometheus", "uid": "prometheus" }
+        },
+        {
+          "expr": "sum by (ydb_query_session_pool_name) (ydb_query_session_count{ydb_query_session_state=\"idle\"})",
+          "legendFormat": "idle - {{ydb_query_session_pool_name}}",
+          "datasource": { "type": "prometheus", "uid": "prometheus" }
+        },
+        {
+          "expr": "sum by (ydb_query_session_pool_name) (ydb_query_session_max)",
+          "legendFormat": "max - {{ydb_query_session_pool_name}}",
+          "datasource": { "type": "prometheus", "uid": "prometheus" }
+        }
+      ]
+    },
+    {
+      "title": "Pending Session Requests",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 6, "x": 12, "y": 8 },
+      "fieldConfig": { "defaults": { "unit": "short" } },
+      "options": { "legend": { "displayMode": "table", "placement": "right" } },
+      "targets": [
+        {
+          "expr": "sum by (ydb_query_session_pool_name) (ydb_query_session_pending_requests)",
+          "legendFormat": "{{ydb_query_session_pool_name}}",
+          "datasource": { "type": "prometheus", "uid": "prometheus" }
+        }
+      ]
+    },
+    {
+      "title": "Session Acquire Timeouts",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 6, "x": 18, "y": 8 },
+      "fieldConfig": { "defaults": { "unit": "short" } },
+      "options": { "legend": { "displayMode": "table", "placement": "right" } },
+      "targets": [
+        {
+          "expr": "sum by (ydb_query_session_pool_name) (increase(ydb_query_session_timeouts_total[$__rate_interval]))",
+          "legendFormat": "{{ydb_query_session_pool_name}}",
+          "datasource": { "type": "prometheus", "uid": "prometheus" }
+        }
+      ]
+    },
+    {
+      "title": "Operation Latency Percentiles",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 16 },
+      "fieldConfig": { "defaults": { "unit": "s" } },
+      "options": { "legend": { "displayMode": "table", "placement": "right" } },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.50, sum by (le, ydb_operation_name) (rate(db_client_operation_duration_seconds_bucket[$__rate_interval])))",
+          "legendFormat": "p50 - {{ydb_operation_name}}",
+          "datasource": { "type": "prometheus", "uid": "prometheus" }
+        },
+        {
+          "expr": "histogram_quantile(0.95, sum by (le, ydb_operation_name) (rate(db_client_operation_duration_seconds_bucket[$__rate_interval])))",
+          "legendFormat": "p95 - {{ydb_operation_name}}",
+          "datasource": { "type": "prometheus", "uid": "prometheus" }
+        },
+        {
+          "expr": "histogram_quantile(0.99, sum by (le, ydb_operation_name) (rate(db_client_operation_duration_seconds_bucket[$__rate_interval])))",
+          "legendFormat": "p99 - {{ydb_operation_name}}",
+          "datasource": { "type": "prometheus", "uid": "prometheus" }
+        }
+      ]
+    },
+    {
+      "title": "Session Create Time Percentiles",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 16 },
+      "fieldConfig": { "defaults": { "unit": "s" } },
+      "options": { "legend": { "displayMode": "table", "placement": "right" } },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.50, sum by (le, ydb_query_session_pool_name) (rate(ydb_query_session_create_time_seconds_bucket[$__rate_interval])))",
+          "legendFormat": "p50 - {{ydb_query_session_pool_name}}",
+          "datasource": { "type": "prometheus", "uid": "prometheus" }
+        },
+        {
+          "expr": "histogram_quantile(0.95, sum by (le, ydb_query_session_pool_name) (rate(ydb_query_session_create_time_seconds_bucket[$__rate_interval])))",
+          "legendFormat": "p95 - {{ydb_query_session_pool_name}}",
+          "datasource": { "type": "prometheus", "uid": "prometheus" }
+        },
+        {
+          "expr": "histogram_quantile(0.99, sum by (le, ydb_query_session_pool_name) (rate(ydb_query_session_create_time_seconds_bucket[$__rate_interval])))",
+          "legendFormat": "p99 - {{ydb_query_session_pool_name}}",
+          "datasource": { "type": "prometheus", "uid": "prometheus" }
+        }
+      ]
+    },
+    {
+      "title": "Retry Duration Percentiles",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 24 },
+      "fieldConfig": { "defaults": { "unit": "s" } },
+      "options": { "legend": { "displayMode": "table", "placement": "right" } },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.50, sum by (le) (rate(ydb_client_retry_duration_seconds_bucket[$__rate_interval])))",
+          "legendFormat": "p50",
+          "datasource": { "type": "prometheus", "uid": "prometheus" }
+        },
+        {
+          "expr": "histogram_quantile(0.95, sum by (le) (rate(ydb_client_retry_duration_seconds_bucket[$__rate_interval])))",
+          "legendFormat": "p95",
+          "datasource": { "type": "prometheus", "uid": "prometheus" }
+        },
+        {
+          "expr": "histogram_quantile(0.99, sum by (le) (rate(ydb_client_retry_duration_seconds_bucket[$__rate_interval])))",
+          "legendFormat": "p99",
+          "datasource": { "type": "prometheus", "uid": "prometheus" }
+        }
+      ]
+    },
+    {
+      "title": "Retry Attempts",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 24 },
+      "fieldConfig": { "defaults": { "unit": "short" } },
+      "options": { "legend": { "displayMode": "table", "placement": "right" } },
+      "targets": [
+        {
+          "expr": "sum(rate(ydb_client_retry_attempts_sum[$__rate_interval])) / sum(rate(ydb_client_retry_attempts_count[$__rate_interval]))",
+          "legendFormat": "avg attempts",
+          "datasource": { "type": "prometheus", "uid": "prometheus" }
+        },
+        {
+          "expr": "sum(rate(ydb_client_retry_attempts_count[$__rate_interval])) - sum(rate(ydb_client_retry_attempts_bucket{le=\"1\"}[$__rate_interval]))",
+          "legendFormat": "retried operations rps",
+          "datasource": { "type": "prometheus", "uid": "prometheus" }
+        },
+        {
+          "expr": "(sum(rate(ydb_client_retry_attempts_count[$__rate_interval])) - sum(rate(ydb_client_retry_attempts_bucket{le=\"1\"}[$__rate_interval]))) / sum(rate(ydb_client_retry_attempts_count[$__rate_interval]))",
+          "legendFormat": "retried operations ratio",
+          "datasource": { "type": "prometheus", "uid": "prometheus" }
+        }
+      ]
+    }
+  ]
+}
