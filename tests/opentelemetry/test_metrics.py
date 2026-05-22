@@ -1,6 +1,8 @@
+import inspect
 from unittest.mock import MagicMock
 
 import pytest
+from opentelemetry.metrics import Meter
 
 
 def _metrics_by_name(reader):
@@ -40,6 +42,10 @@ def _histogram_sum(reader, name):
 
 def _sum_value(reader, name):
     return _single_point(reader, name).value
+
+
+def _histogram_boundaries_advisory_supported():
+    return "explicit_bucket_boundaries_advisory" in inspect.signature(Meter.create_histogram).parameters
 
 
 def test_metrics_registry_records_all_instruments(metrics_setup, monkeypatch):
@@ -104,10 +110,15 @@ def test_metrics_registry_records_all_instruments(metrics_setup, monkeypatch):
     assert metrics[QUERY_SESSION_TIMEOUTS].unit == "{connection}"
     assert metrics[RETRY_DURATION].unit == "s"
     assert metrics[RETRY_ATTEMPTS].unit == "{attempt}"
-    assert _single_point_from_metrics(metrics, CLIENT_OPERATION_DURATION).explicit_bounds == DURATION_BUCKETS_SECONDS
-    assert _single_point_from_metrics(metrics, QUERY_SESSION_CREATE_TIME).explicit_bounds == DURATION_BUCKETS_SECONDS
-    assert _single_point_from_metrics(metrics, RETRY_DURATION).explicit_bounds == RETRY_DURATION_BUCKETS_SECONDS
-    assert _single_point_from_metrics(metrics, RETRY_ATTEMPTS).explicit_bounds == ATTEMPT_BUCKETS
+    if _histogram_boundaries_advisory_supported():
+        assert (
+            _single_point_from_metrics(metrics, CLIENT_OPERATION_DURATION).explicit_bounds == DURATION_BUCKETS_SECONDS
+        )
+        assert (
+            _single_point_from_metrics(metrics, QUERY_SESSION_CREATE_TIME).explicit_bounds == DURATION_BUCKETS_SECONDS
+        )
+        assert _single_point_from_metrics(metrics, RETRY_DURATION).explicit_bounds == RETRY_DURATION_BUCKETS_SECONDS
+        assert _single_point_from_metrics(metrics, RETRY_ATTEMPTS).explicit_bounds == ATTEMPT_BUCKETS
 
 
 def test_metrics_registry_supports_old_histogram_api():
