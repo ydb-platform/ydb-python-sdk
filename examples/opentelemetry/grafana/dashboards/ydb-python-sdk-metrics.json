@@ -55,6 +55,11 @@
           "expr": "sum by (ydb_query_session_pool_name) (ydb_query_session_max)",
           "legendFormat": "max - {{ydb_query_session_pool_name}}",
           "datasource": { "type": "prometheus", "uid": "prometheus" }
+        },
+        {
+          "expr": "sum by (ydb_query_session_pool_name) (ydb_query_session_min)",
+          "legendFormat": "min - {{ydb_query_session_pool_name}}",
+          "datasource": { "type": "prometheus", "uid": "prometheus" }
         }
       ]
     },
