@@ -24,7 +24,7 @@ from ...query.base import QueryClientSettings
 from ... import convert
 from ... import issues
 from ...opentelemetry.metrics import (
-    next_query_session_pool_name,
+    query_session_pool_name,
     record_query_session_count,
     record_query_session_create_time,
     record_query_session_max,
@@ -63,7 +63,8 @@ class QuerySessionPool:
         self._current_size = 0
         self._loop = asyncio.get_running_loop() if loop is None else loop
         self._query_client_settings = query_client_settings
-        self._metrics_pool_name = name or next_query_session_pool_name()
+        driver_config = getattr(driver, "_driver_config", None)
+        self._metrics_pool_name = query_session_pool_name(name, getattr(driver_config, "endpoint", None))
         record_query_session_max(self._size, self._metrics_pool_name)
 
     async def _create_new_session(self):

@@ -338,6 +338,22 @@ def test_sync_query_session_pool_records_max(metrics_setup):
     assert _single_point(metrics_setup, QUERY_SESSION_MAX).attributes == {"ydb.query.session.pool.name": "sync-pool"}
 
 
+def test_sync_query_session_pool_uses_endpoint_as_default_pool_name(metrics_setup):
+    from tests.opentelemetry.conftest import FakeDriverConfig
+    from ydb.opentelemetry.metrics import QUERY_SESSION_MAX
+    from ydb.query.pool import QuerySessionPool
+
+    class FakeDriver:
+        _driver_config = FakeDriverConfig(endpoint="grpc://localhost:2136")
+
+    QuerySessionPool(driver=FakeDriver(), size=42)
+
+    assert _single_point(metrics_setup, QUERY_SESSION_MAX).value == 42
+    assert _single_point(metrics_setup, QUERY_SESSION_MAX).attributes == {
+        "ydb.query.session.pool.name": "grpc://localhost:2136"
+    }
+
+
 @pytest.mark.asyncio
 async def test_async_query_session_pool_records_max(metrics_setup):
     from ydb.aio.query.pool import QuerySessionPool
@@ -347,6 +363,23 @@ async def test_async_query_session_pool_records_max(metrics_setup):
 
     assert _single_point(metrics_setup, QUERY_SESSION_MAX).value == 24
     assert _single_point(metrics_setup, QUERY_SESSION_MAX).attributes == {"ydb.query.session.pool.name": "async-pool"}
+
+
+@pytest.mark.asyncio
+async def test_async_query_session_pool_uses_endpoint_as_default_pool_name(metrics_setup):
+    from tests.opentelemetry.conftest import FakeDriverConfig
+    from ydb.aio.query.pool import QuerySessionPool
+    from ydb.opentelemetry.metrics import QUERY_SESSION_MAX
+
+    class FakeDriver:
+        _driver_config = FakeDriverConfig(endpoint="grpc://localhost:2136")
+
+    QuerySessionPool(driver=FakeDriver(), size=24)
+
+    assert _single_point(metrics_setup, QUERY_SESSION_MAX).value == 24
+    assert _single_point(metrics_setup, QUERY_SESSION_MAX).attributes == {
+        "ydb.query.session.pool.name": "grpc://localhost:2136"
+    }
 
 
 @pytest.mark.asyncio

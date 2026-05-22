@@ -135,10 +135,15 @@ def next_query_session_pool_name() -> str:
     return "query-session-pool-%d" % next(_pool_name_counter)
 
 
+def query_session_pool_name(name: Optional[str], endpoint: Optional[str]) -> str:
+    return name or endpoint or next_query_session_pool_name()
+
+
 def _set_metrics_registry(metrics_registry: MetricRegistry) -> None:
     global _metrics_registry
 
     _metrics_registry = metrics_registry
+
 
 def _reset_metrics_registry() -> None:
     global _metrics_registry
