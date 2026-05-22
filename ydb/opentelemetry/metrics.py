@@ -1,8 +1,9 @@
 """No-op-safe helpers for YDB OpenTelemetry client metrics.
 
 The SDK records metrics only after :func:`ydb.opentelemetry.enable_metrics`
-installs OpenTelemetry instruments. Until then every helper is a cheap no-op,
-which keeps metrics independent from tracing and safe to call from hot paths.
+installs the OpenTelemetry-backed registry from ``metrics_plugin``. Until then
+every helper delegates to a no-op registry, which keeps metrics independent from
+tracing and safe to call from hot paths.
 """
 
 import time
@@ -20,7 +21,7 @@ QUERY_SESSION_MAX = "ydb.query.session.max"
 RETRY_ATTEMPTS = "ydb.client.retry.attempts"
 RETRY_DURATION = "ydb.client.retry.duration"
 
-_DURATION_BUCKETS_SECONDS = (
+DURATION_BUCKETS_SECONDS = (
     0.001,
     0.005,
     0.01,
@@ -31,7 +32,7 @@ _DURATION_BUCKETS_SECONDS = (
     5,
     10,
 )
-_RETRY_DURATION_BUCKETS_SECONDS = (
+RETRY_DURATION_BUCKETS_SECONDS = (
     0.001,
     0.005,
     0.01,
@@ -44,7 +45,7 @@ _RETRY_DURATION_BUCKETS_SECONDS = (
     10,
     30,
 )
-_ATTEMPT_BUCKETS = (1, 2, 3, 4, 5, 7, 10, 20)
+ATTEMPT_BUCKETS = (1, 2, 3, 4, 5, 7, 10, 20)
 _UNKNOWN_POOL = "unknown"
 _pool_name_counter = itertools.count(1)
 _pool_name_lock = threading.Lock()
@@ -59,129 +60,34 @@ _OPERATION_ATTR_KEYS = frozenset(
 )
 
 
-class MetricsRegistry:
-    """Process-wide metric instrument registry.
+class MetricRegistry:
+    """No-op metric registry used until the OpenTelemetry metrics plugin is enabled."""
 
-    Regular instruments are recorded immediately. Observable query-session
-    instruments keep their latest values in memory and expose snapshots through
-    callbacks registered by ``ydb.opentelemetry.plugin``.
-    """
+    enabled = False
 
-    def __init__(self) -> None:
-        self._instruments: Dict[str, Any] = {}
-        self._query_session_count_values: Dict[Any, int] = {}
-        self._query_session_max_values: Dict[Any, int] = {}
-        self._observable_values_lock = threading.Lock()
-
-    def set_meter(
-        self,
-        meter: Any,
-        observe_query_session_count_callback: Any,
-        observe_query_session_max_callback: Any,
-    ) -> None:
-        self._instruments = {
-            CLIENT_OPERATION_DURATION: meter.create_histogram(
-                CLIENT_OPERATION_DURATION,
-                unit="s",
-                description="Duration of YDB client operations.",
-                explicit_bucket_boundaries_advisory=_DURATION_BUCKETS_SECONDS,
-            ),
-            CLIENT_OPERATION_FAILED: meter.create_counter(
-                CLIENT_OPERATION_FAILED,
-                unit="{command}",
-                description="Number of failed YDB client operations.",
-            ),
-            QUERY_SESSION_COUNT: meter.create_observable_up_down_counter(
-                QUERY_SESSION_COUNT,
-                callbacks=[observe_query_session_count_callback],
-                unit="{connection}",
-                description="Number of open YDB query sessions.",
-            ),
-            QUERY_SESSION_CREATE_TIME: meter.create_histogram(
-                QUERY_SESSION_CREATE_TIME,
-                unit="s",
-                description="Duration of YDB query session creation.",
-                explicit_bucket_boundaries_advisory=_DURATION_BUCKETS_SECONDS,
-            ),
-            QUERY_SESSION_PENDING_REQUESTS: meter.create_up_down_counter(
-                QUERY_SESSION_PENDING_REQUESTS,
-                unit="{request}",
-                description="Number of requests waiting for a YDB query session.",
-            ),
-            QUERY_SESSION_TIMEOUTS: meter.create_counter(
-                QUERY_SESSION_TIMEOUTS,
-                unit="{connection}",
-                description="Number of YDB query session acquisition timeouts.",
-            ),
-            QUERY_SESSION_MAX: meter.create_observable_up_down_counter(
-                QUERY_SESSION_MAX,
-                callbacks=[observe_query_session_max_callback],
-                unit="{connection}",
-                description="Maximum configured number of YDB query sessions.",
-            ),
-            RETRY_DURATION: meter.create_histogram(
-                RETRY_DURATION,
-                unit="s",
-                description=(
-                    "Total user-visible duration of a logical operation executed through the retry policy, "
-                    "including all attempts and back-off delays."
-                ),
-                explicit_bucket_boundaries_advisory=_RETRY_DURATION_BUCKETS_SECONDS,
-            ),
-            RETRY_ATTEMPTS: meter.create_histogram(
-                RETRY_ATTEMPTS,
-                unit="{attempt}",
-                description=(
-                    "Total number of attempts performed by the retry policy for one logical operation. "
-                    "A value of 1 means the operation succeeded on the first try."
-                ),
-                explicit_bucket_boundaries_advisory=_ATTEMPT_BUCKETS,
-            ),
-        }
+    def create_metrics_operation(self, name: str, attributes: Optional[Dict[str, Any]] = None):
+        return _NOOP_METRICS_OPERATION
 
     def clear(self) -> None:
-        self._instruments = {}
-        with self._observable_values_lock:
-            self._query_session_count_values = {}
-            self._query_session_max_values = {}
+        pass
 
     def add(self, name: str, value: int, attributes: Optional[Dict[str, Any]] = None) -> None:
-        """Add ``value`` to a counter-like instrument if metrics are enabled."""
-        instrument = self._instruments.get(name)
-        if instrument is not None:
-            instrument.add(value, attributes=attributes or {})
+        pass
 
     def record(self, name: str, value: float, attributes: Optional[Dict[str, Any]] = None) -> None:
-        """Record ``value`` in a histogram-like instrument if metrics are enabled."""
-        instrument = self._instruments.get(name)
-        if instrument is not None:
-            instrument.record(value, attributes=attributes or {})
+        pass
 
     def add_query_session_count(self, value: int, attributes: Optional[Dict[str, Any]] = None) -> None:
-        attrs = tuple(sorted((attributes or {}).items()))
-
-        with self._observable_values_lock:
-            new_value = self._query_session_count_values.get(attrs, 0) + value
-
-            self._query_session_count_values.pop(attrs, None)
-            self._query_session_count_values[attrs] = new_value
+        pass
 
     def get_query_session_count_values(self) -> Dict[Any, int]:
-        with self._observable_values_lock:
-            return dict(self._query_session_count_values)
+        return {}
 
     def set_query_session_max(self, value: int, attributes: Optional[Dict[str, Any]] = None) -> None:
-        attrs = tuple(sorted((attributes or {}).items()))
-
-        with self._observable_values_lock:
-            self._query_session_max_values[attrs] = value
+        pass
 
     def get_query_session_max_values(self) -> Dict[Any, int]:
-        with self._observable_values_lock:
-            return dict(self._query_session_max_values)
-
-
-_metrics_registry: Optional[MetricsRegistry] = None
+        return {}
 
 
 class _NoopMetricsOperation:
@@ -216,51 +122,33 @@ class _NoopMetricsOperationContext:
 
 
 _NOOP_METRICS_OPERATION = _NoopMetricsOperation()
+_NOOP_METRICS_REGISTRY = MetricRegistry()
+_metrics_registry: MetricRegistry = _NOOP_METRICS_REGISTRY
 
 
 def is_metrics_enabled() -> bool:
-    return _metrics_registry is not None
-
-
-def enable_metrics_registry(
-    meter: Any,
-    observe_query_session_count_callback: Any,
-    observe_query_session_max_callback: Any,
-) -> None:
-    global _metrics_registry
-
-    if _metrics_registry is None:
-        _metrics_registry = MetricsRegistry()
-    _metrics_registry.set_meter(meter, observe_query_session_count_callback, observe_query_session_max_callback)
-
-
-def disable_metrics_registry() -> None:
-    global _metrics_registry
-
-    if _metrics_registry is not None:
-        _metrics_registry.clear()
-    _metrics_registry = None
-
-
-def get_query_session_count_values() -> Dict[Any, int]:
-    if _metrics_registry is None:
-        return {}
-    return _metrics_registry.get_query_session_count_values()
-
-
-def get_query_session_max_values() -> Dict[Any, int]:
-    if _metrics_registry is None:
-        return {}
-    return _metrics_registry.get_query_session_max_values()
-
-
-def _pool_attrs(pool_name: Optional[str]) -> Dict[str, Any]:
-    return {"ydb.query.session.pool.name": pool_name or _UNKNOWN_POOL}
+    return _metrics_registry.enabled
 
 
 def next_query_session_pool_name() -> str:
     """Return a process-unique default query session pool name for metric labels."""
     return "query-session-pool-%d" % next(_pool_name_counter)
+
+
+def _set_metrics_registry(metrics_registry: MetricRegistry) -> None:
+    global _metrics_registry
+
+    _metrics_registry = metrics_registry
+
+def _reset_metrics_registry() -> None:
+    global _metrics_registry
+
+    _metrics_registry.clear()
+    _metrics_registry = _NOOP_METRICS_REGISTRY
+
+
+def _pool_attrs(pool_name: Optional[str]) -> Dict[str, Any]:
+    return {"ydb.query.session.pool.name": pool_name or _UNKNOWN_POOL}
 
 
 def _operation_attrs(operation_name: str, attributes: Dict[str, Any]) -> Dict[str, Any]:
@@ -315,17 +203,13 @@ class MetricsOperation:
                 return
             self._ended = True
 
-        registry = _metrics_registry
-        if registry is None:
-            return
-
         duration = time.monotonic() - self._start_time
-        registry.record(CLIENT_OPERATION_DURATION, duration, self._attributes)
+        _metrics_registry.record(CLIENT_OPERATION_DURATION, duration, self._attributes)
 
         if self._exception is not None:
             attrs = dict(self._attributes)
             attrs["db.response.status_code"] = _response_status_code(self._exception)
-            registry.add(CLIENT_OPERATION_FAILED, 1, attrs)
+            _metrics_registry.add(CLIENT_OPERATION_FAILED, 1, attrs)
 
     def __enter__(self) -> "MetricsOperation":
         return self
@@ -357,45 +241,31 @@ class _MetricsOperationContext:
 
 
 def create_metrics_operation(name: str, attributes: Optional[Dict[str, Any]] = None):
-    if _metrics_registry is None:
-        return _NOOP_METRICS_OPERATION
-    return MetricsOperation(name, attributes)
+    return _metrics_registry.create_metrics_operation(name, attributes)
 
 
 def record_query_session_count(delta: int, pool_name: Optional[str] = None, state: str = "used") -> None:
-    if _metrics_registry is None:
-        return
     attrs = _pool_attrs(pool_name)
     attrs["ydb.query.session.state"] = state
     _metrics_registry.add_query_session_count(delta, attrs)
 
 
 def record_query_session_create_time(duration: float, pool_name: Optional[str]) -> None:
-    if _metrics_registry is None:
-        return
     _metrics_registry.record(QUERY_SESSION_CREATE_TIME, duration, _pool_attrs(pool_name))
 
 
 def record_query_session_pending_requests(delta: int, pool_name: Optional[str]) -> None:
-    if _metrics_registry is None:
-        return
     _metrics_registry.add(QUERY_SESSION_PENDING_REQUESTS, delta, _pool_attrs(pool_name))
 
 
 def record_query_session_timeout(pool_name: Optional[str]) -> None:
-    if _metrics_registry is None:
-        return
     _metrics_registry.add(QUERY_SESSION_TIMEOUTS, 1, _pool_attrs(pool_name))
 
 
 def record_query_session_max(value: int, pool_name: Optional[str]) -> None:
-    if _metrics_registry is None:
-        return
     _metrics_registry.set_query_session_max(value, _pool_attrs(pool_name))
 
 
 def record_retry_metrics(duration: float, attempts: int) -> None:
-    if _metrics_registry is None:
-        return
     _metrics_registry.record(RETRY_DURATION, duration)
     _metrics_registry.record(RETRY_ATTEMPTS, attempts)

@@ -12,8 +12,11 @@ Metrics expose operation latency/failures, retry cost, and query session pool st
 Tracing and metrics are configured independently: enabling one does not require enabling
 the other.
 
-Instrumentation is **zero-cost when disabled**: the SDK uses no-op stubs by default, so
-there is no OpenTelemetry overhead unless you explicitly opt in.
+Instrumentation is **zero-cost when disabled**: the SDK uses no-op tracing and
+metrics registries by default, so importing the SDK does not import OpenTelemetry
+or create metric instruments unless you explicitly opt in. ``enable_tracing()``
+loads the tracing plugin, while ``enable_metrics()`` loads the metrics plugin and
+replaces the no-op metrics registry with an OpenTelemetry-backed registry.
 
 
 Installation
@@ -118,7 +121,8 @@ SDK obtains a meter named ``"ydb.sdk"`` from the global meter provider.
 
 Repeated calls to ``enable_metrics()`` do nothing until you call
 ``disable_metrics()``, which clears the in-memory observable metric values and allows
-metrics to be reconfigured.
+metrics to be reconfigured. After disabling metrics, the SDK restores the no-op
+metrics registry, so metric recording calls remain cheap no-ops.
 
 Metrics are independent from tracing. If both ``enable_tracing()`` and
 ``enable_metrics()`` are called, YDB client operations produce both spans and metrics.

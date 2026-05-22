@@ -59,6 +59,10 @@ own duration and retry-attempt metrics. Duration values are recorded in seconds,
 with sub-millisecond and millisecond-scale buckets so Grafana percentiles show
 meaningful latency distributions for fast local YDB operations.
 
+Metrics are wired through a dedicated SDK metrics plugin. Until `enable_metrics()`
+is called, the SDK uses a no-op metrics registry and does not import
+OpenTelemetry metrics packages from the hot-path metric helpers.
+
 **Logs for `otel-example`:** the container name is prefixed (e.g. `opentelemetry-otel-example-1`); use `docker compose -f examples/opentelemetry/compose-e2e.yaml ps` or `docker ps -a` to find it. The service is one-shot (`restart: "no"`) — it may already have exited.
 
 **Logs for `load-generator`:** the service is also one-shot. It runs for

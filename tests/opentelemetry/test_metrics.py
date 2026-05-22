@@ -47,9 +47,9 @@ def test_metrics_registry_records_all_instruments(metrics_setup, monkeypatch):
         QUERY_SESSION_TIMEOUTS,
         RETRY_ATTEMPTS,
         RETRY_DURATION,
-        _ATTEMPT_BUCKETS,
-        _DURATION_BUCKETS_SECONDS,
-        _RETRY_DURATION_BUCKETS_SECONDS,
+        ATTEMPT_BUCKETS,
+        DURATION_BUCKETS_SECONDS,
+        RETRY_DURATION_BUCKETS_SECONDS,
         create_metrics_operation,
         record_query_session_count,
         record_query_session_create_time,
@@ -94,10 +94,10 @@ def test_metrics_registry_records_all_instruments(metrics_setup, monkeypatch):
     assert metrics[QUERY_SESSION_TIMEOUTS].unit == "{connection}"
     assert metrics[RETRY_DURATION].unit == "s"
     assert metrics[RETRY_ATTEMPTS].unit == "{attempt}"
-    assert _single_point_from_metrics(metrics, CLIENT_OPERATION_DURATION).explicit_bounds == _DURATION_BUCKETS_SECONDS
-    assert _single_point_from_metrics(metrics, QUERY_SESSION_CREATE_TIME).explicit_bounds == _DURATION_BUCKETS_SECONDS
-    assert _single_point_from_metrics(metrics, RETRY_DURATION).explicit_bounds == _RETRY_DURATION_BUCKETS_SECONDS
-    assert _single_point_from_metrics(metrics, RETRY_ATTEMPTS).explicit_bounds == _ATTEMPT_BUCKETS
+    assert _single_point_from_metrics(metrics, CLIENT_OPERATION_DURATION).explicit_bounds == DURATION_BUCKETS_SECONDS
+    assert _single_point_from_metrics(metrics, QUERY_SESSION_CREATE_TIME).explicit_bounds == DURATION_BUCKETS_SECONDS
+    assert _single_point_from_metrics(metrics, RETRY_DURATION).explicit_bounds == RETRY_DURATION_BUCKETS_SECONDS
+    assert _single_point_from_metrics(metrics, RETRY_ATTEMPTS).explicit_bounds == ATTEMPT_BUCKETS
 
 
 def test_metrics_registry_is_noop_without_meter():
