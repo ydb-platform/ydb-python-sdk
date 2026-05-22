@@ -13,7 +13,7 @@ def enable_tracing(tracer=None):
             ``ydb.sdk`` from the global tracer provider will be used.
     """
     try:
-        from ydb.opentelemetry.plugin import _enable_tracing
+        from ydb.opentelemetry.tracing_plugin import _enable_tracing
     except ImportError:
         raise ImportError(
             "OpenTelemetry packages are required for tracing support. "
@@ -26,7 +26,7 @@ def enable_tracing(tracer=None):
 def disable_tracing():
     """Disable YDB OpenTelemetry hooks and allow :func:`enable_tracing` to run again."""
     try:
-        from ydb.opentelemetry.plugin import _disable_tracing
+        from ydb.opentelemetry.tracing_plugin import _disable_tracing
     except ImportError:
         return
 
@@ -45,7 +45,7 @@ def enable_metrics(meter_provider=None):
             default meter named ``ydb.sdk`` from the global meter provider will be used.
     """
     try:
-        from ydb.opentelemetry.plugin import _enable_metrics
+        from ydb.opentelemetry.metrics_plugin import _enable_metrics
     except ImportError:
         raise ImportError(
             "OpenTelemetry packages are required for metrics support. "
@@ -58,7 +58,7 @@ def enable_metrics(meter_provider=None):
 def disable_metrics():
     """Disable YDB OpenTelemetry metrics collection and allow :func:`enable_metrics` to run again."""
     try:
-        from ydb.opentelemetry.plugin import _disable_metrics
+        from ydb.opentelemetry.metrics_plugin import _disable_metrics
     except ImportError:
         return
 

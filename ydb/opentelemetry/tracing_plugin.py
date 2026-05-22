@@ -2,19 +2,11 @@
 
 from opentelemetry import context as otel_context
 from opentelemetry import trace
-from opentelemetry import metrics as otel_metrics
-from opentelemetry.metrics import Observation
 from opentelemetry.propagate import inject
 from opentelemetry.trace import StatusCode
 
 from ydb import issues
 from ydb.issues import StatusCode as YdbStatusCode
-from ydb.opentelemetry.metrics import (
-    disable_metrics_registry,
-    enable_metrics_registry,
-    get_query_session_count_values,
-    get_query_session_max_values,
-)
 from ydb.opentelemetry.tracing import _registry as _tracing_registry
 
 # YDB client transport StatusCode values (401xxx band) -> OTel error.type transport_error.
@@ -30,7 +22,6 @@ _TRANSPORT_STATUSES = frozenset(
 
 _tracer = None
 _tracing_enabled = False
-_meter = None
 
 _KIND_MAP = {
     "client": trace.SpanKind.CLIENT,
@@ -141,48 +132,3 @@ def _disable_tracing():
     _tracing_registry.set_metadata_hook(None)
     _tracing_enabled = False
     _tracer = None
-
-
-def _create_observable_callback(get_values):
-    """Create callback for observable metrics backed by the metrics registry."""
-
-    def observe(_):
-        values = get_values()
-        return [Observation(value, attributes=dict(attrs)) for attrs, value in values.items()]
-
-    return observe
-
-
-def _create_query_session_count_callback():
-    """Create callback for observable query session count metric."""
-    return _create_observable_callback(get_query_session_count_values)
-
-
-def _create_query_session_max_callback():
-    """Create callback for observable query session max metric."""
-    return _create_observable_callback(get_query_session_max_values)
-
-
-def _enable_metrics(meter_provider):
-    """Create SDK metric instruments from an OTel MeterProvider and enable recording."""
-    global _meter
-
-    if _meter is not None:
-        return
-
-    if meter_provider is None:
-        _meter = otel_metrics.get_meter("ydb.sdk")
-    elif hasattr(meter_provider, "get_meter"):
-        _meter = meter_provider.get_meter("ydb.sdk")
-    else:
-        raise TypeError("meter_provider must be an OpenTelemetry MeterProvider")
-
-    enable_metrics_registry(_meter, _create_query_session_count_callback(), _create_query_session_max_callback())
-
-
-def _disable_metrics():
-    global _meter
-
-    disable_metrics_registry()
-    if _meter is not None:
-        _meter = None
