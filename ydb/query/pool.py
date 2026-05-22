@@ -34,6 +34,7 @@ from ..opentelemetry.metrics import (
     record_query_session_max,
     record_query_session_pending_requests,
     record_query_session_timeout,
+    remove_query_session_pool_metrics,
 )
 from .._grpc.grpcwrapper import ydb_query_public_types as _ydb_query_public
 
@@ -344,6 +345,7 @@ class QuerySessionPool:
                     break
 
             logger.debug("All session were deleted.")
+            remove_query_session_pool_metrics(self._metrics_pool_name)
         finally:
             if acquired:
                 self._lock.release()

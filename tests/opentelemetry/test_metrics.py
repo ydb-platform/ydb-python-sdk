@@ -27,6 +27,13 @@ def _single_point_from_metrics(metrics, name):
     return points[0]
 
 
+def _points(reader, name):
+    metrics = _metrics_by_name(reader)
+    if name not in metrics:
+        return []
+    return list(metrics[name].data.data_points)
+
+
 def _histogram_sum(reader, name):
     return _single_point(reader, name).sum
 
@@ -43,6 +50,7 @@ def test_metrics_registry_records_all_instruments(metrics_setup, monkeypatch):
         QUERY_SESSION_COUNT,
         QUERY_SESSION_CREATE_TIME,
         QUERY_SESSION_MAX,
+        QUERY_SESSION_MIN,
         QUERY_SESSION_PENDING_REQUESTS,
         QUERY_SESSION_TIMEOUTS,
         RETRY_ATTEMPTS,
@@ -80,6 +88,7 @@ def test_metrics_registry_records_all_instruments(metrics_setup, monkeypatch):
         QUERY_SESSION_COUNT,
         QUERY_SESSION_CREATE_TIME,
         QUERY_SESSION_MAX,
+        QUERY_SESSION_MIN,
         QUERY_SESSION_PENDING_REQUESTS,
         QUERY_SESSION_TIMEOUTS,
         RETRY_ATTEMPTS,
@@ -90,6 +99,7 @@ def test_metrics_registry_records_all_instruments(metrics_setup, monkeypatch):
     assert metrics[QUERY_SESSION_COUNT].unit == "{connection}"
     assert metrics[QUERY_SESSION_CREATE_TIME].unit == "s"
     assert metrics[QUERY_SESSION_MAX].unit == "{connection}"
+    assert metrics[QUERY_SESSION_MIN].unit == "{connection}"
     assert metrics[QUERY_SESSION_PENDING_REQUESTS].unit == "{request}"
     assert metrics[QUERY_SESSION_TIMEOUTS].unit == "{connection}"
     assert metrics[RETRY_DURATION].unit == "s"
@@ -316,6 +326,7 @@ def test_query_session_helpers_record_pool_attributes(metrics_setup):
     from ydb.opentelemetry.metrics import (
         QUERY_SESSION_CREATE_TIME,
         QUERY_SESSION_MAX,
+        QUERY_SESSION_MIN,
         QUERY_SESSION_PENDING_REQUESTS,
         QUERY_SESSION_TIMEOUTS,
         record_query_session_create_time,
@@ -334,6 +345,7 @@ def test_query_session_helpers_record_pool_attributes(metrics_setup):
     pending_requests = _single_point_from_metrics(metrics, QUERY_SESSION_PENDING_REQUESTS)
     timeouts = _single_point_from_metrics(metrics, QUERY_SESSION_TIMEOUTS)
     session_max = _single_point_from_metrics(metrics, QUERY_SESSION_MAX)
+    session_min = _single_point_from_metrics(metrics, QUERY_SESSION_MIN)
 
     assert create_time.sum == 0.5
     assert create_time.attributes == {"ydb.query.session.pool.name": "main"}
@@ -343,16 +355,32 @@ def test_query_session_helpers_record_pool_attributes(metrics_setup):
     assert timeouts.attributes == {"ydb.query.session.pool.name": "main"}
     assert session_max.value == 100
     assert session_max.attributes == {"ydb.query.session.pool.name": "main"}
+    assert session_min.value == 0
+    assert session_min.attributes == {"ydb.query.session.pool.name": "main"}
 
 
 def test_sync_query_session_pool_records_max(metrics_setup):
-    from ydb.opentelemetry.metrics import QUERY_SESSION_MAX
+    from ydb.opentelemetry.metrics import QUERY_SESSION_MAX, QUERY_SESSION_MIN
     from ydb.query.pool import QuerySessionPool
 
     QuerySessionPool(driver=object(), size=42, name="sync-pool")
 
     assert _single_point(metrics_setup, QUERY_SESSION_MAX).value == 42
     assert _single_point(metrics_setup, QUERY_SESSION_MAX).attributes == {"ydb.query.session.pool.name": "sync-pool"}
+    assert _single_point(metrics_setup, QUERY_SESSION_MIN).value == 0
+    assert _single_point(metrics_setup, QUERY_SESSION_MIN).attributes == {"ydb.query.session.pool.name": "sync-pool"}
+
+
+def test_sync_query_session_pool_stop_removes_observable_metrics(metrics_setup):
+    from ydb.opentelemetry.metrics import QUERY_SESSION_COUNT, QUERY_SESSION_MAX, QUERY_SESSION_MIN
+    from ydb.query.pool import QuerySessionPool
+
+    pool = QuerySessionPool(driver=object(), size=42, name="sync-pool")
+    pool.stop()
+
+    assert _points(metrics_setup, QUERY_SESSION_COUNT) == []
+    assert _points(metrics_setup, QUERY_SESSION_MAX) == []
+    assert _points(metrics_setup, QUERY_SESSION_MIN) == []
 
 
 def test_sync_query_session_pool_uses_endpoint_as_default_pool_name(metrics_setup):
@@ -374,12 +402,27 @@ def test_sync_query_session_pool_uses_endpoint_as_default_pool_name(metrics_setu
 @pytest.mark.asyncio
 async def test_async_query_session_pool_records_max(metrics_setup):
     from ydb.aio.query.pool import QuerySessionPool
-    from ydb.opentelemetry.metrics import QUERY_SESSION_MAX
+    from ydb.opentelemetry.metrics import QUERY_SESSION_MAX, QUERY_SESSION_MIN
 
     QuerySessionPool(driver=object(), size=24, name="async-pool")
 
     assert _single_point(metrics_setup, QUERY_SESSION_MAX).value == 24
     assert _single_point(metrics_setup, QUERY_SESSION_MAX).attributes == {"ydb.query.session.pool.name": "async-pool"}
+    assert _single_point(metrics_setup, QUERY_SESSION_MIN).value == 0
+    assert _single_point(metrics_setup, QUERY_SESSION_MIN).attributes == {"ydb.query.session.pool.name": "async-pool"}
+
+
+@pytest.mark.asyncio
+async def test_async_query_session_pool_stop_removes_observable_metrics(metrics_setup):
+    from ydb.aio.query.pool import QuerySessionPool
+    from ydb.opentelemetry.metrics import QUERY_SESSION_COUNT, QUERY_SESSION_MAX, QUERY_SESSION_MIN
+
+    pool = QuerySessionPool(driver=object(), size=24, name="async-pool")
+    await pool.stop()
+
+    assert _points(metrics_setup, QUERY_SESSION_COUNT) == []
+    assert _points(metrics_setup, QUERY_SESSION_MAX) == []
+    assert _points(metrics_setup, QUERY_SESSION_MIN) == []
 
 
 @pytest.mark.asyncio

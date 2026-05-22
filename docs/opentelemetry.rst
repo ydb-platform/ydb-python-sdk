@@ -267,6 +267,11 @@ The SDK creates the following instruments with meter name ``"ydb.sdk"``:
      - ObservableUpDownCounter
      - ``{connection}``
      - Maximum configured number of sessions for a query session pool.
+   * - ``ydb.query.session.min``
+     - ObservableUpDownCounter
+     - ``{connection}``
+     - Minimum configured number of sessions for a query session pool. The SDK does not configure
+       a pool minimum, so this metric is always reported as ``0``.
    * - ``ydb.client.retry.duration``
      - Histogram
      - ``s``

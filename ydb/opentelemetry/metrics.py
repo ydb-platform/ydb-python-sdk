@@ -20,6 +20,7 @@ QUERY_SESSION_CREATE_TIME = "ydb.query.session.create_time"
 QUERY_SESSION_PENDING_REQUESTS = "ydb.query.session.pending_requests"
 QUERY_SESSION_TIMEOUTS = "ydb.query.session.timeouts"
 QUERY_SESSION_MAX = "ydb.query.session.max"
+QUERY_SESSION_MIN = "ydb.query.session.min"
 RETRY_ATTEMPTS = "ydb.client.retry.attempts"
 RETRY_DURATION = "ydb.client.retry.duration"
 
@@ -101,14 +102,11 @@ class MetricRegistry:
     def add_query_session_count(self, value: int, attributes: Optional[Dict[str, Any]] = None) -> None:
         pass
 
-    def get_query_session_count_values(self) -> Dict[Any, int]:
-        return {}
-
     def set_query_session_max(self, value: int, attributes: Optional[Dict[str, Any]] = None) -> None:
         pass
 
-    def get_query_session_max_values(self) -> Dict[Any, int]:
-        return {}
+    def remove_query_session_pool(self, attributes: Optional[Dict[str, Any]] = None) -> None:
+        pass
 
 
 class _NoopMetricsOperation:
@@ -304,6 +302,10 @@ def record_query_session_timeout(pool_name: Optional[str]) -> None:
 
 def record_query_session_max(value: int, pool_name: Optional[str]) -> None:
     _metrics_registry.set_query_session_max(value, _pool_attrs(pool_name))
+
+
+def remove_query_session_pool_metrics(pool_name: Optional[str]) -> None:
+    _metrics_registry.remove_query_session_pool(_pool_attrs(pool_name))
 
 
 def record_retry_metrics(duration: float, attempts: int) -> None:

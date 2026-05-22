@@ -21,6 +21,7 @@ from ydb.opentelemetry.metrics import (
     QUERY_SESSION_COUNT,
     QUERY_SESSION_CREATE_TIME,
     QUERY_SESSION_MAX,
+    QUERY_SESSION_MIN,
     QUERY_SESSION_PENDING_REQUESTS,
     QUERY_SESSION_TIMEOUTS,
     RETRY_ATTEMPTS,
@@ -88,6 +89,12 @@ class MetricsRegistry(NoOpMetricRegistry):
                 unit="{connection}",
                 description="Maximum configured number of YDB query sessions.",
             ),
+            QUERY_SESSION_MIN: meter.create_observable_up_down_counter(
+                QUERY_SESSION_MIN,
+                callbacks=[self._observe_query_session_min],
+                unit="{connection}",
+                description="Minimum configured number of YDB query sessions.",
+            ),
             RETRY_DURATION: meter.create_histogram(
                 RETRY_DURATION,
                 unit="s",
@@ -144,11 +151,27 @@ class MetricsRegistry(NoOpMetricRegistry):
         with self._observable_values_lock:
             self._query_session_max_values[attrs] = value
 
+    def remove_query_session_pool(self, attributes: Optional[Dict[str, Any]] = None) -> None:
+        base_attrs = list((attributes or {}).items())
+        attrs = tuple(sorted(base_attrs))
+        idle_attrs = tuple(sorted(base_attrs + [("ydb.query.session.state", "idle")]))
+        used_attrs = tuple(sorted(base_attrs + [("ydb.query.session.state", "used")]))
+
+        with self._observable_values_lock:
+            self._query_session_count_values.pop(idle_attrs, None)
+            self._query_session_count_values.pop(used_attrs, None)
+            self._query_session_max_values.pop(attrs, None)
+
+
     def _observe_query_session_count(self, _: CallbackOptions) -> Iterable[Observation]:
         return self._observe(self._query_session_count_values)
 
     def _observe_query_session_max(self, _: CallbackOptions) -> Iterable[Observation]:
         return self._observe(self._query_session_max_values)
+
+    def _observe_query_session_min(self, _: CallbackOptions) -> Iterable[Observation]:
+        with self._observable_values_lock:
+            return [Observation(0, attributes=dict(attrs)) for attrs in self._query_session_max_values]
 
     def _observe(self, values: Dict[Any, int]) -> Iterable[Observation]:
         with self._observable_values_lock:
