@@ -162,7 +162,6 @@ class MetricsRegistry(NoOpMetricRegistry):
             self._query_session_count_values.pop(used_attrs, None)
             self._query_session_max_values.pop(attrs, None)
 
-
     def _observe_query_session_count(self, _: CallbackOptions) -> Iterable[Observation]:
         return self._observe(self._query_session_count_values)
 

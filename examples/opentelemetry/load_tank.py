@@ -249,8 +249,7 @@ async def main() -> None:
         endpoint=config.endpoint,
         database=config.database,
         disable_discovery=True,
-    ) as raw_driver:
-        driver = cast(ydb.aio.Driver, raw_driver)
+    ) as driver:
         await driver.wait(timeout=60)
 
         async with ydb.aio.QuerySessionPool(driver, size=config.pool_size, name="load-tank") as pool:
