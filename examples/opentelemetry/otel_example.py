@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import asyncio
 import os
+from typing import cast
 
 from opentelemetry.exporter.otlp.proto.grpc.metric_exporter import OTLPMetricExporter
 from opentelemetry.sdk.metrics import MeterProvider
@@ -20,6 +21,8 @@ from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExport
 from opentelemetry.sdk.resources import Resource
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
+
+from metrics_views import ydb_metrics_views
 
 
 def _env(name: str, default: str) -> str:
@@ -61,7 +64,7 @@ async def main() -> None:
         OTLPMetricExporter(endpoint=otlp_endpoint),
         export_interval_millis=1000,
     )
-    meter_provider = MeterProvider(resource=resource, metric_readers=[metric_reader])
+    meter_provider = MeterProvider(resource=resource, metric_readers=[metric_reader], views=ydb_metrics_views())
     enable_metrics(meter_provider)
 
     async with ydb.aio.Driver(
