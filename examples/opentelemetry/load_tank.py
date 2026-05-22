@@ -7,7 +7,7 @@ import os
 import random
 import time
 from dataclasses import dataclass
-from typing import AsyncIterator, Tuple, cast
+from typing import AsyncIterator, Tuple
 
 from opentelemetry.exporter.otlp.proto.grpc.metric_exporter import OTLPMetricExporter
 from opentelemetry.sdk.metrics import MeterProvider
