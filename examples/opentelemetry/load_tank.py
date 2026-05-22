@@ -17,8 +17,6 @@ from opentelemetry.sdk.resources import Resource
 import ydb
 from ydb.opentelemetry import enable_metrics
 
-from metrics_views import ydb_metrics_views
-
 
 @dataclass(frozen=True)
 class LoadConfig:
@@ -219,7 +217,7 @@ async def main() -> None:
         OTLPMetricExporter(endpoint=config.otlp_endpoint),
         export_interval_millis=2000,
     )
-    meter_provider = MeterProvider(resource=resource, metric_readers=[metric_reader], views=ydb_metrics_views())
+    meter_provider = MeterProvider(resource=resource, metric_readers=[metric_reader])
     enable_metrics(meter_provider)
 
     print(
