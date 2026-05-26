@@ -154,8 +154,30 @@ def next_query_session_pool_name() -> str:
     return "query-session-pool-%d" % next(_pool_name_counter)
 
 
-def query_session_pool_name(name: Optional[str], endpoint: Optional[str]) -> str:
-    return name or endpoint or next_query_session_pool_name()
+def query_session_pool_name(
+    name: Optional[str],
+    endpoint: Optional[str] = None,
+    database: Optional[str] = None,
+) -> str:
+    """Return a stable label for the ``ydb.query.session.pool.name`` metric attribute.
+
+    If the user passed an explicit ``name`` to ``QuerySessionPool``, it wins. Otherwise
+    the SDK builds a YDB connection string in the canonical ``<endpoint><database>``
+    form (e.g. ``grpc://localhost:2136/local``) so that the pool is identifiable in
+    dashboards without leaking driver-internal counters. When neither piece of the
+    connection string is available, a process-unique counter name is used as a last
+    resort.
+    """
+    if name:
+        return name
+    endpoint_part = endpoint or ""
+    database_part = database or ""
+    if database_part and not database_part.startswith("/"):
+        database_part = "/" + database_part
+    connection_string = endpoint_part + database_part
+    if connection_string:
+        return connection_string
+    return next_query_session_pool_name()
 
 
 def _set_metrics_registry(metrics_registry: MetricRegistry) -> None:

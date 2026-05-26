@@ -424,19 +424,49 @@ def test_sync_query_session_pool_stop_removes_observable_metrics(metrics_setup):
     assert _points(metrics_setup, QUERY_SESSION_MIN) == []
 
 
-def test_sync_query_session_pool_uses_endpoint_as_default_pool_name(metrics_setup):
+def test_query_session_pool_name_prefers_explicit_name():
+    from ydb.opentelemetry.metrics import query_session_pool_name
+
+    assert query_session_pool_name("my-pool", endpoint="grpc://localhost:2136", database="/local") == "my-pool"
+
+
+def test_query_session_pool_name_uses_connection_string():
+    from ydb.opentelemetry.metrics import query_session_pool_name
+
+    assert (
+        query_session_pool_name(None, endpoint="grpc://localhost:2136", database="/local")
+        == "grpc://localhost:2136/local"
+    )
+
+
+def test_query_session_pool_name_normalizes_database_without_leading_slash():
+    from ydb.opentelemetry.metrics import query_session_pool_name
+
+    assert (
+        query_session_pool_name(None, endpoint="grpc://localhost:2136", database="local")
+        == "grpc://localhost:2136/local"
+    )
+
+
+def test_query_session_pool_name_falls_back_to_counter_when_nothing_known():
+    from ydb.opentelemetry.metrics import query_session_pool_name
+
+    assert query_session_pool_name(None, endpoint=None, database=None).startswith("query-session-pool-")
+
+
+def test_sync_query_session_pool_uses_connection_string_as_default_pool_name(metrics_setup):
     from tests.opentelemetry.conftest import FakeDriverConfig
     from ydb.opentelemetry.metrics import QUERY_SESSION_MAX
     from ydb.query.pool import QuerySessionPool
 
     class FakeDriver:
-        _driver_config = FakeDriverConfig(endpoint="grpc://localhost:2136")
+        _driver_config = FakeDriverConfig(endpoint="grpc://localhost:2136", database="/local")
 
     QuerySessionPool(driver=FakeDriver(), size=42)
 
     assert _single_point(metrics_setup, QUERY_SESSION_MAX).value == 42
     assert _single_point(metrics_setup, QUERY_SESSION_MAX).attributes == {
-        "ydb.query.session.pool.name": "grpc://localhost:2136"
+        "ydb.query.session.pool.name": "grpc://localhost:2136/local"
     }
 
 
@@ -467,19 +497,19 @@ async def test_async_query_session_pool_stop_removes_observable_metrics(metrics_
 
 
 @pytest.mark.asyncio
-async def test_async_query_session_pool_uses_endpoint_as_default_pool_name(metrics_setup):
+async def test_async_query_session_pool_uses_connection_string_as_default_pool_name(metrics_setup):
     from tests.opentelemetry.conftest import FakeDriverConfig
     from ydb.aio.query.pool import QuerySessionPool
     from ydb.opentelemetry.metrics import QUERY_SESSION_MAX
 
     class FakeDriver:
-        _driver_config = FakeDriverConfig(endpoint="grpc://localhost:2136")
+        _driver_config = FakeDriverConfig(endpoint="grpc://localhost:2136", database="/local")
 
     QuerySessionPool(driver=FakeDriver(), size=24)
 
     assert _single_point(metrics_setup, QUERY_SESSION_MAX).value == 24
     assert _single_point(metrics_setup, QUERY_SESSION_MAX).attributes == {
-        "ydb.query.session.pool.name": "grpc://localhost:2136"
+        "ydb.query.session.pool.name": "grpc://localhost:2136/local"
     }
 
 
