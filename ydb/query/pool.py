@@ -75,7 +75,11 @@ class QuerySessionPool:
         self._lock = threading.RLock()
         self._query_client_settings = query_client_settings
         driver_config = getattr(driver, "_driver_config", None)
-        self._metrics_pool_name = query_session_pool_name(name, getattr(driver_config, "endpoint", None))
+        self._metrics_pool_name = query_session_pool_name(
+            name,
+            endpoint=getattr(driver_config, "endpoint", None),
+            database=getattr(driver_config, "database", None),
+        )
         record_query_session_max(self._size, self._metrics_pool_name)
 
     def _create_new_session(self, timeout: Optional[float]):

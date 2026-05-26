@@ -301,10 +301,14 @@ Operation metrics use stable labels only:
 Operation metrics are recorded for ``ExecuteQuery``, ``Commit``, ``Rollback``,
 ``CreateSession``, and ``BeginTransaction``.
 
-Query session metrics use ``ydb.query.session.pool.name``. The pool name is generated
-automatically, or can be set explicitly with ``QuerySessionPool(..., name="main-pool")``
-for both synchronous and asynchronous pools. ``ydb.query.session.count`` also includes
-``ydb.query.session.state`` with values ``"idle"`` or ``"used"``.
+Query session metrics use ``ydb.query.session.pool.name``. When ``name`` is not
+passed to ``QuerySessionPool``, the SDK uses the YDB connection string of the
+driver — ``<endpoint><database>`` (for example ``grpc://localhost:2136/local``) —
+so the pool is identifiable in dashboards out of the box. Set the label
+explicitly with ``QuerySessionPool(..., name="main-pool")`` for both synchronous
+and asynchronous pools when several pools share a connection string.
+``ydb.query.session.count`` also includes ``ydb.query.session.state`` with values
+``"idle"`` or ``"used"``.
 
 Retry metrics are recorded without attributes.
 
