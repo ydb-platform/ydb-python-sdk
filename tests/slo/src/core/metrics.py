@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import threading
 import time
 from abc import ABC, abstractmethod
 from collections.abc import Iterable
@@ -10,36 +11,25 @@ from os import environ
 from typing import Any, Optional, Tuple
 
 OP_TYPE_READ, OP_TYPE_WRITE = "read", "write"
-OP_STATUS_SUCCESS, OP_STATUS_FAILURE = "success", "err"
+OP_STATUS_SUCCESS, OP_STATUS_FAILURE = "success", "error"
 
-REF = environ.get("REF", "main")
-WORKLOAD = environ.get("WORKLOAD", "sync-query")
+REF = environ.get("WORKLOAD_REF") or environ.get("REF") or "main"
+WORKLOAD = environ.get("WORKLOAD_NAME") or environ.get("WORKLOAD") or "sync-query"
 
 logger = logging.getLogger(__name__)
 
 
 def _normalize_labels(labels: Any) -> Tuple[Any, ...]:
-    """
-    Convert labels into a tuple of label values.
-
-    Important:
-    - `str` is an Iterable, but for our purposes it must be treated as a single label value.
-    """
     if labels is None:
         return tuple()
-
     if isinstance(labels, str):
         return (labels,)
-
     if isinstance(labels, tuple):
         return labels
-
     if isinstance(labels, list):
         return tuple(labels)
-
     if isinstance(labels, Iterable):
         return tuple(labels)
-
     return (labels,)
 
 
@@ -101,30 +91,29 @@ class DummyMetrics(BaseMetrics):
 
 class OtlpMetrics(BaseMetrics):
     """
-    Canonical OpenTelemetry metrics implementation.
+    Exports metrics via OTLP/HTTP to a Prometheus endpoint with OTLP receiver enabled.
 
-    This exports metrics via OTLP/HTTP to a Prometheus server with OTLP receiver enabled:
-      POST http(s)://<host>:<port>/api/v1/otlp/v1/metrics
-
-    Naming notes:
-    - Metric names follow OpenTelemetry conventions (dot-separated namespaces, e.g. `sdk.operations.total`).
-    - Prometheus OTLP translation typically converts dots to underscores and may add suffixes like
-      `_total` for counters and `_bucket/_sum/_count` for histograms.
+    Latency percentiles (p50/p95/p99) are computed client-side per push window via
+    HdrHistogram and emitted as gauges; counters are emitted via OTel counters.
+    Histogram is reset after each push so each sample represents the last window only.
     """
 
+    _HDR_MIN_US = 1
+    _HDR_MAX_US = 60_000_000  # 60s
+    _HDR_SIG_FIGS = 3
+    _PERCENTILES = (("p50", 50.0), ("p95", 95.0), ("p99", 99.0))
+
     def __init__(self, otlp_metrics_endpoint: str):
+        from hdrh.histogram import HdrHistogram
         from opentelemetry.exporter.otlp.proto.http.metric_exporter import (
             OTLPMetricExporter,
         )
         from opentelemetry.sdk.metrics import MeterProvider
         from opentelemetry.sdk.metrics.export import PeriodicExportingMetricReader
-        from opentelemetry.sdk.metrics.view import (
-            ExplicitBucketHistogramAggregation,
-            View,
-        )
         from opentelemetry.sdk.resources import Resource
 
-        # Resource attributes: Prometheus maps service.name -> job, service.instance.id -> instance.
+        self._HdrHistogram = HdrHistogram
+
         resource = Resource.create(
             {
                 "service.name": f"workload-{WORKLOAD}",
@@ -138,79 +127,59 @@ class OtlpMetrics(BaseMetrics):
         )
 
         exporter = OTLPMetricExporter(endpoint=otlp_metrics_endpoint)
-        reader = PeriodicExportingMetricReader(exporter)  # we force_flush() explicitly in push()
-
-        latency_view = View(
-            instrument_name="sdk.operation.latency",
-            aggregation=ExplicitBucketHistogramAggregation(
-                boundaries=(
-                    0.001,
-                    0.002,
-                    0.003,
-                    0.004,
-                    0.005,
-                    0.0075,
-                    0.010,
-                    0.020,
-                    0.050,
-                    0.100,
-                    0.200,
-                    0.500,
-                    1.000,
-                )
-            ),
-        )
-
-        self._provider = MeterProvider(
-            resource=resource,
-            metric_readers=[reader],
-            views=[latency_view],
-        )
+        reader = PeriodicExportingMetricReader(exporter)
+        self._provider = MeterProvider(resource=resource, metric_readers=[reader])
         self._meter = self._provider.get_meter("ydb-slo")
 
-        # Instruments (sync)
         self._errors = self._meter.create_counter(
             name="sdk.errors.total",
             description="Total number of errors encountered, categorized by error type.",
         )
         self._operations_total = self._meter.create_counter(
             name="sdk.operations.total",
-            description="Total number of operations, categorized by type attempted by the SDK.",
+            description="Total number of operations attempted by the SDK.",
         )
         self._operations_success_total = self._meter.create_counter(
             name="sdk.operations.success.total",
-            description="Total number of successful operations, categorized by type.",
+            description="Total number of successful operations.",
         )
         self._operations_failure_total = self._meter.create_counter(
             name="sdk.operations.failure.total",
-            description="Total number of failed operations, categorized by type.",
+            description="Total number of failed operations.",
         )
-        self._latency = self._meter.create_histogram(
-            name="sdk.operation.latency",
-            unit="s",
-            description="Latency of operations performed by the SDK in seconds, categorized by type and status.",
-        )
-
-        self._pending = self._meter.create_up_down_counter(
-            name="sdk.pending.operations",
-            description="Current number of pending operations, categorized by type.",
-        )
-
         self._retry_attempts_total = self._meter.create_counter(
             name="sdk.retry.attempts.total",
-            description="Total number of retry attempts, categorized by ref and operation type.",
+            description="Total number of retry attempts.",
         )
+        self._pending = self._meter.create_up_down_counter(
+            name="sdk.pending.operations",
+            description="Current number of pending operations.",
+        )
+        self._latency_gauges = {
+            name: self._meter.create_gauge(
+                name=f"sdk.operation.latency.{name}.seconds",
+                unit="s",
+                description=f"Operation latency {name} computed over the last push window.",
+            )
+            for name, _ in self._PERCENTILES
+        }
 
-        self.reset()
+        self._lock = threading.Lock()
+        self._hdr: dict = {}
+
+    def _get_hdr(self, op_type: str, op_status: str):
+        key = (op_type, op_status)
+        hist = self._hdr.get(key)
+        if hist is None:
+            hist = self._HdrHistogram(self._HDR_MIN_US, self._HDR_MAX_US, self._HDR_SIG_FIGS)
+            self._hdr[key] = hist
+        return hist
 
     def start(self, labels) -> float:
         labels_t = _normalize_labels(labels)
         self._pending.add(
             1,
-            attributes={
-                "ref": REF,
-                "operation_type": labels_t[0],
-            },
+            attributes={"ref": REF, "operation_type": labels_t[0]},
         )
         return time.time()
 
@@ -223,74 +192,81 @@ class OtlpMetrics(BaseMetrics):
     ) -> None:
         labels_t = _normalize_labels(labels)
         duration = time.time() - start_time
+        duration_us = min(max(int(duration * 1_000_000), self._HDR_MIN_US), self._HDR_MAX_US)
 
         op_type = labels_t[0]
-        base_attrs = {
-            "ref": REF,
-            "operation_type": op_type,
-        }
+        op_status = OP_STATUS_SUCCESS if error is None else OP_STATUS_FAILURE
+        base_attrs = {"ref": REF, "operation_type": op_type}
+        op_attrs = {**base_attrs, "operation_status": op_status}
 
-        # Update instruments
         self._retry_attempts_total.add(int(attempts), attributes=base_attrs)
         self._pending.add(-1, attributes=base_attrs)
-
-        # Counters + latency
-        self._operations_total.add(1, attributes=base_attrs)
+        self._operations_total.add(1, attributes=op_attrs)
 
         if error is not None:
-            self._errors.add(
-                1,
-                attributes={
-                    **base_attrs,
-                    "error_type": type(error).__name__,
-                },
-            )
+            self._errors.add(1, attributes={**base_attrs, "error_type": type(error).__name__})
             self._operations_failure_total.add(1, attributes=base_attrs)
-            self._latency.record(
-                duration,
-                attributes={
-                    **base_attrs,
-                    "operation_status": OP_STATUS_FAILURE,
-                },
-            )
-            return
+        else:
+            self._operations_success_total.add(1, attributes=base_attrs)
 
-        self._operations_success_total.add(1, attributes=base_attrs)
-        self._latency.record(
-            duration,
-            attributes={
-                **base_attrs,
-                "operation_status": OP_STATUS_SUCCESS,
-            },
-        )
+        with self._lock:
+            self._get_hdr(op_type, op_status).record_value(duration_us)
 
     def push(self) -> None:
-        # Metrics job calls push() with the cadence of --report-period.
-        # force_flush() makes the exporter send immediately.
+        with self._lock:
+            for (op_type, op_status), hist in self._hdr.items():
+                if hist.get_total_count() == 0:
+                    continue
+                attrs = {"ref": REF, "operation_type": op_type, "operation_status": op_status}
+                for name, percentile in self._PERCENTILES:
+                    value_s = hist.get_value_at_percentile(percentile) / 1_000_000
+                    self._latency_gauges[name].set(value_s, attributes=attrs)
+            for hist in self._hdr.values():
+                hist.reset()
         self._provider.force_flush()
 
     def reset(self) -> None:
-        # OpenTelemetry counters/histograms are cumulative and cannot be reset.
-        # Reset is implemented as an immediate push/flush.
-        self.push()
+        with self._lock:
+            for hist in self._hdr.values():
+                hist.reset()
+        self._provider.force_flush()
+
+
+def _resolve_metrics_endpoint(cli_endpoint: Optional[str]) -> str:
+    """
+    Resolution order:
+      1. OTEL_EXPORTER_OTLP_METRICS_ENDPOINT (used as-is)
+      2. OTEL_EXPORTER_OTLP_ENDPOINT + /v1/metrics suffix
+      3. CLI --otlp-endpoint
+    """
+    metrics_env = environ.get("OTEL_EXPORTER_OTLP_METRICS_ENDPOINT", "").strip()
+    if metrics_env:
+        return metrics_env
+
+    base_env = environ.get("OTEL_EXPORTER_OTLP_ENDPOINT", "").strip()
+    if base_env:
+        base = base_env.rstrip("/")
+        if base.endswith("/v1/metrics"):
+            return base
+        return f"{base}/v1/metrics"
+
+    return (cli_endpoint or "").strip()
 
 
 def create_metrics(otlp_endpoint: Optional[str]) -> BaseMetrics:
     """
-    Factory used by SLO runners.
+    Build a metrics exporter.
 
-    Metrics are enabled if either:
-    - OTLP_ENDPOINT env var is set, or
-    - `--otlp-endpoint` is provided (and non-empty)
-
-    If endpoint is empty, metrics are disabled (DummyMetrics).
+    Metrics are enabled if a non-empty endpoint can be derived from either the
+    OTEL_EXPORTER_OTLP_METRICS_ENDPOINT / OTEL_EXPORTER_OTLP_ENDPOINT env vars
+    or the explicit `--otlp-endpoint` CLI flag. Otherwise DummyMetrics is used.
     """
-    endpoint = (environ.get("OTLP_ENDPOINT") or (otlp_endpoint or "")).strip()
+    endpoint = _resolve_metrics_endpoint(otlp_endpoint)
     if not endpoint:
         logger.info("Creating dummy metrics (metrics disabled)")
         return DummyMetrics()
 
-    logger.info("Creating OTLP metrics exporter to Prometheus: %s", endpoint)
+    logger.info("Creating OTLP metrics exporter to: %s", endpoint)
     try:
         return OtlpMetrics(endpoint)
     except Exception:
