@@ -93,11 +93,19 @@ jobs:
       - name: Build workload images (current + baseline)
         run: |
           set -euxo pipefail
+
+          # Build current: SDK + workload runner both from this PR.
           docker build \
             -f "$GITHUB_WORKSPACE/sdk-current/tests/slo/Dockerfile" \
             -t "ydb-app-current" \
             "$GITHUB_WORKSPACE/sdk-current"
 
+          # Build baseline: baseline SDK with the current workload runner
+          # (Dockerfile + tests/slo/), so the runner-side contract changes
+          # (entrypoint, metrics format) apply uniformly to both images.
+          rm -rf "$GITHUB_WORKSPACE/sdk-baseline/tests/slo"
+          cp -r  "$GITHUB_WORKSPACE/sdk-current/tests/slo" \
+                 "$GITHUB_WORKSPACE/sdk-baseline/tests/slo"
           docker build \
             -f "$GITHUB_WORKSPACE/sdk-baseline/tests/slo/Dockerfile" \
             -t "ydb-app-baseline" \
@@ -119,7 +127,6 @@ jobs:
           workload_baseline_command: ${{ matrix.sdk.command }}
 
   publish-slo-report:
-    if: always()
     name: Publish YDB SLO Report
     needs: ydb-slo-action
     runs-on: ubuntu-latest
@@ -132,9 +139,10 @@ jobs:
         uses: ydb-platform/ydb-slo-action/report@v2
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          github_run_id: ${{ github.event.workflow_run.id }}
+          github_run_id: ${{ github.run_id }}
 
   remove-slo-label:
+    if: always()
     name: Remove SLO Label
     needs: ydb-slo-action
     runs-on: ubuntu-latest
@@ -143,10 +151,9 @@ jobs:
     steps:
       - name: Remove SLO label from PR
         env:
-          PRS: ${{ toJSON(github.event.workflow_run.pull_requests) }}
-          REPO: ${{ github.event.workflow_run.repository.full_name }}
+          PR: ${{ github.event.pull_request.number }}
+          REPO: ${{ github.repository }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
-          PR=$(jq -r '.[0].number' <<<"$PRS")
           gh pr edit "$PR" --repo "$REPO" --remove-label SLO
