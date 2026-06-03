@@ -248,17 +248,36 @@ class ConnectionPool(IConnectionPool):
         self._store = ConnectionsCache(driver_config.use_all_nodes)
         self._grpc_init = Connection(self._driver_config.endpoint, self._driver_config)
         self._stopped = False
+        self._stopping = False
         self._discovery: Optional[Discovery] = None
         self._discovery_task: "asyncio.Task[None]"
 
         if driver_config.disable_discovery:
             # If discovery is disabled, just add the initial endpoint to the store
             async def init_connection() -> None:
-                ready_connection = Connection(self._driver_config.endpoint, self._driver_config)
-                await ready_connection.connection_ready(
-                    ready_timeout=getattr(self._driver_config, "discovery_request_timeout", 10)
-                )
-                self._store.add(ready_connection)
+                ready_timeout = getattr(self._driver_config, "discovery_request_timeout", 10)
+                while not self._stopping:
+                    ready_connection = Connection(self._driver_config.endpoint, self._driver_config)
+                    try:
+                        await ready_connection.connection_ready(ready_timeout=ready_timeout)
+                    except asyncio.CancelledError:
+                        try:
+                            await ready_connection.close()
+                        except Exception:
+                            logger.debug("Failed to close cancelled initial connection", exc_info=True)
+                        raise
+                    except Exception:
+                        logger.debug("Initial connection attempt failed", exc_info=True)
+                        try:
+                            await ready_connection.close()
+                        except Exception:
+                            logger.debug("Failed to close unsuccessful initial connection", exc_info=True)
+                        if not self._stopping:
+                            await asyncio.sleep(1)
+                        continue
+
+                    self._store.add(ready_connection)
+                    return
 
             # Create and schedule the task to initialize the connection
             self._discovery_task = asyncio.get_event_loop().create_task(init_connection())
@@ -268,6 +287,7 @@ class ConnectionPool(IConnectionPool):
             self._discovery_task = asyncio.get_event_loop().create_task(self._discovery.run())
 
     async def stop(self, timeout: int = 10) -> None:  # type: ignore[override]  # async override of sync method
+        self._stopping = True
         if self._discovery:
             self._discovery.stop()
         await self._grpc_init.close()
@@ -275,6 +295,12 @@ class ConnectionPool(IConnectionPool):
             await asyncio.wait_for(self._discovery_task, timeout=timeout)
         except asyncio.TimeoutError:
             self._discovery_task.cancel()
+            try:
+                await self._discovery_task
+            except asyncio.CancelledError:
+                pass
+        if self._discovery is None:
+            await self._store.cleanup()
         self._stopped = True
 
     def _on_disconnected(self, connection: Connection) -> Callable[[], Any]:

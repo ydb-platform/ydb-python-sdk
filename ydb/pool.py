@@ -436,6 +436,8 @@ class ConnectionPool(IConnectionPool):
         self._grpc_init.close()
         if self._discovery_thread:
             self._discovery_thread.join(timeout)
+        else:
+            self._store.cleanup()
 
     def async_wait(self, fail_fast: bool = False) -> "futures.Future[None]":
         """

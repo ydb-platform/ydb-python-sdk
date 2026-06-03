@@ -258,8 +258,12 @@ class Connection:
         :param grace:
         :return: None
         """
-        if hasattr(self, "_channel") and hasattr(self._channel, "close"):
-            await self._channel.close(grace)
+        channel = getattr(self, "_channel", None)
+        if channel is not None and hasattr(channel, "close"):
+            await channel.close(grace)
+
+        self._stub_instances.clear()
+        self._channel = None
 
     def add_cleanup_callback(self, callback: Callable[["Connection"], None]) -> None:
         self._cleanup_callbacks.append(callback)
