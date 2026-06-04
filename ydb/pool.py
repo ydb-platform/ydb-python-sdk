@@ -4,7 +4,6 @@ from __future__ import annotations
 import abc
 import threading
 import logging
-import time
 from concurrent import futures
 import collections
 import random
@@ -402,29 +401,41 @@ class ConnectionPool(IConnectionPool):
         self._store = ConnectionsCache(driver_config.use_all_nodes, driver_config.tracer)
         self.tracer = driver_config.tracer
         self._grpc_init = connection_impl.Connection(self._driver_config.endpoint, self._driver_config)
+        self._stopped = False
+        self._stop_guard = threading.Lock()
+        self._stop_event = threading.Event()
+        self._init_thread: Optional[threading.Thread] = None
 
         if driver_config.disable_discovery:
-            # If discovery is disabled, just add the initial endpoint to the store
-            ready_timeout = getattr(self._driver_config, "discovery_request_timeout", 10)
-            while True:
-                ready_connection = connection_impl.Connection.ready_factory(
-                    self._driver_config.endpoint,
-                    self._driver_config,
-                    ready_timeout=ready_timeout,
-                )
-                if self._store.add(ready_connection):
-                    break
-
-                logger.debug("Initial connection attempt failed")
-                time.sleep(1)
+            # If discovery is disabled, establish the initial connection in a
+            # background thread, retrying until it succeeds or the pool is stopped.
+            # Doing this off the constructor keeps wait(timeout) as the blocking
+            # point and lets stop() interrupt the retry loop.
             self._discovery_thread = None
+            self._init_thread = threading.Thread(
+                name="ydb_driver_initial_connection",
+                target=self._init_connection,
+                daemon=True,
+            )
+            self._init_thread.start()
         else:
             # Start discovery thread as usual
             self._discovery_thread = Discovery(self._store, self._driver_config)
             self._discovery_thread.start()
 
-        self._stopped = False
-        self._stop_guard = threading.Lock()
+    def _init_connection(self) -> None:
+        ready_timeout = getattr(self._driver_config, "discovery_request_timeout", 10)
+        while not self._stopped:
+            ready_connection = connection_impl.Connection.ready_factory(
+                self._driver_config.endpoint,
+                self._driver_config,
+                ready_timeout=ready_timeout,
+            )
+            if self._store.add(ready_connection):
+                return
+
+            logger.debug("Initial connection attempt failed")
+            self._stop_event.wait(1)
 
     def stop(self, timeout: int = 10) -> None:
         """
@@ -438,12 +449,15 @@ class ConnectionPool(IConnectionPool):
                 return
 
             self._stopped = True
+            self._stop_event.set()
             if self._discovery_thread:
                 self._discovery_thread.stop()
         self._grpc_init.close()
         if self._discovery_thread:
             self._discovery_thread.join(timeout)
-        else:
+        if self._init_thread:
+            self._init_thread.join(timeout)
+        if self._discovery_thread is None:
             self._store.cleanup()
 
     def async_wait(self, fail_fast: bool = False) -> "futures.Future[None]":

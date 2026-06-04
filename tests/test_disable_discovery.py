@@ -146,6 +146,7 @@ def test_sync_driver_discovery_disabled_stop_cleans_connection(driver_config_dis
     driver = ydb.Driver(driver_config=driver_config_disabled_discovery)
     ready_connection = mock_connection.return_value
 
+    driver.wait(timeout=5)
     driver.stop()
 
     ready_connection.close.assert_called_once()
@@ -162,18 +163,16 @@ def test_sync_driver_discovery_disabled_retries_initial_connection(
         "ydb.connection.Connection.ready_factory",
         side_effect=[None, ready_connection],
     ) as mock_factory:
-        with unittest.mock.patch("ydb.pool.time.sleep") as mock_sleep:
-            with unittest.mock.patch("ydb.pool.Discovery") as mock_discovery_class:
-                driver = ydb.Driver(driver_config=driver_config_disabled_discovery)
-                try:
-                    driver.wait(timeout=1, fail_fast=True)
+        with unittest.mock.patch("ydb.pool.Discovery") as mock_discovery_class:
+            driver = ydb.Driver(driver_config=driver_config_disabled_discovery)
+            try:
+                driver.wait(timeout=5, fail_fast=True)
 
-                    assert mock_factory.call_count == 2
-                    mock_sleep.assert_called_once_with(1)
-                    mock_discovery_class.assert_not_called()
-                    assert not mock_discovery_resolver.called
-                finally:
-                    driver.stop()
+                assert mock_factory.call_count == 2
+                mock_discovery_class.assert_not_called()
+                assert not mock_discovery_resolver.called
+            finally:
+                driver.stop()
 
     ready_connection.close.assert_called_once()
 
