@@ -125,35 +125,3 @@ jobs:
           workload_baseline_ref: ${{ steps.baseline.outputs.ref }}
           workload_baseline_image: ydb-app-baseline
           workload_baseline_command: ${{ matrix.sdk.command }}
-
-  publish-slo-report:
-    name: Publish YDB SLO Report
-    needs: ydb-slo-action
-    runs-on: ubuntu-latest
-    permissions:
-      checks: write
-      contents: read
-      pull-requests: write
-    steps:
-      - name: Publish YDB SLO Report
-        uses: ydb-platform/ydb-slo-action/report@v2
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          github_run_id: ${{ github.run_id }}
-
-  remove-slo-label:
-    if: always()
-    name: Remove SLO Label
-    needs: ydb-slo-action
-    runs-on: ubuntu-latest
-    permissions:
-      pull-requests: write
-    steps:
-      - name: Remove SLO label from PR
-        env:
-          PR: ${{ github.event.pull_request.number }}
-          REPO: ${{ github.repository }}
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          set -euo pipefail
-          gh pr edit "$PR" --repo "$REPO" --remove-label SLO
