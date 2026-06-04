@@ -1,3 +1,5 @@
+* Fix driver.wait hang
+
 ## 3.29.0 ##
 * Added OpenTelemetry tracing support via `ydb.opentelemetry.enable_tracing()`
 
