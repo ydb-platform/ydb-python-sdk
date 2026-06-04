@@ -151,6 +151,33 @@ def test_sync_driver_discovery_disabled_stop_cleans_connection(driver_config_dis
     ready_connection.close.assert_called_once()
 
 
+def test_sync_driver_discovery_disabled_retries_initial_connection(
+    driver_config_disabled_discovery, mock_discovery_resolver
+):
+    ready_connection = unittest.mock.MagicMock()
+    ready_connection.endpoint = "localhost:2136"
+    ready_connection.node_id = "mock_node_id"
+
+    with unittest.mock.patch(
+        "ydb.connection.Connection.ready_factory",
+        side_effect=[None, ready_connection],
+    ) as mock_factory:
+        with unittest.mock.patch("ydb.pool.time.sleep") as mock_sleep:
+            with unittest.mock.patch("ydb.pool.Discovery") as mock_discovery_class:
+                driver = ydb.Driver(driver_config=driver_config_disabled_discovery)
+                try:
+                    driver.wait(timeout=1, fail_fast=True)
+
+                    assert mock_factory.call_count == 2
+                    mock_sleep.assert_called_once_with(1)
+                    mock_discovery_class.assert_not_called()
+                    assert not mock_discovery_resolver.called
+                finally:
+                    driver.stop()
+
+    ready_connection.close.assert_called_once()
+
+
 def test_sync_driver_discovery_enabled_mock(driver_config_enabled_discovery, mock_connection):
     """Test that when disable_discovery=False, the discovery thread is started (mock)."""
     with unittest.mock.patch("ydb.pool.Discovery") as mock_discovery_class:

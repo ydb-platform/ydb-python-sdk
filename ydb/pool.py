@@ -4,6 +4,7 @@ from __future__ import annotations
 import abc
 import threading
 import logging
+import time
 from concurrent import futures
 import collections
 import random
@@ -404,12 +405,18 @@ class ConnectionPool(IConnectionPool):
 
         if driver_config.disable_discovery:
             # If discovery is disabled, just add the initial endpoint to the store
-            ready_connection = connection_impl.Connection.ready_factory(
-                self._driver_config.endpoint,
-                self._driver_config,
-                ready_timeout=getattr(self._driver_config, "discovery_request_timeout", 10),
-            )
-            self._store.add(ready_connection)
+            ready_timeout = getattr(self._driver_config, "discovery_request_timeout", 10)
+            while True:
+                ready_connection = connection_impl.Connection.ready_factory(
+                    self._driver_config.endpoint,
+                    self._driver_config,
+                    ready_timeout=ready_timeout,
+                )
+                if self._store.add(ready_connection):
+                    break
+
+                logger.debug("Initial connection attempt failed")
+                time.sleep(1)
             self._discovery_thread = None
         else:
             # Start discovery thread as usual
