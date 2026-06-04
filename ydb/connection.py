@@ -602,8 +602,12 @@ class Connection(object):
                 self.destroy()
 
     def destroy(self):
-        if hasattr(self, "_channel") and hasattr(self._channel, "close"):
-            self._channel.close()
+        channel = getattr(self, "_channel", None)
+        if channel is not None and hasattr(channel, "close"):
+            channel.close()
+
+        self._stub_instances.clear()
+        self._channel = None
 
     def ready_future(self):
         """

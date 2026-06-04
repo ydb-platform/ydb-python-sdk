@@ -142,6 +142,41 @@ def test_sync_driver_discovery_disabled_mock(
             driver.stop()
 
 
+def test_sync_driver_discovery_disabled_stop_cleans_connection(driver_config_disabled_discovery, mock_connection):
+    driver = ydb.Driver(driver_config=driver_config_disabled_discovery)
+    ready_connection = mock_connection.return_value
+
+    driver.wait(timeout=5)
+    driver.stop()
+
+    ready_connection.close.assert_called_once()
+
+
+def test_sync_driver_discovery_disabled_retries_initial_connection(
+    driver_config_disabled_discovery, mock_discovery_resolver
+):
+    ready_connection = unittest.mock.MagicMock()
+    ready_connection.endpoint = "localhost:2136"
+    ready_connection.node_id = "mock_node_id"
+
+    with unittest.mock.patch(
+        "ydb.connection.Connection.ready_factory",
+        side_effect=[None, ready_connection],
+    ) as mock_factory:
+        with unittest.mock.patch("ydb.pool.Discovery") as mock_discovery_class:
+            driver = ydb.Driver(driver_config=driver_config_disabled_discovery)
+            try:
+                driver.wait(timeout=5, fail_fast=True)
+
+                assert mock_factory.call_count == 2
+                mock_discovery_class.assert_not_called()
+                assert not mock_discovery_resolver.called
+            finally:
+                driver.stop()
+
+    ready_connection.close.assert_called_once()
+
+
 def test_sync_driver_discovery_enabled_mock(driver_config_enabled_discovery, mock_connection):
     """Test that when disable_discovery=False, the discovery thread is started (mock)."""
     with unittest.mock.patch("ydb.pool.Discovery") as mock_discovery_class:
@@ -236,6 +271,41 @@ async def test_aio_driver_discovery_disabled_mock(
                 pass
     finally:
         teardown_async_mocks(mocks)
+
+
+@pytest.mark.asyncio
+async def test_aio_driver_discovery_disabled_retries_initial_connection(driver_config_disabled_discovery):
+    ready_attempts = []
+    closed_connections = []
+
+    class FakeConnection:
+        def __init__(self, endpoint, driver_config, endpoint_options=None):
+            self.endpoint = endpoint
+            self.node_id = None
+            self._cleanup_callbacks = []
+
+        def add_cleanup_callback(self, callback):
+            self._cleanup_callbacks.append(callback)
+
+        async def connection_ready(self, ready_timeout=10):
+            ready_attempts.append(self)
+            if len(ready_attempts) == 1:
+                raise ydb.issues.ConnectionLost("transient failure")
+
+        async def close(self, grace=30):
+            closed_connections.append(self)
+            for callback in self._cleanup_callbacks:
+                callback(self)
+
+    with unittest.mock.patch("ydb.aio.pool.Connection", FakeConnection):
+        driver = ydb.aio.Driver(driver_config=driver_config_disabled_discovery)
+        try:
+            await driver.wait(timeout=5, fail_fast=True)
+
+            assert len(ready_attempts) == 2
+            assert closed_connections == [ready_attempts[0]]
+        finally:
+            await driver.stop()
 
 
 @pytest.mark.asyncio
