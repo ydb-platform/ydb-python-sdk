@@ -1,3 +1,4 @@
+## 3.29.1 ##
 * Fix driver.wait hang
 
 ## 3.29.0 ##
