@@ -1,0 +1,48 @@
+name: slo-report
+
+# Runs in the base-repo context (not the fork's), so it has the
+# pull-requests: write permission needed to publish reports and edit
+# labels — which fork-triggered SLO runs do not.
+
+on:
+  workflow_run:
+    workflows: ["SLO"]
+    types:
+      - completed
+
+jobs:
+  publish-slo-report:
+    # SLO workflow runs on every PR event, but the job inside is gated
+    # on the "SLO" label. Without the label the matrix is skipped and the
+    # workflow conclusion is "skipped" — in that case there is nothing
+    # to publish and no label to remove.
+    if: github.event.workflow_run.conclusion != 'skipped'
+    name: Publish YDB SLO Report
+    runs-on: ubuntu-latest
+    permissions:
+      checks: write
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Publish YDB SLO Report
+        uses: ydb-platform/ydb-slo-action/report@v2
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          github_run_id: ${{ github.event.workflow_run.id }}
+
+  remove-slo-label:
+    if: github.event.workflow_run.conclusion != 'skipped'
+    name: Remove SLO Label
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    steps:
+      - name: Remove SLO label from PR
+        env:
+          PRS: ${{ toJSON(github.event.workflow_run.pull_requests) }}
+          REPO: ${{ github.event.workflow_run.repository.full_name }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          PR=$(jq -r '.[0].number' <<<"$PRS")
+          gh pr edit "$PR" --repo "$REPO" --remove-label SLO
