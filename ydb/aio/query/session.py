@@ -53,7 +53,7 @@ class QuerySession(BaseQuerySession["AsyncDriver"]):
         self._stream = await self._attach_call()
         self._status_stream = _utilities.AsyncResponseIterator(
             self._stream,
-            lambda response: common_utils.ServerStatus.from_proto(response),
+            self._attach_stream_wrapper,
         )
 
         try:
