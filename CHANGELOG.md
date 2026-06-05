@@ -1,3 +1,6 @@
+* Query session attach stream handles `NodeShutdown` and `SessionShutdown` session hints: on `NodeShutdown` the session's node connection is pessimized and the session is retired, on `SessionShutdown` the session is retired without touching the node
+* Bumped `ydb-api-protos` and regenerated gRPC/protobuf stubs (v3–v6) to include query service session hints
+
 ## 3.29.4 ##
 * Fix leaked topic reader stream when close interrupts stream creation during reconnect
 * Include reconnector and read session ids in topic reader logs

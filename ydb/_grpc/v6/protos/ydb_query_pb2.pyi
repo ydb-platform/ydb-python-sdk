@@ -112,13 +112,25 @@ class AttachSessionRequest(_message.Message):
     session_id: str
     def __init__(self, session_id: _Optional[str] = ...) -> None: ...
 
+class SessionShutdownHint(_message.Message):
+    __slots__ = ()
+    def __init__(self) -> None: ...
+
+class NodeShutdownHint(_message.Message):
+    __slots__ = ()
+    def __init__(self) -> None: ...
+
 class SessionState(_message.Message):
-    __slots__ = ("status", "issues")
+    __slots__ = ("status", "issues", "session_shutdown", "node_shutdown")
     STATUS_FIELD_NUMBER: _ClassVar[int]
     ISSUES_FIELD_NUMBER: _ClassVar[int]
+    SESSION_SHUTDOWN_FIELD_NUMBER: _ClassVar[int]
+    NODE_SHUTDOWN_FIELD_NUMBER: _ClassVar[int]
     status: _ydb_status_codes_pb2.StatusIds.StatusCode
     issues: _containers.RepeatedCompositeFieldContainer[_ydb_issue_message_pb2.IssueMessage]
-    def __init__(self, status: _Optional[_Union[_ydb_status_codes_pb2.StatusIds.StatusCode, str]] = ..., issues: _Optional[_Iterable[_Union[_ydb_issue_message_pb2.IssueMessage, _Mapping]]] = ...) -> None: ...
+    session_shutdown: SessionShutdownHint
+    node_shutdown: NodeShutdownHint
+    def __init__(self, status: _Optional[_Union[_ydb_status_codes_pb2.StatusIds.StatusCode, str]] = ..., issues: _Optional[_Iterable[_Union[_ydb_issue_message_pb2.IssueMessage, _Mapping]]] = ..., session_shutdown: _Optional[_Union[SessionShutdownHint, _Mapping]] = ..., node_shutdown: _Optional[_Union[NodeShutdownHint, _Mapping]] = ...) -> None: ...
 
 class SerializableModeSettings(_message.Message):
     __slots__ = ()

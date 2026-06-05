@@ -292,7 +292,7 @@ class StreamReadMessage(_message.Message):
         end_partition_session: StreamReadMessage.EndPartitionSession
         def __init__(self, status: _Optional[_Union[_ydb_status_codes_pb2.StatusIds.StatusCode, str]] = ..., issues: _Optional[_Iterable[_Union[_ydb_issue_message_pb2.IssueMessage, _Mapping]]] = ..., init_response: _Optional[_Union[StreamReadMessage.InitResponse, _Mapping]] = ..., read_response: _Optional[_Union[StreamReadMessage.ReadResponse, _Mapping]] = ..., commit_offset_response: _Optional[_Union[StreamReadMessage.CommitOffsetResponse, _Mapping]] = ..., partition_session_status_response: _Optional[_Union[StreamReadMessage.PartitionSessionStatusResponse, _Mapping]] = ..., update_token_response: _Optional[_Union[UpdateTokenResponse, _Mapping]] = ..., start_partition_session_request: _Optional[_Union[StreamReadMessage.StartPartitionSessionRequest, _Mapping]] = ..., stop_partition_session_request: _Optional[_Union[StreamReadMessage.StopPartitionSessionRequest, _Mapping]] = ..., update_partition_session: _Optional[_Union[StreamReadMessage.UpdatePartitionSession, _Mapping]] = ..., end_partition_session: _Optional[_Union[StreamReadMessage.EndPartitionSession, _Mapping]] = ...) -> None: ...
     class InitRequest(_message.Message):
-        __slots__ = ("topics_read_settings", "consumer", "reader_name", "direct_read", "auto_partitioning_support")
+        __slots__ = ("topics_read_settings", "consumer", "reader_name", "direct_read", "auto_partitioning_support", "partition_max_in_flight_bytes")
         class TopicReadSettings(_message.Message):
             __slots__ = ("path", "partition_ids", "max_lag", "read_from")
             PATH_FIELD_NUMBER: _ClassVar[int]
@@ -309,12 +309,14 @@ class StreamReadMessage(_message.Message):
         READER_NAME_FIELD_NUMBER: _ClassVar[int]
         DIRECT_READ_FIELD_NUMBER: _ClassVar[int]
         AUTO_PARTITIONING_SUPPORT_FIELD_NUMBER: _ClassVar[int]
+        PARTITION_MAX_IN_FLIGHT_BYTES_FIELD_NUMBER: _ClassVar[int]
         topics_read_settings: _containers.RepeatedCompositeFieldContainer[StreamReadMessage.InitRequest.TopicReadSettings]
         consumer: str
         reader_name: str
         direct_read: bool
         auto_partitioning_support: bool
-        def __init__(self, topics_read_settings: _Optional[_Iterable[_Union[StreamReadMessage.InitRequest.TopicReadSettings, _Mapping]]] = ..., consumer: _Optional[str] = ..., reader_name: _Optional[str] = ..., direct_read: bool = ..., auto_partitioning_support: bool = ...) -> None: ...
+        partition_max_in_flight_bytes: int
+        def __init__(self, topics_read_settings: _Optional[_Iterable[_Union[StreamReadMessage.InitRequest.TopicReadSettings, _Mapping]]] = ..., consumer: _Optional[str] = ..., reader_name: _Optional[str] = ..., direct_read: bool = ..., auto_partitioning_support: bool = ..., partition_max_in_flight_bytes: _Optional[int] = ...) -> None: ...
     class InitResponse(_message.Message):
         __slots__ = ("session_id",)
         SESSION_ID_FIELD_NUMBER: _ClassVar[int]
@@ -406,16 +408,18 @@ class StreamReadMessage(_message.Message):
         partition_session_id: int
         def __init__(self, partition_session_id: _Optional[int] = ...) -> None: ...
     class PartitionSessionStatusResponse(_message.Message):
-        __slots__ = ("partition_session_id", "partition_offsets", "committed_offset", "write_time_high_watermark")
+        __slots__ = ("partition_session_id", "partition_offsets", "committed_offset", "write_time_high_watermark", "read_offset")
         PARTITION_SESSION_ID_FIELD_NUMBER: _ClassVar[int]
         PARTITION_OFFSETS_FIELD_NUMBER: _ClassVar[int]
         COMMITTED_OFFSET_FIELD_NUMBER: _ClassVar[int]
         WRITE_TIME_HIGH_WATERMARK_FIELD_NUMBER: _ClassVar[int]
+        READ_OFFSET_FIELD_NUMBER: _ClassVar[int]
         partition_session_id: int
         partition_offsets: OffsetsRange
         committed_offset: int
         write_time_high_watermark: _timestamp_pb2.Timestamp
-        def __init__(self, partition_session_id: _Optional[int] = ..., partition_offsets: _Optional[_Union[OffsetsRange, _Mapping]] = ..., committed_offset: _Optional[int] = ..., write_time_high_watermark: _Optional[_Union[datetime.datetime, _timestamp_pb2.Timestamp, _Mapping]] = ...) -> None: ...
+        read_offset: int
+        def __init__(self, partition_session_id: _Optional[int] = ..., partition_offsets: _Optional[_Union[OffsetsRange, _Mapping]] = ..., committed_offset: _Optional[int] = ..., write_time_high_watermark: _Optional[_Union[datetime.datetime, _timestamp_pb2.Timestamp, _Mapping]] = ..., read_offset: _Optional[int] = ...) -> None: ...
     class StartPartitionSessionRequest(_message.Message):
         __slots__ = ("partition_session", "committed_offset", "partition_offsets", "partition_location")
         PARTITION_SESSION_FIELD_NUMBER: _ClassVar[int]
@@ -768,7 +772,7 @@ class AlterAutoPartitioningWriteSpeedStrategy(_message.Message):
     def __init__(self, set_stabilization_window: _Optional[_Union[datetime.timedelta, _duration_pb2.Duration, _Mapping]] = ..., set_up_utilization_percent: _Optional[int] = ..., set_down_utilization_percent: _Optional[int] = ...) -> None: ...
 
 class CreateTopicRequest(_message.Message):
-    __slots__ = ("operation_params", "path", "partitioning_settings", "retention_period", "retention_storage_mb", "supported_codecs", "partition_write_speed_bytes_per_second", "partition_write_burst_bytes", "attributes", "consumers", "metering_mode")
+    __slots__ = ("operation_params", "path", "partitioning_settings", "retention_period", "retention_storage_mb", "supported_codecs", "partition_write_speed_bytes_per_second", "partition_write_burst_bytes", "attributes", "consumers", "metering_mode", "metrics_level", "content_based_deduplication")
     class AttributesEntry(_message.Message):
         __slots__ = ("key", "value")
         KEY_FIELD_NUMBER: _ClassVar[int]
@@ -787,6 +791,8 @@ class CreateTopicRequest(_message.Message):
     ATTRIBUTES_FIELD_NUMBER: _ClassVar[int]
     CONSUMERS_FIELD_NUMBER: _ClassVar[int]
     METERING_MODE_FIELD_NUMBER: _ClassVar[int]
+    METRICS_LEVEL_FIELD_NUMBER: _ClassVar[int]
+    CONTENT_BASED_DEDUPLICATION_FIELD_NUMBER: _ClassVar[int]
     operation_params: _ydb_operation_pb2.OperationParams
     path: str
     partitioning_settings: PartitioningSettings
@@ -798,7 +804,9 @@ class CreateTopicRequest(_message.Message):
     attributes: _containers.ScalarMap[str, str]
     consumers: _containers.RepeatedCompositeFieldContainer[Consumer]
     metering_mode: MeteringMode
-    def __init__(self, operation_params: _Optional[_Union[_ydb_operation_pb2.OperationParams, _Mapping]] = ..., path: _Optional[str] = ..., partitioning_settings: _Optional[_Union[PartitioningSettings, _Mapping]] = ..., retention_period: _Optional[_Union[datetime.timedelta, _duration_pb2.Duration, _Mapping]] = ..., retention_storage_mb: _Optional[int] = ..., supported_codecs: _Optional[_Union[SupportedCodecs, _Mapping]] = ..., partition_write_speed_bytes_per_second: _Optional[int] = ..., partition_write_burst_bytes: _Optional[int] = ..., attributes: _Optional[_Mapping[str, str]] = ..., consumers: _Optional[_Iterable[_Union[Consumer, _Mapping]]] = ..., metering_mode: _Optional[_Union[MeteringMode, str]] = ...) -> None: ...
+    metrics_level: int
+    content_based_deduplication: bool
+    def __init__(self, operation_params: _Optional[_Union[_ydb_operation_pb2.OperationParams, _Mapping]] = ..., path: _Optional[str] = ..., partitioning_settings: _Optional[_Union[PartitioningSettings, _Mapping]] = ..., retention_period: _Optional[_Union[datetime.timedelta, _duration_pb2.Duration, _Mapping]] = ..., retention_storage_mb: _Optional[int] = ..., supported_codecs: _Optional[_Union[SupportedCodecs, _Mapping]] = ..., partition_write_speed_bytes_per_second: _Optional[int] = ..., partition_write_burst_bytes: _Optional[int] = ..., attributes: _Optional[_Mapping[str, str]] = ..., consumers: _Optional[_Iterable[_Union[Consumer, _Mapping]]] = ..., metering_mode: _Optional[_Union[MeteringMode, str]] = ..., metrics_level: _Optional[int] = ..., content_based_deduplication: bool = ...) -> None: ...
 
 class CreateTopicResponse(_message.Message):
     __slots__ = ("operation",)
@@ -845,7 +853,7 @@ class PartitionKeyRange(_message.Message):
     def __init__(self, from_bound: _Optional[bytes] = ..., to_bound: _Optional[bytes] = ...) -> None: ...
 
 class DescribeTopicResult(_message.Message):
-    __slots__ = ("self", "partitioning_settings", "partitions", "retention_period", "retention_storage_mb", "supported_codecs", "partition_write_speed_bytes_per_second", "partition_total_read_speed_bytes_per_second", "partition_consumer_read_speed_bytes_per_second", "partition_write_burst_bytes", "attributes", "consumers", "metering_mode", "topic_stats")
+    __slots__ = ("self", "partitioning_settings", "partitions", "retention_period", "retention_storage_mb", "supported_codecs", "partition_write_speed_bytes_per_second", "partition_total_read_speed_bytes_per_second", "partition_consumer_read_speed_bytes_per_second", "partition_write_burst_bytes", "attributes", "consumers", "metering_mode", "topic_stats", "metrics_level", "content_based_deduplication")
     class AttributesEntry(_message.Message):
         __slots__ = ("key", "value")
         KEY_FIELD_NUMBER: _ClassVar[int]
@@ -895,6 +903,8 @@ class DescribeTopicResult(_message.Message):
     CONSUMERS_FIELD_NUMBER: _ClassVar[int]
     METERING_MODE_FIELD_NUMBER: _ClassVar[int]
     TOPIC_STATS_FIELD_NUMBER: _ClassVar[int]
+    METRICS_LEVEL_FIELD_NUMBER: _ClassVar[int]
+    CONTENT_BASED_DEDUPLICATION_FIELD_NUMBER: _ClassVar[int]
     self: _ydb_scheme_pb2.Entry
     partitioning_settings: PartitioningSettings
     partitions: _containers.RepeatedCompositeFieldContainer[DescribeTopicResult.PartitionInfo]
@@ -909,7 +919,9 @@ class DescribeTopicResult(_message.Message):
     consumers: _containers.RepeatedCompositeFieldContainer[Consumer]
     metering_mode: MeteringMode
     topic_stats: DescribeTopicResult.TopicStats
-    def __init__(self_, self: _Optional[_Union[_ydb_scheme_pb2.Entry, _Mapping]] = ..., partitioning_settings: _Optional[_Union[PartitioningSettings, _Mapping]] = ..., partitions: _Optional[_Iterable[_Union[DescribeTopicResult.PartitionInfo, _Mapping]]] = ..., retention_period: _Optional[_Union[datetime.timedelta, _duration_pb2.Duration, _Mapping]] = ..., retention_storage_mb: _Optional[int] = ..., supported_codecs: _Optional[_Union[SupportedCodecs, _Mapping]] = ..., partition_write_speed_bytes_per_second: _Optional[int] = ..., partition_total_read_speed_bytes_per_second: _Optional[int] = ..., partition_consumer_read_speed_bytes_per_second: _Optional[int] = ..., partition_write_burst_bytes: _Optional[int] = ..., attributes: _Optional[_Mapping[str, str]] = ..., consumers: _Optional[_Iterable[_Union[Consumer, _Mapping]]] = ..., metering_mode: _Optional[_Union[MeteringMode, str]] = ..., topic_stats: _Optional[_Union[DescribeTopicResult.TopicStats, _Mapping]] = ...) -> None: ...
+    metrics_level: int
+    content_based_deduplication: bool
+    def __init__(self_, self: _Optional[_Union[_ydb_scheme_pb2.Entry, _Mapping]] = ..., partitioning_settings: _Optional[_Union[PartitioningSettings, _Mapping]] = ..., partitions: _Optional[_Iterable[_Union[DescribeTopicResult.PartitionInfo, _Mapping]]] = ..., retention_period: _Optional[_Union[datetime.timedelta, _duration_pb2.Duration, _Mapping]] = ..., retention_storage_mb: _Optional[int] = ..., supported_codecs: _Optional[_Union[SupportedCodecs, _Mapping]] = ..., partition_write_speed_bytes_per_second: _Optional[int] = ..., partition_total_read_speed_bytes_per_second: _Optional[int] = ..., partition_consumer_read_speed_bytes_per_second: _Optional[int] = ..., partition_write_burst_bytes: _Optional[int] = ..., attributes: _Optional[_Mapping[str, str]] = ..., consumers: _Optional[_Iterable[_Union[Consumer, _Mapping]]] = ..., metering_mode: _Optional[_Union[MeteringMode, str]] = ..., topic_stats: _Optional[_Union[DescribeTopicResult.TopicStats, _Mapping]] = ..., metrics_level: _Optional[int] = ..., content_based_deduplication: bool = ...) -> None: ...
 
 class DescribePartitionRequest(_message.Message):
     __slots__ = ("operation_params", "path", "partition_id", "include_stats", "include_location")
@@ -1026,7 +1038,7 @@ class PartitionStats(_message.Message):
     def __init__(self, partition_offsets: _Optional[_Union[OffsetsRange, _Mapping]] = ..., store_size_bytes: _Optional[int] = ..., last_write_time: _Optional[_Union[datetime.datetime, _timestamp_pb2.Timestamp, _Mapping]] = ..., max_write_time_lag: _Optional[_Union[datetime.timedelta, _duration_pb2.Duration, _Mapping]] = ..., bytes_written: _Optional[_Union[MultipleWindowsStat, _Mapping]] = ..., partition_node_id: _Optional[int] = ...) -> None: ...
 
 class AlterTopicRequest(_message.Message):
-    __slots__ = ("operation_params", "path", "alter_partitioning_settings", "set_retention_period", "set_retention_storage_mb", "set_supported_codecs", "set_partition_write_speed_bytes_per_second", "set_partition_write_burst_bytes", "alter_attributes", "add_consumers", "drop_consumers", "alter_consumers", "set_metering_mode")
+    __slots__ = ("operation_params", "path", "alter_partitioning_settings", "set_retention_period", "set_retention_storage_mb", "set_supported_codecs", "set_partition_write_speed_bytes_per_second", "set_partition_write_burst_bytes", "alter_attributes", "add_consumers", "drop_consumers", "alter_consumers", "set_metering_mode", "set_metrics_level", "reset_metrics_level", "set_content_based_deduplication")
     class AlterAttributesEntry(_message.Message):
         __slots__ = ("key", "value")
         KEY_FIELD_NUMBER: _ClassVar[int]
@@ -1047,6 +1059,9 @@ class AlterTopicRequest(_message.Message):
     DROP_CONSUMERS_FIELD_NUMBER: _ClassVar[int]
     ALTER_CONSUMERS_FIELD_NUMBER: _ClassVar[int]
     SET_METERING_MODE_FIELD_NUMBER: _ClassVar[int]
+    SET_METRICS_LEVEL_FIELD_NUMBER: _ClassVar[int]
+    RESET_METRICS_LEVEL_FIELD_NUMBER: _ClassVar[int]
+    SET_CONTENT_BASED_DEDUPLICATION_FIELD_NUMBER: _ClassVar[int]
     operation_params: _ydb_operation_pb2.OperationParams
     path: str
     alter_partitioning_settings: AlterPartitioningSettings
@@ -1060,7 +1075,10 @@ class AlterTopicRequest(_message.Message):
     drop_consumers: _containers.RepeatedScalarFieldContainer[str]
     alter_consumers: _containers.RepeatedCompositeFieldContainer[AlterConsumer]
     set_metering_mode: MeteringMode
-    def __init__(self, operation_params: _Optional[_Union[_ydb_operation_pb2.OperationParams, _Mapping]] = ..., path: _Optional[str] = ..., alter_partitioning_settings: _Optional[_Union[AlterPartitioningSettings, _Mapping]] = ..., set_retention_period: _Optional[_Union[datetime.timedelta, _duration_pb2.Duration, _Mapping]] = ..., set_retention_storage_mb: _Optional[int] = ..., set_supported_codecs: _Optional[_Union[SupportedCodecs, _Mapping]] = ..., set_partition_write_speed_bytes_per_second: _Optional[int] = ..., set_partition_write_burst_bytes: _Optional[int] = ..., alter_attributes: _Optional[_Mapping[str, str]] = ..., add_consumers: _Optional[_Iterable[_Union[Consumer, _Mapping]]] = ..., drop_consumers: _Optional[_Iterable[str]] = ..., alter_consumers: _Optional[_Iterable[_Union[AlterConsumer, _Mapping]]] = ..., set_metering_mode: _Optional[_Union[MeteringMode, str]] = ...) -> None: ...
+    set_metrics_level: int
+    reset_metrics_level: _empty_pb2.Empty
+    set_content_based_deduplication: bool
+    def __init__(self, operation_params: _Optional[_Union[_ydb_operation_pb2.OperationParams, _Mapping]] = ..., path: _Optional[str] = ..., alter_partitioning_settings: _Optional[_Union[AlterPartitioningSettings, _Mapping]] = ..., set_retention_period: _Optional[_Union[datetime.timedelta, _duration_pb2.Duration, _Mapping]] = ..., set_retention_storage_mb: _Optional[int] = ..., set_supported_codecs: _Optional[_Union[SupportedCodecs, _Mapping]] = ..., set_partition_write_speed_bytes_per_second: _Optional[int] = ..., set_partition_write_burst_bytes: _Optional[int] = ..., alter_attributes: _Optional[_Mapping[str, str]] = ..., add_consumers: _Optional[_Iterable[_Union[Consumer, _Mapping]]] = ..., drop_consumers: _Optional[_Iterable[str]] = ..., alter_consumers: _Optional[_Iterable[_Union[AlterConsumer, _Mapping]]] = ..., set_metering_mode: _Optional[_Union[MeteringMode, str]] = ..., set_metrics_level: _Optional[int] = ..., reset_metrics_level: _Optional[_Union[_empty_pb2.Empty, _Mapping]] = ..., set_content_based_deduplication: bool = ...) -> None: ...
 
 class AlterTopicResponse(_message.Message):
     __slots__ = ("operation",)

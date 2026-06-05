@@ -194,7 +194,7 @@ class ChangefeedFormat(_message.Message):
     def __init__(self) -> None: ...
 
 class Changefeed(_message.Message):
-    __slots__ = ("name", "mode", "format", "retention_period", "virtual_timestamps", "initial_scan", "attributes", "aws_region", "resolved_timestamps_interval", "topic_partitioning_settings")
+    __slots__ = ("name", "mode", "format", "retention_period", "virtual_timestamps", "initial_scan", "attributes", "aws_region", "resolved_timestamps_interval", "topic_partitioning_settings", "schema_changes")
     class AttributesEntry(_message.Message):
         __slots__ = ("key", "value")
         KEY_FIELD_NUMBER: _ClassVar[int]
@@ -212,6 +212,7 @@ class Changefeed(_message.Message):
     AWS_REGION_FIELD_NUMBER: _ClassVar[int]
     RESOLVED_TIMESTAMPS_INTERVAL_FIELD_NUMBER: _ClassVar[int]
     TOPIC_PARTITIONING_SETTINGS_FIELD_NUMBER: _ClassVar[int]
+    SCHEMA_CHANGES_FIELD_NUMBER: _ClassVar[int]
     name: str
     mode: ChangefeedMode.Mode
     format: ChangefeedFormat.Format
@@ -222,10 +223,11 @@ class Changefeed(_message.Message):
     aws_region: str
     resolved_timestamps_interval: _duration_pb2.Duration
     topic_partitioning_settings: _ydb_topic_pb2.PartitioningSettings
-    def __init__(self, name: _Optional[str] = ..., mode: _Optional[_Union[ChangefeedMode.Mode, str]] = ..., format: _Optional[_Union[ChangefeedFormat.Format, str]] = ..., retention_period: _Optional[_Union[datetime.timedelta, _duration_pb2.Duration, _Mapping]] = ..., virtual_timestamps: bool = ..., initial_scan: bool = ..., attributes: _Optional[_Mapping[str, str]] = ..., aws_region: _Optional[str] = ..., resolved_timestamps_interval: _Optional[_Union[datetime.timedelta, _duration_pb2.Duration, _Mapping]] = ..., topic_partitioning_settings: _Optional[_Union[_ydb_topic_pb2.PartitioningSettings, _Mapping]] = ...) -> None: ...
+    schema_changes: bool
+    def __init__(self, name: _Optional[str] = ..., mode: _Optional[_Union[ChangefeedMode.Mode, str]] = ..., format: _Optional[_Union[ChangefeedFormat.Format, str]] = ..., retention_period: _Optional[_Union[datetime.timedelta, _duration_pb2.Duration, _Mapping]] = ..., virtual_timestamps: bool = ..., initial_scan: bool = ..., attributes: _Optional[_Mapping[str, str]] = ..., aws_region: _Optional[str] = ..., resolved_timestamps_interval: _Optional[_Union[datetime.timedelta, _duration_pb2.Duration, _Mapping]] = ..., topic_partitioning_settings: _Optional[_Union[_ydb_topic_pb2.PartitioningSettings, _Mapping]] = ..., schema_changes: bool = ...) -> None: ...
 
 class ChangefeedDescription(_message.Message):
-    __slots__ = ("name", "mode", "format", "state", "virtual_timestamps", "attributes", "aws_region", "resolved_timestamps_interval")
+    __slots__ = ("name", "mode", "format", "state", "virtual_timestamps", "attributes", "aws_region", "resolved_timestamps_interval", "initial_scan_progress", "schema_changes")
     class State(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
         __slots__ = ()
         STATE_UNSPECIFIED: _ClassVar[ChangefeedDescription.State]
@@ -236,6 +238,13 @@ class ChangefeedDescription(_message.Message):
     STATE_ENABLED: ChangefeedDescription.State
     STATE_DISABLED: ChangefeedDescription.State
     STATE_INITIAL_SCAN: ChangefeedDescription.State
+    class InitialScanProgress(_message.Message):
+        __slots__ = ("parts_total", "parts_completed")
+        PARTS_TOTAL_FIELD_NUMBER: _ClassVar[int]
+        PARTS_COMPLETED_FIELD_NUMBER: _ClassVar[int]
+        parts_total: int
+        parts_completed: int
+        def __init__(self, parts_total: _Optional[int] = ..., parts_completed: _Optional[int] = ...) -> None: ...
     class AttributesEntry(_message.Message):
         __slots__ = ("key", "value")
         KEY_FIELD_NUMBER: _ClassVar[int]
@@ -251,6 +260,8 @@ class ChangefeedDescription(_message.Message):
     ATTRIBUTES_FIELD_NUMBER: _ClassVar[int]
     AWS_REGION_FIELD_NUMBER: _ClassVar[int]
     RESOLVED_TIMESTAMPS_INTERVAL_FIELD_NUMBER: _ClassVar[int]
+    INITIAL_SCAN_PROGRESS_FIELD_NUMBER: _ClassVar[int]
+    SCHEMA_CHANGES_FIELD_NUMBER: _ClassVar[int]
     name: str
     mode: ChangefeedMode.Mode
     format: ChangefeedFormat.Format
@@ -259,7 +270,9 @@ class ChangefeedDescription(_message.Message):
     attributes: _containers.ScalarMap[str, str]
     aws_region: str
     resolved_timestamps_interval: _duration_pb2.Duration
-    def __init__(self, name: _Optional[str] = ..., mode: _Optional[_Union[ChangefeedMode.Mode, str]] = ..., format: _Optional[_Union[ChangefeedFormat.Format, str]] = ..., state: _Optional[_Union[ChangefeedDescription.State, str]] = ..., virtual_timestamps: bool = ..., attributes: _Optional[_Mapping[str, str]] = ..., aws_region: _Optional[str] = ..., resolved_timestamps_interval: _Optional[_Union[datetime.timedelta, _duration_pb2.Duration, _Mapping]] = ...) -> None: ...
+    initial_scan_progress: ChangefeedDescription.InitialScanProgress
+    schema_changes: bool
+    def __init__(self, name: _Optional[str] = ..., mode: _Optional[_Union[ChangefeedMode.Mode, str]] = ..., format: _Optional[_Union[ChangefeedFormat.Format, str]] = ..., state: _Optional[_Union[ChangefeedDescription.State, str]] = ..., virtual_timestamps: bool = ..., attributes: _Optional[_Mapping[str, str]] = ..., aws_region: _Optional[str] = ..., resolved_timestamps_interval: _Optional[_Union[datetime.timedelta, _duration_pb2.Duration, _Mapping]] = ..., initial_scan_progress: _Optional[_Union[ChangefeedDescription.InitialScanProgress, _Mapping]] = ..., schema_changes: bool = ...) -> None: ...
 
 class StoragePool(_message.Message):
     __slots__ = ("media",)
@@ -779,13 +792,14 @@ class RenameTablesResponse(_message.Message):
     def __init__(self, operation: _Optional[_Union[_ydb_operation_pb2.Operation, _Mapping]] = ...) -> None: ...
 
 class DescribeTableRequest(_message.Message):
-    __slots__ = ("session_id", "path", "operation_params", "include_shard_key_bounds", "include_table_stats", "include_partition_stats", "include_shard_nodes_info")
+    __slots__ = ("session_id", "path", "operation_params", "include_shard_key_bounds", "include_table_stats", "include_partition_stats", "include_set_val", "include_shard_nodes_info")
     SESSION_ID_FIELD_NUMBER: _ClassVar[int]
     PATH_FIELD_NUMBER: _ClassVar[int]
     OPERATION_PARAMS_FIELD_NUMBER: _ClassVar[int]
     INCLUDE_SHARD_KEY_BOUNDS_FIELD_NUMBER: _ClassVar[int]
     INCLUDE_TABLE_STATS_FIELD_NUMBER: _ClassVar[int]
     INCLUDE_PARTITION_STATS_FIELD_NUMBER: _ClassVar[int]
+    INCLUDE_SET_VAL_FIELD_NUMBER: _ClassVar[int]
     INCLUDE_SHARD_NODES_INFO_FIELD_NUMBER: _ClassVar[int]
     session_id: str
     path: str
@@ -793,8 +807,9 @@ class DescribeTableRequest(_message.Message):
     include_shard_key_bounds: bool
     include_table_stats: bool
     include_partition_stats: bool
+    include_set_val: bool
     include_shard_nodes_info: bool
-    def __init__(self, session_id: _Optional[str] = ..., path: _Optional[str] = ..., operation_params: _Optional[_Union[_ydb_operation_pb2.OperationParams, _Mapping]] = ..., include_shard_key_bounds: bool = ..., include_table_stats: bool = ..., include_partition_stats: bool = ..., include_shard_nodes_info: bool = ...) -> None: ...
+    def __init__(self, session_id: _Optional[str] = ..., path: _Optional[str] = ..., operation_params: _Optional[_Union[_ydb_operation_pb2.OperationParams, _Mapping]] = ..., include_shard_key_bounds: bool = ..., include_table_stats: bool = ..., include_partition_stats: bool = ..., include_set_val: bool = ..., include_shard_nodes_info: bool = ...) -> None: ...
 
 class DescribeTableResponse(_message.Message):
     __slots__ = ("operation",)
@@ -1453,11 +1468,120 @@ class ExecuteScanQueryPartialResponse(_message.Message):
     def __init__(self, status: _Optional[_Union[_ydb_status_codes_pb2.StatusIds.StatusCode, str]] = ..., issues: _Optional[_Iterable[_Union[_ydb_issue_message_pb2.IssueMessage, _Mapping]]] = ..., result: _Optional[_Union[ExecuteScanQueryPartialResult, _Mapping]] = ...) -> None: ...
 
 class ExecuteScanQueryPartialResult(_message.Message):
-    __slots__ = ("result_set", "query_stats", "query_full_diagnostics")
+    __slots__ = ("result_set", "query_stats", "query_full_diagnostics", "snapshot")
     RESULT_SET_FIELD_NUMBER: _ClassVar[int]
     QUERY_STATS_FIELD_NUMBER: _ClassVar[int]
     QUERY_FULL_DIAGNOSTICS_FIELD_NUMBER: _ClassVar[int]
+    SNAPSHOT_FIELD_NUMBER: _ClassVar[int]
     result_set: _ydb_value_pb2.ResultSet
     query_stats: _ydb_query_stats_pb2.QueryStats
     query_full_diagnostics: str
-    def __init__(self, result_set: _Optional[_Union[_ydb_value_pb2.ResultSet, _Mapping]] = ..., query_stats: _Optional[_Union[_ydb_query_stats_pb2.QueryStats, _Mapping]] = ..., query_full_diagnostics: _Optional[str] = ...) -> None: ...
+    snapshot: _ydb_common_pb2.VirtualTimestamp
+    def __init__(self, result_set: _Optional[_Union[_ydb_value_pb2.ResultSet, _Mapping]] = ..., query_stats: _Optional[_Union[_ydb_query_stats_pb2.QueryStats, _Mapping]] = ..., query_full_diagnostics: _Optional[str] = ..., snapshot: _Optional[_Union[_ydb_common_pb2.VirtualTimestamp, _Mapping]] = ...) -> None: ...
+
+class DescribeExternalDataSourceRequest(_message.Message):
+    __slots__ = ("operation_params", "path")
+    OPERATION_PARAMS_FIELD_NUMBER: _ClassVar[int]
+    PATH_FIELD_NUMBER: _ClassVar[int]
+    operation_params: _ydb_operation_pb2.OperationParams
+    path: str
+    def __init__(self, operation_params: _Optional[_Union[_ydb_operation_pb2.OperationParams, _Mapping]] = ..., path: _Optional[str] = ...) -> None: ...
+
+class DescribeExternalDataSourceResponse(_message.Message):
+    __slots__ = ("operation",)
+    OPERATION_FIELD_NUMBER: _ClassVar[int]
+    operation: _ydb_operation_pb2.Operation
+    def __init__(self, operation: _Optional[_Union[_ydb_operation_pb2.Operation, _Mapping]] = ...) -> None: ...
+
+class DescribeExternalDataSourceResult(_message.Message):
+    __slots__ = ("self", "source_type", "location", "properties")
+    class PropertiesEntry(_message.Message):
+        __slots__ = ("key", "value")
+        KEY_FIELD_NUMBER: _ClassVar[int]
+        VALUE_FIELD_NUMBER: _ClassVar[int]
+        key: str
+        value: str
+        def __init__(self, key: _Optional[str] = ..., value: _Optional[str] = ...) -> None: ...
+    SELF_FIELD_NUMBER: _ClassVar[int]
+    SOURCE_TYPE_FIELD_NUMBER: _ClassVar[int]
+    LOCATION_FIELD_NUMBER: _ClassVar[int]
+    PROPERTIES_FIELD_NUMBER: _ClassVar[int]
+    self: _ydb_scheme_pb2.Entry
+    source_type: str
+    location: str
+    properties: _containers.ScalarMap[str, str]
+    def __init__(self_, self: _Optional[_Union[_ydb_scheme_pb2.Entry, _Mapping]] = ..., source_type: _Optional[str] = ..., location: _Optional[str] = ..., properties: _Optional[_Mapping[str, str]] = ...) -> None: ...
+
+class DescribeExternalTableRequest(_message.Message):
+    __slots__ = ("operation_params", "path")
+    OPERATION_PARAMS_FIELD_NUMBER: _ClassVar[int]
+    PATH_FIELD_NUMBER: _ClassVar[int]
+    operation_params: _ydb_operation_pb2.OperationParams
+    path: str
+    def __init__(self, operation_params: _Optional[_Union[_ydb_operation_pb2.OperationParams, _Mapping]] = ..., path: _Optional[str] = ...) -> None: ...
+
+class DescribeExternalTableResponse(_message.Message):
+    __slots__ = ("operation",)
+    OPERATION_FIELD_NUMBER: _ClassVar[int]
+    operation: _ydb_operation_pb2.Operation
+    def __init__(self, operation: _Optional[_Union[_ydb_operation_pb2.Operation, _Mapping]] = ...) -> None: ...
+
+class DescribeExternalTableResult(_message.Message):
+    __slots__ = ("self", "source_type", "data_source_path", "location", "columns", "content")
+    class ContentEntry(_message.Message):
+        __slots__ = ("key", "value")
+        KEY_FIELD_NUMBER: _ClassVar[int]
+        VALUE_FIELD_NUMBER: _ClassVar[int]
+        key: str
+        value: str
+        def __init__(self, key: _Optional[str] = ..., value: _Optional[str] = ...) -> None: ...
+    SELF_FIELD_NUMBER: _ClassVar[int]
+    SOURCE_TYPE_FIELD_NUMBER: _ClassVar[int]
+    DATA_SOURCE_PATH_FIELD_NUMBER: _ClassVar[int]
+    LOCATION_FIELD_NUMBER: _ClassVar[int]
+    COLUMNS_FIELD_NUMBER: _ClassVar[int]
+    CONTENT_FIELD_NUMBER: _ClassVar[int]
+    self: _ydb_scheme_pb2.Entry
+    source_type: str
+    data_source_path: str
+    location: str
+    columns: _containers.RepeatedCompositeFieldContainer[ColumnMeta]
+    content: _containers.ScalarMap[str, str]
+    def __init__(self_, self: _Optional[_Union[_ydb_scheme_pb2.Entry, _Mapping]] = ..., source_type: _Optional[str] = ..., data_source_path: _Optional[str] = ..., location: _Optional[str] = ..., columns: _Optional[_Iterable[_Union[ColumnMeta, _Mapping]]] = ..., content: _Optional[_Mapping[str, str]] = ...) -> None: ...
+
+class DescribeSystemViewRequest(_message.Message):
+    __slots__ = ("operation_params", "path")
+    OPERATION_PARAMS_FIELD_NUMBER: _ClassVar[int]
+    PATH_FIELD_NUMBER: _ClassVar[int]
+    operation_params: _ydb_operation_pb2.OperationParams
+    path: str
+    def __init__(self, operation_params: _Optional[_Union[_ydb_operation_pb2.OperationParams, _Mapping]] = ..., path: _Optional[str] = ...) -> None: ...
+
+class DescribeSystemViewResponse(_message.Message):
+    __slots__ = ("operation",)
+    OPERATION_FIELD_NUMBER: _ClassVar[int]
+    operation: _ydb_operation_pb2.Operation
+    def __init__(self, operation: _Optional[_Union[_ydb_operation_pb2.Operation, _Mapping]] = ...) -> None: ...
+
+class DescribeSystemViewResult(_message.Message):
+    __slots__ = ("self", "sys_view_id", "sys_view_name", "columns", "primary_key", "attributes")
+    class AttributesEntry(_message.Message):
+        __slots__ = ("key", "value")
+        KEY_FIELD_NUMBER: _ClassVar[int]
+        VALUE_FIELD_NUMBER: _ClassVar[int]
+        key: str
+        value: str
+        def __init__(self, key: _Optional[str] = ..., value: _Optional[str] = ...) -> None: ...
+    SELF_FIELD_NUMBER: _ClassVar[int]
+    SYS_VIEW_ID_FIELD_NUMBER: _ClassVar[int]
+    SYS_VIEW_NAME_FIELD_NUMBER: _ClassVar[int]
+    COLUMNS_FIELD_NUMBER: _ClassVar[int]
+    PRIMARY_KEY_FIELD_NUMBER: _ClassVar[int]
+    ATTRIBUTES_FIELD_NUMBER: _ClassVar[int]
+    self: _ydb_scheme_pb2.Entry
+    sys_view_id: int
+    sys_view_name: str
+    columns: _containers.RepeatedCompositeFieldContainer[ColumnMeta]
+    primary_key: _containers.RepeatedScalarFieldContainer[str]
+    attributes: _containers.ScalarMap[str, str]
+    def __init__(self_, self: _Optional[_Union[_ydb_scheme_pb2.Entry, _Mapping]] = ..., sys_view_id: _Optional[int] = ..., sys_view_name: _Optional[str] = ..., columns: _Optional[_Iterable[_Union[ColumnMeta, _Mapping]]] = ..., primary_key: _Optional[_Iterable[str]] = ..., attributes: _Optional[_Mapping[str, str]] = ...) -> None: ...
