@@ -1,7 +1,5 @@
 from unittest import mock
 
-import pytest
-
 from ydb._grpc.common.protos import ydb_query_pb2
 from ydb.query.session import QuerySession
 
