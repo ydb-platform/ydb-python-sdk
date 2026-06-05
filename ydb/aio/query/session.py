@@ -14,7 +14,6 @@ from .transaction import QueryTxContext
 from .. import _utilities
 from ... import issues
 from ...settings import BaseRequestSettings
-from ..._grpc.grpcwrapper import common_utils
 from ..._grpc.grpcwrapper import ydb_query_public_types as _ydb_query_public
 
 from ...query import base
