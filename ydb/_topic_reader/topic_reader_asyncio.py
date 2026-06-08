@@ -323,14 +323,44 @@ class ReaderReconnector:
             tx._add_callback(TxEvent.AFTER_COMMIT, self._handle_after_tx_commit, self._loop)
             tx._add_callback(TxEvent.AFTER_ROLLBACK, self._handle_after_tx_rollback, self._loop)
 
+    def _batch_partition_session_expired(self, batch: datatypes.PublicBatch) -> bool:
+        # A batch is expired if the reader reconnected after it was received: its partition
+        # session no longer belongs to the current stream. Mirrors the guard in
+        # ReaderStream.commit() for the non-transactional commit path.
+        stream = self._stream_reader
+        partition_session = batch._partition_session
+        return (
+            stream is None
+            or partition_session.reader_stream_id != stream._id
+            or partition_session.id not in stream._partition_sessions
+        )
+
     async def _commit_batches_with_tx(self, tx: "BaseQueryTxContext"):
         tx_id = tx.tx_id
         if tx_id is None:
             raise TopicReaderError("Transaction ID is None")
+
+        batches = self._tx_to_batches_map[tx_id]
+
+        if any(self._batch_partition_session_expired(batch) for batch in batches):
+            # The reader reconnected between receive_batch_with_tx() and tx.commit(), so
+            # these offsets belong to a partition session that no longer exists. Committing
+            # them would send a stale/gapped range (server "Gap", issue_code 2011) while the
+            # client believes the commit succeeded. Fail the tx instead (retriable) without
+            # sending the request; the AFTER_COMMIT handler then reconnects to reset the
+            # read-ahead state, and the pool re-reads from the committed offset.
+            err = issues.ClientInternalError(
+                "Topic reader partition session expired before tx commit; "
+                "offsets were not committed, the transaction will be retried"
+            )
+            tx._set_external_error(err)
+            del self._tx_to_batches_map[tx_id]
+            return
+
         grouped_batches: Dict[str, Dict[int, typing.List[datatypes.PublicBatch]]] = defaultdict(
             lambda: defaultdict(list)
         )
-        for batch in self._tx_to_batches_map[tx_id]:
+        for batch in batches:
             grouped_batches[batch._partition_session.topic_path][batch._partition_session.partition_id].append(batch)
 
         consumer = self._settings.consumer

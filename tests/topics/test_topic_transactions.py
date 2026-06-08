@@ -138,6 +138,49 @@ class TestTopicTransactionalReader:
                 msg = await wait_for(reader.receive_message(), DEFAULT_TIMEOUT)
                 assert msg.data.decode() == "123"
 
+    async def test_tx_commit_after_reconnect_does_not_commit_stale_offsets(
+        self, driver: ydb.aio.Driver, topic_with_messages, topic_consumer
+    ):
+        async with driver.topic_client.reader(topic_with_messages, topic_consumer) as reader:
+            async with ydb.aio.QuerySessionPool(driver) as pool:
+                async with pool.checkout() as session:
+                    tx = session.transaction()
+                    await tx.begin()
+
+                    batch = await wait_for(reader.receive_batch_with_tx(tx, max_messages=1), DEFAULT_TIMEOUT)
+                    assert batch.messages[0].data.decode() == "123"
+
+                    reconnector = reader._reconnector
+                    old_stream = reconnector._stream_reader
+
+                    with mock.patch.object(
+                        reconnector,
+                        "_do_commit_batches_with_tx_call",
+                        wraps=reconnector._do_commit_batches_with_tx_call,
+                    ) as update_offsets_call:
+                        # Force a reconnect between receive_batch_with_tx() and commit, so the
+                        # batch belongs to a partition session that no longer exists.
+                        old_stream._set_first_error(ydb.issues.ConnectionLost("forced reconnect"))
+                        for _ in range(100):
+                            await asyncio.sleep(0.05)
+                            current = reconnector._stream_reader
+                            if current is not None and current is not old_stream and current._started:
+                                break
+                        assert reconnector._stream_reader is not old_stream
+
+                        # Committing the stale batch must fail loudly instead of silently
+                        # sending a gapped UpdateOffsetsInTransaction for the dead session.
+                        with pytest.raises(ydb.Error):
+                            await tx.commit()
+
+                        update_offsets_call.assert_not_called()
+
+                assert len(reader._reconnector._tx_to_batches_map) == 0
+
+                # The consumer offset must not have advanced: the message is read again.
+                msg = await wait_for(reader.receive_message(), DEFAULT_TIMEOUT)
+                assert msg.data.decode() == "123"
+
 
 class TestTopicTransactionalReaderSync:
     def test_commit(self, driver_sync: ydb.Driver, topic_with_messages, topic_consumer):
