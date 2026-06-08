@@ -1,3 +1,4 @@
+## 3.29.2 ##
 * Fix transactional topic reader committing stale offsets after reconnect
 
 ## 3.29.1 ##
