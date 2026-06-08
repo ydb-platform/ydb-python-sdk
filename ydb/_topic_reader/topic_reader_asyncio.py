@@ -274,8 +274,8 @@ class ReaderReconnector:
                         # propagate cancellation (e.g. from reader.close()) so the loop stops
                         # instead of swallowing it and reconnecting into a zombie stream
                         raise
-                    except BaseException:
-                        # supress any error on close stream reader
+                    except Exception:
+                        # suppress any error on close stream reader
                         pass
 
     async def wait_message(self):
@@ -445,6 +445,9 @@ class ReaderReconnector:
         self._closed = True
         if self._stream_reader:
             await self._stream_reader.close(flush)
+        # Wake any pending wait_message() waiter (e.g. a concurrent receive) so it doesn't
+        # hang if the loop was reconnecting when close() cancelled it.
+        self._set_first_error(TopicReaderStreamClosedError())
         for task in self._background_tasks:
             task.cancel()
 

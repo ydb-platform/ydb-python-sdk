@@ -1577,7 +1577,7 @@ class TestReaderReconnector:
             if not held["done"]:
                 held["done"] = True
                 finally_close_started.set()
-                await asyncio.sleep(60)  # parked until reader.close() cancels the loop
+                await asyncio.Event().wait()  # parked until reader.close() cancels the loop
 
         stream1 = mock.Mock(ReaderStream)
         stream1._id = 1
