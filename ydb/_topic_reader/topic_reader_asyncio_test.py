@@ -1563,6 +1563,50 @@ class TestReaderReconnector:
         reader_stream_mock_with_error.wait_error.assert_any_await()
         reader_stream_mock_with_error.wait_messages.assert_any_await()
 
+    async def test_close_during_reconnect_does_not_hang(self):
+        # The connection loop must stop on reader.close() even while it is closing the old
+        # stream during a reconnect, instead of swallowing the cancellation and bringing up
+        # a new (zombie) stream while close() hangs forever.
+        finally_close_started = asyncio.Event()
+        held = {"done": False}
+
+        async def wait_error():
+            raise issues.Unavailable("trigger reconnect")
+
+        async def slow_close(flush=False):
+            if not held["done"]:
+                held["done"] = True
+                finally_close_started.set()
+                await asyncio.sleep(60)  # parked until reader.close() cancels the loop
+
+        stream1 = mock.Mock(ReaderStream)
+        stream1._id = 1
+        stream1.wait_error = mock.AsyncMock(side_effect=wait_error)
+        stream1.close = mock.AsyncMock(side_effect=slow_close)
+
+        async def wait_forever():
+            await asyncio.Future()
+
+        stream2 = mock.Mock(ReaderStream)
+        stream2._id = 2
+        stream2.wait_error = mock.AsyncMock(side_effect=wait_forever)
+        stream2.close = mock.AsyncMock()
+
+        create_calls = 0
+
+        async def stream_create(reader_reconnector_id, driver, settings):
+            nonlocal create_calls
+            create_calls += 1
+            return stream1 if create_calls == 1 else stream2
+
+        with mock.patch.object(ReaderStream, "create", stream_create):
+            reconnector = ReaderReconnector(mock.Mock(), PublicReaderSettings("", ""))
+            await asyncio.wait_for(finally_close_started.wait(), timeout=2)
+            await asyncio.wait_for(reconnector.close(flush=False), timeout=5)
+
+        # The loop stopped on close instead of reconnecting into a second (zombie) stream.
+        assert create_calls == 1
+
     async def test_wait_error_returns_on_cancelled_error_from_receive(self, default_reader_settings):
         receive_call = 0
 

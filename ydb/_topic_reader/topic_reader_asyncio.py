@@ -217,6 +217,7 @@ class ReaderReconnector:
     _stream_reader: Optional["ReaderStream"]
     _first_error: asyncio.Future[YdbError]
     _tx_to_batches_map: Dict[str, typing.List[datatypes.PublicBatch]]
+    _closed: bool
 
     def __init__(
         self,
@@ -233,6 +234,7 @@ class ReaderReconnector:
 
         self._state_changed = asyncio.Event()
         self._stream_reader = None
+        self._closed = False
         self._background_tasks.add(asyncio.create_task(self._connection_loop()))
         self._first_error = asyncio.get_running_loop().create_future()
 
@@ -241,6 +243,8 @@ class ReaderReconnector:
     async def _connection_loop(self):
         attempt = 0
         while True:
+            if self._closed:
+                return
             try:
                 logger.debug("reader %s connect attempt %s", self._id, attempt)
                 self._stream_reader = await ReaderStream.create(self._id, self._driver, self._settings)
@@ -266,6 +270,10 @@ class ReaderReconnector:
                     # noinspection PyBroadException
                     try:
                         await self._stream_reader.close(flush=False)
+                    except asyncio.CancelledError:
+                        # propagate cancellation (e.g. from reader.close()) so the loop stops
+                        # instead of swallowing it and reconnecting into a zombie stream
+                        raise
                     except BaseException:
                         # supress any error on close stream reader
                         pass
@@ -431,6 +439,10 @@ class ReaderReconnector:
 
     async def close(self, flush: bool):
         logger.debug("reader reconnector %s close", self._id)
+        # Mark closed so the connection loop won't bring up a new stream. Flush and close
+        # the current stream BEFORE cancelling the loop, otherwise the loop's flush=False
+        # finally-close would pre-empt the flush and drop pending commits.
+        self._closed = True
         if self._stream_reader:
             await self._stream_reader.close(flush)
         for task in self._background_tasks:
