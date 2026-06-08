@@ -1,3 +1,5 @@
+* Fix transactional topic reader committing stale offsets after reconnect
+
 ## 3.29.1 ##
 * Fix driver.wait hang
 
