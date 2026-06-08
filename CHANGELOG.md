@@ -1,3 +1,5 @@
+* Fix topic reader hang and zombie stream when closing during reconnect
+
 ## 3.29.2 ##
 * Fix transactional topic reader committing stale offsets after reconnect
 
