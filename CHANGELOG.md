@@ -1,3 +1,4 @@
+## 3.29.3 ##
 * Fix topic reader hang and zombie stream when closing during reconnect
 
 ## 3.29.2 ##
