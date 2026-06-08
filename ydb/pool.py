@@ -494,6 +494,15 @@ class ConnectionPool(IConnectionPool):
         if self._discovery_thread:
             self._discovery_thread.notify_disconnected()
 
+    def _pessimize_node(self, node_id: Optional[int]) -> None:
+        """Deprioritize the connection attached to the given YDB node."""
+        if node_id is None or node_id <= 0:
+            return
+
+        connection = self._store.connections_by_node_id.get(node_id)
+        if connection is not None:
+            self._on_disconnected(connection)
+
     def discovery_debug_details(self) -> str:
         """
         Returns debug string about last errors

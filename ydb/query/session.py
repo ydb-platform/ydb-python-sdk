@@ -1,5 +1,4 @@
 import abc
-import asyncio
 import json
 import logging
 import threading
@@ -169,41 +168,10 @@ class BaseQuerySession(abc.ABC, Generic[DriverT]):
 
         hint = response_pb.WhichOneof("session_hint")
         if hint == "node_shutdown":
-            self._pessimize_node_by_id(self._node_id)
+            self._driver._pessimize_node(self._node_id)
             self._close_session(invalidate=True)
         elif hint == "session_shutdown":
             self._close_session(invalidate=True)
-
-    def _pessimize_node_by_id(self, node_id: Optional[int]) -> None:
-        """Deprioritize the node's connection (same effect as a transport failure)."""
-        if node_id is None or node_id <= 0:
-            return
-
-        store = getattr(self._driver, "_store", None)
-        if store is None:
-            return
-
-        connection = getattr(store, "connections_by_node_id", {}).get(node_id)
-        if connection is None:
-            return
-
-        on_disconnected = getattr(self._driver, "_on_disconnected", None)
-        if on_disconnected is None:
-            connection.close()
-            return
-
-        disconnect_cb = on_disconnected(connection)
-        if disconnect_cb is None:
-            return
-
-        if asyncio.iscoroutinefunction(disconnect_cb):
-            loop = getattr(self, "_loop", None)
-            if loop is not None and loop.is_running():
-                loop.create_task(disconnect_cb())
-            return
-
-        if callable(disconnect_cb):
-            disconnect_cb()
 
     def _close_session(self, invalidate: bool = False) -> None:
         if self._closed:
