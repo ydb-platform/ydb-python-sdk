@@ -217,6 +217,7 @@ class ReaderReconnector:
     _stream_reader: Optional["ReaderStream"]
     _first_error: asyncio.Future[YdbError]
     _tx_to_batches_map: Dict[str, typing.List[datatypes.PublicBatch]]
+    _closed: bool
 
     def __init__(
         self,
@@ -233,6 +234,7 @@ class ReaderReconnector:
 
         self._state_changed = asyncio.Event()
         self._stream_reader = None
+        self._closed = False
         self._background_tasks.add(asyncio.create_task(self._connection_loop()))
         self._first_error = asyncio.get_running_loop().create_future()
 
@@ -241,6 +243,8 @@ class ReaderReconnector:
     async def _connection_loop(self):
         attempt = 0
         while True:
+            if self._closed:
+                return
             try:
                 logger.debug("reader %s connect attempt %s", self._id, attempt)
                 self._stream_reader = await ReaderStream.create(self._id, self._driver, self._settings)
@@ -266,8 +270,12 @@ class ReaderReconnector:
                     # noinspection PyBroadException
                     try:
                         await self._stream_reader.close(flush=False)
-                    except BaseException:
-                        # supress any error on close stream reader
+                    except asyncio.CancelledError:
+                        # propagate cancellation (e.g. from reader.close()) so the loop stops
+                        # instead of swallowing it and reconnecting into a zombie stream
+                        raise
+                    except Exception:
+                        # suppress any error on close stream reader
                         pass
 
     async def wait_message(self):
@@ -431,8 +439,16 @@ class ReaderReconnector:
 
     async def close(self, flush: bool):
         logger.debug("reader reconnector %s close", self._id)
+        # Mark closed so the connection loop won't start a new stream, then close the
+        # current stream with the requested flush before cancelling the loop. On a normal
+        # close this flushes pending commits; cancelling the loop first would let it close
+        # the stream with flush=False instead and skip the flush.
+        self._closed = True
         if self._stream_reader:
             await self._stream_reader.close(flush)
+        # Wake any pending wait_message() waiter (e.g. a concurrent receive) so it doesn't
+        # hang if the loop was reconnecting when close() cancelled it.
+        self._set_first_error(TopicReaderStreamClosedError())
         for task in self._background_tasks:
             task.cancel()
 
