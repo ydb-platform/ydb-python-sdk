@@ -439,9 +439,10 @@ class ReaderReconnector:
 
     async def close(self, flush: bool):
         logger.debug("reader reconnector %s close", self._id)
-        # Mark closed so the connection loop won't bring up a new stream. Flush and close
-        # the current stream BEFORE cancelling the loop, otherwise the loop's flush=False
-        # finally-close would pre-empt the flush and drop pending commits.
+        # Mark closed so the connection loop won't start a new stream, then close the
+        # current stream with the requested flush before cancelling the loop. On a normal
+        # close this flushes pending commits; cancelling the loop first would let it close
+        # the stream with flush=False instead and skip the flush.
         self._closed = True
         if self._stream_reader:
             await self._stream_reader.close(flush)
