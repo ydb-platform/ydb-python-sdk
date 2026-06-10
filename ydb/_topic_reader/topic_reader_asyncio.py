@@ -515,6 +515,11 @@ class ReaderStream:
         self._id = ReaderStream._static_id_counter.inc_and_get()
         self._reader_reconnector_id = reader_reconnector_id
         self._session_id = "not initialized"
+        self._log_prefix = "reader %s stream %s session=%s" % (
+            self._reader_reconnector_id,
+            self._id,
+            self._session_id,
+        )
         self._stream = None
         self._started = False
         self._background_tasks = set()
@@ -570,7 +575,7 @@ class ReaderStream:
             else:
                 stream.close()
             raise
-        logger.debug("reader stream %s started session=%s", reader._id, reader._session_id)
+        logger.debug("%s started", reader._log_prefix)
         return reader
 
     async def _start(self, stream: IGrpcWrapperAsyncIO, init_message: StreamReadMessage.InitRequest):
@@ -579,7 +584,7 @@ class ReaderStream:
 
         self._started = True
         self._stream = stream
-        logger.debug("reader stream %s send init request", self._id)
+        logger.debug("%s send init request", self._log_prefix)
 
         stream.write(StreamReadMessage.FromClient(client_message=init_message))
         try:
@@ -591,7 +596,12 @@ class ReaderStream:
 
         if isinstance(init_response.server_message, StreamReadMessage.InitResponse):
             self._session_id = init_response.server_message.session_id
-            logger.debug("reader stream %s initialized session=%s", self._id, self._session_id)
+            self._log_prefix = "reader %s stream %s session=%s" % (
+                self._reader_reconnector_id,
+                self._id,
+                self._session_id,
+            )
+            logger.debug("%s initialized", self._log_prefix)
         else:
             raise TopicReaderError("Unexpected message after InitRequest: %s" % init_response)
 
@@ -725,7 +735,7 @@ class ReaderStream:
 
     async def _read_messages_loop(self):
         try:
-            logger.debug("reader stream %s start read loop", self._id)
+            logger.debug("%s start read loop", self._log_prefix)
             self._stream.write(
                 StreamReadMessage.FromClient(
                     client_message=StreamReadMessage.ReadRequest(
@@ -739,7 +749,7 @@ class ReaderStream:
                     _process_response(message.server_status)
 
                     if isinstance(message.server_message, StreamReadMessage.ReadResponse):
-                        logger.debug("reader stream %s read %s bytes", self._id, message.server_message.bytes_size)
+                        logger.debug("%s read %s bytes", self._log_prefix, message.server_message.bytes_size)
                         self._on_read_response(message.server_message)
 
                     elif isinstance(message.server_message, StreamReadMessage.CommitOffsetResponse):
@@ -750,8 +760,8 @@ class ReaderStream:
                         StreamReadMessage.StartPartitionSessionRequest,
                     ):
                         logger.debug(
-                            "reader stream %s start partition %s",
-                            self._id,
+                            "%s start partition %s",
+                            self._log_prefix,
                             message.server_message.partition_session.partition_session_id,
                         )
                         await self._on_start_partition_session(message.server_message)
@@ -761,8 +771,8 @@ class ReaderStream:
                         StreamReadMessage.StopPartitionSessionRequest,
                     ):
                         logger.debug(
-                            "reader stream %s stop partition %s",
-                            self._id,
+                            "%s stop partition %s",
+                            self._log_prefix,
                             message.server_message.partition_session_id,
                         )
                         self._on_partition_session_stop(message.server_message)
@@ -772,8 +782,8 @@ class ReaderStream:
                         StreamReadMessage.EndPartitionSession,
                     ):
                         logger.debug(
-                            "reader stream %s end partition %s",
-                            self._id,
+                            "%s end partition %s",
+                            self._log_prefix,
                             message.server_message.partition_session_id,
                         )
                         self._on_end_partition_session(message.server_message)
@@ -790,12 +800,12 @@ class ReaderStream:
 
                 self._state_changed.set()
         except asyncio.CancelledError as e:
-            logger.debug("reader stream %s error: %s", self._id, e)
+            logger.debug("%s error: %s", self._log_prefix, e)
             if not self._closed:
                 self._set_first_error(issues.ConnectionLost("gRPC stream cancelled"))
             raise
         except Exception as e:
-            logger.debug("reader stream %s error: %s", self._id, e)
+            logger.debug("%s error: %s", self._log_prefix, e)
             self._set_first_error(e)
             return
 
@@ -965,7 +975,7 @@ class ReaderStream:
     async def _decode_batches_loop(self):
         while True:
             batch = await self._batches_to_decode.get()
-            logger.debug("reader stream %s decode batch %s messages", self._id, len(batch.messages))
+            logger.debug("%s decode batch %s messages", self._log_prefix, len(batch.messages))
             await self._decode_batch_inplace(batch)
             self._add_batch_to_queue(batch)
             self._state_changed.set()
@@ -975,8 +985,8 @@ class ReaderStream:
         if part_sess_id in self._message_batches:
             self._message_batches[part_sess_id]._extend(batch)
             logger.debug(
-                "reader stream %s extend batch partition=%s size=%s",
-                self._id,
+                "%s extend batch partition=%s size=%s",
+                self._log_prefix,
                 part_sess_id,
                 len(batch.messages),
             )
@@ -984,8 +994,8 @@ class ReaderStream:
 
         self._message_batches[part_sess_id] = batch
         logger.debug(
-            "reader stream %s new batch partition=%s size=%s",
-            self._id,
+            "%s new batch partition=%s size=%s",
+            self._log_prefix,
             part_sess_id,
             len(batch.messages),
         )
@@ -1036,7 +1046,7 @@ class ReaderStream:
             return
 
         self._closed = True
-        logger.debug("reader stream %s close", self._id)
+        logger.debug("%s close", self._log_prefix)
 
         if flush:
             await self.flush()
@@ -1056,4 +1066,4 @@ class ReaderStream:
         if self._background_tasks:
             await asyncio.wait(self._background_tasks)
 
-        logger.debug("reader stream %s was closed", self._id)
+        logger.debug("%s was closed", self._log_prefix)

@@ -1,4 +1,5 @@
 * Fix leaked topic reader stream when close interrupts stream creation during reconnect
+* Include reconnector and read session ids in topic reader logs
 
 ## 3.29.3 ##
 * Fix topic reader hang and zombie stream when closing during reconnect
