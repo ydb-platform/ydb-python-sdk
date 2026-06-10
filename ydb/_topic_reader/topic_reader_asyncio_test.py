@@ -1607,6 +1607,37 @@ class TestReaderReconnector:
         # The loop stopped on close instead of reconnecting into a second (zombie) stream.
         assert create_calls == 1
 
+    async def test_create_closes_inflight_stream_on_cancel(self, default_reader_settings):
+        # If create() is cancelled (e.g. reader.close() cancels the connection loop during a
+        # reconnect) while parked on the init handshake, the in-flight gRPC stream must be
+        # closed. Otherwise it leaks as a zombie read session that keeps holding the
+        # consumer's partition on the server, and a fresh reader never gets it assigned.
+        built = []
+
+        class FakeStream(StreamMock):
+            def __init__(self, *args, **kwargs):
+                super().__init__()
+                built.append(self)
+
+            async def start(self, driver, stub, method):
+                return None
+
+        driver = mock.Mock()
+        driver._credentials = None
+
+        with mock.patch.object(topic_reader_asyncio, "GrpcWrapperAsyncIO", FakeStream):
+            # Real create(); no InitResponse is sent, so it parks inside _start() on
+            # `await stream.receive()` (the only reachable cancellation point in create()).
+            create_task = asyncio.create_task(ReaderStream.create(7, driver, default_reader_settings))
+            await wait_condition(lambda: bool(built) and not built[0].from_client.empty())
+            assert not create_task.done()
+
+            create_task.cancel()
+            with pytest.raises(asyncio.CancelledError):
+                await create_task
+
+        assert built[0]._closed, "create() leaked the in-flight gRPC stream on cancel"
+
     async def test_wait_error_returns_on_cancelled_error_from_receive(self, default_reader_settings):
         receive_call = 0
 

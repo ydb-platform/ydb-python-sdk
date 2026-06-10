@@ -549,16 +549,27 @@ class ReaderStream:
         settings: topic_reader.PublicReaderSettings,
     ) -> "ReaderStream":
         stream = GrpcWrapperAsyncIO(StreamReadMessage.FromServer.from_proto)
+        reader = None
+        try:
+            await stream.start(driver, _apis.TopicService.Stub, _apis.TopicService.StreamRead)
 
-        await stream.start(driver, _apis.TopicService.Stub, _apis.TopicService.StreamRead)
-
-        creds = driver._credentials
-        reader = ReaderStream(
-            reader_reconnector_id,
-            settings,
-            get_token_function=creds.get_auth_token if creds else None,
-        )
-        await reader._start(stream, settings._init_message())
+            creds = driver._credentials
+            reader = ReaderStream(
+                reader_reconnector_id,
+                settings,
+                get_token_function=creds.get_auth_token if creds else None,
+            )
+            await reader._start(stream, settings._init_message())
+        except BaseException:
+            # If create() is interrupted (e.g. reader.close() cancels the connection loop
+            # mid-reconnect) the in-flight stream is not yet assigned to the reconnector, so
+            # its finally cannot reach it. Close it here to avoid a zombie gRPC read session
+            # that keeps holding the consumer's partition on the server.
+            if reader is not None:
+                await reader.close(flush=False)
+            else:
+                stream.close()
+            raise
         logger.debug("reader stream %s started session=%s", reader._id, reader._session_id)
         return reader
 
