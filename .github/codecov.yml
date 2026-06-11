@@ -1,0 +1,38 @@
+coverage:
+  status:
+    project:
+      default:
+        target: auto       # do not drop below the current level...
+        threshold: 1%      # ...by more than 1%
+    patch:
+      default:
+        target: 80%        # new/changed code in the PR diff must be >= 80% covered
+
+flags:
+  unit:
+    paths:
+      - ydb/
+    carryforward: true
+  integration:
+    paths:
+      - ydb/
+    carryforward: true
+
+comment:
+  layout: "reach, diff, flags, files"
+  require_changes: false
+
+# Auto-generated protobuf stubs and tests must not affect the metric.
+# Already excluded from coverage.xml via [tool.coverage.run] omit, listed here for safety.
+ignore:
+  - "ydb/_grpc/v3"
+  - "ydb/_grpc/v4"
+  - "ydb/_grpc/v5"
+  - "ydb/_grpc/v6"
+  - "ydb/dbapi"        # legacy
+  - "ydb/sqlalchemy"   # legacy
+  - "**/*_test.py"
+  - "tests"
+  - "examples"
+  - "docs"
+  - "benchmarks"
