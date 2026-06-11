@@ -311,9 +311,9 @@ class ConnectionPool(IConnectionPool):
 
         return __wrapper__
 
-    def _pessimize_node(self, node_id: Optional[int]) -> None:
+    def _pessimize_node(self, node_id: int) -> None:
         """Deprioritize the connection attached to the given YDB node."""
-        if node_id is None or node_id <= 0:
+        if node_id <= 0:
             return
 
         connection = cast(Optional[Connection], self._store.connections_by_node_id.get(node_id))
