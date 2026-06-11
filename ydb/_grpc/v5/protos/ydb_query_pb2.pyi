@@ -226,6 +226,10 @@ class FetchScriptResultsResponse(_message.Message):
     status: _ydb_status_codes_pb2.StatusIds.StatusCode
     def __init__(self, status: _Optional[_Union[_ydb_status_codes_pb2.StatusIds.StatusCode, str]] = ..., issues: _Optional[_Iterable[_Union[_ydb_issue_message_pb2.IssueMessage, _Mapping]]] = ..., result_set_index: _Optional[int] = ..., result_set: _Optional[_Union[_ydb_value_pb2.ResultSet, _Mapping]] = ..., next_fetch_token: _Optional[str] = ...) -> None: ...
 
+class NodeShutdownHint(_message.Message):
+    __slots__ = []
+    def __init__(self) -> None: ...
+
 class OnlineModeSettings(_message.Message):
     __slots__ = ["allow_inconsistent_reads"]
     ALLOW_INCONSISTENT_READS_FIELD_NUMBER: _ClassVar[int]
@@ -272,13 +276,21 @@ class SerializableModeSettings(_message.Message):
     __slots__ = []
     def __init__(self) -> None: ...
 
+class SessionShutdownHint(_message.Message):
+    __slots__ = []
+    def __init__(self) -> None: ...
+
 class SessionState(_message.Message):
-    __slots__ = ["issues", "status"]
+    __slots__ = ["issues", "node_shutdown", "session_shutdown", "status"]
     ISSUES_FIELD_NUMBER: _ClassVar[int]
+    NODE_SHUTDOWN_FIELD_NUMBER: _ClassVar[int]
+    SESSION_SHUTDOWN_FIELD_NUMBER: _ClassVar[int]
     STATUS_FIELD_NUMBER: _ClassVar[int]
     issues: _containers.RepeatedCompositeFieldContainer[_ydb_issue_message_pb2.IssueMessage]
+    node_shutdown: NodeShutdownHint
+    session_shutdown: SessionShutdownHint
     status: _ydb_status_codes_pb2.StatusIds.StatusCode
-    def __init__(self, status: _Optional[_Union[_ydb_status_codes_pb2.StatusIds.StatusCode, str]] = ..., issues: _Optional[_Iterable[_Union[_ydb_issue_message_pb2.IssueMessage, _Mapping]]] = ...) -> None: ...
+    def __init__(self, status: _Optional[_Union[_ydb_status_codes_pb2.StatusIds.StatusCode, str]] = ..., issues: _Optional[_Iterable[_Union[_ydb_issue_message_pb2.IssueMessage, _Mapping]]] = ..., session_shutdown: _Optional[_Union[SessionShutdownHint, _Mapping]] = ..., node_shutdown: _Optional[_Union[NodeShutdownHint, _Mapping]] = ...) -> None: ...
 
 class SnapshotModeSettings(_message.Message):
     __slots__ = []

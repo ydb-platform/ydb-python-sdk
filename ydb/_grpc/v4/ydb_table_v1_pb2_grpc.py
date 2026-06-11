@@ -124,6 +124,21 @@ class TableServiceStub(object):
                 request_serializer=protos_dot_ydb__table__pb2.ExecuteScanQueryRequest.SerializeToString,
                 response_deserializer=protos_dot_ydb__table__pb2.ExecuteScanQueryPartialResponse.FromString,
                 )
+        self.DescribeExternalDataSource = channel.unary_unary(
+                '/Ydb.Table.V1.TableService/DescribeExternalDataSource',
+                request_serializer=protos_dot_ydb__table__pb2.DescribeExternalDataSourceRequest.SerializeToString,
+                response_deserializer=protos_dot_ydb__table__pb2.DescribeExternalDataSourceResponse.FromString,
+                )
+        self.DescribeExternalTable = channel.unary_unary(
+                '/Ydb.Table.V1.TableService/DescribeExternalTable',
+                request_serializer=protos_dot_ydb__table__pb2.DescribeExternalTableRequest.SerializeToString,
+                response_deserializer=protos_dot_ydb__table__pb2.DescribeExternalTableResponse.FromString,
+                )
+        self.DescribeSystemView = channel.unary_unary(
+                '/Ydb.Table.V1.TableService/DescribeSystemView',
+                request_serializer=protos_dot_ydb__table__pb2.DescribeSystemViewRequest.SerializeToString,
+                response_deserializer=protos_dot_ydb__table__pb2.DescribeSystemViewResponse.FromString,
+                )
 
 
 class TableServiceServicer(object):
@@ -133,7 +148,7 @@ class TableServiceServicer(object):
         """Create new session. Implicit session creation is forbidden,
         so user must create new session before execute any query,
         otherwise BAD_SESSION status will be returned.
-        Simultaneous execution of requests are forbiden.
+        Simultaneous execution of requests are forbidden.
         Sessions are volatile, can be invalidated by server, for example in case
         of fatal errors. All requests with this session will fail with BAD_SESSION status.
         So, client must be able to handle BAD_SESSION status.
@@ -295,6 +310,27 @@ class TableServiceServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def DescribeExternalDataSource(self, request, context):
+        """Returns information about a given external data source.
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def DescribeExternalTable(self, request, context):
+        """Returns information about a given external table.
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def DescribeSystemView(self, request, context):
+        """Returns information about a given system view table.
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
 
 def add_TableServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
@@ -407,6 +443,21 @@ def add_TableServiceServicer_to_server(servicer, server):
                     servicer.StreamExecuteScanQuery,
                     request_deserializer=protos_dot_ydb__table__pb2.ExecuteScanQueryRequest.FromString,
                     response_serializer=protos_dot_ydb__table__pb2.ExecuteScanQueryPartialResponse.SerializeToString,
+            ),
+            'DescribeExternalDataSource': grpc.unary_unary_rpc_method_handler(
+                    servicer.DescribeExternalDataSource,
+                    request_deserializer=protos_dot_ydb__table__pb2.DescribeExternalDataSourceRequest.FromString,
+                    response_serializer=protos_dot_ydb__table__pb2.DescribeExternalDataSourceResponse.SerializeToString,
+            ),
+            'DescribeExternalTable': grpc.unary_unary_rpc_method_handler(
+                    servicer.DescribeExternalTable,
+                    request_deserializer=protos_dot_ydb__table__pb2.DescribeExternalTableRequest.FromString,
+                    response_serializer=protos_dot_ydb__table__pb2.DescribeExternalTableResponse.SerializeToString,
+            ),
+            'DescribeSystemView': grpc.unary_unary_rpc_method_handler(
+                    servicer.DescribeSystemView,
+                    request_deserializer=protos_dot_ydb__table__pb2.DescribeSystemViewRequest.FromString,
+                    response_serializer=protos_dot_ydb__table__pb2.DescribeSystemViewResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -789,5 +840,56 @@ class TableService(object):
         return grpc.experimental.unary_stream(request, target, '/Ydb.Table.V1.TableService/StreamExecuteScanQuery',
             protos_dot_ydb__table__pb2.ExecuteScanQueryRequest.SerializeToString,
             protos_dot_ydb__table__pb2.ExecuteScanQueryPartialResponse.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def DescribeExternalDataSource(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/Ydb.Table.V1.TableService/DescribeExternalDataSource',
+            protos_dot_ydb__table__pb2.DescribeExternalDataSourceRequest.SerializeToString,
+            protos_dot_ydb__table__pb2.DescribeExternalDataSourceResponse.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def DescribeExternalTable(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/Ydb.Table.V1.TableService/DescribeExternalTable',
+            protos_dot_ydb__table__pb2.DescribeExternalTableRequest.SerializeToString,
+            protos_dot_ydb__table__pb2.DescribeExternalTableResponse.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def DescribeSystemView(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/Ydb.Table.V1.TableService/DescribeSystemView',
+            protos_dot_ydb__table__pb2.DescribeSystemViewRequest.SerializeToString,
+            protos_dot_ydb__table__pb2.DescribeSystemViewResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)

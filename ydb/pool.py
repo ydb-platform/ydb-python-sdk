@@ -160,6 +160,10 @@ class ConnectionsCache:
             self.connections.pop(connection.endpoint, None)
             self.outdated.pop(connection.endpoint, None)
 
+    def get_connection_by_node_id(self, node_id: Optional[int]) -> Optional[Connection]:
+        with self.lock:
+            return self.connections_by_node_id.get(node_id)
+
 
 class Discovery(threading.Thread):
     def __init__(self, store: ConnectionsCache, driver_config: "DriverConfig") -> None:
@@ -493,6 +497,15 @@ class ConnectionPool(IConnectionPool):
         connection.close()
         if self._discovery_thread:
             self._discovery_thread.notify_disconnected()
+
+    def _pessimize_node(self, node_id: int) -> None:
+        """Deprioritize the connection attached to the given YDB node."""
+        if node_id <= 0:
+            return
+
+        connection = self._store.get_connection_by_node_id(node_id)
+        if connection is not None:
+            self._on_disconnected(connection)
 
     def discovery_debug_details(self) -> str:
         """
