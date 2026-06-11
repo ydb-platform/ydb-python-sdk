@@ -60,6 +60,20 @@ class TestQuerySessionAttachHints:
         driver._pessimize_node.assert_called_once_with(0)
         assert session._invalidated
 
+    def test_node_shutdown_without_node_id_skips_pessimization(self):
+        session, driver = _make_session(node_id=None)
+
+        session._handle_attach_session_state(
+            ydb_query_pb2.SessionState(
+                status=0,
+                node_shutdown=ydb_query_pb2.NodeShutdownHint(),
+            )
+        )
+
+        driver._pessimize_node.assert_not_called()
+        assert session._invalidated
+        assert session._closed
+
     def test_no_hint_does_not_invalidate(self):
         session, driver = _make_session()
 
@@ -92,7 +106,6 @@ class TestConnectionPoolAttachHintPessimization:
 
         pool._pessimize_node(42)
         pool._pessimize_node(0)
-        pool._pessimize_node(None)
 
         pool._on_disconnected.assert_not_called()
 
