@@ -316,7 +316,7 @@ class ConnectionPool(IConnectionPool):
         if node_id <= 0:
             return
 
-        connection = cast(Optional[Connection], self._store.connections_by_node_id.get(node_id))
+        connection = cast(Optional[Connection], self._store.get_connection_by_node_id(node_id))
         if connection is not None:
             asyncio.get_running_loop().create_task(self._on_disconnected(connection)())
 

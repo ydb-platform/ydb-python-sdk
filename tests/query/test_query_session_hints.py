@@ -91,17 +91,18 @@ class TestConnectionPoolAttachHintPessimization:
         pool = ConnectionPool.__new__(ConnectionPool)
         connection = mock.Mock()
         pool._store = mock.Mock()
-        pool._store.connections_by_node_id = {42: connection}
+        pool._store.get_connection_by_node_id.return_value = connection
         pool._on_disconnected = mock.Mock()
 
         pool._pessimize_node(42)
 
+        pool._store.get_connection_by_node_id.assert_called_once_with(42)
         pool._on_disconnected.assert_called_once_with(connection)
 
     def test_sync_pool_ignores_missing_node_connection(self):
         pool = ConnectionPool.__new__(ConnectionPool)
         pool._store = mock.Mock()
-        pool._store.connections_by_node_id = {}
+        pool._store.get_connection_by_node_id.return_value = None
         pool._on_disconnected = mock.Mock()
 
         pool._pessimize_node(42)
@@ -115,11 +116,12 @@ class TestConnectionPoolAttachHintPessimization:
         connection = mock.Mock()
         disconnect = mock.AsyncMock()
         pool._store = mock.Mock()
-        pool._store.connections_by_node_id = {42: connection}
+        pool._store.get_connection_by_node_id.return_value = connection
         pool._on_disconnected = mock.Mock(return_value=disconnect)
 
         pool._pessimize_node(42)
         await asyncio.sleep(0)
 
+        pool._store.get_connection_by_node_id.assert_called_once_with(42)
         pool._on_disconnected.assert_called_once_with(connection)
         disconnect.assert_awaited_once_with()
