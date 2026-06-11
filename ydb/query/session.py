@@ -168,7 +168,8 @@ class BaseQuerySession(abc.ABC, Generic[DriverT]):
 
         hint = response_pb.WhichOneof("session_hint")
         if hint == "node_shutdown":
-            self._driver._pessimize_node(self._node_id)
+            if self._node_id is not None:
+                self._driver._pessimize_node(self._node_id)
             self._close_session(invalidate=True)
         elif hint == "session_shutdown":
             self._close_session(invalidate=True)
