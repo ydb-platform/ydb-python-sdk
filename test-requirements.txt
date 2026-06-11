@@ -44,6 +44,6 @@ pylint-protobuf
 cython
 freezegun>=1.3.0
 opentelemetry-sdk>=1.0.0
-# pytest-cov
+pytest-cov>=4.0.0
 yandexcloud
 -e .

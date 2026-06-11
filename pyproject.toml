@@ -49,3 +49,29 @@ ignore_missing_imports = true
 [[tool.mypy.overrides]]
 module = ["ydb.types", "ydb.table"]
 disable_error_code = ["attr-defined"]
+
+[tool.coverage.run]
+branch = true
+source = ["ydb"]
+# Auto-generated protobuf stubs and test files must not skew the metric.
+omit = [
+    "ydb/_grpc/v3/*",
+    "ydb/_grpc/v4/*",
+    "ydb/_grpc/v5/*",
+    "ydb/_grpc/v6/*",
+    "*_test.py",
+    # Legacy, no longer actively developed.
+    "ydb/dbapi/*",
+    "ydb/sqlalchemy/*",
+]
+
+[tool.coverage.report]
+show_missing = true
+exclude_also = [
+    "if TYPE_CHECKING:",
+    "raise NotImplementedError",
+    "@(abc\\.)?abstractmethod",
+]
+
+[tool.coverage.html]
+directory = "cov_html"

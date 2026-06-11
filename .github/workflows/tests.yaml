@@ -61,3 +61,54 @@ jobs:
 
     - name: Run unit tests
       run: tox -e py -- ydb
+
+  coverage:
+    runs-on: ubuntu-latest
+
+    concurrency:
+      group: coverage-${{ github.ref }}
+      cancel-in-progress: true
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.12"
+
+    - name: Install tox
+      run: |
+        python -m pip install --upgrade pip
+        pip install tox==4.2.6
+
+    # sysmon (PEP 669) keeps tracer overhead low so timing-sensitive chaos
+    # tests (which kill/restart YDB) still pass under coverage. Requires py3.12+.
+    - name: Unit tests with coverage
+      env:
+        COVERAGE_CORE: sysmon
+      run: tox -e cov -- ydb
+
+    - name: Upload unit coverage to Codecov
+      uses: codecov/codecov-action@v5
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        files: ./coverage.xml
+        flags: unit
+        name: unit
+        # The gate is enforced via Codecov status checks (branch protection),
+        # so don't fail CI on transient upload errors.
+        fail_ci_if_error: false
+
+    - name: Integration tests with coverage
+      env:
+        COVERAGE_CORE: sysmon
+      run: tox -e cov -- tests
+
+    - name: Upload integration coverage to Codecov
+      uses: codecov/codecov-action@v5
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        files: ./coverage.xml
+        flags: integration
+        name: integration
+        fail_ci_if_error: false

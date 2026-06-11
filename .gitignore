@@ -9,7 +9,9 @@ ydb.egg-info/
 /ydb_data
 /tmp
 .coverage
+.coverage.*
 /cov_html
+/coverage.xml
 /build
 docs/_build
 .DS_Store
