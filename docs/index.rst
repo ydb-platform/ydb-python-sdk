@@ -126,6 +126,10 @@ application using OpenTelemetry. One call to ``enable_tracing()`` instruments
 query sessions, transactions, and connection pool operations — so you can
 visualize request flow in Jaeger, Grafana, or any OpenTelemetry-compatible backend.
 
+The same page also covers client-side metrics. ``enable_metrics()`` exposes operation
+latency, retry cost, and query session pool metrics through an OpenTelemetry
+``MeterProvider``.
+
 
 API Reference
 -------------

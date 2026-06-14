@@ -1,5 +1,7 @@
-This folder is intentionally left empty.
+This folder contains Grafana dashboards provisioned by the local OpenTelemetry example.
 
-Grafana is provisioned with Tempo + Prometheus datasources; use **Explore** to search traces.
+`ydb-python-sdk-metrics.json` shows the YDB Python SDK metrics exported to Prometheus,
+including client operation latency, failures, query session pool usage, pool min/max,
+pending session requests, acquisition timeouts, and retry metrics.
 
 
