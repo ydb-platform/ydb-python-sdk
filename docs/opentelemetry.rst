@@ -1,14 +1,22 @@
-OpenTelemetry Tracing
-=====================
+OpenTelemetry
+=============
 
-The SDK provides built-in distributed tracing via `OpenTelemetry <https://opentelemetry.io/>`_.
-When enabled, key YDB operations — such as session creation, query execution, transaction
-commit/rollback, and driver initialization — produce OpenTelemetry spans. Trace
-context is automatically propagated to the YDB server through gRPC metadata using the
+The SDK provides built-in distributed tracing and client-side metrics via
+`OpenTelemetry <https://opentelemetry.io/>`_. When tracing is enabled, key YDB
+operations — such as session creation, query execution, transaction commit/rollback,
+and driver initialization — produce OpenTelemetry spans. Trace context is automatically
+propagated to the YDB server through gRPC metadata using the
 `W3C Trace Context <https://www.w3.org/TR/trace-context/>`_ standard.
 
-Tracing is **zero-cost when disabled**: the SDK uses no-op stubs by default, so there is
-no overhead unless you explicitly opt in.
+Metrics expose operation latency/failures, retry cost, and query session pool state.
+Tracing and metrics are configured independently: enabling one does not require enabling
+the other.
+
+Instrumentation is **zero-cost when disabled**: the SDK uses no-op tracing and
+metrics registries by default, so importing the SDK does not import OpenTelemetry
+or create metric instruments unless you explicitly opt in. ``enable_tracing()``
+loads the tracing plugin, while ``enable_metrics()`` loads the metrics plugin and
+replaces the no-op metrics registry with an OpenTelemetry-backed registry.
 
 
 Installation
@@ -22,7 +30,7 @@ OpenTelemetry packages are not included by default. Install the SDK with the
     pip install ydb[opentelemetry]
 
 This pulls in ``opentelemetry-api``. You will also need ``opentelemetry-sdk`` and an
-exporter for your tracing backend, for example:
+exporter for your tracing or metrics backend, for example:
 
 .. code-block:: sh
 
@@ -71,6 +79,53 @@ obtains a tracer named ``"ydb.sdk"`` from the global tracer provider.
 
 Repeated calls to ``enable_tracing()`` do nothing until you call ``disable_tracing()``,
 which removes hooks so you can reconfigure or turn instrumentation off.
+
+
+Enabling Metrics
+----------------
+
+Call ``enable_metrics()`` once, after configuring your OpenTelemetry meter provider
+and before creating YDB drivers or query session pools:
+
+.. code-block:: python
+
+    from opentelemetry.exporter.otlp.proto.grpc.metric_exporter import OTLPMetricExporter
+    from opentelemetry.sdk.metrics import MeterProvider
+    from opentelemetry.sdk.metrics.export import PeriodicExportingMetricReader
+    from opentelemetry.sdk.resources import Resource
+
+    import ydb
+    from ydb.opentelemetry import enable_metrics
+
+    # 1. Set up OpenTelemetry
+    resource = Resource(attributes={"service.name": "my-service"})
+    metric_reader = PeriodicExportingMetricReader(
+        OTLPMetricExporter(endpoint="http://localhost:4317"),
+        export_interval_millis=1000,
+    )
+    meter_provider = MeterProvider(resource=resource, metric_readers=[metric_reader])
+
+    # 2. Enable YDB metrics
+    enable_metrics(meter_provider)
+
+    # 3. Use the SDK as usual — metrics are recorded automatically
+    with ydb.Driver(endpoint="grpc://localhost:2136", database="/local") as driver:
+        driver.wait(timeout=5)
+        with ydb.QuerySessionPool(driver, name="main-pool") as pool:
+            pool.execute_with_retries("SELECT 1")
+
+    meter_provider.shutdown()
+
+``enable_metrics()`` accepts an optional ``meter_provider`` argument. If omitted, the
+SDK obtains a meter named ``"ydb.sdk"`` from the global meter provider.
+
+Repeated calls to ``enable_metrics()`` do nothing until you call
+``disable_metrics()``, which clears the in-memory observable metric values and allows
+metrics to be reconfigured. After disabling metrics, the SDK restores the no-op
+metrics registry, so metric recording calls remain cheap no-ops.
+
+Metrics are independent from tracing. If both ``enable_tracing()`` and
+``enable_metrics()`` are called, YDB client operations produce both spans and metrics.
 
 
 What Is Instrumented
@@ -171,6 +226,93 @@ On errors, the span also records:
 - ``db.response.status_code`` — the YDB status code name (e.g. ``"SCHEME_ERROR"``).
 
 
+Metric Instruments
+------------------
+
+The SDK creates the following instruments with meter name ``"ydb.sdk"``:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 15 15 40
+
+   * - Metric
+     - Instrument
+     - Unit
+     - Description
+   * - ``db.client.operation.duration``
+     - Histogram
+     - ``s``
+     - Latency of user-visible YDB client operations.
+   * - ``ydb.client.operation.failed``
+     - Counter
+     - ``{command}``
+     - Failed user-visible YDB client operations.
+   * - ``ydb.query.session.create_time``
+     - Histogram
+     - ``s``
+     - Time spent creating a query session.
+   * - ``ydb.query.session.pending_requests``
+     - UpDownCounter
+     - ``{request}``
+     - Requests currently waiting for a session from the pool.
+   * - ``ydb.query.session.timeouts``
+     - Counter
+     - ``{connection}``
+     - Session acquisition timeouts.
+   * - ``ydb.query.session.count``
+     - ObservableUpDownCounter
+     - ``{connection}``
+     - Current number of open query sessions by pool and state.
+   * - ``ydb.query.session.max``
+     - ObservableUpDownCounter
+     - ``{connection}``
+     - Maximum configured number of sessions for a query session pool.
+   * - ``ydb.query.session.min``
+     - ObservableUpDownCounter
+     - ``{connection}``
+     - Minimum configured number of sessions for a query session pool. The SDK does not configure
+       a pool minimum, so this metric is always reported as ``0``.
+   * - ``ydb.client.retry.duration``
+     - Histogram
+     - ``s``
+     - Total user-visible duration of a logical retried operation, including attempts and backoff.
+   * - ``ydb.client.retry.attempts``
+     - Histogram
+     - ``{attempt}``
+     - Number of attempts performed for one logical retried operation.
+
+Operation metrics use stable labels only:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 35 65
+
+   * - Attribute
+     - Description
+   * - ``database``
+     - Database path.
+   * - ``endpoint``
+     - Configured endpoint in ``host:port`` form.
+   * - ``operation.name``
+     - SDK operation name without the ``ydb.`` prefix, for example ``"ExecuteQuery"``.
+   * - ``status_code``
+     - Added only to ``ydb.client.operation.failed``.
+
+Operation metrics are recorded for ``ExecuteQuery``, ``Commit``, ``Rollback``,
+``CreateSession``, and ``BeginTransaction``.
+
+Query session metrics use ``ydb.query.session.pool.name``. When ``name`` is not
+passed to ``QuerySessionPool``, the SDK uses the YDB connection string of the
+driver — ``<endpoint><database>`` (for example ``grpc://localhost:2136/local``) —
+so the pool is identifiable in dashboards out of the box. Set the label
+explicitly with ``QuerySessionPool(..., name="main-pool")`` for both synchronous
+and asynchronous pools when several pools share a connection string.
+``ydb.query.session.count`` also includes ``ydb.query.session.state`` with values
+``"idle"`` or ``"used"``.
+
+Retry metrics are recorded without attributes.
+
+
 Trace Context Propagation
 -------------------------
 
@@ -189,16 +331,17 @@ request path.
 Async Usage
 -----------
 
-Tracing works identically with the async driver. Call ``enable_tracing()`` once at
-startup:
+Tracing and metrics work identically with the async driver. Call
+``enable_tracing()`` and/or ``enable_metrics()`` once at startup:
 
 .. code-block:: python
 
     import asyncio
     import ydb
-    from ydb.opentelemetry import enable_tracing
+    from ydb.opentelemetry import enable_metrics, enable_tracing
 
     enable_tracing()
+    enable_metrics()
 
     async def main():
         async with ydb.aio.Driver(
@@ -206,7 +349,7 @@ startup:
             database="/local",
         ) as driver:
             await driver.wait(timeout=5)
-            async with ydb.aio.QuerySessionPool(driver) as pool:
+            async with ydb.aio.QuerySessionPool(driver, name="async-main-pool") as pool:
                 await pool.execute_with_retries("SELECT 1")
 
     asyncio.run(main())
@@ -229,12 +372,14 @@ To use a specific tracer instead of the global one:
 Running the Examples
 --------------------
 
-The runnable script is ``examples/opentelemetry/otel_example.py`` (bank table + concurrent
-Serializable transactions and ``app_startup`` / ``example_tli`` application spans). **Start
-Docker (YDB or the full stack) first**, then install and run on the host — see
-``examples/opentelemetry/README.md`` for the full order of commands and environment variables.
+The runnable script is ``examples/opentelemetry/otel_example.py``. It demonstrates both
+tracing and metrics: bank table + concurrent Serializable transactions,
+``app_startup`` / ``example_tli`` application spans, and SDK metrics exported through
+OTLP. **Start Docker (YDB or the full stack) first**, then install and run on the host
+— see ``examples/opentelemetry/README.md`` for the full order of commands and
+environment variables.
 
-**Full stack in one command** (YDB + OTLP + Tempo + Grafana; the ``otel-example`` service is built from ``examples/opentelemetry/Dockerfile`` and runs the script once):
+**Full stack in one command** (YDB + OTLP + Tempo + Grafana + Prometheus; the ``otel-example`` service is built from ``examples/opentelemetry/Dockerfile`` and runs the script once):
 
 .. code-block:: sh
 
@@ -250,4 +395,5 @@ The first run builds the ``otel-example`` image from the local SDK source; subse
     pip install -e '.[opentelemetry]' -r examples/opentelemetry/requirements.txt
     python examples/opentelemetry/otel_example.py
 
-Open `http://localhost:3000 <http://localhost:3000>`_ (Grafana) to explore traces via Tempo.
+Open `http://localhost:3000 <http://localhost:3000>`_ (Grafana) to explore traces via
+Tempo and metrics through the configured Prometheus data source.

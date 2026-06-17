@@ -1,5 +1,5 @@
 # Full OpenTelemetry demo: YDB (server-side tracing config), collector, Tempo, Prometheus, Grafana,
-# and a one-shot container that runs otel_example.py once.
+# a one-shot container that runs otel_example.py once, and a load generator for live metrics.
 #
 # Run from this directory (paths below are relative to this file):
 #   cd examples/opentelemetry && docker compose -f compose-e2e.yaml up
@@ -78,11 +78,42 @@ services:
     build:
       context: ../..
       dockerfile: examples/opentelemetry/Dockerfile
+    command: ["python", "examples/opentelemetry/otel_example.py"]
     environment:
       YDB_ENDPOINT: grpc://ydb:2136
       YDB_DATABASE: /local
       OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4317
       OTEL_SERVICE_NAME: ydb-otel-example
+    depends_on:
+      ydb:
+        condition: service_healthy
+      otel-collector:
+        condition: service_started
+    restart: "no"
+
+  load-generator:
+    build:
+      context: ../..
+      dockerfile: examples/opentelemetry/Dockerfile
+    command: ["python", "examples/opentelemetry/load_tank.py"]
+    environment:
+      YDB_ENDPOINT: grpc://ydb:2136
+      YDB_DATABASE: /local
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4317
+      OTEL_SERVICE_NAME: ydb-python-load-tank
+      LOAD_TANK_TOTAL_TIME: "6000"
+      LOAD_TANK_WORKERS: "40"
+      LOAD_TANK_POOL_SIZE: "20"
+      LOAD_TANK_PEAK_RPS: "120"
+      LOAD_TANK_MEDIUM_RPS: "30"
+      LOAD_TANK_MIN_RPS: "3"
+      LOAD_TANK_ERROR_RPS: "1"
+      LOAD_TANK_PRESSURE_POOL_SIZE: "1"
+      LOAD_TANK_PRESSURE_WORKERS: "8"
+      LOAD_TANK_PRESSURE_HOLD_TIME: "1.5"
+      LOAD_TANK_PRESSURE_ACQUIRE_TIMEOUT: "1.0"
+      LOAD_TANK_PRESSURE_INTERVAL: "0.2"
+      LOAD_TANK_SESSION_CHURN_INTERVAL: "2.0"
     depends_on:
       ydb:
         condition: service_healthy
