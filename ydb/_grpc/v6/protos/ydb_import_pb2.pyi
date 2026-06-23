@@ -1,5 +1,3 @@
-import datetime
-
 from protos.annotations import validation_pb2 as _validation_pb2
 from protos import ydb_export_pb2 as _ydb_export_pb2
 from protos import ydb_operation_pb2 as _ydb_operation_pb2
@@ -45,7 +43,7 @@ class ImportItemProgress(_message.Message):
     parts_completed: int
     start_time: _timestamp_pb2.Timestamp
     end_time: _timestamp_pb2.Timestamp
-    def __init__(self, parts_total: _Optional[int] = ..., parts_completed: _Optional[int] = ..., start_time: _Optional[_Union[datetime.datetime, _timestamp_pb2.Timestamp, _Mapping]] = ..., end_time: _Optional[_Union[datetime.datetime, _timestamp_pb2.Timestamp, _Mapping]] = ...) -> None: ...
+    def __init__(self, parts_total: _Optional[int] = ..., parts_completed: _Optional[int] = ..., start_time: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., end_time: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ...) -> None: ...
 
 class ImportFromS3Settings(_message.Message):
     __slots__ = ("endpoint", "scheme", "bucket", "access_key", "secret_key", "items", "description", "number_of_retries", "region", "disable_virtual_addressing", "no_acl", "skip_checksum_validation", "source_prefix", "destination_path", "encryption_settings", "index_filling_mode", "exclude_regexps")

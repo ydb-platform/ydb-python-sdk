@@ -1,5 +1,3 @@
-import datetime
-
 from protos.annotations import validation_pb2 as _validation_pb2
 from protos import ydb_status_codes_pb2 as _ydb_status_codes_pb2
 from protos import ydb_discovery_pb2 as _ydb_discovery_pb2
@@ -65,7 +63,7 @@ class Node(_message.Message):
     dynamic: Node.DynamicNode
     start_time: _timestamp_pb2.Timestamp
     version: str
-    def __init__(self, node_id: _Optional[int] = ..., host: _Optional[str] = ..., port: _Optional[int] = ..., location: _Optional[_Union[_ydb_discovery_pb2.NodeLocation, _Mapping]] = ..., state: _Optional[_Union[ItemState, str]] = ..., storage: _Optional[_Union[Node.StorageNode, _Mapping]] = ..., dynamic: _Optional[_Union[Node.DynamicNode, _Mapping]] = ..., start_time: _Optional[_Union[datetime.datetime, _timestamp_pb2.Timestamp, _Mapping]] = ..., version: _Optional[str] = ...) -> None: ...
+    def __init__(self, node_id: _Optional[int] = ..., host: _Optional[str] = ..., port: _Optional[int] = ..., location: _Optional[_Union[_ydb_discovery_pb2.NodeLocation, _Mapping]] = ..., state: _Optional[_Union[ItemState, str]] = ..., storage: _Optional[_Union[Node.StorageNode, _Mapping]] = ..., dynamic: _Optional[_Union[Node.DynamicNode, _Mapping]] = ..., start_time: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., version: _Optional[str] = ...) -> None: ...
 
 class ListClusterNodesRequest(_message.Message):
     __slots__ = ("operation_params",)
@@ -113,7 +111,7 @@ class LockAction(_message.Message):
     DURATION_FIELD_NUMBER: _ClassVar[int]
     scope: ActionScope
     duration: _duration_pb2.Duration
-    def __init__(self, scope: _Optional[_Union[ActionScope, _Mapping]] = ..., duration: _Optional[_Union[datetime.timedelta, _duration_pb2.Duration, _Mapping]] = ...) -> None: ...
+    def __init__(self, scope: _Optional[_Union[ActionScope, _Mapping]] = ..., duration: _Optional[_Union[_duration_pb2.Duration, _Mapping]] = ...) -> None: ...
 
 class Action(_message.Message):
     __slots__ = ("lock_action",)
@@ -197,7 +195,7 @@ class ActionState(_message.Message):
     reason: ActionState.ActionReason
     reason_details: str
     deadline: _timestamp_pb2.Timestamp
-    def __init__(self, action: _Optional[_Union[Action, _Mapping]] = ..., action_uid: _Optional[_Union[ActionUid, _Mapping]] = ..., status: _Optional[_Union[ActionState.ActionStatus, str]] = ..., reason: _Optional[_Union[ActionState.ActionReason, str]] = ..., reason_details: _Optional[str] = ..., deadline: _Optional[_Union[datetime.datetime, _timestamp_pb2.Timestamp, _Mapping]] = ...) -> None: ...
+    def __init__(self, action: _Optional[_Union[Action, _Mapping]] = ..., action_uid: _Optional[_Union[ActionUid, _Mapping]] = ..., status: _Optional[_Union[ActionState.ActionStatus, str]] = ..., reason: _Optional[_Union[ActionState.ActionReason, str]] = ..., reason_details: _Optional[str] = ..., deadline: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ...) -> None: ...
 
 class ActionGroupStates(_message.Message):
     __slots__ = ("action_states",)
@@ -213,7 +211,7 @@ class MaintenanceTaskResult(_message.Message):
     task_uid: str
     action_group_states: _containers.RepeatedCompositeFieldContainer[ActionGroupStates]
     retry_after: _timestamp_pb2.Timestamp
-    def __init__(self, task_uid: _Optional[str] = ..., action_group_states: _Optional[_Iterable[_Union[ActionGroupStates, _Mapping]]] = ..., retry_after: _Optional[_Union[datetime.datetime, _timestamp_pb2.Timestamp, _Mapping]] = ...) -> None: ...
+    def __init__(self, task_uid: _Optional[str] = ..., action_group_states: _Optional[_Iterable[_Union[ActionGroupStates, _Mapping]]] = ..., retry_after: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ...) -> None: ...
 
 class MaintenanceTaskResponse(_message.Message):
     __slots__ = ("operation",)

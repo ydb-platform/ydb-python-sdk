@@ -1,5 +1,3 @@
-import datetime
-
 from protos.annotations import sensitive_pb2 as _sensitive_pb2
 from protos.annotations import validation_pb2 as _validation_pb2
 from protos import ydb_operation_pb2 as _ydb_operation_pb2
@@ -41,7 +39,7 @@ class ExportItemProgress(_message.Message):
     parts_completed: int
     start_time: _timestamp_pb2.Timestamp
     end_time: _timestamp_pb2.Timestamp
-    def __init__(self, parts_total: _Optional[int] = ..., parts_completed: _Optional[int] = ..., start_time: _Optional[_Union[datetime.datetime, _timestamp_pb2.Timestamp, _Mapping]] = ..., end_time: _Optional[_Union[datetime.datetime, _timestamp_pb2.Timestamp, _Mapping]] = ...) -> None: ...
+    def __init__(self, parts_total: _Optional[int] = ..., parts_completed: _Optional[int] = ..., start_time: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., end_time: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ...) -> None: ...
 
 class ExportToYtSettings(_message.Message):
     __slots__ = ("host", "port", "token", "items", "description", "number_of_retries", "use_type_v3", "exclude_regexps")
