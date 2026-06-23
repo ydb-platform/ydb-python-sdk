@@ -1,5 +1,3 @@
-import datetime
-
 from google.protobuf import duration_pb2 as _duration_pb2
 from protos.annotations import validation_pb2 as _validation_pb2
 from protos import ydb_issue_message_pb2 as _ydb_issue_message_pb2
@@ -312,7 +310,7 @@ class ExecuteScriptRequest(_message.Message):
     stats_mode: StatsMode
     results_ttl: _duration_pb2.Duration
     pool_id: str
-    def __init__(self, operation_params: _Optional[_Union[_ydb_operation_pb2.OperationParams, _Mapping]] = ..., exec_mode: _Optional[_Union[ExecMode, str]] = ..., script_content: _Optional[_Union[QueryContent, _Mapping]] = ..., parameters: _Optional[_Mapping[str, _ydb_value_pb2.TypedValue]] = ..., stats_mode: _Optional[_Union[StatsMode, str]] = ..., results_ttl: _Optional[_Union[datetime.timedelta, _duration_pb2.Duration, _Mapping]] = ..., pool_id: _Optional[str] = ...) -> None: ...
+    def __init__(self, operation_params: _Optional[_Union[_ydb_operation_pb2.OperationParams, _Mapping]] = ..., exec_mode: _Optional[_Union[ExecMode, str]] = ..., script_content: _Optional[_Union[QueryContent, _Mapping]] = ..., parameters: _Optional[_Mapping[str, _ydb_value_pb2.TypedValue]] = ..., stats_mode: _Optional[_Union[StatsMode, str]] = ..., results_ttl: _Optional[_Union[_duration_pb2.Duration, _Mapping]] = ..., pool_id: _Optional[str] = ...) -> None: ...
 
 class ExecuteScriptMetadata(_message.Message):
     __slots__ = ("execution_id", "exec_status", "script_content", "result_sets_meta", "exec_mode", "exec_stats")

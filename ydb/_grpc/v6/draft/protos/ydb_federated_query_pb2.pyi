@@ -1,5 +1,3 @@
-import datetime
-
 from protos.annotations import sensitive_pb2 as _sensitive_pb2
 from protos.annotations import validation_pb2 as _validation_pb2
 from protos import ydb_operation_pb2 as _ydb_operation_pb2
@@ -101,7 +99,7 @@ class Limits(_message.Message):
     result_ttl: _duration_pb2.Duration
     execution_timeout: _duration_pb2.Duration
     execution_deadline: _timestamp_pb2.Timestamp
-    def __init__(self, vcpu_rate_limit: _Optional[int] = ..., flow_rate_limit: _Optional[int] = ..., vcpu_time_limit: _Optional[int] = ..., max_result_size: _Optional[int] = ..., max_result_rows: _Optional[int] = ..., memory_limit: _Optional[int] = ..., result_ttl: _Optional[_Union[datetime.timedelta, _duration_pb2.Duration, _Mapping]] = ..., execution_timeout: _Optional[_Union[datetime.timedelta, _duration_pb2.Duration, _Mapping]] = ..., execution_deadline: _Optional[_Union[datetime.datetime, _timestamp_pb2.Timestamp, _Mapping]] = ...) -> None: ...
+    def __init__(self, vcpu_rate_limit: _Optional[int] = ..., flow_rate_limit: _Optional[int] = ..., vcpu_time_limit: _Optional[int] = ..., max_result_size: _Optional[int] = ..., max_result_rows: _Optional[int] = ..., memory_limit: _Optional[int] = ..., result_ttl: _Optional[_Union[_duration_pb2.Duration, _Mapping]] = ..., execution_timeout: _Optional[_Union[_duration_pb2.Duration, _Mapping]] = ..., execution_deadline: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ...) -> None: ...
 
 class StreamingDisposition(_message.Message):
     __slots__ = ("oldest", "fresh", "from_time", "time_ago", "from_last_checkpoint")
@@ -109,12 +107,12 @@ class StreamingDisposition(_message.Message):
         __slots__ = ("timestamp",)
         TIMESTAMP_FIELD_NUMBER: _ClassVar[int]
         timestamp: _timestamp_pb2.Timestamp
-        def __init__(self, timestamp: _Optional[_Union[datetime.datetime, _timestamp_pb2.Timestamp, _Mapping]] = ...) -> None: ...
+        def __init__(self, timestamp: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ...) -> None: ...
     class TimeAgo(_message.Message):
         __slots__ = ("duration",)
         DURATION_FIELD_NUMBER: _ClassVar[int]
         duration: _duration_pb2.Duration
-        def __init__(self, duration: _Optional[_Union[datetime.timedelta, _duration_pb2.Duration, _Mapping]] = ...) -> None: ...
+        def __init__(self, duration: _Optional[_Union[_duration_pb2.Duration, _Mapping]] = ...) -> None: ...
     class FromLastCheckpoint(_message.Message):
         __slots__ = ("force",)
         FORCE_FIELD_NUMBER: _ClassVar[int]
@@ -200,7 +198,7 @@ class CommonMeta(_message.Message):
     created_at: _timestamp_pb2.Timestamp
     modified_at: _timestamp_pb2.Timestamp
     revision: int
-    def __init__(self, id: _Optional[str] = ..., created_by: _Optional[str] = ..., modified_by: _Optional[str] = ..., created_at: _Optional[_Union[datetime.datetime, _timestamp_pb2.Timestamp, _Mapping]] = ..., modified_at: _Optional[_Union[datetime.datetime, _timestamp_pb2.Timestamp, _Mapping]] = ..., revision: _Optional[int] = ...) -> None: ...
+    def __init__(self, id: _Optional[str] = ..., created_by: _Optional[str] = ..., modified_by: _Optional[str] = ..., created_at: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., modified_at: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., revision: _Optional[int] = ...) -> None: ...
 
 class QueryMeta(_message.Message):
     __slots__ = ("common", "submitted_at", "started_at", "finished_at", "execute_mode", "status", "last_job_query_revision", "last_job_id", "expire_at", "result_expire_at", "started_by", "aborted_by", "paused_by", "has_saved_checkpoints")
@@ -262,7 +260,7 @@ class QueryMeta(_message.Message):
     aborted_by: str
     paused_by: str
     has_saved_checkpoints: bool
-    def __init__(self, common: _Optional[_Union[CommonMeta, _Mapping]] = ..., submitted_at: _Optional[_Union[datetime.datetime, _timestamp_pb2.Timestamp, _Mapping]] = ..., started_at: _Optional[_Union[datetime.datetime, _timestamp_pb2.Timestamp, _Mapping]] = ..., finished_at: _Optional[_Union[datetime.datetime, _timestamp_pb2.Timestamp, _Mapping]] = ..., execute_mode: _Optional[_Union[ExecuteMode, str]] = ..., status: _Optional[_Union[QueryMeta.ComputeStatus, str]] = ..., last_job_query_revision: _Optional[int] = ..., last_job_id: _Optional[str] = ..., expire_at: _Optional[_Union[datetime.datetime, _timestamp_pb2.Timestamp, _Mapping]] = ..., result_expire_at: _Optional[_Union[datetime.datetime, _timestamp_pb2.Timestamp, _Mapping]] = ..., started_by: _Optional[str] = ..., aborted_by: _Optional[str] = ..., paused_by: _Optional[str] = ..., has_saved_checkpoints: bool = ...) -> None: ...
+    def __init__(self, common: _Optional[_Union[CommonMeta, _Mapping]] = ..., submitted_at: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., started_at: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., finished_at: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., execute_mode: _Optional[_Union[ExecuteMode, str]] = ..., status: _Optional[_Union[QueryMeta.ComputeStatus, str]] = ..., last_job_query_revision: _Optional[int] = ..., last_job_id: _Optional[str] = ..., expire_at: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., result_expire_at: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., started_by: _Optional[str] = ..., aborted_by: _Optional[str] = ..., paused_by: _Optional[str] = ..., has_saved_checkpoints: bool = ...) -> None: ...
 
 class BriefQuery(_message.Message):
     __slots__ = ("type", "name", "meta", "visibility", "automatic")
@@ -535,7 +533,7 @@ class BriefJob(_message.Message):
     visibility: Acl.Visibility
     automatic: bool
     expire_at: _timestamp_pb2.Timestamp
-    def __init__(self, meta: _Optional[_Union[CommonMeta, _Mapping]] = ..., query_meta: _Optional[_Union[QueryMeta, _Mapping]] = ..., query_name: _Optional[str] = ..., visibility: _Optional[_Union[Acl.Visibility, str]] = ..., automatic: bool = ..., expire_at: _Optional[_Union[datetime.datetime, _timestamp_pb2.Timestamp, _Mapping]] = ...) -> None: ...
+    def __init__(self, meta: _Optional[_Union[CommonMeta, _Mapping]] = ..., query_meta: _Optional[_Union[QueryMeta, _Mapping]] = ..., query_name: _Optional[str] = ..., visibility: _Optional[_Union[Acl.Visibility, str]] = ..., automatic: bool = ..., expire_at: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ...) -> None: ...
 
 class Job(_message.Message):
     __slots__ = ("meta", "text", "query_meta", "plan", "issue", "statistics", "result_set_meta", "ast", "query_name", "acl", "automatic", "expire_at", "syntax", "parameters")
@@ -574,7 +572,7 @@ class Job(_message.Message):
     expire_at: _timestamp_pb2.Timestamp
     syntax: QueryContent.QuerySyntax
     parameters: _containers.MessageMap[str, _ydb_value_pb2.TypedValue]
-    def __init__(self, meta: _Optional[_Union[CommonMeta, _Mapping]] = ..., text: _Optional[str] = ..., query_meta: _Optional[_Union[QueryMeta, _Mapping]] = ..., plan: _Optional[_Union[QueryPlan, _Mapping]] = ..., issue: _Optional[_Iterable[_Union[_ydb_issue_message_pb2.IssueMessage, _Mapping]]] = ..., statistics: _Optional[_Union[QueryStatistics, _Mapping]] = ..., result_set_meta: _Optional[_Iterable[_Union[ResultSetMeta, _Mapping]]] = ..., ast: _Optional[_Union[QueryAst, _Mapping]] = ..., query_name: _Optional[str] = ..., acl: _Optional[_Union[Acl, _Mapping]] = ..., automatic: bool = ..., expire_at: _Optional[_Union[datetime.datetime, _timestamp_pb2.Timestamp, _Mapping]] = ..., syntax: _Optional[_Union[QueryContent.QuerySyntax, str]] = ..., parameters: _Optional[_Mapping[str, _ydb_value_pb2.TypedValue]] = ...) -> None: ...
+    def __init__(self, meta: _Optional[_Union[CommonMeta, _Mapping]] = ..., text: _Optional[str] = ..., query_meta: _Optional[_Union[QueryMeta, _Mapping]] = ..., plan: _Optional[_Union[QueryPlan, _Mapping]] = ..., issue: _Optional[_Iterable[_Union[_ydb_issue_message_pb2.IssueMessage, _Mapping]]] = ..., statistics: _Optional[_Union[QueryStatistics, _Mapping]] = ..., result_set_meta: _Optional[_Iterable[_Union[ResultSetMeta, _Mapping]]] = ..., ast: _Optional[_Union[QueryAst, _Mapping]] = ..., query_name: _Optional[str] = ..., acl: _Optional[_Union[Acl, _Mapping]] = ..., automatic: bool = ..., expire_at: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., syntax: _Optional[_Union[QueryContent.QuerySyntax, str]] = ..., parameters: _Optional[_Mapping[str, _ydb_value_pb2.TypedValue]] = ...) -> None: ...
 
 class ListJobsRequest(_message.Message):
     __slots__ = ("operation_params", "page_token", "limit", "query_id", "filter")

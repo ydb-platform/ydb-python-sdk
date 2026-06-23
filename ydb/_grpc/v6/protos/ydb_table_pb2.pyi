@@ -1,5 +1,3 @@
-import datetime
-
 from protos.annotations import validation_pb2 as _validation_pb2
 from protos import ydb_common_pb2 as _ydb_common_pb2
 from protos import ydb_issue_message_pb2 as _ydb_issue_message_pb2
@@ -222,7 +220,7 @@ class Changefeed(_message.Message):
     aws_region: str
     resolved_timestamps_interval: _duration_pb2.Duration
     topic_partitioning_settings: _ydb_topic_pb2.PartitioningSettings
-    def __init__(self, name: _Optional[str] = ..., mode: _Optional[_Union[ChangefeedMode.Mode, str]] = ..., format: _Optional[_Union[ChangefeedFormat.Format, str]] = ..., retention_period: _Optional[_Union[datetime.timedelta, _duration_pb2.Duration, _Mapping]] = ..., virtual_timestamps: bool = ..., initial_scan: bool = ..., attributes: _Optional[_Mapping[str, str]] = ..., aws_region: _Optional[str] = ..., resolved_timestamps_interval: _Optional[_Union[datetime.timedelta, _duration_pb2.Duration, _Mapping]] = ..., topic_partitioning_settings: _Optional[_Union[_ydb_topic_pb2.PartitioningSettings, _Mapping]] = ...) -> None: ...
+    def __init__(self, name: _Optional[str] = ..., mode: _Optional[_Union[ChangefeedMode.Mode, str]] = ..., format: _Optional[_Union[ChangefeedFormat.Format, str]] = ..., retention_period: _Optional[_Union[_duration_pb2.Duration, _Mapping]] = ..., virtual_timestamps: bool = ..., initial_scan: bool = ..., attributes: _Optional[_Mapping[str, str]] = ..., aws_region: _Optional[str] = ..., resolved_timestamps_interval: _Optional[_Union[_duration_pb2.Duration, _Mapping]] = ..., topic_partitioning_settings: _Optional[_Union[_ydb_topic_pb2.PartitioningSettings, _Mapping]] = ...) -> None: ...
 
 class ChangefeedDescription(_message.Message):
     __slots__ = ("name", "mode", "format", "state", "virtual_timestamps", "attributes", "aws_region", "resolved_timestamps_interval")
@@ -259,7 +257,7 @@ class ChangefeedDescription(_message.Message):
     attributes: _containers.ScalarMap[str, str]
     aws_region: str
     resolved_timestamps_interval: _duration_pb2.Duration
-    def __init__(self, name: _Optional[str] = ..., mode: _Optional[_Union[ChangefeedMode.Mode, str]] = ..., format: _Optional[_Union[ChangefeedFormat.Format, str]] = ..., state: _Optional[_Union[ChangefeedDescription.State, str]] = ..., virtual_timestamps: bool = ..., attributes: _Optional[_Mapping[str, str]] = ..., aws_region: _Optional[str] = ..., resolved_timestamps_interval: _Optional[_Union[datetime.timedelta, _duration_pb2.Duration, _Mapping]] = ...) -> None: ...
+    def __init__(self, name: _Optional[str] = ..., mode: _Optional[_Union[ChangefeedMode.Mode, str]] = ..., format: _Optional[_Union[ChangefeedFormat.Format, str]] = ..., state: _Optional[_Union[ChangefeedDescription.State, str]] = ..., virtual_timestamps: bool = ..., attributes: _Optional[_Mapping[str, str]] = ..., aws_region: _Optional[str] = ..., resolved_timestamps_interval: _Optional[_Union[_duration_pb2.Duration, _Mapping]] = ...) -> None: ...
 
 class StoragePool(_message.Message):
     __slots__ = ("media",)
@@ -343,7 +341,7 @@ class TableStats(_message.Message):
     partitions: int
     creation_time: _timestamp_pb2.Timestamp
     modification_time: _timestamp_pb2.Timestamp
-    def __init__(self, partition_stats: _Optional[_Iterable[_Union[PartitionStats, _Mapping]]] = ..., rows_estimate: _Optional[int] = ..., store_size: _Optional[int] = ..., partitions: _Optional[int] = ..., creation_time: _Optional[_Union[datetime.datetime, _timestamp_pb2.Timestamp, _Mapping]] = ..., modification_time: _Optional[_Union[datetime.datetime, _timestamp_pb2.Timestamp, _Mapping]] = ...) -> None: ...
+    def __init__(self, partition_stats: _Optional[_Iterable[_Union[PartitionStats, _Mapping]]] = ..., rows_estimate: _Optional[int] = ..., store_size: _Optional[int] = ..., partitions: _Optional[int] = ..., creation_time: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., modification_time: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ...) -> None: ...
 
 class PartitioningPolicy(_message.Message):
     __slots__ = ("preset_name", "auto_partitioning", "uniform_partitions", "explicit_partitions")

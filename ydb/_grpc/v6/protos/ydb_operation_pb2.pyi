@@ -1,5 +1,3 @@
-import datetime
-
 from google.protobuf import any_pb2 as _any_pb2
 from google.protobuf import duration_pb2 as _duration_pb2
 from protos.annotations import validation_pb2 as _validation_pb2
@@ -42,7 +40,7 @@ class OperationParams(_message.Message):
     cancel_after: _duration_pb2.Duration
     labels: _containers.ScalarMap[str, str]
     report_cost_info: _ydb_common_pb2.FeatureFlag.Status
-    def __init__(self, operation_mode: _Optional[_Union[OperationParams.OperationMode, str]] = ..., operation_timeout: _Optional[_Union[datetime.timedelta, _duration_pb2.Duration, _Mapping]] = ..., cancel_after: _Optional[_Union[datetime.timedelta, _duration_pb2.Duration, _Mapping]] = ..., labels: _Optional[_Mapping[str, str]] = ..., report_cost_info: _Optional[_Union[_ydb_common_pb2.FeatureFlag.Status, str]] = ...) -> None: ...
+    def __init__(self, operation_mode: _Optional[_Union[OperationParams.OperationMode, str]] = ..., operation_timeout: _Optional[_Union[_duration_pb2.Duration, _Mapping]] = ..., cancel_after: _Optional[_Union[_duration_pb2.Duration, _Mapping]] = ..., labels: _Optional[_Mapping[str, str]] = ..., report_cost_info: _Optional[_Union[_ydb_common_pb2.FeatureFlag.Status, str]] = ...) -> None: ...
 
 class GetOperationRequest(_message.Message):
     __slots__ = ("id",)

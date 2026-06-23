@@ -1,3 +1,5 @@
+* Fix incompatibility with protobuf 6.30–6.31.0: regenerate v6 stubs with the lowest 6.x gencode floor (6.30.0) instead of 6.31.1
+
 ## 3.29.4 ##
 * Fix leaked topic reader stream when close interrupts stream creation during reconnect
 * Include reconnector and read session ids in topic reader logs
