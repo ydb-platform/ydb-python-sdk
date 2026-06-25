@@ -26,6 +26,7 @@ class AvailabilityMode(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     AVAILABILITY_MODE_STRONG: _ClassVar[AvailabilityMode]
     AVAILABILITY_MODE_WEAK: _ClassVar[AvailabilityMode]
     AVAILABILITY_MODE_FORCE: _ClassVar[AvailabilityMode]
+    AVAILABILITY_MODE_SMART: _ClassVar[AvailabilityMode]
 ITEM_STATE_UNSPECIFIED: ItemState
 ITEM_STATE_UP: ItemState
 ITEM_STATE_MAINTENANCE: ItemState
@@ -34,6 +35,7 @@ AVAILABILITY_MODE_UNSPECIFIED: AvailabilityMode
 AVAILABILITY_MODE_STRONG: AvailabilityMode
 AVAILABILITY_MODE_WEAK: AvailabilityMode
 AVAILABILITY_MODE_FORCE: AvailabilityMode
+AVAILABILITY_MODE_SMART: AvailabilityMode
 
 class Node(_message.Message):
     __slots__ = ("node_id", "host", "port", "location", "state", "storage", "dynamic", "start_time", "version")
@@ -98,12 +100,35 @@ class MaintenanceTaskOptions(_message.Message):
     def __init__(self, task_uid: _Optional[str] = ..., description: _Optional[str] = ..., availability_mode: _Optional[_Union[AvailabilityMode, str]] = ..., dry_run: bool = ..., priority: _Optional[int] = ...) -> None: ...
 
 class ActionScope(_message.Message):
-    __slots__ = ("node_id", "host")
+    __slots__ = ("node_id", "host", "pdisk")
+    class PDiskId(_message.Message):
+        __slots__ = ("node_id", "pdisk_id")
+        NODE_ID_FIELD_NUMBER: _ClassVar[int]
+        PDISK_ID_FIELD_NUMBER: _ClassVar[int]
+        node_id: int
+        pdisk_id: int
+        def __init__(self, node_id: _Optional[int] = ..., pdisk_id: _Optional[int] = ...) -> None: ...
+    class PDiskLocation(_message.Message):
+        __slots__ = ("host", "path")
+        HOST_FIELD_NUMBER: _ClassVar[int]
+        PATH_FIELD_NUMBER: _ClassVar[int]
+        host: str
+        path: str
+        def __init__(self, host: _Optional[str] = ..., path: _Optional[str] = ...) -> None: ...
+    class PDisk(_message.Message):
+        __slots__ = ("pdisk_id", "pdisk_location")
+        PDISK_ID_FIELD_NUMBER: _ClassVar[int]
+        PDISK_LOCATION_FIELD_NUMBER: _ClassVar[int]
+        pdisk_id: ActionScope.PDiskId
+        pdisk_location: ActionScope.PDiskLocation
+        def __init__(self, pdisk_id: _Optional[_Union[ActionScope.PDiskId, _Mapping]] = ..., pdisk_location: _Optional[_Union[ActionScope.PDiskLocation, _Mapping]] = ...) -> None: ...
     NODE_ID_FIELD_NUMBER: _ClassVar[int]
     HOST_FIELD_NUMBER: _ClassVar[int]
+    PDISK_FIELD_NUMBER: _ClassVar[int]
     node_id: int
     host: str
-    def __init__(self, node_id: _Optional[int] = ..., host: _Optional[str] = ...) -> None: ...
+    pdisk: ActionScope.PDisk
+    def __init__(self, node_id: _Optional[int] = ..., host: _Optional[str] = ..., pdisk: _Optional[_Union[ActionScope.PDisk, _Mapping]] = ...) -> None: ...
 
 class LockAction(_message.Message):
     __slots__ = ("scope", "duration")
@@ -113,11 +138,27 @@ class LockAction(_message.Message):
     duration: _duration_pb2.Duration
     def __init__(self, scope: _Optional[_Union[ActionScope, _Mapping]] = ..., duration: _Optional[_Union[_duration_pb2.Duration, _Mapping]] = ...) -> None: ...
 
+class DrainAction(_message.Message):
+    __slots__ = ("scope",)
+    SCOPE_FIELD_NUMBER: _ClassVar[int]
+    scope: ActionScope
+    def __init__(self, scope: _Optional[_Union[ActionScope, _Mapping]] = ...) -> None: ...
+
+class CordonAction(_message.Message):
+    __slots__ = ("scope",)
+    SCOPE_FIELD_NUMBER: _ClassVar[int]
+    scope: ActionScope
+    def __init__(self, scope: _Optional[_Union[ActionScope, _Mapping]] = ...) -> None: ...
+
 class Action(_message.Message):
-    __slots__ = ("lock_action",)
+    __slots__ = ("lock_action", "drain_action", "cordon_action")
     LOCK_ACTION_FIELD_NUMBER: _ClassVar[int]
+    DRAIN_ACTION_FIELD_NUMBER: _ClassVar[int]
+    CORDON_ACTION_FIELD_NUMBER: _ClassVar[int]
     lock_action: LockAction
-    def __init__(self, lock_action: _Optional[_Union[LockAction, _Mapping]] = ...) -> None: ...
+    drain_action: DrainAction
+    cordon_action: CordonAction
+    def __init__(self, lock_action: _Optional[_Union[LockAction, _Mapping]] = ..., drain_action: _Optional[_Union[DrainAction, _Mapping]] = ..., cordon_action: _Optional[_Union[CordonAction, _Mapping]] = ...) -> None: ...
 
 class ActionGroup(_message.Message):
     __slots__ = ("actions",)
@@ -154,15 +195,17 @@ class ActionUid(_message.Message):
     def __init__(self, task_uid: _Optional[str] = ..., group_id: _Optional[str] = ..., action_id: _Optional[str] = ...) -> None: ...
 
 class ActionState(_message.Message):
-    __slots__ = ("action", "action_uid", "status", "reason", "reason_details", "deadline")
+    __slots__ = ("action", "action_uid", "status", "reason", "details", "deadline")
     class ActionStatus(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
         __slots__ = ()
         ACTION_STATUS_UNSPECIFIED: _ClassVar[ActionState.ActionStatus]
         ACTION_STATUS_PENDING: _ClassVar[ActionState.ActionStatus]
         ACTION_STATUS_PERFORMED: _ClassVar[ActionState.ActionStatus]
+        ACTION_STATUS_IN_PROGRESS: _ClassVar[ActionState.ActionStatus]
     ACTION_STATUS_UNSPECIFIED: ActionState.ActionStatus
     ACTION_STATUS_PENDING: ActionState.ActionStatus
     ACTION_STATUS_PERFORMED: ActionState.ActionStatus
+    ACTION_STATUS_IN_PROGRESS: ActionState.ActionStatus
     class ActionReason(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
         __slots__ = ()
         ACTION_REASON_UNSPECIFIED: _ClassVar[ActionState.ActionReason]
@@ -187,15 +230,15 @@ class ActionState(_message.Message):
     ACTION_UID_FIELD_NUMBER: _ClassVar[int]
     STATUS_FIELD_NUMBER: _ClassVar[int]
     REASON_FIELD_NUMBER: _ClassVar[int]
-    REASON_DETAILS_FIELD_NUMBER: _ClassVar[int]
+    DETAILS_FIELD_NUMBER: _ClassVar[int]
     DEADLINE_FIELD_NUMBER: _ClassVar[int]
     action: Action
     action_uid: ActionUid
     status: ActionState.ActionStatus
     reason: ActionState.ActionReason
-    reason_details: str
+    details: str
     deadline: _timestamp_pb2.Timestamp
-    def __init__(self, action: _Optional[_Union[Action, _Mapping]] = ..., action_uid: _Optional[_Union[ActionUid, _Mapping]] = ..., status: _Optional[_Union[ActionState.ActionStatus, str]] = ..., reason: _Optional[_Union[ActionState.ActionReason, str]] = ..., reason_details: _Optional[str] = ..., deadline: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ...) -> None: ...
+    def __init__(self, action: _Optional[_Union[Action, _Mapping]] = ..., action_uid: _Optional[_Union[ActionUid, _Mapping]] = ..., status: _Optional[_Union[ActionState.ActionStatus, str]] = ..., reason: _Optional[_Union[ActionState.ActionReason, str]] = ..., details: _Optional[str] = ..., deadline: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ...) -> None: ...
 
 class ActionGroupStates(_message.Message):
     __slots__ = ("action_states",)
@@ -204,14 +247,18 @@ class ActionGroupStates(_message.Message):
     def __init__(self, action_states: _Optional[_Iterable[_Union[ActionState, _Mapping]]] = ...) -> None: ...
 
 class MaintenanceTaskResult(_message.Message):
-    __slots__ = ("task_uid", "action_group_states", "retry_after")
+    __slots__ = ("task_uid", "action_group_states", "retry_after", "create_time", "last_refresh_time")
     TASK_UID_FIELD_NUMBER: _ClassVar[int]
     ACTION_GROUP_STATES_FIELD_NUMBER: _ClassVar[int]
     RETRY_AFTER_FIELD_NUMBER: _ClassVar[int]
+    CREATE_TIME_FIELD_NUMBER: _ClassVar[int]
+    LAST_REFRESH_TIME_FIELD_NUMBER: _ClassVar[int]
     task_uid: str
     action_group_states: _containers.RepeatedCompositeFieldContainer[ActionGroupStates]
     retry_after: _timestamp_pb2.Timestamp
-    def __init__(self, task_uid: _Optional[str] = ..., action_group_states: _Optional[_Iterable[_Union[ActionGroupStates, _Mapping]]] = ..., retry_after: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ...) -> None: ...
+    create_time: _timestamp_pb2.Timestamp
+    last_refresh_time: _timestamp_pb2.Timestamp
+    def __init__(self, task_uid: _Optional[str] = ..., action_group_states: _Optional[_Iterable[_Union[ActionGroupStates, _Mapping]]] = ..., retry_after: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., create_time: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., last_refresh_time: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ...) -> None: ...
 
 class MaintenanceTaskResponse(_message.Message):
     __slots__ = ("operation",)
@@ -228,12 +275,16 @@ class GetMaintenanceTaskRequest(_message.Message):
     def __init__(self, operation_params: _Optional[_Union[_ydb_operation_pb2.OperationParams, _Mapping]] = ..., task_uid: _Optional[str] = ...) -> None: ...
 
 class GetMaintenanceTaskResult(_message.Message):
-    __slots__ = ("task_options", "action_group_states")
+    __slots__ = ("task_options", "action_group_states", "create_time", "last_refresh_time")
     TASK_OPTIONS_FIELD_NUMBER: _ClassVar[int]
     ACTION_GROUP_STATES_FIELD_NUMBER: _ClassVar[int]
+    CREATE_TIME_FIELD_NUMBER: _ClassVar[int]
+    LAST_REFRESH_TIME_FIELD_NUMBER: _ClassVar[int]
     task_options: MaintenanceTaskOptions
     action_group_states: _containers.RepeatedCompositeFieldContainer[ActionGroupStates]
-    def __init__(self, task_options: _Optional[_Union[MaintenanceTaskOptions, _Mapping]] = ..., action_group_states: _Optional[_Iterable[_Union[ActionGroupStates, _Mapping]]] = ...) -> None: ...
+    create_time: _timestamp_pb2.Timestamp
+    last_refresh_time: _timestamp_pb2.Timestamp
+    def __init__(self, task_options: _Optional[_Union[MaintenanceTaskOptions, _Mapping]] = ..., action_group_states: _Optional[_Iterable[_Union[ActionGroupStates, _Mapping]]] = ..., create_time: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., last_refresh_time: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ...) -> None: ...
 
 class GetMaintenanceTaskResponse(_message.Message):
     __slots__ = ("operation",)

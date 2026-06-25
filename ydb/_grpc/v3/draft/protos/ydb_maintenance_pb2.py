@@ -27,7 +27,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   syntax='proto3',
   serialized_options=b'\n#tech.ydb.proto.draft.maintenance.v1ZDgithub.com/ydb-platform/ydb-go-genproto/draft/protos/Ydb_Maintenance\370\001\001',
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n\"draft/protos/ydb_maintenance.proto\x12\x0fYdb.Maintenance\x1a#protos/annotations/validation.proto\x1a\x1dprotos/ydb_status_codes.proto\x1a\x1aprotos/ydb_discovery.proto\x1a\x1aprotos/ydb_operation.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xf0\x02\n\x04Node\x12\x0f\n\x07node_id\x18\x01 \x01(\r\x12\x0c\n\x04host\x18\x02 \x01(\t\x12\x0c\n\x04port\x18\x03 \x01(\r\x12-\n\x08location\x18\x04 \x01(\x0b\x32\x1b.Ydb.Discovery.NodeLocation\x12)\n\x05state\x18\x05 \x01(\x0e\x32\x1a.Ydb.Maintenance.ItemState\x12\x34\n\x07storage\x18\x06 \x01(\x0b\x32!.Ydb.Maintenance.Node.StorageNodeH\x00\x12\x34\n\x07\x64ynamic\x18\x07 \x01(\x0b\x32!.Ydb.Maintenance.Node.DynamicNodeH\x00\x12.\n\nstart_time\x18\x08 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12\x0f\n\x07version\x18\t \x01(\t\x1a\r\n\x0bStorageNode\x1a\x1d\n\x0b\x44ynamicNode\x12\x0e\n\x06tenant\x18\x01 \x01(\tB\x06\n\x04type\"T\n\x17ListClusterNodesRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\">\n\x16ListClusterNodesResult\x12$\n\x05nodes\x18\x01 \x03(\x0b\x32\x15.Ydb.Maintenance.Node\"H\n\x18ListClusterNodesResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\xc3\x01\n\x16MaintenanceTaskOptions\x12\x19\n\x08task_uid\x18\x01 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x01\x12\x1c\n\x0b\x64\x65scription\x18\x02 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x01\x12<\n\x11\x61vailability_mode\x18\x03 \x01(\x0e\x32!.Ydb.Maintenance.AvailabilityMode\x12\x0f\n\x07\x64ry_run\x18\x04 \x01(\x08\x12!\n\x08priority\x18\x05 \x01(\x05\x42\x0f\xb2\xe6*\x0b[-100; 100]\"B\n\x0b\x41\x63tionScope\x12\x11\n\x07node_id\x18\x01 \x01(\rH\x00\x12\x17\n\x04host\x18\x02 \x01(\tB\x07\xa2\xe6*\x03\x18\xff\x01H\x00\x42\x07\n\x05scope\"f\n\nLockAction\x12+\n\x05scope\x18\x01 \x01(\x0b\x32\x1c.Ydb.Maintenance.ActionScope\x12+\n\x08\x64uration\x18\x02 \x01(\x0b\x32\x19.google.protobuf.Duration\"F\n\x06\x41\x63tion\x12\x32\n\x0block_action\x18\x01 \x01(\x0b\x32\x1b.Ydb.Maintenance.LockActionH\x00\x42\x08\n\x06\x61\x63tion\"?\n\x0b\x41\x63tionGroup\x12\x30\n\x07\x61\x63tions\x18\x01 \x03(\x0b\x32\x17.Ydb.Maintenance.ActionB\x06\x9a\xe6*\x02(\x01\"\xd5\x01\n\x1c\x43reateMaintenanceTaskRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12=\n\x0ctask_options\x18\x02 \x01(\x0b\x32\'.Ydb.Maintenance.MaintenanceTaskOptions\x12;\n\raction_groups\x18\x03 \x03(\x0b\x32\x1c.Ydb.Maintenance.ActionGroupB\x06\x9a\xe6*\x02(\x01\"u\n\x1dRefreshMaintenanceTaskRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x19\n\x08task_uid\x18\x02 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x01\"]\n\tActionUid\x12\x19\n\x08task_uid\x18\x01 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x01\x12\x19\n\x08group_id\x18\x02 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x01\x12\x1a\n\taction_id\x18\x03 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x01\"\x8f\x06\n\x0b\x41\x63tionState\x12\'\n\x06\x61\x63tion\x18\x01 \x01(\x0b\x32\x17.Ydb.Maintenance.Action\x12.\n\naction_uid\x18\x02 \x01(\x0b\x32\x1a.Ydb.Maintenance.ActionUid\x12\x39\n\x06status\x18\x03 \x01(\x0e\x32).Ydb.Maintenance.ActionState.ActionStatus\x12\x39\n\x06reason\x18\x04 \x01(\x0e\x32).Ydb.Maintenance.ActionState.ActionReason\x12\x16\n\x0ereason_details\x18\x06 \x01(\t\x12,\n\x08\x64\x65\x61\x64line\x18\x05 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\"e\n\x0c\x41\x63tionStatus\x12\x1d\n\x19\x41\x43TION_STATUS_UNSPECIFIED\x10\x00\x12\x19\n\x15\x41\x43TION_STATUS_PENDING\x10\x01\x12\x1b\n\x17\x41\x43TION_STATUS_PERFORMED\x10\x02\"\x83\x03\n\x0c\x41\x63tionReason\x12\x1d\n\x19\x41\x43TION_REASON_UNSPECIFIED\x10\x00\x12\x14\n\x10\x41\x43TION_REASON_OK\x10\x01\x12-\n)ACTION_REASON_TOO_MANY_UNAVAILABLE_VDISKS\x10\x02\x12:\n6ACTION_REASON_TOO_MANY_UNAVAILABLE_STATE_STORAGE_RINGS\x10\x03\x12.\n*ACTION_REASON_DISABLED_NODES_LIMIT_REACHED\x10\x04\x12\x35\n1ACTION_REASON_TENANT_DISABLED_NODES_LIMIT_REACHED\x10\x05\x12\x1f\n\x1b\x41\x43TION_REASON_WRONG_REQUEST\x10\x06\x12\x30\n,ACTION_REASON_SYS_TABLETS_NODE_LIMIT_REACHED\x10\x07\x12\x19\n\x15\x41\x43TION_REASON_GENERIC\x10\x08\"H\n\x11\x41\x63tionGroupStates\x12\x33\n\raction_states\x18\x01 \x03(\x0b\x32\x1c.Ydb.Maintenance.ActionState\"\xb0\x01\n\x15MaintenanceTaskResult\x12\x10\n\x08task_uid\x18\x01 \x01(\t\x12?\n\x13\x61\x63tion_group_states\x18\x02 \x03(\x0b\x32\".Ydb.Maintenance.ActionGroupStates\x12\x34\n\x0bretry_after\x18\x03 \x01(\x0b\x32\x1a.google.protobuf.TimestampH\x00\x88\x01\x01\x42\x0e\n\x0c_retry_after\"G\n\x17MaintenanceTaskResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"q\n\x19GetMaintenanceTaskRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x19\n\x08task_uid\x18\x02 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x01\"\x9a\x01\n\x18GetMaintenanceTaskResult\x12=\n\x0ctask_options\x18\x01 \x01(\x0b\x32\'.Ydb.Maintenance.MaintenanceTaskOptions\x12?\n\x13\x61\x63tion_group_states\x18\x02 \x03(\x0b\x32\".Ydb.Maintenance.ActionGroupStates\"J\n\x1aGetMaintenanceTaskResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"t\n\x1bListMaintenanceTasksRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x11\n\x04user\x18\x02 \x01(\tH\x00\x88\x01\x01\x42\x07\n\x05_user\"0\n\x1aListMaintenanceTasksResult\x12\x12\n\ntasks_uids\x18\x01 \x03(\t\"L\n\x1cListMaintenanceTasksResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"r\n\x1a\x44ropMaintenanceTaskRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x19\n\x08task_uid\x18\x02 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x01\"M\n\x1dManageMaintenanceTaskResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\x8b\x01\n\x15\x43ompleteActionRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x37\n\x0b\x61\x63tion_uids\x18\x02 \x03(\x0b\x32\x1a.Ydb.Maintenance.ActionUidB\x06\x9a\xe6*\x02(\x01\"\xbe\x01\n\x12ManageActionResult\x12\x43\n\x0f\x61\x63tion_statuses\x18\x01 \x03(\x0b\x32*.Ydb.Maintenance.ManageActionResult.Status\x1a\x63\n\x06Status\x12.\n\naction_uid\x18\x01 \x01(\x0b\x32\x1a.Ydb.Maintenance.ActionUid\x12)\n\x06status\x18\x02 \x01(\x0e\x32\x19.Ydb.StatusIds.StatusCode\"D\n\x14ManageActionResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation*k\n\tItemState\x12\x1a\n\x16ITEM_STATE_UNSPECIFIED\x10\x00\x12\x11\n\rITEM_STATE_UP\x10\x01\x12\x1a\n\x16ITEM_STATE_MAINTENANCE\x10\x02\x12\x13\n\x0fITEM_STATE_DOWN\x10\x03*\x8c\x01\n\x10\x41vailabilityMode\x12!\n\x1d\x41VAILABILITY_MODE_UNSPECIFIED\x10\x00\x12\x1c\n\x18\x41VAILABILITY_MODE_STRONG\x10\x01\x12\x1a\n\x16\x41VAILABILITY_MODE_WEAK\x10\x02\x12\x1b\n\x17\x41VAILABILITY_MODE_FORCE\x10\x03\x42n\n#tech.ydb.proto.draft.maintenance.v1ZDgithub.com/ydb-platform/ydb-go-genproto/draft/protos/Ydb_Maintenance\xf8\x01\x01\x62\x06proto3'
+  serialized_pb=b'\n\"draft/protos/ydb_maintenance.proto\x12\x0fYdb.Maintenance\x1a#protos/annotations/validation.proto\x1a\x1dprotos/ydb_status_codes.proto\x1a\x1aprotos/ydb_discovery.proto\x1a\x1aprotos/ydb_operation.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xf0\x02\n\x04Node\x12\x0f\n\x07node_id\x18\x01 \x01(\r\x12\x0c\n\x04host\x18\x02 \x01(\t\x12\x0c\n\x04port\x18\x03 \x01(\r\x12-\n\x08location\x18\x04 \x01(\x0b\x32\x1b.Ydb.Discovery.NodeLocation\x12)\n\x05state\x18\x05 \x01(\x0e\x32\x1a.Ydb.Maintenance.ItemState\x12\x34\n\x07storage\x18\x06 \x01(\x0b\x32!.Ydb.Maintenance.Node.StorageNodeH\x00\x12\x34\n\x07\x64ynamic\x18\x07 \x01(\x0b\x32!.Ydb.Maintenance.Node.DynamicNodeH\x00\x12.\n\nstart_time\x18\x08 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12\x0f\n\x07version\x18\t \x01(\t\x1a\r\n\x0bStorageNode\x1a\x1d\n\x0b\x44ynamicNode\x12\x0e\n\x06tenant\x18\x01 \x01(\tB\x06\n\x04type\"T\n\x17ListClusterNodesRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\">\n\x16ListClusterNodesResult\x12$\n\x05nodes\x18\x01 \x03(\x0b\x32\x15.Ydb.Maintenance.Node\"H\n\x18ListClusterNodesResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\xc3\x01\n\x16MaintenanceTaskOptions\x12\x19\n\x08task_uid\x18\x01 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x01\x12\x1c\n\x0b\x64\x65scription\x18\x02 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x01\x12<\n\x11\x61vailability_mode\x18\x03 \x01(\x0e\x32!.Ydb.Maintenance.AvailabilityMode\x12\x0f\n\x07\x64ry_run\x18\x04 \x01(\x08\x12!\n\x08priority\x18\x05 \x01(\x05\x42\x0f\xb2\xe6*\x0b[-100; 100]\"\xf7\x02\n\x0b\x41\x63tionScope\x12\x11\n\x07node_id\x18\x01 \x01(\rH\x00\x12\x17\n\x04host\x18\x02 \x01(\tB\x07\xa2\xe6*\x03\x18\xff\x01H\x00\x12\x33\n\x05pdisk\x18\x03 \x01(\x0b\x32\".Ydb.Maintenance.ActionScope.PDiskH\x00\x1a,\n\x07PDiskId\x12\x0f\n\x07node_id\x18\x01 \x01(\r\x12\x10\n\x08pdisk_id\x18\x02 \x01(\r\x1a=\n\rPDiskLocation\x12\x15\n\x04host\x18\x01 \x01(\tB\x07\xa2\xe6*\x03\x18\xff\x01\x12\x15\n\x04path\x18\x02 \x01(\tB\x07\xa2\xe6*\x03\x18\xff\x01\x1a\x90\x01\n\x05PDisk\x12\x38\n\x08pdisk_id\x18\x01 \x01(\x0b\x32$.Ydb.Maintenance.ActionScope.PDiskIdH\x00\x12\x44\n\x0epdisk_location\x18\x02 \x01(\x0b\x32*.Ydb.Maintenance.ActionScope.PDiskLocationH\x00\x42\x07\n\x05pdiskB\x07\n\x05scope\"f\n\nLockAction\x12+\n\x05scope\x18\x01 \x01(\x0b\x32\x1c.Ydb.Maintenance.ActionScope\x12+\n\x08\x64uration\x18\x02 \x01(\x0b\x32\x19.google.protobuf.Duration\":\n\x0b\x44rainAction\x12+\n\x05scope\x18\x01 \x01(\x0b\x32\x1c.Ydb.Maintenance.ActionScope\";\n\x0c\x43ordonAction\x12+\n\x05scope\x18\x01 \x01(\x0b\x32\x1c.Ydb.Maintenance.ActionScope\"\xb4\x01\n\x06\x41\x63tion\x12\x32\n\x0block_action\x18\x01 \x01(\x0b\x32\x1b.Ydb.Maintenance.LockActionH\x00\x12\x34\n\x0c\x64rain_action\x18\x02 \x01(\x0b\x32\x1c.Ydb.Maintenance.DrainActionH\x00\x12\x36\n\rcordon_action\x18\x03 \x01(\x0b\x32\x1d.Ydb.Maintenance.CordonActionH\x00\x42\x08\n\x06\x61\x63tion\"?\n\x0b\x41\x63tionGroup\x12\x30\n\x07\x61\x63tions\x18\x01 \x03(\x0b\x32\x17.Ydb.Maintenance.ActionB\x06\x9a\xe6*\x02(\x01\"\xd5\x01\n\x1c\x43reateMaintenanceTaskRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12=\n\x0ctask_options\x18\x02 \x01(\x0b\x32\'.Ydb.Maintenance.MaintenanceTaskOptions\x12;\n\raction_groups\x18\x03 \x03(\x0b\x32\x1c.Ydb.Maintenance.ActionGroupB\x06\x9a\xe6*\x02(\x01\"u\n\x1dRefreshMaintenanceTaskRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x19\n\x08task_uid\x18\x02 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x01\"]\n\tActionUid\x12\x19\n\x08task_uid\x18\x01 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x01\x12\x19\n\x08group_id\x18\x02 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x01\x12\x1a\n\taction_id\x18\x03 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x01\"\xa8\x06\n\x0b\x41\x63tionState\x12\'\n\x06\x61\x63tion\x18\x01 \x01(\x0b\x32\x17.Ydb.Maintenance.Action\x12.\n\naction_uid\x18\x02 \x01(\x0b\x32\x1a.Ydb.Maintenance.ActionUid\x12\x39\n\x06status\x18\x03 \x01(\x0e\x32).Ydb.Maintenance.ActionState.ActionStatus\x12\x39\n\x06reason\x18\x04 \x01(\x0e\x32).Ydb.Maintenance.ActionState.ActionReason\x12\x0f\n\x07\x64\x65tails\x18\x06 \x01(\t\x12,\n\x08\x64\x65\x61\x64line\x18\x05 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\"\x84\x01\n\x0c\x41\x63tionStatus\x12\x1d\n\x19\x41\x43TION_STATUS_UNSPECIFIED\x10\x00\x12\x19\n\x15\x41\x43TION_STATUS_PENDING\x10\x01\x12\x1b\n\x17\x41\x43TION_STATUS_PERFORMED\x10\x02\x12\x1d\n\x19\x41\x43TION_STATUS_IN_PROGRESS\x10\x03\"\x83\x03\n\x0c\x41\x63tionReason\x12\x1d\n\x19\x41\x43TION_REASON_UNSPECIFIED\x10\x00\x12\x14\n\x10\x41\x43TION_REASON_OK\x10\x01\x12-\n)ACTION_REASON_TOO_MANY_UNAVAILABLE_VDISKS\x10\x02\x12:\n6ACTION_REASON_TOO_MANY_UNAVAILABLE_STATE_STORAGE_RINGS\x10\x03\x12.\n*ACTION_REASON_DISABLED_NODES_LIMIT_REACHED\x10\x04\x12\x35\n1ACTION_REASON_TENANT_DISABLED_NODES_LIMIT_REACHED\x10\x05\x12\x1f\n\x1b\x41\x43TION_REASON_WRONG_REQUEST\x10\x06\x12\x30\n,ACTION_REASON_SYS_TABLETS_NODE_LIMIT_REACHED\x10\x07\x12\x19\n\x15\x41\x43TION_REASON_GENERIC\x10\x08\"H\n\x11\x41\x63tionGroupStates\x12\x33\n\raction_states\x18\x01 \x03(\x0b\x32\x1c.Ydb.Maintenance.ActionState\"\x98\x02\n\x15MaintenanceTaskResult\x12\x10\n\x08task_uid\x18\x01 \x01(\t\x12?\n\x13\x61\x63tion_group_states\x18\x02 \x03(\x0b\x32\".Ydb.Maintenance.ActionGroupStates\x12\x34\n\x0bretry_after\x18\x03 \x01(\x0b\x32\x1a.google.protobuf.TimestampH\x00\x88\x01\x01\x12/\n\x0b\x63reate_time\x18\x04 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12\x35\n\x11last_refresh_time\x18\x05 \x01(\x0b\x32\x1a.google.protobuf.TimestampB\x0e\n\x0c_retry_after\"G\n\x17MaintenanceTaskResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"q\n\x19GetMaintenanceTaskRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x19\n\x08task_uid\x18\x02 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x01\"\x82\x02\n\x18GetMaintenanceTaskResult\x12=\n\x0ctask_options\x18\x01 \x01(\x0b\x32\'.Ydb.Maintenance.MaintenanceTaskOptions\x12?\n\x13\x61\x63tion_group_states\x18\x02 \x03(\x0b\x32\".Ydb.Maintenance.ActionGroupStates\x12/\n\x0b\x63reate_time\x18\x03 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12\x35\n\x11last_refresh_time\x18\x04 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\"J\n\x1aGetMaintenanceTaskResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"t\n\x1bListMaintenanceTasksRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x11\n\x04user\x18\x02 \x01(\tH\x00\x88\x01\x01\x42\x07\n\x05_user\"0\n\x1aListMaintenanceTasksResult\x12\x12\n\ntasks_uids\x18\x01 \x03(\t\"L\n\x1cListMaintenanceTasksResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"r\n\x1a\x44ropMaintenanceTaskRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x19\n\x08task_uid\x18\x02 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x01\"M\n\x1dManageMaintenanceTaskResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\x8b\x01\n\x15\x43ompleteActionRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x37\n\x0b\x61\x63tion_uids\x18\x02 \x03(\x0b\x32\x1a.Ydb.Maintenance.ActionUidB\x06\x9a\xe6*\x02(\x01\"\xbe\x01\n\x12ManageActionResult\x12\x43\n\x0f\x61\x63tion_statuses\x18\x01 \x03(\x0b\x32*.Ydb.Maintenance.ManageActionResult.Status\x1a\x63\n\x06Status\x12.\n\naction_uid\x18\x01 \x01(\x0b\x32\x1a.Ydb.Maintenance.ActionUid\x12)\n\x06status\x18\x02 \x01(\x0e\x32\x19.Ydb.StatusIds.StatusCode\"D\n\x14ManageActionResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation*k\n\tItemState\x12\x1a\n\x16ITEM_STATE_UNSPECIFIED\x10\x00\x12\x11\n\rITEM_STATE_UP\x10\x01\x12\x1a\n\x16ITEM_STATE_MAINTENANCE\x10\x02\x12\x13\n\x0fITEM_STATE_DOWN\x10\x03*\xa9\x01\n\x10\x41vailabilityMode\x12!\n\x1d\x41VAILABILITY_MODE_UNSPECIFIED\x10\x00\x12\x1c\n\x18\x41VAILABILITY_MODE_STRONG\x10\x01\x12\x1a\n\x16\x41VAILABILITY_MODE_WEAK\x10\x02\x12\x1b\n\x17\x41VAILABILITY_MODE_FORCE\x10\x03\x12\x1b\n\x17\x41VAILABILITY_MODE_SMART\x10\x04\x42n\n#tech.ydb.proto.draft.maintenance.v1ZDgithub.com/ydb-platform/ydb-go-genproto/draft/protos/Ydb_Maintenance\xf8\x01\x01\x62\x06proto3'
   ,
   dependencies=[protos_dot_annotations_dot_validation__pb2.DESCRIPTOR,protos_dot_ydb__status__codes__pb2.DESCRIPTOR,protos_dot_ydb__discovery__pb2.DESCRIPTOR,protos_dot_ydb__operation__pb2.DESCRIPTOR,google_dot_protobuf_dot_duration__pb2.DESCRIPTOR,google_dot_protobuf_dot_timestamp__pb2.DESCRIPTOR,])
 
@@ -61,8 +61,8 @@ _ITEMSTATE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=4082,
-  serialized_end=4189,
+  serialized_start=4857,
+  serialized_end=4964,
 )
 _sym_db.RegisterEnumDescriptor(_ITEMSTATE)
 
@@ -94,11 +94,16 @@ _AVAILABILITYMODE = _descriptor.EnumDescriptor(
       serialized_options=None,
       type=None,
       create_key=_descriptor._internal_create_key),
+    _descriptor.EnumValueDescriptor(
+      name='AVAILABILITY_MODE_SMART', index=4, number=4,
+      serialized_options=None,
+      type=None,
+      create_key=_descriptor._internal_create_key),
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=4192,
-  serialized_end=4332,
+  serialized_start=4967,
+  serialized_end=5136,
 )
 _sym_db.RegisterEnumDescriptor(_AVAILABILITYMODE)
 
@@ -111,6 +116,7 @@ AVAILABILITY_MODE_UNSPECIFIED = 0
 AVAILABILITY_MODE_STRONG = 1
 AVAILABILITY_MODE_WEAK = 2
 AVAILABILITY_MODE_FORCE = 3
+AVAILABILITY_MODE_SMART = 4
 
 
 _ACTIONSTATE_ACTIONSTATUS = _descriptor.EnumDescriptor(
@@ -135,11 +141,16 @@ _ACTIONSTATE_ACTIONSTATUS = _descriptor.EnumDescriptor(
       serialized_options=None,
       type=None,
       create_key=_descriptor._internal_create_key),
+    _descriptor.EnumValueDescriptor(
+      name='ACTION_STATUS_IN_PROGRESS', index=3, number=3,
+      serialized_options=None,
+      type=None,
+      create_key=_descriptor._internal_create_key),
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=2069,
-  serialized_end=2170,
+  serialized_start=2605,
+  serialized_end=2737,
 )
 _sym_db.RegisterEnumDescriptor(_ACTIONSTATE_ACTIONSTATUS)
 
@@ -198,8 +209,8 @@ _ACTIONSTATE_ACTIONREASON = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=2173,
-  serialized_end=2560,
+  serialized_start=2740,
+  serialized_end=3127,
 )
 _sym_db.RegisterEnumDescriptor(_ACTIONSTATE_ACTIONREASON)
 
@@ -508,6 +519,125 @@ _MAINTENANCETASKOPTIONS = _descriptor.Descriptor(
 )
 
 
+_ACTIONSCOPE_PDISKID = _descriptor.Descriptor(
+  name='PDiskId',
+  full_name='Ydb.Maintenance.ActionScope.PDiskId',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='node_id', full_name='Ydb.Maintenance.ActionScope.PDiskId.node_id', index=0,
+      number=1, type=13, cpp_type=3, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='pdisk_id', full_name='Ydb.Maintenance.ActionScope.PDiskId.pdisk_id', index=1,
+      number=2, type=13, cpp_type=3, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=1150,
+  serialized_end=1194,
+)
+
+_ACTIONSCOPE_PDISKLOCATION = _descriptor.Descriptor(
+  name='PDiskLocation',
+  full_name='Ydb.Maintenance.ActionScope.PDiskLocation',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='host', full_name='Ydb.Maintenance.ActionScope.PDiskLocation.host', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=b'\242\346*\003\030\377\001', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='path', full_name='Ydb.Maintenance.ActionScope.PDiskLocation.path', index=1,
+      number=2, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=b'\242\346*\003\030\377\001', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=1196,
+  serialized_end=1257,
+)
+
+_ACTIONSCOPE_PDISK = _descriptor.Descriptor(
+  name='PDisk',
+  full_name='Ydb.Maintenance.ActionScope.PDisk',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='pdisk_id', full_name='Ydb.Maintenance.ActionScope.PDisk.pdisk_id', index=0,
+      number=1, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='pdisk_location', full_name='Ydb.Maintenance.ActionScope.PDisk.pdisk_location', index=1,
+      number=2, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+    _descriptor.OneofDescriptor(
+      name='pdisk', full_name='Ydb.Maintenance.ActionScope.PDisk.pdisk',
+      index=0, containing_type=None,
+      create_key=_descriptor._internal_create_key,
+    fields=[]),
+  ],
+  serialized_start=1260,
+  serialized_end=1404,
+)
+
 _ACTIONSCOPE = _descriptor.Descriptor(
   name='ActionScope',
   full_name='Ydb.Maintenance.ActionScope',
@@ -530,10 +660,17 @@ _ACTIONSCOPE = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=b'\242\346*\003\030\377\001', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='pdisk', full_name='Ydb.Maintenance.ActionScope.pdisk', index=2,
+      number=3, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
   ],
   extensions=[
   ],
-  nested_types=[],
+  nested_types=[_ACTIONSCOPE_PDISKID, _ACTIONSCOPE_PDISKLOCATION, _ACTIONSCOPE_PDISK, ],
   enum_types=[
   ],
   serialized_options=None,
@@ -547,8 +684,8 @@ _ACTIONSCOPE = _descriptor.Descriptor(
       create_key=_descriptor._internal_create_key,
     fields=[]),
   ],
-  serialized_start=1037,
-  serialized_end=1103,
+  serialized_start=1038,
+  serialized_end=1413,
 )
 
 
@@ -586,8 +723,72 @@ _LOCKACTION = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1105,
-  serialized_end=1207,
+  serialized_start=1415,
+  serialized_end=1517,
+)
+
+
+_DRAINACTION = _descriptor.Descriptor(
+  name='DrainAction',
+  full_name='Ydb.Maintenance.DrainAction',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='scope', full_name='Ydb.Maintenance.DrainAction.scope', index=0,
+      number=1, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=1519,
+  serialized_end=1577,
+)
+
+
+_CORDONACTION = _descriptor.Descriptor(
+  name='CordonAction',
+  full_name='Ydb.Maintenance.CordonAction',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='scope', full_name='Ydb.Maintenance.CordonAction.scope', index=0,
+      number=1, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=1579,
+  serialized_end=1638,
 )
 
 
@@ -602,6 +803,20 @@ _ACTION = _descriptor.Descriptor(
     _descriptor.FieldDescriptor(
       name='lock_action', full_name='Ydb.Maintenance.Action.lock_action', index=0,
       number=1, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='drain_action', full_name='Ydb.Maintenance.Action.drain_action', index=1,
+      number=2, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='cordon_action', full_name='Ydb.Maintenance.Action.cordon_action', index=2,
+      number=3, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -623,8 +838,8 @@ _ACTION = _descriptor.Descriptor(
       create_key=_descriptor._internal_create_key,
     fields=[]),
   ],
-  serialized_start=1209,
-  serialized_end=1279,
+  serialized_start=1641,
+  serialized_end=1821,
 )
 
 
@@ -655,8 +870,8 @@ _ACTIONGROUP = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1281,
-  serialized_end=1344,
+  serialized_start=1823,
+  serialized_end=1886,
 )
 
 
@@ -701,8 +916,8 @@ _CREATEMAINTENANCETASKREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1347,
-  serialized_end=1560,
+  serialized_start=1889,
+  serialized_end=2102,
 )
 
 
@@ -740,8 +955,8 @@ _REFRESHMAINTENANCETASKREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1562,
-  serialized_end=1679,
+  serialized_start=2104,
+  serialized_end=2221,
 )
 
 
@@ -786,8 +1001,8 @@ _ACTIONUID = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1681,
-  serialized_end=1774,
+  serialized_start=2223,
+  serialized_end=2316,
 )
 
 
@@ -828,7 +1043,7 @@ _ACTIONSTATE = _descriptor.Descriptor(
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='reason_details', full_name='Ydb.Maintenance.ActionState.reason_details', index=4,
+      name='details', full_name='Ydb.Maintenance.ActionState.details', index=4,
       number=6, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=b"".decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
@@ -855,8 +1070,8 @@ _ACTIONSTATE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1777,
-  serialized_end=2560,
+  serialized_start=2319,
+  serialized_end=3127,
 )
 
 
@@ -887,8 +1102,8 @@ _ACTIONGROUPSTATES = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2562,
-  serialized_end=2634,
+  serialized_start=3129,
+  serialized_end=3201,
 )
 
 
@@ -921,6 +1136,20 @@ _MAINTENANCETASKRESULT = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='create_time', full_name='Ydb.Maintenance.MaintenanceTaskResult.create_time', index=3,
+      number=4, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='last_refresh_time', full_name='Ydb.Maintenance.MaintenanceTaskResult.last_refresh_time', index=4,
+      number=5, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
   ],
   extensions=[
   ],
@@ -938,8 +1167,8 @@ _MAINTENANCETASKRESULT = _descriptor.Descriptor(
       create_key=_descriptor._internal_create_key,
     fields=[]),
   ],
-  serialized_start=2637,
-  serialized_end=2813,
+  serialized_start=3204,
+  serialized_end=3484,
 )
 
 
@@ -970,8 +1199,8 @@ _MAINTENANCETASKRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2815,
-  serialized_end=2886,
+  serialized_start=3486,
+  serialized_end=3557,
 )
 
 
@@ -1009,8 +1238,8 @@ _GETMAINTENANCETASKREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2888,
-  serialized_end=3001,
+  serialized_start=3559,
+  serialized_end=3672,
 )
 
 
@@ -1036,6 +1265,20 @@ _GETMAINTENANCETASKRESULT = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='create_time', full_name='Ydb.Maintenance.GetMaintenanceTaskResult.create_time', index=2,
+      number=3, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='last_refresh_time', full_name='Ydb.Maintenance.GetMaintenanceTaskResult.last_refresh_time', index=3,
+      number=4, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
   ],
   extensions=[
   ],
@@ -1048,8 +1291,8 @@ _GETMAINTENANCETASKRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3004,
-  serialized_end=3158,
+  serialized_start=3675,
+  serialized_end=3933,
 )
 
 
@@ -1080,8 +1323,8 @@ _GETMAINTENANCETASKRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3160,
-  serialized_end=3234,
+  serialized_start=3935,
+  serialized_end=4009,
 )
 
 
@@ -1124,8 +1367,8 @@ _LISTMAINTENANCETASKSREQUEST = _descriptor.Descriptor(
       create_key=_descriptor._internal_create_key,
     fields=[]),
   ],
-  serialized_start=3236,
-  serialized_end=3352,
+  serialized_start=4011,
+  serialized_end=4127,
 )
 
 
@@ -1156,8 +1399,8 @@ _LISTMAINTENANCETASKSRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3354,
-  serialized_end=3402,
+  serialized_start=4129,
+  serialized_end=4177,
 )
 
 
@@ -1188,8 +1431,8 @@ _LISTMAINTENANCETASKSRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3404,
-  serialized_end=3480,
+  serialized_start=4179,
+  serialized_end=4255,
 )
 
 
@@ -1227,8 +1470,8 @@ _DROPMAINTENANCETASKREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3482,
-  serialized_end=3596,
+  serialized_start=4257,
+  serialized_end=4371,
 )
 
 
@@ -1259,8 +1502,8 @@ _MANAGEMAINTENANCETASKRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3598,
-  serialized_end=3675,
+  serialized_start=4373,
+  serialized_end=4450,
 )
 
 
@@ -1298,8 +1541,8 @@ _COMPLETEACTIONREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3678,
-  serialized_end=3817,
+  serialized_start=4453,
+  serialized_end=4592,
 )
 
 
@@ -1337,8 +1580,8 @@ _MANAGEACTIONRESULT_STATUS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3911,
-  serialized_end=4010,
+  serialized_start=4686,
+  serialized_end=4785,
 )
 
 _MANAGEACTIONRESULT = _descriptor.Descriptor(
@@ -1368,8 +1611,8 @@ _MANAGEACTIONRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3820,
-  serialized_end=4010,
+  serialized_start=4595,
+  serialized_end=4785,
 )
 
 
@@ -1400,8 +1643,8 @@ _MANAGEACTIONRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=4012,
-  serialized_end=4080,
+  serialized_start=4787,
+  serialized_end=4855,
 )
 
 _NODE_STORAGENODE.containing_type = _NODE
@@ -1421,18 +1664,43 @@ _LISTCLUSTERNODESREQUEST.fields_by_name['operation_params'].message_type = proto
 _LISTCLUSTERNODESRESULT.fields_by_name['nodes'].message_type = _NODE
 _LISTCLUSTERNODESRESPONSE.fields_by_name['operation'].message_type = protos_dot_ydb__operation__pb2._OPERATION
 _MAINTENANCETASKOPTIONS.fields_by_name['availability_mode'].enum_type = _AVAILABILITYMODE
+_ACTIONSCOPE_PDISKID.containing_type = _ACTIONSCOPE
+_ACTIONSCOPE_PDISKLOCATION.containing_type = _ACTIONSCOPE
+_ACTIONSCOPE_PDISK.fields_by_name['pdisk_id'].message_type = _ACTIONSCOPE_PDISKID
+_ACTIONSCOPE_PDISK.fields_by_name['pdisk_location'].message_type = _ACTIONSCOPE_PDISKLOCATION
+_ACTIONSCOPE_PDISK.containing_type = _ACTIONSCOPE
+_ACTIONSCOPE_PDISK.oneofs_by_name['pdisk'].fields.append(
+  _ACTIONSCOPE_PDISK.fields_by_name['pdisk_id'])
+_ACTIONSCOPE_PDISK.fields_by_name['pdisk_id'].containing_oneof = _ACTIONSCOPE_PDISK.oneofs_by_name['pdisk']
+_ACTIONSCOPE_PDISK.oneofs_by_name['pdisk'].fields.append(
+  _ACTIONSCOPE_PDISK.fields_by_name['pdisk_location'])
+_ACTIONSCOPE_PDISK.fields_by_name['pdisk_location'].containing_oneof = _ACTIONSCOPE_PDISK.oneofs_by_name['pdisk']
+_ACTIONSCOPE.fields_by_name['pdisk'].message_type = _ACTIONSCOPE_PDISK
 _ACTIONSCOPE.oneofs_by_name['scope'].fields.append(
   _ACTIONSCOPE.fields_by_name['node_id'])
 _ACTIONSCOPE.fields_by_name['node_id'].containing_oneof = _ACTIONSCOPE.oneofs_by_name['scope']
 _ACTIONSCOPE.oneofs_by_name['scope'].fields.append(
   _ACTIONSCOPE.fields_by_name['host'])
 _ACTIONSCOPE.fields_by_name['host'].containing_oneof = _ACTIONSCOPE.oneofs_by_name['scope']
+_ACTIONSCOPE.oneofs_by_name['scope'].fields.append(
+  _ACTIONSCOPE.fields_by_name['pdisk'])
+_ACTIONSCOPE.fields_by_name['pdisk'].containing_oneof = _ACTIONSCOPE.oneofs_by_name['scope']
 _LOCKACTION.fields_by_name['scope'].message_type = _ACTIONSCOPE
 _LOCKACTION.fields_by_name['duration'].message_type = google_dot_protobuf_dot_duration__pb2._DURATION
+_DRAINACTION.fields_by_name['scope'].message_type = _ACTIONSCOPE
+_CORDONACTION.fields_by_name['scope'].message_type = _ACTIONSCOPE
 _ACTION.fields_by_name['lock_action'].message_type = _LOCKACTION
+_ACTION.fields_by_name['drain_action'].message_type = _DRAINACTION
+_ACTION.fields_by_name['cordon_action'].message_type = _CORDONACTION
 _ACTION.oneofs_by_name['action'].fields.append(
   _ACTION.fields_by_name['lock_action'])
 _ACTION.fields_by_name['lock_action'].containing_oneof = _ACTION.oneofs_by_name['action']
+_ACTION.oneofs_by_name['action'].fields.append(
+  _ACTION.fields_by_name['drain_action'])
+_ACTION.fields_by_name['drain_action'].containing_oneof = _ACTION.oneofs_by_name['action']
+_ACTION.oneofs_by_name['action'].fields.append(
+  _ACTION.fields_by_name['cordon_action'])
+_ACTION.fields_by_name['cordon_action'].containing_oneof = _ACTION.oneofs_by_name['action']
 _ACTIONGROUP.fields_by_name['actions'].message_type = _ACTION
 _CREATEMAINTENANCETASKREQUEST.fields_by_name['operation_params'].message_type = protos_dot_ydb__operation__pb2._OPERATIONPARAMS
 _CREATEMAINTENANCETASKREQUEST.fields_by_name['task_options'].message_type = _MAINTENANCETASKOPTIONS
@@ -1448,6 +1716,8 @@ _ACTIONSTATE_ACTIONREASON.containing_type = _ACTIONSTATE
 _ACTIONGROUPSTATES.fields_by_name['action_states'].message_type = _ACTIONSTATE
 _MAINTENANCETASKRESULT.fields_by_name['action_group_states'].message_type = _ACTIONGROUPSTATES
 _MAINTENANCETASKRESULT.fields_by_name['retry_after'].message_type = google_dot_protobuf_dot_timestamp__pb2._TIMESTAMP
+_MAINTENANCETASKRESULT.fields_by_name['create_time'].message_type = google_dot_protobuf_dot_timestamp__pb2._TIMESTAMP
+_MAINTENANCETASKRESULT.fields_by_name['last_refresh_time'].message_type = google_dot_protobuf_dot_timestamp__pb2._TIMESTAMP
 _MAINTENANCETASKRESULT.oneofs_by_name['_retry_after'].fields.append(
   _MAINTENANCETASKRESULT.fields_by_name['retry_after'])
 _MAINTENANCETASKRESULT.fields_by_name['retry_after'].containing_oneof = _MAINTENANCETASKRESULT.oneofs_by_name['_retry_after']
@@ -1455,6 +1725,8 @@ _MAINTENANCETASKRESPONSE.fields_by_name['operation'].message_type = protos_dot_y
 _GETMAINTENANCETASKREQUEST.fields_by_name['operation_params'].message_type = protos_dot_ydb__operation__pb2._OPERATIONPARAMS
 _GETMAINTENANCETASKRESULT.fields_by_name['task_options'].message_type = _MAINTENANCETASKOPTIONS
 _GETMAINTENANCETASKRESULT.fields_by_name['action_group_states'].message_type = _ACTIONGROUPSTATES
+_GETMAINTENANCETASKRESULT.fields_by_name['create_time'].message_type = google_dot_protobuf_dot_timestamp__pb2._TIMESTAMP
+_GETMAINTENANCETASKRESULT.fields_by_name['last_refresh_time'].message_type = google_dot_protobuf_dot_timestamp__pb2._TIMESTAMP
 _GETMAINTENANCETASKRESPONSE.fields_by_name['operation'].message_type = protos_dot_ydb__operation__pb2._OPERATION
 _LISTMAINTENANCETASKSREQUEST.fields_by_name['operation_params'].message_type = protos_dot_ydb__operation__pb2._OPERATIONPARAMS
 _LISTMAINTENANCETASKSREQUEST.oneofs_by_name['_user'].fields.append(
@@ -1477,6 +1749,8 @@ DESCRIPTOR.message_types_by_name['ListClusterNodesResponse'] = _LISTCLUSTERNODES
 DESCRIPTOR.message_types_by_name['MaintenanceTaskOptions'] = _MAINTENANCETASKOPTIONS
 DESCRIPTOR.message_types_by_name['ActionScope'] = _ACTIONSCOPE
 DESCRIPTOR.message_types_by_name['LockAction'] = _LOCKACTION
+DESCRIPTOR.message_types_by_name['DrainAction'] = _DRAINACTION
+DESCRIPTOR.message_types_by_name['CordonAction'] = _CORDONACTION
 DESCRIPTOR.message_types_by_name['Action'] = _ACTION
 DESCRIPTOR.message_types_by_name['ActionGroup'] = _ACTIONGROUP
 DESCRIPTOR.message_types_by_name['CreateMaintenanceTaskRequest'] = _CREATEMAINTENANCETASKREQUEST
@@ -1553,11 +1827,35 @@ MaintenanceTaskOptions = _reflection.GeneratedProtocolMessageType('MaintenanceTa
 _sym_db.RegisterMessage(MaintenanceTaskOptions)
 
 ActionScope = _reflection.GeneratedProtocolMessageType('ActionScope', (_message.Message,), {
+
+  'PDiskId' : _reflection.GeneratedProtocolMessageType('PDiskId', (_message.Message,), {
+    'DESCRIPTOR' : _ACTIONSCOPE_PDISKID,
+    '__module__' : 'draft.protos.ydb_maintenance_pb2'
+    # @@protoc_insertion_point(class_scope:Ydb.Maintenance.ActionScope.PDiskId)
+    })
+  ,
+
+  'PDiskLocation' : _reflection.GeneratedProtocolMessageType('PDiskLocation', (_message.Message,), {
+    'DESCRIPTOR' : _ACTIONSCOPE_PDISKLOCATION,
+    '__module__' : 'draft.protos.ydb_maintenance_pb2'
+    # @@protoc_insertion_point(class_scope:Ydb.Maintenance.ActionScope.PDiskLocation)
+    })
+  ,
+
+  'PDisk' : _reflection.GeneratedProtocolMessageType('PDisk', (_message.Message,), {
+    'DESCRIPTOR' : _ACTIONSCOPE_PDISK,
+    '__module__' : 'draft.protos.ydb_maintenance_pb2'
+    # @@protoc_insertion_point(class_scope:Ydb.Maintenance.ActionScope.PDisk)
+    })
+  ,
   'DESCRIPTOR' : _ACTIONSCOPE,
   '__module__' : 'draft.protos.ydb_maintenance_pb2'
   # @@protoc_insertion_point(class_scope:Ydb.Maintenance.ActionScope)
   })
 _sym_db.RegisterMessage(ActionScope)
+_sym_db.RegisterMessage(ActionScope.PDiskId)
+_sym_db.RegisterMessage(ActionScope.PDiskLocation)
+_sym_db.RegisterMessage(ActionScope.PDisk)
 
 LockAction = _reflection.GeneratedProtocolMessageType('LockAction', (_message.Message,), {
   'DESCRIPTOR' : _LOCKACTION,
@@ -1565,6 +1863,20 @@ LockAction = _reflection.GeneratedProtocolMessageType('LockAction', (_message.Me
   # @@protoc_insertion_point(class_scope:Ydb.Maintenance.LockAction)
   })
 _sym_db.RegisterMessage(LockAction)
+
+DrainAction = _reflection.GeneratedProtocolMessageType('DrainAction', (_message.Message,), {
+  'DESCRIPTOR' : _DRAINACTION,
+  '__module__' : 'draft.protos.ydb_maintenance_pb2'
+  # @@protoc_insertion_point(class_scope:Ydb.Maintenance.DrainAction)
+  })
+_sym_db.RegisterMessage(DrainAction)
+
+CordonAction = _reflection.GeneratedProtocolMessageType('CordonAction', (_message.Message,), {
+  'DESCRIPTOR' : _CORDONACTION,
+  '__module__' : 'draft.protos.ydb_maintenance_pb2'
+  # @@protoc_insertion_point(class_scope:Ydb.Maintenance.CordonAction)
+  })
+_sym_db.RegisterMessage(CordonAction)
 
 Action = _reflection.GeneratedProtocolMessageType('Action', (_message.Message,), {
   'DESCRIPTOR' : _ACTION,
@@ -1719,6 +2031,8 @@ DESCRIPTOR._options = None
 _MAINTENANCETASKOPTIONS.fields_by_name['task_uid']._options = None
 _MAINTENANCETASKOPTIONS.fields_by_name['description']._options = None
 _MAINTENANCETASKOPTIONS.fields_by_name['priority']._options = None
+_ACTIONSCOPE_PDISKLOCATION.fields_by_name['host']._options = None
+_ACTIONSCOPE_PDISKLOCATION.fields_by_name['path']._options = None
 _ACTIONSCOPE.fields_by_name['host']._options = None
 _ACTIONGROUP.fields_by_name['actions']._options = None
 _CREATEMAINTENANCETASKREQUEST.fields_by_name['action_groups']._options = None
