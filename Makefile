@@ -14,16 +14,16 @@ protobuf: protobuf-3 protobuf-4 protobuf-5 protobuf-6
 
 protobuf-3:
 	docker build -f generate-protobuf.Dockerfile . -t ydb-python-sdk-proto-generator-env-3 --build-arg GRPCIO_VER=1.39.0
-	docker run --rm -it -v $${PWD}:$${PWD} -w $${PWD} ydb-python-sdk-proto-generator-env-3 python generate_protoc.py --target-version=v3
+	docker run --rm -i -v $${PWD}:$${PWD} -w $${PWD} ydb-python-sdk-proto-generator-env-3 python generate_protoc.py --target-version=v3
 
 protobuf-4:
 	docker build -f generate-protobuf.Dockerfile . -t ydb-python-sdk-proto-generator-env-4 --build-arg GRPCIO_VER=1.50.0
-	docker run --rm -it -v $${PWD}:$${PWD} -w $${PWD} ydb-python-sdk-proto-generator-env-4 python generate_protoc.py --target-version=v4
+	docker run --rm -i -v $${PWD}:$${PWD} -w $${PWD} ydb-python-sdk-proto-generator-env-4 python generate_protoc.py --target-version=v4
 
 protobuf-5:
 	docker build -f generate-protobuf.Dockerfile . -t ydb-python-sdk-proto-generator-env-5 --build-arg GRPCIO_VER=1.50.0
-	docker run --rm -it -v $${PWD}:$${PWD} -w $${PWD} ydb-python-sdk-proto-generator-env-5 python generate_protoc.py --target-version=v5
+	docker run --rm -i -v $${PWD}:$${PWD} -w $${PWD} ydb-python-sdk-proto-generator-env-5 python generate_protoc.py --target-version=v5
 
 protobuf-6:
 	docker build -f generate-protobuf.Dockerfile . -t ydb-python-sdk-proto-generator-env-6 --build-arg GRPCIO_VER=1.72.1
-	docker run --rm -it -v $${PWD}:$${PWD} -w $${PWD} ydb-python-sdk-proto-generator-env-6 python generate_protoc.py --target-version=v6
+	docker run --rm -i -v $${PWD}:$${PWD} -w $${PWD} ydb-python-sdk-proto-generator-env-6 python generate_protoc.py --target-version=v6
