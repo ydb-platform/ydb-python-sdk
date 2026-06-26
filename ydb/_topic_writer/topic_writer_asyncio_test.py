@@ -34,7 +34,8 @@ from .topic_writer import (
     TopicWriterBufferFullError,
 )
 from .._grpc.grpcwrapper.ydb_topic_public_types import PublicCodec
-from .._topic_common.test_helpers import StreamMock, wait_for_fast
+from .._topic_common.test_helpers import StreamMock, wait_for_fast, wait_condition
+from .._topic_common import _stream_connection
 
 from .topic_writer_asyncio import (
     WriterAsyncIOStream,
@@ -309,6 +310,14 @@ class TestWriterAsyncIOReconnector:
             self.from_client = asyncio.Queue()
             self._closed = False
             self.supported_codecs = []
+            self._first_error = asyncio.Future()
+
+        def _set_first_error(self, err):
+            if not self._first_error.done():
+                self._first_error.set_result(err)
+
+        async def wait_error(self):
+            raise await self._first_error
 
         def write(self, messages: typing.List[InternalMessage]):
             if self._closed:
@@ -329,6 +338,11 @@ class TestWriterAsyncIOReconnector:
             if self._closed:
                 return
             self._closed = True
+
+        async def connect(self, driver=None):
+            # new connect path: _new_connection() returns this mock (already "connected"),
+            # _handshake() awaits connect(); nothing to do for the double.
+            pass
 
     @pytest.fixture(autouse=True)
     async def stream_writer_double_queue(self, monkeypatch):
@@ -362,10 +376,10 @@ class TestWriterAsyncIOReconnector:
 
         res = DoubleQueueWriters()
 
-        async def async_create(driver, init_message, token_getter, tx_identity):
+        def new_connection(self):
             return res.get_first()
 
-        monkeypatch.setattr(WriterAsyncIOStream, "create", async_create)
+        monkeypatch.setattr(WriterAsyncIOReconnector, "_new_connection", new_connection)
         return res
 
     @pytest.fixture
@@ -471,7 +485,7 @@ class TestWriterAsyncIOReconnector:
                     raise asyncio.CancelledError()
                 await asyncio.Future()  # stream 2 stays alive
 
-        async def create_mock(*args, **kwargs):
+        def new_connection(self):
             nonlocal stream_creates
             stream_creates += 1
             writer = StreamWriterCancelOnFirstReceive()
@@ -480,7 +494,7 @@ class TestWriterAsyncIOReconnector:
                 stream_2_created.set()
             return writer
 
-        with mock.patch.object(WriterAsyncIOStream, "create", create_mock):
+        with mock.patch.object(WriterAsyncIOReconnector, "_new_connection", new_connection):
             reconnector = WriterAsyncIOReconnector(default_driver, default_settings)
             try:
                 # Bug: stream 2 is never created — _stop(CancelledError) kills the writer permanently.
@@ -935,6 +949,45 @@ class TestWriterAsyncIOReconnector:
         assert sent_messages == [expected_mess]
 
         await reconnector.close(flush=False)
+
+
+@pytest.mark.asyncio
+class TestWriterStreamConnection:
+    async def test_reconnect_handshake_cancel_closes_stream(self):
+        # Structural no-zombie guarantee: the writer connection (and its gRPC stream) is owned
+        # before the handshake's first network await, so cancelling the loop mid-handshake
+        # (writer.close()) closes the stream instead of leaking it. Defined before TestWriterAsyncIO
+        # so it runs before that class's autouse WriterAsyncIOReconnector.__new__ patch.
+        built = []
+
+        class FakeStream(StreamMock):
+            def __init__(self, *args, **kwargs):
+                super().__init__()
+                built.append(self)
+
+            async def start(self, driver, stub, method):
+                return None
+
+        settings = WriterSettings(
+            PublicWriterSettings(
+                topic="/local/topic",
+                producer_id="test-producer",
+                auto_seqno=False,
+                auto_created_at=False,
+                codec=PublicCodec.RAW,
+                update_token_interval=3600,
+            )
+        )
+        driver = mock.Mock()
+        driver._credentials = None
+
+        with mock.patch.object(_stream_connection, "GrpcWrapperAsyncIO", FakeStream):
+            reconnector = WriterAsyncIOReconnector(driver, settings)
+            await wait_condition(lambda: bool(built) and not built[0].from_client.empty())
+            assert not built[0]._closed
+            await asyncio.wait_for(reconnector.close(False), timeout=5)
+
+        assert built[0]._closed, "handshake cancel leaked the in-flight gRPC stream"
 
 
 @pytest.mark.asyncio

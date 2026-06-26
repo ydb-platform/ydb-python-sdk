@@ -7,6 +7,10 @@ import grpc
 import pytest
 
 from .common import CallFromSyncToAsync
+from ._stream_reconnector import StreamReconnector
+from ._stream_connection import StreamConnection
+from .test_helpers import wait_condition
+from ..retries import RetrySettings
 from .._grpc.grpcwrapper.common_utils import (
     GrpcWrapperAsyncIO,
     ServerStatus,
@@ -288,3 +292,135 @@ class TestCallFromSyncToAsync:
         with pytest.raises(TestError):
             caller.call_sync(callback)
         assert callback_eventloop is separate_loop
+
+
+class _FakeConn:
+    def __init__(self):
+        self.close_calls = 0
+        self.close_raises = None
+        self._err = asyncio.Future()
+
+    async def wait_error(self):
+        raise await self._err
+
+    def fail(self, err):
+        if not self._err.done():
+            self._err.set_result(err)
+
+    async def close(self, flush=False):
+        self.close_calls += 1
+        if self.close_raises is not None:
+            raise self.close_raises
+
+
+class _FakeReconnector(StreamReconnector):
+    def __init__(self, conns):
+        self._conns = list(conns)
+        super().__init__(retry_settings=RetrySettings())
+
+    def _new_connection(self):
+        if not self._conns:
+            raise issues.Error("no more connections")
+        return self._conns.pop(0)
+
+    async def _handshake(self, conn):
+        pass
+
+    async def _run(self, conn):
+        await conn.wait_error()
+
+    async def _close_connection(self, conn, flush):
+        await conn.close(flush)
+
+    def _terminal_error(self):
+        return issues.Error("reconnector closed")
+
+
+class _FakeConnection(StreamConnection):
+    async def _init_and_spawn(self, init_message=None):
+        pass
+
+    def _make_update_token_request(self, token):
+        return ("update-token", token)
+
+
+@pytest.mark.asyncio
+class TestStreamReconnectorBase:
+    async def test_reconnect_then_fatal(self):
+        c1, c2 = _FakeConn(), _FakeConn()
+        r = _FakeReconnector([c1, c2])
+        await wait_condition(lambda: r.connection is c1)
+        c1.fail(issues.Unavailable("retriable"))  # reconnect
+        await wait_condition(lambda: r.connection is c2)
+        c2.fail(issues.Error("fatal"))  # not retriable -> stop
+        await wait_condition(lambda: r._fatal_error() is not None)
+        assert isinstance(r._fatal_error(), issues.Error)
+        assert c1.close_calls >= 1
+        await r.close(False)
+
+    async def test_cancelled_error_reconnects(self):
+        c1, c2 = _FakeConn(), _FakeConn()
+        r = _FakeReconnector([c1, c2])
+        await wait_condition(lambda: r.connection is c1)
+        c1.fail(asyncio.CancelledError())  # not closed -> ConnectionLost -> reconnect
+        await wait_condition(lambda: r.connection is c2)
+        await r.close(False)
+
+    async def test_finally_swallows_close_error(self):
+        c1, c2 = _FakeConn(), _FakeConn()
+        c1.close_raises = RuntimeError("boom")
+        r = _FakeReconnector([c1, c2])
+        await wait_condition(lambda: r.connection is c1)
+        c1.fail(issues.Unavailable("retriable"))
+        await wait_condition(lambda: r.connection is c2)
+        await r.close(False)
+
+    async def test_close_without_connection_is_idempotent(self):
+        r = _FakeReconnector([])  # connect fails immediately, _conn stays None
+        await wait_condition(lambda: r._fatal_error() is not None)
+        await r.close(False)  # _conn is None
+        await r.close(False)  # already closed
+
+    async def test_retriable_connect_failure_keeps_looping(self):
+        c = _FakeConn()
+        calls = {"n": 0}
+
+        class R(_FakeReconnector):
+            def _new_connection(self):
+                calls["n"] += 1
+                if calls["n"] == 1:
+                    raise issues.Unavailable("retriable connect failure")  # conn stays None, loop retries
+                return c
+
+        r = R([])
+        await wait_condition(lambda: r.connection is c)
+        await r.close(False)
+
+
+@pytest.mark.asyncio
+class TestStreamConnectionBase:
+    def _make(self, **kw):
+        return _FakeConnection(from_proto=lambda x: x, stub=None, method="m", **kw)
+
+    async def test_update_token_loop_without_token_function(self):
+        # no interval -> guard returns immediately (no hot loop)
+        conn = self._make(update_token_interval=None, get_token_function=lambda: "t")
+        await conn._update_token_loop()
+        # interval set but no token function -> loop returns after the first tick
+        conn2 = self._make(update_token_interval=0, get_token_function=None)
+        await conn2._update_token_loop()
+
+    async def test_update_token_coroutine_and_no_stream(self):
+        async def coro_token():
+            return "T"
+
+        conn = self._make(update_token_interval=0, get_token_function=coro_token)
+        conn._stream = None  # exercise the "no stream" branch of _update_token
+        conn._update_token_event.set()
+        task = asyncio.create_task(conn._update_token_loop())
+        await asyncio.sleep(0.02)
+        task.cancel()
+        try:
+            await task
+        except asyncio.CancelledError:
+            pass

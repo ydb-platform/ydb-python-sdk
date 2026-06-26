@@ -507,7 +507,7 @@ class TestTopicNoConsumerReaderAsyncIO:
         assert msg.seqno == current_offset + 1
 
         current_offset += 2
-        reader._reconnector._stream_reader._set_first_error(ydb.Unavailable("some retriable error"))
+        reader._reconnector._conn._set_first_error(ydb.Unavailable("some retriable error"))
 
         await asyncio.sleep(0)
 
@@ -629,7 +629,7 @@ class TestTopicReaderWithoutConsumer:
         assert msg.seqno == current_offset + 1
 
         current_offset += 2
-        reader._async_reader._reconnector._stream_reader._set_first_error(ydb.Unavailable("some retriable error"))
+        reader._async_reader._reconnector._conn._set_first_error(ydb.Unavailable("some retriable error"))
 
         msg = reader.receive_message()
 
