@@ -151,7 +151,7 @@ class TestTopicTransactionalReader:
                     assert batch.messages[0].data.decode() == "123"
 
                     reconnector = reader._reconnector
-                    old_stream = reconnector._stream_reader
+                    old_stream = reconnector._conn
 
                     with mock.patch.object(
                         reconnector,
@@ -163,10 +163,10 @@ class TestTopicTransactionalReader:
                         old_stream._set_first_error(ydb.issues.ConnectionLost("forced reconnect"))
                         for _ in range(100):
                             await asyncio.sleep(0.05)
-                            current = reconnector._stream_reader
+                            current = reconnector._conn
                             if current is not None and current is not old_stream and current._started:
                                 break
-                        assert reconnector._stream_reader is not old_stream
+                        assert reconnector._conn is not old_stream
 
                         # Committing the stale batch must fail loudly instead of silently
                         # sending a gapped UpdateOffsetsInTransaction for the dead session.

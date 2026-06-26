@@ -12,10 +12,11 @@ import pytest
 
 from ydb import issues
 from . import datatypes, topic_reader_asyncio
+from .._topic_common import _stream_connection
 from .datatypes import PublicBatch, PublicMessage
 from .topic_reader import PublicReaderSettings
 from .topic_reader_asyncio import ReaderStream, ReaderReconnector, TopicReaderError
-from .._grpc.grpcwrapper.common_utils import SupportedDriverType, ServerStatus
+from .._grpc.grpcwrapper.common_utils import ServerStatus
 from .._grpc.grpcwrapper.ydb_topic import (
     StreamReadMessage,
     Codec,
@@ -1542,11 +1543,9 @@ class TestReaderReconnector:
 
         stream_index = 0
 
-        async def stream_create(
-            reader_reconnector_id: int,
-            driver: SupportedDriverType,
-            settings: PublicReaderSettings,
-        ):
+        def new_connection(self):
+            # the reconnect path is now _new_connection() (sync) + _handshake()=conn.connect();
+            # conn.connect/wait_* are AsyncMocks via the ReaderStream spec.
             nonlocal stream_index
             stream_index += 1
             if stream_index == 1:
@@ -1556,9 +1555,13 @@ class TestReaderReconnector:
             else:
                 raise Exception("unexpected create stream")
 
-        with mock.patch.object(ReaderStream, "create", stream_create):
+        with mock.patch.object(ReaderReconnector, "_new_connection", new_connection):
             reconnector = ReaderReconnector(mock.Mock(), PublicReaderSettings("", ""))
-            await wait_for_fast(reconnector.wait_message())
+            try:
+                # generous window: the reconnect crosses one retry backoff sleep
+                await wait_for_fast(reconnector.wait_message(), timeout=5)
+            finally:
+                await reconnector.close(flush=False)
 
         reader_stream_mock_with_error.wait_error.assert_any_await()
         reader_stream_mock_with_error.wait_messages.assert_any_await()
@@ -1594,12 +1597,12 @@ class TestReaderReconnector:
 
         create_calls = 0
 
-        async def stream_create(reader_reconnector_id, driver, settings):
+        def new_connection(self):
             nonlocal create_calls
             create_calls += 1
             return stream1 if create_calls == 1 else stream2
 
-        with mock.patch.object(ReaderStream, "create", stream_create):
+        with mock.patch.object(ReaderReconnector, "_new_connection", new_connection):
             reconnector = ReaderReconnector(mock.Mock(), PublicReaderSettings("", ""))
             await asyncio.wait_for(finally_close_started.wait(), timeout=2)
             await asyncio.wait_for(reconnector.close(flush=False), timeout=5)
@@ -1637,6 +1640,33 @@ class TestReaderReconnector:
                 await create_task
 
         assert built[0]._closed, "create() leaked the in-flight gRPC stream on cancel"
+
+    async def test_reconnect_handshake_cancel_closes_stream(self, default_reader_settings):
+        # Structural no-zombie guarantee provided by StreamReconnector: the connection (and its
+        # gRPC stream) is constructed synchronously and owned BEFORE the handshake's first network
+        # await, so cancelling the loop mid-handshake (reader.close()) closes the stream instead of
+        # leaking it — without any per-create cleanup guard.
+        built = []
+
+        class FakeStream(StreamMock):
+            def __init__(self, *args, **kwargs):
+                super().__init__()
+                built.append(self)
+
+            async def start(self, driver, stub, method):
+                return None
+
+        driver = mock.Mock()
+        driver._credentials = None
+
+        with mock.patch.object(_stream_connection, "GrpcWrapperAsyncIO", FakeStream):
+            reconnector = ReaderReconnector(driver, default_reader_settings)
+            # the loop builds the connection (and its FakeStream) and parks in the init handshake
+            await wait_condition(lambda: bool(built) and not built[0].from_client.empty())
+            assert not built[0]._closed
+            await asyncio.wait_for(reconnector.close(flush=False), timeout=5)
+
+        assert built[0]._closed, "handshake cancel leaked the in-flight gRPC stream"
 
     async def test_wait_error_returns_on_cancelled_error_from_receive(self, default_reader_settings):
         receive_call = 0
