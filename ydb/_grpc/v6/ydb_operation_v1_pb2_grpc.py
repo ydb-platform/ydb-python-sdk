@@ -4,27 +4,6 @@ import grpc
 
 from ydb._grpc.v6.protos import ydb_operation_pb2 as protos_dot_ydb__operation__pb2
 
-<<<<<<< HEAD
-GRPC_GENERATED_VERSION = '1.72.1'
-GRPC_VERSION = grpc.__version__
-_version_not_supported = False
-
-try:
-    from grpc._utilities import first_version_is_lower
-    _version_not_supported = first_version_is_lower(GRPC_VERSION, GRPC_GENERATED_VERSION)
-except ImportError:
-    _version_not_supported = True
-
-if _version_not_supported:
-    raise RuntimeError(
-        f'The grpc package installed is at version {GRPC_VERSION},'
-        + f' but the generated code in ydb_operation_v1_pb2_grpc.py depends on'
-        + f' grpcio>={GRPC_GENERATED_VERSION}.'
-        + f' Please upgrade your grpc module to grpcio>={GRPC_GENERATED_VERSION}'
-        + f' or downgrade your generated code using grpcio-tools<={GRPC_VERSION}.'
-    )
-=======
->>>>>>> 989b70e (Fix Copilot review issues for attach hint PR)
 
 
 class OperationServiceStub(object):
