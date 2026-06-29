@@ -24,11 +24,16 @@ _initialize()
 
 
 class _DotDict(dict):
+    __slots__ = ()
+
     def __init__(self, *args, **kwargs):
         super(_DotDict, self).__init__(*args, **kwargs)
 
     def __getattr__(self, item):
-        return self[item]
+        try:
+            return self[item]
+        except KeyError:
+            raise AttributeError(item)
 
 
 def _is_decimal_signed(hi_value):
@@ -83,7 +88,7 @@ def _pb_to_dict(type_pb, value_pb, table_client_settings):
 
 
 class _Struct(_DotDict):
-    pass
+    __slots__ = ()
 
 
 def _pb_to_struct(type_pb, value_pb, table_client_settings):
@@ -351,6 +356,16 @@ def _unwrap_optionality(column):
     return _to_native_map.get(current_type), c_type
 
 
+def _detach_columns(columns):
+    # The columns container references the source protobuf message, which keeps
+    # the whole arena (including already-parsed message.rows) alive for as long
+    # as the result set is held. Copy the schema into a standalone message so the
+    # source arena can be released right after conversion.
+    holder = _apis.ydb_value.ResultSet()
+    holder.columns.extend(columns)
+    return holder.columns
+
+
 class _ResultSet(object):
     __slots__ = ("columns", "rows", "truncated", "snapshot", "index", "format", "arrow_format_meta", "data")
 
@@ -375,12 +390,17 @@ class _ResultSet(object):
             for column in message.columns:
                 column_parsers.append(_unwrap_optionality(column))
 
+        # Names are the only per-row metadata we need. Storing this shared tuple
+        # (instead of the proto columns) keeps rows detached from the source
+        # protobuf arena, so it can be freed once conversion is done.
+        column_names = tuple(column.name for column in message.columns)
+
         for row_proto in message.rows:
-            row = _Row(message.columns)
-            for column, value, column_info in zip(message.columns, row_proto.items, column_parsers):
+            row = _Row(column_names)
+            for name, value, column_info in zip(column_names, row_proto.items, column_parsers):
                 v_type = value.WhichOneof("value")
                 if v_type == "null_flag_value":
-                    row[column.name] = None
+                    row[name] = None
                     continue
 
                 while v_type == "nested_value":
@@ -388,7 +408,7 @@ class _ResultSet(object):
                     v_type = value.WhichOneof("value")
 
                 column_parser, unwrapped_type = column_info
-                row[column.name] = column_parser(unwrapped_type, value, table_client_settings)
+                row[name] = column_parser(unwrapped_type, value, table_client_settings)
             rows.append(row)
 
         from ydb.query import QueryResultSetFormat, ArrowFormatMeta
@@ -399,9 +419,11 @@ class _ResultSet(object):
         if message.HasField("arrow_format_meta"):
             arrow_meta = ArrowFormatMeta.from_proto(message.arrow_format_meta)
 
-        data = message.data if message.data else None
+        data = bytes(message.data) if message.data else None
 
-        return cls(message.columns, rows, message.truncated, snapshot, index, result_format, arrow_meta, data)
+        return cls(
+            _detach_columns(message.columns), rows, message.truncated, snapshot, index, result_format, arrow_meta, data
+        )
 
     @classmethod
     def lazy_from_message(cls, message, table_client_settings=None, snapshot=None):
@@ -422,15 +444,17 @@ ResultSet = _ResultSet
 
 
 class _Row(_DotDict):
+    __slots__ = ("_columns",)
+
     def __init__(self, columns):
         super(_Row, self).__init__()
         self._columns = columns
 
     def __getitem__(self, key):
         if isinstance(key, int):
-            return self[self._columns[key].name]
+            return self[self._columns[key]]
         elif isinstance(key, slice):
-            return tuple(map(lambda x: self[x.name], self._columns[key]))
+            return tuple(self[name] for name in self._columns[key])
         else:
             return super(_Row, self).__getitem__(key)
 
@@ -455,6 +479,8 @@ class _LazyRowItem:
 
 
 class _LazyRow(_DotDict):
+    __slots__ = ("_columns", "_table_client_settings")
+
     def __init__(self, columns, proto_row, table_client_settings, parsers):
         super(_LazyRow, self).__init__()
         self._columns = columns

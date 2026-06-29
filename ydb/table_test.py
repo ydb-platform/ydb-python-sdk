@@ -1,5 +1,7 @@
+import copy
+
 from unittest import mock
-from . import issues
+from . import issues, convert, types, _apis
 
 from .retries import (
     retry_operation_impl,
@@ -7,6 +9,74 @@ from .retries import (
     YdbRetryOperationSleepOpt,
     RetrySettings,
 )
+
+
+def _build_int_result_set(n_rows, n_cols):
+    result_set = _apis.ydb_value.ResultSet()
+    for col_idx in range(n_cols):
+        column = result_set.columns.add()
+        column.name = "column_%d" % col_idx
+        column.type.type_id = types.PrimitiveType.Int64._idn_
+    for row_idx in range(n_rows):
+        row = result_set.rows.add()
+        for col_idx in range(n_cols):
+            row.items.add().int64_value = row_idx * 1000 + col_idx
+    return result_set
+
+
+def test_result_set_row_access():
+    message = _build_int_result_set(n_rows=1, n_cols=3)
+    row = convert.ResultSet.from_message(message).rows[0]
+
+    assert row["column_1"] == 1
+    assert row.column_1 == 1
+    assert row[1] == 1
+    assert row[0:2] == (0, 1)
+    assert dict(row) == {"column_0": 0, "column_1": 1, "column_2": 2}
+
+
+def test_result_set_row_has_no_instance_dict():
+    # Rows must not carry a per-instance __dict__: it is pure memory overhead
+    # multiplied by every row in a large result set.
+    message = _build_int_result_set(n_rows=1, n_cols=3)
+    row = convert.ResultSet.from_message(message).rows[0]
+    assert not hasattr(row, "__dict__")
+
+
+def test_result_set_row_missing_attribute_raises_attribute_error():
+    message = _build_int_result_set(n_rows=1, n_cols=1)
+    row = convert.ResultSet.from_message(message).rows[0]
+
+    assert not hasattr(row, "definitely_missing")
+    try:
+        row.definitely_missing
+    except AttributeError:
+        pass
+    else:
+        raise AssertionError("expected AttributeError for missing attribute")
+
+
+def test_result_set_row_is_copyable():
+    message = _build_int_result_set(n_rows=1, n_cols=3)
+    row = convert.ResultSet.from_message(message).rows[0]
+
+    assert dict(copy.copy(row)) == dict(row)
+    assert dict(copy.deepcopy(row)) == dict(row)
+
+
+def test_result_set_detached_from_source_message():
+    # The converted result set must not hold a reference into the source
+    # protobuf: otherwise the whole arena (raw rows included) stays alive for
+    # the lifetime of the result, doubling memory usage on large reads.
+    message = _build_int_result_set(n_rows=2, n_cols=2)
+    result = convert.ResultSet.from_message(message)
+
+    message.Clear()  # emulate the source proto being dropped/reused by the stream
+
+    assert [column.name for column in result.columns] == ["column_0", "column_1"]
+    assert result.rows[0]["column_1"] == 1
+    assert result.rows[1][0] == 1000
+    assert result.rows[1][0:2] == (1000, 1001)
 
 
 def test_retry_operation_impl(monkeypatch):
