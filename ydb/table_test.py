@@ -62,6 +62,9 @@ def test_result_set_row_is_copyable():
 
     assert dict(copy.copy(row)) == dict(row)
     assert dict(copy.deepcopy(row)) == dict(row)
+    # _columns must survive the copy so integer/slice indexing keeps working.
+    assert copy.copy(row)[1] == 1
+    assert copy.deepcopy(row)[0:2] == (0, 1)
 
 
 def test_result_set_detached_from_source_message():
@@ -74,6 +77,8 @@ def test_result_set_detached_from_source_message():
     message.Clear()  # emulate the source proto being dropped/reused by the stream
 
     assert [column.name for column in result.columns] == ["column_0", "column_1"]
+    # The DB-API cursor reads column.type on detached columns, so it must survive too.
+    assert result.columns[0].type.type_id == types.PrimitiveType.Int64._idn_
     assert result.rows[0]["column_1"] == 1
     assert result.rows[1][0] == 1000
     assert result.rows[1][0:2] == (1000, 1001)

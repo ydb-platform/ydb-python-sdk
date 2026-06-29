@@ -33,7 +33,7 @@ class _DotDict(dict):
         try:
             return self[item]
         except KeyError:
-            raise AttributeError(item)
+            raise AttributeError(item) from None
 
 
 def _is_decimal_signed(hi_value):
@@ -419,7 +419,7 @@ class _ResultSet(object):
         if message.HasField("arrow_format_meta"):
             arrow_meta = ArrowFormatMeta.from_proto(message.arrow_format_meta)
 
-        data = bytes(message.data) if message.data else None
+        data = message.data if message.data else None
 
         return cls(
             _detach_columns(message.columns), rows, message.truncated, snapshot, index, result_format, arrow_meta, data
