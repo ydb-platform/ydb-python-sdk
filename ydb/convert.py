@@ -429,6 +429,9 @@ class _ResultSet(object):
     def lazy_from_message(cls, message, table_client_settings=None, snapshot=None):
         from ydb.query import QueryResultSetFormat, ArrowFormatMeta
 
+        # No _detach_columns here on purpose: _LazyRows defers parsing and keeps
+        # message.rows, so the source arena is pinned regardless — detaching the
+        # schema would only add a copy without freeing anything.
         rows = _LazyRows(message.rows, table_client_settings, message.columns)
         result_format = message.format if message.format else QueryResultSetFormat.VALUE
 
@@ -479,12 +482,11 @@ class _LazyRowItem:
 
 
 class _LazyRow(_DotDict):
-    __slots__ = ("_columns", "_table_client_settings")
+    __slots__ = ("_columns",)
 
     def __init__(self, columns, proto_row, table_client_settings, parsers):
         super(_LazyRow, self).__init__()
         self._columns = columns
-        self._table_client_settings = table_client_settings
         for i, (column, row_item) in enumerate(zip(self._columns, proto_row.items)):
             super(_LazyRow, self).__setitem__(
                 column.name,

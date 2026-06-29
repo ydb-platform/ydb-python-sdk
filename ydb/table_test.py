@@ -1,5 +1,7 @@
 import copy
 
+import pytest
+
 from unittest import mock
 from . import issues, convert, types, _apis
 
@@ -48,12 +50,8 @@ def test_result_set_row_missing_attribute_raises_attribute_error():
     row = convert.ResultSet.from_message(message).rows[0]
 
     assert not hasattr(row, "definitely_missing")
-    try:
+    with pytest.raises(AttributeError):
         row.definitely_missing
-    except AttributeError:
-        pass
-    else:
-        raise AssertionError("expected AttributeError for missing attribute")
 
 
 def test_result_set_row_is_copyable():
