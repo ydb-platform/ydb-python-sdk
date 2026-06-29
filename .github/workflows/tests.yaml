@@ -19,6 +19,12 @@ jobs:
       matrix:
         python-version: ["3.8", "3.9", "3.10", "3.11", "3.12", "3.13", "3.14"]
         protobuf-version: [proto3, proto4, proto5, proto6]
+        exclude:
+          # protobuf 4.x cannot be imported on Python 3.14: its C extension uses
+          # a metaclass with a custom tp_new, which 3.14 rejects. The 4.x line is
+          # EOL and won't get a fix, so skip just this cell.
+          - python-version: "3.14"
+            protobuf-version: proto4
 
     steps:
     - uses: actions/checkout@v4
