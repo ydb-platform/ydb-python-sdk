@@ -878,7 +878,13 @@ class TestWriterAsyncIOReconnector:
             mess = mess[0]
 
             assert mess.codec == expected_codecs[i]
-            assert mess.get_data_bytes() == expected_datas[i]
+            if expected_codecs[i] == PublicCodec.GZIP:
+                # The gzip header embeds an mtime that differs across Python
+                # versions (3.14 defaults it to 0 regardless of time.time), so
+                # compare the decompressed payload instead of the raw bytes.
+                assert gzip.decompress(mess.get_data_bytes()) == gzip.decompress(expected_datas[i])
+            else:
+                assert mess.get_data_bytes() == expected_datas[i]
 
         await reconnector.close(flush=False)
 
