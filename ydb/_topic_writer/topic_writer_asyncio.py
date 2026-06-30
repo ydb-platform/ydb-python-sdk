@@ -845,15 +845,27 @@ class WriterAsyncIOStream:
     ) -> "WriterAsyncIOStream":
         stream = GrpcWrapperAsyncIO(StreamWriteMessage.FromServer.from_proto)
 
-        await stream.start(driver, _apis.TopicService.Stub, _apis.TopicService.StreamWrite)
+        writer = None
+        try:
+            await stream.start(driver, _apis.TopicService.Stub, _apis.TopicService.StreamWrite)
 
-        creds = driver._credentials
-        writer = WriterAsyncIOStream(
-            update_token_interval=update_token_interval,
-            get_token_function=creds.get_auth_token if creds else lambda: "",
-            tx_identity=tx_identity,
-        )
-        await writer._start(stream, init_request)
+            creds = driver._credentials
+            writer = WriterAsyncIOStream(
+                update_token_interval=update_token_interval,
+                get_token_function=creds.get_auth_token if creds else lambda: "",
+                tx_identity=tx_identity,
+            )
+            await writer._start(stream, init_request)
+        except BaseException:
+            # If create() fails after stream.start() (e.g. the connection is lost while
+            # waiting for the init response), the stream is not yet assigned to the
+            # reconnector, so its finally cannot reach it. Close it here to avoid a
+            # stranded gRPC consumption thread that blocks forever on the request queue.
+            if writer is not None and getattr(writer, "_stream", None) is not None:
+                await writer.close()
+            else:
+                stream.close()
+            raise
         logger.debug(
             "writer stream %s started seqno=%s",
             writer._id,

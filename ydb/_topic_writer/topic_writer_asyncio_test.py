@@ -4,13 +4,17 @@ import asyncio
 import copy
 import dataclasses
 import datetime
+import gc
 import gzip
+import sys
 import typing
+from concurrent.futures import ThreadPoolExecutor
 from queue import Queue, Empty
 from typing import List, Callable, Optional
 from unittest import mock
 
 import freezegun
+import grpc
 import pytest
 
 from .. import aio
@@ -1035,3 +1039,102 @@ class TestWriterAsyncIO:
 
         res = await writer.write_with_ack([PublicMessage(seqno=2, data="123"), PublicMessage(seqno=3, data="123")])
         assert res == [PublicWriteResult.Written(offset=2), PublicWriteResult.Skipped()]
+
+
+_STREAM_WRITE_METHOD = "/Ydb.Topic.V1.TopicService/StreamWrite"
+
+
+def _count_stranded_consumer_threads() -> int:
+    """Number of threads parked in AsyncQueueToSyncIteratorAsyncIO.__next__ (the leak)."""
+    count = 0
+    for frame in sys._current_frames().values():
+        f: typing.Optional[typing.Any] = frame
+        while f is not None:
+            if f.f_code.co_name == "__next__" and f.f_code.co_filename.endswith("common_utils.py"):
+                count += 1
+                break
+            f = f.f_back
+    return count
+
+
+class _AbortingStreamServer:
+    """In-process gRPC server that accepts StreamWrite then immediately drops the stream."""
+
+    def __init__(self):
+        def handler(request_iterator, context):
+            try:
+                next(request_iterator)  # consume the client's init request
+            except Exception:
+                pass
+            context.abort(grpc.StatusCode.UNAVAILABLE, "simulated node down")
+
+        rpc = grpc.stream_stream_rpc_method_handler(
+            handler,
+            request_deserializer=lambda b: b,
+            response_serializer=lambda b: b,
+        )
+
+        class _Generic(grpc.GenericRpcHandler):
+            def service(self, details):
+                return rpc
+
+        self._server = grpc.server(ThreadPoolExecutor(max_workers=4))
+        self.port = self._server.add_insecure_port("127.0.0.1:0")
+        self._server.add_generic_rpc_handlers((_Generic(),))
+        self._server.start()
+
+    def stop(self):
+        self._server.stop(None)
+
+
+class _FakeSyncDriver:
+    """Minimal stand-in for ydb.Driver's call interface used by _start_sync_driver."""
+
+    _credentials = None
+
+    def __init__(self, channel: grpc.Channel):
+        self._channel = channel
+
+    def __call__(self, request_iterator, stub, method, executor=None, settings=None, **kwargs):
+        multicallable = self._channel.stream_stream(
+            _STREAM_WRITE_METHOD,
+            request_serializer=lambda m: m.SerializeToString(),
+            response_deserializer=lambda b: b,
+        )
+        return multicallable(request_iterator)
+
+
+@pytest.mark.asyncio
+async def test_writer_create_failure_does_not_leak_grpc_thread():
+    """Regression: a failed WriterAsyncIOStream.create() must not strand a gRPC consumer thread.
+
+    Uses a real in-process gRPC stream so the consumption thread is actually spawned;
+    mocked-create tests cannot catch this leak.
+    """
+    server = _AbortingStreamServer()
+    channel = grpc.insecure_channel("127.0.0.1:%d" % server.port)
+    driver = _FakeSyncDriver(channel)
+    init = WriterSettings(PublicWriterSettings("/local/topic", "producer-id")).create_init_request()
+
+    try:
+        attempts = 10
+        for _ in range(attempts):
+            with pytest.raises(issues.Error):
+                await WriterAsyncIOStream.create(driver, init)  # type: ignore[arg-type]
+
+        # Give closed streams a moment to let their consumption threads exit.
+        stranded = attempts
+        for _ in range(30):
+            gc.collect()
+            await asyncio.sleep(0.1)
+            stranded = _count_stranded_consumer_threads()
+            if stranded == 0:
+                break
+
+        assert stranded == 0, "%d gRPC consumer threads leaked after %d failed create() calls" % (
+            stranded,
+            attempts,
+        )
+    finally:
+        channel.close()
+        server.stop()
