@@ -833,7 +833,8 @@ class WriterAsyncIOStream:
             self._update_token_task.cancel()
             await asyncio.wait([self._update_token_task])
 
-        self._stream.close()
+        if getattr(self, "_stream", None) is not None:
+            self._stream.close()
         logger.debug("writer stream %s was closed", self._id)
 
     @staticmethod
@@ -858,10 +859,10 @@ class WriterAsyncIOStream:
             await writer._start(stream, init_request)
         except BaseException:
             # If create() fails after stream.start() (e.g. the connection is lost while
-            # waiting for the init response), the stream is not yet assigned to the
+            # waiting for the init response), the stream is not yet handed to the
             # reconnector, so its finally cannot reach it. Close it here to avoid a
             # stranded gRPC consumption thread that blocks forever on the request queue.
-            if writer is not None and getattr(writer, "_stream", None) is not None:
+            if writer is not None:
                 await writer.close()
             else:
                 stream.close()
@@ -887,6 +888,10 @@ class WriterAsyncIOStream:
             raise Exception("Unknown message while read writer answers: %s" % item)
 
     async def _start(self, stream: IGrpcWrapperAsyncIO, init_message: StreamWriteMessage.InitRequest):
+        # Assign before the init handshake (mirrors ReaderStream._start) so that if _start
+        # fails mid-handshake, close() can still reach the stream and release its gRPC thread.
+        self._stream = stream
+
         logger.debug("writer stream %s send init request", self._id)
         stream.write(StreamWriteMessage.FromClient(init_message))
 
@@ -906,8 +911,6 @@ class WriterAsyncIOStream:
             self._id,
             self.last_seqno,
         )
-
-        self._stream = stream
 
         if self._update_token_interval is not None:
             self._update_token_event.set()

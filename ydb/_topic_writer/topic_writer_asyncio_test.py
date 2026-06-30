@@ -26,7 +26,7 @@ from .._grpc.grpcwrapper.ydb_topic import (
     UpdateTokenRequest,
     UpdateTokenResponse,
 )
-from .._grpc.grpcwrapper.common_utils import ServerStatus
+from .._grpc.grpcwrapper.common_utils import AsyncQueueToSyncIteratorAsyncIO, ServerStatus
 from .topic_writer import (
     InternalMessage,
     PublicMessage,
@@ -1044,13 +1044,19 @@ class TestWriterAsyncIO:
 _STREAM_WRITE_METHOD = "/Ydb.Topic.V1.TopicService/StreamWrite"
 
 
+# The exact code object the leaked gRPC consumption thread blocks in. Matching the code
+# object (instead of a module filename) avoids false positives from same-named modules in
+# other dependencies and survives file renames / refactors.
+_CONSUMER_NEXT_CODE = AsyncQueueToSyncIteratorAsyncIO.__next__.__code__
+
+
 def _count_stranded_consumer_threads() -> int:
     """Number of threads parked in AsyncQueueToSyncIteratorAsyncIO.__next__ (the leak)."""
     count = 0
     for frame in sys._current_frames().values():
         f: typing.Optional[typing.Any] = frame
         while f is not None:
-            if f.f_code.co_name == "__next__" and f.f_code.co_filename.endswith("common_utils.py"):
+            if f.f_code is _CONSUMER_NEXT_CODE:
                 count += 1
                 break
             f = f.f_back
@@ -1084,7 +1090,7 @@ class _AbortingStreamServer:
         self._server.start()
 
     def stop(self):
-        self._server.stop(None)
+        self._server.stop(grace=1).wait(timeout=10)
 
 
 class _FakeSyncDriver:
