@@ -1,3 +1,6 @@
+* Fix gRPC thread leak on failed topic writer reconnect
+* Reduce memory usage of query service result sets
+* Update protobufs
 * Fix incompatibility with protobuf 6.30–6.31.0: regenerate v6 stubs with the lowest 6.x gencode floor (6.30.0) instead of 6.31.1
 
 ## 3.29.4 ##
