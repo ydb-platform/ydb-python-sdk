@@ -37,12 +37,25 @@ def test_result_set_row_access():
     assert dict(row) == {"column_0": 0, "column_1": 1, "column_2": 2}
 
 
-def test_result_set_row_has_no_instance_dict():
-    # Rows must not carry a per-instance __dict__: it is pure memory overhead
-    # multiplied by every row in a large result set.
+def test_result_set_row_keeps_data_out_of_instance_dict():
+    # Column values live in the dict base and `_columns` in a slot, never in a
+    # per-instance __dict__ that would be multiplied across every row. The
+    # __dict__ is lazy and stays empty until a caller attaches its own attribute.
     message = _build_int_result_set(n_rows=1, n_cols=3)
     row = convert.ResultSet.from_message(message).rows[0]
-    assert not hasattr(row, "__dict__")
+    assert row.__dict__ == {}
+
+
+def test_result_set_row_allows_attribute_assignment():
+    # Rows expose a __dict__ so callers can attach computed fields onto them
+    # (ORM-style row.dt_created = ...); the memory optimization must keep that
+    # working while leaving read-only rows unburdened.
+    message = _build_int_result_set(n_rows=1, n_cols=3)
+    row = convert.ResultSet.from_message(message).rows[0]
+
+    row.dt_created = 123
+    assert row.dt_created == 123
+    assert row["column_0"] == 0
 
 
 def test_result_set_row_missing_attribute_raises_attribute_error():
