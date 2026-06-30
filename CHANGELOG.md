@@ -1,3 +1,4 @@
+## 3.29.6 ##
 * Restore attribute assignment on query result set rows (broken by the result set memory optimization)
 
 ## 3.29.5 ##
