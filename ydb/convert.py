@@ -24,7 +24,12 @@ _initialize()
 
 
 class _DotDict(dict):
-    __slots__ = ()
+    # A lazy __dict__ is declared on purpose: it is not materialized until a row
+    # is written to (or its __dict__ is introspected), so untouched read-only
+    # rows avoid the per-instance dict overhead while callers can still attach
+    # their own attributes (ORM-style row.extra = ...), which materializes the
+    # dict for that row alone.
+    __slots__ = ("__dict__",)
 
     def __init__(self, *args, **kwargs):
         super(_DotDict, self).__init__(*args, **kwargs)

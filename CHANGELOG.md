@@ -1,3 +1,5 @@
+* Restore attribute assignment on query result set rows (broken by the result set memory optimization)
+
 ## 3.29.5 ##
 * Fix gRPC thread leak on failed topic writer reconnect
 * Reduce memory usage of query service result sets
