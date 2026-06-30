@@ -1082,7 +1082,7 @@ class _AbortingStreamServer:
 
         class _Generic(grpc.GenericRpcHandler):
             def service(self, details):
-                return rpc
+                return rpc if details.method == _STREAM_WRITE_METHOD else None
 
         self._server = grpc.server(ThreadPoolExecutor(max_workers=4))
         self.port = self._server.add_insecure_port("127.0.0.1:0")
@@ -1123,22 +1123,24 @@ async def test_writer_create_failure_does_not_leak_grpc_thread():
     init = WriterSettings(PublicWriterSettings("/local/topic", "producer-id")).create_init_request()
 
     try:
+        baseline = _count_stranded_consumer_threads()
         attempts = 10
         for _ in range(attempts):
             with pytest.raises(issues.Error):
                 await WriterAsyncIOStream.create(driver, init)  # type: ignore[arg-type]
 
-        # Give closed streams a moment to let their consumption threads exit.
-        stranded = attempts
+        # Give closed streams a moment to let their consumption threads exit, then assert
+        # the count returned to the baseline (no net new stranded threads vs other tests).
+        leaked = attempts
         for _ in range(30):
             gc.collect()
             await asyncio.sleep(0.1)
-            stranded = _count_stranded_consumer_threads()
-            if stranded == 0:
+            leaked = _count_stranded_consumer_threads() - baseline
+            if leaked <= 0:
                 break
 
-        assert stranded == 0, "%d gRPC consumer threads leaked after %d failed create() calls" % (
-            stranded,
+        assert leaked <= 0, "%d gRPC consumer threads leaked after %d failed create() calls" % (
+            leaked,
             attempts,
         )
     finally:
