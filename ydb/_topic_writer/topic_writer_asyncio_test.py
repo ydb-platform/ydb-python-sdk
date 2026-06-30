@@ -4,13 +4,17 @@ import asyncio
 import copy
 import dataclasses
 import datetime
+import gc
 import gzip
+import sys
 import typing
+from concurrent.futures import ThreadPoolExecutor
 from queue import Queue, Empty
 from typing import List, Callable, Optional
 from unittest import mock
 
 import freezegun
+import grpc
 import pytest
 
 from .. import aio
@@ -22,7 +26,7 @@ from .._grpc.grpcwrapper.ydb_topic import (
     UpdateTokenRequest,
     UpdateTokenResponse,
 )
-from .._grpc.grpcwrapper.common_utils import ServerStatus
+from .._grpc.grpcwrapper.common_utils import AsyncQueueToSyncIteratorAsyncIO, ServerStatus
 from .topic_writer import (
     InternalMessage,
     PublicMessage,
@@ -1035,3 +1039,110 @@ class TestWriterAsyncIO:
 
         res = await writer.write_with_ack([PublicMessage(seqno=2, data="123"), PublicMessage(seqno=3, data="123")])
         assert res == [PublicWriteResult.Written(offset=2), PublicWriteResult.Skipped()]
+
+
+_STREAM_WRITE_METHOD = "/Ydb.Topic.V1.TopicService/StreamWrite"
+
+
+# The exact code object the leaked gRPC consumption thread blocks in. Matching the code
+# object (instead of a module filename) avoids false positives from same-named modules in
+# other dependencies and survives file renames / refactors.
+_CONSUMER_NEXT_CODE = AsyncQueueToSyncIteratorAsyncIO.__next__.__code__
+
+
+def _count_stranded_consumer_threads() -> int:
+    """Number of threads parked in AsyncQueueToSyncIteratorAsyncIO.__next__ (the leak)."""
+    count = 0
+    for frame in sys._current_frames().values():
+        f: typing.Optional[typing.Any] = frame
+        while f is not None:
+            if f.f_code is _CONSUMER_NEXT_CODE:
+                count += 1
+                break
+            f = f.f_back
+    return count
+
+
+class _AbortingStreamServer:
+    """In-process gRPC server that accepts StreamWrite then immediately drops the stream."""
+
+    def __init__(self):
+        def handler(request_iterator, context):
+            try:
+                next(request_iterator)  # consume the client's init request
+            except Exception:
+                pass
+            context.abort(grpc.StatusCode.UNAVAILABLE, "simulated node down")
+
+        rpc = grpc.stream_stream_rpc_method_handler(
+            handler,
+            request_deserializer=lambda b: b,
+            response_serializer=lambda b: b,
+        )
+
+        class _Generic(grpc.GenericRpcHandler):
+            def service(self, details):
+                return rpc if details.method == _STREAM_WRITE_METHOD else None
+
+        self._server = grpc.server(ThreadPoolExecutor(max_workers=4))
+        self.port = self._server.add_insecure_port("127.0.0.1:0")
+        self._server.add_generic_rpc_handlers((_Generic(),))
+        self._server.start()
+
+    def stop(self):
+        self._server.stop(grace=1).wait(timeout=10)
+
+
+class _FakeSyncDriver:
+    """Minimal stand-in for ydb.Driver's call interface used by _start_sync_driver."""
+
+    _credentials = None
+
+    def __init__(self, channel: grpc.Channel):
+        self._channel = channel
+
+    def __call__(self, request_iterator, stub, method, executor=None, settings=None, **kwargs):
+        multicallable = self._channel.stream_stream(
+            _STREAM_WRITE_METHOD,
+            request_serializer=lambda m: m.SerializeToString(),
+            response_deserializer=lambda b: b,
+        )
+        return multicallable(request_iterator)
+
+
+@pytest.mark.asyncio
+async def test_writer_create_failure_does_not_leak_grpc_thread():
+    """Regression: a failed WriterAsyncIOStream.create() must not strand a gRPC consumer thread.
+
+    Uses a real in-process gRPC stream so the consumption thread is actually spawned;
+    mocked-create tests cannot catch this leak.
+    """
+    server = _AbortingStreamServer()
+    channel = grpc.insecure_channel("127.0.0.1:%d" % server.port)
+    driver = _FakeSyncDriver(channel)
+    init = WriterSettings(PublicWriterSettings("/local/topic", "producer-id")).create_init_request()
+
+    try:
+        baseline = _count_stranded_consumer_threads()
+        attempts = 10
+        for _ in range(attempts):
+            with pytest.raises(issues.Error):
+                await WriterAsyncIOStream.create(driver, init)  # type: ignore[arg-type]
+
+        # Give closed streams a moment to let their consumption threads exit, then assert
+        # the count returned to the baseline (no net new stranded threads vs other tests).
+        leaked = attempts
+        for _ in range(30):
+            gc.collect()
+            await asyncio.sleep(0.1)
+            leaked = _count_stranded_consumer_threads() - baseline
+            if leaked <= 0:
+                break
+
+        assert leaked <= 0, "%d gRPC consumer threads leaked after %d failed create() calls" % (
+            leaked,
+            attempts,
+        )
+    finally:
+        channel.close()
+        server.stop()
