@@ -11,7 +11,14 @@ permissions:
 
 jobs:
   ydb-slo-action:
-    if: contains(github.event.pull_request.labels.*.name, 'SLO')
+    # On `labeled` events run only when the `SLO` label itself was just added —
+    # otherwise unrelated label changes (e.g. the AI-review bot toggling
+    # `ai_review_in_process` / `ai_reviewed`) would spawn a fresh run that
+    # cancels the in-progress one via `cancel-in-progress`. For the other
+    # trigger types keep gating on the `SLO` label being present.
+    if: >-
+      (github.event.action == 'labeled' && github.event.label.name == 'SLO') ||
+      (github.event.action != 'labeled' && contains(github.event.pull_request.labels.*.name, 'SLO'))
 
     name: Run YDB SLO Tests
     runs-on: "large-runner-python-sdk"
