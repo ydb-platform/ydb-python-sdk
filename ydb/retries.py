@@ -7,6 +7,7 @@ from typing import Any, Callable, Generator, Optional, Union
 
 from . import issues
 from ._errors import check_retriable_error
+from .opentelemetry.metrics import record_retry_metrics
 from .opentelemetry.tracing import SpanName, create_span as _create_span
 
 
@@ -164,21 +165,28 @@ def retry_operation_sync(
     **kwargs: Any,
 ) -> Any:
     backoff_ms: Optional[int] = None
+    attempts = 0
+    start_time = time.monotonic()
 
     @functools.wraps(callee)
     def traced_callee(*a: Any, **kw: Any) -> Any:
+        nonlocal attempts
+        attempts += 1
         with _create_span(SpanName.TRY, _try_span_attrs(backoff_ms)):
             return callee(*a, **kw)
 
-    with _create_span(SpanName.RUN_WITH_RETRY):
-        for next_opt in retry_operation_impl(traced_callee, retry_settings, *args, **kwargs):
-            if isinstance(next_opt, YdbRetryOperationSleepOpt):
-                backoff_ms = int(next_opt.timeout * 1000)
-                if next_opt.timeout > 0:
-                    time.sleep(next_opt.timeout)
-            else:
-                return next_opt.result
-    return None
+    try:
+        with _create_span(SpanName.RUN_WITH_RETRY):
+            for next_opt in retry_operation_impl(traced_callee, retry_settings, *args, **kwargs):
+                if isinstance(next_opt, YdbRetryOperationSleepOpt):
+                    backoff_ms = int(next_opt.timeout * 1000)
+                    if next_opt.timeout > 0:
+                        time.sleep(next_opt.timeout)
+                else:
+                    return next_opt.result
+        return None
+    finally:
+        record_retry_metrics(time.monotonic() - start_time, attempts)
 
 
 async def retry_operation_async(  # pylint: disable=W1113
@@ -200,20 +208,31 @@ async def retry_operation_async(  # pylint: disable=W1113
     Returns awaitable result of coroutine. If retries are not succussful exception is raised.
     """
     backoff_ms: Optional[int] = None
-    with _create_span(SpanName.RUN_WITH_RETRY):
-        for next_opt in retry_operation_impl(callee, retry_settings, *args, **kwargs):
-            if isinstance(next_opt, YdbRetryOperationSleepOpt):
-                backoff_ms = int(next_opt.timeout * 1000)
-                if next_opt.timeout > 0:
-                    await asyncio.sleep(next_opt.timeout)
-            else:
-                with _create_span(SpanName.TRY, _try_span_attrs(backoff_ms)) as try_span:
+    attempts = 0
+    start_time = time.monotonic()
+
+    @functools.wraps(callee)
+    async def traced_callee(*a: Any, **kw: Any) -> Any:
+        nonlocal attempts
+        attempts += 1
+        with _create_span(SpanName.TRY, _try_span_attrs(backoff_ms)):
+            return await callee(*a, **kw)
+
+    try:
+        with _create_span(SpanName.RUN_WITH_RETRY):
+            for next_opt in retry_operation_impl(traced_callee, retry_settings, *args, **kwargs):
+                if isinstance(next_opt, YdbRetryOperationSleepOpt):
+                    backoff_ms = int(next_opt.timeout * 1000)
+                    if next_opt.timeout > 0:
+                        await asyncio.sleep(next_opt.timeout)
+                else:
                     try:
                         return await next_opt.result
                     except BaseException as e:  # pylint: disable=W0703
-                        try_span.set_error(e)
                         next_opt.set_exception(e)
-    return None
+        return None
+    finally:
+        record_retry_metrics(time.monotonic() - start_time, attempts)
 
 
 def ydb_retry(

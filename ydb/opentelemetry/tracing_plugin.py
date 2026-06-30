@@ -7,7 +7,7 @@ from opentelemetry.trace import StatusCode
 
 from ydb import issues
 from ydb.issues import StatusCode as YdbStatusCode
-from ydb.opentelemetry.tracing import _registry
+from ydb.opentelemetry.tracing import _registry as _tracing_registry
 
 # YDB client transport StatusCode values (401xxx band) -> OTel error.type transport_error.
 _TRANSPORT_STATUSES = frozenset(
@@ -21,7 +21,7 @@ _TRANSPORT_STATUSES = frozenset(
 )
 
 _tracer = None
-_enabled = False
+_tracing_enabled = False
 
 _KIND_MAP = {
     "client": trace.SpanKind.CLIENT,
@@ -113,22 +113,22 @@ def _create_span(name, attributes=None, kind=None):
 
 
 def _enable_tracing(tracer=None):
-    global _enabled, _tracer
+    global _tracing_enabled, _tracer
 
-    if _enabled:
+    if _tracing_enabled:
         return
 
     _tracer = tracer if tracer is not None else trace.get_tracer("ydb.sdk")
-    _enabled = True
-    _registry.set_metadata_hook(_otel_metadata_hook)
-    _registry.set_create_span(_create_span)
+    _tracing_enabled = True
+    _tracing_registry.set_metadata_hook(_otel_metadata_hook)
+    _tracing_registry.set_create_span(_create_span)
 
 
 def _disable_tracing():
     """Clear hooks and tracer; after this, :func:`~ydb.opentelemetry.enable_tracing` may be called again."""
-    global _enabled, _tracer
+    global _tracing_enabled, _tracer
 
-    _registry.set_create_span(None)
-    _registry.set_metadata_hook(None)
-    _enabled = False
+    _tracing_registry.set_create_span(None)
+    _tracing_registry.set_metadata_hook(None)
+    _tracing_enabled = False
     _tracer = None

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import time
 from typing import (
     Callable,
     Optional,
@@ -22,6 +23,15 @@ from ...query.base import BaseQueryTxMode, QueryExplainResultFormat
 from ...query.base import QueryClientSettings
 from ... import convert
 from ... import issues
+from ...opentelemetry.metrics import (
+    query_session_pool_name,
+    record_query_session_count,
+    record_query_session_create_time,
+    record_query_session_max,
+    record_query_session_pending_requests,
+    record_query_session_timeout,
+    remove_query_session_pool_metrics,
+)
 from ..._grpc.grpcwrapper import common_utils
 from ..._grpc.grpcwrapper import ydb_query_public_types as _ydb_query_public
 
@@ -38,11 +48,13 @@ class QuerySessionPool:
         *,
         query_client_settings: Optional[QueryClientSettings] = None,
         loop: Optional[asyncio.AbstractEventLoop] = None,
+        name: Optional[str] = None,
     ):
         """
         :param driver: A driver instance
         :param size: Size of session pool
         :param query_client_settings: ydb.QueryClientSettings object to configure QueryService behavior
+        :param name: Optional session pool name for OpenTelemetry metrics.
         """
 
         self._driver = driver
@@ -52,10 +64,21 @@ class QuerySessionPool:
         self._current_size = 0
         self._loop = asyncio.get_running_loop() if loop is None else loop
         self._query_client_settings = query_client_settings
+        driver_config = getattr(driver, "_driver_config", None)
+        self._metrics_pool_name = query_session_pool_name(
+            name,
+            endpoint=getattr(driver_config, "endpoint", None),
+            database=getattr(driver_config, "database", None),
+        )
+        record_query_session_max(self._size, self._metrics_pool_name)
 
     async def _create_new_session(self):
         session = QuerySession(self._driver, settings=self._query_client_settings)
+        session._metrics_pool_name = self._metrics_pool_name
+        session._metrics_state = "used"
+        start_time = time.monotonic()
         await session.create()
+        record_query_session_create_time(time.monotonic() - start_time, self._metrics_pool_name)
         logger.debug(f"New session was created for pool. Session id: {session.session_id}")
         return session
 
@@ -81,6 +104,7 @@ class QuerySessionPool:
             pass
 
         if session is None and self._current_size == self._size:
+            record_query_session_pending_requests(1, self._metrics_pool_name)
             queue_get = asyncio.ensure_future(self._queue.get())
             task_stop = asyncio.ensure_future(self._should_stop.wait())
             task_timeout = (
@@ -97,6 +121,8 @@ class QuerySessionPool:
                 if not cancelled and not queue_get.exception():
                     await self.release(queue_get.result())
                 raise
+            finally:
+                record_query_session_pending_requests(-1, self._metrics_pool_name)
 
             task_stop.cancel()
             if task_timeout is not None:
@@ -110,12 +136,16 @@ class QuerySessionPool:
                 cancelled = queue_get.cancel()
                 if not cancelled and not queue_get.exception():
                     await self.release(queue_get.result())
+                record_query_session_timeout(self._metrics_pool_name)
                 raise issues.SessionPoolEmpty("Timeout on acquire session")
 
             session = queue_get.result()
 
         if session is not None:
             if session.is_active:
+                record_query_session_count(-1, self._metrics_pool_name, "idle")
+                session._metrics_state = "used"
+                record_query_session_count(1, self._metrics_pool_name, "used")
                 logger.debug(f"Acquired active session from queue: {session.session_id}")
                 return session
             else:
@@ -137,6 +167,9 @@ class QuerySessionPool:
 
     async def release(self, session: QuerySession) -> None:
         """Release a session back to Session Pool."""
+        record_query_session_count(-1, self._metrics_pool_name, "used")
+        session._metrics_state = "idle"
+        record_query_session_count(1, self._metrics_pool_name, "idle")
         self._queue.put_nowait(session)
         logger.debug("Session returned to queue: %s", session.session_id)
 
@@ -268,6 +301,7 @@ class QuerySessionPool:
         await asyncio.gather(*tasks)
 
         logger.debug("All session were deleted.")
+        remove_query_session_pool_metrics(self._metrics_pool_name)
 
     async def __aenter__(self):
         return self

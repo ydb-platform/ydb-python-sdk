@@ -19,6 +19,7 @@ def _make_pool(size=1):
     pool._current_size = 0
     pool._loop = asyncio.get_event_loop()
     pool._query_client_settings = None
+    pool._metrics_pool_name = "test-query-session-pool"
     return pool
 
 

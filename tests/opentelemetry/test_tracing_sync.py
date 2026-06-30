@@ -67,8 +67,8 @@ def _make_fresh_tx(session, driver):
 
 
 class TestCreateSessionSpan:
-    def test_create_session_emits_span(self, otel_setup):
-        exporter = otel_setup
+    def test_create_session_emits_span(self, tracing_setup):
+        exporter = tracing_setup
 
         from ydb.query.session import QuerySession
 
@@ -95,8 +95,8 @@ class TestCreateSessionSpan:
 
 
 class TestExecuteQuerySpan:
-    def test_session_execute_emits_span(self, otel_setup):
-        exporter = otel_setup
+    def test_session_execute_emits_span(self, tracing_setup):
+        exporter = tracing_setup
 
         from ydb.query.session import QuerySession
 
@@ -130,8 +130,8 @@ class TestExecuteQuerySpan:
         assert "ydb.session.id" not in attrs
         assert "ydb.tx.id" not in attrs
 
-    def test_tx_execute_emits_span(self, otel_setup):
-        exporter = otel_setup
+    def test_tx_execute_emits_span(self, tracing_setup):
+        exporter = tracing_setup
         session, driver = _make_session_mock(peer=("n1", 2136, "dc-a"))
         tx = _make_tx(session, driver)
 
@@ -152,8 +152,8 @@ class TestExecuteQuerySpan:
 
 
 class TestBeginTransactionSpan:
-    def test_begin_emits_span(self, otel_setup):
-        exporter = otel_setup
+    def test_begin_emits_span(self, tracing_setup):
+        exporter = tracing_setup
         session, driver = _make_session_mock(peer=("n1", 2136, "dc-a"))
         tx = _make_fresh_tx(session, driver)
 
@@ -173,10 +173,10 @@ class TestBeginTransactionSpan:
         assert "ydb.tx.id" not in attrs
         assert span.status.status_code == StatusCode.UNSET
 
-    def test_begin_sets_error_status_on_failure(self, otel_setup):
+    def test_begin_sets_error_status_on_failure(self, tracing_setup):
         from ydb import issues
 
-        exporter = otel_setup
+        exporter = tracing_setup
         session, driver = _make_session_mock(peer=("n1", 2136, "dc-a"))
         tx = _make_fresh_tx(session, driver)
 
@@ -194,8 +194,8 @@ class TestBeginTransactionSpan:
 
 
 class TestCommitSpan:
-    def test_commit_emits_span(self, otel_setup):
-        exporter = otel_setup
+    def test_commit_emits_span(self, tracing_setup):
+        exporter = tracing_setup
         session, driver = _make_session_mock(peer=("n1", 2136, "dc-a"))
         tx = _make_tx(session, driver)
 
@@ -214,8 +214,8 @@ class TestCommitSpan:
 
 
 class TestRollbackSpan:
-    def test_rollback_emits_span(self, otel_setup):
-        exporter = otel_setup
+    def test_rollback_emits_span(self, tracing_setup):
+        exporter = tracing_setup
         session, driver = _make_session_mock(peer=("n1", 2136, "dc-a"))
         tx = _make_tx(session, driver)
 
@@ -240,10 +240,10 @@ class TestCommitRollbackErrorRecording:
     - have the exception recorded as a span event (``record_exception``)
     """
 
-    def test_commit_records_exception_on_failure(self, otel_setup):
+    def test_commit_records_exception_on_failure(self, tracing_setup):
         from ydb import issues
 
-        exporter = otel_setup
+        exporter = tracing_setup
         session, driver = _make_session_mock(peer=("n1", 2136, "dc-a"))
         tx = _make_tx(session, driver)
 
@@ -259,10 +259,10 @@ class TestCommitRollbackErrorRecording:
         assert attrs["db.response.status_code"] == "ABORTED"
         assert any(e.name == "exception" for e in span.events)
 
-    def test_rollback_records_exception_on_failure(self, otel_setup):
+    def test_rollback_records_exception_on_failure(self, tracing_setup):
         from ydb import issues
 
-        exporter = otel_setup
+        exporter = tracing_setup
         session, driver = _make_session_mock(peer=("n1", 2136, "dc-a"))
         tx = _make_tx(session, driver)
 
@@ -280,8 +280,8 @@ class TestCommitRollbackErrorRecording:
 
 
 class TestErrorHandling:
-    def test_error_sets_error_status_and_attributes(self, otel_setup):
-        exporter = otel_setup
+    def test_error_sets_error_status_and_attributes(self, tracing_setup):
+        exporter = tracing_setup
 
         from ydb import issues
 
@@ -314,7 +314,7 @@ class TestNoSpansWhenDisabled:
     def test_no_spans_without_enable_tracing(self):
         """Without enable_tracing(), the registry uses noop — no spans are created."""
 
-        from tests.tracing.conftest import _exporter
+        from tests.opentelemetry.conftest import _exporter
 
         _registry.set_create_span(None)
         _registry.set_metadata_hook(None)
@@ -327,8 +327,8 @@ class TestNoSpansWhenDisabled:
 
 
 class TestParentChildRelationship:
-    def test_sdk_span_is_child_of_user_span(self, otel_setup):
-        exporter = otel_setup
+    def test_sdk_span_is_child_of_user_span(self, tracing_setup):
+        exporter = tracing_setup
 
         tracer = trace.get_tracer("test.tracer")
 
@@ -346,7 +346,7 @@ class TestParentChildRelationship:
 
 
 class TestTraceMetadataInjection:
-    def test_get_trace_metadata_returns_traceparent(self, otel_setup):
+    def test_get_trace_metadata_returns_traceparent(self, tracing_setup):
         from ydb.opentelemetry.tracing import get_trace_metadata
 
         tracer = trace.get_tracer("test.tracer")
@@ -359,8 +359,8 @@ class TestTraceMetadataInjection:
 
 
 class TestDriverInitializeSpan:
-    def test_driver_initialize_emits_internal_span(self, otel_setup):
-        exporter = otel_setup
+    def test_driver_initialize_emits_internal_span(self, tracing_setup):
+        exporter = tracing_setup
 
         cfg = FakeDriverConfig()
 
@@ -383,8 +383,8 @@ class TestCommonAttributes:
             ("[::1]:2136", "[::1]", 2136),
         ],
     )
-    def test_endpoint_parsing(self, otel_setup, endpoint, expected_host, expected_port):
-        exporter = otel_setup
+    def test_endpoint_parsing(self, tracing_setup, endpoint, expected_host, expected_port):
+        exporter = tracing_setup
         cfg = FakeDriverConfig(endpoint=endpoint, database="/mydb")
 
         with create_ydb_span("ydb.Test", cfg).attach_context():
@@ -396,8 +396,8 @@ class TestCommonAttributes:
         assert attrs["server.port"] == expected_port
         assert attrs["db.namespace"] == "/mydb"
 
-    def test_peer_attributes_are_optional(self, otel_setup):
-        exporter = otel_setup
+    def test_peer_attributes_are_optional(self, tracing_setup):
+        exporter = tracing_setup
         cfg = FakeDriverConfig()
 
         with create_ydb_span("ydb.Test", cfg).attach_context():
@@ -408,8 +408,8 @@ class TestCommonAttributes:
         assert "network.peer.address" not in attrs
         assert "network.peer.port" not in attrs
 
-    def test_peer_attributes_emitted_when_known(self, otel_setup):
-        exporter = otel_setup
+    def test_peer_attributes_emitted_when_known(self, tracing_setup):
+        exporter = tracing_setup
         cfg = FakeDriverConfig()
 
         with create_ydb_span("ydb.Test", cfg, peer=("peer.example.com", 2137, "dc-west")).attach_context():
@@ -423,7 +423,7 @@ class TestCommonAttributes:
 
 
 class TestPeerFromEndpointMap:
-    def test_wrapper_create_session_pulls_peer_from_store(self, otel_setup):
+    def test_wrapper_create_session_pulls_peer_from_store(self, tracing_setup):
         """wrapper_create_session must resolve peer (host, port, dc) via the driver's
         connections_by_node_id cache, not via the grpc target string of the rpc call.
         """
@@ -454,10 +454,10 @@ class TestPeerFromEndpointMap:
 
 
 class TestRetryPolicySpans:
-    def test_success_on_first_try_emits_single_try(self, otel_setup):
+    def test_success_on_first_try_emits_single_try(self, tracing_setup):
         from ydb.retries import retry_operation_sync
 
-        exporter = otel_setup
+        exporter = tracing_setup
 
         def callee():
             return 42
@@ -474,12 +474,12 @@ class TestRetryPolicySpans:
         assert "ydb.retry.backoff_ms" not in dict(tries[0].attributes)
         assert tries[0].parent.span_id == run.context.span_id
 
-    def test_retry_backoff_ms_on_each_try(self, otel_setup):
+    def test_retry_backoff_ms_on_each_try(self, tracing_setup):
         from ydb import issues
         from ydb.retries import retry_operation_sync
         from ydb.retries import RetrySettings, BackoffSettings
 
-        exporter = otel_setup
+        exporter = tracing_setup
         counter = {"n": 0}
 
         def flaky():
@@ -509,7 +509,7 @@ class TestRetryPolicySpans:
         assert tries[1].status.status_code == StatusCode.ERROR
         assert tries[2].status.status_code == StatusCode.UNSET
 
-    def test_backoff_ms_attribute_matches_actual_sleep(self, otel_setup, monkeypatch):
+    def test_backoff_ms_attribute_matches_actual_sleep(self, tracing_setup, monkeypatch):
         """Pin the closure: ``ydb.retry.backoff_ms`` on the n-th ``ydb.Try`` equals
         the sleep that preceded it, regardless of which retry attempt triggered it.
 
@@ -528,7 +528,7 @@ class TestRetryPolicySpans:
         sleeps = []
         monkeypatch.setattr("time.sleep", sleeps.append)
 
-        exporter = otel_setup
+        exporter = tracing_setup
         counter = {"n": 0}
 
         def flaky():
@@ -553,12 +553,12 @@ class TestRetryPolicySpans:
         assert dict(tries[2].attributes)["ydb.retry.backoff_ms"] == expected_ms
         assert sleeps == [expected_ms / 1000.0, expected_ms / 1000.0]
 
-    def test_skip_backoff_errors_still_emit_one_try_per_attempt(self, otel_setup):
+    def test_skip_backoff_errors_still_emit_one_try_per_attempt(self, tracing_setup):
         """Aborted/BadSession path skips the inter-attempt sleep but must still rotate ydb.Try spans."""
         from ydb import issues
         from ydb.retries import RetrySettings, retry_operation_sync
 
-        exporter = otel_setup
+        exporter = tracing_setup
         counter = {"n": 0}
 
         def flaky():
@@ -581,11 +581,11 @@ class TestRetryPolicySpans:
         assert dict(tries[1].attributes)["ydb.retry.backoff_ms"] == 0
         assert dict(tries[2].attributes)["ydb.retry.backoff_ms"] == 0
 
-    def test_non_retryable_error_propagates_to_run_span(self, otel_setup):
+    def test_non_retryable_error_propagates_to_run_span(self, tracing_setup):
         from ydb import issues
         from ydb.retries import retry_operation_sync
 
-        exporter = otel_setup
+        exporter = tracing_setup
 
         def broken():
             raise issues.SchemeError("boom")
@@ -603,12 +603,12 @@ class TestRetryPolicySpans:
         assert attrs["error.type"] == "ydb_error"
         assert attrs["db.response.status_code"] == "SCHEME_ERROR"
 
-    def test_execute_query_is_child_of_try_under_run_with_retry(self, otel_setup):
+    def test_execute_query_is_child_of_try_under_run_with_retry(self, tracing_setup):
         """``ydb.RunWithRetry`` -> ``ydb.Try`` -> ``ydb.ExecuteQuery`` (sync path)."""
         from ydb.query.session import QuerySession
         from ydb.retries import retry_operation_sync
 
-        exporter = otel_setup
+        exporter = tracing_setup
 
         qs = QuerySession.__new__(QuerySession)
         cfg = FakeDriverConfig()
