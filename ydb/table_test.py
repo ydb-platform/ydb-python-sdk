@@ -58,6 +58,41 @@ def test_result_set_row_allows_attribute_assignment():
     assert row["column_0"] == 0
 
 
+def test_result_set_row_attribute_shadows_column():
+    # With a lazy __dict__, assigning an attribute that matches a column name
+    # shadows the column for attribute access (normal lookup finds __dict__
+    # before __getattr__ runs), while item access still reads the column value.
+    message = _build_int_result_set(n_rows=1, n_cols=3)
+    row = convert.ResultSet.from_message(message).rows[0]
+
+    row.column_0 = "override"
+    assert row.column_0 == "override"
+    assert row["column_0"] == 0
+
+    del row.column_0
+    assert row.column_0 == 0
+
+
+def test_lazy_result_set_row_allows_attribute_assignment():
+    # _LazyRow inherits the lazy __dict__ from _DotDict too.
+    message = _build_int_result_set(n_rows=1, n_cols=2)
+    row = convert.ResultSet.lazy_from_message(message).rows.fetchone()
+
+    row.dt_created = 123
+    assert row.dt_created == 123
+    assert row["column_0"] == 0
+
+
+def test_struct_value_allows_attribute_assignment():
+    # _Struct shares the lazy __dict__ from _DotDict.
+    struct = convert._Struct()
+    struct["a"] = 1
+
+    struct.computed = 2
+    assert struct.a == 1
+    assert struct.computed == 2
+
+
 def test_result_set_row_missing_attribute_raises_attribute_error():
     message = _build_int_result_set(n_rows=1, n_cols=1)
     row = convert.ResultSet.from_message(message).rows[0]
