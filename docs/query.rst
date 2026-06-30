@@ -378,6 +378,7 @@ statements).
     result_set.rows      # list of Row objects — access columns by name: row["col"]
     result_set.columns   # list of column descriptors with .name and .type
     result_set.truncated # True if the server truncated results (use pagination)
+    result_set.index     # sequence number of the SELECT statement in a multiple SELECT query
 
 .. note::
 
