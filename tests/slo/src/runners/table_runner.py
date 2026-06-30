@@ -4,9 +4,11 @@ from os import path
 
 from core.generator import batch_generator
 from core.metrics import create_metrics
+from jobs.async_table_jobs import AsyncTableJobManager
 from jobs.table_jobs import TableJobManager
 
 import ydb
+import ydb.aio
 
 from .base import BaseRunner
 
@@ -107,6 +109,28 @@ class TableRunner(BaseRunner):
         job_manager.run_tests()
 
         self.logger.info("Table SLO tests completed")
+
+        if hasattr(metrics, "reset"):
+            metrics.reset()
+
+    async def run_async(self, args):
+        """Async version of table SLO tests (query service) using ydb.aio.Driver"""
+        assert self.driver is not None, "Driver is not initialized. Call set_driver() before run_async()."
+        metrics = create_metrics(args.otlp_endpoint)
+
+        self.logger.info("Starting async table SLO tests")
+
+        table_name = path.join(args.db, args.table_name)
+
+        async with ydb.aio.QuerySessionPool(self.driver) as pool:
+            result = await pool.execute_with_retries("SELECT MAX(`object_id`) as max_id FROM `{}`".format(table_name))
+        max_id = result[0].rows[0]["max_id"]
+        self.logger.info("Max ID: %s", max_id)
+
+        job_manager = AsyncTableJobManager(self.driver, args, metrics, table_name, max_id)
+        await job_manager.run_tests()
+
+        self.logger.info("Async table SLO tests completed")
 
         if hasattr(metrics, "reset"):
             metrics.reset()

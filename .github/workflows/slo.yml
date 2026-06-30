@@ -24,6 +24,8 @@ jobs:
             command: "--read-rps 1000 --write-rps 100"
           - name: sync-query
             command: "--read-rps 1000 --write-rps 100"
+          - name: async-query
+            command: "--read-rps 1000 --write-rps 100"
 
     concurrency:
       group: slo-${{ github.ref }}-${{ matrix.sdk.name }}

@@ -10,10 +10,21 @@ There are two workload types:
 - **Table SLO** - tests table operations (read/write)
 - **Topic SLO** - tests topic operations (publish/consume)
 
-### Implementations:
+### Implementations / labels:
 
-- `sync`
-- `async` (now unimplemented)
+The workload is selected by a single label (`WORKLOAD_NAME` env var, also the
+`sdk.name` matrix value in `.github/workflows/slo.yml`). The sync/async
+execution mode is derived from the label itself — an `async-*` label runs the
+async (`ydb.aio`) path:
+
+| Label          | Service       | Mode  |
+|----------------|---------------|-------|
+| `sync-table`   | Table service | sync  |
+| `sync-query`   | Query service | sync  |
+| `async-query`  | Query service | async |
+| `topic`        | Topic service | sync  |
+
+> The `--async` CLI flag is kept as a manual override for `*-run` commands.
 
 ### Usage:
 

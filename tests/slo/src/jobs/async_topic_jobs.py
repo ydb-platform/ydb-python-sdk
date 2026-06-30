@@ -9,12 +9,12 @@ from core.metrics import OP_TYPE_READ, OP_TYPE_WRITE
 
 import ydb.aio
 
-from .base import BaseJobManager
+from .base import AsyncBaseJobManager
 
 logger = logging.getLogger(__name__)
 
 
-class AsyncTopicJobManager(BaseJobManager):
+class AsyncTopicJobManager(AsyncBaseJobManager):
     def __init__(self, driver, args, metrics):
         super().__init__(driver, args, metrics)
         # Keep async driver separately to avoid type-incompatible override of BaseJobManager.driver
@@ -118,27 +118,3 @@ class AsyncTopicJobManager(BaseJobManager):
                         logger.error("Read error: %s", e)
 
         logger.info("Stop async topic read workload")
-
-    def _run_metric_job(self):
-        # Metrics are enabled only if an OTLP endpoint is provided (CLI: --otlp-endpoint).
-        if not getattr(self.args, "otlp_endpoint", None):
-            return []
-
-        task = asyncio.create_task(
-            self._async_metric_sender(self.args.time),
-            name="slo_metrics_sender",
-        )
-        return [task]
-
-    async def _async_metric_sender(self, runtime: int):
-        start_time = time.time()
-        logger.info("Start push metrics (async)")
-
-        limiter = AsyncLimiter(max_rate=10**6 // self.args.report_period, time_period=1)
-
-        while time.time() - start_time < runtime:
-            async with limiter:
-                # Call sync metrics.push() in executor to avoid blocking the event loop.
-                await asyncio.get_event_loop().run_in_executor(None, self.metrics.push)
-
-        logger.info("Stop push metrics (async)")

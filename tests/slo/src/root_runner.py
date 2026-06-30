@@ -4,11 +4,18 @@ import ydb.aio
 import logging
 from typing import Dict
 
+from core.metrics import WORKLOAD
 from runners.topic_runner import TopicRunner
 from runners.table_runner import TableRunner
 from runners.base import BaseRunner
 
 logger = logging.getLogger(__name__)
+
+
+def _is_async_workload(args) -> bool:
+    """Async mode is driven by the workload label (``async-*``); the ``--async``
+    CLI flag is kept as a manual override."""
+    return getattr(args, "async", False) or str(WORKLOAD).startswith("async-")
 
 
 class SLORunner:
@@ -29,8 +36,9 @@ class SLORunner:
 
         runner_instance = self.runners[prefix]()
 
-        # Check if async mode is requested and command is 'run'
-        if getattr(args, "async", False) and command == "run":
+        # Async mode (driven by the workload label, e.g. async-query / async-topic)
+        # only applies to the long-running `run` command; create/cleanup stay sync.
+        if _is_async_workload(args) and command == "run":
             asyncio.run(self._run_async_command(args, runner_instance, command))
         else:
             self._run_sync_command(args, runner_instance, command)
