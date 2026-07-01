@@ -120,27 +120,6 @@ jobs:
             -t "ydb-app-baseline" \
             "$GITHUB_WORKSPACE/sdk-baseline"
 
-      # TEMPORARY diagnostic (remove before merge): the YDB node image is built
-      # inside the action under `docker compose up --quiet-build`, so the pull of
-      # the cr.yandex base/stage images isn't visible in the log. Time it here on
-      # the runner. Side effect: pre-pulling warms the local store, so the
-      # action's build reuses these layers instead of re-pulling (~5 min build).
-      - name: (diag) time YDB base image pulls
-        continue-on-error: true
-        run: |
-          for img in \
-            cr.yandex/crpb3d0up7s6a7iuofo9/ydb-appteam-ci/local-ydb:stable-25-3 \
-            cr.yandex/crpb3d0up7s6a7iuofo9/ydb-appteam-ci/debian:bookworm-slim; do
-            s=$(date +%s)
-            if docker pull "$img" >/dev/null 2>&1; then
-              e=$(( $(date +%s) - s ))
-              bytes=$(docker image inspect "$img" --format '{{.Size}}' 2>/dev/null || echo 0)
-              echo "PULLED  $img  in ${e}s  size=$(( bytes / 1024 / 1024 ))MB"
-            else
-              echo "FAILED  $img  (auth/network) after $(( $(date +%s) - s ))s"
-            fi
-          done
-
       - name: Run SLO Tests
         uses: ydb-platform/ydb-slo-action/init@v2
         timeout-minutes: 30
