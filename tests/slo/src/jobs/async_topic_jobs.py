@@ -29,6 +29,12 @@ class AsyncTopicJobManager(AsyncBaseJobManager):
         self._expected = {}
 
     async def run_tests(self):
+        # Emit delivery counters at 0 up front so lost/duplicates show as 0 in the
+        # report even on a clean run (instead of a missing series).
+        self.metrics.inc_delivered(0)
+        self.metrics.inc_lost(0)
+        self.metrics.inc_duplicated(0)
+
         tasks = [
             *self._run_topic_write_jobs(),
             *self._run_topic_read_jobs(),
