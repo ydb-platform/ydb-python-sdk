@@ -33,6 +33,9 @@ jobs:
             command: "--read-rps 1000 --write-rps 100"
           - name: async-query
             command: "--read-rps 1000 --write-rps 100"
+          - name: async-topic
+            command: "--write-rps 100 --write-threads 2 --read-threads 2"
+            metrics_yaml_path: sdk-current/tests/slo/metrics-topic.yaml
 
     concurrency:
       group: slo-${{ github.ref }}-${{ matrix.sdk.name }}
@@ -134,3 +137,6 @@ jobs:
           workload_baseline_ref: ${{ steps.baseline.outputs.ref }}
           workload_baseline_image: ydb-app-baseline
           workload_baseline_command: ${{ matrix.sdk.command }}
+          # Custom metrics (e.g. topic e2e latency / loss) merged on top of the
+          # action defaults; empty for workloads that don't set it.
+          metrics_yaml_path: ${{ matrix.sdk.metrics_yaml_path }}

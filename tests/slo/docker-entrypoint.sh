@@ -34,9 +34,14 @@ DURATION="${WORKLOAD_DURATION:-600}"
 
 # Topic paths must live under the database; derive one from $DATABASE so the
 # same image works against both local (/local) and CI (/Root/testdb) databases.
+# Scope the topic by ref so the current and baseline containers (same cluster,
+# run in parallel) don't share a topic — otherwise their readers/producers would
+# cross-contaminate delivery/ordering validation.
 EXTRA_ARGS=""
 if [ "$PREFIX" = "topic" ]; then
-    EXTRA_ARGS="--path ${DATABASE%/}/slo_topic"
+    REF_RAW="${WORKLOAD_REF:-${REF:-main}}"
+    SAFE_REF=$(printf '%s' "$REF_RAW" | tr -c 'a-zA-Z0-9_' '_')
+    EXTRA_ARGS="--path ${DATABASE%/}/slo_topic_${SAFE_REF}"
 fi
 
 # Schema prep is idempotent at the SDK level for topics; for tables, a parallel

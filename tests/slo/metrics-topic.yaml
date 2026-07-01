@@ -1,0 +1,51 @@
+# Custom topic-workload metrics, merged on top of the action's default
+# deploy/metrics.yaml (see ydb-slo-action shared/metrics.ts mergeMetricConfigs).
+# Passed to the action via `metrics_yaml_path` for topic workloads only.
+#
+# Metric names are chosen to match the default threshold patterns
+# (deploy/thresholds.yaml):
+#   *_latency_*  -> lower_is_better
+#   *_rps        -> higher_is_better
+#   *_error*     -> warning_max 0.1 / critical_max 1.0  (fails the run if > 0)
+
+metrics:
+  - name: topic_e2e_latency_p50_ms
+    unit: ms
+    query: |
+      1000 * max by(ref) (
+        sdk_topic_e2e_latency_p50_seconds
+      )
+
+  - name: topic_e2e_latency_p99_ms
+    unit: ms
+    query: |
+      1000 * max by(ref) (
+        sdk_topic_e2e_latency_p99_seconds
+      )
+
+  - name: topic_delivered_rps
+    unit: msgs/s
+    query: |
+      sum by(ref) (
+        rate(sdk_topic_messages_delivered_total[5s])
+      )
+
+  # Lost messages must stay at zero even under chaos (at-least-once delivery).
+  # Named *_error* so the default threshold fails the run on any loss.
+  - name: topic_lost_errors
+    unit: msgs
+    query: |
+      sum by(ref) (
+        increase(sdk_topic_messages_lost_total[5s])
+      )
+    round: 1
+
+  # Duplicates are informational: reconnect redelivery can produce them; with
+  # producer-id dedup they should stay near zero.
+  - name: topic_duplicates
+    unit: msgs
+    query: |
+      sum by(ref) (
+        increase(sdk_topic_messages_duplicated_total[5s])
+      )
+    round: 1

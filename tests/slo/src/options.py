@@ -103,7 +103,7 @@ def make_topic_create_parser(subparsers):
 
     topic_create_parser.add_argument("--path", default="/local/slo_topic", type=str, help="Topic path")
     topic_create_parser.add_argument("--consumer", default="slo_consumer", type=str, help="Topic consumer name")
-    topic_create_parser.add_argument("--partitions-count", default=1, type=int, help="Partition count")
+    topic_create_parser.add_argument("--partitions-count", default=2, type=int, help="Partition count")
 
 
 def make_topic_run_parser(subparsers):
@@ -112,7 +112,7 @@ def make_topic_run_parser(subparsers):
 
     topic_parser.add_argument("--path", default="/local/slo_topic", type=str, help="Topic path")
     topic_parser.add_argument("--consumer", default="slo_consumer", type=str, help="Topic consumer name")
-    topic_parser.add_argument("--partitions-count", default=1, type=int, help="Partition count")
+    topic_parser.add_argument("--partitions-count", default=2, type=int, help="Partition count")
     topic_parser.add_argument("--read-rps", default=100, type=int, help="Topic read request rps")
     topic_parser.add_argument("--read-timeout", default=5000, type=int, help="Topic read timeout [ms]")
     topic_parser.add_argument("--write-rps", default=100, type=int, help="Topic write request rps")
