@@ -42,6 +42,12 @@ class AsyncTopicJobManager(AsyncBaseJobManager):
         # Keep async driver separately to avoid type-incompatible override of BaseJobManager.driver
         self.aio_driver = driver
         self.partitions = max(1, int(getattr(self.args, "partitions_count", 1)))
+        # Next expected seqno per producer (writer_id), SHARED across all readers.
+        # In a consumer group a partition can move between readers on rebalance
+        # (chaos reconnects); per-reader state would then see a false forward gap.
+        # Shared state stays correct on handoff. Safe without a lock: all async
+        # readers run on one event loop and _validate() never awaits.
+        self._expected = {}
 
     async def run_tests(self):
         tasks = [
@@ -85,10 +91,9 @@ class AsyncTopicJobManager(AsyncBaseJobManager):
             partition_id=partition_id,
             codec=ydb.TopicCodec.GZIP,
         ) as writer:
-            seqno = 0
+            seqno = 1
             while time.time() - start_time < self.args.time:
                 async with limiter:
-                    seqno += 1
                     payload = encode_payload(writer_id, seqno, time.monotonic_ns(), self.args.message_size)
                     message = ydb.TopicWriterMessage(data=payload)
 
@@ -97,6 +102,10 @@ class AsyncTopicJobManager(AsyncBaseJobManager):
                         await writer.write_with_ack(message)
                         self.metrics.stop((OP_TYPE_WRITE,), ts)
                         logger.debug("Write w%s seq%s", writer_id, seqno)
+                        # Advance only on success so a failed write leaves no gap
+                        # for the reader (an ack timeout retries the same seqno ->
+                        # at worst a duplicate, never a false loss).
+                        seqno += 1
                     except Exception as e:
                         self.metrics.stop((OP_TYPE_WRITE,), ts, error=e)
                         logger.error("Write error: %s", e)
@@ -106,11 +115,6 @@ class AsyncTopicJobManager(AsyncBaseJobManager):
     async def _run_topic_reads(self, reader_id: int):
         start_time = time.time()
         logger.info("Start async topic reader %s", reader_id)
-
-        # Next expected seqno per producer (writer_id). First sighting seeds it,
-        # so a reader that joins mid-stream (rebalance/restart) never reports a
-        # false loss.
-        expected = {}
 
         async with self.aio_driver.topic_client.reader(self.args.path, self.args.consumer) as reader:
             while time.time() - start_time < self.args.time:
@@ -126,7 +130,7 @@ class AsyncTopicJobManager(AsyncBaseJobManager):
                 if msg is None:
                     continue
 
-                self._validate(msg, expected)
+                self._validate(msg)
 
                 try:
                     await reader.commit_with_ack(msg)
@@ -135,7 +139,7 @@ class AsyncTopicJobManager(AsyncBaseJobManager):
 
         logger.info("Stop async topic reader %s", reader_id)
 
-    def _validate(self, msg, expected: dict) -> None:
+    def _validate(self, msg) -> None:
         self.metrics.inc_delivered()
 
         decoded = decode_payload(msg.data)
@@ -145,15 +149,16 @@ class AsyncTopicJobManager(AsyncBaseJobManager):
 
         self.metrics.record_e2e((time.monotonic_ns() - write_ts_ns) / 1e9)
 
-        exp = expected.get(writer_id)
+        exp = self._expected.get(writer_id)
         if exp is None:
-            expected[writer_id] = seqno + 1
+            # First sighting seeds the sequence — never a false loss at join.
+            self._expected[writer_id] = seqno + 1
         elif seqno == exp:
-            expected[writer_id] = seqno + 1
+            self._expected[writer_id] = seqno + 1
         elif seqno > exp:
             # Partition order is server-guaranteed, so a forward gap is real loss.
             self.metrics.inc_lost(seqno - exp)
-            expected[writer_id] = seqno + 1
+            self._expected[writer_id] = seqno + 1
             logger.warning("Lost w%s: expected %s got %s", writer_id, exp, seqno)
         else:
             # seqno < exp: an already-seen seqno came back (reconnect redelivery).
