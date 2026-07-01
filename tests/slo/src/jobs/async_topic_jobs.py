@@ -140,26 +140,26 @@ class AsyncTopicJobManager(AsyncBaseJobManager):
         logger.info("Stop async topic reader %s", reader_id)
 
     def _validate(self, msg) -> None:
-        self.metrics.inc_delivered()
-
         decoded = decode_payload(msg.data)
         if decoded is None:
+            self.metrics.inc_delivered()
             return
         writer_id, seqno, write_ts_ns = decoded
 
+        exp = self._expected.get(writer_id)
+        if exp is not None and seqno < exp:
+            # Already-seen seqno came back (reconnect redelivery) — not a fresh
+            # delivery, so it counts as a duplicate and is excluded from delivered
+            # / e2e (its write_ts is old and would inflate the latency).
+            self.metrics.inc_duplicated()
+            return
+
+        # Fresh delivery of `seqno`.
+        self.metrics.inc_delivered()
         self.metrics.record_e2e((time.monotonic_ns() - write_ts_ns) / 1e9)
 
-        exp = self._expected.get(writer_id)
-        if exp is None:
-            # First sighting seeds the sequence — never a false loss at join.
-            self._expected[writer_id] = seqno + 1
-        elif seqno == exp:
-            self._expected[writer_id] = seqno + 1
-        elif seqno > exp:
+        if exp is not None and seqno > exp:
             # Partition order is server-guaranteed, so a forward gap is real loss.
             self.metrics.inc_lost(seqno - exp)
-            self._expected[writer_id] = seqno + 1
             logger.warning("Lost w%s: expected %s got %s", writer_id, exp, seqno)
-        else:
-            # seqno < exp: an already-seen seqno came back (reconnect redelivery).
-            self.metrics.inc_duplicated()
+        self._expected[writer_id] = seqno + 1
