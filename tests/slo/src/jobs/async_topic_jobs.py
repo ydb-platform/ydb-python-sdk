@@ -68,59 +68,80 @@ class AsyncTopicJobManager(AsyncBaseJobManager):
         # producer_id is stable (seqno continues across reconnects) and ref-scoped
         # (current/baseline share the cluster) so server-side dedup works per writer.
         producer_id = f"{REF}-p{writer_id}"
+        write_timeout = self.args.write_timeout / 1000
         logger.info("Start async topic writer %s (partition %s, producer %s)", writer_id, partition_id, producer_id)
 
-        async with self.aio_driver.topic_client.writer(
-            self.args.path,
-            producer_id=producer_id,
-            partition_id=partition_id,
-            codec=ydb.TopicCodec.GZIP,
-        ) as writer:
-            seqno = 1
-            while time.time() - start_time < self.args.time:
-                async with limiter:
-                    payload = encode_payload(writer_id, seqno, time.monotonic_ns(), self.args.message_size)
-                    message = ydb.TopicWriterMessage(data=payload)
+        # `seqno` lives across writer recreations so the sequence the reader sees
+        # never resets. The outer loop recreates the writer if it breaks/stalls
+        # (an SDK write can hang under chaos) so the workload never silently hangs.
+        seqno = 1
+        while time.time() - start_time < self.args.time:
+            try:
+                async with self.aio_driver.topic_client.writer(
+                    self.args.path,
+                    producer_id=producer_id,
+                    partition_id=partition_id,
+                    codec=ydb.TopicCodec.RAW,
+                ) as writer:
+                    while time.time() - start_time < self.args.time:
+                        async with limiter:
+                            payload = encode_payload(writer_id, seqno, time.monotonic_ns(), self.args.message_size)
+                            message = ydb.TopicWriterMessage(data=payload)
 
-                    ts = self.metrics.start((OP_TYPE_WRITE,))
-                    try:
-                        await writer.write_with_ack(message)
-                        self.metrics.stop((OP_TYPE_WRITE,), ts)
-                        logger.debug("Write w%s seq%s", writer_id, seqno)
-                        # Advance only on success so a failed write leaves no gap
-                        # for the reader (an ack timeout retries the same seqno ->
-                        # at worst a duplicate, never a false loss).
-                        seqno += 1
-                    except Exception as e:
-                        self.metrics.stop((OP_TYPE_WRITE,), ts, error=e)
-                        logger.error("Write error: %s", e)
+                            ts = self.metrics.start((OP_TYPE_WRITE,))
+                            try:
+                                await asyncio.wait_for(writer.write_with_ack(message), write_timeout)
+                                self.metrics.stop((OP_TYPE_WRITE,), ts)
+                                # Advance only on success -> a failed write leaves
+                                # no gap (a timeout retries the seqno: at worst a
+                                # duplicate, never a false loss).
+                                seqno += 1
+                            except Exception as e:
+                                self.metrics.stop((OP_TYPE_WRITE,), ts, error=e)
+                                logger.error("Write error (recreating writer): %s", e)
+                                break  # drop the (possibly wedged) writer and remake it
+            except Exception as e:
+                logger.error("Topic writer %s recreate: %s", writer_id, e)
+                await asyncio.sleep(0.2)
 
         logger.info("Stop async topic writer %s", writer_id)
 
     async def _run_topic_reads(self, reader_id: int):
         start_time = time.time()
+        read_timeout = self.args.read_timeout / 1000
         logger.info("Start async topic reader %s", reader_id)
 
-        async with self.aio_driver.topic_client.reader(self.args.path, self.args.consumer) as reader:
-            while time.time() - start_time < self.args.time:
-                ts = self.metrics.start((OP_TYPE_READ,))
-                try:
-                    msg = await reader.receive_message()
-                    self.metrics.stop((OP_TYPE_READ,), ts)
-                except Exception as e:
-                    self.metrics.stop((OP_TYPE_READ,), ts, error=e)
-                    logger.error("Read error: %s", e)
-                    continue
+        while time.time() - start_time < self.args.time:
+            try:
+                async with self.aio_driver.topic_client.reader(self.args.path, self.args.consumer) as reader:
+                    while time.time() - start_time < self.args.time:
+                        ts = self.metrics.start((OP_TYPE_READ,))
+                        try:
+                            msg = await asyncio.wait_for(reader.receive_message(), read_timeout)
+                            self.metrics.stop((OP_TYPE_READ,), ts)
+                        except asyncio.TimeoutError as e:
+                            # No message within read_timeout: at steady rate this
+                            # means the reader is starved (outage/stall), so it is
+                            # a read failure (visible), not a silent wait.
+                            self.metrics.stop((OP_TYPE_READ,), ts, error=e)
+                            continue
+                        except Exception as e:
+                            self.metrics.stop((OP_TYPE_READ,), ts, error=e)
+                            logger.error("Read error (recreating reader): %s", e)
+                            break
 
-                if msg is None:
-                    continue
+                        if msg is None:
+                            continue
 
-                self._validate(msg)
+                        self._validate(msg)
 
-                try:
-                    await reader.commit_with_ack(msg)
-                except Exception as e:
-                    logger.error("Commit error: %s", e)
+                        try:
+                            await asyncio.wait_for(reader.commit_with_ack(msg), read_timeout)
+                        except Exception as e:
+                            logger.error("Commit error: %s", e)
+            except Exception as e:
+                logger.error("Topic reader %s recreate: %s", reader_id, e)
+                await asyncio.sleep(0.2)
 
         logger.info("Stop async topic reader %s", reader_id)
 
