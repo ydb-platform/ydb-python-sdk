@@ -118,7 +118,6 @@ class AsyncTopicJobManager(AsyncBaseJobManager):
                         ts = self.metrics.start((OP_TYPE_READ,))
                         try:
                             msg = await asyncio.wait_for(reader.receive_message(), read_timeout)
-                            self.metrics.stop((OP_TYPE_READ,), ts)
                         except asyncio.TimeoutError as e:
                             # No message within read_timeout: at steady rate this
                             # means the reader is starved (outage/stall), so it is
@@ -131,13 +130,18 @@ class AsyncTopicJobManager(AsyncBaseJobManager):
                             break
 
                         if msg is None:
+                            self.metrics.stop((OP_TYPE_READ,), ts)
                             continue
 
                         self._validate(msg)
 
+                        # The read op spans receive+commit, so a commit failure
+                        # shows up as a read error instead of being only logged.
                         try:
                             await asyncio.wait_for(reader.commit_with_ack(msg), read_timeout)
+                            self.metrics.stop((OP_TYPE_READ,), ts)
                         except Exception as e:
+                            self.metrics.stop((OP_TYPE_READ,), ts, error=e)
                             logger.error("Commit error: %s", e)
             except Exception as e:
                 logger.error("Topic reader %s recreate: %s", reader_id, e)

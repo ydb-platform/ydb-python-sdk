@@ -124,7 +124,6 @@ class TopicJobManager(BaseJobManager):
                         ts = self.metrics.start((OP_TYPE_READ,))
                         try:
                             msg = reader.receive_message(timeout=read_timeout)
-                            self.metrics.stop((OP_TYPE_READ,), ts)
                         except TimeoutError as e:
                             # No message within read_timeout: at steady rate this
                             # means the reader is starved (outage/stall), so it is
@@ -137,13 +136,18 @@ class TopicJobManager(BaseJobManager):
                             break
 
                         if msg is None:
+                            self.metrics.stop((OP_TYPE_READ,), ts)
                             continue
 
                         self._validate(msg)
 
+                        # The read op spans receive+commit, so a commit failure
+                        # shows up as a read error instead of being only logged.
                         try:
                             reader.commit_with_ack(msg, timeout=read_timeout)
+                            self.metrics.stop((OP_TYPE_READ,), ts)
                         except Exception as e:
+                            self.metrics.stop((OP_TYPE_READ,), ts, error=e)
                             logger.error("Commit error: %s", e)
             except Exception as e:
                 logger.error("Topic reader %s recreate: %s", reader_id, e)

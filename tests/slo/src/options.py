@@ -88,8 +88,8 @@ def make_table_run_parser(subparsers):
     )
     table_run_parser.add_argument("--report-period", default=1000, type=int, help="Prometheus push period in [ms]")
 
-    table_run_parser.add_argument("--read-threads", default=8, type=int, help="Number of threads to use for write")
-    table_run_parser.add_argument("--write-threads", default=4, type=int, help="Number of threads to use for read")
+    table_run_parser.add_argument("--read-threads", default=8, type=int, help="Number of threads to use for read")
+    table_run_parser.add_argument("--write-threads", default=4, type=int, help="Number of threads to use for write")
 
 
 def make_table_cleanup_parser(subparsers):

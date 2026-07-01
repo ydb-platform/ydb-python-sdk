@@ -108,11 +108,13 @@ class AsyncBaseJobManager(BaseJobManager):
         start_time = time.time()
         logger.info("Start push metrics (async)")
 
-        limiter = AsyncLimiter(max_rate=10**6 // self.args.report_period, time_period=1)
+        # One push per report_period (mirrors the sync SyncRateLimiter); guard 0.
+        report_period_ms = max(1, int(self.args.report_period))
+        limiter = AsyncLimiter(max_rate=1, time_period=report_period_ms / 1000.0)
 
         while time.time() - start_time < runtime:
             async with limiter:
                 # Call sync metrics.push() in executor to avoid blocking the event loop.
-                await asyncio.get_event_loop().run_in_executor(None, self.metrics.push)
+                await asyncio.get_running_loop().run_in_executor(None, self.metrics.push)
 
         logger.info("Stop push metrics (async)")

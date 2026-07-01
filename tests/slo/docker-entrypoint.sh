@@ -20,7 +20,7 @@
 set -e
 
 case "${WORKLOAD_NAME:-sync-query}" in
-    sync-table|sync-query|async-query|async-table) PREFIX=table ;;
+    sync-table|sync-query|async-query) PREFIX=table ;;
     topic|sync-topic|async-topic) PREFIX=topic ;;
     *)
         echo "Unknown WORKLOAD_NAME: ${WORKLOAD_NAME}" >&2
