@@ -2,29 +2,40 @@ import logging
 import threading
 import time
 
-from core.metrics import OP_TYPE_READ, OP_TYPE_WRITE
+from core.metrics import OP_TYPE_READ, OP_TYPE_WRITE, REF
 
 import ydb
 
 from .base import BaseJobManager, SyncRateLimiter
+from .topic_payload import decode_payload, encode_payload
 
 logger = logging.getLogger(__name__)
 
 
 class TopicJobManager(BaseJobManager):
+    def __init__(self, driver, args, metrics):
+        super().__init__(driver, args, metrics)
+        self.partitions = max(1, int(getattr(self.args, "partitions_count", 1)))
+        # Next expected seqno per producer (writer_id), shared across reader
+        # threads (a partition can move between readers on rebalance). Guarded by
+        # a lock because sync readers are real threads (unlike the async loop).
+        self._expected = {}
+        self._expected_lock = threading.Lock()
+
     def run_tests(self):
         futures = [
             *self._run_topic_write_jobs(),
             *self._run_topic_read_jobs(),
             *self._run_metric_job(),
         ]
-
         for future in futures:
             future.join()
 
     def _run_topic_write_jobs(self):
         logger.info("Start topic write jobs")
 
+        # One shared limiter -> total offered write load is write_rps, evenly
+        # spread across writers/partitions (simple, non-adaptive = reproducible).
         write_rps = int(getattr(self.args, "write_rps", 0))
         write_limiter = SyncRateLimiter(min_interval_s=0.0 if write_rps <= 0 else 1.0 / write_rps)
 
@@ -33,90 +44,111 @@ class TopicJobManager(BaseJobManager):
             future = threading.Thread(
                 name=f"slo_topic_write_{i}",
                 target=self._run_topic_writes,
-                args=(
-                    write_limiter,
-                    i,
-                ),
+                args=(i, write_limiter),
             )
             future.start()
             futures.append(future)
-
         return futures
 
     def _run_topic_read_jobs(self):
         logger.info("Start topic read jobs")
-
-        read_rps = int(getattr(self.args, "read_rps", 0))
-        read_limiter = SyncRateLimiter(min_interval_s=0.0 if read_rps <= 0 else 1.0 / read_rps)
 
         futures = []
         for i in range(self.args.read_threads):
             future = threading.Thread(
                 name=f"slo_topic_read_{i}",
                 target=self._run_topic_reads,
-                args=(read_limiter,),
+                args=(i,),
             )
             future.start()
             futures.append(future)
-
         return futures
 
-    def _run_topic_writes(self, limiter, partition_id=None):
+    def _run_topic_writes(self, writer_id, limiter):
         start_time = time.time()
-        logger.info("Start topic write workload")
+        partition_id = writer_id % self.partitions
+        producer_id = f"{REF}-p{writer_id}"
+        logger.info("Start topic writer %s (partition %s, producer %s)", writer_id, partition_id, producer_id)
 
         with self.driver.topic_client.writer(
             self.args.path,
-            codec=ydb.TopicCodec.GZIP,
+            producer_id=producer_id,
             partition_id=partition_id,
+            codec=ydb.TopicCodec.GZIP,
         ) as writer:
-            logger.info("Topic writer created")
-
-            message_count = 0
+            seqno = 1
             while time.time() - start_time < self.args.time:
                 with limiter:
-                    message_count += 1
-
-                    content = f"message_{message_count}_{threading.current_thread().name}".encode("utf-8")
-
-                    if len(content) < self.args.message_size:
-                        content += b"x" * (self.args.message_size - len(content))
-
-                    message = ydb.TopicWriterMessage(data=content)
+                    payload = encode_payload(writer_id, seqno, time.monotonic_ns(), self.args.message_size)
+                    message = ydb.TopicWriterMessage(data=payload)
 
                     ts = self.metrics.start((OP_TYPE_WRITE,))
                     try:
                         writer.write_with_ack(message)
-                        logger.info("Write message: %s", content)
                         self.metrics.stop((OP_TYPE_WRITE,), ts)
+                        logger.debug("Write w%s seq%s", writer_id, seqno)
+                        # Advance only on success so a failed write leaves no gap
+                        # for the reader (an ack timeout retries the same seqno ->
+                        # at worst a duplicate, never a false loss).
+                        seqno += 1
                     except Exception as e:
                         self.metrics.stop((OP_TYPE_WRITE,), ts, error=e)
                         logger.error("Write error: %s", e)
 
-        logger.info("Stop topic write workload")
+        logger.info("Stop topic writer %s", writer_id)
 
-    def _run_topic_reads(self, limiter):
+    def _run_topic_reads(self, reader_id):
         start_time = time.time()
-        logger.info("Start topic read workload")
+        logger.info("Start topic reader %s", reader_id)
 
-        with self.driver.topic_client.reader(
-            self.args.path,
-            self.args.consumer,
-        ) as reader:
-            logger.info("Topic reader created")
-
+        with self.driver.topic_client.reader(self.args.path, self.args.consumer) as reader:
             while time.time() - start_time < self.args.time:
-                with limiter:
-                    ts = self.metrics.start((OP_TYPE_READ,))
-                    try:
-                        msg = reader.receive_message()
-                        if msg is not None:
-                            logger.info("Read message: %s", msg.data.decode())
-                            reader.commit_with_ack(msg)
+                ts = self.metrics.start((OP_TYPE_READ,))
+                try:
+                    msg = reader.receive_message()
+                    self.metrics.stop((OP_TYPE_READ,), ts)
+                except Exception as e:
+                    self.metrics.stop((OP_TYPE_READ,), ts, error=e)
+                    logger.error("Read error: %s", e)
+                    continue
 
-                        self.metrics.stop((OP_TYPE_READ,), ts)
-                    except Exception as e:
-                        self.metrics.stop((OP_TYPE_READ,), ts, error=e)
-                        logger.error("Read error: %s", e)
+                if msg is None:
+                    continue
 
-        logger.info("Stop topic read workload")
+                self._validate(msg)
+
+                try:
+                    reader.commit_with_ack(msg)
+                except Exception as e:
+                    logger.error("Commit error: %s", e)
+
+        logger.info("Stop topic reader %s", reader_id)
+
+    def _validate(self, msg):
+        decoded = decode_payload(msg.data)
+        if decoded is None:
+            self.metrics.inc_delivered()
+            return
+        writer_id, seqno, write_ts_ns = decoded
+
+        lost_n = 0
+        with self._expected_lock:
+            exp = self._expected.get(writer_id)
+            duplicate = exp is not None and seqno < exp
+            if not duplicate:
+                if exp is not None and seqno > exp:
+                    lost_n = seqno - exp
+                self._expected[writer_id] = seqno + 1
+
+        if duplicate:
+            # Already-seen seqno came back (reconnect redelivery): not a fresh
+            # delivery, excluded from delivered / e2e (old write_ts).
+            self.metrics.inc_duplicated()
+            return
+
+        self.metrics.inc_delivered()
+        self.metrics.record_e2e((time.monotonic_ns() - write_ts_ns) / 1e9)
+        if lost_n:
+            # Partition order is server-guaranteed, so a forward gap is real loss.
+            self.metrics.inc_lost(lost_n)
+            logger.warning("Lost w%s: expected %s got %s", writer_id, exp, seqno)
