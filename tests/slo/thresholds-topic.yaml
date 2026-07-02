@@ -4,13 +4,20 @@
 # threshold overrides"). On an action version without that feature this file is
 # simply ignored, so wiring it is harmless and self-activates once it lands.
 #
-# Why: for topics the generic `read_latency` is `receive_message` wait time
-# (dominated by inter-message gap / prefetch drain), NOT a read cost, and is
-# inherently noisy — a small-number current-vs-baseline delta easily trips the
-# global `*_latency_*` regression threshold. The meaningful read-side latency is
-# the custom `topic_e2e_latency_*` (write -> read). So keep read_latency visible
-# but INFORMATIONAL (never warns/fails) for topics; `write_latency` (the real
-# ack round-trip) and table/query keep the strict global thresholds.
+# What's made `direction: neutral` (visible in the report, but never warns/fails):
+#
+# - read_latency_* — for topics this is `receive_message` wait time (inter-message
+#   gap / prefetch drain), NOT a read cost; the meaningful read-side latency is
+#   the custom `topic_e2e_latency_*`.
+#
+# - *_p99 tails (write + e2e) — under chaos the p99 is dominated by node-kill
+#   outage spikes, and for async it also carries single-event-loop scheduling
+#   jitter; both are uncorrelated between the current and baseline containers, so
+#   the p99 current-vs-baseline delta is noise, not a regression signal.
+#
+# Kept gated (strict global thresholds): write_latency p50/p95 (ack round-trip),
+# topic_e2e_latency_p50 (the real delivery latency), topic_delivered_rps,
+# topic_lost_errors, read/write availability. table/query are untouched.
 
 metrics:
   - name: read_latency_p50_ms
@@ -18,4 +25,8 @@ metrics:
   - name: read_latency_p95_ms
     direction: neutral
   - name: read_latency_p99_ms
+    direction: neutral
+  - name: write_latency_p99_ms
+    direction: neutral
+  - name: topic_e2e_latency_p99_ms
     direction: neutral
