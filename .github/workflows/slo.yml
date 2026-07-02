@@ -36,9 +36,11 @@ jobs:
           - name: sync-topic
             command: "--write-rps 200 --write-threads 8 --read-threads 8"
             metrics_yaml_path: sdk-current/tests/slo/metrics-topic.yaml
+            thresholds_yaml_path: sdk-current/tests/slo/thresholds-topic.yaml
           - name: async-topic
             command: "--write-rps 200 --write-threads 8 --read-threads 8"
             metrics_yaml_path: sdk-current/tests/slo/metrics-topic.yaml
+            thresholds_yaml_path: sdk-current/tests/slo/thresholds-topic.yaml
 
     concurrency:
       group: slo-${{ github.ref }}-${{ matrix.sdk.name }}
@@ -143,3 +145,7 @@ jobs:
           # Custom metrics (e.g. topic e2e latency / loss) merged on top of the
           # action defaults; empty for workloads that don't set it.
           metrics_yaml_path: ${{ matrix.sdk.metrics_yaml_path }}
+          # Per-scenario threshold overrides (topics make read_latency neutral).
+          # Ignored by action versions without ydb-slo-action#57; self-activates
+          # once per-scenario thresholds land in the consumed tag.
+          thresholds_yaml_path: ${{ matrix.sdk.thresholds_yaml_path }}

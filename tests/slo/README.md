@@ -279,7 +279,7 @@ Each message carries `writer_id:seqno:write_ts_ns:` followed by padding to the c
 Metrics are collected for both table operations (`read`, `write`) and topic operations (`read`, `write`).
 
 Topic workloads additionally emit (surfaced through `tests/slo/metrics-topic.yaml`, merged into the action metrics via `metrics_yaml_path`):
-- `topic_e2e_latency_p50_ms` / `_p99_ms` — write → read latency of a delivered message (the meaningful topic latency; the generic `read_latency` mostly reflects `receive_message` wait time, not read cost)
+- `topic_e2e_latency_p50_ms` / `_p99_ms` — write → read latency of a delivered message (the meaningful topic latency; the generic `read_latency` mostly reflects `receive_message` wait time, not read cost, so it is kept **informational** for topics via `tests/slo/thresholds-topic.yaml` — `direction: neutral` — while `write_latency` stays gated)
 - `topic_delivered_rps` — unique messages read back per second
 - `topic_lost_errors` — messages detected as lost (must stay 0)
 - `topic_duplicates` — redelivered messages (informational)

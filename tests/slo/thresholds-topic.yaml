@@ -1,0 +1,21 @@
+# Per-scenario SLO thresholds for the topic workloads, merged OVER the action's
+# global deploy/thresholds.yaml for topic runs only (via the init action's
+# `thresholds_yaml_path` input — see ydb-slo-action PR #57 "per-scenario
+# threshold overrides"). On an action version without that feature this file is
+# simply ignored, so wiring it is harmless and self-activates once it lands.
+#
+# Why: for topics the generic `read_latency` is `receive_message` wait time
+# (dominated by inter-message gap / prefetch drain), NOT a read cost, and is
+# inherently noisy — a small-number current-vs-baseline delta easily trips the
+# global `*_latency_*` regression threshold. The meaningful read-side latency is
+# the custom `topic_e2e_latency_*` (write -> read). So keep read_latency visible
+# but INFORMATIONAL (never warns/fails) for topics; `write_latency` (the real
+# ack round-trip) and table/query keep the strict global thresholds.
+
+metrics:
+  - name: read_latency_p50_ms
+    direction: neutral
+  - name: read_latency_p95_ms
+    direction: neutral
+  - name: read_latency_p99_ms
+    direction: neutral
