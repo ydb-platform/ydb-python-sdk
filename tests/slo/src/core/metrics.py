@@ -68,6 +68,23 @@ class BaseMetrics(ABC):
         finally:
             self.stop(labels, start_ts, error=error)
 
+    # --- Topic workload extensions (no-ops unless overridden) ---
+    def record_e2e(self, seconds: float) -> None:
+        """Record an end-to-end (write -> read) message latency, in seconds."""
+        return None
+
+    def inc_delivered(self, n: int = 1) -> None:
+        """Count messages successfully read back."""
+        return None
+
+    def inc_lost(self, n: int = 1) -> None:
+        """Count messages detected as lost (a forward gap in a producer's seqno)."""
+        return None
+
+    def inc_duplicated(self, n: int = 1) -> None:
+        """Count messages detected as duplicates (redelivery of an already-seen seqno)."""
+        return None
+
 
 class DummyMetrics(BaseMetrics):
     def start(self, labels) -> float:
@@ -164,8 +181,31 @@ class OtlpMetrics(BaseMetrics):
             for name, _ in self._PERCENTILES
         }
 
+        # Topic-workload metrics: end-to-end (write -> read) latency + delivery counters.
+        self._topic_e2e_gauges = {
+            name: self._meter.create_gauge(
+                name=f"sdk.topic.e2e.latency.{name}.seconds",
+                unit="s",
+                description=f"Topic end-to-end latency {name} computed over the last push window.",
+            )
+            for name, _ in self._PERCENTILES
+        }
+        self._topic_delivered = self._meter.create_counter(
+            name="sdk.topic.messages.delivered.total",
+            description="Total number of messages successfully read back from the topic.",
+        )
+        self._topic_lost = self._meter.create_counter(
+            name="sdk.topic.messages.lost.total",
+            description="Total number of messages detected as lost (forward gap in a producer's seqno).",
+        )
+        self._topic_duplicated = self._meter.create_counter(
+            name="sdk.topic.messages.duplicated.total",
+            description="Total number of messages detected as duplicates (redelivered seqno).",
+        )
+
         self._lock = threading.Lock()
         self._hdr: dict = {}
+        self._e2e_hdr = self._HdrHistogram(self._HDR_MIN_US, self._HDR_MAX_US, self._HDR_SIG_FIGS)
 
     def _get_hdr(self, op_type: str, op_status: str):
         key = (op_type, op_status)
@@ -223,13 +263,35 @@ class OtlpMetrics(BaseMetrics):
                     self._latency_gauges[name].set(value_s, attributes=attrs)
             for hist in self._hdr.values():
                 hist.reset()
+
+            if self._e2e_hdr.get_total_count() > 0:
+                attrs = {"ref": REF}
+                for name, percentile in self._PERCENTILES:
+                    value_s = self._e2e_hdr.get_value_at_percentile(percentile) / 1_000_000
+                    self._topic_e2e_gauges[name].set(value_s, attributes=attrs)
+                self._e2e_hdr.reset()
         self._provider.force_flush()
 
     def reset(self) -> None:
         with self._lock:
             for hist in self._hdr.values():
                 hist.reset()
+            self._e2e_hdr.reset()
         self._provider.force_flush()
+
+    def record_e2e(self, seconds: float) -> None:
+        duration_us = min(max(int(seconds * 1_000_000), self._HDR_MIN_US), self._HDR_MAX_US)
+        with self._lock:
+            self._e2e_hdr.record_value(duration_us)
+
+    def inc_delivered(self, n: int = 1) -> None:
+        self._topic_delivered.add(int(n), attributes={"ref": REF})
+
+    def inc_lost(self, n: int = 1) -> None:
+        self._topic_lost.add(int(n), attributes={"ref": REF})
+
+    def inc_duplicated(self, n: int = 1) -> None:
+        self._topic_duplicated.add(int(n), attributes={"ref": REF})
 
 
 def _resolve_metrics_endpoint(cli_endpoint: Optional[str]) -> str:

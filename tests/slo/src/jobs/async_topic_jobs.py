@@ -1,144 +1,175 @@
 import asyncio
 import logging
 import time
-from typing import Optional
 
 # `aiolimiter` is a runtime dependency (see `tests/slo/requirements.txt`).
 from aiolimiter import AsyncLimiter  # pyright: ignore[reportMissingImports]
-from core.metrics import OP_TYPE_READ, OP_TYPE_WRITE
+from core.metrics import OP_TYPE_READ, OP_TYPE_WRITE, REF
 
+import ydb
 import ydb.aio
 
-from .base import BaseJobManager
+from .base import AsyncBaseJobManager
+from .topic_payload import decode_payload, encode_payload
 
 logger = logging.getLogger(__name__)
 
 
-class AsyncTopicJobManager(BaseJobManager):
+class AsyncTopicJobManager(AsyncBaseJobManager):
     def __init__(self, driver, args, metrics):
         super().__init__(driver, args, metrics)
         # Keep async driver separately to avoid type-incompatible override of BaseJobManager.driver
         self.aio_driver = driver
+        self.partitions = max(1, int(getattr(self.args, "partitions_count", 1)))
+        # Next expected seqno per producer (writer_id), SHARED across all readers.
+        # In a consumer group a partition can move between readers on rebalance
+        # (chaos reconnects); per-reader state would then see a false forward gap.
+        # Shared state stays correct on handoff. Safe without a lock: all async
+        # readers run on one event loop and _validate() never awaits.
+        self._expected = {}
 
     async def run_tests(self):
+        # Emit delivery counters at 0 up front so lost/duplicates show as 0 in the
+        # report even on a clean run (instead of a missing series).
+        self.metrics.inc_delivered(0)
+        self.metrics.inc_lost(0)
+        self.metrics.inc_duplicated(0)
+
         tasks = [
-            *await self._run_topic_write_jobs(),
-            *await self._run_topic_read_jobs(),
+            *self._run_topic_write_jobs(),
+            *self._run_topic_read_jobs(),
             *self._run_metric_job(),
         ]
         await asyncio.gather(*tasks)
 
-    async def _run_topic_write_jobs(self):
+    def _run_topic_write_jobs(self):
         logger.info("Start async topic write jobs")
 
-        tasks = []
-        write_limiter = AsyncLimiter(max_rate=self.args.write_rps, time_period=1)
+        # One shared limiter -> total offered write load is write_rps, evenly
+        # spread across writers/partitions (simple, non-adaptive = reproducible).
+        write_limiter = AsyncLimiter(max_rate=max(1, int(self.args.write_rps)), time_period=1)
 
-        for i in range(self.args.write_threads):
-            task = asyncio.create_task(
-                self._run_topic_writes(write_limiter, i),
-                name=f"slo_topic_write_{i}",
-            )
-            tasks.append(task)
+        return [
+            asyncio.create_task(self._run_topic_writes(i, write_limiter), name=f"slo_topic_write_{i}")
+            for i in range(self.args.write_threads)
+        ]
 
-        return tasks
-
-    async def _run_topic_read_jobs(self):
+    def _run_topic_read_jobs(self):
         logger.info("Start async topic read jobs")
 
-        tasks = []
-        read_limiter = AsyncLimiter(max_rate=self.args.read_rps, time_period=1)
+        return [
+            asyncio.create_task(self._run_topic_reads(i), name=f"slo_topic_read_{i}")
+            for i in range(self.args.read_threads)
+        ]
 
-        for i in range(self.args.read_threads):
-            task = asyncio.create_task(
-                self._run_topic_reads(read_limiter),
-                name=f"slo_topic_read_{i}",
-            )
-            tasks.append(task)
-
-        return tasks
-
-    async def _run_topic_writes(self, limiter: AsyncLimiter, partition_id: Optional[int] = None):
+    async def _run_topic_writes(self, writer_id: int, limiter: AsyncLimiter):
         start_time = time.time()
-        logger.info("Start async topic write workload")
+        partition_id = writer_id % self.partitions
+        # producer_id is stable (seqno continues across reconnects) and ref-scoped
+        # (current/baseline share the cluster) so server-side dedup works per writer.
+        producer_id = f"{REF}-p{writer_id}"
+        write_timeout = self.args.write_timeout / 1000
+        logger.info("Start async topic writer %s (partition %s, producer %s)", writer_id, partition_id, producer_id)
 
-        async with self.aio_driver.topic_client.writer(
-            self.args.path,
-            codec=getattr(ydb, "PublicCodec", ydb.TopicCodec).GZIP,
-            partition_id=partition_id,
-        ) as writer:
-            logger.info("Async topic writer created")
+        # `seqno` lives across writer recreations so the sequence the reader sees
+        # never resets. The outer loop recreates the writer if it breaks/stalls
+        # (an SDK write can hang under chaos) so the workload never silently hangs.
+        seqno = 1
+        while time.time() - start_time < self.args.time:
+            try:
+                async with self.aio_driver.topic_client.writer(
+                    self.args.path,
+                    producer_id=producer_id,
+                    partition_id=partition_id,
+                    codec=ydb.TopicCodec.RAW,
+                ) as writer:
+                    while time.time() - start_time < self.args.time:
+                        async with limiter:
+                            payload = encode_payload(writer_id, seqno, time.monotonic_ns(), self.args.message_size)
+                            message = ydb.TopicWriterMessage(data=payload)
 
-            message_count = 0
-            while time.time() - start_time < self.args.time:
-                async with limiter:
-                    message_count += 1
+                            ts = self.metrics.start((OP_TYPE_WRITE,))
+                            try:
+                                await asyncio.wait_for(writer.write_with_ack(message), write_timeout)
+                                self.metrics.stop((OP_TYPE_WRITE,), ts)
+                                # Advance only on success -> a failed write leaves
+                                # no gap (a timeout retries the seqno: at worst a
+                                # duplicate, never a false loss).
+                                seqno += 1
+                            except Exception as e:
+                                self.metrics.stop((OP_TYPE_WRITE,), ts, error=e)
+                                logger.error("Write error (recreating writer): %s", e)
+                                break  # drop the (possibly wedged) writer and remake it
+            except Exception as e:
+                logger.error("Topic writer %s recreate: %s", writer_id, e)
+                await asyncio.sleep(0.2)
 
-                    task = asyncio.current_task()
-                    task_name = task.get_name() if task is not None else "unknown_task"
-                    content = f"message_{message_count}_{task_name}".encode("utf-8")
-                    if len(content) < self.args.message_size:
-                        content += b"x" * (self.args.message_size - len(content))
+        logger.info("Stop async topic writer %s", writer_id)
 
-                    message = ydb.TopicWriterMessage(data=content)
-
-                    ts = self.metrics.start((OP_TYPE_WRITE,))
-                    try:
-                        await writer.write_with_ack(message)
-                        logger.info("Write message: %s", content)
-                        self.metrics.stop((OP_TYPE_WRITE,), ts)
-                    except Exception as e:
-                        self.metrics.stop((OP_TYPE_WRITE,), ts, error=e)
-                        logger.error("Write error: %s", e)
-
-        logger.info("Stop async topic write workload")
-
-    async def _run_topic_reads(self, limiter: AsyncLimiter):
+    async def _run_topic_reads(self, reader_id: int):
         start_time = time.time()
-        logger.info("Start async topic read workload")
+        read_timeout = self.args.read_timeout / 1000
+        logger.info("Start async topic reader %s", reader_id)
 
-        async with self.aio_driver.topic_client.reader(
-            self.args.path,
-            self.args.consumer,
-        ) as reader:
-            logger.info("Async topic reader created")
+        while time.time() - start_time < self.args.time:
+            try:
+                async with self.aio_driver.topic_client.reader(self.args.path, self.args.consumer) as reader:
+                    while time.time() - start_time < self.args.time:
+                        ts = self.metrics.start((OP_TYPE_READ,))
+                        try:
+                            msg = await asyncio.wait_for(reader.receive_message(), read_timeout)
+                        except asyncio.TimeoutError as e:
+                            # No message within read_timeout: at steady rate this
+                            # means the reader is starved (outage/stall), so it is
+                            # a read failure (visible), not a silent wait.
+                            self.metrics.stop((OP_TYPE_READ,), ts, error=e)
+                            continue
+                        except Exception as e:
+                            self.metrics.stop((OP_TYPE_READ,), ts, error=e)
+                            logger.error("Read error (recreating reader): %s", e)
+                            break
 
-            while time.time() - start_time < self.args.time:
-                async with limiter:
-                    ts = self.metrics.start((OP_TYPE_READ,))
-                    try:
-                        msg = await reader.receive_message()
-                        if msg is not None:
-                            logger.info("Read message: %s", msg.data.decode())
-                            await reader.commit_with_ack(msg)
+                        if msg is None:
+                            self.metrics.stop((OP_TYPE_READ,), ts)
+                            continue
 
-                        self.metrics.stop((OP_TYPE_READ,), ts)
-                    except Exception as e:
-                        self.metrics.stop((OP_TYPE_READ,), ts, error=e)
-                        logger.error("Read error: %s", e)
+                        self._validate(msg)
 
-        logger.info("Stop async topic read workload")
+                        # The read op spans receive+commit, so a commit failure
+                        # shows up as a read error instead of being only logged.
+                        try:
+                            await asyncio.wait_for(reader.commit_with_ack(msg), read_timeout)
+                            self.metrics.stop((OP_TYPE_READ,), ts)
+                        except Exception as e:
+                            self.metrics.stop((OP_TYPE_READ,), ts, error=e)
+                            logger.error("Commit error: %s", e)
+            except Exception as e:
+                logger.error("Topic reader %s recreate: %s", reader_id, e)
+                await asyncio.sleep(0.2)
 
-    def _run_metric_job(self):
-        # Metrics are enabled only if an OTLP endpoint is provided (CLI: --otlp-endpoint).
-        if not getattr(self.args, "otlp_endpoint", None):
-            return []
+        logger.info("Stop async topic reader %s", reader_id)
 
-        task = asyncio.create_task(
-            self._async_metric_sender(self.args.time),
-            name="slo_metrics_sender",
-        )
-        return [task]
+    def _validate(self, msg) -> None:
+        decoded = decode_payload(msg.data)
+        if decoded is None:
+            self.metrics.inc_delivered()
+            return
+        writer_id, seqno, write_ts_ns = decoded
 
-    async def _async_metric_sender(self, runtime: int):
-        start_time = time.time()
-        logger.info("Start push metrics (async)")
+        exp = self._expected.get(writer_id)
+        if exp is not None and seqno < exp:
+            # Already-seen seqno came back (reconnect redelivery) — not a fresh
+            # delivery, so it counts as a duplicate and is excluded from delivered
+            # / e2e (its write_ts is old and would inflate the latency).
+            self.metrics.inc_duplicated()
+            return
 
-        limiter = AsyncLimiter(max_rate=10**6 // self.args.report_period, time_period=1)
+        # Fresh delivery of `seqno`.
+        self.metrics.inc_delivered()
+        self.metrics.record_e2e((time.monotonic_ns() - write_ts_ns) / 1e9)
 
-        while time.time() - start_time < runtime:
-            async with limiter:
-                # Call sync metrics.push() in executor to avoid blocking the event loop.
-                await asyncio.get_event_loop().run_in_executor(None, self.metrics.push)
-
-        logger.info("Stop push metrics (async)")
+        if exp is not None and seqno > exp:
+            # Partition order is server-guaranteed, so a forward gap is real loss.
+            self.metrics.inc_lost(seqno - exp)
+            logger.warning("Lost w%s: expected %s got %s", writer_id, exp, seqno)
+        self._expected[writer_id] = seqno + 1

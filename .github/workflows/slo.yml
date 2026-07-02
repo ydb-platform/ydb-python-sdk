@@ -11,7 +11,14 @@ permissions:
 
 jobs:
   ydb-slo-action:
-    if: contains(github.event.pull_request.labels.*.name, 'SLO')
+    # On `labeled` events run only when the `SLO` label itself was just added —
+    # otherwise unrelated label changes (e.g. the AI-review bot toggling
+    # `ai_review_in_process` / `ai_reviewed`) would spawn a fresh run that
+    # cancels the in-progress one via `cancel-in-progress`. For the other
+    # trigger types keep gating on the `SLO` label being present.
+    if: >-
+      (github.event.action == 'labeled' && github.event.label.name == 'SLO') ||
+      (github.event.action != 'labeled' && contains(github.event.pull_request.labels.*.name, 'SLO'))
 
     name: Run YDB SLO Tests
     runs-on: "large-runner-python-sdk"
@@ -24,6 +31,16 @@ jobs:
             command: "--read-rps 1000 --write-rps 100"
           - name: sync-query
             command: "--read-rps 1000 --write-rps 100"
+          - name: async-query
+            command: "--read-rps 1000 --write-rps 100"
+          - name: sync-topic
+            command: "--write-rps 200 --write-threads 8 --read-threads 8"
+            metrics_yaml_path: sdk-current/tests/slo/metrics-topic.yaml
+            thresholds_yaml_path: sdk-current/tests/slo/thresholds-topic.yaml
+          - name: async-topic
+            command: "--write-rps 200 --write-threads 8 --read-threads 8"
+            metrics_yaml_path: sdk-current/tests/slo/metrics-topic.yaml
+            thresholds_yaml_path: sdk-current/tests/slo/thresholds-topic.yaml
 
     concurrency:
       group: slo-${{ github.ref }}-${{ matrix.sdk.name }}
@@ -125,3 +142,10 @@ jobs:
           workload_baseline_ref: ${{ steps.baseline.outputs.ref }}
           workload_baseline_image: ydb-app-baseline
           workload_baseline_command: ${{ matrix.sdk.command }}
+          # Custom metrics (e.g. topic e2e latency / loss) merged on top of the
+          # action defaults; empty for workloads that don't set it.
+          metrics_yaml_path: ${{ matrix.sdk.metrics_yaml_path }}
+          # Per-scenario threshold overrides (topics make read_latency neutral).
+          # Ignored by action versions without ydb-slo-action#57; self-activates
+          # once per-scenario thresholds land in the consumed tag.
+          thresholds_yaml_path: ${{ matrix.sdk.thresholds_yaml_path }}

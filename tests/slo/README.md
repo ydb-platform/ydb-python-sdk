@@ -10,10 +10,23 @@ There are two workload types:
 - **Table SLO** - tests table operations (read/write)
 - **Topic SLO** - tests topic operations (publish/consume)
 
-### Implementations:
+### Implementations / labels:
 
-- `sync`
-- `async` (now unimplemented)
+The workload is selected by a single label (`WORKLOAD_NAME` env var, also the
+`sdk.name` matrix value in `.github/workflows/slo.yml`). The sync/async
+execution mode is derived from the label itself — an `async-*` label runs the
+async (`ydb.aio`) path:
+
+| Label          | Service       | Mode  |
+|----------------|---------------|-------|
+| `sync-table`   | Table service | sync  |
+| `sync-query`   | Query service | sync  |
+| `async-query`  | Query service | async |
+| `sync-topic`   | Topic service | sync  |
+| `async-topic`  | Topic service | async |
+
+> The `--async` CLI flag is kept as a manual override for `*-run` commands.
+> The bare `topic` label is still accepted as an alias for `sync-topic`.
 
 ### Usage:
 
@@ -246,16 +259,15 @@ Table have these fields:
 Primary key: `("object_hash", "object_id")`
 
 ### Topic workload
-When running `topic-run` command, the program creates three jobs: `readJob`, `writeJob`, `metricsJob`.
+When running `topic-run` (`sync-topic` / `async-topic`), the program creates `readJob`, `writeJob` and `metricsJob`, and additionally **validates end-to-end delivery and per-producer ordering** under chaos.
 
-- `readJob`    reads messages from topic using TopicReader and commits offsets
-- `writeJob`   generates and publishes messages to topic using TopicWriter
-- `metricsJob` periodically sends metrics to Prometheus
+- `writeJob` — each writer is pinned to a partition (`partition_id = i % partitions`) with a stable, ref-scoped `producer_id`, and publishes with `write_with_ack`. The seqno advances only on a successful ack (a failed write leaves no gap).
+- `readJob` — reads with a consumer, commits offsets, and demultiplexes messages by `writer_id`, tracking the next expected seqno per producer (shared across readers, since a partition can move between them on rebalance):
+  - a **forward gap** (a seqno past the expected one) is counted as **lost** — partition order is server-guaranteed, so a gap is real loss (fails the run via the `*_error*` threshold);
+  - a **backward** seqno (already seen) is a **duplicate** — reconnect redelivery; with producer-id dedup it should stay near zero (informational);
+  - **end-to-end latency** is `read_ts − write_ts` for the first delivery of each message (writer and reader share the process, so the timestamps are comparable).
 
-Messages contain:
-- Sequential message ID
-- Thread identifier
-- Configurable payload size (padded with 'x' characters)
+Each message carries `writer_id:seqno:write_ts_ns:` followed by padding to the configured size. Topics are scoped per ref so the current and baseline containers (same cluster, run in parallel) don't share a topic.
 
 ## Collected metrics
 - `oks`      - amount of OK requests
@@ -265,6 +277,12 @@ Messages contain:
 - `attempts` - summary of amount for request
 
 Metrics are collected for both table operations (`read`, `write`) and topic operations (`read`, `write`).
+
+Topic workloads additionally emit (surfaced through `tests/slo/metrics-topic.yaml`, merged into the action metrics via `metrics_yaml_path`):
+- `topic_e2e_latency_p50_ms` / `_p99_ms` — write → read latency of a delivered message (the meaningful topic latency; the generic `read_latency` mostly reflects `receive_message` wait time, not read cost, so it is kept **informational** for topics via `tests/slo/thresholds-topic.yaml` — `direction: neutral` — while `write_latency` stays gated)
+- `topic_delivered_rps` — unique messages read back per second
+- `topic_lost_errors` — messages detected as lost (must stay 0)
+- `topic_duplicates` — redelivered messages (informational)
 
 > Note: with Prometheus OTLP receiver (no Pushgateway) counters/histograms are cumulative and cannot be reset to `0`.
 > If you need clean separation between runs, use distinct `REF`/`WORKLOAD` (and/or `SLO_INSTANCE_ID`) so each run writes into separate time series.

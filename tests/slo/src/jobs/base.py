@@ -1,3 +1,4 @@
+import asyncio
 import logging
 import threading
 import time
@@ -77,3 +78,43 @@ class BaseJobManager(ABC):
                 self.metrics.push()
 
         logger.info("Stop push metrics")
+
+
+class AsyncBaseJobManager(BaseJobManager):
+    """Base for asyncio-based job managers.
+
+    Overrides the metrics job with an asyncio task so it can be awaited
+    together with the read/write tasks via ``asyncio.gather``.
+    """
+
+    @abstractmethod
+    async def run_tests(self):
+        pass
+
+    def _run_metric_job(self):
+        if not getattr(self.args, "otlp_endpoint", None):
+            return []
+
+        task = asyncio.create_task(
+            self._async_metric_sender(self.args.time),
+            name="slo_metrics_sender",
+        )
+        return [task]
+
+    async def _async_metric_sender(self, runtime):
+        # `aiolimiter` is a runtime dependency (see `tests/slo/requirements.txt`).
+        from aiolimiter import AsyncLimiter  # pyright: ignore[reportMissingImports]
+
+        start_time = time.time()
+        logger.info("Start push metrics (async)")
+
+        # One push per report_period (mirrors the sync SyncRateLimiter); guard 0.
+        report_period_ms = max(1, int(self.args.report_period))
+        limiter = AsyncLimiter(max_rate=1, time_period=report_period_ms / 1000.0)
+
+        while time.time() - start_time < runtime:
+            async with limiter:
+                # Call sync metrics.push() in executor to avoid blocking the event loop.
+                await asyncio.get_running_loop().run_in_executor(None, self.metrics.push)
+
+        logger.info("Stop push metrics (async)")

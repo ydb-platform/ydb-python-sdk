@@ -1,0 +1,32 @@
+# Per-scenario SLO thresholds for the topic workloads, merged OVER the action's
+# global deploy/thresholds.yaml for topic runs only (via the init action's
+# `thresholds_yaml_path` input — see ydb-slo-action PR #57 "per-scenario
+# threshold overrides"). On an action version without that feature this file is
+# simply ignored, so wiring it is harmless and self-activates once it lands.
+#
+# What's made `direction: neutral` (visible in the report, but never warns/fails):
+#
+# - read_latency_* — for topics this is `receive_message` wait time (inter-message
+#   gap / prefetch drain), NOT a read cost; the meaningful read-side latency is
+#   the custom `topic_e2e_latency_*`.
+#
+# - *_p99 tails (write + e2e) — under chaos the p99 is dominated by node-kill
+#   outage spikes, and for async it also carries single-event-loop scheduling
+#   jitter; both are uncorrelated between the current and baseline containers, so
+#   the p99 current-vs-baseline delta is noise, not a regression signal.
+#
+# Kept gated (strict global thresholds): write_latency p50/p95 (ack round-trip),
+# topic_e2e_latency_p50 (the real delivery latency), topic_delivered_rps,
+# topic_lost_errors, read/write availability. table/query are untouched.
+
+metrics:
+  - name: read_latency_p50_ms
+    direction: neutral
+  - name: read_latency_p95_ms
+    direction: neutral
+  - name: read_latency_p99_ms
+    direction: neutral
+  - name: write_latency_p99_ms
+    direction: neutral
+  - name: topic_e2e_latency_p99_ms
+    direction: neutral
