@@ -9,78 +9,44 @@ import ydb.aio
 
 from .async_topic_jobs import AsyncTopicJobManager
 from .topic_payload import decode_payload, encode_payload
-from .topic_tx_jobs import HOT_SELECT_TEMPLATE, HOT_UPSERT_TEMPLATE, SINK_UPSERT_TEMPLATE
+from .topic_tx_jobs import SINK_UPSERT_TEMPLATE
 
 logger = logging.getLogger(__name__)
 
 
 class AsyncTopicTxJobManager(AsyncTopicJobManager):
-    """Async mirror of :class:`TopicTxJobManager` (both-ends transactional
-    topic <-> table pipeline). See that class for the scenario description."""
+    """Async mirror of :class:`TopicTxJobManager` (transactional topic <-> table
+    pipeline). See that class for the scenario description."""
 
-    def __init__(self, driver, args, metrics, sink_table, hot_table):
+    def __init__(self, driver, args, metrics, sink_table):
         super().__init__(driver, args, metrics)
         self.sink_table = sink_table
-        self.hot_table = hot_table
         self.messages_per_tx = max(1, int(getattr(self.args, "messages_per_tx", 10)))
-        self.hot_keys = max(1, int(getattr(self.args, "tli_hot_keys", 4)))
-
         self._sink_upsert_query = SINK_UPSERT_TEMPLATE.format(sink_table)
-        self._hot_select_query = HOT_SELECT_TEMPLATE.format(hot_table)
-        self._hot_upsert_query = HOT_UPSERT_TEMPLATE.format(hot_table)
+        self.retry_settings = ydb.RetrySettings(idempotent=True)
 
-        self.retry_settings = ydb.RetrySettings(idempotent=True, on_ydb_error_callback=self._on_ydb_error)
-
-    async def run_tests(self):
-        # Emit the TLI counter at 0 up front so it shows as 0 (not a missing
-        # series) on a clean run; the delivery counters are emitted by super().
-        self.metrics.inc_tli(0)
-        await super().run_tests()
-
-    def _on_ydb_error(self, e):
-        if isinstance(e, ydb.Aborted):
-            self.metrics.inc_tli()
-            logger.debug("TLI abort (will retry): %s", e)
-
-    # --- shared query helpers -------------------------------------------------
-
-    async def _exec(self, tx, query, params):
-        rows = []
-        async with await tx.execute(query, params, commit_tx=False) as result_sets:
-            async for result_set in result_sets:
-                rows.extend(result_set.rows)
-        return rows
-
-    async def _bump_hot(self, tx, hot_id):
-        # Read-modify-write on a shared hot row: the read takes an optimistic
-        # lock, so concurrent writers/readers on the same key conflict -> TLI.
-        rows = await self._exec(tx, self._hot_select_query, {"$id": (hot_id, ydb.PrimitiveType.Uint64)})
-        cur = rows[0]["val"] if rows and rows[0]["val"] is not None else 0
-        await self._exec(
-            tx,
-            self._hot_upsert_query,
-            {"$id": (hot_id, ydb.PrimitiveType.Uint64), "$val": (cur + 1, ydb.PrimitiveType.Uint64)},
-        )
+    # --- shared query helper --------------------------------------------------
 
     async def _upsert_sink(self, tx, decoded):
         writer_id, seqno, write_ts_ns = decoded
-        await self._exec(
-            tx,
+        async with await tx.execute(
             self._sink_upsert_query,
             {
                 "$writer_id": (writer_id, ydb.PrimitiveType.Uint64),
                 "$seqno": (seqno, ydb.PrimitiveType.Uint64),
                 "$write_ts_ns": (write_ts_ns, ydb.PrimitiveType.Uint64),
             },
-        )
+            commit_tx=False,
+        ) as result_sets:
+            async for _ in result_sets:
+                pass
 
-    # --- producer (table -> topic) -------------------------------------------
+    # --- producer (transactional topic write) --------------------------------
 
     async def _run_topic_writes(self, writer_id, limiter):
         start_time = time.time()
         partition_id = writer_id % self.partitions
         producer_id = f"{REF}-p{writer_id}"
-        hot_id = writer_id % self.hot_keys
         logger.info("Start async topic tx writer %s (partition %s, producer %s)", writer_id, partition_id, producer_id)
 
         # `seqno` lives across recreations and advances only after a successful
@@ -105,7 +71,6 @@ class AsyncTopicTxJobManager(AsyncTopicJobManager):
                             break
 
                         async def callee(tx):
-                            await self._bump_hot(tx, hot_id)
                             tx_writer = self.aio_driver.topic_client.tx_writer(
                                 tx,
                                 self.args.path,
@@ -136,7 +101,6 @@ class AsyncTopicTxJobManager(AsyncTopicJobManager):
     async def _run_topic_reads(self, reader_id):
         start_time = time.time()
         read_timeout = self.args.read_timeout / 1000
-        hot_id = reader_id % self.hot_keys
         logger.info("Start async topic tx reader %s", reader_id)
 
         while time.time() - start_time < self.args.time:
@@ -154,7 +118,6 @@ class AsyncTopicTxJobManager(AsyncTopicJobManager):
                                 )
                                 if batch is None:
                                     return
-                                await self._bump_hot(tx, hot_id)
                                 for msg in batch.messages:
                                     decoded = decode_payload(msg.data)
                                     if decoded is not None:

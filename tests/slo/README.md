@@ -273,25 +273,22 @@ Each message carries `writer_id:seqno:write_ts_ns:` followed by padding to the c
 
 ### Transactional topic ↔ table workload
 
-When running `topic-run` under `sync-topic-tx` / `async-topic-tx`, **both** ends of
-the pipeline run inside a YDB transaction, validating **exactly-once** delivery of
-a topic into a table under chaos **and** under TLI (transaction locks invalidated):
+When running `topic-run` under `sync-topic-tx` / `async-topic-tx`, both ends of the
+pipeline run inside a YDB transaction, validating **exactly-once** delivery of a
+topic into a table under chaos:
 
-- `writeJob` — a `tx_writer` writes a batch of messages to the topic while the same
-  transaction reads-and-bumps a shared hot counter row (table → topic). The commit
-  persists the topic write and the table update atomically; `seqno` advances only on
-  a successful commit (a chaos/TLI abort leaves no gap).
+- `writeJob` — a `tx_writer` writes a batch of messages to the topic inside a
+  transaction (a transactional topic write); `seqno` advances only on a successful
+  commit (a chaos abort leaves no gap).
 - `readJob` — `receive_batch_with_tx` reads a batch while the same transaction
-  UPSERTs each message into a sink table keyed by `(writer_id, seqno)` and bumps a
-  hot row (topic → table). The commit advances the topic offset and writes the sink
-  rows atomically, so a rolled-back tx re-reads and re-UPSERTs the same keys —
-  idempotent, exactly-once.
+  UPSERTs each message into a sink table keyed by `(writer_id, seqno)` (topic →
+  table). The commit advances the topic offset and writes the sink rows atomically,
+  so a rolled-back tx re-reads and re-UPSERTs the same keys — idempotent,
+  exactly-once.
 
-TLI is induced on purpose via a few shared hot rows (`--tli-hot-keys`); the tx retry
-loop absorbs it (`topic_tx_tli` counts the aborts, informational) and the run must
-still finish with `topic_lost_errors == 0`. The topic and the sink/hot tables are
+The run must finish with `topic_lost_errors == 0`. The topic and the sink table are
 ref-scoped. See `TOPIC_TX_SCENARIO.md` for the full design; extra options:
-`--messages-per-tx`, `--tli-hot-keys`, `--sink-table`, `--hot-table`.
+`--messages-per-tx`, `--sink-table`.
 
 ## Collected metrics
 - `oks`      - amount of OK requests

@@ -22,14 +22,6 @@ CREATE TABLE IF NOT EXISTS `{}` (
 );
 """
 
-HOT_TABLE_DDL = """
-CREATE TABLE IF NOT EXISTS `{}` (
-    id Uint64,
-    val Uint64,
-    PRIMARY KEY (id)
-);
-"""
-
 
 class TopicRunner(BaseRunner):
     @property
@@ -41,8 +33,8 @@ class TopicRunner(BaseRunner):
         return str(WORKLOAD).endswith("topic-tx")
 
     @staticmethod
-    def _tx_table_names(args):
-        return path.join(args.db, args.sink_table), path.join(args.db, args.hot_table)
+    def _tx_sink_table(args):
+        return path.join(args.db, args.sink_table)
 
     def create(self, args):
         self._create_topic(args)
@@ -50,22 +42,13 @@ class TopicRunner(BaseRunner):
             self._create_tx_tables(args)
 
     def _create_tx_tables(self, args):
-        sink_table, hot_table = self._tx_table_names(args)
-        hot_keys = max(1, int(getattr(args, "tli_hot_keys", 4)))
-        self.logger.info("Creating tx tables: sink=%s hot=%s (hot_keys=%d)", sink_table, hot_table, hot_keys)
+        sink_table = self._tx_sink_table(args)
+        self.logger.info("Creating tx sink table: %s", sink_table)
 
         assert self.driver is not None, "Driver is not initialized. Call set_driver() before create()."
         with ydb.QuerySessionPool(self.driver) as pool:
             pool.execute_with_retries(SINK_TABLE_DDL.format(sink_table))
-            pool.execute_with_retries(HOT_TABLE_DDL.format(hot_table))
-            # Seed the hot rows so the producer/consumer read-modify-write always
-            # hits an existing row (a strong, deterministic optimistic lock).
-            for i in range(hot_keys):
-                pool.execute_with_retries(
-                    "DECLARE $id AS Uint64; UPSERT INTO `{}` (id, val) VALUES ($id, 0);".format(hot_table),
-                    {"$id": (i, ydb.PrimitiveType.Uint64)},
-                )
-        self.logger.info("Tx tables ready")
+        self.logger.info("Tx sink table ready")
 
     def _create_topic(self, args):
         assert self.driver is not None, "Driver is not initialized. Call set_driver() before create()."
@@ -127,8 +110,7 @@ class TopicRunner(BaseRunner):
         self.logger.info("Starting topic SLO tests")
 
         if self._is_tx_workload():
-            sink_table, hot_table = self._tx_table_names(args)
-            job_manager = TopicTxJobManager(self.driver, args, metrics, sink_table, hot_table)
+            job_manager = TopicTxJobManager(self.driver, args, metrics, self._tx_sink_table(args))
         else:
             job_manager = TopicJobManager(self.driver, args, metrics)
         job_manager.run_tests()
@@ -147,8 +129,7 @@ class TopicRunner(BaseRunner):
 
         # Use async driver for topic operations
         if self._is_tx_workload():
-            sink_table, hot_table = self._tx_table_names(args)
-            job_manager = AsyncTopicTxJobManager(self.driver, args, metrics, sink_table, hot_table)
+            job_manager = AsyncTopicTxJobManager(self.driver, args, metrics, self._tx_sink_table(args))
         else:
             job_manager = AsyncTopicJobManager(self.driver, args, metrics)
         await job_manager.run_tests()
@@ -173,11 +154,10 @@ class TopicRunner(BaseRunner):
                 raise
 
         if self._is_tx_workload():
-            sink_table, hot_table = self._tx_table_names(args)
+            sink_table = self._tx_sink_table(args)
             with ydb.QuerySessionPool(self.driver) as pool:
-                for table in (sink_table, hot_table):
-                    try:
-                        pool.execute_with_retries("DROP TABLE `{}`;".format(table))
-                        self.logger.info("Table dropped: %s", table)
-                    except ydb.Error as e:
-                        self.logger.info("Table not dropped (%s): %s", table, e)
+                try:
+                    pool.execute_with_retries("DROP TABLE `{}`;".format(sink_table))
+                    self.logger.info("Table dropped: %s", sink_table)
+                except ydb.Error as e:
+                    self.logger.info("Table not dropped (%s): %s", sink_table, e)

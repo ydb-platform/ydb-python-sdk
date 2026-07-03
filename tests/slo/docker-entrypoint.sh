@@ -44,11 +44,10 @@ if [ "$PREFIX" = "topic" ]; then
     SAFE_REF=$(printf '%s' "$REF_RAW" | tr -c 'a-zA-Z0-9_' '_')
     case "${WORKLOAD_NAME:-}" in
         *topic-tx)
-            # The transactional pipeline gets its own topic plus ref-scoped sink
-            # and hot (contention) tables, so current/baseline don't collide.
+            # The transactional pipeline gets its own topic plus a ref-scoped
+            # sink table, so current/baseline don't collide.
             EXTRA_ARGS="--path ${DATABASE%/}/slo_topic_tx_${SAFE_REF}"
             EXTRA_ARGS="${EXTRA_ARGS} --sink-table slo_topic_tx_sink_${SAFE_REF}"
-            EXTRA_ARGS="${EXTRA_ARGS} --hot-table slo_topic_tx_hot_${SAFE_REF}"
             ;;
         *)
             EXTRA_ARGS="--path ${DATABASE%/}/slo_topic_${SAFE_REF}"

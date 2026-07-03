@@ -105,18 +105,6 @@ def add_topic_tx_options(parser):
         type=str,
         help="Sink table for the transactional consumer (exactly-once target)",
     )
-    parser.add_argument(
-        "--hot-table",
-        default="slo_topic_tx_hot",
-        type=str,
-        help="Hot-key contention table used to induce TLI",
-    )
-    parser.add_argument(
-        "--tli-hot-keys",
-        default=4,
-        type=int,
-        help="Number of shared hot rows the transactions contend on (induces TLI)",
-    )
 
 
 def make_topic_create_parser(subparsers):

@@ -85,10 +85,6 @@ class BaseMetrics(ABC):
         """Count messages detected as duplicates (redelivery of an already-seen seqno)."""
         return None
 
-    def inc_tli(self, n: int = 1) -> None:
-        """Count transaction-locks-invalidated (TLI) aborts absorbed by the tx retry loop."""
-        return None
-
 
 class DummyMetrics(BaseMetrics):
     def start(self, labels) -> float:
@@ -206,10 +202,6 @@ class OtlpMetrics(BaseMetrics):
             name="sdk.topic.messages.duplicated.total",
             description="Total number of messages detected as duplicates (redelivered seqno).",
         )
-        self._topic_tx_tli = self._meter.create_counter(
-            name="sdk.topic.tx.tli.total",
-            description="Total number of TLI (transaction locks invalidated) aborts absorbed by the tx retry loop.",
-        )
 
         self._lock = threading.Lock()
         self._hdr: dict = {}
@@ -300,9 +292,6 @@ class OtlpMetrics(BaseMetrics):
 
     def inc_duplicated(self, n: int = 1) -> None:
         self._topic_duplicated.add(int(n), attributes={"ref": REF})
-
-    def inc_tli(self, n: int = 1) -> None:
-        self._topic_tx_tli.add(int(n), attributes={"ref": REF})
 
 
 def _resolve_metrics_endpoint(cli_endpoint: Optional[str]) -> str:

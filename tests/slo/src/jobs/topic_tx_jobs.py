@@ -18,97 +18,48 @@ UPSERT INTO `{}` (writer_id, seqno, write_ts_ns, received_at)
 VALUES ($writer_id, $seqno, $write_ts_ns, CurrentUtcTimestamp());
 """
 
-HOT_SELECT_TEMPLATE = """
-DECLARE $id AS Uint64;
-SELECT val FROM `{}` WHERE id = $id;
-"""
-
-HOT_UPSERT_TEMPLATE = """
-DECLARE $id AS Uint64;
-DECLARE $val AS Uint64;
-UPSERT INTO `{}` (id, val) VALUES ($id, $val);
-"""
-
 
 class TopicTxJobManager(TopicJobManager):
-    """Both-ends transactional topic <-> table pipeline (sync).
+    """Transactional topic <-> table pipeline (sync).
 
-    Producer: a ``tx_writer`` writes a batch of messages to the topic while the
-    same transaction reads-and-bumps a hot counter row (table -> topic).
-    Consumer: ``receive_batch_with_tx`` reads a batch while the same transaction
-    UPSERTs each message into a sink table and bumps a hot counter row
-    (topic -> table). The commit advances the topic offset and persists the
-    table rows atomically -> exactly-once.
-
-    The shared hot rows (``--tli-hot-keys`` of them) create optimistic-lock
-    contention, so transactions occasionally fail with TLI (``ydb.Aborted``);
-    the tx retry loop absorbs them and delivery stays exactly-once. TLI aborts
-    are counted via ``RetrySettings.on_ydb_error_callback``.
+    Producer: a ``tx_writer`` writes a batch of messages to the topic inside a
+    transaction (a transactional topic write). Consumer:
+    ``receive_batch_with_tx`` reads a batch while the same transaction UPSERTs
+    each message into a sink table keyed by ``(writer_id, seqno)``. The commit
+    advances the topic offset and persists the sink rows atomically -> a
+    rolled-back tx re-reads and re-UPSERTs the same keys (idempotent), so the
+    table receives every message exactly once, even under chaos.
     """
 
-    def __init__(self, driver, args, metrics, sink_table, hot_table):
+    def __init__(self, driver, args, metrics, sink_table):
         super().__init__(driver, args, metrics)
         self.sink_table = sink_table
-        self.hot_table = hot_table
         self.messages_per_tx = max(1, int(getattr(self.args, "messages_per_tx", 10)))
-        self.hot_keys = max(1, int(getattr(self.args, "tli_hot_keys", 4)))
-
         self._sink_upsert_query = SINK_UPSERT_TEMPLATE.format(sink_table)
-        self._hot_select_query = HOT_SELECT_TEMPLATE.format(hot_table)
-        self._hot_upsert_query = HOT_UPSERT_TEMPLATE.format(hot_table)
+        self.retry_settings = ydb.RetrySettings(idempotent=True)
 
-        self.retry_settings = ydb.RetrySettings(idempotent=True, on_ydb_error_callback=self._on_ydb_error)
-
-    def run_tests(self):
-        # Emit the TLI counter at 0 up front so it shows as 0 (not a missing
-        # series) on a clean run; the delivery counters are emitted by super().
-        self.metrics.inc_tli(0)
-        super().run_tests()
-
-    def _on_ydb_error(self, e):
-        if isinstance(e, ydb.Aborted):
-            self.metrics.inc_tli()
-            logger.debug("TLI abort (will retry): %s", e)
-
-    # --- shared query helpers -------------------------------------------------
-
-    def _exec(self, tx, query, params):
-        rows = []
-        with tx.execute(query, params, commit_tx=False) as result_sets:
-            for result_set in result_sets:
-                rows.extend(result_set.rows)
-        return rows
-
-    def _bump_hot(self, tx, hot_id):
-        # Read-modify-write on a shared hot row: the read takes an optimistic
-        # lock, so concurrent writers/readers on the same key conflict -> TLI.
-        rows = self._exec(tx, self._hot_select_query, {"$id": (hot_id, ydb.PrimitiveType.Uint64)})
-        cur = rows[0]["val"] if rows and rows[0]["val"] is not None else 0
-        self._exec(
-            tx,
-            self._hot_upsert_query,
-            {"$id": (hot_id, ydb.PrimitiveType.Uint64), "$val": (cur + 1, ydb.PrimitiveType.Uint64)},
-        )
+    # --- shared query helper --------------------------------------------------
 
     def _upsert_sink(self, tx, decoded):
         writer_id, seqno, write_ts_ns = decoded
-        self._exec(
-            tx,
+        with tx.execute(
             self._sink_upsert_query,
             {
                 "$writer_id": (writer_id, ydb.PrimitiveType.Uint64),
                 "$seqno": (seqno, ydb.PrimitiveType.Uint64),
                 "$write_ts_ns": (write_ts_ns, ydb.PrimitiveType.Uint64),
             },
-        )
+            commit_tx=False,
+        ) as result_sets:
+            for _ in result_sets:
+                pass
 
-    # --- producer (table -> topic) -------------------------------------------
+    # --- producer (transactional topic write) --------------------------------
 
     def _run_topic_writes(self, writer_id, limiter):
         start_time = time.time()
         partition_id = writer_id % self.partitions
         producer_id = f"{REF}-p{writer_id}"
-        hot_id = writer_id % self.hot_keys
         logger.info("Start topic tx writer %s (partition %s, producer %s)", writer_id, partition_id, producer_id)
 
         # `seqno` lives across recreations and advances only after a successful
@@ -134,7 +85,6 @@ class TopicTxJobManager(TopicJobManager):
                             break
 
                         def callee(tx):
-                            self._bump_hot(tx, hot_id)
                             tx_writer = self.driver.topic_client.tx_writer(
                                 tx,
                                 self.args.path,
@@ -165,7 +115,6 @@ class TopicTxJobManager(TopicJobManager):
     def _run_topic_reads(self, reader_id):
         start_time = time.time()
         read_timeout = self.args.read_timeout / 1000
-        hot_id = reader_id % self.hot_keys
         logger.info("Start topic tx reader %s", reader_id)
 
         while time.time() - start_time < self.args.time:
@@ -183,7 +132,6 @@ class TopicTxJobManager(TopicJobManager):
                                 )
                                 if batch is None:
                                     return
-                                self._bump_hot(tx, hot_id)
                                 for msg in batch.messages:
                                     decoded = decode_payload(msg.data)
                                     if decoded is not None:
