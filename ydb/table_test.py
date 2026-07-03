@@ -102,6 +102,23 @@ def test_result_set_row_missing_attribute_raises_attribute_error():
         row.definitely_missing
 
 
+def test_result_set_row_missing_attribute_is_also_key_error():
+    # Before 3.29.5 dotted access to a missing field leaked KeyError; it now
+    # raises AttributeError. The combined error stays catchable as either, so
+    # callers written against the old behaviour keep working.
+    message = _build_int_result_set(n_rows=1, n_cols=1)
+    row = convert.ResultSet.from_message(message).rows[0]
+
+    with pytest.raises(KeyError):
+        row.definitely_missing
+
+    try:
+        row.definitely_missing
+    except Exception as e:
+        assert isinstance(e, AttributeError)
+        assert isinstance(e, KeyError)
+
+
 def test_result_set_row_is_copyable():
     message = _build_int_result_set(n_rows=1, n_cols=3)
     row = convert.ResultSet.from_message(message).rows[0]
