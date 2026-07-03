@@ -170,19 +170,27 @@ Date and time
    * - ``PrimitiveType.Date``
      - calendar date; maps to/from ``datetime.date``
    * - ``PrimitiveType.Datetime``
-     - date + time without timezone (second precision)
+     - date + time without timezone (second precision); maps to/from ``datetime.datetime``
    * - ``PrimitiveType.Timestamp``
      - date + time without timezone (microsecond precision); maps to/from ``datetime.datetime``
    * - ``PrimitiveType.Interval``
      - duration; maps to/from ``datetime.timedelta``
    * - ``PrimitiveType.Date32``
-     - extended-range date (supports negative years)
+     - extended-range date (supports negative years); maps to/from ``datetime.date``
    * - ``PrimitiveType.Datetime64``
-     - extended-range datetime (second precision)
+     - extended-range datetime (second precision); maps to/from ``datetime.datetime``
    * - ``PrimitiveType.Timestamp64``
-     - extended-range timestamp (microsecond precision)
+     - extended-range timestamp (microsecond precision); maps to/from ``datetime.datetime``
    * - ``PrimitiveType.Interval64``
-     - extended-range interval
+     - extended-range interval; maps to/from ``datetime.timedelta``
+
+.. note::
+
+   When a ``datetime.datetime`` is passed for ``Datetime``, ``Datetime64``,
+   ``Timestamp`` or ``Timestamp64``, a tz-naive value is written as-is (its
+   wall-clock value), while a tz-aware value is converted to UTC first.
+   Integer inputs (seconds for ``Datetime``/``Datetime64``, microseconds for
+   ``Timestamp``/``Timestamp64`` since the Unix epoch) are still accepted.
 
 Other
 ^^^^^

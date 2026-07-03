@@ -64,6 +64,22 @@ def _from_datetime_number(
     return x
 
 
+def _to_datetime(pb: ydb_value_pb2.Value, value: typing.Union[datetime, int]) -> None:
+    if isinstance(value, datetime):
+        epoch = _EPOCH_UTC if value.tzinfo else _EPOCH
+        pb.uint32_value = (value - epoch) // timedelta(seconds=1)
+    else:
+        pb.uint32_value = value
+
+
+def _to_datetime64(pb: ydb_value_pb2.Value, value: typing.Union[datetime, int]) -> None:
+    if isinstance(value, datetime):
+        epoch = _EPOCH_UTC if value.tzinfo else _EPOCH
+        pb.int64_value = (value - epoch) // timedelta(seconds=1)
+    else:
+        pb.int64_value = value
+
+
 def _from_json(x: typing.Union[str, bytearray, bytes], table_client_settings: table.TableClientSettings) -> typing.Any:
     if table_client_settings is not None and table_client_settings._native_json_in_result_sets:
         return json.loads(x)
@@ -178,11 +194,13 @@ class PrimitiveType(enum.Enum):
         _apis.primitive_types.DATETIME,
         "uint32_value",
         _from_datetime_number,
+        _to_datetime,
     )
     Datetime64 = (
         _apis.primitive_types.DATETIME64,
         "int64_value",
         _from_datetime_number,
+        _to_datetime64,
     )
     Timestamp = (
         _apis.primitive_types.TIMESTAMP,

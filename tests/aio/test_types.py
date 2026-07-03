@@ -59,11 +59,13 @@ tz4h = timezone(timedelta(hours=4))
 @pytest.mark.parametrize(
     "value,ydb_type,result_value",
     [
-        # FIXME: TypeError: 'datetime.datetime' object cannot be interpreted as an integer
-        # (test_dt_today, "Datetime", test_dt_today),
         (test_today, "Date", test_today),
         (365, "Date", date(1971, 1, 1)),
         (3600 * 24 * 365, "Datetime", datetime(1971, 1, 1, 0, 0)),
+        (datetime(1971, 1, 1, 0, 0), "Datetime", datetime(1971, 1, 1, 0, 0)),
+        (datetime(1970, 1, 1, 4, 0, tzinfo=tz4h), "Datetime", datetime(1970, 1, 1, 0, 0)),
+        (datetime(1969, 1, 1, 0, 0), "Datetime64", datetime(1969, 1, 1, 0, 0)),
+        (datetime(1970, 1, 1, 4, 0, tzinfo=tz4h), "Datetime64", datetime(1970, 1, 1, 0, 0)),
         (datetime(1970, 1, 1, 4, 0, tzinfo=tz4h), "Timestamp", datetime(1970, 1, 1, 0, 0)),
         (test_td, "Interval", test_td),
         (test_now, "Timestamp", test_now),
