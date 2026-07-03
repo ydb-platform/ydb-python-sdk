@@ -1,3 +1,4 @@
+## 3.29.7 ##
 * Make missing row/struct attribute access raise an error that is both AttributeError and KeyError, to stay backward compatible with callers written against the pre-3.29.5 KeyError
 
 ## 3.29.6 ##
