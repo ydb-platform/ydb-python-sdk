@@ -11,7 +11,7 @@ _SIGN_BIT = 2**63
 _DecimalNanRepr = 10**35 + 1
 _DecimalInfRepr = 10**35
 _DecimalSignedInfRepr = -(10**35)
-_primitive_type_by_id = {}
+_primitive_type_by_id: dict[int, types.PrimitiveType] = {}
 _default_allow_truncated_result = False
 
 

@@ -70,7 +70,7 @@ source .venv/bin/activate && tox -e py -- tests/path/to/test_file.py -v
 4. **No new dependencies** — the current dependency set is intentionally minimal.
 5. **No excessive comments** — do not comment self-evident code.
 6. **English only** — code, comments, docstrings, commit messages.
-7. **Python 3.8+** — do not use language or stdlib features beyond that baseline.
+7. **Python 3.10+** — do not use language or stdlib features beyond that baseline.
 
 ## CHANGELOG
 

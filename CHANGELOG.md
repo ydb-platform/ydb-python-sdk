@@ -1,3 +1,4 @@
+* Drop support for Python 3.8 and 3.9; the minimum supported version is now Python 3.10
 * Accept native `datetime.datetime` values for `Datetime` and `Datetime64` query parameters (previously only integer seconds since the epoch were accepted)
 
 ## 3.29.7 ##
