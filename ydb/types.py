@@ -7,6 +7,7 @@ import enum
 import json
 from . import _utilities, _apis
 from datetime import date, datetime, timedelta, timezone
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 import typing
 import uuid
 import struct
@@ -78,6 +79,67 @@ def _to_datetime64(pb: ydb_value_pb2.Value, value: typing.Union[datetime, int]) 
         pb.int64_value = (value - epoch) // timedelta(seconds=1)
     else:
         pb.int64_value = value
+
+
+def _tz_name(value: datetime) -> str:
+    tz = value.tzinfo
+    if isinstance(tz, ZoneInfo):
+        return tz.key
+    return str(tz)
+
+
+def _parse_tz(value: str) -> typing.Union[datetime, str]:
+    wall_clock, _, tz_name = value.partition(",")
+    try:
+        tz = ZoneInfo(tz_name)
+    except ZoneInfoNotFoundError:
+        # No IANA database available for this zone; return the raw text as-is.
+        return value
+    if "T" in wall_clock:
+        naive = datetime.fromisoformat(wall_clock)
+    else:
+        parsed_date = date.fromisoformat(wall_clock)
+        naive = datetime(parsed_date.year, parsed_date.month, parsed_date.day)
+    return naive.replace(tzinfo=tz)
+
+
+def _from_tz_date(x: str, table_client_settings: table.TableClientSettings) -> typing.Union[datetime, str]:
+    if table_client_settings is not None and table_client_settings._native_date_in_result_sets:
+        return _parse_tz(x)
+    return x
+
+
+def _to_tz_date(pb: ydb_value_pb2.Value, value: typing.Union[datetime, str]) -> None:
+    if isinstance(value, datetime):
+        pb.text_value = value.strftime("%Y-%m-%d") + "," + _tz_name(value)
+    else:
+        pb.text_value = value
+
+
+def _from_tz_datetime(x: str, table_client_settings: table.TableClientSettings) -> typing.Union[datetime, str]:
+    if table_client_settings is not None and table_client_settings._native_datetime_in_result_sets:
+        return _parse_tz(x)
+    return x
+
+
+def _to_tz_datetime(pb: ydb_value_pb2.Value, value: typing.Union[datetime, str]) -> None:
+    if isinstance(value, datetime):
+        pb.text_value = value.strftime("%Y-%m-%dT%H:%M:%S") + "," + _tz_name(value)
+    else:
+        pb.text_value = value
+
+
+def _from_tz_timestamp(x: str, table_client_settings: table.TableClientSettings) -> typing.Union[datetime, str]:
+    if table_client_settings is not None and table_client_settings._native_timestamp_in_result_sets:
+        return _parse_tz(x)
+    return x
+
+
+def _to_tz_timestamp(pb: ydb_value_pb2.Value, value: typing.Union[datetime, str]) -> None:
+    if isinstance(value, datetime):
+        pb.text_value = value.strftime("%Y-%m-%dT%H:%M:%S.%f") + "," + _tz_name(value)
+    else:
+        pb.text_value = value
 
 
 def _from_json(x: typing.Union[str, bytearray, bytes], table_client_settings: table.TableClientSettings) -> typing.Any:
@@ -213,6 +275,24 @@ class PrimitiveType(enum.Enum):
         None,
         _from_timestamp64,
         _to_timestamp64,
+    )
+    TzDate = (
+        _apis.primitive_types.TZ_DATE,
+        "text_value",
+        _from_tz_date,
+        _to_tz_date,
+    )
+    TzDatetime = (
+        _apis.primitive_types.TZ_DATETIME,
+        "text_value",
+        _from_tz_datetime,
+        _to_tz_datetime,
+    )
+    TzTimestamp = (
+        _apis.primitive_types.TZ_TIMESTAMP,
+        "text_value",
+        _from_tz_timestamp,
+        _to_tz_timestamp,
     )
     Interval = (
         _apis.primitive_types.INTERVAL,

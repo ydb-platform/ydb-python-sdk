@@ -183,6 +183,12 @@ Date and time
      - extended-range timestamp (microsecond precision); maps to/from ``datetime.datetime``
    * - ``PrimitiveType.Interval64``
      - extended-range interval; maps to/from ``datetime.timedelta``
+   * - ``PrimitiveType.TzDate``
+     - date with a timezone name; maps to/from a tz-aware ``datetime.datetime`` at midnight
+   * - ``PrimitiveType.TzDatetime``
+     - date + time with a timezone name (second precision); maps to/from a tz-aware ``datetime.datetime``
+   * - ``PrimitiveType.TzTimestamp``
+     - date + time with a timezone name (microsecond precision); maps to/from a tz-aware ``datetime.datetime``
 
 .. note::
 
@@ -191,6 +197,16 @@ Date and time
    wall-clock value), while a tz-aware value is converted to UTC first.
    Integer inputs (seconds for ``Datetime``/``Datetime64``, microseconds for
    ``Timestamp``/``Timestamp64`` since the Unix epoch) are still accepted.
+
+.. note::
+
+   ``TzDate``, ``TzDatetime`` and ``TzTimestamp`` carry an IANA timezone name.
+   On write, pass a tz-aware ``datetime.datetime`` whose ``tzinfo`` is a
+   ``zoneinfo.ZoneInfo`` — its local wall-clock and zone name are stored. On
+   read, they are returned as tz-aware ``datetime.datetime`` values (``TzDate``
+   at midnight in that zone). When the matching
+   ``with_native_*_in_result_sets`` option is disabled, the raw
+   ``"<value>,<zone>"`` string is returned instead.
 
 Other
 ^^^^^

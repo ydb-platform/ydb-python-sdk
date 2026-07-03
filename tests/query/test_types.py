@@ -4,6 +4,7 @@ import ydb
 from datetime import date, datetime, timedelta, timezone
 from decimal import Decimal
 from uuid import uuid4
+from zoneinfo import ZoneInfo
 
 
 @pytest.mark.parametrize(
@@ -56,6 +57,9 @@ from uuid import uuid4
         (1511789040123456, ydb.PrimitiveType.Timestamp),
         (1511789040123456, ydb.PrimitiveType.Timestamp64),
         (-1511789040123456, ydb.PrimitiveType.Timestamp64),
+        ("2019-09-17,Europe/Moscow", ydb.PrimitiveType.TzDate),
+        ("2019-09-16T18:24:00,Europe/Moscow", ydb.PrimitiveType.TzDatetime),
+        ("2019-09-16T18:24:00.123456,Europe/Moscow", ydb.PrimitiveType.TzTimestamp),
     ],
 )
 def test_types(driver_sync: ydb.Driver, value, ydb_type):
@@ -81,6 +85,7 @@ test_old_date = datetime(1221, 1, 1, 0, 0)
 test_today = test_now.date()
 test_dt_today = datetime.today()
 tz4h = timezone(timedelta(hours=4))
+tzmsk = ZoneInfo("Europe/Moscow")
 
 
 @pytest.mark.parametrize(
@@ -108,6 +113,17 @@ tz4h = timezone(timedelta(hours=4))
         ),
         ('{"foo": "bar"}', ydb.PrimitiveType.Json, {"foo": "bar"}),
         ('{"foo": "bar"}', ydb.PrimitiveType.JsonDocument, {"foo": "bar"}),
+        (datetime(2019, 9, 17, tzinfo=tzmsk), ydb.PrimitiveType.TzDate, datetime(2019, 9, 17, tzinfo=tzmsk)),
+        (
+            datetime(2019, 9, 16, 18, 24, tzinfo=tzmsk),
+            ydb.PrimitiveType.TzDatetime,
+            datetime(2019, 9, 16, 18, 24, tzinfo=tzmsk),
+        ),
+        (
+            datetime(2019, 9, 16, 18, 24, 0, 123456, tzinfo=tzmsk),
+            ydb.PrimitiveType.TzTimestamp,
+            datetime(2019, 9, 16, 18, 24, 0, 123456, tzinfo=tzmsk),
+        ),
     ],
 )
 def test_types_native(driver_sync, value, ydb_type, result_value):
@@ -138,6 +154,24 @@ def test_types_native(driver_sync, value, ydb_type, result_value):
         (test_td, ydb.PrimitiveType.Interval, "-PT0.0001S", test_td),
         (test_td, ydb.PrimitiveType.Interval64, "-PT0.0001S", test_td),
         (test_old_date, ydb.PrimitiveType.Timestamp64, "1221-01-01T00:00:00Z", test_old_date),
+        (
+            datetime(2019, 9, 17, tzinfo=tzmsk),
+            ydb.PrimitiveType.TzDate,
+            "2019-09-17,Europe/Moscow",
+            datetime(2019, 9, 17, tzinfo=tzmsk),
+        ),
+        (
+            datetime(2019, 9, 16, 18, 24, tzinfo=tzmsk),
+            ydb.PrimitiveType.TzDatetime,
+            "2019-09-16T18:24:00,Europe/Moscow",
+            datetime(2019, 9, 16, 18, 24, tzinfo=tzmsk),
+        ),
+        (
+            datetime(2019, 9, 16, 18, 24, 0, 123456, tzinfo=tzmsk),
+            ydb.PrimitiveType.TzTimestamp,
+            "2019-09-16T18:24:00.123456,Europe/Moscow",
+            datetime(2019, 9, 16, 18, 24, 0, 123456, tzinfo=tzmsk),
+        ),
     ],
 )
 def test_type_str_repr(driver_sync, value, ydb_type, str_repr, result_value):
