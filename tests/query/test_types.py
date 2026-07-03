@@ -95,6 +95,7 @@ tz4h = timezone(timedelta(hours=4))
         (3600 * 24 * 365 * (-1), ydb.PrimitiveType.Datetime64, datetime(1969, 1, 1, 0, 0)),
         (datetime(1969, 1, 1, 0, 0), ydb.PrimitiveType.Datetime64, datetime(1969, 1, 1, 0, 0)),
         (test_old_date, ydb.PrimitiveType.Datetime64, test_old_date),
+        (datetime(1970, 1, 1, 4, 0, tzinfo=tz4h), ydb.PrimitiveType.Datetime64, datetime(1970, 1, 1, 0, 0)),
         (datetime(1970, 1, 1, 4, 0, tzinfo=tz4h), ydb.PrimitiveType.Timestamp, datetime(1970, 1, 1, 0, 0)),
         (test_td, ydb.PrimitiveType.Interval, test_td),
         (test_td, ydb.PrimitiveType.Interval64, test_td),

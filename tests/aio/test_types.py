@@ -65,6 +65,7 @@ tz4h = timezone(timedelta(hours=4))
         (datetime(1971, 1, 1, 0, 0), "Datetime", datetime(1971, 1, 1, 0, 0)),
         (datetime(1970, 1, 1, 4, 0, tzinfo=tz4h), "Datetime", datetime(1970, 1, 1, 0, 0)),
         (datetime(1969, 1, 1, 0, 0), "Datetime64", datetime(1969, 1, 1, 0, 0)),
+        (datetime(1970, 1, 1, 4, 0, tzinfo=tz4h), "Datetime64", datetime(1970, 1, 1, 0, 0)),
         (datetime(1970, 1, 1, 4, 0, tzinfo=tz4h), "Timestamp", datetime(1970, 1, 1, 0, 0)),
         (test_td, "Interval", test_td),
         (test_now, "Timestamp", test_now),

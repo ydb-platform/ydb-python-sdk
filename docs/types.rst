@@ -176,13 +176,13 @@ Date and time
    * - ``PrimitiveType.Interval``
      - duration; maps to/from ``datetime.timedelta``
    * - ``PrimitiveType.Date32``
-     - extended-range date (supports negative years)
+     - extended-range date (supports negative years); maps to/from ``datetime.date``
    * - ``PrimitiveType.Datetime64``
      - extended-range datetime (second precision); maps to/from ``datetime.datetime``
    * - ``PrimitiveType.Timestamp64``
      - extended-range timestamp (microsecond precision); maps to/from ``datetime.datetime``
    * - ``PrimitiveType.Interval64``
-     - extended-range interval
+     - extended-range interval; maps to/from ``datetime.timedelta``
 
 .. note::
 
