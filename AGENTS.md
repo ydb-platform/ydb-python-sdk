@@ -72,6 +72,12 @@ source .venv/bin/activate && tox -e py -- tests/path/to/test_file.py -v
 6. **English only** — code, comments, docstrings, commit messages.
 7. **Python 3.8+** — do not use language or stdlib features beyond that baseline.
 
+## CHANGELOG
+
+- Add a single line to the top of `CHANGELOG.md` **only** when a change is meaningful to the end user — new or changed behavior, a bug fix, a performance or compatibility improvement.
+- Do **not** add entries for internal-only work such as tests, coverage, CI, refactors, or documentation.
+- **Never add a version header** (`## X.Y.Z ##`) by hand — release automation inserts it above the pending lines. Just prepend the bullet.
+
 ## Documentation & Examples
 
 - Update `docs/` for any user-facing changes; create new sections if needed.
