@@ -17,13 +17,15 @@ The workload is selected by a single label (`WORKLOAD_NAME` env var, also the
 execution mode is derived from the label itself — an `async-*` label runs the
 async (`ydb.aio`) path:
 
-| Label          | Service       | Mode  |
-|----------------|---------------|-------|
-| `sync-table`   | Table service | sync  |
-| `sync-query`   | Query service | sync  |
-| `async-query`  | Query service | async |
-| `sync-topic`   | Topic service | sync  |
-| `async-topic`  | Topic service | async |
+| Label            | Service               | Mode  |
+|------------------|-----------------------|-------|
+| `sync-table`     | Table service         | sync  |
+| `sync-query`     | Query service         | sync  |
+| `async-query`    | Query service         | async |
+| `sync-topic`     | Topic service         | sync  |
+| `async-topic`    | Topic service         | async |
+| `sync-topic-tx`  | Topic + Query (tx)    | sync  |
+| `async-topic-tx` | Topic + Query (tx)    | async |
 
 > The `--async` CLI flag is kept as a manual override for `*-run` commands.
 > The bare `topic` label is still accepted as an alias for `sync-topic`.
@@ -268,6 +270,28 @@ When running `topic-run` (`sync-topic` / `async-topic`), the program creates `re
   - **end-to-end latency** is `read_ts − write_ts` for the first delivery of each message (writer and reader share the process, so the timestamps are comparable).
 
 Each message carries `writer_id:seqno:write_ts_ns:` followed by padding to the configured size. Topics are scoped per ref so the current and baseline containers (same cluster, run in parallel) don't share a topic.
+
+### Transactional topic ↔ table workload
+
+When running `topic-run` under `sync-topic-tx` / `async-topic-tx`, **both** ends of
+the pipeline run inside a YDB transaction, validating **exactly-once** delivery of
+a topic into a table under chaos **and** under TLI (transaction locks invalidated):
+
+- `writeJob` — a `tx_writer` writes a batch of messages to the topic while the same
+  transaction reads-and-bumps a shared hot counter row (table → topic). The commit
+  persists the topic write and the table update atomically; `seqno` advances only on
+  a successful commit (a chaos/TLI abort leaves no gap).
+- `readJob` — `receive_batch_with_tx` reads a batch while the same transaction
+  UPSERTs each message into a sink table keyed by `(writer_id, seqno)` and bumps a
+  hot row (topic → table). The commit advances the topic offset and writes the sink
+  rows atomically, so a rolled-back tx re-reads and re-UPSERTs the same keys —
+  idempotent, exactly-once.
+
+TLI is induced on purpose via a few shared hot rows (`--tli-hot-keys`); the tx retry
+loop absorbs it (`topic_tx_tli` counts the aborts, informational) and the run must
+still finish with `topic_lost_errors == 0`. The topic and the sink/hot tables are
+ref-scoped. See `TOPIC_TX_SCENARIO.md` for the full design; extra options:
+`--messages-per-tx`, `--tli-hot-keys`, `--sink-table`, `--hot-table`.
 
 ## Collected metrics
 - `oks`      - amount of OK requests

@@ -1,13 +1,34 @@
 import time
+from os import path
 
-from core.metrics import create_metrics
+from core.metrics import WORKLOAD, create_metrics
 from jobs.async_topic_jobs import AsyncTopicJobManager
+from jobs.async_topic_tx_jobs import AsyncTopicTxJobManager
 from jobs.topic_jobs import TopicJobManager
+from jobs.topic_tx_jobs import TopicTxJobManager
 
 import ydb
 import ydb.aio
 
 from .base import BaseRunner
+
+SINK_TABLE_DDL = """
+CREATE TABLE IF NOT EXISTS `{}` (
+    writer_id Uint64,
+    seqno Uint64,
+    write_ts_ns Uint64,
+    received_at Timestamp,
+    PRIMARY KEY (writer_id, seqno)
+);
+"""
+
+HOT_TABLE_DDL = """
+CREATE TABLE IF NOT EXISTS `{}` (
+    id Uint64,
+    val Uint64,
+    PRIMARY KEY (id)
+);
+"""
 
 
 class TopicRunner(BaseRunner):
@@ -15,7 +36,38 @@ class TopicRunner(BaseRunner):
     def prefix(self) -> str:
         return "topic"
 
+    @staticmethod
+    def _is_tx_workload() -> bool:
+        return str(WORKLOAD).endswith("topic-tx")
+
+    @staticmethod
+    def _tx_table_names(args):
+        return path.join(args.db, args.sink_table), path.join(args.db, args.hot_table)
+
     def create(self, args):
+        self._create_topic(args)
+        if self._is_tx_workload():
+            self._create_tx_tables(args)
+
+    def _create_tx_tables(self, args):
+        sink_table, hot_table = self._tx_table_names(args)
+        hot_keys = max(1, int(getattr(args, "tli_hot_keys", 4)))
+        self.logger.info("Creating tx tables: sink=%s hot=%s (hot_keys=%d)", sink_table, hot_table, hot_keys)
+
+        assert self.driver is not None, "Driver is not initialized. Call set_driver() before create()."
+        with ydb.QuerySessionPool(self.driver) as pool:
+            pool.execute_with_retries(SINK_TABLE_DDL.format(sink_table))
+            pool.execute_with_retries(HOT_TABLE_DDL.format(hot_table))
+            # Seed the hot rows so the producer/consumer read-modify-write always
+            # hits an existing row (a strong, deterministic optimistic lock).
+            for i in range(hot_keys):
+                pool.execute_with_retries(
+                    "DECLARE $id AS Uint64; UPSERT INTO `{}` (id, val) VALUES ($id, 0);".format(hot_table),
+                    {"$id": (i, ydb.PrimitiveType.Uint64)},
+                )
+        self.logger.info("Tx tables ready")
+
+    def _create_topic(self, args):
         assert self.driver is not None, "Driver is not initialized. Call set_driver() before create()."
         retry_no = 0
         while retry_no < 3:
@@ -74,7 +126,11 @@ class TopicRunner(BaseRunner):
 
         self.logger.info("Starting topic SLO tests")
 
-        job_manager = TopicJobManager(self.driver, args, metrics)
+        if self._is_tx_workload():
+            sink_table, hot_table = self._tx_table_names(args)
+            job_manager = TopicTxJobManager(self.driver, args, metrics, sink_table, hot_table)
+        else:
+            job_manager = TopicJobManager(self.driver, args, metrics)
         job_manager.run_tests()
 
         self.logger.info("Topic SLO tests completed")
@@ -90,7 +146,11 @@ class TopicRunner(BaseRunner):
         self.logger.info("Starting async topic SLO tests")
 
         # Use async driver for topic operations
-        job_manager = AsyncTopicJobManager(self.driver, args, metrics)
+        if self._is_tx_workload():
+            sink_table, hot_table = self._tx_table_names(args)
+            job_manager = AsyncTopicTxJobManager(self.driver, args, metrics, sink_table, hot_table)
+        else:
+            job_manager = AsyncTopicJobManager(self.driver, args, metrics)
         await job_manager.run_tests()
 
         self.logger.info("Async topic SLO tests completed")
@@ -111,3 +171,13 @@ class TopicRunner(BaseRunner):
             else:
                 self.logger.error("Failed to drop topic: %s", e)
                 raise
+
+        if self._is_tx_workload():
+            sink_table, hot_table = self._tx_table_names(args)
+            with ydb.QuerySessionPool(self.driver) as pool:
+                for table in (sink_table, hot_table):
+                    try:
+                        pool.execute_with_retries("DROP TABLE `{}`;".format(table))
+                        self.logger.info("Table dropped: %s", table)
+                    except ydb.Error as e:
+                        self.logger.info("Table not dropped (%s): %s", table, e)

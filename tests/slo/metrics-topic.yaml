@@ -49,3 +49,15 @@ metrics:
         increase(sdk_topic_messages_duplicated_total[5s])
       )
     round: 1
+
+  # TLI (transaction locks invalidated) aborts absorbed by the tx retry loop in
+  # the *-topic-tx workloads. Informational: it is the штатный optimistic-lock
+  # mechanism firing under the hot-key contention we induce on purpose — the run
+  # must still complete with topic_lost_errors == 0.
+  - name: topic_tx_tli
+    unit: aborts
+    query: |
+      sum by(ref) (
+        increase(sdk_topic_tx_tli_total[5s])
+      )
+    round: 1

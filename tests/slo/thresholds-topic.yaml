@@ -30,3 +30,7 @@ metrics:
     direction: neutral
   - name: topic_e2e_latency_p99_ms
     direction: neutral
+  # TLI aborts are the штатный optimistic-lock mechanism we induce on purpose;
+  # visible in the report but never a regression signal.
+  - name: topic_tx_tli
+    direction: neutral
