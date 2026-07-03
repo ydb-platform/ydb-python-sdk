@@ -127,19 +127,25 @@ class AsyncTopicTxJobManager(AsyncTopicJobManager):
                             ts = self.metrics.start((OP_TYPE_READ,))
                             try:
                                 await pool.retry_tx_async(callee, retry_settings=self.retry_settings)
-                                self.metrics.stop((OP_TYPE_READ,), ts)
-                            except asyncio.TimeoutError as e:
-                                # Starved reader (outage/stall): a visible read
-                                # failure, not a silent wait.
-                                self.metrics.stop((OP_TYPE_READ,), ts, error=e)
+                            except asyncio.TimeoutError:
+                                # No batch within read_timeout: an idle reader or
+                                # the SDK transparently reconnecting under chaos,
+                                # not a read failure. Don't count the op (real
+                                # errors surface as exceptions the tx retries).
+                                self.metrics.cancel((OP_TYPE_READ,), ts)
                                 continue
                             except Exception as e:
                                 self.metrics.stop((OP_TYPE_READ,), ts, error=e)
                                 logger.error("Tx read error (recreating reader): %s", e)
                                 break
 
-                            # Validate only after commit: these offsets/rows are
-                            # durable, so the seqnos are exactly-once delivered.
+                            if not committed:
+                                self.metrics.cancel((OP_TYPE_READ,), ts)
+                                continue
+
+                            # A batch committed: the offsets/rows are durable, so
+                            # the seqnos are exactly-once delivered.
+                            self.metrics.stop((OP_TYPE_READ,), ts)
                             for decoded in committed:
                                 self._record(decoded)
             except Exception as e:
