@@ -190,10 +190,11 @@ def test_type_str_repr(driver_sync, value, ydb_type, str_repr, result_value):
 
 
 def test_tz_conversion_fallbacks():
-    # Defensive branches a real-server round-trip never reaches: an unresolvable
-    # zone name is passed through as raw text, and a non-ZoneInfo tzinfo falls
-    # back to its str() name.
+    # Edge branches a real-server round-trip never reaches: an unresolvable zone
+    # name is passed through as raw text on read, and a non-ZoneInfo tzinfo is
+    # rejected on write.
     from ydb.types import _parse_tz, _tz_name
 
     assert _parse_tz("2019-09-16T18:24:00,Not/AZone") == "2019-09-16T18:24:00,Not/AZone"
-    assert _tz_name(datetime(2019, 9, 17, tzinfo=timezone.utc)) == "UTC"
+    with pytest.raises(ValueError):
+        _tz_name(datetime(2019, 9, 17, tzinfo=tz4h))

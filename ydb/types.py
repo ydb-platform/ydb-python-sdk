@@ -83,9 +83,9 @@ def _to_datetime64(pb: ydb_value_pb2.Value, value: typing.Union[datetime, int]) 
 
 def _tz_name(value: datetime) -> str:
     tz = value.tzinfo
-    if isinstance(tz, ZoneInfo):
-        return tz.key
-    return str(tz)
+    if not isinstance(tz, ZoneInfo):
+        raise ValueError(f"Tz types require a datetime whose tzinfo is a zoneinfo.ZoneInfo, got {tz!r}")
+    return tz.key
 
 
 def _parse_tz(value: str) -> typing.Union[datetime, str]:

@@ -202,11 +202,12 @@ Date and time
 
    ``TzDate``, ``TzDatetime`` and ``TzTimestamp`` carry an IANA timezone name.
    On write, pass a tz-aware ``datetime.datetime`` whose ``tzinfo`` is a
-   ``zoneinfo.ZoneInfo`` — its local wall-clock and zone name are stored. On
-   read, they are returned as tz-aware ``datetime.datetime`` values (``TzDate``
-   at midnight in that zone). When the matching
-   ``with_native_*_in_result_sets`` option is disabled, the raw
-   ``"<value>,<zone>"`` string is returned instead.
+   ``zoneinfo.ZoneInfo`` — its local wall-clock and zone name are stored; any
+   other ``tzinfo`` raises ``ValueError``. On read, they are returned as
+   tz-aware ``datetime.datetime`` values (``TzDate`` at midnight in that zone),
+   or the raw ``"<value>,<zone>"`` string when the matching
+   ``with_native_*_in_result_sets`` option is disabled or the zone cannot be
+   loaded from the system timezone database (e.g. no ``tzdata`` installed).
 
 Other
 ^^^^^
