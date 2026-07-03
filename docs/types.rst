@@ -184,6 +184,14 @@ Date and time
    * - ``PrimitiveType.Interval64``
      - extended-range interval
 
+.. note::
+
+   When a ``datetime.datetime`` is passed for ``Datetime``, ``Datetime64``,
+   ``Timestamp`` or ``Timestamp64``, a tz-naive value is written as-is (its
+   wall-clock value), while a tz-aware value is converted to UTC first.
+   Integer inputs (seconds for ``Datetime``/``Datetime64``, microseconds for
+   ``Timestamp``/``Timestamp64`` since the Unix epoch) are still accepted.
+
 Other
 ^^^^^
 
