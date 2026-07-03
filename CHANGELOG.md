@@ -1,3 +1,5 @@
+* Accept native `datetime.datetime` values for `Datetime` and `Datetime64` query parameters (previously only integer seconds since the epoch were accepted)
+
 ## 3.29.7 ##
 * Make missing row/struct attribute access raise an error that is both AttributeError and KeyError, to stay backward compatible with callers written against the pre-3.29.5 KeyError
 

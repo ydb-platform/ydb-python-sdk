@@ -170,7 +170,7 @@ Date and time
    * - ``PrimitiveType.Date``
      - calendar date; maps to/from ``datetime.date``
    * - ``PrimitiveType.Datetime``
-     - date + time without timezone (second precision)
+     - date + time without timezone (second precision); maps to/from ``datetime.datetime``
    * - ``PrimitiveType.Timestamp``
      - date + time without timezone (microsecond precision); maps to/from ``datetime.datetime``
    * - ``PrimitiveType.Interval``
@@ -178,9 +178,9 @@ Date and time
    * - ``PrimitiveType.Date32``
      - extended-range date (supports negative years)
    * - ``PrimitiveType.Datetime64``
-     - extended-range datetime (second precision)
+     - extended-range datetime (second precision); maps to/from ``datetime.datetime``
    * - ``PrimitiveType.Timestamp64``
-     - extended-range timestamp (microsecond precision)
+     - extended-range timestamp (microsecond precision); maps to/from ``datetime.datetime``
    * - ``PrimitiveType.Interval64``
      - extended-range interval
 

@@ -86,13 +86,15 @@ tz4h = timezone(timedelta(hours=4))
 @pytest.mark.parametrize(
     "value,ydb_type,result_value",
     [
-        # FIXME: TypeError: 'datetime.datetime' object cannot be interpreted as an integer
-        # (test_dt_today, "Datetime", test_dt_today),
         (test_today, ydb.PrimitiveType.Date, test_today),
         (365, ydb.PrimitiveType.Date, date(1971, 1, 1)),
         (-365, ydb.PrimitiveType.Date32, date(1969, 1, 1)),
         (3600 * 24 * 365, ydb.PrimitiveType.Datetime, datetime(1971, 1, 1, 0, 0)),
+        (datetime(1971, 1, 1, 0, 0), ydb.PrimitiveType.Datetime, datetime(1971, 1, 1, 0, 0)),
+        (datetime(1970, 1, 1, 4, 0, tzinfo=tz4h), ydb.PrimitiveType.Datetime, datetime(1970, 1, 1, 0, 0)),
         (3600 * 24 * 365 * (-1), ydb.PrimitiveType.Datetime64, datetime(1969, 1, 1, 0, 0)),
+        (datetime(1969, 1, 1, 0, 0), ydb.PrimitiveType.Datetime64, datetime(1969, 1, 1, 0, 0)),
+        (test_old_date, ydb.PrimitiveType.Datetime64, test_old_date),
         (datetime(1970, 1, 1, 4, 0, tzinfo=tz4h), ydb.PrimitiveType.Timestamp, datetime(1970, 1, 1, 0, 0)),
         (test_td, ydb.PrimitiveType.Interval, test_td),
         (test_td, ydb.PrimitiveType.Interval64, test_td),
@@ -123,7 +125,9 @@ def test_types_native(driver_sync, value, ydb_type, result_value):
         (365, ydb.PrimitiveType.Date, "1971-01-01", date(1971, 1, 1)),
         (-365, ydb.PrimitiveType.Date32, "1969-01-01", date(1969, 1, 1)),
         (3600 * 24 * 365, ydb.PrimitiveType.Datetime, "1971-01-01T00:00:00Z", datetime(1971, 1, 1, 0, 0)),
+        (datetime(1971, 1, 1, 0, 0), ydb.PrimitiveType.Datetime, "1971-01-01T00:00:00Z", datetime(1971, 1, 1, 0, 0)),
         (3600 * 24 * 365 * (-1), ydb.PrimitiveType.Datetime64, "1969-01-01T00:00:00Z", datetime(1969, 1, 1, 0, 0)),
+        (datetime(1969, 1, 1, 0, 0), ydb.PrimitiveType.Datetime64, "1969-01-01T00:00:00Z", datetime(1969, 1, 1, 0, 0)),
         (
             datetime(1970, 1, 1, 4, 0, tzinfo=tz4h),
             ydb.PrimitiveType.Timestamp,
