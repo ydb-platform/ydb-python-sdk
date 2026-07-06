@@ -110,10 +110,11 @@ class DockerProject:
 
     The `stop()` method talks to the Docker daemon via the SDK (unix socket)
     instead of forking a `docker compose kill` subprocess. Forking from a
-    python process that has active gRPC threads crashes the child with
-    SIGABRT on Python 3.9 (long-standing gRPC fork-handler issue), and
-    `stop()` is the worst offender because the driver is in the middle of
-    busy traffic when it's called.
+    python process that has active gRPC threads can crash the child with
+    SIGABRT (a long-standing gRPC fork-handler issue; not tied to any single
+    Python version — still observed on 3.10+ in CI), and `stop()` is the
+    worst offender because the driver is in the middle of busy traffic when
+    it's called.
 
     `start()` still uses `docker compose up -d --force-recreate` because
     recreating a YDB container after SIGKILL needs the full compose config
@@ -208,7 +209,7 @@ def endpoint(request):
     # test actually needs the container. The compose file publishes a fixed
     # host port, so avoid `port_for()` — it shells out to `docker compose
     # port`, which is exactly the late subprocess path that can trip the
-    # Python 3.9 gRPC fork race.
+    # gRPC fork race (see DockerProject; not Python-3.9-specific).
     docker_services = request.getfixturevalue("docker_services")
     endpoint_url = f"localhost:{YDB_ENDPOINT_PORT}"
     docker_services.wait_until_responsive(
