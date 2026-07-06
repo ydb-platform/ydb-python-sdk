@@ -207,10 +207,14 @@ def test_tz_conversion_fallbacks():
     # Edge branches a real-server round-trip never reaches: an unresolvable zone
     # name is passed through as raw text on read, and a non-ZoneInfo tzinfo is
     # rejected on write.
-    from ydb.types import _parse_tz, _tz_name
+    from ydb.types import _parse_tz
+    from ydb._grpc.common.protos import ydb_value_pb2
 
     assert _parse_tz("2019-09-16T18:24:00,Not/AZone") == "2019-09-16T18:24:00,Not/AZone"
     # no comma -> empty zone name -> ZoneInfo("") raises ValueError -> raw text
     assert _parse_tz("2019-09-16T18:24:00") == "2019-09-16T18:24:00"
-    with pytest.raises(ValueError):
-        _tz_name(datetime(2019, 9, 17, tzinfo=tz4h))
+    # a datetime without a ZoneInfo tzinfo is rejected on write: a naive value
+    # (no timezone at all) and a fixed-offset value both raise ValueError.
+    for bad in (datetime(2019, 9, 17), datetime(2019, 9, 17, tzinfo=tz4h)):
+        with pytest.raises(ValueError):
+            ydb.PrimitiveType.TzDatetime.set_value(ydb_value_pb2.Value(), bad)
