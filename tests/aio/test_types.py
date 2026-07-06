@@ -4,7 +4,7 @@ import ydb
 from datetime import date, datetime, timedelta, timezone
 from decimal import Decimal
 from uuid import uuid4
-from zoneinfo import ZoneInfo
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 
 @pytest.mark.parametrize(
@@ -58,7 +58,11 @@ test_now = datetime.utcnow()
 test_today = test_now.date()
 test_dt_today = datetime.today()
 tz4h = timezone(timedelta(hours=4))
-tzmsk = ZoneInfo("Europe/Moscow")
+try:
+    tzmsk = ZoneInfo("Europe/Moscow")
+except ZoneInfoNotFoundError:  # no system tzdata / tzdata wheel on this platform
+    tzmsk = None
+requires_tzdata = pytest.mark.skipif(tzmsk is None, reason="system timezone database (tzdata) not available")
 
 
 @pytest.mark.parametrize(
@@ -81,12 +85,23 @@ tzmsk = ZoneInfo("Europe/Moscow")
         ),
         ('{"foo": "bar"}', "Json", {"foo": "bar"}),
         ('{"foo": "bar"}', "JsonDocument", {"foo": "bar"}),
-        (datetime(2019, 9, 17, tzinfo=tzmsk), "TzDate", datetime(2019, 9, 17, tzinfo=tzmsk)),
-        (datetime(2019, 9, 16, 18, 24, tzinfo=tzmsk), "TzDatetime", datetime(2019, 9, 16, 18, 24, tzinfo=tzmsk)),
-        (
+        pytest.param(
+            datetime(2019, 9, 17, tzinfo=tzmsk),
+            "TzDate",
+            datetime(2019, 9, 17, tzinfo=tzmsk),
+            marks=requires_tzdata,
+        ),
+        pytest.param(
+            datetime(2019, 9, 16, 18, 24, tzinfo=tzmsk),
+            "TzDatetime",
+            datetime(2019, 9, 16, 18, 24, tzinfo=tzmsk),
+            marks=requires_tzdata,
+        ),
+        pytest.param(
             datetime(2019, 9, 16, 18, 24, 0, 123456, tzinfo=tzmsk),
             "TzTimestamp",
             datetime(2019, 9, 16, 18, 24, 0, 123456, tzinfo=tzmsk),
+            marks=requires_tzdata,
         ),
     ],
 )

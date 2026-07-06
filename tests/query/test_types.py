@@ -4,7 +4,7 @@ import ydb
 from datetime import date, datetime, timedelta, timezone
 from decimal import Decimal
 from uuid import uuid4
-from zoneinfo import ZoneInfo
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 
 @pytest.mark.parametrize(
@@ -85,7 +85,11 @@ test_old_date = datetime(1221, 1, 1, 0, 0)
 test_today = test_now.date()
 test_dt_today = datetime.today()
 tz4h = timezone(timedelta(hours=4))
-tzmsk = ZoneInfo("Europe/Moscow")
+try:
+    tzmsk = ZoneInfo("Europe/Moscow")
+except ZoneInfoNotFoundError:  # no system tzdata / tzdata wheel on this platform
+    tzmsk = None
+requires_tzdata = pytest.mark.skipif(tzmsk is None, reason="system timezone database (tzdata) not available")
 
 
 @pytest.mark.parametrize(
@@ -113,16 +117,23 @@ tzmsk = ZoneInfo("Europe/Moscow")
         ),
         ('{"foo": "bar"}', ydb.PrimitiveType.Json, {"foo": "bar"}),
         ('{"foo": "bar"}', ydb.PrimitiveType.JsonDocument, {"foo": "bar"}),
-        (datetime(2019, 9, 17, tzinfo=tzmsk), ydb.PrimitiveType.TzDate, datetime(2019, 9, 17, tzinfo=tzmsk)),
-        (
+        pytest.param(
+            datetime(2019, 9, 17, tzinfo=tzmsk),
+            ydb.PrimitiveType.TzDate,
+            datetime(2019, 9, 17, tzinfo=tzmsk),
+            marks=requires_tzdata,
+        ),
+        pytest.param(
             datetime(2019, 9, 16, 18, 24, tzinfo=tzmsk),
             ydb.PrimitiveType.TzDatetime,
             datetime(2019, 9, 16, 18, 24, tzinfo=tzmsk),
+            marks=requires_tzdata,
         ),
-        (
+        pytest.param(
             datetime(2019, 9, 16, 18, 24, 0, 123456, tzinfo=tzmsk),
             ydb.PrimitiveType.TzTimestamp,
             datetime(2019, 9, 16, 18, 24, 0, 123456, tzinfo=tzmsk),
+            marks=requires_tzdata,
         ),
     ],
 )
@@ -154,23 +165,26 @@ def test_types_native(driver_sync, value, ydb_type, result_value):
         (test_td, ydb.PrimitiveType.Interval, "-PT0.0001S", test_td),
         (test_td, ydb.PrimitiveType.Interval64, "-PT0.0001S", test_td),
         (test_old_date, ydb.PrimitiveType.Timestamp64, "1221-01-01T00:00:00Z", test_old_date),
-        (
+        pytest.param(
             datetime(2019, 9, 17, tzinfo=tzmsk),
             ydb.PrimitiveType.TzDate,
             "2019-09-17,Europe/Moscow",
             datetime(2019, 9, 17, tzinfo=tzmsk),
+            marks=requires_tzdata,
         ),
-        (
+        pytest.param(
             datetime(2019, 9, 16, 18, 24, tzinfo=tzmsk),
             ydb.PrimitiveType.TzDatetime,
             "2019-09-16T18:24:00,Europe/Moscow",
             datetime(2019, 9, 16, 18, 24, tzinfo=tzmsk),
+            marks=requires_tzdata,
         ),
-        (
+        pytest.param(
             datetime(2019, 9, 16, 18, 24, 0, 123456, tzinfo=tzmsk),
             ydb.PrimitiveType.TzTimestamp,
             "2019-09-16T18:24:00.123456,Europe/Moscow",
             datetime(2019, 9, 16, 18, 24, 0, 123456, tzinfo=tzmsk),
+            marks=requires_tzdata,
         ),
     ],
 )
@@ -196,5 +210,7 @@ def test_tz_conversion_fallbacks():
     from ydb.types import _parse_tz, _tz_name
 
     assert _parse_tz("2019-09-16T18:24:00,Not/AZone") == "2019-09-16T18:24:00,Not/AZone"
+    # no comma -> empty zone name -> ZoneInfo("") raises ValueError -> raw text
+    assert _parse_tz("2019-09-16T18:24:00") == "2019-09-16T18:24:00"
     with pytest.raises(ValueError):
         _tz_name(datetime(2019, 9, 17, tzinfo=tz4h))

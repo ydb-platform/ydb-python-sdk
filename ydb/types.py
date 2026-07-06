@@ -92,8 +92,10 @@ def _parse_tz(value: str) -> typing.Union[datetime, str]:
     wall_clock, _, tz_name = value.partition(",")
     try:
         tz = ZoneInfo(tz_name)
-    except ZoneInfoNotFoundError:
-        # No IANA database available for this zone; return the raw text as-is.
+    except (ZoneInfoNotFoundError, ValueError):
+        # Zone can't be resolved (no tz database, or a malformed/empty name);
+        # return the raw text as-is. ZoneInfo("") raises ValueError, not
+        # ZoneInfoNotFoundError, so both are caught.
         return value
     if "T" in wall_clock:
         naive = datetime.fromisoformat(wall_clock)
@@ -137,7 +139,9 @@ def _from_tz_timestamp(x: str, table_client_settings: table.TableClientSettings)
 
 def _to_tz_timestamp(pb: ydb_value_pb2.Value, value: typing.Union[datetime, str]) -> None:
     if isinstance(value, datetime):
-        pb.text_value = value.strftime("%Y-%m-%dT%H:%M:%S.%f") + "," + _tz_name(value)
+        # isoformat() matches YDB's canonical form: 6-digit microseconds when
+        # non-zero, omitted when zero (YDB strips a trailing ".000000").
+        pb.text_value = value.replace(tzinfo=None).isoformat() + "," + _tz_name(value)
     else:
         pb.text_value = value
 
