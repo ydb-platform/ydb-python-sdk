@@ -1,4 +1,5 @@
 * Support the timezone-carrying types `TzDate`, `TzDatetime` and `TzTimestamp` in query results and parameters (reading them previously raised `AttributeError`)
+* Fixed `DynamicConfigClient.get_config()` raising `TypeError` when parsing the server response
 * Drop support for Python 3.8 and 3.9; the minimum supported version is now Python 3.10
 * Accept native `datetime.datetime` values for `Datetime` and `Datetime64` query parameters (previously only integer seconds since the epoch were accepted)
 
