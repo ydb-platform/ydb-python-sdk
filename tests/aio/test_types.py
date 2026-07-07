@@ -4,6 +4,7 @@ import ydb
 from datetime import date, datetime, timedelta, timezone
 from decimal import Decimal
 from uuid import uuid4
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 
 @pytest.mark.parametrize(
@@ -39,6 +40,9 @@ from uuid import uuid4
         (-100, "Interval"),
         (100, "Timestamp"),
         (1511789040123456, "Timestamp"),
+        ("2019-09-17,Europe/Moscow", "TzDate"),
+        ("2019-09-16T18:24:00,Europe/Moscow", "TzDatetime"),
+        ("2019-09-16T18:24:00.123456,Europe/Moscow", "TzTimestamp"),
     ],
 )
 @pytest.mark.asyncio
@@ -54,6 +58,12 @@ test_now = datetime.utcnow()
 test_today = test_now.date()
 test_dt_today = datetime.today()
 tz4h = timezone(timedelta(hours=4))
+try:
+    tzmsk = ZoneInfo("Europe/Moscow")
+    tzny = ZoneInfo("America/New_York")
+except ZoneInfoNotFoundError:  # no system tzdata / tzdata wheel on this platform
+    tzmsk = tzny = None
+requires_tzdata = pytest.mark.skipif(tzmsk is None, reason="system timezone database (tzdata) not available")
 
 
 @pytest.mark.parametrize(
@@ -76,6 +86,30 @@ tz4h = timezone(timedelta(hours=4))
         ),
         ('{"foo": "bar"}', "Json", {"foo": "bar"}),
         ('{"foo": "bar"}', "JsonDocument", {"foo": "bar"}),
+        pytest.param(
+            datetime(2019, 9, 17, tzinfo=tzmsk),
+            "TzDate",
+            datetime(2019, 9, 17, tzinfo=tzmsk),
+            marks=requires_tzdata,
+        ),
+        pytest.param(
+            datetime(2019, 9, 16, 18, 24, tzinfo=tzmsk),
+            "TzDatetime",
+            datetime(2019, 9, 16, 18, 24, tzinfo=tzmsk),
+            marks=requires_tzdata,
+        ),
+        pytest.param(
+            datetime(2019, 9, 16, 18, 24, 0, 123456, tzinfo=tzmsk),
+            "TzTimestamp",
+            datetime(2019, 9, 16, 18, 24, 0, 123456, tzinfo=tzmsk),
+            marks=requires_tzdata,
+        ),
+        pytest.param(
+            datetime(2019, 9, 16, 12, 0, tzinfo=tzny),
+            "TzDatetime",
+            datetime(2019, 9, 16, 12, 0, tzinfo=tzny),
+            marks=requires_tzdata,
+        ),
     ],
 )
 @pytest.mark.asyncio

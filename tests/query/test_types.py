@@ -4,6 +4,7 @@ import ydb
 from datetime import date, datetime, timedelta, timezone
 from decimal import Decimal
 from uuid import uuid4
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 
 @pytest.mark.parametrize(
@@ -56,6 +57,9 @@ from uuid import uuid4
         (1511789040123456, ydb.PrimitiveType.Timestamp),
         (1511789040123456, ydb.PrimitiveType.Timestamp64),
         (-1511789040123456, ydb.PrimitiveType.Timestamp64),
+        ("2019-09-17,Europe/Moscow", ydb.PrimitiveType.TzDate),
+        ("2019-09-16T18:24:00,Europe/Moscow", ydb.PrimitiveType.TzDatetime),
+        ("2019-09-16T18:24:00.123456,Europe/Moscow", ydb.PrimitiveType.TzTimestamp),
     ],
 )
 def test_types(driver_sync: ydb.Driver, value, ydb_type):
@@ -81,6 +85,12 @@ test_old_date = datetime(1221, 1, 1, 0, 0)
 test_today = test_now.date()
 test_dt_today = datetime.today()
 tz4h = timezone(timedelta(hours=4))
+try:
+    tzmsk = ZoneInfo("Europe/Moscow")
+    tzny = ZoneInfo("America/New_York")
+except ZoneInfoNotFoundError:  # no system tzdata / tzdata wheel on this platform
+    tzmsk = tzny = None
+requires_tzdata = pytest.mark.skipif(tzmsk is None, reason="system timezone database (tzdata) not available")
 
 
 @pytest.mark.parametrize(
@@ -108,6 +118,30 @@ tz4h = timezone(timedelta(hours=4))
         ),
         ('{"foo": "bar"}', ydb.PrimitiveType.Json, {"foo": "bar"}),
         ('{"foo": "bar"}', ydb.PrimitiveType.JsonDocument, {"foo": "bar"}),
+        pytest.param(
+            datetime(2019, 9, 17, tzinfo=tzmsk),
+            ydb.PrimitiveType.TzDate,
+            datetime(2019, 9, 17, tzinfo=tzmsk),
+            marks=requires_tzdata,
+        ),
+        pytest.param(
+            datetime(2019, 9, 16, 18, 24, tzinfo=tzmsk),
+            ydb.PrimitiveType.TzDatetime,
+            datetime(2019, 9, 16, 18, 24, tzinfo=tzmsk),
+            marks=requires_tzdata,
+        ),
+        pytest.param(
+            datetime(2019, 9, 16, 18, 24, 0, 123456, tzinfo=tzmsk),
+            ydb.PrimitiveType.TzTimestamp,
+            datetime(2019, 9, 16, 18, 24, 0, 123456, tzinfo=tzmsk),
+            marks=requires_tzdata,
+        ),
+        pytest.param(
+            datetime(2019, 9, 16, 12, 0, tzinfo=tzny),
+            ydb.PrimitiveType.TzDatetime,
+            datetime(2019, 9, 16, 12, 0, tzinfo=tzny),
+            marks=requires_tzdata,
+        ),
     ],
 )
 def test_types_native(driver_sync, value, ydb_type, result_value):
@@ -138,6 +172,34 @@ def test_types_native(driver_sync, value, ydb_type, result_value):
         (test_td, ydb.PrimitiveType.Interval, "-PT0.0001S", test_td),
         (test_td, ydb.PrimitiveType.Interval64, "-PT0.0001S", test_td),
         (test_old_date, ydb.PrimitiveType.Timestamp64, "1221-01-01T00:00:00Z", test_old_date),
+        pytest.param(
+            datetime(2019, 9, 17, tzinfo=tzmsk),
+            ydb.PrimitiveType.TzDate,
+            "2019-09-17,Europe/Moscow",
+            datetime(2019, 9, 17, tzinfo=tzmsk),
+            marks=requires_tzdata,
+        ),
+        pytest.param(
+            datetime(2019, 9, 16, 18, 24, tzinfo=tzmsk),
+            ydb.PrimitiveType.TzDatetime,
+            "2019-09-16T18:24:00,Europe/Moscow",
+            datetime(2019, 9, 16, 18, 24, tzinfo=tzmsk),
+            marks=requires_tzdata,
+        ),
+        pytest.param(
+            datetime(2019, 9, 16, 18, 24, 0, 123456, tzinfo=tzmsk),
+            ydb.PrimitiveType.TzTimestamp,
+            "2019-09-16T18:24:00.123456,Europe/Moscow",
+            datetime(2019, 9, 16, 18, 24, 0, 123456, tzinfo=tzmsk),
+            marks=requires_tzdata,
+        ),
+        pytest.param(
+            datetime(2019, 9, 16, 12, 0, tzinfo=tzny),
+            ydb.PrimitiveType.TzDatetime,
+            "2019-09-16T12:00:00,America/New_York",
+            datetime(2019, 9, 16, 12, 0, tzinfo=tzny),
+            marks=requires_tzdata,
+        ),
     ],
 )
 def test_type_str_repr(driver_sync, value, ydb_type, str_repr, result_value):
@@ -153,3 +215,23 @@ def test_type_str_repr(driver_sync, value, ydb_type, str_repr, result_value):
             {"$param": (str_repr, ydb.PrimitiveType.Utf8)},
         )
         assert result[0].rows[0].value == result_value
+
+
+def test_tz_conversion_fallbacks():
+    # Edge branches a real-server round-trip never reaches: an unresolvable zone
+    # name is passed through as raw text on read, and a non-ZoneInfo tzinfo is
+    # rejected on write.
+    from ydb.types import _parse_tz
+    from ydb._grpc.common.protos import ydb_value_pb2
+
+    # an unresolvable zone raises rather than silently returning the raw text
+    with pytest.raises(ZoneInfoNotFoundError):
+        _parse_tz("2019-09-16T18:24:00,Not/AZone")
+    # no comma -> empty zone name -> ZoneInfo("") raises ValueError
+    with pytest.raises(ValueError):
+        _parse_tz("2019-09-16T18:24:00")
+    # a datetime without a ZoneInfo tzinfo is rejected on write: a naive value
+    # (no timezone at all) and a fixed-offset value both raise ValueError.
+    for bad in (datetime(2019, 9, 17), datetime(2019, 9, 17, tzinfo=tz4h)):
+        with pytest.raises(ValueError):
+            ydb.PrimitiveType.TzDatetime.set_value(ydb_value_pb2.Value(), bad)
