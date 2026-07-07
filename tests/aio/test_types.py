@@ -60,8 +60,9 @@ test_dt_today = datetime.today()
 tz4h = timezone(timedelta(hours=4))
 try:
     tzmsk = ZoneInfo("Europe/Moscow")
+    tzny = ZoneInfo("America/New_York")
 except ZoneInfoNotFoundError:  # no system tzdata / tzdata wheel on this platform
-    tzmsk = None
+    tzmsk = tzny = None
 requires_tzdata = pytest.mark.skipif(tzmsk is None, reason="system timezone database (tzdata) not available")
 
 
@@ -101,6 +102,12 @@ requires_tzdata = pytest.mark.skipif(tzmsk is None, reason="system timezone data
             datetime(2019, 9, 16, 18, 24, 0, 123456, tzinfo=tzmsk),
             "TzTimestamp",
             datetime(2019, 9, 16, 18, 24, 0, 123456, tzinfo=tzmsk),
+            marks=requires_tzdata,
+        ),
+        pytest.param(
+            datetime(2019, 9, 16, 12, 0, tzinfo=tzny),
+            "TzDatetime",
+            datetime(2019, 9, 16, 12, 0, tzinfo=tzny),
             marks=requires_tzdata,
         ),
     ],

@@ -206,8 +206,9 @@ Date and time
    other ``tzinfo`` raises ``ValueError``. On read, they are returned as
    tz-aware ``datetime.datetime`` values (``TzDate`` at midnight in that zone),
    or the raw ``"<value>,<zone>"`` string when the matching
-   ``with_native_*_in_result_sets`` option is disabled or the zone cannot be
-   loaded from the system timezone database (e.g. no ``tzdata`` installed).
+   ``with_native_*_in_result_sets`` option is disabled. Resolving the zone name
+   needs a timezone database; if it is unavailable (e.g. no ``tzdata``
+   installed) reading such a value raises ``zoneinfo.ZoneInfoNotFoundError``.
 
 Other
 ^^^^^

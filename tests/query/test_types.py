@@ -87,8 +87,9 @@ test_dt_today = datetime.today()
 tz4h = timezone(timedelta(hours=4))
 try:
     tzmsk = ZoneInfo("Europe/Moscow")
+    tzny = ZoneInfo("America/New_York")
 except ZoneInfoNotFoundError:  # no system tzdata / tzdata wheel on this platform
-    tzmsk = None
+    tzmsk = tzny = None
 requires_tzdata = pytest.mark.skipif(tzmsk is None, reason="system timezone database (tzdata) not available")
 
 
@@ -133,6 +134,12 @@ requires_tzdata = pytest.mark.skipif(tzmsk is None, reason="system timezone data
             datetime(2019, 9, 16, 18, 24, 0, 123456, tzinfo=tzmsk),
             ydb.PrimitiveType.TzTimestamp,
             datetime(2019, 9, 16, 18, 24, 0, 123456, tzinfo=tzmsk),
+            marks=requires_tzdata,
+        ),
+        pytest.param(
+            datetime(2019, 9, 16, 12, 0, tzinfo=tzny),
+            ydb.PrimitiveType.TzDatetime,
+            datetime(2019, 9, 16, 12, 0, tzinfo=tzny),
             marks=requires_tzdata,
         ),
     ],
@@ -186,6 +193,13 @@ def test_types_native(driver_sync, value, ydb_type, result_value):
             datetime(2019, 9, 16, 18, 24, 0, 123456, tzinfo=tzmsk),
             marks=requires_tzdata,
         ),
+        pytest.param(
+            datetime(2019, 9, 16, 12, 0, tzinfo=tzny),
+            ydb.PrimitiveType.TzDatetime,
+            "2019-09-16T12:00:00,America/New_York",
+            datetime(2019, 9, 16, 12, 0, tzinfo=tzny),
+            marks=requires_tzdata,
+        ),
     ],
 )
 def test_type_str_repr(driver_sync, value, ydb_type, str_repr, result_value):
@@ -210,9 +224,12 @@ def test_tz_conversion_fallbacks():
     from ydb.types import _parse_tz
     from ydb._grpc.common.protos import ydb_value_pb2
 
-    assert _parse_tz("2019-09-16T18:24:00,Not/AZone") == "2019-09-16T18:24:00,Not/AZone"
-    # no comma -> empty zone name -> ZoneInfo("") raises ValueError -> raw text
-    assert _parse_tz("2019-09-16T18:24:00") == "2019-09-16T18:24:00"
+    # an unresolvable zone raises rather than silently returning the raw text
+    with pytest.raises(ZoneInfoNotFoundError):
+        _parse_tz("2019-09-16T18:24:00,Not/AZone")
+    # no comma -> empty zone name -> ZoneInfo("") raises ValueError
+    with pytest.raises(ValueError):
+        _parse_tz("2019-09-16T18:24:00")
     # a datetime without a ZoneInfo tzinfo is rejected on write: a naive value
     # (no timezone at all) and a fixed-offset value both raise ValueError.
     for bad in (datetime(2019, 9, 17), datetime(2019, 9, 17, tzinfo=tz4h)):

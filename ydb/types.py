@@ -7,7 +7,7 @@ import enum
 import json
 from . import _utilities, _apis
 from datetime import date, datetime, timedelta, timezone
-from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
+from zoneinfo import ZoneInfo
 import typing
 import uuid
 import struct
@@ -88,15 +88,12 @@ def _tz_name(value: datetime) -> str:
     return tz.key
 
 
-def _parse_tz(value: str) -> typing.Union[datetime, str]:
+def _parse_tz(value: str) -> datetime:
+    # ZoneInfo raises ZoneInfoNotFoundError (unknown zone / no tz database) or
+    # ValueError (empty/malformed name) — let it propagate so the caller sees an
+    # explicit error instead of a silently wrong type.
     wall_clock, _, tz_name = value.partition(",")
-    try:
-        tz = ZoneInfo(tz_name)
-    except (ZoneInfoNotFoundError, ValueError):
-        # Zone can't be resolved (no tz database, or a malformed/empty name);
-        # return the raw text as-is. ZoneInfo("") raises ValueError, not
-        # ZoneInfoNotFoundError, so both are caught.
-        return value
+    tz = ZoneInfo(tz_name)
     if "T" in wall_clock:
         naive = datetime.fromisoformat(wall_clock)
     else:
