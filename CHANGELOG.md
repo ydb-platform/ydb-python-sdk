@@ -1,4 +1,5 @@
 * Query session attach stream handles `NodeShutdown` and `SessionShutdown` session hints: on `NodeShutdown` the session's node connection is pessimized and the session is retired, on `SessionShutdown` the session is retired without touching the node
+* Honor the `max_bytes` parameter in topic reader `receive_batch`/`receive_batch_with_tx` (previously accepted but silently ignored); add `max_bytes` to the async reader as well
 * Support the timezone-carrying types `TzDate`, `TzDatetime` and `TzTimestamp` in query results and parameters (reading them previously raised `AttributeError`)
 * Drop support for Python 3.8 and 3.9; the minimum supported version is now Python 3.10
 * Accept native `datetime.datetime` values for `Datetime` and `Datetime64` query parameters (previously only integer seconds since the epoch were accepted)
