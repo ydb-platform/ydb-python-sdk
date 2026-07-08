@@ -4,8 +4,9 @@ from unittest import mock
 import pytest
 
 from ydb._grpc.common.protos import ydb_query_pb2
+from ydb._grpc.grpcwrapper import common_utils
 from ydb.aio.pool import ConnectionPool as AsyncConnectionPool
-from ydb.pool import ConnectionPool
+from ydb.pool import ConnectionPool, ConnectionsCache
 from ydb.query.session import QuerySession
 
 
@@ -85,8 +86,52 @@ class TestQuerySessionAttachHints:
         assert not session._invalidated
         assert not session._closed
 
+    def test_none_response_does_not_invalidate(self):
+        session, driver = _make_session()
+
+        session._handle_attach_session_state(None)
+
+        driver._pessimize_node.assert_not_called()
+        assert not session._invalidated
+        assert not session._closed
+
+    def test_attach_stream_wrapper_handles_hint_and_returns_status(self):
+        session, driver = _make_session(node_id=42)
+        response = ydb_query_pb2.SessionState(
+            status=0,
+            session_shutdown=ydb_query_pb2.SessionShutdownHint(),
+        )
+
+        status = session._attach_stream_wrapper(response)
+
+        driver._pessimize_node.assert_not_called()
+        assert session._invalidated
+        assert isinstance(status, common_utils.ServerStatus)
+
+    def test_attach_stream_wrapper_returns_status_without_hint(self):
+        session, driver = _make_session()
+        response = ydb_query_pb2.SessionState(status=0)
+
+        status = session._attach_stream_wrapper(response)
+
+        driver._pessimize_node.assert_not_called()
+        assert not session._invalidated
+        assert isinstance(status, common_utils.ServerStatus)
+
 
 class TestConnectionPoolAttachHintPessimization:
+    def test_connections_cache_get_connection_by_node_id(self):
+        cache = ConnectionsCache()
+        connection = mock.Mock()
+        connection.endpoint = "grpc://localhost:2135"
+        connection.node_id = 42
+        connection.add_cleanup_callback = mock.Mock()
+
+        cache.add(connection)
+
+        assert cache.get_connection_by_node_id(42) is connection
+        assert cache.get_connection_by_node_id(99) is None
+
     def test_sync_pool_pessimizes_node_connection(self):
         pool = ConnectionPool.__new__(ConnectionPool)
         connection = mock.Mock()
@@ -107,7 +152,34 @@ class TestConnectionPoolAttachHintPessimization:
 
         pool._pessimize_node(42)
         pool._pessimize_node(0)
+        pool._pessimize_node(-1)
 
+        pool._store.get_connection_by_node_id.assert_called_once_with(42)
+        pool._on_disconnected.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_async_pool_ignores_non_positive_node_id(self):
+        pool = AsyncConnectionPool.__new__(AsyncConnectionPool)
+        pool._store = mock.Mock()
+        pool._on_disconnected = mock.Mock()
+
+        pool._pessimize_node(0)
+        pool._pessimize_node(-1)
+
+        pool._store.get_connection_by_node_id.assert_not_called()
+        pool._on_disconnected.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_async_pool_ignores_missing_node_connection(self):
+        pool = AsyncConnectionPool.__new__(AsyncConnectionPool)
+        pool._store = mock.Mock()
+        pool._store.get_connection_by_node_id.return_value = None
+        pool._on_disconnected = mock.Mock()
+
+        pool._pessimize_node(42)
+        await asyncio.sleep(0)
+
+        pool._store.get_connection_by_node_id.assert_called_once_with(42)
         pool._on_disconnected.assert_not_called()
 
     @pytest.mark.asyncio
