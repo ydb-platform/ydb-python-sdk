@@ -1367,6 +1367,80 @@ class TestReaderStream:
         assert len(batch.messages) == actual_messages
         assert stream_reader._message_batches == OrderedDict(batches_after)
 
+    @pytest.mark.parametrize(
+        "max_messages,max_bytes,actual_messages",
+        [
+            (None, None, 4),  # no limits -> whole batch
+            (None, 100, 4),  # max_bytes above total -> whole batch
+            (None, 25, 2),  # batch is 40 bytes / 4 msgs = 10 each -> ~2 fit
+            (None, 10, 1),  # exactly one message
+            (None, 5, 1),  # below one message -> still return at least one
+            (3, 25, 2),  # both limits -> smaller (bytes) wins
+            (1, 100, 1),  # both limits -> smaller (messages) wins
+            (0, None, 1),  # non-positive max_messages -> still at least one
+        ],
+    )
+    async def test_read_batch_max_bytes(
+        self,
+        stream_reader,
+        max_messages: typing.Optional[int],
+        max_bytes: typing.Optional[int],
+        actual_messages: int,
+    ):
+        stream_reader._message_batches = OrderedDict(
+            {
+                0: PublicBatch(
+                    messages=[stub_message(i) for i in range(1, 5)],
+                    _partition_session=stub_partition_session(),
+                    _bytes_size=40,
+                    _codec=Codec.CODEC_RAW,
+                )
+            }
+        )
+        batch = stream_reader.receive_batch_nowait(max_messages=max_messages, max_bytes=max_bytes)
+        assert len(batch.messages) == actual_messages
+
+    async def test_receive_whole_batch_releases_exact_bytes(self, stream_reader, monkeypatch):
+        # Taking the whole batch must release its exact byte size back to the buffer,
+        # even when the size is not divisible by the message count (no rounding loss).
+        released = []
+        monkeypatch.setattr(stream_reader, "_buffer_release_bytes", released.append)
+        stream_reader._message_batches = OrderedDict(
+            {
+                0: PublicBatch(
+                    messages=[stub_message(1), stub_message(2), stub_message(3)],
+                    _partition_session=stub_partition_session(),
+                    _bytes_size=100,  # not divisible by 3
+                    _codec=Codec.CODEC_RAW,
+                )
+            }
+        )
+        batch = stream_reader.receive_batch_nowait()
+        assert len(batch.messages) == 3
+        assert released == [100]  # full size released, not (100 // 3) * 3 == 99
+        assert stream_reader._message_batches == OrderedDict()  # nothing left buffered
+
+    async def test_receive_partial_batch_releases_only_cut_bytes(self, stream_reader, monkeypatch):
+        # A partial read releases only the taken bytes; the remainder stays buffered.
+        released = []
+        monkeypatch.setattr(stream_reader, "_buffer_release_bytes", released.append)
+        stream_reader._message_batches = OrderedDict(
+            {
+                0: PublicBatch(
+                    messages=[stub_message(1), stub_message(2), stub_message(3)],
+                    _partition_session=stub_partition_session(),
+                    _bytes_size=90,  # 30 per message
+                    _codec=Codec.CODEC_RAW,
+                )
+            }
+        )
+        batch = stream_reader.receive_batch_nowait(max_messages=1)
+        assert len(batch.messages) == 1
+        assert released == [30]  # only the cut is released
+        remainder = stream_reader._message_batches[0]
+        assert len(remainder.messages) == 2
+        assert remainder._bytes_size == 60  # remainder stays buffered
+
     async def test_receive_batch_nowait(self, stream, stream_reader, partition_session):
         assert stream_reader.receive_batch_nowait() is None
 

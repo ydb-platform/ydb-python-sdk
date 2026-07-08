@@ -456,8 +456,8 @@ Receiving Messages
         process(message)
     reader.commit(batch)   # commit the whole batch at once
 
-    # With size limits
-    batch = reader.receive_batch(max_messages=100)
+    # With size limits (either or both; at least one message is always returned)
+    batch = reader.receive_batch(max_messages=100, max_bytes=1024 * 1024)
 
     # Asynchronous
     batch = await reader.receive_batch()
