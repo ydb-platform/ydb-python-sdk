@@ -156,6 +156,24 @@ class BaseQuerySession(abc.ABC, Generic[DriverT]):
         if self._closed:
             raise RuntimeError(f"Session is not active, session_id: {self._session_id}, closed: {self._closed}")
 
+    def _attach_stream_wrapper(self, response_pb):
+        """Map attach-stream protobuf frames to ServerStatus and handle session hints."""
+        self._handle_attach_session_state(response_pb)
+        return common_utils.ServerStatus.from_proto(response_pb)
+
+    def _handle_attach_session_state(self, response_pb) -> None:
+        """Retire the session when the server sends a shutdown hint on the attach stream."""
+        if response_pb is None:
+            return
+
+        hint = response_pb.WhichOneof("session_hint")
+        if hint == "node_shutdown":
+            if self._node_id is not None:
+                self._driver._pessimize_node(self._node_id)
+            self._close_session(invalidate=True)
+        elif hint == "session_shutdown":
+            self._close_session(invalidate=True)
+
     def _close_session(self, invalidate: bool = False) -> None:
         if self._closed:
             return
@@ -362,7 +380,7 @@ class QuerySession(BaseQuerySession["SyncDriver"]):
         self._stream = self._attach_call()
         status_stream = _utilities.SyncResponseIterator(
             self._stream,
-            lambda response: common_utils.ServerStatus.from_proto(response),
+            self._attach_stream_wrapper,
         )
 
         try:
