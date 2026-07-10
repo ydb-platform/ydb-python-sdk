@@ -26,10 +26,14 @@ from ydb.observability import (
     get_active_provider,
 )
 from ydb.observability.tracing import (
+    _build_ydb_attrs,
     _registry,
+    _split_endpoint,
     create_span,
     create_ydb_span,
     get_trace_metadata,
+    set_peer_attributes,
+    span_finish_callback,
 )
 
 from .conftest import FakeDriverConfig
@@ -274,3 +278,251 @@ class TestProtocolContract:
             pass
 
         assert provider.calls == 1
+
+
+class TestSplitEndpoint:
+    """Cover every branch of the endpoint parser."""
+
+    @pytest.mark.parametrize(
+        "endpoint,expected",
+        [
+            # ``grpcs://`` scheme is stripped before parsing.
+            ("grpcs://secure.example.com:2136", ("secure.example.com", 2136)),
+            # ``grpc://`` scheme is stripped before parsing.
+            ("grpc://plain.example.com:2136", ("plain.example.com", 2136)),
+            # Bare host:port with no scheme.
+            ("host.example.com:2136", ("host.example.com", 2136)),
+            # Bracketed IPv6 with port — the fast path.
+            ("[::1]:2136", ("[::1]", 2136)),
+            ("[fe80::1]:8080", ("[fe80::1]", 8080)),
+            # A leading ``[`` with no closing ``]:`` falls through to rpartition.
+            ("[malformed", ("[malformed", 0)),
+            # No colon at all → whole string is host, port is 0.
+            ("no_colon_at_all", ("no_colon_at_all", 0)),
+            # Non-numeric port defaults to 0.
+            ("host:not_a_port", ("host", 0)),
+            # ``None`` is normalized to an empty string.
+            (None, ("", 0)),
+        ],
+    )
+    def test_parses(self, endpoint, expected):
+        assert _split_endpoint(endpoint) == expected
+
+
+class TestBuildYdbAttrsPeerOptionals:
+    """Peer tuple may carry ``None`` in any position — each field is optional."""
+
+    def test_peer_with_only_address(self):
+        cfg = FakeDriverConfig()
+        attrs = _build_ydb_attrs(cfg, peer=("only.host", None, None))
+        assert attrs["network.peer.address"] == "only.host"
+        assert "network.peer.port" not in attrs
+        assert "ydb.node.dc" not in attrs
+
+    def test_peer_with_only_port(self):
+        cfg = FakeDriverConfig()
+        attrs = _build_ydb_attrs(cfg, peer=(None, 2137, None))
+        assert "network.peer.address" not in attrs
+        assert attrs["network.peer.port"] == 2137
+        assert "ydb.node.dc" not in attrs
+
+    def test_peer_with_only_location(self):
+        cfg = FakeDriverConfig()
+        attrs = _build_ydb_attrs(cfg, peer=(None, None, "dc-north"))
+        assert "network.peer.address" not in attrs
+        assert "network.peer.port" not in attrs
+        assert attrs["ydb.node.dc"] == "dc-north"
+
+    def test_peer_with_empty_location(self):
+        cfg = FakeDriverConfig()
+        attrs = _build_ydb_attrs(cfg, peer=("h", 1, ""))
+        assert "ydb.node.dc" not in attrs
+
+
+class TestSetPeerAttributes:
+    """Direct unit tests for ``set_peer_attributes``."""
+
+    def _recording_span(self):
+        recorded: Dict[str, Any] = {}
+
+        class _Span:
+            def set_attribute(self, key, value):
+                recorded[key] = value
+
+        return _Span(), recorded
+
+    def test_peer_none_is_noop(self):
+        span, recorded = self._recording_span()
+        set_peer_attributes(span, None)
+        assert recorded == {}
+
+    def test_full_peer_records_all_three(self):
+        span, recorded = self._recording_span()
+        set_peer_attributes(span, ("node-1.example", 2136, "dc-a"))
+        assert recorded == {
+            "network.peer.address": "node-1.example",
+            "network.peer.port": 2136,
+            "ydb.node.dc": "dc-a",
+        }
+
+    def test_partial_peer_skips_missing_fields(self):
+        span, recorded = self._recording_span()
+        set_peer_attributes(span, (None, None, ""))
+        assert recorded == {}
+
+    def test_port_coerced_to_int(self):
+        span, recorded = self._recording_span()
+        set_peer_attributes(span, ("h", "2137", "dc"))
+        assert recorded["network.peer.port"] == 2137
+
+
+class TestSpanFinishCallback:
+    """``span_finish_callback`` wires stream completion into span lifecycle."""
+
+    def test_finish_ends_span_on_success(self):
+        calls: List[str] = []
+
+        class _Span:
+            def set_error(self, exc):
+                calls.append(f"error:{exc}")
+
+            def end(self):
+                calls.append("end")
+
+        span_finish_callback(_Span())()
+        assert calls == ["end"]
+
+    def test_finish_records_error_then_ends_span(self):
+        calls: List[str] = []
+        exc = RuntimeError("stream broke")
+
+        class _Span:
+            def set_error(self, e):
+                calls.append(f"error:{e}")
+
+            def end(self):
+                calls.append("end")
+
+        span_finish_callback(_Span())(exc)
+        assert calls == [f"error:{exc}", "end"]
+
+
+class TestOpentelemetryTracingShimReexports:
+    """``ydb.opentelemetry.tracing`` must expose the same public surface as before the split."""
+
+    def test_shim_reexports_are_identity(self):
+        from ydb import observability
+        from ydb.observability import tracing as obs_tracing
+        from ydb.opentelemetry import tracing as otel_shim
+
+        assert otel_shim.NoopSpan is observability.NoopSpan
+        assert otel_shim.NoopTracingProvider is observability.NoopTracingProvider
+        assert otel_shim.Span is observability.Span
+        assert otel_shim.SpanName is observability.SpanName
+        assert otel_shim.TracingProvider is observability.TracingProvider
+        assert otel_shim.create_span is obs_tracing.create_span
+        assert otel_shim.create_ydb_span is obs_tracing.create_ydb_span
+        assert otel_shim.get_trace_metadata is obs_tracing.get_trace_metadata
+        assert otel_shim.set_peer_attributes is obs_tracing.set_peer_attributes
+        assert otel_shim.span_finish_callback is obs_tracing.span_finish_callback
+        assert otel_shim._registry is obs_tracing._registry
+        assert otel_shim._build_ydb_attrs is obs_tracing._build_ydb_attrs
+        assert otel_shim._split_endpoint is obs_tracing._split_endpoint
+        assert otel_shim._NoopCtx is obs_tracing._NoopCtx
+        # Legacy private aliases used by very old callers.
+        assert otel_shim._NoopSpan is observability.NoopSpan
+        assert otel_shim._NOOP_SPAN is observability.NoopTracingProvider._SPAN
+
+
+class TestOtelEntrypointHandlesMissingPackage:
+    """``ydb.opentelemetry.enable_tracing`` must raise a clear error if OTel isn't importable."""
+
+    def test_enable_raises_when_plugin_import_fails(self, monkeypatch):
+        import sys
+
+        # Block the plugin import — this is how missing OTel would manifest.
+        monkeypatch.setitem(sys.modules, "ydb.opentelemetry.plugin", None)
+
+        from ydb.opentelemetry import enable_tracing as otel_enable
+
+        with pytest.raises(ImportError, match="OpenTelemetry"):
+            otel_enable()
+
+    def test_disable_is_noop_when_plugin_import_fails(self, monkeypatch):
+        import sys
+
+        monkeypatch.setitem(sys.modules, "ydb.opentelemetry.plugin", None)
+
+        from ydb.opentelemetry import disable_tracing as otel_disable
+
+        # Must not raise — silent fallback is documented behavior.
+        otel_disable()
+
+
+class TestOtelTracingSpanBridge:
+    """Cover the ``TracingSpan`` wrapper directly (no SDK glue)."""
+
+    def test_set_attribute_forwards_to_underlying_otel_span(self):
+        pytest.importorskip("opentelemetry")
+
+        from ydb.opentelemetry.plugin import TracingSpan
+
+        recorded: Dict[str, Any] = {}
+
+        class _FakeOtelSpan:
+            def set_attribute(self, key, value):
+                recorded[key] = value
+
+            def end(self):
+                recorded["ended"] = True
+
+        wrapped = TracingSpan(_FakeOtelSpan())
+        wrapped.set_attribute("db.system.name", "ydb")
+        wrapped.end()
+
+        assert recorded == {"db.system.name": "ydb", "ended": True}
+
+    def test_attach_context_exit_without_enter_is_safe(self):
+        """Defensive path: ``__exit__`` before a successful ``__enter__``.
+
+        This can happen if ``__enter__`` raises before ``_token`` is assigned;
+        we must not detach a ``None`` token, but we should still end the span.
+        """
+        pytest.importorskip("opentelemetry")
+
+        from ydb.opentelemetry.plugin import TracingSpan, _AttachContext
+
+        ended = {"n": 0}
+
+        class _FakeOtelSpan:
+            def end(self):
+                ended["n"] += 1
+
+            def set_attribute(self, k, v):
+                pass
+
+        ctx = _AttachContext(TracingSpan(_FakeOtelSpan()), end_on_exit=True)
+        # ``_token`` stays ``None`` — mimics the "__enter__ never ran" case.
+        assert ctx._token is None
+        ctx.__exit__(None, None, None)
+        assert ended["n"] == 1
+
+
+class TestNoopContextManager:
+    """The Noop provider's ``attach_context`` must be a well-formed context manager."""
+
+    def test_noop_ctx_yields_span_and_swallows_no_exceptions(self):
+        span = NoopSpan()
+        ctx = span.attach_context()
+        with ctx as inner:
+            assert inner is span
+        # A second entry after exit must still work — noop stays idempotent.
+        with span.attach_context() as inner:
+            inner.set_attribute("k", "v")
+            inner.set_error(RuntimeError("x"))
+            inner.end()
+
+    def test_noop_provider_returns_shared_span_and_empty_metadata(self):
+        provider = NoopTracingProvider()
+        assert provider.create_span("x") is NoopTracingProvider._SPAN
+        assert tuple(provider.get_trace_metadata()) == ()
