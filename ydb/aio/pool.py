@@ -6,7 +6,7 @@ import random
 from typing import Any, Callable, Optional, Tuple, TYPE_CHECKING, cast
 
 from ydb import issues
-from ydb.opentelemetry.tracing import SpanName, create_ydb_span
+from ydb.observability.tracing import SpanName, create_ydb_span
 from ydb.pool import ConnectionsCache as _ConnectionsCache, IConnectionPool
 
 from .connection import Connection, EndpointKey

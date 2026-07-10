@@ -69,8 +69,46 @@ and **before** creating a ``Driver``:
 ``enable_tracing()`` accepts an optional ``tracer`` argument. If omitted, the SDK
 obtains a tracer named ``"ydb.sdk"`` from the global tracer provider.
 
-Repeated calls to ``enable_tracing()`` do nothing until you call ``disable_tracing()``,
-which removes hooks so you can reconfigure or turn instrumentation off.
+Repeated calls to ``enable_tracing()`` replace the previously installed provider, so
+it is safe to reconfigure at any time. Call ``disable_tracing()`` to remove the hooks
+entirely and return the SDK to its no-op default.
+
+
+Custom Providers (Vendor-Neutral API)
+-------------------------------------
+
+OpenTelemetry is only one possible backend. The SDK exposes a small tracing
+interface in :mod:`ydb.observability` that any custom implementation can satisfy.
+This is how ``ydb.opentelemetry.enable_tracing`` is implemented — it constructs an
+:class:`~ydb.opentelemetry.plugin.OtelTracingProvider` and hands it to
+:func:`ydb.observability.enable_tracing`.
+
+.. code-block:: python
+
+    from ydb.observability import (
+        NoopSpan,
+        Span,
+        TracingProvider,
+        enable_tracing,
+        disable_tracing,
+    )
+
+    class MyProvider:
+        def create_span(self, name, attributes=None, kind=None) -> Span:
+            # return your own Span implementation
+            return NoopSpan()
+
+        def get_trace_metadata(self):
+            # (key, value) pairs to attach to outgoing gRPC calls
+            return ()
+
+    enable_tracing(MyProvider())
+    # ... use the SDK ...
+    disable_tracing()
+
+``enable_tracing(provider)`` replaces whichever provider was installed before
+(OpenTelemetry, another custom one, or the built-in Noop). Passing ``None`` is
+equivalent to ``disable_tracing()``.
 
 
 What Is Instrumented

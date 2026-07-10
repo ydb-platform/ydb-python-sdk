@@ -1,12 +1,17 @@
-"""Public OpenTelemetry entrypoints for YDB."""
+"""Public OpenTelemetry entrypoints for YDB.
+
+For vendor-neutral tracing (custom providers, Noop, interfaces) see
+:mod:`ydb.observability`. This module is a convenience wrapper that constructs
+an OpenTelemetry-backed provider and installs it via
+:func:`ydb.observability.enable_tracing`.
+"""
 
 
 def enable_tracing(tracer=None):
     """Enable OpenTelemetry trace context propagation and span creation for all YDB gRPC calls.
 
-    This call is **idempotent**: if tracing is already enabled, later calls do nothing
-    (including passing a different ``tracer``). Call :func:`disable_tracing` first to
-    reconfigure or turn instrumentation off.
+    Any previously installed tracing provider (custom or OTel) is replaced —
+    calling this a second time is safe and simply swaps the tracer.
 
     Args:
         tracer: Optional OTel tracer to use. If not provided, the default tracer named

@@ -26,7 +26,7 @@ from ydb.connection import (
 from ydb.driver import DriverConfig
 from ydb.settings import BaseRequestSettings
 from ydb import issues
-from ydb.opentelemetry.tracing import get_trace_metadata
+from ydb.observability.tracing import get_trace_metadata
 
 # Workaround for good IDE and universal for runtime
 if TYPE_CHECKING:

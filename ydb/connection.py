@@ -24,7 +24,7 @@ from google.protobuf import text_format
 import grpc
 from . import issues, _apis, _utilities
 from . import default_pem
-from .opentelemetry.tracing import get_trace_metadata
+from .observability.tracing import get_trace_metadata
 
 _stubs_list = (
     _apis.TableService.Stub,

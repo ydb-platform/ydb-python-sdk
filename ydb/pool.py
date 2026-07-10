@@ -10,7 +10,7 @@ import random
 from typing import Any, Callable, ContextManager, List, Optional, Set, Tuple, TYPE_CHECKING
 
 from . import connection as connection_impl, issues, resolver, _utilities, tracing
-from .opentelemetry.tracing import SpanName, create_ydb_span
+from .observability.tracing import SpanName, create_ydb_span
 from abc import abstractmethod
 
 from .connection import Connection, EndpointKey

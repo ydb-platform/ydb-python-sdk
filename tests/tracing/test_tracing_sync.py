@@ -8,7 +8,7 @@ No real YDB connection is needed.
 from unittest.mock import MagicMock, patch
 from opentelemetry import trace
 from opentelemetry.trace import StatusCode, SpanKind
-from ydb.opentelemetry.tracing import SpanName, _registry, create_ydb_span
+from ydb.observability.tracing import SpanName, _registry, create_ydb_span
 from ydb.query.transaction import QueryTxStateEnum
 from .conftest import FakeDriverConfig
 
@@ -316,8 +316,7 @@ class TestNoSpansWhenDisabled:
 
         from tests.tracing.conftest import _exporter
 
-        _registry.set_create_span(None)
-        _registry.set_metadata_hook(None)
+        _registry.set_provider(None)
         _exporter.clear()
 
         with create_ydb_span(SpanName.CREATE_SESSION, FakeDriverConfig()).attach_context():
@@ -347,7 +346,7 @@ class TestParentChildRelationship:
 
 class TestTraceMetadataInjection:
     def test_get_trace_metadata_returns_traceparent(self, otel_setup):
-        from ydb.opentelemetry.tracing import get_trace_metadata
+        from ydb.observability.tracing import get_trace_metadata
 
         tracer = trace.get_tracer("test.tracer")
 
