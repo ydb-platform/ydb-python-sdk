@@ -2,14 +2,17 @@ OpenTelemetry
 =============
 
 `OpenTelemetry <https://opentelemetry.io/>`_ is the built-in backend for the SDK's
-vendor-neutral tracing interface (see :doc:`observability`). Enabling it turns key YDB
-operations — session creation, query execution, transaction commit/rollback, driver
-initialization, and retries — into OpenTelemetry spans, and propagates trace context to
-the YDB server through gRPC metadata using the
-`W3C Trace Context <https://www.w3.org/TR/trace-context/>`_ standard.
+vendor-neutral observability interface (see :doc:`observability`). Enabling tracing turns
+key YDB operations — session creation, query execution, transaction commit/rollback,
+driver initialization, and retries — into OpenTelemetry spans, and propagates trace
+context to the YDB server through gRPC metadata using the
+`W3C Trace Context <https://www.w3.org/TR/trace-context/>`_ standard. Enabling metrics
+records client-side OpenTelemetry instruments for the same operations, retries, and
+query session pools.
 
 Like every backend, it is **zero-cost when disabled**: the SDK uses no-op stubs by
-default and does not import ``opentelemetry`` until you call ``enable_tracing()``.
+default and does not import ``opentelemetry`` until you call ``enable_tracing()`` or
+``enable_metrics()``.
 
 
 Installation
@@ -83,6 +86,52 @@ vendor-neutral entrypoint — this is exactly what the convenience wrapper above
     from ydb.opentelemetry import OtelTracingProvider
 
     enable_tracing(OtelTracingProvider())          # or OtelTracingProvider(my_tracer)
+
+
+Enabling Metrics
+----------------
+
+Metrics are independent from tracing — enable either or both. Call ``enable_metrics()``
+once, after configuring your OpenTelemetry meter provider and before creating drivers or
+query session pools:
+
+.. code-block:: python
+
+    from opentelemetry.exporter.otlp.proto.grpc.metric_exporter import OTLPMetricExporter
+    from opentelemetry.sdk.metrics import MeterProvider
+    from opentelemetry.sdk.metrics.export import PeriodicExportingMetricReader
+    from opentelemetry.sdk.resources import Resource
+
+    import ydb
+    from ydb.opentelemetry import enable_metrics
+
+    # 1. Set up OpenTelemetry
+    resource = Resource(attributes={"service.name": "my-service"})
+    metric_reader = PeriodicExportingMetricReader(
+        OTLPMetricExporter(endpoint="http://localhost:4317"),
+        export_interval_millis=1000,
+    )
+    meter_provider = MeterProvider(resource=resource, metric_readers=[metric_reader])
+
+    # 2. Enable YDB metrics
+    enable_metrics(meter_provider)
+
+    # 3. Use the SDK as usual — metrics are recorded automatically
+    with ydb.Driver(endpoint="grpc://localhost:2136", database="/local") as driver:
+        driver.wait(timeout=5)
+        with ydb.QuerySessionPool(driver, name="main-pool") as pool:
+            pool.execute_with_retries("SELECT 1")
+
+    meter_provider.shutdown()
+
+``enable_metrics()`` accepts an optional ``meter_provider`` argument. If omitted, the SDK
+obtains a meter named ``"ydb.sdk"`` from the global meter provider. The call is
+idempotent: repeated ``enable_metrics()`` calls do nothing until you call
+``disable_metrics()``, which clears the in-memory observable metric values and restores
+the no-op provider so metric recording stays a cheap no-op.
+
+The full list of instruments and their attributes is catalogued on the
+:doc:`observability` page.
 
 
 Instrumented Spans and Attributes

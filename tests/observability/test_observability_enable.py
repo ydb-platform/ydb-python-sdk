@@ -205,9 +205,12 @@ class TestNoopProviderExplicit:
         """A user explicitly picking NoopTracingProvider is a valid choice."""
         enable_tracing(NoopTracingProvider())
         assert _registry.is_active() is True
-        # But the produced span is still a NoopSpan — no attributes recorded.
+        # The produced telemetry object is still a no-op: it wraps a NoopSpan and
+        # can be used unconditionally without recording anything.
         span = create_ydb_span(SpanName.CREATE_SESSION, FakeDriverConfig())
-        assert isinstance(span, NoopSpan)
+        with span.attach_context() as active:
+            active.set_attribute("db.system.name", "ydb")
+            active.set_error(RuntimeError("ignored"))
 
 
 class TestOtelEnableAlsoResets:

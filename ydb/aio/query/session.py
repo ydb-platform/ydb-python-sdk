@@ -109,6 +109,7 @@ class QuerySession(BaseQuerySession["AsyncDriver"]):
             await self._create_call(settings=settings)
             set_peer_attributes(span, self._peer)
             await self._attach()
+            self._session_metrics.count_open()
 
         return self
 

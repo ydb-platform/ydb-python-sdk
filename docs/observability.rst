@@ -8,9 +8,14 @@ driver initialization, and retries — are turned into spans and handed to which
 built-in backend (see :doc:`opentelemetry`), but any tracing system can be plugged in
 by implementing the interface described below.
 
-Tracing is **zero-cost when disabled**: until you install a provider every span is a
-no-op stub, and the SDK never imports ``opentelemetry`` — or any other backend — on its
-own. The dependency is pulled in only when you explicitly opt into a concrete provider.
+The same layer also exposes **client-side metrics** (operation latency and failures,
+retry cost, query session pool state) through :func:`ydb.observability.enable_metrics`.
+Tracing and metrics are independent — enable either, both, or neither.
+
+Observability is **zero-cost when disabled**: until you install a backend every span is a
+no-op stub and every metric is dropped by a no-op provider, and the SDK never imports
+``opentelemetry`` — or any other backend — on its own. The dependency is pulled in only
+when you explicitly opt into a concrete backend.
 
 
 The Tracing Interface
@@ -247,3 +252,163 @@ A custom ``attach_context`` must therefore honour this three-way contract on blo
 
 The ``LoggingSpan`` above already implements exactly this. Getting it wrong leaks spans
 (never ended) or ends them too early (streaming spans that miss the actual read time).
+
+
+Metrics
+-------
+
+Client-side metrics are enabled independently of tracing:
+
+.. code-block:: python
+
+    from ydb.observability import enable_metrics, disable_metrics
+
+    enable_metrics(provider)   # install a metrics backend
+    disable_metrics()          # turn metrics off — back to the no-op default
+
+For OpenTelemetry the built-in convenience is ``ydb.opentelemetry.enable_metrics``,
+which builds an OTel-backed provider from a meter provider and installs it here — see
+the :doc:`opentelemetry` page for the meter-provider and exporter setup.
+
+The Metrics Interface
+~~~~~~~~~~~~~~~~~~~~~~
+
+A metrics backend implements :class:`~ydb.observability.MetricsProvider` — three
+methods, one per instrument kind:
+
+.. code-block:: python
+
+    class MetricsProvider(Protocol):
+        def record(self, name, value, attributes=None): ...       # value distribution (histogram)
+        def add(self, name, value, attributes=None): ...          # additive counter (may go negative)
+        def observe_gauge(self, name, callback): ...              # asynchronous gauge
+
+``record`` and ``add`` are pushed at the moment of the event. ``observe_gauge`` is
+different: the SDK owns the accumulated state (open sessions per pool, configured pool
+size) and hands the backend a ``callback`` that returns the current
+``(value, attributes)`` observations; the backend reads it whenever it collects. This
+keeps the pool bookkeeping vendor-neutral instead of pushing it into every backend.
+
+It is a :class:`typing.Protocol`, so a backend does **not** need to subclass anything —
+any object with these three methods works.
+
+Instruments
+~~~~~~~~~~~
+
+The SDK records the following instruments regardless of backend (the OpenTelemetry
+adapter maps them to instruments on the ``"ydb.sdk"`` meter):
+
+.. list-table::
+   :header-rows: 1
+   :widths: 32 22 46
+
+   * - Metric
+     - Kind
+     - Description
+   * - ``db.client.operation.duration``
+     - Histogram (``s``)
+     - Latency of user-visible YDB client operations.
+   * - ``ydb.client.operation.failed``
+     - Counter
+     - Failed user-visible YDB client operations.
+   * - ``ydb.query.session.create_time``
+     - Histogram (``s``)
+     - Time spent creating a query session.
+   * - ``ydb.query.session.pending_requests``
+     - UpDownCounter
+     - Requests currently waiting for a session from the pool.
+   * - ``ydb.query.session.timeouts``
+     - Counter
+     - Session acquisition timeouts.
+   * - ``ydb.query.session.count``
+     - ObservableUpDownCounter
+     - Current number of open query sessions by pool and ``ydb.query.session.state`` (``idle`` / ``used``).
+   * - ``ydb.query.session.max``
+     - ObservableUpDownCounter
+     - Maximum configured number of sessions for a query session pool.
+   * - ``ydb.query.session.min``
+     - ObservableUpDownCounter
+     - Minimum configured pool size. The SDK sets no minimum, so this is always ``0``.
+   * - ``ydb.client.retry.duration``
+     - Histogram (``s``)
+     - Total duration of a logical retried operation, including attempts and backoff.
+   * - ``ydb.client.retry.attempts``
+     - Histogram
+     - Number of attempts performed for one logical retried operation.
+
+Attributes
+~~~~~~~~~~
+
+Operation metrics (``db.client.operation.*``) carry stable labels only:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 35 65
+
+   * - Attribute
+     - Description
+   * - ``database``
+     - Database path.
+   * - ``endpoint``
+     - Configured endpoint in ``host:port`` form.
+   * - ``operation.name``
+     - SDK operation name without the ``ydb.`` prefix, e.g. ``"ExecuteQuery"``.
+   * - ``status_code``
+     - Added only to ``ydb.client.operation.failed``.
+
+Operation metrics are recorded for ``ExecuteQuery``, ``Commit``, ``Rollback``,
+``CreateSession`` and ``BeginTransaction``. Query session metrics use
+``ydb.query.session.pool.name``: when ``name`` is not passed to ``QuerySessionPool``
+the SDK falls back to the driver connection string ``<endpoint><database>`` (e.g.
+``grpc://localhost:2136/local``) so the pool is identifiable out of the box. Pass
+``QuerySessionPool(..., name="main-pool")`` (sync or async) when several pools share a
+connection string. Retry metrics are recorded without attributes.
+
+Writing a Custom Metrics Backend
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To send metrics somewhere OpenTelemetry does not cover — a home-grown collector, a log
+line, an in-memory recorder for tests — implement the three methods. Nothing to
+subclass; just match the signatures:
+
+.. code-block:: python
+
+    from ydb.observability import enable_metrics, disable_metrics
+
+
+    class LoggingMetrics:
+        def __init__(self):
+            self._gauges = {}
+
+        def record(self, name, value, attributes=None):
+            # A value distribution (histogram): operation/create/retry durations, attempts.
+            print(f"[metric] {name} = {value} {attributes or {}}")
+
+        def add(self, name, value, attributes=None):
+            # An additive counter; value may be negative (pending_requests goes up and down).
+            print(f"[metric] {name} += {value} {attributes or {}}")
+
+        def observe_gauge(self, name, callback):
+            # Asynchronous gauge: keep the callback and poll it whenever you collect.
+            # callback() -> iterable of (value, attributes).
+            self._gauges[name] = callback
+
+        def collect(self):
+            for name, callback in self._gauges.items():
+                for value, attributes in callback():
+                    print(f"[gauge] {name} = {value} {attributes}")
+
+
+    enable_metrics(LoggingMetrics())
+    # ... use the SDK; record()/add() fire as operations happen ...
+    disable_metrics()
+
+The instrument kind for each metric is implied by which method the SDK calls: names in
+the *Histogram* rows above arrive through ``record``, *Counter* / *UpDownCounter* names
+through ``add``, and the three *ObservableUpDownCounter* gauges
+(``ydb.query.session.count`` / ``max`` / ``min``) through ``observe_gauge``. A backend
+that has no notion of asynchronous gauges can simply store the callbacks (or ignore
+them); the SDK never pushes those values, so nothing is lost elsewhere.
+
+``disable_metrics()`` clears the SDK-side gauge state and reverts to the no-op default,
+so recording calls become cheap no-ops again.
