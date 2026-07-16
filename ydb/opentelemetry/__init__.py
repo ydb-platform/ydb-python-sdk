@@ -40,14 +40,17 @@ def disable_tracing():
 
 def __getattr__(name):
     # Lazily expose the OTel provider so ``from ydb.opentelemetry import
-    # OtelTracingProvider`` works without importing ``opentelemetry`` at
-    # module load time.
+    # OtelTracingProvider`` works without importing ``opentelemetry`` at module
+    # load time. When OTel is missing, raise AttributeError (not ImportError) so
+    # hasattr()/getattr(..., default) introspection behaves normally; the install
+    # hint rides along in the message, and enable_tracing() keeps its own
+    # ImportError guidance for the primary entrypoint.
     if name == "OtelTracingProvider":
         try:
             from ydb.opentelemetry.plugin import OtelTracingProvider
         except ImportError:
-            raise ImportError(
-                "OpenTelemetry packages are required for tracing support. "
+            raise AttributeError(
+                "OtelTracingProvider requires the OpenTelemetry packages. "
                 "Install them with: pip install ydb[opentelemetry]"
             ) from None
         return OtelTracingProvider

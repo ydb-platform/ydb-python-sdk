@@ -535,6 +535,22 @@ class TestOtelEntrypointHandlesMissingPackage:
         # Must not raise — silent fallback is documented behavior.
         otel_disable()
 
+    def test_provider_access_raises_attributeerror_when_plugin_import_fails(self, monkeypatch):
+        import sys
+
+        monkeypatch.setitem(sys.modules, "ydb.opentelemetry.plugin", None)
+
+        import ydb.opentelemetry as otel
+
+        # AttributeError (not ImportError) keeps introspection sane...
+        assert hasattr(otel, "OtelTracingProvider") is False
+        sentinel = object()
+        assert getattr(otel, "OtelTracingProvider", sentinel) is sentinel
+
+        # ...while the install hint still rides along on direct access.
+        with pytest.raises(AttributeError, match="OpenTelemetry"):
+            otel.OtelTracingProvider
+
 
 class TestOtelTracingSpanBridge:
     """Cover the ``TracingSpan`` wrapper directly (no SDK glue)."""
