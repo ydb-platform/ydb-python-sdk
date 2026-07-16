@@ -30,6 +30,7 @@ Python client for `YDB <https://ydb.tech/>`_ — a fault-tolerant distributed SQ
    :hidden:
    :caption: Observability
 
+   observability
    opentelemetry
 
 .. toctree::
@@ -121,10 +122,13 @@ incidents.
 Observability
 -------------
 
-The :doc:`opentelemetry` page explains how to add distributed tracing to your
-application using OpenTelemetry. One call to ``enable_tracing()`` instruments
-query sessions, transactions, and connection pool operations — so you can
-visualize request flow in Jaeger, Grafana, or any OpenTelemetry-compatible backend.
+The :doc:`observability` page describes the SDK's vendor-neutral tracing interface.
+Key operations — query sessions, transactions, and connection pool activity — are
+turned into spans and handed to whichever backend you install. `OpenTelemetry
+<https://opentelemetry.io/>`_ is the built-in backend (:doc:`opentelemetry`), so one
+call to ``enable_tracing()`` lets you visualize request flow in Jaeger, Grafana, or any
+OpenTelemetry-compatible system — while the same interface lets you plug in a custom
+provider when you need one.
 
 
 API Reference

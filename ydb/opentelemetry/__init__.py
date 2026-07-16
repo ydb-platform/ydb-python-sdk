@@ -38,4 +38,20 @@ def disable_tracing():
     _disable_tracing()
 
 
-__all__ = ["disable_tracing", "enable_tracing"]
+def __getattr__(name):
+    # Lazily expose the OTel provider so ``from ydb.opentelemetry import
+    # OtelTracingProvider`` works without importing ``opentelemetry`` at
+    # module load time.
+    if name == "OtelTracingProvider":
+        try:
+            from ydb.opentelemetry.plugin import OtelTracingProvider
+        except ImportError:
+            raise ImportError(
+                "OpenTelemetry packages are required for tracing support. "
+                "Install them with: pip install ydb[opentelemetry]"
+            ) from None
+        return OtelTracingProvider
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+
+
+__all__ = ["OtelTracingProvider", "disable_tracing", "enable_tracing"]

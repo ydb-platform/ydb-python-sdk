@@ -8,7 +8,7 @@ provider is installed everything is a no-op — the SDK never depends on
 """
 
 import enum
-from typing import Any, Callable, Iterable, List, Optional, Protocol, Tuple
+from typing import Any, Callable, ContextManager, Iterable, List, Optional, Protocol, Tuple
 
 
 class SpanName(str, enum.Enum):
@@ -36,7 +36,7 @@ class Span(Protocol):
 
     def end(self) -> None: ...
 
-    def attach_context(self, end_on_exit: bool = True) -> Any:
+    def attach_context(self, end_on_exit: bool = True) -> ContextManager["Span"]:
         """Return a context manager that makes this span active for its block.
 
         With ``end_on_exit=True`` (default) the span is ended on exit — used for

@@ -5,7 +5,7 @@ This module implements :class:`ydb.observability.TracingProvider` on top of the
 dependency is only pulled in when a user calls :func:`ydb.opentelemetry.enable_tracing`.
 """
 
-from typing import Iterable, Optional, Tuple
+from typing import Dict, Iterable, Optional, Tuple
 
 from opentelemetry import context as otel_context
 from opentelemetry import trace
@@ -115,7 +115,7 @@ class OtelTracingProvider:
         return TracingSpan(span)
 
     def get_trace_metadata(self) -> Iterable[Tuple[str, str]]:
-        headers: dict = {}
+        headers: Dict[str, str] = {}
         inject(headers)
         return tuple(headers.items())
 

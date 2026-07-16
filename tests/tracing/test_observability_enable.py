@@ -185,15 +185,6 @@ class TestEnableTracingResetsPrevious:
         assert [s.name for s in first.spans] == [SpanName.CREATE_SESSION]
         assert [s.name for s in second.spans] == [SpanName.EXECUTE_QUERY]
 
-    def test_enable_none_is_disable(self):
-        provider = RecordingProvider()
-        enable_tracing(provider)
-        assert _registry.is_active()
-
-        enable_tracing(None)  # type: ignore[arg-type]
-        assert _registry.is_active() is False
-        assert get_active_provider() is None
-
     def test_disable_tracing_reverts_to_noop(self):
         provider = RecordingProvider()
         enable_tracing(provider)
@@ -254,6 +245,36 @@ class TestOtelEnableAlsoResets:
             assert first is not second
         finally:
             otel_disable()
+
+
+class TestPublicOtelProviderExport:
+    """``OtelTracingProvider`` is part of the public ``ydb.opentelemetry`` namespace."""
+
+    def test_provider_is_exported_from_package_root(self):
+        pytest.importorskip("opentelemetry")
+
+        import ydb.opentelemetry as otel
+        from ydb.opentelemetry.plugin import OtelTracingProvider
+
+        assert otel.OtelTracingProvider is OtelTracingProvider
+        assert "OtelTracingProvider" in otel.__all__
+
+    def test_exported_provider_plugs_into_vendor_neutral_enable(self):
+        pytest.importorskip("opentelemetry")
+
+        from ydb.opentelemetry import OtelTracingProvider
+
+        try:
+            enable_tracing(OtelTracingProvider())
+            assert isinstance(get_active_provider(), OtelTracingProvider)
+        finally:
+            disable_tracing()
+
+    def test_unknown_attribute_still_raises(self):
+        import ydb.opentelemetry as otel
+
+        with pytest.raises(AttributeError):
+            otel.does_not_exist
 
 
 class TestProtocolContract:

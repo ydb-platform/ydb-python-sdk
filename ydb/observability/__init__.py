@@ -29,7 +29,7 @@ def enable_tracing(provider: TracingProvider) -> None:
     """Install *provider* as the active tracing backend.
 
     Calling this a second time replaces the previous provider — the old one
-    stops receiving spans immediately. Passing ``None`` is equivalent to
+    stops receiving spans immediately. To turn tracing off again call
     :func:`disable_tracing`.
     """
     _registry.set_provider(provider)
