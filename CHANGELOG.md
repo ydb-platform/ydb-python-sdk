@@ -1,3 +1,6 @@
+* Introduce `ydb.observability` — vendor-neutral tracing entrypoint with a `TracingProvider` interface; `enable_tracing(provider)` accepts any implementation (custom or OpenTelemetry) and replaces the previously installed one. The SDK core no longer imports `opentelemetry`, so tracing can be enabled without the OpenTelemetry packages by supplying a custom provider
+* When tracing is enabled the SDK appends a `ydb-sdk-tracing/0.1.0` token to the `x-ydb-sdk-build-info` header, so the server can distinguish requests from tracing-enabled clients
+
 ## 3.30.0 ##
 * Query session attach stream handles `NodeShutdown` and `SessionShutdown` session hints: on `NodeShutdown` the session's node connection is pessimized and the session is retired, on `SessionShutdown` the session is retired without touching the node
 * Honor the `max_bytes` parameter in topic reader `receive_batch`/`receive_batch_with_tx` (previously accepted but silently ignored); add `max_bytes` to the async reader as well

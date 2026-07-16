@@ -18,7 +18,7 @@ from . import base
 from .base import QueryExplainResultFormat
 
 from .. import _apis, issues, _utilities
-from ..opentelemetry.tracing import SpanName, create_ydb_span, set_peer_attributes, span_finish_callback
+from ..observability.tracing import SpanName, create_ydb_span, set_peer_attributes, span_finish_callback
 from ..settings import BaseRequestSettings
 from ..connection import _RpcState as RpcState, EndpointKey
 from .._grpc.grpcwrapper import common_utils

@@ -1,14 +1,15 @@
-OpenTelemetry Tracing
-=====================
+OpenTelemetry
+=============
 
-The SDK provides built-in distributed tracing via `OpenTelemetry <https://opentelemetry.io/>`_.
-When enabled, key YDB operations — such as session creation, query execution, transaction
-commit/rollback, and driver initialization — produce OpenTelemetry spans. Trace
-context is automatically propagated to the YDB server through gRPC metadata using the
+`OpenTelemetry <https://opentelemetry.io/>`_ is the built-in backend for the SDK's
+vendor-neutral tracing interface (see :doc:`observability`). Enabling it turns key YDB
+operations — session creation, query execution, transaction commit/rollback, driver
+initialization, and retries — into OpenTelemetry spans, and propagates trace context to
+the YDB server through gRPC metadata using the
 `W3C Trace Context <https://www.w3.org/TR/trace-context/>`_ standard.
 
-Tracing is **zero-cost when disabled**: the SDK uses no-op stubs by default, so there is
-no overhead unless you explicitly opt in.
+Like every backend, it is **zero-cost when disabled**: the SDK uses no-op stubs by
+default and does not import ``opentelemetry`` until you call ``enable_tracing()``.
 
 
 Installation
@@ -69,54 +70,28 @@ and **before** creating a ``Driver``:
 ``enable_tracing()`` accepts an optional ``tracer`` argument. If omitted, the SDK
 obtains a tracer named ``"ydb.sdk"`` from the global tracer provider.
 
-Repeated calls to ``enable_tracing()`` do nothing until you call ``disable_tracing()``,
-which removes hooks so you can reconfigure or turn instrumentation off.
+Repeated calls to ``enable_tracing()`` replace the previously installed provider, so
+it is safe to reconfigure at any time. Call ``disable_tracing()`` to remove the hooks
+entirely and return the SDK to its no-op default.
+
+Advanced users can build the provider explicitly and install it through the
+vendor-neutral entrypoint — this is exactly what the convenience wrapper above does:
+
+.. code-block:: python
+
+    from ydb.observability import enable_tracing
+    from ydb.opentelemetry import OtelTracingProvider
+
+    enable_tracing(OtelTracingProvider())          # or OtelTracingProvider(my_tracer)
 
 
-What Is Instrumented
---------------------
+Instrumented Spans and Attributes
+---------------------------------
 
-The following operations produce spans:
-
-.. list-table::
-   :header-rows: 1
-   :widths: 35 20 45
-
-   * - Span Name
-     - Kind
-     - Description
-   * - ``ydb.Driver.Initialize``
-     - INTERNAL
-     - Driver wait / endpoint discovery.
-   * - ``ydb.CreateSession``
-     - CLIENT
-     - Creating a new query session.
-   * - ``ydb.ExecuteQuery``
-     - CLIENT
-     - Executing a query (including ``execute_with_retries``).
-   * - ``ydb.BeginTransaction``
-     - CLIENT
-     - Explicitly beginning a transaction via ``.begin()``.
-   * - ``ydb.Commit``
-     - CLIENT
-     - Committing an explicit transaction.
-   * - ``ydb.Rollback``
-     - CLIENT
-     - Rolling back a transaction.
-   * - ``ydb.RunWithRetry``
-     - INTERNAL
-     - Umbrella span wrapping the whole retryable block (``retry_operation_*`` / ``retry_tx_*`` / ``execute_with_retries``).
-   * - ``ydb.Try``
-     - INTERNAL
-     - A single retry attempt. From the **second** attempt onward carries
-       ``ydb.retry.backoff_ms`` — how long the retrier slept before starting this
-       attempt (``0`` on the skip-yield retry path: ``Aborted`` / ``BadSession`` /
-       ``NotFound`` / ``InternalError``, where the protocol prescribes immediate
-       retry without backoff). The very first ``ydb.Try`` omits the attribute
-       entirely because nothing preceded it.
-
-All spans are nested under the currently active span, so wrapping your application
-logic in a parent span produces a complete trace tree:
+The set of spans and the standard attributes attached to them are the same for every
+backend and are catalogued on the :doc:`observability` page. All spans are nested under
+the currently active OpenTelemetry span, so wrapping your application logic in a parent
+span produces a complete trace tree:
 
 .. code-block:: python
 
@@ -128,47 +103,15 @@ logic in a parent span produces a complete trace tree:
         #   ↳ ydb.ExecuteQuery
 
 
-Span Attributes
+Error Recording
 ---------------
 
-Every YDB RPC (CLIENT-kind) span carries these semantic attributes:
-
-.. list-table::
-   :header-rows: 1
-   :widths: 30 70
-
-   * - Attribute
-     - Description
-   * - ``db.system.name``
-     - Always ``"ydb"``.
-   * - ``db.namespace``
-     - Database path (e.g. ``"/local"``).
-   * - ``server.address``
-     - Host from the connection string.
-   * - ``server.port``
-     - Port from the connection string.
-   * - ``network.peer.address``
-     - Actual node host from the discovery endpoint map (set once the session is attached to a node).
-   * - ``network.peer.port``
-     - Actual node port from the discovery endpoint map.
-   * - ``ydb.node.dc``
-     - Data-center / location reported by discovery for the node (e.g. ``"vla"``, ``"sas"``).
-
-Additional attributes are set when available:
-
-.. list-table::
-   :header-rows: 1
-   :widths: 30 70
-
-   * - Attribute
-     - Description
-   * - ``ydb.node.id``
-     - YDB node that handled the request.
-
-On errors, the span also records:
+On failures the OpenTelemetry backend enriches the span before ending it:
 
 - ``error.type`` — ``"ydb_error"``, ``"transport_error"``, or the Python exception class name.
 - ``db.response.status_code`` — the YDB status code name (e.g. ``"SCHEME_ERROR"``).
+- the span status is set to ``ERROR`` and the exception is recorded via
+  ``record_exception``.
 
 
 Trace Context Propagation
@@ -210,7 +153,6 @@ startup:
                 await pool.execute_with_retries("SELECT 1")
 
     asyncio.run(main())
-
 
 
 Using a Custom Tracer

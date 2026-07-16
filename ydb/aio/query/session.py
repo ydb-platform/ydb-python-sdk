@@ -18,7 +18,7 @@ from ..._grpc.grpcwrapper import ydb_query_public_types as _ydb_query_public
 
 from ...query import base
 from ...query.session import BaseQuerySession
-from ...opentelemetry.tracing import SpanName, create_ydb_span, set_peer_attributes, span_finish_callback
+from ...observability.tracing import SpanName, create_ydb_span, set_peer_attributes, span_finish_callback
 
 from ..._constants import DEFAULT_INITIAL_RESPONSE_TIMEOUT
 

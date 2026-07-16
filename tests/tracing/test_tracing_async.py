@@ -4,7 +4,7 @@ Mirrors the sync tests but exercises the async code paths in ydb.aio.query.
 """
 
 from opentelemetry.trace import StatusCode, SpanKind
-from ydb.opentelemetry.tracing import SpanName
+from ydb.observability.tracing import SpanName
 from ydb.query.transaction import QueryTxStateEnum
 from .conftest import FakeDriverConfig
 from unittest.mock import AsyncMock, MagicMock, patch
@@ -100,7 +100,7 @@ class TestAsyncCreateSessionSpan:
 
         from ydb.aio.connection import Connection
         from ydb.connection import EndpointOptions
-        from ydb.opentelemetry.tracing import create_ydb_span
+        from ydb.observability.tracing import create_ydb_span
         from ydb.query.session import _resolve_peer
 
         cfg = FakeDriverConfig()

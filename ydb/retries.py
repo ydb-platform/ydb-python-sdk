@@ -7,7 +7,7 @@ from typing import Any, Callable, Generator, Optional, Union
 
 from . import issues
 from ._errors import check_retriable_error
-from .opentelemetry.tracing import SpanName, create_span as _create_span
+from .observability.tracing import SpanName, create_span as _create_span
 
 
 def _try_span_attrs(backoff_ms: Optional[int]):
