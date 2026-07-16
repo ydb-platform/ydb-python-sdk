@@ -146,6 +146,19 @@ def get_trace_metadata() -> List[Tuple[str, str]]:
     return list(_registry.get_trace_metadata())
 
 
+TRACING_SDK_BUILD_INFO = "ydb-sdk-tracing/0.1.0"
+
+
+def _tracing_build_info_tokens() -> List[str]:
+    """Tracing's contribution to the ``x-ydb-sdk-build-info`` header.
+
+    Returns ``["ydb-sdk-tracing/0.1.0"]`` once a provider is installed, otherwise an
+    empty list. Aggregated with other features by
+    :func:`ydb.observability.sdk_build_info_tokens`.
+    """
+    return [TRACING_SDK_BUILD_INFO] if _registry.is_active() else []
+
+
 def _split_endpoint(endpoint: Optional[str]) -> Tuple[str, int]:
     ep = endpoint or ""
     if ep.startswith("grpcs://"):

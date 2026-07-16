@@ -26,6 +26,7 @@ from ydb.connection import (
 from ydb.driver import DriverConfig
 from ydb.settings import BaseRequestSettings
 from ydb import issues
+from ydb.observability import sdk_build_info_tokens
 from ydb.observability.tracing import get_trace_metadata
 
 # Workaround for good IDE and universal for runtime
@@ -71,7 +72,8 @@ async def _construct_metadata(
         if settings.request_type is not None:
             metadata.append((YDB_REQUEST_TYPE_HEADER, settings.request_type))
 
-    metadata.append(_utilities.x_ydb_sdk_build_info_header(getattr(driver_config, "_additional_sdk_headers", ())))
+    additional_sdk_headers = (*sdk_build_info_tokens(), *getattr(driver_config, "_additional_sdk_headers", ()))
+    metadata.append(_utilities.x_ydb_sdk_build_info_header(additional_sdk_headers))
 
     metadata.extend(get_trace_metadata())
 

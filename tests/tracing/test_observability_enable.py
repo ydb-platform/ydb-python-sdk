@@ -36,6 +36,8 @@ from ydb.observability.tracing import (
     span_finish_callback,
 )
 
+from ydb.ydb_version import VERSION
+
 from .conftest import FakeDriverConfig
 
 
@@ -299,6 +301,60 @@ class TestProtocolContract:
             pass
 
         assert provider.calls == 1
+
+
+class _BuildInfoCfg:
+    database = None
+    credentials = None
+
+
+class TestSdkBuildInfoHeader:
+    """Enabling tracing advertises a ``ydb-sdk-tracing`` token in x-ydb-sdk-build-info."""
+
+    def test_tokens_reflect_active_provider(self):
+        from ydb.observability import sdk_build_info_tokens
+
+        assert sdk_build_info_tokens() == []
+        enable_tracing(RecordingProvider())
+        assert sdk_build_info_tokens() == ["ydb-sdk-tracing/0.1.0"]
+        disable_tracing()
+        assert sdk_build_info_tokens() == []
+
+    def test_header_gains_tracing_token_when_enabled(self):
+        from ydb.connection import _construct_metadata
+
+        def build_info():
+            return dict(_construct_metadata(_BuildInfoCfg(), None))["x-ydb-sdk-build-info"]
+
+        assert "ydb-sdk-tracing" not in build_info()
+
+        enable_tracing(RecordingProvider())
+        header = build_info()
+        disable_tracing()
+
+        assert header == f"ydb-python-sdk/{VERSION};ydb-sdk-tracing/0.1.0"
+
+    def test_tracing_token_precedes_driver_additional_headers(self):
+        from ydb.connection import _construct_metadata
+
+        class _Cfg(_BuildInfoCfg):
+            _additional_sdk_headers = ("lib1/1.0",)
+
+        enable_tracing(RecordingProvider())
+        header = dict(_construct_metadata(_Cfg(), None))["x-ydb-sdk-build-info"]
+        disable_tracing()
+
+        # native SDK, then SDK-owned tracing token, then custom driver headers
+        assert header == f"ydb-python-sdk/{VERSION};ydb-sdk-tracing/0.1.0;lib1/1.0"
+
+    async def test_header_async_parity(self):
+        from ydb.aio.connection import _construct_metadata
+
+        enable_tracing(RecordingProvider())
+        header = dict(await _construct_metadata(_BuildInfoCfg(), None))["x-ydb-sdk-build-info"]
+        disable_tracing()
+
+        assert header == f"ydb-python-sdk/{VERSION};ydb-sdk-tracing/0.1.0"
 
 
 class TestSplitEndpoint:
