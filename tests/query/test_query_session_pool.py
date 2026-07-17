@@ -28,6 +28,14 @@ class TestQuerySessionPool:
         indexes = [result_set.index for result_set in res]
         assert indexes == [0, 1, 2]
 
+    def test_oneshot_query_merges_large_result_set_parts(self, pool: QuerySessionPool):
+        row_count = 100_000
+        query = f"SELECT * FROM AS_TABLE(ListMap(ListFromRange(0ul, {row_count}ul), ($x) -> (<|id: $x|>)))"
+        res = pool.execute_with_retries(query)
+        assert len(res) == 1
+        assert res[0].index == 0
+        assert len(res[0].rows) == row_count
+
     def test_oneshot_ddl_query(self, pool: QuerySessionPool):
         pool.execute_with_retries("create table Queen(key UInt64, PRIMARY KEY (key));")
         pool.execute_with_retries("drop table Queen;")

@@ -460,6 +460,36 @@ class _ResultSet(object):
 ResultSet = _ResultSet
 
 
+def aggregate_result_sets_by_index(result_sets):
+    """Glue together stream parts that belong to the same result set.
+
+    The query service streams one logical result set as several response parts
+    that share a single ``result_set_index``. This concatenates the rows (and
+    arrow ``data``) of those parts back into a single result set, keeping the
+    schema from the first part that carries it.
+    """
+    merged = []
+    by_index = {}
+    for result_set in result_sets:
+        index = result_set.index
+        target = by_index.get(index) if index is not None else None
+        if target is None:
+            merged.append(result_set)
+            if index is not None:
+                by_index[index] = result_set
+            continue
+
+        target.rows.extend(result_set.rows)
+        if result_set.truncated:
+            target.truncated = True
+        if not target.columns and result_set.columns:
+            target.columns = result_set.columns
+        if result_set.data is not None:
+            target.data = result_set.data if target.data is None else target.data + result_set.data
+
+    return merged
+
+
 class _Row(_DotDict):
     __slots__ = ("_columns",)
 
