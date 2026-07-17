@@ -94,9 +94,11 @@ class TestAggregateResultSetsByIndex(unittest.TestCase):
         self.assertTrue(merged[0].truncated)
 
     def test_arrow_data_is_concatenated(self):
-        merged = aggregate_result_sets_by_index([_rs(0, [], data=b"aa"), _rs(0, [], data=b"bb")])
+        merged = aggregate_result_sets_by_index(
+            [_rs(0, [], data=b"aa"), _rs(0, [], data=b"bb"), _rs(0, [], data=b"cc")]
+        )
 
-        self.assertEqual(merged[0].data, b"aabb")
+        self.assertEqual(merged[0].data, b"aabbcc")
 
     def test_interleaved_parts_are_merged_by_index(self):
         merged = aggregate_result_sets_by_index([_rs(0, [1]), _rs(1, [2]), _rs(0, [3]), _rs(1, [4])])
