@@ -470,6 +470,7 @@ def aggregate_result_sets_by_index(result_sets):
     """
     merged = []
     by_index = {}
+    data_chunks = {}
     for result_set in result_sets:
         index = result_set.index
         target = by_index.get(index) if index is not None else None
@@ -477,6 +478,8 @@ def aggregate_result_sets_by_index(result_sets):
             merged.append(result_set)
             if index is not None:
                 by_index[index] = result_set
+                if result_set.data is not None:
+                    data_chunks[index] = [result_set.data]
             continue
 
         target.rows.extend(result_set.rows)
@@ -485,7 +488,14 @@ def aggregate_result_sets_by_index(result_sets):
         if not target.columns and result_set.columns:
             target.columns = result_set.columns
         if result_set.data is not None:
-            target.data = result_set.data if target.data is None else target.data + result_set.data
+            data_chunks.setdefault(index, []).append(result_set.data)
+
+    # Join arrow ``data`` chunks once per result set: the parts are schema-less,
+    # EOS-less record batches, so concatenating them under the shared schema
+    # rebuilds a valid IPC stream. Doing it in one pass keeps this linear —
+    # concatenating bytes on every part would be O(total_size^2).
+    for index, chunks in data_chunks.items():
+        by_index[index].data = chunks[0] if len(chunks) == 1 else b"".join(chunks)
 
     return merged
 
