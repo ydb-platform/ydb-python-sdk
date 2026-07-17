@@ -93,12 +93,10 @@ class TestAggregateResultSetsByIndex(unittest.TestCase):
 
         self.assertTrue(merged[0].truncated)
 
-    def test_arrow_data_is_concatenated(self):
-        merged = aggregate_result_sets_by_index(
-            [_rs(0, [], data=b"aa"), _rs(0, [], data=b"bb"), _rs(0, [], data=b"cc")]
-        )
+    def test_arrow_parts_are_not_merged(self):
+        merged = aggregate_result_sets_by_index([_rs(0, [], data=b"aa"), _rs(0, [], data=b"bb")])
 
-        self.assertEqual(merged[0].data, b"aabbcc")
+        self.assertEqual([rs.data for rs in merged], [b"aa", b"bb"])
 
     def test_interleaved_parts_are_merged_by_index(self):
         merged = aggregate_result_sets_by_index([_rs(0, [1]), _rs(1, [2]), _rs(0, [3]), _rs(1, [4])])
@@ -111,11 +109,6 @@ class TestAggregateResultSetsByIndex(unittest.TestCase):
 
         self.assertEqual(merged[0].columns, ["id", "name"])
         self.assertEqual(merged[0].rows, [1, 2])
-
-    def test_arrow_data_filled_from_later_part_when_first_has_none(self):
-        merged = aggregate_result_sets_by_index([_rs(0, [], data=None), _rs(0, [], data=b"bb")])
-
-        self.assertEqual(merged[0].data, b"bb")
 
     def test_parts_without_index_are_not_merged(self):
         merged = aggregate_result_sets_by_index([_rs(None, [1]), _rs(None, [2])])

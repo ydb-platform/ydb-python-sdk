@@ -381,17 +381,7 @@ def _detach_columns(columns):
 
 
 class _ResultSet(object):
-    __slots__ = (
-        "columns",
-        "rows",
-        "truncated",
-        "snapshot",
-        "index",
-        "format",
-        "arrow_format_meta",
-        "data",
-        "_data_chunks",
-    )
+    __slots__ = ("columns", "rows", "truncated", "snapshot", "index", "format", "arrow_format_meta", "data")
 
     def __init__(
         self, columns, rows, truncated, snapshot=None, index=None, format=None, arrow_format_meta=None, data=None
@@ -404,32 +394,20 @@ class _ResultSet(object):
         self.format = format
         self.arrow_format_meta = arrow_format_meta
         self.data = data
-        self._data_chunks = None
 
     def _extend(self, other):
         """Merge another stream part of the same result set into this one.
 
-        The query service streams one logical result set as several response
-        parts sharing a ``result_set_index``; this appends ``other``'s payload
-        to ``self``. Arrow ``data`` chunks are accumulated in a list and joined
-        once by :meth:`_seal`, so merging many parts stays linear instead of
-        re-concatenating bytes on every part.
+        The query service streams one logical VALUE result set as several
+        response parts sharing a ``result_set_index``; this concatenates
+        ``other``'s rows onto ``self`` and carries the schema over from the
+        first part that provides it.
         """
         self.rows.extend(other.rows)
         if other.truncated:
             self.truncated = True
         if not self.columns and other.columns:
             self.columns = other.columns
-        if other.data is not None:
-            if self._data_chunks is None:
-                self._data_chunks = [self.data] if self.data is not None else []
-            self._data_chunks.append(other.data)
-
-    def _seal(self):
-        """Collapse accumulated arrow ``data`` chunks into a single ``bytes``."""
-        if self._data_chunks is not None:
-            self.data = b"".join(self._data_chunks)
-            self._data_chunks = None
 
     @classmethod
     def from_message(cls, message, table_client_settings=None, snapshot=None, index=None):
@@ -500,24 +478,25 @@ def aggregate_result_sets_by_index(result_sets):
     """Glue together stream parts that belong to the same result set.
 
     The query service streams one logical result set as several response parts
-    that share a single ``result_set_index``. This concatenates the rows (and
-    arrow ``data``) of those parts back into a single result set, keeping the
-    schema from the first part that carries it.
+    that share a single ``result_set_index``. VALUE parts are concatenated back
+    into one result set. ARROW parts are left untouched: each already carries
+    its own schema and record-batch ``data`` and is independently decodable, so
+    they stay as separate result sets instead of splicing opaque bytes together.
     """
     merged = []
     by_index = {}
     for result_set in result_sets:
         index = result_set.index
-        target = by_index.get(index) if index is not None else None
-        if target is None:
+        if index is None or result_set.data is not None:
             merged.append(result_set)
-            if index is not None:
-                by_index[index] = result_set
+            continue
+
+        target = by_index.get(index)
+        if target is None:
+            by_index[index] = result_set
+            merged.append(result_set)
         else:
             target._extend(result_set)
-
-    for result_set in merged:
-        result_set._seal()
 
     return merged
 
