@@ -104,6 +104,22 @@ class TestAggregateResultSetsByIndex(unittest.TestCase):
         self.assertEqual([rs.index for rs in merged], [0, 1])
         self.assertEqual([rs.rows for rs in merged], [[1, 3], [2, 4]])
 
+    def test_schema_filled_from_later_part_when_first_omits_it(self):
+        merged = aggregate_result_sets_by_index([_rs(0, [1], columns=[]), _rs(0, [2], columns=["id", "name"])])
+
+        self.assertEqual(merged[0].columns, ["id", "name"])
+        self.assertEqual(merged[0].rows, [1, 2])
+
+    def test_arrow_data_filled_from_later_part_when_first_has_none(self):
+        merged = aggregate_result_sets_by_index([_rs(0, [], data=None), _rs(0, [], data=b"bb")])
+
+        self.assertEqual(merged[0].data, b"bb")
+
+    def test_parts_without_index_are_not_merged(self):
+        merged = aggregate_result_sets_by_index([_rs(None, [1]), _rs(None, [2])])
+
+        self.assertEqual([rs.rows for rs in merged], [[1], [2]])
+
     def test_empty_input_returns_empty_list(self):
         self.assertEqual(aggregate_result_sets_by_index([]), [])
 
