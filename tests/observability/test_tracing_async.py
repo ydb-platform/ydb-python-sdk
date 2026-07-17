@@ -508,15 +508,19 @@ class TestAsyncConcurrentSpansIsolation:
             return qs
 
         async def do_execute(qs):
-            fake_stream = _slow_async_iter()
-            with patch.object(QuerySession, "_execute_call", new_callable=AsyncMock, return_value=fake_stream):
-                result = await qs.execute("SELECT 1")
-                async for _ in result:
-                    pass
+            result = await qs.execute("SELECT 1")
+            async for _ in result:
+                pass
 
         qs1 = _make_session()
         qs2 = _make_session()
-        await asyncio.gather(do_execute(qs1), do_execute(qs2))
+        # Patch the class method once around the whole gather. Patching it concurrently
+        # inside each task (on the same class attribute) corrupts save/restore and leaks
+        # the mock onto QuerySession, breaking later real async query tests.
+        with patch.object(
+            QuerySession, "_execute_call", new_callable=AsyncMock, side_effect=lambda *a, **k: _slow_async_iter()
+        ):
+            await asyncio.gather(do_execute(qs1), do_execute(qs2))
 
         spans = _get_spans(exporter, SpanName.EXECUTE_QUERY)
         assert len(spans) == 2

@@ -1,5 +1,6 @@
 * Introduce `ydb.observability` — vendor-neutral tracing entrypoint with a `TracingProvider` interface; `enable_tracing(provider)` accepts any implementation (custom or OpenTelemetry) and replaces the previously installed one. The SDK core no longer imports `opentelemetry`, so tracing can be enabled without the OpenTelemetry packages by supplying a custom provider
 * When tracing is enabled the SDK appends a `ydb-sdk-tracing/0.1.0` token to the `x-ydb-sdk-build-info` header, so the server can distinguish requests from tracing-enabled clients
+* Add client-side metrics through the same vendor-neutral `ydb.observability` layer: `enable_metrics(provider)` / `disable_metrics()`, with `ydb.opentelemetry.enable_metrics(meter_provider=None)` as the OpenTelemetry convenience. Instruments cover client operation duration/failures, retry duration/attempts, and query session pool state. `QuerySessionPool` gains an optional `name` argument for the pool metric label. When metrics are enabled the SDK appends a `ydb-sdk-metrics/0.1.0` token to the `x-ydb-sdk-build-info` header
 
 ## 3.30.0 ##
 * Query session attach stream handles `NodeShutdown` and `SessionShutdown` session hints: on `NodeShutdown` the session's node connection is pessimized and the session is retired, on `SessionShutdown` the session is retired without touching the node

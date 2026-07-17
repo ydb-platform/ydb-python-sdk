@@ -314,7 +314,7 @@ class TestNoSpansWhenDisabled:
     def test_no_spans_without_enable_tracing(self):
         """Without enable_tracing(), the registry uses noop — no spans are created."""
 
-        from tests.tracing.conftest import _exporter
+        from tests.observability.conftest import _exporter
 
         _registry.set_provider(None)
         _exporter.clear()

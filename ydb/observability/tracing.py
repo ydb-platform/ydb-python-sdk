@@ -10,6 +10,9 @@ provider is installed everything is a no-op — the SDK never depends on
 import enum
 from typing import Any, Callable, ContextManager, Iterable, List, Optional, Protocol, Tuple
 
+from ydb.observability import metrics as _metrics
+from ydb.observability._endpoint import split_endpoint as _split_endpoint
+
 
 class SpanName(str, enum.Enum):
     """Canonical span names used across the YDB SDK."""
@@ -159,26 +162,6 @@ def _tracing_build_info_tokens() -> List[str]:
     return [TRACING_SDK_BUILD_INFO] if _registry.is_active() else []
 
 
-def _split_endpoint(endpoint: Optional[str]) -> Tuple[str, int]:
-    ep = endpoint or ""
-    if ep.startswith("grpcs://"):
-        ep = ep[len("grpcs://") :]
-    elif ep.startswith("grpc://"):
-        ep = ep[len("grpc://") :]
-
-    if ep.startswith("["):
-        close = ep.find("]")
-        if close != -1 and len(ep) > close + 1 and ep[close + 1] == ":":
-            host = ep[: close + 1]
-            port_s = ep[close + 2 :]
-            return host, int(port_s) if port_s.isdigit() else 0
-
-    host, sep, port_s = ep.rpartition(":")
-    if not sep:
-        return ep, 0
-    return host, int(port_s) if port_s.isdigit() else 0
-
-
 def _build_ydb_attrs(driver_config, node_id=None, peer=None):
     host, port = _split_endpoint(getattr(driver_config, "endpoint", None))
     attrs = {
@@ -205,16 +188,74 @@ def create_span(name, attributes=None, kind="internal"):
     return _registry.create_span(name, attributes=attributes, kind=kind).attach_context()
 
 
-def create_ydb_span(name, driver_config, node_id=None, kind=None, peer=None) -> Span:
-    """Create a span pre-filled with standard YDB attributes.
+class _TelemetryContext:
+    """Attach tracing context and metrics lifecycle for one SDK operation."""
 
-    When no provider is active a :class:`NoopSpan` is returned so callers can
-    call ``.attach_context()``, ``.set_attribute(...)`` etc. unconditionally.
+    def __init__(self, telemetry, span_context, metrics_context):
+        self._telemetry = telemetry
+        self._span_context = span_context
+        self._metrics_context = metrics_context
+
+    def __enter__(self):
+        self._metrics_context.__enter__()
+        self._span_context.__enter__()
+        return self._telemetry
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        span_result = self._span_context.__exit__(exc_type, exc_val, exc_tb)
+        metrics_result = self._metrics_context.__exit__(exc_type, exc_val, exc_tb)
+        return bool(span_result or metrics_result)
+
+
+class _TelemetryOperation:
+    """Span-compatible facade that forwards lifecycle events to tracing and metrics."""
+
+    def __init__(self, span, metrics):
+        self._span = span
+        self._metrics = metrics
+
+    def set_error(self, exception):
+        self._span.set_error(exception)
+        self._metrics.set_error(exception)
+
+    def set_attribute(self, key, value):
+        self._span.set_attribute(key, value)
+        self._metrics.set_attribute(key, value)
+
+    def end(self):
+        self._span.end()
+        self._metrics.end()
+
+    def attach_context(self, end_on_exit=True):
+        return _TelemetryContext(
+            self,
+            self._span.attach_context(end_on_exit=end_on_exit),
+            self._metrics.attach_context(end_on_exit=end_on_exit),
+        )
+
+
+def create_ydb_span(name, driver_config, node_id=None, kind=None, peer=None) -> Span:
+    """Create telemetry for one user-visible YDB client operation.
+
+    The returned object is span-compatible: when tracing is active it carries the
+    standard YDB attributes, and when metrics are active the same object also drives
+    the client operation metrics. When neither is active a shared :class:`NoopSpan`
+    is returned so callers can use ``.attach_context()``, ``.set_attribute(...)``
+    etc. unconditionally with zero overhead.
     """
-    if not _registry.is_active():
+    tracing_active = _registry.is_active()
+    metrics_active = _metrics.is_metrics_enabled()
+    if not tracing_active and not metrics_active:
         return NoopTracingProvider._SPAN
-    attrs = _build_ydb_attrs(driver_config, node_id, peer)
-    return _registry.create_span(name, attributes=attrs, kind=kind)
+
+    if tracing_active:
+        span = _registry.create_span(name, attributes=_build_ydb_attrs(driver_config, node_id, peer), kind=kind)
+    else:
+        span = NoopTracingProvider._SPAN
+
+    metrics_attrs = _metrics._build_ydb_metrics_attrs(driver_config) if metrics_active else None
+    metrics = _metrics.create_metrics_operation(name, metrics_attrs)
+    return _TelemetryOperation(span, metrics)
 
 
 def set_peer_attributes(span: Span, peer) -> None:

@@ -7,6 +7,7 @@ from unittest.mock import AsyncMock, MagicMock
 from ydb import issues
 from ydb.aio.query.pool import QuerySessionPool
 from ydb.aio.query.session import QuerySession
+from ydb.observability.metrics import QuerySessionPoolMetrics
 
 
 def _make_pool(size=1):
@@ -19,6 +20,7 @@ def _make_pool(size=1):
     pool._current_size = 0
     pool._loop = asyncio.get_event_loop()
     pool._query_client_settings = None
+    pool._metrics = QuerySessionPoolMetrics("test-query-session-pool", driver, size)
     return pool
 
 

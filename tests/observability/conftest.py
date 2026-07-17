@@ -7,6 +7,10 @@ can be collected and inspected without any external backend.
 import pytest
 
 from opentelemetry import trace
+from opentelemetry.sdk.metrics import MeterProvider
+from opentelemetry.sdk.metrics import Counter, Histogram, ObservableUpDownCounter, UpDownCounter
+from opentelemetry.sdk.metrics.export import AggregationTemporality
+from opentelemetry.sdk.metrics.export import InMemoryMetricReader
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import SimpleSpanProcessor
 from opentelemetry.sdk.trace.export.in_memory_span_exporter import InMemorySpanExporter
@@ -35,6 +39,30 @@ def otel_setup():
     # Restore noop state
     disable_tracing()
     _exporter.clear()
+
+
+@pytest.fixture()
+def metrics_setup():
+    """Enable SDK metrics with an in-memory reader, then restore noop defaults."""
+    from ydb.opentelemetry import disable_metrics, enable_metrics
+
+    reader = InMemoryMetricReader(
+        preferred_temporality={
+            Counter: AggregationTemporality.CUMULATIVE,
+            Histogram: AggregationTemporality.CUMULATIVE,
+            ObservableUpDownCounter: AggregationTemporality.CUMULATIVE,
+            UpDownCounter: AggregationTemporality.CUMULATIVE,
+        }
+    )
+    provider = MeterProvider(metric_readers=[reader])
+
+    disable_metrics()
+    enable_metrics(provider)
+    try:
+        yield reader
+    finally:
+        disable_metrics()
+        provider.shutdown()
 
 
 class FakeDriverConfig:
