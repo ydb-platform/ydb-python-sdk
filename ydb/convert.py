@@ -474,31 +474,51 @@ class _ResultSet(object):
 ResultSet = _ResultSet
 
 
-def aggregate_result_sets_by_index(result_sets):
-    """Glue together stream parts that belong to the same result set.
+class _ResultSetsAccumulator:
+    """Reassembles streamed result-set parts in a single pass.
 
     The query service streams one logical result set as several response parts
-    that share a single ``result_set_index``. VALUE parts are concatenated back
-    into one result set. ARROW parts are left untouched: each already carries
-    its own schema and record-batch ``data`` and is independently decodable, so
-    they stay as separate result sets instead of splicing opaque bytes together.
+    that share a ``result_set_index``. Parts are fed one at a time via
+    :meth:`add`: VALUE parts sharing an index are concatenated into a single
+    result set, while ARROW parts — each already carrying its own schema and
+    record-batch ``data`` — are kept as separate, independently decodable
+    result sets.
     """
-    merged = []
-    by_index = {}
-    for result_set in result_sets:
+
+    __slots__ = ("result_sets", "_by_index")
+
+    def __init__(self):
+        self.result_sets = []
+        self._by_index = {}
+
+    def add(self, result_set):
         index = result_set.index
         if index is None or result_set.data is not None:
-            merged.append(result_set)
-            continue
+            self.result_sets.append(result_set)
+            return
 
-        target = by_index.get(index)
+        target = self._by_index.get(index)
         if target is None:
-            by_index[index] = result_set
-            merged.append(result_set)
+            self._by_index[index] = result_set
+            self.result_sets.append(result_set)
         else:
             target._extend(result_set)
 
-    return merged
+
+def aggregate_result_sets_by_index(result_sets):
+    """Merge a sync stream of result-set parts into one result set per index."""
+    accumulator = _ResultSetsAccumulator()
+    for result_set in result_sets:
+        accumulator.add(result_set)
+    return accumulator.result_sets
+
+
+async def aggregate_result_sets_by_index_async(result_sets):
+    """Merge an async stream of result-set parts into one result set per index."""
+    accumulator = _ResultSetsAccumulator()
+    async for result_set in result_sets:
+        accumulator.add(result_set)
+    return accumulator.result_sets
 
 
 class _Row(_DotDict):

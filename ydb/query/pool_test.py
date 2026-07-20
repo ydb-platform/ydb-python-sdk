@@ -1,12 +1,13 @@
 from __future__ import annotations
 
+import asyncio
 import threading
 import time
 import unittest
 from unittest.mock import MagicMock
 
 from ydb import issues
-from ydb.convert import _ResultSet, aggregate_result_sets_by_index
+from ydb.convert import _ResultSet, aggregate_result_sets_by_index, aggregate_result_sets_by_index_async
 from ydb.query.pool import QuerySessionPool
 from ydb.query.session import QuerySession
 
@@ -117,6 +118,16 @@ class TestAggregateResultSetsByIndex(unittest.TestCase):
 
     def test_empty_input_returns_empty_list(self):
         self.assertEqual(aggregate_result_sets_by_index([]), [])
+
+    def test_async_stream_is_merged_in_one_pass(self):
+        async def stream():
+            for part in [_rs(0, [1]), _rs(0, [2]), _rs(1, [3]), _rs(1, [4])]:
+                yield part
+
+        merged = asyncio.run(aggregate_result_sets_by_index_async(stream()))
+
+        self.assertEqual([rs.index for rs in merged], [0, 1])
+        self.assertEqual([rs.rows for rs in merged], [[1, 2], [3, 4]])
 
 
 class TestRetryOperationSync(unittest.TestCase):

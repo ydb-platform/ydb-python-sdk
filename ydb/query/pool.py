@@ -264,7 +264,7 @@ class QuerySessionPool:
         def wrapped_callee():
             with self.checkout(timeout=retry_settings.max_session_acquire_timeout) as session:
                 it = session.execute(query, parameters, *args, **kwargs)
-                return convert.aggregate_result_sets_by_index([result_set for result_set in it])
+                return convert.aggregate_result_sets_by_index(it)
 
         return retry_operation_sync(wrapped_callee, retry_settings)
 
