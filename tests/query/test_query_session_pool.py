@@ -36,6 +36,28 @@ class TestQuerySessionPool:
         assert res[0].index == 0
         assert len(res[0].rows) == row_count
 
+    def test_oneshot_query_arrow_parts_are_intact(self, pool: QuerySessionPool):
+        row_count = 100_000
+        query = f"SELECT * FROM AS_TABLE(ListMap(ListFromRange(0ul, {row_count}ul), ($x) -> (<|id: $x|>)))"
+        res = pool.execute_with_retries(query, result_set_format=ydb.QueryResultSetFormat.ARROW)
+
+        # Arrow parts are passed through untouched (never merged): each result
+        # set is one self-describing record batch for result set index 0.
+        assert len(res) >= 1
+        for result_set in res:
+            assert result_set.index == 0
+            assert result_set.data
+            assert result_set.arrow_format_meta.schema
+            assert not result_set.rows
+
+        pa = pytest.importorskip("pyarrow")
+        total = 0
+        for result_set in res:
+            schema = pa.ipc.read_schema(pa.py_buffer(result_set.arrow_format_meta.schema))
+            batch = pa.ipc.read_record_batch(pa.py_buffer(result_set.data), schema)
+            total += batch.num_rows
+        assert total == row_count
+
     def test_oneshot_ddl_query(self, pool: QuerySessionPool):
         pool.execute_with_retries("create table Queen(key UInt64, PRIMARY KEY (key));")
         pool.execute_with_retries("drop table Queen;")
