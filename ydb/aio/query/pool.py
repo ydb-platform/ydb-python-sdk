@@ -237,7 +237,7 @@ class QuerySessionPool:
         async def wrapped_callee():
             async with self.checkout(timeout=retry_settings.max_session_acquire_timeout) as session:
                 it = await session.execute(query, parameters, *args, **kwargs)
-                return [result_set async for result_set in it]
+                return await convert.aggregate_result_sets_by_index_async(it)
 
         return await retry_operation_async(wrapped_callee, retry_settings)
 
