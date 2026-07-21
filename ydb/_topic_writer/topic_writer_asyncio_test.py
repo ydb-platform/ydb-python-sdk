@@ -36,6 +36,8 @@ from .topic_writer import (
     PublicWriteResult,
     TopicWriterError,
     TopicWriterBufferFullError,
+    TopicWriterPartitionSplitError,
+    TopicWriterStopped,
 )
 from .._grpc.grpcwrapper.ydb_topic_public_types import PublicCodec
 from .._topic_common.test_helpers import StreamMock, wait_for_fast
@@ -45,6 +47,14 @@ from .topic_writer_asyncio import (
     WriterAsyncIOReconnector,
     WriterAsyncIO,
 )
+from .topic_writer_multi_asyncio import TopicWriterMultiAsyncIO, MultiWriterSettings
+from .topic_writer_partition_chooser import (
+    PublicPartitionByKeyKafka,
+    PublicPartitionByKeyBound,
+    PublicPartitionChooser,
+    murmur2_32,
+)
+from .._grpc.grpcwrapper.ydb_topic_public_types import PublicDescribeTopicResult
 
 from ..credentials import AnonymousCredentials
 
@@ -1146,3 +1156,506 @@ async def test_writer_create_failure_does_not_leak_grpc_thread():
     finally:
         channel.close()
         server.stop()
+
+
+class _PublicDescription:
+    def __init__(self, partitions):
+        self.partitions = partitions
+
+
+class _MultiFakeDescribeDriver:
+    """Fake driver that answers DescribeTopic with a sequence of descriptions."""
+
+    _credentials = AnonymousCredentials()
+
+    def __init__(self, descriptions):
+        self._descriptions = list(descriptions)
+        self.describe_calls = 0
+
+    async def __call__(self, request, stub, method, wrapper=None, *args, **kwargs):
+        idx = min(self.describe_calls, len(self._descriptions) - 1)
+        self.describe_calls += 1
+        description = _PublicDescription(self._descriptions[idx])
+
+        class _Result:
+            def to_public(self):
+                return description
+
+        return _Result()
+
+
+# Per-partition last persisted seqno seen by the fakes' wait_init(); tests mutate it.
+_FAKE_LAST_SEQNO: dict = {}
+
+
+class _FakeSubWriter:
+    """Stand-in for a per-partition WriterAsyncIO used by the multi-writer.
+
+    Acks every write immediately.
+    """
+
+    def __init__(self, driver, settings):
+        self.settings = settings
+        self.partition_id = settings.partition_id
+        self.producer_id = settings.producer_id
+        self.split_hook = settings._on_check_retriable_error
+        self.messages: List = []
+        self.closed = False
+
+    async def wait_init(self):
+        return PublicWriterInitInfo(last_seqno=_FAKE_LAST_SEQNO.get(self.partition_id, 0), supported_codecs=[])
+
+    async def write_with_ack_future(self, message):
+        self.messages.append(message)
+        future = asyncio.get_running_loop().create_future()
+        future.set_result(PublicWriteResult.Written(offset=len(self.messages)))
+        return future
+
+    async def flush(self):
+        pass
+
+    async def close(self, flush=True):
+        self.closed = True
+
+
+class _ControllableSubWriter(_FakeSubWriter):
+    """Sub-writer whose acks are resolved manually, to test split-resend."""
+
+    def __init__(self, driver, settings):
+        super().__init__(driver, settings)
+        self.pending: List = []
+
+    async def write_with_ack_future(self, message):
+        self.messages.append(message)
+        future = asyncio.get_running_loop().create_future()
+        self.pending.append(future)
+        return future
+
+    def resolve_all(self):
+        for i, future in enumerate(self.pending):
+            if not future.done():
+                future.set_result(PublicWriteResult.Written(offset=i))
+
+
+class _KeyMapChooser(PublicPartitionChooser):
+    """Deterministic chooser: routes by message key via a caller-controlled map."""
+
+    def __init__(self, mapping):
+        self._mapping = mapping
+        self.partitions = set()
+
+    def add_partitions(self, partitions):
+        for p in partitions:
+            self.partitions.add(p.partition_id)
+
+    def remove_partition(self, partition_id):
+        self.partitions.discard(partition_id)
+
+    def choose_partition(self, message):
+        return self._mapping[message.key]
+
+
+class _FlushControlledSubWriter(_FakeSubWriter):
+    """Sub-writer that acks buffered messages only when flush() is called."""
+
+    def __init__(self, driver, settings):
+        super().__init__(driver, settings)
+        self.pending: List = []
+
+    async def write_with_ack_future(self, message):
+        self.messages.append(message)
+        future = asyncio.get_running_loop().create_future()
+        self.pending.append(future)
+        return future
+
+    async def flush(self):
+        for i, future in enumerate(self.pending):
+            if not future.done():
+                future.set_result(PublicWriteResult.Written(offset=i))
+
+
+class _RaisingSubWriter(_FakeSubWriter):
+    """Sub-writer whose admission always fails."""
+
+    async def write_with_ack_future(self, message):
+        raise RuntimeError("admission failed")
+
+
+class _CloseRaisesSubWriter(_ControllableSubWriter):
+    """Sub-writer whose close() re-raises the split stop reason (like a real hook-stopped writer)."""
+
+    async def close(self, flush=True):
+        self.closed = True
+        raise TopicWriterPartitionSplitError()
+
+
+def _multi_partition(partition_id, parents=None, children=None, from_bound=None, to_bound=None, active=True):
+    key_range = None
+    if from_bound is not None or to_bound is not None:
+        key_range = PublicDescribeTopicResult.PartitionKeyRange(from_bound=from_bound or b"", to_bound=to_bound or b"")
+    return PublicDescribeTopicResult.PartitionInfo(
+        partition_id=partition_id,
+        active=active,
+        child_partition_ids=children or [],
+        parent_partition_ids=parents or [],
+        partition_stats=None,
+        key_range=key_range,
+    )
+
+
+# Real YDB split topology (observed live against a cloud cluster): the split parent stays in the
+# DescribeTopic result as an INACTIVE partition whose child_partition_ids point at the new leaves,
+# and each child is active with parent_partition_ids == [parent]. Mocks below mirror that so the
+# tests exercise the orchestrator's active/child filtering on realistic input.
+def _split_parent(partition_id, children, parents=None):
+    return _multi_partition(partition_id, parents=parents, children=children, active=False)
+
+
+@pytest.mark.asyncio
+class TestTopicWriterMultiAsyncIO:
+    async def test_routes_messages_by_key(self):
+        driver = _MultiFakeDescribeDriver([[_multi_partition(0), _multi_partition(1), _multi_partition(2)]])
+        settings = MultiWriterSettings(
+            topic="/local/topic",
+            producer_id_prefix="pfx",
+            partition_chooser=PublicPartitionByKeyKafka(),
+        )
+        with mock.patch("ydb._topic_writer.topic_writer_multi_asyncio.WriterAsyncIO", _FakeSubWriter):
+            writer = TopicWriterMultiAsyncIO(driver, settings)
+            await writer.wait_init()
+
+            keys = ["a", "user-42", "hello", "мурмур2-хэш", "0", "zzz"]
+            for key in keys:
+                await writer.write(PublicMessage(b"payload", key=key))
+
+            for key in keys:
+                partition_id = (murmur2_32(key.encode("utf-8"), 0) & 0x7FFFFFFF) % 3
+                sub = writer._writers[partition_id]
+                assert sub.producer_id == "pfx-%d" % partition_id
+                assert any(m.key == key for m in sub.messages)
+
+            assert sum(len(w.messages) for w in writer._writers.values()) == len(keys)
+            await writer.close(flush=False)
+
+    async def test_split_reroutes_to_child_partitions(self):
+        before = [_multi_partition(0), _multi_partition(1), _multi_partition(2)]
+        after = [
+            _split_parent(0, children=[3, 4]),  # split parent stays, inactive, with children
+            _multi_partition(1),
+            _multi_partition(2),
+            _multi_partition(3, parents=[0]),
+            _multi_partition(4, parents=[0]),
+        ]
+        driver = _MultiFakeDescribeDriver([before, after])
+        settings = MultiWriterSettings(
+            topic="/local/topic",
+            producer_id_prefix="pfx",
+            partition_chooser=PublicPartitionByKeyKafka(),
+        )
+        with mock.patch("ydb._topic_writer.topic_writer_multi_asyncio.WriterAsyncIO", _FakeSubWriter):
+            writer = TopicWriterMultiAsyncIO(driver, settings)
+            await writer.wait_init()
+
+            sub0 = await writer._get_or_create_writer(0)
+            await writer._on_partition_overloaded(0)
+
+            assert sub0.closed
+            assert 0 not in writer._writers
+            assert 0 not in writer._partitions
+            assert set(writer._partitions) == {1, 2, 3, 4}
+            assert set(writer._chooser._partitions) == {1, 2, 3, 4}
+            await writer.close(flush=False)
+
+    async def test_split_resends_unacked_messages_with_dedup_cut(self):
+        _FAKE_LAST_SEQNO.clear()
+        # Route all three keys to partition 0 initially; after the split, spread them
+        # across the two children.
+        mapping = {"a": 0, "b": 0, "c": 0}
+        chooser = _KeyMapChooser(mapping)
+        before = [_multi_partition(0), _multi_partition(1)]
+        after = [
+            _split_parent(0, children=[2, 3]),  # split parent stays, inactive, with children
+            _multi_partition(1),
+            _multi_partition(2, parents=[0]),
+            _multi_partition(3, parents=[0]),
+        ]
+        driver = _MultiFakeDescribeDriver([before, after])
+        settings = MultiWriterSettings(topic="/local/topic", producer_id_prefix="pfx", partition_chooser=chooser)
+
+        with mock.patch("ydb._topic_writer.topic_writer_multi_asyncio.WriterAsyncIO", _ControllableSubWriter):
+            writer = TopicWriterMultiAsyncIO(driver, settings)
+            await writer.wait_init()
+
+            f_a = await writer.write_with_ack_future(PublicMessage(b"a", key="a"))  # partition 0, seqno 1
+            f_b = await writer.write_with_ack_future(PublicMessage(b"b", key="b"))  # partition 0, seqno 2
+            f_c = await writer.write_with_ack_future(PublicMessage(b"c", key="c"))  # partition 0, seqno 3
+            assert set(writer._inflight[0]) == {1, 2, 3}
+
+            # Ack the first message before the split: seqno 1 is now the dedup cut (max_acked),
+            # and an acked message is already out of the in-flight set (never resent).
+            writer._writers[0].pending[0].set_result(PublicWriteResult.Written(offset=0))
+            await asyncio.sleep(0)
+            assert f_a.done() and writer._max_acked.get(0) == 1
+            assert set(writer._inflight[0]) == {2, 3}
+
+            # Split: the un-acked b, c (seqno > cut) are re-routed to the children.
+            mapping.update({"a": 2, "b": 3, "c": 2})
+            await writer._on_partition_overloaded(0)
+
+            assert 0 not in writer._inflight
+            assert [m.key for m in writer._writers[3].messages] == ["b"]
+            assert [m.key for m in writer._writers[2].messages] == ["c"]
+            assert not f_b.done() and not f_c.done()
+
+            writer._writers[2].resolve_all()
+            writer._writers[3].resolve_all()
+            await asyncio.sleep(0)
+            assert f_b.done() and f_c.done()
+
+            await writer.close(flush=False)
+
+    async def test_adaptive_default_chooser(self):
+        # A topic without key ranges -> Kafka hash chooser.
+        driver_plain = _MultiFakeDescribeDriver([[_multi_partition(0), _multi_partition(1)]])
+        # A topic that reports key ranges (auto-partitioning) -> bound chooser.
+        driver_auto = _MultiFakeDescribeDriver(
+            [[_multi_partition(0, from_bound=b"", to_bound=b"\x80"), _multi_partition(1, from_bound=b"\x80")]]
+        )
+        with mock.patch("ydb._topic_writer.topic_writer_multi_asyncio.WriterAsyncIO", _FakeSubWriter):
+            plain = TopicWriterMultiAsyncIO(driver_plain, MultiWriterSettings(topic="/local/topic"))
+            await plain.wait_init()
+            assert isinstance(plain._chooser, PublicPartitionByKeyKafka)
+            await plain.close(flush=False)
+
+            auto = TopicWriterMultiAsyncIO(driver_auto, MultiWriterSettings(topic="/local/topic"))
+            await auto.wait_init()
+            assert isinstance(auto._chooser, PublicPartitionByKeyBound)
+            await auto.close(flush=False)
+
+    async def test_idle_writer_eviction(self):
+        driver = _MultiFakeDescribeDriver([[_multi_partition(0), _multi_partition(1)]])
+        chooser = _KeyMapChooser({"a": 0, "b": 1})
+        settings = MultiWriterSettings(
+            topic="/local/topic", producer_id_prefix="pfx", partition_chooser=chooser, writer_idle_timeout_sec=1000
+        )
+        with mock.patch("ydb._topic_writer.topic_writer_multi_asyncio.WriterAsyncIO", _ControllableSubWriter):
+            writer = TopicWriterMultiAsyncIO(driver, settings)
+            await writer.wait_init()
+
+            f_a = await writer.write_with_ack_future(PublicMessage(b"a", key="a"))  # partition 0
+            f_b = await writer.write_with_ack_future(PublicMessage(b"b", key="b"))  # partition 1
+            assert set(writer._writers) == {0, 1}
+            sub0 = writer._writers[0]
+
+            # ack partition 0 (it goes idle); leave partition 1 un-acked
+            sub0.resolve_all()
+            await asyncio.sleep(0)
+            assert not writer._inflight.get(0) and writer._inflight.get(1)
+
+            # make both look old: only the idle partition 0 is evictable
+            old = writer._loop.time() - 5000
+            writer._last_write_at[0] = old
+            writer._last_write_at[1] = old
+            await writer._evict_idle_writers()
+
+            assert 0 not in writer._writers and sub0.closed  # idle -> evicted
+            assert 1 in writer._writers  # pending in-flight -> kept
+            assert writer._partition_seqno.get(0) == 1  # seqno cursor preserved for continuity
+
+            # writing to partition 0 again recreates a fresh sub-writer, continuing the seqno
+            f_a2 = await writer.write_with_ack_future(PublicMessage(b"a2", key="a"))
+            assert 0 in writer._writers and writer._writers[0] is not sub0
+            assert next(iter(writer._inflight[0])) == 2  # continued from cursor (1 -> 2)
+
+            writer._writers[0].resolve_all()
+            writer._writers[1].resolve_all()
+            await asyncio.sleep(0)
+            assert f_a.done() and f_b.done() and f_a2.done()
+            await writer.close(flush=False)
+
+    async def test_split_hook_detects_overloaded_only(self):
+        # How the server signals a split (observed live): a split partition goes inactive, so the
+        # next write to it fails on the write stream with OVERLOADED (status_code 400060),
+        # message "Write to inactive partition N", surfaced by the SDK as issues.Overloaded.
+        # The hook triggers on that exception TYPE (the message text is not inspected); any other
+        # error is left to the writer's normal retry path.
+        driver = _MultiFakeDescribeDriver([[_multi_partition(0)]])
+        settings = MultiWriterSettings(topic="/local/topic", partition_chooser=PublicPartitionByKeyKafka())
+        with mock.patch("ydb._topic_writer.topic_writer_multi_asyncio.WriterAsyncIO", _FakeSubWriter):
+            writer = TopicWriterMultiAsyncIO(driver, settings)
+            await writer.wait_init()
+
+            observed: List[int] = []
+
+            async def fake_split(partition_id):
+                observed.append(partition_id)
+
+            writer._on_partition_overloaded = fake_split
+            hook = writer._make_overloaded_hook(0)
+
+            split_signal = issues.Overloaded("status is not ok: Write to inactive partition 0")
+            assert hook(split_signal) is True
+            await asyncio.sleep(0)
+            assert observed == [0]
+            assert hook(RuntimeError("some other error")) is False
+
+            await writer.close(flush=False)
+
+    async def test_repartition_tolerates_subwriter_close_raising(self):
+        # Regression: a hook-stopped sub-writer's close() re-raises TopicWriterPartitionSplitError.
+        # Repartition must swallow it and still migrate to the child (not fall back to recovery).
+        _FAKE_LAST_SEQNO.clear()
+        mapping = {"a": 0}
+        chooser = _KeyMapChooser(mapping)
+        before = [_multi_partition(0), _multi_partition(1)]
+        after = [
+            _split_parent(0, children=[2, 3]),  # split parent stays, inactive, with children
+            _multi_partition(1),
+            _multi_partition(2, parents=[0]),
+            _multi_partition(3, parents=[0]),
+        ]
+        driver = _MultiFakeDescribeDriver([before, after])
+        settings = MultiWriterSettings(topic="/local/topic", producer_id_prefix="pfx", partition_chooser=chooser)
+
+        with mock.patch("ydb._topic_writer.topic_writer_multi_asyncio.WriterAsyncIO", _CloseRaisesSubWriter):
+            writer = TopicWriterMultiAsyncIO(driver, settings)
+            await writer.wait_init()
+
+            f_a = await writer.write_with_ack_future(PublicMessage(b"a", key="a"))  # partition 0
+            mapping["a"] = 2  # after split, route to child 2
+
+            await writer._on_partition_overloaded(0)  # must not raise despite close() raising
+
+            assert 0 not in writer._partitions  # retired cleanly (no recovery fallback)
+            assert [m.key for m in writer._writers[2].messages] == ["a"]  # migrated to the child
+            assert 0 not in writer._inflight
+
+            writer._writers[2].resolve_all()
+            await asyncio.sleep(0)
+            assert f_a.done()
+
+            await writer.close(flush=False)
+
+    async def test_merge_migrates_both_parents_to_shared_child(self):
+        _FAKE_LAST_SEQNO.clear()
+        # Two parents (0, 1) merge into one child (2), which lists both as parents.
+        mapping = {"x": 0, "y": 1}
+        chooser = _KeyMapChooser(mapping)
+        before = [_multi_partition(0), _multi_partition(1)]
+        after = [_multi_partition(2, parents=[0, 1])]
+        driver = _MultiFakeDescribeDriver([before, after])
+        settings = MultiWriterSettings(topic="/local/topic", producer_id_prefix="pfx", partition_chooser=chooser)
+
+        with mock.patch("ydb._topic_writer.topic_writer_multi_asyncio.WriterAsyncIO", _ControllableSubWriter):
+            writer = TopicWriterMultiAsyncIO(driver, settings)
+            await writer.wait_init()
+
+            f_x = await writer.write_with_ack_future(PublicMessage(b"x", key="x"))  # partition 0
+            f_y = await writer.write_with_ack_future(PublicMessage(b"y", key="y"))  # partition 1
+            assert set(writer._inflight[0]) == {1} and set(writer._inflight[1]) == {1}
+
+            # After the merge both keys route to the shared child 2.
+            mapping.update({"x": 2, "y": 2})
+            # Overloaded fired for partition 0 only; the handler must retire partition 1 too.
+            await writer._on_partition_overloaded(0)
+
+            assert set(writer._partitions) == {2}
+            assert writer._chooser.partitions == {2}
+            assert 0 not in writer._writers and 1 not in writer._writers
+            assert sorted(m.key for m in writer._writers[2].messages) == ["x", "y"]
+            assert 0 not in writer._inflight and 1 not in writer._inflight
+
+            writer._writers[2].resolve_all()
+            await asyncio.sleep(0)
+            assert f_x.done() and f_y.done()
+
+            await writer.close(flush=False)
+
+    async def test_close_flushes_buffered_messages(self):
+        driver = _MultiFakeDescribeDriver([[_multi_partition(0), _multi_partition(1), _multi_partition(2)]])
+        settings = MultiWriterSettings(
+            topic="/local/topic", producer_id_prefix="pfx", partition_chooser=PublicPartitionByKeyKafka()
+        )
+        with mock.patch("ydb._topic_writer.topic_writer_multi_asyncio.WriterAsyncIO", _FlushControlledSubWriter):
+            writer = TopicWriterMultiAsyncIO(driver, settings)
+            futures = [
+                await writer.write_with_ack_future(PublicMessage(("m%d" % i).encode(), key="k%d" % i)) for i in range(5)
+            ]
+            assert not any(f.done() for f in futures)  # nothing acked yet
+
+            await writer.close()  # flush=True must deliver the buffered messages
+
+            assert all(f.done() and not f.cancelled() and f.exception() is None for f in futures)
+
+    async def test_adaptive_chooser_single_open_range_partition(self):
+        # A single auto-partitioned partition owns the fully-open range b""..b"".
+        driver = _MultiFakeDescribeDriver([[_multi_partition(0, from_bound=b"", to_bound=b"")]])
+        with mock.patch("ydb._topic_writer.topic_writer_multi_asyncio.WriterAsyncIO", _FakeSubWriter):
+            writer = TopicWriterMultiAsyncIO(driver, MultiWriterSettings(topic="/local/topic"))
+            await writer.wait_init()
+            assert isinstance(writer._chooser, PublicPartitionByKeyBound)
+            await writer.close(flush=False)
+
+    async def test_transient_overload_recovers_partition_in_place(self):
+        # DescribeTopic never shows children -> ordinary overload, not a repartition.
+        driver = _MultiFakeDescribeDriver([[_multi_partition(0), _multi_partition(1)]])
+        chooser = _KeyMapChooser({"a": 0})
+        settings = MultiWriterSettings(topic="/local/topic", producer_id_prefix="pfx", partition_chooser=chooser)
+        with mock.patch(
+            "ydb._topic_writer.topic_writer_multi_asyncio.WriterAsyncIO", _ControllableSubWriter
+        ), mock.patch("ydb._topic_writer.topic_writer_multi_asyncio._REPARTITION_DISCOVER_DELAY", 0), mock.patch(
+            "ydb._topic_writer.topic_writer_multi_asyncio._REPARTITION_DISCOVER_ATTEMPTS", 2
+        ):
+            writer = TopicWriterMultiAsyncIO(driver, settings)
+            await writer.wait_init()
+
+            future = await writer.write_with_ack_future(PublicMessage(b"a", key="a"))
+            old_sub = writer._writers[0]
+
+            await writer._on_partition_overloaded(0)
+
+            # partition kept (not retired); a fresh sub-writer resends the message
+            assert 0 in writer._partitions
+            new_sub = writer._writers[0]
+            assert new_sub is not old_sub
+            assert old_sub.closed
+            assert [m.key for m in new_sub.messages] == ["a"]
+            assert not future.done()
+
+            new_sub.resolve_all()
+            await asyncio.sleep(0)
+            assert future.done()
+
+            await writer.close(flush=False)
+
+    async def test_enqueue_failure_does_not_leak_inflight(self):
+        driver = _MultiFakeDescribeDriver([[_multi_partition(0), _multi_partition(1)]])
+        chooser = _KeyMapChooser({"a": 0})
+        settings = MultiWriterSettings(topic="/local/topic", producer_id_prefix="pfx", partition_chooser=chooser)
+        with mock.patch("ydb._topic_writer.topic_writer_multi_asyncio.WriterAsyncIO", _RaisingSubWriter):
+            writer = TopicWriterMultiAsyncIO(driver, settings)
+            await writer.wait_init()
+
+            with pytest.raises(RuntimeError):
+                await writer.write_with_ack_future(PublicMessage(b"a", key="a"))
+
+            assert not writer._inflight.get(0)  # no leaked entry, no pending future
+            await writer.close(flush=False)
+
+    async def test_duplicate_seqno_rejected_without_leak(self):
+        driver = _MultiFakeDescribeDriver([[_multi_partition(0), _multi_partition(1)]])
+        chooser = _KeyMapChooser({"a": 0, "b": 0})
+        settings = MultiWriterSettings(
+            topic="/local/topic", producer_id_prefix="pfx", partition_chooser=chooser, auto_seqno=False
+        )
+        with mock.patch("ydb._topic_writer.topic_writer_multi_asyncio.WriterAsyncIO", _ControllableSubWriter):
+            writer = TopicWriterMultiAsyncIO(driver, settings)
+            await writer.wait_init()
+
+            first = await writer.write_with_ack_future(PublicMessage(b"a", key="a", seqno=5))
+            with pytest.raises(TopicWriterError):
+                await writer.write_with_ack_future(PublicMessage(b"b", key="b", seqno=5))
+
+            assert set(writer._inflight[0]) == {5}
+            await writer.close(flush=False)
+            assert isinstance(first.exception(), TopicWriterStopped)  # retrieve to avoid warning

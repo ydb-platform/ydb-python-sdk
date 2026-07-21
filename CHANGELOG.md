@@ -1,3 +1,5 @@
+* Add a topic multi-partition writer (`topic_client.multiwriter(...)`) that routes messages across partitions by their `key`, with Kafka-hash and key-range partition choosers, and transparently resends in-flight messages to child partitions on an auto-partition split (no loss, no duplicates); expose partition `key_range` on `describe_topic` results
+
 ## 3.30.0 ##
 * Query session attach stream handles `NodeShutdown` and `SessionShutdown` session hints: on `NodeShutdown` the session's node connection is pessimized and the session is retired, on `SessionShutdown` the session is retired without touching the node
 * Honor the `max_bytes` parameter in topic reader `receive_batch`/`receive_batch_with_tx` (previously accepted but silently ignored); add `max_bytes` to the async reader as well
