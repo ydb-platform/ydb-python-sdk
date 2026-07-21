@@ -1,3 +1,4 @@
+* Add a topic multi-partition writer (`topic_client.multiwriter(...)`) that routes messages across partitions by their `key`, with Kafka-hash and key-range partition choosers, and transparently resends in-flight messages to child partitions on an auto-partition split (no loss, no duplicates); expose partition `key_range` on `describe_topic` results
 * Fix automatic refresh of short-lived login tokens by using their JWT expiration time.
 
 ## 3.35.0 ##
