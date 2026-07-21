@@ -17,6 +17,29 @@ from .topic_writer import (
 )
 from .topic_writer_asyncio import WriterAsyncIOReconnector
 from .topic_writer_sync import WriterSync
+from .topic_writer_partition_chooser import (
+    murmur2_32,
+    murmur64a,
+    default_bound_key_hasher,
+    PublicPartitionByKeyKafka,
+    PublicPartitionByKeyBound,
+    PARTITION_KEY_METADATA_KEY,
+)
+from .._grpc.grpcwrapper.ydb_topic_public_types import PublicDescribeTopicResult
+
+
+def _partition_info(partition_id: int, from_bound: bytes = None):
+    key_range = None
+    if from_bound is not None:
+        key_range = PublicDescribeTopicResult.PartitionKeyRange(from_bound=from_bound, to_bound=b"")
+    return PublicDescribeTopicResult.PartitionInfo(
+        partition_id=partition_id,
+        active=True,
+        child_partition_ids=[],
+        parent_partition_ids=[],
+        partition_stats=None,
+        key_range=key_range,
+    )
 
 
 @pytest.mark.parametrize(
@@ -270,3 +293,88 @@ class TestWriterSyncBuffer:
         assert not write_errors, f"unexpected error: {write_errors}"
 
         writer.close(flush=False)
+
+
+# Golden vectors generated from the YDB Go SDK pkg/xhash reference implementation
+# (Murmur2Hash32 / Murmur2Hash64A, seed=0). A mismatch means keys would route to
+# the wrong partition, so these are byte-exact assertions.
+_MURMUR_GOLDEN = [
+    ("", 0, 0),
+    ("a", 2456313694, 510903276987443985),
+    ("hello", 3848350155, 2191231550387646743),
+    ("hello world, murmur2 hash", 1305234166, 15193844207144850389),
+    ("мурмур2-хэш", 1364064206, 2094682108092698226),
+    ("user-42", 3766944517, 17854748655353381905),
+    ("0", 1111412596, 5533571732986600803),
+    ("key-with-длинный-unicode-🚀", 901185517, 8765931500921732560),
+]
+
+
+@pytest.mark.parametrize("text,h32,h64", _MURMUR_GOLDEN)
+def test_murmur_hashes_match_go_golden_vectors(text, h32, h64):
+    data = text.encode("utf-8")
+    assert murmur2_32(data, 0) == h32
+    assert murmur64a(data, 0) == h64
+
+
+def test_default_bound_key_hasher_is_big_endian_murmur64a():
+    for text, _h32, h64 in _MURMUR_GOLDEN:
+        assert default_bound_key_hasher(text) == h64.to_bytes(8, "big")
+
+
+def test_kafka_chooser_routes_by_murmur2_modulo():
+    chooser = PublicPartitionByKeyKafka()
+    chooser.add_partitions([_partition_info(0), _partition_info(1), _partition_info(2)])
+    for key in ["", "a", "user-42", "hello", "мурмур2-хэш"]:
+        expected = (murmur2_32(key.encode("utf-8"), 0) & 0x7FFFFFFF) % 3
+        assert chooser.choose_partition(PublicMessage(b"x", key=key)) == expected
+
+
+def test_kafka_chooser_matches_apache_kafka_partition():
+    # Apache Kafka DefaultPartitioner: toPositive(murmur2(key)) % numPartitions.
+    # Golden index for key "a" with 3 partitions is 2 (not 1, which the raw hash gives).
+    chooser = PublicPartitionByKeyKafka()
+    chooser.add_partitions([_partition_info(i) for i in range(3)])
+    assert chooser.choose_partition(PublicMessage(b"x", key="a")) == 2
+
+
+def test_kafka_chooser_rejects_key_ranges():
+    chooser = PublicPartitionByKeyKafka()
+    with pytest.raises(ValueError):
+        chooser.add_partitions([_partition_info(0, from_bound=b"\x10")])
+
+
+def test_kafka_chooser_raises_without_partitions():
+    with pytest.raises(ValueError):
+        PublicPartitionByKeyKafka().choose_partition(PublicMessage(b"x", key="k"))
+
+
+def test_bound_chooser_routes_into_owning_key_range():
+    lo = b"\x55" * 8
+    hi = b"\xaa" * 8
+    chooser = PublicPartitionByKeyBound()
+    chooser.add_partitions([_partition_info(0), _partition_info(1, from_bound=lo), _partition_info(2, from_bound=hi)])
+
+    for key in ["a", "b", "user-42", "hello", "zzz", "мурмур2-хэш", "0"]:
+        hashed = default_bound_key_hasher(key)
+        if hashed < lo:
+            expected = 0
+        elif hashed < hi:
+            expected = 1
+        else:
+            expected = 2
+        assert chooser.choose_partition(PublicMessage(b"x", key=key)) == expected
+
+
+def test_bound_chooser_stamps_partition_key_metadata():
+    chooser = PublicPartitionByKeyBound()
+    chooser.add_partitions([_partition_info(0)])
+    message = PublicMessage(b"x", key="user-42")
+    chooser.choose_partition(message)
+    assert message.metadata_items[PARTITION_KEY_METADATA_KEY] == default_bound_key_hasher("user-42")
+
+
+def test_bound_chooser_requires_from_bound_on_non_first_partition():
+    chooser = PublicPartitionByKeyBound()
+    with pytest.raises(ValueError):
+        chooser.add_partitions([_partition_info(0), _partition_info(1)])
