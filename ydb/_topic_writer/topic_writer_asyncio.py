@@ -19,6 +19,7 @@ from .topic_writer import (
     InternalMessage,
     TopicWriterStopped,
     TopicWriterError,
+    TopicWriterPartitionSplitError,
     TopicWriterBufferFullError,
     internal_message_size_bytes,
     messages_to_proto_requests,
@@ -536,6 +537,17 @@ class WriterAsyncIOReconnector:
                     if self._closed:
                         return
                     err = issues.ConnectionLost("gRPC stream cancelled")
+
+                if self._settings._on_check_retriable_error is not None and self._settings._on_check_retriable_error(
+                    err
+                ):
+                    logger.debug(
+                        "writer reconnector %s stop connection loop by on_check_retriable_error hook due to %s",
+                        self._id,
+                        err,
+                    )
+                    self._stop(TopicWriterPartitionSplitError())
+                    return
 
                 err_info = check_retriable_error(err, retry_settings, attempt)
                 if not err_info.is_retriable or self._tx is not None:  # no retries in tx writer

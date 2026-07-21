@@ -259,6 +259,66 @@ For high-throughput pipelines, buffer writes and gather futures:
             raise f.exception()
 
 
+Writing by Key (Multiple Partitions)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+A regular writer targets a single partition for its whole lifetime. To spread load across
+all partitions of a topic from one logical writer — while keeping every message with the same
+key on the same partition (so per-key ordering is preserved) — use ``topic_client.multiwriter()``.
+
+Each message carries a ``key``; the writer hashes it and routes the message to the owning
+partition, maintaining a separate underlying writer per partition. This is the client-side
+companion to auto-partitioning.
+
+**Synchronous:**
+
+.. code-block:: python
+
+    with driver.topic_client.multiwriter("/local/my-topic") as writer:
+        writer.write(ydb.TopicWriterMessage(data="event", key="user-42"))
+        writer.write(ydb.TopicWriterMessage(data="event", key="user-7"))
+
+**Asynchronous:**
+
+.. code-block:: python
+
+    async with driver.topic_client.multiwriter("/local/my-topic") as writer:
+        await writer.write(ydb.TopicWriterMessage(data="event", key="user-42"))
+
+**Partition choosers** decide how a key maps to a partition. By default the writer picks one
+automatically after describing the topic — the key-range chooser for auto-partitioned topics,
+the Kafka-hash chooser otherwise — so ``multiwriter(topic)`` works out of the box. You can also
+set one explicitly:
+
+* :class:`~ydb.TopicWriterPartitionByKeyBound` — hashes the key and selects the partition whose
+  server-side key range owns it. Mirrors YDB auto-partitioning, so a key lands where the server
+  expects it. Used automatically for auto-partitioned topics.
+* :class:`~ydb.TopicWriterPartitionByKeyKafka` — ``murmur2(key) % partitions_count``,
+  Kafka-compatible. Best for topics with a fixed partition count.
+
+.. code-block:: python
+
+    writer = driver.topic_client.multiwriter(
+        "/local/my-topic",
+        partition_chooser=ydb.TopicWriterPartitionByKeyBound(),
+        producer_id_prefix="my-app",  # each partition writer uses "<prefix>-<partition_id>"
+    )
+
+The multi-writer accepts the same ``codec``, ``encoders``, ``auto_seqno``, ``auto_created_at``
+and buffer-limit parameters as :meth:`writer`, and exposes ``write``, ``write_with_ack``,
+``flush`` and ``close`` with the same semantics. ``wait_init()`` differs: it waits until the
+topic has been described and the partition set is known, and (unlike the single-partition writer)
+returns nothing, because the multi-writer manages a stream per partition rather than one stream.
+
+.. note::
+
+   When an auto-partitioned partition is split (one into two) or merged (two into one), the
+   multi-writer re-describes the topic, routes subsequent keys to the new child partition(s), and
+   transparently resends the messages that were still in flight to the retired partition(s).
+   Messages already persisted before the change are not resent (so no duplicates), and per-key
+   ordering is preserved.
+
+
 Writer Backpressure
 ^^^^^^^^^^^^^^^^^^^
 

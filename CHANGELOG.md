@@ -1,3 +1,5 @@
+* Add a topic multi-partition writer (`topic_client.multiwriter(...)`) that routes messages across partitions by their `key`, with Kafka-hash and key-range partition choosers, and transparently resends in-flight messages to child partitions on an auto-partition split (no loss, no duplicates); expose partition `key_range` on `describe_topic` results
+
 ## 3.31.4 ##
 * Fixed async `QuerySessionPool` permanently losing a pool slot when `acquire()` was cancelled while a new session was being created: `asyncio.CancelledError` no longer leaks the pool size counter, so a pool under deadline-driven cancellations can no longer end up exhausted and blocking forever. A cancelled or interrupted session attach now also closes the session instead of orphaning it server-side
 
