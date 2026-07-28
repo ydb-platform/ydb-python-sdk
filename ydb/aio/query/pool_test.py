@@ -119,13 +119,19 @@ class TestAcquireTimeout(unittest.IsolatedAsyncioTestCase):
         live_session.explain.assert_awaited_once_with("SELECT 1")
 
 
+async def _async_empty_iter():
+    """Async-iterable that yields nothing; usable as a stub for session.execute return value."""
+    if False:
+        yield
+
+
 class TestPoolIdParameter(unittest.IsolatedAsyncioTestCase):
     async def test_execute_with_retries_passes_pool_id_to_session(self):
         pool = _make_pool(size=1)
 
         session = MagicMock()
         session.is_active = True
-        session.execute = AsyncMock(return_value=[])
+        session.execute = AsyncMock(return_value=_async_empty_iter())
 
         async def mock_acquire(timeout=None):
             return session
@@ -144,7 +150,7 @@ class TestPoolIdParameter(unittest.IsolatedAsyncioTestCase):
 
         session = MagicMock()
         session.is_active = True
-        session.execute = AsyncMock(return_value=[])
+        session.execute = AsyncMock(return_value=_async_empty_iter())
 
         async def mock_acquire(timeout=None):
             return session
