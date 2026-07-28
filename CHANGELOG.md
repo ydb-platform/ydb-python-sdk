@@ -1,3 +1,5 @@
+* Add `pool_id` parameter to `QuerySession.execute`, `QueryTxContext.execute`, and `QuerySessionPool.execute_with_retries` to route queries to a specific resource pool
+
 ## 3.31.1 ##
 * Support the new `SECRET` scheme entry type: `SchemeEntryType.SECRET` and `SchemeEntry.is_secret()` now recognise secret entries returned by `list_directory`/`describe_path`
 

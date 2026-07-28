@@ -125,11 +125,7 @@ class TestPoolIdParameter(unittest.IsolatedAsyncioTestCase):
 
         session = MagicMock()
         session.is_active = True
-
-        async def mock_execute(query, parameters=None, *args, pool_id=None, **kwargs):
-            return []
-
-        session.execute = mock_execute
+        session.execute = AsyncMock(return_value=[])
 
         async def mock_acquire(timeout=None):
             return session
@@ -148,11 +144,7 @@ class TestPoolIdParameter(unittest.IsolatedAsyncioTestCase):
 
         session = MagicMock()
         session.is_active = True
-
-        async def mock_execute(query, parameters=None, *args, pool_id=None, **kwargs):
-            return []
-
-        session.execute = mock_execute
+        session.execute = AsyncMock(return_value=[])
 
         async def mock_acquire(timeout=None):
             return session

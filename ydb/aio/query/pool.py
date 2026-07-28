@@ -229,7 +229,7 @@ class QuerySessionPool:
         :param query: A query, yql or sql text.
         :param parameters: dict with parameters and YDB types;
         :param retry_settings: RetrySettings object.
-        :param pool_id: Optional resource pool ID for routing the query to a specific resuource pool.
+        :param pool_id: Optional resource pool ID for routing the query to a specific resource pool.
 
         :return: Result sets or exception in case of execution errors.
         """

@@ -157,11 +157,7 @@ class TestPoolIdParameter(unittest.TestCase):
 
         session = MagicMock()
         session.is_active = True
-
-        def mock_execute(query, parameters=None, *args, pool_id=None, **kwargs):
-            return []
-
-        session.execute = mock_execute
+        session.execute = MagicMock(return_value=[])
 
         def mock_acquire(timeout=None):
             return session
@@ -180,11 +176,7 @@ class TestPoolIdParameter(unittest.TestCase):
 
         session = MagicMock()
         session.is_active = True
-
-        def mock_execute(query, parameters=None, *args, pool_id=None, **kwargs):
-            return []
-
-        session.execute = mock_execute
+        session.execute = MagicMock(return_value=[])
 
         def mock_acquire(timeout=None):
             return session
