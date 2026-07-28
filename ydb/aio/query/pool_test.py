@@ -2,12 +2,14 @@ from __future__ import annotations
 
 import asyncio
 import unittest
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock, MagicMock, patch
 
 from ydb import issues
 from ydb.aio.query.pool import QuerySessionPool
 from ydb.aio.query.session import QuerySession
+from ydb.aio.query.transaction import QueryTxContext
 from ydb.observability.metrics import QuerySessionPoolMetrics
+from ydb._grpc.grpcwrapper import ydb_query_public_types as _ydb_query_public
 
 
 def _make_pool(size=1):
@@ -125,6 +127,45 @@ async def _async_empty_iter():
         yield
 
 
+class TestQuerySessionExecutePoolId(unittest.IsolatedAsyncioTestCase):
+    """Test that pool_id flows from async session.execute() → _execute_call() → driver."""
+
+    def _make_session(self):
+        driver = MagicMock()
+        driver._driver_config.query_client_settings = None
+        session = QuerySession(driver)
+        session._session_id = "fake-session-id"
+        return session
+
+    async def test_execute_passes_pool_id_to_execute_call(self):
+        session = self._make_session()
+
+        captured = {}
+
+        async def fake_execute_call(**kwargs):
+            captured.update(kwargs)
+            return _async_empty_iter()
+
+        with patch.object(type(session), "_execute_call", side_effect=fake_execute_call):
+            await session.execute("SELECT 1", pool_id="my-pool")
+
+        self.assertEqual(captured.get("pool_id"), "my-pool")
+
+    async def test_execute_without_pool_id_passes_none(self):
+        session = self._make_session()
+
+        captured = {}
+
+        async def fake_execute_call(**kwargs):
+            captured.update(kwargs)
+            return _async_empty_iter()
+
+        with patch.object(type(session), "_execute_call", side_effect=fake_execute_call):
+            await session.execute("SELECT 1")
+
+        self.assertIsNone(captured.get("pool_id"))
+
+
 class TestPoolIdParameter(unittest.IsolatedAsyncioTestCase):
     async def test_execute_with_retries_passes_pool_id_to_session(self):
         pool = _make_pool(size=1)
@@ -163,3 +204,46 @@ class TestPoolIdParameter(unittest.IsolatedAsyncioTestCase):
         session.execute.assert_awaited_once()
         call_kwargs = session.execute.call_args[1]
         self.assertIsNone(call_kwargs.get("pool_id"))
+
+
+class TestQueryTxContextExecutePoolId(unittest.IsolatedAsyncioTestCase):
+    """Test that pool_id flows from async QueryTxContext.execute() → _execute_call()."""
+
+    def _make_tx(self):
+        driver = MagicMock()
+        driver._driver_config.query_client_settings = None
+        session = MagicMock()
+        session.session_id = "fake-session-id"
+        session.node_id = None
+        session._endpoint_key = None
+        tx_mode = _ydb_query_public.QuerySerializableReadWrite()
+        tx = QueryTxContext(driver, session, tx_mode)
+        return tx
+
+    async def test_execute_passes_pool_id_to_execute_call(self):
+        tx = self._make_tx()
+
+        captured = {}
+
+        async def fake_execute_call(**kwargs):
+            captured.update(kwargs)
+            return _async_empty_iter()
+
+        with patch.object(type(tx), "_execute_call", side_effect=fake_execute_call):
+            await tx.execute("SELECT 1", pool_id="my-pool")
+
+        self.assertEqual(captured.get("pool_id"), "my-pool")
+
+    async def test_execute_without_pool_id_passes_none(self):
+        tx = self._make_tx()
+
+        captured = {}
+
+        async def fake_execute_call(**kwargs):
+            captured.update(kwargs)
+            return _async_empty_iter()
+
+        with patch.object(type(tx), "_execute_call", side_effect=fake_execute_call):
+            await tx.execute("SELECT 1")
+
+        self.assertIsNone(captured.get("pool_id"))
