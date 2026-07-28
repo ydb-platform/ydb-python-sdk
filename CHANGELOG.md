@@ -1,3 +1,4 @@
+## 3.31.1 ##
 * Support the new `SECRET` scheme entry type: `SchemeEntryType.SECRET` and `SchemeEntry.is_secret()` now recognise secret entries returned by `list_directory`/`describe_path`
 
 ## 3.31.0 ##
