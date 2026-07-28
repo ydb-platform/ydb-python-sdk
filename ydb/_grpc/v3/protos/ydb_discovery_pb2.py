@@ -12,6 +12,7 @@ from google.protobuf import symbol_database as _symbol_database
 _sym_db = _symbol_database.Default()
 
 
+from ydb._grpc.v3.protos import ydb_bridge_common_pb2 as protos_dot_ydb__bridge__common__pb2
 from ydb._grpc.v3.protos import ydb_operation_pb2 as protos_dot_ydb__operation__pb2
 
 
@@ -21,9 +22,9 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   syntax='proto3',
   serialized_options=b'\n\030tech.ydb.proto.discoveryB\017DiscoveryProtosZ<github.com/ydb-platform/ydb-go-genproto/protos/Ydb_Discovery\370\001\001',
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n\x1aprotos/ydb_discovery.proto\x12\rYdb.Discovery\x1a\x1aprotos/ydb_operation.proto\"9\n\x14ListEndpointsRequest\x12\x10\n\x08\x64\x61tabase\x18\x01 \x01(\t\x12\x0f\n\x07service\x18\x02 \x03(\t\"\xc3\x01\n\x0c\x45ndpointInfo\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x01(\t\x12\x0c\n\x04port\x18\x02 \x01(\r\x12\x13\n\x0bload_factor\x18\x03 \x01(\x02\x12\x0b\n\x03ssl\x18\x04 \x01(\x08\x12\x0f\n\x07service\x18\x05 \x03(\t\x12\x10\n\x08location\x18\x06 \x01(\t\x12\x0f\n\x07node_id\x18\x07 \x01(\r\x12\r\n\x05ip_v4\x18\x08 \x03(\t\x12\r\n\x05ip_v6\x18\t \x03(\t\x12 \n\x18ssl_target_name_override\x18\n \x01(\t\"\\\n\x13ListEndpointsResult\x12.\n\tendpoints\x18\x01 \x03(\x0b\x32\x1b.Ydb.Discovery.EndpointInfo\x12\x15\n\rself_location\x18\x02 \x01(\t\"E\n\x15ListEndpointsResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\'\n\rWhoAmIRequest\x12\x16\n\x0einclude_groups\x18\x01 \x01(\x08\",\n\x0cWhoAmIResult\x12\x0c\n\x04user\x18\x01 \x01(\t\x12\x0e\n\x06groups\x18\x02 \x03(\t\">\n\x0eWhoAmIResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\xe0\x02\n\x0cNodeLocation\x12 \n\x0f\x64\x61ta_center_num\x18\x01 \x01(\rB\x02\x18\x01H\x00\x88\x01\x01\x12\x19\n\x08room_num\x18\x02 \x01(\rB\x02\x18\x01H\x01\x88\x01\x01\x12\x19\n\x08rack_num\x18\x03 \x01(\rB\x02\x18\x01H\x02\x88\x01\x01\x12\x19\n\x08\x62ody_num\x18\x04 \x01(\rB\x02\x18\x01H\x03\x88\x01\x01\x12\x17\n\x04\x62ody\x18\x94\x91\x06 \x01(\rB\x02\x18\x01H\x04\x88\x01\x01\x12\x18\n\x0b\x64\x61ta_center\x18\n \x01(\tH\x05\x88\x01\x01\x12\x13\n\x06module\x18\x14 \x01(\tH\x06\x88\x01\x01\x12\x11\n\x04rack\x18\x1e \x01(\tH\x07\x88\x01\x01\x12\x11\n\x04unit\x18( \x01(\tH\x08\x88\x01\x01\x42\x12\n\x10_data_center_numB\x0b\n\t_room_numB\x0b\n\t_rack_numB\x0b\n\t_body_numB\x07\n\x05_bodyB\x0e\n\x0c_data_centerB\t\n\x07_moduleB\x07\n\x05_rackB\x07\n\x05_unitBl\n\x18tech.ydb.proto.discoveryB\x0f\x44iscoveryProtosZ<github.com/ydb-platform/ydb-go-genproto/protos/Ydb_Discovery\xf8\x01\x01\x62\x06proto3'
+  serialized_pb=b'\n\x1aprotos/ydb_discovery.proto\x12\rYdb.Discovery\x1a\x1eprotos/ydb_bridge_common.proto\x1a\x1aprotos/ydb_operation.proto\"9\n\x14ListEndpointsRequest\x12\x10\n\x08\x64\x61tabase\x18\x01 \x01(\t\x12\x0f\n\x07service\x18\x02 \x03(\t\"\xdd\x01\n\x0c\x45ndpointInfo\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x01(\t\x12\x0c\n\x04port\x18\x02 \x01(\r\x12\x13\n\x0bload_factor\x18\x03 \x01(\x02\x12\x0b\n\x03ssl\x18\x04 \x01(\x08\x12\x0f\n\x07service\x18\x05 \x03(\t\x12\x10\n\x08location\x18\x06 \x01(\t\x12\x0f\n\x07node_id\x18\x07 \x01(\r\x12\r\n\x05ip_v4\x18\x08 \x03(\t\x12\r\n\x05ip_v6\x18\t \x03(\t\x12 \n\x18ssl_target_name_override\x18\n \x01(\t\x12\x18\n\x10\x62ridge_pile_name\x18\x0b \x01(\t\"\x88\x01\n\x13ListEndpointsResult\x12.\n\tendpoints\x18\x01 \x03(\x0b\x32\x1b.Ydb.Discovery.EndpointInfo\x12\x15\n\rself_location\x18\x02 \x01(\t\x12*\n\x0bpile_states\x18\x03 \x03(\x0b\x32\x15.Ydb.Bridge.PileState\"E\n\x15ListEndpointsResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\'\n\rWhoAmIRequest\x12\x16\n\x0einclude_groups\x18\x01 \x01(\x08\"\xe6\x01\n\x0cWhoAmIResult\x12\x0c\n\x04user\x18\x01 \x01(\t\x12\x0e\n\x06groups\x18\x02 \x03(\t\x12!\n\x19is_administration_allowed\x18\x03 \x01(\x08\x12\x1d\n\x15is_monitoring_allowed\x18\x04 \x01(\x08\x12\x19\n\x11is_viewer_allowed\x18\x05 \x01(\x08\x12\x1b\n\x13is_database_allowed\x18\x06 \x01(\x08\x12 \n\x18is_register_node_allowed\x18\x07 \x01(\x08\x12\x1c\n\x14is_bootstrap_allowed\x18\x08 \x01(\x08\">\n\x0eWhoAmIResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\x94\x03\n\x0cNodeLocation\x12 \n\x0f\x64\x61ta_center_num\x18\x01 \x01(\rB\x02\x18\x01H\x00\x88\x01\x01\x12\x19\n\x08room_num\x18\x02 \x01(\rB\x02\x18\x01H\x01\x88\x01\x01\x12\x19\n\x08rack_num\x18\x03 \x01(\rB\x02\x18\x01H\x02\x88\x01\x01\x12\x19\n\x08\x62ody_num\x18\x04 \x01(\rB\x02\x18\x01H\x03\x88\x01\x01\x12\x17\n\x04\x62ody\x18\x94\x91\x06 \x01(\rB\x02\x18\x01H\x04\x88\x01\x01\x12\x1d\n\x10\x62ridge_pile_name\x18\x05 \x01(\tH\x05\x88\x01\x01\x12\x18\n\x0b\x64\x61ta_center\x18\n \x01(\tH\x06\x88\x01\x01\x12\x13\n\x06module\x18\x14 \x01(\tH\x07\x88\x01\x01\x12\x11\n\x04rack\x18\x1e \x01(\tH\x08\x88\x01\x01\x12\x11\n\x04unit\x18( \x01(\tH\t\x88\x01\x01\x42\x12\n\x10_data_center_numB\x0b\n\t_room_numB\x0b\n\t_rack_numB\x0b\n\t_body_numB\x07\n\x05_bodyB\x13\n\x11_bridge_pile_nameB\x0e\n\x0c_data_centerB\t\n\x07_moduleB\x07\n\x05_rackB\x07\n\x05_unit\"\x93\x02\n\x08NodeInfo\x12\x14\n\x07node_id\x18\x01 \x01(\rH\x00\x88\x01\x01\x12\x11\n\x04host\x18\x02 \x01(\tH\x01\x88\x01\x01\x12\x11\n\x04port\x18\x03 \x01(\rH\x02\x88\x01\x01\x12\x19\n\x0cresolve_host\x18\x04 \x01(\tH\x03\x88\x01\x01\x12\x14\n\x07\x61\x64\x64ress\x18\x05 \x01(\tH\x04\x88\x01\x01\x12\x32\n\x08location\x18\x06 \x01(\x0b\x32\x1b.Ydb.Discovery.NodeLocationH\x05\x88\x01\x01\x12\x13\n\x06\x65xpire\x18\x07 \x01(\x04H\x06\x88\x01\x01\x42\n\n\x08_node_idB\x07\n\x05_hostB\x07\n\x05_portB\x0f\n\r_resolve_hostB\n\n\x08_addressB\x0b\n\t_locationB\t\n\x07_expire\"\xd4\x02\n\x17NodeRegistrationRequest\x12\x11\n\x04host\x18\x01 \x01(\tH\x00\x88\x01\x01\x12\x11\n\x04port\x18\x02 \x01(\rH\x01\x88\x01\x01\x12\x19\n\x0cresolve_host\x18\x03 \x01(\tH\x02\x88\x01\x01\x12\x14\n\x07\x61\x64\x64ress\x18\x04 \x01(\tH\x03\x88\x01\x01\x12\x32\n\x08location\x18\x05 \x01(\x0b\x32\x1b.Ydb.Discovery.NodeLocationH\x04\x88\x01\x01\x12\x18\n\x0b\x64omain_path\x18\x06 \x01(\tH\x05\x88\x01\x01\x12\x1a\n\rfixed_node_id\x18\x07 \x01(\x08H\x06\x88\x01\x01\x12\x11\n\x04path\x18\x08 \x01(\tH\x07\x88\x01\x01\x42\x07\n\x05_hostB\x07\n\x05_portB\x0f\n\r_resolve_hostB\n\n\x08_addressB\x0b\n\t_locationB\x0e\n\x0c_domain_pathB\x10\n\x0e_fixed_node_idB\x07\n\x05_path\"\xb2\x02\n\x16NodeRegistrationResult\x12\x14\n\x07node_id\x18\x01 \x01(\rH\x00\x88\x01\x01\x12\x18\n\x0b\x64omain_path\x18\x02 \x01(\tH\x01\x88\x01\x01\x12\x13\n\x06\x65xpire\x18\x03 \x01(\x04H\x02\x88\x01\x01\x12&\n\x05nodes\x18\x04 \x03(\x0b\x32\x17.Ydb.Discovery.NodeInfo\x12\x1c\n\x0fscope_tablet_id\x18\x05 \x01(\x04H\x03\x88\x01\x01\x12\x1a\n\rscope_path_id\x18\x06 \x01(\x04H\x04\x88\x01\x01\x12\x16\n\tnode_name\x18\x07 \x01(\tH\x05\x88\x01\x01\x42\n\n\x08_node_idB\x0e\n\x0c_domain_pathB\t\n\x07_expireB\x12\n\x10_scope_tablet_idB\x10\n\x0e_scope_path_idB\x0c\n\n_node_name\"H\n\x18NodeRegistrationResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.OperationBl\n\x18tech.ydb.proto.discoveryB\x0f\x44iscoveryProtosZ<github.com/ydb-platform/ydb-go-genproto/protos/Ydb_Discovery\xf8\x01\x01\x62\x06proto3'
   ,
-  dependencies=[protos_dot_ydb__operation__pb2.DESCRIPTOR,])
+  dependencies=[protos_dot_ydb__bridge__common__pb2.DESCRIPTOR,protos_dot_ydb__operation__pb2.DESCRIPTOR,])
 
 
 
@@ -62,8 +63,8 @@ _LISTENDPOINTSREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=73,
-  serialized_end=130,
+  serialized_start=105,
+  serialized_end=162,
 )
 
 
@@ -145,6 +146,13 @@ _ENDPOINTINFO = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='bridge_pile_name', full_name='Ydb.Discovery.EndpointInfo.bridge_pile_name', index=10,
+      number=11, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
   ],
   extensions=[
   ],
@@ -157,8 +165,8 @@ _ENDPOINTINFO = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=133,
-  serialized_end=328,
+  serialized_start=165,
+  serialized_end=386,
 )
 
 
@@ -184,6 +192,13 @@ _LISTENDPOINTSRESULT = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='pile_states', full_name='Ydb.Discovery.ListEndpointsResult.pile_states', index=2,
+      number=3, type=11, cpp_type=10, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
   ],
   extensions=[
   ],
@@ -196,8 +211,8 @@ _LISTENDPOINTSRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=330,
-  serialized_end=422,
+  serialized_start=389,
+  serialized_end=525,
 )
 
 
@@ -228,8 +243,8 @@ _LISTENDPOINTSRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=424,
-  serialized_end=493,
+  serialized_start=527,
+  serialized_end=596,
 )
 
 
@@ -260,8 +275,8 @@ _WHOAMIREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=495,
-  serialized_end=534,
+  serialized_start=598,
+  serialized_end=637,
 )
 
 
@@ -287,6 +302,48 @@ _WHOAMIRESULT = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='is_administration_allowed', full_name='Ydb.Discovery.WhoAmIResult.is_administration_allowed', index=2,
+      number=3, type=8, cpp_type=7, label=1,
+      has_default_value=False, default_value=False,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='is_monitoring_allowed', full_name='Ydb.Discovery.WhoAmIResult.is_monitoring_allowed', index=3,
+      number=4, type=8, cpp_type=7, label=1,
+      has_default_value=False, default_value=False,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='is_viewer_allowed', full_name='Ydb.Discovery.WhoAmIResult.is_viewer_allowed', index=4,
+      number=5, type=8, cpp_type=7, label=1,
+      has_default_value=False, default_value=False,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='is_database_allowed', full_name='Ydb.Discovery.WhoAmIResult.is_database_allowed', index=5,
+      number=6, type=8, cpp_type=7, label=1,
+      has_default_value=False, default_value=False,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='is_register_node_allowed', full_name='Ydb.Discovery.WhoAmIResult.is_register_node_allowed', index=6,
+      number=7, type=8, cpp_type=7, label=1,
+      has_default_value=False, default_value=False,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='is_bootstrap_allowed', full_name='Ydb.Discovery.WhoAmIResult.is_bootstrap_allowed', index=7,
+      number=8, type=8, cpp_type=7, label=1,
+      has_default_value=False, default_value=False,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
   ],
   extensions=[
   ],
@@ -299,8 +356,8 @@ _WHOAMIRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=536,
-  serialized_end=580,
+  serialized_start=640,
+  serialized_end=870,
 )
 
 
@@ -331,8 +388,8 @@ _WHOAMIRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=582,
-  serialized_end=644,
+  serialized_start=872,
+  serialized_end=934,
 )
 
 
@@ -380,28 +437,35 @@ _NODELOCATION = _descriptor.Descriptor(
       is_extension=False, extension_scope=None,
       serialized_options=b'\030\001', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='data_center', full_name='Ydb.Discovery.NodeLocation.data_center', index=5,
+      name='bridge_pile_name', full_name='Ydb.Discovery.NodeLocation.bridge_pile_name', index=5,
+      number=5, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='data_center', full_name='Ydb.Discovery.NodeLocation.data_center', index=6,
       number=10, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=b"".decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='module', full_name='Ydb.Discovery.NodeLocation.module', index=6,
+      name='module', full_name='Ydb.Discovery.NodeLocation.module', index=7,
       number=20, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=b"".decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='rack', full_name='Ydb.Discovery.NodeLocation.rack', index=7,
+      name='rack', full_name='Ydb.Discovery.NodeLocation.rack', index=8,
       number=30, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=b"".decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='unit', full_name='Ydb.Discovery.NodeLocation.unit', index=8,
+      name='unit', full_name='Ydb.Discovery.NodeLocation.unit', index=9,
       number=40, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=b"".decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
@@ -444,31 +508,403 @@ _NODELOCATION = _descriptor.Descriptor(
       create_key=_descriptor._internal_create_key,
     fields=[]),
     _descriptor.OneofDescriptor(
-      name='_data_center', full_name='Ydb.Discovery.NodeLocation._data_center',
+      name='_bridge_pile_name', full_name='Ydb.Discovery.NodeLocation._bridge_pile_name',
       index=5, containing_type=None,
       create_key=_descriptor._internal_create_key,
     fields=[]),
     _descriptor.OneofDescriptor(
-      name='_module', full_name='Ydb.Discovery.NodeLocation._module',
+      name='_data_center', full_name='Ydb.Discovery.NodeLocation._data_center',
       index=6, containing_type=None,
       create_key=_descriptor._internal_create_key,
     fields=[]),
     _descriptor.OneofDescriptor(
-      name='_rack', full_name='Ydb.Discovery.NodeLocation._rack',
+      name='_module', full_name='Ydb.Discovery.NodeLocation._module',
       index=7, containing_type=None,
       create_key=_descriptor._internal_create_key,
     fields=[]),
     _descriptor.OneofDescriptor(
-      name='_unit', full_name='Ydb.Discovery.NodeLocation._unit',
+      name='_rack', full_name='Ydb.Discovery.NodeLocation._rack',
       index=8, containing_type=None,
       create_key=_descriptor._internal_create_key,
     fields=[]),
+    _descriptor.OneofDescriptor(
+      name='_unit', full_name='Ydb.Discovery.NodeLocation._unit',
+      index=9, containing_type=None,
+      create_key=_descriptor._internal_create_key,
+    fields=[]),
   ],
-  serialized_start=647,
-  serialized_end=999,
+  serialized_start=937,
+  serialized_end=1341,
+)
+
+
+_NODEINFO = _descriptor.Descriptor(
+  name='NodeInfo',
+  full_name='Ydb.Discovery.NodeInfo',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='node_id', full_name='Ydb.Discovery.NodeInfo.node_id', index=0,
+      number=1, type=13, cpp_type=3, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='host', full_name='Ydb.Discovery.NodeInfo.host', index=1,
+      number=2, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='port', full_name='Ydb.Discovery.NodeInfo.port', index=2,
+      number=3, type=13, cpp_type=3, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='resolve_host', full_name='Ydb.Discovery.NodeInfo.resolve_host', index=3,
+      number=4, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='address', full_name='Ydb.Discovery.NodeInfo.address', index=4,
+      number=5, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='location', full_name='Ydb.Discovery.NodeInfo.location', index=5,
+      number=6, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='expire', full_name='Ydb.Discovery.NodeInfo.expire', index=6,
+      number=7, type=4, cpp_type=4, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+    _descriptor.OneofDescriptor(
+      name='_node_id', full_name='Ydb.Discovery.NodeInfo._node_id',
+      index=0, containing_type=None,
+      create_key=_descriptor._internal_create_key,
+    fields=[]),
+    _descriptor.OneofDescriptor(
+      name='_host', full_name='Ydb.Discovery.NodeInfo._host',
+      index=1, containing_type=None,
+      create_key=_descriptor._internal_create_key,
+    fields=[]),
+    _descriptor.OneofDescriptor(
+      name='_port', full_name='Ydb.Discovery.NodeInfo._port',
+      index=2, containing_type=None,
+      create_key=_descriptor._internal_create_key,
+    fields=[]),
+    _descriptor.OneofDescriptor(
+      name='_resolve_host', full_name='Ydb.Discovery.NodeInfo._resolve_host',
+      index=3, containing_type=None,
+      create_key=_descriptor._internal_create_key,
+    fields=[]),
+    _descriptor.OneofDescriptor(
+      name='_address', full_name='Ydb.Discovery.NodeInfo._address',
+      index=4, containing_type=None,
+      create_key=_descriptor._internal_create_key,
+    fields=[]),
+    _descriptor.OneofDescriptor(
+      name='_location', full_name='Ydb.Discovery.NodeInfo._location',
+      index=5, containing_type=None,
+      create_key=_descriptor._internal_create_key,
+    fields=[]),
+    _descriptor.OneofDescriptor(
+      name='_expire', full_name='Ydb.Discovery.NodeInfo._expire',
+      index=6, containing_type=None,
+      create_key=_descriptor._internal_create_key,
+    fields=[]),
+  ],
+  serialized_start=1344,
+  serialized_end=1619,
+)
+
+
+_NODEREGISTRATIONREQUEST = _descriptor.Descriptor(
+  name='NodeRegistrationRequest',
+  full_name='Ydb.Discovery.NodeRegistrationRequest',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='host', full_name='Ydb.Discovery.NodeRegistrationRequest.host', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='port', full_name='Ydb.Discovery.NodeRegistrationRequest.port', index=1,
+      number=2, type=13, cpp_type=3, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='resolve_host', full_name='Ydb.Discovery.NodeRegistrationRequest.resolve_host', index=2,
+      number=3, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='address', full_name='Ydb.Discovery.NodeRegistrationRequest.address', index=3,
+      number=4, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='location', full_name='Ydb.Discovery.NodeRegistrationRequest.location', index=4,
+      number=5, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='domain_path', full_name='Ydb.Discovery.NodeRegistrationRequest.domain_path', index=5,
+      number=6, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='fixed_node_id', full_name='Ydb.Discovery.NodeRegistrationRequest.fixed_node_id', index=6,
+      number=7, type=8, cpp_type=7, label=1,
+      has_default_value=False, default_value=False,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='path', full_name='Ydb.Discovery.NodeRegistrationRequest.path', index=7,
+      number=8, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+    _descriptor.OneofDescriptor(
+      name='_host', full_name='Ydb.Discovery.NodeRegistrationRequest._host',
+      index=0, containing_type=None,
+      create_key=_descriptor._internal_create_key,
+    fields=[]),
+    _descriptor.OneofDescriptor(
+      name='_port', full_name='Ydb.Discovery.NodeRegistrationRequest._port',
+      index=1, containing_type=None,
+      create_key=_descriptor._internal_create_key,
+    fields=[]),
+    _descriptor.OneofDescriptor(
+      name='_resolve_host', full_name='Ydb.Discovery.NodeRegistrationRequest._resolve_host',
+      index=2, containing_type=None,
+      create_key=_descriptor._internal_create_key,
+    fields=[]),
+    _descriptor.OneofDescriptor(
+      name='_address', full_name='Ydb.Discovery.NodeRegistrationRequest._address',
+      index=3, containing_type=None,
+      create_key=_descriptor._internal_create_key,
+    fields=[]),
+    _descriptor.OneofDescriptor(
+      name='_location', full_name='Ydb.Discovery.NodeRegistrationRequest._location',
+      index=4, containing_type=None,
+      create_key=_descriptor._internal_create_key,
+    fields=[]),
+    _descriptor.OneofDescriptor(
+      name='_domain_path', full_name='Ydb.Discovery.NodeRegistrationRequest._domain_path',
+      index=5, containing_type=None,
+      create_key=_descriptor._internal_create_key,
+    fields=[]),
+    _descriptor.OneofDescriptor(
+      name='_fixed_node_id', full_name='Ydb.Discovery.NodeRegistrationRequest._fixed_node_id',
+      index=6, containing_type=None,
+      create_key=_descriptor._internal_create_key,
+    fields=[]),
+    _descriptor.OneofDescriptor(
+      name='_path', full_name='Ydb.Discovery.NodeRegistrationRequest._path',
+      index=7, containing_type=None,
+      create_key=_descriptor._internal_create_key,
+    fields=[]),
+  ],
+  serialized_start=1622,
+  serialized_end=1962,
+)
+
+
+_NODEREGISTRATIONRESULT = _descriptor.Descriptor(
+  name='NodeRegistrationResult',
+  full_name='Ydb.Discovery.NodeRegistrationResult',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='node_id', full_name='Ydb.Discovery.NodeRegistrationResult.node_id', index=0,
+      number=1, type=13, cpp_type=3, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='domain_path', full_name='Ydb.Discovery.NodeRegistrationResult.domain_path', index=1,
+      number=2, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='expire', full_name='Ydb.Discovery.NodeRegistrationResult.expire', index=2,
+      number=3, type=4, cpp_type=4, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='nodes', full_name='Ydb.Discovery.NodeRegistrationResult.nodes', index=3,
+      number=4, type=11, cpp_type=10, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='scope_tablet_id', full_name='Ydb.Discovery.NodeRegistrationResult.scope_tablet_id', index=4,
+      number=5, type=4, cpp_type=4, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='scope_path_id', full_name='Ydb.Discovery.NodeRegistrationResult.scope_path_id', index=5,
+      number=6, type=4, cpp_type=4, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='node_name', full_name='Ydb.Discovery.NodeRegistrationResult.node_name', index=6,
+      number=7, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+    _descriptor.OneofDescriptor(
+      name='_node_id', full_name='Ydb.Discovery.NodeRegistrationResult._node_id',
+      index=0, containing_type=None,
+      create_key=_descriptor._internal_create_key,
+    fields=[]),
+    _descriptor.OneofDescriptor(
+      name='_domain_path', full_name='Ydb.Discovery.NodeRegistrationResult._domain_path',
+      index=1, containing_type=None,
+      create_key=_descriptor._internal_create_key,
+    fields=[]),
+    _descriptor.OneofDescriptor(
+      name='_expire', full_name='Ydb.Discovery.NodeRegistrationResult._expire',
+      index=2, containing_type=None,
+      create_key=_descriptor._internal_create_key,
+    fields=[]),
+    _descriptor.OneofDescriptor(
+      name='_scope_tablet_id', full_name='Ydb.Discovery.NodeRegistrationResult._scope_tablet_id',
+      index=3, containing_type=None,
+      create_key=_descriptor._internal_create_key,
+    fields=[]),
+    _descriptor.OneofDescriptor(
+      name='_scope_path_id', full_name='Ydb.Discovery.NodeRegistrationResult._scope_path_id',
+      index=4, containing_type=None,
+      create_key=_descriptor._internal_create_key,
+    fields=[]),
+    _descriptor.OneofDescriptor(
+      name='_node_name', full_name='Ydb.Discovery.NodeRegistrationResult._node_name',
+      index=5, containing_type=None,
+      create_key=_descriptor._internal_create_key,
+    fields=[]),
+  ],
+  serialized_start=1965,
+  serialized_end=2271,
+)
+
+
+_NODEREGISTRATIONRESPONSE = _descriptor.Descriptor(
+  name='NodeRegistrationResponse',
+  full_name='Ydb.Discovery.NodeRegistrationResponse',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='operation', full_name='Ydb.Discovery.NodeRegistrationResponse.operation', index=0,
+      number=1, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=2273,
+  serialized_end=2345,
 )
 
 _LISTENDPOINTSRESULT.fields_by_name['endpoints'].message_type = _ENDPOINTINFO
+_LISTENDPOINTSRESULT.fields_by_name['pile_states'].message_type = protos_dot_ydb__bridge__common__pb2._PILESTATE
 _LISTENDPOINTSRESPONSE.fields_by_name['operation'].message_type = protos_dot_ydb__operation__pb2._OPERATION
 _WHOAMIRESPONSE.fields_by_name['operation'].message_type = protos_dot_ydb__operation__pb2._OPERATION
 _NODELOCATION.oneofs_by_name['_data_center_num'].fields.append(
@@ -486,6 +922,9 @@ _NODELOCATION.fields_by_name['body_num'].containing_oneof = _NODELOCATION.oneofs
 _NODELOCATION.oneofs_by_name['_body'].fields.append(
   _NODELOCATION.fields_by_name['body'])
 _NODELOCATION.fields_by_name['body'].containing_oneof = _NODELOCATION.oneofs_by_name['_body']
+_NODELOCATION.oneofs_by_name['_bridge_pile_name'].fields.append(
+  _NODELOCATION.fields_by_name['bridge_pile_name'])
+_NODELOCATION.fields_by_name['bridge_pile_name'].containing_oneof = _NODELOCATION.oneofs_by_name['_bridge_pile_name']
 _NODELOCATION.oneofs_by_name['_data_center'].fields.append(
   _NODELOCATION.fields_by_name['data_center'])
 _NODELOCATION.fields_by_name['data_center'].containing_oneof = _NODELOCATION.oneofs_by_name['_data_center']
@@ -498,6 +937,73 @@ _NODELOCATION.fields_by_name['rack'].containing_oneof = _NODELOCATION.oneofs_by_
 _NODELOCATION.oneofs_by_name['_unit'].fields.append(
   _NODELOCATION.fields_by_name['unit'])
 _NODELOCATION.fields_by_name['unit'].containing_oneof = _NODELOCATION.oneofs_by_name['_unit']
+_NODEINFO.fields_by_name['location'].message_type = _NODELOCATION
+_NODEINFO.oneofs_by_name['_node_id'].fields.append(
+  _NODEINFO.fields_by_name['node_id'])
+_NODEINFO.fields_by_name['node_id'].containing_oneof = _NODEINFO.oneofs_by_name['_node_id']
+_NODEINFO.oneofs_by_name['_host'].fields.append(
+  _NODEINFO.fields_by_name['host'])
+_NODEINFO.fields_by_name['host'].containing_oneof = _NODEINFO.oneofs_by_name['_host']
+_NODEINFO.oneofs_by_name['_port'].fields.append(
+  _NODEINFO.fields_by_name['port'])
+_NODEINFO.fields_by_name['port'].containing_oneof = _NODEINFO.oneofs_by_name['_port']
+_NODEINFO.oneofs_by_name['_resolve_host'].fields.append(
+  _NODEINFO.fields_by_name['resolve_host'])
+_NODEINFO.fields_by_name['resolve_host'].containing_oneof = _NODEINFO.oneofs_by_name['_resolve_host']
+_NODEINFO.oneofs_by_name['_address'].fields.append(
+  _NODEINFO.fields_by_name['address'])
+_NODEINFO.fields_by_name['address'].containing_oneof = _NODEINFO.oneofs_by_name['_address']
+_NODEINFO.oneofs_by_name['_location'].fields.append(
+  _NODEINFO.fields_by_name['location'])
+_NODEINFO.fields_by_name['location'].containing_oneof = _NODEINFO.oneofs_by_name['_location']
+_NODEINFO.oneofs_by_name['_expire'].fields.append(
+  _NODEINFO.fields_by_name['expire'])
+_NODEINFO.fields_by_name['expire'].containing_oneof = _NODEINFO.oneofs_by_name['_expire']
+_NODEREGISTRATIONREQUEST.fields_by_name['location'].message_type = _NODELOCATION
+_NODEREGISTRATIONREQUEST.oneofs_by_name['_host'].fields.append(
+  _NODEREGISTRATIONREQUEST.fields_by_name['host'])
+_NODEREGISTRATIONREQUEST.fields_by_name['host'].containing_oneof = _NODEREGISTRATIONREQUEST.oneofs_by_name['_host']
+_NODEREGISTRATIONREQUEST.oneofs_by_name['_port'].fields.append(
+  _NODEREGISTRATIONREQUEST.fields_by_name['port'])
+_NODEREGISTRATIONREQUEST.fields_by_name['port'].containing_oneof = _NODEREGISTRATIONREQUEST.oneofs_by_name['_port']
+_NODEREGISTRATIONREQUEST.oneofs_by_name['_resolve_host'].fields.append(
+  _NODEREGISTRATIONREQUEST.fields_by_name['resolve_host'])
+_NODEREGISTRATIONREQUEST.fields_by_name['resolve_host'].containing_oneof = _NODEREGISTRATIONREQUEST.oneofs_by_name['_resolve_host']
+_NODEREGISTRATIONREQUEST.oneofs_by_name['_address'].fields.append(
+  _NODEREGISTRATIONREQUEST.fields_by_name['address'])
+_NODEREGISTRATIONREQUEST.fields_by_name['address'].containing_oneof = _NODEREGISTRATIONREQUEST.oneofs_by_name['_address']
+_NODEREGISTRATIONREQUEST.oneofs_by_name['_location'].fields.append(
+  _NODEREGISTRATIONREQUEST.fields_by_name['location'])
+_NODEREGISTRATIONREQUEST.fields_by_name['location'].containing_oneof = _NODEREGISTRATIONREQUEST.oneofs_by_name['_location']
+_NODEREGISTRATIONREQUEST.oneofs_by_name['_domain_path'].fields.append(
+  _NODEREGISTRATIONREQUEST.fields_by_name['domain_path'])
+_NODEREGISTRATIONREQUEST.fields_by_name['domain_path'].containing_oneof = _NODEREGISTRATIONREQUEST.oneofs_by_name['_domain_path']
+_NODEREGISTRATIONREQUEST.oneofs_by_name['_fixed_node_id'].fields.append(
+  _NODEREGISTRATIONREQUEST.fields_by_name['fixed_node_id'])
+_NODEREGISTRATIONREQUEST.fields_by_name['fixed_node_id'].containing_oneof = _NODEREGISTRATIONREQUEST.oneofs_by_name['_fixed_node_id']
+_NODEREGISTRATIONREQUEST.oneofs_by_name['_path'].fields.append(
+  _NODEREGISTRATIONREQUEST.fields_by_name['path'])
+_NODEREGISTRATIONREQUEST.fields_by_name['path'].containing_oneof = _NODEREGISTRATIONREQUEST.oneofs_by_name['_path']
+_NODEREGISTRATIONRESULT.fields_by_name['nodes'].message_type = _NODEINFO
+_NODEREGISTRATIONRESULT.oneofs_by_name['_node_id'].fields.append(
+  _NODEREGISTRATIONRESULT.fields_by_name['node_id'])
+_NODEREGISTRATIONRESULT.fields_by_name['node_id'].containing_oneof = _NODEREGISTRATIONRESULT.oneofs_by_name['_node_id']
+_NODEREGISTRATIONRESULT.oneofs_by_name['_domain_path'].fields.append(
+  _NODEREGISTRATIONRESULT.fields_by_name['domain_path'])
+_NODEREGISTRATIONRESULT.fields_by_name['domain_path'].containing_oneof = _NODEREGISTRATIONRESULT.oneofs_by_name['_domain_path']
+_NODEREGISTRATIONRESULT.oneofs_by_name['_expire'].fields.append(
+  _NODEREGISTRATIONRESULT.fields_by_name['expire'])
+_NODEREGISTRATIONRESULT.fields_by_name['expire'].containing_oneof = _NODEREGISTRATIONRESULT.oneofs_by_name['_expire']
+_NODEREGISTRATIONRESULT.oneofs_by_name['_scope_tablet_id'].fields.append(
+  _NODEREGISTRATIONRESULT.fields_by_name['scope_tablet_id'])
+_NODEREGISTRATIONRESULT.fields_by_name['scope_tablet_id'].containing_oneof = _NODEREGISTRATIONRESULT.oneofs_by_name['_scope_tablet_id']
+_NODEREGISTRATIONRESULT.oneofs_by_name['_scope_path_id'].fields.append(
+  _NODEREGISTRATIONRESULT.fields_by_name['scope_path_id'])
+_NODEREGISTRATIONRESULT.fields_by_name['scope_path_id'].containing_oneof = _NODEREGISTRATIONRESULT.oneofs_by_name['_scope_path_id']
+_NODEREGISTRATIONRESULT.oneofs_by_name['_node_name'].fields.append(
+  _NODEREGISTRATIONRESULT.fields_by_name['node_name'])
+_NODEREGISTRATIONRESULT.fields_by_name['node_name'].containing_oneof = _NODEREGISTRATIONRESULT.oneofs_by_name['_node_name']
+_NODEREGISTRATIONRESPONSE.fields_by_name['operation'].message_type = protos_dot_ydb__operation__pb2._OPERATION
 DESCRIPTOR.message_types_by_name['ListEndpointsRequest'] = _LISTENDPOINTSREQUEST
 DESCRIPTOR.message_types_by_name['EndpointInfo'] = _ENDPOINTINFO
 DESCRIPTOR.message_types_by_name['ListEndpointsResult'] = _LISTENDPOINTSRESULT
@@ -506,6 +1012,10 @@ DESCRIPTOR.message_types_by_name['WhoAmIRequest'] = _WHOAMIREQUEST
 DESCRIPTOR.message_types_by_name['WhoAmIResult'] = _WHOAMIRESULT
 DESCRIPTOR.message_types_by_name['WhoAmIResponse'] = _WHOAMIRESPONSE
 DESCRIPTOR.message_types_by_name['NodeLocation'] = _NODELOCATION
+DESCRIPTOR.message_types_by_name['NodeInfo'] = _NODEINFO
+DESCRIPTOR.message_types_by_name['NodeRegistrationRequest'] = _NODEREGISTRATIONREQUEST
+DESCRIPTOR.message_types_by_name['NodeRegistrationResult'] = _NODEREGISTRATIONRESULT
+DESCRIPTOR.message_types_by_name['NodeRegistrationResponse'] = _NODEREGISTRATIONRESPONSE
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
 ListEndpointsRequest = _reflection.GeneratedProtocolMessageType('ListEndpointsRequest', (_message.Message,), {
@@ -563,6 +1073,34 @@ NodeLocation = _reflection.GeneratedProtocolMessageType('NodeLocation', (_messag
   # @@protoc_insertion_point(class_scope:Ydb.Discovery.NodeLocation)
   })
 _sym_db.RegisterMessage(NodeLocation)
+
+NodeInfo = _reflection.GeneratedProtocolMessageType('NodeInfo', (_message.Message,), {
+  'DESCRIPTOR' : _NODEINFO,
+  '__module__' : 'protos.ydb_discovery_pb2'
+  # @@protoc_insertion_point(class_scope:Ydb.Discovery.NodeInfo)
+  })
+_sym_db.RegisterMessage(NodeInfo)
+
+NodeRegistrationRequest = _reflection.GeneratedProtocolMessageType('NodeRegistrationRequest', (_message.Message,), {
+  'DESCRIPTOR' : _NODEREGISTRATIONREQUEST,
+  '__module__' : 'protos.ydb_discovery_pb2'
+  # @@protoc_insertion_point(class_scope:Ydb.Discovery.NodeRegistrationRequest)
+  })
+_sym_db.RegisterMessage(NodeRegistrationRequest)
+
+NodeRegistrationResult = _reflection.GeneratedProtocolMessageType('NodeRegistrationResult', (_message.Message,), {
+  'DESCRIPTOR' : _NODEREGISTRATIONRESULT,
+  '__module__' : 'protos.ydb_discovery_pb2'
+  # @@protoc_insertion_point(class_scope:Ydb.Discovery.NodeRegistrationResult)
+  })
+_sym_db.RegisterMessage(NodeRegistrationResult)
+
+NodeRegistrationResponse = _reflection.GeneratedProtocolMessageType('NodeRegistrationResponse', (_message.Message,), {
+  'DESCRIPTOR' : _NODEREGISTRATIONRESPONSE,
+  '__module__' : 'protos.ydb_discovery_pb2'
+  # @@protoc_insertion_point(class_scope:Ydb.Discovery.NodeRegistrationResponse)
+  })
+_sym_db.RegisterMessage(NodeRegistrationResponse)
 
 
 DESCRIPTOR._options = None

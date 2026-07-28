@@ -49,6 +49,7 @@ class Entry(_message.Message):
     REPLICATION: Entry.Type
     RESOURCE_POOL: Entry.Type
     RTMR_VOLUME: Entry.Type
+    SECRET: Entry.Type
     SEQUENCE: Entry.Type
     SIZE_BYTES_FIELD_NUMBER: _ClassVar[int]
     SYS_VIEW: Entry.Type

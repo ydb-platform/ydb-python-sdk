@@ -1,3 +1,5 @@
+* Support the new `SECRET` scheme entry type: `SchemeEntryType.SECRET` and `SchemeEntry.is_secret()` now recognise secret entries returned by `list_directory`/`describe_path`
+
 ## 3.31.0 ##
 * Fixed `execute_with_retries` returning a large result set split across several `ResultSet` objects: row-format stream parts that share a `result_set_index` are now concatenated back into a single result set, so a large SELECT is returned as one result set instead of one per stream chunk
 * Introduce `ydb.observability` — vendor-neutral tracing entrypoint with a `TracingProvider` interface; `enable_tracing(provider)` accepts any implementation (custom or OpenTelemetry) and replaces the previously installed one. The SDK core no longer imports `opentelemetry`, so tracing can be enabled without the OpenTelemetry packages by supplying a custom provider

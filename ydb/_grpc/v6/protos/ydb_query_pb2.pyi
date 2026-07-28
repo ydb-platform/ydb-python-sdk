@@ -152,19 +152,25 @@ class SnapshotRWModeSettings(_message.Message):
     __slots__ = ()
     def __init__(self) -> None: ...
 
+class ReadCommittedRWModeSettings(_message.Message):
+    __slots__ = ()
+    def __init__(self) -> None: ...
+
 class TransactionSettings(_message.Message):
-    __slots__ = ("serializable_read_write", "online_read_only", "stale_read_only", "snapshot_read_only", "snapshot_read_write")
+    __slots__ = ("serializable_read_write", "online_read_only", "stale_read_only", "snapshot_read_only", "snapshot_read_write", "read_committed_read_write")
     SERIALIZABLE_READ_WRITE_FIELD_NUMBER: _ClassVar[int]
     ONLINE_READ_ONLY_FIELD_NUMBER: _ClassVar[int]
     STALE_READ_ONLY_FIELD_NUMBER: _ClassVar[int]
     SNAPSHOT_READ_ONLY_FIELD_NUMBER: _ClassVar[int]
     SNAPSHOT_READ_WRITE_FIELD_NUMBER: _ClassVar[int]
+    READ_COMMITTED_READ_WRITE_FIELD_NUMBER: _ClassVar[int]
     serializable_read_write: SerializableModeSettings
     online_read_only: OnlineModeSettings
     stale_read_only: StaleModeSettings
     snapshot_read_only: SnapshotModeSettings
     snapshot_read_write: SnapshotRWModeSettings
-    def __init__(self, serializable_read_write: _Optional[_Union[SerializableModeSettings, _Mapping]] = ..., online_read_only: _Optional[_Union[OnlineModeSettings, _Mapping]] = ..., stale_read_only: _Optional[_Union[StaleModeSettings, _Mapping]] = ..., snapshot_read_only: _Optional[_Union[SnapshotModeSettings, _Mapping]] = ..., snapshot_read_write: _Optional[_Union[SnapshotRWModeSettings, _Mapping]] = ...) -> None: ...
+    read_committed_read_write: ReadCommittedRWModeSettings
+    def __init__(self, serializable_read_write: _Optional[_Union[SerializableModeSettings, _Mapping]] = ..., online_read_only: _Optional[_Union[OnlineModeSettings, _Mapping]] = ..., stale_read_only: _Optional[_Union[StaleModeSettings, _Mapping]] = ..., snapshot_read_only: _Optional[_Union[SnapshotModeSettings, _Mapping]] = ..., snapshot_read_write: _Optional[_Union[SnapshotRWModeSettings, _Mapping]] = ..., read_committed_read_write: _Optional[_Union[ReadCommittedRWModeSettings, _Mapping]] = ...) -> None: ...
 
 class TransactionControl(_message.Message):
     __slots__ = ("tx_id", "begin_tx", "commit_tx")

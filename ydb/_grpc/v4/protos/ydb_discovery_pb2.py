@@ -12,10 +12,11 @@ from google.protobuf import symbol_database as _symbol_database
 _sym_db = _symbol_database.Default()
 
 
+from ydb._grpc.v4.protos import ydb_bridge_common_pb2 as protos_dot_ydb__bridge__common__pb2
 from ydb._grpc.v4.protos import ydb_operation_pb2 as protos_dot_ydb__operation__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x1aprotos/ydb_discovery.proto\x12\rYdb.Discovery\x1a\x1aprotos/ydb_operation.proto\"9\n\x14ListEndpointsRequest\x12\x10\n\x08\x64\x61tabase\x18\x01 \x01(\t\x12\x0f\n\x07service\x18\x02 \x03(\t\"\xc3\x01\n\x0c\x45ndpointInfo\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x01(\t\x12\x0c\n\x04port\x18\x02 \x01(\r\x12\x13\n\x0bload_factor\x18\x03 \x01(\x02\x12\x0b\n\x03ssl\x18\x04 \x01(\x08\x12\x0f\n\x07service\x18\x05 \x03(\t\x12\x10\n\x08location\x18\x06 \x01(\t\x12\x0f\n\x07node_id\x18\x07 \x01(\r\x12\r\n\x05ip_v4\x18\x08 \x03(\t\x12\r\n\x05ip_v6\x18\t \x03(\t\x12 \n\x18ssl_target_name_override\x18\n \x01(\t\"\\\n\x13ListEndpointsResult\x12.\n\tendpoints\x18\x01 \x03(\x0b\x32\x1b.Ydb.Discovery.EndpointInfo\x12\x15\n\rself_location\x18\x02 \x01(\t\"E\n\x15ListEndpointsResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\'\n\rWhoAmIRequest\x12\x16\n\x0einclude_groups\x18\x01 \x01(\x08\",\n\x0cWhoAmIResult\x12\x0c\n\x04user\x18\x01 \x01(\t\x12\x0e\n\x06groups\x18\x02 \x03(\t\">\n\x0eWhoAmIResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\xe0\x02\n\x0cNodeLocation\x12 \n\x0f\x64\x61ta_center_num\x18\x01 \x01(\rB\x02\x18\x01H\x00\x88\x01\x01\x12\x19\n\x08room_num\x18\x02 \x01(\rB\x02\x18\x01H\x01\x88\x01\x01\x12\x19\n\x08rack_num\x18\x03 \x01(\rB\x02\x18\x01H\x02\x88\x01\x01\x12\x19\n\x08\x62ody_num\x18\x04 \x01(\rB\x02\x18\x01H\x03\x88\x01\x01\x12\x17\n\x04\x62ody\x18\x94\x91\x06 \x01(\rB\x02\x18\x01H\x04\x88\x01\x01\x12\x18\n\x0b\x64\x61ta_center\x18\n \x01(\tH\x05\x88\x01\x01\x12\x13\n\x06module\x18\x14 \x01(\tH\x06\x88\x01\x01\x12\x11\n\x04rack\x18\x1e \x01(\tH\x07\x88\x01\x01\x12\x11\n\x04unit\x18( \x01(\tH\x08\x88\x01\x01\x42\x12\n\x10_data_center_numB\x0b\n\t_room_numB\x0b\n\t_rack_numB\x0b\n\t_body_numB\x07\n\x05_bodyB\x0e\n\x0c_data_centerB\t\n\x07_moduleB\x07\n\x05_rackB\x07\n\x05_unitBl\n\x18tech.ydb.proto.discoveryB\x0f\x44iscoveryProtosZ<github.com/ydb-platform/ydb-go-genproto/protos/Ydb_Discovery\xf8\x01\x01\x62\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x1aprotos/ydb_discovery.proto\x12\rYdb.Discovery\x1a\x1eprotos/ydb_bridge_common.proto\x1a\x1aprotos/ydb_operation.proto\"9\n\x14ListEndpointsRequest\x12\x10\n\x08\x64\x61tabase\x18\x01 \x01(\t\x12\x0f\n\x07service\x18\x02 \x03(\t\"\xdd\x01\n\x0c\x45ndpointInfo\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x01(\t\x12\x0c\n\x04port\x18\x02 \x01(\r\x12\x13\n\x0bload_factor\x18\x03 \x01(\x02\x12\x0b\n\x03ssl\x18\x04 \x01(\x08\x12\x0f\n\x07service\x18\x05 \x03(\t\x12\x10\n\x08location\x18\x06 \x01(\t\x12\x0f\n\x07node_id\x18\x07 \x01(\r\x12\r\n\x05ip_v4\x18\x08 \x03(\t\x12\r\n\x05ip_v6\x18\t \x03(\t\x12 \n\x18ssl_target_name_override\x18\n \x01(\t\x12\x18\n\x10\x62ridge_pile_name\x18\x0b \x01(\t\"\x88\x01\n\x13ListEndpointsResult\x12.\n\tendpoints\x18\x01 \x03(\x0b\x32\x1b.Ydb.Discovery.EndpointInfo\x12\x15\n\rself_location\x18\x02 \x01(\t\x12*\n\x0bpile_states\x18\x03 \x03(\x0b\x32\x15.Ydb.Bridge.PileState\"E\n\x15ListEndpointsResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\'\n\rWhoAmIRequest\x12\x16\n\x0einclude_groups\x18\x01 \x01(\x08\"\xe6\x01\n\x0cWhoAmIResult\x12\x0c\n\x04user\x18\x01 \x01(\t\x12\x0e\n\x06groups\x18\x02 \x03(\t\x12!\n\x19is_administration_allowed\x18\x03 \x01(\x08\x12\x1d\n\x15is_monitoring_allowed\x18\x04 \x01(\x08\x12\x19\n\x11is_viewer_allowed\x18\x05 \x01(\x08\x12\x1b\n\x13is_database_allowed\x18\x06 \x01(\x08\x12 \n\x18is_register_node_allowed\x18\x07 \x01(\x08\x12\x1c\n\x14is_bootstrap_allowed\x18\x08 \x01(\x08\">\n\x0eWhoAmIResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\x94\x03\n\x0cNodeLocation\x12 \n\x0f\x64\x61ta_center_num\x18\x01 \x01(\rB\x02\x18\x01H\x00\x88\x01\x01\x12\x19\n\x08room_num\x18\x02 \x01(\rB\x02\x18\x01H\x01\x88\x01\x01\x12\x19\n\x08rack_num\x18\x03 \x01(\rB\x02\x18\x01H\x02\x88\x01\x01\x12\x19\n\x08\x62ody_num\x18\x04 \x01(\rB\x02\x18\x01H\x03\x88\x01\x01\x12\x17\n\x04\x62ody\x18\x94\x91\x06 \x01(\rB\x02\x18\x01H\x04\x88\x01\x01\x12\x1d\n\x10\x62ridge_pile_name\x18\x05 \x01(\tH\x05\x88\x01\x01\x12\x18\n\x0b\x64\x61ta_center\x18\n \x01(\tH\x06\x88\x01\x01\x12\x13\n\x06module\x18\x14 \x01(\tH\x07\x88\x01\x01\x12\x11\n\x04rack\x18\x1e \x01(\tH\x08\x88\x01\x01\x12\x11\n\x04unit\x18( \x01(\tH\t\x88\x01\x01\x42\x12\n\x10_data_center_numB\x0b\n\t_room_numB\x0b\n\t_rack_numB\x0b\n\t_body_numB\x07\n\x05_bodyB\x13\n\x11_bridge_pile_nameB\x0e\n\x0c_data_centerB\t\n\x07_moduleB\x07\n\x05_rackB\x07\n\x05_unit\"\x93\x02\n\x08NodeInfo\x12\x14\n\x07node_id\x18\x01 \x01(\rH\x00\x88\x01\x01\x12\x11\n\x04host\x18\x02 \x01(\tH\x01\x88\x01\x01\x12\x11\n\x04port\x18\x03 \x01(\rH\x02\x88\x01\x01\x12\x19\n\x0cresolve_host\x18\x04 \x01(\tH\x03\x88\x01\x01\x12\x14\n\x07\x61\x64\x64ress\x18\x05 \x01(\tH\x04\x88\x01\x01\x12\x32\n\x08location\x18\x06 \x01(\x0b\x32\x1b.Ydb.Discovery.NodeLocationH\x05\x88\x01\x01\x12\x13\n\x06\x65xpire\x18\x07 \x01(\x04H\x06\x88\x01\x01\x42\n\n\x08_node_idB\x07\n\x05_hostB\x07\n\x05_portB\x0f\n\r_resolve_hostB\n\n\x08_addressB\x0b\n\t_locationB\t\n\x07_expire\"\xd4\x02\n\x17NodeRegistrationRequest\x12\x11\n\x04host\x18\x01 \x01(\tH\x00\x88\x01\x01\x12\x11\n\x04port\x18\x02 \x01(\rH\x01\x88\x01\x01\x12\x19\n\x0cresolve_host\x18\x03 \x01(\tH\x02\x88\x01\x01\x12\x14\n\x07\x61\x64\x64ress\x18\x04 \x01(\tH\x03\x88\x01\x01\x12\x32\n\x08location\x18\x05 \x01(\x0b\x32\x1b.Ydb.Discovery.NodeLocationH\x04\x88\x01\x01\x12\x18\n\x0b\x64omain_path\x18\x06 \x01(\tH\x05\x88\x01\x01\x12\x1a\n\rfixed_node_id\x18\x07 \x01(\x08H\x06\x88\x01\x01\x12\x11\n\x04path\x18\x08 \x01(\tH\x07\x88\x01\x01\x42\x07\n\x05_hostB\x07\n\x05_portB\x0f\n\r_resolve_hostB\n\n\x08_addressB\x0b\n\t_locationB\x0e\n\x0c_domain_pathB\x10\n\x0e_fixed_node_idB\x07\n\x05_path\"\xb2\x02\n\x16NodeRegistrationResult\x12\x14\n\x07node_id\x18\x01 \x01(\rH\x00\x88\x01\x01\x12\x18\n\x0b\x64omain_path\x18\x02 \x01(\tH\x01\x88\x01\x01\x12\x13\n\x06\x65xpire\x18\x03 \x01(\x04H\x02\x88\x01\x01\x12&\n\x05nodes\x18\x04 \x03(\x0b\x32\x17.Ydb.Discovery.NodeInfo\x12\x1c\n\x0fscope_tablet_id\x18\x05 \x01(\x04H\x03\x88\x01\x01\x12\x1a\n\rscope_path_id\x18\x06 \x01(\x04H\x04\x88\x01\x01\x12\x16\n\tnode_name\x18\x07 \x01(\tH\x05\x88\x01\x01\x42\n\n\x08_node_idB\x0e\n\x0c_domain_pathB\t\n\x07_expireB\x12\n\x10_scope_tablet_idB\x10\n\x0e_scope_path_idB\x0c\n\n_node_name\"H\n\x18NodeRegistrationResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.OperationBl\n\x18tech.ydb.proto.discoveryB\x0f\x44iscoveryProtosZ<github.com/ydb-platform/ydb-go-genproto/protos/Ydb_Discovery\xf8\x01\x01\x62\x06proto3')
 
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, globals())
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'protos.ydb_discovery_pb2', globals())
@@ -33,20 +34,28 @@ if _descriptor._USE_C_DESCRIPTORS == False:
   _NODELOCATION.fields_by_name['body_num']._serialized_options = b'\030\001'
   _NODELOCATION.fields_by_name['body']._options = None
   _NODELOCATION.fields_by_name['body']._serialized_options = b'\030\001'
-  _LISTENDPOINTSREQUEST._serialized_start=73
-  _LISTENDPOINTSREQUEST._serialized_end=130
-  _ENDPOINTINFO._serialized_start=133
-  _ENDPOINTINFO._serialized_end=328
-  _LISTENDPOINTSRESULT._serialized_start=330
-  _LISTENDPOINTSRESULT._serialized_end=422
-  _LISTENDPOINTSRESPONSE._serialized_start=424
-  _LISTENDPOINTSRESPONSE._serialized_end=493
-  _WHOAMIREQUEST._serialized_start=495
-  _WHOAMIREQUEST._serialized_end=534
-  _WHOAMIRESULT._serialized_start=536
-  _WHOAMIRESULT._serialized_end=580
-  _WHOAMIRESPONSE._serialized_start=582
-  _WHOAMIRESPONSE._serialized_end=644
-  _NODELOCATION._serialized_start=647
-  _NODELOCATION._serialized_end=999
+  _LISTENDPOINTSREQUEST._serialized_start=105
+  _LISTENDPOINTSREQUEST._serialized_end=162
+  _ENDPOINTINFO._serialized_start=165
+  _ENDPOINTINFO._serialized_end=386
+  _LISTENDPOINTSRESULT._serialized_start=389
+  _LISTENDPOINTSRESULT._serialized_end=525
+  _LISTENDPOINTSRESPONSE._serialized_start=527
+  _LISTENDPOINTSRESPONSE._serialized_end=596
+  _WHOAMIREQUEST._serialized_start=598
+  _WHOAMIREQUEST._serialized_end=637
+  _WHOAMIRESULT._serialized_start=640
+  _WHOAMIRESULT._serialized_end=870
+  _WHOAMIRESPONSE._serialized_start=872
+  _WHOAMIRESPONSE._serialized_end=934
+  _NODELOCATION._serialized_start=937
+  _NODELOCATION._serialized_end=1341
+  _NODEINFO._serialized_start=1344
+  _NODEINFO._serialized_end=1619
+  _NODEREGISTRATIONREQUEST._serialized_start=1622
+  _NODEREGISTRATIONREQUEST._serialized_end=1962
+  _NODEREGISTRATIONRESULT._serialized_start=1965
+  _NODEREGISTRATIONRESULT._serialized_end=2271
+  _NODEREGISTRATIONRESPONSE._serialized_start=2273
+  _NODEREGISTRATIONRESPONSE._serialized_end=2345
 # @@protoc_insertion_point(module_scope)

@@ -99,15 +99,23 @@ class Location(_message.Message):
     storage: LocationStorage
     def __init__(self, storage: _Optional[_Union[LocationStorage, _Mapping]] = ..., compute: _Optional[_Union[LocationCompute, _Mapping]] = ..., database: _Optional[_Union[LocationDatabase, _Mapping]] = ...) -> None: ...
 
+class LocationBridgePile(_message.Message):
+    __slots__ = ["name"]
+    NAME_FIELD_NUMBER: _ClassVar[int]
+    name: str
+    def __init__(self, name: _Optional[str] = ...) -> None: ...
+
 class LocationCompute(_message.Message):
-    __slots__ = ["node", "pool", "tablet"]
+    __slots__ = ["node", "pile", "pool", "tablet"]
     NODE_FIELD_NUMBER: _ClassVar[int]
+    PILE_FIELD_NUMBER: _ClassVar[int]
     POOL_FIELD_NUMBER: _ClassVar[int]
     TABLET_FIELD_NUMBER: _ClassVar[int]
     node: LocationNode
+    pile: LocationBridgePile
     pool: LocationComputePool
     tablet: LocationComputeTablet
-    def __init__(self, node: _Optional[_Union[LocationNode, _Mapping]] = ..., pool: _Optional[_Union[LocationComputePool, _Mapping]] = ..., tablet: _Optional[_Union[LocationComputeTablet, _Mapping]] = ...) -> None: ...
+    def __init__(self, node: _Optional[_Union[LocationNode, _Mapping]] = ..., pool: _Optional[_Union[LocationComputePool, _Mapping]] = ..., tablet: _Optional[_Union[LocationComputeTablet, _Mapping]] = ..., pile: _Optional[_Union[LocationBridgePile, _Mapping]] = ...) -> None: ...
 
 class LocationComputePool(_message.Message):
     __slots__ = ["name"]
@@ -132,14 +140,16 @@ class LocationDatabase(_message.Message):
     def __init__(self, name: _Optional[str] = ...) -> None: ...
 
 class LocationNode(_message.Message):
-    __slots__ = ["host", "id", "port"]
+    __slots__ = ["host", "id", "pile", "port"]
     HOST_FIELD_NUMBER: _ClassVar[int]
     ID_FIELD_NUMBER: _ClassVar[int]
+    PILE_FIELD_NUMBER: _ClassVar[int]
     PORT_FIELD_NUMBER: _ClassVar[int]
     host: str
     id: int
+    pile: LocationBridgePile
     port: int
-    def __init__(self, id: _Optional[int] = ..., host: _Optional[str] = ..., port: _Optional[int] = ...) -> None: ...
+    def __init__(self, id: _Optional[int] = ..., host: _Optional[str] = ..., port: _Optional[int] = ..., pile: _Optional[_Union[LocationBridgePile, _Mapping]] = ...) -> None: ...
 
 class LocationStorage(_message.Message):
     __slots__ = ["node", "pool"]
@@ -150,12 +160,14 @@ class LocationStorage(_message.Message):
     def __init__(self, node: _Optional[_Union[LocationNode, _Mapping]] = ..., pool: _Optional[_Union[LocationStoragePool, _Mapping]] = ...) -> None: ...
 
 class LocationStorageGroup(_message.Message):
-    __slots__ = ["id", "vdisk"]
+    __slots__ = ["id", "pile", "vdisk"]
     ID_FIELD_NUMBER: _ClassVar[int]
+    PILE_FIELD_NUMBER: _ClassVar[int]
     VDISK_FIELD_NUMBER: _ClassVar[int]
     id: _containers.RepeatedScalarFieldContainer[str]
+    pile: LocationBridgePile
     vdisk: LocationStorageVDisk
-    def __init__(self, id: _Optional[_Iterable[str]] = ..., vdisk: _Optional[_Union[LocationStorageVDisk, _Mapping]] = ...) -> None: ...
+    def __init__(self, id: _Optional[_Iterable[str]] = ..., vdisk: _Optional[_Union[LocationStorageVDisk, _Mapping]] = ..., pile: _Optional[_Union[LocationBridgePile, _Mapping]] = ...) -> None: ...
 
 class LocationStoragePDisk(_message.Message):
     __slots__ = ["id", "path"]
