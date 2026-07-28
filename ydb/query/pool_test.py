@@ -149,3 +149,51 @@ class TestRetryOperationSync(unittest.TestCase):
 
         self.assertEqual(result, "ok")
         live_session.explain.assert_called_once_with("SELECT 1")
+
+
+class TestPoolIdParameter(unittest.TestCase):
+    def test_execute_with_retries_passes_pool_id_to_session(self):
+        pool = _make_pool(size=1)
+
+        session = MagicMock()
+        session.is_active = True
+
+        def mock_execute(query, parameters=None, *args, pool_id=None, **kwargs):
+            return []
+
+        session.execute = mock_execute
+
+        def mock_acquire(timeout=None):
+            return session
+
+        pool.acquire = mock_acquire
+        pool.release = MagicMock()
+
+        pool.execute_with_retries("SELECT 1", pool_id="my-pool")
+
+        session.execute.assert_called_once()
+        call_kwargs = session.execute.call_args[1]
+        self.assertEqual(call_kwargs.get("pool_id"), "my-pool")
+
+    def test_execute_with_retries_without_pool_id(self):
+        pool = _make_pool(size=1)
+
+        session = MagicMock()
+        session.is_active = True
+
+        def mock_execute(query, parameters=None, *args, pool_id=None, **kwargs):
+            return []
+
+        session.execute = mock_execute
+
+        def mock_acquire(timeout=None):
+            return session
+
+        pool.acquire = mock_acquire
+        pool.release = MagicMock()
+
+        pool.execute_with_retries("SELECT 1")
+
+        session.execute.assert_called_once()
+        call_kwargs = session.execute.call_args[1]
+        self.assertIsNone(call_kwargs.get("pool_id"))
