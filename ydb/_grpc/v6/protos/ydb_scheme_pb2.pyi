@@ -82,6 +82,7 @@ class Entry(_message.Message):
         RESOURCE_POOL: _ClassVar[Entry.Type]
         TRANSFER: _ClassVar[Entry.Type]
         SYS_VIEW: _ClassVar[Entry.Type]
+        SECRET: _ClassVar[Entry.Type]
     TYPE_UNSPECIFIED: Entry.Type
     DIRECTORY: Entry.Type
     TABLE: Entry.Type
@@ -101,6 +102,7 @@ class Entry(_message.Message):
     RESOURCE_POOL: Entry.Type
     TRANSFER: Entry.Type
     SYS_VIEW: Entry.Type
+    SECRET: Entry.Type
     NAME_FIELD_NUMBER: _ClassVar[int]
     OWNER_FIELD_NUMBER: _ClassVar[int]
     TYPE_FIELD_NUMBER: _ClassVar[int]

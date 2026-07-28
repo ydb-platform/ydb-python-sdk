@@ -1109,6 +1109,10 @@ class QueryStatsCollection(_message.Message):
     STATS_COLLECTION_UNSPECIFIED: QueryStatsCollection.Mode
     def __init__(self) -> None: ...
 
+class ReadCommittedRWModeSettings(_message.Message):
+    __slots__ = []
+    def __init__(self) -> None: ...
+
 class ReadReplicasSettings(_message.Message):
     __slots__ = ["any_az_read_replicas_count", "per_az_read_replicas_count"]
     ANY_AZ_READ_REPLICAS_COUNT_FIELD_NUMBER: _ClassVar[int]
@@ -1485,18 +1489,20 @@ class TransactionMeta(_message.Message):
     def __init__(self, id: _Optional[str] = ...) -> None: ...
 
 class TransactionSettings(_message.Message):
-    __slots__ = ["online_read_only", "serializable_read_write", "snapshot_read_only", "snapshot_read_write", "stale_read_only"]
+    __slots__ = ["online_read_only", "read_committed_read_write", "serializable_read_write", "snapshot_read_only", "snapshot_read_write", "stale_read_only"]
     ONLINE_READ_ONLY_FIELD_NUMBER: _ClassVar[int]
+    READ_COMMITTED_READ_WRITE_FIELD_NUMBER: _ClassVar[int]
     SERIALIZABLE_READ_WRITE_FIELD_NUMBER: _ClassVar[int]
     SNAPSHOT_READ_ONLY_FIELD_NUMBER: _ClassVar[int]
     SNAPSHOT_READ_WRITE_FIELD_NUMBER: _ClassVar[int]
     STALE_READ_ONLY_FIELD_NUMBER: _ClassVar[int]
     online_read_only: OnlineModeSettings
+    read_committed_read_write: ReadCommittedRWModeSettings
     serializable_read_write: SerializableModeSettings
     snapshot_read_only: SnapshotModeSettings
     snapshot_read_write: SnapshotRWModeSettings
     stale_read_only: StaleModeSettings
-    def __init__(self, serializable_read_write: _Optional[_Union[SerializableModeSettings, _Mapping]] = ..., online_read_only: _Optional[_Union[OnlineModeSettings, _Mapping]] = ..., stale_read_only: _Optional[_Union[StaleModeSettings, _Mapping]] = ..., snapshot_read_only: _Optional[_Union[SnapshotModeSettings, _Mapping]] = ..., snapshot_read_write: _Optional[_Union[SnapshotRWModeSettings, _Mapping]] = ...) -> None: ...
+    def __init__(self, serializable_read_write: _Optional[_Union[SerializableModeSettings, _Mapping]] = ..., online_read_only: _Optional[_Union[OnlineModeSettings, _Mapping]] = ..., stale_read_only: _Optional[_Union[StaleModeSettings, _Mapping]] = ..., snapshot_read_only: _Optional[_Union[SnapshotModeSettings, _Mapping]] = ..., snapshot_read_write: _Optional[_Union[SnapshotRWModeSettings, _Mapping]] = ..., read_committed_read_write: _Optional[_Union[ReadCommittedRWModeSettings, _Mapping]] = ...) -> None: ...
 
 class TtlSettings(_message.Message):
     __slots__ = ["date_type_column", "run_interval_seconds", "value_since_unix_epoch"]

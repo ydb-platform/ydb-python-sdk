@@ -181,14 +181,16 @@ class ComputeStatus(_message.Message):
     def __init__(self, overall: _Optional[_Union[StatusFlag.Status, str]] = ..., nodes: _Optional[_Iterable[_Union[ComputeNodeStatus, _Mapping]]] = ..., tablets: _Optional[_Iterable[_Union[ComputeTabletStatus, _Mapping]]] = ...) -> None: ...
 
 class LocationNode(_message.Message):
-    __slots__ = ("id", "host", "port")
+    __slots__ = ("id", "host", "port", "pile")
     ID_FIELD_NUMBER: _ClassVar[int]
     HOST_FIELD_NUMBER: _ClassVar[int]
     PORT_FIELD_NUMBER: _ClassVar[int]
+    PILE_FIELD_NUMBER: _ClassVar[int]
     id: int
     host: str
     port: int
-    def __init__(self, id: _Optional[int] = ..., host: _Optional[str] = ..., port: _Optional[int] = ...) -> None: ...
+    pile: LocationBridgePile
+    def __init__(self, id: _Optional[int] = ..., host: _Optional[str] = ..., port: _Optional[int] = ..., pile: _Optional[_Union[LocationBridgePile, _Mapping]] = ...) -> None: ...
 
 class LocationStoragePDisk(_message.Message):
     __slots__ = ("id", "path")
@@ -207,12 +209,14 @@ class LocationStorageVDisk(_message.Message):
     def __init__(self, id: _Optional[_Iterable[str]] = ..., pdisk: _Optional[_Iterable[_Union[LocationStoragePDisk, _Mapping]]] = ...) -> None: ...
 
 class LocationStorageGroup(_message.Message):
-    __slots__ = ("id", "vdisk")
+    __slots__ = ("id", "vdisk", "pile")
     ID_FIELD_NUMBER: _ClassVar[int]
     VDISK_FIELD_NUMBER: _ClassVar[int]
+    PILE_FIELD_NUMBER: _ClassVar[int]
     id: _containers.RepeatedScalarFieldContainer[str]
     vdisk: LocationStorageVDisk
-    def __init__(self, id: _Optional[_Iterable[str]] = ..., vdisk: _Optional[_Union[LocationStorageVDisk, _Mapping]] = ...) -> None: ...
+    pile: LocationBridgePile
+    def __init__(self, id: _Optional[_Iterable[str]] = ..., vdisk: _Optional[_Union[LocationStorageVDisk, _Mapping]] = ..., pile: _Optional[_Union[LocationBridgePile, _Mapping]] = ...) -> None: ...
 
 class LocationStoragePool(_message.Message):
     __slots__ = ("name", "group")
@@ -246,15 +250,23 @@ class LocationComputeTablet(_message.Message):
     count: int
     def __init__(self, type: _Optional[str] = ..., id: _Optional[_Iterable[str]] = ..., count: _Optional[int] = ...) -> None: ...
 
+class LocationBridgePile(_message.Message):
+    __slots__ = ("name",)
+    NAME_FIELD_NUMBER: _ClassVar[int]
+    name: str
+    def __init__(self, name: _Optional[str] = ...) -> None: ...
+
 class LocationCompute(_message.Message):
-    __slots__ = ("node", "pool", "tablet")
+    __slots__ = ("node", "pool", "tablet", "pile")
     NODE_FIELD_NUMBER: _ClassVar[int]
     POOL_FIELD_NUMBER: _ClassVar[int]
     TABLET_FIELD_NUMBER: _ClassVar[int]
+    PILE_FIELD_NUMBER: _ClassVar[int]
     node: LocationNode
     pool: LocationComputePool
     tablet: LocationComputeTablet
-    def __init__(self, node: _Optional[_Union[LocationNode, _Mapping]] = ..., pool: _Optional[_Union[LocationComputePool, _Mapping]] = ..., tablet: _Optional[_Union[LocationComputeTablet, _Mapping]] = ...) -> None: ...
+    pile: LocationBridgePile
+    def __init__(self, node: _Optional[_Union[LocationNode, _Mapping]] = ..., pool: _Optional[_Union[LocationComputePool, _Mapping]] = ..., tablet: _Optional[_Union[LocationComputeTablet, _Mapping]] = ..., pile: _Optional[_Union[LocationBridgePile, _Mapping]] = ...) -> None: ...
 
 class LocationDatabase(_message.Message):
     __slots__ = ("name",)
