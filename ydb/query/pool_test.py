@@ -232,6 +232,7 @@ class TestCreateExecuteQueryRequest(unittest.TestCase):
             arrow_format_settings=None,
             parameters=None,
             concurrent_result_sets=None,
+            pool_id=None,
         )
         self.assertIsNone(req.pool_id)
         proto = req.to_proto()
