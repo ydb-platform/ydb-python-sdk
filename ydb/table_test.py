@@ -4,7 +4,7 @@ import pytest
 
 from unittest import mock
 from . import issues, convert, types, _apis, scheme, _session_impl
-from .table import SystemViewSchemeEntry
+from .table import SystemViewSchemeEntry, TableClient
 
 from .retries import (
     retry_operation_impl,
@@ -320,3 +320,19 @@ def test_wrap_describe_system_view_response_raises_on_error():
     response.operation.status = _apis.StatusIds.SCHEME_ERROR
     with pytest.raises(issues.SchemeError):
         _session_impl.wrap_describe_system_view_response(None, response, SystemViewSchemeEntry)
+
+
+def test_async_describe_system_view():
+    class _FakeSyncDriver:
+        def future(self, request, stub, method, wrap_fn, settings, wrap_args, *rest):
+            self.request = request
+            self.method = method
+            return wrap_fn(None, _build_describe_system_view_response(), *wrap_args)
+
+    driver = _FakeSyncDriver()
+    entry = TableClient(driver).async_describe_system_view("/local/.sys/partition_stats")
+
+    assert driver.method == _apis.TableService.DescribeSystemView
+    assert driver.request.path == "/local/.sys/partition_stats"
+    assert isinstance(entry, SystemViewSchemeEntry)
+    assert entry.sys_view_name == "partition_stats"
