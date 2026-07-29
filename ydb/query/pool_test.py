@@ -6,10 +6,15 @@ import time
 import unittest
 from unittest.mock import MagicMock
 
+from unittest.mock import patch
+
 from ydb import issues
 from ydb.convert import _ResultSet, aggregate_result_sets_by_index, aggregate_result_sets_by_index_async
+from ydb.query.base import create_execute_query_request
 from ydb.query.pool import QuerySessionPool
 from ydb.query.session import QuerySession
+from ydb.query.transaction import QueryTxContext
+from ydb._grpc.grpcwrapper import ydb_query_public_types as _ydb_query_public
 
 
 def _make_pool(size=1):
@@ -149,3 +154,169 @@ class TestRetryOperationSync(unittest.TestCase):
 
         self.assertEqual(result, "ok")
         live_session.explain.assert_called_once_with("SELECT 1")
+
+
+class TestQuerySessionExecutePoolId(unittest.TestCase):
+    """Test that pool_id flows from session.execute() → _execute_call() → driver."""
+
+    def _make_session(self):
+        driver = MagicMock()
+        driver._driver_config.query_client_settings = None
+        session = QuerySession(driver)
+        session._session_id = "fake-session-id"
+        return session
+
+    def test_execute_passes_pool_id_to_driver(self):
+        session = self._make_session()
+
+        captured = {}
+
+        def fake_execute_call(**kwargs):
+            captured.update(kwargs)
+            return iter([])
+
+        with patch.object(type(session), "_execute_call", side_effect=fake_execute_call):
+            session.execute("SELECT 1", pool_id="my-pool")
+
+        self.assertEqual(captured.get("pool_id"), "my-pool")
+
+    def test_execute_without_pool_id_passes_none(self):
+        session = self._make_session()
+
+        captured = {}
+
+        def fake_execute_call(**kwargs):
+            captured.update(kwargs)
+            return iter([])
+
+        with patch.object(type(session), "_execute_call", side_effect=fake_execute_call):
+            session.execute("SELECT 1")
+
+        self.assertIsNone(captured.get("pool_id"))
+
+
+class TestCreateExecuteQueryRequest(unittest.TestCase):
+    def test_pool_id_is_set_in_request(self):
+        req = create_execute_query_request(
+            query="SELECT 1",
+            session_id="sess-1",
+            tx_id=None,
+            commit_tx=None,
+            tx_mode=None,
+            syntax=None,
+            exec_mode=None,
+            stats_mode=None,
+            schema_inclusion_mode=None,
+            result_set_format=None,
+            arrow_format_settings=None,
+            parameters=None,
+            concurrent_result_sets=None,
+            pool_id="my-pool",
+        )
+        self.assertEqual(req.pool_id, "my-pool")
+        proto = req.to_proto()
+        self.assertEqual(proto.pool_id, "my-pool")
+
+    def test_pool_id_defaults_to_none_and_is_absent_from_proto(self):
+        req = create_execute_query_request(
+            query="SELECT 1",
+            session_id="sess-1",
+            tx_id=None,
+            commit_tx=None,
+            tx_mode=None,
+            syntax=None,
+            exec_mode=None,
+            stats_mode=None,
+            schema_inclusion_mode=None,
+            result_set_format=None,
+            arrow_format_settings=None,
+            parameters=None,
+            concurrent_result_sets=None,
+            pool_id=None,
+        )
+        self.assertIsNone(req.pool_id)
+        proto = req.to_proto()
+        self.assertEqual(proto.pool_id, "")
+
+
+class TestPoolIdParameter(unittest.TestCase):
+    def test_execute_with_retries_passes_pool_id_to_session(self):
+        pool = _make_pool(size=1)
+
+        session = MagicMock()
+        session.is_active = True
+        session.execute = MagicMock(return_value=[])
+
+        def mock_acquire(timeout=None):
+            return session
+
+        pool.acquire = mock_acquire
+        pool.release = MagicMock()
+
+        pool.execute_with_retries("SELECT 1", pool_id="my-pool")
+
+        session.execute.assert_called_once()
+        call_kwargs = session.execute.call_args[1]
+        self.assertEqual(call_kwargs.get("pool_id"), "my-pool")
+
+    def test_execute_with_retries_without_pool_id(self):
+        pool = _make_pool(size=1)
+
+        session = MagicMock()
+        session.is_active = True
+        session.execute = MagicMock(return_value=[])
+
+        def mock_acquire(timeout=None):
+            return session
+
+        pool.acquire = mock_acquire
+        pool.release = MagicMock()
+
+        pool.execute_with_retries("SELECT 1")
+
+        session.execute.assert_called_once()
+        call_kwargs = session.execute.call_args[1]
+        self.assertIsNone(call_kwargs.get("pool_id"))
+
+
+class TestQueryTxContextExecutePoolId(unittest.TestCase):
+    """Test that pool_id flows from QueryTxContext.execute() → _execute_call()."""
+
+    def _make_tx(self):
+        driver = MagicMock()
+        driver._driver_config.query_client_settings = None
+        session = MagicMock()
+        session.session_id = "fake-session-id"
+        session.node_id = None
+        session._endpoint_key = None
+        tx_mode = _ydb_query_public.QuerySerializableReadWrite()
+        tx = QueryTxContext(driver, session, tx_mode)
+        return tx
+
+    def test_execute_passes_pool_id_to_execute_call(self):
+        tx = self._make_tx()
+
+        captured = {}
+
+        def fake_execute_call(**kwargs):
+            captured.update(kwargs)
+            return iter([])
+
+        with patch.object(type(tx), "_execute_call", side_effect=fake_execute_call):
+            tx.execute("SELECT 1", pool_id="my-pool")
+
+        self.assertEqual(captured.get("pool_id"), "my-pool")
+
+    def test_execute_without_pool_id_passes_none(self):
+        tx = self._make_tx()
+
+        captured = {}
+
+        def fake_execute_call(**kwargs):
+            captured.update(kwargs)
+            return iter([])
+
+        with patch.object(type(tx), "_execute_call", side_effect=fake_execute_call):
+            tx.execute("SELECT 1")
+
+        self.assertIsNone(captured.get("pool_id"))
