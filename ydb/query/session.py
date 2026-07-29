@@ -307,7 +307,7 @@ class BaseQuerySession(abc.ABC, Generic[DriverT]):
         arrow_format_settings: Optional[base.ArrowFormatSettings] = None,
         concurrent_result_sets: bool = False,
         settings: Optional[BaseRequestSettings] = None,
-        pool_id: Optional[str],
+        pool_id: Optional[str] = None,
     ) -> Iterable[_apis.ydb_query.ExecuteQueryResponsePart]: ...
 
     @overload
@@ -324,7 +324,7 @@ class BaseQuerySession(abc.ABC, Generic[DriverT]):
         arrow_format_settings: Optional[base.ArrowFormatSettings] = None,
         concurrent_result_sets: bool = False,
         settings: Optional[BaseRequestSettings] = None,
-        pool_id: Optional[str],
+        pool_id: Optional[str] = None,
     ) -> Awaitable[Iterable[_apis.ydb_query.ExecuteQueryResponsePart]]: ...
 
     def _execute_call(
@@ -340,7 +340,7 @@ class BaseQuerySession(abc.ABC, Generic[DriverT]):
         arrow_format_settings: Optional[base.ArrowFormatSettings] = None,
         concurrent_result_sets: bool = False,
         settings: Optional[BaseRequestSettings] = None,
-        pool_id: Optional[str],
+        pool_id: Optional[str] = None,
     ) -> Union[
         Iterable[_apis.ydb_query.ExecuteQueryResponsePart],
         Awaitable[Iterable[_apis.ydb_query.ExecuteQueryResponsePart]],
