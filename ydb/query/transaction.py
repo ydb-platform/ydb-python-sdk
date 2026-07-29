@@ -384,7 +384,7 @@ class BaseQueryTxContext(base.CallbackHandler, Generic[DriverT]):
         arrow_format_settings: Optional[base.ArrowFormatSettings],
         concurrent_result_sets: Optional[bool],
         settings: Optional[BaseRequestSettings],
-        pool_id: Optional[str] = None,
+        pool_id: Optional[str],
     ) -> Iterable[_apis.ydb_query.ExecuteQueryResponsePart]: ...
 
     @overload
@@ -401,7 +401,7 @@ class BaseQueryTxContext(base.CallbackHandler, Generic[DriverT]):
         arrow_format_settings: Optional[base.ArrowFormatSettings],
         concurrent_result_sets: Optional[bool],
         settings: Optional[BaseRequestSettings],
-        pool_id: Optional[str] = None,
+        pool_id: Optional[str],
     ) -> Awaitable[Iterable[_apis.ydb_query.ExecuteQueryResponsePart]]: ...
 
     def _execute_call(
@@ -417,7 +417,7 @@ class BaseQueryTxContext(base.CallbackHandler, Generic[DriverT]):
         arrow_format_settings: Optional[base.ArrowFormatSettings],
         concurrent_result_sets: Optional[bool],
         settings: Optional[BaseRequestSettings],
-        pool_id: Optional[str] = None,
+        pool_id: Optional[str],
     ) -> Union[
         Iterable[_apis.ydb_query.ExecuteQueryResponsePart],
         Awaitable[Iterable[_apis.ydb_query.ExecuteQueryResponsePart]],

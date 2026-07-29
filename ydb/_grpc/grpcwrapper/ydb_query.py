@@ -168,7 +168,7 @@ class ExecuteQueryRequest(IToProto):
     schema_inclusion_mode: int
     result_set_format: int
     arrow_format_settings: Optional[public_types.ArrowFormatSettings]
-    pool_id: Optional[str] = None
+    pool_id: Optional[str]
 
     def to_proto(self) -> ydb_query_pb2.ExecuteQueryRequest:
         tx_control = self.tx_control.to_proto() if self.tx_control is not None else self.tx_control

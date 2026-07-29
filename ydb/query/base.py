@@ -165,7 +165,7 @@ def create_execute_query_request(
     arrow_format_settings: Optional[ArrowFormatSettings],
     parameters: Optional[dict],
     concurrent_result_sets: Optional[bool],
-    pool_id: Optional[str] = None,
+    pool_id: Optional[str],
 ) -> ydb_query.ExecuteQueryRequest:
     try:
         syntax = QuerySyntax.YQL_V1 if not syntax else syntax
