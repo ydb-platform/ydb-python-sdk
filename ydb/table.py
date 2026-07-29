@@ -1704,7 +1704,7 @@ class SystemViewSchemeEntry(scheme.SchemeEntry):
         self.sys_view_name = sys_view_name
         self.columns = [Column(column.name, convert.type_to_native(column.type), column.family) for column in columns]
         self.primary_key = [pk for pk in primary_key]
-        self.attributes = dict(attributes)
+        self.attributes = attributes
 
 
 class RenameItem:

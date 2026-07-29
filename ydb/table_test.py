@@ -312,7 +312,7 @@ def test_wrap_describe_system_view_response():
     assert entry.sys_view_name == "partition_stats"
     assert entry.primary_key == ["OwnerId"]
     assert [column.name for column in entry.columns] == ["OwnerId"]
-    assert entry.attributes == {"origin": "test"}
+    assert dict(entry.attributes) == {"origin": "test"}
 
 
 def test_wrap_describe_system_view_response_raises_on_error():

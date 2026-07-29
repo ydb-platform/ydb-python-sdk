@@ -77,6 +77,24 @@ Pass :class:`~ydb.DescribeTableSettings` to request additional detail:
     entry = driver.table_client.describe_table("/local/users", settings)
 
 
+Describing a System View
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+System views (the ``.sys`` schema objects) are described with ``describe_system_view``,
+which returns a :class:`~ydb.SystemViewSchemeEntry` with the system view id and name,
+its columns, primary key, and attributes. Unlike ``describe_table`` this is a dedicated
+description that omits the table-only fields that do not apply to system views:
+
+.. code-block:: python
+
+    entry = driver.table_client.describe_system_view("/local/.sys/nodes")
+
+    print(entry.sys_view_name, entry.sys_view_id)
+    for column in entry.columns:
+        print(column.name, column.type)
+    print(entry.primary_key)
+
+
 Altering a Table
 ^^^^^^^^^^^^^^^^
 
@@ -555,6 +573,10 @@ on an async driver. All I/O methods become coroutines:
             entry = await driver.table_client.describe_table("/local/users")
             for col in entry.columns:
                 print(col.name, col.type)
+
+            # Describe a system view
+            sys_view = await driver.table_client.describe_system_view("/local/.sys/nodes")
+            print(sys_view.sys_view_name, sys_view.primary_key)
 
             await driver.table_client.drop_table("/local/users")
 
