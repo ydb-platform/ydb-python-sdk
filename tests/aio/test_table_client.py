@@ -128,3 +128,19 @@ class TestTableClient:
         description = await client.describe_table(table_name)
         assert len(description.indexes) == 1
         assert description.indexes[0].name == "index2"
+
+    @pytest.mark.asyncio
+    async def test_describe_system_view(self, driver: ydb.aio.Driver):
+        client = driver.table_client
+
+        with pytest.raises(ydb.SchemeError):
+            await client.describe_system_view("/local/.sys/does_not_exist")
+
+        entry = await client.describe_system_view("/local/.sys/nodes")
+
+        assert isinstance(entry, ydb.SystemViewSchemeEntry)
+        assert entry.is_sysview()
+        assert entry.sys_view_name == "nodes"
+        assert entry.sys_view_id > 0
+        assert entry.primary_key == ["NodeId"]
+        assert "NodeId" in [column.name for column in entry.columns]

@@ -1,3 +1,5 @@
+* Add `TableClient.describe_system_view` (sync and async) returning a dedicated `SystemViewSchemeEntry` with the system view id, name, columns, primary key and attributes — a full description of system view objects that `describe_table` does not provide
+
 ## 3.31.1 ##
 * Support the new `SECRET` scheme entry type: `SchemeEntryType.SECRET` and `SchemeEntry.is_secret()` now recognise secret entries returned by `list_directory`/`describe_path`
 
