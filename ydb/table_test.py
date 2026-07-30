@@ -3,7 +3,8 @@ import copy
 import pytest
 
 from unittest import mock
-from . import issues, convert, types, _apis
+from . import issues, convert, types, _apis, scheme, _session_impl
+from .table import SystemViewSchemeEntry, TableClient
 
 from .retries import (
     retry_operation_impl,
@@ -272,3 +273,66 @@ def test_retry_operation_impl(monkeypatch):
     check_unretriable_error(TestException, False)
     with mock.patch.object(retry_once_settings, "idempotent", True):
         check_unretriable_error(TestException, False)
+
+
+def _build_describe_system_view_response():
+    result = _apis.ydb_table.DescribeSystemViewResult()
+    result.self.name = "partition_stats"
+    result.self.type = scheme.SchemeEntryType.SYS_VIEW
+    result.sys_view_id = 42
+    result.sys_view_name = "partition_stats"
+    column = result.columns.add()
+    column.name = "OwnerId"
+    column.type.type_id = types.PrimitiveType.Uint64._idn_
+    result.primary_key.append("OwnerId")
+    result.attributes["origin"] = "test"
+
+    response = _apis.ydb_table.DescribeSystemViewResponse()
+    response.operation.status = _apis.StatusIds.SUCCESS
+    response.operation.result.Pack(result)
+    return response
+
+
+def test_describe_system_view_request_factory():
+    request = _session_impl.describe_system_view_request_factory("/local/.sys/partition_stats")
+    assert request.path == "/local/.sys/partition_stats"
+    # DescribeSystemView is stateless: the request carries no session id.
+    assert not hasattr(request, "session_id")
+
+
+def test_wrap_describe_system_view_response():
+    entry = _session_impl.wrap_describe_system_view_response(
+        None, _build_describe_system_view_response(), SystemViewSchemeEntry
+    )
+
+    assert isinstance(entry, SystemViewSchemeEntry)
+    assert entry.name == "partition_stats"
+    assert entry.is_sysview()
+    assert entry.sys_view_id == 42
+    assert entry.sys_view_name == "partition_stats"
+    assert entry.primary_key == ["OwnerId"]
+    assert [column.name for column in entry.columns] == ["OwnerId"]
+    assert dict(entry.attributes) == {"origin": "test"}
+
+
+def test_wrap_describe_system_view_response_raises_on_error():
+    response = _apis.ydb_table.DescribeSystemViewResponse()
+    response.operation.status = _apis.StatusIds.SCHEME_ERROR
+    with pytest.raises(issues.SchemeError):
+        _session_impl.wrap_describe_system_view_response(None, response, SystemViewSchemeEntry)
+
+
+def test_async_describe_system_view():
+    class _FakeSyncDriver:
+        def future(self, request, stub, method, wrap_fn, settings, wrap_args, *rest):
+            self.request = request
+            self.method = method
+            return wrap_fn(None, _build_describe_system_view_response(), *wrap_args)
+
+    driver = _FakeSyncDriver()
+    entry = TableClient(driver).async_describe_system_view("/local/.sys/partition_stats")
+
+    assert driver.method == _apis.TableService.DescribeSystemView
+    assert driver.request.path == "/local/.sys/partition_stats"
+    assert isinstance(entry, SystemViewSchemeEntry)
+    assert entry.sys_view_name == "partition_stats"

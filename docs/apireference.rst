@@ -372,6 +372,13 @@ TableSchemeEntry
    :members:
    :undoc-members:
 
+SystemViewSchemeEntry
+^^^^^^^^^^^^^^^^^^^^^
+
+.. autoclass:: ydb.SystemViewSchemeEntry
+   :members:
+   :undoc-members:
+
 DescribeTableSettings
 ^^^^^^^^^^^^^^^^^^^^^
 

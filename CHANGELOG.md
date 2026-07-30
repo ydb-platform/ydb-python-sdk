@@ -1,3 +1,4 @@
+* Add `TableClient.describe_system_view` (sync and async) returning a dedicated `SystemViewSchemeEntry` with the system view id, name, columns, primary key and attributes — a full description of system view objects that `describe_table` does not provide
 * Add `pool_id` parameter to `QuerySession.execute`, `QueryTxContext.execute`, and `QuerySessionPool.execute_with_retries` to route queries to a specific resource pool
 
 ## 3.31.1 ##
