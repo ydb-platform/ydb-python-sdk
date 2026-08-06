@@ -1,3 +1,5 @@
+* Fixed async `QuerySessionPool` permanently losing a pool slot when `acquire()` was cancelled while a new session was being created: `asyncio.CancelledError` no longer leaks the pool size counter, so a pool under deadline-driven cancellations can no longer end up exhausted and blocking forever. A cancelled or interrupted session attach now also closes the session instead of orphaning it server-side
+
 ## 3.31.2 ##
 * Add `TableClient.describe_system_view` (sync and async) returning a dedicated `SystemViewSchemeEntry` with the system view id, name, columns, primary key and attributes — a full description of system view objects that `describe_table` does not provide
 * Add `pool_id` parameter to `QuerySession.execute`, `QueryTxContext.execute`, and `QuerySessionPool.execute_with_retries` to route queries to a specific resource pool
