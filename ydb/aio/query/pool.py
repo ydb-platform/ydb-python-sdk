@@ -141,6 +141,12 @@ class QuerySessionPool:
             logger.warning("Failed to create new session")
             self._current_size -= 1
             raise e
+        except BaseException:
+            # asyncio.CancelledError does not derive from Exception, so without this
+            # branch a task cancelled while its session is being created would leave
+            # _current_size incremented forever and permanently lose a pool slot.
+            self._current_size -= 1
+            raise
 
         return session
 
