@@ -33,6 +33,11 @@ def _make_active_session():
     return session
 
 
+async def _wait_signalled(event: asyncio.Event) -> None:
+    """Wait for a test signal, bounded so a regression fails the test instead of hanging the suite."""
+    await asyncio.wait_for(event.wait(), timeout=5)
+
+
 class TestAcquireTimeout(unittest.IsolatedAsyncioTestCase):
     async def test_acquire_returns_session_when_available(self):
         pool = _make_pool(size=2)
@@ -138,7 +143,7 @@ class TestAcquireCancellation(unittest.IsolatedAsyncioTestCase):
         pool._create_new_session = self._hanging_create(entered)
 
         task = asyncio.create_task(pool.acquire())
-        await entered.wait()
+        await _wait_signalled(entered)
         task.cancel()
         with self.assertRaises(asyncio.CancelledError):
             await task
@@ -199,7 +204,7 @@ class TestSessionAttachCancellation(unittest.IsolatedAsyncioTestCase):
             aio_utilities, "AsyncResponseIterator", MagicMock()
         ), patch.object(aio_utilities, "get_first_message_with_timeout", hanging_first_message):
             task = asyncio.create_task(session._attach())
-            await entered.wait()
+            await _wait_signalled(entered)
             task.cancel()
             with self.assertRaises(asyncio.CancelledError):
                 await task
@@ -218,7 +223,7 @@ class TestSessionAttachCancellation(unittest.IsolatedAsyncioTestCase):
 
         with patch.object(type(session), "_attach_call", side_effect=hanging_attach_call):
             task = asyncio.create_task(session._attach())
-            await entered.wait()
+            await _wait_signalled(entered)
             task.cancel()
             with self.assertRaises(asyncio.CancelledError):
                 await task
