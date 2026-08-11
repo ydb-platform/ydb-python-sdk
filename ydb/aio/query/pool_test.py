@@ -121,6 +121,24 @@ class TestAcquireTimeout(unittest.IsolatedAsyncioTestCase):
         live_session.explain.assert_awaited_once_with("SELECT 1")
 
 
+class TestQuerySessionDelete(unittest.IsolatedAsyncioTestCase):
+    async def test_closes_before_delete_call(self):
+        session = QuerySession(MagicMock())
+        session._session_id = "session-id"
+        session._session_metrics = MagicMock()
+
+        async def delete_call(settings=None):
+            self.assertTrue(session.is_closed)
+            session._close_session(invalidate=True, reason="attach_closed")
+
+        session._delete_call = AsyncMock(side_effect=delete_call)
+
+        await session.delete()
+
+        self.assertFalse(session._invalidated)
+        session._session_metrics.count_closed.assert_called_once_with(None)
+
+
 async def _async_empty_iter():
     """Async-iterable that yields nothing; usable as a stub for session.execute return value."""
     if False:

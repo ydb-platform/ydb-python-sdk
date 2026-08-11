@@ -326,6 +326,7 @@ class QuerySessionPool:
             while True:
                 try:
                     session = self._queue.get_nowait()
+                    session._session_metrics.count_closed("pool_graceful_shutdown")
                     session.delete()
                 except queue.Empty:
                     break

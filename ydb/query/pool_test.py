@@ -156,6 +156,24 @@ class TestRetryOperationSync(unittest.TestCase):
         live_session.explain.assert_called_once_with("SELECT 1")
 
 
+class TestQuerySessionDelete(unittest.TestCase):
+    def test_closes_before_delete_call(self):
+        session = QuerySession(MagicMock())
+        session._session_id = "session-id"
+        session._session_metrics = MagicMock()
+
+        def delete_call(settings=None):
+            self.assertTrue(session.is_closed)
+            session._close_session(invalidate=True, reason="attach_closed")
+
+        session._delete_call = MagicMock(side_effect=delete_call)
+
+        session.delete()
+
+        self.assertFalse(session._invalidated)
+        session._session_metrics.count_closed.assert_called_once_with(None)
+
+
 class TestQuerySessionExecutePoolId(unittest.TestCase):
     """Test that pool_id flows from session.execute() → _execute_call() → driver."""
 

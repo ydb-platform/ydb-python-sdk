@@ -27,6 +27,7 @@ from ydb.observability._endpoint import split_endpoint
 CLIENT_OPERATION_DURATION = "db.client.operation.duration"
 CLIENT_OPERATION_FAILED = "ydb.client.operation.failed"
 QUERY_SESSION_COUNT = "ydb.query.session.count"
+QUERY_SESSION_CLOSED = "ydb.query.session.closed"
 QUERY_SESSION_CREATE_TIME = "ydb.query.session.create_time"
 QUERY_SESSION_PENDING_REQUESTS = "ydb.query.session.pending_requests"
 QUERY_SESSION_TIMEOUTS = "ydb.query.session.timeouts"
@@ -35,7 +36,7 @@ QUERY_SESSION_MIN = "ydb.query.session.min"
 RETRY_ATTEMPTS = "ydb.client.retry.attempts"
 RETRY_DURATION = "ydb.client.retry.duration"
 
-METRICS_SDK_BUILD_INFO = "ydb-sdk-metrics/0.1.0"
+METRICS_SDK_BUILD_INFO = "ydb-sdk-metrics/0.2.0"
 
 DURATION_BUCKETS_SECONDS = (
     0.001,
@@ -220,7 +221,7 @@ def query_session_pool_name(
 def _metrics_build_info_tokens() -> List[str]:
     """Metrics' contribution to the ``x-ydb-sdk-build-info`` header.
 
-    Returns ``["ydb-sdk-metrics/0.1.0"]`` once a metrics backend is installed,
+    Returns ``["ydb-sdk-metrics/0.2.0"]`` once a metrics backend is installed,
     otherwise an empty list. Aggregated with other features by
     :func:`ydb.observability.sdk_build_info_tokens`.
     """
@@ -447,12 +448,13 @@ class SessionMetrics:
     :attr:`state` and :attr:`pool_name` as the session moves between idle and used.
     """
 
-    __slots__ = ("pool_name", "state", "_counted")
+    __slots__ = ("pool_name", "state", "_counted", "_lock")
 
     def __init__(self) -> None:
         self.pool_name: Optional[str] = None
         self.state: str = "used"
         self._counted = False
+        self._lock = threading.Lock()
 
     def count_open(self) -> None:
         if self._counted:
@@ -460,11 +462,21 @@ class SessionMetrics:
         self._counted = True
         record_query_session_count(1, self.pool_name, self.state)
 
-    def count_closed(self) -> None:
-        if not self._counted:
-            return
-        self._counted = False
+    def count_closed(self, reason: Optional[str] = None) -> None:
+        with self._lock:
+            if not self._counted:
+                return
+            self._counted = False
         record_query_session_count(-1, self.pool_name, self.state)
+        if reason is not None and self.pool_name is not None:
+            _provider.add(
+                QUERY_SESSION_CLOSED,
+                1,
+                {
+                    "ydb.query.session.pool.name": self.pool_name,
+                    "reason": reason,
+                },
+            )
 
 
 class _NoopSessionMetrics(SessionMetrics):
@@ -473,7 +485,7 @@ class _NoopSessionMetrics(SessionMetrics):
     def count_open(self) -> None:
         pass
 
-    def count_closed(self) -> None:
+    def count_closed(self, reason: Optional[str] = None) -> None:
         pass
 
 

@@ -1,3 +1,4 @@
+* Add the `ydb.query.session.closed` counter for query session pool closures, labeled by pool name and a standardized closure reason; metrics-enabled clients now advertise `ydb-sdk-metrics/0.2.0` in `x-ydb-sdk-build-info`
 * Add `SchemeEntry.interrupt_permission_inheritance`, reported by `describe_path` and `list_directory`, telling whether the object inherits permissions from its parents
 
 ## 3.31.2 ##
