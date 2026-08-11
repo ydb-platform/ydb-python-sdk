@@ -1,3 +1,5 @@
+* Add the `ydb.query.session.closed` counter for query session pool closures, labeled by pool name and a standardized closure reason; metrics-enabled clients now advertise `ydb-sdk-metrics/0.2.0` in `x-ydb-sdk-build-info`
+
 ## 3.31.5 ##
 * Fixed `OSError: [Errno 22] Invalid argument` when reading native `Datetime64` value before 1970 (negative Unix timestamps) on Windows: conversion now uses epoch arithmetic instead of `datetime.utcfromtimestamp`
 * Add `return_not_null_data_as_optional` parameter to `read_table` (sync and async) — allows reading `NOT NULL` columns as non-optional types, matching the existing gRPC field and the C++ SDK's `ReturnNotNullAsOptional`. By default `read_table` still wraps `NOT NULL` columns in `Optional` for backward compatibility

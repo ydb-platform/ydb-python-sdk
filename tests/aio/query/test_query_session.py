@@ -73,6 +73,7 @@ class TestAsyncQuerySession:
 
         await session.delete()
 
+        assert not session._invalidated
         with pytest.raises(RuntimeError):
             session.transaction()
 
