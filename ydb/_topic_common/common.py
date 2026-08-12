@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import asyncio
+import atexit
 import concurrent.futures
+import logging
 import threading
 import typing
 from typing import Optional
@@ -10,6 +12,8 @@ from .. import operation, issues
 from .._grpc.grpcwrapper.common_utils import IFromProtoWithProtoType
 
 TimeoutType = typing.Union[int, float, None]
+
+logger = logging.getLogger(__name__)
 
 
 def wrap_operation(rpc_state, response_pb, driver=None):
@@ -33,9 +37,13 @@ def create_result_wrapper(
 
 _shared_event_loop_lock = threading.Lock()
 _shared_event_loop: Optional[asyncio.AbstractEventLoop] = None
+_shared_event_loop_thread: Optional[threading.Thread] = None
+_shared_event_loop_atexit_registered = False
 
 
 def _get_shared_event_loop() -> asyncio.AbstractEventLoop:
+    global _shared_event_loop_thread, _shared_event_loop_atexit_registered
+
     if _shared_event_loop is not None:
         return _shared_event_loop
 
@@ -56,7 +64,21 @@ def _get_shared_event_loop() -> asyncio.AbstractEventLoop:
                 loop_ready.set()
 
             event_loop.call_soon(on_loop_started)
-            event_loop.run_forever()
+            try:
+                event_loop.run_forever()
+            finally:
+                try:
+                    pending = asyncio.all_tasks(event_loop)
+                    for task in pending:
+                        task.cancel()
+                    if pending:
+                        event_loop.run_until_complete(
+                            asyncio.gather(*pending, return_exceptions=True)
+                        )
+                except Exception:
+                    logger.debug("Error while cancelling shared event loop tasks", exc_info=True)
+                finally:
+                    event_loop.close()
 
         t = threading.Thread(
             target=start_event_loop,
@@ -70,7 +92,47 @@ def _get_shared_event_loop() -> asyncio.AbstractEventLoop:
         if _shared_event_loop is None:
             raise RuntimeError("Event loop was not properly initialized")
 
+        _shared_event_loop_thread = t
+
+        if not _shared_event_loop_atexit_registered:
+            atexit.register(_shutdown_shared_event_loop)
+            _shared_event_loop_atexit_registered = True
+
         return _shared_event_loop
+
+
+def _shutdown_shared_event_loop(timeout: TimeoutType = 30) -> None:
+    """
+    Stop the shared topic asyncio loop thread and wait for it to exit.
+
+    Sync topic/query clients run coroutines on a process-wide background loop.
+    Closing writers/readers cancels their tasks, but leaves the loop thread in
+    run_forever()/epoll. Joining it before interpreter finalization avoids a
+    TSan data race between Py_FinalizeEx and that worker thread.
+    """
+    global _shared_event_loop, _shared_event_loop_thread
+
+    with _shared_event_loop_lock:
+        loop = _shared_event_loop
+        thread = _shared_event_loop_thread
+        _shared_event_loop = None
+        _shared_event_loop_thread = None
+
+        if loop is None:
+            return
+
+        try:
+            if loop.is_running():
+                loop.call_soon_threadsafe(loop.stop)
+        except RuntimeError:
+            logger.debug("Shared event loop already stopped", exc_info=True)
+
+        # Join under the lock so a concurrent _get_shared_event_loop() cannot
+        # start a replacement thread while this one is still exiting.
+        if thread is not None and thread.is_alive():
+            thread.join(timeout=timeout)
+            if thread.is_alive():
+                logger.warning("Shared ydb topic event loop thread did not stop in time")
 
 
 class CallFromSyncToAsync:
