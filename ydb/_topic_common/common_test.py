@@ -461,8 +461,6 @@ class TestSharedEventLoop:
     def test_cleanup_logs_when_cancelling_tasks_fails(self, monkeypatch, caplog):
         import logging
 
-        import ydb._topic_common.common as common
-
         loop = _get_shared_event_loop()
         fut = asyncio.run_coroutine_threadsafe(asyncio.sleep(0.01), loop)
         assert fut.result(1) is None
