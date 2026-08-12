@@ -72,9 +72,7 @@ def _get_shared_event_loop() -> asyncio.AbstractEventLoop:
                     for task in pending:
                         task.cancel()
                     if pending:
-                        event_loop.run_until_complete(
-                            asyncio.gather(*pending, return_exceptions=True)
-                        )
+                        event_loop.run_until_complete(asyncio.gather(*pending, return_exceptions=True))
                 except Exception:
                     logger.debug("Error while cancelling shared event loop tasks", exc_info=True)
                 finally:

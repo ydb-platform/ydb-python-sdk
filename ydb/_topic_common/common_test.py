@@ -6,7 +6,7 @@ import typing
 import grpc
 import pytest
 
-from .common import CallFromSyncToAsync
+from .common import CallFromSyncToAsync, _get_shared_event_loop, _shutdown_shared_event_loop
 from .._grpc.grpcwrapper.common_utils import (
     GrpcWrapperAsyncIO,
     ServerStatus,
@@ -288,3 +288,65 @@ class TestCallFromSyncToAsync:
         with pytest.raises(TestError):
             caller.call_sync(callback)
         assert callback_eventloop is separate_loop
+
+
+def _shared_loop_threads_alive() -> bool:
+    return any(t.name == "Common ydb topic event loop" and t.is_alive() for t in threading.enumerate())
+
+
+class TestSharedEventLoop:
+    def teardown_method(self):
+        _shutdown_shared_event_loop()
+
+    def test_shutdown_joins_thread(self):
+        loop = _get_shared_event_loop()
+        assert _shared_loop_threads_alive()
+
+        fut = asyncio.run_coroutine_threadsafe(asyncio.sleep(0.01), loop)
+        assert fut.result(1) is None
+
+        _shutdown_shared_event_loop()
+        assert not _shared_loop_threads_alive()
+
+    def test_shutdown_is_idempotent_when_unused(self):
+        _shutdown_shared_event_loop()
+        _shutdown_shared_event_loop()
+        assert not _shared_loop_threads_alive()
+
+    def test_recreate_after_shutdown(self):
+        loop = _get_shared_event_loop()
+        fut = asyncio.run_coroutine_threadsafe(asyncio.sleep(0.01), loop)
+        assert fut.result(1) is None
+
+        _shutdown_shared_event_loop()
+        assert not _shared_loop_threads_alive()
+
+        loop2 = _get_shared_event_loop()
+        assert loop2 is not loop
+        assert _shared_loop_threads_alive()
+
+        fut2 = asyncio.run_coroutine_threadsafe(asyncio.sleep(0.01), loop2)
+        assert fut2.result(1) is None
+
+        _shutdown_shared_event_loop()
+        assert not _shared_loop_threads_alive()
+
+    def test_shutdown_cancels_pending_tasks(self):
+        loop = _get_shared_event_loop()
+        started = threading.Event()
+        cancelled = threading.Event()
+
+        async def long_running():
+            started.set()
+            try:
+                await asyncio.sleep(3600)
+            except asyncio.CancelledError:
+                cancelled.set()
+                raise
+
+        asyncio.run_coroutine_threadsafe(long_running(), loop)
+        assert started.wait(timeout=1)
+
+        _shutdown_shared_event_loop()
+        assert not _shared_loop_threads_alive()
+        assert cancelled.wait(timeout=1)
