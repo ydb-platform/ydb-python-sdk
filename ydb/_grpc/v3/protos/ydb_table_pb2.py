@@ -13,6 +13,7 @@ from google.protobuf import symbol_database as _symbol_database
 _sym_db = _symbol_database.Default()
 
 
+from ydb._grpc.v3.protos.annotations import sensitive_pb2 as protos_dot_annotations_dot_sensitive__pb2
 from ydb._grpc.v3.protos.annotations import validation_pb2 as protos_dot_annotations_dot_validation__pb2
 from ydb._grpc.v3.protos import ydb_common_pb2 as protos_dot_ydb__common__pb2
 from ydb._grpc.v3.protos import ydb_issue_message_pb2 as protos_dot_ydb__issue__message__pb2
@@ -34,9 +35,9 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   syntax='proto3',
   serialized_options=b'\n\024tech.ydb.proto.tableZ8github.com/ydb-platform/ydb-go-genproto/protos/Ydb_Table\370\001\001',
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n\x16protos/ydb_table.proto\x12\tYdb.Table\x1a#protos/annotations/validation.proto\x1a\x17protos/ydb_common.proto\x1a\x1eprotos/ydb_issue_message.proto\x1a\x1aprotos/ydb_operation.proto\x1a\x1cprotos/ydb_query_stats.proto\x1a\x16protos/ydb_value.proto\x1a\x17protos/ydb_scheme.proto\x1a\x1dprotos/ydb_status_codes.proto\x1a\x16protos/ydb_topic.proto\x1a\x18protos/ydb_formats.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"Q\n\x14\x43reateSessionRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\"E\n\x15\x43reateSessionResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\")\n\x13\x43reateSessionResult\x12\x12\n\nsession_id\x18\x01 \x01(\t\"e\n\x14\x44\x65leteSessionRequest\x12\x12\n\nsession_id\x18\x01 \x01(\t\x12\x39\n\x10operation_params\x18\x02 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\"E\n\x15\x44\x65leteSessionResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\r\n\x0bGlobalIndex\"\x12\n\x10GlobalAsyncIndex\"\x13\n\x11GlobalUniqueIndex\"\xf7\x01\n\nTableIndex\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x15\n\rindex_columns\x18\x02 \x03(\t\x12.\n\x0cglobal_index\x18\x03 \x01(\x0b\x32\x16.Ydb.Table.GlobalIndexH\x00\x12\x39\n\x12global_async_index\x18\x04 \x01(\x0b\x32\x1b.Ydb.Table.GlobalAsyncIndexH\x00\x12;\n\x13global_unique_index\x18\x06 \x01(\x0b\x32\x1c.Ydb.Table.GlobalUniqueIndexH\x00\x12\x14\n\x0c\x64\x61ta_columns\x18\x05 \x03(\tB\x06\n\x04type\"\x98\x03\n\x15TableIndexDescription\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x15\n\rindex_columns\x18\x02 \x03(\t\x12.\n\x0cglobal_index\x18\x03 \x01(\x0b\x32\x16.Ydb.Table.GlobalIndexH\x00\x12\x39\n\x12global_async_index\x18\x05 \x01(\x0b\x32\x1b.Ydb.Table.GlobalAsyncIndexH\x00\x12;\n\x13global_unique_index\x18\x08 \x01(\x0b\x32\x1c.Ydb.Table.GlobalUniqueIndexH\x00\x12\x37\n\x06status\x18\x04 \x01(\x0e\x32\'.Ydb.Table.TableIndexDescription.Status\x12\x14\n\x0c\x64\x61ta_columns\x18\x06 \x03(\t\x12\x12\n\nsize_bytes\x18\x07 \x01(\x04\"G\n\x06Status\x12\x16\n\x12STATUS_UNSPECIFIED\x10\x00\x12\x10\n\x0cSTATUS_READY\x10\x01\x12\x13\n\x0fSTATUS_BUILDING\x10\x02\x42\x06\n\x04type\"\xdd\x01\n\x0fIndexBuildState\"\xc9\x01\n\x05State\x12\x15\n\x11STATE_UNSPECIFIED\x10\x00\x12\x13\n\x0fSTATE_PREPARING\x10\x01\x12\x1a\n\x16STATE_TRANSFERING_DATA\x10\x02\x12\x12\n\x0eSTATE_APPLYING\x10\x03\x12\x0e\n\nSTATE_DONE\x10\x04\x12\x16\n\x12STATE_CANCELLATION\x10\x05\x12\x13\n\x0fSTATE_CANCELLED\x10\x06\x12\x13\n\x0fSTATE_REJECTION\x10\x07\x12\x12\n\x0eSTATE_REJECTED\x10\x08\"K\n\x15IndexBuildDescription\x12\x0c\n\x04path\x18\x01 \x01(\t\x12$\n\x05index\x18\x02 \x01(\x0b\x32\x15.Ydb.Table.TableIndex\"\x8e\x01\n\x12IndexBuildMetadata\x12\x35\n\x0b\x64\x65scription\x18\x01 \x01(\x0b\x32 .Ydb.Table.IndexBuildDescription\x12/\n\x05state\x18\x02 \x01(\x0e\x32 .Ydb.Table.IndexBuildState.State\x12\x10\n\x08progress\x18\x03 \x01(\x02\"\x9a\x01\n\x0e\x43hangefeedMode\"\x87\x01\n\x04Mode\x12\x14\n\x10MODE_UNSPECIFIED\x10\x00\x12\x12\n\x0eMODE_KEYS_ONLY\x10\x01\x12\x10\n\x0cMODE_UPDATES\x10\x02\x12\x12\n\x0eMODE_NEW_IMAGE\x10\x03\x12\x12\n\x0eMODE_OLD_IMAGE\x10\x04\x12\x1b\n\x17MODE_NEW_AND_OLD_IMAGES\x10\x05\"\x81\x01\n\x10\x43hangefeedFormat\"m\n\x06\x46ormat\x12\x16\n\x12\x46ORMAT_UNSPECIFIED\x10\x00\x12\x0f\n\x0b\x46ORMAT_JSON\x10\x01\x12 \n\x1c\x46ORMAT_DYNAMODB_STREAMS_JSON\x10\x02\x12\x18\n\x14\x46ORMAT_DEBEZIUM_JSON\x10\x03\"\xa6\x04\n\nChangefeed\x12\x0c\n\x04name\x18\x01 \x01(\t\x12,\n\x04mode\x18\x02 \x01(\x0e\x32\x1e.Ydb.Table.ChangefeedMode.Mode\x12\x32\n\x06\x66ormat\x18\x03 \x01(\x0e\x32\".Ydb.Table.ChangefeedFormat.Format\x12\x33\n\x10retention_period\x18\x04 \x01(\x0b\x32\x19.google.protobuf.Duration\x12\x1a\n\x12virtual_timestamps\x18\x05 \x01(\x08\x12\x14\n\x0cinitial_scan\x18\x06 \x01(\x08\x12R\n\nattributes\x18\x07 \x03(\x0b\x32%.Ydb.Table.Changefeed.AttributesEntryB\x17\xaa\xe6*\x08\n\x06\n\x04\x08\x01\x10\x64\xa2\xe6*\x07\n\x05\x08\x01\x10\x80 \x12\x1b\n\naws_region\x18\x08 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x01\x12?\n\x1cresolved_timestamps_interval\x18\t \x01(\x0b\x32\x19.google.protobuf.Duration\x12\x44\n\x1btopic_partitioning_settings\x18\n \x01(\x0b\x32\x1f.Ydb.Topic.PartitioningSettings\x12\x16\n\x0eschema_changes\x18\x0b \x01(\x08\x1a\x31\n\x0f\x41ttributesEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\"\xb9\x05\n\x15\x43hangefeedDescription\x12\x0c\n\x04name\x18\x01 \x01(\t\x12,\n\x04mode\x18\x02 \x01(\x0e\x32\x1e.Ydb.Table.ChangefeedMode.Mode\x12\x32\n\x06\x66ormat\x18\x03 \x01(\x0e\x32\".Ydb.Table.ChangefeedFormat.Format\x12\x35\n\x05state\x18\x04 \x01(\x0e\x32&.Ydb.Table.ChangefeedDescription.State\x12\x1a\n\x12virtual_timestamps\x18\x05 \x01(\x08\x12\x44\n\nattributes\x18\x06 \x03(\x0b\x32\x30.Ydb.Table.ChangefeedDescription.AttributesEntry\x12\x12\n\naws_region\x18\x07 \x01(\t\x12?\n\x1cresolved_timestamps_interval\x18\x08 \x01(\x0b\x32\x19.google.protobuf.Duration\x12S\n\x15initial_scan_progress\x18\t \x01(\x0b\x32\x34.Ydb.Table.ChangefeedDescription.InitialScanProgress\x12\x16\n\x0eschema_changes\x18\n \x01(\x08\x1a\x43\n\x13InitialScanProgress\x12\x13\n\x0bparts_total\x18\x01 \x01(\r\x12\x17\n\x0fparts_completed\x18\x02 \x01(\r\x1a\x31\n\x0f\x41ttributesEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\"]\n\x05State\x12\x15\n\x11STATE_UNSPECIFIED\x10\x00\x12\x11\n\rSTATE_ENABLED\x10\x01\x12\x12\n\x0eSTATE_DISABLED\x10\x02\x12\x16\n\x12STATE_INITIAL_SCAN\x10\x03\"\x1c\n\x0bStoragePool\x12\r\n\x05media\x18\x01 \x01(\t\"\xaa\x02\n\rStoragePolicy\x12\x13\n\x0bpreset_name\x18\x01 \x01(\t\x12&\n\x06syslog\x18\x02 \x01(\x0b\x32\x16.Ydb.Table.StoragePool\x12#\n\x03log\x18\x03 \x01(\x0b\x32\x16.Ydb.Table.StoragePool\x12$\n\x04\x64\x61ta\x18\x04 \x01(\x0b\x32\x16.Ydb.Table.StoragePool\x12(\n\x08\x65xternal\x18\x05 \x01(\x0b\x32\x16.Ydb.Table.StoragePool\x12/\n\x0ekeep_in_memory\x18\x06 \x01(\x0e\x32\x17.Ydb.FeatureFlag.Status\x12\x36\n\x0f\x63olumn_families\x18\x07 \x03(\x0b\x32\x1d.Ydb.Table.ColumnFamilyPolicy\"\xb1\x02\n\x12\x43olumnFamilyPolicy\x12\x0c\n\x04name\x18\x01 \x01(\t\x12$\n\x04\x64\x61ta\x18\x02 \x01(\x0b\x32\x16.Ydb.Table.StoragePool\x12(\n\x08\x65xternal\x18\x03 \x01(\x0b\x32\x16.Ydb.Table.StoragePool\x12/\n\x0ekeep_in_memory\x18\x04 \x01(\x0e\x32\x17.Ydb.FeatureFlag.Status\x12>\n\x0b\x63ompression\x18\x05 \x01(\x0e\x32).Ydb.Table.ColumnFamilyPolicy.Compression\"L\n\x0b\x43ompression\x12\x1b\n\x17\x43OMPRESSION_UNSPECIFIED\x10\x00\x12\x10\n\x0cUNCOMPRESSED\x10\x01\x12\x0e\n\nCOMPRESSED\x10\x02\"\'\n\x10\x43ompactionPolicy\x12\x13\n\x0bpreset_name\x18\x01 \x01(\t\";\n\x12\x45xplicitPartitions\x12%\n\x0csplit_points\x18\x01 \x03(\x0b\x32\x0f.Ydb.TypedValue\"S\n\x0ePartitionStats\x12\x15\n\rrows_estimate\x18\x01 \x01(\x04\x12\x12\n\nstore_size\x18\x02 \x01(\x04\x12\x16\n\x0eleader_node_id\x18\x03 \x01(\r\"\xe9\x01\n\nTableStats\x12\x32\n\x0fpartition_stats\x18\x01 \x03(\x0b\x32\x19.Ydb.Table.PartitionStats\x12\x15\n\rrows_estimate\x18\x02 \x01(\x04\x12\x12\n\nstore_size\x18\x03 \x01(\x04\x12\x12\n\npartitions\x18\x04 \x01(\x04\x12\x31\n\rcreation_time\x18\x05 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12\x35\n\x11modification_time\x18\x06 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\"\xdc\x02\n\x12PartitioningPolicy\x12\x13\n\x0bpreset_name\x18\x01 \x01(\t\x12O\n\x11\x61uto_partitioning\x18\x02 \x01(\x0e\x32\x34.Ydb.Table.PartitioningPolicy.AutoPartitioningPolicy\x12\x1c\n\x12uniform_partitions\x18\x03 \x01(\x04H\x00\x12<\n\x13\x65xplicit_partitions\x18\x04 \x01(\x0b\x32\x1d.Ydb.Table.ExplicitPartitionsH\x00\"v\n\x16\x41utoPartitioningPolicy\x12(\n$AUTO_PARTITIONING_POLICY_UNSPECIFIED\x10\x00\x12\x0c\n\x08\x44ISABLED\x10\x01\x12\x0e\n\nAUTO_SPLIT\x10\x02\x12\x14\n\x10\x41UTO_SPLIT_MERGE\x10\x03\x42\x0c\n\npartitions\"&\n\x0f\x45xecutionPolicy\x12\x13\n\x0bpreset_name\x18\x01 \x01(\t\"\xb1\x01\n\x11ReplicationPolicy\x12\x13\n\x0bpreset_name\x18\x01 \x01(\t\x12\x16\n\x0ereplicas_count\x18\x02 \x01(\r\x12=\n\x1c\x63reate_per_availability_zone\x18\x03 \x01(\x0e\x32\x17.Ydb.FeatureFlag.Status\x12\x30\n\x0f\x61llow_promotion\x18\x04 \x01(\x0e\x32\x17.Ydb.FeatureFlag.Status\"$\n\rCachingPolicy\x12\x13\n\x0bpreset_name\x18\x01 \x01(\t\"\xeb\x02\n\x0cTableProfile\x12\x13\n\x0bpreset_name\x18\x01 \x01(\t\x12\x30\n\x0estorage_policy\x18\x02 \x01(\x0b\x32\x18.Ydb.Table.StoragePolicy\x12\x36\n\x11\x63ompaction_policy\x18\x03 \x01(\x0b\x32\x1b.Ydb.Table.CompactionPolicy\x12:\n\x13partitioning_policy\x18\x04 \x01(\x0b\x32\x1d.Ydb.Table.PartitioningPolicy\x12\x34\n\x10\x65xecution_policy\x18\x05 \x01(\x0b\x32\x1a.Ydb.Table.ExecutionPolicy\x12\x38\n\x12replication_policy\x18\x06 \x01(\x0b\x32\x1c.Ydb.Table.ReplicationPolicy\x12\x30\n\x0e\x63\x61\x63hing_policy\x18\x07 \x01(\x0b\x32\x18.Ydb.Table.CachingPolicy\"\xaa\x03\n\x13SequenceDescription\x12\x11\n\x04name\x18\x01 \x01(\tH\x00\x88\x01\x01\x12\x16\n\tmin_value\x18\x02 \x01(\x12H\x01\x88\x01\x01\x12\x16\n\tmax_value\x18\x03 \x01(\x12H\x02\x88\x01\x01\x12\x18\n\x0bstart_value\x18\x04 \x01(\x12H\x03\x88\x01\x01\x12\x12\n\x05\x63\x61\x63he\x18\x05 \x01(\x04H\x04\x88\x01\x01\x12\x16\n\tincrement\x18\x06 \x01(\x12H\x05\x88\x01\x01\x12\x12\n\x05\x63ycle\x18\x07 \x01(\x08H\x06\x88\x01\x01\x12;\n\x07set_val\x18\x08 \x01(\x0b\x32%.Ydb.Table.SequenceDescription.SetValH\x07\x88\x01\x01\x1aV\n\x06SetVal\x12\x17\n\nnext_value\x18\x01 \x01(\x12H\x00\x88\x01\x01\x12\x16\n\tnext_used\x18\x02 \x01(\x08H\x01\x88\x01\x01\x42\r\n\x0b_next_valueB\x0c\n\n_next_usedB\x07\n\x05_nameB\x0c\n\n_min_valueB\x0c\n\n_max_valueB\x0e\n\x0c_start_valueB\x08\n\x06_cacheB\x0c\n\n_incrementB\x08\n\x06_cycleB\n\n\x08_set_val\"\xda\x01\n\nColumnMeta\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x17\n\x04type\x18\x02 \x01(\x0b\x32\t.Ydb.Type\x12\x0e\n\x06\x66\x61mily\x18\x03 \x01(\t\x12\x15\n\x08not_null\x18\x04 \x01(\x08H\x01\x88\x01\x01\x12\'\n\x0c\x66rom_literal\x18\x05 \x01(\x0b\x32\x0f.Ydb.TypedValueH\x00\x12\x37\n\rfrom_sequence\x18\x06 \x01(\x0b\x32\x1e.Ydb.Table.SequenceDescriptionH\x00\x42\x0f\n\rdefault_valueB\x0b\n\t_not_null\"O\n\x1a\x44\x61teTypeColumnModeSettings\x12\x13\n\x0b\x63olumn_name\x18\x01 \x01(\t\x12\x1c\n\x14\x65xpire_after_seconds\x18\x02 \x01(\r\"\x8e\x02\n\x1fValueSinceUnixEpochModeSettings\x12\x13\n\x0b\x63olumn_name\x18\x01 \x01(\t\x12\x44\n\x0b\x63olumn_unit\x18\x02 \x01(\x0e\x32/.Ydb.Table.ValueSinceUnixEpochModeSettings.Unit\x12\x1c\n\x14\x65xpire_after_seconds\x18\x03 \x01(\r\"r\n\x04Unit\x12\x14\n\x10UNIT_UNSPECIFIED\x10\x00\x12\x10\n\x0cUNIT_SECONDS\x10\x01\x12\x15\n\x11UNIT_MILLISECONDS\x10\x02\x12\x15\n\x11UNIT_MICROSECONDS\x10\x03\x12\x14\n\x10UNIT_NANOSECONDS\x10\x04\"\xc4\x01\n\x0bTtlSettings\x12\x41\n\x10\x64\x61te_type_column\x18\x01 \x01(\x0b\x32%.Ydb.Table.DateTypeColumnModeSettingsH\x00\x12L\n\x16value_since_unix_epoch\x18\x02 \x01(\x0b\x32*.Ydb.Table.ValueSinceUnixEpochModeSettingsH\x00\x12\x1c\n\x14run_interval_seconds\x18\x03 \x01(\rB\x06\n\x04mode\"\xda\x01\n\x0fStorageSettings\x12\x32\n\x12tablet_commit_log0\x18\x01 \x01(\x0b\x32\x16.Ydb.Table.StoragePool\x12\x32\n\x12tablet_commit_log1\x18\x02 \x01(\x0b\x32\x16.Ydb.Table.StoragePool\x12(\n\x08\x65xternal\x18\x04 \x01(\x0b\x32\x16.Ydb.Table.StoragePool\x12\x35\n\x14store_external_blobs\x18\x05 \x01(\x0e\x32\x17.Ydb.FeatureFlag.Status\"\x84\x02\n\x0c\x43olumnFamily\x12\x0c\n\x04name\x18\x01 \x01(\t\x12$\n\x04\x64\x61ta\x18\x02 \x01(\x0b\x32\x16.Ydb.Table.StoragePool\x12\x38\n\x0b\x63ompression\x18\x03 \x01(\x0e\x32#.Ydb.Table.ColumnFamily.Compression\x12/\n\x0ekeep_in_memory\x18\x04 \x01(\x0e\x32\x17.Ydb.FeatureFlag.Status\"U\n\x0b\x43ompression\x12\x1b\n\x17\x43OMPRESSION_UNSPECIFIED\x10\x00\x12\x14\n\x10\x43OMPRESSION_NONE\x10\x01\x12\x13\n\x0f\x43OMPRESSION_LZ4\x10\x02\"\xf7\x01\n\x14PartitioningSettings\x12\x14\n\x0cpartition_by\x18\x01 \x03(\t\x12\x35\n\x14partitioning_by_size\x18\x02 \x01(\x0e\x32\x17.Ydb.FeatureFlag.Status\x12\x19\n\x11partition_size_mb\x18\x03 \x01(\x04\x12\x35\n\x14partitioning_by_load\x18\x04 \x01(\x0e\x32\x17.Ydb.FeatureFlag.Status\x12\x1c\n\x14min_partitions_count\x18\x06 \x01(\x04\x12\x1c\n\x14max_partitions_count\x18\x07 \x01(\x04J\x04\x08\x05\x10\x06\"C\n\x16\x41zReadReplicasSettings\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x1b\n\x13read_replicas_count\x18\x02 \x01(\x04\"_\n\x17\x43lusterReplicasSettings\x12\x44\n\x19\x61z_read_replicas_settings\x18\x02 \x03(\x0b\x32!.Ydb.Table.AzReadReplicasSettings\"t\n\x14ReadReplicasSettings\x12$\n\x1aper_az_read_replicas_count\x18\x01 \x01(\x04H\x00\x12$\n\x1a\x61ny_az_read_replicas_count\x18\x02 \x01(\x04H\x00\x42\n\n\x08settingsJ\x04\x08\x03\x10\x04\"\xaa\x07\n\x12\x43reateTableRequest\x12\x12\n\nsession_id\x18\x01 \x01(\t\x12\x0c\n\x04path\x18\x02 \x01(\t\x12&\n\x07\x63olumns\x18\x03 \x03(\x0b\x32\x15.Ydb.Table.ColumnMeta\x12\x13\n\x0bprimary_key\x18\x04 \x03(\t\x12(\n\x07profile\x18\x05 \x01(\x0b\x32\x17.Ydb.Table.TableProfile\x12\x39\n\x10operation_params\x18\x06 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12&\n\x07indexes\x18\x07 \x03(\x0b\x32\x15.Ydb.Table.TableIndex\x12,\n\x0cttl_settings\x18\x08 \x01(\x0b\x32\x16.Ydb.Table.TtlSettings\x12\x34\n\x10storage_settings\x18\t \x01(\x0b\x32\x1a.Ydb.Table.StorageSettings\x12\x30\n\x0f\x63olumn_families\x18\n \x03(\x0b\x32\x17.Ydb.Table.ColumnFamily\x12Z\n\nattributes\x18\x0b \x03(\x0b\x32-.Ydb.Table.CreateTableRequest.AttributesEntryB\x17\xaa\xe6*\x08\n\x06\n\x04\x08\x01\x10\x64\xa2\xe6*\x07\n\x05\x08\x01\x10\x80 \x12\x19\n\x11\x63ompaction_policy\x18\x0c \x01(\t\x12\x1c\n\x12uniform_partitions\x18\r \x01(\x04H\x00\x12:\n\x11partition_at_keys\x18\x0e \x01(\x0b\x32\x1d.Ydb.Table.ExplicitPartitionsH\x00\x12>\n\x15partitioning_settings\x18\x0f \x01(\x0b\x32\x1f.Ydb.Table.PartitioningSettings\x12\x31\n\x10key_bloom_filter\x18\x10 \x01(\x0e\x32\x17.Ydb.FeatureFlag.Status\x12?\n\x16read_replicas_settings\x18\x11 \x01(\x0b\x32\x1f.Ydb.Table.ReadReplicasSettings\x12\x0f\n\x07tiering\x18\x12 \x01(\t\x12\x11\n\ttemporary\x18\x13 \x01(\x08\x12(\n\nstore_type\x18\x14 \x01(\x0e\x32\x14.Ydb.Table.StoreType\x1a\x31\n\x0f\x41ttributesEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\x42\x0c\n\npartitions\"C\n\x13\x43reateTableResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"u\n\x10\x44ropTableRequest\x12\x12\n\nsession_id\x18\x01 \x01(\t\x12\x0c\n\x04path\x18\x02 \x01(\t\x12\x39\n\x10operation_params\x18\x04 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParamsJ\x04\x08\x03\x10\x04\"A\n\x11\x44ropTableResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"]\n\x0fRenameIndexItem\x12\x13\n\x0bsource_name\x18\x01 \x01(\t\x12\x18\n\x10\x64\x65stination_name\x18\x02 \x01(\t\x12\x1b\n\x13replace_destination\x18\x03 \x01(\x08\"\x95\t\n\x11\x41lterTableRequest\x12\x12\n\nsession_id\x18\x01 \x01(\t\x12\x0c\n\x04path\x18\x02 \x01(\t\x12*\n\x0b\x61\x64\x64_columns\x18\x03 \x03(\x0b\x32\x15.Ydb.Table.ColumnMeta\x12\x14\n\x0c\x64rop_columns\x18\x04 \x03(\t\x12\x39\n\x10operation_params\x18\x05 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12,\n\ralter_columns\x18\x06 \x03(\x0b\x32\x15.Ydb.Table.ColumnMeta\x12\x32\n\x10set_ttl_settings\x18\x07 \x01(\x0b\x32\x16.Ydb.Table.TtlSettingsH\x00\x12\x33\n\x11\x64rop_ttl_settings\x18\x08 \x01(\x0b\x32\x16.google.protobuf.EmptyH\x00\x12*\n\x0b\x61\x64\x64_indexes\x18\t \x03(\x0b\x32\x15.Ydb.Table.TableIndex\x12\x14\n\x0c\x64rop_indexes\x18\n \x03(\t\x12:\n\x16\x61lter_storage_settings\x18\x0b \x01(\x0b\x32\x1a.Ydb.Table.StorageSettings\x12\x34\n\x13\x61\x64\x64_column_families\x18\x0c \x03(\x0b\x32\x17.Ydb.Table.ColumnFamily\x12\x36\n\x15\x61lter_column_families\x18\r \x03(\x0b\x32\x17.Ydb.Table.ColumnFamily\x12`\n\x10\x61lter_attributes\x18\x0e \x03(\x0b\x32\x31.Ydb.Table.AlterTableRequest.AlterAttributesEntryB\x13\xaa\xe6*\x08\n\x06\n\x04\x08\x01\x10\x64\xa2\xe6*\x03\x18\x80 \x12\x1d\n\x15set_compaction_policy\x18\x0f \x01(\t\x12\x44\n\x1b\x61lter_partitioning_settings\x18\x10 \x01(\x0b\x32\x1f.Ydb.Table.PartitioningSettings\x12\x35\n\x14set_key_bloom_filter\x18\x11 \x01(\x0e\x32\x17.Ydb.FeatureFlag.Status\x12\x43\n\x1aset_read_replicas_settings\x18\x12 \x01(\x0b\x32\x1f.Ydb.Table.ReadReplicasSettings\x12.\n\x0f\x61\x64\x64_changefeeds\x18\x13 \x03(\x0b\x32\x15.Ydb.Table.Changefeed\x12\x18\n\x10\x64rop_changefeeds\x18\x14 \x03(\t\x12\x32\n\x0erename_indexes\x18\x15 \x03(\x0b\x32\x1a.Ydb.Table.RenameIndexItem\x12\x15\n\x0bset_tiering\x18\x16 \x01(\tH\x01\x12.\n\x0c\x64rop_tiering\x18\x17 \x01(\x0b\x32\x16.google.protobuf.EmptyH\x01\x1a\x36\n\x14\x41lterAttributesEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\x42\x0c\n\nttl_actionB\x10\n\x0etiering_action\"B\n\x12\x41lterTableResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\x90\x01\n\x10\x43opyTableRequest\x12\x12\n\nsession_id\x18\x01 \x01(\t\x12\x13\n\x0bsource_path\x18\x02 \x01(\t\x12\x18\n\x10\x64\x65stination_path\x18\x03 \x01(\t\x12\x39\n\x10operation_params\x18\x04 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\"A\n\x11\x43opyTableResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"T\n\rCopyTableItem\x12\x13\n\x0bsource_path\x18\x01 \x01(\t\x12\x18\n\x10\x64\x65stination_path\x18\x02 \x01(\t\x12\x14\n\x0comit_indexes\x18\x03 \x01(\x08\"\x8c\x01\n\x11\x43opyTablesRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x12\n\nsession_id\x18\x02 \x01(\t\x12(\n\x06tables\x18\x03 \x03(\x0b\x32\x18.Ydb.Table.CopyTableItem\"B\n\x12\x43opyTablesResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"]\n\x0fRenameTableItem\x12\x13\n\x0bsource_path\x18\x01 \x01(\t\x12\x18\n\x10\x64\x65stination_path\x18\x02 \x01(\t\x12\x1b\n\x13replace_destination\x18\x03 \x01(\x08\"\x90\x01\n\x13RenameTablesRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x12\n\nsession_id\x18\x02 \x01(\t\x12*\n\x06tables\x18\x03 \x03(\x0b\x32\x1a.Ydb.Table.RenameTableItem\"D\n\x14RenameTablesResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\x8e\x02\n\x14\x44\x65scribeTableRequest\x12\x12\n\nsession_id\x18\x01 \x01(\t\x12\x0c\n\x04path\x18\x02 \x01(\t\x12\x39\n\x10operation_params\x18\x04 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12 \n\x18include_shard_key_bounds\x18\x05 \x01(\x08\x12\x1b\n\x13include_table_stats\x18\x06 \x01(\x08\x12\x1f\n\x17include_partition_stats\x18\x07 \x01(\x08\x12\x17\n\x0finclude_set_val\x18\x08 \x01(\x08\x12 \n\x18include_shard_nodes_info\x18\t \x01(\x08\"E\n\x15\x44\x65scribeTableResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\xc9\x06\n\x13\x44\x65scribeTableResult\x12\x1f\n\x04self\x18\x01 \x01(\x0b\x32\x11.Ydb.Scheme.Entry\x12&\n\x07\x63olumns\x18\x02 \x03(\x0b\x32\x15.Ydb.Table.ColumnMeta\x12\x13\n\x0bprimary_key\x18\x03 \x03(\t\x12)\n\x10shard_key_bounds\x18\x04 \x03(\x0b\x32\x0f.Ydb.TypedValue\x12\x31\n\x07indexes\x18\x05 \x03(\x0b\x32 .Ydb.Table.TableIndexDescription\x12*\n\x0btable_stats\x18\x06 \x01(\x0b\x32\x15.Ydb.Table.TableStats\x12,\n\x0cttl_settings\x18\x07 \x01(\x0b\x32\x16.Ydb.Table.TtlSettings\x12\x34\n\x10storage_settings\x18\x08 \x01(\x0b\x32\x1a.Ydb.Table.StorageSettings\x12\x30\n\x0f\x63olumn_families\x18\t \x03(\x0b\x32\x17.Ydb.Table.ColumnFamily\x12\x42\n\nattributes\x18\n \x03(\x0b\x32..Ydb.Table.DescribeTableResult.AttributesEntry\x12>\n\x15partitioning_settings\x18\x0c \x01(\x0b\x32\x1f.Ydb.Table.PartitioningSettings\x12\x31\n\x10key_bloom_filter\x18\r \x01(\x0e\x32\x17.Ydb.FeatureFlag.Status\x12?\n\x16read_replicas_settings\x18\x0e \x01(\x0b\x32\x1f.Ydb.Table.ReadReplicasSettings\x12\x35\n\x0b\x63hangefeeds\x18\x0f \x03(\x0b\x32 .Ydb.Table.ChangefeedDescription\x12\x0f\n\x07tiering\x18\x10 \x01(\t\x12\x11\n\ttemporary\x18\x11 \x01(\x08\x12(\n\nstore_type\x18\x12 \x01(\x0e\x32\x14.Ydb.Table.StoreType\x1a\x31\n\x0f\x41ttributesEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01J\x04\x08\x0b\x10\x0c\"2\n\x05Query\x12\x12\n\x08yql_text\x18\x01 \x01(\tH\x00\x12\x0c\n\x02id\x18\x02 \x01(\tH\x00\x42\x07\n\x05query\"\x1a\n\x18SerializableModeSettings\"6\n\x12OnlineModeSettings\x12 \n\x18\x61llow_inconsistent_reads\x18\x01 \x01(\x08\"\x13\n\x11StaleModeSettings\"\x16\n\x14SnapshotModeSettings\"\x18\n\x16SnapshotRWModeSettings\"\x1d\n\x1bReadCommittedRWModeSettings\"\xaa\x03\n\x13TransactionSettings\x12\x46\n\x17serializable_read_write\x18\x01 \x01(\x0b\x32#.Ydb.Table.SerializableModeSettingsH\x00\x12\x39\n\x10online_read_only\x18\x02 \x01(\x0b\x32\x1d.Ydb.Table.OnlineModeSettingsH\x00\x12\x37\n\x0fstale_read_only\x18\x03 \x01(\x0b\x32\x1c.Ydb.Table.StaleModeSettingsH\x00\x12=\n\x12snapshot_read_only\x18\x04 \x01(\x0b\x32\x1f.Ydb.Table.SnapshotModeSettingsH\x00\x12@\n\x13snapshot_read_write\x18\x05 \x01(\x0b\x32!.Ydb.Table.SnapshotRWModeSettingsH\x00\x12K\n\x19read_committed_read_write\x18\x06 \x01(\x0b\x32&.Ydb.Table.ReadCommittedRWModeSettingsH\x00\x42\t\n\x07tx_mode\"{\n\x12TransactionControl\x12\x0f\n\x05tx_id\x18\x01 \x01(\tH\x00\x12\x32\n\x08\x62\x65gin_tx\x18\x02 \x01(\x0b\x32\x1e.Ydb.Table.TransactionSettingsH\x00\x12\x11\n\tcommit_tx\x18\n \x01(\x08\x42\r\n\x0btx_selector\")\n\x10QueryCachePolicy\x12\x15\n\rkeep_in_cache\x18\x01 \x01(\x08\"\xb1\x01\n\x14QueryStatsCollection\"\x98\x01\n\x04Mode\x12 \n\x1cSTATS_COLLECTION_UNSPECIFIED\x10\x00\x12\x19\n\x15STATS_COLLECTION_NONE\x10\x01\x12\x1a\n\x16STATS_COLLECTION_BASIC\x10\x02\x12\x19\n\x15STATS_COLLECTION_FULL\x10\x03\x12\x1c\n\x18STATS_COLLECTION_PROFILE\x10\x04\"\xbe\x03\n\x17\x45xecuteDataQueryRequest\x12\x12\n\nsession_id\x18\x01 \x01(\t\x12\x31\n\ntx_control\x18\x02 \x01(\x0b\x32\x1d.Ydb.Table.TransactionControl\x12\x1f\n\x05query\x18\x03 \x01(\x0b\x32\x10.Ydb.Table.Query\x12\x46\n\nparameters\x18\x04 \x03(\x0b\x32\x32.Ydb.Table.ExecuteDataQueryRequest.ParametersEntry\x12\x37\n\x12query_cache_policy\x18\x05 \x01(\x0b\x32\x1b.Ydb.Table.QueryCachePolicy\x12\x39\n\x10operation_params\x18\x06 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12;\n\rcollect_stats\x18\x07 \x01(\x0e\x32$.Ydb.Table.QueryStatsCollection.Mode\x1a\x42\n\x0fParametersEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\x1e\n\x05value\x18\x02 \x01(\x0b\x32\x0f.Ydb.TypedValue:\x02\x38\x01\"H\n\x18\x45xecuteDataQueryResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"|\n\x19\x45xecuteSchemeQueryRequest\x12\x12\n\nsession_id\x18\x01 \x01(\t\x12\x10\n\x08yql_text\x18\x02 \x01(\t\x12\x39\n\x10operation_params\x18\x03 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\"J\n\x1a\x45xecuteSchemeQueryResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\x1d\n\x0fTransactionMeta\x12\n\n\x02id\x18\x01 \x01(\t\"\x9f\x01\n\tQueryMeta\x12\n\n\x02id\x18\x01 \x01(\t\x12\x43\n\x10parameters_types\x18\x02 \x03(\x0b\x32).Ydb.Table.QueryMeta.ParametersTypesEntry\x1a\x41\n\x14ParametersTypesEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\x18\n\x05value\x18\x02 \x01(\x0b\x32\t.Ydb.Type:\x02\x38\x01\"\xc1\x01\n\x12\x45xecuteQueryResult\x12#\n\x0bresult_sets\x18\x01 \x03(\x0b\x32\x0e.Ydb.ResultSet\x12+\n\x07tx_meta\x18\x02 \x01(\x0b\x32\x1a.Ydb.Table.TransactionMeta\x12(\n\nquery_meta\x18\x03 \x01(\x0b\x32\x14.Ydb.Table.QueryMeta\x12/\n\x0bquery_stats\x18\x04 \x01(\x0b\x32\x1a.Ydb.TableStats.QueryStats\"\x9c\x01\n\x17\x45xplainDataQueryRequest\x12\x12\n\nsession_id\x18\x01 \x01(\t\x12\x10\n\x08yql_text\x18\x02 \x01(\t\x12\x39\n\x10operation_params\x18\x03 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12 \n\x18\x63ollect_full_diagnostics\x18\x04 \x01(\x08\"H\n\x18\x45xplainDataQueryResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"[\n\x12\x45xplainQueryResult\x12\x11\n\tquery_ast\x18\x01 \x01(\t\x12\x12\n\nquery_plan\x18\x02 \x01(\t\x12\x1e\n\x16query_full_diagnostics\x18\x03 \x01(\t\"z\n\x17PrepareDataQueryRequest\x12\x12\n\nsession_id\x18\x01 \x01(\t\x12\x10\n\x08yql_text\x18\x02 \x01(\t\x12\x39\n\x10operation_params\x18\x03 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\"H\n\x18PrepareDataQueryResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\xb7\x01\n\x12PrepareQueryResult\x12\x10\n\x08query_id\x18\x01 \x01(\t\x12L\n\x10parameters_types\x18\x02 \x03(\x0b\x32\x32.Ydb.Table.PrepareQueryResult.ParametersTypesEntry\x1a\x41\n\x14ParametersTypesEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\x18\n\x05value\x18\x02 \x01(\x0b\x32\t.Ydb.Type:\x02\x38\x01\"a\n\x10KeepAliveRequest\x12\x12\n\nsession_id\x18\x01 \x01(\t\x12\x39\n\x10operation_params\x18\x02 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\"A\n\x11KeepAliveResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\xb7\x01\n\x0fKeepAliveResult\x12@\n\x0esession_status\x18\x01 \x01(\x0e\x32(.Ydb.Table.KeepAliveResult.SessionStatus\"b\n\rSessionStatus\x12\x1e\n\x1aSESSION_STATUS_UNSPECIFIED\x10\x00\x12\x18\n\x14SESSION_STATUS_READY\x10\x01\x12\x17\n\x13SESSION_STATUS_BUSY\x10\x02\"\x9d\x01\n\x17\x42\x65ginTransactionRequest\x12\x12\n\nsession_id\x18\x01 \x01(\t\x12\x33\n\x0btx_settings\x18\x02 \x01(\x0b\x32\x1e.Ydb.Table.TransactionSettings\x12\x39\n\x10operation_params\x18\x03 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\"H\n\x18\x42\x65ginTransactionResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"E\n\x16\x42\x65ginTransactionResult\x12+\n\x07tx_meta\x18\x01 \x01(\x0b\x32\x1a.Ydb.Table.TransactionMeta\"\xb5\x01\n\x18\x43ommitTransactionRequest\x12\x12\n\nsession_id\x18\x01 \x01(\t\x12\r\n\x05tx_id\x18\x02 \x01(\t\x12\x39\n\x10operation_params\x18\x03 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12;\n\rcollect_stats\x18\x04 \x01(\x0e\x32$.Ydb.Table.QueryStatsCollection.Mode\"I\n\x19\x43ommitTransactionResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"J\n\x17\x43ommitTransactionResult\x12/\n\x0bquery_stats\x18\x01 \x01(\x0b\x32\x1a.Ydb.TableStats.QueryStats\"z\n\x1aRollbackTransactionRequest\x12\x12\n\nsession_id\x18\x01 \x01(\t\x12\r\n\x05tx_id\x18\x02 \x01(\t\x12\x39\n\x10operation_params\x18\x03 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\"K\n\x1bRollbackTransactionResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\x98\x01\n\x18StoragePolicyDescription\x12\x0c\n\x04name\x18\x01 \x01(\t\x12?\n\x06labels\x18\x02 \x03(\x0b\x32/.Ydb.Table.StoragePolicyDescription.LabelsEntry\x1a-\n\x0bLabelsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\"\x9e\x01\n\x1b\x43ompactionPolicyDescription\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x42\n\x06labels\x18\x02 \x03(\x0b\x32\x32.Ydb.Table.CompactionPolicyDescription.LabelsEntry\x1a-\n\x0bLabelsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\"\xa2\x01\n\x1dPartitioningPolicyDescription\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x44\n\x06labels\x18\x02 \x03(\x0b\x32\x34.Ydb.Table.PartitioningPolicyDescription.LabelsEntry\x1a-\n\x0bLabelsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\"\x9c\x01\n\x1a\x45xecutionPolicyDescription\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x41\n\x06labels\x18\x02 \x03(\x0b\x32\x31.Ydb.Table.ExecutionPolicyDescription.LabelsEntry\x1a-\n\x0bLabelsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\"\xa0\x01\n\x1cReplicationPolicyDescription\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x43\n\x06labels\x18\x02 \x03(\x0b\x32\x33.Ydb.Table.ReplicationPolicyDescription.LabelsEntry\x1a-\n\x0bLabelsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\"\x98\x01\n\x18\x43\x61\x63hingPolicyDescription\x12\x0c\n\x04name\x18\x01 \x01(\t\x12?\n\x06labels\x18\x02 \x03(\x0b\x32/.Ydb.Table.CachingPolicyDescription.LabelsEntry\x1a-\n\x0bLabelsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\"\xbe\x04\n\x17TableProfileDescription\x12\x0c\n\x04name\x18\x01 \x01(\t\x12>\n\x06labels\x18\x02 \x03(\x0b\x32..Ydb.Table.TableProfileDescription.LabelsEntry\x12\x1e\n\x16\x64\x65\x66\x61ult_storage_policy\x18\x03 \x01(\t\x12 \n\x18\x61llowed_storage_policies\x18\x04 \x03(\t\x12!\n\x19\x64\x65\x66\x61ult_compaction_policy\x18\x05 \x01(\t\x12#\n\x1b\x61llowed_compaction_policies\x18\x06 \x03(\t\x12#\n\x1b\x64\x65\x66\x61ult_partitioning_policy\x18\x07 \x01(\t\x12%\n\x1d\x61llowed_partitioning_policies\x18\x08 \x03(\t\x12 \n\x18\x64\x65\x66\x61ult_execution_policy\x18\t \x01(\t\x12\"\n\x1a\x61llowed_execution_policies\x18\n \x03(\t\x12\"\n\x1a\x64\x65\x66\x61ult_replication_policy\x18\x0b \x01(\t\x12$\n\x1c\x61llowed_replication_policies\x18\x0c \x03(\t\x12\x1e\n\x16\x64\x65\x66\x61ult_caching_policy\x18\r \x01(\t\x12 \n\x18\x61llowed_caching_policies\x18\x0e \x03(\t\x1a-\n\x0bLabelsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\"X\n\x1b\x44\x65scribeTableOptionsRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\"L\n\x1c\x44\x65scribeTableOptionsResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\x99\x04\n\x1a\x44\x65scribeTableOptionsResult\x12\x41\n\x15table_profile_presets\x18\x01 \x03(\x0b\x32\".Ydb.Table.TableProfileDescription\x12\x43\n\x16storage_policy_presets\x18\x02 \x03(\x0b\x32#.Ydb.Table.StoragePolicyDescription\x12I\n\x19\x63ompaction_policy_presets\x18\x03 \x03(\x0b\x32&.Ydb.Table.CompactionPolicyDescription\x12M\n\x1bpartitioning_policy_presets\x18\x04 \x03(\x0b\x32(.Ydb.Table.PartitioningPolicyDescription\x12G\n\x18\x65xecution_policy_presets\x18\x05 \x03(\x0b\x32%.Ydb.Table.ExecutionPolicyDescription\x12K\n\x1areplication_policy_presets\x18\x06 \x03(\x0b\x32\'.Ydb.Table.ReplicationPolicyDescription\x12\x43\n\x16\x63\x61\x63hing_policy_presets\x18\x07 \x03(\x0b\x32#.Ydb.Table.CachingPolicyDescription\"\xc0\x01\n\x08KeyRange\x12\"\n\x07greater\x18\x01 \x01(\x0b\x32\x0f.Ydb.TypedValueH\x00\x12+\n\x10greater_or_equal\x18\x02 \x01(\x0b\x32\x0f.Ydb.TypedValueH\x00\x12\x1f\n\x04less\x18\x03 \x01(\x0b\x32\x0f.Ydb.TypedValueH\x01\x12(\n\rless_or_equal\x18\x04 \x01(\x0b\x32\x0f.Ydb.TypedValueH\x01\x42\x0c\n\nfrom_boundB\n\n\x08to_bound\"\xb8\x02\n\x10ReadTableRequest\x12\x12\n\nsession_id\x18\x01 \x01(\t\x12\x0c\n\x04path\x18\x02 \x01(\t\x12&\n\tkey_range\x18\x03 \x01(\x0b\x32\x13.Ydb.Table.KeyRange\x12\x0f\n\x07\x63olumns\x18\x04 \x03(\t\x12\x0f\n\x07ordered\x18\x05 \x01(\x08\x12\x11\n\trow_limit\x18\x06 \x01(\x04\x12-\n\x0cuse_snapshot\x18\x07 \x01(\x0e\x32\x17.Ydb.FeatureFlag.Status\x12\x19\n\x11\x62\x61tch_limit_bytes\x18\x08 \x01(\x04\x12\x18\n\x10\x62\x61tch_limit_rows\x18\t \x01(\x04\x12\x41\n return_not_null_data_as_optional\x18\n \x01(\x0e\x32\x17.Ydb.FeatureFlag.Status\"\xbc\x01\n\x11ReadTableResponse\x12)\n\x06status\x18\x01 \x01(\x0e\x32\x19.Ydb.StatusIds.StatusCode\x12\'\n\x06issues\x18\x02 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessage\x12\'\n\x08snapshot\x18\x04 \x01(\x0b\x32\x15.Ydb.VirtualTimestamp\x12*\n\x06result\x18\x03 \x01(\x0b\x32\x1a.Ydb.Table.ReadTableResult\"5\n\x0fReadTableResult\x12\"\n\nresult_set\x18\x01 \x01(\x0b\x32\x0e.Ydb.ResultSet\"c\n\x0fReadRowsRequest\x12\x12\n\nsession_id\x18\x01 \x01(\t\x12\x0c\n\x04path\x18\x02 \x01(\t\x12\x1d\n\x04keys\x18\x03 \x01(\x0b\x32\x0f.Ydb.TypedValue\x12\x0f\n\x07\x63olumns\x18\x04 \x03(\t\"\x8a\x01\n\x10ReadRowsResponse\x12)\n\x06status\x18\x01 \x01(\x0e\x32\x19.Ydb.StatusIds.StatusCode\x12\'\n\x06issues\x18\x02 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessage\x12\"\n\nresult_set\x18\x03 \x01(\x0b\x32\x0e.Ydb.ResultSet\"\x8d\x02\n\x11\x42ulkUpsertRequest\x12\r\n\x05table\x18\x01 \x01(\t\x12\x1d\n\x04rows\x18\x02 \x01(\x0b\x32\x0f.Ydb.TypedValue\x12\x39\n\x10operation_params\x18\x03 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12?\n\x14\x61rrow_batch_settings\x18\x07 \x01(\x0b\x32\x1f.Ydb.Formats.ArrowBatchSettingsH\x00\x12\x30\n\x0c\x63sv_settings\x18\x08 \x01(\x0b\x32\x18.Ydb.Formats.CsvSettingsH\x00\x12\r\n\x04\x64\x61ta\x18\xe8\x07 \x01(\x0c\x42\r\n\x0b\x64\x61ta_format\"B\n\x12\x42ulkUpsertResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\x12\n\x10\x42ulkUpsertResult\"\xb7\x03\n\x17\x45xecuteScanQueryRequest\x12\x1f\n\x05query\x18\x03 \x01(\x0b\x32\x10.Ydb.Table.Query\x12\x46\n\nparameters\x18\x04 \x03(\x0b\x32\x32.Ydb.Table.ExecuteScanQueryRequest.ParametersEntry\x12\x35\n\x04mode\x18\x06 \x01(\x0e\x32\'.Ydb.Table.ExecuteScanQueryRequest.Mode\x12;\n\rcollect_stats\x18\x08 \x01(\x0e\x32$.Ydb.Table.QueryStatsCollection.Mode\x12$\n\x18\x63ollect_full_diagnostics\x18\t \x01(\x08\x42\x02\x18\x01\x1a\x42\n\x0fParametersEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\x1e\n\x05value\x18\x02 \x01(\x0b\x32\x0f.Ydb.TypedValue:\x02\x38\x01\"=\n\x04Mode\x12\x14\n\x10MODE_UNSPECIFIED\x10\x00\x12\x10\n\x0cMODE_EXPLAIN\x10\x01\x12\r\n\tMODE_EXEC\x10\x03J\x04\x08\x01\x10\x02J\x04\x08\x02\x10\x03J\x04\x08\x05\x10\x06J\x04\x08\x07\x10\x08\"\xaf\x01\n\x1f\x45xecuteScanQueryPartialResponse\x12)\n\x06status\x18\x01 \x01(\x0e\x32\x19.Ydb.StatusIds.StatusCode\x12\'\n\x06issues\x18\x02 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessage\x12\x38\n\x06result\x18\x03 \x01(\x0b\x32(.Ydb.Table.ExecuteScanQueryPartialResult\"\xd9\x01\n\x1d\x45xecuteScanQueryPartialResult\x12\"\n\nresult_set\x18\x01 \x01(\x0b\x32\x0e.Ydb.ResultSet\x12/\n\x0bquery_stats\x18\x06 \x01(\x0b\x32\x1a.Ydb.TableStats.QueryStats\x12\"\n\x16query_full_diagnostics\x18\x07 \x01(\tB\x02\x18\x01\x12\'\n\x08snapshot\x18\x08 \x01(\x0b\x32\x15.Ydb.VirtualTimestampJ\x04\x08\x02\x10\x03J\x04\x08\x03\x10\x04J\x04\x08\x04\x10\x05J\x04\x08\x05\x10\x06\"l\n!DescribeExternalDataSourceRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x0c\n\x04path\x18\x02 \x01(\t\"R\n\"DescribeExternalDataSourceResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\x95\x02\n DescribeExternalDataSourceResult\x12\x1f\n\x04self\x18\x01 \x01(\x0b\x32\x11.Ydb.Scheme.Entry\x12\x18\n\x0bsource_type\x18\x02 \x01(\tH\x00\x88\x01\x01\x12\x15\n\x08location\x18\x03 \x01(\tH\x01\x88\x01\x01\x12O\n\nproperties\x18\x04 \x03(\x0b\x32;.Ydb.Table.DescribeExternalDataSourceResult.PropertiesEntry\x1a\x31\n\x0fPropertiesEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\x42\x0e\n\x0c_source_typeB\x0b\n\t_location\"g\n\x1c\x44\x65scribeExternalTableRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x0c\n\x04path\x18\x02 \x01(\t\"M\n\x1d\x44\x65scribeExternalTableResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\xde\x02\n\x1b\x44\x65scribeExternalTableResult\x12\x1f\n\x04self\x18\x01 \x01(\x0b\x32\x11.Ydb.Scheme.Entry\x12\x18\n\x0bsource_type\x18\x02 \x01(\tH\x00\x88\x01\x01\x12\x1d\n\x10\x64\x61ta_source_path\x18\x03 \x01(\tH\x01\x88\x01\x01\x12\x15\n\x08location\x18\x04 \x01(\tH\x02\x88\x01\x01\x12&\n\x07\x63olumns\x18\x05 \x03(\x0b\x32\x15.Ydb.Table.ColumnMeta\x12\x44\n\x07\x63ontent\x18\x06 \x03(\x0b\x32\x33.Ydb.Table.DescribeExternalTableResult.ContentEntry\x1a.\n\x0c\x43ontentEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\x42\x0e\n\x0c_source_typeB\x13\n\x11_data_source_pathB\x0b\n\t_location\"d\n\x19\x44\x65scribeSystemViewRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x0c\n\x04path\x18\x02 \x01(\t\"J\n\x1a\x44\x65scribeSystemViewResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\xa0\x02\n\x18\x44\x65scribeSystemViewResult\x12\x1f\n\x04self\x18\x01 \x01(\x0b\x32\x11.Ydb.Scheme.Entry\x12\x13\n\x0bsys_view_id\x18\x02 \x01(\x04\x12\x15\n\rsys_view_name\x18\x03 \x01(\t\x12&\n\x07\x63olumns\x18\x04 \x03(\x0b\x32\x15.Ydb.Table.ColumnMeta\x12\x13\n\x0bprimary_key\x18\x05 \x03(\t\x12G\n\nattributes\x18\x06 \x03(\x0b\x32\x33.Ydb.Table.DescribeSystemViewResult.AttributesEntry\x1a\x31\n\x0f\x41ttributesEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01*R\n\tStoreType\x12\x1a\n\x16STORE_TYPE_UNSPECIFIED\x10\x00\x12\x12\n\x0eSTORE_TYPE_ROW\x10\x01\x12\x15\n\x11STORE_TYPE_COLUMN\x10\x02\x42S\n\x14tech.ydb.proto.tableZ8github.com/ydb-platform/ydb-go-genproto/protos/Ydb_Table\xf8\x01\x01\x62\x06proto3'
+  serialized_pb=b'\n\x16protos/ydb_table.proto\x12\tYdb.Table\x1a\"protos/annotations/sensitive.proto\x1a#protos/annotations/validation.proto\x1a\x17protos/ydb_common.proto\x1a\x1eprotos/ydb_issue_message.proto\x1a\x1aprotos/ydb_operation.proto\x1a\x1cprotos/ydb_query_stats.proto\x1a\x16protos/ydb_value.proto\x1a\x17protos/ydb_scheme.proto\x1a\x1dprotos/ydb_status_codes.proto\x1a\x16protos/ydb_topic.proto\x1a\x18protos/ydb_formats.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"Q\n\x14\x43reateSessionRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\"E\n\x15\x43reateSessionResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\")\n\x13\x43reateSessionResult\x12\x12\n\nsession_id\x18\x01 \x01(\t\"e\n\x14\x44\x65leteSessionRequest\x12\x12\n\nsession_id\x18\x01 \x01(\t\x12\x39\n\x10operation_params\x18\x02 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\"E\n\x15\x44\x65leteSessionResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\r\n\x0bGlobalIndex\"\x12\n\x10GlobalAsyncIndex\"\x13\n\x11GlobalUniqueIndex\"\xf7\x01\n\nTableIndex\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x15\n\rindex_columns\x18\x02 \x03(\t\x12.\n\x0cglobal_index\x18\x03 \x01(\x0b\x32\x16.Ydb.Table.GlobalIndexH\x00\x12\x39\n\x12global_async_index\x18\x04 \x01(\x0b\x32\x1b.Ydb.Table.GlobalAsyncIndexH\x00\x12;\n\x13global_unique_index\x18\x06 \x01(\x0b\x32\x1c.Ydb.Table.GlobalUniqueIndexH\x00\x12\x14\n\x0c\x64\x61ta_columns\x18\x05 \x03(\tB\x06\n\x04type\"\x98\x03\n\x15TableIndexDescription\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x15\n\rindex_columns\x18\x02 \x03(\t\x12.\n\x0cglobal_index\x18\x03 \x01(\x0b\x32\x16.Ydb.Table.GlobalIndexH\x00\x12\x39\n\x12global_async_index\x18\x05 \x01(\x0b\x32\x1b.Ydb.Table.GlobalAsyncIndexH\x00\x12;\n\x13global_unique_index\x18\x08 \x01(\x0b\x32\x1c.Ydb.Table.GlobalUniqueIndexH\x00\x12\x37\n\x06status\x18\x04 \x01(\x0e\x32\'.Ydb.Table.TableIndexDescription.Status\x12\x14\n\x0c\x64\x61ta_columns\x18\x06 \x03(\t\x12\x12\n\nsize_bytes\x18\x07 \x01(\x04\"G\n\x06Status\x12\x16\n\x12STATUS_UNSPECIFIED\x10\x00\x12\x10\n\x0cSTATUS_READY\x10\x01\x12\x13\n\x0fSTATUS_BUILDING\x10\x02\x42\x06\n\x04type\"\xdd\x01\n\x0fIndexBuildState\"\xc9\x01\n\x05State\x12\x15\n\x11STATE_UNSPECIFIED\x10\x00\x12\x13\n\x0fSTATE_PREPARING\x10\x01\x12\x1a\n\x16STATE_TRANSFERING_DATA\x10\x02\x12\x12\n\x0eSTATE_APPLYING\x10\x03\x12\x0e\n\nSTATE_DONE\x10\x04\x12\x16\n\x12STATE_CANCELLATION\x10\x05\x12\x13\n\x0fSTATE_CANCELLED\x10\x06\x12\x13\n\x0fSTATE_REJECTION\x10\x07\x12\x12\n\x0eSTATE_REJECTED\x10\x08\"K\n\x15IndexBuildDescription\x12\x0c\n\x04path\x18\x01 \x01(\t\x12$\n\x05index\x18\x02 \x01(\x0b\x32\x15.Ydb.Table.TableIndex\"\x8e\x01\n\x12IndexBuildMetadata\x12\x35\n\x0b\x64\x65scription\x18\x01 \x01(\x0b\x32 .Ydb.Table.IndexBuildDescription\x12/\n\x05state\x18\x02 \x01(\x0e\x32 .Ydb.Table.IndexBuildState.State\x12\x10\n\x08progress\x18\x03 \x01(\x02\"\x9a\x01\n\x0e\x43hangefeedMode\"\x87\x01\n\x04Mode\x12\x14\n\x10MODE_UNSPECIFIED\x10\x00\x12\x12\n\x0eMODE_KEYS_ONLY\x10\x01\x12\x10\n\x0cMODE_UPDATES\x10\x02\x12\x12\n\x0eMODE_NEW_IMAGE\x10\x03\x12\x12\n\x0eMODE_OLD_IMAGE\x10\x04\x12\x1b\n\x17MODE_NEW_AND_OLD_IMAGES\x10\x05\"\x81\x01\n\x10\x43hangefeedFormat\"m\n\x06\x46ormat\x12\x16\n\x12\x46ORMAT_UNSPECIFIED\x10\x00\x12\x0f\n\x0b\x46ORMAT_JSON\x10\x01\x12 \n\x1c\x46ORMAT_DYNAMODB_STREAMS_JSON\x10\x02\x12\x18\n\x14\x46ORMAT_DEBEZIUM_JSON\x10\x03\"\xa6\x04\n\nChangefeed\x12\x0c\n\x04name\x18\x01 \x01(\t\x12,\n\x04mode\x18\x02 \x01(\x0e\x32\x1e.Ydb.Table.ChangefeedMode.Mode\x12\x32\n\x06\x66ormat\x18\x03 \x01(\x0e\x32\".Ydb.Table.ChangefeedFormat.Format\x12\x33\n\x10retention_period\x18\x04 \x01(\x0b\x32\x19.google.protobuf.Duration\x12\x1a\n\x12virtual_timestamps\x18\x05 \x01(\x08\x12\x14\n\x0cinitial_scan\x18\x06 \x01(\x08\x12R\n\nattributes\x18\x07 \x03(\x0b\x32%.Ydb.Table.Changefeed.AttributesEntryB\x17\xaa\xe6*\x08\n\x06\n\x04\x08\x01\x10\x64\xa2\xe6*\x07\n\x05\x08\x01\x10\x80 \x12\x1b\n\naws_region\x18\x08 \x01(\tB\x07\xa2\xe6*\x03\x18\x80\x01\x12?\n\x1cresolved_timestamps_interval\x18\t \x01(\x0b\x32\x19.google.protobuf.Duration\x12\x44\n\x1btopic_partitioning_settings\x18\n \x01(\x0b\x32\x1f.Ydb.Topic.PartitioningSettings\x12\x16\n\x0eschema_changes\x18\x0b \x01(\x08\x1a\x31\n\x0f\x41ttributesEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\"\xb9\x05\n\x15\x43hangefeedDescription\x12\x0c\n\x04name\x18\x01 \x01(\t\x12,\n\x04mode\x18\x02 \x01(\x0e\x32\x1e.Ydb.Table.ChangefeedMode.Mode\x12\x32\n\x06\x66ormat\x18\x03 \x01(\x0e\x32\".Ydb.Table.ChangefeedFormat.Format\x12\x35\n\x05state\x18\x04 \x01(\x0e\x32&.Ydb.Table.ChangefeedDescription.State\x12\x1a\n\x12virtual_timestamps\x18\x05 \x01(\x08\x12\x44\n\nattributes\x18\x06 \x03(\x0b\x32\x30.Ydb.Table.ChangefeedDescription.AttributesEntry\x12\x12\n\naws_region\x18\x07 \x01(\t\x12?\n\x1cresolved_timestamps_interval\x18\x08 \x01(\x0b\x32\x19.google.protobuf.Duration\x12S\n\x15initial_scan_progress\x18\t \x01(\x0b\x32\x34.Ydb.Table.ChangefeedDescription.InitialScanProgress\x12\x16\n\x0eschema_changes\x18\n \x01(\x08\x1a\x43\n\x13InitialScanProgress\x12\x13\n\x0bparts_total\x18\x01 \x01(\r\x12\x17\n\x0fparts_completed\x18\x02 \x01(\r\x1a\x31\n\x0f\x41ttributesEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\"]\n\x05State\x12\x15\n\x11STATE_UNSPECIFIED\x10\x00\x12\x11\n\rSTATE_ENABLED\x10\x01\x12\x12\n\x0eSTATE_DISABLED\x10\x02\x12\x16\n\x12STATE_INITIAL_SCAN\x10\x03\"\x1c\n\x0bStoragePool\x12\r\n\x05media\x18\x01 \x01(\t\"\xaa\x02\n\rStoragePolicy\x12\x13\n\x0bpreset_name\x18\x01 \x01(\t\x12&\n\x06syslog\x18\x02 \x01(\x0b\x32\x16.Ydb.Table.StoragePool\x12#\n\x03log\x18\x03 \x01(\x0b\x32\x16.Ydb.Table.StoragePool\x12$\n\x04\x64\x61ta\x18\x04 \x01(\x0b\x32\x16.Ydb.Table.StoragePool\x12(\n\x08\x65xternal\x18\x05 \x01(\x0b\x32\x16.Ydb.Table.StoragePool\x12/\n\x0ekeep_in_memory\x18\x06 \x01(\x0e\x32\x17.Ydb.FeatureFlag.Status\x12\x36\n\x0f\x63olumn_families\x18\x07 \x03(\x0b\x32\x1d.Ydb.Table.ColumnFamilyPolicy\"\xb1\x02\n\x12\x43olumnFamilyPolicy\x12\x0c\n\x04name\x18\x01 \x01(\t\x12$\n\x04\x64\x61ta\x18\x02 \x01(\x0b\x32\x16.Ydb.Table.StoragePool\x12(\n\x08\x65xternal\x18\x03 \x01(\x0b\x32\x16.Ydb.Table.StoragePool\x12/\n\x0ekeep_in_memory\x18\x04 \x01(\x0e\x32\x17.Ydb.FeatureFlag.Status\x12>\n\x0b\x63ompression\x18\x05 \x01(\x0e\x32).Ydb.Table.ColumnFamilyPolicy.Compression\"L\n\x0b\x43ompression\x12\x1b\n\x17\x43OMPRESSION_UNSPECIFIED\x10\x00\x12\x10\n\x0cUNCOMPRESSED\x10\x01\x12\x0e\n\nCOMPRESSED\x10\x02\"\'\n\x10\x43ompactionPolicy\x12\x13\n\x0bpreset_name\x18\x01 \x01(\t\";\n\x12\x45xplicitPartitions\x12%\n\x0csplit_points\x18\x01 \x03(\x0b\x32\x0f.Ydb.TypedValue\"S\n\x0ePartitionStats\x12\x15\n\rrows_estimate\x18\x01 \x01(\x04\x12\x12\n\nstore_size\x18\x02 \x01(\x04\x12\x16\n\x0eleader_node_id\x18\x03 \x01(\r\"\xe9\x01\n\nTableStats\x12\x32\n\x0fpartition_stats\x18\x01 \x03(\x0b\x32\x19.Ydb.Table.PartitionStats\x12\x15\n\rrows_estimate\x18\x02 \x01(\x04\x12\x12\n\nstore_size\x18\x03 \x01(\x04\x12\x12\n\npartitions\x18\x04 \x01(\x04\x12\x31\n\rcreation_time\x18\x05 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12\x35\n\x11modification_time\x18\x06 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\"\xdc\x02\n\x12PartitioningPolicy\x12\x13\n\x0bpreset_name\x18\x01 \x01(\t\x12O\n\x11\x61uto_partitioning\x18\x02 \x01(\x0e\x32\x34.Ydb.Table.PartitioningPolicy.AutoPartitioningPolicy\x12\x1c\n\x12uniform_partitions\x18\x03 \x01(\x04H\x00\x12<\n\x13\x65xplicit_partitions\x18\x04 \x01(\x0b\x32\x1d.Ydb.Table.ExplicitPartitionsH\x00\"v\n\x16\x41utoPartitioningPolicy\x12(\n$AUTO_PARTITIONING_POLICY_UNSPECIFIED\x10\x00\x12\x0c\n\x08\x44ISABLED\x10\x01\x12\x0e\n\nAUTO_SPLIT\x10\x02\x12\x14\n\x10\x41UTO_SPLIT_MERGE\x10\x03\x42\x0c\n\npartitions\"&\n\x0f\x45xecutionPolicy\x12\x13\n\x0bpreset_name\x18\x01 \x01(\t\"\xb1\x01\n\x11ReplicationPolicy\x12\x13\n\x0bpreset_name\x18\x01 \x01(\t\x12\x16\n\x0ereplicas_count\x18\x02 \x01(\r\x12=\n\x1c\x63reate_per_availability_zone\x18\x03 \x01(\x0e\x32\x17.Ydb.FeatureFlag.Status\x12\x30\n\x0f\x61llow_promotion\x18\x04 \x01(\x0e\x32\x17.Ydb.FeatureFlag.Status\"$\n\rCachingPolicy\x12\x13\n\x0bpreset_name\x18\x01 \x01(\t\"\xeb\x02\n\x0cTableProfile\x12\x13\n\x0bpreset_name\x18\x01 \x01(\t\x12\x30\n\x0estorage_policy\x18\x02 \x01(\x0b\x32\x18.Ydb.Table.StoragePolicy\x12\x36\n\x11\x63ompaction_policy\x18\x03 \x01(\x0b\x32\x1b.Ydb.Table.CompactionPolicy\x12:\n\x13partitioning_policy\x18\x04 \x01(\x0b\x32\x1d.Ydb.Table.PartitioningPolicy\x12\x34\n\x10\x65xecution_policy\x18\x05 \x01(\x0b\x32\x1a.Ydb.Table.ExecutionPolicy\x12\x38\n\x12replication_policy\x18\x06 \x01(\x0b\x32\x1c.Ydb.Table.ReplicationPolicy\x12\x30\n\x0e\x63\x61\x63hing_policy\x18\x07 \x01(\x0b\x32\x18.Ydb.Table.CachingPolicy\"\xaa\x03\n\x13SequenceDescription\x12\x11\n\x04name\x18\x01 \x01(\tH\x00\x88\x01\x01\x12\x16\n\tmin_value\x18\x02 \x01(\x12H\x01\x88\x01\x01\x12\x16\n\tmax_value\x18\x03 \x01(\x12H\x02\x88\x01\x01\x12\x18\n\x0bstart_value\x18\x04 \x01(\x12H\x03\x88\x01\x01\x12\x12\n\x05\x63\x61\x63he\x18\x05 \x01(\x04H\x04\x88\x01\x01\x12\x16\n\tincrement\x18\x06 \x01(\x12H\x05\x88\x01\x01\x12\x12\n\x05\x63ycle\x18\x07 \x01(\x08H\x06\x88\x01\x01\x12;\n\x07set_val\x18\x08 \x01(\x0b\x32%.Ydb.Table.SequenceDescription.SetValH\x07\x88\x01\x01\x1aV\n\x06SetVal\x12\x17\n\nnext_value\x18\x01 \x01(\x12H\x00\x88\x01\x01\x12\x16\n\tnext_used\x18\x02 \x01(\x08H\x01\x88\x01\x01\x42\r\n\x0b_next_valueB\x0c\n\n_next_usedB\x07\n\x05_nameB\x0c\n\n_min_valueB\x0c\n\n_max_valueB\x0e\n\x0c_start_valueB\x08\n\x06_cacheB\x0c\n\n_incrementB\x08\n\x06_cycleB\n\n\x08_set_val\"\xda\x01\n\nColumnMeta\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x17\n\x04type\x18\x02 \x01(\x0b\x32\t.Ydb.Type\x12\x0e\n\x06\x66\x61mily\x18\x03 \x01(\t\x12\x15\n\x08not_null\x18\x04 \x01(\x08H\x01\x88\x01\x01\x12\'\n\x0c\x66rom_literal\x18\x05 \x01(\x0b\x32\x0f.Ydb.TypedValueH\x00\x12\x37\n\rfrom_sequence\x18\x06 \x01(\x0b\x32\x1e.Ydb.Table.SequenceDescriptionH\x00\x42\x0f\n\rdefault_valueB\x0b\n\t_not_null\"O\n\x1a\x44\x61teTypeColumnModeSettings\x12\x13\n\x0b\x63olumn_name\x18\x01 \x01(\t\x12\x1c\n\x14\x65xpire_after_seconds\x18\x02 \x01(\r\"\x8e\x02\n\x1fValueSinceUnixEpochModeSettings\x12\x13\n\x0b\x63olumn_name\x18\x01 \x01(\t\x12\x44\n\x0b\x63olumn_unit\x18\x02 \x01(\x0e\x32/.Ydb.Table.ValueSinceUnixEpochModeSettings.Unit\x12\x1c\n\x14\x65xpire_after_seconds\x18\x03 \x01(\r\"r\n\x04Unit\x12\x14\n\x10UNIT_UNSPECIFIED\x10\x00\x12\x10\n\x0cUNIT_SECONDS\x10\x01\x12\x15\n\x11UNIT_MILLISECONDS\x10\x02\x12\x15\n\x11UNIT_MICROSECONDS\x10\x03\x12\x14\n\x10UNIT_NANOSECONDS\x10\x04\"\xc4\x01\n\x0bTtlSettings\x12\x41\n\x10\x64\x61te_type_column\x18\x01 \x01(\x0b\x32%.Ydb.Table.DateTypeColumnModeSettingsH\x00\x12L\n\x16value_since_unix_epoch\x18\x02 \x01(\x0b\x32*.Ydb.Table.ValueSinceUnixEpochModeSettingsH\x00\x12\x1c\n\x14run_interval_seconds\x18\x03 \x01(\rB\x06\n\x04mode\"\xda\x01\n\x0fStorageSettings\x12\x32\n\x12tablet_commit_log0\x18\x01 \x01(\x0b\x32\x16.Ydb.Table.StoragePool\x12\x32\n\x12tablet_commit_log1\x18\x02 \x01(\x0b\x32\x16.Ydb.Table.StoragePool\x12(\n\x08\x65xternal\x18\x04 \x01(\x0b\x32\x16.Ydb.Table.StoragePool\x12\x35\n\x14store_external_blobs\x18\x05 \x01(\x0e\x32\x17.Ydb.FeatureFlag.Status\"\x84\x02\n\x0c\x43olumnFamily\x12\x0c\n\x04name\x18\x01 \x01(\t\x12$\n\x04\x64\x61ta\x18\x02 \x01(\x0b\x32\x16.Ydb.Table.StoragePool\x12\x38\n\x0b\x63ompression\x18\x03 \x01(\x0e\x32#.Ydb.Table.ColumnFamily.Compression\x12/\n\x0ekeep_in_memory\x18\x04 \x01(\x0e\x32\x17.Ydb.FeatureFlag.Status\"U\n\x0b\x43ompression\x12\x1b\n\x17\x43OMPRESSION_UNSPECIFIED\x10\x00\x12\x14\n\x10\x43OMPRESSION_NONE\x10\x01\x12\x13\n\x0f\x43OMPRESSION_LZ4\x10\x02\"\xf7\x01\n\x14PartitioningSettings\x12\x14\n\x0cpartition_by\x18\x01 \x03(\t\x12\x35\n\x14partitioning_by_size\x18\x02 \x01(\x0e\x32\x17.Ydb.FeatureFlag.Status\x12\x19\n\x11partition_size_mb\x18\x03 \x01(\x04\x12\x35\n\x14partitioning_by_load\x18\x04 \x01(\x0e\x32\x17.Ydb.FeatureFlag.Status\x12\x1c\n\x14min_partitions_count\x18\x06 \x01(\x04\x12\x1c\n\x14max_partitions_count\x18\x07 \x01(\x04J\x04\x08\x05\x10\x06\"C\n\x16\x41zReadReplicasSettings\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x1b\n\x13read_replicas_count\x18\x02 \x01(\x04\"_\n\x17\x43lusterReplicasSettings\x12\x44\n\x19\x61z_read_replicas_settings\x18\x02 \x03(\x0b\x32!.Ydb.Table.AzReadReplicasSettings\"t\n\x14ReadReplicasSettings\x12$\n\x1aper_az_read_replicas_count\x18\x01 \x01(\x04H\x00\x12$\n\x1a\x61ny_az_read_replicas_count\x18\x02 \x01(\x04H\x00\x42\n\n\x08settingsJ\x04\x08\x03\x10\x04\"\xaa\x07\n\x12\x43reateTableRequest\x12\x12\n\nsession_id\x18\x01 \x01(\t\x12\x0c\n\x04path\x18\x02 \x01(\t\x12&\n\x07\x63olumns\x18\x03 \x03(\x0b\x32\x15.Ydb.Table.ColumnMeta\x12\x13\n\x0bprimary_key\x18\x04 \x03(\t\x12(\n\x07profile\x18\x05 \x01(\x0b\x32\x17.Ydb.Table.TableProfile\x12\x39\n\x10operation_params\x18\x06 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12&\n\x07indexes\x18\x07 \x03(\x0b\x32\x15.Ydb.Table.TableIndex\x12,\n\x0cttl_settings\x18\x08 \x01(\x0b\x32\x16.Ydb.Table.TtlSettings\x12\x34\n\x10storage_settings\x18\t \x01(\x0b\x32\x1a.Ydb.Table.StorageSettings\x12\x30\n\x0f\x63olumn_families\x18\n \x03(\x0b\x32\x17.Ydb.Table.ColumnFamily\x12Z\n\nattributes\x18\x0b \x03(\x0b\x32-.Ydb.Table.CreateTableRequest.AttributesEntryB\x17\xaa\xe6*\x08\n\x06\n\x04\x08\x01\x10\x64\xa2\xe6*\x07\n\x05\x08\x01\x10\x80 \x12\x19\n\x11\x63ompaction_policy\x18\x0c \x01(\t\x12\x1c\n\x12uniform_partitions\x18\r \x01(\x04H\x00\x12:\n\x11partition_at_keys\x18\x0e \x01(\x0b\x32\x1d.Ydb.Table.ExplicitPartitionsH\x00\x12>\n\x15partitioning_settings\x18\x0f \x01(\x0b\x32\x1f.Ydb.Table.PartitioningSettings\x12\x31\n\x10key_bloom_filter\x18\x10 \x01(\x0e\x32\x17.Ydb.FeatureFlag.Status\x12?\n\x16read_replicas_settings\x18\x11 \x01(\x0b\x32\x1f.Ydb.Table.ReadReplicasSettings\x12\x0f\n\x07tiering\x18\x12 \x01(\t\x12\x11\n\ttemporary\x18\x13 \x01(\x08\x12(\n\nstore_type\x18\x14 \x01(\x0e\x32\x14.Ydb.Table.StoreType\x1a\x31\n\x0f\x41ttributesEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\x42\x0c\n\npartitions\"C\n\x13\x43reateTableResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"u\n\x10\x44ropTableRequest\x12\x12\n\nsession_id\x18\x01 \x01(\t\x12\x0c\n\x04path\x18\x02 \x01(\t\x12\x39\n\x10operation_params\x18\x04 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParamsJ\x04\x08\x03\x10\x04\"A\n\x11\x44ropTableResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"]\n\x0fRenameIndexItem\x12\x13\n\x0bsource_name\x18\x01 \x01(\t\x12\x18\n\x10\x64\x65stination_name\x18\x02 \x01(\t\x12\x1b\n\x13replace_destination\x18\x03 \x01(\x08\"\x95\t\n\x11\x41lterTableRequest\x12\x12\n\nsession_id\x18\x01 \x01(\t\x12\x0c\n\x04path\x18\x02 \x01(\t\x12*\n\x0b\x61\x64\x64_columns\x18\x03 \x03(\x0b\x32\x15.Ydb.Table.ColumnMeta\x12\x14\n\x0c\x64rop_columns\x18\x04 \x03(\t\x12\x39\n\x10operation_params\x18\x05 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12,\n\ralter_columns\x18\x06 \x03(\x0b\x32\x15.Ydb.Table.ColumnMeta\x12\x32\n\x10set_ttl_settings\x18\x07 \x01(\x0b\x32\x16.Ydb.Table.TtlSettingsH\x00\x12\x33\n\x11\x64rop_ttl_settings\x18\x08 \x01(\x0b\x32\x16.google.protobuf.EmptyH\x00\x12*\n\x0b\x61\x64\x64_indexes\x18\t \x03(\x0b\x32\x15.Ydb.Table.TableIndex\x12\x14\n\x0c\x64rop_indexes\x18\n \x03(\t\x12:\n\x16\x61lter_storage_settings\x18\x0b \x01(\x0b\x32\x1a.Ydb.Table.StorageSettings\x12\x34\n\x13\x61\x64\x64_column_families\x18\x0c \x03(\x0b\x32\x17.Ydb.Table.ColumnFamily\x12\x36\n\x15\x61lter_column_families\x18\r \x03(\x0b\x32\x17.Ydb.Table.ColumnFamily\x12`\n\x10\x61lter_attributes\x18\x0e \x03(\x0b\x32\x31.Ydb.Table.AlterTableRequest.AlterAttributesEntryB\x13\xaa\xe6*\x08\n\x06\n\x04\x08\x01\x10\x64\xa2\xe6*\x03\x18\x80 \x12\x1d\n\x15set_compaction_policy\x18\x0f \x01(\t\x12\x44\n\x1b\x61lter_partitioning_settings\x18\x10 \x01(\x0b\x32\x1f.Ydb.Table.PartitioningSettings\x12\x35\n\x14set_key_bloom_filter\x18\x11 \x01(\x0e\x32\x17.Ydb.FeatureFlag.Status\x12\x43\n\x1aset_read_replicas_settings\x18\x12 \x01(\x0b\x32\x1f.Ydb.Table.ReadReplicasSettings\x12.\n\x0f\x61\x64\x64_changefeeds\x18\x13 \x03(\x0b\x32\x15.Ydb.Table.Changefeed\x12\x18\n\x10\x64rop_changefeeds\x18\x14 \x03(\t\x12\x32\n\x0erename_indexes\x18\x15 \x03(\x0b\x32\x1a.Ydb.Table.RenameIndexItem\x12\x15\n\x0bset_tiering\x18\x16 \x01(\tH\x01\x12.\n\x0c\x64rop_tiering\x18\x17 \x01(\x0b\x32\x16.google.protobuf.EmptyH\x01\x1a\x36\n\x14\x41lterAttributesEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\x42\x0c\n\nttl_actionB\x10\n\x0etiering_action\"B\n\x12\x41lterTableResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\x90\x01\n\x10\x43opyTableRequest\x12\x12\n\nsession_id\x18\x01 \x01(\t\x12\x13\n\x0bsource_path\x18\x02 \x01(\t\x12\x18\n\x10\x64\x65stination_path\x18\x03 \x01(\t\x12\x39\n\x10operation_params\x18\x04 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\"A\n\x11\x43opyTableResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"T\n\rCopyTableItem\x12\x13\n\x0bsource_path\x18\x01 \x01(\t\x12\x18\n\x10\x64\x65stination_path\x18\x02 \x01(\t\x12\x14\n\x0comit_indexes\x18\x03 \x01(\x08\"\x8c\x01\n\x11\x43opyTablesRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x12\n\nsession_id\x18\x02 \x01(\t\x12(\n\x06tables\x18\x03 \x03(\x0b\x32\x18.Ydb.Table.CopyTableItem\"B\n\x12\x43opyTablesResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"]\n\x0fRenameTableItem\x12\x13\n\x0bsource_path\x18\x01 \x01(\t\x12\x18\n\x10\x64\x65stination_path\x18\x02 \x01(\t\x12\x1b\n\x13replace_destination\x18\x03 \x01(\x08\"\x90\x01\n\x13RenameTablesRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x12\n\nsession_id\x18\x02 \x01(\t\x12*\n\x06tables\x18\x03 \x03(\x0b\x32\x1a.Ydb.Table.RenameTableItem\"D\n\x14RenameTablesResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\x8e\x02\n\x14\x44\x65scribeTableRequest\x12\x12\n\nsession_id\x18\x01 \x01(\t\x12\x0c\n\x04path\x18\x02 \x01(\t\x12\x39\n\x10operation_params\x18\x04 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12 \n\x18include_shard_key_bounds\x18\x05 \x01(\x08\x12\x1b\n\x13include_table_stats\x18\x06 \x01(\x08\x12\x1f\n\x17include_partition_stats\x18\x07 \x01(\x08\x12\x17\n\x0finclude_set_val\x18\x08 \x01(\x08\x12 \n\x18include_shard_nodes_info\x18\t \x01(\x08\"E\n\x15\x44\x65scribeTableResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\xc9\x06\n\x13\x44\x65scribeTableResult\x12\x1f\n\x04self\x18\x01 \x01(\x0b\x32\x11.Ydb.Scheme.Entry\x12&\n\x07\x63olumns\x18\x02 \x03(\x0b\x32\x15.Ydb.Table.ColumnMeta\x12\x13\n\x0bprimary_key\x18\x03 \x03(\t\x12)\n\x10shard_key_bounds\x18\x04 \x03(\x0b\x32\x0f.Ydb.TypedValue\x12\x31\n\x07indexes\x18\x05 \x03(\x0b\x32 .Ydb.Table.TableIndexDescription\x12*\n\x0btable_stats\x18\x06 \x01(\x0b\x32\x15.Ydb.Table.TableStats\x12,\n\x0cttl_settings\x18\x07 \x01(\x0b\x32\x16.Ydb.Table.TtlSettings\x12\x34\n\x10storage_settings\x18\x08 \x01(\x0b\x32\x1a.Ydb.Table.StorageSettings\x12\x30\n\x0f\x63olumn_families\x18\t \x03(\x0b\x32\x17.Ydb.Table.ColumnFamily\x12\x42\n\nattributes\x18\n \x03(\x0b\x32..Ydb.Table.DescribeTableResult.AttributesEntry\x12>\n\x15partitioning_settings\x18\x0c \x01(\x0b\x32\x1f.Ydb.Table.PartitioningSettings\x12\x31\n\x10key_bloom_filter\x18\r \x01(\x0e\x32\x17.Ydb.FeatureFlag.Status\x12?\n\x16read_replicas_settings\x18\x0e \x01(\x0b\x32\x1f.Ydb.Table.ReadReplicasSettings\x12\x35\n\x0b\x63hangefeeds\x18\x0f \x03(\x0b\x32 .Ydb.Table.ChangefeedDescription\x12\x0f\n\x07tiering\x18\x10 \x01(\t\x12\x11\n\ttemporary\x18\x11 \x01(\x08\x12(\n\nstore_type\x18\x12 \x01(\x0e\x32\x14.Ydb.Table.StoreType\x1a\x31\n\x0f\x41ttributesEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01J\x04\x08\x0b\x10\x0c\"2\n\x05Query\x12\x12\n\x08yql_text\x18\x01 \x01(\tH\x00\x12\x0c\n\x02id\x18\x02 \x01(\tH\x00\x42\x07\n\x05query\"\x1a\n\x18SerializableModeSettings\"6\n\x12OnlineModeSettings\x12 \n\x18\x61llow_inconsistent_reads\x18\x01 \x01(\x08\"\x13\n\x11StaleModeSettings\"\x16\n\x14SnapshotModeSettings\"\x18\n\x16SnapshotRWModeSettings\"\x1d\n\x1bReadCommittedRWModeSettings\"\"\n StrictSerializableRWModeSettings\"\x81\x04\n\x13TransactionSettings\x12\x46\n\x17serializable_read_write\x18\x01 \x01(\x0b\x32#.Ydb.Table.SerializableModeSettingsH\x00\x12\x39\n\x10online_read_only\x18\x02 \x01(\x0b\x32\x1d.Ydb.Table.OnlineModeSettingsH\x00\x12\x37\n\x0fstale_read_only\x18\x03 \x01(\x0b\x32\x1c.Ydb.Table.StaleModeSettingsH\x00\x12=\n\x12snapshot_read_only\x18\x04 \x01(\x0b\x32\x1f.Ydb.Table.SnapshotModeSettingsH\x00\x12@\n\x13snapshot_read_write\x18\x05 \x01(\x0b\x32!.Ydb.Table.SnapshotRWModeSettingsH\x00\x12K\n\x19read_committed_read_write\x18\x06 \x01(\x0b\x32&.Ydb.Table.ReadCommittedRWModeSettingsH\x00\x12U\n\x1estrict_serializable_read_write\x18\x07 \x01(\x0b\x32+.Ydb.Table.StrictSerializableRWModeSettingsH\x00\x42\t\n\x07tx_mode\"{\n\x12TransactionControl\x12\x0f\n\x05tx_id\x18\x01 \x01(\tH\x00\x12\x32\n\x08\x62\x65gin_tx\x18\x02 \x01(\x0b\x32\x1e.Ydb.Table.TransactionSettingsH\x00\x12\x11\n\tcommit_tx\x18\n \x01(\x08\x42\r\n\x0btx_selector\")\n\x10QueryCachePolicy\x12\x15\n\rkeep_in_cache\x18\x01 \x01(\x08\"\xb1\x01\n\x14QueryStatsCollection\"\x98\x01\n\x04Mode\x12 \n\x1cSTATS_COLLECTION_UNSPECIFIED\x10\x00\x12\x19\n\x15STATS_COLLECTION_NONE\x10\x01\x12\x1a\n\x16STATS_COLLECTION_BASIC\x10\x02\x12\x19\n\x15STATS_COLLECTION_FULL\x10\x03\x12\x1c\n\x18STATS_COLLECTION_PROFILE\x10\x04\"\xc4\x03\n\x17\x45xecuteDataQueryRequest\x12\x12\n\nsession_id\x18\x01 \x01(\t\x12\x31\n\ntx_control\x18\x02 \x01(\x0b\x32\x1d.Ydb.Table.TransactionControl\x12\x1f\n\x05query\x18\x03 \x01(\x0b\x32\x10.Ydb.Table.Query\x12L\n\nparameters\x18\x04 \x03(\x0b\x32\x32.Ydb.Table.ExecuteDataQueryRequest.ParametersEntryB\x04\xb8\xe6*\x01\x12\x37\n\x12query_cache_policy\x18\x05 \x01(\x0b\x32\x1b.Ydb.Table.QueryCachePolicy\x12\x39\n\x10operation_params\x18\x06 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12;\n\rcollect_stats\x18\x07 \x01(\x0e\x32$.Ydb.Table.QueryStatsCollection.Mode\x1a\x42\n\x0fParametersEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\x1e\n\x05value\x18\x02 \x01(\x0b\x32\x0f.Ydb.TypedValue:\x02\x38\x01\"H\n\x18\x45xecuteDataQueryResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"|\n\x19\x45xecuteSchemeQueryRequest\x12\x12\n\nsession_id\x18\x01 \x01(\t\x12\x10\n\x08yql_text\x18\x02 \x01(\t\x12\x39\n\x10operation_params\x18\x03 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\"J\n\x1a\x45xecuteSchemeQueryResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\x1d\n\x0fTransactionMeta\x12\n\n\x02id\x18\x01 \x01(\t\"\x9f\x01\n\tQueryMeta\x12\n\n\x02id\x18\x01 \x01(\t\x12\x43\n\x10parameters_types\x18\x02 \x03(\x0b\x32).Ydb.Table.QueryMeta.ParametersTypesEntry\x1a\x41\n\x14ParametersTypesEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\x18\n\x05value\x18\x02 \x01(\x0b\x32\t.Ydb.Type:\x02\x38\x01\"\xc1\x01\n\x12\x45xecuteQueryResult\x12#\n\x0bresult_sets\x18\x01 \x03(\x0b\x32\x0e.Ydb.ResultSet\x12+\n\x07tx_meta\x18\x02 \x01(\x0b\x32\x1a.Ydb.Table.TransactionMeta\x12(\n\nquery_meta\x18\x03 \x01(\x0b\x32\x14.Ydb.Table.QueryMeta\x12/\n\x0bquery_stats\x18\x04 \x01(\x0b\x32\x1a.Ydb.TableStats.QueryStats\"\x9c\x01\n\x17\x45xplainDataQueryRequest\x12\x12\n\nsession_id\x18\x01 \x01(\t\x12\x10\n\x08yql_text\x18\x02 \x01(\t\x12\x39\n\x10operation_params\x18\x03 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12 \n\x18\x63ollect_full_diagnostics\x18\x04 \x01(\x08\"H\n\x18\x45xplainDataQueryResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"[\n\x12\x45xplainQueryResult\x12\x11\n\tquery_ast\x18\x01 \x01(\t\x12\x12\n\nquery_plan\x18\x02 \x01(\t\x12\x1e\n\x16query_full_diagnostics\x18\x03 \x01(\t\"z\n\x17PrepareDataQueryRequest\x12\x12\n\nsession_id\x18\x01 \x01(\t\x12\x10\n\x08yql_text\x18\x02 \x01(\t\x12\x39\n\x10operation_params\x18\x03 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\"H\n\x18PrepareDataQueryResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\xb7\x01\n\x12PrepareQueryResult\x12\x10\n\x08query_id\x18\x01 \x01(\t\x12L\n\x10parameters_types\x18\x02 \x03(\x0b\x32\x32.Ydb.Table.PrepareQueryResult.ParametersTypesEntry\x1a\x41\n\x14ParametersTypesEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\x18\n\x05value\x18\x02 \x01(\x0b\x32\t.Ydb.Type:\x02\x38\x01\"a\n\x10KeepAliveRequest\x12\x12\n\nsession_id\x18\x01 \x01(\t\x12\x39\n\x10operation_params\x18\x02 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\"A\n\x11KeepAliveResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\xb7\x01\n\x0fKeepAliveResult\x12@\n\x0esession_status\x18\x01 \x01(\x0e\x32(.Ydb.Table.KeepAliveResult.SessionStatus\"b\n\rSessionStatus\x12\x1e\n\x1aSESSION_STATUS_UNSPECIFIED\x10\x00\x12\x18\n\x14SESSION_STATUS_READY\x10\x01\x12\x17\n\x13SESSION_STATUS_BUSY\x10\x02\"\x9d\x01\n\x17\x42\x65ginTransactionRequest\x12\x12\n\nsession_id\x18\x01 \x01(\t\x12\x33\n\x0btx_settings\x18\x02 \x01(\x0b\x32\x1e.Ydb.Table.TransactionSettings\x12\x39\n\x10operation_params\x18\x03 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\"H\n\x18\x42\x65ginTransactionResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"E\n\x16\x42\x65ginTransactionResult\x12+\n\x07tx_meta\x18\x01 \x01(\x0b\x32\x1a.Ydb.Table.TransactionMeta\"\xb5\x01\n\x18\x43ommitTransactionRequest\x12\x12\n\nsession_id\x18\x01 \x01(\t\x12\r\n\x05tx_id\x18\x02 \x01(\t\x12\x39\n\x10operation_params\x18\x03 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12;\n\rcollect_stats\x18\x04 \x01(\x0e\x32$.Ydb.Table.QueryStatsCollection.Mode\"I\n\x19\x43ommitTransactionResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"J\n\x17\x43ommitTransactionResult\x12/\n\x0bquery_stats\x18\x01 \x01(\x0b\x32\x1a.Ydb.TableStats.QueryStats\"z\n\x1aRollbackTransactionRequest\x12\x12\n\nsession_id\x18\x01 \x01(\t\x12\r\n\x05tx_id\x18\x02 \x01(\t\x12\x39\n\x10operation_params\x18\x03 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\"K\n\x1bRollbackTransactionResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\x98\x01\n\x18StoragePolicyDescription\x12\x0c\n\x04name\x18\x01 \x01(\t\x12?\n\x06labels\x18\x02 \x03(\x0b\x32/.Ydb.Table.StoragePolicyDescription.LabelsEntry\x1a-\n\x0bLabelsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\"\x9e\x01\n\x1b\x43ompactionPolicyDescription\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x42\n\x06labels\x18\x02 \x03(\x0b\x32\x32.Ydb.Table.CompactionPolicyDescription.LabelsEntry\x1a-\n\x0bLabelsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\"\xa2\x01\n\x1dPartitioningPolicyDescription\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x44\n\x06labels\x18\x02 \x03(\x0b\x32\x34.Ydb.Table.PartitioningPolicyDescription.LabelsEntry\x1a-\n\x0bLabelsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\"\x9c\x01\n\x1a\x45xecutionPolicyDescription\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x41\n\x06labels\x18\x02 \x03(\x0b\x32\x31.Ydb.Table.ExecutionPolicyDescription.LabelsEntry\x1a-\n\x0bLabelsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\"\xa0\x01\n\x1cReplicationPolicyDescription\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x43\n\x06labels\x18\x02 \x03(\x0b\x32\x33.Ydb.Table.ReplicationPolicyDescription.LabelsEntry\x1a-\n\x0bLabelsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\"\x98\x01\n\x18\x43\x61\x63hingPolicyDescription\x12\x0c\n\x04name\x18\x01 \x01(\t\x12?\n\x06labels\x18\x02 \x03(\x0b\x32/.Ydb.Table.CachingPolicyDescription.LabelsEntry\x1a-\n\x0bLabelsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\"\xbe\x04\n\x17TableProfileDescription\x12\x0c\n\x04name\x18\x01 \x01(\t\x12>\n\x06labels\x18\x02 \x03(\x0b\x32..Ydb.Table.TableProfileDescription.LabelsEntry\x12\x1e\n\x16\x64\x65\x66\x61ult_storage_policy\x18\x03 \x01(\t\x12 \n\x18\x61llowed_storage_policies\x18\x04 \x03(\t\x12!\n\x19\x64\x65\x66\x61ult_compaction_policy\x18\x05 \x01(\t\x12#\n\x1b\x61llowed_compaction_policies\x18\x06 \x03(\t\x12#\n\x1b\x64\x65\x66\x61ult_partitioning_policy\x18\x07 \x01(\t\x12%\n\x1d\x61llowed_partitioning_policies\x18\x08 \x03(\t\x12 \n\x18\x64\x65\x66\x61ult_execution_policy\x18\t \x01(\t\x12\"\n\x1a\x61llowed_execution_policies\x18\n \x03(\t\x12\"\n\x1a\x64\x65\x66\x61ult_replication_policy\x18\x0b \x01(\t\x12$\n\x1c\x61llowed_replication_policies\x18\x0c \x03(\t\x12\x1e\n\x16\x64\x65\x66\x61ult_caching_policy\x18\r \x01(\t\x12 \n\x18\x61llowed_caching_policies\x18\x0e \x03(\t\x1a-\n\x0bLabelsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\"X\n\x1b\x44\x65scribeTableOptionsRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\"L\n\x1c\x44\x65scribeTableOptionsResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\x99\x04\n\x1a\x44\x65scribeTableOptionsResult\x12\x41\n\x15table_profile_presets\x18\x01 \x03(\x0b\x32\".Ydb.Table.TableProfileDescription\x12\x43\n\x16storage_policy_presets\x18\x02 \x03(\x0b\x32#.Ydb.Table.StoragePolicyDescription\x12I\n\x19\x63ompaction_policy_presets\x18\x03 \x03(\x0b\x32&.Ydb.Table.CompactionPolicyDescription\x12M\n\x1bpartitioning_policy_presets\x18\x04 \x03(\x0b\x32(.Ydb.Table.PartitioningPolicyDescription\x12G\n\x18\x65xecution_policy_presets\x18\x05 \x03(\x0b\x32%.Ydb.Table.ExecutionPolicyDescription\x12K\n\x1areplication_policy_presets\x18\x06 \x03(\x0b\x32\'.Ydb.Table.ReplicationPolicyDescription\x12\x43\n\x16\x63\x61\x63hing_policy_presets\x18\x07 \x03(\x0b\x32#.Ydb.Table.CachingPolicyDescription\"\xc0\x01\n\x08KeyRange\x12\"\n\x07greater\x18\x01 \x01(\x0b\x32\x0f.Ydb.TypedValueH\x00\x12+\n\x10greater_or_equal\x18\x02 \x01(\x0b\x32\x0f.Ydb.TypedValueH\x00\x12\x1f\n\x04less\x18\x03 \x01(\x0b\x32\x0f.Ydb.TypedValueH\x01\x12(\n\rless_or_equal\x18\x04 \x01(\x0b\x32\x0f.Ydb.TypedValueH\x01\x42\x0c\n\nfrom_boundB\n\n\x08to_bound\"\xb8\x02\n\x10ReadTableRequest\x12\x12\n\nsession_id\x18\x01 \x01(\t\x12\x0c\n\x04path\x18\x02 \x01(\t\x12&\n\tkey_range\x18\x03 \x01(\x0b\x32\x13.Ydb.Table.KeyRange\x12\x0f\n\x07\x63olumns\x18\x04 \x03(\t\x12\x0f\n\x07ordered\x18\x05 \x01(\x08\x12\x11\n\trow_limit\x18\x06 \x01(\x04\x12-\n\x0cuse_snapshot\x18\x07 \x01(\x0e\x32\x17.Ydb.FeatureFlag.Status\x12\x19\n\x11\x62\x61tch_limit_bytes\x18\x08 \x01(\x04\x12\x18\n\x10\x62\x61tch_limit_rows\x18\t \x01(\x04\x12\x41\n return_not_null_data_as_optional\x18\n \x01(\x0e\x32\x17.Ydb.FeatureFlag.Status\"\xbc\x01\n\x11ReadTableResponse\x12)\n\x06status\x18\x01 \x01(\x0e\x32\x19.Ydb.StatusIds.StatusCode\x12\'\n\x06issues\x18\x02 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessage\x12\'\n\x08snapshot\x18\x04 \x01(\x0b\x32\x15.Ydb.VirtualTimestamp\x12*\n\x06result\x18\x03 \x01(\x0b\x32\x1a.Ydb.Table.ReadTableResult\"5\n\x0fReadTableResult\x12\"\n\nresult_set\x18\x01 \x01(\x0b\x32\x0e.Ydb.ResultSet\"c\n\x0fReadRowsRequest\x12\x12\n\nsession_id\x18\x01 \x01(\t\x12\x0c\n\x04path\x18\x02 \x01(\t\x12\x1d\n\x04keys\x18\x03 \x01(\x0b\x32\x0f.Ydb.TypedValue\x12\x0f\n\x07\x63olumns\x18\x04 \x03(\t\"\x8a\x01\n\x10ReadRowsResponse\x12)\n\x06status\x18\x01 \x01(\x0e\x32\x19.Ydb.StatusIds.StatusCode\x12\'\n\x06issues\x18\x02 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessage\x12\"\n\nresult_set\x18\x03 \x01(\x0b\x32\x0e.Ydb.ResultSet\"\x8d\x02\n\x11\x42ulkUpsertRequest\x12\r\n\x05table\x18\x01 \x01(\t\x12\x1d\n\x04rows\x18\x02 \x01(\x0b\x32\x0f.Ydb.TypedValue\x12\x39\n\x10operation_params\x18\x03 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12?\n\x14\x61rrow_batch_settings\x18\x07 \x01(\x0b\x32\x1f.Ydb.Formats.ArrowBatchSettingsH\x00\x12\x30\n\x0c\x63sv_settings\x18\x08 \x01(\x0b\x32\x18.Ydb.Formats.CsvSettingsH\x00\x12\r\n\x04\x64\x61ta\x18\xe8\x07 \x01(\x0c\x42\r\n\x0b\x64\x61ta_format\"B\n\x12\x42ulkUpsertResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\x12\n\x10\x42ulkUpsertResult\"\xbd\x03\n\x17\x45xecuteScanQueryRequest\x12\x1f\n\x05query\x18\x03 \x01(\x0b\x32\x10.Ydb.Table.Query\x12L\n\nparameters\x18\x04 \x03(\x0b\x32\x32.Ydb.Table.ExecuteScanQueryRequest.ParametersEntryB\x04\xb8\xe6*\x01\x12\x35\n\x04mode\x18\x06 \x01(\x0e\x32\'.Ydb.Table.ExecuteScanQueryRequest.Mode\x12;\n\rcollect_stats\x18\x08 \x01(\x0e\x32$.Ydb.Table.QueryStatsCollection.Mode\x12$\n\x18\x63ollect_full_diagnostics\x18\t \x01(\x08\x42\x02\x18\x01\x1a\x42\n\x0fParametersEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\x1e\n\x05value\x18\x02 \x01(\x0b\x32\x0f.Ydb.TypedValue:\x02\x38\x01\"=\n\x04Mode\x12\x14\n\x10MODE_UNSPECIFIED\x10\x00\x12\x10\n\x0cMODE_EXPLAIN\x10\x01\x12\r\n\tMODE_EXEC\x10\x03J\x04\x08\x01\x10\x02J\x04\x08\x02\x10\x03J\x04\x08\x05\x10\x06J\x04\x08\x07\x10\x08\"\xaf\x01\n\x1f\x45xecuteScanQueryPartialResponse\x12)\n\x06status\x18\x01 \x01(\x0e\x32\x19.Ydb.StatusIds.StatusCode\x12\'\n\x06issues\x18\x02 \x03(\x0b\x32\x17.Ydb.Issue.IssueMessage\x12\x38\n\x06result\x18\x03 \x01(\x0b\x32(.Ydb.Table.ExecuteScanQueryPartialResult\"\xd9\x01\n\x1d\x45xecuteScanQueryPartialResult\x12\"\n\nresult_set\x18\x01 \x01(\x0b\x32\x0e.Ydb.ResultSet\x12/\n\x0bquery_stats\x18\x06 \x01(\x0b\x32\x1a.Ydb.TableStats.QueryStats\x12\"\n\x16query_full_diagnostics\x18\x07 \x01(\tB\x02\x18\x01\x12\'\n\x08snapshot\x18\x08 \x01(\x0b\x32\x15.Ydb.VirtualTimestampJ\x04\x08\x02\x10\x03J\x04\x08\x03\x10\x04J\x04\x08\x04\x10\x05J\x04\x08\x05\x10\x06\"l\n!DescribeExternalDataSourceRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x0c\n\x04path\x18\x02 \x01(\t\"R\n\"DescribeExternalDataSourceResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\x95\x02\n DescribeExternalDataSourceResult\x12\x1f\n\x04self\x18\x01 \x01(\x0b\x32\x11.Ydb.Scheme.Entry\x12\x18\n\x0bsource_type\x18\x02 \x01(\tH\x00\x88\x01\x01\x12\x15\n\x08location\x18\x03 \x01(\tH\x01\x88\x01\x01\x12O\n\nproperties\x18\x04 \x03(\x0b\x32;.Ydb.Table.DescribeExternalDataSourceResult.PropertiesEntry\x1a\x31\n\x0fPropertiesEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\x42\x0e\n\x0c_source_typeB\x0b\n\t_location\"g\n\x1c\x44\x65scribeExternalTableRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x0c\n\x04path\x18\x02 \x01(\t\"M\n\x1d\x44\x65scribeExternalTableResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\xde\x02\n\x1b\x44\x65scribeExternalTableResult\x12\x1f\n\x04self\x18\x01 \x01(\x0b\x32\x11.Ydb.Scheme.Entry\x12\x18\n\x0bsource_type\x18\x02 \x01(\tH\x00\x88\x01\x01\x12\x1d\n\x10\x64\x61ta_source_path\x18\x03 \x01(\tH\x01\x88\x01\x01\x12\x15\n\x08location\x18\x04 \x01(\tH\x02\x88\x01\x01\x12&\n\x07\x63olumns\x18\x05 \x03(\x0b\x32\x15.Ydb.Table.ColumnMeta\x12\x44\n\x07\x63ontent\x18\x06 \x03(\x0b\x32\x33.Ydb.Table.DescribeExternalTableResult.ContentEntry\x1a.\n\x0c\x43ontentEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\x42\x0e\n\x0c_source_typeB\x13\n\x11_data_source_pathB\x0b\n\t_location\"d\n\x19\x44\x65scribeSystemViewRequest\x12\x39\n\x10operation_params\x18\x01 \x01(\x0b\x32\x1f.Ydb.Operations.OperationParams\x12\x0c\n\x04path\x18\x02 \x01(\t\"J\n\x1a\x44\x65scribeSystemViewResponse\x12,\n\toperation\x18\x01 \x01(\x0b\x32\x19.Ydb.Operations.Operation\"\xa0\x02\n\x18\x44\x65scribeSystemViewResult\x12\x1f\n\x04self\x18\x01 \x01(\x0b\x32\x11.Ydb.Scheme.Entry\x12\x13\n\x0bsys_view_id\x18\x02 \x01(\x04\x12\x15\n\rsys_view_name\x18\x03 \x01(\t\x12&\n\x07\x63olumns\x18\x04 \x03(\x0b\x32\x15.Ydb.Table.ColumnMeta\x12\x13\n\x0bprimary_key\x18\x05 \x03(\t\x12G\n\nattributes\x18\x06 \x03(\x0b\x32\x33.Ydb.Table.DescribeSystemViewResult.AttributesEntry\x1a\x31\n\x0f\x41ttributesEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01*R\n\tStoreType\x12\x1a\n\x16STORE_TYPE_UNSPECIFIED\x10\x00\x12\x12\n\x0eSTORE_TYPE_ROW\x10\x01\x12\x15\n\x11STORE_TYPE_COLUMN\x10\x02\x42S\n\x14tech.ydb.proto.tableZ8github.com/ydb-platform/ydb-go-genproto/protos/Ydb_Table\xf8\x01\x01\x62\x06proto3'
   ,
-  dependencies=[protos_dot_annotations_dot_validation__pb2.DESCRIPTOR,protos_dot_ydb__common__pb2.DESCRIPTOR,protos_dot_ydb__issue__message__pb2.DESCRIPTOR,protos_dot_ydb__operation__pb2.DESCRIPTOR,protos_dot_ydb__query__stats__pb2.DESCRIPTOR,protos_dot_ydb__value__pb2.DESCRIPTOR,protos_dot_ydb__scheme__pb2.DESCRIPTOR,protos_dot_ydb__status__codes__pb2.DESCRIPTOR,protos_dot_ydb__topic__pb2.DESCRIPTOR,protos_dot_ydb__formats__pb2.DESCRIPTOR,google_dot_protobuf_dot_empty__pb2.DESCRIPTOR,google_dot_protobuf_dot_duration__pb2.DESCRIPTOR,google_dot_protobuf_dot_timestamp__pb2.DESCRIPTOR,])
+  dependencies=[protos_dot_annotations_dot_sensitive__pb2.DESCRIPTOR,protos_dot_annotations_dot_validation__pb2.DESCRIPTOR,protos_dot_ydb__common__pb2.DESCRIPTOR,protos_dot_ydb__issue__message__pb2.DESCRIPTOR,protos_dot_ydb__operation__pb2.DESCRIPTOR,protos_dot_ydb__query__stats__pb2.DESCRIPTOR,protos_dot_ydb__value__pb2.DESCRIPTOR,protos_dot_ydb__scheme__pb2.DESCRIPTOR,protos_dot_ydb__status__codes__pb2.DESCRIPTOR,protos_dot_ydb__topic__pb2.DESCRIPTOR,protos_dot_ydb__formats__pb2.DESCRIPTOR,google_dot_protobuf_dot_empty__pb2.DESCRIPTOR,google_dot_protobuf_dot_duration__pb2.DESCRIPTOR,google_dot_protobuf_dot_timestamp__pb2.DESCRIPTOR,])
 
 _STORETYPE = _descriptor.EnumDescriptor(
   name='StoreType',
@@ -63,8 +64,8 @@ _STORETYPE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=22246,
-  serialized_end=22328,
+  serialized_start=22417,
+  serialized_end=22499,
 )
 _sym_db.RegisterEnumDescriptor(_STORETYPE)
 
@@ -99,8 +100,8 @@ _TABLEINDEXDESCRIPTION_STATUS = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=1420,
-  serialized_end=1491,
+  serialized_start=1456,
+  serialized_end=1527,
 )
 _sym_db.RegisterEnumDescriptor(_TABLEINDEXDESCRIPTION_STATUS)
 
@@ -159,8 +160,8 @@ _INDEXBUILDSTATE_STATE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=1522,
-  serialized_end=1723,
+  serialized_start=1558,
+  serialized_end=1759,
 )
 _sym_db.RegisterEnumDescriptor(_INDEXBUILDSTATE_STATE)
 
@@ -204,8 +205,8 @@ _CHANGEFEEDMODE_MODE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=1967,
-  serialized_end=2102,
+  serialized_start=2003,
+  serialized_end=2138,
 )
 _sym_db.RegisterEnumDescriptor(_CHANGEFEEDMODE_MODE)
 
@@ -239,8 +240,8 @@ _CHANGEFEEDFORMAT_FORMAT = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=2125,
-  serialized_end=2234,
+  serialized_start=2161,
+  serialized_end=2270,
 )
 _sym_db.RegisterEnumDescriptor(_CHANGEFEEDFORMAT_FORMAT)
 
@@ -274,8 +275,8 @@ _CHANGEFEEDDESCRIPTION_STATE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=3394,
-  serialized_end=3487,
+  serialized_start=3430,
+  serialized_end=3523,
 )
 _sym_db.RegisterEnumDescriptor(_CHANGEFEEDDESCRIPTION_STATE)
 
@@ -304,8 +305,8 @@ _COLUMNFAMILYPOLICY_COMPRESSION = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=4050,
-  serialized_end=4126,
+  serialized_start=4086,
+  serialized_end=4162,
 )
 _sym_db.RegisterEnumDescriptor(_COLUMNFAMILYPOLICY_COMPRESSION)
 
@@ -339,8 +340,8 @@ _PARTITIONINGPOLICY_AUTOPARTITIONINGPOLICY = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=4768,
-  serialized_end=4886,
+  serialized_start=4804,
+  serialized_end=4922,
 )
 _sym_db.RegisterEnumDescriptor(_PARTITIONINGPOLICY_AUTOPARTITIONINGPOLICY)
 
@@ -379,8 +380,8 @@ _VALUESINCEUNIXEPOCHMODESETTINGS_UNIT = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=6414,
-  serialized_end=6528,
+  serialized_start=6450,
+  serialized_end=6564,
 )
 _sym_db.RegisterEnumDescriptor(_VALUESINCEUNIXEPOCHMODESETTINGS_UNIT)
 
@@ -409,8 +410,8 @@ _COLUMNFAMILY_COMPRESSION = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=7126,
-  serialized_end=7211,
+  serialized_start=7162,
+  serialized_end=7247,
 )
 _sym_db.RegisterEnumDescriptor(_COLUMNFAMILY_COMPRESSION)
 
@@ -449,8 +450,8 @@ _QUERYSTATSCOLLECTION_MODE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=13154,
-  serialized_end=13306,
+  serialized_start=13313,
+  serialized_end=13465,
 )
 _sym_db.RegisterEnumDescriptor(_QUERYSTATSCOLLECTION_MODE)
 
@@ -479,8 +480,8 @@ _KEEPALIVERESULT_SESSIONSTATUS = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=15384,
-  serialized_end=15482,
+  serialized_start=15549,
+  serialized_end=15647,
 )
 _sym_db.RegisterEnumDescriptor(_KEEPALIVERESULT_SESSIONSTATUS)
 
@@ -509,8 +510,8 @@ _EXECUTESCANQUERYREQUEST_MODE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=20281,
-  serialized_end=20342,
+  serialized_start=20452,
+  serialized_end=20513,
 )
 _sym_db.RegisterEnumDescriptor(_EXECUTESCANQUERYREQUEST_MODE)
 
@@ -542,8 +543,8 @@ _CREATESESSIONREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=413,
-  serialized_end=494,
+  serialized_start=449,
+  serialized_end=530,
 )
 
 
@@ -574,8 +575,8 @@ _CREATESESSIONRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=496,
-  serialized_end=565,
+  serialized_start=532,
+  serialized_end=601,
 )
 
 
@@ -606,8 +607,8 @@ _CREATESESSIONRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=567,
-  serialized_end=608,
+  serialized_start=603,
+  serialized_end=644,
 )
 
 
@@ -645,8 +646,8 @@ _DELETESESSIONREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=610,
-  serialized_end=711,
+  serialized_start=646,
+  serialized_end=747,
 )
 
 
@@ -677,8 +678,8 @@ _DELETESESSIONRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=713,
-  serialized_end=782,
+  serialized_start=749,
+  serialized_end=818,
 )
 
 
@@ -702,8 +703,8 @@ _GLOBALINDEX = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=784,
-  serialized_end=797,
+  serialized_start=820,
+  serialized_end=833,
 )
 
 
@@ -727,8 +728,8 @@ _GLOBALASYNCINDEX = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=799,
-  serialized_end=817,
+  serialized_start=835,
+  serialized_end=853,
 )
 
 
@@ -752,8 +753,8 @@ _GLOBALUNIQUEINDEX = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=819,
-  serialized_end=838,
+  serialized_start=855,
+  serialized_end=874,
 )
 
 
@@ -824,8 +825,8 @@ _TABLEINDEX = _descriptor.Descriptor(
       create_key=_descriptor._internal_create_key,
     fields=[]),
   ],
-  serialized_start=841,
-  serialized_end=1088,
+  serialized_start=877,
+  serialized_end=1124,
 )
 
 
@@ -911,8 +912,8 @@ _TABLEINDEXDESCRIPTION = _descriptor.Descriptor(
       create_key=_descriptor._internal_create_key,
     fields=[]),
   ],
-  serialized_start=1091,
-  serialized_end=1499,
+  serialized_start=1127,
+  serialized_end=1535,
 )
 
 
@@ -937,8 +938,8 @@ _INDEXBUILDSTATE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1502,
-  serialized_end=1723,
+  serialized_start=1538,
+  serialized_end=1759,
 )
 
 
@@ -976,8 +977,8 @@ _INDEXBUILDDESCRIPTION = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1725,
-  serialized_end=1800,
+  serialized_start=1761,
+  serialized_end=1836,
 )
 
 
@@ -1022,8 +1023,8 @@ _INDEXBUILDMETADATA = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1803,
-  serialized_end=1945,
+  serialized_start=1839,
+  serialized_end=1981,
 )
 
 
@@ -1048,8 +1049,8 @@ _CHANGEFEEDMODE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1948,
-  serialized_end=2102,
+  serialized_start=1984,
+  serialized_end=2138,
 )
 
 
@@ -1074,8 +1075,8 @@ _CHANGEFEEDFORMAT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2105,
-  serialized_end=2234,
+  serialized_start=2141,
+  serialized_end=2270,
 )
 
 
@@ -1113,8 +1114,8 @@ _CHANGEFEED_ATTRIBUTESENTRY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2738,
-  serialized_end=2787,
+  serialized_start=2774,
+  serialized_end=2823,
 )
 
 _CHANGEFEED = _descriptor.Descriptor(
@@ -1214,8 +1215,8 @@ _CHANGEFEED = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2237,
-  serialized_end=2787,
+  serialized_start=2273,
+  serialized_end=2823,
 )
 
 
@@ -1253,8 +1254,8 @@ _CHANGEFEEDDESCRIPTION_INITIALSCANPROGRESS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3274,
-  serialized_end=3341,
+  serialized_start=3310,
+  serialized_end=3377,
 )
 
 _CHANGEFEEDDESCRIPTION_ATTRIBUTESENTRY = _descriptor.Descriptor(
@@ -1291,8 +1292,8 @@ _CHANGEFEEDDESCRIPTION_ATTRIBUTESENTRY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2738,
-  serialized_end=2787,
+  serialized_start=2774,
+  serialized_end=2823,
 )
 
 _CHANGEFEEDDESCRIPTION = _descriptor.Descriptor(
@@ -1386,8 +1387,8 @@ _CHANGEFEEDDESCRIPTION = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2790,
-  serialized_end=3487,
+  serialized_start=2826,
+  serialized_end=3523,
 )
 
 
@@ -1418,8 +1419,8 @@ _STORAGEPOOL = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3489,
-  serialized_end=3517,
+  serialized_start=3525,
+  serialized_end=3553,
 )
 
 
@@ -1492,8 +1493,8 @@ _STORAGEPOLICY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3520,
-  serialized_end=3818,
+  serialized_start=3556,
+  serialized_end=3854,
 )
 
 
@@ -1553,8 +1554,8 @@ _COLUMNFAMILYPOLICY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3821,
-  serialized_end=4126,
+  serialized_start=3857,
+  serialized_end=4162,
 )
 
 
@@ -1585,8 +1586,8 @@ _COMPACTIONPOLICY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=4128,
-  serialized_end=4167,
+  serialized_start=4164,
+  serialized_end=4203,
 )
 
 
@@ -1617,8 +1618,8 @@ _EXPLICITPARTITIONS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=4169,
-  serialized_end=4228,
+  serialized_start=4205,
+  serialized_end=4264,
 )
 
 
@@ -1663,8 +1664,8 @@ _PARTITIONSTATS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=4230,
-  serialized_end=4313,
+  serialized_start=4266,
+  serialized_end=4349,
 )
 
 
@@ -1730,8 +1731,8 @@ _TABLESTATS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=4316,
-  serialized_end=4549,
+  serialized_start=4352,
+  serialized_end=4585,
 )
 
 
@@ -1789,8 +1790,8 @@ _PARTITIONINGPOLICY = _descriptor.Descriptor(
       create_key=_descriptor._internal_create_key,
     fields=[]),
   ],
-  serialized_start=4552,
-  serialized_end=4900,
+  serialized_start=4588,
+  serialized_end=4936,
 )
 
 
@@ -1821,8 +1822,8 @@ _EXECUTIONPOLICY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=4902,
-  serialized_end=4940,
+  serialized_start=4938,
+  serialized_end=4976,
 )
 
 
@@ -1874,8 +1875,8 @@ _REPLICATIONPOLICY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=4943,
-  serialized_end=5120,
+  serialized_start=4979,
+  serialized_end=5156,
 )
 
 
@@ -1906,8 +1907,8 @@ _CACHINGPOLICY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=5122,
-  serialized_end=5158,
+  serialized_start=5158,
+  serialized_end=5194,
 )
 
 
@@ -1980,8 +1981,8 @@ _TABLEPROFILE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=5161,
-  serialized_end=5524,
+  serialized_start=5197,
+  serialized_end=5560,
 )
 
 
@@ -2029,8 +2030,8 @@ _SEQUENCEDESCRIPTION_SETVAL = _descriptor.Descriptor(
       create_key=_descriptor._internal_create_key,
     fields=[]),
   ],
-  serialized_start=5768,
-  serialized_end=5854,
+  serialized_start=5804,
+  serialized_end=5890,
 )
 
 _SEQUENCEDESCRIPTION = _descriptor.Descriptor(
@@ -2149,8 +2150,8 @@ _SEQUENCEDESCRIPTION = _descriptor.Descriptor(
       create_key=_descriptor._internal_create_key,
     fields=[]),
   ],
-  serialized_start=5527,
-  serialized_end=5953,
+  serialized_start=5563,
+  serialized_end=5989,
 )
 
 
@@ -2226,8 +2227,8 @@ _COLUMNMETA = _descriptor.Descriptor(
       create_key=_descriptor._internal_create_key,
     fields=[]),
   ],
-  serialized_start=5956,
-  serialized_end=6174,
+  serialized_start=5992,
+  serialized_end=6210,
 )
 
 
@@ -2265,8 +2266,8 @@ _DATETYPECOLUMNMODESETTINGS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=6176,
-  serialized_end=6255,
+  serialized_start=6212,
+  serialized_end=6291,
 )
 
 
@@ -2312,8 +2313,8 @@ _VALUESINCEUNIXEPOCHMODESETTINGS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=6258,
-  serialized_end=6528,
+  serialized_start=6294,
+  serialized_end=6564,
 )
 
 
@@ -2363,8 +2364,8 @@ _TTLSETTINGS = _descriptor.Descriptor(
       create_key=_descriptor._internal_create_key,
     fields=[]),
   ],
-  serialized_start=6531,
-  serialized_end=6727,
+  serialized_start=6567,
+  serialized_end=6763,
 )
 
 
@@ -2416,8 +2417,8 @@ _STORAGESETTINGS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=6730,
-  serialized_end=6948,
+  serialized_start=6766,
+  serialized_end=6984,
 )
 
 
@@ -2470,8 +2471,8 @@ _COLUMNFAMILY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=6951,
-  serialized_end=7211,
+  serialized_start=6987,
+  serialized_end=7247,
 )
 
 
@@ -2537,8 +2538,8 @@ _PARTITIONINGSETTINGS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=7214,
-  serialized_end=7461,
+  serialized_start=7250,
+  serialized_end=7497,
 )
 
 
@@ -2576,8 +2577,8 @@ _AZREADREPLICASSETTINGS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=7463,
-  serialized_end=7530,
+  serialized_start=7499,
+  serialized_end=7566,
 )
 
 
@@ -2608,8 +2609,8 @@ _CLUSTERREPLICASSETTINGS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=7532,
-  serialized_end=7627,
+  serialized_start=7568,
+  serialized_end=7663,
 )
 
 
@@ -2652,8 +2653,8 @@ _READREPLICASSETTINGS = _descriptor.Descriptor(
       create_key=_descriptor._internal_create_key,
     fields=[]),
   ],
-  serialized_start=7629,
-  serialized_end=7745,
+  serialized_start=7665,
+  serialized_end=7781,
 )
 
 
@@ -2691,8 +2692,8 @@ _CREATETABLEREQUEST_ATTRIBUTESENTRY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2738,
-  serialized_end=2787,
+  serialized_start=2774,
+  serialized_end=2823,
 )
 
 _CREATETABLEREQUEST = _descriptor.Descriptor(
@@ -2860,8 +2861,8 @@ _CREATETABLEREQUEST = _descriptor.Descriptor(
       create_key=_descriptor._internal_create_key,
     fields=[]),
   ],
-  serialized_start=7748,
-  serialized_end=8686,
+  serialized_start=7784,
+  serialized_end=8722,
 )
 
 
@@ -2892,8 +2893,8 @@ _CREATETABLERESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=8688,
-  serialized_end=8755,
+  serialized_start=8724,
+  serialized_end=8791,
 )
 
 
@@ -2938,8 +2939,8 @@ _DROPTABLEREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=8757,
-  serialized_end=8874,
+  serialized_start=8793,
+  serialized_end=8910,
 )
 
 
@@ -2970,8 +2971,8 @@ _DROPTABLERESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=8876,
-  serialized_end=8941,
+  serialized_start=8912,
+  serialized_end=8977,
 )
 
 
@@ -3016,8 +3017,8 @@ _RENAMEINDEXITEM = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=8943,
-  serialized_end=9036,
+  serialized_start=8979,
+  serialized_end=9072,
 )
 
 
@@ -3055,8 +3056,8 @@ _ALTERTABLEREQUEST_ALTERATTRIBUTESENTRY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=10126,
-  serialized_end=10180,
+  serialized_start=10162,
+  serialized_end=10216,
 )
 
 _ALTERTABLEREQUEST = _descriptor.Descriptor(
@@ -3250,8 +3251,8 @@ _ALTERTABLEREQUEST = _descriptor.Descriptor(
       create_key=_descriptor._internal_create_key,
     fields=[]),
   ],
-  serialized_start=9039,
-  serialized_end=10212,
+  serialized_start=9075,
+  serialized_end=10248,
 )
 
 
@@ -3282,8 +3283,8 @@ _ALTERTABLERESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=10214,
-  serialized_end=10280,
+  serialized_start=10250,
+  serialized_end=10316,
 )
 
 
@@ -3335,8 +3336,8 @@ _COPYTABLEREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=10283,
-  serialized_end=10427,
+  serialized_start=10319,
+  serialized_end=10463,
 )
 
 
@@ -3367,8 +3368,8 @@ _COPYTABLERESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=10429,
-  serialized_end=10494,
+  serialized_start=10465,
+  serialized_end=10530,
 )
 
 
@@ -3413,8 +3414,8 @@ _COPYTABLEITEM = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=10496,
-  serialized_end=10580,
+  serialized_start=10532,
+  serialized_end=10616,
 )
 
 
@@ -3459,8 +3460,8 @@ _COPYTABLESREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=10583,
-  serialized_end=10723,
+  serialized_start=10619,
+  serialized_end=10759,
 )
 
 
@@ -3491,8 +3492,8 @@ _COPYTABLESRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=10725,
-  serialized_end=10791,
+  serialized_start=10761,
+  serialized_end=10827,
 )
 
 
@@ -3537,8 +3538,8 @@ _RENAMETABLEITEM = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=10793,
-  serialized_end=10886,
+  serialized_start=10829,
+  serialized_end=10922,
 )
 
 
@@ -3583,8 +3584,8 @@ _RENAMETABLESREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=10889,
-  serialized_end=11033,
+  serialized_start=10925,
+  serialized_end=11069,
 )
 
 
@@ -3615,8 +3616,8 @@ _RENAMETABLESRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=11035,
-  serialized_end=11103,
+  serialized_start=11071,
+  serialized_end=11139,
 )
 
 
@@ -3696,8 +3697,8 @@ _DESCRIBETABLEREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=11106,
-  serialized_end=11376,
+  serialized_start=11142,
+  serialized_end=11412,
 )
 
 
@@ -3728,8 +3729,8 @@ _DESCRIBETABLERESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=11378,
-  serialized_end=11447,
+  serialized_start=11414,
+  serialized_end=11483,
 )
 
 
@@ -3767,8 +3768,8 @@ _DESCRIBETABLERESULT_ATTRIBUTESENTRY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2738,
-  serialized_end=2787,
+  serialized_start=2774,
+  serialized_end=2823,
 )
 
 _DESCRIBETABLERESULT = _descriptor.Descriptor(
@@ -3910,8 +3911,8 @@ _DESCRIBETABLERESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=11450,
-  serialized_end=12291,
+  serialized_start=11486,
+  serialized_end=12327,
 )
 
 
@@ -3954,8 +3955,8 @@ _QUERY = _descriptor.Descriptor(
       create_key=_descriptor._internal_create_key,
     fields=[]),
   ],
-  serialized_start=12293,
-  serialized_end=12343,
+  serialized_start=12329,
+  serialized_end=12379,
 )
 
 
@@ -3979,8 +3980,8 @@ _SERIALIZABLEMODESETTINGS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=12345,
-  serialized_end=12371,
+  serialized_start=12381,
+  serialized_end=12407,
 )
 
 
@@ -4011,8 +4012,8 @@ _ONLINEMODESETTINGS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=12373,
-  serialized_end=12427,
+  serialized_start=12409,
+  serialized_end=12463,
 )
 
 
@@ -4036,8 +4037,8 @@ _STALEMODESETTINGS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=12429,
-  serialized_end=12448,
+  serialized_start=12465,
+  serialized_end=12484,
 )
 
 
@@ -4061,8 +4062,8 @@ _SNAPSHOTMODESETTINGS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=12450,
-  serialized_end=12472,
+  serialized_start=12486,
+  serialized_end=12508,
 )
 
 
@@ -4086,8 +4087,8 @@ _SNAPSHOTRWMODESETTINGS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=12474,
-  serialized_end=12498,
+  serialized_start=12510,
+  serialized_end=12534,
 )
 
 
@@ -4111,8 +4112,33 @@ _READCOMMITTEDRWMODESETTINGS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=12500,
-  serialized_end=12529,
+  serialized_start=12536,
+  serialized_end=12565,
+)
+
+
+_STRICTSERIALIZABLERWMODESETTINGS = _descriptor.Descriptor(
+  name='StrictSerializableRWModeSettings',
+  full_name='Ydb.Table.StrictSerializableRWModeSettings',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=12567,
+  serialized_end=12601,
 )
 
 
@@ -4166,6 +4192,13 @@ _TRANSACTIONSETTINGS = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='strict_serializable_read_write', full_name='Ydb.Table.TransactionSettings.strict_serializable_read_write', index=6,
+      number=7, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
   ],
   extensions=[
   ],
@@ -4183,8 +4216,8 @@ _TRANSACTIONSETTINGS = _descriptor.Descriptor(
       create_key=_descriptor._internal_create_key,
     fields=[]),
   ],
-  serialized_start=12532,
-  serialized_end=12958,
+  serialized_start=12604,
+  serialized_end=13117,
 )
 
 
@@ -4234,8 +4267,8 @@ _TRANSACTIONCONTROL = _descriptor.Descriptor(
       create_key=_descriptor._internal_create_key,
     fields=[]),
   ],
-  serialized_start=12960,
-  serialized_end=13083,
+  serialized_start=13119,
+  serialized_end=13242,
 )
 
 
@@ -4266,8 +4299,8 @@ _QUERYCACHEPOLICY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=13085,
-  serialized_end=13126,
+  serialized_start=13244,
+  serialized_end=13285,
 )
 
 
@@ -4292,8 +4325,8 @@ _QUERYSTATSCOLLECTION = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=13129,
-  serialized_end=13306,
+  serialized_start=13288,
+  serialized_end=13465,
 )
 
 
@@ -4331,8 +4364,8 @@ _EXECUTEDATAQUERYREQUEST_PARAMETERSENTRY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=13689,
-  serialized_end=13755,
+  serialized_start=13854,
+  serialized_end=13920,
 )
 
 _EXECUTEDATAQUERYREQUEST = _descriptor.Descriptor(
@@ -4370,7 +4403,7 @@ _EXECUTEDATAQUERYREQUEST = _descriptor.Descriptor(
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+      serialized_options=b'\270\346*\001', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
       name='query_cache_policy', full_name='Ydb.Table.ExecuteDataQueryRequest.query_cache_policy', index=4,
       number=5, type=11, cpp_type=10, label=1,
@@ -4404,8 +4437,8 @@ _EXECUTEDATAQUERYREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=13309,
-  serialized_end=13755,
+  serialized_start=13468,
+  serialized_end=13920,
 )
 
 
@@ -4436,8 +4469,8 @@ _EXECUTEDATAQUERYRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=13757,
-  serialized_end=13829,
+  serialized_start=13922,
+  serialized_end=13994,
 )
 
 
@@ -4482,8 +4515,8 @@ _EXECUTESCHEMEQUERYREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=13831,
-  serialized_end=13955,
+  serialized_start=13996,
+  serialized_end=14120,
 )
 
 
@@ -4514,8 +4547,8 @@ _EXECUTESCHEMEQUERYRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=13957,
-  serialized_end=14031,
+  serialized_start=14122,
+  serialized_end=14196,
 )
 
 
@@ -4546,8 +4579,8 @@ _TRANSACTIONMETA = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=14033,
-  serialized_end=14062,
+  serialized_start=14198,
+  serialized_end=14227,
 )
 
 
@@ -4585,8 +4618,8 @@ _QUERYMETA_PARAMETERSTYPESENTRY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=14159,
-  serialized_end=14224,
+  serialized_start=14324,
+  serialized_end=14389,
 )
 
 _QUERYMETA = _descriptor.Descriptor(
@@ -4623,8 +4656,8 @@ _QUERYMETA = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=14065,
-  serialized_end=14224,
+  serialized_start=14230,
+  serialized_end=14389,
 )
 
 
@@ -4676,8 +4709,8 @@ _EXECUTEQUERYRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=14227,
-  serialized_end=14420,
+  serialized_start=14392,
+  serialized_end=14585,
 )
 
 
@@ -4729,8 +4762,8 @@ _EXPLAINDATAQUERYREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=14423,
-  serialized_end=14579,
+  serialized_start=14588,
+  serialized_end=14744,
 )
 
 
@@ -4761,8 +4794,8 @@ _EXPLAINDATAQUERYRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=14581,
-  serialized_end=14653,
+  serialized_start=14746,
+  serialized_end=14818,
 )
 
 
@@ -4807,8 +4840,8 @@ _EXPLAINQUERYRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=14655,
-  serialized_end=14746,
+  serialized_start=14820,
+  serialized_end=14911,
 )
 
 
@@ -4853,8 +4886,8 @@ _PREPAREDATAQUERYREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=14748,
-  serialized_end=14870,
+  serialized_start=14913,
+  serialized_end=15035,
 )
 
 
@@ -4885,8 +4918,8 @@ _PREPAREDATAQUERYRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=14872,
-  serialized_end=14944,
+  serialized_start=15037,
+  serialized_end=15109,
 )
 
 
@@ -4924,8 +4957,8 @@ _PREPAREQUERYRESULT_PARAMETERSTYPESENTRY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=14159,
-  serialized_end=14224,
+  serialized_start=14324,
+  serialized_end=14389,
 )
 
 _PREPAREQUERYRESULT = _descriptor.Descriptor(
@@ -4962,8 +4995,8 @@ _PREPAREQUERYRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=14947,
-  serialized_end=15130,
+  serialized_start=15112,
+  serialized_end=15295,
 )
 
 
@@ -5001,8 +5034,8 @@ _KEEPALIVEREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=15132,
-  serialized_end=15229,
+  serialized_start=15297,
+  serialized_end=15394,
 )
 
 
@@ -5033,8 +5066,8 @@ _KEEPALIVERESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=15231,
-  serialized_end=15296,
+  serialized_start=15396,
+  serialized_end=15461,
 )
 
 
@@ -5066,8 +5099,8 @@ _KEEPALIVERESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=15299,
-  serialized_end=15482,
+  serialized_start=15464,
+  serialized_end=15647,
 )
 
 
@@ -5112,8 +5145,8 @@ _BEGINTRANSACTIONREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=15485,
-  serialized_end=15642,
+  serialized_start=15650,
+  serialized_end=15807,
 )
 
 
@@ -5144,8 +5177,8 @@ _BEGINTRANSACTIONRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=15644,
-  serialized_end=15716,
+  serialized_start=15809,
+  serialized_end=15881,
 )
 
 
@@ -5176,8 +5209,8 @@ _BEGINTRANSACTIONRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=15718,
-  serialized_end=15787,
+  serialized_start=15883,
+  serialized_end=15952,
 )
 
 
@@ -5229,8 +5262,8 @@ _COMMITTRANSACTIONREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=15790,
-  serialized_end=15971,
+  serialized_start=15955,
+  serialized_end=16136,
 )
 
 
@@ -5261,8 +5294,8 @@ _COMMITTRANSACTIONRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=15973,
-  serialized_end=16046,
+  serialized_start=16138,
+  serialized_end=16211,
 )
 
 
@@ -5293,8 +5326,8 @@ _COMMITTRANSACTIONRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=16048,
-  serialized_end=16122,
+  serialized_start=16213,
+  serialized_end=16287,
 )
 
 
@@ -5339,8 +5372,8 @@ _ROLLBACKTRANSACTIONREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=16124,
-  serialized_end=16246,
+  serialized_start=16289,
+  serialized_end=16411,
 )
 
 
@@ -5371,8 +5404,8 @@ _ROLLBACKTRANSACTIONRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=16248,
-  serialized_end=16323,
+  serialized_start=16413,
+  serialized_end=16488,
 )
 
 
@@ -5410,8 +5443,8 @@ _STORAGEPOLICYDESCRIPTION_LABELSENTRY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=16433,
-  serialized_end=16478,
+  serialized_start=16598,
+  serialized_end=16643,
 )
 
 _STORAGEPOLICYDESCRIPTION = _descriptor.Descriptor(
@@ -5448,8 +5481,8 @@ _STORAGEPOLICYDESCRIPTION = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=16326,
-  serialized_end=16478,
+  serialized_start=16491,
+  serialized_end=16643,
 )
 
 
@@ -5487,8 +5520,8 @@ _COMPACTIONPOLICYDESCRIPTION_LABELSENTRY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=16433,
-  serialized_end=16478,
+  serialized_start=16598,
+  serialized_end=16643,
 )
 
 _COMPACTIONPOLICYDESCRIPTION = _descriptor.Descriptor(
@@ -5525,8 +5558,8 @@ _COMPACTIONPOLICYDESCRIPTION = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=16481,
-  serialized_end=16639,
+  serialized_start=16646,
+  serialized_end=16804,
 )
 
 
@@ -5564,8 +5597,8 @@ _PARTITIONINGPOLICYDESCRIPTION_LABELSENTRY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=16433,
-  serialized_end=16478,
+  serialized_start=16598,
+  serialized_end=16643,
 )
 
 _PARTITIONINGPOLICYDESCRIPTION = _descriptor.Descriptor(
@@ -5602,8 +5635,8 @@ _PARTITIONINGPOLICYDESCRIPTION = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=16642,
-  serialized_end=16804,
+  serialized_start=16807,
+  serialized_end=16969,
 )
 
 
@@ -5641,8 +5674,8 @@ _EXECUTIONPOLICYDESCRIPTION_LABELSENTRY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=16433,
-  serialized_end=16478,
+  serialized_start=16598,
+  serialized_end=16643,
 )
 
 _EXECUTIONPOLICYDESCRIPTION = _descriptor.Descriptor(
@@ -5679,8 +5712,8 @@ _EXECUTIONPOLICYDESCRIPTION = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=16807,
-  serialized_end=16963,
+  serialized_start=16972,
+  serialized_end=17128,
 )
 
 
@@ -5718,8 +5751,8 @@ _REPLICATIONPOLICYDESCRIPTION_LABELSENTRY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=16433,
-  serialized_end=16478,
+  serialized_start=16598,
+  serialized_end=16643,
 )
 
 _REPLICATIONPOLICYDESCRIPTION = _descriptor.Descriptor(
@@ -5756,8 +5789,8 @@ _REPLICATIONPOLICYDESCRIPTION = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=16966,
-  serialized_end=17126,
+  serialized_start=17131,
+  serialized_end=17291,
 )
 
 
@@ -5795,8 +5828,8 @@ _CACHINGPOLICYDESCRIPTION_LABELSENTRY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=16433,
-  serialized_end=16478,
+  serialized_start=16598,
+  serialized_end=16643,
 )
 
 _CACHINGPOLICYDESCRIPTION = _descriptor.Descriptor(
@@ -5833,8 +5866,8 @@ _CACHINGPOLICYDESCRIPTION = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=17129,
-  serialized_end=17281,
+  serialized_start=17294,
+  serialized_end=17446,
 )
 
 
@@ -5872,8 +5905,8 @@ _TABLEPROFILEDESCRIPTION_LABELSENTRY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=16433,
-  serialized_end=16478,
+  serialized_start=16598,
+  serialized_end=16643,
 )
 
 _TABLEPROFILEDESCRIPTION = _descriptor.Descriptor(
@@ -5994,8 +6027,8 @@ _TABLEPROFILEDESCRIPTION = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=17284,
-  serialized_end=17858,
+  serialized_start=17449,
+  serialized_end=18023,
 )
 
 
@@ -6026,8 +6059,8 @@ _DESCRIBETABLEOPTIONSREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=17860,
-  serialized_end=17948,
+  serialized_start=18025,
+  serialized_end=18113,
 )
 
 
@@ -6058,8 +6091,8 @@ _DESCRIBETABLEOPTIONSRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=17950,
-  serialized_end=18026,
+  serialized_start=18115,
+  serialized_end=18191,
 )
 
 
@@ -6132,8 +6165,8 @@ _DESCRIBETABLEOPTIONSRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=18029,
-  serialized_end=18566,
+  serialized_start=18194,
+  serialized_end=18731,
 )
 
 
@@ -6195,8 +6228,8 @@ _KEYRANGE = _descriptor.Descriptor(
       create_key=_descriptor._internal_create_key,
     fields=[]),
   ],
-  serialized_start=18569,
-  serialized_end=18761,
+  serialized_start=18734,
+  serialized_end=18926,
 )
 
 
@@ -6290,8 +6323,8 @@ _READTABLEREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=18764,
-  serialized_end=19076,
+  serialized_start=18929,
+  serialized_end=19241,
 )
 
 
@@ -6343,8 +6376,8 @@ _READTABLERESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=19079,
-  serialized_end=19267,
+  serialized_start=19244,
+  serialized_end=19432,
 )
 
 
@@ -6375,8 +6408,8 @@ _READTABLERESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=19269,
-  serialized_end=19322,
+  serialized_start=19434,
+  serialized_end=19487,
 )
 
 
@@ -6428,8 +6461,8 @@ _READROWSREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=19324,
-  serialized_end=19423,
+  serialized_start=19489,
+  serialized_end=19588,
 )
 
 
@@ -6474,8 +6507,8 @@ _READROWSRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=19426,
-  serialized_end=19564,
+  serialized_start=19591,
+  serialized_end=19729,
 )
 
 
@@ -6546,8 +6579,8 @@ _BULKUPSERTREQUEST = _descriptor.Descriptor(
       create_key=_descriptor._internal_create_key,
     fields=[]),
   ],
-  serialized_start=19567,
-  serialized_end=19836,
+  serialized_start=19732,
+  serialized_end=20001,
 )
 
 
@@ -6578,8 +6611,8 @@ _BULKUPSERTRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=19838,
-  serialized_end=19904,
+  serialized_start=20003,
+  serialized_end=20069,
 )
 
 
@@ -6603,8 +6636,8 @@ _BULKUPSERTRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=19906,
-  serialized_end=19924,
+  serialized_start=20071,
+  serialized_end=20089,
 )
 
 
@@ -6642,8 +6675,8 @@ _EXECUTESCANQUERYREQUEST_PARAMETERSENTRY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=13689,
-  serialized_end=13755,
+  serialized_start=13854,
+  serialized_end=13920,
 )
 
 _EXECUTESCANQUERYREQUEST = _descriptor.Descriptor(
@@ -6667,7 +6700,7 @@ _EXECUTESCANQUERYREQUEST = _descriptor.Descriptor(
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+      serialized_options=b'\270\346*\001', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
       name='mode', full_name='Ydb.Table.ExecuteScanQueryRequest.mode', index=2,
       number=6, type=14, cpp_type=8, label=1,
@@ -6702,8 +6735,8 @@ _EXECUTESCANQUERYREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=19927,
-  serialized_end=20366,
+  serialized_start=20092,
+  serialized_end=20537,
 )
 
 
@@ -6748,8 +6781,8 @@ _EXECUTESCANQUERYPARTIALRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=20369,
-  serialized_end=20544,
+  serialized_start=20540,
+  serialized_end=20715,
 )
 
 
@@ -6801,8 +6834,8 @@ _EXECUTESCANQUERYPARTIALRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=20547,
-  serialized_end=20764,
+  serialized_start=20718,
+  serialized_end=20935,
 )
 
 
@@ -6840,8 +6873,8 @@ _DESCRIBEEXTERNALDATASOURCEREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=20766,
-  serialized_end=20874,
+  serialized_start=20937,
+  serialized_end=21045,
 )
 
 
@@ -6872,8 +6905,8 @@ _DESCRIBEEXTERNALDATASOURCERESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=20876,
-  serialized_end=20958,
+  serialized_start=21047,
+  serialized_end=21129,
 )
 
 
@@ -6911,8 +6944,8 @@ _DESCRIBEEXTERNALDATASOURCERESULT_PROPERTIESENTRY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=21160,
-  serialized_end=21209,
+  serialized_start=21331,
+  serialized_end=21380,
 )
 
 _DESCRIBEEXTERNALDATASOURCERESULT = _descriptor.Descriptor(
@@ -6973,8 +7006,8 @@ _DESCRIBEEXTERNALDATASOURCERESULT = _descriptor.Descriptor(
       create_key=_descriptor._internal_create_key,
     fields=[]),
   ],
-  serialized_start=20961,
-  serialized_end=21238,
+  serialized_start=21132,
+  serialized_end=21409,
 )
 
 
@@ -7012,8 +7045,8 @@ _DESCRIBEEXTERNALTABLEREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=21240,
-  serialized_end=21343,
+  serialized_start=21411,
+  serialized_end=21514,
 )
 
 
@@ -7044,8 +7077,8 @@ _DESCRIBEEXTERNALTABLERESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=21345,
-  serialized_end=21422,
+  serialized_start=21516,
+  serialized_end=21593,
 )
 
 
@@ -7083,8 +7116,8 @@ _DESCRIBEEXTERNALTABLERESULT_CONTENTENTRY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=21679,
-  serialized_end=21725,
+  serialized_start=21850,
+  serialized_end=21896,
 )
 
 _DESCRIBEEXTERNALTABLERESULT = _descriptor.Descriptor(
@@ -7164,8 +7197,8 @@ _DESCRIBEEXTERNALTABLERESULT = _descriptor.Descriptor(
       create_key=_descriptor._internal_create_key,
     fields=[]),
   ],
-  serialized_start=21425,
-  serialized_end=21775,
+  serialized_start=21596,
+  serialized_end=21946,
 )
 
 
@@ -7203,8 +7236,8 @@ _DESCRIBESYSTEMVIEWREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=21777,
-  serialized_end=21877,
+  serialized_start=21948,
+  serialized_end=22048,
 )
 
 
@@ -7235,8 +7268,8 @@ _DESCRIBESYSTEMVIEWRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=21879,
-  serialized_end=21953,
+  serialized_start=22050,
+  serialized_end=22124,
 )
 
 
@@ -7274,8 +7307,8 @@ _DESCRIBESYSTEMVIEWRESULT_ATTRIBUTESENTRY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2738,
-  serialized_end=2787,
+  serialized_start=2774,
+  serialized_end=2823,
 )
 
 _DESCRIBESYSTEMVIEWRESULT = _descriptor.Descriptor(
@@ -7340,8 +7373,8 @@ _DESCRIBESYSTEMVIEWRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=21956,
-  serialized_end=22244,
+  serialized_start=22127,
+  serialized_end=22415,
 )
 
 _CREATESESSIONREQUEST.fields_by_name['operation_params'].message_type = protos_dot_ydb__operation__pb2._OPERATIONPARAMS
@@ -7589,6 +7622,7 @@ _TRANSACTIONSETTINGS.fields_by_name['stale_read_only'].message_type = _STALEMODE
 _TRANSACTIONSETTINGS.fields_by_name['snapshot_read_only'].message_type = _SNAPSHOTMODESETTINGS
 _TRANSACTIONSETTINGS.fields_by_name['snapshot_read_write'].message_type = _SNAPSHOTRWMODESETTINGS
 _TRANSACTIONSETTINGS.fields_by_name['read_committed_read_write'].message_type = _READCOMMITTEDRWMODESETTINGS
+_TRANSACTIONSETTINGS.fields_by_name['strict_serializable_read_write'].message_type = _STRICTSERIALIZABLERWMODESETTINGS
 _TRANSACTIONSETTINGS.oneofs_by_name['tx_mode'].fields.append(
   _TRANSACTIONSETTINGS.fields_by_name['serializable_read_write'])
 _TRANSACTIONSETTINGS.fields_by_name['serializable_read_write'].containing_oneof = _TRANSACTIONSETTINGS.oneofs_by_name['tx_mode']
@@ -7607,6 +7641,9 @@ _TRANSACTIONSETTINGS.fields_by_name['snapshot_read_write'].containing_oneof = _T
 _TRANSACTIONSETTINGS.oneofs_by_name['tx_mode'].fields.append(
   _TRANSACTIONSETTINGS.fields_by_name['read_committed_read_write'])
 _TRANSACTIONSETTINGS.fields_by_name['read_committed_read_write'].containing_oneof = _TRANSACTIONSETTINGS.oneofs_by_name['tx_mode']
+_TRANSACTIONSETTINGS.oneofs_by_name['tx_mode'].fields.append(
+  _TRANSACTIONSETTINGS.fields_by_name['strict_serializable_read_write'])
+_TRANSACTIONSETTINGS.fields_by_name['strict_serializable_read_write'].containing_oneof = _TRANSACTIONSETTINGS.oneofs_by_name['tx_mode']
 _TRANSACTIONCONTROL.fields_by_name['begin_tx'].message_type = _TRANSACTIONSETTINGS
 _TRANSACTIONCONTROL.oneofs_by_name['tx_selector'].fields.append(
   _TRANSACTIONCONTROL.fields_by_name['tx_id'])
@@ -7826,6 +7863,7 @@ DESCRIPTOR.message_types_by_name['StaleModeSettings'] = _STALEMODESETTINGS
 DESCRIPTOR.message_types_by_name['SnapshotModeSettings'] = _SNAPSHOTMODESETTINGS
 DESCRIPTOR.message_types_by_name['SnapshotRWModeSettings'] = _SNAPSHOTRWMODESETTINGS
 DESCRIPTOR.message_types_by_name['ReadCommittedRWModeSettings'] = _READCOMMITTEDRWMODESETTINGS
+DESCRIPTOR.message_types_by_name['StrictSerializableRWModeSettings'] = _STRICTSERIALIZABLERWMODESETTINGS
 DESCRIPTOR.message_types_by_name['TransactionSettings'] = _TRANSACTIONSETTINGS
 DESCRIPTOR.message_types_by_name['TransactionControl'] = _TRANSACTIONCONTROL
 DESCRIPTOR.message_types_by_name['QueryCachePolicy'] = _QUERYCACHEPOLICY
@@ -8399,6 +8437,13 @@ ReadCommittedRWModeSettings = _reflection.GeneratedProtocolMessageType('ReadComm
   })
 _sym_db.RegisterMessage(ReadCommittedRWModeSettings)
 
+StrictSerializableRWModeSettings = _reflection.GeneratedProtocolMessageType('StrictSerializableRWModeSettings', (_message.Message,), {
+  'DESCRIPTOR' : _STRICTSERIALIZABLERWMODESETTINGS,
+  '__module__' : 'protos.ydb_table_pb2'
+  # @@protoc_insertion_point(class_scope:Ydb.Table.StrictSerializableRWModeSettings)
+  })
+_sym_db.RegisterMessage(StrictSerializableRWModeSettings)
+
 TransactionSettings = _reflection.GeneratedProtocolMessageType('TransactionSettings', (_message.Message,), {
   'DESCRIPTOR' : _TRANSACTIONSETTINGS,
   '__module__' : 'protos.ydb_table_pb2'
@@ -8936,6 +8981,7 @@ _ALTERTABLEREQUEST_ALTERATTRIBUTESENTRY._options = None
 _ALTERTABLEREQUEST.fields_by_name['alter_attributes']._options = None
 _DESCRIBETABLERESULT_ATTRIBUTESENTRY._options = None
 _EXECUTEDATAQUERYREQUEST_PARAMETERSENTRY._options = None
+_EXECUTEDATAQUERYREQUEST.fields_by_name['parameters']._options = None
 _QUERYMETA_PARAMETERSTYPESENTRY._options = None
 _PREPAREQUERYRESULT_PARAMETERSTYPESENTRY._options = None
 _STORAGEPOLICYDESCRIPTION_LABELSENTRY._options = None
@@ -8946,6 +8992,7 @@ _REPLICATIONPOLICYDESCRIPTION_LABELSENTRY._options = None
 _CACHINGPOLICYDESCRIPTION_LABELSENTRY._options = None
 _TABLEPROFILEDESCRIPTION_LABELSENTRY._options = None
 _EXECUTESCANQUERYREQUEST_PARAMETERSENTRY._options = None
+_EXECUTESCANQUERYREQUEST.fields_by_name['parameters']._options = None
 _EXECUTESCANQUERYREQUEST.fields_by_name['collect_full_diagnostics']._options = None
 _EXECUTESCANQUERYPARTIALRESULT.fields_by_name['query_full_diagnostics']._options = None
 _DESCRIBEEXTERNALDATASOURCERESULT_PROPERTIESENTRY._options = None

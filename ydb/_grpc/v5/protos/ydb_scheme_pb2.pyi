@@ -29,7 +29,7 @@ class DescribePathResult(_message.Message):
     def __init__(self, self_: _Optional[_Union[Entry, _Mapping]] = ...) -> None: ...
 
 class Entry(_message.Message):
-    __slots__ = ["created_at", "effective_permissions", "name", "owner", "permissions", "size_bytes", "type"]
+    __slots__ = ["created_at", "effective_permissions", "interrupt_permission_inheritance", "name", "owner", "permissions", "size_bytes", "type"]
     class Type(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
         __slots__ = []
     BLOCK_STORE_VOLUME: Entry.Type
@@ -42,6 +42,7 @@ class Entry(_message.Message):
     EFFECTIVE_PERMISSIONS_FIELD_NUMBER: _ClassVar[int]
     EXTERNAL_DATA_SOURCE: Entry.Type
     EXTERNAL_TABLE: Entry.Type
+    INTERRUPT_PERMISSION_INHERITANCE_FIELD_NUMBER: _ClassVar[int]
     NAME_FIELD_NUMBER: _ClassVar[int]
     OWNER_FIELD_NUMBER: _ClassVar[int]
     PERMISSIONS_FIELD_NUMBER: _ClassVar[int]
@@ -61,12 +62,13 @@ class Entry(_message.Message):
     VIEW: Entry.Type
     created_at: _ydb_common_pb2.VirtualTimestamp
     effective_permissions: _containers.RepeatedCompositeFieldContainer[Permissions]
+    interrupt_permission_inheritance: bool
     name: str
     owner: str
     permissions: _containers.RepeatedCompositeFieldContainer[Permissions]
     size_bytes: int
     type: Entry.Type
-    def __init__(self, name: _Optional[str] = ..., owner: _Optional[str] = ..., type: _Optional[_Union[Entry.Type, str]] = ..., effective_permissions: _Optional[_Iterable[_Union[Permissions, _Mapping]]] = ..., permissions: _Optional[_Iterable[_Union[Permissions, _Mapping]]] = ..., size_bytes: _Optional[int] = ..., created_at: _Optional[_Union[_ydb_common_pb2.VirtualTimestamp, _Mapping]] = ...) -> None: ...
+    def __init__(self, name: _Optional[str] = ..., owner: _Optional[str] = ..., type: _Optional[_Union[Entry.Type, str]] = ..., effective_permissions: _Optional[_Iterable[_Union[Permissions, _Mapping]]] = ..., permissions: _Optional[_Iterable[_Union[Permissions, _Mapping]]] = ..., size_bytes: _Optional[int] = ..., created_at: _Optional[_Union[_ydb_common_pb2.VirtualTimestamp, _Mapping]] = ..., interrupt_permission_inheritance: bool = ...) -> None: ...
 
 class ListDirectoryRequest(_message.Message):
     __slots__ = ["operation_params", "path"]
