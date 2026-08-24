@@ -181,9 +181,21 @@ class SchemeEntry(object):
         "effective_permissions",
         "permissions",
         "size_bytes",
+        "interrupt_permission_inheritance",
     )
 
-    def __init__(self, name, owner, type, effective_permissions, permissions, size_bytes, *args, **kwargs):
+    def __init__(
+        self,
+        name,
+        owner,
+        type,
+        effective_permissions,
+        permissions,
+        size_bytes,
+        *args,
+        interrupt_permission_inheritance=False,
+        **kwargs
+    ):
         """
         Represents a scheme entry.
         :param name: A name of a scheme entry
@@ -192,6 +204,7 @@ class SchemeEntry(object):
         :param effective_permissions: A list of effective permissions applied to this scheme entry
         :param permissions: A list of permissions applied to this scheme entry
         :param size_bytes: Size of entry in bytes
+        :param interrupt_permission_inheritance: True if this scheme entry does not inherit permissions from its parents
         """
         self.name = name
         self.owner = owner
@@ -199,6 +212,7 @@ class SchemeEntry(object):
         self.effective_permissions = effective_permissions
         self.permissions = permissions
         self.size_bytes = size_bytes
+        self.interrupt_permission_inheritance = interrupt_permission_inheritance
 
     def is_directory(self):
         """
@@ -304,7 +318,7 @@ class Directory(SchemeEntry):
         :param permissions: A list of permissions applied to this scheme entry
         :param children: A list of children
         """
-        super(Directory, self).__init__(name, owner, type, effective_permissions, permissions, 0)
+        super(Directory, self).__init__(name, owner, type, effective_permissions, permissions, 0, **kwargs)
         self.children = children
 
 
@@ -443,6 +457,7 @@ def _wrap_scheme_entry(entry_pb, scheme_entry_cls=None, *args, **kwargs):
         _wrap_permissions(entry_pb.permissions),
         entry_pb.size_bytes,
         *args,
+        interrupt_permission_inheritance=entry_pb.interrupt_permission_inheritance,
         **kwargs
     )
 
@@ -471,6 +486,7 @@ def _wrap_list_directory_response(rpc_state, response):
         _wrap_permissions(message.self.effective_permissions),
         _wrap_permissions(message.self.permissions),
         tuple(children),
+        interrupt_permission_inheritance=message.self.interrupt_permission_inheritance,
     )
 
 
