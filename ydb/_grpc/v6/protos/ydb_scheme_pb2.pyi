@@ -60,7 +60,7 @@ class Permissions(_message.Message):
     def __init__(self, subject: _Optional[str] = ..., permission_names: _Optional[_Iterable[str]] = ...) -> None: ...
 
 class Entry(_message.Message):
-    __slots__ = ("name", "owner", "type", "effective_permissions", "permissions", "size_bytes", "created_at")
+    __slots__ = ("name", "owner", "type", "effective_permissions", "permissions", "size_bytes", "created_at", "interrupt_permission_inheritance")
     class Type(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
         __slots__ = ()
         TYPE_UNSPECIFIED: _ClassVar[Entry.Type]
@@ -110,6 +110,7 @@ class Entry(_message.Message):
     PERMISSIONS_FIELD_NUMBER: _ClassVar[int]
     SIZE_BYTES_FIELD_NUMBER: _ClassVar[int]
     CREATED_AT_FIELD_NUMBER: _ClassVar[int]
+    INTERRUPT_PERMISSION_INHERITANCE_FIELD_NUMBER: _ClassVar[int]
     name: str
     owner: str
     type: Entry.Type
@@ -117,7 +118,8 @@ class Entry(_message.Message):
     permissions: _containers.RepeatedCompositeFieldContainer[Permissions]
     size_bytes: int
     created_at: _ydb_common_pb2.VirtualTimestamp
-    def __init__(self, name: _Optional[str] = ..., owner: _Optional[str] = ..., type: _Optional[_Union[Entry.Type, str]] = ..., effective_permissions: _Optional[_Iterable[_Union[Permissions, _Mapping]]] = ..., permissions: _Optional[_Iterable[_Union[Permissions, _Mapping]]] = ..., size_bytes: _Optional[int] = ..., created_at: _Optional[_Union[_ydb_common_pb2.VirtualTimestamp, _Mapping]] = ...) -> None: ...
+    interrupt_permission_inheritance: bool
+    def __init__(self, name: _Optional[str] = ..., owner: _Optional[str] = ..., type: _Optional[_Union[Entry.Type, str]] = ..., effective_permissions: _Optional[_Iterable[_Union[Permissions, _Mapping]]] = ..., permissions: _Optional[_Iterable[_Union[Permissions, _Mapping]]] = ..., size_bytes: _Optional[int] = ..., created_at: _Optional[_Union[_ydb_common_pb2.VirtualTimestamp, _Mapping]] = ..., interrupt_permission_inheritance: bool = ...) -> None: ...
 
 class ListDirectoryResult(_message.Message):
     __slots__ = ("self", "children")

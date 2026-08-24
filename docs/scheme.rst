@@ -123,6 +123,8 @@ Every scheme object is described by a :class:`~ydb.SchemeEntry`:
      - Explicit ACL entries set on this object.
    * - ``effective_permissions``
      - Effective ACL entries (including inherited from parent).
+   * - ``interrupt_permission_inheritance``
+     - ``True`` if the object does not inherit permissions from its parents.
 
 **Convenience predicates:**
 

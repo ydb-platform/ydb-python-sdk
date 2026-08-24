@@ -1,10 +1,12 @@
 from google.protobuf import duration_pb2 as _duration_pb2
+from protos.annotations import sensitive_pb2 as _sensitive_pb2
 from protos.annotations import validation_pb2 as _validation_pb2
 from protos import ydb_issue_message_pb2 as _ydb_issue_message_pb2
+from protos import ydb_common_pb2 as _ydb_common_pb2
+from protos import ydb_formats_pb2 as _ydb_formats_pb2
 from protos import ydb_operation_pb2 as _ydb_operation_pb2
 from protos import ydb_query_stats_pb2 as _ydb_query_stats_pb2
 from protos import ydb_status_codes_pb2 as _ydb_status_codes_pb2
-from protos import ydb_formats_pb2 as _ydb_formats_pb2
 from protos import ydb_value_pb2 as _ydb_value_pb2
 from google.protobuf.internal import containers as _containers
 from google.protobuf.internal import enum_type_wrapper as _enum_type_wrapper
@@ -156,21 +158,27 @@ class ReadCommittedRWModeSettings(_message.Message):
     __slots__ = ()
     def __init__(self) -> None: ...
 
+class StrictSerializableRWModeSettings(_message.Message):
+    __slots__ = ()
+    def __init__(self) -> None: ...
+
 class TransactionSettings(_message.Message):
-    __slots__ = ("serializable_read_write", "online_read_only", "stale_read_only", "snapshot_read_only", "snapshot_read_write", "read_committed_read_write")
+    __slots__ = ("serializable_read_write", "online_read_only", "stale_read_only", "snapshot_read_only", "snapshot_read_write", "read_committed_read_write", "strict_serializable_read_write")
     SERIALIZABLE_READ_WRITE_FIELD_NUMBER: _ClassVar[int]
     ONLINE_READ_ONLY_FIELD_NUMBER: _ClassVar[int]
     STALE_READ_ONLY_FIELD_NUMBER: _ClassVar[int]
     SNAPSHOT_READ_ONLY_FIELD_NUMBER: _ClassVar[int]
     SNAPSHOT_READ_WRITE_FIELD_NUMBER: _ClassVar[int]
     READ_COMMITTED_READ_WRITE_FIELD_NUMBER: _ClassVar[int]
+    STRICT_SERIALIZABLE_READ_WRITE_FIELD_NUMBER: _ClassVar[int]
     serializable_read_write: SerializableModeSettings
     online_read_only: OnlineModeSettings
     stale_read_only: StaleModeSettings
     snapshot_read_only: SnapshotModeSettings
     snapshot_read_write: SnapshotRWModeSettings
     read_committed_read_write: ReadCommittedRWModeSettings
-    def __init__(self, serializable_read_write: _Optional[_Union[SerializableModeSettings, _Mapping]] = ..., online_read_only: _Optional[_Union[OnlineModeSettings, _Mapping]] = ..., stale_read_only: _Optional[_Union[StaleModeSettings, _Mapping]] = ..., snapshot_read_only: _Optional[_Union[SnapshotModeSettings, _Mapping]] = ..., snapshot_read_write: _Optional[_Union[SnapshotRWModeSettings, _Mapping]] = ..., read_committed_read_write: _Optional[_Union[ReadCommittedRWModeSettings, _Mapping]] = ...) -> None: ...
+    strict_serializable_read_write: StrictSerializableRWModeSettings
+    def __init__(self, serializable_read_write: _Optional[_Union[SerializableModeSettings, _Mapping]] = ..., online_read_only: _Optional[_Union[OnlineModeSettings, _Mapping]] = ..., stale_read_only: _Optional[_Union[StaleModeSettings, _Mapping]] = ..., snapshot_read_only: _Optional[_Union[SnapshotModeSettings, _Mapping]] = ..., snapshot_read_write: _Optional[_Union[SnapshotRWModeSettings, _Mapping]] = ..., read_committed_read_write: _Optional[_Union[ReadCommittedRWModeSettings, _Mapping]] = ..., strict_serializable_read_write: _Optional[_Union[StrictSerializableRWModeSettings, _Mapping]] = ...) -> None: ...
 
 class TransactionControl(_message.Message):
     __slots__ = ("tx_id", "begin_tx", "commit_tx")
@@ -215,12 +223,14 @@ class CommitTransactionRequest(_message.Message):
     def __init__(self, session_id: _Optional[str] = ..., tx_id: _Optional[str] = ...) -> None: ...
 
 class CommitTransactionResponse(_message.Message):
-    __slots__ = ("status", "issues")
+    __slots__ = ("status", "issues", "commit_timestamp")
     STATUS_FIELD_NUMBER: _ClassVar[int]
     ISSUES_FIELD_NUMBER: _ClassVar[int]
+    COMMIT_TIMESTAMP_FIELD_NUMBER: _ClassVar[int]
     status: _ydb_status_codes_pb2.StatusIds.StatusCode
     issues: _containers.RepeatedCompositeFieldContainer[_ydb_issue_message_pb2.IssueMessage]
-    def __init__(self, status: _Optional[_Union[_ydb_status_codes_pb2.StatusIds.StatusCode, str]] = ..., issues: _Optional[_Iterable[_Union[_ydb_issue_message_pb2.IssueMessage, _Mapping]]] = ...) -> None: ...
+    commit_timestamp: _ydb_common_pb2.VirtualTimestamp
+    def __init__(self, status: _Optional[_Union[_ydb_status_codes_pb2.StatusIds.StatusCode, str]] = ..., issues: _Optional[_Iterable[_Union[_ydb_issue_message_pb2.IssueMessage, _Mapping]]] = ..., commit_timestamp: _Optional[_Union[_ydb_common_pb2.VirtualTimestamp, _Mapping]] = ...) -> None: ...
 
 class RollbackTransactionRequest(_message.Message):
     __slots__ = ("session_id", "tx_id")
@@ -290,20 +300,24 @@ class ResultSetMeta(_message.Message):
     def __init__(self, columns: _Optional[_Iterable[_Union[_ydb_value_pb2.Column, _Mapping]]] = ...) -> None: ...
 
 class ExecuteQueryResponsePart(_message.Message):
-    __slots__ = ("status", "issues", "result_set_index", "result_set", "exec_stats", "tx_meta")
+    __slots__ = ("status", "issues", "result_set_index", "result_set", "exec_stats", "tx_meta", "snapshot_timestamp", "commit_timestamp")
     STATUS_FIELD_NUMBER: _ClassVar[int]
     ISSUES_FIELD_NUMBER: _ClassVar[int]
     RESULT_SET_INDEX_FIELD_NUMBER: _ClassVar[int]
     RESULT_SET_FIELD_NUMBER: _ClassVar[int]
     EXEC_STATS_FIELD_NUMBER: _ClassVar[int]
     TX_META_FIELD_NUMBER: _ClassVar[int]
+    SNAPSHOT_TIMESTAMP_FIELD_NUMBER: _ClassVar[int]
+    COMMIT_TIMESTAMP_FIELD_NUMBER: _ClassVar[int]
     status: _ydb_status_codes_pb2.StatusIds.StatusCode
     issues: _containers.RepeatedCompositeFieldContainer[_ydb_issue_message_pb2.IssueMessage]
     result_set_index: int
     result_set: _ydb_value_pb2.ResultSet
     exec_stats: _ydb_query_stats_pb2.QueryStats
     tx_meta: TransactionMeta
-    def __init__(self, status: _Optional[_Union[_ydb_status_codes_pb2.StatusIds.StatusCode, str]] = ..., issues: _Optional[_Iterable[_Union[_ydb_issue_message_pb2.IssueMessage, _Mapping]]] = ..., result_set_index: _Optional[int] = ..., result_set: _Optional[_Union[_ydb_value_pb2.ResultSet, _Mapping]] = ..., exec_stats: _Optional[_Union[_ydb_query_stats_pb2.QueryStats, _Mapping]] = ..., tx_meta: _Optional[_Union[TransactionMeta, _Mapping]] = ...) -> None: ...
+    snapshot_timestamp: _ydb_common_pb2.VirtualTimestamp
+    commit_timestamp: _ydb_common_pb2.VirtualTimestamp
+    def __init__(self, status: _Optional[_Union[_ydb_status_codes_pb2.StatusIds.StatusCode, str]] = ..., issues: _Optional[_Iterable[_Union[_ydb_issue_message_pb2.IssueMessage, _Mapping]]] = ..., result_set_index: _Optional[int] = ..., result_set: _Optional[_Union[_ydb_value_pb2.ResultSet, _Mapping]] = ..., exec_stats: _Optional[_Union[_ydb_query_stats_pb2.QueryStats, _Mapping]] = ..., tx_meta: _Optional[_Union[TransactionMeta, _Mapping]] = ..., snapshot_timestamp: _Optional[_Union[_ydb_common_pb2.VirtualTimestamp, _Mapping]] = ..., commit_timestamp: _Optional[_Union[_ydb_common_pb2.VirtualTimestamp, _Mapping]] = ...) -> None: ...
 
 class ExecuteScriptRequest(_message.Message):
     __slots__ = ("operation_params", "exec_mode", "script_content", "parameters", "stats_mode", "results_ttl", "pool_id")
