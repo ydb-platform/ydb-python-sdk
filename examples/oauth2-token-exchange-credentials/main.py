@@ -34,7 +34,7 @@ def execute_query(session):
 def main():
     args = parse_args()
 
-    # Example demonstrates how to initializate driver instance
+    # Example demonstrates how to initialize driver instance
     # using the oauth 2.0 token exchange credentials provider.
     driver = ydb.Driver(
         endpoint=args.endpoint,

@@ -126,7 +126,7 @@ class TopicServiceServicer(object):
         StartPartitionSessionRequest(Topic2, Partition2, PartitionSessionID2, ...)
         <----------------
         StartPartitionSessionResponse(PartitionSessionID1, ...)
-        client must respond with this message to actually start recieving data messages from this partition
+        client must respond with this message to actually start receiving data messages from this partition
         ---------------->
         StopPartitionSessionRequest(PartitionSessionID1, ...)
         <----------------
