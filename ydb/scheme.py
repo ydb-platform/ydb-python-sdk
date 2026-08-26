@@ -446,7 +446,7 @@ def _wrap_scheme_entry(entry_pb, scheme_entry_cls=None, *args, **kwargs):
     by default that is generic SchemeEntry)
     :param args: A list of optional arguments
     :param kwargs: A dictionary of with optional arguments
-    :return: A native Python reprensentation of scheme entry
+    :return: A native Python representation of scheme entry
     """
     scheme_entry_cls = SchemeEntry if scheme_entry_cls is None else scheme_entry_cls
     return scheme_entry_cls(
