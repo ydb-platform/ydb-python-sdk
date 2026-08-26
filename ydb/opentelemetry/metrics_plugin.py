@@ -21,6 +21,7 @@ from ydb.observability import disable_metrics as _observability_disable_metrics
 from ydb.observability.metrics import (
     CLIENT_OPERATION_DURATION,
     CLIENT_OPERATION_FAILED,
+    QUERY_SESSION_CLOSED,
     QUERY_SESSION_COUNT,
     QUERY_SESSION_CREATE_TIME,
     QUERY_SESSION_MAX,
@@ -95,6 +96,11 @@ class OtelMetricsProvider:
                 CLIENT_OPERATION_FAILED,
                 unit="{command}",
                 description="Number of failed YDB client operations.",
+            ),
+            QUERY_SESSION_CLOSED: meter.create_counter(
+                QUERY_SESSION_CLOSED,
+                unit="{session}",
+                description="Number of closed YDB query sessions.",
             ),
             QUERY_SESSION_TIMEOUTS: meter.create_counter(
                 QUERY_SESSION_TIMEOUTS,

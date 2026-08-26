@@ -82,6 +82,13 @@ class SyncResponseContextIterator(_utilities.SyncResponseIterator):
     def __enter__(self) -> "SyncResponseContextIterator":
         return self
 
+    def cancel(self):
+        error = issues.Cancelled("Query stream was cancelled by client")
+        if self._on_error:
+            self._on_error(error)
+        self._call_on_finish(error)
+        return super().cancel()
+
     def _next(self):
         try:
             return super()._next()
@@ -105,6 +112,7 @@ class SyncResponseContextIterator(_utilities.SyncResponseIterator):
         if self._on_finish is not None:
             self._on_finish(exception)
             self._on_finish = None
+        self._on_error = None
 
     def __del__(self):
         self._call_on_finish()
@@ -219,8 +227,8 @@ def bad_session_handler(func):
     def decorator(rpc_state, response_pb, session: "BaseQuerySession", *args, **kwargs):
         try:
             return func(rpc_state, response_pb, session, *args, **kwargs)
-        except issues.BadSession:
-            session._close_session(invalidate=True)
+        except (issues.BadSession, issues.SessionExpired):
+            session._close_session(invalidate=True, reason="bad_session")
             raise
 
     return decorator

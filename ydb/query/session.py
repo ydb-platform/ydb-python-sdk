@@ -1,4 +1,5 @@
 import abc
+import asyncio
 import json
 import logging
 import threading
@@ -169,18 +170,18 @@ class BaseQuerySession(abc.ABC, Generic[DriverT]):
         if response_pb is None:
             return
 
-        hint = response_pb.WhichOneof("session_hint")
-        if hint == "node_shutdown":
-            if self._node_id is not None:
-                self._driver._pessimize_node(self._node_id)
-            self._close_session(invalidate=True)
-        elif hint == "session_shutdown":
-            self._close_session(invalidate=True)
+        match response_pb.WhichOneof("session_hint"):
+            case "node_shutdown":
+                if self._node_id is not None:
+                    self._driver._pessimize_node(self._node_id)
+                self._close_session(invalidate=True, reason="node_shutdown")
+            case "session_shutdown":
+                self._close_session(invalidate=True, reason="session_shutdown")
 
-    def _close_session(self, invalidate: bool = False) -> None:
+    def _close_session(self, invalidate: bool = False, reason: Optional[str] = None) -> None:
         if self._closed:
             return
-        self._session_metrics.count_closed()
+        self._session_metrics.count_closed(reason)
         if invalidate:
             self._invalidated = True
         self._closed = True
@@ -190,6 +191,19 @@ class BaseQuerySession(abc.ABC, Generic[DriverT]):
                 self._stream.cancel()
             except Exception:
                 pass
+
+    def _on_attach_stream_status_error(self, e: BaseException) -> None:
+        reason: Optional[str]
+        match e:
+            case issues.BadSession() | issues.SessionExpired():
+                reason = "bad_session"
+            case issues.SessionBusy():
+                reason = "session_busy"
+            case issues.Unavailable() | issues.ConnectionError():
+                reason = "transport_error"
+            case _:
+                reason = None
+        self._close_session(invalidate=True, reason=reason)
 
     def _on_execute_stream_error(self, e: BaseException) -> None:
         # The execute stream is a single gRPC call that carries all of a
@@ -205,20 +219,22 @@ class BaseQuerySession(abc.ABC, Generic[DriverT]):
         # Accepts BaseException so that asyncio.CancelledError (not an
         # issues.Error subclass) — the case documented in the bug report —
         # also invalidates here.
-        if isinstance(e, issues.Error):
-            if isinstance(
-                e,
-                (
-                    issues.DeadlineExceed,
-                    issues.SessionBusy,
-                    issues.BadSession,
-                    issues.ConnectionError,
-                    issues.Cancelled,
-                ),
-            ):
-                self._close_session(invalidate=True)
-        else:
-            self._close_session(invalidate=True)
+        match e:
+            case issues.DeadlineExceed():
+                reason = "client_timeout"
+            case issues.Cancelled() | asyncio.CancelledError():
+                reason = "client_cancelled"
+            case issues.SessionBusy():
+                reason = "session_busy"
+            case issues.BadSession() | issues.SessionExpired():
+                reason = "bad_session"
+            case issues.Unavailable() | issues.ConnectionError():
+                reason = "transport_error"
+            case issues.Error():
+                return
+            case _:
+                reason = "transport_error"
+        self._close_session(invalidate=True, reason=reason)
 
     # Overloads for _create_call
     @overload
@@ -397,6 +413,8 @@ class QuerySession(BaseQuerySession["SyncDriver"]):
                 first_resp_timeout,
             )
             issues._process_response(first_response)
+            if not self._closed:
+                self._session_metrics.count_open()
         except Exception as e:
             self._close_session(invalidate=True)
             raise e
@@ -411,11 +429,17 @@ class QuerySession(BaseQuerySession["SyncDriver"]):
     def _check_session_status_loop(self, status_stream: _utilities.SyncResponseIterator) -> None:
         try:
             for status in status_stream:
-                issues._process_response(status)
+                try:
+                    issues._process_response(status)
+                except Exception as e:
+                    logger.debug("Attach stream status error: %s, session_id: %s", e, self._session_id)
+                    self._on_attach_stream_status_error(e)
+                    return
             logger.debug("Attach stream closed, session_id: %s", self._session_id)
+            self._close_session(invalidate=True, reason="attach_closed")
         except Exception as e:
-            logger.debug("Attach stream error: %s, session_id: %s", e, self._session_id)
-            self._close_session(invalidate=True)
+            logger.debug("Attach stream transport error: %s, session_id: %s", e, self._session_id)
+            self._close_session(invalidate=True, reason="transport_error")
 
     def delete(self, settings: Optional[BaseRequestSettings] = None) -> None:
         """Deletes a Session of Query Service on server side and releases resources.
@@ -425,13 +449,13 @@ class QuerySession(BaseQuerySession["SyncDriver"]):
         if self._closed:
             return
 
+        self._close_session()
+
         if self._session_id:
             try:
                 self._delete_call(settings=settings)
             except Exception:
                 pass
-
-        self._close_session()
 
     def create(self, settings: Optional[BaseRequestSettings] = None) -> "QuerySession":
         """Creates a Session of Query Service on server side and attaches it.
@@ -448,7 +472,6 @@ class QuerySession(BaseQuerySession["SyncDriver"]):
             self._create_call(settings=settings)
             set_peer_attributes(span, self._peer)
             self._attach()
-            self._session_metrics.count_open()
 
         return self
 

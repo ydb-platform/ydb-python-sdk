@@ -323,6 +323,9 @@ adapter maps them to instruments on the ``"ydb.sdk"`` meter):
    * - ``ydb.query.session.count``
      - ObservableUpDownCounter
      - Current number of open query sessions by pool and ``ydb.query.session.state`` (``idle`` / ``used``).
+   * - ``ydb.query.session.closed``
+     - Counter
+     - Closed query sessions by pool and closure ``reason``.
    * - ``ydb.query.session.max``
      - ObservableUpDownCounter
      - Maximum configured number of sessions for a query session pool.
@@ -363,6 +366,27 @@ the SDK falls back to the driver connection string ``<endpoint><database>`` (e.g
 ``grpc://localhost:2136/local``) so the pool is identifiable out of the box. Pass
 ``QuerySessionPool(..., name="main-pool")`` (sync or async) when several pools share a
 connection string. Retry metrics are recorded without attributes.
+
+``ydb.query.session.closed`` uses these ``reason`` values:
+
+* ``pool_idle_timeout`` — the idle-session cleaner removes a session. Python's
+  ``QuerySessionPool`` has no idle-session timeout lifecycle, so it does not currently
+  emit this reason.
+* ``pool_graceful_shutdown`` — pool shutdown removes a session.
+* ``client_timeout`` — a query stream exceeds its client-side transport timeout.
+* ``client_cancelled`` — the client closes an unfinished query stream.
+* ``attach_closed`` — the server closes the active attach stream.
+* ``transport_error`` — an ``UNAVAILABLE`` status or a connection, query-stream, or
+  attach-stream transport failure retires the session.
+* ``node_shutdown`` — the server sends a node shutdown hint.
+* ``session_shutdown`` — the server sends a session shutdown hint.
+* ``bad_session`` — the server returns ``BAD_SESSION`` or ``SESSION_EXPIRED``.
+* ``session_busy`` — the server returns ``SESSION_BUSY``.
+
+Only an active session managed by a client pool publishes this metric. Failure of the
+initial attach handshake does not count as closing an active session, and standalone
+``QuerySession`` instances do not publish pool metrics. A session publishes at most one
+closure event; the first terminal reason wins.
 
 Writing a Custom Metrics Backend
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
