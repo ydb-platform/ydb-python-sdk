@@ -1,0 +1,31 @@
+repos:
+  - repo: https://github.com/psf/black
+    rev: 26.5.1
+    hooks:
+      - id: black
+        exclude: ^ydb/_grpc/v[3-6]/.*$
+    
+  - repo: https://github.com/PyCQA/pylint
+    rev: v4.0.7
+    hooks:
+      - id: pylint
+        args:
+          - --rcfile=.pylintrc
+        additional_dependencies:
+          - pylint-protobuf==0.22.1
+
+  - repo: https://github.com/PyCQA/flake8
+    rev: 6.1.0
+    hooks:
+      - id: flake8
+        args:
+          - --config=tox.ini
+
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v2.3.1
+    hooks:
+      - id: mypy
+        args:
+          - --config-file=pyproject.toml
+        additional_dependencies: 
+          [types-protobuf, types-aiofiles, types-requests]
