@@ -16,7 +16,7 @@ def execute_query(session):
 
 
 def main():
-    # Example demonstrates how to initializate driver instance
+    # Example demonstrates how to initialize driver instance
     # using the access token credentials provider.
     # This method is not recommended to be used for PRODUCTION applications,
     # because the specified access token can expire. For example,

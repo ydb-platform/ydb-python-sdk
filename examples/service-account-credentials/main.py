@@ -16,7 +16,7 @@ def execute_query(session):
 
 
 def main():
-    # Example demonstrates howo to initializate driver instance
+    # Example demonstrates howo to initialize driver instance
     # using the service account credentials provider.
     # We recommend to initialize service account credentials
     # from the authorized key file with a private key.

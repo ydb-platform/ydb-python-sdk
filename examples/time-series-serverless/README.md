@@ -76,7 +76,7 @@ yc serverless function invoke <function-id> -d '{"queryStringParameters": {"star
 
 ## Testing via CURL
 Before you can access your function via CURL you should make function public. You can do it in web console at
-funtion overview page.
+function overview page.
 
 Next you may call function with next command:
 ```shell
