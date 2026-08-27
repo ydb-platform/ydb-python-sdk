@@ -114,8 +114,8 @@ class KeyBound:
 
     def __str__(self):
         if self._equal:
-            return "InclusiveKeyBound(tuple%s)" % str(self.value)
-        return "ExclusiveKeyBound(tuple%s)" % str(self.value)
+            return "InclusiveKeyBound(Tuple%s)" % str(self.value)
+        return "ExclusiveKeyBound(Tuple%s)" % str(self.value)
 
     @classmethod
     def inclusive(cls, key_value, key_type):
