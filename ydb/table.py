@@ -99,7 +99,7 @@ class KeyBound:
         except TypeError:
             assert False, "value must be iterable!"
 
-        if isinstance(key_type, types.tupleType):
+        if isinstance(key_type, types.TupleType):
             key_type = key_type.proto
 
         self._equal = inclusive
@@ -284,7 +284,7 @@ class PartitioningPolicy:
 
             for split_point in self.explicit_partitions.split_points:
                 typed_value = self._pb.explicit_partitions.split_points.add()
-                split_point_type = types.tupleType()
+                split_point_type = types.TupleType()
                 prefix_size = len(split_point.value)
                 for pl_el_id, pk_name in enumerate(table_description.primary_key):
                     if pl_el_id >= prefix_size:
