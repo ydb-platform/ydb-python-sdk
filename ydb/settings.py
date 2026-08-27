@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from typing import Any, List, Optional, Tuple
+from typing import Any, Optional
 
 
 class BaseRequestSettings:
@@ -22,7 +22,7 @@ class BaseRequestSettings:
     operation_timeout: Optional[float]
     tracer: Any
     compression: Any
-    headers: List[Tuple[str, str]]
+    headers: list[tuple[str, str]]
     need_rpc_auth: bool
 
     def __init__(self) -> None:

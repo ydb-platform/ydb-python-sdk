@@ -63,23 +63,23 @@ ydb_query = ydb_query_pb2
 ydb_coordination = ydb_coordination_pb2
 
 
-class CmsService(object):
+class CmsService:
     Stub = ydb_cms_v1_pb2_grpc.CmsServiceStub
 
 
-class DiscoveryService(object):
+class DiscoveryService:
     Stub = ydb_discovery_v1_pb2_grpc.DiscoveryServiceStub
     ListEndpoints = "ListEndpoints"
 
 
-class OperationService(object):
+class OperationService:
     Stub = ydb_operation_v1_pb2_grpc.OperationServiceStub
     ForgetOperation = "ForgetOperation"
     GetOperation = "GetOperation"
     CancelOperation = "CancelOperation"
 
 
-class SchemeService(object):
+class SchemeService:
     Stub = ydb_scheme_v1_pb2_grpc.SchemeServiceStub
     MakeDirectory = "MakeDirectory"
     RemoveDirectory = "RemoveDirectory"
@@ -88,7 +88,7 @@ class SchemeService(object):
     ModifyPermissions = "ModifyPermissions"
 
 
-class TableService(object):
+class TableService:
     Stub = ydb_table_v1_pb2_grpc.TableServiceStub
 
     StreamExecuteScanQuery = "StreamExecuteScanQuery"
@@ -113,7 +113,7 @@ class TableService(object):
     BulkUpsert = "BulkUpsert"
 
 
-class TopicService(object):
+class TopicService:
     Stub = ydb_topic_v1_pb2_grpc.TopicServiceStub
 
     CreateTopic = "CreateTopic"
@@ -127,7 +127,7 @@ class TopicService(object):
     CommitOffset = "CommitOffset"
 
 
-class QueryService(object):
+class QueryService:
     Stub = ydb_query_v1_pb2_grpc.QueryServiceStub
 
     CreateSession = "CreateSession"
@@ -143,7 +143,7 @@ class QueryService(object):
     FetchScriptResults = "FetchScriptResults"
 
 
-class CoordinationService(object):
+class CoordinationService:
     Stub = ydb_coordination_v1_pb2_grpc.CoordinationServiceStub
     CreateNode = "CreateNode"
     AlterNode = "AlterNode"

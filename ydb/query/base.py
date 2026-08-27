@@ -8,8 +8,6 @@ from typing import (
     Optional,
     Any,
     Callable,
-    List,
-    DefaultDict,
     Union,
 )
 
@@ -293,7 +291,7 @@ def _get_async_callback(method: typing.Callable):
 
 
 class CallbackHandler:
-    _callbacks: DefaultDict[str, List[Callable[..., Any]]]
+    _callbacks: defaultdict[str, list[Callable[..., Any]]]
     _callback_mode: CallbackHandlerMode
 
     def _init_callback_handler(self, mode: CallbackHandlerMode) -> None:

@@ -21,7 +21,7 @@ else:
 logger = logging.getLogger(__name__)
 
 
-class EndpointInfo(object):
+class EndpointInfo:
     __slots__ = (
         "address",
         "endpoint",
@@ -95,7 +95,7 @@ def _list_endpoints_request_factory(connection_params: driver.DriverConfig) -> _
     return request
 
 
-class DiscoveryResult(object):
+class DiscoveryResult:
     def __init__(self, self_location: str, endpoints: "list[EndpointInfo]"):
         self.self_location = self_location
         self.endpoints = endpoints
@@ -143,7 +143,7 @@ class DiscoveryResult(object):
         return cls(message.self_location, result)
 
 
-class DiscoveryEndpointsResolver(object):
+class DiscoveryEndpointsResolver:
     _lock: ContextManager[Any]  # Can be threading.Lock or _FakeLock in async subclass
 
     def __init__(self, driver_config: driver.DriverConfig):

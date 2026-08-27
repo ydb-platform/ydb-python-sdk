@@ -1,6 +1,6 @@
 from enum import IntEnum
 import functools
-from typing import Any, Callable, Dict, Optional, Type
+from typing import Any, Callable, Optional, Type
 from types import TracebackType
 
 
@@ -37,12 +37,12 @@ class _TracingCtx:
         """
         return self._enabled
 
-    def trace(self, tags: Dict[str, Any], trace_level: TraceLevel = TraceLevel.INFO) -> None:
+    def trace(self, tags: dict[str, Any], trace_level: TraceLevel = TraceLevel.INFO) -> None:
         """
         Add tags to current span
 
         :param ydb.TraceLevel trace_level: level of tracing
-        :param dict tags: Dict of tags
+        :param dict tags: dict of tags
         """
         if self._tracer._verbose_level < trace_level:
             return
@@ -81,7 +81,7 @@ def with_trace(span_name: Optional[str] = None) -> Callable[[Callable[..., Any]]
     return decorator
 
 
-def trace(tracer: "Tracer", tags: Dict[str, Any], trace_level: TraceLevel = TraceLevel.INFO) -> Optional[bool]:
+def trace(tracer: "Tracer", tags: dict[str, Any], trace_level: TraceLevel = TraceLevel.INFO) -> Optional[bool]:
     if tracer.enabled:
         scope = tracer._open_tracer.scope_manager.active
         if not scope:
@@ -104,9 +104,9 @@ class Tracer:
         :param opentracing.Tracer tracer: opentracing.Tracer implementation. If None - tracing not enabled
         """
         self._open_tracer: Any = tracer
-        self._pre_tags: Dict[str, Any] = {}
-        self._post_tags_ok: Dict[str, Any] = {}
-        self._post_tags_err: Dict[str, Any] = {}
+        self._pre_tags: dict[str, Any] = {}
+        self._post_tags_ok: dict[str, Any] = {}
+        self._post_tags_err: dict[str, Any] = {}
         self._on_err: Callable[..., None] = lambda *args, **kwargs: None
         self._verbose_level: TraceLevel = TraceLevel.NONE
 
@@ -125,7 +125,7 @@ class Tracer:
         """
         return _TracingCtx(self, span_name)
 
-    def with_pre_tags(self, tags: Dict[str, Any]) -> "Tracer":
+    def with_pre_tags(self, tags: dict[str, Any]) -> "Tracer":
         """
         Add `tags` to every span immediately after creation
 
@@ -136,7 +136,7 @@ class Tracer:
         self._pre_tags = tags
         return self
 
-    def with_post_tags(self, ok_tags: Dict[str, Any], err_tags: Dict[str, Any]) -> "Tracer":
+    def with_post_tags(self, ok_tags: dict[str, Any], err_tags: dict[str, Any]) -> "Tracer":
         """
         Add some tags before span close
 

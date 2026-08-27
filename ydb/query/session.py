@@ -7,7 +7,6 @@ from typing import (
     Generic,
     Iterable,
     Optional,
-    Dict,
     Any,
     TYPE_CHECKING,
     Union,
@@ -556,7 +555,7 @@ class QuerySession(BaseQuerySession["SyncDriver"]):
         parameters: dict = None,
         *,
         result_format: QueryExplainResultFormat = QueryExplainResultFormat.STR,
-    ) -> Union[str, Dict[str, Any]]:
+    ) -> Union[str, dict[str, Any]]:
         """Explains query result
         :param query: YQL or SQL query.
         :param parameters: dict with parameters and YDB types;

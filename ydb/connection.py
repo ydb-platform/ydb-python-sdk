@@ -8,10 +8,7 @@ import collections
 from typing import (
     Any,
     Callable,
-    Dict,
-    List,
     Optional,
-    Tuple,
     Union,
     TYPE_CHECKING,
 )
@@ -199,7 +196,7 @@ def _get_request_timeout(settings):
     return settings.timeout
 
 
-class EndpointOptions(object):
+class EndpointOptions:
     __slots__ = ("ssl_target_name_override", "node_id", "address", "port", "location")
 
     def __init__(self, ssl_target_name_override=None, node_id=None, address=None, port=None, location=None):
@@ -273,7 +270,7 @@ class _RpcState:
     rpc_name: str
     endpoint: str
     rendezvous: Any
-    metadata_kv: Optional[Dict[str, set]]
+    metadata_kv: Optional[dict[str, set]]
     endpoint_key: "EndpointKey"
 
     def __init__(self, stub_instance: Any, rpc_name: str, endpoint: str, endpoint_key: "EndpointKey") -> None:
@@ -298,7 +295,7 @@ class _RpcState:
         except AttributeError:
             return self.rpc(*args, **kwargs)
 
-    def trailing_metadata(self) -> Dict[str, set]:
+    def trailing_metadata(self) -> dict[str, set]:
         """Trailing metadata of the call."""
         if self.metadata_kv is None:
             self.metadata_kv = collections.defaultdict(set)
@@ -307,7 +304,7 @@ class _RpcState:
 
         return self.metadata_kv
 
-    def future(self, *args: Any, **kwargs: Any) -> Tuple[Any, "futures.Future[Any]"]:
+    def future(self, *args: Any, **kwargs: Any) -> tuple[Any, "futures.Future[Any]"]:
         self.rendezvous = self.rpc.future(*args, **kwargs)
         self.result_future = futures.Future()
 
@@ -365,7 +362,7 @@ def channel_factory(endpoint, driver_config, channel_provider=None, endpoint_opt
     )
 
 
-class EndpointKey(object):
+class EndpointKey:
     __slots__ = ("endpoint", "node_id")
 
     def __init__(self, endpoint, node_id):
@@ -400,7 +397,7 @@ class _SafeSyncIterator:
         return getattr(self.resp, item)
 
 
-class Connection(object):
+class Connection:
     __slots__ = (
         "endpoint",
         "_channel",
@@ -439,9 +436,9 @@ class Connection(object):
         self.endpoint_key = EndpointKey(endpoint, getattr(endpoint_options, "node_id", None))
         self._channel = channel_factory(self.endpoint, driver_config, endpoint_options=endpoint_options)
         self._driver_config = driver_config
-        self._call_states: Dict[Any, "_RpcState"] = {}
-        self._stub_instances: Dict[Any, Any] = {}
-        self._cleanup_callbacks: List[Callable[["Connection"], None]] = []
+        self._call_states: dict[Any, "_RpcState"] = {}
+        self._stub_instances: dict[Any, Any] = {}
+        self._cleanup_callbacks: list[Callable[["Connection"], None]] = []
         # pre-initialize stubs
         for stub in _stubs_list:
             self._stub_instances[stub] = stub(self._channel)
@@ -487,7 +484,7 @@ class Connection(object):
         rpc_name: str,
         wrap_result: Optional[Callable[..., Any]] = None,
         settings: Optional["BaseRequestSettings"] = None,
-        wrap_args: Tuple[Any, ...] = (),
+        wrap_args: tuple[Any, ...] = (),
         on_disconnected: Optional[Callable[[], None]] = None,
     ) -> "futures.Future[Any]":
         """
@@ -527,7 +524,7 @@ class Connection(object):
         rpc_name: str,
         wrap_result: Optional[Callable[..., Any]] = None,
         settings: Optional["BaseRequestSettings"] = None,
-        wrap_args: Tuple[Any, ...] = (),
+        wrap_args: tuple[Any, ...] = (),
         on_disconnected: Optional[Callable[[], None]] = None,
     ) -> Any:
         """

@@ -2,7 +2,7 @@
 import grpc
 import logging
 import os
-from typing import Any, List, Optional, Tuple, Type, TYPE_CHECKING
+from typing import Any, Optional, Type, TYPE_CHECKING
 
 from . import credentials as credentials_impl, table, scheme, pool
 from . import tracing
@@ -89,7 +89,7 @@ def credentials_from_env_variables(tracer: Optional[tracing.Tracer] = None) -> "
         return iam.MetadataUrlCredentials(tracer=tracer)
 
 
-class DriverConfig(object):
+class DriverConfig:
     __slots__ = (
         "endpoint",
         "database",
@@ -122,7 +122,7 @@ class DriverConfig(object):
         database: Optional[str] = None,
         ca_cert: Optional[str] = None,
         auth_token: Optional[str] = None,
-        channel_options: Optional[List[Tuple[str, Any]]] = None,
+        channel_options: Optional[list[tuple[str, Any]]] = None,
         credentials: Optional["Credentials"] = None,
         use_all_nodes: bool = True,
         root_certificates: Optional[bytes] = None,
@@ -132,7 +132,7 @@ class DriverConfig(object):
         table_client_settings: Optional["TableClientSettings"] = None,
         topic_client_settings: Optional[Any] = None,
         query_client_settings: Optional["QueryClientSettings"] = None,
-        endpoints: Optional[List[str]] = None,
+        endpoints: Optional[list[str]] = None,
         primary_user_agent: str = "python-library",
         tracer: Optional[tracing.Tracer] = None,
         grpc_lb_policy_name: str = "round_robin",
@@ -141,7 +141,7 @@ class DriverConfig(object):
         disable_discovery: bool = False,
         detect_local_dc: bool = False,
         *,
-        _additional_sdk_headers: Tuple[str, ...] = (),
+        _additional_sdk_headers: tuple[str, ...] = (),
     ) -> None:
         """
         A driver config to initialize a driver instance

@@ -20,7 +20,7 @@ import threading
 import itertools
 import functools
 import inspect
-from typing import Any, Callable, Dict, Iterable, List, Optional, Protocol, Tuple
+from typing import Any, Callable, Iterable, Optional, Protocol
 
 from ydb.observability._endpoint import split_endpoint
 
@@ -95,7 +95,7 @@ _CLIENT_OPERATION_NAME_BY_INPUT = {
 }
 
 # A gauge callback returns the current ``(value, attributes)`` observations.
-GaugeCallback = Callable[[], Iterable[Tuple[float, Dict[str, Any]]]]
+GaugeCallback = Callable[[], Iterable[tuple[float, dict[str, Any]]]]
 
 
 class MetricsProvider(Protocol):
@@ -105,9 +105,9 @@ class MetricsProvider(Protocol):
     three instrument kinds the SDK uses; see the module docstring for the semantics.
     """
 
-    def record(self, name: str, value: float, attributes: Optional[Dict[str, Any]] = None) -> None: ...
+    def record(self, name: str, value: float, attributes: Optional[dict[str, Any]] = None) -> None: ...
 
-    def add(self, name: str, value: int, attributes: Optional[Dict[str, Any]] = None) -> None: ...
+    def add(self, name: str, value: int, attributes: Optional[dict[str, Any]] = None) -> None: ...
 
     def observe_gauge(self, name: str, callback: GaugeCallback) -> None:
         """Register an asynchronous gauge whose current values *callback* returns."""
@@ -133,25 +133,25 @@ _provider: MetricsProvider = _NOOP_PROVIDER
 # Accumulated state for the asynchronous gauges, owned by the SDK (vendor-neutral) and
 # read by whatever provider is installed via ``observe_gauge``.
 _gauge_lock = threading.Lock()
-_session_count_state: Dict[Tuple, int] = {}
-_session_max_state: Dict[Tuple, int] = {}
+_session_count_state: dict[tuple, int] = {}
+_session_max_state: dict[tuple, int] = {}
 
 
 def is_metrics_enabled() -> bool:
     return _provider is not _NOOP_PROVIDER
 
 
-def _observe_session_count() -> List[Tuple[float, Dict[str, Any]]]:
+def _observe_session_count() -> list[tuple[float, dict[str, Any]]]:
     with _gauge_lock:
         return [(value, dict(attrs)) for attrs, value in _session_count_state.items()]
 
 
-def _observe_session_max() -> List[Tuple[float, Dict[str, Any]]]:
+def _observe_session_max() -> list[tuple[float, dict[str, Any]]]:
     with _gauge_lock:
         return [(value, dict(attrs)) for attrs, value in _session_max_state.items()]
 
 
-def _observe_session_min() -> List[Tuple[float, Dict[str, Any]]]:
+def _observe_session_min() -> list[tuple[float, dict[str, Any]]]:
     # The SDK never configures a pool minimum, so this is always 0 for every known pool.
     with _gauge_lock:
         return [(0, dict(attrs)) for attrs in _session_max_state]
@@ -217,7 +217,7 @@ def query_session_pool_name(
     return next_query_session_pool_name()
 
 
-def _metrics_build_info_tokens() -> List[str]:
+def _metrics_build_info_tokens() -> list[str]:
     """Metrics' contribution to the ``x-ydb-sdk-build-info`` header.
 
     Returns ``["ydb-sdk-metrics/0.1.0"]`` once a metrics backend is installed,
@@ -227,11 +227,11 @@ def _metrics_build_info_tokens() -> List[str]:
     return [METRICS_SDK_BUILD_INFO] if is_metrics_enabled() else []
 
 
-def _pool_attrs(pool_name: Optional[str]) -> Dict[str, Any]:
+def _pool_attrs(pool_name: Optional[str]) -> dict[str, Any]:
     return {"ydb.query.session.pool.name": pool_name or _UNKNOWN_POOL}
 
 
-def _build_ydb_metrics_attrs(driver_config) -> Dict[str, Any]:
+def _build_ydb_metrics_attrs(driver_config) -> dict[str, Any]:
     host, port = split_endpoint(getattr(driver_config, "endpoint", None))
     endpoint = "%s:%d" % (host, port) if port else host
     return {
@@ -244,7 +244,7 @@ def _operation_name(operation_name: str) -> str:
     return _CLIENT_OPERATION_NAME_BY_INPUT.get(operation_name, operation_name)
 
 
-def _operation_attrs(operation_name: str, attributes: Dict[str, Any]) -> Dict[str, Any]:
+def _operation_attrs(operation_name: str, attributes: dict[str, Any]) -> dict[str, Any]:
     name = _operation_name(operation_name)
     return {
         "database": attributes.get("database", ""),
@@ -269,7 +269,7 @@ class MetricsOperation:
     attached, and accepts only stable operation labels.
     """
 
-    def __init__(self, name: str, attributes: Optional[Dict[str, Any]] = None) -> None:
+    def __init__(self, name: str, attributes: Optional[dict[str, Any]] = None) -> None:
         self._name = name
         self._attributes = _operation_attrs(name, attributes or {})
         self._start_time = time.monotonic()
@@ -366,7 +366,7 @@ class _MetricsOperationContext:
 _NOOP_METRICS_OPERATION = _NoopMetricsOperation()
 
 
-def create_metrics_operation(name: str, attributes: Optional[Dict[str, Any]] = None):
+def create_metrics_operation(name: str, attributes: Optional[dict[str, Any]] = None):
     if _provider is _NOOP_PROVIDER or _operation_name(name) not in _CLIENT_OPERATION_NAMES:
         return _NOOP_METRICS_OPERATION
     return MetricsOperation(name, attributes)

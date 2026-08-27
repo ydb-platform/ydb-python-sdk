@@ -5,8 +5,6 @@ from concurrent import futures
 from typing import (
     Callable,
     Optional,
-    List,
-    Dict,
     Any,
     Union,
     TYPE_CHECKING,
@@ -245,7 +243,7 @@ class QuerySessionPool:
         *args,
         pool_id: Optional[str] = None,
         **kwargs,
-    ) -> List[convert.ResultSet]:
+    ) -> list[convert.ResultSet]:
         """Special interface to execute a one-shot queries in a safe, retriable way.
         Note: this method loads all data from stream before return, do not use this
         method with huge read queries.
@@ -301,7 +299,7 @@ class QuerySessionPool:
         *,
         result_format: QueryExplainResultFormat = QueryExplainResultFormat.STR,
         retry_settings: Optional[RetrySettings] = None,
-    ) -> Union[str, Dict[str, Any]]:
+    ) -> Union[str, dict[str, Any]]:
         """
         Explain a query in retriable way. No real query execution will happen.
 

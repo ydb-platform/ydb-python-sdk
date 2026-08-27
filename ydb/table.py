@@ -9,11 +9,8 @@ import typing
 
 from typing import (
     Any,
-    Dict,
     Generic,
-    List,
     Optional,
-    Tuple,
     TYPE_CHECKING,
 )
 
@@ -86,7 +83,7 @@ class ExecDataQuerySettings(settings_impl.BaseRequestSettings):
         return self
 
 
-class KeyBound(object):
+class KeyBound:
     __slots__ = ("_equal", "value", "type")
 
     def __init__(self, key_value, key_type=None, inclusive=False):
@@ -102,7 +99,7 @@ class KeyBound(object):
         except TypeError:
             assert False, "value must be iterable!"
 
-        if isinstance(key_type, types.TupleType):
+        if isinstance(key_type, types.tupleType):
             key_type = key_type.proto
 
         self._equal = inclusive
@@ -117,8 +114,8 @@ class KeyBound(object):
 
     def __str__(self):
         if self._equal:
-            return "InclusiveKeyBound(Tuple%s)" % str(self.value)
-        return "ExclusiveKeyBound(Tuple%s)" % str(self.value)
+            return "InclusiveKeyBound(tuple%s)" % str(self.value)
+        return "ExclusiveKeyBound(tuple%s)" % str(self.value)
 
     @classmethod
     def inclusive(cls, key_value, key_type):
@@ -129,7 +126,7 @@ class KeyBound(object):
         return cls(key_value, key_type, False)
 
 
-class KeyRange(object):
+class KeyRange:
     __slots__ = ("from_bound", "to_bound")
 
     def __init__(self, from_bound, to_bound):
@@ -143,7 +140,7 @@ class KeyRange(object):
         return "KeyRange(%s, %s)" % (str(self.from_bound), str(self.to_bound))
 
 
-class Column(object):
+class Column:
     def __init__(self, name, type, family=None):
         self._name = name
         self._type = type
@@ -194,7 +191,7 @@ class IndexStatus(enum.IntEnum):
     BUILDING = 2
 
 
-class CachingPolicy(object):
+class CachingPolicy:
     def __init__(self):
         self._pb = _apis.ydb_table.CachingPolicy()
         self.preset_name = None
@@ -208,7 +205,7 @@ class CachingPolicy(object):
         return self._pb
 
 
-class ExecutionPolicy(object):
+class ExecutionPolicy:
     def __init__(self):
         self._pb = _apis.ydb_table.ExecutionPolicy()
         self.preset_name = None
@@ -222,7 +219,7 @@ class ExecutionPolicy(object):
         return self._pb
 
 
-class CompactionPolicy(object):
+class CompactionPolicy:
     def __init__(self):
         self._pb = _apis.ydb_table.CompactionPolicy()
         self.preset_name = None
@@ -236,7 +233,7 @@ class CompactionPolicy(object):
         return self._pb
 
 
-class SplitPoint(object):
+class SplitPoint:
     def __init__(self, *args):
         self._value = tuple(args)
 
@@ -245,12 +242,12 @@ class SplitPoint(object):
         return self._value
 
 
-class ExplicitPartitions(object):
+class ExplicitPartitions:
     def __init__(self, split_points):
         self.split_points = split_points
 
 
-class PartitioningPolicy(object):
+class PartitioningPolicy:
     def __init__(self):
         self._pb = _apis.ydb_table.PartitioningPolicy()
         self.preset_name = None
@@ -287,7 +284,7 @@ class PartitioningPolicy(object):
 
             for split_point in self.explicit_partitions.split_points:
                 typed_value = self._pb.explicit_partitions.split_points.add()
-                split_point_type = types.TupleType()
+                split_point_type = types.tupleType()
                 prefix_size = len(split_point.value)
                 for pl_el_id, pk_name in enumerate(table_description.primary_key):
                     if pl_el_id >= prefix_size:
@@ -301,7 +298,7 @@ class PartitioningPolicy(object):
         return self._pb
 
 
-class TableIndex(object):
+class TableIndex:
     def __init__(self, name):
         self._pb = _apis.ydb_table.TableIndex()
         self._pb.name = name
@@ -349,7 +346,7 @@ class RenameIndexItem:
         )
 
 
-class ReplicationPolicy(object):
+class ReplicationPolicy:
     def __init__(self):
         self._pb = _apis.ydb_table.ReplicationPolicy()
         self.preset_name = None
@@ -381,7 +378,7 @@ class ReplicationPolicy(object):
         return self._pb
 
 
-class StoragePool(object):
+class StoragePool:
     def __init__(self, media):
         self.media = media
 
@@ -389,7 +386,7 @@ class StoragePool(object):
         return _apis.ydb_table.StoragePool(media=self.media)
 
 
-class StoragePolicy(object):
+class StoragePolicy:
     def __init__(self):
         self._pb = _apis.ydb_table.StoragePolicy()
         self.preset_name = None
@@ -433,7 +430,7 @@ class StoragePolicy(object):
         return self._pb
 
 
-class TableProfile(object):
+class TableProfile:
     def __init__(self):
         self.preset_name = None
         self.compaction_policy = None
@@ -498,7 +495,7 @@ class TableProfile(object):
         return pb
 
 
-class DateTypeColumnModeSettings(object):
+class DateTypeColumnModeSettings:
     def __init__(self, column_name, expire_after_seconds=0):
         self.column_name = column_name
         self.expire_after_seconds = expire_after_seconds
@@ -521,7 +518,7 @@ class ColumnUnit(enum.IntEnum):
     UNIT_NANOSECONDS = 4
 
 
-class ValueSinceUnixEpochModeSettings(object):
+class ValueSinceUnixEpochModeSettings:
     def __init__(self, column_name, column_unit, expire_after_seconds=0):
         self.column_name = column_name
         self.column_unit = column_unit
@@ -537,7 +534,7 @@ class ValueSinceUnixEpochModeSettings(object):
         return pb
 
 
-class TtlSettings(object):
+class TtlSettings:
     def __init__(self):
         self.date_type_column = None
         self.value_since_unix_epoch = None
@@ -563,7 +560,7 @@ class TtlSettings(object):
         return pb
 
 
-class TableStats(object):
+class TableStats:
     def __init__(self):
         self.partitions = None
         self.store_size = 0
@@ -592,7 +589,7 @@ class TableStats(object):
         return self
 
 
-class ReadReplicasSettings(object):
+class ReadReplicasSettings:
     def __init__(self):
         self.per_az_read_replicas_count = 0
         self.any_az_read_replicas_count = 0
@@ -614,7 +611,7 @@ class ReadReplicasSettings(object):
         return pb
 
 
-class PartitioningSettings(object):
+class PartitioningSettings:
     def __init__(self):
         self.partitioning_by_size = 0
         self.partition_size_mb = 0
@@ -652,7 +649,7 @@ class PartitioningSettings(object):
         return pb
 
 
-class StorageSettings(object):
+class StorageSettings:
     def __init__(self):
         self.tablet_commit_log0 = None
         self.tablet_commit_log1 = None
@@ -694,7 +691,7 @@ class Compression(enum.IntEnum):
     LZ4 = 2
 
 
-class ColumnFamily(object):
+class ColumnFamily:
     def __init__(self):
         self.compression = 0
         self.name = None
@@ -728,7 +725,7 @@ class ColumnFamily(object):
         return cm
 
 
-class TableDescription(object):
+class TableDescription:
     def __init__(self):
         self.columns = []
         self.primary_key = []
@@ -903,7 +900,7 @@ class StaleReadOnly(AbstractTransactionModeBuilder):
         return self._name
 
 
-class TableClientSettings(object):
+class TableClientSettings:
     def __init__(self):
         self._client_query_cache_enabled = False
         self._native_datetime_in_result_sets = False
@@ -955,7 +952,7 @@ class TableClientSettings(object):
         return self
 
 
-class ScanQueryResult(object):
+class ScanQueryResult:
     def __init__(self, result, table_client_settings):
         self._result = result
         self.query_stats = result.query_stats
@@ -979,7 +976,7 @@ class ScanQuerySettings(settings_impl.BaseRequestSettings):
         return self
 
 
-class ScanQuery(object):
+class ScanQuery:
     def __init__(self, yql_text, parameters_types):
         self.yql_text = yql_text
         self.parameters_types = parameters_types
@@ -1361,42 +1358,42 @@ class TableClient(BaseTableClient["SyncDriver"]):
     def alter_table(
         self,
         path: str,
-        add_columns: Optional[List["ydb.Column"]] = None,
-        drop_columns: Optional[List[str]] = None,
+        add_columns: Optional[list["ydb.Column"]] = None,
+        drop_columns: Optional[list[str]] = None,
         settings: Optional["settings_impl.BaseRequestSettings"] = None,
-        alter_attributes: Optional[Optional[Dict[str, str]]] = None,
-        add_indexes: Optional[List["ydb.TableIndex"]] = None,
-        drop_indexes: Optional[List[str]] = None,
+        alter_attributes: Optional[Optional[dict[str, str]]] = None,
+        add_indexes: Optional[list["ydb.TableIndex"]] = None,
+        drop_indexes: Optional[list[str]] = None,
         set_ttl_settings: Optional["ydb.TtlSettings"] = None,
         drop_ttl_settings: Optional[Any] = None,
-        add_column_families: Optional[List["ydb.ColumnFamily"]] = None,
-        alter_column_families: Optional[List["ydb.ColumnFamily"]] = None,
+        add_column_families: Optional[list["ydb.ColumnFamily"]] = None,
+        alter_column_families: Optional[list["ydb.ColumnFamily"]] = None,
         alter_storage_settings: Optional["ydb.StorageSettings"] = None,
         set_compaction_policy: Optional[str] = None,
         alter_partitioning_settings: Optional["ydb.PartitioningSettings"] = None,
         set_key_bloom_filter: Optional["ydb.FeatureFlag"] = None,
         set_read_replicas_settings: Optional["ydb.ReadReplicasSettings"] = None,
-        rename_indexes: Optional[List["ydb.RenameIndexItem"]] = None,
+        rename_indexes: Optional[list["ydb.RenameIndexItem"]] = None,
     ) -> "ydb.Operation":
         """
         Alter a YDB table.
 
         :param path: A table path
-        :param add_columns: List of ydb.Column to add
-        :param drop_columns: List of column names to drop
+        :param add_columns: list of ydb.Column to add
+        :param drop_columns: list of column names to drop
         :param settings: An instance of BaseRequestSettings that describes how rpc should be invoked.
-        :param alter_attributes: Dict of attributes to alter
-        :param add_indexes: List of ydb.TableIndex to add
-        :param drop_indexes: List of index names to drop
+        :param alter_attributes: dict of attributes to alter
+        :param add_indexes: list of ydb.TableIndex to add
+        :param drop_indexes: list of index names to drop
         :param set_ttl_settings: ydb.TtlSettings to set
         :param drop_ttl_settings: Any to drop
-        :param add_column_families: List of ydb.ColumnFamily to add
-        :param alter_column_families: List of ydb.ColumnFamily to alter
+        :param add_column_families: list of ydb.ColumnFamily to add
+        :param alter_column_families: list of ydb.ColumnFamily to alter
         :param alter_storage_settings: ydb.StorageSettings to alter
         :param set_compaction_policy: Compaction policy
         :param alter_partitioning_settings: ydb.PartitioningSettings to alter
         :param set_key_bloom_filter: ydb.FeatureFlag to set key bloom filter
-        :param rename_indexes: List of ydb.RenameIndexItem to rename
+        :param rename_indexes: list of ydb.RenameIndexItem to rename
 
         :return: Operation or YDB error otherwise.
         """
@@ -1479,13 +1476,13 @@ class TableClient(BaseTableClient["SyncDriver"]):
 
     def copy_tables(
         self,
-        source_destination_pairs: List[Tuple[str, str]],
+        source_destination_pairs: list[tuple[str, str]],
         settings: Optional["settings_impl.BaseRequestSettings"] = None,
     ) -> "ydb.Operation":
         """
         Copy a YDB tables.
 
-        :param source_destination_pairs: List of tuples (source_path, destination_path)
+        :param source_destination_pairs: list of tuples (source_path, destination_path)
         :param settings: An instance of BaseRequestSettings that describes how rpc should be invoked.
 
         :return: Operation or YDB error otherwise.
@@ -1501,13 +1498,13 @@ class TableClient(BaseTableClient["SyncDriver"]):
 
     def rename_tables(
         self,
-        rename_items: List[Tuple[str, str]],
+        rename_items: list[tuple[str, str]],
         settings: Optional["settings_impl.BaseRequestSettings"] = None,
     ) -> "ydb.Operation":
         """
         Rename a YDB tables.
 
-        :param rename_items: List of tuples (current_name, desired_name)
+        :param rename_items: list of tuples (current_name, desired_name)
         :param settings: An instance of BaseRequestSettings that describes how rpc should be invoked.
 
         :return: Operation or YDB error otherwise.
@@ -2685,7 +2682,7 @@ class TxContext(BaseTxContext):
         )
 
 
-class SessionPool(object):
+class SessionPool:
     def __init__(
         self,
         driver,
@@ -2781,7 +2778,7 @@ class SessionPool(object):
         self.stop()
 
 
-class AsyncSessionCheckout(object):
+class AsyncSessionCheckout:
     __slots__ = ("subscription", "pool")
 
     def __init__(self, pool):
@@ -2802,7 +2799,7 @@ class AsyncSessionCheckout(object):
         self.pool.unsubscribe(self.subscription)
 
 
-class SessionCheckout(object):
+class SessionCheckout:
     __slots__ = ("_acquired", "_pool", "_blocking", "_timeout")
 
     def __init__(self, pool, blocking, timeout):

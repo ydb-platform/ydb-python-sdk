@@ -39,7 +39,7 @@ import concurrent.futures
 import datetime
 from dataclasses import dataclass
 import logging
-from typing import List, Union, Mapping, Optional, Dict, Callable
+from typing import Union, Mapping, Optional, Callable
 
 from . import aio, Credentials, _apis, issues
 
@@ -141,11 +141,11 @@ class TopicClientAsyncIO:
         partition_count_limit: Optional[int] = None,
         retention_period: Optional[datetime.timedelta] = None,
         retention_storage_mb: Optional[int] = None,
-        supported_codecs: Optional[List[Union[TopicCodec, int]]] = None,
+        supported_codecs: Optional[list[Union[TopicCodec, int]]] = None,
         partition_write_speed_bytes_per_second: Optional[int] = None,
         partition_write_burst_bytes: Optional[int] = None,
-        attributes: Optional[Dict[str, str]] = None,
-        consumers: Optional[List[Union[TopicConsumer, str]]] = None,
+        attributes: Optional[dict[str, str]] = None,
+        consumers: Optional[list[Union[TopicConsumer, str]]] = None,
         metering_mode: Optional[TopicMeteringMode] = None,
         auto_partitioning_settings: Optional[TopicAutoPartitioningSettings] = None,
     ):
@@ -158,13 +158,13 @@ class TopicClientAsyncIO:
             and read-only partitions.
         :param retention_period: How long data in partition should be stored
         :param retention_storage_mb: How much data in partition should be stored
-        :param supported_codecs: List of allowed codecs for writers. Writes with codec not from this list are forbidden.
+        :param supported_codecs: list of allowed codecs for writers. Writes with codec not from this list are forbidden.
             Empty list mean disable codec compatibility checks for the topic.
         :param partition_write_speed_bytes_per_second: Partition write speed in bytes per second
         :param partition_write_burst_bytes: Burst size for write in partition, in bytes
         :param attributes: User and server attributes of topic.
             Server attributes starts from "_" and will be validated by server.
-        :param consumers: List of consumers for this topic
+        :param consumers: list of consumers for this topic
         :param metering_mode: Metering mode for the topic in a serverless database
         """
         logger.debug("Create topic request: path=%s", path)
@@ -185,16 +185,16 @@ class TopicClientAsyncIO:
         set_min_active_partitions: Optional[int] = None,
         set_max_active_partitions: Optional[int] = None,
         set_partition_count_limit: Optional[int] = None,
-        add_consumers: Optional[List[Union[TopicConsumer, str]]] = None,
-        alter_consumers: Optional[List[Union[TopicAlterConsumer, str]]] = None,
-        drop_consumers: Optional[List[str]] = None,
-        alter_attributes: Optional[Dict[str, str]] = None,
+        add_consumers: Optional[list[Union[TopicConsumer, str]]] = None,
+        alter_consumers: Optional[list[Union[TopicAlterConsumer, str]]] = None,
+        drop_consumers: Optional[list[str]] = None,
+        alter_attributes: Optional[dict[str, str]] = None,
         set_metering_mode: Optional[TopicMeteringMode] = None,
         set_partition_write_speed_bytes_per_second: Optional[int] = None,
         set_partition_write_burst_bytes: Optional[int] = None,
         set_retention_period: Optional[datetime.timedelta] = None,
         set_retention_storage_mb: Optional[int] = None,
-        set_supported_codecs: Optional[List[Union[TopicCodec, int]]] = None,
+        set_supported_codecs: Optional[list[Union[TopicCodec, int]]] = None,
         alter_auto_partitioning_settings: Optional[TopicAlterAutoPartitioningSettings] = None,
     ):
         """
@@ -204,9 +204,9 @@ class TopicClientAsyncIO:
         :param set_min_active_partitions: Minimum partition count auto merge would stop working at.
         :param set_partition_count_limit: Limit for total partition count, including active (open for write)
             and read-only partitions.
-        :param add_consumers: List of consumers for this topic to add
-        :param alter_consumers: List of consumers for this topic to alter
-        :param drop_consumers: List of consumer names for this topic to drop
+        :param add_consumers: list of consumers for this topic to add
+        :param alter_consumers: list of consumers for this topic to alter
+        :param drop_consumers: list of consumer names for this topic to drop
         :param alter_attributes: User and server attributes of topic.
             Server attributes starts from "_" and will be validated by server.
         :param set_metering_mode: Metering mode for the topic in a serverless database
@@ -214,7 +214,7 @@ class TopicClientAsyncIO:
         :param set_partition_write_burst_bytes: Burst size for write in partition, in bytes
         :param set_retention_period: How long data in partition should be stored
         :param set_retention_storage_mb: How much data in partition should be stored
-        :param set_supported_codecs: List of allowed codecs for writers. Writes with codec not from this list are forbidden.
+        :param set_supported_codecs: list of allowed codecs for writers. Writes with codec not from this list are forbidden.
             Empty list mean disable codec compatibility checks for the topic.
         """
         logger.debug("Alter topic request: path=%s", path)
@@ -283,7 +283,7 @@ class TopicClientAsyncIO:
 
     def reader(
         self,
-        topic: Union[str, TopicReaderSelector, List[Union[str, TopicReaderSelector]]],
+        topic: Union[str, TopicReaderSelector, list[Union[str, TopicReaderSelector]]],
         consumer: Optional[str],
         buffer_size_bytes: int = 50 * 1024 * 1024,
         # decoders: map[codec_code] func(encoded_bytes)->decoded_bytes
@@ -466,11 +466,11 @@ class TopicClient:
         partition_count_limit: Optional[int] = None,
         retention_period: Optional[datetime.timedelta] = None,
         retention_storage_mb: Optional[int] = None,
-        supported_codecs: Optional[List[Union[TopicCodec, int]]] = None,
+        supported_codecs: Optional[list[Union[TopicCodec, int]]] = None,
         partition_write_speed_bytes_per_second: Optional[int] = None,
         partition_write_burst_bytes: Optional[int] = None,
-        attributes: Optional[Dict[str, str]] = None,
-        consumers: Optional[List[Union[TopicConsumer, str]]] = None,
+        attributes: Optional[dict[str, str]] = None,
+        consumers: Optional[list[Union[TopicConsumer, str]]] = None,
         metering_mode: Optional[TopicMeteringMode] = None,
         auto_partitioning_settings: Optional[TopicAutoPartitioningSettings] = None,
     ):
@@ -483,13 +483,13 @@ class TopicClient:
             and read-only partitions.
         :param retention_period: How long data in partition should be stored
         :param retention_storage_mb: How much data in partition should be stored
-        :param supported_codecs: List of allowed codecs for writers. Writes with codec not from this list are forbidden.
+        :param supported_codecs: list of allowed codecs for writers. Writes with codec not from this list are forbidden.
             Empty list mean disable codec compatibility checks for the topic.
         :param partition_write_speed_bytes_per_second: Partition write speed in bytes per second
         :param partition_write_burst_bytes: Burst size for write in partition, in bytes
         :param attributes: User and server attributes of topic.
             Server attributes starts from "_" and will be validated by server.
-        :param consumers: List of consumers for this topic
+        :param consumers: list of consumers for this topic
         :param metering_mode: Metering mode for the topic in a serverless database
         """
         logger.debug("Create topic request: path=%s", path)
@@ -512,16 +512,16 @@ class TopicClient:
         set_min_active_partitions: Optional[int] = None,
         set_max_active_partitions: Optional[int] = None,
         set_partition_count_limit: Optional[int] = None,
-        add_consumers: Optional[List[Union[TopicConsumer, str]]] = None,
-        alter_consumers: Optional[List[Union[TopicAlterConsumer, str]]] = None,
-        drop_consumers: Optional[List[str]] = None,
-        alter_attributes: Optional[Dict[str, str]] = None,
+        add_consumers: Optional[list[Union[TopicConsumer, str]]] = None,
+        alter_consumers: Optional[list[Union[TopicAlterConsumer, str]]] = None,
+        drop_consumers: Optional[list[str]] = None,
+        alter_attributes: Optional[dict[str, str]] = None,
         set_metering_mode: Optional[TopicMeteringMode] = None,
         set_partition_write_speed_bytes_per_second: Optional[int] = None,
         set_partition_write_burst_bytes: Optional[int] = None,
         set_retention_period: Optional[datetime.timedelta] = None,
         set_retention_storage_mb: Optional[int] = None,
-        set_supported_codecs: Optional[List[Union[TopicCodec, int]]] = None,
+        set_supported_codecs: Optional[list[Union[TopicCodec, int]]] = None,
         alter_auto_partitioning_settings: Optional[TopicAlterAutoPartitioningSettings] = None,
     ):
         """
@@ -531,9 +531,9 @@ class TopicClient:
         :param set_min_active_partitions: Minimum partition count auto merge would stop working at.
         :param set_partition_count_limit: Limit for total partition count, including active (open for write)
             and read-only partitions.
-        :param add_consumers: List of consumers for this topic to add
-        :param alter_consumers: List of consumers for this topic to alter
-        :param drop_consumers: List of consumer names for this topic to drop
+        :param add_consumers: list of consumers for this topic to add
+        :param alter_consumers: list of consumers for this topic to alter
+        :param drop_consumers: list of consumer names for this topic to drop
         :param alter_attributes: User and server attributes of topic.
             Server attributes starts from "_" and will be validated by server.
         :param set_metering_mode: Metering mode for the topic in a serverless database
@@ -541,7 +541,7 @@ class TopicClient:
         :param set_partition_write_burst_bytes: Burst size for write in partition, in bytes
         :param set_retention_period: How long data in partition should be stored
         :param set_retention_storage_mb: How much data in partition should be stored
-        :param set_supported_codecs: List of allowed codecs for writers. Writes with codec not from this list are forbidden.
+        :param set_supported_codecs: list of allowed codecs for writers. Writes with codec not from this list are forbidden.
             Empty list mean disable codec compatibility checks for the topic.
         """
         logger.debug("Alter topic request: path=%s", path)
@@ -619,7 +619,7 @@ class TopicClient:
 
     def reader(
         self,
-        topic: Union[str, TopicReaderSelector, List[Union[str, TopicReaderSelector]]],
+        topic: Union[str, TopicReaderSelector, list[Union[str, TopicReaderSelector]]],
         consumer: Optional[str],
         buffer_size_bytes: int = 50 * 1024 * 1024,
         # decoders: map[codec_code] func(encoded_bytes)->decoded_bytes

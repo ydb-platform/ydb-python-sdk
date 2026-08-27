@@ -7,7 +7,7 @@ import logging
 from concurrent import futures
 import collections
 import random
-from typing import Any, Callable, ContextManager, List, Optional, Set, Tuple, TYPE_CHECKING
+from typing import Any, Callable, ContextManager, Optional, TYPE_CHECKING
 
 from . import connection as connection_impl, issues, resolver, _utilities, tracing
 from .observability.tracing import SpanName, create_ydb_span
@@ -31,12 +31,12 @@ class ConnectionsCache:
         self.connections: collections.OrderedDict[str, Connection] = collections.OrderedDict()
         self.connections_by_node_id: collections.OrderedDict[Optional[int], Connection] = collections.OrderedDict()
         self.outdated: collections.OrderedDict[str, Connection] = collections.OrderedDict()
-        self.subscriptions: Set["futures.Future[None]"] = set()
+        self.subscriptions: set["futures.Future[None]"] = set()
         self.preferred: collections.OrderedDict[str, Connection] = collections.OrderedDict()
         self.logger = logging.getLogger(__name__)
         self.use_all_nodes = use_all_nodes
         self.conn_lst_order = (self.connections,) if self.use_all_nodes else (self.preferred, self.connections)
-        self.fast_fail_subscriptions: Set["futures.Future[None]"] = set()
+        self.fast_fail_subscriptions: set["futures.Future[None]"] = set()
 
     def add(self, connection: Optional[Connection], preferred: bool = False) -> bool:
         if connection is None:
@@ -81,7 +81,7 @@ class ConnectionsCache:
         with self.lock:
             return endpoint in self.connections
 
-    def values(self) -> List[Connection]:
+    def values(self) -> list[Connection]:
         with self.lock:
             return list(self.connections.values())
 
@@ -376,7 +376,7 @@ class IConnectionPool(abc.ABC):
         rpc_name: str,
         wrap_result: Optional[Callable[..., Any]] = None,
         settings: Optional["BaseRequestSettings"] = None,
-        wrap_args: Tuple[Any, ...] = (),
+        wrap_args: tuple[Any, ...] = (),
         preferred_endpoint: Optional[EndpointKey] = None,
     ) -> Any:
         """
@@ -524,7 +524,7 @@ class ConnectionPool(IConnectionPool):
         rpc_name: str,
         wrap_result: Optional[Callable[..., Any]] = None,
         settings: Optional["BaseRequestSettings"] = None,
-        wrap_args: Tuple[Any, ...] = (),
+        wrap_args: tuple[Any, ...] = (),
         preferred_endpoint: Optional[EndpointKey] = None,
     ) -> Any:
         """
@@ -573,7 +573,7 @@ class ConnectionPool(IConnectionPool):
         rpc_name: str,
         wrap_result: Optional[Callable[..., Any]] = None,
         settings: Optional["BaseRequestSettings"] = None,
-        wrap_args: Tuple[Any, ...] = (),
+        wrap_args: tuple[Any, ...] = (),
         preferred_endpoint: Optional[EndpointKey] = None,
     ) -> "futures.Future[Any]":
         """
