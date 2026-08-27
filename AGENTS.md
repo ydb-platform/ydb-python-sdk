@@ -40,14 +40,11 @@ tox -e style
 
 # Type checking
 tox -e mypy
-
-# Codespell checking
-tox -e codespell
 ```
 
 Before submitting a PR, run all checks and unit tests:
 ```sh
-tox -e black && tox -e style && tox -e mypy && tox -e py -- ydb -v && tox -e codespell
+tox -e black && tox -e style && tox -e mypy && tox -e py -- ydb -v
 ```
 
 ## Testing
