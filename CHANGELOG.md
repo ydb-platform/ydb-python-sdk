@@ -1,3 +1,4 @@
+## 3.31.3 ##
 * Add `SchemeEntry.interrupt_permission_inheritance`, reported by `describe_path` and `list_directory`, telling whether the object inherits permissions from its parents
 
 ## 3.31.2 ##
