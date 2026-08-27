@@ -3,7 +3,6 @@ import json
 
 from typing import (
     Optional,
-    Dict,
     Any,
     Union,
     TYPE_CHECKING,
@@ -203,7 +202,7 @@ class QuerySession(BaseQuerySession["AsyncDriver"]):
         query: str,
         parameters: Optional[dict] = None,
         result_format: base.QueryExplainResultFormat = base.QueryExplainResultFormat.STR,
-    ) -> Union[str, Dict[str, Any]]:
+    ) -> Union[str, dict[str, Any]]:
         """Explains query result
         :param query: YQL or SQL query.
         :param parameters: dict with parameters and YDB types;

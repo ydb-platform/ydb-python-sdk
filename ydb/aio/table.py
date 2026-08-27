@@ -5,10 +5,7 @@ import typing
 
 from typing import (
     Any,
-    Dict,
-    List,
     Optional,
-    Tuple,
     TYPE_CHECKING,
 )
 
@@ -246,42 +243,42 @@ class TableClient(BaseTableClient["AsyncDriver"]):
     async def alter_table(
         self,
         path: str,
-        add_columns: Optional[List["ydb.Column"]] = None,
-        drop_columns: Optional[List[str]] = None,
+        add_columns: Optional[list["ydb.Column"]] = None,
+        drop_columns: Optional[list[str]] = None,
         settings: Optional["settings_impl.BaseRequestSettings"] = None,
-        alter_attributes: Optional[Optional[Dict[str, str]]] = None,
-        add_indexes: Optional[List["ydb.TableIndex"]] = None,
-        drop_indexes: Optional[List[str]] = None,
+        alter_attributes: Optional[Optional[dict[str, str]]] = None,
+        add_indexes: Optional[list["ydb.TableIndex"]] = None,
+        drop_indexes: Optional[list[str]] = None,
         set_ttl_settings: Optional["ydb.TtlSettings"] = None,
         drop_ttl_settings: Optional[Any] = None,
-        add_column_families: Optional[List["ydb.ColumnFamily"]] = None,
-        alter_column_families: Optional[List["ydb.ColumnFamily"]] = None,
+        add_column_families: Optional[list["ydb.ColumnFamily"]] = None,
+        alter_column_families: Optional[list["ydb.ColumnFamily"]] = None,
         alter_storage_settings: Optional["ydb.StorageSettings"] = None,
         set_compaction_policy: Optional[str] = None,
         alter_partitioning_settings: Optional["ydb.PartitioningSettings"] = None,
         set_key_bloom_filter: Optional["ydb.FeatureFlag"] = None,
         set_read_replicas_settings: Optional["ydb.ReadReplicasSettings"] = None,
-        rename_indexes: Optional[List["ydb.RenameIndexItem"]] = None,
+        rename_indexes: Optional[list["ydb.RenameIndexItem"]] = None,
     ) -> "ydb.Operation":
         """
         Alter a YDB table.
 
         :param path: A table path
-        :param add_columns: List of ydb.Column to add
-        :param drop_columns: List of column names to drop
+        :param add_columns: list of ydb.Column to add
+        :param drop_columns: list of column names to drop
         :param settings: An instance of BaseRequestSettings that describes how rpc should be invoked.
-        :param alter_attributes: Dict of attributes to alter
-        :param add_indexes: List of ydb.TableIndex to add
-        :param drop_indexes: List of index names to drop
+        :param alter_attributes: dict of attributes to alter
+        :param add_indexes: list of ydb.TableIndex to add
+        :param drop_indexes: list of index names to drop
         :param set_ttl_settings: ydb.TtlSettings to set
         :param drop_ttl_settings: Any to drop
-        :param add_column_families: List of ydb.ColumnFamily to add
-        :param alter_column_families: List of ydb.ColumnFamily to alter
+        :param add_column_families: list of ydb.ColumnFamily to add
+        :param alter_column_families: list of ydb.ColumnFamily to alter
         :param alter_storage_settings: ydb.StorageSettings to alter
         :param set_compaction_policy: Compaction policy
         :param alter_partitioning_settings: ydb.PartitioningSettings to alter
         :param set_key_bloom_filter: ydb.FeatureFlag to set key bloom filter
-        :param rename_indexes: List of ydb.RenameIndexItem to rename
+        :param rename_indexes: list of ydb.RenameIndexItem to rename
 
         :return: Operation or YDB error otherwise.
         """
@@ -364,13 +361,13 @@ class TableClient(BaseTableClient["AsyncDriver"]):
 
     async def copy_tables(
         self,
-        source_destination_pairs: List[Tuple[str, str]],
+        source_destination_pairs: list[tuple[str, str]],
         settings: Optional["settings_impl.BaseRequestSettings"] = None,
     ) -> "ydb.Operation":
         """
         Copy a YDB tables.
 
-        :param source_destination_pairs: List of tuples (source_path, destination_path)
+        :param source_destination_pairs: list of tuples (source_path, destination_path)
         :param settings: An instance of BaseRequestSettings that describes how rpc should be invoked.
 
         :return: Operation or YDB error otherwise.
@@ -386,13 +383,13 @@ class TableClient(BaseTableClient["AsyncDriver"]):
 
     async def rename_tables(
         self,
-        rename_items: List[Tuple[str, str]],
+        rename_items: list[tuple[str, str]],
         settings: Optional["settings_impl.BaseRequestSettings"] = None,
     ) -> "ydb.Operation":
         """
         Rename a YDB tables.
 
-        :param rename_items: List of tuples (current_name, desired_name)
+        :param rename_items: list of tuples (current_name, desired_name)
         :param settings: An instance of BaseRequestSettings that describes how rpc should be invoked.
 
         :return: Operation or YDB error otherwise.
