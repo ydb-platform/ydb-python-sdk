@@ -111,7 +111,7 @@ def get_query_hash(yql_text):
 
 class LRUCache:
     def __init__(self, capacity=1000):
-        self.items = collections.Ordereddict()
+        self.items = collections.OrderedDict()
         self.capacity = capacity
 
     def put(self, key, value):
