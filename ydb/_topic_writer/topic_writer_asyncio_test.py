@@ -912,9 +912,9 @@ class TestWriterAsyncIOReconnector:
         data: List[bytes],
     ):
         f = reconnector._codec_functions[codec]
-        expected_datas = [f(data) for data in data]
+        expected_datas = [f(item) for item in data]
 
-        messages = [InternalMessage(PublicMessage(data)) for data in data]
+        messages = [InternalMessage(PublicMessage(item)) for item in data]
         await reconnector._encode_data_inplace(codec, messages)
 
         for index, mess in enumerate(messages):
