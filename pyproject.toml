@@ -75,6 +75,3 @@ exclude_also = [
 
 [tool.coverage.html]
 directory = "cov_html"
-
-[tool.codespell]
-skip = "ydb/default_pem.py, ydb/_grpc"

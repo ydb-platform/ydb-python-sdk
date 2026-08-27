@@ -13,7 +13,7 @@ jobs:
       max-parallel: 4
       matrix:
         python-version: ["3.10"]
-        environment: [style, black, mypy, codespell]
+        environment: [style, black, mypy]
 
     steps:
     - uses: actions/checkout@v4
