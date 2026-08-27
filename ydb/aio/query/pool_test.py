@@ -5,6 +5,7 @@ import unittest
 from unittest.mock import AsyncMock, MagicMock, patch
 
 from ydb import issues
+from ydb.aio import _utilities as aio_utilities
 from ydb.aio.query.pool import QuerySessionPool
 from ydb.aio.query.session import QuerySession
 from ydb.aio.query.transaction import QueryTxContext
@@ -30,6 +31,11 @@ def _make_active_session():
     session = MagicMock()
     session.is_active = True
     return session
+
+
+async def _wait_signalled(event: asyncio.Event) -> None:
+    """Wait for a test signal, bounded so a regression fails the test instead of hanging the suite."""
+    await asyncio.wait_for(event.wait(), timeout=5)
 
 
 class TestAcquireTimeout(unittest.IsolatedAsyncioTestCase):
@@ -119,6 +125,111 @@ class TestAcquireTimeout(unittest.IsolatedAsyncioTestCase):
 
         self.assertEqual(result, "ok")
         live_session.explain.assert_awaited_once_with("SELECT 1")
+
+
+class TestAcquireCancellation(unittest.IsolatedAsyncioTestCase):
+    """Cancelling acquire() while the session is being created must not lose a pool slot."""
+
+    @staticmethod
+    def _hanging_create(entered: asyncio.Event):
+        async def slow_create():
+            entered.set()
+            await asyncio.sleep(30)
+
+        return slow_create
+
+    async def _cancel_during_create(self, pool):
+        entered = asyncio.Event()
+        pool._create_new_session = self._hanging_create(entered)
+
+        task = asyncio.create_task(pool.acquire())
+        await _wait_signalled(entered)
+        task.cancel()
+        with self.assertRaises(asyncio.CancelledError):
+            await task
+
+    async def test_cancelled_create_does_not_leak_pool_capacity(self):
+        pool = _make_pool(size=1)
+
+        await self._cancel_during_create(pool)
+
+        self.assertEqual(pool._current_size, 0)
+
+    async def test_pool_still_usable_after_cancelled_create(self):
+        pool = _make_pool(size=1)
+
+        await self._cancel_during_create(pool)
+
+        session = _make_active_session()
+        pool._create_new_session = AsyncMock(return_value=session)
+
+        acquired = await asyncio.wait_for(pool.acquire(), timeout=1)
+
+        self.assertIs(acquired, session)
+        self.assertEqual(pool._current_size, 1)
+
+    async def test_failed_create_does_not_leak_pool_capacity(self):
+        pool = _make_pool(size=1)
+        pool._create_new_session = AsyncMock(side_effect=issues.ConnectionError("no connection"))
+
+        with self.assertRaises(issues.ConnectionError):
+            await pool.acquire()
+
+        self.assertEqual(pool._current_size, 0)
+
+
+class TestSessionAttachCancellation(unittest.IsolatedAsyncioTestCase):
+    """A cancelled attach must retire the session instead of orphaning it server-side."""
+
+    def _make_session(self):
+        driver = MagicMock()
+        driver._driver_config.query_client_settings = None
+        session = QuerySession(driver)
+        session._session_id = "fake-session-id"
+        return session
+
+    async def test_attach_invalidates_session_when_cancelled_awaiting_first_response(self):
+        session = self._make_session()
+        stream = MagicMock()
+        entered = asyncio.Event()
+
+        async def fake_attach_call(*args, **kwargs):
+            return stream
+
+        async def hanging_first_message(*args, **kwargs):
+            entered.set()
+            await asyncio.sleep(30)
+
+        with patch.object(type(session), "_attach_call", side_effect=fake_attach_call), patch.object(
+            aio_utilities, "AsyncResponseIterator", MagicMock()
+        ), patch.object(aio_utilities, "get_first_message_with_timeout", hanging_first_message):
+            task = asyncio.create_task(session._attach())
+            await _wait_signalled(entered)
+            task.cancel()
+            with self.assertRaises(asyncio.CancelledError):
+                await task
+
+        self.assertFalse(session.is_active)
+        self.assertTrue(session._invalidated)
+        stream.cancel.assert_called_once()
+
+    async def test_attach_invalidates_session_when_cancelled_before_stream_is_open(self):
+        session = self._make_session()
+        entered = asyncio.Event()
+
+        async def hanging_attach_call(*args, **kwargs):
+            entered.set()
+            await asyncio.sleep(30)
+
+        with patch.object(type(session), "_attach_call", side_effect=hanging_attach_call):
+            task = asyncio.create_task(session._attach())
+            await _wait_signalled(entered)
+            task.cancel()
+            with self.assertRaises(asyncio.CancelledError):
+                await task
+
+        self.assertFalse(session.is_active)
+        self.assertTrue(session._invalidated)
 
 
 async def _async_empty_iter():
