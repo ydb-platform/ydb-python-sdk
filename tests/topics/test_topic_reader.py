@@ -369,7 +369,7 @@ class TestBugFixesAsync:
         # Start second reader for same topic, same consumer, partition 1
         reader1 = driver.topic_client.reader(topic, consumer=topic_consumer)
 
-        # receive uncommited message
+        # receive uncommitted message
         await reader1.receive_message()
 
         # write one message for every partition
@@ -381,10 +381,10 @@ class TestBugFixesAsync:
         msg0 = await wait(reader0.receive_message())
         msg1 = await wait(reader1.receive_message())
 
-        datas = [msg0.data.decode(), msg1.data.decode()]
-        datas.sort()
+        data = [msg0.data.decode(), msg1.data.decode()]
+        data.sort()
 
-        assert datas == ["10", "11"]
+        assert data == ["10", "11"]
 
         await reader0.close()
         await reader1.close()

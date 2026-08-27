@@ -49,7 +49,7 @@ async def wait_condition(
 ):
     """
     timeout default is 1 second
-    if timeout is 0 - only counter work. It userful if test need fast timeout for condition (without wait full timeout)
+    if timeout is 0 - only counter work. It useful if test need fast timeout for condition (without wait full timeout)
     """
     if timeout is None:
         timeout = 1

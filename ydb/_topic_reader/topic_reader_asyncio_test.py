@@ -323,7 +323,7 @@ class TestReaderStream:
         send_range: bool,
     ):
         @dataclass
-        class Commitable(datatypes.ICommittable):
+        class Committable(datatypes.ICommittable):
             start: int
             end: int
 
@@ -335,7 +335,7 @@ class TestReaderStream:
 
         start_ack_waiters = partition_session._ack_waiters.copy()
 
-        waiter = stream_reader.commit(Commitable(commit.start, commit.end))
+        waiter = stream_reader.commit(Committable(commit.start, commit.end))
 
         async def wait_message():
             return await wait_for_fast(stream.from_client.get(), timeout=0)
