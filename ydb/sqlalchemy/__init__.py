@@ -265,13 +265,8 @@ try:
             if schema is not None:
                 raise NotSupportedError
 
-            quote = self.identifier_preparer.quote_identifier
-            qtable = quote(table_name)
-
-            # TODO: use `get_columns` instead.
-            statement = "SELECT * FROM " + qtable
             try:
-                connection.execute(statement)
+                self.get_columns(connection, table_name)
                 return True
             except Exception:
                 return False
