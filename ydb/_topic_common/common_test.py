@@ -6,7 +6,7 @@ import typing
 import grpc
 import pytest
 
-from .common import CallFromSyncToAsync
+from .common import CallFromSyncToAsync, _get_shared_event_loop, _shutdown_shared_event_loop
 from .._grpc.grpcwrapper.common_utils import (
     GrpcWrapperAsyncIO,
     ServerStatus,
@@ -288,3 +288,190 @@ class TestCallFromSyncToAsync:
         with pytest.raises(TestError):
             caller.call_sync(callback)
         assert callback_eventloop is separate_loop
+
+
+def _shared_loop_threads_alive() -> bool:
+    return any(t.name == "Common ydb topic event loop" and t.is_alive() for t in threading.enumerate())
+
+
+def _force_stop_real_shared_loop():
+    """Ensure module globals do not retain a live shared loop between mocked tests."""
+    import ydb._topic_common.common as common
+
+    loop = common._shared_event_loop
+    thread = common._shared_event_loop_thread
+    common._shared_event_loop = None
+    common._shared_event_loop_thread = None
+    if loop is not None:
+        try:
+            if loop.is_running():
+                loop.call_soon_threadsafe(loop.stop)
+        except RuntimeError:
+            pass
+    if thread is not None and thread.is_alive():
+        thread.join(timeout=5)
+
+
+class TestSharedEventLoop:
+    def teardown_method(self):
+        _shutdown_shared_event_loop()
+        _force_stop_real_shared_loop()
+
+    def test_shutdown_joins_thread(self):
+        loop = _get_shared_event_loop()
+        assert _shared_loop_threads_alive()
+
+        fut = asyncio.run_coroutine_threadsafe(asyncio.sleep(0.01), loop)
+        assert fut.result(1) is None
+
+        _shutdown_shared_event_loop()
+        assert not _shared_loop_threads_alive()
+
+    def test_shutdown_is_idempotent_when_unused(self):
+        _shutdown_shared_event_loop()
+        _shutdown_shared_event_loop()
+        assert not _shared_loop_threads_alive()
+
+    def test_recreate_after_shutdown(self):
+        loop = _get_shared_event_loop()
+        fut = asyncio.run_coroutine_threadsafe(asyncio.sleep(0.01), loop)
+        assert fut.result(1) is None
+
+        _shutdown_shared_event_loop()
+        assert not _shared_loop_threads_alive()
+
+        loop2 = _get_shared_event_loop()
+        assert loop2 is not loop
+        assert _shared_loop_threads_alive()
+
+        fut2 = asyncio.run_coroutine_threadsafe(asyncio.sleep(0.01), loop2)
+        assert fut2.result(1) is None
+
+        _shutdown_shared_event_loop()
+        assert not _shared_loop_threads_alive()
+
+    def test_get_returns_same_loop(self):
+        loop1 = _get_shared_event_loop()
+        loop2 = _get_shared_event_loop()
+        assert loop1 is loop2
+
+    def test_shutdown_cancels_pending_tasks(self):
+        loop = _get_shared_event_loop()
+        started = threading.Event()
+        cancelled = threading.Event()
+
+        async def long_running():
+            started.set()
+            try:
+                await asyncio.sleep(3600)
+            except asyncio.CancelledError:
+                cancelled.set()
+                raise
+
+        asyncio.run_coroutine_threadsafe(long_running(), loop)
+        assert started.wait(timeout=1)
+
+        _shutdown_shared_event_loop()
+        assert not _shared_loop_threads_alive()
+        assert cancelled.wait(timeout=1)
+
+    def test_shutdown_skips_stop_when_loop_not_running(self):
+        import ydb._topic_common.common as common
+
+        _force_stop_real_shared_loop()
+
+        class FakeLoop:
+            def __init__(self):
+                self.stop_called = False
+
+            def is_running(self):
+                return False
+
+            def call_soon_threadsafe(self, callback):
+                self.stop_called = True
+
+        loop = FakeLoop()
+        common._shared_event_loop = loop
+        common._shared_event_loop_thread = None
+
+        _shutdown_shared_event_loop()
+
+        assert not loop.stop_called
+        assert common._shared_event_loop is None
+
+    def test_shutdown_handles_stop_runtime_error(self, caplog):
+        import logging
+
+        import ydb._topic_common.common as common
+
+        _force_stop_real_shared_loop()
+
+        class FakeLoop:
+            def is_running(self):
+                return True
+
+            def stop(self):
+                return None
+
+            def call_soon_threadsafe(self, callback):
+                raise RuntimeError("loop is closed")
+
+        common._shared_event_loop = FakeLoop()
+        common._shared_event_loop_thread = None
+
+        with caplog.at_level(logging.DEBUG):
+            _shutdown_shared_event_loop()
+
+        assert common._shared_event_loop is None
+        assert any("already stopped" in r.message for r in caplog.records)
+
+    def test_shutdown_warns_when_thread_does_not_stop(self, caplog):
+        import logging
+
+        import ydb._topic_common.common as common
+
+        _force_stop_real_shared_loop()
+
+        class FakeLoop:
+            def is_running(self):
+                return True
+
+            def stop(self):
+                return None
+
+            def call_soon_threadsafe(self, callback):
+                return None
+
+        class StuckThread:
+            def is_alive(self):
+                return True
+
+            def join(self, timeout=None):
+                return None
+
+        common._shared_event_loop = FakeLoop()
+        common._shared_event_loop_thread = StuckThread()
+
+        with caplog.at_level(logging.WARNING):
+            _shutdown_shared_event_loop(timeout=0.01)
+
+        assert common._shared_event_loop is None
+        assert any("did not stop in time" in r.message for r in caplog.records)
+
+    def test_cleanup_logs_when_cancelling_tasks_fails(self, monkeypatch, caplog):
+        import logging
+
+        loop = _get_shared_event_loop()
+        fut = asyncio.run_coroutine_threadsafe(asyncio.sleep(0.01), loop)
+        assert fut.result(1) is None
+
+        def boom(_event_loop):
+            raise RuntimeError("all_tasks failed")
+
+        monkeypatch.setattr(asyncio, "all_tasks", boom)
+
+        with caplog.at_level(logging.DEBUG):
+            _shutdown_shared_event_loop()
+
+        assert not _shared_loop_threads_alive()
+        assert any("cancelling shared event loop tasks" in r.message for r in caplog.records)
