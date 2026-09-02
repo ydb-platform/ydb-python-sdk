@@ -61,7 +61,7 @@ def _from_datetime_number(
 ) -> typing.Union[float, datetime]:
     if table_client_settings is not None and table_client_settings._native_datetime_in_result_sets:
         # x is float when native_datetime_in_result_sets is True
-        return datetime.utcfromtimestamp(typing.cast(float, x))
+        return _EPOCH + timedelta(second=typing.cast(float, x))
     return x
 
 
