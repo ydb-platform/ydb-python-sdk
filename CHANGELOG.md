@@ -1,3 +1,6 @@
+[Unreleased]
+* Fixed `OSError: [Errno 22] Invalid argument` when reading native `Datetime64` value before 1970 (negative Unix timestamps) on Windows: conversion now uses epoch arithmetic instead of `datetime.utcfromtimestamp`
+
 ## 3.31.4 ##
 * Fixed async `QuerySessionPool` permanently losing a pool slot when `acquire()` was cancelled while a new session was being created: `asyncio.CancelledError` no longer leaks the pool size counter, so a pool under deadline-driven cancellations can no longer end up exhausted and blocking forever. A cancelled or interrupted session attach now also closes the session instead of orphaning it server-side
 
