@@ -28,10 +28,10 @@ from .topic_writer_partition_chooser import (
 from .._grpc.grpcwrapper.ydb_topic_public_types import PublicDescribeTopicResult
 
 
-def _partition_info(partition_id: int, from_bound: bytes = None):
+def _partition_info(partition_id: int, from_bound: bytes = None, to_bound: bytes = None):
     key_range = None
-    if from_bound is not None:
-        key_range = PublicDescribeTopicResult.PartitionKeyRange(from_bound=from_bound, to_bound=b"")
+    if from_bound is not None or to_bound is not None:
+        key_range = PublicDescribeTopicResult.PartitionKeyRange(from_bound=from_bound or b"", to_bound=to_bound or b"")
     return PublicDescribeTopicResult.PartitionInfo(
         partition_id=partition_id,
         active=True,
@@ -378,3 +378,44 @@ def test_bound_chooser_requires_from_bound_on_non_first_partition():
     chooser = PublicPartitionByKeyBound()
     with pytest.raises(ValueError):
         chooser.add_partitions([_partition_info(0), _partition_info(1)])
+
+
+def test_bound_chooser_accepts_partitions_in_any_order():
+    """A valid range set must not be rejected just because it arrived out of order.
+
+    DescribeTopic does not promise an ordering, so validation has to run on the sorted set:
+    the partition with the open lower bound is the leftmost one, not necessarily the first
+    argument.
+    """
+    lo = b"\x55" * 8
+    reversed_order = [_partition_info(1, from_bound=lo), _partition_info(0)]
+
+    chooser = PublicPartitionByKeyBound()
+    chooser.add_partitions(reversed_order)
+
+    assert sorted(p[-1] for p in chooser._partitions) == [0, 1]
+
+
+def test_bound_chooser_rejects_key_above_the_last_to_bound():
+    """A key outside every known range must fail routing instead of landing on a neighbour.
+
+    The chooser only indexes `from_bound` and takes the greatest one <= the hashed key, so a
+    key above the last partition's `to_bound` silently lands in that partition. That happens
+    whenever the known partition set has a hole -- e.g. a split whose second child is not
+    visible in DescribeTopic yet -- and sends the key into a *sibling* branch of the partition
+    graph, breaking "one key -> one lineage".
+
+    Per the C++ producer spec the lookup is two steps, not one:
+        partition = greatest from_bound <= key
+        check key < partition.to_bound
+    and a key that maps to no ready leaf must be retried against a refreshed graph.
+
+    The exact exception type is a fix-time decision; the contract asserted here is only that
+    routing refuses to guess.
+    """
+    chooser = PublicPartitionByKeyBound(key_hasher=lambda key: key.encode("utf-8"))
+    chooser.add_partitions([_partition_info(0, from_bound=b"", to_bound=b"m")])
+
+    assert chooser.choose_partition(PublicMessage(b"x", key="apple")) == 0
+    with pytest.raises((ValueError, RuntimeError)):
+        chooser.choose_partition(PublicMessage(b"x", key="zebra"))
