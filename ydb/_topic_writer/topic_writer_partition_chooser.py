@@ -133,19 +133,34 @@ class PublicPartitionByKeyBound(PublicPartitionChooser):
 
     def __init__(self, key_hasher: Callable[[str], bytes] = default_bound_key_hasher):
         self._key_hasher = key_hasher
-        # (from_bound, partition_id) sorted by from_bound; b"" is the leftmost bound.
-        self._partitions: List[Tuple[bytes, int]] = []
+        # (from_bound, to_bound, partition_id) sorted by from_bound. An empty from_bound is the
+        # start of the key space, an empty to_bound is its end.
+        self._partitions: List[Tuple[bytes, bytes, int]] = []
 
     def add_partitions(self, partitions: List[PartitionInfo]) -> None:
-        for i, p in enumerate(partitions):
+        # Normalise and sort before validating: the caller may pass partitions in any order
+        # (DescribeTopic does not promise one), and only the partition that sorts leftmost may
+        # carry an open lower bound. Validating in argument order rejects a valid set that
+        # happens to arrive reversed.
+        added: List[Tuple[bytes, bytes, int]] = []
+        for p in partitions:
             from_bound = p.key_range.from_bound if p.key_range is not None else b""
+            to_bound = p.key_range.to_bound if p.key_range is not None else b""
+            added.append((from_bound, to_bound, p.partition_id))
+        added.sort(key=lambda x: x[0])
+
+        for i, (from_bound, _to_bound, partition_id) in enumerate(added):
             if i > 0 and not from_bound:
-                raise ValueError("non-first partition without a from_bound key range")
-            self._partitions.append((from_bound, p.partition_id))
+                raise ValueError(
+                    "partition %d has no from_bound key range, but only the leftmost partition may"
+                    " have an open lower bound" % partition_id
+                )
+
+        self._partitions.extend(added)
         self._partitions.sort(key=lambda x: x[0])
 
     def remove_partition(self, partition_id: int) -> None:
-        self._partitions = [p for p in self._partitions if p[1] != partition_id]
+        self._partitions = [p for p in self._partitions if p[-1] != partition_id]
 
     def choose_partition(self, message: PublicMessage) -> int:
         if not self._partitions:
@@ -158,8 +173,20 @@ class PublicPartitionByKeyBound(PublicPartitionChooser):
 
         # First partition whose from_bound is strictly greater than the hashed key;
         # the owning partition is the previous one.
-        bounds = [b for b, _ in self._partitions]
+        bounds = [p[0] for p in self._partitions]
         idx = bisect.bisect_right(bounds, hashed)
         if idx == 0:
             raise RuntimeError("inconsistent partition bounds: lower-bound search returned 0")
-        return self._partitions[idx - 1][1]
+
+        from_bound, to_bound, partition_id = self._partitions[idx - 1]
+        # A key range is [from_bound, to_bound); an empty to_bound means the range runs to the
+        # end of the key space. Landing past to_bound means the known partitions have a hole --
+        # e.g. only one child of a split is visible yet -- and the greatest-lower-bound search
+        # silently points at the *sibling* that owns the range to the left. Refuse instead:
+        # routing a key into a sibling branch is exactly what breaks one-key-one-lineage.
+        if to_bound and hashed >= to_bound:
+            raise RuntimeError(
+                "key is not covered by any known partition: it is above partition %d to_bound;"
+                " the partition set is incomplete" % partition_id
+            )
+        return partition_id

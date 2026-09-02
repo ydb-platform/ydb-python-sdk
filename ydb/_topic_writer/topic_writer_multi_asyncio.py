@@ -45,6 +45,11 @@ _REPARTITION_DISCOVER_DELAY = 0.25
 # it is recreated on demand. Set <= 0 to disable idle eviction.
 _DEFAULT_WRITER_IDLE_TIMEOUT = 60.0
 
+# A writer opened against a partition that is no longer active never finishes its init handshake.
+# Since sub-writers are created while the orchestrator lock is held, an unbounded wait there stalls
+# every write, flush and repartition, so the wait is capped.
+_WRITER_INIT_TIMEOUT = 30.0
+
 
 @dataclass
 class MultiWriterSettings:
@@ -119,10 +124,25 @@ class TopicWriterMultiAsyncIO:
         self._partitions: Dict[int, object] = {}
         # partition_id -> {seqno -> in-flight message}, un-acked messages we may resend.
         self._inflight: Dict[int, Dict[int, _InflightMessage]] = {}
-        # partition_id -> next seqno cursor (seeded from the sub-writer's last_seqno).
-        self._partition_seqno: Dict[int, int] = {}
+        # One sequence for the whole writer, seeded above the last_seqno of every producer we
+        # open, so a message keeps its number when a split moves it to another partition.
+        self._seqno: int = 0
+        # partition_id -> last persisted seqno reported by the current sub-writer's init.
+        self._server_init_seqno: Dict[int, int] = {}
+        # partition_id -> server's last persisted seqno for a retired producer. Final once read:
+        # nothing writes under that producer id again.
+        self._retired_max_seqno: Dict[int, int] = {}
+        # partition_id -> its parents, learned from every DescribeTopic. Needed to ask the whole
+        # lineage for the dedup cut, since a message changes producer id as it is migrated.
+        self._parents: Dict[int, List[int]] = {}
         # partition_id -> highest acked seqno (fallback maxSeqNo if a probe fails).
         self._max_acked: Dict[int, int] = {}
+        # Partitions whose sub-writer is being torn down for a repartition or a recovery. Ack
+        # failures from such a writer are expected and must not reach the user.
+        self._retiring: set = set()
+        # partition_id -> in-progress repartition task, so repeated OVERLOADED for one partition
+        # coalesce and close() can cancel and await them.
+        self._repartition_tasks: Dict[int, asyncio.Future] = {}
         # partition_id -> monotonic time of the last write/creation, for idle eviction.
         self._last_write_at: Dict[int, float] = {}
         self._idle_timeout = (
@@ -168,7 +188,13 @@ class TopicWriterMultiAsyncIO:
         )
         if inspect.isawaitable(res):
             res = await res
-        return res.to_public()
+        description = res.to_public()
+        # Remember parent links while we have them: once a partition is retired it disappears
+        # from our routing view, but the dedup cut still has to be able to walk back to it.
+        for partition in description.partitions:
+            if partition.parent_partition_ids:
+                self._parents[partition.partition_id] = list(partition.parent_partition_ids)
+        return description
 
     async def _init(self):
         description = await self._describe()
@@ -202,11 +228,18 @@ class TopicWriterMultiAsyncIO:
         if self._closed:
             raise TopicWriterClosedError()
 
-    def _build_writer_settings(self, partition_id: int, with_split_hook: bool) -> PublicWriterSettings:
+    def _build_writer_settings(
+        self,
+        partition_id: int,
+        with_split_hook: bool,
+        pin_partition: bool = True,
+    ) -> PublicWriterSettings:
         return PublicWriterSettings(
             topic=self._settings.topic,
             producer_id="%s-%d" % (self._prefix, partition_id),
-            partition_id=partition_id,
+            # Unpinned (pin_partition=False) leaves the session routed by message group instead,
+            # which is the only way to reach a partition that is no longer active.
+            partition_id=partition_id if pin_partition else None,
             # The multi-writer assigns sequence numbers itself so it can resend
             # messages to child partitions after a split, keeping them monotonic.
             auto_seqno=False,
@@ -224,35 +257,76 @@ class TopicWriterMultiAsyncIO:
         writer = self._writers.get(partition_id)
         if writer is None:
             writer = WriterAsyncIO(self._driver, self._build_writer_settings(partition_id, with_split_hook=True))
+            # Seed the seqno cursor from the producer's last persisted seqno so a
+            # stable producer_id_prefix resumes numbering instead of colliding. The wait is
+            # bounded: a partition that went inactive between the routing decision and this call
+            # never completes init, and we hold the orchestrator lock here.
+            try:
+                init_info = await asyncio.wait_for(writer.wait_init(), timeout=_WRITER_INIT_TIMEOUT)
+            except BaseException:
+                # Do not register a writer that never became usable, and do not leak its stream.
+                await self._safe_close(writer)
+                raise
             self._writers[partition_id] = writer
             self._last_write_at[partition_id] = self._loop.time()
-            # Seed the seqno cursor from the producer's last persisted seqno so a
-            # stable producer_id_prefix resumes numbering instead of colliding.
-            init_info = await writer.wait_init()
-            self._partition_seqno.setdefault(partition_id, init_info.last_seqno or 0)
+            last_seqno = init_info.last_seqno or 0
+            self._server_init_seqno[partition_id] = last_seqno
+            # Lift the shared cursor above every producer we have opened: each partition has its
+            # own producer_id and therefore its own persisted history, and a seqno we hand out
+            # must be new in whichever partition the message ends up in.
+            self._seqno = max(self._seqno, last_seqno)
         return writer
 
-    def _next_seqno(self, partition_id: int) -> int:
-        self._partition_seqno[partition_id] = self._partition_seqno.get(partition_id, 0) + 1
-        return self._partition_seqno[partition_id]
+    def _assign_seqno(self, message: PublicMessage) -> int:
+        """Draw the message's sequence number from the writer-wide cursor.
 
-    def _assign_seqno(self, partition_id: int, message: PublicMessage) -> int:
+        One counter for the whole multi-writer, not one per partition: that is what lets a
+        message keep its seqno when a split moves it to a child. A per-partition number would
+        mean nothing in another partition's sequence, so it would have to be reassigned -- and a
+        message that changes identity mid-flight cannot be reconciled with the attempt that may
+        already have been persisted. Both reference implementations do the same (C++
+        `TProducer` `CurrentSeqNo`, Go `orchestrator.currentSeqNo`).
+        """
         if self._settings.auto_seqno:
-            seqno = self._next_seqno(partition_id)
-            message.seqno = seqno
-        else:
-            if message.seqno is None:
-                raise TopicWriterStopped()  # auto_seqno disabled but no seqno provided
-            seqno = message.seqno
-            self._partition_seqno[partition_id] = max(self._partition_seqno.get(partition_id, 0), seqno)
-        return seqno
+            self._seqno += 1
+            message.seqno = self._seqno
+            return self._seqno
+
+        if message.seqno is None:
+            # Bad input, not a stopped writer: the caller disabled auto_seqno and owes us
+            # a seqno. Reporting this as TopicWriterStopped misleads retry handling.
+            raise TopicWriterError("message seqno is required when auto_seqno is disabled")
+        self._seqno = max(self._seqno, message.seqno)
+        return message.seqno
+
+    def _schedule_repartition(self, partition_id: int) -> None:
+        """Start (or join) the repartition of one partition.
+
+        A burst of OVERLOADED for the same partition must not start several concurrent
+        recoveries of it, and the writer must own the task so close() can cancel and await it
+        instead of leaving it to describe topics and open sub-writers after shutdown.
+        """
+        if self._closed:
+            return
+        running = self._repartition_tasks.get(partition_id)
+        if running is not None and not running.done():
+            return
+
+        task = self._loop.create_task(self._on_partition_overloaded(partition_id))
+        task.set_name("multiwriter repartition %d" % partition_id)
+        self._repartition_tasks[partition_id] = task
+
+        def _forget(finished: asyncio.Future) -> None:
+            if self._repartition_tasks.get(partition_id) is finished:
+                del self._repartition_tasks[partition_id]
+
+        task.add_done_callback(_forget)
 
     def _make_overloaded_hook(self, partition_id: int):
         def hook(err: BaseException) -> bool:
             if _is_overloaded(err):
                 logger.debug("multi-writer: partition %d overloaded, re-describing (split/merge)", partition_id)
-                task = self._loop.create_task(self._on_partition_overloaded(partition_id))
-                task.set_name("multiwriter repartition %d" % partition_id)
+                self._schedule_repartition(partition_id)
                 return True
             return False
 
@@ -272,25 +346,37 @@ class TopicWriterMultiAsyncIO:
             return
 
         exc = sub_future.exception()
-        if isinstance(exc, TopicWriterPartitionSplitError):
-            # Leave the message in flight; the split handler will resend it.
-            return
-
-        self._inflight.get(partition_id, {}).pop(seqno, None)
-        if entry.user_future.done():
-            return
         if exc is not None:
-            entry.user_future.set_exception(exc)
-        else:
-            result = sub_future.result()
-            self._max_acked[partition_id] = max(self._max_acked.get(partition_id, 0), seqno)
-            entry.user_future.set_result(result)
+            if isinstance(exc, TopicWriterPartitionSplitError) or partition_id in self._retiring:
+                # Expected while the partition is torn down: leave the message in flight so the
+                # repartition (or the in-place recovery) resends it.
+                return
+            self._inflight.get(partition_id, {}).pop(seqno, None)
+            if not entry.user_future.done():
+                entry.user_future.set_exception(exc)
+            return
 
-    def _detach_inflight(self, partition_id: int) -> None:
-        # Sever the link to the current sub-writer so its ack callbacks (e.g. failures
-        # raised while it is being closed) are ignored while we migrate the messages.
-        for entry in self._inflight.get(partition_id, {}).values():
-            entry.sub_future = None
+        # A success is always honoured, including one that lands while the sub-writer is being
+        # closed: the server persisted the message, and ignoring the ack would leave the dedup
+        # cut too low and resend an already-written message to the child.
+        self._inflight.get(partition_id, {}).pop(seqno, None)
+        self._max_acked[partition_id] = max(self._max_acked.get(partition_id, 0), seqno)
+        if not entry.user_future.done():
+            entry.user_future.set_result(sub_future.result())
+
+    async def _quiesce_writer(self, partition_id: int) -> None:
+        """Close the partition's sub-writer and settle the acks it was still holding.
+
+        Closing fails every pending ack, which must not reach the user because those messages
+        are about to be resent. ``_retiring`` suppresses exactly those failures while letting
+        successes through, and the yield below gives already-scheduled ack callbacks a chance to
+        run before the caller reads the dedup cut.
+        """
+        self._retiring.add(partition_id)
+        writer = self._writers.pop(partition_id, None)
+        if writer is not None:
+            await self._safe_close(writer)
+        await asyncio.sleep(0)
 
     @staticmethod
     async def _safe_close(writer: WriterAsyncIO) -> None:
@@ -301,24 +387,130 @@ class TopicWriterMultiAsyncIO:
         except Exception:  # noqa: BLE001
             logger.debug("multi-writer: ignoring error while closing a discarded sub-writer", exc_info=True)
 
-    def _max_seqno_cut(self, partition_id: int) -> int:
-        """Dedup cut for a repartition: messages with seqno <= this were persisted to the
-        (now retired) partition and must not be resent to the child.
+    async def _probe_server_seqno(self, partition_id: int) -> int:
+        """Ask the server how far this partition's producer actually got.
 
-        We use the highest acked seqno we already observed for the partition. A fresh writer
-        cannot be used to read the server's last_seqno here: the split partition is inactive,
-        so such a writer never finishes init and would block the whole multi-writer. On a
-        graceful split the server acks everything it persisted before it returns OVERLOADED,
-        so the acked seqno is exact in practice; a lost ack in the split moment could at worst
-        cause one message to be re-sent (a rare duplicate), never a loss.
+        The answer must come from the server, not from the acks we happened to receive: a message
+        can be persisted and its ack lost when the session dies, and treating it as unwritten is
+        exactly what produces a duplicate on resend.
+
+        The session is opened WITHOUT a partition id. By the time we ask, the partition is
+        usually inactive, and a session pinned to an inactive partition never completes its init
+        handshake -- it would hang here holding the orchestrator lock. Unpinned, the session is
+        routed by message group and still reports this producer's persisted seqno. Both reference
+        implementations read the cut the same way (C++ `CreateWriteSession(..., false)` sets only
+        ProducerId/MessageGroupId, Go `createNonDirectWriter` only WithProducerID).
+
+        Results are cached: a retired producer receives no further writes, so its value is final.
         """
-        return self._max_acked.get(partition_id, 0)
+        cached = self._retired_max_seqno.get(partition_id)
+        if cached is not None:
+            return cached
+
+        probe = WriterAsyncIO(
+            self._driver,
+            self._build_writer_settings(partition_id, with_split_hook=False, pin_partition=False),
+        )
+        try:
+            init_info = await asyncio.wait_for(probe.wait_init(), timeout=_WRITER_INIT_TIMEOUT)
+        finally:
+            await self._safe_close(probe)
+
+        last_seqno = init_info.last_seqno or 0
+        self._retired_max_seqno[partition_id] = last_seqno
+        logger.debug("multi-writer: partition %d persisted up to seqno %d (server)", partition_id, last_seqno)
+        return last_seqno
+
+    def _lineage(self, partition_id: int) -> List[int]:
+        """The partition plus every ancestor we know of.
+
+        A message carries one seqno for its whole life, but it is written under the producer id of
+        whichever partition held it at the time -- and a repartition moves it on. So "was seqno N
+        already persisted?" has to be asked of the entire lineage, not just the partition we are
+        retiring now. Merge children have two parents, so this walks a graph, not a chain.
+        """
+        chain = [partition_id]
+        seen = {partition_id}
+        frontier = [partition_id]
+        while frontier:
+            for parent in self._parents.get(frontier.pop(), ()):
+                if parent in seen:
+                    continue
+                seen.add(parent)
+                chain.append(parent)
+                frontier.append(parent)
+        return chain
+
+    async def _max_seqno_cut(self, partition_id: int) -> int:
+        """Dedup cut for a repartition: messages at or below it were persisted to the retiring
+        lineage and must not be resent to the child.
+
+        Raises if the server cannot be asked. Falling back to the highest ack we saw would look
+        like it worked while quietly reopening the duplicate window this exists to close; the
+        caller turns the failure into terminal errors on the affected messages instead.
+        """
+        acked = self._max_acked.get(partition_id, 0)
+        lineage = self._lineage(partition_id)
+        cut = acked
+        for ancestor in lineage:
+            cut = max(cut, await self._probe_server_seqno(ancestor))
+        # Worth seeing: this number alone decides resend vs. drop, so a cut below `acked` would
+        # mean duplicates and one above it would mean loss.
+        logger.debug(
+            "multi-writer: dedup cut for partition %d is %d (lineage %s, highest ack seen %d)",
+            partition_id,
+            cut,
+            lineage,
+            acked,
+        )
+        return cut
+
+    @staticmethod
+    def _children_cover_parent(parent, children: List[_PartitionInfo]) -> bool:
+        """True if the children's key ranges tile the parent's range with no gap.
+
+        A split becomes visible in DescribeTopic one child at a time, so a mid-split describe can
+        report a single child of two. Retiring the parent on that view would leave the rest of its
+        key space unowned, and routing -- which locates a partition by the greatest from_bound at
+        or below the key -- would then send those keys to the left sibling instead: one key on two
+        branches of the partition graph.
+        """
+        parent_range = getattr(parent, "key_range", None)
+        if parent_range is None:
+            return True  # topic without key ranges: nothing to verify (and nothing that splits)
+
+        ranges = []
+        for child in children:
+            child_range = getattr(child, "key_range", None)
+            if child_range is None:
+                return False  # inconsistent with a bounded parent -> treat the view as incomplete
+            ranges.append((child_range.from_bound, child_range.to_bound))
+        ranges.sort(key=lambda r: r[0])
+
+        # Coverage is "at least the parent's range", not "exactly": a merge child owns the ranges
+        # of both its parents, so it legitimately covers more than the parent we started from.
+        parent_end = parent_range.to_bound  # empty == end of the key space
+        cursor = parent_range.from_bound  # covered up to here, exclusive
+        for from_bound, to_bound in ranges:
+            if from_bound > cursor:
+                return False  # gap between the covered prefix and this child
+            if not to_bound:
+                return True  # this child runs to the end of the key space
+            if to_bound > cursor:
+                cursor = to_bound
+            if parent_end and cursor >= parent_end:
+                return True
+        return False
 
     async def _discover_children(self, partition_id: int) -> List[_PartitionInfo]:
         """Re-describe until the split/merge children of ``partition_id`` appear.
 
-        Returns an empty list if none appear (ordinary transient overload).
+        Returns an empty list if none appear (ordinary transient overload), or if the children
+        that did appear never covered the parent's key range -- an incomplete graph is a
+        retry-later state, not a topology we may commit to.
         """
+        parent = self._partitions.get(partition_id)
+        children: List[_PartitionInfo] = []
         for attempt in range(_REPARTITION_DISCOVER_ATTEMPTS):
             description = await self._describe()
             children = [
@@ -326,30 +518,68 @@ class TopicWriterMultiAsyncIO:
                 for p in description.partitions
                 if p.active and not p.child_partition_ids and partition_id in p.parent_partition_ids
             ]
-            if children:
+            if children and self._children_cover_parent(parent, children):
                 return children
             if attempt + 1 < _REPARTITION_DISCOVER_ATTEMPTS:
                 await asyncio.sleep(_REPARTITION_DISCOVER_DELAY)
+        if children:
+            logger.warning(
+                "multi-writer: children of partition %d never covered its key range; keeping the"
+                " partition instead of routing keys into the uncovered range",
+                partition_id,
+            )
         return []
+
+    def _fail_partition_inflight(self, partition_id: int, err: BaseException) -> None:
+        """Give every in-flight message of an unusable partition a terminal outcome.
+
+        Once repartition and recovery have both failed there is no sub-writer left to ack these
+        messages, so their futures would never resolve and flush()/close(flush=True) would wait
+        on them forever. An accepted message must always end in success or failure.
+        """
+        entries = self._inflight.pop(partition_id, {})
+        if not entries:
+            return
+        logger.error(
+            "multi-writer: partition %d is unusable, failing %d in-flight messages: %s",
+            partition_id,
+            len(entries),
+            err,
+        )
+        for entry in entries.values():
+            entry.sub_future = None
+            if not entry.user_future.done():
+                entry.user_future.set_exception(err)
 
     async def _on_partition_overloaded(self, partition_id: int):
         """Entry point for the OVERLOADED hook: handle a repartition, or recover on failure.
 
         The hook force-stops the sub-writer, so if handling fails we must not leave the
-        partition's messages stranded — recreate the writer and resend them.
+        partition's messages stranded — recreate the writer and resend them. If that fails too,
+        the messages are failed explicitly rather than left without an owner.
         """
         try:
             await self._handle_repartition(partition_id)
+            return
         except asyncio.CancelledError:
             raise
-        except Exception:
+        except Exception as err:
             logger.exception("multi-writer: repartition of partition %d failed; recovering", partition_id)
-            try:
-                async with self._lock:
-                    if partition_id in self._partitions:
-                        await self._recover_partition(partition_id)
-            except Exception:
-                logger.exception("multi-writer: recovery of partition %d failed", partition_id)
+            failure: BaseException = err
+
+        try:
+            async with self._lock:
+                if partition_id in self._partitions:
+                    await self._recover_partition(partition_id)
+                    return
+        except asyncio.CancelledError:
+            raise
+        except Exception as err:
+            logger.exception("multi-writer: recovery of partition %d failed", partition_id)
+            failure = err
+
+        async with self._lock:
+            self._fail_partition_inflight(partition_id, failure)
 
     async def _handle_repartition(self, partition_id: int):
         """Resolve an OVERLOADED partition: split, merge, or ordinary transient overload.
@@ -391,34 +621,74 @@ class TopicWriterMultiAsyncIO:
 
             # Quiesce every retired parent BEFORE reading its cutoff, so a sibling cannot
             # persist a message after its maxSeqNo was probed (which would duplicate on resend).
-            for old in retired:
-                writer = self._writers.pop(old, None)
-                if writer is not None:
-                    self._detach_inflight(old)
-                    await self._safe_close(writer)
+            try:
+                for old in retired:
+                    await self._quiesce_writer(old)
 
-            for old in retired:
-                if self._inflight.get(old):
-                    await self._migrate_messages(old, self._max_seqno_cut(old))
-                else:
-                    self._inflight.pop(old, None)
+                for old in retired:
+                    if self._inflight.get(old):
+                        await self._migrate_messages(old, await self._max_seqno_cut(old))
+                    else:
+                        self._inflight.pop(old, None)
+            finally:
+                self._retiring.difference_update(retired)
 
     async def _recover_partition(self, partition_id: int):
         # The hook stopped the sub-writer; drop it and resend the partition's in-flight
-        # messages to a fresh writer for the SAME partition. Same producer/partition means
-        # the server deduplicates any message that was actually persisted before the error.
-        old_writer = self._writers.pop(partition_id, None)
-        if old_writer is not None:
-            self._detach_inflight(partition_id)
-            await self._safe_close(old_writer)
+        # messages to a fresh writer for the SAME partition, keeping their seqnos.
+        await self._quiesce_writer(partition_id)
+        try:
+            writer = await self._get_or_create_writer(partition_id)
 
-        writer = await self._get_or_create_writer(partition_id)
-        for seqno, entry in sorted(self._inflight.get(partition_id, {}).items()):
-            entry.message.seqno = seqno
-            sub_future = await writer.write_with_ack_future(entry.message)
-            assert not isinstance(sub_future, list)  # single message -> single future
-            entry.sub_future = sub_future
-            self._attach_ack(entry)
+            # The partition is still active, so this writer's init carries the server's real last
+            # persisted seqno -- an exact dedup cut, unlike the split case. Messages at or below it
+            # were written and their ack was lost with the stream; resending one is not idempotent
+            # here, because the writer rejects a seqno it has already seen ("Message seqno is
+            # duplicated") before the server ever gets a chance to deduplicate it, and that error
+            # would abort the resend of every message after it.
+            cut = max(self._server_init_seqno.get(partition_id, 0), self._max_acked.get(partition_id, 0))
+            for seqno, entry in sorted(self._inflight.get(partition_id, {}).items()):
+                if seqno <= cut:
+                    self._inflight.get(partition_id, {}).pop(seqno, None)
+                    self._max_acked[partition_id] = max(self._max_acked.get(partition_id, 0), seqno)
+                    if not entry.user_future.done():
+                        entry.user_future.set_result(PublicWriteResult.Written(offset=-1))
+                    continue
+                entry.message.seqno = seqno
+                sub_future = await writer.write_with_ack_future(entry.message)
+                assert not isinstance(sub_future, list)  # single message -> single future
+                entry.sub_future = sub_future
+                self._attach_ack(entry)
+        finally:
+            self._retiring.discard(partition_id)
+
+    def _migration_conflict(
+        self,
+        child_id: int,
+        seqno: int,
+        target: Dict[int, _InflightMessage],
+    ) -> Optional[BaseException]:
+        """Why this seqno cannot be carried into ``child_id``, or None if it can.
+
+        Carrying the number over is only safe while it is free in the child's sequence, and two
+        things can take it: another in-flight message (manual seqnos are checked for uniqueness
+        only within one partition, so a merge can bring two equal ones into the same child), or
+        the child's own producer, if a stable ``producer_id_prefix`` already wrote that far in an
+        earlier run. In the second case the sub-writer would reject the resend as a duplicate
+        seqno and take down the migration of every message behind it.
+        """
+        if seqno in target:
+            return TopicWriterError(
+                "seqno %d is already in flight on partition %d: manual seqnos must be unique"
+                " across partitions to survive a repartition" % (seqno, child_id)
+            )
+        server_seqno = self._server_init_seqno.get(child_id, 0)
+        if seqno <= server_seqno:
+            return TopicWriterError(
+                "seqno %d cannot be resent to partition %d: its producer has already persisted"
+                " up to %d" % (seqno, child_id, server_seqno)
+            )
+        return None
 
     async def _migrate_messages(self, partition_id: int, max_seqno: int):
         entries = self._inflight.get(partition_id, {})
@@ -432,14 +702,47 @@ class TopicWriterMultiAsyncIO:
                     entry.user_future.set_result(PublicWriteResult.Written(offset=-1))
                 continue
 
-            self._inflight.get(partition_id, {}).pop(seqno, None)
             assert self._chooser is not None
-            child_id = self._chooser.choose_partition(entry.message)
-            child_writer = await self._get_or_create_writer(child_id)
-            new_seqno = self._assign_seqno(child_id, entry.message)
-            entry.seqno = new_seqno
+            try:
+                child_id = self._chooser.choose_partition(entry.message)
+                child_writer = await self._get_or_create_writer(child_id)
+            except Exception as err:  # noqa: BLE001
+                # The message cannot be placed: no ready leaf owns its key, or the child itself
+                # went inactive (splits cascade). Fail it and everything after it -- dropping
+                # would lose the message silently, and skipping ahead would reorder the key.
+                logger.warning(
+                    "multi-writer: cannot migrate messages of partition %d, failing seqno >= %d: %s",
+                    partition_id,
+                    seqno,
+                    err,
+                )
+                for pending_seqno, pending in sorted(entries.items()):
+                    if pending_seqno < seqno:
+                        continue
+                    self._inflight.get(partition_id, {}).pop(pending_seqno, None)
+                    if not pending.user_future.done():
+                        pending.user_future.set_exception(err)
+                break
+
+            if self._inflight.get(partition_id, {}).get(seqno) is not entry:
+                continue  # acked while the child writer was being opened -> nothing to resend
+
+            # The message keeps its seqno: only its target partition changes. The number comes
+            # from the writer-wide sequence, so it stays valid -- and unchanged identity is what
+            # lets the child's cut still describe this exact message.
+            target = self._inflight.setdefault(child_id, {})
+            conflict = self._migration_conflict(child_id, seqno, target)
+            if conflict is not None:
+                logger.error("multi-writer: %s", conflict)
+                self._inflight.get(partition_id, {}).pop(seqno, None)
+                if not entry.user_future.done():
+                    entry.user_future.set_exception(conflict)
+                continue
+
+            self._inflight.get(partition_id, {}).pop(seqno, None)
             entry.partition_id = child_id
-            self._inflight.setdefault(child_id, {})[new_seqno] = entry
+            entry.message.seqno = seqno
+            target[seqno] = entry
             sub_future = await child_writer.write_with_ack_future(entry.message)
             assert not isinstance(sub_future, list)  # single message -> single future
             entry.sub_future = sub_future
@@ -465,7 +768,7 @@ class TopicWriterMultiAsyncIO:
                 partition_id = self._chooser.choose_partition(message)
                 writer = await self._get_or_create_writer(partition_id)
                 self._last_write_at[partition_id] = self._loop.time()
-                seqno = self._assign_seqno(partition_id, message)
+                seqno = self._assign_seqno(message)
                 if seqno in self._inflight.get(partition_id, {}):
                     raise TopicWriterError("duplicate in-flight seqno %d for partition %d" % (seqno, partition_id))
 
@@ -568,6 +871,16 @@ class TopicWriterMultiAsyncIO:
             self._init_task.cancel()
         if self._reaper_task is not None and not self._reaper_task.done():
             self._reaper_task.cancel()
+
+        # Stop repartitions before touching the writers: an in-flight one holds the lock, opens
+        # sub-writers and mutates the topology, none of which may outlive the multi-writer.
+        repartitions = list(self._repartition_tasks.values())
+        self._repartition_tasks.clear()
+        for task in repartitions:
+            if not task.done():
+                task.cancel()
+        if repartitions:
+            await asyncio.gather(*repartitions, return_exceptions=True)
 
         async with self._lock:
             writers = list(self._writers.values())
