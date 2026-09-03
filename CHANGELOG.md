@@ -1,3 +1,5 @@
+* Add `return_not_null_data_as_optional` parameter to `read_table` (sync and async) — allows reading `NOT NULL` columns as non-optional types, matching the existing gRPC field and the C++ SDK's `ReturnNotNullAsOptional`. By default `read_table` still wraps `NOT NULL` columns in `Optional` for backward compatibility
+
 ## 3.31.4 ##
 * Fixed async `QuerySessionPool` permanently losing a pool slot when `acquire()` was cancelled while a new session was being created: `asyncio.CancelledError` no longer leaks the pool size counter, so a pool under deadline-driven cancellations can no longer end up exhausted and blocking forever. A cancelled or interrupted session attach now also closes the session instead of orphaning it server-side
 
