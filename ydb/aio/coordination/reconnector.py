@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from typing import Any, Dict, Optional
+from typing import Any
 
 from ... import issues
 from ..._grpc.grpcwrapper.common_utils import IToProto
@@ -22,11 +22,11 @@ class CoordinationReconnector:
         self._stream = None
         self._session_id = None
 
-        self._pending_futures: Dict[int, asyncio.Future[Any]] = {}
-        self._pending_requests: Dict[int, IToProto] = {}
+        self._pending_futures: dict[int, asyncio.Future[Any]] = {}
+        self._pending_requests: dict[int, IToProto] = {}
 
         self._send_lock = asyncio.Lock()
-        self._connection_task: Optional[asyncio.Task[Any]] = None
+        self._connection_task: asyncio.Task[Any] | None = None
         self._closed = False
 
     async def stop(self):

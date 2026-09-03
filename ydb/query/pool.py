@@ -4,9 +4,7 @@ import logging
 from concurrent import futures
 from typing import (
     Callable,
-    Optional,
     Any,
-    Union,
     TYPE_CHECKING,
 )
 import time
@@ -44,9 +42,9 @@ class QuerySessionPool:
         driver: "SyncDriver",
         size: int = 100,
         *,
-        query_client_settings: Optional[QueryClientSettings] = None,
+        query_client_settings: QueryClientSettings | None = None,
         workers_threads_count: int = 4,
-        name: Optional[str] = None,
+        name: str | None = None,
     ):
         """
         :param driver: A driver instance.
@@ -66,7 +64,7 @@ class QuerySessionPool:
         self._query_client_settings = query_client_settings
         self._metrics = QuerySessionPoolMetrics(name, driver, self._size)
 
-    def _create_new_session(self, timeout: Optional[float]):
+    def _create_new_session(self, timeout: float | None):
         session = QuerySession(self._driver, settings=self._query_client_settings)
         self._metrics.attach(session)
         with self._metrics.measure_create():
@@ -74,7 +72,7 @@ class QuerySessionPool:
         logger.debug(f"New session was created for pool. Session id: {session.session_id}")
         return session
 
-    def acquire(self, timeout: Optional[float] = None) -> QuerySession:
+    def acquire(self, timeout: float | None = None) -> QuerySession:
         """Acquire a session from Session Pool.
 
         :param timeout: Seconds to wait when pool is exhausted. Overrides the pool-level acquire_timeout.
@@ -136,7 +134,7 @@ class QuerySessionPool:
         self._queue.put_nowait(session)
         logger.debug("Session returned to queue: %s", session.session_id)
 
-    def checkout(self, timeout: Optional[float] = None) -> "SimpleQuerySessionCheckout":
+    def checkout(self, timeout: float | None = None) -> "SimpleQuerySessionCheckout":
         """Return a Session context manager, that acquires session on enter and releases session on exit.
 
         :param timeout: A timeout to wait in seconds.
@@ -144,7 +142,7 @@ class QuerySessionPool:
 
         return SimpleQuerySessionCheckout(self, timeout)
 
-    def retry_operation_sync(self, callee: Callable, retry_settings: Optional[RetrySettings] = None, *args, **kwargs):
+    def retry_operation_sync(self, callee: Callable, retry_settings: RetrySettings | None = None, *args, **kwargs):
         """Special interface to execute a bunch of commands with session in a safe, retriable way.
 
         :param callee: A function, that works with session.
@@ -167,8 +165,8 @@ class QuerySessionPool:
     def retry_tx_async(
         self,
         callee: Callable,
-        tx_mode: Optional[BaseQueryTxMode] = None,
-        retry_settings: Optional[RetrySettings] = None,
+        tx_mode: BaseQueryTxMode | None = None,
+        retry_settings: RetrySettings | None = None,
         *args,
         **kwargs,
     ) -> futures.Future:
@@ -187,7 +185,7 @@ class QuerySessionPool:
         )
 
     def retry_operation_async(
-        self, callee: Callable, retry_settings: Optional[RetrySettings] = None, *args, **kwargs
+        self, callee: Callable, retry_settings: RetrySettings | None = None, *args, **kwargs
     ) -> futures.Future:
         """Asynchronously execute a retryable operation."""
 
@@ -199,8 +197,8 @@ class QuerySessionPool:
     def retry_tx_sync(
         self,
         callee: Callable,
-        tx_mode: Optional[BaseQueryTxMode] = None,
-        retry_settings: Optional[RetrySettings] = None,
+        tx_mode: BaseQueryTxMode | None = None,
+        retry_settings: RetrySettings | None = None,
         *args,
         **kwargs,
     ):
@@ -238,10 +236,10 @@ class QuerySessionPool:
     def execute_with_retries(
         self,
         query: str,
-        parameters: Optional[dict] = None,
-        retry_settings: Optional[RetrySettings] = None,
+        parameters: dict | None = None,
+        retry_settings: RetrySettings | None = None,
         *args,
-        pool_id: Optional[str] = None,
+        pool_id: str | None = None,
         **kwargs,
     ) -> list[convert.ResultSet]:
         """Special interface to execute a one-shot queries in a safe, retriable way.
@@ -271,10 +269,10 @@ class QuerySessionPool:
     def execute_with_retries_async(
         self,
         query: str,
-        parameters: Optional[dict] = None,
-        retry_settings: Optional[RetrySettings] = None,
+        parameters: dict | None = None,
+        retry_settings: RetrySettings | None = None,
         *args,
-        pool_id: Optional[str] = None,
+        pool_id: str | None = None,
         **kwargs,
     ) -> futures.Future:
         """Asynchronously execute a query with retries."""
@@ -295,11 +293,11 @@ class QuerySessionPool:
     def explain_with_retries(
         self,
         query: str,
-        parameters: Optional[dict] = None,
+        parameters: dict | None = None,
         *,
         result_format: QueryExplainResultFormat = QueryExplainResultFormat.STR,
-        retry_settings: Optional[RetrySettings] = None,
-    ) -> Union[str, dict[str, Any]]:
+        retry_settings: RetrySettings | None = None,
+    ) -> str | dict[str, Any]:
         """
         Explain a query in retriable way. No real query execution will happen.
 
@@ -342,9 +340,9 @@ class QuerySessionPool:
 
 
 class SimpleQuerySessionCheckout:
-    _session: Optional[QuerySession]
+    _session: QuerySession | None
 
-    def __init__(self, pool: QuerySessionPool, timeout: Optional[float]):
+    def __init__(self, pool: QuerySessionPool, timeout: float | None):
         self._pool = pool
         self._timeout = timeout
         self._session = None

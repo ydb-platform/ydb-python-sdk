@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 import asyncio
-from typing import Any, Callable, Dict, List, Optional, Tuple, TYPE_CHECKING
+from typing import Any, Callable, Optional, TYPE_CHECKING
 import collections
 import grpc
 
@@ -48,15 +48,15 @@ logger = logging.getLogger(__name__)
 
 async def _construct_metadata(
     driver_config: DriverConfig,
-    settings: Optional[BaseRequestSettings],
-) -> List[Tuple[str, str]]:
+    settings: BaseRequestSettings | None,
+) -> list[tuple[str, str]]:
     """
     Translates request settings into RPC metadata
     :param driver_config: A driver config
     :param settings: An instance of BaseRequestSettings
     :return: RPC metadata
     """
-    metadata: List[Tuple[str, str]] = []
+    metadata: list[tuple[str, str]] = []
     if driver_config.database is not None:
         metadata.append((YDB_DATABASE_HEADER, driver_config.database))
 
@@ -163,8 +163,8 @@ class Connection:
     def __init__(
         self,
         endpoint: str,
-        driver_config: Optional[DriverConfig] = None,
-        endpoint_options: Optional[EndpointOptions] = None,
+        driver_config: DriverConfig | None = None,
+        endpoint_options: EndpointOptions | None = None,
     ) -> None:
         self.endpoint = endpoint
         self.endpoint_key = EndpointKey(self.endpoint, getattr(endpoint_options, "node_id", None))
@@ -175,12 +175,12 @@ class Connection:
         self._channel = channel_factory(self.endpoint, driver_config, grpc.aio, endpoint_options=endpoint_options)
         self._driver_config = driver_config
 
-        self._stub_instances: Dict[Any, Any] = {}
-        self._cleanup_callbacks: List[Callable[["Connection"], None]] = []
+        self._stub_instances: dict[Any, Any] = {}
+        self._cleanup_callbacks: list[Callable[["Connection"], None]] = []
         for stub in _stubs_list:
             self._stub_instances[stub] = stub(self._channel)
 
-        self.calls: Dict[Any, asyncio.Future[Any]] = {}
+        self.calls: dict[Any, asyncio.Future[Any]] = {}
         self.closing = False
 
     def _prepare_stub_instance(self, stub: Any) -> None:
@@ -188,8 +188,8 @@ class Connection:
             self._stub_instances[stub] = stub(self._channel)
 
     async def _prepare_call(
-        self, stub: Any, rpc_name: str, request: Any, settings: Optional[BaseRequestSettings]
-    ) -> Tuple[_RpcState, float, List[Tuple[str, str]]]:
+        self, stub: Any, rpc_name: str, request: Any, settings: BaseRequestSettings | None
+    ) -> tuple[_RpcState, float, list[tuple[str, str]]]:
         timeout, metadata = _get_request_timeout(settings), await _construct_metadata(self._driver_config, settings)  # type: ignore[arg-type]
         _set_server_timeouts(request, settings, timeout)
         self._prepare_stub_instance(stub)
@@ -208,10 +208,10 @@ class Connection:
         request: Any,
         stub: Any,
         rpc_name: str,
-        wrap_result: Optional[Callable[..., Any]] = None,
-        settings: Optional[BaseRequestSettings] = None,
-        wrap_args: Tuple[Any, ...] = (),
-        on_disconnected: Optional[Callable[..., Any]] = None,
+        wrap_result: Callable[..., Any] | None = None,
+        settings: BaseRequestSettings | None = None,
+        wrap_args: tuple[Any, ...] = (),
+        on_disconnected: Callable[..., Any] | None = None,
     ) -> Any:
         """
         Async method to execute request

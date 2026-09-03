@@ -7,7 +7,7 @@ import threading
 import random
 import itertools
 import typing
-from typing import Any, ContextManager, List, Optional, Iterator
+from typing import Any, ContextManager, Iterator
 from . import connection as conn_impl, driver, issues, settings as settings_impl, _apis
 
 
@@ -45,7 +45,7 @@ class EndpointInfo:
         self.ssl_target_name_override = endpoint_info.ssl_target_name_override
         self.node_id = endpoint_info.node_id
 
-    def endpoints_with_options(self) -> typing.Generator[typing.Tuple[str, conn_impl.EndpointOptions], None, None]:
+    def endpoints_with_options(self) -> typing.Generator[tuple[str, conn_impl.EndpointOptions], None, None]:
         ssl_target_name_override = None
         if self.ssl:
             if self.ssl_target_name_override:
@@ -127,7 +127,7 @@ class DiscoveryResult:
             else:
                 unique_different_set.add(EndpointInfo(info))
 
-        result: List[EndpointInfo] = []
+        result: list[EndpointInfo] = []
         local_endpoints = list(unique_local_set)
         different_endpoints = list(unique_different_set)
         if use_all_nodes:
@@ -152,7 +152,7 @@ class DiscoveryEndpointsResolver:
         self._ready_timeout = getattr(self._driver_config, "discovery_request_timeout", 10)
         self._lock = threading.Lock()
         self._debug_details_history_size = 20
-        self._debug_details_items: List[str] = []
+        self._debug_details_items: list[str] = []
         self._endpoints = []
         self._endpoints.append(driver_config.endpoint)
         self._endpoints.extend(driver_config.endpoints)
@@ -174,12 +174,12 @@ class DiscoveryEndpointsResolver:
         with self._lock:
             return "\n".join(self._debug_details_items)
 
-    def resolve(self) -> Optional[DiscoveryResult]:
+    def resolve(self) -> DiscoveryResult | None:
         with self.context_resolve() as result:
             return result
 
     @contextlib.contextmanager
-    def context_resolve(self) -> Iterator[Optional[DiscoveryResult]]:
+    def context_resolve(self) -> Iterator[DiscoveryResult | None]:
         self.logger.debug("Preparing initial endpoint to resolve endpoints")
         endpoint = next(self._endpoints_iter)
         initial = conn_impl.Connection.ready_factory(endpoint, self._driver_config, ready_timeout=self._ready_timeout)

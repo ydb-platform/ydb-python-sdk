@@ -5,7 +5,7 @@ from google.protobuf import text_format
 import enum
 import queue
 import typing
-from typing import ClassVar, Optional, Iterable, Any, Union, Protocol, runtime_checkable
+from typing import ClassVar, Iterable, Any, Protocol, runtime_checkable
 
 from . import _apis
 
@@ -21,7 +21,7 @@ class _StatusResponseProtocol(Protocol):
     """Protocol for objects that have status and issues attributes."""
 
     @property
-    def status(self) -> Union[StatusCode, int]: ...
+    def status(self) -> StatusCode | int: ...
 
     @property
     def issues(self) -> Iterable[Any]: ...
@@ -76,131 +76,131 @@ class _IssueMessage:
 
 
 class Error(Exception):
-    status: ClassVar[Optional[StatusCode]] = None
+    status: ClassVar[StatusCode | None] = None
 
-    def __init__(self, message: str, issues: typing.Optional[typing.Iterable[_IssueMessage]] = None):
+    def __init__(self, message: str, issues: typing.Iterable[_IssueMessage] | None = None):
         super(Error, self).__init__(message)
         self.issues = issues
         self.message = message
 
 
 class TruncatedResponseError(Error):
-    status: ClassVar[Optional[StatusCode]] = None
+    status: ClassVar[StatusCode | None] = None
 
 
 class ConnectionError(Error):
-    status: ClassVar[Optional[StatusCode]] = None
+    status: ClassVar[StatusCode | None] = None
 
 
 class ConnectionFailure(ConnectionError):
-    status: ClassVar[Optional[StatusCode]] = StatusCode.CONNECTION_FAILURE
+    status: ClassVar[StatusCode | None] = StatusCode.CONNECTION_FAILURE
 
 
 class ConnectionLost(ConnectionError):
-    status: ClassVar[Optional[StatusCode]] = StatusCode.CONNECTION_LOST
+    status: ClassVar[StatusCode | None] = StatusCode.CONNECTION_LOST
 
 
 class DeadlineExceed(Error):
-    status: ClassVar[Optional[StatusCode]] = StatusCode.DEADLINE_EXCEEDED
+    status: ClassVar[StatusCode | None] = StatusCode.DEADLINE_EXCEEDED
 
 
 class Unimplemented(ConnectionError):
-    status: ClassVar[Optional[StatusCode]] = StatusCode.UNIMPLEMENTED
+    status: ClassVar[StatusCode | None] = StatusCode.UNIMPLEMENTED
 
 
 class Unauthenticated(Error):
-    status: ClassVar[Optional[StatusCode]] = StatusCode.UNAUTHENTICATED
+    status: ClassVar[StatusCode | None] = StatusCode.UNAUTHENTICATED
 
 
 class BadRequest(Error):
-    status: ClassVar[Optional[StatusCode]] = StatusCode.BAD_REQUEST
+    status: ClassVar[StatusCode | None] = StatusCode.BAD_REQUEST
 
 
 class Unauthorized(Error):
-    status: ClassVar[Optional[StatusCode]] = StatusCode.UNAUTHORIZED
+    status: ClassVar[StatusCode | None] = StatusCode.UNAUTHORIZED
 
 
 class InternalError(Error):
-    status: ClassVar[Optional[StatusCode]] = StatusCode.INTERNAL_ERROR
+    status: ClassVar[StatusCode | None] = StatusCode.INTERNAL_ERROR
 
 
 class Aborted(Error):
-    status: ClassVar[Optional[StatusCode]] = StatusCode.ABORTED
+    status: ClassVar[StatusCode | None] = StatusCode.ABORTED
 
 
 class Unavailable(Error):
-    status: ClassVar[Optional[StatusCode]] = StatusCode.UNAVAILABLE
+    status: ClassVar[StatusCode | None] = StatusCode.UNAVAILABLE
 
 
 class Overloaded(Error):
-    status: ClassVar[Optional[StatusCode]] = StatusCode.OVERLOADED
+    status: ClassVar[StatusCode | None] = StatusCode.OVERLOADED
 
 
 class SchemeError(Error):
-    status: ClassVar[Optional[StatusCode]] = StatusCode.SCHEME_ERROR
+    status: ClassVar[StatusCode | None] = StatusCode.SCHEME_ERROR
 
 
 class GenericError(Error):
-    status: ClassVar[Optional[StatusCode]] = StatusCode.GENERIC_ERROR
+    status: ClassVar[StatusCode | None] = StatusCode.GENERIC_ERROR
 
 
 class BadSession(Error):
-    status: ClassVar[Optional[StatusCode]] = StatusCode.BAD_SESSION
+    status: ClassVar[StatusCode | None] = StatusCode.BAD_SESSION
 
 
 class Timeout(Error):
-    status: ClassVar[Optional[StatusCode]] = StatusCode.TIMEOUT
+    status: ClassVar[StatusCode | None] = StatusCode.TIMEOUT
 
 
 class PreconditionFailed(Error):
-    status: ClassVar[Optional[StatusCode]] = StatusCode.PRECONDITION_FAILED
+    status: ClassVar[StatusCode | None] = StatusCode.PRECONDITION_FAILED
 
 
 class NotFound(Error):
-    status: ClassVar[Optional[StatusCode]] = StatusCode.NOT_FOUND
+    status: ClassVar[StatusCode | None] = StatusCode.NOT_FOUND
 
 
 class AlreadyExists(Error):
-    status: ClassVar[Optional[StatusCode]] = StatusCode.ALREADY_EXISTS
+    status: ClassVar[StatusCode | None] = StatusCode.ALREADY_EXISTS
 
 
 class SessionExpired(Error):
-    status: ClassVar[Optional[StatusCode]] = StatusCode.SESSION_EXPIRED
+    status: ClassVar[StatusCode | None] = StatusCode.SESSION_EXPIRED
 
 
 class Cancelled(Error):
-    status: ClassVar[Optional[StatusCode]] = StatusCode.CANCELLED
+    status: ClassVar[StatusCode | None] = StatusCode.CANCELLED
 
 
 class Undetermined(Error):
-    status: ClassVar[Optional[StatusCode]] = StatusCode.UNDETERMINED
+    status: ClassVar[StatusCode | None] = StatusCode.UNDETERMINED
 
 
 class Unsupported(Error):
-    status: ClassVar[Optional[StatusCode]] = StatusCode.UNSUPPORTED
+    status: ClassVar[StatusCode | None] = StatusCode.UNSUPPORTED
 
 
 class SessionBusy(Error):
-    status: ClassVar[Optional[StatusCode]] = StatusCode.SESSION_BUSY
+    status: ClassVar[StatusCode | None] = StatusCode.SESSION_BUSY
 
 
 class ExternalError(Error):
-    status: ClassVar[Optional[StatusCode]] = StatusCode.EXTERNAL_ERROR
+    status: ClassVar[StatusCode | None] = StatusCode.EXTERNAL_ERROR
 
 
 class SessionPoolEmpty(Error, queue.Empty):
-    status: ClassVar[Optional[StatusCode]] = StatusCode.SESSION_POOL_EMPTY
+    status: ClassVar[StatusCode | None] = StatusCode.SESSION_POOL_EMPTY
 
 
 class SessionPoolClosed(Error):
-    status: ClassVar[Optional[StatusCode]] = StatusCode.SESSION_POOL_CLOSED
+    status: ClassVar[StatusCode | None] = StatusCode.SESSION_POOL_CLOSED
 
     def __init__(self):
         super().__init__("Session pool is closed.")
 
 
 class ClientInternalError(Error):
-    status: ClassVar[Optional[StatusCode]] = StatusCode.CLIENT_INTERNAL_ERROR
+    status: ClassVar[StatusCode | None] = StatusCode.CLIENT_INTERNAL_ERROR
 
 
 class UnexpectedGrpcMessage(Error):

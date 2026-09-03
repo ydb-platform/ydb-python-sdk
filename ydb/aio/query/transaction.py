@@ -1,6 +1,5 @@
 import logging
 from typing import (
-    Optional,
     TYPE_CHECKING,
 )
 
@@ -81,7 +80,7 @@ class QueryTxContext(BaseQueryTxContext["AsyncDriver"]):
                 pass
             self._prev_stream = None
 
-    async def begin(self, settings: Optional[BaseRequestSettings] = None) -> "QueryTxContext":
+    async def begin(self, settings: BaseRequestSettings | None = None) -> "QueryTxContext":
         """Explicitly begins a transaction
 
         :param settings: An additional request settings BaseRequestSettings;
@@ -97,7 +96,7 @@ class QueryTxContext(BaseQueryTxContext["AsyncDriver"]):
             await self._begin_call(settings)
         return self
 
-    async def commit(self, settings: Optional[BaseRequestSettings] = None) -> None:
+    async def commit(self, settings: BaseRequestSettings | None = None) -> None:
         """Calls commit on a transaction if it is open otherwise is no-op. If transaction execution
         failed then this method raises PreconditionFailed.
 
@@ -130,7 +129,7 @@ class QueryTxContext(BaseQueryTxContext["AsyncDriver"]):
                 await self._execute_callbacks_async(base.TxEvent.AFTER_COMMIT, exc=e)
                 raise e
 
-    async def rollback(self, settings: Optional[BaseRequestSettings] = None) -> None:
+    async def rollback(self, settings: BaseRequestSettings | None = None) -> None:
         """Calls rollback on a transaction if it is open otherwise is no-op. If transaction execution
         failed then this method raises PreconditionFailed.
 
@@ -166,18 +165,18 @@ class QueryTxContext(BaseQueryTxContext["AsyncDriver"]):
     async def execute(
         self,
         query: str,
-        parameters: Optional[dict] = None,
-        commit_tx: Optional[bool] = False,
-        syntax: Optional[base.QuerySyntax] = None,
-        exec_mode: Optional[base.QueryExecMode] = None,
-        concurrent_result_sets: Optional[bool] = False,
-        settings: Optional[BaseRequestSettings] = None,
+        parameters: dict | None = None,
+        commit_tx: bool | None = False,
+        syntax: base.QuerySyntax | None = None,
+        exec_mode: base.QueryExecMode | None = None,
+        concurrent_result_sets: bool | None = False,
+        settings: BaseRequestSettings | None = None,
         *,
-        stats_mode: Optional[base.QueryStatsMode] = None,
-        schema_inclusion_mode: Optional[base.QuerySchemaInclusionMode] = None,
-        result_set_format: Optional[base.QueryResultSetFormat] = None,
-        arrow_format_settings: Optional[base.ArrowFormatSettings] = None,
-        pool_id: Optional[str] = None,
+        stats_mode: base.QueryStatsMode | None = None,
+        schema_inclusion_mode: base.QuerySchemaInclusionMode | None = None,
+        result_set_format: base.QueryResultSetFormat | None = None,
+        arrow_format_settings: base.ArrowFormatSettings | None = None,
+        pool_id: str | None = None,
     ) -> AsyncResponseContextIterator:
         """Sends a query to Query Service
 

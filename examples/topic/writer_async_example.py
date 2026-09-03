@@ -1,6 +1,6 @@
 import asyncio
 import datetime
-from typing import Dict, List
+from typing import List
 
 import ydb
 from ydb import TopicWriterMessage
@@ -95,7 +95,7 @@ async def send_messages_and_wait_all_commit_with_results(
     await writer.flush()
 
 
-async def switch_messages_with_many_producers(writers: Dict[str, ydb.TopicWriterAsyncIO], messages: List[str]):
+async def switch_messages_with_many_producers(writers: dict[str, ydb.TopicWriterAsyncIO], messages: list[str]):
     futures = []  # type:  List[asyncio.Future]
 
     for msg in messages:

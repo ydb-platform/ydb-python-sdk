@@ -35,7 +35,7 @@ from ydb.observability.metrics import (
     RETRY_DURATION_BUCKETS_SECONDS,
 )
 
-_meter: Optional[Meter] = None
+_meter: Meter | None = None
 
 # Unit/description for the asynchronous gauges the SDK registers via observe_gauge.
 _GAUGE_META = {
@@ -54,7 +54,7 @@ class OtelMetricsProvider:
 
     def __init__(self, meter: Meter) -> None:
         self._meter = meter
-        self._histograms: Dict[str, Histogram] = {
+        self._histograms: dict[str, Histogram] = {
             CLIENT_OPERATION_DURATION: _create_histogram(
                 meter,
                 CLIENT_OPERATION_DURATION,
@@ -90,7 +90,7 @@ class OtelMetricsProvider:
                 bucket_boundaries=ATTEMPT_BUCKETS,
             ),
         }
-        self._counters: Dict[str, Any] = {
+        self._counters: dict[str, Any] = {
             CLIENT_OPERATION_FAILED: meter.create_counter(
                 CLIENT_OPERATION_FAILED,
                 unit="{command}",
@@ -108,12 +108,12 @@ class OtelMetricsProvider:
             ),
         }
 
-    def record(self, name: str, value: float, attributes: Optional[Dict[str, Any]] = None) -> None:
+    def record(self, name: str, value: float, attributes: dict[str, Any] | None = None) -> None:
         instrument = self._histograms.get(name)
         if instrument is not None:
             instrument.record(value, attributes=attributes or {})
 
-    def add(self, name: str, value: int, attributes: Optional[Dict[str, Any]] = None) -> None:
+    def add(self, name: str, value: int, attributes: dict[str, Any] | None = None) -> None:
         instrument = self._counters.get(name)
         if instrument is not None:
             instrument.add(value, attributes=attributes or {})
@@ -132,7 +132,7 @@ class OtelMetricsProvider:
         )
 
 
-def _enable_metrics(meter_provider: Optional[MeterProvider]) -> None:
+def _enable_metrics(meter_provider: MeterProvider | None) -> None:
     """Build an :class:`OtelMetricsProvider` from an OTel MeterProvider and install it.
 
     Called by :func:`ydb.opentelemetry.enable_metrics`. Idempotent: if metrics are

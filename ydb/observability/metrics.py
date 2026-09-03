@@ -20,7 +20,7 @@ import threading
 import itertools
 import functools
 import inspect
-from typing import Any, Callable, Iterable, Optional, Protocol
+from typing import Any, Callable, Iterable, Protocol
 
 from ydb.observability._endpoint import split_endpoint
 
@@ -105,9 +105,9 @@ class MetricsProvider(Protocol):
     three instrument kinds the SDK uses; see the module docstring for the semantics.
     """
 
-    def record(self, name: str, value: float, attributes: Optional[dict[str, Any]] = None) -> None: ...
+    def record(self, name: str, value: float, attributes: dict[str, Any] | None = None) -> None: ...
 
-    def add(self, name: str, value: int, attributes: Optional[dict[str, Any]] = None) -> None: ...
+    def add(self, name: str, value: int, attributes: dict[str, Any] | None = None) -> None: ...
 
     def observe_gauge(self, name: str, callback: GaugeCallback) -> None:
         """Register an asynchronous gauge whose current values *callback* returns."""
@@ -164,7 +164,7 @@ _OBSERVABLE_GAUGES = (
 )
 
 
-def _set_metrics_provider(provider: Optional[MetricsProvider]) -> None:
+def _set_metrics_provider(provider: MetricsProvider | None) -> None:
     global _provider
 
     _provider = provider if provider is not None else _NOOP_PROVIDER
@@ -192,9 +192,9 @@ def next_query_session_pool_name() -> str:
 
 
 def query_session_pool_name(
-    name: Optional[str],
-    endpoint: Optional[str] = None,
-    database: Optional[str] = None,
+    name: str | None,
+    endpoint: str | None = None,
+    database: str | None = None,
 ) -> str:
     """Return a stable label for the ``ydb.query.session.pool.name`` metric attribute.
 
@@ -227,7 +227,7 @@ def _metrics_build_info_tokens() -> list[str]:
     return [METRICS_SDK_BUILD_INFO] if is_metrics_enabled() else []
 
 
-def _pool_attrs(pool_name: Optional[str]) -> dict[str, Any]:
+def _pool_attrs(pool_name: str | None) -> dict[str, Any]:
     return {"ydb.query.session.pool.name": pool_name or _UNKNOWN_POOL}
 
 
@@ -269,11 +269,11 @@ class MetricsOperation:
     attached, and accepts only stable operation labels.
     """
 
-    def __init__(self, name: str, attributes: Optional[dict[str, Any]] = None) -> None:
+    def __init__(self, name: str, attributes: dict[str, Any] | None = None) -> None:
         self._name = name
         self._attributes = _operation_attrs(name, attributes or {})
         self._start_time = time.monotonic()
-        self._exception: Optional[BaseException] = None
+        self._exception: BaseException | None = None
         self._ended = False
         self._end_lock = threading.Lock()
 
@@ -366,13 +366,13 @@ class _MetricsOperationContext:
 _NOOP_METRICS_OPERATION = _NoopMetricsOperation()
 
 
-def create_metrics_operation(name: str, attributes: Optional[dict[str, Any]] = None):
+def create_metrics_operation(name: str, attributes: dict[str, Any] | None = None):
     if _provider is _NOOP_PROVIDER or _operation_name(name) not in _CLIENT_OPERATION_NAMES:
         return _NOOP_METRICS_OPERATION
     return MetricsOperation(name, attributes)
 
 
-def record_query_session_count(delta: int, pool_name: Optional[str] = None, state: str = "used") -> None:
+def record_query_session_count(delta: int, pool_name: str | None = None, state: str = "used") -> None:
     if not is_metrics_enabled():
         return
     attrs = _pool_attrs(pool_name)
@@ -382,25 +382,25 @@ def record_query_session_count(delta: int, pool_name: Optional[str] = None, stat
         _session_count_state[key] = _session_count_state.get(key, 0) + delta
 
 
-def record_query_session_create_time(duration: float, pool_name: Optional[str]) -> None:
+def record_query_session_create_time(duration: float, pool_name: str | None) -> None:
     if not is_metrics_enabled():
         return
     _provider.record(QUERY_SESSION_CREATE_TIME, duration, _pool_attrs(pool_name))
 
 
-def record_query_session_pending_requests(delta: int, pool_name: Optional[str]) -> None:
+def record_query_session_pending_requests(delta: int, pool_name: str | None) -> None:
     if not is_metrics_enabled():
         return
     _provider.add(QUERY_SESSION_PENDING_REQUESTS, delta, _pool_attrs(pool_name))
 
 
-def record_query_session_timeout(pool_name: Optional[str]) -> None:
+def record_query_session_timeout(pool_name: str | None) -> None:
     if not is_metrics_enabled():
         return
     _provider.add(QUERY_SESSION_TIMEOUTS, 1, _pool_attrs(pool_name))
 
 
-def record_query_session_max(value: int, pool_name: Optional[str]) -> None:
+def record_query_session_max(value: int, pool_name: str | None) -> None:
     if not is_metrics_enabled():
         return
     key = tuple(sorted(_pool_attrs(pool_name).items()))
@@ -408,7 +408,7 @@ def record_query_session_max(value: int, pool_name: Optional[str]) -> None:
         _session_max_state[key] = value
 
 
-def remove_query_session_pool_metrics(pool_name: Optional[str]) -> None:
+def remove_query_session_pool_metrics(pool_name: str | None) -> None:
     if not is_metrics_enabled():
         return
     base = list(_pool_attrs(pool_name).items())
@@ -450,7 +450,7 @@ class SessionMetrics:
     __slots__ = ("pool_name", "state", "_counted")
 
     def __init__(self) -> None:
-        self.pool_name: Optional[str] = None
+        self.pool_name: str | None = None
         self.state: str = "used"
         self._counted = False
 
@@ -483,7 +483,7 @@ _NOOP_SESSION_METRICS = _NoopSessionMetrics()
 class _CreateTimer:
     __slots__ = ("_pool_name", "_start")
 
-    def __init__(self, pool_name: Optional[str]) -> None:
+    def __init__(self, pool_name: str | None) -> None:
         self._pool_name = pool_name
         self._start = 0.0
 
@@ -499,7 +499,7 @@ class _CreateTimer:
 class _PendingTracker:
     __slots__ = ("_pool_name",)
 
-    def __init__(self, pool_name: Optional[str]) -> None:
+    def __init__(self, pool_name: str | None) -> None:
         self._pool_name = pool_name
 
     def __enter__(self):
@@ -518,7 +518,7 @@ class QuerySessionPoolMetrics:
     counters live here, and stay cheap no-ops while metrics are disabled.
     """
 
-    def __init__(self, name: Optional[str], driver, size: int) -> None:
+    def __init__(self, name: str | None, driver, size: int) -> None:
         driver_config = getattr(driver, "_driver_config", None)
         self._pool_name = query_session_pool_name(
             name,

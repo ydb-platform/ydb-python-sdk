@@ -32,14 +32,14 @@ class CoordinationSemaphore:
         except Exception:
             pass
 
-    def acquire(self, count: int = 1, timeout: Optional[float] = None):
+    def acquire(self, count: int = 1, timeout: float | None = None):
         self._check_closed()
         return self._caller.safe_call_with_result(
             self._async_semaphore.acquire(count),
             timeout,
         )
 
-    def release(self, timeout: Optional[float] = None):
+    def release(self, timeout: float | None = None):
         if self._closed:
             return
         return self._caller.safe_call_with_result(
@@ -47,21 +47,21 @@ class CoordinationSemaphore:
             timeout,
         )
 
-    def describe(self, timeout: Optional[float] = None):
+    def describe(self, timeout: float | None = None):
         self._check_closed()
         return self._caller.safe_call_with_result(
             self._async_semaphore.describe(),
             timeout,
         )
 
-    def update(self, new_data: bytes, timeout: Optional[float] = None):
+    def update(self, new_data: bytes, timeout: float | None = None):
         self._check_closed()
         return self._caller.safe_call_with_result(
             self._async_semaphore.update(new_data),
             timeout,
         )
 
-    def close(self, timeout: Optional[float] = None):
+    def close(self, timeout: float | None = None):
         if self._closed:
             return
         try:

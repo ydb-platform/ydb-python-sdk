@@ -77,8 +77,8 @@ def _log_request(rpc_state: "_RpcState", request: Any) -> None:
 
 def _rpc_error_handler(
     rpc_state: Union["_RpcState", str],
-    rpc_error: Union[grpc.RpcError, grpc.aio.AioRpcError, grpc.Call, grpc.aio.Call],
-    on_disconnected: Optional[Callable[[], None]] = None,
+    rpc_error: grpc.RpcError | grpc.aio.AioRpcError | grpc.Call | grpc.aio.Call,
+    on_disconnected: Callable[[], None] | None = None,
     use_unavailable: bool = False,
 ) -> issues.Error:
     """
@@ -270,7 +270,7 @@ class _RpcState:
     rpc_name: str
     endpoint: str
     rendezvous: Any
-    metadata_kv: Optional[dict[str, set]]
+    metadata_kv: dict[str, set] | None
     endpoint_key: "EndpointKey"
 
     def __init__(self, stub_instance: Any, rpc_name: str, endpoint: str, endpoint_key: "EndpointKey") -> None:
@@ -420,7 +420,7 @@ class Connection:
         self,
         endpoint: str,
         driver_config: Optional["DriverConfig"] = None,
-        endpoint_options: Optional[EndpointOptions] = None,
+        endpoint_options: EndpointOptions | None = None,
     ) -> None:
         """
         Object that wraps gRPC channel and encapsulates gRPC request execution logic
@@ -482,10 +482,10 @@ class Connection:
         request: Any,
         stub: Any,
         rpc_name: str,
-        wrap_result: Optional[Callable[..., Any]] = None,
+        wrap_result: Callable[..., Any] | None = None,
         settings: Optional["BaseRequestSettings"] = None,
         wrap_args: tuple[Any, ...] = (),
-        on_disconnected: Optional[Callable[[], None]] = None,
+        on_disconnected: Callable[[], None] | None = None,
     ) -> "futures.Future[Any]":
         """
         Sends request constructed by client
@@ -522,10 +522,10 @@ class Connection:
         request: Any,
         stub: Any,
         rpc_name: str,
-        wrap_result: Optional[Callable[..., Any]] = None,
+        wrap_result: Callable[..., Any] | None = None,
         settings: Optional["BaseRequestSettings"] = None,
         wrap_args: tuple[Any, ...] = (),
-        on_disconnected: Optional[Callable[[], None]] = None,
+        on_disconnected: Callable[[], None] | None = None,
     ) -> Any:
         """
         Synchronously sends request constructed by client library

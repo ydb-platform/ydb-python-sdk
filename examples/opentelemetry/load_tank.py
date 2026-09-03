@@ -7,7 +7,7 @@ import os
 import random
 import time
 from dataclasses import dataclass
-from typing import AsyncIterator, Tuple
+from typing import AsyncIterator
 
 from opentelemetry.exporter.otlp.proto.grpc.metric_exporter import OTLPMetricExporter
 from opentelemetry.sdk.metrics import MeterProvider
@@ -84,7 +84,7 @@ def _load_config() -> LoadConfig:
     )
 
 
-async def _load_steps(config: LoadConfig) -> AsyncIterator[Tuple[int, str, int]]:
+async def _load_steps(config: LoadConfig) -> AsyncIterator[tuple[int, str, int]]:
     pattern = (
         (config.peak_rps, "Peak", config.peak_duration),
         (config.medium_rps, "Medium down", config.medium_duration),

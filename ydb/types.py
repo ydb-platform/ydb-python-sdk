@@ -28,13 +28,13 @@ _EPOCH = datetime(1970, 1, 1)
 _EPOCH_UTC = datetime(1970, 1, 1, tzinfo=timezone.utc)
 
 
-def _from_date(x: ydb_value_pb2.Value, table_client_settings: table.TableClientSettings) -> typing.Union[date, int]:
+def _from_date(x: ydb_value_pb2.Value, table_client_settings: table.TableClientSettings) -> date | int:
     if table_client_settings is not None and table_client_settings._native_date_in_result_sets:
         return _EPOCH.date() + timedelta(days=x.uint32_value)
     return x.uint32_value
 
 
-def _to_date(pb: ydb_value_pb2.Value, value: typing.Union[date, datetime, int]) -> None:
+def _to_date(pb: ydb_value_pb2.Value, value: date | datetime | int) -> None:
     if isinstance(value, datetime):
         pb.uint32_value = (value.date() - _EPOCH.date()).days
     elif isinstance(value, date):
@@ -43,29 +43,27 @@ def _to_date(pb: ydb_value_pb2.Value, value: typing.Union[date, datetime, int]) 
         pb.uint32_value = value
 
 
-def _from_date32(x: ydb_value_pb2.Value, table_client_settings: table.TableClientSettings) -> typing.Union[date, int]:
+def _from_date32(x: ydb_value_pb2.Value, table_client_settings: table.TableClientSettings) -> date | int:
     if table_client_settings is not None and table_client_settings._native_date_in_result_sets:
         return _EPOCH.date() + timedelta(days=x.int32_value)
     return x.int32_value
 
 
-def _to_date32(pb: ydb_value_pb2.Value, value: typing.Union[date, int]) -> None:
+def _to_date32(pb: ydb_value_pb2.Value, value: date | int) -> None:
     if isinstance(value, date):
         pb.int32_value = (value - _EPOCH.date()).days
     else:
         pb.int32_value = value
 
 
-def _from_datetime_number(
-    x: typing.Union[float, datetime], table_client_settings: table.TableClientSettings
-) -> typing.Union[float, datetime]:
+def _from_datetime_number(x: float | datetime, table_client_settings: table.TableClientSettings) -> float | datetime:
     if table_client_settings is not None and table_client_settings._native_datetime_in_result_sets:
         # x is float when native_datetime_in_result_sets is True
         return datetime.utcfromtimestamp(typing.cast(float, x))
     return x
 
 
-def _to_datetime(pb: ydb_value_pb2.Value, value: typing.Union[datetime, int]) -> None:
+def _to_datetime(pb: ydb_value_pb2.Value, value: datetime | int) -> None:
     if isinstance(value, datetime):
         epoch = _EPOCH_UTC if value.tzinfo else _EPOCH
         pb.uint32_value = (value - epoch) // timedelta(seconds=1)
@@ -73,7 +71,7 @@ def _to_datetime(pb: ydb_value_pb2.Value, value: typing.Union[datetime, int]) ->
         pb.uint32_value = value
 
 
-def _to_datetime64(pb: ydb_value_pb2.Value, value: typing.Union[datetime, int]) -> None:
+def _to_datetime64(pb: ydb_value_pb2.Value, value: datetime | int) -> None:
     if isinstance(value, datetime):
         epoch = _EPOCH_UTC if value.tzinfo else _EPOCH
         pb.int64_value = (value - epoch) // timedelta(seconds=1)
@@ -102,39 +100,39 @@ def _parse_tz(value: str) -> datetime:
     return naive.replace(tzinfo=tz)
 
 
-def _from_tz_date(x: str, table_client_settings: table.TableClientSettings) -> typing.Union[datetime, str]:
+def _from_tz_date(x: str, table_client_settings: table.TableClientSettings) -> datetime | str:
     if table_client_settings is not None and table_client_settings._native_date_in_result_sets:
         return _parse_tz(x)
     return x
 
 
-def _to_tz_date(pb: ydb_value_pb2.Value, value: typing.Union[datetime, str]) -> None:
+def _to_tz_date(pb: ydb_value_pb2.Value, value: datetime | str) -> None:
     if isinstance(value, datetime):
         pb.text_value = value.strftime("%Y-%m-%d") + "," + _tz_name(value)
     else:
         pb.text_value = value
 
 
-def _from_tz_datetime(x: str, table_client_settings: table.TableClientSettings) -> typing.Union[datetime, str]:
+def _from_tz_datetime(x: str, table_client_settings: table.TableClientSettings) -> datetime | str:
     if table_client_settings is not None and table_client_settings._native_datetime_in_result_sets:
         return _parse_tz(x)
     return x
 
 
-def _to_tz_datetime(pb: ydb_value_pb2.Value, value: typing.Union[datetime, str]) -> None:
+def _to_tz_datetime(pb: ydb_value_pb2.Value, value: datetime | str) -> None:
     if isinstance(value, datetime):
         pb.text_value = value.strftime("%Y-%m-%dT%H:%M:%S") + "," + _tz_name(value)
     else:
         pb.text_value = value
 
 
-def _from_tz_timestamp(x: str, table_client_settings: table.TableClientSettings) -> typing.Union[datetime, str]:
+def _from_tz_timestamp(x: str, table_client_settings: table.TableClientSettings) -> datetime | str:
     if table_client_settings is not None and table_client_settings._native_timestamp_in_result_sets:
         return _parse_tz(x)
     return x
 
 
-def _to_tz_timestamp(pb: ydb_value_pb2.Value, value: typing.Union[datetime, str]) -> None:
+def _to_tz_timestamp(pb: ydb_value_pb2.Value, value: datetime | str) -> None:
     if isinstance(value, datetime):
         # isoformat() matches YDB's canonical form: 6-digit microseconds when
         # non-zero, omitted when zero (YDB strips a trailing ".000000").
@@ -143,7 +141,7 @@ def _to_tz_timestamp(pb: ydb_value_pb2.Value, value: typing.Union[datetime, str]
         pb.text_value = value
 
 
-def _from_json(x: typing.Union[str, bytearray, bytes], table_client_settings: table.TableClientSettings) -> typing.Any:
+def _from_json(x: str | bytearray | bytes, table_client_settings: table.TableClientSettings) -> typing.Any:
     if table_client_settings is not None and table_client_settings._native_json_in_result_sets:
         return json.loads(x)
     return x
@@ -162,30 +160,26 @@ def _timedelta_to_microseconds(value: timedelta) -> int:
     return (value.days * _SECONDS_IN_DAY + value.seconds) * 1000000 + value.microseconds
 
 
-def _from_interval(
-    value_pb: ydb_value_pb2.Value, table_client_settings: table.TableClientSettings
-) -> typing.Union[timedelta, int]:
+def _from_interval(value_pb: ydb_value_pb2.Value, table_client_settings: table.TableClientSettings) -> timedelta | int:
     if table_client_settings is not None and table_client_settings._native_interval_in_result_sets:
         return timedelta(microseconds=value_pb.int64_value)
     return value_pb.int64_value
 
 
-def _to_interval(pb: ydb_value_pb2.Value, value: typing.Union[timedelta, int]) -> None:
+def _to_interval(pb: ydb_value_pb2.Value, value: timedelta | int) -> None:
     if isinstance(value, timedelta):
         pb.int64_value = _timedelta_to_microseconds(value)
     else:
         pb.int64_value = value
 
 
-def _from_timestamp(
-    value_pb: ydb_value_pb2.Value, table_client_settings: table.TableClientSettings
-) -> typing.Union[datetime, int]:
+def _from_timestamp(value_pb: ydb_value_pb2.Value, table_client_settings: table.TableClientSettings) -> datetime | int:
     if table_client_settings is not None and table_client_settings._native_timestamp_in_result_sets:
         return _EPOCH + timedelta(microseconds=value_pb.uint64_value)
     return value_pb.uint64_value
 
 
-def _to_timestamp(pb: ydb_value_pb2.Value, value: typing.Union[datetime, int]) -> None:
+def _to_timestamp(pb: ydb_value_pb2.Value, value: datetime | int) -> None:
     if isinstance(value, datetime):
         if value.tzinfo:
             epoch = _EPOCH_UTC
@@ -198,13 +192,13 @@ def _to_timestamp(pb: ydb_value_pb2.Value, value: typing.Union[datetime, int]) -
 
 def _from_timestamp64(
     value_pb: ydb_value_pb2.Value, table_client_settings: table.TableClientSettings
-) -> typing.Union[datetime, int]:
+) -> datetime | int:
     if table_client_settings is not None and table_client_settings._native_timestamp_in_result_sets:
         return _EPOCH + timedelta(microseconds=value_pb.int64_value)
     return value_pb.int64_value
 
 
-def _to_timestamp64(pb: ydb_value_pb2.Value, value: typing.Union[datetime, int]) -> None:
+def _to_timestamp64(pb: ydb_value_pb2.Value, value: datetime | int) -> None:
     if isinstance(value, datetime):
         if value.tzinfo:
             epoch = _EPOCH_UTC
@@ -313,9 +307,9 @@ class PrimitiveType(enum.Enum):
     def __init__(
         self,
         idn: ydb_value_pb2.Type.PrimitiveTypeId,
-        proto_field: typing.Optional[str],
-        to_obj: typing.Optional[typing.Callable[..., typing.Any]] = None,
-        from_obj: typing.Optional[typing.Callable[..., None]] = None,
+        proto_field: str | None,
+        to_obj: typing.Callable[..., typing.Any] | None = None,
+        from_obj: typing.Callable[..., None] | None = None,
     ) -> None:
         self._idn_ = idn
         self._to_obj = to_obj
@@ -365,9 +359,7 @@ class PrimitiveType(enum.Enum):
 class DataQuery(object):
     __slots__ = ("yql_text", "parameters_types", "name")
 
-    def __init__(
-        self, query_id: str, parameters_types: "dict[str, ydb_value_pb2.Type]", name: typing.Optional[str] = None
-    ):
+    def __init__(self, query_id: str, parameters_types: "dict[str, ydb_value_pb2.Type]", name: str | None = None):
         self.yql_text = query_id
         self.parameters_types = parameters_types
         self.name = _utilities.get_query_hash(self.yql_text) if name is None else name
@@ -450,7 +442,7 @@ class NullType(AbstractTypeBuilder):
 class OptionalType(AbstractTypeBuilder):
     __slots__ = ("_repr", "_proto", "_item")
 
-    def __init__(self, optional_type: typing.Union[AbstractTypeBuilder, PrimitiveType]) -> None:
+    def __init__(self, optional_type: AbstractTypeBuilder | PrimitiveType) -> None:
         """
         Represents optional type that wraps inner type
         :param optional_type: An instance of an inner type
@@ -461,7 +453,7 @@ class OptionalType(AbstractTypeBuilder):
         self._proto.optional_type.MergeFrom(_apis.ydb_value.OptionalType(item=optional_type.proto))
 
     @property
-    def item(self) -> typing.Union[AbstractTypeBuilder, PrimitiveType]:
+    def item(self) -> AbstractTypeBuilder | PrimitiveType:
         return self._item
 
     @property
@@ -484,7 +476,7 @@ class OptionalType(AbstractTypeBuilder):
 class ListType(AbstractTypeBuilder):
     __slots__ = ("_repr", "_proto")
 
-    def __init__(self, list_type: typing.Union[AbstractTypeBuilder, PrimitiveType]) -> None:
+    def __init__(self, list_type: AbstractTypeBuilder | PrimitiveType) -> None:
         """
         :param list_type: List item type builder
         """
@@ -508,8 +500,8 @@ class DictType(AbstractTypeBuilder):
 
     def __init__(
         self,
-        key_type: typing.Union[AbstractTypeBuilder, PrimitiveType],
-        payload_type: typing.Union[AbstractTypeBuilder, PrimitiveType],
+        key_type: AbstractTypeBuilder | PrimitiveType,
+        payload_type: AbstractTypeBuilder | PrimitiveType,
     ) -> None:
         """
         :param key_type: Key type builder
@@ -536,7 +528,7 @@ class SetType(AbstractTypeBuilder):
 
     def __init__(
         self,
-        key_type: typing.Union[AbstractTypeBuilder, PrimitiveType],
+        key_type: AbstractTypeBuilder | PrimitiveType,
     ) -> None:
         """
         :param key_type: Key type builder
@@ -561,10 +553,10 @@ class TupleType(AbstractTypeBuilder):
     __slots__ = ("__elements_repr", "__proto")
 
     def __init__(self) -> None:
-        self.__elements_repr: typing.List[str] = []
+        self.__elements_repr: list[str] = []
         self.__proto = _apis.ydb_value.Type(tuple_type=_apis.ydb_value.TupleType())
 
-    def add_element(self, element_type: typing.Union[AbstractTypeBuilder, PrimitiveType]) -> "TupleType":
+    def add_element(self, element_type: AbstractTypeBuilder | PrimitiveType) -> "TupleType":
         """
         :param element_type: Adds additional element of tuple
         :return: self
@@ -586,10 +578,10 @@ class StructType(AbstractTypeBuilder):
     __slots__ = ("__members_repr", "__proto")
 
     def __init__(self) -> None:
-        self.__members_repr: typing.List[str] = []
+        self.__members_repr: list[str] = []
         self.__proto = _apis.ydb_value.Type(struct_type=_apis.ydb_value.StructType())
 
-    def add_member(self, name: str, member_type: typing.Union[AbstractTypeBuilder, PrimitiveType]) -> "StructType":
+    def add_member(self, name: str, member_type: AbstractTypeBuilder | PrimitiveType) -> "StructType":
         """
         :param name:
         :param member_type:
@@ -613,12 +605,10 @@ class BulkUpsertColumns(AbstractTypeBuilder):
     __slots__ = ("__columns_repr", "__proto")
 
     def __init__(self) -> None:
-        self.__columns_repr: typing.List[str] = []
+        self.__columns_repr: list[str] = []
         self.__proto = _apis.ydb_value.Type(struct_type=_apis.ydb_value.StructType())
 
-    def add_column(
-        self, name: str, column_type: typing.Union[AbstractTypeBuilder, PrimitiveType]
-    ) -> "BulkUpsertColumns":
+    def add_column(self, name: str, column_type: AbstractTypeBuilder | PrimitiveType) -> "BulkUpsertColumns":
         """
         :param name: A column name
         :param column_type: A column type
@@ -640,4 +630,4 @@ class BulkUpsertColumns(AbstractTypeBuilder):
 @dataclass
 class TypedValue:
     value: typing.Any
-    value_type: typing.Optional[typing.Union[PrimitiveType, AbstractTypeBuilder]] = None
+    value_type: PrimitiveType | AbstractTypeBuilder | None = None

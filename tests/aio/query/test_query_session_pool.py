@@ -4,7 +4,6 @@ import json
 import pytest
 import ydb
 
-from typing import Optional
 
 from ydb import QueryExplainResultFormat
 from ydb.aio.query.pool import QuerySessionPool
@@ -106,7 +105,7 @@ class TestQuerySessionPool:
         ],
     )
     @pytest.mark.asyncio
-    async def test_retry_tx_normal(self, pool: QuerySessionPool, tx_mode: Optional[ydb.BaseQueryTxMode]):
+    async def test_retry_tx_normal(self, pool: QuerySessionPool, tx_mode: ydb.BaseQueryTxMode | None):
         retry_no = 0
 
         async def callee(tx: QueryTxContext):

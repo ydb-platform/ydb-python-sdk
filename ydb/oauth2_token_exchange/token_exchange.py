@@ -36,11 +36,11 @@ class Oauth2TokenExchangeCredentialsBase(abc.ABC):
     def __init__(
         self,
         token_endpoint: str,
-        subject_token_source: typing.Optional[TokenSource] = None,
-        actor_token_source: typing.Optional[TokenSource] = None,
-        audience: typing.Union[typing.List[str], str, None] = None,
-        scope: typing.Union[typing.List[str], str, None] = None,
-        resource: typing.Union[typing.List[str], str, None] = None,
+        subject_token_source: TokenSource | None = None,
+        actor_token_source: TokenSource | None = None,
+        audience: list[str] | str | None = None,
+        scope: list[str] | str | None = None,
+        resource: list[str] | str | None = None,
         grant_type: str = "urn:ietf:params:oauth:grant-type:token-exchange",
         requested_token_type: str = "urn:ietf:params:oauth:token-type:access_token",
     ):
@@ -83,7 +83,7 @@ class Oauth2TokenExchangeCredentialsBase(abc.ABC):
             )
         return {"access_token": "Bearer " + access_token, "expires_in": expires_in}
 
-    def _get_scope_param(self) -> typing.Optional[str]:
+    def _get_scope_param(self) -> str | None:
         if self._scope is None:
             return None
         if isinstance(self._scope, str):
@@ -306,11 +306,11 @@ class Oauth2TokenExchangeCredentials(credentials.AbstractExpiringTokenCredential
     def __init__(
         self,
         token_endpoint: str,
-        subject_token_source: typing.Optional[TokenSource] = None,
-        actor_token_source: typing.Optional[TokenSource] = None,
-        audience: typing.Union[typing.List[str], str, None] = None,
-        scope: typing.Union[typing.List[str], str, None] = None,
-        resource: typing.Union[typing.List[str], str, None] = None,
+        subject_token_source: TokenSource | None = None,
+        actor_token_source: TokenSource | None = None,
+        audience: list[str] | str | None = None,
+        scope: list[str] | str | None = None,
+        resource: list[str] | str | None = None,
         grant_type: str = "urn:ietf:params:oauth:grant-type:token-exchange",
         requested_token_type: str = "urn:ietf:params:oauth:token-type:access_token",
         tracer=None,

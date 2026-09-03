@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 
 class CoordinationClient(BaseCoordinationClient["SyncDriver"]):
-    def create_node(self, path: str, config: Optional[NodeConfig] = None, settings=None):
+    def create_node(self, path: str, config: NodeConfig | None = None, settings=None):
         self._log_experimental_api()
 
         return self._call_create(

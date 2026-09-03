@@ -1195,7 +1195,7 @@ class ITableClient(abc.ABC):
 class BaseTableClient(ITableClient, Generic[DriverT]):
     _driver: DriverT
 
-    def __init__(self, driver: DriverT, table_client_settings: Optional[TableClientSettings] = None) -> None:
+    def __init__(self, driver: DriverT, table_client_settings: TableClientSettings | None = None) -> None:
         self._driver = driver
         self._table_client_settings = TableClientSettings() if table_client_settings is None else table_client_settings
 
@@ -1257,9 +1257,9 @@ class BaseTableClient(ITableClient, Generic[DriverT]):
 
 
 class TableClient(BaseTableClient["SyncDriver"]):
-    def __init__(self, driver: "SyncDriver", table_client_settings: Optional[TableClientSettings] = None) -> None:
+    def __init__(self, driver: "SyncDriver", table_client_settings: TableClientSettings | None = None) -> None:
         super().__init__(driver=driver, table_client_settings=table_client_settings)
-        self._pool: Optional[SessionPool] = None
+        self._pool: SessionPool | None = None
 
     def __del__(self):
         self._stop_pool_if_needed()
@@ -1358,22 +1358,22 @@ class TableClient(BaseTableClient["SyncDriver"]):
     def alter_table(
         self,
         path: str,
-        add_columns: Optional[list["ydb.Column"]] = None,
-        drop_columns: Optional[list[str]] = None,
+        add_columns: list["ydb.Column"] | None = None,
+        drop_columns: list[str] | None = None,
         settings: Optional["settings_impl.BaseRequestSettings"] = None,
-        alter_attributes: Optional[Optional[dict[str, str]]] = None,
-        add_indexes: Optional[list["ydb.TableIndex"]] = None,
-        drop_indexes: Optional[list[str]] = None,
+        alter_attributes: dict[str, str] | None = None,
+        add_indexes: list["ydb.TableIndex"] | None = None,
+        drop_indexes: list[str] | None = None,
         set_ttl_settings: Optional["ydb.TtlSettings"] = None,
-        drop_ttl_settings: Optional[Any] = None,
-        add_column_families: Optional[list["ydb.ColumnFamily"]] = None,
-        alter_column_families: Optional[list["ydb.ColumnFamily"]] = None,
+        drop_ttl_settings: Any | None = None,
+        add_column_families: list["ydb.ColumnFamily"] | None = None,
+        alter_column_families: list["ydb.ColumnFamily"] | None = None,
         alter_storage_settings: Optional["ydb.StorageSettings"] = None,
-        set_compaction_policy: Optional[str] = None,
+        set_compaction_policy: str | None = None,
         alter_partitioning_settings: Optional["ydb.PartitioningSettings"] = None,
         set_key_bloom_filter: Optional["ydb.FeatureFlag"] = None,
         set_read_replicas_settings: Optional["ydb.ReadReplicasSettings"] = None,
-        rename_indexes: Optional[list["ydb.RenameIndexItem"]] = None,
+        rename_indexes: list["ydb.RenameIndexItem"] | None = None,
     ) -> "ydb.Operation":
         """
         Alter a YDB table.

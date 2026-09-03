@@ -1,4 +1,3 @@
-import typing
 import logging
 from storage import Storage
 from models import (
@@ -16,7 +15,7 @@ class Controller(object):
     def __init__(self, storage: Storage):
         self._storage = storage
 
-    def _find_available_table_id(self, request: ReservationCreateRequest) -> typing.Optional[int]:
+    def _find_available_table_id(self, request: ReservationCreateRequest) -> int | None:
         table_ids = set(self._storage.list_table_ids(cnt=request.cnt))
         reserved_table_ids = set(self._storage.find_reserved_table_ids(cnt=request.cnt, dt=request.dt))
         for table_id in table_ids.difference(reserved_table_ids):

@@ -1,6 +1,6 @@
 from enum import IntEnum
 import functools
-from typing import Any, Callable, Optional, Type
+from typing import Any, Callable
 from types import TracebackType
 
 
@@ -53,9 +53,9 @@ class _TracingCtx:
 
     def __exit__(
         self,
-        exc_type: Optional[Type[BaseException]],
-        exc_val: Optional[BaseException],
-        exc_tb: Optional[TracebackType],
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: TracebackType | None,
     ) -> None:
         if not self.enabled:
             return
@@ -68,7 +68,7 @@ class _TracingCtx:
         self._scope = None
 
 
-def with_trace(span_name: Optional[str] = None) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
+def with_trace(span_name: str | None = None) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
     def decorator(f: Callable[..., Any]) -> Callable[..., Any]:
         @functools.wraps(f)
         def wrapper(self: Any, *args: Any, **kwargs: Any) -> Any:
@@ -81,7 +81,7 @@ def with_trace(span_name: Optional[str] = None) -> Callable[[Callable[..., Any]]
     return decorator
 
 
-def trace(tracer: "Tracer", tags: dict[str, Any], trace_level: TraceLevel = TraceLevel.INFO) -> Optional[bool]:
+def trace(tracer: "Tracer", tags: dict[str, Any], trace_level: TraceLevel = TraceLevel.INFO) -> bool | None:
     if tracer.enabled:
         scope = tracer._open_tracer.scope_manager.active
         if not scope:
@@ -184,9 +184,9 @@ class Tracer:
 
 def _default_on_error_callback(
     ctx: _TracingCtx,
-    exc_type: Optional[Type[BaseException]],
-    exc_val: Optional[BaseException],
-    exc_tb: Optional[TracebackType],
+    exc_type: type[BaseException] | None,
+    exc_val: BaseException | None,
+    exc_tb: TracebackType | None,
 ) -> None:
     ctx.trace(
         {

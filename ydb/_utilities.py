@@ -229,7 +229,7 @@ logger = logging.getLogger(__name__)
 
 # Module-level thread pool for TCP race (reused across discovery cycles)
 _TCP_RACE_MAX_WORKERS = 30
-_TCP_RACE_EXECUTOR: Optional[concurrent.futures.ThreadPoolExecutor] = None
+_TCP_RACE_EXECUTOR: concurrent.futures.ThreadPoolExecutor | None = None
 _EXECUTOR_LOCK = threading.Lock()
 _ATEXIT_REGISTERED = False
 
@@ -377,7 +377,7 @@ def _get_random_endpoints(endpoints: list["resolver.EndpointInfo"], count: int) 
 
 def detect_local_dc(
     endpoints: list["resolver.EndpointInfo"], max_per_location: int = 3, timeout: float = 5.0
-) -> Optional[str]:
+) -> str | None:
     """
     Detect nearest datacenter by performing TCP race between endpoints.
 

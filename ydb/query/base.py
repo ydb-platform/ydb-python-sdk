@@ -8,7 +8,6 @@ from typing import (
     Optional,
     Any,
     Callable,
-    Union,
 )
 
 from .._grpc.grpcwrapper import ydb_query
@@ -152,18 +151,18 @@ class QueryClientSettings:
 def create_execute_query_request(
     query: str,
     session_id: str,
-    tx_id: Optional[str],
-    commit_tx: Optional[bool],
-    tx_mode: Optional[BaseQueryTxMode],
-    syntax: Optional[QuerySyntax],
-    exec_mode: Optional[QueryExecMode],
-    stats_mode: Optional[QueryStatsMode],
-    schema_inclusion_mode: Optional[QuerySchemaInclusionMode],
-    result_set_format: Optional[QueryResultSetFormat],
-    arrow_format_settings: Optional[ArrowFormatSettings],
-    parameters: Optional[dict],
-    concurrent_result_sets: Optional[bool],
-    pool_id: Optional[str],
+    tx_id: str | None,
+    commit_tx: bool | None,
+    tx_mode: BaseQueryTxMode | None,
+    syntax: QuerySyntax | None,
+    exec_mode: QueryExecMode | None,
+    stats_mode: QueryStatsMode | None,
+    schema_inclusion_mode: QuerySchemaInclusionMode | None,
+    result_set_format: QueryResultSetFormat | None,
+    arrow_format_settings: ArrowFormatSettings | None,
+    parameters: dict | None,
+    concurrent_result_sets: bool | None,
+    pool_id: str | None,
 ) -> ydb_query.ExecuteQueryRequest:
     try:
         syntax = QuerySyntax.YQL_V1 if not syntax else syntax
@@ -230,9 +229,9 @@ def wrap_execute_query_response(
     response_pb: _apis.ydb_query.ExecuteQueryResponsePart,
     session: "BaseQuerySession",
     tx: Optional["BaseQueryTxContext"] = None,
-    commit_tx: Optional[bool] = False,
-    settings: Optional[QueryClientSettings] = None,
-) -> Optional[convert.ResultSet]:
+    commit_tx: bool | None = False,
+    settings: QueryClientSettings | None = None,
+) -> convert.ResultSet | None:
     issues._process_response(response_pb)
     if tx and commit_tx:
         tx._move_to_commited()
@@ -267,7 +266,7 @@ class CallbackHandlerMode(enum.Enum):
     ASYNC = "ASYNC"
 
 
-def _get_sync_callback(method: typing.Callable, loop: Optional[asyncio.AbstractEventLoop]):
+def _get_sync_callback(method: typing.Callable, loop: asyncio.AbstractEventLoop | None):
     if asyncio.iscoroutinefunction(method):
         if loop is None:
             loop = _get_shared_event_loop()
@@ -298,12 +297,12 @@ class CallbackHandler:
         self._callbacks = defaultdict(list)
         self._callback_mode = mode
 
-    def _execute_callbacks_sync(self, event_name: Union[str, TxEvent], *args: Any, **kwargs: Any) -> None:
+    def _execute_callbacks_sync(self, event_name: str | TxEvent, *args: Any, **kwargs: Any) -> None:
         key = event_name.value if isinstance(event_name, TxEvent) else event_name
         for callback in self._callbacks[key]:
             callback(self, *args, **kwargs)
 
-    async def _execute_callbacks_async(self, event_name: Union[str, TxEvent], *args: Any, **kwargs: Any) -> None:
+    async def _execute_callbacks_async(self, event_name: str | TxEvent, *args: Any, **kwargs: Any) -> None:
         key = event_name.value if isinstance(event_name, TxEvent) else event_name
         tasks = [asyncio.create_task(callback(self, *args, **kwargs)) for callback in self._callbacks[key]]
         if not tasks:
@@ -311,7 +310,7 @@ class CallbackHandler:
         await asyncio.gather(*tasks)
 
     def _prepare_callback(
-        self, callback: typing.Callable[..., Any], loop: Optional[asyncio.AbstractEventLoop]
+        self, callback: typing.Callable[..., Any], loop: asyncio.AbstractEventLoop | None
     ) -> typing.Callable[..., Any]:
         if self._callback_mode == CallbackHandlerMode.SYNC:
             return _get_sync_callback(callback, loop)
@@ -319,9 +318,9 @@ class CallbackHandler:
 
     def _add_callback(
         self,
-        event_name: Union[str, TxEvent],
+        event_name: str | TxEvent,
         callback: typing.Callable[..., Any],
-        loop: Optional[asyncio.AbstractEventLoop],
+        loop: asyncio.AbstractEventLoop | None,
     ) -> None:
         key = event_name.value if isinstance(event_name, TxEvent) else event_name
         self._callbacks[key].append(self._prepare_callback(callback, loop))
