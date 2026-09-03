@@ -1,4 +1,3 @@
-
 from .. import issues
 from .._topic_common.common import _get_shared_event_loop, CallFromSyncToAsync
 from ..aio.coordination.semaphore import CoordinationSemaphore as CoordinationSemaphoreAio
