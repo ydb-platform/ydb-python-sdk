@@ -1,4 +1,3 @@
-[Unreleased]
 * Fixed `OSError: [Errno 22] Invalid argument` when reading native `Datetime64` value before 1970 (negative Unix timestamps) on Windows: conversion now uses epoch arithmetic instead of `datetime.utcfromtimestamp`
 
 ## 3.31.4 ##
