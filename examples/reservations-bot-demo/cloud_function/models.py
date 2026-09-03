@@ -1,35 +1,34 @@
-import typing
 import datetime
 from pydantic import BaseModel
 
 
 class Reservation(BaseModel):
-    phone: typing.Optional[typing.Union[str, str]] = None
-    description: typing.Optional[typing.Union[bytes, str]] = None
+    phone: str | str | None = None
+    description: bytes | str | None = None
     table_id: int
     dt: datetime.datetime
 
 
 class Table(BaseModel):
     table_id: int = None
-    description: typing.Optional[typing.Union[bytes, str]] = None
+    description: bytes | str | None = None
     cnt: int
 
 
 class ReservationCreateRequest(BaseModel):
     dt: datetime.datetime
     cnt: int
-    description: typing.Optional[typing.Union[bytes, str]] = None
-    phone: typing.Optional[typing.Union[bytes, str]]
+    description: bytes | str | None = None
+    phone: bytes | str | None
 
 
 class ReservationCreateResponse(BaseModel):
     success: bool
-    table_id: typing.Optional[int] = None
+    table_id: int | None = None
 
 
 class ReservationCancelRequest(BaseModel):
-    phone: typing.Optional[typing.Union[bytes, str]]
+    phone: bytes | str | None
     dt: datetime.datetime
 
 

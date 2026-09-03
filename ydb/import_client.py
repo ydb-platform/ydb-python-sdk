@@ -142,7 +142,7 @@ def _import_from_s3_request_factory(settings):
     return request
 
 
-class ImportClient(object):
+class ImportClient:
     def __init__(self, driver):
         self._driver = driver
 

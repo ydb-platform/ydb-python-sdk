@@ -14,7 +14,7 @@ import logging
 import random
 import time
 import urllib.parse
-from typing import Dict, List, Optional, TYPE_CHECKING
+from typing import Optional, TYPE_CHECKING
 from . import ydb_version
 
 import typing
@@ -109,7 +109,7 @@ def get_query_hash(yql_text):
         return hashlib.sha256(str(yql_text).encode("utf-8")).hexdigest()
 
 
-class LRUCache(object):
+class LRUCache:
     def __init__(self, capacity=1000):
         self.items = collections.OrderedDict()
         self.capacity = capacity
@@ -142,7 +142,7 @@ def from_bytes(val):
         return val
 
 
-class AsyncResponseIterator(object):
+class AsyncResponseIterator:
     def __init__(self, it, wrapper):
         self.it = it
         self.wrapper = wrapper
@@ -164,7 +164,7 @@ class AsyncResponseIterator(object):
         return self._next()
 
 
-class SyncResponseIterator(object):
+class SyncResponseIterator:
     def __init__(self, it, wrapper):
         self.it = it
         self.wrapper = wrapper
@@ -229,7 +229,7 @@ logger = logging.getLogger(__name__)
 
 # Module-level thread pool for TCP race (reused across discovery cycles)
 _TCP_RACE_MAX_WORKERS = 30
-_TCP_RACE_EXECUTOR: Optional[concurrent.futures.ThreadPoolExecutor] = None
+_TCP_RACE_EXECUTOR: concurrent.futures.ThreadPoolExecutor | None = None
 _EXECUTOR_LOCK = threading.Lock()
 _ATEXIT_REGISTERED = False
 
@@ -268,7 +268,7 @@ def _shutdown_executor():
 
 
 def _check_fastest_endpoint(
-    endpoints: List["resolver.EndpointInfo"], timeout: float = 5.0
+    endpoints: list["resolver.EndpointInfo"], timeout: float = 5.0
 ) -> Optional["resolver.EndpointInfo"]:
     """
     Perform TCP race using a bounded thread pool and return the fastest endpoint.
@@ -280,7 +280,7 @@ def _check_fastest_endpoint(
     per location to ensure fair representation of all locations in the race. If there
     are still too many locations, randomly samples them to stay within the limit.
 
-    :param endpoints: List of resolver.EndpointInfo objects
+    :param endpoints: list of resolver.EndpointInfo objects
     :param timeout: Maximum time to wait for any connection (seconds)
     :return: Fastest endpoint that connected successfully, or None if all failed
     """
@@ -329,7 +329,7 @@ def _check_fastest_endpoint(
             return None
 
     executor = _get_executor()
-    futures_list: List[concurrent.futures.Future] = [executor.submit(try_connect, ep) for ep in endpoints]
+    futures_list: list[concurrent.futures.Future] = [executor.submit(try_connect, ep) for ep in endpoints]
 
     try:
         for fut in concurrent.futures.as_completed(futures_list, timeout=timeout):
@@ -346,14 +346,14 @@ def _check_fastest_endpoint(
     return None
 
 
-def _split_endpoints_by_location(endpoints: List["resolver.EndpointInfo"]) -> Dict[str, List["resolver.EndpointInfo"]]:
+def _split_endpoints_by_location(endpoints: list["resolver.EndpointInfo"]) -> dict[str, list["resolver.EndpointInfo"]]:
     """
     Group endpoints by their location.
 
-    :param endpoints: List of resolver.EndpointInfo objects
-    :return: Dictionary mapping location -> list of resolver.EndpointInfo
+    :param endpoints: list of resolver.EndpointInfo objects
+    :return: dictionary mapping location -> list of resolver.EndpointInfo
     """
-    result: Dict[str, List["resolver.EndpointInfo"]] = {}
+    result: dict[str, list["resolver.EndpointInfo"]] = {}
     for endpoint in endpoints:
         location = endpoint.location
         if location not in result:
@@ -362,11 +362,11 @@ def _split_endpoints_by_location(endpoints: List["resolver.EndpointInfo"]) -> Di
     return result
 
 
-def _get_random_endpoints(endpoints: List["resolver.EndpointInfo"], count: int) -> List["resolver.EndpointInfo"]:
+def _get_random_endpoints(endpoints: list["resolver.EndpointInfo"], count: int) -> list["resolver.EndpointInfo"]:
     """
     Get random sample of endpoints.
 
-    :param endpoints: List of resolver.EndpointInfo objects
+    :param endpoints: list of resolver.EndpointInfo objects
     :param count: Maximum number of endpoints to return
     :return: Random sample of resolver.EndpointInfo
     """
@@ -376,8 +376,8 @@ def _get_random_endpoints(endpoints: List["resolver.EndpointInfo"], count: int) 
 
 
 def detect_local_dc(
-    endpoints: List["resolver.EndpointInfo"], max_per_location: int = 3, timeout: float = 5.0
-) -> Optional[str]:
+    endpoints: list["resolver.EndpointInfo"], max_per_location: int = 3, timeout: float = 5.0
+) -> str | None:
     """
     Detect nearest datacenter by performing TCP race between endpoints.
 
@@ -393,7 +393,7 @@ def detect_local_dc(
     5. Return the location of the first endpoint that connects successfully
     6. If all connections fail, return None
 
-    :param endpoints: List of resolver.EndpointInfo objects from discovery
+    :param endpoints: list of resolver.EndpointInfo objects from discovery
     :param max_per_location: Maximum number of endpoints to test per location (default: 3, must be >= 1)
     :param timeout: TCP connection timeout in seconds (default: 5.0, must be > 0)
     :return: Location string of the nearest datacenter, or None if detection failed

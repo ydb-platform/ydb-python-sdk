@@ -5,7 +5,7 @@ packages. The SDK core does not import it — the OTel dependency is only pulled
 user calls :func:`ydb.opentelemetry.enable_metrics`.
 """
 
-from typing import Any, Dict, Optional
+from typing import Any, Optional
 
 from opentelemetry import metrics as otel_metrics
 from opentelemetry.metrics import (
@@ -54,7 +54,7 @@ class OtelMetricsProvider:
 
     def __init__(self, meter: Meter) -> None:
         self._meter = meter
-        self._histograms: Dict[str, Histogram] = {
+        self._histograms: dict[str, Histogram] = {
             CLIENT_OPERATION_DURATION: _create_histogram(
                 meter,
                 CLIENT_OPERATION_DURATION,
@@ -90,7 +90,7 @@ class OtelMetricsProvider:
                 bucket_boundaries=ATTEMPT_BUCKETS,
             ),
         }
-        self._counters: Dict[str, Any] = {
+        self._counters: dict[str, Any] = {
             CLIENT_OPERATION_FAILED: meter.create_counter(
                 CLIENT_OPERATION_FAILED,
                 unit="{command}",
@@ -108,12 +108,12 @@ class OtelMetricsProvider:
             ),
         }
 
-    def record(self, name: str, value: float, attributes: Optional[Dict[str, Any]] = None) -> None:
+    def record(self, name: str, value: float, attributes: Optional[dict[str, Any]] = None) -> None:
         instrument = self._histograms.get(name)
         if instrument is not None:
             instrument.record(value, attributes=attributes or {})
 
-    def add(self, name: str, value: int, attributes: Optional[Dict[str, Any]] = None) -> None:
+    def add(self, name: str, value: int, attributes: Optional[dict[str, Any]] = None) -> None:
         instrument = self._counters.get(name)
         if instrument is not None:
             instrument.add(value, attributes=attributes or {})

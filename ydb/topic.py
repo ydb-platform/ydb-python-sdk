@@ -39,7 +39,7 @@ import concurrent.futures
 import datetime
 from dataclasses import dataclass
 import logging
-from typing import List, Union, Mapping, Optional, Dict, Callable
+from typing import Mapping, Callable
 
 from . import aio, Credentials, _apis, issues
 
@@ -110,11 +110,11 @@ logger = logging.getLogger(__name__)
 class TopicClientAsyncIO:
     _closed: bool
     _driver: aio.Driver
-    _credentials: Union[Credentials, None]
+    _credentials: Credentials | None
     _settings: TopicClientSettings
     _executor: concurrent.futures.Executor
 
-    def __init__(self, driver: aio.Driver, settings: Optional[TopicClientSettings] = None):
+    def __init__(self, driver: aio.Driver, settings: TopicClientSettings | None = None):
         if not settings:
             settings = TopicClientSettings()
         self._closed = False
@@ -136,18 +136,18 @@ class TopicClientAsyncIO:
     async def create_topic(
         self,
         path: str,
-        min_active_partitions: Optional[int] = None,
-        max_active_partitions: Optional[int] = None,
-        partition_count_limit: Optional[int] = None,
-        retention_period: Optional[datetime.timedelta] = None,
-        retention_storage_mb: Optional[int] = None,
-        supported_codecs: Optional[List[Union[TopicCodec, int]]] = None,
-        partition_write_speed_bytes_per_second: Optional[int] = None,
-        partition_write_burst_bytes: Optional[int] = None,
-        attributes: Optional[Dict[str, str]] = None,
-        consumers: Optional[List[Union[TopicConsumer, str]]] = None,
-        metering_mode: Optional[TopicMeteringMode] = None,
-        auto_partitioning_settings: Optional[TopicAutoPartitioningSettings] = None,
+        min_active_partitions: int | None = None,
+        max_active_partitions: int | None = None,
+        partition_count_limit: int | None = None,
+        retention_period: datetime.timedelta | None = None,
+        retention_storage_mb: int | None = None,
+        supported_codecs: list[TopicCodec | int] | None = None,
+        partition_write_speed_bytes_per_second: int | None = None,
+        partition_write_burst_bytes: int | None = None,
+        attributes: dict[str, str] | None = None,
+        consumers: list[TopicConsumer | str] | None = None,
+        metering_mode: TopicMeteringMode | None = None,
+        auto_partitioning_settings: TopicAutoPartitioningSettings | None = None,
     ):
         """
         create topic command
@@ -158,13 +158,13 @@ class TopicClientAsyncIO:
             and read-only partitions.
         :param retention_period: How long data in partition should be stored
         :param retention_storage_mb: How much data in partition should be stored
-        :param supported_codecs: List of allowed codecs for writers. Writes with codec not from this list are forbidden.
+        :param supported_codecs: list of allowed codecs for writers. Writes with codec not from this list are forbidden.
             Empty list mean disable codec compatibility checks for the topic.
         :param partition_write_speed_bytes_per_second: Partition write speed in bytes per second
         :param partition_write_burst_bytes: Burst size for write in partition, in bytes
         :param attributes: User and server attributes of topic.
             Server attributes starts from "_" and will be validated by server.
-        :param consumers: List of consumers for this topic
+        :param consumers: list of consumers for this topic
         :param metering_mode: Metering mode for the topic in a serverless database
         """
         logger.debug("Create topic request: path=%s", path)
@@ -182,20 +182,20 @@ class TopicClientAsyncIO:
     async def alter_topic(
         self,
         path: str,
-        set_min_active_partitions: Optional[int] = None,
-        set_max_active_partitions: Optional[int] = None,
-        set_partition_count_limit: Optional[int] = None,
-        add_consumers: Optional[List[Union[TopicConsumer, str]]] = None,
-        alter_consumers: Optional[List[Union[TopicAlterConsumer, str]]] = None,
-        drop_consumers: Optional[List[str]] = None,
-        alter_attributes: Optional[Dict[str, str]] = None,
-        set_metering_mode: Optional[TopicMeteringMode] = None,
-        set_partition_write_speed_bytes_per_second: Optional[int] = None,
-        set_partition_write_burst_bytes: Optional[int] = None,
-        set_retention_period: Optional[datetime.timedelta] = None,
-        set_retention_storage_mb: Optional[int] = None,
-        set_supported_codecs: Optional[List[Union[TopicCodec, int]]] = None,
-        alter_auto_partitioning_settings: Optional[TopicAlterAutoPartitioningSettings] = None,
+        set_min_active_partitions: int | None = None,
+        set_max_active_partitions: int | None = None,
+        set_partition_count_limit: int | None = None,
+        add_consumers: list[TopicConsumer | str] | None = None,
+        alter_consumers: list[TopicAlterConsumer | str] | None = None,
+        drop_consumers: list[str] | None = None,
+        alter_attributes: dict[str, str] | None = None,
+        set_metering_mode: TopicMeteringMode | None = None,
+        set_partition_write_speed_bytes_per_second: int | None = None,
+        set_partition_write_burst_bytes: int | None = None,
+        set_retention_period: datetime.timedelta | None = None,
+        set_retention_storage_mb: int | None = None,
+        set_supported_codecs: list[TopicCodec | int] | None = None,
+        alter_auto_partitioning_settings: TopicAlterAutoPartitioningSettings | None = None,
     ):
         """
         alter topic command
@@ -204,9 +204,9 @@ class TopicClientAsyncIO:
         :param set_min_active_partitions: Minimum partition count auto merge would stop working at.
         :param set_partition_count_limit: Limit for total partition count, including active (open for write)
             and read-only partitions.
-        :param add_consumers: List of consumers for this topic to add
-        :param alter_consumers: List of consumers for this topic to alter
-        :param drop_consumers: List of consumer names for this topic to drop
+        :param add_consumers: list of consumers for this topic to add
+        :param alter_consumers: list of consumers for this topic to alter
+        :param drop_consumers: list of consumer names for this topic to drop
         :param alter_attributes: User and server attributes of topic.
             Server attributes starts from "_" and will be validated by server.
         :param set_metering_mode: Metering mode for the topic in a serverless database
@@ -214,7 +214,7 @@ class TopicClientAsyncIO:
         :param set_partition_write_burst_bytes: Burst size for write in partition, in bytes
         :param set_retention_period: How long data in partition should be stored
         :param set_retention_storage_mb: How much data in partition should be stored
-        :param set_supported_codecs: List of allowed codecs for writers. Writes with codec not from this list are forbidden.
+        :param set_supported_codecs: list of allowed codecs for writers. Writes with codec not from this list are forbidden.
             Empty list mean disable codec compatibility checks for the topic.
         """
         logger.debug("Alter topic request: path=%s", path)
@@ -283,17 +283,17 @@ class TopicClientAsyncIO:
 
     def reader(
         self,
-        topic: Union[str, TopicReaderSelector, List[Union[str, TopicReaderSelector]]],
-        consumer: Optional[str],
+        topic: str | TopicReaderSelector | list[str | TopicReaderSelector],
+        consumer: str | None,
         buffer_size_bytes: int = 50 * 1024 * 1024,
         # decoders: map[codec_code] func(encoded_bytes)->decoded_bytes
         # the func will be called from multiply threads in parallel
-        decoders: Union[Mapping[int, Callable[[bytes], bytes]], None] = None,
+        decoders: Mapping[int, Callable[[bytes], bytes]] | None = None,
         # custom decoder executor for call builtin and custom decoders. If None - use shared executor pool.
         # if max_worker in the executor is 1 - then decoders will be called from the thread without parallel
-        decoder_executor: Optional[concurrent.futures.Executor] = None,
-        auto_partitioning_support: Optional[bool] = True,  # Auto partitioning feature flag. Default - True.
-        event_handler: Optional[TopicReaderEvents.EventHandler] = None,
+        decoder_executor: concurrent.futures.Executor | None = None,
+        auto_partitioning_support: bool | None = True,  # Auto partitioning feature flag. Default - True.
+        event_handler: TopicReaderEvents.EventHandler | None = None,
         buffer_release_threshold: float = 0.5,
     ) -> TopicReaderAsyncIO:
 
@@ -330,21 +330,21 @@ class TopicClientAsyncIO:
         self,
         topic,
         *,
-        producer_id: Optional[str] = None,  # default - random
+        producer_id: str | None = None,  # default - random
         session_metadata: Mapping[str, str] = None,
-        partition_id: Union[int, None] = None,
+        partition_id: int | None = None,
         auto_seqno: bool = True,
         auto_created_at: bool = True,
-        codec: Optional[TopicCodec] = None,  # default mean auto-select
+        codec: TopicCodec | None = None,  # default mean auto-select
         # encoders: map[codec_code] func(encoded_bytes)->decoded_bytes
         # the func will be called from multiply threads in parallel.
-        encoders: Optional[Mapping[_ydb_topic_public_types.PublicCodec, Callable[[bytes], bytes]]] = None,
+        encoders: Mapping[_ydb_topic_public_types.PublicCodec, Callable[[bytes], bytes]] | None = None,
         # custom encoder executor for call builtin and custom decoders. If None - use shared executor pool.
         # If max_worker in the executor is 1 - then encoders will be called from the thread without parallel.
-        encoder_executor: Optional[concurrent.futures.Executor] = None,
-        max_buffer_size_bytes: Optional[int] = None,
-        max_buffer_messages: Optional[int] = None,
-        buffer_wait_timeout_sec: Optional[float] = None,
+        encoder_executor: concurrent.futures.Executor | None = None,
+        max_buffer_size_bytes: int | None = None,
+        max_buffer_messages: int | None = None,
+        buffer_wait_timeout_sec: float | None = None,
     ) -> TopicWriterAsyncIO:
         logger.debug("Create writer for topic=%s producer_id=%s", topic, producer_id)
         args = locals().copy()
@@ -362,21 +362,21 @@ class TopicClientAsyncIO:
         tx,
         topic,
         *,
-        producer_id: Optional[str] = None,  # default - random
+        producer_id: str | None = None,  # default - random
         session_metadata: Mapping[str, str] = None,
-        partition_id: Union[int, None] = None,
+        partition_id: int | None = None,
         auto_seqno: bool = True,
         auto_created_at: bool = True,
-        codec: Optional[TopicCodec] = None,  # default mean auto-select
+        codec: TopicCodec | None = None,  # default mean auto-select
         # encoders: map[codec_code] func(encoded_bytes)->decoded_bytes
         # the func will be called from multiply threads in parallel.
-        encoders: Optional[Mapping[_ydb_topic_public_types.PublicCodec, Callable[[bytes], bytes]]] = None,
+        encoders: Mapping[_ydb_topic_public_types.PublicCodec, Callable[[bytes], bytes]] | None = None,
         # custom encoder executor for call builtin and custom decoders. If None - use shared executor pool.
         # If max_worker in the executor is 1 - then encoders will be called from the thread without parallel.
-        encoder_executor: Optional[concurrent.futures.Executor] = None,
-        max_buffer_size_bytes: Optional[int] = None,
-        max_buffer_messages: Optional[int] = None,
-        buffer_wait_timeout_sec: Optional[float] = None,
+        encoder_executor: concurrent.futures.Executor | None = None,
+        max_buffer_size_bytes: int | None = None,
+        max_buffer_messages: int | None = None,
+        buffer_wait_timeout_sec: float | None = None,
     ) -> TopicTxWriterAsyncIO:
         logger.debug("Create tx writer for topic=%s tx=%s", topic, tx)
         args = locals().copy()
@@ -392,7 +392,7 @@ class TopicClientAsyncIO:
 
     @ydb_retry(retry_cancelled=True, idempotent=True)
     async def commit_offset(
-        self, path: str, consumer: str, partition_id: int, offset: int, read_session_id: Optional[str] = None
+        self, path: str, consumer: str, partition_id: int, offset: int, read_session_id: str | None = None
     ) -> None:
         logger.debug(
             "Commit offset: path=%s partition_id=%s offset=%s consumer=%s",
@@ -434,11 +434,11 @@ class TopicClientAsyncIO:
 class TopicClient:
     _closed: bool
     _driver: driver.Driver
-    _credentials: Union[Credentials, None]
+    _credentials: Credentials | None
     _settings: TopicClientSettings
     _executor: concurrent.futures.Executor
 
-    def __init__(self, driver: driver.Driver, settings: Optional[TopicClientSettings]):
+    def __init__(self, driver: driver.Driver, settings: TopicClientSettings | None):
         if not settings:
             settings = TopicClientSettings()
 
@@ -461,18 +461,18 @@ class TopicClient:
     def create_topic(
         self,
         path: str,
-        min_active_partitions: Optional[int] = None,
-        max_active_partitions: Optional[int] = None,
-        partition_count_limit: Optional[int] = None,
-        retention_period: Optional[datetime.timedelta] = None,
-        retention_storage_mb: Optional[int] = None,
-        supported_codecs: Optional[List[Union[TopicCodec, int]]] = None,
-        partition_write_speed_bytes_per_second: Optional[int] = None,
-        partition_write_burst_bytes: Optional[int] = None,
-        attributes: Optional[Dict[str, str]] = None,
-        consumers: Optional[List[Union[TopicConsumer, str]]] = None,
-        metering_mode: Optional[TopicMeteringMode] = None,
-        auto_partitioning_settings: Optional[TopicAutoPartitioningSettings] = None,
+        min_active_partitions: int | None = None,
+        max_active_partitions: int | None = None,
+        partition_count_limit: int | None = None,
+        retention_period: datetime.timedelta | None = None,
+        retention_storage_mb: int | None = None,
+        supported_codecs: list[TopicCodec | int] | None = None,
+        partition_write_speed_bytes_per_second: int | None = None,
+        partition_write_burst_bytes: int | None = None,
+        attributes: dict[str, str] | None = None,
+        consumers: list[TopicConsumer | str] | None = None,
+        metering_mode: TopicMeteringMode | None = None,
+        auto_partitioning_settings: TopicAutoPartitioningSettings | None = None,
     ):
         """
         create topic command
@@ -483,13 +483,13 @@ class TopicClient:
             and read-only partitions.
         :param retention_period: How long data in partition should be stored
         :param retention_storage_mb: How much data in partition should be stored
-        :param supported_codecs: List of allowed codecs for writers. Writes with codec not from this list are forbidden.
+        :param supported_codecs: list of allowed codecs for writers. Writes with codec not from this list are forbidden.
             Empty list mean disable codec compatibility checks for the topic.
         :param partition_write_speed_bytes_per_second: Partition write speed in bytes per second
         :param partition_write_burst_bytes: Burst size for write in partition, in bytes
         :param attributes: User and server attributes of topic.
             Server attributes starts from "_" and will be validated by server.
-        :param consumers: List of consumers for this topic
+        :param consumers: list of consumers for this topic
         :param metering_mode: Metering mode for the topic in a serverless database
         """
         logger.debug("Create topic request: path=%s", path)
@@ -509,20 +509,20 @@ class TopicClient:
     def alter_topic(
         self,
         path: str,
-        set_min_active_partitions: Optional[int] = None,
-        set_max_active_partitions: Optional[int] = None,
-        set_partition_count_limit: Optional[int] = None,
-        add_consumers: Optional[List[Union[TopicConsumer, str]]] = None,
-        alter_consumers: Optional[List[Union[TopicAlterConsumer, str]]] = None,
-        drop_consumers: Optional[List[str]] = None,
-        alter_attributes: Optional[Dict[str, str]] = None,
-        set_metering_mode: Optional[TopicMeteringMode] = None,
-        set_partition_write_speed_bytes_per_second: Optional[int] = None,
-        set_partition_write_burst_bytes: Optional[int] = None,
-        set_retention_period: Optional[datetime.timedelta] = None,
-        set_retention_storage_mb: Optional[int] = None,
-        set_supported_codecs: Optional[List[Union[TopicCodec, int]]] = None,
-        alter_auto_partitioning_settings: Optional[TopicAlterAutoPartitioningSettings] = None,
+        set_min_active_partitions: int | None = None,
+        set_max_active_partitions: int | None = None,
+        set_partition_count_limit: int | None = None,
+        add_consumers: list[TopicConsumer | str] | None = None,
+        alter_consumers: list[TopicAlterConsumer | str] | None = None,
+        drop_consumers: list[str] | None = None,
+        alter_attributes: dict[str, str] | None = None,
+        set_metering_mode: TopicMeteringMode | None = None,
+        set_partition_write_speed_bytes_per_second: int | None = None,
+        set_partition_write_burst_bytes: int | None = None,
+        set_retention_period: datetime.timedelta | None = None,
+        set_retention_storage_mb: int | None = None,
+        set_supported_codecs: list[TopicCodec | int] | None = None,
+        alter_auto_partitioning_settings: TopicAlterAutoPartitioningSettings | None = None,
     ):
         """
         alter topic command
@@ -531,9 +531,9 @@ class TopicClient:
         :param set_min_active_partitions: Minimum partition count auto merge would stop working at.
         :param set_partition_count_limit: Limit for total partition count, including active (open for write)
             and read-only partitions.
-        :param add_consumers: List of consumers for this topic to add
-        :param alter_consumers: List of consumers for this topic to alter
-        :param drop_consumers: List of consumer names for this topic to drop
+        :param add_consumers: list of consumers for this topic to add
+        :param alter_consumers: list of consumers for this topic to alter
+        :param drop_consumers: list of consumer names for this topic to drop
         :param alter_attributes: User and server attributes of topic.
             Server attributes starts from "_" and will be validated by server.
         :param set_metering_mode: Metering mode for the topic in a serverless database
@@ -541,7 +541,7 @@ class TopicClient:
         :param set_partition_write_burst_bytes: Burst size for write in partition, in bytes
         :param set_retention_period: How long data in partition should be stored
         :param set_retention_storage_mb: How much data in partition should be stored
-        :param set_supported_codecs: List of allowed codecs for writers. Writes with codec not from this list are forbidden.
+        :param set_supported_codecs: list of allowed codecs for writers. Writes with codec not from this list are forbidden.
             Empty list mean disable codec compatibility checks for the topic.
         """
         logger.debug("Alter topic request: path=%s", path)
@@ -619,17 +619,17 @@ class TopicClient:
 
     def reader(
         self,
-        topic: Union[str, TopicReaderSelector, List[Union[str, TopicReaderSelector]]],
-        consumer: Optional[str],
+        topic: str | TopicReaderSelector | list[str | TopicReaderSelector],
+        consumer: str | None,
         buffer_size_bytes: int = 50 * 1024 * 1024,
         # decoders: map[codec_code] func(encoded_bytes)->decoded_bytes
         # the func will be called from multiply threads in parallel
-        decoders: Union[Mapping[int, Callable[[bytes], bytes]], None] = None,
+        decoders: Mapping[int, Callable[[bytes], bytes]] | None = None,
         # custom decoder executor for call builtin and custom decoders. If None - use shared executor pool.
         # if max_worker in the executor is 1 - then decoders will be called from the thread without parallel
-        decoder_executor: Optional[concurrent.futures.Executor] = None,  # default shared client executor pool
-        auto_partitioning_support: Optional[bool] = True,  # Auto partitioning feature flag. Default - True.
-        event_handler: Optional[TopicReaderEvents.EventHandler] = None,
+        decoder_executor: concurrent.futures.Executor | None = None,  # default shared client executor pool
+        auto_partitioning_support: bool | None = True,  # Auto partitioning feature flag. Default - True.
+        event_handler: TopicReaderEvents.EventHandler | None = None,
         buffer_release_threshold: float = 0.5,
     ) -> TopicReader:
         logger.debug("Create reader for topic=%s consumer=%s", topic, consumer)
@@ -664,21 +664,21 @@ class TopicClient:
         self,
         topic,
         *,
-        producer_id: Optional[str] = None,  # default - random
+        producer_id: str | None = None,  # default - random
         session_metadata: Mapping[str, str] = None,
-        partition_id: Union[int, None] = None,
+        partition_id: int | None = None,
         auto_seqno: bool = True,
         auto_created_at: bool = True,
-        codec: Optional[TopicCodec] = None,  # default mean auto-select
+        codec: TopicCodec | None = None,  # default mean auto-select
         # encoders: map[codec_code] func(encoded_bytes)->decoded_bytes
         # the func will be called from multiply threads in parallel.
-        encoders: Optional[Mapping[_ydb_topic_public_types.PublicCodec, Callable[[bytes], bytes]]] = None,
+        encoders: Mapping[_ydb_topic_public_types.PublicCodec, Callable[[bytes], bytes]] | None = None,
         # custom encoder executor for call builtin and custom decoders. If None - use shared executor pool.
         # If max_worker in the executor is 1 - then encoders will be called from the thread without parallel.
-        encoder_executor: Optional[concurrent.futures.Executor] = None,  # default shared client executor pool
-        max_buffer_size_bytes: Optional[int] = None,
-        max_buffer_messages: Optional[int] = None,
-        buffer_wait_timeout_sec: Optional[float] = None,
+        encoder_executor: concurrent.futures.Executor | None = None,  # default shared client executor pool
+        max_buffer_size_bytes: int | None = None,
+        max_buffer_messages: int | None = None,
+        buffer_wait_timeout_sec: float | None = None,
     ) -> TopicWriter:
         logger.debug("Create writer for topic=%s producer_id=%s", topic, producer_id)
         args = locals().copy()
@@ -697,21 +697,21 @@ class TopicClient:
         tx,
         topic,
         *,
-        producer_id: Optional[str] = None,  # default - random
+        producer_id: str | None = None,  # default - random
         session_metadata: Mapping[str, str] = None,
-        partition_id: Union[int, None] = None,
+        partition_id: int | None = None,
         auto_seqno: bool = True,
         auto_created_at: bool = True,
-        codec: Optional[TopicCodec] = None,  # default mean auto-select
+        codec: TopicCodec | None = None,  # default mean auto-select
         # encoders: map[codec_code] func(encoded_bytes)->decoded_bytes
         # the func will be called from multiply threads in parallel.
-        encoders: Optional[Mapping[_ydb_topic_public_types.PublicCodec, Callable[[bytes], bytes]]] = None,
+        encoders: Mapping[_ydb_topic_public_types.PublicCodec, Callable[[bytes], bytes]] | None = None,
         # custom encoder executor for call builtin and custom decoders. If None - use shared executor pool.
         # If max_worker in the executor is 1 - then encoders will be called from the thread without parallel.
-        encoder_executor: Optional[concurrent.futures.Executor] = None,  # default shared client executor pool
-        max_buffer_size_bytes: Optional[int] = None,
-        max_buffer_messages: Optional[int] = None,
-        buffer_wait_timeout_sec: Optional[float] = None,
+        encoder_executor: concurrent.futures.Executor | None = None,  # default shared client executor pool
+        max_buffer_size_bytes: int | None = None,
+        max_buffer_messages: int | None = None,
+        buffer_wait_timeout_sec: float | None = None,
     ) -> TopicWriter:
         logger.debug("Create tx writer for topic=%s tx=%s", topic, tx)
         args = locals().copy()
@@ -728,7 +728,7 @@ class TopicClient:
 
     @ydb_retry(retry_cancelled=True, idempotent=True)
     def commit_offset(
-        self, path: str, consumer: str, partition_id: int, offset: int, read_session_id: Optional[str] = None
+        self, path: str, consumer: str, partition_id: int, offset: int, read_session_id: str | None = None
     ) -> None:
         logger.debug(
             "Commit offset: path=%s partition_id=%s offset=%s consumer=%s",

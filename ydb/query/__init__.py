@@ -20,7 +20,7 @@ __all__ = [
 ]
 
 import logging
-from typing import Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 from .base import (
     QueryClientSettings,
@@ -57,7 +57,7 @@ logger = logging.getLogger(__name__)
 class QueryClientSync:
     _driver: "SyncDriver"
 
-    def __init__(self, driver: "SyncDriver", query_client_settings: Optional[QueryClientSettings] = None):
+    def __init__(self, driver: "SyncDriver", query_client_settings: QueryClientSettings | None = None):
         self._driver = driver
         self._settings = query_client_settings
 

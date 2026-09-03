@@ -84,7 +84,7 @@ def commit_request_factory(session_state, tx_state):
     return request
 
 
-class TxState(object):
+class TxState:
     __slots__ = ("tx_id", "tx_mode", "dead", "initialized")
 
     def __init__(self, tx_mode):

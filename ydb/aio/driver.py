@@ -14,8 +14,8 @@ class DriverConfig(ydb.DriverConfig):
     def default_from_endpoint_and_database(
         cls,
         endpoint: str,
-        database: Optional[str] = None,
-        root_certificates: Optional[bytes] = None,
+        database: str | None = None,
+        root_certificates: bytes | None = None,
         credentials: Optional["Credentials"] = None,
         **kwargs: Any,
     ) -> "DriverConfig":
@@ -31,7 +31,7 @@ class DriverConfig(ydb.DriverConfig):
     def default_from_connection_string(
         cls,
         connection_string: str,
-        root_certificates: Optional[bytes] = None,
+        root_certificates: bytes | None = None,
         credentials: Optional["Credentials"] = None,
         **kwargs: Any,
     ) -> "DriverConfig":
@@ -50,11 +50,11 @@ class Driver(pool.ConnectionPool):
 
     def __init__(
         self,
-        driver_config: Optional[ydb.DriverConfig] = None,
-        connection_string: Optional[str] = None,
-        endpoint: Optional[str] = None,
-        database: Optional[str] = None,
-        root_certificates: Optional[bytes] = None,
+        driver_config: ydb.DriverConfig | None = None,
+        connection_string: str | None = None,
+        endpoint: str | None = None,
+        database: str | None = None,
+        root_certificates: bytes | None = None,
         credentials: Optional["Credentials"] = None,
         **kwargs: Any,
     ) -> None:

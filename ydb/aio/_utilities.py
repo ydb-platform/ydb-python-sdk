@@ -2,7 +2,6 @@ import asyncio
 import logging
 import random
 import time
-from typing import Dict, List, Optional
 
 from .. import resolver
 
@@ -52,8 +51,8 @@ async def get_first_message_with_timeout(stream: AsyncResponseIterator, timeout:
 
 
 async def _check_fastest_endpoint(
-    endpoints: List[resolver.EndpointInfo], timeout: float = 5.0
-) -> Optional[resolver.EndpointInfo]:
+    endpoints: list[resolver.EndpointInfo], timeout: float = 5.0
+) -> resolver.EndpointInfo | None:
     """
     Perform async TCP race: connect to all endpoints concurrently and return the fastest one.
 
@@ -114,15 +113,15 @@ async def _check_fastest_endpoint(
 
 
 def _split_endpoints_by_location(
-    endpoints: List[resolver.EndpointInfo],
-) -> Dict[str, List[resolver.EndpointInfo]]:
+    endpoints: list[resolver.EndpointInfo],
+) -> dict[str, list[resolver.EndpointInfo]]:
     """
     Group endpoints by their location.
 
     :param endpoints: List of resolver.EndpointInfo objects
     :return: Dictionary mapping location -> list of resolver.EndpointInfo
     """
-    result: Dict[str, List[resolver.EndpointInfo]] = {}
+    result: dict[str, list[resolver.EndpointInfo]] = {}
     for endpoint in endpoints:
         location = endpoint.location
         if location not in result:
@@ -131,7 +130,7 @@ def _split_endpoints_by_location(
     return result
 
 
-def _get_random_endpoints(endpoints: List[resolver.EndpointInfo], count: int) -> List[resolver.EndpointInfo]:
+def _get_random_endpoints(endpoints: list[resolver.EndpointInfo], count: int) -> list[resolver.EndpointInfo]:
     """
     Get random sample of endpoints.
 
@@ -145,8 +144,8 @@ def _get_random_endpoints(endpoints: List[resolver.EndpointInfo], count: int) ->
 
 
 async def detect_local_dc(
-    endpoints: List[resolver.EndpointInfo], max_per_location: int = 3, timeout: float = 5.0
-) -> Optional[str]:
+    endpoints: list[resolver.EndpointInfo], max_per_location: int = 3, timeout: float = 5.0
+) -> str | None:
     """
     Detect nearest datacenter by performing async TCP race between endpoints.
 

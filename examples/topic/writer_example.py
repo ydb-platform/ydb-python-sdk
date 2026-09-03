@@ -1,6 +1,5 @@
 import concurrent.futures
 import datetime
-from typing import Dict, List
 from concurrent.futures import Future, wait  # noqa: F401
 
 import ydb
@@ -123,7 +122,7 @@ def send_messages_and_wait_all_commit_with_flush(writer: ydb.TopicWriter):
 
 
 def send_messages_and_wait_all_commit_with_results(writer: ydb.TopicWriter):
-    futures = []  # type: List[concurrent.futures.Future]
+    futures = []  # type: list[concurrent.futures.Future]
     for i in range(10):
         future = writer.async_write_with_ack()
         futures.append(future)
@@ -134,8 +133,8 @@ def send_messages_and_wait_all_commit_with_results(writer: ydb.TopicWriter):
             raise future.exception()
 
 
-def switch_messages_with_many_producers(writers: Dict[str, ydb.TopicWriter], messages: List[str]):
-    futures = []  # type:  List[Future]
+def switch_messages_with_many_producers(writers: dict[str, ydb.TopicWriter], messages: list[str]):
+    futures = []  # type:  list[Future]
 
     for msg in messages:
         # select writer for the msg

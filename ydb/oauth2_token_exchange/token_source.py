@@ -38,13 +38,13 @@ class JwtTokenSource(TokenSource):
     def __init__(
         self,
         signing_method: str,
-        private_key: typing.Optional[str] = None,
-        private_key_file: typing.Optional[str] = None,
-        key_id: typing.Optional[str] = None,
-        issuer: typing.Optional[str] = None,
-        subject: typing.Optional[str] = None,
-        audience: typing.Union[typing.List[str], str, None] = None,
-        id: typing.Optional[str] = None,
+        private_key: str | None = None,
+        private_key_file: str | None = None,
+        key_id: str | None = None,
+        issuer: str | None = None,
+        subject: str | None = None,
+        audience: list[str] | str | None = None,
+        id: str | None = None,
         token_ttl_seconds: int = 3600,
     ):
         assert jwt is not None, "Install pyjwt library to use jwt tokens"
@@ -75,7 +75,7 @@ class JwtTokenSource(TokenSource):
         now = time.time()
         now_utc = datetime.utcfromtimestamp(now)
         exp_utc = datetime.utcfromtimestamp(now + self._token_ttl_seconds)
-        payload: typing.Dict[str, typing.Any] = {
+        payload: dict[str, typing.Any] = {
             "iat": now_utc,
             "exp": exp_utc,
         }

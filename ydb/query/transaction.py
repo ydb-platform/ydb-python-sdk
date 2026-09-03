@@ -7,9 +7,7 @@ from typing import (
     Awaitable,
     Generic,
     Iterable,
-    Optional,
     TYPE_CHECKING,
-    Union,
     overload,
 )
 
@@ -91,7 +89,7 @@ def reset_tx_id_handler(func):
 
 
 class QueryTxState:
-    tx_id: Optional[str]
+    tx_id: str | None
     tx_mode: base.BaseQueryTxMode
     _state: QueryTxStateEnum
 
@@ -216,7 +214,7 @@ class BaseQueryTxContext(base.CallbackHandler, Generic[DriverT]):
 
     _driver: DriverT
     _prev_stream: Any  # SyncResponseContextIterator or AsyncResponseContextIterator
-    _external_error: Optional[BaseException]
+    _external_error: BaseException | None
 
     def __init__(self, driver: DriverT, session: "BaseQuerySession", tx_mode: base.BaseQueryTxMode):
         """
@@ -250,7 +248,7 @@ class BaseQueryTxContext(base.CallbackHandler, Generic[DriverT]):
         return getattr(self._driver, "_driver_config", None)
 
     @property
-    def session_id(self) -> Optional[str]:
+    def session_id(self) -> str | None:
         """
         A transaction's session id
 
@@ -259,7 +257,7 @@ class BaseQueryTxContext(base.CallbackHandler, Generic[DriverT]):
         return self.session.session_id
 
     @property
-    def tx_id(self) -> Optional[str]:
+    def tx_id(self) -> str | None:
         """
         Returns an id of open transaction or None otherwise
 
@@ -289,17 +287,17 @@ class BaseQueryTxContext(base.CallbackHandler, Generic[DriverT]):
     # Overloads for _begin_call - sync driver returns value, async driver returns Awaitable
     @overload
     def _begin_call(
-        self: "BaseQueryTxContext[SyncDriver]", settings: Optional[BaseRequestSettings]
+        self: "BaseQueryTxContext[SyncDriver]", settings: BaseRequestSettings | None
     ) -> "BaseQueryTxContext[SyncDriver]": ...
 
     @overload
     def _begin_call(
-        self: "BaseQueryTxContext[AsyncDriver]", settings: Optional[BaseRequestSettings]
+        self: "BaseQueryTxContext[AsyncDriver]", settings: BaseRequestSettings | None
     ) -> Awaitable["BaseQueryTxContext[AsyncDriver]"]: ...
 
     def _begin_call(
-        self, settings: Optional[BaseRequestSettings]
-    ) -> "Union[BaseQueryTxContext[Any], Awaitable[BaseQueryTxContext[Any]]]":
+        self, settings: BaseRequestSettings | None
+    ) -> "BaseQueryTxContext[Any] | Awaitable[BaseQueryTxContext[Any]]":
         """Begin transaction. Returns Awaitable in async context."""
         self._tx_state._check_invalid_transition(QueryTxStateEnum.BEGINED)
 
@@ -316,17 +314,17 @@ class BaseQueryTxContext(base.CallbackHandler, Generic[DriverT]):
     # Overloads for _commit_call
     @overload
     def _commit_call(
-        self: "BaseQueryTxContext[SyncDriver]", settings: Optional[BaseRequestSettings]
+        self: "BaseQueryTxContext[SyncDriver]", settings: BaseRequestSettings | None
     ) -> "BaseQueryTxContext[SyncDriver]": ...
 
     @overload
     def _commit_call(
-        self: "BaseQueryTxContext[AsyncDriver]", settings: Optional[BaseRequestSettings]
+        self: "BaseQueryTxContext[AsyncDriver]", settings: BaseRequestSettings | None
     ) -> Awaitable["BaseQueryTxContext[AsyncDriver]"]: ...
 
     def _commit_call(
-        self, settings: Optional[BaseRequestSettings]
-    ) -> "Union[BaseQueryTxContext[Any], Awaitable[BaseQueryTxContext[Any]]]":
+        self, settings: BaseRequestSettings | None
+    ) -> "BaseQueryTxContext[Any] | Awaitable[BaseQueryTxContext[Any]]":
         """Commit transaction. Returns Awaitable in async context."""
         self._check_external_error_set()
         self._tx_state._check_invalid_transition(QueryTxStateEnum.COMMITTED)
@@ -344,17 +342,17 @@ class BaseQueryTxContext(base.CallbackHandler, Generic[DriverT]):
     # Overloads for _rollback_call
     @overload
     def _rollback_call(
-        self: "BaseQueryTxContext[SyncDriver]", settings: Optional[BaseRequestSettings]
+        self: "BaseQueryTxContext[SyncDriver]", settings: BaseRequestSettings | None
     ) -> "BaseQueryTxContext[SyncDriver]": ...
 
     @overload
     def _rollback_call(
-        self: "BaseQueryTxContext[AsyncDriver]", settings: Optional[BaseRequestSettings]
+        self: "BaseQueryTxContext[AsyncDriver]", settings: BaseRequestSettings | None
     ) -> Awaitable["BaseQueryTxContext[AsyncDriver]"]: ...
 
     def _rollback_call(
-        self, settings: Optional[BaseRequestSettings]
-    ) -> "Union[BaseQueryTxContext[Any], Awaitable[BaseQueryTxContext[Any]]]":
+        self, settings: BaseRequestSettings | None
+    ) -> "BaseQueryTxContext[Any] | Awaitable[BaseQueryTxContext[Any]]":
         """Rollback transaction. Returns Awaitable in async context."""
         self._check_external_error_set()
         self._tx_state._check_invalid_transition(QueryTxStateEnum.ROLLBACKED)
@@ -374,54 +372,54 @@ class BaseQueryTxContext(base.CallbackHandler, Generic[DriverT]):
     def _execute_call(
         self: "BaseQueryTxContext[SyncDriver]",
         query: str,
-        parameters: Optional[dict],
-        commit_tx: Optional[bool],
-        syntax: Optional[base.QuerySyntax],
-        exec_mode: Optional[base.QueryExecMode],
-        stats_mode: Optional[base.QueryStatsMode],
-        schema_inclusion_mode: Optional[base.QuerySchemaInclusionMode],
-        result_set_format: Optional[base.QueryResultSetFormat],
-        arrow_format_settings: Optional[base.ArrowFormatSettings],
-        concurrent_result_sets: Optional[bool],
-        settings: Optional[BaseRequestSettings],
-        pool_id: Optional[str],
+        parameters: dict | None,
+        commit_tx: bool | None,
+        syntax: base.QuerySyntax | None,
+        exec_mode: base.QueryExecMode | None,
+        stats_mode: base.QueryStatsMode | None,
+        schema_inclusion_mode: base.QuerySchemaInclusionMode | None,
+        result_set_format: base.QueryResultSetFormat | None,
+        arrow_format_settings: base.ArrowFormatSettings | None,
+        concurrent_result_sets: bool | None,
+        settings: BaseRequestSettings | None,
+        pool_id: str | None,
     ) -> Iterable[_apis.ydb_query.ExecuteQueryResponsePart]: ...
 
     @overload
     def _execute_call(
         self: "BaseQueryTxContext[AsyncDriver]",
         query: str,
-        parameters: Optional[dict],
-        commit_tx: Optional[bool],
-        syntax: Optional[base.QuerySyntax],
-        exec_mode: Optional[base.QueryExecMode],
-        stats_mode: Optional[base.QueryStatsMode],
-        schema_inclusion_mode: Optional[base.QuerySchemaInclusionMode],
-        result_set_format: Optional[base.QueryResultSetFormat],
-        arrow_format_settings: Optional[base.ArrowFormatSettings],
-        concurrent_result_sets: Optional[bool],
-        settings: Optional[BaseRequestSettings],
-        pool_id: Optional[str],
+        parameters: dict | None,
+        commit_tx: bool | None,
+        syntax: base.QuerySyntax | None,
+        exec_mode: base.QueryExecMode | None,
+        stats_mode: base.QueryStatsMode | None,
+        schema_inclusion_mode: base.QuerySchemaInclusionMode | None,
+        result_set_format: base.QueryResultSetFormat | None,
+        arrow_format_settings: base.ArrowFormatSettings | None,
+        concurrent_result_sets: bool | None,
+        settings: BaseRequestSettings | None,
+        pool_id: str | None,
     ) -> Awaitable[Iterable[_apis.ydb_query.ExecuteQueryResponsePart]]: ...
 
     def _execute_call(
         self,
         query: str,
-        parameters: Optional[dict],
-        commit_tx: Optional[bool],
-        syntax: Optional[base.QuerySyntax],
-        exec_mode: Optional[base.QueryExecMode],
-        stats_mode: Optional[base.QueryStatsMode],
-        schema_inclusion_mode: Optional[base.QuerySchemaInclusionMode],
-        result_set_format: Optional[base.QueryResultSetFormat],
-        arrow_format_settings: Optional[base.ArrowFormatSettings],
-        concurrent_result_sets: Optional[bool],
-        settings: Optional[BaseRequestSettings],
-        pool_id: Optional[str],
-    ) -> Union[
-        Iterable[_apis.ydb_query.ExecuteQueryResponsePart],
-        Awaitable[Iterable[_apis.ydb_query.ExecuteQueryResponsePart]],
-    ]:
+        parameters: dict | None,
+        commit_tx: bool | None,
+        syntax: base.QuerySyntax | None,
+        exec_mode: base.QueryExecMode | None,
+        stats_mode: base.QueryStatsMode | None,
+        schema_inclusion_mode: base.QuerySchemaInclusionMode | None,
+        result_set_format: base.QueryResultSetFormat | None,
+        arrow_format_settings: base.ArrowFormatSettings | None,
+        concurrent_result_sets: bool | None,
+        settings: BaseRequestSettings | None,
+        pool_id: str | None,
+    ) -> (
+        Iterable[_apis.ydb_query.ExecuteQueryResponsePart]
+        | Awaitable[Iterable[_apis.ydb_query.ExecuteQueryResponsePart]]
+    ):
         self._tx_state._check_tx_ready_to_use()
         self._check_external_error_set()
 
@@ -525,7 +523,7 @@ class QueryTxContext(BaseQueryTxContext["SyncDriver"]):
                 pass
             self._prev_stream = None
 
-    def begin(self, settings: Optional[BaseRequestSettings] = None) -> "QueryTxContext":
+    def begin(self, settings: BaseRequestSettings | None = None) -> "QueryTxContext":
         """Explicitly begins a transaction
 
         :param settings: An additional request settings BaseRequestSettings;
@@ -542,7 +540,7 @@ class QueryTxContext(BaseQueryTxContext["SyncDriver"]):
 
         return self
 
-    def commit(self, settings: Optional[BaseRequestSettings] = None) -> None:
+    def commit(self, settings: BaseRequestSettings | None = None) -> None:
         """Calls commit on a transaction if it is open otherwise is no-op. If transaction execution
         failed then this method raises PreconditionFailed.
 
@@ -574,7 +572,7 @@ class QueryTxContext(BaseQueryTxContext["SyncDriver"]):
                 self._execute_callbacks_sync(base.TxEvent.AFTER_COMMIT, exc=e)
                 raise e
 
-    def rollback(self, settings: Optional[BaseRequestSettings] = None) -> None:
+    def rollback(self, settings: BaseRequestSettings | None = None) -> None:
         """Calls rollback on a transaction if it is open otherwise is no-op. If transaction execution
         failed then this method raises PreconditionFailed.
 
@@ -609,18 +607,18 @@ class QueryTxContext(BaseQueryTxContext["SyncDriver"]):
     def execute(
         self,
         query: str,
-        parameters: Optional[dict] = None,
-        commit_tx: Optional[bool] = False,
-        syntax: Optional[base.QuerySyntax] = None,
-        exec_mode: Optional[base.QueryExecMode] = None,
-        concurrent_result_sets: Optional[bool] = False,
-        settings: Optional[BaseRequestSettings] = None,
+        parameters: dict | None = None,
+        commit_tx: bool | None = False,
+        syntax: base.QuerySyntax | None = None,
+        exec_mode: base.QueryExecMode | None = None,
+        concurrent_result_sets: bool | None = False,
+        settings: BaseRequestSettings | None = None,
         *,
-        stats_mode: Optional[base.QueryStatsMode] = None,
-        schema_inclusion_mode: Optional[base.QuerySchemaInclusionMode] = None,
-        result_set_format: Optional[base.QueryResultSetFormat] = None,
-        arrow_format_settings: Optional[base.ArrowFormatSettings] = None,
-        pool_id: Optional[str] = None,
+        stats_mode: base.QueryStatsMode | None = None,
+        schema_inclusion_mode: base.QuerySchemaInclusionMode | None = None,
+        result_set_format: base.QueryResultSetFormat | None = None,
+        arrow_format_settings: base.ArrowFormatSettings | None = None,
+        pool_id: str | None = None,
     ) -> base.SyncResponseContextIterator:
         """Sends a query to Query Service
 

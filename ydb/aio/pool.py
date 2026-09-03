@@ -3,7 +3,7 @@ from __future__ import annotations
 import asyncio
 import logging
 import random
-from typing import Any, Callable, Optional, Tuple, TYPE_CHECKING, cast
+from typing import Any, Callable, TYPE_CHECKING, cast
 
 from ydb import issues
 from ydb.observability.tracing import SpanName, create_ydb_span
@@ -26,11 +26,11 @@ class ConnectionsCache(_ConnectionsCache):
         self.lock = resolver._FakeLock()  # Mock lock to emulate thread safety
         self._event: asyncio.Event = asyncio.Event()
         self._fast_fail_event: asyncio.Event = asyncio.Event()
-        self._fast_fail_error: Optional[Exception] = None
+        self._fast_fail_error: Exception | None = None
 
     async def get(  # async version with different Connection type
         self,
-        preferred_endpoint: Optional[EndpointKey] = None,
+        preferred_endpoint: EndpointKey | None = None,
         fast_fail: bool = False,
         wait_timeout: float = 10.0,
     ) -> Connection:
@@ -57,7 +57,7 @@ class ConnectionsCache(_ConnectionsCache):
 
         raise issues.ConnectionLost("Couldn't find valid connection")
 
-    def add(self, connection: Optional[Connection], preferred: bool = False) -> bool:  # type: ignore[override]  # async Connection type
+    def add(self, connection: Connection | None, preferred: bool = False) -> bool:  # type: ignore[override]  # async Connection type
         if connection is None:
             return False
 
@@ -76,7 +76,7 @@ class ConnectionsCache(_ConnectionsCache):
 
         return True
 
-    def complete_discovery(self, error: Optional[Exception]) -> None:
+    def complete_discovery(self, error: Exception | None) -> None:
         self._fast_fail_error = error
         self._fast_fail_event.set()
 
@@ -249,7 +249,7 @@ class ConnectionPool(IConnectionPool):
         self._grpc_init = Connection(self._driver_config.endpoint, self._driver_config)
         self._stopped = False
         self._stopping = False
-        self._discovery: Optional[Discovery] = None
+        self._discovery: Discovery | None = None
         self._discovery_task: "asyncio.Task[None]"
 
         if driver_config.disable_discovery:
@@ -316,11 +316,11 @@ class ConnectionPool(IConnectionPool):
         if node_id <= 0:
             return
 
-        connection = cast(Optional[Connection], self._store.get_connection_by_node_id(node_id))
+        connection = cast(Connection | None, self._store.get_connection_by_node_id(node_id))
         if connection is not None:
             asyncio.get_running_loop().create_task(self._on_disconnected(connection)())
 
-    async def wait(self, timeout: Optional[float] = 7.0, fail_fast: bool = False) -> None:  # type: ignore[override]  # async override of sync method
+    async def wait(self, timeout: float | None = 7.0, fail_fast: bool = False) -> None:  # type: ignore[override]  # async override of sync method
         with create_ydb_span(SpanName.DRIVER_INITIALIZE, self._driver_config, kind="internal").attach_context():
             await self._store.get(fast_fail=fail_fast, wait_timeout=timeout if timeout is not None else 7.0)
 
@@ -340,10 +340,10 @@ class ConnectionPool(IConnectionPool):
         request: Any,
         stub: Any,
         rpc_name: str,
-        wrap_result: Optional[Callable[..., Any]] = None,
-        settings: Optional["BaseRequestSettings"] = None,
-        wrap_args: Tuple[Any, ...] = (),
-        preferred_endpoint: Optional[EndpointKey] = None,
+        wrap_result: Callable[..., Any] | None = None,
+        settings: "BaseRequestSettings" | None = None,
+        wrap_args: tuple[Any, ...] = (),
+        preferred_endpoint: EndpointKey | None = None,
         fast_fail: bool = False,
     ) -> Any:
         if self._stopped:

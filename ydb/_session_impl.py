@@ -73,7 +73,7 @@ def explain_data_query_request_factory(session_state, yql_text):
     return request
 
 
-class _ExplainResponse(object):
+class _ExplainResponse:
     def __init__(self, ast, plan):
         self.query_ast = ast
         self.query_plan = plan
@@ -399,7 +399,7 @@ def wrap_read_table_response(response):
     return convert.ResultSet.from_message(response.result.result_set, snapshot=snapshot)
 
 
-class SessionState(object):
+class SessionState:
     def __init__(self, table_client_settings):
         self._session_id = None
         self._query_cache = _utilities.LRUCache(1000)

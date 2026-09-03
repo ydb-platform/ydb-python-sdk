@@ -3,7 +3,7 @@ import functools
 import inspect
 import random
 import time
-from typing import Any, Callable, Generator, Optional, Union
+from typing import Any, Callable, Generator
 
 from . import issues
 from ._errors import check_retriable_error
@@ -11,7 +11,7 @@ from .observability.metrics import observe_retry_metrics
 from .observability.tracing import SpanName, create_span as _create_span
 
 
-def _try_span_attrs(backoff_ms: Optional[int]):
+def _try_span_attrs(backoff_ms: int | None):
     return {"ydb.retry.backoff_ms": backoff_ms} if backoff_ms is not None else None
 
 
@@ -38,13 +38,13 @@ class RetrySettings:
     def __init__(
         self,
         max_retries: int = 10,
-        max_session_acquire_timeout: Optional[float] = None,
-        on_ydb_error_callback: Optional[Callable[[issues.Error], None]] = None,
+        max_session_acquire_timeout: float | None = None,
+        on_ydb_error_callback: Callable[[issues.Error], None] | None = None,
         backoff_ceiling: int = 6,
         backoff_slot_duration: float = 1,
         get_session_client_timeout: float = 5,
-        fast_backoff_settings: Optional[BackoffSettings] = None,
-        slow_backoff_settings: Optional[BackoffSettings] = None,
+        fast_backoff_settings: BackoffSettings | None = None,
+        slow_backoff_settings: BackoffSettings | None = None,
         idempotent: bool = False,
         retry_cancelled: bool = False,
     ) -> None:
@@ -93,7 +93,7 @@ class YdbRetryOperationSleepOpt:
 class YdbRetryOperationFinalResult:
     def __init__(self, result: Any) -> None:
         self.result = result
-        self.exc: Optional[BaseException] = None
+        self.exc: BaseException | None = None
 
     def __eq__(self, other: object) -> bool:
         return (
@@ -112,12 +112,12 @@ class YdbRetryOperationFinalResult:
 
 def retry_operation_impl(
     callee: Callable[..., Any],
-    retry_settings: Optional[RetrySettings] = None,
+    retry_settings: RetrySettings | None = None,
     *args: Any,
     **kwargs: Any,
-) -> Generator[Union[YdbRetryOperationSleepOpt, YdbRetryOperationFinalResult], None, None]:
+) -> Generator[YdbRetryOperationSleepOpt | YdbRetryOperationFinalResult, None, None]:
     retry_settings = RetrySettings() if retry_settings is None else retry_settings
-    status: Optional[issues.Error] = None
+    status: issues.Error | None = None
 
     for attempt in range(retry_settings.max_retries + 1):
         try:
@@ -161,11 +161,11 @@ def retry_operation_impl(
 @observe_retry_metrics
 def retry_operation_sync(
     callee: Callable[..., Any],
-    retry_settings: Optional[RetrySettings] = None,
+    retry_settings: RetrySettings | None = None,
     *args: Any,
     **kwargs: Any,
 ) -> Any:
-    backoff_ms: Optional[int] = None
+    backoff_ms: int | None = None
 
     @functools.wraps(callee)
     def traced_callee(*a: Any, **kw: Any) -> Any:
@@ -186,7 +186,7 @@ def retry_operation_sync(
 @observe_retry_metrics
 async def retry_operation_async(  # pylint: disable=W1113
     callee: Callable[..., Any],
-    retry_settings: Optional[RetrySettings] = None,
+    retry_settings: RetrySettings | None = None,
     *args: Any,
     **kwargs: Any,
 ) -> Any:
@@ -202,7 +202,7 @@ async def retry_operation_async(  # pylint: disable=W1113
 
     Returns awaitable result of coroutine. If retries are not successful exception is raised.
     """
-    backoff_ms: Optional[int] = None
+    backoff_ms: int | None = None
 
     @functools.wraps(callee)
     async def traced_callee(*a: Any, **kw: Any) -> Any:
@@ -225,13 +225,13 @@ async def retry_operation_async(  # pylint: disable=W1113
 
 def ydb_retry(
     max_retries: int = 10,
-    max_session_acquire_timeout: Optional[float] = None,
-    on_ydb_error_callback: Optional[Callable[[issues.Error], None]] = None,
+    max_session_acquire_timeout: float | None = None,
+    on_ydb_error_callback: Callable[[issues.Error], None] | None = None,
     backoff_ceiling: int = 6,
     backoff_slot_duration: float = 1,
     get_session_client_timeout: float = 5,
-    fast_backoff_settings: Optional[BackoffSettings] = None,
-    slow_backoff_settings: Optional[BackoffSettings] = None,
+    fast_backoff_settings: BackoffSettings | None = None,
+    slow_backoff_settings: BackoffSettings | None = None,
     idempotent: bool = False,
     retry_cancelled: bool = False,
 ) -> Callable[[Callable[..., Any]], Callable[..., Any]]:

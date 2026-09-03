@@ -8,7 +8,7 @@ provider is installed everything is a no-op — the SDK never depends on
 """
 
 import enum
-from typing import Any, Callable, ContextManager, Iterable, List, Optional, Protocol, Tuple
+from typing import Any, Callable, ContextManager, Iterable, Protocol
 
 from ydb.observability import metrics as _metrics
 from ydb.observability._endpoint import split_endpoint as _split_endpoint
@@ -61,11 +61,11 @@ class TracingProvider(Protocol):
     def create_span(
         self,
         name: str,
-        attributes: Optional[dict] = None,
-        kind: Optional[str] = None,
+        attributes: dict | None = None,
+        kind: str | None = None,
     ) -> Span: ...
 
-    def get_trace_metadata(self) -> Iterable[Tuple[str, str]]:
+    def get_trace_metadata(self) -> Iterable[tuple[str, str]]:
         """Return ``(key, value)`` pairs to inject into outgoing RPC metadata."""
         ...
 
@@ -128,7 +128,7 @@ class _TracingRegistry:
     def is_active(self) -> bool:
         return self._provider is not _NOOP_PROVIDER
 
-    def set_provider(self, provider: Optional[TracingProvider]) -> None:
+    def set_provider(self, provider: TracingProvider | None) -> None:
         self._provider = provider if provider is not None else _NOOP_PROVIDER
 
     def get_provider(self) -> TracingProvider:
@@ -137,14 +137,14 @@ class _TracingRegistry:
     def create_span(self, name, attributes=None, kind=None) -> Span:
         return self._provider.create_span(name, attributes, kind=kind)
 
-    def get_trace_metadata(self) -> Iterable[Tuple[str, str]]:
+    def get_trace_metadata(self) -> Iterable[tuple[str, str]]:
         return self._provider.get_trace_metadata()
 
 
 _registry = _TracingRegistry()
 
 
-def get_trace_metadata() -> List[Tuple[str, str]]:
+def get_trace_metadata() -> list[tuple[str, str]]:
     """Return tracing metadata for gRPC calls (empty list when no provider)."""
     return list(_registry.get_trace_metadata())
 
@@ -152,7 +152,7 @@ def get_trace_metadata() -> List[Tuple[str, str]]:
 TRACING_SDK_BUILD_INFO = "ydb-sdk-tracing/0.1.0"
 
 
-def _tracing_build_info_tokens() -> List[str]:
+def _tracing_build_info_tokens() -> list[str]:
     """Tracing's contribution to the ``x-ydb-sdk-build-info`` header.
 
     Returns ``["ydb-sdk-tracing/0.1.0"]`` once a provider is installed, otherwise an

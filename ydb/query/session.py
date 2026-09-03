@@ -7,10 +7,8 @@ from typing import (
     Generic,
     Iterable,
     Optional,
-    Dict,
     Any,
     TYPE_CHECKING,
-    Union,
     overload,
 )
 
@@ -87,17 +85,17 @@ class BaseQuerySession(abc.ABC, Generic[DriverT]):
 
     _driver: DriverT
     _settings: base.QueryClientSettings
-    _stream: Optional[GrpcStreamCall[_apis.ydb_query.SessionState]] = None
+    _stream: GrpcStreamCall[_apis.ydb_query.SessionState] | None = None
 
     # Session data
-    _session_id: Optional[str] = None
-    _node_id: Optional[int] = None
-    _peer: Optional[tuple] = None
+    _session_id: str | None = None
+    _node_id: int | None = None
+    _peer: tuple | None = None
     _closed: bool = False
     _invalidated: bool = False
     _session_metrics: SessionMetrics = _NOOP_SESSION_METRICS
 
-    def __init__(self, driver: DriverT, settings: Optional[base.QueryClientSettings] = None):
+    def __init__(self, driver: DriverT, settings: base.QueryClientSettings | None = None):
         self._driver = driver
         self._settings = self._get_client_settings(driver, settings)
         self._attach_settings: BaseRequestSettings = (
@@ -115,11 +113,11 @@ class BaseQuerySession(abc.ABC, Generic[DriverT]):
         return getattr(self._driver, "_driver_config", None)
 
     @property
-    def session_id(self) -> Optional[str]:
+    def session_id(self) -> str | None:
         return self._session_id
 
     @property
-    def node_id(self) -> Optional[int]:
+    def node_id(self) -> int | None:
         return self._node_id
 
     @property
@@ -127,7 +125,7 @@ class BaseQuerySession(abc.ABC, Generic[DriverT]):
         return self._session_id is not None and not self._closed
 
     @property
-    def _endpoint_key(self) -> Optional[EndpointKey]:
+    def _endpoint_key(self) -> EndpointKey | None:
         if self._node_id is None:
             return None
         return EndpointKey(endpoint=None, node_id=self._node_id)
@@ -143,7 +141,7 @@ class BaseQuerySession(abc.ABC, Generic[DriverT]):
     def _get_client_settings(
         self,
         driver: SupportedDriverType,
-        settings: Optional[base.QueryClientSettings] = None,
+        settings: base.QueryClientSettings | None = None,
     ) -> base.QueryClientSettings:
         if settings is not None:
             return settings
@@ -223,17 +221,17 @@ class BaseQuerySession(abc.ABC, Generic[DriverT]):
     # Overloads for _create_call
     @overload
     def _create_call(
-        self: "BaseQuerySession[SyncDriver]", settings: Optional[BaseRequestSettings] = None
+        self: "BaseQuerySession[SyncDriver]", settings: BaseRequestSettings | None = None
     ) -> "BaseQuerySession[SyncDriver]": ...
 
     @overload
     def _create_call(
-        self: "BaseQuerySession[AsyncDriver]", settings: Optional[BaseRequestSettings] = None
+        self: "BaseQuerySession[AsyncDriver]", settings: BaseRequestSettings | None = None
     ) -> Awaitable["BaseQuerySession[AsyncDriver]"]: ...
 
     def _create_call(
-        self, settings: Optional[BaseRequestSettings] = None
-    ) -> "Union[BaseQuerySession[Any], Awaitable[BaseQuerySession[Any]]]":
+        self, settings: BaseRequestSettings | None = None
+    ) -> "BaseQuerySession[Any] | Awaitable[BaseQuerySession[Any]]":
         """Create session. Returns Awaitable in async context."""
         return self._driver(
             _apis.ydb_query.CreateSessionRequest(),
@@ -247,17 +245,17 @@ class BaseQuerySession(abc.ABC, Generic[DriverT]):
     # Overloads for _delete_call
     @overload
     def _delete_call(
-        self: "BaseQuerySession[SyncDriver]", settings: Optional[BaseRequestSettings] = None
+        self: "BaseQuerySession[SyncDriver]", settings: BaseRequestSettings | None = None
     ) -> "BaseQuerySession[SyncDriver]": ...
 
     @overload
     def _delete_call(
-        self: "BaseQuerySession[AsyncDriver]", settings: Optional[BaseRequestSettings] = None
+        self: "BaseQuerySession[AsyncDriver]", settings: BaseRequestSettings | None = None
     ) -> Awaitable["BaseQuerySession[AsyncDriver]"]: ...
 
     def _delete_call(
-        self, settings: Optional[BaseRequestSettings] = None
-    ) -> "Union[BaseQuerySession[Any], Awaitable[BaseQuerySession[Any]]]":
+        self, settings: BaseRequestSettings | None = None
+    ) -> "BaseQuerySession[Any] | Awaitable[BaseQuerySession[Any]]":
         """Delete session. Returns Awaitable in async context."""
         return self._driver(
             _apis.ydb_query.DeleteSessionRequest(session_id=self._session_id),
@@ -282,7 +280,7 @@ class BaseQuerySession(abc.ABC, Generic[DriverT]):
 
     def _attach_call(
         self,
-    ) -> Union[GrpcStreamCall[_apis.ydb_query.SessionState], Awaitable[GrpcStreamCall[_apis.ydb_query.SessionState]]]:
+    ) -> GrpcStreamCall[_apis.ydb_query.SessionState] | Awaitable[GrpcStreamCall[_apis.ydb_query.SessionState]]:
         """Attach to session. Returns Awaitable in async context."""
         return self._driver(
             _apis.ydb_query.AttachSessionRequest(session_id=self._session_id),
@@ -297,54 +295,54 @@ class BaseQuerySession(abc.ABC, Generic[DriverT]):
     def _execute_call(
         self: "BaseQuerySession[SyncDriver]",
         query: str,
-        parameters: Optional[dict] = None,
+        parameters: dict | None = None,
         commit_tx: bool = False,
-        syntax: Optional[base.QuerySyntax] = None,
-        exec_mode: Optional[base.QueryExecMode] = None,
-        stats_mode: Optional[base.QueryStatsMode] = None,
-        schema_inclusion_mode: Optional[base.QuerySchemaInclusionMode] = None,
-        result_set_format: Optional[base.QueryResultSetFormat] = None,
-        arrow_format_settings: Optional[base.ArrowFormatSettings] = None,
+        syntax: base.QuerySyntax | None = None,
+        exec_mode: base.QueryExecMode | None = None,
+        stats_mode: base.QueryStatsMode | None = None,
+        schema_inclusion_mode: base.QuerySchemaInclusionMode | None = None,
+        result_set_format: base.QueryResultSetFormat | None = None,
+        arrow_format_settings: base.ArrowFormatSettings | None = None,
         concurrent_result_sets: bool = False,
-        settings: Optional[BaseRequestSettings] = None,
-        pool_id: Optional[str] = None,
+        settings: BaseRequestSettings | None = None,
+        pool_id: str | None = None,
     ) -> Iterable[_apis.ydb_query.ExecuteQueryResponsePart]: ...
 
     @overload
     def _execute_call(
         self: "BaseQuerySession[AsyncDriver]",
         query: str,
-        parameters: Optional[dict] = None,
+        parameters: dict | None = None,
         commit_tx: bool = False,
-        syntax: Optional[base.QuerySyntax] = None,
-        exec_mode: Optional[base.QueryExecMode] = None,
-        stats_mode: Optional[base.QueryStatsMode] = None,
-        schema_inclusion_mode: Optional[base.QuerySchemaInclusionMode] = None,
-        result_set_format: Optional[base.QueryResultSetFormat] = None,
-        arrow_format_settings: Optional[base.ArrowFormatSettings] = None,
+        syntax: base.QuerySyntax | None = None,
+        exec_mode: base.QueryExecMode | None = None,
+        stats_mode: base.QueryStatsMode | None = None,
+        schema_inclusion_mode: base.QuerySchemaInclusionMode | None = None,
+        result_set_format: base.QueryResultSetFormat | None = None,
+        arrow_format_settings: base.ArrowFormatSettings | None = None,
         concurrent_result_sets: bool = False,
-        settings: Optional[BaseRequestSettings] = None,
-        pool_id: Optional[str] = None,
+        settings: BaseRequestSettings | None = None,
+        pool_id: str | None = None,
     ) -> Awaitable[Iterable[_apis.ydb_query.ExecuteQueryResponsePart]]: ...
 
     def _execute_call(
         self,
         query: str,
-        parameters: Optional[dict] = None,
+        parameters: dict | None = None,
         commit_tx: bool = False,
-        syntax: Optional[base.QuerySyntax] = None,
-        exec_mode: Optional[base.QueryExecMode] = None,
-        stats_mode: Optional[base.QueryStatsMode] = None,
-        schema_inclusion_mode: Optional[base.QuerySchemaInclusionMode] = None,
-        result_set_format: Optional[base.QueryResultSetFormat] = None,
-        arrow_format_settings: Optional[base.ArrowFormatSettings] = None,
+        syntax: base.QuerySyntax | None = None,
+        exec_mode: base.QueryExecMode | None = None,
+        stats_mode: base.QueryStatsMode | None = None,
+        schema_inclusion_mode: base.QuerySchemaInclusionMode | None = None,
+        result_set_format: base.QueryResultSetFormat | None = None,
+        arrow_format_settings: base.ArrowFormatSettings | None = None,
         concurrent_result_sets: bool = False,
-        settings: Optional[BaseRequestSettings] = None,
-        pool_id: Optional[str] = None,
-    ) -> Union[
-        Iterable[_apis.ydb_query.ExecuteQueryResponsePart],
-        Awaitable[Iterable[_apis.ydb_query.ExecuteQueryResponsePart]],
-    ]:
+        settings: BaseRequestSettings | None = None,
+        pool_id: str | None = None,
+    ) -> (
+        Iterable[_apis.ydb_query.ExecuteQueryResponsePart]
+        | Awaitable[Iterable[_apis.ydb_query.ExecuteQueryResponsePart]]
+    ):
         self._last_query_stats = None
 
         if self._session_id is None:
@@ -381,7 +379,7 @@ class QuerySession(BaseQuerySession["SyncDriver"]):
     session's lifecycle manually - use a QuerySessionPool is always a better choice.
     """
 
-    def __init__(self, driver: "SyncDriver", settings: Optional[base.QueryClientSettings] = None):
+    def __init__(self, driver: "SyncDriver", settings: base.QueryClientSettings | None = None):
         super().__init__(driver, settings)
 
     def _attach(self, first_resp_timeout: int = DEFAULT_INITIAL_RESPONSE_TIMEOUT) -> None:
@@ -419,7 +417,7 @@ class QuerySession(BaseQuerySession["SyncDriver"]):
             logger.debug("Attach stream error: %s, session_id: %s", e, self._session_id)
             self._close_session(invalidate=True)
 
-    def delete(self, settings: Optional[BaseRequestSettings] = None) -> None:
+    def delete(self, settings: BaseRequestSettings | None = None) -> None:
         """Deletes a Session of Query Service on server side and releases resources.
 
         :return: None
@@ -435,7 +433,7 @@ class QuerySession(BaseQuerySession["SyncDriver"]):
 
         self._close_session()
 
-    def create(self, settings: Optional[BaseRequestSettings] = None) -> "QuerySession":
+    def create(self, settings: BaseRequestSettings | None = None) -> "QuerySession":
         """Creates a Session of Query Service on server side and attaches it.
 
         :return: QuerySession object.
@@ -454,7 +452,7 @@ class QuerySession(BaseQuerySession["SyncDriver"]):
 
         return self
 
-    def transaction(self, tx_mode: Optional[base.BaseQueryTxMode] = None) -> QueryTxContext:
+    def transaction(self, tx_mode: base.BaseQueryTxMode | None = None) -> QueryTxContext:
         """Creates a transaction context manager with specified transaction mode.
 
         :param tx_mode: Transaction mode, which is a one from the following choices:
@@ -484,13 +482,13 @@ class QuerySession(BaseQuerySession["SyncDriver"]):
         syntax: base.QuerySyntax = None,
         exec_mode: base.QueryExecMode = None,
         concurrent_result_sets: bool = False,
-        settings: Optional[BaseRequestSettings] = None,
+        settings: BaseRequestSettings | None = None,
         *,
-        stats_mode: Optional[base.QueryStatsMode] = None,
-        schema_inclusion_mode: Optional[base.QuerySchemaInclusionMode] = None,
-        result_set_format: Optional[base.QueryResultSetFormat] = None,
-        arrow_format_settings: Optional[base.ArrowFormatSettings] = None,
-        pool_id: Optional[str] = None,
+        stats_mode: base.QueryStatsMode | None = None,
+        schema_inclusion_mode: base.QuerySchemaInclusionMode | None = None,
+        result_set_format: base.QueryResultSetFormat | None = None,
+        arrow_format_settings: base.ArrowFormatSettings | None = None,
+        pool_id: str | None = None,
     ) -> base.SyncResponseContextIterator:
         """Sends a query to Query Service
 
@@ -558,7 +556,7 @@ class QuerySession(BaseQuerySession["SyncDriver"]):
         parameters: dict = None,
         *,
         result_format: QueryExplainResultFormat = QueryExplainResultFormat.STR,
-    ) -> Union[str, Dict[str, Any]]:
+    ) -> str | dict[str, Any]:
         """Explains query result
         :param query: YQL or SQL query.
         :param parameters: dict with parameters and YDB types;
