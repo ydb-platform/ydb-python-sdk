@@ -2,6 +2,7 @@ import asyncio
 import logging
 import time
 import typing
+import warnings
 
 from typing import (
     Any,
@@ -19,6 +20,7 @@ from ydb import issues, settings as settings_impl, table
 from ydb.table import (
     BaseSession,
     BaseTableClient,
+    _SCAN_QUERY_DEPRECATION_MESSAGE,
     _scan_query_request_factory,
     _wrap_scan_query_response,
     BaseTxContext,
@@ -176,6 +178,11 @@ class TableClient(BaseTableClient["AsyncDriver"]):
         return await super().describe_system_view(path, settings)
 
     async def scan_query(self, query, parameters=None, settings=None):  # pylint: disable=W0236
+        """
+        .. deprecated::
+            Use QueryService (:class:`ydb.aio.QuerySessionPool`) instead.
+        """
+        warnings.warn(_SCAN_QUERY_DEPRECATION_MESSAGE, DeprecationWarning, stacklevel=2)
         request = _scan_query_request_factory(query, parameters, settings)
         response = await self._driver(
             request,

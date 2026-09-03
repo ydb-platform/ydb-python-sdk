@@ -6,6 +6,7 @@ from abc import abstractmethod
 import logging
 import enum
 import typing
+import warnings
 
 from typing import (
     Any,
@@ -985,6 +986,12 @@ class ScanQuery(object):
         self.parameters_types = parameters_types
 
 
+_SCAN_QUERY_DEPRECATION_MESSAGE = (
+    "scan_query is deprecated and will be removed in a future release, "
+    "use QueryService (ydb.QuerySessionPool) instead"
+)
+
+
 def _wrap_scan_query_response(response, table_client_settings):
     issues._process_response(response)
     return ScanQueryResult(response.result, table_client_settings)
@@ -1180,6 +1187,10 @@ class ITableClient(abc.ABC):
 
     @abstractmethod
     def scan_query(self, query, parameters=None, settings=None):
+        """
+        .. deprecated::
+            Use QueryService (:class:`ydb.QuerySessionPool`) instead.
+        """
         pass
 
     @abstractmethod
@@ -1208,6 +1219,11 @@ class BaseTableClient(ITableClient, Generic[DriverT]):
 
     def scan_query(self, query, parameters=None, settings=None):
         # type: (ydb.ScanQuery, tuple, ydb.BaseRequestSettings) -> _utilities.SyncResponseIterator
+        """
+        .. deprecated::
+            Use QueryService (:class:`ydb.QuerySessionPool`) instead.
+        """
+        warnings.warn(_SCAN_QUERY_DEPRECATION_MESSAGE, DeprecationWarning, stacklevel=2)
         request = _scan_query_request_factory(query, parameters, settings)
         stream_it = self._driver(
             request,
@@ -1269,6 +1285,11 @@ class TableClient(BaseTableClient["SyncDriver"]):
 
     def async_scan_query(self, query, parameters=None, settings=None):
         # type: (ydb.ScanQuery, tuple, ydb.BaseRequestSettings) -> _utilities.AsyncResponseIterator
+        """
+        .. deprecated::
+            Use QueryService (:class:`ydb.QuerySessionPool`) instead.
+        """
+        warnings.warn(_SCAN_QUERY_DEPRECATION_MESSAGE, DeprecationWarning, stacklevel=2)
         request = _scan_query_request_factory(query, parameters, settings)
         stream_it = self._driver(
             request,
