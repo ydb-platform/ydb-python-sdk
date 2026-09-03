@@ -1,4 +1,3 @@
-from typing import Optional
 
 from .. import issues
 from .._topic_common.common import _get_shared_event_loop, CallFromSyncToAsync

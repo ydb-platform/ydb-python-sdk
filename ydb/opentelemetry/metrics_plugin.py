@@ -5,7 +5,7 @@ packages. The SDK core does not import it — the OTel dependency is only pulled
 user calls :func:`ydb.opentelemetry.enable_metrics`.
 """
 
-from typing import Any, Dict, Optional
+from typing import Any, Optional
 
 from opentelemetry import metrics as otel_metrics
 from opentelemetry.metrics import (
@@ -35,7 +35,7 @@ from ydb.observability.metrics import (
     RETRY_DURATION_BUCKETS_SECONDS,
 )
 
-_meter: Meter | None = None
+_meter: Optional[Meter] = None
 
 # Unit/description for the asynchronous gauges the SDK registers via observe_gauge.
 _GAUGE_META = {
@@ -108,12 +108,12 @@ class OtelMetricsProvider:
             ),
         }
 
-    def record(self, name: str, value: float, attributes: dict[str, Any] | None = None) -> None:
+    def record(self, name: str, value: float, attributes: Optional[dict[str, Any]] = None) -> None:
         instrument = self._histograms.get(name)
         if instrument is not None:
             instrument.record(value, attributes=attributes or {})
 
-    def add(self, name: str, value: int, attributes: dict[str, Any] | None = None) -> None:
+    def add(self, name: str, value: int, attributes: Optional[dict[str, Any]] = None) -> None:
         instrument = self._counters.get(name)
         if instrument is not None:
             instrument.add(value, attributes=attributes or {})
@@ -132,7 +132,7 @@ class OtelMetricsProvider:
         )
 
 
-def _enable_metrics(meter_provider: MeterProvider | None) -> None:
+def _enable_metrics(meter_provider: Optional[MeterProvider]) -> None:
     """Build an :class:`OtelMetricsProvider` from an OTel MeterProvider and install it.
 
     Called by :func:`ydb.opentelemetry.enable_metrics`. Idempotent: if metrics are

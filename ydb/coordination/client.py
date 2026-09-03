@@ -1,5 +1,5 @@
 import logging
-from typing import Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 from .._grpc.grpcwrapper.ydb_coordination import (
     CreateNodeRequest,

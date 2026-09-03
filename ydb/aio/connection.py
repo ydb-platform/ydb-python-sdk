@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 import asyncio
-from typing import Any, Callable, Optional, TYPE_CHECKING
+from typing import Any, Callable, TYPE_CHECKING
 import collections
 import grpc
 

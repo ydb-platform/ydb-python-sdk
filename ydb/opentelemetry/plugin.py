@@ -5,7 +5,7 @@ This module implements :class:`ydb.observability.TracingProvider` on top of the
 dependency is only pulled in when a user calls :func:`ydb.opentelemetry.enable_tracing`.
 """
 
-from typing import Iterable, Optional
+from typing import Iterable
 
 from opentelemetry import context as otel_context
 from opentelemetry import trace
