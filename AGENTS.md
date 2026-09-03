@@ -74,9 +74,35 @@ source .venv/bin/activate && tox -e py -- tests/path/to/test_file.py -v
 
 ## CHANGELOG
 
-- Add a single line to the top of `CHANGELOG.md` **only** when a change is meaningful to the end user — new or changed behavior, a bug fix, a performance or compatibility improvement.
+`CHANGELOG.md` has no "unreleased" section. The pending release notes are simply the bullets above the first `## ` line; that first `## ` line is the latest *released* version.
+
+- Add a single `*` bullet to the very top of `CHANGELOG.md` **only** when a change is meaningful to the end user — new or changed behavior, a bug fix, a performance or compatibility improvement.
 - Do **not** add entries for internal-only work such as tests, coverage, CI, refactors, or documentation.
-- **Never add a version header** (`## X.Y.Z ##`) by hand — release automation inserts it above the pending lines. Just prepend the bullet.
+- **Never add a heading of any kind.** Not `## Unreleased`, not `## [Unreleased]`, not `## Next`, not a date, not `## X.Y.Z ##`, and no `### Added` / `### Fixed` subsections. Release automation (`.github/scripts/increment_version.py`) inserts the version header above the pending bullets at release time.
+- Do not restyle the file to Keep a Changelog format, and do not reorder or reword existing entries.
+
+This is not a style preference — a heading at the top **breaks the release**. `.github/workflows/python-publish.yml` reads the release notes as everything above the first `## ` line (`sed -e '/^## .*$/,$d'`), so a leading heading makes them empty and the publish job fails with `CHANGELOG empty`; `add_changelog_version` then also skips inserting the real version header because the file already starts with `##`.
+
+Correct — bullets first, no heading of your own:
+
+```md
+* Fix topic writer reconnect after the server closes the stream
+* Add `pool_id` to `QuerySession.execute`
+
+## 3.31.4 ##
+* Fixed async `QuerySessionPool` ...
+```
+
+Wrong:
+
+```md
+## Unreleased
+
+### Added
+* Add `pool_id` to `QuerySession.execute`
+
+## 3.31.4 ##
+```
 
 ## Documentation & Examples
 
