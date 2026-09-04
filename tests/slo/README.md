@@ -24,9 +24,32 @@ async (`ydb.aio`) path:
 | `async-query`  | Query service | async |
 | `sync-topic`   | Topic service | sync  |
 | `async-topic`  | Topic service | async |
+| `sync-topic-multiwriter` | Topic service, writes by key | sync |
 
 > The `--async` CLI flag is kept as a manual override for `*-run` commands.
 > The bare `topic` label is still accepted as an alias for `sync-topic`.
+
+### Which scenarios a CI run starts
+
+The `SLO` label on a PR starts the workflow, but not necessarily every scenario: a full run is
+long and occupies external runners, so `.github/workflows/slo.yml` first computes the matrix from
+the changed files.
+
+| Changed | Scenarios |
+|---|---|
+| `ydb/_topic_*/**`, `ydb/topic.py`, `ydb/aio/topic.py`, `ydb/_grpc/grpcwrapper/ydb_topic*.py` | the three topic ones |
+| `ydb/query/**`, `ydb/aio/query/**` | `sync-query`, `async-query` |
+| `ydb/table.py`, `ydb/aio/table.py`, `ydb/_session_impl.py` | `sync-table` |
+| anything else under `ydb/` — driver, pool, connection, retries, credentials, generated stubs, and shared helpers such as `convert.py` | all |
+| `tests/slo/**` or `.github/workflows/slo.yml` | all |
+| nothing SLO-relevant (docs, examples, packaging, other CI) | all |
+
+The last row is deliberate rather than a fallback for its own sake: putting the label on such a PR
+is an explicit request, so it is honoured — and it doubles as the way to force a full run. Touch
+any file outside the SDK, add the label, and every scenario starts.
+
+The job logs both the file list it saw and the scenarios it picked, so a surprising selection can
+be diagnosed without re-running anything.
 
 ### Usage:
 
@@ -267,7 +290,18 @@ When running `topic-run` (`sync-topic` / `async-topic`), the program creates `re
   - a **backward** seqno (already seen) is a **duplicate** — reconnect redelivery; with producer-id dedup it should stay near zero (informational);
   - **end-to-end latency** is `read_ts − write_ts` for the first delivery of each message (writer and reader share the process, so the timestamps are comparable).
 
-Each message carries `writer_id:seqno:write_ts_ns:` followed by padding to the configured size. Topics are scoped per ref so the current and baseline containers (same cluster, run in parallel) don't share a topic.
+Each message carries `writer_id:seqno:write_ts_ns:` followed by padding to the configured size. Topics are scoped per workload and per ref, so neither two workloads nor the current and baseline containers (same cluster, run in parallel) share a topic — sharing one would mix their producers into each other's delivery and ordering accounting.
+
+### Topic multi-writer workload
+
+`sync-topic-multiwriter` runs the same read side and the same accounting, but writes through `topic_client.multiwriter(...)`: each message carries a `key` and the writer picks the partition itself. That covers what the pinned-writer workload cannot — key routing, the per-partition sub-writer pool, and the recovery of both when nodes disappear under chaos.
+
+- `writeJob` — each thread owns one multi-writer and cycles through `--keys-per-writer` distinct keys. One payload stream per **key** (not per partition), because a key is what the writer keeps ordered, and two keys may share a partition. Use fewer write threads than the pinned workload: every thread opens a sub-writer per partition it touches.
+- `readJob` — unchanged. A forward gap is still loss and a backward seqno is still a duplicate; the streams it validates are keys rather than partition-pinned producers.
+
+Enabled by `--use-multiwriter` on `topic-run`; the label sets it automatically. There is no async variant yet — the sync facade drives the same async implementation underneath, so the code under test is the same.
+
+> Local re-runs against an existing topic will report duplicates: per-key seqno counters restart at 1 with the process, while the reader still expects the sequence left by the previous run. Recreate the topic (`topic-cleanup` + `topic-create`) between local runs. CI is unaffected — every run gets its own topic.
 
 ## Collected metrics
 - `oks`      - amount of OK requests
