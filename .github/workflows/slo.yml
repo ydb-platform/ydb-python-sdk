@@ -10,37 +10,132 @@ permissions:
   checks: write
 
 jobs:
-  ydb-slo-action:
+  select-scenarios:
     # On `labeled` events run only when the `SLO` label itself was just added —
     # otherwise unrelated label changes (e.g. the AI-review bot toggling
     # `ai_review_in_process` / `ai_reviewed`) would spawn a fresh run that
     # cancels the in-progress one via `cancel-in-progress`. For the other
     # trigger types keep gating on the `SLO` label being present.
+    #
+    # The gate lives only here: the workload job `needs` this one, so a skipped
+    # gate skips the whole run exactly as before.
     if: >-
       (github.event.action == 'labeled' && github.event.label.name == 'SLO') ||
       (github.event.action != 'labeled' && contains(github.event.pull_request.labels.*.name, 'SLO'))
 
+    name: Select SLO scenarios
+    runs-on: ubuntu-latest
+    outputs:
+      sdk: ${{ steps.select.outputs.sdk }}
+
+    steps:
+      # A full SLO run is long and burns external runners, so only the scenarios that can
+      # actually be affected by the diff are started. The scenario list lives here (and only
+      # here) so the map and the definitions cannot drift apart.
+      - name: Pick scenarios affected by the changed files
+        id: select
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+
+          ALL_SCENARIOS='[
+            {"name":"sync-table","command":"--read-rps 1000 --write-rps 100"},
+            {"name":"sync-query","command":"--read-rps 1000 --write-rps 100"},
+            {"name":"async-query","command":"--read-rps 1000 --write-rps 100"},
+            {"name":"sync-topic","command":"--write-rps 200 --write-threads 8 --read-threads 8",
+             "metrics_yaml_path":"sdk-current/tests/slo/metrics-topic.yaml",
+             "thresholds_yaml_path":"sdk-current/tests/slo/thresholds-topic.yaml"},
+            {"name":"async-topic","command":"--write-rps 200 --write-threads 8 --read-threads 8",
+             "metrics_yaml_path":"sdk-current/tests/slo/metrics-topic.yaml",
+             "thresholds_yaml_path":"sdk-current/tests/slo/thresholds-topic.yaml"},
+            {"name":"sync-topic-multiwriter",
+             "command":"--write-rps 200 --write-threads 2 --keys-per-writer 16 --read-threads 8",
+             "metrics_yaml_path":"sdk-current/tests/slo/metrics-topic.yaml",
+             "thresholds_yaml_path":"sdk-current/tests/slo/thresholds-topic.yaml"}
+          ]'
+
+          CHANGED=$(gh api "repos/${REPO}/pulls/${PR_NUMBER}/files" --paginate --jq '.[].filename')
+          echo "Changed files:"
+          echo "${CHANGED}" | sed 's/^/  /'
+
+          TOPIC=0; QUERY=0; TABLE=0; EVERYTHING=0
+          while IFS= read -r file; do
+            [ -n "${file}" ] || continue
+            case "${file}" in
+              # Order matters: the first matching pattern wins, so the specific service
+              # paths have to be tested before the `ydb/*` catch-all below.
+              ydb/_topic_reader/*|ydb/_topic_writer/*|ydb/_topic_common/*| \
+              ydb/topic.py|ydb/aio/topic.py|ydb/_grpc/grpcwrapper/ydb_topic*.py)
+                TOPIC=1 ;;
+              ydb/query/*|ydb/aio/query/*)
+                QUERY=1 ;;
+              ydb/table.py|ydb/aio/table.py|ydb/_session_impl.py)
+                TABLE=1 ;;
+              # Harness parts that belong to one service only.
+              tests/slo/src/jobs/*topic*|tests/slo/src/runners/topic_runner.py| \
+              tests/slo/metrics-topic.yaml|tests/slo/thresholds-topic.yaml)
+                TOPIC=1 ;;
+              # One runner drives sync-table, sync-query and async-query alike.
+              tests/slo/src/jobs/*table*|tests/slo/src/runners/table_runner.py)
+                TABLE=1; QUERY=1 ;;
+              # Prose about the harness changes no behaviour.
+              tests/slo/*.md)
+                ;;
+              # Shared harness (options, runners entry point, metrics, image) or this workflow:
+              # every scenario is affected.
+              tests/slo/*|.github/workflows/slo.yml)
+                EVERYTHING=1 ;;
+              # Anything else inside the SDK is shared machinery (driver, pool, connection,
+              # retries, credentials, generated stubs, convert/types used by more than one
+              # service) — assume it can move any scenario.
+              ydb/*)
+                EVERYTHING=1 ;;
+              # Docs, examples, packaging, other CI: no SLO impact.
+              *) ;;
+            esac
+          done <<EOF
+          ${CHANGED}
+          EOF
+
+          WANT=""
+          if [ "${EVERYTHING}" -eq 1 ]; then
+            WANT="all"
+          else
+            [ "${TABLE}" -eq 1 ] && WANT="${WANT} sync-table"
+            [ "${QUERY}" -eq 1 ] && WANT="${WANT} sync-query async-query"
+            [ "${TOPIC}" -eq 1 ] && WANT="${WANT} sync-topic async-topic sync-topic-multiwriter"
+          fi
+
+          # Nothing SLO-relevant changed, yet someone deliberately asked for a run: honour the
+          # request and run everything. This doubles as the "run all scenarios" escape hatch —
+          # touch any non-SDK file and add the label.
+          if [ -z "${WANT# }" ]; then
+            echo "No SLO-relevant paths changed; running every scenario."
+            WANT="all"
+          fi
+
+          if [ "${WANT}" = "all" ]; then
+            SDK=$(printf '%s' "${ALL_SCENARIOS}" | jq -c .)
+          else
+            SDK=$(printf '%s' "${ALL_SCENARIOS}" \
+              | jq -c --arg want "${WANT# }" '[ .[] | select(.name as $n | ($want | split(" ")) | index($n)) ]')
+          fi
+
+          echo "Selected scenarios: $(printf '%s' "${SDK}" | jq -r '[.[].name] | join(", ")')"
+          echo "sdk=${SDK}" >> "$GITHUB_OUTPUT"
+
+  ydb-slo-action:
+    needs: select-scenarios
     name: Run YDB SLO Tests
     runs-on: "large-runner-python-sdk"
 
     strategy:
       fail-fast: false
       matrix:
-        sdk:
-          - name: sync-table
-            command: "--read-rps 1000 --write-rps 100"
-          - name: sync-query
-            command: "--read-rps 1000 --write-rps 100"
-          - name: async-query
-            command: "--read-rps 1000 --write-rps 100"
-          - name: sync-topic
-            command: "--write-rps 200 --write-threads 8 --read-threads 8"
-            metrics_yaml_path: sdk-current/tests/slo/metrics-topic.yaml
-            thresholds_yaml_path: sdk-current/tests/slo/thresholds-topic.yaml
-          - name: async-topic
-            command: "--write-rps 200 --write-threads 8 --read-threads 8"
-            metrics_yaml_path: sdk-current/tests/slo/metrics-topic.yaml
-            thresholds_yaml_path: sdk-current/tests/slo/thresholds-topic.yaml
+        sdk: ${{ fromJSON(needs.select-scenarios.outputs.sdk) }}
 
     concurrency:
       group: slo-${{ github.ref }}-${{ matrix.sdk.name }}

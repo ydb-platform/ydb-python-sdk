@@ -3,6 +3,7 @@ import time
 from core.metrics import create_metrics
 from jobs.async_topic_jobs import AsyncTopicJobManager
 from jobs.topic_jobs import TopicJobManager
+from jobs.topic_multiwriter_jobs import TopicMultiWriterJobManager
 
 import ydb
 import ydb.aio
@@ -72,9 +73,11 @@ class TopicRunner(BaseRunner):
         assert self.driver is not None, "Driver is not initialized. Call set_driver() before run()."
         metrics = create_metrics(args.otlp_endpoint)
 
-        self.logger.info("Starting topic SLO tests")
+        use_multiwriter = getattr(args, "use_multiwriter", False)
+        self.logger.info("Starting topic SLO tests (multiwriter=%s)", use_multiwriter)
 
-        job_manager = TopicJobManager(self.driver, args, metrics)
+        manager_cls = TopicMultiWriterJobManager if use_multiwriter else TopicJobManager
+        job_manager = manager_cls(self.driver, args, metrics)
         job_manager.run_tests()
 
         self.logger.info("Topic SLO tests completed")
@@ -85,6 +88,10 @@ class TopicRunner(BaseRunner):
     async def run_async(self, args):
         """Async version of topic SLO tests using ydb.aio.Driver"""
         assert self.driver is not None, "Driver is not initialized. Call set_driver() before run_async()."
+        if getattr(args, "use_multiwriter", False):
+            # Silently running the single-partition workload under a multiwriter label would
+            # make the SLO report compare something other than what it claims.
+            raise NotImplementedError("--use-multiwriter has no async workload yet; run it as a sync-* workload")
         metrics = create_metrics(args.otlp_endpoint)
 
         self.logger.info("Starting async topic SLO tests")
