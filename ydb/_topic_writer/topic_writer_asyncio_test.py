@@ -8,6 +8,7 @@ import gc
 import gzip
 import sys
 import typing
+import weakref
 from concurrent.futures import ThreadPoolExecutor
 from queue import Queue, Empty
 from typing import List, Callable, Optional
@@ -36,6 +37,7 @@ from .topic_writer import (
     PublicWriteResult,
     TopicWriterError,
     TopicWriterBufferFullError,
+    TopicWriterClosedError,
     TopicWriterPartitionSplitError,
     TopicWriterStopped,
 )
@@ -531,6 +533,56 @@ class TestWriterAsyncIOReconnector:
 
         with pytest.raises(TestException):
             await reconnector.close(flush=False)
+
+    async def test_retriable_error_hook_stops_the_writer(self, default_driver, default_settings, get_stream_writer):
+        """The hook must be able to end the connection loop on an otherwise retriable error.
+
+        OVERLOADED normally means "back off and retry", but for the multi-partition writer it is
+        also how a split announces itself: the partition went inactive and retrying against it
+        would spin forever. The hook lets the owner claim such an error and stop the writer with a
+        reason it can recognise, instead of the generic retry path swallowing it.
+        """
+        seen = []
+
+        def hook(err):
+            seen.append(err)
+            return True
+
+        settings = copy.deepcopy(default_settings)
+        settings._on_check_retriable_error = hook
+        reconnector = WriterAsyncIOReconnector(default_driver, settings)
+
+        get_stream_writer().from_server.put_nowait(issues.Overloaded("Write to inactive partition 0"))
+
+        with pytest.raises(TopicWriterPartitionSplitError):
+
+            async def wait_stop():
+                while True:
+                    await reconnector.write_with_ack_future([PublicMessage(data="123", seqno=3)])
+                    await asyncio.sleep(0.01)
+
+            await asyncio.wait_for(wait_stop(), 2)
+
+        assert seen and isinstance(seen[0], issues.Overloaded)
+
+        with pytest.raises(TopicWriterPartitionSplitError):
+            await reconnector.close(flush=False)
+
+    async def test_retriable_error_hook_declining_keeps_default_retry(
+        self, default_driver, default_settings, get_stream_writer
+    ):
+        """A hook that declines must leave the normal retry policy untouched."""
+        settings = copy.deepcopy(default_settings)
+        settings._on_check_retriable_error = lambda err: False
+        reconnector = WriterAsyncIOReconnector(default_driver, settings)
+
+        get_stream_writer().from_server.put_nowait(issues.Overloaded("ordinary overload"))
+        await reconnector.write_with_ack_future([PublicMessage(data="123", seqno=3)])
+        await asyncio.sleep(0.1)
+
+        # Retriable error + declining hook -> the writer reconnected instead of stopping.
+        assert not reconnector._stop_reason.done()
+        await reconnector.close(flush=False)
 
     async def test_wait_init(self, default_driver, default_settings, get_stream_writer):
         init_seqno = 100
@@ -1182,6 +1234,15 @@ class _MultiFakeDescribeDriver:
                 return description
 
         return _Result()
+
+
+_real_sleep = asyncio.sleep
+
+
+async def _no_sleep(_delay):
+    """Run timer-driven loops at full speed. Holds the real sleep so patching
+    asyncio.sleep with this does not make it call itself."""
+    await _real_sleep(0)
 
 
 # Per-partition last persisted seqno seen by the fakes' wait_init(); tests mutate it.
@@ -2178,3 +2239,456 @@ class TestTopicWriterMultiAsyncIO:
             finally:
                 await writer.close(flush=False)
                 _retrieve_exceptions([f_a, f_b])
+
+
+@pytest.mark.asyncio
+class TestTopicWriterMultiAsyncIOLifecycle:
+    """Lifecycle and error-path behaviour of the orchestrator.
+
+    Separate from the routing/split tests: these are about what happens around the happy path --
+    shutdown, destructors, background tasks and the branches that only run when something fails.
+    """
+
+    def _driver(self, partitions=None):
+        return _MultiFakeDescribeDriver([partitions or [_multi_partition(0), _multi_partition(1)]])
+
+    def _settings(self, **kwargs):
+        kwargs.setdefault("topic", "/local/topic")
+        kwargs.setdefault("producer_id_prefix", "pfx")
+        kwargs.setdefault("partition_chooser", _KeyMapChooser({"a": 0, "b": 1}))
+        return MultiWriterSettings(**kwargs)
+
+    async def test_context_manager_closes_and_keeps_body_errors(self):
+        with mock.patch("ydb._topic_writer.topic_writer_multi_asyncio.WriterAsyncIO", _FakeSubWriter):
+            async with TopicWriterMultiAsyncIO(self._driver(), self._settings()) as writer:
+                await writer.write(PublicMessage(b"a", key="a"))
+            assert writer._closed
+
+            class TestException(Exception):
+                pass
+
+            # A failure inside the block must survive close(): losing it would report a real
+            # error as an unrelated teardown problem.
+            with pytest.raises(TestException):
+                async with TopicWriterMultiAsyncIO(self._driver(), self._settings()) as writer:
+                    raise TestException()
+            assert writer._closed
+
+    async def test_unclosed_writer_schedules_a_close_on_delete(self):
+        with mock.patch("ydb._topic_writer.topic_writer_multi_asyncio.WriterAsyncIO", _FakeSubWriter):
+            writer = TopicWriterMultiAsyncIO(self._driver(), self._settings())
+            await writer.wait_init()
+
+            writer.__del__()  # forgotten writer: the streams still have to be released
+            await asyncio.sleep(0)
+            await asyncio.sleep(0)
+            assert writer._closed
+
+            writer.__del__()  # already closed -> nothing scheduled, still no raise
+
+    async def test_writes_are_refused_after_close(self):
+        with mock.patch("ydb._topic_writer.topic_writer_multi_asyncio.WriterAsyncIO", _FakeSubWriter):
+            writer = TopicWriterMultiAsyncIO(self._driver(), self._settings())
+            await writer.wait_init()
+            await writer.close(flush=False)
+
+            with pytest.raises(TopicWriterClosedError):
+                await writer.write(PublicMessage(b"a", key="a"))
+            with pytest.raises(TopicWriterClosedError):
+                await writer.flush()
+
+    async def test_close_cancels_an_init_that_never_finished(self):
+        class NeverDescribes(_MultiFakeDescribeDriver):
+            async def __call__(self, *args, **kwargs):
+                await asyncio.Event().wait()
+
+        with mock.patch("ydb._topic_writer.topic_writer_multi_asyncio.WriterAsyncIO", _FakeSubWriter):
+            writer = TopicWriterMultiAsyncIO(NeverDescribes([[]]), self._settings())
+            await asyncio.wait_for(writer.close(), timeout=1)
+
+            # An init left running would keep describing a topic nobody writes to any more.
+            with pytest.raises(asyncio.CancelledError):
+                await writer._init_task
+
+    async def test_close_tolerates_a_failing_flush(self):
+        class FlushRaises(_FakeSubWriter):
+            async def flush(self):
+                raise RuntimeError("flush failed")
+
+        with mock.patch("ydb._topic_writer.topic_writer_multi_asyncio.WriterAsyncIO", FlushRaises):
+            writer = TopicWriterMultiAsyncIO(self._driver(), self._settings())
+            await writer.write(PublicMessage(b"a", key="a"))
+            # close(flush=True) must still shut the writer down, not propagate the flush error.
+            await writer.close()
+            assert writer._closed
+
+    async def test_write_with_ack_returns_results_for_one_and_many(self):
+        with mock.patch("ydb._topic_writer.topic_writer_multi_asyncio.WriterAsyncIO", _FakeSubWriter):
+            writer = TopicWriterMultiAsyncIO(self._driver(), self._settings())
+
+            single = await writer.write_with_ack(PublicMessage(b"a", key="a"))
+            assert isinstance(single, PublicWriteResult.Written)
+
+            many = await writer.write_with_ack([PublicMessage(b"a", key="a"), PublicMessage(b"b", key="b")])
+            assert isinstance(many, list) and len(many) == 2
+
+            await writer.close(flush=False)
+
+    async def test_a_failed_ack_reaches_the_caller(self):
+        with mock.patch("ydb._topic_writer.topic_writer_multi_asyncio.WriterAsyncIO", _ControllableSubWriter):
+            writer = TopicWriterMultiAsyncIO(self._driver(), self._settings())
+            future = await writer.write_with_ack_future(PublicMessage(b"a", key="a"))
+
+            writer._writers[0].pending[0].set_exception(RuntimeError("write rejected"))
+            await asyncio.sleep(0)
+
+            assert isinstance(future.exception(), RuntimeError)
+            assert not writer._inflight.get(0), "a settled message must not stay in flight"
+            await writer.close(flush=False)
+
+    async def test_a_cancelled_ack_leaves_the_message_in_flight(self):
+        """Cancellation is not an outcome: the writer is being torn down, and the message is
+        still owned by the orchestrator until a repartition or recovery decides its fate."""
+        with mock.patch("ydb._topic_writer.topic_writer_multi_asyncio.WriterAsyncIO", _ControllableSubWriter):
+            writer = TopicWriterMultiAsyncIO(self._driver(), self._settings())
+            future = await writer.write_with_ack_future(PublicMessage(b"a", key="a"))
+
+            writer._writers[0].pending[0].cancel()
+            await asyncio.sleep(0)
+
+            assert not future.done()
+            assert set(writer._inflight[0]) == {1}
+            await writer.close(flush=False)
+            _retrieve_exceptions([future])
+
+    async def test_ack_failures_are_suppressed_while_the_partition_is_being_retired(self):
+        with mock.patch("ydb._topic_writer.topic_writer_multi_asyncio.WriterAsyncIO", _ControllableSubWriter):
+            writer = TopicWriterMultiAsyncIO(self._driver(), self._settings())
+            future = await writer.write_with_ack_future(PublicMessage(b"a", key="a"))
+
+            writer._retiring.add(0)
+            writer._writers[0].pending[0].set_exception(RuntimeError("session closed by us"))
+            await asyncio.sleep(0)
+
+            # Expected noise from our own teardown: the message waits to be resent instead.
+            assert not future.done()
+            assert set(writer._inflight[0]) == {1}
+            await writer.close(flush=False)
+            _retrieve_exceptions([future])
+
+    async def test_probe_result_is_cached_per_producer(self):
+        _FAKE_LAST_SEQNO.clear()
+        _FAKE_LAST_SEQNO[0] = 42
+        with mock.patch("ydb._topic_writer.topic_writer_multi_asyncio.WriterAsyncIO", _FakeSubWriter):
+            writer = TopicWriterMultiAsyncIO(self._driver(), self._settings())
+            await writer.wait_init()
+
+            assert await writer._probe_server_seqno(0) == 42
+            # A retired producer receives no further writes, so the answer is final: changing
+            # what the server would say must not change the cached cut.
+            _FAKE_LAST_SEQNO[0] = 99
+            assert await writer._probe_server_seqno(0) == 42
+
+            await writer.close(flush=False)
+
+    async def test_lineage_walks_a_merge_graph_without_repeating(self):
+        with mock.patch("ydb._topic_writer.topic_writer_multi_asyncio.WriterAsyncIO", _FakeSubWriter):
+            writer = TopicWriterMultiAsyncIO(self._driver(), self._settings())
+            await writer.wait_init()
+
+            # 3 merged from 1 and 2, both of which split off 0: 0 is reachable twice.
+            writer._parents = {3: [1, 2], 1: [0], 2: [0]}
+            lineage = writer._lineage(3)
+
+            assert sorted(lineage) == [0, 1, 2, 3]
+            assert len(lineage) == len(set(lineage)), "an ancestor must be visited once"
+            await writer.close(flush=False)
+
+    async def test_repartition_task_deregisters_itself_when_done(self):
+        with mock.patch("ydb._topic_writer.topic_writer_multi_asyncio.WriterAsyncIO", _FakeSubWriter):
+            writer = TopicWriterMultiAsyncIO(self._driver(), self._settings())
+            await writer.wait_init()
+
+            async def noop(partition_id):
+                return
+
+            writer._on_partition_overloaded = noop
+            writer._schedule_repartition(0)
+            task = writer._repartition_tasks[0]
+            await task
+            await asyncio.sleep(0)
+
+            # Left registered, a finished task would block every later signal for this partition.
+            assert 0 not in writer._repartition_tasks
+            await writer.close(flush=False)
+
+    async def test_repartition_of_an_unknown_partition_is_a_no_op(self):
+        with mock.patch("ydb._topic_writer.topic_writer_multi_asyncio.WriterAsyncIO", _FakeSubWriter):
+            driver = self._driver()
+            writer = TopicWriterMultiAsyncIO(driver, self._settings())
+            await writer.wait_init()
+            describes = driver.describe_calls
+
+            # Already retired by a sibling's event: nothing left to do, and re-describing would
+            # only race the handler that did retire it.
+            await writer._handle_repartition(99)
+
+            assert driver.describe_calls == describes
+            await writer.close(flush=False)
+
+    async def test_failing_inflight_of_an_empty_partition_is_a_no_op(self):
+        with mock.patch("ydb._topic_writer.topic_writer_multi_asyncio.WriterAsyncIO", _FakeSubWriter):
+            writer = TopicWriterMultiAsyncIO(self._driver(), self._settings())
+            await writer.wait_init()
+            writer._fail_partition_inflight(0, RuntimeError("boom"))  # must not raise
+            await writer.close(flush=False)
+
+    async def test_idle_reaper_evicts_and_survives_a_failing_pass(self):
+        with mock.patch("ydb._topic_writer.topic_writer_multi_asyncio.WriterAsyncIO", _FakeSubWriter):
+            writer = TopicWriterMultiAsyncIO(self._driver(), self._settings(writer_idle_timeout_sec=3))
+            await writer.write(PublicMessage(b"a", key="a"))
+            assert 0 in writer._writers
+
+            writer._last_write_at[0] = writer._loop.time() - 1000
+
+            # One failing pass must not kill the reaper: it has to keep collecting later.
+            failed = {"once": False}
+            real_evict = writer._evict_idle_writers
+
+            async def flaky():
+                if not failed["once"]:
+                    failed["once"] = True
+                    raise RuntimeError("eviction failed")
+                await real_evict()
+
+            async def flaky_then_stop():
+                await flaky()
+                if failed["once"] and 0 not in writer._writers:
+                    writer._closed = True  # end the reaper loop once it has done its job
+
+            writer._evict_idle_writers = flaky_then_stop
+            with mock.patch("ydb._topic_writer.topic_writer_multi_asyncio.asyncio.sleep", _no_sleep):
+                await asyncio.wait_for(TopicWriterMultiAsyncIO._idle_reaper(weakref.ref(writer), 3), timeout=2)
+
+            assert failed["once"]
+            assert 0 not in writer._writers, "an idle sub-writer should have been closed"
+            await writer.close(flush=False)
+
+    async def test_idle_reaper_stops_when_the_writer_is_gone(self):
+        with mock.patch("ydb._topic_writer.topic_writer_multi_asyncio.asyncio.sleep", _no_sleep):
+            # A dead weakref is how the reaper learns the writer was garbage collected; it must
+            # end rather than keep a task alive forever.
+            await asyncio.wait_for(TopicWriterMultiAsyncIO._idle_reaper(lambda: None, 3), timeout=2)
+
+    async def test_a_busy_partition_is_never_evicted(self):
+        with mock.patch("ydb._topic_writer.topic_writer_multi_asyncio.WriterAsyncIO", _ControllableSubWriter):
+            writer = TopicWriterMultiAsyncIO(self._driver(), self._settings(writer_idle_timeout_sec=3))
+            future = await writer.write_with_ack_future(PublicMessage(b"a", key="a"))
+
+            writer._last_write_at[0] = writer._loop.time() - 1000
+            await writer._evict_idle_writers()
+
+            # Closing it would strand the un-acked message on a dead session.
+            assert 0 in writer._writers
+            await writer.close(flush=False)
+            _retrieve_exceptions([future])
+
+    async def test_close_failure_on_exit_is_raised_only_on_a_clean_body(self):
+        class CloseRaises(_FakeSubWriter):
+            async def close(self, flush=True):
+                raise RuntimeError("close failed")
+
+        with mock.patch("ydb._topic_writer.topic_writer_multi_asyncio.WriterAsyncIO", _FakeSubWriter):
+            writer = TopicWriterMultiAsyncIO(self._driver(), self._settings())
+            await writer.wait_init()
+            writer._flush_impl = mock.AsyncMock(side_effect=RuntimeError("close failed"))
+            writer.close = mock.AsyncMock(side_effect=RuntimeError("close failed"))
+
+            with pytest.raises(RuntimeError, match="close failed"):
+                await writer.__aexit__(None, None, None)
+
+            # With an exception already travelling, the close failure must not replace it.
+            await writer.__aexit__(TypeError, TypeError("original"), None)
+
+    async def test_delete_survives_a_loop_that_cannot_schedule(self):
+        """__del__ can run at interpreter shutdown, when scheduling no longer works."""
+        with mock.patch("ydb._topic_writer.topic_writer_multi_asyncio.WriterAsyncIO", _FakeSubWriter):
+            writer = TopicWriterMultiAsyncIO(self._driver(), self._settings())
+            await writer.wait_init()
+            writer._loop = mock.Mock(is_closed=lambda: False, create_task=mock.Mock(side_effect=RuntimeError))
+
+            writer.__del__()  # must not raise
+
+            writer._closed = True
+
+    async def test_close_survives_a_failing_flush(self):
+        with mock.patch("ydb._topic_writer.topic_writer_multi_asyncio.WriterAsyncIO", _FakeSubWriter):
+            writer = TopicWriterMultiAsyncIO(self._driver(), self._settings())
+            await writer.wait_init()
+            writer._flush_impl = mock.AsyncMock(side_effect=RuntimeError("flush failed"))
+
+            # Refusing to close on a flush error would leak every stream the writer holds.
+            await writer.close()
+            assert writer._closed
+
+    async def test_repartition_cancellation_is_not_swallowed(self):
+        with mock.patch("ydb._topic_writer.topic_writer_multi_asyncio.WriterAsyncIO", _FakeSubWriter):
+            writer = TopicWriterMultiAsyncIO(self._driver(), self._settings())
+            await writer.wait_init()
+
+            async def cancelled(partition_id):
+                raise asyncio.CancelledError()
+
+            # Cancellation means "we are shutting down", not "this partition failed": turning it
+            # into a recovery attempt would restart work close() is trying to stop.
+            writer._handle_repartition = cancelled
+            with pytest.raises(asyncio.CancelledError):
+                await writer._on_partition_overloaded(0)
+
+            writer._handle_repartition = mock.AsyncMock(side_effect=RuntimeError("boom"))
+            writer._recover_partition = cancelled
+            with pytest.raises(asyncio.CancelledError):
+                await writer._on_partition_overloaded(0)
+
+            await writer.close(flush=False)
+
+    async def test_recovery_after_a_failed_repartition_keeps_the_partition(self):
+        with mock.patch("ydb._topic_writer.topic_writer_multi_asyncio.WriterAsyncIO", _ControllableSubWriter):
+            writer = TopicWriterMultiAsyncIO(self._driver(), self._settings())
+            future = await writer.write_with_ack_future(PublicMessage(b"a", key="a"))
+
+            writer._handle_repartition = mock.AsyncMock(side_effect=RuntimeError("describe blew up"))
+            await writer._on_partition_overloaded(0)
+
+            # Repartition failed, but the partition is still ours, so the message is resent
+            # rather than failed.
+            assert 0 in writer._partitions
+            assert not future.done()
+            writer._writers[0].resolve_all()
+            await asyncio.sleep(0)
+            assert future.done()
+
+            await writer.close(flush=False)
+
+    async def test_migration_refuses_a_seqno_the_child_already_persisted(self):
+        _FAKE_LAST_SEQNO.clear()
+        with mock.patch("ydb._topic_writer.topic_writer_multi_asyncio.WriterAsyncIO", _FakeSubWriter):
+            writer = TopicWriterMultiAsyncIO(self._driver(), self._settings())
+            await writer.wait_init()
+            writer._server_init_seqno[2] = 100
+
+            # Resending it anyway would be rejected by the child's writer as a duplicate seqno,
+            # taking down the migration of everything behind it.
+            conflict = writer._migration_conflict(2, 50, {})
+            assert isinstance(conflict, TopicWriterError)
+            assert "already persisted" in str(conflict)
+
+            await writer.close(flush=False)
+
+    async def test_idle_eviction_leaves_recently_used_writers_alone(self):
+        with mock.patch("ydb._topic_writer.topic_writer_multi_asyncio.WriterAsyncIO", _FakeSubWriter):
+            writer = TopicWriterMultiAsyncIO(self._driver(), self._settings(writer_idle_timeout_sec=1000))
+            await writer.write(PublicMessage(b"a", key="a"))
+            await asyncio.sleep(0)  # let the ack settle so the writer counts as idle
+            assert not writer._inflight.get(0)
+
+            await writer._evict_idle_writers()
+
+            assert 0 in writer._writers, "a writer used a moment ago is not idle"
+            await writer.close(flush=False)
+
+
+def test_children_must_cover_the_parent_range():
+    """Coverage decides whether a split may be committed to, so each way it can fail matters."""
+    cover = TopicWriterMultiAsyncIO._children_cover_parent
+    parent = _multi_partition(0, from_bound=b"", to_bound=b"")
+
+    # A child with no range at all cannot be reconciled with a bounded parent.
+    assert cover(parent, [_multi_partition(1, parents=[0])]) is False
+
+    # A hole between the children: keys in it would fall back to the left sibling.
+    assert (
+        cover(
+            parent,
+            [
+                _multi_partition(1, parents=[0], from_bound=b"", to_bound=b"\x40"),
+                _multi_partition(2, parents=[0], from_bound=b"\x80", to_bound=b""),
+            ],
+        )
+        is False
+    )
+
+    # A bounded parent fully tiled by its children.
+    bounded = _multi_partition(0, from_bound=b"a", to_bound=b"m")
+    assert (
+        cover(
+            bounded,
+            [
+                _multi_partition(1, parents=[0], from_bound=b"a", to_bound=b"f"),
+                _multi_partition(2, parents=[0], from_bound=b"f", to_bound=b"m"),
+            ],
+        )
+        is True
+    )
+
+    # The same parent left short: the tail of its range has no owner.
+    assert cover(bounded, [_multi_partition(1, parents=[0], from_bound=b"a", to_bound=b"f")]) is False
+
+
+class _AckOnChildInitSubWriter(_ControllableSubWriter):
+    """Child sub-writer whose init settles the parent's outstanding ack.
+
+    Models the real race: opening the child's session yields, and the parent's ack can land in
+    that window -- after the migration decided to resend the message, but before it does.
+    """
+
+    parent_writer = None
+    child_partition_id = None
+
+    async def wait_init(self):
+        # Only when the CHILD's own session is opened. The dedup-cut probe also opens a session
+        # (unpinned, so no partition id); acking there would settle the message through the cut
+        # instead of the race this is meant to reproduce.
+        parent = type(self).parent_writer
+        if parent is not None and self.partition_id == type(self).child_partition_id:
+            type(self).parent_writer = None
+            parent.resolve_all()
+            await asyncio.sleep(0)
+        return await super().wait_init()
+
+
+@pytest.mark.asyncio
+async def test_message_acked_while_opening_the_child_is_not_resent():
+    """An ack that arrives mid-migration means the message is already written.
+
+    Resending it would duplicate it, and the ack has already completed the caller's future, so
+    the migration has to notice it lost ownership rather than push it again.
+    """
+    _FAKE_LAST_SEQNO.clear()
+    mapping = {"a": 0}
+    chooser = _KeyMapChooser(mapping)
+    before = [_multi_partition(0), _multi_partition(1)]
+    after = [
+        _split_parent(0, children=[2, 3]),
+        _multi_partition(1),
+        _multi_partition(2, parents=[0]),
+        _multi_partition(3, parents=[0]),
+    ]
+    driver = _MultiFakeDescribeDriver([before, after])
+    settings = MultiWriterSettings(topic="/local/topic", producer_id_prefix="pfx", partition_chooser=chooser)
+
+    with mock.patch("ydb._topic_writer.topic_writer_multi_asyncio.WriterAsyncIO", _AckOnChildInitSubWriter):
+        writer = TopicWriterMultiAsyncIO(driver, settings)
+        await writer.wait_init()
+        future = await writer.write_with_ack_future(PublicMessage(b"a", key="a"))
+
+        _AckOnChildInitSubWriter.parent_writer = writer._writers[0]
+        _AckOnChildInitSubWriter.child_partition_id = 2
+        mapping["a"] = 2
+        await writer._on_partition_overloaded(0)
+
+        assert future.done() and future.exception() is None
+        resent = [m.seqno for m in writer._writers[2].messages] if 2 in writer._writers else []
+        assert resent == [], "a message acked mid-migration was resent anyway"
+
+        await writer.close(flush=False)

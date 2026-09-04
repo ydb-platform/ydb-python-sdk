@@ -716,9 +716,9 @@ class TopicWriterMultiAsyncIO:
                     seqno,
                     err,
                 )
+                # Everything before this message has already been popped by an earlier
+                # iteration, so what is left in `entries` is exactly this one and its tail.
                 for pending_seqno, pending in sorted(entries.items()):
-                    if pending_seqno < seqno:
-                        continue
                     self._inflight.get(partition_id, {}).pop(pending_seqno, None)
                     if not pending.user_future.done():
                         pending.user_future.set_exception(err)

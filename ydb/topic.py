@@ -352,7 +352,7 @@ class TopicClientAsyncIO:
         partition_id: Union[int, None] = None,
         auto_seqno: bool = True,
         auto_created_at: bool = True,
-        codec: Optional[TopicCodec] = None,  # default mean auto-select
+        codec: Optional[TopicCodec] = None,  # default means auto-select
         # encoders: map[codec_code] func(encoded_bytes)->decoded_bytes
         # the func will be called from multiply threads in parallel.
         encoders: Optional[Mapping[_ydb_topic_public_types.PublicCodec, Callable[[bytes], bytes]]] = None,
@@ -384,7 +384,7 @@ class TopicClientAsyncIO:
         partition_id: Union[int, None] = None,
         auto_seqno: bool = True,
         auto_created_at: bool = True,
-        codec: Optional[TopicCodec] = None,  # default mean auto-select
+        codec: Optional[TopicCodec] = None,  # default means auto-select
         # encoders: map[codec_code] func(encoded_bytes)->decoded_bytes
         # the func will be called from multiply threads in parallel.
         encoders: Optional[Mapping[_ydb_topic_public_types.PublicCodec, Callable[[bytes], bytes]]] = None,
@@ -415,7 +415,7 @@ class TopicClientAsyncIO:
         partition_chooser: Optional[TopicWriterPartitionChooser] = None,  # default - route by key (Kafka hash)
         auto_seqno: bool = True,
         auto_created_at: bool = True,
-        codec: Optional[TopicCodec] = None,  # default mean auto-select
+        codec: Optional[TopicCodec] = None,  # default means auto-select
         encoders: Optional[Mapping[_ydb_topic_public_types.PublicCodec, Callable[[bytes], bytes]]] = None,
         encoder_executor: Optional[concurrent.futures.Executor] = None,  # default shared client executor pool
         max_buffer_size_bytes: Optional[int] = None,
@@ -716,7 +716,7 @@ class TopicClient:
         partition_id: Union[int, None] = None,
         auto_seqno: bool = True,
         auto_created_at: bool = True,
-        codec: Optional[TopicCodec] = None,  # default mean auto-select
+        codec: Optional[TopicCodec] = None,  # default means auto-select
         # encoders: map[codec_code] func(encoded_bytes)->decoded_bytes
         # the func will be called from multiply threads in parallel.
         encoders: Optional[Mapping[_ydb_topic_public_types.PublicCodec, Callable[[bytes], bytes]]] = None,
@@ -749,7 +749,7 @@ class TopicClient:
         partition_id: Union[int, None] = None,
         auto_seqno: bool = True,
         auto_created_at: bool = True,
-        codec: Optional[TopicCodec] = None,  # default mean auto-select
+        codec: Optional[TopicCodec] = None,  # default means auto-select
         # encoders: map[codec_code] func(encoded_bytes)->decoded_bytes
         # the func will be called from multiply threads in parallel.
         encoders: Optional[Mapping[_ydb_topic_public_types.PublicCodec, Callable[[bytes], bytes]]] = None,
@@ -781,7 +781,7 @@ class TopicClient:
         partition_chooser: Optional[TopicWriterPartitionChooser] = None,  # default - route by key (Kafka hash)
         auto_seqno: bool = True,
         auto_created_at: bool = True,
-        codec: Optional[TopicCodec] = None,  # default mean auto-select
+        codec: Optional[TopicCodec] = None,  # default means auto-select
         encoders: Optional[Mapping[_ydb_topic_public_types.PublicCodec, Callable[[bytes], bytes]]] = None,
         encoder_executor: Optional[concurrent.futures.Executor] = None,  # default shared client executor pool
         max_buffer_size_bytes: Optional[int] = None,
