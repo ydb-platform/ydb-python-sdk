@@ -19,9 +19,13 @@
 
 set -e
 
+WORKLOAD_ARGS=""
 case "${WORKLOAD_NAME:-sync-query}" in
     sync-table|sync-query|async-query) PREFIX=table ;;
     topic|sync-topic|async-topic) PREFIX=topic ;;
+    # Same topic workload, but writes go through the multi-partition writer (routing by key
+    # plus its sub-writer pool) instead of one writer pinned per partition.
+    sync-topic-multiwriter) PREFIX=topic; WORKLOAD_ARGS="--use-multiwriter" ;;
     *)
         echo "Unknown WORKLOAD_NAME: ${WORKLOAD_NAME}" >&2
         exit 1
@@ -37,11 +41,15 @@ DURATION="${WORKLOAD_DURATION:-600}"
 # Scope the topic by ref so the current and baseline containers (same cluster,
 # run in parallel) don't share a topic — otherwise their readers/producers would
 # cross-contaminate delivery/ordering validation.
+# The workload name is part of the path too: topic workloads differ in what they write
+# (producer ids, key layout), so two of them sharing a topic would corrupt each other's
+# delivery and ordering accounting.
 EXTRA_ARGS=""
 if [ "$PREFIX" = "topic" ]; then
     REF_RAW="${WORKLOAD_REF:-${REF:-main}}"
     SAFE_REF=$(printf '%s' "$REF_RAW" | tr -c 'a-zA-Z0-9_' '_')
-    EXTRA_ARGS="--path ${DATABASE%/}/slo_topic_${SAFE_REF}"
+    SAFE_WORKLOAD=$(printf '%s' "${WORKLOAD_NAME:-topic}" | tr -c 'a-zA-Z0-9_' '_')
+    EXTRA_ARGS="--path ${DATABASE%/}/slo_topic_${SAFE_WORKLOAD}_${SAFE_REF}"
 fi
 
 # Schema prep is idempotent at the SDK level for topics; for tables, a parallel
@@ -53,4 +61,5 @@ exec python ./tests/slo/src \
     "${PREFIX}-run" "$ENDPOINT" "$DATABASE" \
     --time "$DURATION" \
     $EXTRA_ARGS \
+    $WORKLOAD_ARGS \
     "$@"
