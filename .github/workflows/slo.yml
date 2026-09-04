@@ -74,7 +74,18 @@ jobs:
                 QUERY=1 ;;
               ydb/table.py|ydb/aio/table.py|ydb/_session_impl.py)
                 TABLE=1 ;;
-              # The harness itself, or this workflow: every scenario is affected.
+              # Harness parts that belong to one service only.
+              tests/slo/src/jobs/*topic*|tests/slo/src/runners/topic_runner.py| \
+              tests/slo/metrics-topic.yaml|tests/slo/thresholds-topic.yaml)
+                TOPIC=1 ;;
+              # One runner drives sync-table, sync-query and async-query alike.
+              tests/slo/src/jobs/*table*|tests/slo/src/runners/table_runner.py)
+                TABLE=1; QUERY=1 ;;
+              # Prose about the harness changes no behaviour.
+              tests/slo/*.md)
+                ;;
+              # Shared harness (options, runners entry point, metrics, image) or this workflow:
+              # every scenario is affected.
               tests/slo/*|.github/workflows/slo.yml)
                 EVERYTHING=1 ;;
               # Anything else inside the SDK is shared machinery (driver, pool, connection,
