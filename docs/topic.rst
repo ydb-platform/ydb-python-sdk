@@ -315,8 +315,13 @@ returns nothing, because the multi-writer manages a stream per partition rather 
    When an auto-partitioned partition is split (one into two) or merged (two into one), the
    multi-writer re-describes the topic, routes subsequent keys to the new child partition(s), and
    transparently resends the messages that were still in flight to the retired partition(s).
-   Messages already persisted before the change are not resent (so no duplicates), and per-key
-   ordering is preserved.
+
+   Which of those messages to resend is decided by asking the server how far the retired
+   partition's producer actually got, not by looking at the acknowledgements the client happened
+   to receive: a message can be persisted and its acknowledgement lost together with the session
+   that a split tears down. Anything at or below that point is reported as written instead of
+   being sent again, so a split produces neither loss nor duplicates, and per-key ordering is
+   preserved throughout.
 
 
 Writer Backpressure

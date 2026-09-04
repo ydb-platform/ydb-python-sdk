@@ -107,8 +107,11 @@ class PublicPartitionByKeyKafka(PublicPartitionChooser):
 
     def add_partitions(self, partitions: List[PartitionInfo]) -> None:
         for p in partitions:
-            kr = p.key_range
-            if kr is not None and (kr.from_bound or kr.to_bound):
+            # Any key range at all means the topic is auto-partitioned, including the fully open
+            # one a single partition reports before its first split. Accepting that would work
+            # until the split, then break: the children come back bounded, and modulo routing
+            # cannot place a key by bounds.
+            if p.key_range is not None:
                 raise ValueError("PublicPartitionByKeyKafka does not support partition key ranges")
             self._partitions.append(p.partition_id)
         self._partitions.sort()
@@ -171,10 +174,10 @@ class PublicPartitionByKeyBound(PublicPartitionChooser):
             message.metadata_items = {}
         message.metadata_items[PARTITION_KEY_METADATA_KEY] = hashed
 
-        # First partition whose from_bound is strictly greater than the hashed key;
-        # the owning partition is the previous one.
-        bounds = [p[0] for p in self._partitions]
-        idx = bisect.bisect_right(bounds, hashed)
+        # First partition whose from_bound is strictly greater than the hashed key; the owning
+        # partition is the previous one. Searched in place with a key rather than by building a
+        # list of bounds, which would allocate per message on the hot path.
+        idx = bisect.bisect_right(self._partitions, hashed, key=lambda entry: entry[0])
         if idx == 0:
             raise RuntimeError("inconsistent partition bounds: lower-bound search returned 0")
 

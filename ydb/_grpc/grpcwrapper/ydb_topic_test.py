@@ -2,8 +2,11 @@ import datetime
 
 from google.protobuf.json_format import MessageToDict
 
+# Same version dispatch the module under test uses: the CI matrix runs protobuf v3..v6.
+from ydb._grpc.common.protos import ydb_topic_pb2
+
 from ydb._grpc.grpcwrapper.ydb_topic import OffsetsRange
-from .ydb_topic import AlterTopicRequest
+from .ydb_topic import AlterTopicRequest, DescribeTopicResult
 from .ydb_topic_public_types import (
     AlterTopicRequestParams,
     PublicAlterConsumer,
@@ -96,3 +99,44 @@ def test_alter_topic_request_from_public_to_proto():
     }
 
     assert msg_dict == expected_dict
+
+
+def test_partition_key_range_round_trip():
+    """A bounded partition must survive proto -> internal -> public unchanged.
+
+    The multi-partition writer routes by these bounds, and an empty bound is meaningful (it
+    marks an open end of the key space), so it has to stay distinguishable from an absent one.
+    """
+    msg = ydb_topic_pb2.DescribeTopicResult.PartitionInfo(
+        partition_id=7,
+        active=True,
+        child_partition_ids=[8, 9],
+        parent_partition_ids=[3],
+        key_range=ydb_topic_pb2.PartitionKeyRange(from_bound=b"\x10", to_bound=b"\x80"),
+    )
+
+    internal = DescribeTopicResult.PartitionInfo.from_proto(msg)
+    assert internal.key_range.from_bound == b"\x10"
+    assert internal.key_range.to_bound == b"\x80"
+
+    public = internal.to_public()
+    assert public.partition_id == 7
+    assert public.child_partition_ids == [8, 9]
+    assert public.parent_partition_ids == [3]
+    assert public.key_range.from_bound == b"\x10"
+    assert public.key_range.to_bound == b"\x80"
+
+
+def test_partition_without_key_range_stays_none():
+    """Topics that are not auto-partitioned report no range at all.
+
+    That is not the same as an open range: it is what tells the writer to route by hash
+    instead of by bounds, so it must not be turned into empty bounds along the way.
+    """
+    msg = ydb_topic_pb2.DescribeTopicResult.PartitionInfo(partition_id=0, active=True)
+
+    internal = DescribeTopicResult.PartitionInfo.from_proto(msg)
+    assert internal.key_range is None
+    assert internal.to_public().key_range is None
+
+    assert DescribeTopicResult.PartitionKeyRange.from_proto(None) is None
