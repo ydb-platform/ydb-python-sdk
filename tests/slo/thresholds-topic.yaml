@@ -30,3 +30,25 @@ metrics:
     direction: neutral
   - name: topic_e2e_latency_p99_ms
     direction: neutral
+
+  # Retry attempts: keep the absolute gate, drop the relative comparison.
+  #
+  # The metric is zero almost everywhere and spikes only in the seconds around a chaos fault.
+  # Comparing two such series relatively divides one accidental spike by another: across two runs
+  # this flagged sync-table (▲50%, sums 12 vs 14) and then async-topic (▲450%, sums 75 vs 12),
+  # each time from 2 non-zero samples out of 120, with the report's own `concordance` at 0.008 --
+  # i.e. the two series almost never have data at the same moment. Whichever workload draws the
+  # bigger spike gets marked red, which is noise, not a regression signal.
+  #
+  # `direction: neutral` disables exactly the relative check (evaluateRelativeThreshold only ever
+  # flags `lower_is_better` / `higher_is_better`), while the absolute check still runs for both
+  # bounds. `warning_max` is restated on purpose: findMatchingThreshold returns the FIRST matching
+  # entry whole and an exact `name` beats a `pattern`, so this entry replaces the action's
+  # `*_attempts` default rather than merging with it -- omit it and the "retries must stay at
+  # zero" gate silently disappears along with the noise.
+  - name: read_retry_attempts
+    direction: neutral
+    warning_max: 0.0
+  - name: write_retry_attempts
+    direction: neutral
+    warning_max: 0.0
