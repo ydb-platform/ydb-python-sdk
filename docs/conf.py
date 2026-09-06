@@ -88,6 +88,7 @@ html_favicon = '_static/logo.svg'
 html_baseurl = 'https://ydb-platform.github.io/ydb-python-sdk/'
 
 html_show_sourcelink = False
+html_show_sphinx = False
 
 llms_txt_title = 'YDB Python SDK Documentation'
 llms_txt_summary = '''
