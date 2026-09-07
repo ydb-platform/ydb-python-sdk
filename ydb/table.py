@@ -987,8 +987,7 @@ class ScanQuery(object):
 
 
 _SCAN_QUERY_DEPRECATION_MESSAGE = (
-    "scan_query is deprecated and will be removed in a future release, "
-    "use QueryService (ydb.QuerySessionPool) instead"
+    "{method} is deprecated and will be removed in a future release, use QueryService ({pool}) instead"
 )
 
 
@@ -1188,8 +1187,7 @@ class ITableClient(abc.ABC):
     @abstractmethod
     def scan_query(self, query, parameters=None, settings=None):
         """
-        .. deprecated::
-            Use QueryService (:class:`ydb.QuerySessionPool`) instead.
+        Deprecated: use QueryService (:class:`ydb.QuerySessionPool`) instead.
         """
         pass
 
@@ -1220,10 +1218,13 @@ class BaseTableClient(ITableClient, Generic[DriverT]):
     def scan_query(self, query, parameters=None, settings=None):
         # type: (ydb.ScanQuery, tuple, ydb.BaseRequestSettings) -> _utilities.SyncResponseIterator
         """
-        .. deprecated::
-            Use QueryService (:class:`ydb.QuerySessionPool`) instead.
+        Deprecated: use QueryService (:class:`ydb.QuerySessionPool`) instead.
         """
-        warnings.warn(_SCAN_QUERY_DEPRECATION_MESSAGE, DeprecationWarning, stacklevel=2)
+        warnings.warn(
+            _SCAN_QUERY_DEPRECATION_MESSAGE.format(method="scan_query", pool="ydb.QuerySessionPool"),
+            DeprecationWarning,
+            stacklevel=2,
+        )
         request = _scan_query_request_factory(query, parameters, settings)
         stream_it = self._driver(
             request,
@@ -1286,10 +1287,13 @@ class TableClient(BaseTableClient["SyncDriver"]):
     def async_scan_query(self, query, parameters=None, settings=None):
         # type: (ydb.ScanQuery, tuple, ydb.BaseRequestSettings) -> _utilities.AsyncResponseIterator
         """
-        .. deprecated::
-            Use QueryService (:class:`ydb.QuerySessionPool`) instead.
+        Deprecated: use QueryService (:class:`ydb.QuerySessionPool`) instead.
         """
-        warnings.warn(_SCAN_QUERY_DEPRECATION_MESSAGE, DeprecationWarning, stacklevel=2)
+        warnings.warn(
+            _SCAN_QUERY_DEPRECATION_MESSAGE.format(method="async_scan_query", pool="ydb.QuerySessionPool"),
+            DeprecationWarning,
+            stacklevel=2,
+        )
         request = _scan_query_request_factory(query, parameters, settings)
         stream_it = self._driver(
             request,

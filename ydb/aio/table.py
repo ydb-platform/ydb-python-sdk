@@ -179,10 +179,13 @@ class TableClient(BaseTableClient["AsyncDriver"]):
 
     async def scan_query(self, query, parameters=None, settings=None):  # pylint: disable=W0236
         """
-        .. deprecated::
-            Use QueryService (:class:`ydb.aio.QuerySessionPool`) instead.
+        Deprecated: use QueryService (:class:`ydb.aio.QuerySessionPool`) instead.
         """
-        warnings.warn(_SCAN_QUERY_DEPRECATION_MESSAGE, DeprecationWarning, stacklevel=2)
+        warnings.warn(
+            _SCAN_QUERY_DEPRECATION_MESSAGE.format(method="scan_query", pool="ydb.aio.QuerySessionPool"),
+            DeprecationWarning,
+            stacklevel=2,
+        )
         request = _scan_query_request_factory(query, parameters, settings)
         response = await self._driver(
             request,

@@ -3,7 +3,9 @@ import copy
 import pytest
 
 from unittest import mock
-from . import issues, convert, types, _apis, scheme, _session_impl
+from . import issues, convert, types, _apis, scheme, _session_impl, _utilities
+from .aio import _utilities as _aio_utilities
+from .aio.table import TableClient as AioTableClient
 from .table import SystemViewSchemeEntry, TableClient
 
 from .retries import (
@@ -336,3 +338,68 @@ def test_async_describe_system_view():
     assert driver.request.path == "/local/.sys/partition_stats"
     assert isinstance(entry, SystemViewSchemeEntry)
     assert entry.sys_view_name == "partition_stats"
+
+
+class _FakeScanQueryDriver:
+    def __call__(self, request, stub, method, settings=None):
+        self.request = request
+        self.method = method
+        return iter(())
+
+
+class _FakeAsyncScanQueryDriver:
+    async def __call__(self, request, stub, method, settings=None):
+        self.request = request
+        self.method = method
+        return _EmptyAsyncStream()
+
+
+class _EmptyAsyncStream:
+    def __aiter__(self):
+        return self
+
+    async def __anext__(self):
+        raise StopAsyncIteration
+
+
+def test_scan_query_warns_and_still_returns_iterator():
+    driver = _FakeScanQueryDriver()
+
+    with pytest.warns(DeprecationWarning) as record:
+        stream = TableClient(driver).scan_query("SELECT 1")
+
+    assert str(record[0].message) == (
+        "scan_query is deprecated and will be removed in a future release, "
+        "use QueryService (ydb.QuerySessionPool) instead"
+    )
+    assert driver.method == _apis.TableService.StreamExecuteScanQuery
+    assert isinstance(stream, _utilities.SyncResponseIterator)
+
+
+def test_async_scan_query_warns_and_still_returns_iterator():
+    driver = _FakeScanQueryDriver()
+
+    with pytest.warns(DeprecationWarning) as record:
+        stream = TableClient(driver).async_scan_query("SELECT 1")
+
+    assert str(record[0].message) == (
+        "async_scan_query is deprecated and will be removed in a future release, "
+        "use QueryService (ydb.QuerySessionPool) instead"
+    )
+    assert driver.method == _apis.TableService.StreamExecuteScanQuery
+    assert isinstance(stream, _utilities.AsyncResponseIterator)
+
+
+async def test_aio_scan_query_warns_and_points_to_async_pool():
+    driver = _FakeAsyncScanQueryDriver()
+
+    with pytest.warns(DeprecationWarning) as record:
+        stream = await AioTableClient(driver).scan_query("SELECT 1")
+
+    # The async client must not send users to the sync session pool.
+    assert str(record[0].message) == (
+        "scan_query is deprecated and will be removed in a future release, "
+        "use QueryService (ydb.aio.QuerySessionPool) instead"
+    )
+    assert driver.method == _apis.TableService.StreamExecuteScanQuery
+    assert isinstance(stream, _aio_utilities.AsyncResponseIterator)
