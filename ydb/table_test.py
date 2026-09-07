@@ -4,7 +4,7 @@ import pytest
 
 from unittest import mock
 from . import issues, convert, types, _apis, scheme, _session_impl
-from .table import SystemViewSchemeEntry, TableClient
+from .table import SystemViewSchemeEntry, TableClient, TableClientSettings
 
 from .retries import (
     retry_operation_impl,
@@ -336,3 +336,28 @@ def test_async_describe_system_view():
     assert driver.request.path == "/local/.sys/partition_stats"
     assert isinstance(entry, SystemViewSchemeEntry)
     assert entry.sys_view_name == "partition_stats"
+
+
+def _read_table_session_state():
+    state = _session_impl.SessionState(TableClientSettings())
+    state.set_id("test-session-id")
+    return state
+
+
+def test_read_table_request_not_null_as_optional_enabled():
+    request = _session_impl.read_table_request_factory(
+        _read_table_session_state(), "/local/table", return_not_null_data_as_optional=True
+    )
+    assert request.return_not_null_data_as_optional == _apis.FeatureFlag.ENABLED
+
+
+def test_read_table_request_not_null_as_optional_disabled():
+    request = _session_impl.read_table_request_factory(
+        _read_table_session_state(), "/local/table", return_not_null_data_as_optional=False
+    )
+    assert request.return_not_null_data_as_optional == _apis.FeatureFlag.DISABLED
+
+
+def test_read_table_request_not_null_as_optional_unset_by_default():
+    request = _session_impl.read_table_request_factory(_read_table_session_state(), "/local/table")
+    assert request.return_not_null_data_as_optional == _apis.FeatureFlag.STATUS_UNSPECIFIED
