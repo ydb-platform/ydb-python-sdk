@@ -132,9 +132,6 @@ class TopicWriterMultiAsyncIO:
         # partition_id -> server's last persisted seqno for a retired producer. Final once read:
         # nothing writes under that producer id again.
         self._retired_max_seqno: Dict[int, int] = {}
-        # partition_id -> its parents, learned from every DescribeTopic. Needed to ask the whole
-        # lineage for the dedup cut, since a message changes producer id as it is migrated.
-        self._parents: Dict[int, List[int]] = {}
         # partition_id -> highest acked seqno (fallback maxSeqNo if a probe fails).
         self._max_acked: Dict[int, int] = {}
         # Partitions whose sub-writer is being torn down for a repartition or a recovery. Ack
@@ -188,13 +185,7 @@ class TopicWriterMultiAsyncIO:
         )
         if inspect.isawaitable(res):
             res = await res
-        description = res.to_public()
-        # Remember parent links while we have them: once a partition is retired it disappears
-        # from our routing view, but the dedup cut still has to be able to walk back to it.
-        for partition in description.partitions:
-            if partition.parent_partition_ids:
-                self._parents[partition.partition_id] = list(partition.parent_partition_ids)
-        return description
+        return res.to_public()
 
     async def _init(self):
         description = await self._describe()
@@ -421,46 +412,34 @@ class TopicWriterMultiAsyncIO:
         logger.debug("multi-writer: partition %d persisted up to seqno %d (server)", partition_id, last_seqno)
         return last_seqno
 
-    def _lineage(self, partition_id: int) -> List[int]:
-        """The partition plus every ancestor we know of.
-
-        A message carries one seqno for its whole life, but it is written under the producer id of
-        whichever partition held it at the time -- and a repartition moves it on. So "was seqno N
-        already persisted?" has to be asked of the entire lineage, not just the partition we are
-        retiring now. Merge children have two parents, so this walks a graph, not a chain.
-        """
-        chain = [partition_id]
-        seen = {partition_id}
-        frontier = [partition_id]
-        while frontier:
-            for parent in self._parents.get(frontier.pop(), ()):
-                if parent in seen:
-                    continue
-                seen.add(parent)
-                chain.append(parent)
-                frontier.append(parent)
-        return chain
-
     async def _max_seqno_cut(self, partition_id: int) -> int:
         """Dedup cut for a repartition: messages at or below it were persisted to the retiring
-        lineage and must not be resent to the child.
+        partition and must not be resent to the child.
+
+        Only this partition's own producer is asked. A message sitting here cannot have been
+        persisted under any producer it used earlier in its life: every move is gated by a cut of
+        at least that producer's server seqno, so anything already stored there was resolved as
+        written on the spot and never travelled. Its number is therefore strictly above that
+        value, and a retired producer never grows -- asking again would only repeat an answer that
+        is already known to be too low to matter.
+
+        Walking further would not merely be redundant. A merge child has two parents whose
+        branches numbered independently, so the maximum over them pulls in the sibling branch's
+        history, which says nothing about messages that came down this branch and can be
+        arbitrarily higher than theirs.
 
         Raises if the server cannot be asked. Falling back to the highest ack we saw would look
         like it worked while quietly reopening the duplicate window this exists to close; the
         caller turns the failure into terminal errors on the affected messages instead.
         """
         acked = self._max_acked.get(partition_id, 0)
-        lineage = self._lineage(partition_id)
-        cut = acked
-        for ancestor in lineage:
-            cut = max(cut, await self._probe_server_seqno(ancestor))
+        cut = max(acked, await self._probe_server_seqno(partition_id))
         # Worth seeing: this number alone decides resend vs. drop, so a cut below `acked` would
         # mean duplicates and one above it would mean loss.
         logger.debug(
-            "multi-writer: dedup cut for partition %d is %d (lineage %s, highest ack seen %d)",
+            "multi-writer: dedup cut for partition %d is %d (highest ack seen %d)",
             partition_id,
             cut,
-            lineage,
             acked,
         )
         return cut

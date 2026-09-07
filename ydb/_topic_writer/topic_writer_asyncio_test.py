@@ -1967,45 +1967,95 @@ class TestTopicWriterMultiAsyncIO:
 
             await writer.close(flush=False)
 
-    async def test_dedup_cut_covers_the_whole_lineage(self):
-        """The cut must ask every ancestor, not just the partition being retired.
+    async def test_cut_ignores_ancestor_history(self):
+        """The cut is the retiring partition's own high-water mark, nothing else.
 
-        Splits cascade, and a message keeps its seqno while its producer id changes with each
-        move. So a number may have been persisted under a grandparent even though the partition
-        we are retiring now knows nothing about it -- asking only the latest producer would
-        under-report the cut and resend an already-written message.
+        Two different things live in an ancestor's producer, and neither belongs in this number.
+        A merge child has two parents whose branches numbered independently, so a sibling's
+        history says nothing about messages that came down this branch. And producer ids are
+        `prefix-<partition_id>`, so with a stable prefix a retired ancestor still holds whatever a
+        *previous run* wrote there.
+
+        Either one, folded into the maximum, marks unsent messages as already written and drops
+        them silently. Nothing needs to be read from them: a message only reaches this partition
+        by having a number above the cut that retired the previous one.
         """
         _FAKE_LAST_SEQNO.clear()
-        mapping = {"a": 2}
+        _FAKE_LAST_SEQNO[1] = 5  # this branch numbered modestly
+        _FAKE_LAST_SEQNO[2] = 100  # the sibling branch ran far ahead
+        _FAKE_LAST_SEQNO[3] = 7  # the surviving partition itself
+
+        # The topology comes from describe, as it does in production: p3 is the merge of p1 and
+        # p2, so both are reachable as its parents.
+        described = [
+            _multi_partition(1, children=[3]),
+            _multi_partition(2, children=[3]),
+            _multi_partition(3, parents=[1, 2]),
+        ]
+        driver = _MultiFakeDescribeDriver([described])
+        settings = MultiWriterSettings(
+            topic="/local/topic", producer_id_prefix="pfx", partition_chooser=_KeyMapChooser({})
+        )
+        with mock.patch("ydb._topic_writer.topic_writer_multi_asyncio.WriterAsyncIO", _ControllableSubWriter):
+            writer = TopicWriterMultiAsyncIO(driver, settings)
+            await writer.wait_init()
+            # This writer wrote to both branches before they merged.
+            for partition_id in (1, 2, 3):
+                await writer._get_or_create_writer(partition_id)
+
+            assert await writer._max_seqno_cut(3) == 7, "an ancestor's history leaked into the cut"
+
+            await writer.close(flush=False)
+
+    async def test_a_message_survives_repeated_retirements(self):
+        """A message must not be written off by a partition it already escaped.
+
+        This is the induction the cut relies on, end to end: seqno 6 outruns the parent's cut of
+        5 and moves to the child, and when the child is retired in turn it has to move again. If
+        an earlier partition's number could still reach it, it would be dropped here.
+        """
+        _FAKE_LAST_SEQNO.clear()
+        _FAKE_LAST_SEQNO[0] = 5  # parent persisted up to 5; our message will be 6
+        mapping = {"a": 0}
         chooser = _KeyMapChooser(mapping)
-        # 0 split into 1 and 2 earlier; now 2 splits into 4 and 5.
-        before = [_multi_partition(1, parents=[0]), _multi_partition(2, parents=[0])]
-        after = [
+        before = [_multi_partition(0), _multi_partition(1)]
+        after_first = [
+            _split_parent(0, children=[2, 3]),
+            _multi_partition(1),
+            _multi_partition(2, parents=[0]),
+            _multi_partition(3, parents=[0]),
+        ]
+        after_second = [
+            _split_parent(0, children=[2, 3]),
             _split_parent(2, children=[4, 5], parents=[0]),
-            _multi_partition(1, parents=[0]),
+            _multi_partition(1),
+            _multi_partition(3, parents=[0]),
             _multi_partition(4, parents=[2]),
             _multi_partition(5, parents=[2]),
         ]
-        driver = _MultiFakeDescribeDriver([before, after])
+        driver = _MultiFakeDescribeDriver([before, after_first, after_second])
         settings = MultiWriterSettings(topic="/local/topic", producer_id_prefix="pfx", partition_chooser=chooser)
 
         with mock.patch("ydb._topic_writer.topic_writer_multi_asyncio.WriterAsyncIO", _ControllableSubWriter):
             writer = TopicWriterMultiAsyncIO(driver, settings)
             await writer.wait_init()
             future = await writer.write_with_ack_future(PublicMessage(b"a", key="a"))
-            seqno = next(iter(writer._inflight[2]))
+            seqno = next(iter(writer._inflight[0]))
+            assert seqno == 6, "the cursor starts above the parent's persisted history"
 
-            # Grandparent 0 persisted this seqno; the retiring partition 2 reports nothing.
-            _FAKE_LAST_SEQNO[0] = seqno
-            assert writer._lineage(2) == [2, 0]
+            mapping["a"] = 2
+            await writer._on_partition_overloaded(0)
+            assert [m.seqno for m in writer._writers[2].messages] == [6]
 
+            # The child retires too, and the message has to keep going.
             mapping["a"] = 4
             await writer._on_partition_overloaded(2)
+            assert [m.seqno for m in writer._writers[4].messages] == [6]
+            assert not future.done()
 
-            resent = [m.seqno for m in writer._writers[4].messages] if 4 in writer._writers else []
-            assert resent == [], "the grandparent's persisted seqno was ignored by the cut"
+            writer._writers[4].resolve_all()
+            await asyncio.sleep(0)
             assert future.done() and future.exception() is None
-
             await writer.close(flush=False)
 
     async def test_missing_manual_seqno_is_a_validation_error(self):
@@ -2391,19 +2441,6 @@ class TestTopicWriterMultiAsyncIOLifecycle:
             _FAKE_LAST_SEQNO[0] = 99
             assert await writer._probe_server_seqno(0) == 42
 
-            await writer.close(flush=False)
-
-    async def test_lineage_walks_a_merge_graph_without_repeating(self):
-        with mock.patch("ydb._topic_writer.topic_writer_multi_asyncio.WriterAsyncIO", _FakeSubWriter):
-            writer = TopicWriterMultiAsyncIO(self._driver(), self._settings())
-            await writer.wait_init()
-
-            # 3 merged from 1 and 2, both of which split off 0: 0 is reachable twice.
-            writer._parents = {3: [1, 2], 1: [0], 2: [0]}
-            lineage = writer._lineage(3)
-
-            assert sorted(lineage) == [0, 1, 2, 3]
-            assert len(lineage) == len(set(lineage)), "an ancestor must be visited once"
             await writer.close(flush=False)
 
     async def test_repartition_task_deregisters_itself_when_done(self):
