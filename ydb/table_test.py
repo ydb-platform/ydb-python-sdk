@@ -361,3 +361,13 @@ def test_read_table_request_not_null_as_optional_disabled():
 def test_read_table_request_not_null_as_optional_unset_by_default():
     request = _session_impl.read_table_request_factory(_read_table_session_state(), "/local/table")
     assert request.return_not_null_data_as_optional == _apis.FeatureFlag.STATUS_UNSPECIFIED
+
+
+def test_read_table_request_not_null_as_optional_raw_status():
+    # A raw FeatureFlag.Status (not a bool) is passed through unchanged.
+    request = _session_impl.read_table_request_factory(
+        _read_table_session_state(),
+        "/local/table",
+        return_not_null_data_as_optional=_apis.FeatureFlag.DISABLED,
+    )
+    assert request.return_not_null_data_as_optional == _apis.FeatureFlag.DISABLED
