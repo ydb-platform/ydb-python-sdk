@@ -41,6 +41,14 @@ jobs:
             command: "--write-rps 200 --write-threads 8 --read-threads 8"
             metrics_yaml_path: sdk-current/tests/slo/metrics-topic.yaml
             thresholds_yaml_path: sdk-current/tests/slo/thresholds-topic.yaml
+          - name: sync-topic-tx
+            command: "--write-rps 50 --write-threads 8 --read-threads 8 --messages-per-tx 10"
+            metrics_yaml_path: sdk-current/tests/slo/metrics-topic.yaml
+            thresholds_yaml_path: sdk-current/tests/slo/thresholds-topic.yaml
+          - name: async-topic-tx
+            command: "--write-rps 50 --write-threads 8 --read-threads 8 --messages-per-tx 10"
+            metrics_yaml_path: sdk-current/tests/slo/metrics-topic.yaml
+            thresholds_yaml_path: sdk-current/tests/slo/thresholds-topic.yaml
 
     concurrency:
       group: slo-${{ github.ref }}-${{ matrix.sdk.name }}
