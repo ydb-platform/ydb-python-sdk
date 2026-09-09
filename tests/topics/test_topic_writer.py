@@ -329,6 +329,29 @@ class TestTopicWriterSync:
 
 @pytest.mark.asyncio
 class TestTopicMultiWriterAsyncIO:
+    async def test_flush_and_close_report_encoder_errors(self, driver, database, topic_consumer):
+        path = database + "/mw-encoder-error"
+        await self._recreate(driver, path, topic_consumer)
+
+        def failing_encoder(data):
+            raise ValueError("encoder failed")
+
+        writer = driver.topic_client.multiwriter(
+            path,
+            codec=ydb.TopicCodec.GZIP,
+            encoders={ydb.TopicCodec.GZIP: failing_encoder},
+        )
+        try:
+            await writer.write(ydb.TopicWriterMessage(data=b"payload", key="key"))
+            with pytest.raises(ValueError, match="encoder failed"):
+                await asyncio.wait_for(writer.flush(), timeout=10)
+            with pytest.raises(ValueError, match="encoder failed"):
+                await asyncio.wait_for(writer.close(), timeout=10)
+            assert writer._closed
+            assert not writer._writers
+        finally:
+            await writer.close(flush=False)
+
     async def _recreate(self, driver, path, consumer, **kwargs):
         try:
             await driver.topic_client.drop_topic(path)
@@ -477,6 +500,32 @@ class TestTopicMultiWriterAsyncIO:
 
 
 class TestTopicMultiWriterSync:
+    def test_flush_and_close_report_encoder_errors(self, driver_sync, database, topic_consumer):
+        path = database + "/mw-sync-encoder-error"
+        try:
+            driver_sync.topic_client.drop_topic(path)
+        except ydb.SchemeError:
+            pass
+        driver_sync.topic_client.create_topic(path=path, consumers=[topic_consumer])
+
+        def failing_encoder(data):
+            raise ValueError("encoder failed")
+
+        writer = driver_sync.topic_client.multiwriter(
+            path,
+            codec=ydb.TopicCodec.GZIP,
+            encoders={ydb.TopicCodec.GZIP: failing_encoder},
+        )
+        try:
+            writer.write(ydb.TopicWriterMessage(data=b"payload", key="key"), timeout=10)
+            with pytest.raises(ValueError, match="encoder failed"):
+                writer.flush(timeout=10)
+            with pytest.raises(ValueError, match="encoder failed"):
+                writer.close(timeout=10)
+            assert writer._closed
+        finally:
+            writer.close(flush=False, timeout=10)
+
     def test_write_by_key_preserves_per_key_order(self, driver_sync, database, topic_consumer):
         path = database + "/mw-sync"
         try:
