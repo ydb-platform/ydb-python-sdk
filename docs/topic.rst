@@ -310,6 +310,15 @@ and buffer-limit parameters as :meth:`writer`, and exposes ``write``, ``write_wi
 topic has been described and the partition set is known, and (unlike the single-partition writer)
 returns nothing, because the multi-writer manages a stream per partition rather than one stream.
 
+The multi-writer copies each message and its metadata when accepting a write. Later changes to
+the original message do not change an accepted write or its retries. An automatically assigned
+creation timestamp is also preserved across retries.
+
+If an accepted write fails permanently, its acknowledgement future, ``flush()`` and
+``close(flush=True)`` report the error, including when it happened before the flush or close
+call. Closing still releases the underlying writers before raising the error. Use
+``close(flush=False)`` to abandon pending writes without waiting for delivery.
+
 .. note::
 
    When an auto-partitioned partition is split (one into two) or merged (two into one), the
@@ -322,6 +331,12 @@ returns nothing, because the multi-writer manages a stream per partition rather 
    that a split tears down. Anything at or below that point is reported as written instead of
    being sent again, so a split produces neither loss nor duplicates, and per-key ordering is
    preserved throughout.
+
+   Recovery also refreshes routing when a selected partition cannot initialize and follows
+   cascaded splits to their active leaf partitions. An incomplete set of child key ranges is
+   retried before updating routing. If recovery cannot find a complete topology or deliver an
+   accepted message within its retry limits, the affected messages fail explicitly and the
+   error is reported by ``flush()`` and ``close(flush=True)``.
 
 
 Writer Backpressure
