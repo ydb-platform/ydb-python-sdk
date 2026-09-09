@@ -325,20 +325,45 @@ def test_default_bound_key_hasher_is_big_endian_murmur64a():
         assert default_bound_key_hasher(text) == h64.to_bytes(8, "big")
 
 
-def test_kafka_chooser_routes_by_murmur2_modulo():
-    chooser = PublicPartitionByKeyKafka()
-    chooser.add_partitions([_partition_info(0), _partition_info(1), _partition_info(2)])
-    for key in ["", "a", "user-42", "hello", "мурмур2-хэш"]:
-        expected = (murmur2_32(key.encode("utf-8"), 0) & 0x7FFFFFFF) % 3
+# Generated with Apache Kafka 4.2 Utils.murmur2 and Utils.toPositive in Java.
+# Each row contains the unsigned hash and partition indices for N=3, 7, 16.
+_KAFKA_GOLDEN = [
+    ("", 0x106E08D9, (0, 2, 9)),
+    ("a", 0xA2D0B27C, (1, 5, 12)),
+    ("b", 0x918C0FF4, (2, 6, 4)),
+    ("abc", 0x1C94221B, (0, 4, 11)),
+    ("abcd", 0xB11AB5F4, (2, 5, 4)),
+    ("abcde", 0x1B897EDD, (1, 4, 13)),
+    ("abcdef", 0x6F7FDAFC, (0, 5, 12)),
+    ("abcdefg", 0xEB595499, (1, 4, 9)),
+    ("abcdefgh", 0xC70D55DD, (0, 0, 13)),
+    ("hello", 0x7F1DDBBD, (0, 4, 13)),
+    ("user-42", 0x5700682C, (1, 1, 12)),
+    ("мурмур2-хэш", 0x071E5697, (1, 2, 7)),
+    ("0", 0x39E0B3C4, (2, 3, 4)),
+    ("zzz", 0x4712C76A, (1, 1, 10)),
+    ("a\x00b", 0xFED14E49, (0, 5, 9)),
+    ("🚀", 0x2D67D1C1, (1, 6, 1)),
+    ("\u00e9", 0x0B24F487, (0, 4, 7)),
+    ("e\u0301", 0x9D9EB11B, (1, 2, 11)),
+    ("key-with-длинный-unicode-🚀", 0xEA98B0BC, (1, 0, 12)),
+]
+
+
+@pytest.mark.parametrize("key,hash32,indices", _KAFKA_GOLDEN)
+def test_kafka_chooser_matches_apache_kafka_partition(key, hash32, indices):
+    assert murmur2_32(key.encode("utf-8"), 0x9747B28C) == hash32
+    for count, expected in zip((3, 7, 16), indices):
+        chooser = PublicPartitionByKeyKafka()
+        chooser.add_partitions([_partition_info(i) for i in reversed(range(count))])
         assert chooser.choose_partition(PublicMessage(b"x", key=key)) == expected
 
 
-def test_kafka_chooser_matches_apache_kafka_partition():
-    # Apache Kafka DefaultPartitioner: toPositive(murmur2(key)) % numPartitions.
-    # Golden index for key "a" with 3 partitions is 2 (not 1, which the raw hash gives).
+def test_kafka_chooser_maps_index_to_sorted_partition_ids():
     chooser = PublicPartitionByKeyKafka()
-    chooser.add_partitions([_partition_info(i) for i in range(3)])
-    assert chooser.choose_partition(PublicMessage(b"x", key="a")) == 2
+    chooser.add_partitions([_partition_info(9), _partition_info(2)])
+    chooser.add_partitions([_partition_info(5)])
+    assert chooser.choose_partition(PublicMessage(b"x", key="a")) == 5
 
 
 def test_kafka_chooser_rejects_key_ranges():

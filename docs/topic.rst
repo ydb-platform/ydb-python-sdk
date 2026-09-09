@@ -293,8 +293,13 @@ set one explicitly:
 * :class:`~ydb.TopicWriterPartitionByKeyBound` — hashes the key and selects the partition whose
   server-side key range owns it. Mirrors YDB auto-partitioning, so a key lands where the server
   expects it. Used automatically for auto-partitioned topics.
-* :class:`~ydb.TopicWriterPartitionByKeyKafka` — ``murmur2(key) % partitions_count``,
-  Kafka-compatible. Best for topics with a fixed partition count.
+* :class:`~ydb.TopicWriterPartitionByKeyKafka` — Kafka-compatible routing for topics
+  with a fixed partition count. Hashes the UTF-8 key bytes with 32-bit MurmurHash2
+  and seed ``0x9747b28c``, then computes ``(hash & 0x7fffffff) % partitions_count``.
+  The result is an index into partition IDs sorted in ascending order. Compatibility
+  requires identical key bytes and partition IDs; changing the partition set can
+  route an existing key to a different partition. Missing and empty keys are hashed
+  as empty bytes; this differs from Kafka's handling of a missing key.
 
 .. code-block:: python
 

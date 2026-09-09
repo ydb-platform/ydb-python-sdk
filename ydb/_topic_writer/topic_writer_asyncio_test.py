@@ -56,7 +56,6 @@ from .topic_writer_partition_chooser import (
     PublicPartitionByKeyBound,
     PublicPartitionChooser,
     PARTITION_KEY_METADATA_KEY,
-    murmur2_32,
 )
 from .._grpc.grpcwrapper.ydb_topic_public_types import PublicDescribeTopicResult
 
@@ -1453,17 +1452,16 @@ class TestTopicWriterMultiAsyncIO:
             writer = TopicWriterMultiAsyncIO(driver, settings)
             await writer.wait_init()
 
-            keys = ["a", "user-42", "hello", "мурмур2-хэш", "0", "zzz"]
-            for key in keys:
+            partitions_by_key = {"a": 1, "user-42": 1, "hello": 0, "мурмур2-хэш": 1, "0": 2, "zzz": 1}
+            for key in partitions_by_key:
                 await writer.write(PublicMessage(b"payload", key=key))
 
-            for key in keys:
-                partition_id = (murmur2_32(key.encode("utf-8"), 0) & 0x7FFFFFFF) % 3
+            for key, partition_id in partitions_by_key.items():
                 sub = writer._writers[partition_id]
                 assert sub.producer_id == "pfx-%d" % partition_id
                 assert any(m.key == key for m in sub.messages)
 
-            assert sum(len(w.messages) for w in writer._writers.values()) == len(keys)
+            assert sum(len(w.messages) for w in writer._writers.values()) == len(partitions_by_key)
             await writer.close(flush=False)
 
     async def test_split_reroutes_to_child_partitions(self):
