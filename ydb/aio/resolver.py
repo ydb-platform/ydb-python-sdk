@@ -1,4 +1,4 @@
-from typing import Any, Optional
+from typing import Any
 
 from . import connection as conn_impl
 
@@ -29,7 +29,7 @@ class DiscoveryEndpointsResolver(_DiscoveryEndpointsResolver):
         super().__init__(driver_config)
         self._lock = _FakeLock()
 
-    async def resolve(self) -> Optional[DiscoveryResult]:  # type: ignore[override]  # async override of sync method
+    async def resolve(self) -> DiscoveryResult | None:  # type: ignore[override]  # async override of sync method
         self.logger.debug("Preparing initial endpoint to resolve endpoints")
         endpoint = next(self._endpoints_iter)
         connection = conn_impl.Connection(endpoint, self._driver_config)

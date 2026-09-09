@@ -2,13 +2,12 @@ import os
 import pathlib
 import shutil
 
-from typing import List
 from argparse import ArgumentParser
 
 from grpc_tools import command
 
 
-def files_filter(dir, items: List[str]) -> List[str]:
+def files_filter(dir, items: list[str]) -> list[str]:
     ignored_names = ['.git']
 
     ignore = []

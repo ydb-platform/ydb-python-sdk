@@ -241,7 +241,7 @@ def _export_to_s3_request_factory(settings):
     return request
 
 
-class ExportClient(object):
+class ExportClient:
     def __init__(self, driver):
         self._driver = driver
 

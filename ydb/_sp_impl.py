@@ -7,7 +7,7 @@ import threading
 from . import settings, issues, _utilities, tracing
 
 
-class SessionPoolImpl(object):
+class SessionPoolImpl:
     def __init__(
         self,
         logger,

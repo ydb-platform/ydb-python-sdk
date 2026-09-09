@@ -1,9 +1,7 @@
 """Shared endpoint parsing used by both tracing and metrics attributes."""
 
-from typing import Optional, Tuple
 
-
-def split_endpoint(endpoint: Optional[str]) -> Tuple[str, int]:
+def split_endpoint(endpoint: str | None) -> tuple[str, int]:
     ep = endpoint or ""
     if ep.startswith("grpcs://"):
         ep = ep[len("grpcs://") :]

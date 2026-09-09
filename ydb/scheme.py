@@ -173,7 +173,7 @@ class SchemeEntryType(enum.IntEnum):
         return entry == SchemeEntryType.SECRET
 
 
-class SchemeEntry(object):
+class SchemeEntry:
     __slots__ = (
         "name",
         "owner",
@@ -395,7 +395,7 @@ class ModifyPermissionsSettings(settings_impl.BaseRequestSettings):
         return self._pb
 
 
-class Permissions(object):
+class Permissions:
     __slots__ = ("subject", "permission_names")
 
     def __init__(self, subject, permission_names):

@@ -2,7 +2,6 @@ import asyncio
 import ydb
 import ydb.aio
 import logging
-from typing import Dict
 
 from core.metrics import WORKLOAD
 from runners.topic_runner import TopicRunner
@@ -20,7 +19,7 @@ def _is_async_workload(args) -> bool:
 
 class SLORunner:
     def __init__(self):
-        self.runners: Dict[str, type(BaseRunner)] = {}
+        self.runners: dict[str, type(BaseRunner)] = {}
 
     def register_runner(self, prefix: str, runner_cls: type(BaseRunner)):
         self.runners[prefix] = runner_cls

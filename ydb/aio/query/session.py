@@ -2,10 +2,7 @@ import asyncio
 import json
 
 from typing import (
-    Optional,
-    Dict,
     Any,
-    Union,
     TYPE_CHECKING,
 )
 
@@ -36,13 +33,13 @@ class QuerySession(BaseQuerySession["AsyncDriver"]):
     """
 
     _loop: asyncio.AbstractEventLoop
-    _status_stream: Optional[_utilities.AsyncResponseIterator]
+    _status_stream: _utilities.AsyncResponseIterator | None
 
     def __init__(
         self,
         driver: "AsyncDriver",
-        settings: Optional[base.QueryClientSettings] = None,
-        loop: Optional[asyncio.AbstractEventLoop] = None,
+        settings: base.QueryClientSettings | None = None,
+        loop: asyncio.AbstractEventLoop | None = None,
     ):
         super(QuerySession, self).__init__(driver, settings)
         self._loop = loop if loop is not None else asyncio.get_running_loop()
@@ -80,7 +77,7 @@ class QuerySession(BaseQuerySession["AsyncDriver"]):
             logger.debug("Attach stream error: %s, session_id: %s", e, self._session_id)
             self._close_session(invalidate=True)
 
-    async def delete(self, settings: Optional[BaseRequestSettings] = None) -> None:
+    async def delete(self, settings: BaseRequestSettings | None = None) -> None:
         """Deletes a Session of Query Service on server side and releases resources.
 
         :return: None
@@ -96,7 +93,7 @@ class QuerySession(BaseQuerySession["AsyncDriver"]):
 
         self._close_session()
 
-    async def create(self, settings: Optional[BaseRequestSettings] = None) -> "QuerySession":
+    async def create(self, settings: BaseRequestSettings | None = None) -> "QuerySession":
         """Creates a Session of Query Service on server side and attaches it.
 
         :return: QuerySession object.
@@ -132,13 +129,13 @@ class QuerySession(BaseQuerySession["AsyncDriver"]):
         syntax: base.QuerySyntax = None,
         exec_mode: base.QueryExecMode = None,
         concurrent_result_sets: bool = False,
-        settings: Optional[BaseRequestSettings] = None,
+        settings: BaseRequestSettings | None = None,
         *,
-        stats_mode: Optional[base.QueryStatsMode] = None,
-        schema_inclusion_mode: Optional[base.QuerySchemaInclusionMode] = None,
-        result_set_format: Optional[base.QueryResultSetFormat] = None,
-        arrow_format_settings: Optional[base.ArrowFormatSettings] = None,
-        pool_id: Optional[str] = None,
+        stats_mode: base.QueryStatsMode | None = None,
+        schema_inclusion_mode: base.QuerySchemaInclusionMode | None = None,
+        result_set_format: base.QueryResultSetFormat | None = None,
+        arrow_format_settings: base.ArrowFormatSettings | None = None,
+        pool_id: str | None = None,
     ) -> AsyncResponseContextIterator:
         """Sends a query to Query Service
 
@@ -203,9 +200,9 @@ class QuerySession(BaseQuerySession["AsyncDriver"]):
     async def explain(
         self,
         query: str,
-        parameters: Optional[dict] = None,
+        parameters: dict | None = None,
         result_format: base.QueryExplainResultFormat = base.QueryExplainResultFormat.STR,
-    ) -> Union[str, Dict[str, Any]]:
+    ) -> str | dict[str, Any]:
         """Explains query result
         :param query: YQL or SQL query.
         :param parameters: dict with parameters and YDB types;

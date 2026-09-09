@@ -1,5 +1,4 @@
 import ydb
-from typing import List
 
 from config import ydb_configuration
 from exception import ConnectionFailure
@@ -31,7 +30,7 @@ class YDBClient:
     def table_client(self) -> ydb.TableClient:
         return self.driver.table_client
 
-    def bulk_upsert(self, rows: List, column_types: ydb.BulkUpsertColumns):
+    def bulk_upsert(self, rows: list, column_types: ydb.BulkUpsertColumns):
         self.table_client.bulk_upsert(self.config.full_path, rows, column_types)
 
 

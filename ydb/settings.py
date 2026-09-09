@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from typing import Any, List, Optional, Tuple
+from typing import Any
 
 
 class BaseRequestSettings:
@@ -15,14 +15,14 @@ class BaseRequestSettings:
         "need_rpc_auth",
     )
 
-    trace_id: Optional[str]
-    request_type: Optional[str]
-    timeout: Optional[float]
-    cancel_after: Optional[float]
-    operation_timeout: Optional[float]
+    trace_id: str | None
+    request_type: str | None
+    timeout: float | None
+    cancel_after: float | None
+    operation_timeout: float | None
     tracer: Any
     compression: Any
-    headers: List[Tuple[str, str]]
+    headers: list[tuple[str, str]]
     need_rpc_auth: bool
 
     def __init__(self) -> None:
@@ -73,7 +73,7 @@ class BaseRequestSettings:
         self.headers.append((key, value))
         return self
 
-    def with_trace_id(self, trace_id: Optional[str]) -> "BaseRequestSettings":
+    def with_trace_id(self, trace_id: str | None) -> "BaseRequestSettings":
         """
         Includes trace id for RPC headers
         :param trace_id: A trace id string
@@ -82,7 +82,7 @@ class BaseRequestSettings:
         self.trace_id = trace_id
         return self
 
-    def with_request_type(self, request_type: Optional[str]) -> "BaseRequestSettings":
+    def with_request_type(self, request_type: str | None) -> "BaseRequestSettings":
         """
         Includes request type for RPC headers
         :param request_type: A request type string
@@ -91,7 +91,7 @@ class BaseRequestSettings:
         self.request_type = request_type
         return self
 
-    def with_operation_timeout(self, timeout: Optional[float]) -> "BaseRequestSettings":
+    def with_operation_timeout(self, timeout: float | None) -> "BaseRequestSettings":
         """
         Indicates that client is no longer interested in the result of operation after the specified duration
         starting from the time operation arrives at the server.
@@ -105,7 +105,7 @@ class BaseRequestSettings:
         self.operation_timeout = timeout
         return self
 
-    def with_cancel_after(self, timeout: Optional[float]) -> "BaseRequestSettings":
+    def with_cancel_after(self, timeout: float | None) -> "BaseRequestSettings":
         """
         Server will try to cancel the operation after the specified duration starting from the time
         the operation arrives at server.
@@ -118,7 +118,7 @@ class BaseRequestSettings:
         self.cancel_after = timeout
         return self
 
-    def with_timeout(self, timeout: Optional[float]) -> "BaseRequestSettings":
+    def with_timeout(self, timeout: float | None) -> "BaseRequestSettings":
         """
         Client-side timeout to complete request.
         Since YDB doesn't support request cancellation at this moment, this feature should be

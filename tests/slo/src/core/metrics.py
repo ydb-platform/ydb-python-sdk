@@ -8,7 +8,7 @@ from collections.abc import Iterable
 from contextlib import contextmanager
 from importlib.metadata import version
 from os import environ
-from typing import Any, Optional, Tuple
+from typing import Any
 
 OP_TYPE_READ, OP_TYPE_WRITE = "read", "write"
 OP_STATUS_SUCCESS, OP_STATUS_FAILURE = "success", "error"
@@ -19,7 +19,7 @@ WORKLOAD = environ.get("WORKLOAD_NAME") or environ.get("WORKLOAD") or "sync-quer
 logger = logging.getLogger(__name__)
 
 
-def _normalize_labels(labels: Any) -> Tuple[Any, ...]:
+def _normalize_labels(labels: Any) -> tuple[Any, ...]:
     if labels is None:
         return tuple()
     if isinstance(labels, str):
@@ -44,7 +44,7 @@ class BaseMetrics(ABC):
         labels,
         start_time: float,
         attempts: int = 1,
-        error: Optional[Exception] = None,
+        error: Exception | None = None,
     ) -> None:
         pass
 
@@ -95,7 +95,7 @@ class DummyMetrics(BaseMetrics):
         labels,
         start_time: float,
         attempts: int = 1,
-        error: Optional[Exception] = None,
+        error: Exception | None = None,
     ) -> None:
         return None
 
@@ -228,7 +228,7 @@ class OtlpMetrics(BaseMetrics):
         labels,
         start_time: float,
         attempts: int = 1,
-        error: Optional[Exception] = None,
+        error: Exception | None = None,
     ) -> None:
         labels_t = _normalize_labels(labels)
         duration = time.time() - start_time
@@ -294,7 +294,7 @@ class OtlpMetrics(BaseMetrics):
         self._topic_duplicated.add(int(n), attributes={"ref": REF})
 
 
-def _resolve_metrics_endpoint(cli_endpoint: Optional[str]) -> str:
+def _resolve_metrics_endpoint(cli_endpoint: str | None) -> str:
     """
     Resolution order:
       1. OTEL_EXPORTER_OTLP_METRICS_ENDPOINT (used as-is)
@@ -315,7 +315,7 @@ def _resolve_metrics_endpoint(cli_endpoint: Optional[str]) -> str:
     return (cli_endpoint or "").strip()
 
 
-def create_metrics(otlp_endpoint: Optional[str]) -> BaseMetrics:
+def create_metrics(otlp_endpoint: str | None) -> BaseMetrics:
     """
     Build a metrics exporter.
 

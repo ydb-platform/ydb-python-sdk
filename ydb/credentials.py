@@ -22,7 +22,7 @@ YDB_AUTH_TICKET_HEADER = "x-ydb-auth-ticket"
 logger = logging.getLogger(__name__)
 
 
-class AtMostOneExecution(object):
+class AtMostOneExecution:
     def __init__(self):
         self._can_schedule = True
         self._lock = threading.Lock()

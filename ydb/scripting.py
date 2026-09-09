@@ -12,13 +12,13 @@ else:
 from . import issues, convert, settings
 
 
-class TypedParameters(object):
+class TypedParameters:
     def __init__(self, parameters_types, parameters_values):
         self.parameters_types = parameters_types
         self.parameters_values = parameters_values
 
 
-class ScriptingClientSettings(object):
+class ScriptingClientSettings:
     def __init__(self):
         self._native_date_in_result_sets = False
         self._native_datetime_in_result_sets = False
@@ -52,12 +52,12 @@ def _execute_yql_query_request_factory(script, tp=None, settings=None):
     return ydb_scripting_pb2.ExecuteYqlRequest(script=script, parameters=params)
 
 
-class YqlQueryResult(object):
+class YqlQueryResult:
     def __init__(self, result, scripting_client_settings=None):
         self.result_sets = convert.ResultSets(result.result_sets, scripting_client_settings)
 
 
-class YqlExplainResult(object):
+class YqlExplainResult:
     def __init__(self, result):
         self.plan = result.plan
 
@@ -76,7 +76,7 @@ def _wrap_explain_response(rpc_state, response):
     return YqlExplainResult(message)
 
 
-class ScriptingClient(object):
+class ScriptingClient:
     def __init__(self, driver, scripting_client_settings=None):
         self.driver = driver
         self.scripting_client_settings = (

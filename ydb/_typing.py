@@ -9,7 +9,6 @@ from typing import (
     Any,
     Callable,
     Iterable,
-    Tuple,
     TypeVar,
     Union,
     TYPE_CHECKING,
@@ -67,4 +66,4 @@ class GrpcStreamCall(grpc.Call, Iterable[_StreamItemT]):
 WrapResultFunc = Callable[..., Any]
 
 # Type for RPC call arguments tuple
-WrapArgsType = Tuple[Any, ...]
+WrapArgsType = tuple[Any, ...]

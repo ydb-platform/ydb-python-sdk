@@ -15,11 +15,11 @@ class Oauth2TokenExchangeCredentials(AbstractExpiringTokenCredentials, Oauth2Tok
     def __init__(
         self,
         token_endpoint: str,
-        subject_token_source: typing.Optional[TokenSource] = None,
-        actor_token_source: typing.Optional[TokenSource] = None,
-        audience: typing.Union[typing.List[str], str, None] = None,
-        scope: typing.Union[typing.List[str], str, None] = None,
-        resource: typing.Optional[str] = None,
+        subject_token_source: TokenSource | None = None,
+        actor_token_source: TokenSource | None = None,
+        audience: list[str] | str | None = None,
+        scope: list[str] | str | None = None,
+        resource: str | None = None,
         grant_type: str = "urn:ietf:params:oauth:grant-type:token-exchange",
         requested_token_type: str = "urn:ietf:params:oauth:token-type:access_token",
     ):

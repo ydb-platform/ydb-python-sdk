@@ -4,11 +4,7 @@ import asyncio
 import logging
 from typing import (
     Callable,
-    Optional,
-    List,
-    Dict,
     Any,
-    Union,
 )
 
 from .session import (
@@ -37,9 +33,9 @@ class QuerySessionPool:
         driver: common_utils.SupportedDriverType,
         size: int = 100,
         *,
-        query_client_settings: Optional[QueryClientSettings] = None,
-        loop: Optional[asyncio.AbstractEventLoop] = None,
-        name: Optional[str] = None,
+        query_client_settings: QueryClientSettings | None = None,
+        loop: asyncio.AbstractEventLoop | None = None,
+        name: str | None = None,
     ):
         """
         :param driver: A driver instance
@@ -65,7 +61,7 @@ class QuerySessionPool:
         logger.debug(f"New session was created for pool. Session id: {session.session_id}")
         return session
 
-    async def acquire(self, timeout: Optional[float] = None) -> QuerySession:
+    async def acquire(self, timeout: float | None = None) -> QuerySession:
         """Acquire a session from Session Pool.
 
         :param timeout: Seconds to wait when pool is exhausted. Overrides the pool-level acquire_timeout.
@@ -156,7 +152,7 @@ class QuerySessionPool:
         self._queue.put_nowait(session)
         logger.debug("Session returned to queue: %s", session.session_id)
 
-    def checkout(self, timeout: Optional[float] = None) -> "SimpleQuerySessionCheckoutAsync":
+    def checkout(self, timeout: float | None = None) -> "SimpleQuerySessionCheckoutAsync":
         """Return a Session context manager, that acquires session on enter and releases session on exit.
 
         :param timeout: Seconds to wait when pool is exhausted. Overrides the pool-level acquire_timeout.
@@ -165,7 +161,7 @@ class QuerySessionPool:
         return SimpleQuerySessionCheckoutAsync(self, timeout)
 
     async def retry_operation_async(
-        self, callee: Callable, retry_settings: Optional[RetrySettings] = None, *args, **kwargs
+        self, callee: Callable, retry_settings: RetrySettings | None = None, *args, **kwargs
     ):
         """Special interface to execute a bunch of commands with session in a safe, retriable way.
 
@@ -186,8 +182,8 @@ class QuerySessionPool:
     async def retry_tx_async(
         self,
         callee: Callable,
-        tx_mode: Optional[BaseQueryTxMode] = None,
-        retry_settings: Optional[RetrySettings] = None,
+        tx_mode: BaseQueryTxMode | None = None,
+        retry_settings: RetrySettings | None = None,
         *args,
         **kwargs,
     ):
@@ -222,12 +218,12 @@ class QuerySessionPool:
     async def execute_with_retries(
         self,
         query: str,
-        parameters: Optional[dict] = None,
-        retry_settings: Optional[RetrySettings] = None,
+        parameters: dict | None = None,
+        retry_settings: RetrySettings | None = None,
         *args,
-        pool_id: Optional[str] = None,
+        pool_id: str | None = None,
         **kwargs,
-    ) -> List[convert.ResultSet]:
+    ) -> list[convert.ResultSet]:
         """Special interface to execute a one-shot queries in a safe, retriable way.
         Note: this method loads all data from stream before return, do not use this
         method with huge read queries.
@@ -252,11 +248,11 @@ class QuerySessionPool:
     async def explain_with_retries(
         self,
         query: str,
-        parameters: Optional[dict] = None,
+        parameters: dict | None = None,
         *,
         result_format: QueryExplainResultFormat = QueryExplainResultFormat.STR,
-        retry_settings: Optional[RetrySettings] = None,
-    ) -> Union[str, Dict[str, Any]]:
+        retry_settings: RetrySettings | None = None,
+    ) -> str | dict[str, Any]:
         """
         Explain a query in retriable way. No real query execution will happen.
 
@@ -296,9 +292,9 @@ class QuerySessionPool:
 
 
 class SimpleQuerySessionCheckoutAsync:
-    _session: Optional[QuerySession]
+    _session: QuerySession | None
 
-    def __init__(self, pool: QuerySessionPool, timeout: Optional[float] = None):
+    def __init__(self, pool: QuerySessionPool, timeout: float | None = None):
         self._pool = pool
         self._timeout = timeout
         self._session = None

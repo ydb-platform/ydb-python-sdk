@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from typing import Optional
 
 from ... import issues, _apis
 from ..._grpc.grpcwrapper.common_utils import IToProto, GrpcWrapperAsyncIO
@@ -21,16 +20,16 @@ class CoordinationStream:
         self._stream = GrpcWrapperAsyncIO(FromServer.from_proto)
 
         self._incoming = asyncio.Queue()
-        self._reader_task: Optional[asyncio.Task] = None
+        self._reader_task: asyncio.Task | None = None
 
         self._closed = False
-        self.session_id: Optional[int] = None
+        self.session_id: int | None = None
 
     async def start_session(
         self,
         path: str,
         timeout_millis: int,
-        session_id: Optional[int] = None,
+        session_id: int | None = None,
     ):
         await self._stream.start(
             self._driver,
@@ -100,7 +99,7 @@ class CoordinationStream:
             raise issues.Error("Coordination stream closed")
         self._stream.write(req)
 
-    async def receive(self, timeout: Optional[float] = None):
+    async def receive(self, timeout: float | None = None):
         if self._closed:
             raise issues.Error("Coordination stream closed")
 

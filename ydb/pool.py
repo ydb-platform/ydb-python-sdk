@@ -7,7 +7,7 @@ import logging
 from concurrent import futures
 import collections
 import random
-from typing import Any, Callable, ContextManager, List, Optional, Set, Tuple, TYPE_CHECKING
+from typing import Any, Callable, ContextManager, TYPE_CHECKING
 
 from . import connection as connection_impl, issues, resolver, _utilities, tracing
 from .observability.tracing import SpanName, create_ydb_span
@@ -29,16 +29,16 @@ class ConnectionsCache:
         self.tracer = tracer
         self.lock = threading.RLock()
         self.connections: collections.OrderedDict[str, Connection] = collections.OrderedDict()
-        self.connections_by_node_id: collections.OrderedDict[Optional[int], Connection] = collections.OrderedDict()
+        self.connections_by_node_id: collections.OrderedDict[int | None, Connection] = collections.OrderedDict()
         self.outdated: collections.OrderedDict[str, Connection] = collections.OrderedDict()
-        self.subscriptions: Set["futures.Future[None]"] = set()
+        self.subscriptions: set["futures.Future[None]"] = set()
         self.preferred: collections.OrderedDict[str, Connection] = collections.OrderedDict()
         self.logger = logging.getLogger(__name__)
         self.use_all_nodes = use_all_nodes
         self.conn_lst_order = (self.connections,) if self.use_all_nodes else (self.preferred, self.connections)
-        self.fast_fail_subscriptions: Set["futures.Future[None]"] = set()
+        self.fast_fail_subscriptions: set["futures.Future[None]"] = set()
 
-    def add(self, connection: Optional[Connection], preferred: bool = False) -> bool:
+    def add(self, connection: Connection | None, preferred: bool = False) -> bool:
         if connection is None:
             return False
 
@@ -59,7 +59,7 @@ class ConnectionsCache:
             subscription.set_result(None)
         return True
 
-    def _on_done_callback(self, subscription: "futures.Future[None]") -> Optional["futures.Future[None]"]:
+    def _on_done_callback(self, subscription: "futures.Future[None]") -> "futures.Future[None]" | None:
         """
         A done callback for the subscription future
         :param subscription: A subscription
@@ -81,7 +81,7 @@ class ConnectionsCache:
         with self.lock:
             return endpoint in self.connections
 
-    def values(self) -> List[Connection]:
+    def values(self) -> list[Connection]:
         with self.lock:
             return list(self.connections.values())
 
@@ -103,7 +103,7 @@ class ConnectionsCache:
             for connection in actual_connections:
                 connection.close()
 
-    def complete_discovery(self, error: Optional[Exception]) -> None:
+    def complete_discovery(self, error: Exception | None) -> None:
         with self.lock:
             for subscription in self.fast_fail_subscriptions:
                 if error is None:
@@ -134,7 +134,7 @@ class ConnectionsCache:
             return subscription
 
     @tracing.with_trace()
-    def get(self, preferred_endpoint: Optional[EndpointKey] = None) -> Connection:
+    def get(self, preferred_endpoint: EndpointKey | None = None) -> Connection:
         with self.lock:
             if preferred_endpoint is not None and preferred_endpoint.node_id in self.connections_by_node_id:
                 return self.connections_by_node_id[preferred_endpoint.node_id]
@@ -160,7 +160,7 @@ class ConnectionsCache:
             self.connections.pop(connection.endpoint, None)
             self.outdated.pop(connection.endpoint, None)
 
-    def get_connection_by_node_id(self, node_id: Optional[int]) -> Optional[Connection]:
+    def get_connection_by_node_id(self, node_id: int | None) -> Connection | None:
         with self.lock:
             return self.connections_by_node_id.get(node_id)
 
@@ -352,7 +352,7 @@ class IConnectionPool(abc.ABC):
         pass
 
     @abstractmethod
-    def wait(self, timeout: Optional[float] = None, fail_fast: bool = False) -> None:
+    def wait(self, timeout: float | None = None, fail_fast: bool = False) -> None:
         """
         Waits for endpoints to be are available to serve user requests
         :param timeout: A timeout to wait in seconds
@@ -374,10 +374,10 @@ class IConnectionPool(abc.ABC):
         request: Any,
         stub: Any,
         rpc_name: str,
-        wrap_result: Optional[Callable[..., Any]] = None,
-        settings: Optional["BaseRequestSettings"] = None,
-        wrap_args: Tuple[Any, ...] = (),
-        preferred_endpoint: Optional[EndpointKey] = None,
+        wrap_result: Callable[..., Any] | None = None,
+        settings: "BaseRequestSettings" | None = None,
+        wrap_args: tuple[Any, ...] = (),
+        preferred_endpoint: EndpointKey | None = None,
     ) -> Any:
         """
         Sends request constructed by client library
@@ -408,7 +408,7 @@ class ConnectionPool(IConnectionPool):
         self._stopped = False
         self._stop_guard = threading.Lock()
         self._stop_event = threading.Event()
-        self._init_thread: Optional[threading.Thread] = None
+        self._init_thread: threading.Thread | None = None
 
         if driver_config.disable_discovery:
             # If discovery is disabled, establish the initial connection in a
@@ -474,7 +474,7 @@ class ConnectionPool(IConnectionPool):
             return self._store.add_fast_fail()
         return self._store.subscribe()
 
-    def wait(self, timeout: Optional[float] = None, fail_fast: bool = False) -> None:
+    def wait(self, timeout: float | None = None, fail_fast: bool = False) -> None:
         """
         Waits for endpoints to be are available to serve user requests
 
@@ -522,10 +522,10 @@ class ConnectionPool(IConnectionPool):
         request: Any,
         stub: Any,
         rpc_name: str,
-        wrap_result: Optional[Callable[..., Any]] = None,
-        settings: Optional["BaseRequestSettings"] = None,
-        wrap_args: Tuple[Any, ...] = (),
-        preferred_endpoint: Optional[EndpointKey] = None,
+        wrap_result: Callable[..., Any] | None = None,
+        settings: "BaseRequestSettings" | None = None,
+        wrap_args: tuple[Any, ...] = (),
+        preferred_endpoint: EndpointKey | None = None,
     ) -> Any:
         """
         Synchronously sends request constructed by client library
@@ -571,10 +571,10 @@ class ConnectionPool(IConnectionPool):
         request: Any,
         stub: Any,
         rpc_name: str,
-        wrap_result: Optional[Callable[..., Any]] = None,
-        settings: Optional["BaseRequestSettings"] = None,
-        wrap_args: Tuple[Any, ...] = (),
-        preferred_endpoint: Optional[EndpointKey] = None,
+        wrap_result: Callable[..., Any] | None = None,
+        settings: "BaseRequestSettings" | None = None,
+        wrap_args: tuple[Any, ...] = (),
+        preferred_endpoint: EndpointKey | None = None,
     ) -> "futures.Future[Any]":
         """
         Sends request constructed by client

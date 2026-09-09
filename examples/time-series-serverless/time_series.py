@@ -1,4 +1,3 @@
-from typing import Dict
 import random
 
 import ydb
@@ -23,7 +22,7 @@ def generate_time_series(parameters: Parameters):
     ydb_client.bulk_upsert(rows, column_types)
 
 
-def do_handle(event: Dict, _) -> Response:
+def do_handle(event: dict, _) -> Response:
     if "queryStringParameters" not in event:
         return BadRequest("Incorrect function call: non HTTP request")
 

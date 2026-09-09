@@ -11,7 +11,7 @@ to verify that:
 * ``get_trace_metadata`` is empty until a provider is enabled.
 """
 
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 import pytest
 
@@ -44,12 +44,12 @@ from .conftest import FakeDriverConfig
 class RecordingSpan:
     """Minimal Span implementation that records every call."""
 
-    def __init__(self, name: str, attributes: Optional[dict], kind: Optional[str], sink: List[Dict[str, Any]]):
+    def __init__(self, name: str, attributes: dict | None, kind: str | None, sink: list[dict[str, Any]]):
         self.name = name
-        self.attributes: Dict[str, Any] = dict(attributes or {})
+        self.attributes: dict[str, Any] = dict(attributes or {})
         self.kind = kind
         self.ended = False
-        self.errors: List[BaseException] = []
+        self.errors: list[BaseException] = []
         self._sink = sink
 
     def set_error(self, exception):
@@ -91,9 +91,9 @@ class RecordingSpan:
 class RecordingProvider:
     """Custom TracingProvider used across the tests."""
 
-    def __init__(self, metadata: Optional[List[Tuple[str, str]]] = None):
-        self.spans: List[RecordingSpan] = []
-        self.finished: List[Dict[str, Any]] = []
+    def __init__(self, metadata: list[tuple[str, str]] | None = None):
+        self.spans: list[RecordingSpan] = []
+        self.finished: list[dict[str, Any]] = []
         self._metadata = metadata or []
 
     def create_span(self, name, attributes=None, kind=None) -> Span:
@@ -423,7 +423,7 @@ class TestSetPeerAttributes:
     """Direct unit tests for ``set_peer_attributes``."""
 
     def _recording_span(self):
-        recorded: Dict[str, Any] = {}
+        recorded: dict[str, Any] = {}
 
         class _Span:
             def set_attribute(self, key, value):
@@ -460,7 +460,7 @@ class TestSpanFinishCallback:
     """``span_finish_callback`` wires stream completion into span lifecycle."""
 
     def test_finish_ends_span_on_success(self):
-        calls: List[str] = []
+        calls: list[str] = []
 
         class _Span:
             def set_error(self, exc):
@@ -473,7 +473,7 @@ class TestSpanFinishCallback:
         assert calls == ["end"]
 
     def test_finish_records_error_then_ends_span(self):
-        calls: List[str] = []
+        calls: list[str] = []
         exc = RuntimeError("stream broke")
 
         class _Span:
@@ -563,7 +563,7 @@ class TestOtelTracingSpanBridge:
 
         from ydb.opentelemetry.plugin import TracingSpan
 
-        recorded: Dict[str, Any] = {}
+        recorded: dict[str, Any] = {}
 
         class _FakeOtelSpan:
             def set_attribute(self, key, value):

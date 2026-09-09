@@ -14,8 +14,6 @@ every span is a :class:`~ydb.observability.tracing.NoopSpan` and every metric is
 dropped by a no-op registry.
 """
 
-from typing import List, Optional
-
 from ydb.observability.tracing import (
     NoopSpan,
     NoopTracingProvider,
@@ -51,7 +49,7 @@ def disable_tracing() -> None:
     _registry.set_provider(None)
 
 
-def get_active_provider() -> Optional[TracingProvider]:
+def get_active_provider() -> TracingProvider | None:
     """Return the currently installed provider, or ``None`` if tracing is disabled."""
     return _registry.get_provider() if _registry.is_active() else None
 
@@ -70,14 +68,14 @@ def disable_metrics() -> None:
     _reset_metrics_provider()
 
 
-def sdk_build_info_tokens() -> List[str]:
+def sdk_build_info_tokens() -> list[str]:
     """All ``x-ydb-sdk-build-info`` feature tokens contributed by observability.
 
     Aggregated across observability features so the SDK build-info header advertises
     every capability the client has turned on: tracing contributes
     ``ydb-sdk-tracing/<v>`` while active, metrics contribute ``ydb-sdk-metrics/<v>``.
     """
-    tokens: List[str] = []
+    tokens: list[str] = []
     tokens.extend(_tracing_build_info_tokens())
     tokens.extend(_metrics_build_info_tokens())
     return tokens
