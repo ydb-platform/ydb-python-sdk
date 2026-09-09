@@ -15,8 +15,7 @@ PartitionInfo = PublicDescribeTopicResult.PartitionInfo
 
 
 def murmur2_32(data: bytes, seed: int = 0) -> int:
-    """MurmurHash2, 32-bit, little-endian. Matches the Kafka BuiltInPartitioner
-    and the YDB Go SDK ``xhash.Murmur2Hash32``."""
+    """MurmurHash2, 32-bit, little-endian."""
     m = 0x5BD1E995
     r = 24
     n = len(data)
@@ -97,9 +96,10 @@ class PublicPartitionChooser(abc.ABC):
 
 
 class PublicPartitionByKeyKafka(PublicPartitionChooser):
-    """Kafka-compatible routing: ``murmur2_32(key) % partitions_count``.
+    """Kafka-compatible routing for topics with a fixed partition count.
 
-    Ignores server key ranges, so it fits topics with a fixed partition count.
+    Hashes UTF-8 keys with 32-bit MurmurHash2 (seed ``0x9747b28c``), clears the
+    sign bit and indexes partition IDs sorted in ascending order.
     """
 
     def __init__(self):
@@ -124,7 +124,7 @@ class PublicPartitionByKeyKafka(PublicPartitionChooser):
             raise ValueError("no partitions configured for partition chooser")
         # Apache Kafka's DefaultPartitioner applies toPositive() (mask the sign bit) to the
         # murmur2 hash before the modulo; match it so the same key lands on the same partition.
-        h = murmur2_32((message.key or "").encode("utf-8"), 0) & 0x7FFFFFFF
+        h = murmur2_32((message.key or "").encode("utf-8"), 0x9747B28C) & 0x7FFFFFFF
         return self._partitions[h % len(self._partitions)]
 
 
