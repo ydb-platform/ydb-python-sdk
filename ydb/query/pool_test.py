@@ -8,7 +8,7 @@ from unittest.mock import MagicMock
 
 from unittest.mock import patch
 
-from ydb import issues
+from ydb import _utilities, issues
 from ydb.convert import _ResultSet, aggregate_result_sets_by_index, aggregate_result_sets_by_index_async
 from ydb.query.base import create_execute_query_request
 from ydb.query.pool import QuerySessionPool
@@ -62,6 +62,41 @@ class TestAcquireTimeout(unittest.TestCase):
             self.assertIs(acquired, session)
         finally:
             t.join()
+
+
+class TestSessionAttachInterrupted(unittest.TestCase):
+    """An interrupted attach must retire the session instead of orphaning it server-side."""
+
+    def _make_session(self):
+        driver = MagicMock()
+        driver._driver_config.query_client_settings = None
+        session = QuerySession(driver)
+        session._session_id = "fake-session-id"
+        return session
+
+    def test_attach_invalidates_session_when_interrupted_awaiting_first_response(self):
+        session = self._make_session()
+        stream = MagicMock()
+
+        with patch.object(type(session), "_attach_call", return_value=stream), patch.object(
+            _utilities, "SyncResponseIterator", MagicMock()
+        ), patch.object(_utilities, "get_first_message_with_timeout", side_effect=KeyboardInterrupt):
+            with self.assertRaises(KeyboardInterrupt):
+                session._attach()
+
+        self.assertFalse(session.is_active)
+        self.assertTrue(session._invalidated)
+        stream.cancel.assert_called_once()
+
+    def test_attach_invalidates_session_when_interrupted_before_stream_is_open(self):
+        session = self._make_session()
+
+        with patch.object(type(session), "_attach_call", side_effect=KeyboardInterrupt):
+            with self.assertRaises(KeyboardInterrupt):
+                session._attach()
+
+        self.assertFalse(session.is_active)
+        self.assertTrue(session._invalidated)
 
 
 def _rs(index, rows, columns=None, truncated=False, data=None):

@@ -1050,6 +1050,7 @@ class ISession(abc.ABC):
         row_limit=None,
         settings=None,
         use_snapshot=None,
+        return_not_null_data_as_optional=None,
     ):
         """
         Perform an read table request.
@@ -1769,6 +1770,7 @@ class BaseSession(ISession):
         row_limit=None,
         settings=None,
         use_snapshot=None,
+        return_not_null_data_as_optional=None,
     ):
         """
         Perform an read table request.
@@ -1791,6 +1793,7 @@ class BaseSession(ISession):
             ordered,
             row_limit,
             use_snapshot=use_snapshot,
+            return_not_null_data_as_optional=return_not_null_data_as_optional,
         )
         stream_it = self._driver(
             request,
@@ -2029,6 +2032,7 @@ class Session(BaseSession):
         row_limit=None,
         settings=None,
         use_snapshot=None,
+        return_not_null_data_as_optional=None,
     ):
         """
         Perform an read table request.
@@ -2053,6 +2057,7 @@ class Session(BaseSession):
             ordered,
             row_limit,
             use_snapshot=use_snapshot,
+            return_not_null_data_as_optional=return_not_null_data_as_optional,
         )
         stream_it = self._driver(
             request,

@@ -83,18 +83,12 @@ pygments_style = None
 #
 html_theme = 'sphinx_rtd_theme'
 
-html_theme_options = {
-    'fixed_sidebar': True,
-    'page_width': '1140px',
-    'show_related': True,
-    'show_powered_by': False
-}
-
 html_logo = '_static/logo.svg'
 html_favicon = '_static/logo.svg'
 html_baseurl = 'https://ydb-platform.github.io/ydb-python-sdk/'
 
 html_show_sourcelink = False
+html_show_sphinx = False
 
 llms_txt_title = 'YDB Python SDK Documentation'
 llms_txt_summary = '''
