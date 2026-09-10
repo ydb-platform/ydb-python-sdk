@@ -10,8 +10,9 @@ Users pick tracing and/or metrics backends and register them here:
     enable_tracing(OtelTracingProvider())  # or any custom TracingProvider
 
 The SDK itself never imports ``opentelemetry`` — until a backend is enabled,
-every span is a :class:`~ydb.observability.tracing.NoopSpan` and every metric is
-dropped by a no-op registry.
+every span is a :class:`~ydb.observability.tracing.NoopSpan` and metric events are
+dropped by a no-op provider. Lightweight query-session state remains available for
+observable gauges if metrics are enabled later.
 """
 
 from typing import List, Optional

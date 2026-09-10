@@ -1,4 +1,5 @@
 * Add the `ydb.query.session.closed` counter for query session pool closures, labeled by pool name and a standardized closure reason; metrics-enabled clients now advertise `ydb-sdk-metrics/0.2.0` in `x-ydb-sdk-build-info`
+* Fix query-session gauges after session invalidation and metrics reconfiguration: closed sessions no longer appear as negative `used` or phantom `idle` sessions, and enabling or replacing a metrics provider preserves current live pool state without leaking gauge observations to old providers
 
 ## 3.31.5 ##
 * Fixed `OSError: [Errno 22] Invalid argument` when reading native `Datetime64` value before 1970 (negative Unix timestamps) on Windows: conversion now uses epoch arithmetic instead of `datetime.utcfromtimestamp`

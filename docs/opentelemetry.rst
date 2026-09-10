@@ -10,9 +10,10 @@ context to the YDB server through gRPC metadata using the
 records client-side OpenTelemetry instruments for the same operations, retries, and
 query session pools.
 
-Like every backend, it is **zero-cost when disabled**: the SDK uses no-op stubs by
-default and does not import ``opentelemetry`` until you call ``enable_tracing()`` or
-``enable_metrics()``.
+Like every backend, it has **low overhead when disabled**: spans, event recording, and
+metric timers use no-op paths, and the SDK does not import ``opentelemetry`` until you
+call ``enable_tracing()`` or ``enable_metrics()``. Lightweight query-session lifecycle
+state is retained so metrics can be enabled later with accurate pool gauges.
 
 
 Installation
@@ -91,9 +92,8 @@ vendor-neutral entrypoint — this is exactly what the convenience wrapper above
 Enabling Metrics
 ----------------
 
-Metrics are independent from tracing — enable either or both. Call ``enable_metrics()``
-once, after configuring your OpenTelemetry meter provider and before creating drivers or
-query session pools:
+Metrics are independent from tracing — enable either or both. Configure your
+OpenTelemetry meter provider, then call ``enable_metrics()``:
 
 .. code-block:: python
 
@@ -127,8 +127,9 @@ query session pools:
 ``enable_metrics()`` accepts an optional ``meter_provider`` argument. If omitted, the SDK
 obtains a meter named ``"ydb.sdk"`` from the global meter provider. The call is
 idempotent: repeated ``enable_metrics()`` calls do nothing until you call
-``disable_metrics()``, which clears the in-memory observable metric values and restores
-the no-op provider so metric recording stays a cheap no-op.
+``disable_metrics()``. Disabling deactivates the old observable callbacks and restores
+the no-op event provider. Live query-session state is retained, so enabling metrics
+again — including with another meter provider — starts from the current pool snapshot.
 
 The full list of instruments and their attributes is catalogued on the
 :doc:`observability` page.

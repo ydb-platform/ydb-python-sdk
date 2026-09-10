@@ -12,10 +12,11 @@ The same layer also exposes **client-side metrics** (operation latency and failu
 retry cost, query session pool state) through :func:`ydb.observability.enable_metrics`.
 Tracing and metrics are independent — enable either, both, or neither.
 
-Observability is **zero-cost when disabled**: until you install a backend every span is a
-no-op stub and every metric is dropped by a no-op provider, and the SDK never imports
-``opentelemetry`` — or any other backend — on its own. The dependency is pulled in only
-when you explicitly opt into a concrete backend.
+Observability has **low overhead when disabled**: spans, event recording, and metric
+timers use no-op paths, and the SDK never imports ``opentelemetry`` — or any other
+backend — on its own. Query sessions retain lightweight lifecycle state so enabling a
+metrics backend later starts with accurate pool gauges. Backend dependencies are pulled
+in only when you explicitly opt into a concrete backend.
 
 
 The Tracing Interface
@@ -266,6 +267,12 @@ Client-side metrics are enabled independently of tracing:
     enable_metrics(provider)   # install a metrics backend
     disable_metrics()          # turn metrics off — back to the no-op default
 
+Calling ``enable_metrics`` again replaces the active backend. New events go to the new
+backend, while operations and wait timers already in flight finish on the backend on
+which they started. Observable callbacks registered by an old backend become inactive.
+``disable_metrics`` stops publishing but retains lightweight state for live pools and
+sessions, so a later backend immediately observes their current values.
+
 For OpenTelemetry the built-in convenience is ``ydb.opentelemetry.enable_metrics``,
 which builds an OTel-backed provider from a meter provider and installs it here — see
 the :doc:`opentelemetry` page for the meter-provider and exporter setup.
@@ -434,5 +441,6 @@ through ``add``, and the three *ObservableUpDownCounter* gauges
 that has no notion of asynchronous gauges can simply store the callbacks (or ignore
 them); the SDK never pushes those values, so nothing is lost elsewhere.
 
-``disable_metrics()`` clears the SDK-side gauge state and reverts to the no-op default,
-so recording calls become cheap no-ops again.
+``disable_metrics()`` reverts event recording to the no-op default and deactivates the
+current backend's gauge callbacks. Live pool/session trackers remain available so a
+later backend starts with an accurate snapshot.

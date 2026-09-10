@@ -34,9 +34,11 @@ from ydb.observability.metrics import (
     DURATION_BUCKETS_SECONDS,
     GaugeCallback,
     RETRY_DURATION_BUCKETS_SECONDS,
+    _get_metrics_provider,
 )
 
 _meter: Optional[Meter] = None
+_otel_provider: Optional["OtelMetricsProvider"] = None
 
 # Unit/description for the asynchronous gauges the SDK registers via observe_gauge.
 _GAUGE_META = {
@@ -146,26 +148,30 @@ def _enable_metrics(meter_provider: Optional[MeterProvider]) -> None:
     callbacks would double-count). Call :func:`ydb.opentelemetry.disable_metrics`
     first to reconfigure.
     """
-    global _meter
+    global _meter, _otel_provider
 
-    if _meter is not None:
+    if _otel_provider is not None and _get_metrics_provider() is _otel_provider:
         return
 
     if meter_provider is None:
-        _meter = otel_metrics.get_meter("ydb.sdk")
+        meter = otel_metrics.get_meter("ydb.sdk")
     elif hasattr(meter_provider, "get_meter"):
-        _meter = meter_provider.get_meter("ydb.sdk")
+        meter = meter_provider.get_meter("ydb.sdk")
     else:
         raise TypeError("meter_provider must be an OpenTelemetry MeterProvider")
 
-    _observability_enable_metrics(OtelMetricsProvider(_meter))
+    provider = OtelMetricsProvider(meter)
+    _observability_enable_metrics(provider)
+    _meter = meter
+    _otel_provider = provider
 
 
 def _disable_metrics() -> None:
-    global _meter
+    global _meter, _otel_provider
 
     _observability_disable_metrics()
     _meter = None
+    _otel_provider = None
 
 
 def _create_histogram(
