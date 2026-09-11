@@ -438,78 +438,89 @@ class TestTopicMultiWriterAsyncIO:
         assert seen == total
 
     async def test_write_by_key_survives_partition_split(self, driver, database, topic_consumer):
-        # Continue writing after the observed split so the writer must update its routing.
         path = database + "/mw-split"
         await self._recreate(
             driver,
             path,
             topic_consumer,
             min_active_partitions=1,
-            max_active_partitions=100,
-            partition_write_speed_bytes_per_second=1024,
-            auto_partitioning_settings=self._auto_partitioning(),
+            max_active_partitions=4,
+            auto_partitioning_settings=ydb.TopicAutoPartitioningSettings(
+                strategy=ydb.TopicAutoPartitioningStrategy.SCALE_UP,
+                up_utilization_percent=90,
+                down_utilization_percent=1,
+                stabilization_window=datetime.timedelta(seconds=300),
+            ),
         )
 
-        partitions_before = len((await driver.topic_client.describe_topic(path)).partitions)
-        payload = b"x" * 512
-        written = 0
-        max_batches = 15
-        split_observed = False
-        async with driver.topic_client.multiwriter(path, producer_id_prefix="mw-split") as writer:
+        async def wait_for_partitions(expected):
+            deadline = asyncio.get_running_loop().time() + 30
+            while True:
+                description = await driver.topic_client.describe_topic(path)
+                active = [partition for partition in description.partitions if partition.active]
+                if len(active) == expected:
+                    return description
+                assert asyncio.get_running_loop().time() < deadline, (
+                    "topic did not reach %d active partitions" % expected
+                )
+                await asyncio.sleep(0.1)
 
-            async def write_batch():
+        description = await wait_for_partitions(1)
+        assert len(description.partitions) == 1
+
+        keys = ["k%d" % i for i in range(32)]
+        written = 0
+        async with driver.topic_client.multiwriter(path, producer_id_prefix="mw-split") as writer:
+            await writer.wait_init()
+            assert isinstance(writer._chooser, ydb.TopicWriterPartitionByKeyBound)
+
+            async def write_batch(count):
                 nonlocal written
-                for _ in range(100):
-                    await writer.write(
-                        ydb.TopicWriterMessage(data=b"%d:%s" % (written, payload), key="k%d" % (written % 32))
-                    )
+                for _ in range(count):
+                    key = keys[written % len(keys)]
+                    await writer.write(ydb.TopicWriterMessage(data=("%d:%s" % (written, key)).encode(), key=key))
                     written += 1
                 await writer.flush()
 
-            for _ in range(max_batches):
-                await write_batch()
-                # give the auto-partitioning actuator time to measure and split
-                await asyncio.sleep(1.5)
-                if len((await driver.topic_client.describe_topic(path)).partitions) > partitions_before:
-                    split_observed = True
-                    break
+            await write_batch(50)
 
-            if split_observed:
-                for _ in range(3):
-                    await write_batch()
+            await driver.topic_client.alter_topic(path, set_min_active_partitions=2)
+            description = await wait_for_partitions(2)
+            assert len(description.partitions) == 3
+            root = next(partition for partition in description.partitions if not partition.parent_partition_ids)
+            active_ids = {partition.partition_id for partition in description.partitions if partition.active}
+            assert not root.active
+            assert set(root.child_partition_ids) == active_ids
+            await write_batch(100)
+
+            await driver.topic_client.alter_topic(path, set_min_active_partitions=4)
+            description = await wait_for_partitions(4)
+            assert len(description.partitions) == 7
+            await write_batch(100)
 
         total = written
-        partitions_after = len((await driver.topic_client.describe_topic(path)).partitions)
-        if not split_observed:
-            # Auto-partitioning did not split the topic in this environment (single-node
-            # clusters often don't actuate). The split/resend path is covered deterministically
-            # by the unit tests; here we only assert exactly-once when a split actually happened.
-            pytest.skip("topic did not split under load; resend path covered by unit tests")
-
         seen = set()
         last_by_key = {}
-        deadline = asyncio.get_running_loop().time() + 120
         async with driver.topic_client.reader(path, consumer=topic_consumer) as reader:
-            # Drain beyond the last expected ID: a duplicate can be the final record.
             while True:
-                remaining = deadline - asyncio.get_running_loop().time()
-                assert remaining > 0, "reader did not drain the split topic within 120 seconds"
                 try:
-                    message = await asyncio.wait_for(reader.receive_message(), timeout=min(30, remaining))
+                    message = await asyncio.wait_for(
+                        reader.receive_message(),
+                        timeout=30 if len(seen) < total else 2,
+                    )
                 except asyncio.TimeoutError:
+                    assert len(seen) == total, "reader did not receive all messages"
                     break
-                index = int(message.data.split(b":", 1)[0])
+                index_raw, key_raw = message.data.split(b":", 1)
+                index = int(index_raw)
+                key = key_raw.decode()
                 assert index not in seen, "resend produced duplicate message %d" % index
-                key = index % 32
-                assert index > last_by_key.get(key, -1), "messages for key k%d were reordered" % key
+                assert index > last_by_key.get(key, -1), "messages for key %s were reordered" % key
                 last_by_key[key] = index
                 seen.add(index)
                 reader.commit(message)
 
-        assert seen == set(range(total)), "some messages were lost (partitions %d->%d)" % (
-            partitions_before,
-            partitions_after,
-        )
+        assert seen == set(range(total)), "some messages were lost"
 
 
 class TestTopicMultiWriterSync:
