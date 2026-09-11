@@ -170,6 +170,9 @@ Use ``topic_client.writer()`` as a context manager (recommended) or create it ma
     finally:
         writer.close()
 
+With ``close(flush=True)``, the writer keeps reconnecting as needed until pending writes
+finish. A transport disconnect during this wait does not stop recovery.
+
 
 Writer Parameters
 ^^^^^^^^^^^^^^^^^
