@@ -177,12 +177,26 @@ jobs:
       - name: Determine baseline commit
         id: baseline
         working-directory: sdk-current
+        env:
+          SLO_SCENARIO: ${{ matrix.sdk.name }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
           set -euo pipefail
           BASELINE=$(git merge-base HEAD origin/main)
-          echo "sha=${BASELINE}" >> "$GITHUB_OUTPUT"
 
-          if git merge-base --is-ancestor "${BASELINE}" origin/main && \
+          if [ "${SLO_SCENARIO}" = "sync-topic-multiwriter" ] && \
+             ! git grep -q -F 'def multiwriter(' "${BASELINE}" -- ydb/topic.py; then
+            # Before the API reaches main, compare against the preceding SDK implementation.
+            # Harness-only commits must not turn this into a comparison with identical SDK code.
+            LAST_IMPLEMENTATION=$(git log -1 --format=%H "${PR_HEAD_SHA}" -- \
+              ydb/_topic_writer ydb/topic.py ':(exclude)**/*_test.py')
+            BASELINE=$(git rev-parse "${LAST_IMPLEMENTATION}^")
+            if ! git grep -q -F 'def multiwriter(' "${BASELINE}" -- ydb/topic.py; then
+              echo "No earlier multiwriter implementation is available for comparison." >&2
+              exit 1
+            fi
+            BASELINE_REF="previous-multiwriter@${BASELINE:0:7}"
+          elif git merge-base --is-ancestor "${BASELINE}" origin/main && \
              [ "$(git rev-parse origin/main)" = "${BASELINE}" ]; then
             BASELINE_REF="main"
           else
@@ -193,6 +207,7 @@ jobs:
               BASELINE_REF="${BASELINE:0:7}"
             fi
           fi
+          echo "sha=${BASELINE}" >> "$GITHUB_OUTPUT"
           echo "ref=${BASELINE_REF}" >> "$GITHUB_OUTPUT"
 
       - name: Checkout baseline SDK version
@@ -231,6 +246,7 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           workload_name: ${{ matrix.sdk.name }}
           workload_duration: "600"
+          fail_on_workload_error: "true"
           workload_current_ref: ${{ github.head_ref || github.ref_name }}
           workload_current_image: ydb-app-current
           workload_current_command: ${{ matrix.sdk.command }}
