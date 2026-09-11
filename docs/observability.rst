@@ -12,10 +12,11 @@ The same layer also exposes **client-side metrics** (operation latency and failu
 retry cost, query session pool state) through :func:`ydb.observability.enable_metrics`.
 Tracing and metrics are independent — enable either, both, or neither.
 
-Observability is **zero-cost when disabled**: until you install a backend every span is a
-no-op stub and every metric is dropped by a no-op provider, and the SDK never imports
-``opentelemetry`` — or any other backend — on its own. The dependency is pulled in only
-when you explicitly opt into a concrete backend.
+Observability has a **zero-cost no-op path when disabled**: operations, query sessions,
+and pools share no-op instrumentation without metric allocations, timers, locks, or
+state tracking. The SDK never imports ``opentelemetry`` — or any other backend — on its
+own. Backend dependencies are pulled in only when you explicitly opt into a concrete
+backend.
 
 
 The Tracing Interface
@@ -266,6 +267,19 @@ Client-side metrics are enabled independently of tracing:
     enable_metrics(provider)   # install a metrics backend
     disable_metrics()          # turn metrics off — back to the no-op default
 
+Operation and retry metrics follow the currently active provider immediately. Call
+``enable_metrics`` before creating query sessions or a ``QuerySessionPool`` whose
+lifecycle should be instrumented. Session and pool lifecycle trackers created while
+metrics are disabled keep shared no-op instrumentation and are not retrofitted later.
+
+Calling ``enable_metrics`` again replaces the active backend. New events go to the new
+backend, while operations and wait timers already in flight finish on the backend on
+which they started. Observable callbacks registered by an old backend become inactive.
+Pools that were created while metrics were active retain their lightweight lifecycle
+state across ``disable_metrics`` / re-enable, so a replacement backend observes their
+current values. Pools created while metrics were disabled retain no-op lifecycle
+instrumentation.
+
 For OpenTelemetry the built-in convenience is ``ydb.opentelemetry.enable_metrics``,
 which builds an OTel-backed provider from a meter provider and installs it here — see
 the :doc:`opentelemetry` page for the meter-provider and exporter setup.
@@ -323,6 +337,9 @@ adapter maps them to instruments on the ``"ydb.sdk"`` meter):
    * - ``ydb.query.session.count``
      - ObservableUpDownCounter
      - Current number of open query sessions by pool and ``ydb.query.session.state`` (``idle`` / ``used``).
+   * - ``ydb.query.session.closed``
+     - Counter
+     - Closed query sessions by pool and closure ``reason``.
    * - ``ydb.query.session.max``
      - ObservableUpDownCounter
      - Maximum configured number of sessions for a query session pool.
@@ -363,6 +380,27 @@ the SDK falls back to the driver connection string ``<endpoint><database>`` (e.g
 ``grpc://localhost:2136/local``) so the pool is identifiable out of the box. Pass
 ``QuerySessionPool(..., name="main-pool")`` (sync or async) when several pools share a
 connection string. Retry metrics are recorded without attributes.
+
+``ydb.query.session.closed`` uses these ``reason`` values:
+
+* ``pool_idle_timeout`` — the idle-session cleaner removes a session. Python's
+  ``QuerySessionPool`` has no idle-session timeout lifecycle, so it does not currently
+  emit this reason.
+* ``pool_graceful_shutdown`` — pool shutdown removes a session.
+* ``client_timeout`` — a query stream exceeds its client-side transport timeout.
+* ``client_cancelled`` — the client closes an unfinished query stream.
+* ``attach_closed`` — the server closes the active attach stream.
+* ``transport_error`` — an ``UNAVAILABLE`` status or a connection, query-stream, or
+  attach-stream transport failure retires the session.
+* ``node_shutdown`` — the server sends a node shutdown hint.
+* ``session_shutdown`` — the server sends a session shutdown hint.
+* ``bad_session`` — the server returns ``BAD_SESSION`` or ``SESSION_EXPIRED``.
+* ``session_busy`` — the server returns ``SESSION_BUSY``.
+
+Only an active session managed by a client pool publishes this metric. Failure of the
+initial attach handshake does not count as closing an active session, and standalone
+``QuerySession`` instances do not publish pool metrics. A session publishes at most one
+closure event; the first terminal reason wins.
 
 Writing a Custom Metrics Backend
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -410,5 +448,7 @@ through ``add``, and the three *ObservableUpDownCounter* gauges
 that has no notion of asynchronous gauges can simply store the callbacks (or ignore
 them); the SDK never pushes those values, so nothing is lost elsewhere.
 
-``disable_metrics()`` clears the SDK-side gauge state and reverts to the no-op default,
-so recording calls become cheap no-ops again.
+``disable_metrics()`` reverts event recording to the no-op default and deactivates the
+current backend's gauge callbacks. Trackers belonging to already instrumented pools
+remain available so a replacement backend starts with an accurate snapshot; pool and
+session lifecycle trackers that started on the no-op path remain no-ops.
