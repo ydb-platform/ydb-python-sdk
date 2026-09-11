@@ -126,6 +126,7 @@ def test_metrics_registry_records_all_instruments(metrics_setup, monkeypatch):
     session_metrics = SessionMetrics()
     session_metrics.pool_name = "main"
     session_metrics.count_open()
+    session_metrics.count_open()
     session_metrics.count_closed("pool_graceful_shutdown")
     record_query_session_create_time(0.5, "main")
     record_query_session_max(100, "main")
@@ -253,8 +254,11 @@ def test_metrics_registry_is_noop_without_meter(monkeypatch):
     assert operation.attach_context() is operation.attach_context()
     operation.set_error(ValueError("noop"))
     operation.set_attribute("database", "/db")
+    operation.end()
     with operation:
         pass
+    with operation.attach_context() as attached_operation:
+        assert attached_operation is operation
 
     pool_metrics = QuerySessionPoolMetrics("pool", object(), 10)
     session = MagicMock()
@@ -266,11 +270,27 @@ def test_metrics_registry_is_noop_without_meter(monkeypatch):
         pass
     session._session_metrics.count_closed("client_cancelled")
 
-    assert create_session_metrics() is _NOOP_SESSION_METRICS
-    assert create_query_session_pool_metrics("disabled", object(), 10) is _NOOP_QUERY_SESSION_POOL_METRICS
+    noop_session_metrics = create_session_metrics()
+    assert noop_session_metrics is _NOOP_SESSION_METRICS
+    noop_session_metrics.count_open()
+    noop_session_metrics.count_closed("client_cancelled")
+    noop_session_metrics.bind("disabled")
+    noop_session_metrics.transition("idle")
+
+    noop_pool_metrics = create_query_session_pool_metrics("disabled", object(), 10)
+    assert noop_pool_metrics is _NOOP_QUERY_SESSION_POOL_METRICS
+    noop_session = MagicMock()
+    noop_pool_metrics.attach(noop_session)
+    with noop_pool_metrics.measure_create(), noop_pool_metrics.track_pending():
+        pass
+    noop_pool_metrics.on_timeout()
+    noop_pool_metrics.on_acquired(noop_session)
+    noop_pool_metrics.on_released(noop_session)
+    noop_pool_metrics.close()
 
     assert not monotonic.called
     assert not noop_add.called
+    pool_metrics.close()
     pool_metrics.close()
 
 
@@ -299,6 +319,15 @@ def test_metrics_operation_records_duration_once(metrics_setup, monkeypatch):
         "endpoint": "localhost:2136",
         "operation.name": "ExecuteQuery",
     }
+
+
+def test_metrics_operation_context_records_duration(metrics_setup):
+    from ydb.observability.metrics import CLIENT_OPERATION_DURATION, create_metrics_operation
+
+    with create_metrics_operation("ExecuteQuery"):
+        pass
+
+    assert _single_point(metrics_setup, CLIENT_OPERATION_DURATION).count == 1
 
 
 def test_metrics_operation_records_ydb_error(metrics_setup, monkeypatch):
@@ -531,6 +560,21 @@ def test_sync_query_session_pool_records_max(metrics_setup):
     assert _single_point(metrics_setup, QUERY_SESSION_MIN).value == 0
     assert _single_point(metrics_setup, QUERY_SESSION_MIN).attributes == {"ydb.query.session.pool.name": "sync-pool"}
     pool.stop()
+
+
+def test_duplicate_query_session_pool_name_uses_latest_size(metrics_setup):
+    from ydb.observability.metrics import QUERY_SESSION_MAX, QuerySessionPoolMetrics
+
+    first = QuerySessionPoolMetrics("shared", object(), 10)
+    second = QuerySessionPoolMetrics("shared", object(), 20)
+
+    try:
+        assert _single_point_for_pool(metrics_setup, QUERY_SESSION_MAX, "shared").value == 20
+        second.close()
+        assert _single_point_for_pool(metrics_setup, QUERY_SESSION_MAX, "shared").value == 10
+    finally:
+        first.close()
+        second.close()
 
 
 def test_sync_query_session_pool_stop_removes_observable_metrics(metrics_setup):
@@ -838,6 +882,27 @@ class TestOpenTelemetryPublicApi:
             disable_metrics()
             first_provider.shutdown()
             second_provider.shutdown()
+
+    def test_gauge_callback_drops_snapshot_if_provider_changes_during_collection(self):
+        from ydb.observability import disable_metrics, enable_metrics
+        from ydb.observability import metrics
+
+        first_provider = MagicMock()
+        second_provider = MagicMock()
+
+        disable_metrics()
+        enable_metrics(first_provider)
+        generation = metrics._provider_generation
+
+        def reconfigure_and_observe():
+            enable_metrics(second_provider)
+            return [(1, {"state": "stale"})]
+
+        callback = metrics._guard_gauge_callback(first_provider, generation, reconfigure_and_observe)
+        try:
+            assert callback() == ()
+        finally:
+            disable_metrics()
 
     def test_opentelemetry_enable_recovers_after_vendor_neutral_disable(self):
         from ydb.observability import disable_metrics as disable_observability_metrics
@@ -1337,6 +1402,7 @@ class TestQuerySessionPoolMetricsInstrumentation:
 
         _assert_closed_metric(metrics_setup, pool_name, reason)
 
+    @pytest.mark.parametrize("async_", [False, True], ids=["sync", "async"])
     @pytest.mark.parametrize(
         ("status", "reason"),
         [
@@ -1346,12 +1412,20 @@ class TestQuerySessionPoolMetricsInstrumentation:
             (issues.StatusCode.UNAVAILABLE, "transport_error"),
         ],
     )
-    def test_attach_stream_status_records_closed_session(self, metrics_setup, status, reason):
-        session = self._counted_session("sync-pool")
+    @pytest.mark.asyncio
+    async def test_attach_stream_status_records_closed_session(self, metrics_setup, async_, status, reason):
+        pool_name = "async-pool" if async_ else "sync-pool"
+        session = self._counted_session(pool_name, async_=async_)
+        status = ServerStatus(status, [])
 
-        session._check_session_status_loop(iter([ServerStatus(status, [])]))
+        if async_:
+            session._status_stream = MagicMock()
+            session._status_stream.__aiter__.return_value = [status]
+            await session._check_session_status_loop()
+        else:
+            session._check_session_status_loop(iter([status]))
 
-        _assert_closed_metric(metrics_setup, "sync-pool", reason)
+        _assert_closed_metric(metrics_setup, pool_name, reason)
 
     @pytest.mark.parametrize("case", ["attach_status_error", "non_terminal_query_error", "no_client_pool"])
     def test_session_close_not_reported_without_matching_pool_lifecycle(self, metrics_setup, case):
@@ -1458,6 +1532,57 @@ class TestQuerySessionPoolMetricsInstrumentation:
 
         assert session.is_closed
         assert _points(metrics_setup, QUERY_SESSION_CLOSED) == []
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("async_", [False, True], ids=["sync", "async"])
+    @pytest.mark.parametrize("closed_before_count", [False, True], ids=["open", "closed"])
+    async def test_initial_attach_counts_only_open_session(
+        self, metrics_setup, monkeypatch, async_, closed_before_count
+    ):
+        QuerySession = AsyncQuerySession if async_ else SyncQuerySession
+        module = "ydb.aio.query.session" if async_ else "ydb.query.session"
+        session = QuerySession(MagicMock())
+        session._session_id = "session-1"
+        session._session_metrics.pool_name = "async-pool" if async_ else "sync-pool"
+        stream = MagicMock()
+        session._attach_call = AsyncMock(return_value=stream) if async_ else MagicMock(return_value=stream)
+        status_stream = MagicMock()
+
+        if async_:
+            status_stream.__aiter__.return_value = []
+            monkeypatch.setattr(module + "._utilities.AsyncResponseIterator", lambda *args: status_stream)
+
+            async def first_response(*args):
+                if closed_before_count:
+                    session._close_session(invalidate=True)
+                return ServerStatus(issues.StatusCode.SUCCESS, [])
+
+            def discard_task(coroutine, name):
+                coroutine.close()
+
+            session._loop = MagicMock()
+            session._loop.create_task.side_effect = discard_task
+        else:
+            monkeypatch.setattr(module + "._utilities.SyncResponseIterator", lambda *args: status_stream)
+
+            def first_response(*args):
+                if closed_before_count:
+                    session._close_session(invalidate=True)
+                return ServerStatus(issues.StatusCode.SUCCESS, [])
+
+            monkeypatch.setattr(module + ".threading.Thread", MagicMock())
+
+        monkeypatch.setattr(module + "._utilities.get_first_message_with_timeout", first_response)
+
+        if async_:
+            await session._attach()
+        else:
+            session._attach()
+
+        assert session.is_closed is closed_before_count
+        assert session._session_metrics._counted is not closed_before_count
+        assert _points(metrics_setup, QUERY_SESSION_CLOSED) == []
+        session._close_session()
 
     @pytest.mark.asyncio
     async def test_async_pool_acquire_from_queue_updates_session_count(self, metrics_setup):

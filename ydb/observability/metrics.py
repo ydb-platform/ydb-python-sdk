@@ -155,8 +155,6 @@ def _observe_session_count() -> List[Tuple[float, Dict[str, Any]]]:
     with _gauge_lock:
         values = dict(_session_count_state)
         for session_metrics in _live_session_metrics:
-            if not session_metrics._counted:
-                continue
             attrs = _pool_attrs(session_metrics.pool_name)
             attrs["ydb.query.session.state"] = session_metrics.state
             key = tuple(sorted(attrs.items()))
@@ -169,12 +167,9 @@ def _observe_session_max() -> List[Tuple[float, Dict[str, Any]]]:
         # Preserve the current last-created-wins behavior for duplicate pool names.
         pools_by_key: Dict[Tuple, Tuple[int, int]] = {}
         for pool_metrics in _live_pool_metrics:
-            if pool_metrics._closed:
-                continue
             key = tuple(sorted(_pool_attrs(pool_metrics._pool_name).items()))
-            previous = pools_by_key.get(key)
-            if previous is None or previous[0] < pool_metrics._registration_id:
-                pools_by_key[key] = (pool_metrics._registration_id, pool_metrics._size)
+            current = (pool_metrics._registration_id, pool_metrics._size)
+            pools_by_key[key] = max(pools_by_key.get(key, (0, 0)), current)
 
         values = {key: value for key, (_, value) in pools_by_key.items()}
         values.update(_session_max_state)
