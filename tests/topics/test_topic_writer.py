@@ -438,9 +438,7 @@ class TestTopicMultiWriterAsyncIO:
         assert seen == total
 
     async def test_write_by_key_survives_partition_split(self, driver, database, topic_consumer):
-        # Aggressive auto-partitioning + a low write-speed limit force the topic to split
-        # under load, exercising the resend path. The test keeps writing until a split is
-        # observed, then asserts exactly-once delivery (no loss, no duplicates).
+        # Continue writing after the observed split so the writer must update its routing.
         path = database + "/mw-split"
         await self._recreate(
             driver,
@@ -456,43 +454,58 @@ class TestTopicMultiWriterAsyncIO:
         payload = b"x" * 512
         written = 0
         max_batches = 15
+        split_observed = False
         async with driver.topic_client.multiwriter(path, producer_id_prefix="mw-split") as writer:
-            for _ in range(max_batches):
+
+            async def write_batch():
+                nonlocal written
                 for _ in range(100):
                     await writer.write(
                         ydb.TopicWriterMessage(data=b"%d:%s" % (written, payload), key="k%d" % (written % 32))
                     )
                     written += 1
                 await writer.flush()
+
+            for _ in range(max_batches):
+                await write_batch()
                 # give the auto-partitioning actuator time to measure and split
                 await asyncio.sleep(1.5)
                 if len((await driver.topic_client.describe_topic(path)).partitions) > partitions_before:
+                    split_observed = True
                     break
-            await writer.flush()
+
+            if split_observed:
+                for _ in range(3):
+                    await write_batch()
 
         total = written
         partitions_after = len((await driver.topic_client.describe_topic(path)).partitions)
-        if partitions_after <= partitions_before:
+        if not split_observed:
             # Auto-partitioning did not split the topic in this environment (single-node
             # clusters often don't actuate). The split/resend path is covered deterministically
             # by the unit tests; here we only assert exactly-once when a split actually happened.
             pytest.skip("topic did not split under load; resend path covered by unit tests")
 
         seen = set()
-        duplicates = 0
+        last_by_key = {}
+        deadline = asyncio.get_running_loop().time() + 120
         async with driver.topic_client.reader(path, consumer=topic_consumer) as reader:
-            while len(seen) < total:
+            # Drain beyond the last expected ID: a duplicate can be the final record.
+            while True:
+                remaining = deadline - asyncio.get_running_loop().time()
+                assert remaining > 0, "reader did not drain the split topic within 120 seconds"
                 try:
-                    message = await asyncio.wait_for(reader.receive_message(), timeout=30)
+                    message = await asyncio.wait_for(reader.receive_message(), timeout=min(30, remaining))
                 except asyncio.TimeoutError:
                     break
                 index = int(message.data.split(b":", 1)[0])
-                if index in seen:
-                    duplicates += 1
+                assert index not in seen, "resend produced duplicate message %d" % index
+                key = index % 32
+                assert index > last_by_key.get(key, -1), "messages for key k%d were reordered" % key
+                last_by_key[key] = index
                 seen.add(index)
                 reader.commit(message)
 
-        assert duplicates == 0, "resend produced duplicate messages"
         assert seen == set(range(total)), "some messages were lost (partitions %d->%d)" % (
             partitions_before,
             partitions_after,

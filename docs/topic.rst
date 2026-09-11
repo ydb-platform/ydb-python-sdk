@@ -315,6 +315,15 @@ and buffer-limit parameters as :meth:`writer`, and exposes ``write``, ``write_wi
 topic has been described and the partition set is known, and (unlike the single-partition writer)
 returns nothing, because the multi-writer manages a stream per partition rather than one stream.
 
+With ``auto_seqno=False``, supply a positive ``seqno`` for every message. Numbers must strictly
+increase across the whole multi-writer, including messages routed to different partitions.
+Both automatic and manual sequence numbers are preserved on resend, including split and merge.
+
+Cancelling or timing out a call that is waiting for initialization does not cancel the shared
+initialization. Other waiters and subsequent writes can still complete. Closing the writer
+cancels unfinished initialization and waits for its task to stop. Each ``DescribeTopic`` RPC
+has a separate 30-second timeout; a caller's shorter wait timeout does not shorten that RPC.
+
 The multi-writer copies each message and its metadata when accepting a write. Later changes to
 the original message do not change an accepted write or its retries. An automatically assigned
 creation timestamp is also preserved across retries.
@@ -342,6 +351,17 @@ call. Closing still releases the underlying writers before raising the error. Us
    retried before updating routing. If recovery cannot find a complete topology or deliver an
    accepted message within its retry limits, the affected messages fail explicitly and the
    error is reported by ``flush()`` and ``close(flush=True)``.
+
+   When multiple parents share a descendant, recovery stops all affected parents and reads
+   each producer's cut before sending any of their messages. It filters each parent's tail
+   against that parent's cut, then sends the combined remainder in increasing sequence-number
+   order. New writes cannot overtake this transfer. If a destination producer's existing history
+   conflicts with a carried sequence number, the affected message fails explicitly instead of
+   being renumbered or reported as already written.
+
+   This client-side handling of merge does not enable server-side automatic merge. Its
+   availability depends on the target server. Recovery also follows intermediate inactive
+   partitions, including a merge followed by a split.
 
 
 Writer Backpressure

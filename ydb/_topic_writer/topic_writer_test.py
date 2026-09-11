@@ -509,6 +509,51 @@ class TestTopicWriterMultiSync:
     on the shared loop and report closure honestly. These check that nothing is dropped or
     silently reordered on the way across the thread boundary."""
 
+    @pytest.mark.parametrize("close_during_describe", [False, True])
+    def test_describe_does_not_block_loop_or_inherit_waiter_timeout(self, background_loop, close_during_describe):
+        started = threading.Event()
+        release = threading.Event()
+        request_settings = []
+
+        class DelayedDriver:
+            def __call__(self, request, stub, method, wrapper, settings=None):
+                request_settings.append(settings)
+                started.set()
+                if not release.wait(timeout=2):
+                    raise RuntimeError("DescribeTopic blocked the event loop")
+                return mock.Mock(
+                    to_public=mock.Mock(
+                        return_value=mock.Mock(
+                            partitions=[_partition_info(0)],
+                            auto_partitioning_settings=None,
+                        )
+                    )
+                )
+
+        settings = MultiWriterSettings(topic="/local/topic", writer_idle_timeout_sec=0)
+        writer = TopicWriterMultiSync(DelayedDriver(), settings, eventloop=background_loop)
+        try:
+            assert started.wait(timeout=1)
+            asyncio.run_coroutine_threadsafe(asyncio.sleep(0), background_loop).result(timeout=1)
+            with pytest.raises(TimeoutError):
+                writer.wait_init(timeout=0.01)
+
+            if close_during_describe:
+                writer.close(flush=False, timeout=1)
+            release.set()
+            asyncio.run_coroutine_threadsafe(background_loop.shutdown_default_executor(), background_loop).result(1)
+            if close_during_describe:
+                assert writer._async_writer._init_task.cancelled()
+                assert not writer._async_writer._partitions
+            else:
+                writer.wait_init(timeout=1)
+                writer.flush(timeout=1)
+            assert len(request_settings) == 1
+            assert request_settings[0].timeout == 30
+        finally:
+            release.set()
+            writer.close(flush=False, timeout=1)
+
     @pytest.fixture
     def writer(self, background_loop, monkeypatch):
         monkeypatch.setattr(
