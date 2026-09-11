@@ -170,6 +170,9 @@ Use ``topic_client.writer()`` as a context manager (recommended) or create it ma
     finally:
         writer.close()
 
+With ``close(flush=True)``, the writer keeps reconnecting as needed until pending writes
+finish. A transport disconnect during this wait does not stop recovery.
+
 
 Writer Parameters
 ^^^^^^^^^^^^^^^^^
@@ -257,6 +260,111 @@ For high-throughput pipelines, buffer writes and gather futures:
     for f in futures:
         if f.exception():
             raise f.exception()
+
+
+Writing by Key (Multiple Partitions)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+A regular writer targets a single partition for its whole lifetime. To spread load across
+all partitions of a topic from one logical writer — while keeping every message with the same
+key on the same partition (so per-key ordering is preserved) — use ``topic_client.multiwriter()``.
+
+Each message carries a ``key``; the writer hashes it and routes the message to the owning
+partition, maintaining a separate underlying writer per partition. This is the client-side
+companion to auto-partitioning.
+
+**Synchronous:**
+
+.. code-block:: python
+
+    with driver.topic_client.multiwriter("/local/my-topic") as writer:
+        writer.write(ydb.TopicWriterMessage(data="event", key="user-42"))
+        writer.write(ydb.TopicWriterMessage(data="event", key="user-7"))
+
+**Asynchronous:**
+
+.. code-block:: python
+
+    async with driver.topic_client.multiwriter("/local/my-topic") as writer:
+        await writer.write(ydb.TopicWriterMessage(data="event", key="user-42"))
+
+**Partition choosers** decide how a key maps to a partition. By default the writer picks one
+automatically after describing the topic — the key-range chooser for auto-partitioned topics,
+the Kafka-hash chooser otherwise — so ``multiwriter(topic)`` works out of the box. You can also
+set one explicitly:
+
+* :class:`~ydb.TopicWriterPartitionByKeyBound` — hashes the key and selects the partition whose
+  server-side key range owns it. Mirrors YDB auto-partitioning, so a key lands where the server
+  expects it. Used automatically for auto-partitioned topics.
+* :class:`~ydb.TopicWriterPartitionByKeyKafka` — Kafka-compatible routing for topics
+  with a fixed partition count. Hashes the UTF-8 key bytes with 32-bit MurmurHash2
+  and seed ``0x9747b28c``, then computes ``(hash & 0x7fffffff) % partitions_count``.
+  The result is an index into partition IDs sorted in ascending order. Compatibility
+  requires identical key bytes and partition IDs; changing the partition set can
+  route an existing key to a different partition. Missing and empty keys are hashed
+  as empty bytes; this differs from Kafka's handling of a missing key.
+
+.. code-block:: python
+
+    writer = driver.topic_client.multiwriter(
+        "/local/my-topic",
+        partition_chooser=ydb.TopicWriterPartitionByKeyBound(),
+        producer_id_prefix="my-app",  # each partition writer uses "<prefix>-<partition_id>"
+    )
+
+The multi-writer accepts the same ``codec``, ``encoders``, ``auto_seqno``, ``auto_created_at``
+and buffer-limit parameters as :meth:`writer`, and exposes ``write``, ``write_with_ack``,
+``flush`` and ``close`` with the same semantics. ``wait_init()`` differs: it waits until the
+topic has been described and the partition set is known, and (unlike the single-partition writer)
+returns nothing, because the multi-writer manages a stream per partition rather than one stream.
+
+With ``auto_seqno=False``, supply a positive ``seqno`` for every message. Numbers must strictly
+increase across the whole multi-writer, including messages routed to different partitions.
+Both automatic and manual sequence numbers are preserved on resend, including split and merge.
+
+Cancelling or timing out a call that is waiting for initialization does not cancel the shared
+initialization. Other waiters and subsequent writes can still complete. Closing the writer
+cancels unfinished initialization and waits for its task to stop. Each ``DescribeTopic`` RPC
+has a separate 30-second timeout; a caller's shorter wait timeout does not shorten that RPC.
+
+The multi-writer copies each message and its metadata when accepting a write. Later changes to
+the original message do not change an accepted write or its retries. An automatically assigned
+creation timestamp is also preserved across retries.
+
+If an accepted write fails permanently, its acknowledgement future, ``flush()`` and
+``close(flush=True)`` report the error, including when it happened before the flush or close
+call. Closing still releases the underlying writers before raising the error. Use
+``close(flush=False)`` to abandon pending writes without waiting for delivery.
+
+.. note::
+
+   When an auto-partitioned partition is split (one into two) or merged (two into one), the
+   multi-writer re-describes the topic, routes subsequent keys to the new child partition(s), and
+   transparently resends the messages that were still in flight to the retired partition(s).
+
+   Which of those messages to resend is decided by asking the server how far the retired
+   partition's producer actually got, not by looking at the acknowledgements the client happened
+   to receive: a message can be persisted and its acknowledgement lost together with the session
+   that a split tears down. Anything at or below that point is reported as written instead of
+   being sent again, so a split produces neither loss nor duplicates, and per-key ordering is
+   preserved throughout.
+
+   Recovery also refreshes routing when a selected partition cannot initialize and follows
+   cascaded splits to their active leaf partitions. An incomplete set of child key ranges is
+   retried before updating routing. If recovery cannot find a complete topology or deliver an
+   accepted message within its retry limits, the affected messages fail explicitly and the
+   error is reported by ``flush()`` and ``close(flush=True)``.
+
+   When multiple parents share a descendant, recovery stops all affected parents and reads
+   each producer's cut before sending any of their messages. It filters each parent's tail
+   against that parent's cut, then sends the combined remainder in increasing sequence-number
+   order. New writes cannot overtake this transfer. If a destination producer's existing history
+   conflicts with a carried sequence number, the affected message fails explicitly instead of
+   being renumbered or reported as already written.
+
+   This client-side handling of merge does not enable server-side automatic merge. Its
+   availability depends on the target server. Recovery also follows intermediate inactive
+   partitions, including a merge followed by a split.
 
 
 Writer Backpressure
