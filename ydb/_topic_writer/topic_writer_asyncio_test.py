@@ -511,6 +511,47 @@ class TestWriterAsyncIOReconnector:
             finally:
                 await reconnector.close(False)
 
+    async def test_close_with_flush_reconnects_after_transport_cancel(
+        self, default_driver, default_settings, get_stream_writer, monkeypatch
+    ):
+        original_receive = self.StreamWriterMock.receive
+
+        async def cancellable_receive(stream):
+            response = await original_receive(stream)
+            if isinstance(response, asyncio.CancelledError):
+                raise response
+            return response
+
+        monkeypatch.setattr(self.StreamWriterMock, "receive", cancellable_receive)
+        reconnector = WriterAsyncIOReconnector(default_driver, default_settings)
+        close_task = None
+        try:
+            first = get_stream_writer()
+            futures = await reconnector.write_with_ack_future([PublicMessage(data=b"pending", seqno=1)])
+            await asyncio.wait_for(first.from_client.get(), timeout=1)
+            close_task = asyncio.create_task(reconnector.close(flush=True))
+            await asyncio.sleep(0)
+            assert reconnector._closed and not close_task.done()
+
+            first.from_server.put_nowait(asyncio.CancelledError())
+            second = get_stream_writer()
+            resent = await asyncio.wait_for(second.from_client.get(), timeout=1)
+            assert [message.seq_no for message in resent] == [1]
+            second.from_server.put_nowait(self.make_default_ack_message(seq_no=1))
+
+            await asyncio.wait_for(close_task, timeout=1)
+            assert isinstance(futures[0].result(), PublicWriteResult.Written)
+            assert all(task.done() for task in reconnector._background_tasks)
+        finally:
+            reconnector._stop(TopicWriterStopped())
+            tasks = list(reconnector._background_tasks)
+            if close_task is not None:
+                tasks.append(close_task)
+            for task in tasks:
+                task.cancel()
+            await asyncio.gather(*tasks, return_exceptions=True)
+            reconnector._stop_reason.exception()
+
     async def test_stop_on_unexpected_exception(self, reconnector: WriterAsyncIOReconnector, get_stream_writer):
         class TestException(Exception):
             pass

@@ -534,7 +534,8 @@ class WriterAsyncIOReconnector:
                 done.pop().result()  # need for raise exception - reason of stop task
             except (asyncio.CancelledError, issues.Error) as err:
                 if isinstance(err, asyncio.CancelledError):
-                    if self._closed:
+                    # close(flush=True) still needs reconnects until pending writes are acked.
+                    if self._stop_reason.done():
                         return
                     err = issues.ConnectionLost("gRPC stream cancelled")
 
