@@ -10,10 +10,10 @@ context to the YDB server through gRPC metadata using the
 records client-side OpenTelemetry instruments for the same operations, retries, and
 query session pools.
 
-Like every backend, it has **low overhead when disabled**: spans, event recording, and
-metric timers use no-op paths, and the SDK does not import ``opentelemetry`` until you
-call ``enable_tracing()`` or ``enable_metrics()``. Lightweight query-session lifecycle
-state is retained so metrics can be enabled later with accurate pool gauges.
+Like every backend, it has a **zero-cost no-op path when disabled**: operations, query
+sessions, and pools share no-op instrumentation without metric allocations, timers,
+locks, or state tracking. The SDK does not import ``opentelemetry`` until you call
+``enable_tracing()`` or ``enable_metrics()``.
 
 
 Installation
@@ -93,7 +93,8 @@ Enabling Metrics
 ----------------
 
 Metrics are independent from tracing — enable either or both. Configure your
-OpenTelemetry meter provider, then call ``enable_metrics()``:
+OpenTelemetry meter provider, then call ``enable_metrics()`` before creating query
+sessions or a ``QuerySessionPool`` whose lifecycle should be instrumented:
 
 .. code-block:: python
 
@@ -128,8 +129,11 @@ OpenTelemetry meter provider, then call ``enable_metrics()``:
 obtains a meter named ``"ydb.sdk"`` from the global meter provider. The call is
 idempotent: repeated ``enable_metrics()`` calls do nothing until you call
 ``disable_metrics()``. Disabling deactivates the old observable callbacks and restores
-the no-op event provider. Live query-session state is retained, so enabling metrics
-again — including with another meter provider — starts from the current pool snapshot.
+the no-op event provider. Operation and retry metrics follow the active provider
+immediately. Pools created while metrics were active retain their state, so enabling
+metrics again — including with another meter provider — starts from their current
+snapshot. Pools created while metrics were disabled retain no-op lifecycle
+instrumentation.
 
 The full list of instruments and their attributes is catalogued on the
 :doc:`observability` page.

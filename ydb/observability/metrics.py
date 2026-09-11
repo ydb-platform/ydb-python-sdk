@@ -2,10 +2,11 @@
 
 The SDK records metrics only after :func:`ydb.observability.enable_metrics` installs a
 concrete :class:`MetricsProvider` (OpenTelemetry in :mod:`ydb.opentelemetry`, or any
-custom one). Until then event recording and timing are cheap no-ops, while lightweight
-query-session lifecycle state is retained so metrics can be enabled later without
-losing or corrupting gauge values. Metrics stay independent from tracing, and the SDK
-never depends on ``opentelemetry`` being importable.
+custom one). Until then operations, query sessions and pools share no-op
+instrumentation without metric allocations, timers, locks or state tracking. Metrics
+stay independent from tracing, and the SDK never depends on ``opentelemetry`` being
+importable. Enable metrics before creating query sessions or pools whose lifecycle
+should be instrumented.
 
 A provider handles three instrument kinds:
 
@@ -135,9 +136,10 @@ _provider: MetricsProvider = _NOOP_PROVIDER
 _provider_generation = 0
 _provider_lock = threading.Lock()
 
-# Live session and pool trackers are kept independently from the active provider. This
-# lets a newly installed provider immediately observe the current state and prevents a
-# disable/re-enable cycle from manufacturing negative counts.
+# Trackers created while metrics are active live independently from the current
+# provider. This lets a replacement provider observe their current state and prevents
+# a disable/re-enable cycle from manufacturing negative counts. Objects created while
+# metrics are disabled use shared no-op trackers and never enter these registries.
 _gauge_lock = threading.Lock()
 _session_count_state: Dict[Tuple, int] = {}
 _session_max_state: Dict[Tuple, int] = {}
@@ -368,6 +370,8 @@ class MetricsOperation:
 
 
 class _NoopMetricsOperation:
+    __slots__ = ()
+
     def set_error(self, exception: BaseException) -> None:
         pass
 
@@ -375,7 +379,7 @@ class _NoopMetricsOperation:
         pass
 
     def attach_context(self, end_on_exit=True) -> "_NoopMetricsOperationContext":
-        return _NoopMetricsOperationContext(self)
+        return _NOOP_METRICS_OPERATION_CONTEXT
 
     def end(self) -> None:
         pass
@@ -418,6 +422,7 @@ class _MetricsOperationContext:
 
 
 _NOOP_METRICS_OPERATION = _NoopMetricsOperation()
+_NOOP_METRICS_OPERATION_CONTEXT = _NoopMetricsOperationContext(_NOOP_METRICS_OPERATION)
 
 
 def create_metrics_operation(name: str, attributes: Optional[Dict[str, Any]] = None):
@@ -484,6 +489,8 @@ def record_retry_metrics(duration: float, attempts: int) -> None:
 
 
 class _NoopContext:
+    __slots__ = ()
+
     def __enter__(self):
         return self
 
@@ -497,9 +504,10 @@ _NOOP_CM = _NoopContext()
 class SessionMetrics:
     """Per-session query-session-count bookkeeping, kept out of the session's own code.
 
-    Every :class:`~ydb.query.session.BaseQuerySession` owns one. It registers the
-    session as open exactly once and removes it on close; the pool updates :attr:`state`
-    and :attr:`pool_name` as the session moves between idle and used.
+    Every instrumented :class:`~ydb.query.session.BaseQuerySession` owns one. It
+    registers the session as open exactly once and removes it on close; the pool
+    updates :attr:`state` and :attr:`pool_name` as the session moves between idle and
+    used. Uninstrumented sessions share :data:`_NOOP_SESSION_METRICS` instead.
     """
 
     __slots__ = ("pool_name", "state", "_counted", "__weakref__")
@@ -548,6 +556,8 @@ class SessionMetrics:
 class _NoopSessionMetrics(SessionMetrics):
     """Class-level default so sessions built bypassing ``__init__`` (in tests) stay safe."""
 
+    __slots__ = ()
+
     def count_open(self) -> None:
         pass
 
@@ -562,6 +572,11 @@ class _NoopSessionMetrics(SessionMetrics):
 
 
 _NOOP_SESSION_METRICS = _NoopSessionMetrics()
+
+
+def create_session_metrics() -> SessionMetrics:
+    """Return per-session metrics only when metrics are active at creation time."""
+    return SessionMetrics() if is_metrics_enabled() else _NOOP_SESSION_METRICS
 
 
 class _CreateTimer:
@@ -604,9 +619,9 @@ class _PendingTracker:
 class QuerySessionPoolMetrics:
     """All metric bookkeeping for one query session pool, hidden from the pool code.
 
-    The pool holds one instance and calls semantically named methods; timing and
-    counters live here. The pool registration remains live while metrics are disabled
-    so a later provider can observe an accurate snapshot immediately.
+    An instrumented pool holds one instance and calls semantically named methods;
+    timing and counters live here. Its registration remains live while metrics are
+    temporarily disabled so a replacement provider can observe an accurate snapshot.
     """
 
     def __init__(self, name: Optional[str], driver, size: int) -> None:
@@ -624,6 +639,8 @@ class QuerySessionPoolMetrics:
 
     def attach(self, session) -> None:
         """Bind this pool's label to a freshly created session."""
+        if session._session_metrics is _NOOP_SESSION_METRICS:
+            session._session_metrics = SessionMetrics()
         session._session_metrics.bind(self._pool_name)
 
     def measure_create(self):
@@ -654,6 +671,43 @@ class QuerySessionPoolMetrics:
                 return
             self._closed = True
             _live_pool_metrics.discard(self)
+
+
+class _NoopQuerySessionPoolMetrics:
+    """Shared pool instrumentation used when metrics are disabled at pool creation."""
+
+    __slots__ = ()
+
+    def attach(self, session) -> None:
+        session._session_metrics = _NOOP_SESSION_METRICS
+
+    def measure_create(self):
+        return _NOOP_CM
+
+    def track_pending(self):
+        return _NOOP_CM
+
+    def on_timeout(self) -> None:
+        pass
+
+    def on_acquired(self, session) -> None:
+        pass
+
+    def on_released(self, session) -> None:
+        pass
+
+    def close(self) -> None:
+        pass
+
+
+_NOOP_QUERY_SESSION_POOL_METRICS = _NoopQuerySessionPoolMetrics()
+
+
+def create_query_session_pool_metrics(name: Optional[str], driver, size: int):
+    """Create pool instrumentation only when metrics are active."""
+    if not is_metrics_enabled():
+        return _NOOP_QUERY_SESSION_POOL_METRICS
+    return QuerySessionPoolMetrics(name, driver, size)
 
 
 class _RetryMetrics:

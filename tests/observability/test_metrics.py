@@ -221,8 +221,12 @@ def test_metrics_registry_is_noop_without_meter(monkeypatch):
     from ydb.observability import disable_metrics
     from ydb.observability.metrics import (
         _NOOP_PROVIDER,
+        _NOOP_QUERY_SESSION_POOL_METRICS,
+        _NOOP_SESSION_METRICS,
         QuerySessionPoolMetrics,
         SessionMetrics,
+        create_query_session_pool_metrics,
+        create_session_metrics,
         create_metrics_operation,
         record_query_session_create_time,
         record_query_session_max,
@@ -246,6 +250,7 @@ def test_metrics_registry_is_noop_without_meter(monkeypatch):
     remove_query_session_pool_metrics("pool")
 
     operation = create_metrics_operation("ExecuteQuery")
+    assert operation.attach_context() is operation.attach_context()
     operation.set_error(ValueError("noop"))
     operation.set_attribute("database", "/db")
     with operation:
@@ -260,6 +265,9 @@ def test_metrics_registry_is_noop_without_meter(monkeypatch):
     with pool_metrics.measure_create(), pool_metrics.track_pending():
         pass
     session._session_metrics.count_closed("client_cancelled")
+
+    assert create_session_metrics() is _NOOP_SESSION_METRICS
+    assert create_query_session_pool_metrics("disabled", object(), 10) is _NOOP_QUERY_SESSION_POOL_METRICS
 
     assert not monotonic.called
     assert not noop_add.called
@@ -428,12 +436,15 @@ def test_create_ydb_span_records_metrics_when_tracing_is_active(metrics_setup, o
 def test_create_ydb_span_records_metrics_when_tracing_is_disabled(metrics_setup):
     from tests.observability.conftest import FakeDriverConfig
     from ydb.observability import disable_tracing
-    from ydb.observability.metrics import CLIENT_OPERATION_DURATION
+    from ydb.observability.metrics import CLIENT_OPERATION_DURATION, MetricsOperation
     from ydb.observability.tracing import create_ydb_span
 
     disable_tracing()
 
-    with create_ydb_span("ydb.ExecuteQuery", FakeDriverConfig()).attach_context():
+    operation = create_ydb_span("ydb.ExecuteQuery", FakeDriverConfig())
+    assert isinstance(operation, MetricsOperation)
+
+    with operation.attach_context():
         pass
 
     metric_attrs = _single_point(metrics_setup, CLIENT_OPERATION_DURATION).attributes
@@ -706,62 +717,106 @@ class TestOpenTelemetryPublicApi:
         assert not is_metrics_enabled()
         provider.shutdown()
 
-    def test_enable_metrics_after_pool_creation_observes_current_state(self):
+    def test_enable_metrics_does_not_retrofit_existing_pool(self):
         from ydb.observability.metrics import (
-            QUERY_SESSION_COUNT,
             QUERY_SESSION_MAX,
-            QuerySessionPoolMetrics,
-            SessionMetrics,
+            _NOOP_QUERY_SESSION_POOL_METRICS,
+            _NOOP_SESSION_METRICS,
         )
         from ydb.opentelemetry import disable_metrics, enable_metrics
+        from ydb.query.pool import QuerySessionPool
+        from ydb.query.session import QuerySession
 
         disable_metrics()
-        pool_metrics = QuerySessionPoolMetrics("late-enable", object(), 3)
-        session = MagicMock()
-        session._session_metrics = SessionMetrics()
-        pool_metrics.attach(session)
-        session._session_metrics.count_open()
-        pool_metrics.on_released(session)
+        pool = QuerySessionPool(driver=object(), size=3, name="late-enable")
+        assert pool._metrics is _NOOP_QUERY_SESSION_POOL_METRICS
 
         reader = InMemoryMetricReader()
         provider = MeterProvider(metric_readers=[reader])
         try:
             enable_metrics(provider)
-
-            count = _single_point_for_pool(reader, QUERY_SESSION_COUNT, "late-enable")
-            assert count.value == 1
-            assert count.attributes == {
-                "ydb.query.session.pool.name": "late-enable",
-                "ydb.query.session.state": "idle",
-            }
-            assert _single_point_for_pool(reader, QUERY_SESSION_MAX, "late-enable").value == 3
-
-            session._session_metrics.count_closed("client_cancelled")
-            assert _points_for_pool(reader, QUERY_SESSION_COUNT, "late-enable") == []
-            _assert_closed_metric(reader, "late-enable", "client_cancelled")
+            session = QuerySession(MagicMock())
+            assert session._session_metrics is not _NOOP_SESSION_METRICS
+            pool._metrics.attach(session)
+            assert session._session_metrics is _NOOP_SESSION_METRICS
+            assert _points_for_pool(reader, QUERY_SESSION_MAX, "late-enable") == []
         finally:
-            session._session_metrics.count_closed()
+            pool.stop()
+            disable_metrics()
+            provider.shutdown()
+
+    @pytest.mark.asyncio
+    async def test_enable_metrics_does_not_retrofit_existing_async_pool(self):
+        from ydb.aio.query.pool import QuerySessionPool
+        from ydb.observability.metrics import (
+            QUERY_SESSION_MAX,
+            _NOOP_QUERY_SESSION_POOL_METRICS,
+        )
+        from ydb.opentelemetry import disable_metrics, enable_metrics
+
+        disable_metrics()
+        pool = QuerySessionPool(driver=object(), size=3, name="late-enable-async")
+        assert pool._metrics is _NOOP_QUERY_SESSION_POOL_METRICS
+
+        reader = InMemoryMetricReader()
+        provider = MeterProvider(metric_readers=[reader])
+        try:
+            enable_metrics(provider)
+            assert _points_for_pool(reader, QUERY_SESSION_MAX, "late-enable-async") == []
+        finally:
+            await pool.stop()
+            disable_metrics()
+            provider.shutdown()
+
+    def test_instrumented_pool_upgrades_sessions_created_while_temporarily_disabled(self):
+        from ydb.observability.metrics import (
+            _NOOP_SESSION_METRICS,
+            SessionMetrics,
+            create_query_session_pool_metrics,
+            create_session_metrics,
+        )
+        from ydb.opentelemetry import disable_metrics, enable_metrics
+
+        provider = MeterProvider(metric_readers=[InMemoryMetricReader()])
+        enable_metrics(provider)
+        pool_metrics = create_query_session_pool_metrics("temporarily-disabled", object(), 2)
+        disable_metrics()
+
+        session = MagicMock()
+        session._session_metrics = create_session_metrics()
+        assert session._session_metrics is _NOOP_SESSION_METRICS
+
+        try:
+            pool_metrics.attach(session)
+            assert isinstance(session._session_metrics, SessionMetrics)
+            assert session._session_metrics is not _NOOP_SESSION_METRICS
+            assert session._session_metrics.pool_name == "temporarily-disabled"
+        finally:
             pool_metrics.close()
             disable_metrics()
             provider.shutdown()
 
     def test_reconfigure_metrics_quiesces_old_gauge_callbacks(self):
-        from ydb.observability.metrics import QUERY_SESSION_COUNT, QuerySessionPoolMetrics, SessionMetrics
+        from ydb.observability.metrics import (
+            QUERY_SESSION_COUNT,
+            create_query_session_pool_metrics,
+            create_session_metrics,
+        )
         from ydb.opentelemetry import disable_metrics, enable_metrics
 
         first_reader = InMemoryMetricReader()
         first_provider = MeterProvider(metric_readers=[first_reader])
         second_reader = InMemoryMetricReader()
         second_provider = MeterProvider(metric_readers=[second_reader])
-        pool_metrics = QuerySessionPoolMetrics("reconfigured", object(), 2)
-        session = MagicMock()
-        session._session_metrics = SessionMetrics()
-        pool_metrics.attach(session)
-        session._session_metrics.count_open()
 
         disable_metrics()
+        enable_metrics(first_provider)
+        pool_metrics = create_query_session_pool_metrics("reconfigured", object(), 2)
+        session = MagicMock()
+        session._session_metrics = create_session_metrics()
+        pool_metrics.attach(session)
+        session._session_metrics.count_open()
         try:
-            enable_metrics(first_provider)
             assert (
                 _single_point_for_pool(first_reader, QUERY_SESSION_COUNT, "reconfigured").attributes[
                     "ydb.query.session.state"
@@ -1058,9 +1113,13 @@ class TestQuerySessionPoolMetricsInstrumentation:
         yield
 
     def test_query_session_init_metrics_defaults(self):
+        from ydb.observability import disable_metrics
+        from ydb.observability.metrics import _NOOP_SESSION_METRICS
         from ydb.query.session import QuerySession
 
+        disable_metrics()
         session = QuerySession(MagicMock())
+        assert session._session_metrics is _NOOP_SESSION_METRICS
         assert session._session_metrics.pool_name is None
         assert session._session_metrics.state == "used"
         assert session._session_metrics._counted is False

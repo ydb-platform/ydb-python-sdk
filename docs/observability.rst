@@ -12,11 +12,11 @@ The same layer also exposes **client-side metrics** (operation latency and failu
 retry cost, query session pool state) through :func:`ydb.observability.enable_metrics`.
 Tracing and metrics are independent — enable either, both, or neither.
 
-Observability has **low overhead when disabled**: spans, event recording, and metric
-timers use no-op paths, and the SDK never imports ``opentelemetry`` — or any other
-backend — on its own. Query sessions retain lightweight lifecycle state so enabling a
-metrics backend later starts with accurate pool gauges. Backend dependencies are pulled
-in only when you explicitly opt into a concrete backend.
+Observability has a **zero-cost no-op path when disabled**: operations, query sessions,
+and pools share no-op instrumentation without metric allocations, timers, locks, or
+state tracking. The SDK never imports ``opentelemetry`` — or any other backend — on its
+own. Backend dependencies are pulled in only when you explicitly opt into a concrete
+backend.
 
 
 The Tracing Interface
@@ -267,11 +267,18 @@ Client-side metrics are enabled independently of tracing:
     enable_metrics(provider)   # install a metrics backend
     disable_metrics()          # turn metrics off — back to the no-op default
 
+Operation and retry metrics follow the currently active provider immediately. Call
+``enable_metrics`` before creating query sessions or a ``QuerySessionPool`` whose
+lifecycle should be instrumented. Session and pool lifecycle trackers created while
+metrics are disabled keep shared no-op instrumentation and are not retrofitted later.
+
 Calling ``enable_metrics`` again replaces the active backend. New events go to the new
 backend, while operations and wait timers already in flight finish on the backend on
 which they started. Observable callbacks registered by an old backend become inactive.
-``disable_metrics`` stops publishing but retains lightweight state for live pools and
-sessions, so a later backend immediately observes their current values.
+Pools that were created while metrics were active retain their lightweight lifecycle
+state across ``disable_metrics`` / re-enable, so a replacement backend observes their
+current values. Pools created while metrics were disabled retain no-op lifecycle
+instrumentation.
 
 For OpenTelemetry the built-in convenience is ``ydb.opentelemetry.enable_metrics``,
 which builds an OTel-backed provider from a meter provider and installs it here — see
@@ -442,5 +449,6 @@ that has no notion of asynchronous gauges can simply store the callbacks (or ign
 them); the SDK never pushes those values, so nothing is lost elsewhere.
 
 ``disable_metrics()`` reverts event recording to the no-op default and deactivates the
-current backend's gauge callbacks. Live pool/session trackers remain available so a
-later backend starts with an accurate snapshot.
+current backend's gauge callbacks. Trackers belonging to already instrumented pools
+remain available so a replacement backend starts with an accurate snapshot; pool and
+session lifecycle trackers that started on the no-op path remain no-ops.

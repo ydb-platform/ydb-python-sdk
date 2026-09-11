@@ -20,7 +20,7 @@ from .base import QueryExplainResultFormat
 
 from .. import _apis, issues, _utilities
 from ..observability.tracing import SpanName, create_ydb_span, set_peer_attributes, span_finish_callback
-from ..observability.metrics import SessionMetrics, _NOOP_SESSION_METRICS
+from ..observability.metrics import SessionMetrics, _NOOP_SESSION_METRICS, create_session_metrics
 from ..settings import BaseRequestSettings
 from ..connection import _RpcState as RpcState, EndpointKey
 from .._grpc.grpcwrapper import common_utils
@@ -109,7 +109,7 @@ class BaseQuerySession(abc.ABC, Generic[DriverT]):
         )
 
         self._last_query_stats = None
-        self._session_metrics = SessionMetrics()
+        self._session_metrics = create_session_metrics()
 
     @property
     def _driver_config(self) -> Optional["DriverConfig"]:

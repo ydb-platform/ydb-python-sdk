@@ -27,7 +27,7 @@ from ..retries import (
 from .. import issues
 from .. import convert
 from ..settings import BaseRequestSettings
-from ..observability.metrics import QuerySessionPoolMetrics
+from ..observability.metrics import create_query_session_pool_metrics
 from .._grpc.grpcwrapper import ydb_query_public_types as _ydb_query_public
 
 if TYPE_CHECKING:
@@ -66,7 +66,7 @@ class QuerySessionPool:
         self._should_stop = threading.Event()
         self._lock = threading.RLock()
         self._query_client_settings = query_client_settings
-        self._metrics = QuerySessionPoolMetrics(name, driver, self._size)
+        self._metrics = create_query_session_pool_metrics(name, driver, self._size)
 
     def _create_new_session(self, timeout: Optional[float]):
         session = QuerySession(self._driver, settings=self._query_client_settings)
