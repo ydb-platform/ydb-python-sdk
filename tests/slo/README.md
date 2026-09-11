@@ -301,6 +301,12 @@ Each message carries `writer_id:seqno:write_ts_ns:` followed by padding to the c
 
 Enabled by `--use-multiwriter` on `topic-run`; the label sets it automatically. There is no async variant yet — the sync facade drives the same async implementation underneath, so the code under test is the same.
 
+When the merge-base SDK does not provide `multiwriter`, this scenario compares against the
+parent of the latest SDK implementation commit in the PR. Changes limited to the workload or
+its tests do not advance that baseline. The report labels it `previous-multiwriter@<sha>`.
+If no earlier implementation exists, baseline selection fails explicitly. An SDK without the
+API also fails workload initialization instead of running reader threads with no writers.
+
 > Local re-runs against an existing topic will report duplicates: per-key seqno counters restart at 1 with the process, while the reader still expects the sequence left by the previous run. Recreate the topic (`topic-cleanup` + `topic-create`) between local runs. CI is unaffected — every run gets its own topic.
 
 ## Collected metrics

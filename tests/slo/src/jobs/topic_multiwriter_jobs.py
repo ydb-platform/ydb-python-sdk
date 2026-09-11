@@ -29,6 +29,8 @@ logger = logging.getLogger(__name__)
 class TopicMultiWriterJobManager(TopicJobManager):
     def __init__(self, driver, args, metrics):
         super().__init__(driver, args, metrics)
+        if not callable(getattr(self.driver.topic_client, "multiwriter", None)):
+            raise RuntimeError("This SDK does not support the topic multiwriter workload")
         self.keys_per_writer = max(1, int(getattr(self.args, "keys_per_writer", 8)))
 
     def _run_topic_write_jobs(self):
