@@ -156,7 +156,9 @@ class TopicJobManager(BaseJobManager):
         logger.info("Stop topic reader %s", reader_id)
 
     def _validate(self, msg):
-        decoded = decode_payload(msg.data)
+        self._record(decode_payload(msg.data))
+
+    def _record(self, decoded):
         if decoded is None:
             self.metrics.inc_delivered()
             return
