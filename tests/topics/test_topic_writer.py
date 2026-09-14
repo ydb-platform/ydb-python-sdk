@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import datetime
 from typing import List  # noqa: F401
 
 import pytest
@@ -324,3 +325,255 @@ class TestTopicWriterSync:
                     writer.write_with_ack("123")
 
                 raise TestException()
+
+
+@pytest.mark.asyncio
+class TestTopicMultiWriterAsyncIO:
+    async def test_flush_and_close_report_encoder_errors(self, driver, database, topic_consumer):
+        path = database + "/mw-encoder-error"
+        await self._recreate(driver, path, topic_consumer)
+
+        def failing_encoder(data):
+            raise ValueError("encoder failed")
+
+        writer = driver.topic_client.multiwriter(
+            path,
+            codec=ydb.TopicCodec.GZIP,
+            encoders={ydb.TopicCodec.GZIP: failing_encoder},
+        )
+        try:
+            await writer.write(ydb.TopicWriterMessage(data=b"payload", key="key"))
+            with pytest.raises(ValueError, match="encoder failed"):
+                await asyncio.wait_for(writer.flush(), timeout=10)
+            with pytest.raises(ValueError, match="encoder failed"):
+                await asyncio.wait_for(writer.close(), timeout=10)
+            assert writer._closed
+            assert not writer._writers
+        finally:
+            await writer.close(flush=False)
+
+    async def _recreate(self, driver, path, consumer, **kwargs):
+        try:
+            await driver.topic_client.drop_topic(path)
+        except ydb.SchemeError:
+            pass
+        await driver.topic_client.create_topic(path=path, consumers=[consumer], **kwargs)
+
+    def _auto_partitioning(self):
+        return ydb.TopicAutoPartitioningSettings(
+            strategy=ydb.TopicAutoPartitioningStrategy.SCALE_UP,
+            up_utilization_percent=1,
+            down_utilization_percent=1,
+            stabilization_window=datetime.timedelta(seconds=1),
+        )
+
+    async def test_key_range_exposed_for_autopartitioned_topic(self, driver, database, topic_consumer):
+        path = database + "/mw-keyrange"
+        await self._recreate(
+            driver,
+            path,
+            topic_consumer,
+            min_active_partitions=2,
+            max_active_partitions=50,
+            auto_partitioning_settings=self._auto_partitioning(),
+        )
+        desc = await driver.topic_client.describe_topic(path)
+        assert any(p.key_range is not None for p in desc.partitions)
+
+    async def test_write_by_key_preserves_per_key_order(self, driver, database, topic_consumer):
+        path = database + "/mw-plain"
+        await self._recreate(driver, path, topic_consumer, min_active_partitions=3)
+
+        keys = ["user-1", "user-2", "user-3", "user-4", "user-5"]
+        per_key = 8
+        async with driver.topic_client.multiwriter(path, producer_id_prefix="mw") as writer:
+            await writer.wait_init()
+            assert isinstance(writer._chooser, ydb.TopicWriterPartitionByKeyKafka)
+            for i in range(per_key):
+                for key in keys:
+                    await writer.write(ydb.TopicWriterMessage(data=("%s:%d" % (key, i)).encode(), key=key))
+            await writer.flush()
+
+        total = per_key * len(keys)
+        received = {key: [] for key in keys}
+        async with driver.topic_client.reader(path, consumer=topic_consumer) as reader:
+            for _ in range(total):
+                message = await asyncio.wait_for(reader.receive_message(), timeout=30)
+                key, index = message.data.decode().split(":")
+                received[key].append(int(index))
+                reader.commit(message)
+
+        for key in keys:
+            assert received[key] == list(range(per_key)), (key, received[key])
+
+    async def test_write_by_key_on_autopartitioned_topic(self, driver, database, topic_consumer):
+        path = database + "/mw-auto"
+        await self._recreate(
+            driver,
+            path,
+            topic_consumer,
+            min_active_partitions=2,
+            max_active_partitions=50,
+            auto_partitioning_settings=self._auto_partitioning(),
+        )
+
+        keys = ["alpha", "beta", "gamma", "delta"]
+        per_key = 5
+        async with driver.topic_client.multiwriter(path, producer_id_prefix="mw") as writer:
+            await writer.wait_init()
+            # auto-partitioned topics report key ranges -> adaptive default picks the bound chooser
+            assert isinstance(writer._chooser, ydb.TopicWriterPartitionByKeyBound)
+            for i in range(per_key):
+                for key in keys:
+                    # write_with_ack verifies the server accepts bound-routed writes
+                    await writer.write_with_ack(ydb.TopicWriterMessage(data=("%s:%d" % (key, i)).encode(), key=key))
+
+        total = per_key * len(keys)
+        seen = 0
+        async with driver.topic_client.reader(path, consumer=topic_consumer) as reader:
+            for _ in range(total):
+                message = await asyncio.wait_for(reader.receive_message(), timeout=30)
+                seen += 1
+                reader.commit(message)
+        assert seen == total
+
+    async def test_write_by_key_survives_partition_split(self, driver, database, topic_consumer):
+        path = database + "/mw-split"
+        await self._recreate(
+            driver,
+            path,
+            topic_consumer,
+            min_active_partitions=1,
+            max_active_partitions=4,
+            auto_partitioning_settings=ydb.TopicAutoPartitioningSettings(
+                strategy=ydb.TopicAutoPartitioningStrategy.SCALE_UP,
+                up_utilization_percent=90,
+                down_utilization_percent=1,
+                stabilization_window=datetime.timedelta(seconds=300),
+            ),
+        )
+
+        async def wait_for_partitions(expected):
+            deadline = asyncio.get_running_loop().time() + 30
+            while True:
+                description = await driver.topic_client.describe_topic(path)
+                active = [partition for partition in description.partitions if partition.active]
+                if len(active) == expected:
+                    return description
+                assert asyncio.get_running_loop().time() < deadline, (
+                    "topic did not reach %d active partitions" % expected
+                )
+                await asyncio.sleep(0.1)
+
+        description = await wait_for_partitions(1)
+        assert len(description.partitions) == 1
+
+        keys = ["k%d" % i for i in range(32)]
+        written = 0
+        async with driver.topic_client.multiwriter(path, producer_id_prefix="mw-split") as writer:
+            await writer.wait_init()
+            assert isinstance(writer._chooser, ydb.TopicWriterPartitionByKeyBound)
+
+            async def write_batch(count):
+                nonlocal written
+                for _ in range(count):
+                    key = keys[written % len(keys)]
+                    await writer.write(ydb.TopicWriterMessage(data=("%d:%s" % (written, key)).encode(), key=key))
+                    written += 1
+                await writer.flush()
+
+            await write_batch(50)
+
+            await driver.topic_client.alter_topic(path, set_min_active_partitions=2)
+            description = await wait_for_partitions(2)
+            assert len(description.partitions) == 3
+            root = next(partition for partition in description.partitions if not partition.parent_partition_ids)
+            active_ids = {partition.partition_id for partition in description.partitions if partition.active}
+            assert not root.active
+            assert set(root.child_partition_ids) == active_ids
+            await write_batch(100)
+
+            await driver.topic_client.alter_topic(path, set_min_active_partitions=4)
+            description = await wait_for_partitions(4)
+            assert len(description.partitions) == 7
+            await write_batch(100)
+
+        total = written
+        seen = set()
+        last_by_key = {}
+        async with driver.topic_client.reader(path, consumer=topic_consumer) as reader:
+            while True:
+                try:
+                    message = await asyncio.wait_for(
+                        reader.receive_message(),
+                        timeout=30 if len(seen) < total else 2,
+                    )
+                except asyncio.TimeoutError:
+                    assert len(seen) == total, "reader did not receive all messages"
+                    break
+                index_raw, key_raw = message.data.split(b":", 1)
+                index = int(index_raw)
+                key = key_raw.decode()
+                assert index not in seen, "resend produced duplicate message %d" % index
+                assert index > last_by_key.get(key, -1), "messages for key %s were reordered" % key
+                last_by_key[key] = index
+                seen.add(index)
+                reader.commit(message)
+
+        assert seen == set(range(total)), "some messages were lost"
+
+
+class TestTopicMultiWriterSync:
+    def test_flush_and_close_report_encoder_errors(self, driver_sync, database, topic_consumer):
+        path = database + "/mw-sync-encoder-error"
+        try:
+            driver_sync.topic_client.drop_topic(path)
+        except ydb.SchemeError:
+            pass
+        driver_sync.topic_client.create_topic(path=path, consumers=[topic_consumer])
+
+        def failing_encoder(data):
+            raise ValueError("encoder failed")
+
+        writer = driver_sync.topic_client.multiwriter(
+            path,
+            codec=ydb.TopicCodec.GZIP,
+            encoders={ydb.TopicCodec.GZIP: failing_encoder},
+        )
+        try:
+            writer.write(ydb.TopicWriterMessage(data=b"payload", key="key"), timeout=10)
+            with pytest.raises(ValueError, match="encoder failed"):
+                writer.flush(timeout=10)
+            with pytest.raises(ValueError, match="encoder failed"):
+                writer.close(timeout=10)
+            assert writer._closed
+        finally:
+            writer.close(flush=False, timeout=10)
+
+    def test_write_by_key_preserves_per_key_order(self, driver_sync, database, topic_consumer):
+        path = database + "/mw-sync"
+        try:
+            driver_sync.topic_client.drop_topic(path)
+        except ydb.SchemeError:
+            pass
+        driver_sync.topic_client.create_topic(path=path, consumers=[topic_consumer], min_active_partitions=3)
+
+        keys = ["a", "b", "c"]
+        per_key = 6
+        with driver_sync.topic_client.multiwriter(path, producer_id_prefix="mw-sync") as writer:
+            for i in range(per_key):
+                for key in keys:
+                    writer.write(ydb.TopicWriterMessage(data=("%s:%d" % (key, i)).encode(), key=key))
+            writer.flush()
+
+        total = per_key * len(keys)
+        received = {key: [] for key in keys}
+        with driver_sync.topic_client.reader(path, consumer=topic_consumer) as reader:
+            for _ in range(total):
+                message = reader.receive_message(timeout=30)
+                key, index = message.data.decode().split(":")
+                received[key].append(int(index))
+                reader.commit(message)
+
+        for key in keys:
+            assert received[key] == list(range(per_key)), (key, received[key])

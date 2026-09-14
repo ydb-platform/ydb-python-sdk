@@ -130,6 +130,17 @@ def make_topic_run_parser(subparsers):
         help="Number of threads for topic writing",
     )
     topic_parser.add_argument("--message-size", default=100, type=int, help="Topic message size in bytes")
+    topic_parser.add_argument(
+        "--use-multiwriter",
+        action="store_true",
+        help="Write by key through the multi-partition writer instead of one writer per partition",
+    )
+    topic_parser.add_argument(
+        "--keys-per-writer",
+        default=8,
+        type=int,
+        help="Distinct routing keys each multi-writer thread cycles through (--use-multiwriter only)",
+    )
 
     topic_parser.add_argument("--time", default=10, type=int, help="Time to run in seconds")
     topic_parser.add_argument(
