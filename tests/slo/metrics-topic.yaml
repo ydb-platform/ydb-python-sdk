@@ -9,6 +9,14 @@
 #   *_error*     -> warning_max 0.1 / critical_max 1.0  (fails the run if > 0)
 
 metrics:
+  # Reader/writer recovery is managed outside the logical operation measured by
+  # the generic attempts counters, so scrape-boundary deltas are not retries.
+  - name: read_retry_attempts
+    disabled: true
+
+  - name: write_retry_attempts
+    disabled: true
+
   - name: topic_e2e_latency_p50_ms
     unit: ms
     query: |
