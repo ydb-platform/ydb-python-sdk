@@ -411,6 +411,25 @@ def test_async_read_rows():
     assert result_set.rows[0].value == "alice"
 
 
+def test_read_rows():
+    class _FakeSyncDriver:
+        def __call__(self, request, stub, method, wrap_fn, settings, wrap_args, *rest):
+            self.request = request
+            self.method = method
+            return wrap_fn(None, _build_read_rows_response(), *wrap_args)
+
+    driver = _FakeSyncDriver()
+    result_set = TableClient(driver).read_rows(
+        "/local/users", [{"id": 1}], _read_rows_key_types(), columns=("id", "value")
+    )
+
+    assert driver.method == _apis.TableService.ReadRows
+    assert driver.request.path == "/local/users"
+    assert list(driver.request.columns) == ["id", "value"]
+    assert result_set.rows[0].id == 1
+    assert result_set.rows[0].value == "alice"
+
+
 def _read_table_session_state():
     state = _session_impl.SessionState(TableClientSettings())
     state.set_id("test-session-id")
