@@ -1,3 +1,4 @@
+* Add `TableClient.read_rows` (sync and async) to read rows by primary key without a transaction
 * Add the `ydb.query.session.closed` counter for query session pool closures, labeled by pool name and a standardized closure reason; metrics-enabled clients now advertise `ydb-sdk-metrics/0.2.0` in `x-ydb-sdk-build-info`
 * Fix query-session gauges after session invalidation and metrics reconfiguration: closed sessions no longer appear as negative `used` or phantom `idle` sessions, provider replacement preserves instrumented pool state without leaking observations to old providers, and pools created with metrics disabled use zero-cost shared no-op lifecycle instrumentation
 

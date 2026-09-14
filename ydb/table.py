@@ -1195,6 +1195,20 @@ class ITableClient(abc.ABC):
         """
         pass
 
+    @abstractmethod
+    def read_rows(self, table_path, keys, key_types, columns=None, settings=None):
+        """
+        Read specified keys non-transactionally from a single table.
+
+        :param table_path: A table path.
+        :param keys: A list of structures matching the primary key.
+        :param key_types: Primary key column types.
+        :param columns: Optional iterable of column names to return.
+        :param settings: Request settings.
+
+        """
+        pass
+
 
 class BaseTableClient(ITableClient, Generic[DriverT]):
     _driver: DriverT
@@ -1238,6 +1252,28 @@ class BaseTableClient(ITableClient, Generic[DriverT]):
             _session_impl.wrap_operation_bulk_upsert,
             settings,
             (),
+        )
+
+    def read_rows(self, table_path, keys, key_types, columns=None, settings=None):
+        # type: (str, list, ydb.AbstractTypeBuilder, typing.Optional[list], ydb.BaseRequestSettings) -> Any
+        """
+        Read specified keys non-transactionally from a single table.
+
+        :param table_path: A table path.
+        :param keys: A list of structures matching the primary key.
+        :param key_types: Primary key column types.
+        :param columns: Optional iterable of column names to return. Empty or omitted returns all columns.
+        :param settings: Request settings.
+
+        :return: ResultSet with matching rows.
+        """
+        return self._driver(
+            _session_impl.read_rows_request_factory(table_path, keys, key_types, columns),
+            _apis.TableService.Stub,
+            _apis.TableService.ReadRows,
+            _session_impl.wrap_read_rows_response,
+            settings,
+            (self._table_client_settings,),
         )
 
     def describe_system_view(self, path, settings=None):
@@ -1292,6 +1328,18 @@ class TableClient(BaseTableClient["SyncDriver"]):
             _session_impl.wrap_operation_bulk_upsert,
             settings,
             (),
+        )
+
+    @_utilities.wrap_async_call_exceptions
+    def async_read_rows(self, table_path, keys, key_types, columns=None, settings=None):
+        # type: (str, list, ydb.AbstractTypeBuilder, typing.Optional[list], ydb.BaseRequestSettings) -> Any
+        return self._driver.future(
+            _session_impl.read_rows_request_factory(table_path, keys, key_types, columns),
+            _apis.TableService.Stub,
+            _apis.TableService.ReadRows,
+            _session_impl.wrap_read_rows_response,
+            settings,
+            (self._table_client_settings,),
         )
 
     @_utilities.wrap_async_call_exceptions

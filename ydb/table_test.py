@@ -338,6 +338,98 @@ def test_async_describe_system_view():
     assert entry.sys_view_name == "partition_stats"
 
 
+def _read_rows_key_types():
+    return types.BulkUpsertColumns().add_column("id", types.PrimitiveType.Uint64)
+
+
+def _build_read_rows_response():
+    response = _apis.ydb_table.ReadRowsResponse()
+    response.status = _apis.StatusIds.SUCCESS
+    id_column = response.result_set.columns.add()
+    id_column.name = "id"
+    id_column.type.type_id = types.PrimitiveType.Uint64._idn_
+    value_column = response.result_set.columns.add()
+    value_column.name = "value"
+    value_column.type.type_id = types.PrimitiveType.Utf8._idn_
+    row = response.result_set.rows.add()
+    row.items.add().uint64_value = 1
+    row.items.add().text_value = "alice"
+    return response
+
+
+def test_read_rows_request_factory():
+    keys = [{"id": 1}, {"id": 2}]
+    request = _session_impl.read_rows_request_factory(
+        "/local/users", keys, _read_rows_key_types(), columns=("id", "value")
+    )
+
+    assert request.path == "/local/users"
+    # ReadRows is stateless: the request carries no session id.
+    assert request.session_id == ""
+    assert list(request.columns) == ["id", "value"]
+    assert request.keys.type.list_type.item.struct_type.members[0].name == "id"
+    assert [item.items[0].uint64_value for item in request.keys.value.items] == [1, 2]
+
+
+def test_read_rows_request_factory_without_columns():
+    request = _session_impl.read_rows_request_factory("/local/users", [{"id": 1}], _read_rows_key_types())
+    assert list(request.columns) == []
+
+
+def test_wrap_read_rows_response():
+    result_set = _session_impl.wrap_read_rows_response(None, _build_read_rows_response())
+
+    assert [column.name for column in result_set.columns] == ["id", "value"]
+    assert len(result_set.rows) == 1
+    assert result_set.rows[0].id == 1
+    assert result_set.rows[0].value == "alice"
+
+
+def test_wrap_read_rows_response_raises_on_error():
+    response = _apis.ydb_table.ReadRowsResponse()
+    response.status = _apis.StatusIds.SCHEME_ERROR
+    with pytest.raises(issues.SchemeError):
+        _session_impl.wrap_read_rows_response(None, response)
+
+
+def test_async_read_rows():
+    class _FakeSyncDriver:
+        def future(self, request, stub, method, wrap_fn, settings, wrap_args, *rest):
+            self.request = request
+            self.method = method
+            return wrap_fn(None, _build_read_rows_response(), *wrap_args)
+
+    driver = _FakeSyncDriver()
+    result_set = TableClient(driver).async_read_rows(
+        "/local/users", [{"id": 1}], _read_rows_key_types(), columns=("id", "value")
+    )
+
+    assert driver.method == _apis.TableService.ReadRows
+    assert driver.request.path == "/local/users"
+    assert list(driver.request.columns) == ["id", "value"]
+    assert result_set.rows[0].id == 1
+    assert result_set.rows[0].value == "alice"
+
+
+def test_read_rows():
+    class _FakeSyncDriver:
+        def __call__(self, request, stub, method, wrap_fn, settings, wrap_args, *rest):
+            self.request = request
+            self.method = method
+            return wrap_fn(None, _build_read_rows_response(), *wrap_args)
+
+    driver = _FakeSyncDriver()
+    result_set = TableClient(driver).read_rows(
+        "/local/users", [{"id": 1}], _read_rows_key_types(), columns=("id", "value")
+    )
+
+    assert driver.method == _apis.TableService.ReadRows
+    assert driver.request.path == "/local/users"
+    assert list(driver.request.columns) == ["id", "value"]
+    assert result_set.rows[0].id == 1
+    assert result_set.rows[0].value == "alice"
+
+
 def _read_table_session_state():
     state = _session_impl.SessionState(TableClientSettings())
     state.set_id("test-session-id")

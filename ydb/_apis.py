@@ -111,6 +111,7 @@ class TableService(object):
     KeepAlive = "KeepAlive"
     StreamReadTable = "StreamReadTable"
     BulkUpsert = "BulkUpsert"
+    ReadRows = "ReadRows"
 
 
 class TopicService(object):
