@@ -1255,7 +1255,7 @@ class BaseTableClient(ITableClient, Generic[DriverT]):
         )
 
     def read_rows(self, table_path, keys, key_types, columns=None, settings=None):
-        # type: (str, list, ydb.AbstractTypeBuilder, typing.Optional[list], ydb.BaseRequestSettings) -> convert.ResultSet
+        # type: (str, list, ydb.AbstractTypeBuilder, typing.Optional[list], ydb.BaseRequestSettings) -> Any
         """
         Read specified keys non-transactionally from a single table.
 
@@ -1332,7 +1332,7 @@ class TableClient(BaseTableClient["SyncDriver"]):
 
     @_utilities.wrap_async_call_exceptions
     def async_read_rows(self, table_path, keys, key_types, columns=None, settings=None):
-        # type: (str, list, ydb.AbstractTypeBuilder, typing.Optional[list], ydb.BaseRequestSettings) -> convert.ResultSet
+        # type: (str, list, ydb.AbstractTypeBuilder, typing.Optional[list], ydb.BaseRequestSettings) -> Any
         return self._driver.future(
             _session_impl.read_rows_request_factory(table_path, keys, key_types, columns),
             _apis.TableService.Stub,
