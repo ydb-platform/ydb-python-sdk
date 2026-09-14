@@ -128,9 +128,9 @@ class QuerySession(BaseQuerySession["AsyncDriver"]):
     async def execute(
         self,
         query: str,
-        parameters: dict = None,
-        syntax: base.QuerySyntax = None,
-        exec_mode: base.QueryExecMode = None,
+        parameters: Optional[dict] = None,
+        syntax: Optional[base.QuerySyntax] = None,
+        exec_mode: Optional[base.QueryExecMode] = None,
         concurrent_result_sets: bool = False,
         settings: Optional[BaseRequestSettings] = None,
         *,
