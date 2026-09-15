@@ -38,6 +38,7 @@ QUERY_SESSION_MAX = "ydb.query.session.max"
 QUERY_SESSION_MIN = "ydb.query.session.min"
 RETRY_ATTEMPTS = "ydb.client.retry.attempts"
 RETRY_DURATION = "ydb.client.retry.duration"
+TOPIC_READER_RECEIVED_MESSAGES = "ydb.topic.reader.received.messages"
 
 METRICS_SDK_BUILD_INFO = "ydb-sdk-metrics/0.2.0"
 
@@ -494,6 +495,48 @@ class _NoopContext:
 
 
 _NOOP_CM = _NoopContext()
+
+
+class TopicReaderMetrics:
+    """Metric context shared by all streams of one logical topic reader."""
+
+    __slots__ = ("_base_attributes",)
+
+    def __init__(
+        self,
+        driver,
+        consumer_name: Optional[str],
+        reader_name: str,
+    ) -> None:
+        driver_config = getattr(
+            driver,
+            "_driver_config",
+            None,
+        )
+        self._base_attributes = _build_ydb_metrics_attrs(driver_config)
+        self._base_attributes.update(
+            {
+                "consumer": consumer_name or "",
+                "reader.name": reader_name,
+            }
+        )
+
+    def record_received_messages(
+        self,
+        count: int,
+        topic: str,
+    ) -> None:
+        if count <= 0 or not is_metrics_enabled():
+            return
+
+        attributes = dict(self._base_attributes)
+        attributes["topic"] = topic
+
+        _provider.add(
+            TOPIC_READER_RECEIVED_MESSAGES,
+            count,
+            attributes,
+        )
 
 
 class SessionMetrics:

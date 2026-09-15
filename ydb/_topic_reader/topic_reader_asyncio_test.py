@@ -29,6 +29,7 @@ from .._topic_common.test_helpers import (
     wait_for_fast,
     WaitConditionError,
 )
+from ..observability.metrics import TopicReaderMetrics
 
 # Workaround for good IDE and universal for runtime
 if typing.TYPE_CHECKING:
@@ -281,6 +282,51 @@ class TestReaderStream:
             await wait_condition(lambda: batch_count() > initial_batches)
         else:
             await wait_condition(lambda: batch_size() > initial_batch_size)
+
+    async def test_received_messages_metric_is_recorded_before_decoding(
+        self,
+        stream,
+        default_reader_settings,
+    ):
+        metrics = mock.Mock(spec=TopicReaderMetrics)
+        reader = await self.get_started_reader(
+            stream,
+            default_reader_settings,
+            metrics=metrics,
+        )
+        partition_session = datatypes.PartitionSession(
+            id=self.partition_session_id,
+            topic_path=default_reader_settings.topic,
+            partition_id=4,
+            state=datatypes.PartitionSession.State.Active,
+            committed_offset=self.partition_session_committed_offset,
+            reader_reconnector_id=self.default_reader_reconnector_id,
+            reader_stream_id=reader._id,
+        )
+        reader._partition_sessions[partition_session.id] = partition_session
+
+        def assert_batch_is_accepted_for_decoding(*, count, topic):
+            assert reader._batches_to_decode.qsize() == 1
+            assert partition_session.id not in reader._message_batches
+            assert topic == default_reader_settings.topic
+
+        metrics.record_received_messages.side_effect = assert_batch_is_accepted_for_decoding
+
+        try:
+            await self.send_batch(
+                reader,
+                [
+                    self.create_message(partition_session, 1, 1),
+                    self.create_message(partition_session, 2, 1),
+                ],
+            )
+
+            metrics.record_received_messages.assert_called_once_with(
+                count=2,
+                topic=default_reader_settings.topic,
+            )
+        finally:
+            await reader.close(False)
 
     async def test_unknown_error(self, stream, stream_reader_finish_with_error):
         class TestError(Exception):
@@ -1620,8 +1666,11 @@ class TestReaderReconnector:
             reader_reconnector_id: int,
             driver: SupportedDriverType,
             settings: PublicReaderSettings,
+            *,
+            metrics: TopicReaderMetrics,
         ):
             nonlocal stream_index
+            metric_contexts.append(metrics)
             stream_index += 1
             if stream_index == 1:
                 return reader_stream_mock_with_error
@@ -1630,9 +1679,16 @@ class TestReaderReconnector:
             else:
                 raise Exception("unexpected create stream")
 
+        metric_contexts = []
+        driver = mock.Mock()
+        driver._driver_config = None
         with mock.patch.object(ReaderStream, "create", stream_create):
-            reconnector = ReaderReconnector(mock.Mock(), PublicReaderSettings("", ""))
+            reconnector = ReaderReconnector(driver, PublicReaderSettings("", ""))
             await wait_for_fast(reconnector.wait_message())
+            assert len(metric_contexts) == 2
+            assert metric_contexts[0] is metric_contexts[1] is reconnector._metrics
+            assert reconnector._metrics._base_attributes["reader.name"] == "reader-%d" % reconnector._id
+            await reconnector.close(flush=False)
 
         reader_stream_mock_with_error.wait_error.assert_any_await()
         reader_stream_mock_with_error.wait_messages.assert_any_await()
@@ -1668,18 +1724,52 @@ class TestReaderReconnector:
 
         create_calls = 0
 
-        async def stream_create(reader_reconnector_id, driver, settings):
+        async def stream_create(reader_reconnector_id, driver, settings, *, metrics):
             nonlocal create_calls
             create_calls += 1
             return stream1 if create_calls == 1 else stream2
 
+        driver = mock.Mock()
+        driver._driver_config = None
         with mock.patch.object(ReaderStream, "create", stream_create):
-            reconnector = ReaderReconnector(mock.Mock(), PublicReaderSettings("", ""))
+            reconnector = ReaderReconnector(driver, PublicReaderSettings("", ""))
             await asyncio.wait_for(finally_close_started.wait(), timeout=2)
             await asyncio.wait_for(reconnector.close(flush=False), timeout=5)
 
         # The loop stopped on close instead of reconnecting into a second (zombie) stream.
         assert create_calls == 1
+
+    async def test_reader_name_uses_user_value_or_process_local_sequence(self):
+        async def stream_create(reader_reconnector_id, driver, settings, *, metrics):
+            await asyncio.Future()
+
+        driver = mock.Mock()
+        driver._driver_config = None
+        with mock.patch.object(ReaderStream, "create", stream_create):
+            generated_from_none = ReaderReconnector(
+                driver,
+                PublicReaderSettings("consumer", "topic"),
+            )
+            generated_from_empty = ReaderReconnector(
+                driver,
+                PublicReaderSettings("consumer", "topic", reader_name=""),
+            )
+            named = ReaderReconnector(
+                driver,
+                PublicReaderSettings("consumer", "topic", reader_name="payments-worker"),
+            )
+
+            assert generated_from_none._reader_name == "reader-%d" % generated_from_none._id
+            assert generated_from_empty._reader_name == "reader-%d" % generated_from_empty._id
+            assert generated_from_none._reader_name != generated_from_empty._reader_name
+            assert named._reader_name == "payments-worker"
+            assert named._metrics._base_attributes["reader.name"] == "payments-worker"
+
+            await asyncio.gather(
+                generated_from_none.close(flush=False),
+                generated_from_empty.close(flush=False),
+                named.close(flush=False),
+            )
 
     async def test_create_closes_inflight_stream_on_cancel(self, default_reader_settings):
         # If create() is cancelled (e.g. reader.close() cancels the connection loop during a
@@ -1698,11 +1788,19 @@ class TestReaderReconnector:
 
         driver = mock.Mock()
         driver._credentials = None
+        driver._driver_config = None
 
         with mock.patch.object(topic_reader_asyncio, "GrpcWrapperAsyncIO", FakeStream):
             # Real create(); no InitResponse is sent, so it parks inside _start() on
             # `await stream.receive()` (the only reachable cancellation point in create()).
-            create_task = asyncio.create_task(ReaderStream.create(7, driver, default_reader_settings))
+            create_task = asyncio.create_task(
+                ReaderStream.create(
+                    7,
+                    driver,
+                    default_reader_settings,
+                    metrics=mock.Mock(spec=TopicReaderMetrics),
+                )
+            )
             await wait_condition(lambda: bool(built) and not built[0].from_client.empty())
             assert not create_task.done()
 
@@ -1930,3 +2028,27 @@ class TestReaderStreamBufferReleaseThreshold:
         assert msg.client_message.bytes_size == 1000
 
         await reader.close(False)
+
+
+def test_reader_settings_forward_reader_name():
+    settings = PublicReaderSettings(
+        consumer="analytics",
+        topic="/Root/events",
+        reader_name="payments-worker",
+    )
+
+    init_message = settings._init_message()
+
+    assert init_message.reader_name == "payments-worker"
+    assert init_message.to_proto().reader_name == "payments-worker"
+
+
+def test_reader_settings_positional_buffer_size_is_preserved():
+    settings = PublicReaderSettings(
+        "analytics",
+        "/Root/events",
+        1024,
+    )
+
+    assert settings.buffer_size_bytes == 1024
+    assert settings.reader_name is None

@@ -103,10 +103,12 @@ def test_metrics_registry_records_all_instruments(metrics_setup, monkeypatch):
         QUERY_SESSION_TIMEOUTS,
         RETRY_ATTEMPTS,
         RETRY_DURATION,
+        TOPIC_READER_RECEIVED_MESSAGES,
         ATTEMPT_BUCKETS,
         DURATION_BUCKETS_SECONDS,
         RETRY_DURATION_BUCKETS_SECONDS,
         SessionMetrics,
+        TopicReaderMetrics,
         create_metrics_operation,
         record_query_session_count,
         record_query_session_create_time,
@@ -133,6 +135,11 @@ def test_metrics_registry_records_all_instruments(metrics_setup, monkeypatch):
     record_query_session_pending_requests(1, "main")
     record_query_session_timeout("main")
     record_retry_metrics(0.75, 3)
+    TopicReaderMetrics(
+        object(),
+        consumer_name=None,
+        reader_name="reader-test",
+    ).record_received_messages(1, "/Root/events")
 
     metrics = _metrics_by_name(metrics_setup)
 
@@ -148,6 +155,7 @@ def test_metrics_registry_records_all_instruments(metrics_setup, monkeypatch):
         QUERY_SESSION_TIMEOUTS,
         RETRY_ATTEMPTS,
         RETRY_DURATION,
+        TOPIC_READER_RECEIVED_MESSAGES,
     }
     assert metrics[CLIENT_OPERATION_DURATION].unit == "s"
     assert metrics[CLIENT_OPERATION_FAILED].unit == "{command}"
@@ -169,6 +177,7 @@ def test_metrics_registry_records_all_instruments(metrics_setup, monkeypatch):
         )
         assert _single_point_from_metrics(metrics, RETRY_DURATION).explicit_bounds == RETRY_DURATION_BUCKETS_SECONDS
         assert _single_point_from_metrics(metrics, RETRY_ATTEMPTS).explicit_bounds == ATTEMPT_BUCKETS
+    assert metrics[TOPIC_READER_RECEIVED_MESSAGES].unit == "{message}"
 
 
 def test_metrics_registry_supports_old_histogram_api():
@@ -292,6 +301,12 @@ def test_metrics_registry_is_noop_without_meter(monkeypatch):
     assert not noop_add.called
     pool_metrics.close()
     pool_metrics.close()
+
+
+def test_metrics_build_info_token_version(metrics_setup):
+    from ydb.observability import sdk_build_info_tokens
+
+    assert sdk_build_info_tokens() == ["ydb-sdk-metrics/0.2.0"]
 
 
 def test_metrics_operation_records_duration_once(metrics_setup, monkeypatch):
@@ -1698,3 +1713,124 @@ class TestQuerySessionPoolMetricsInstrumentation:
         assert qs._session_metrics._counted
         assert _single_point_for_pool(metrics_setup, QUERY_SESSION_COUNT, "async-session-pool").value == 1
         qs._close_session()
+
+
+def test_topic_reader_received_messages_attributes(metrics_setup):
+    from tests.observability.conftest import FakeDriverConfig
+    from ydb.observability.metrics import (
+        TOPIC_READER_RECEIVED_MESSAGES,
+        TopicReaderMetrics,
+    )
+
+    class FakeDriver:
+        _driver_config = FakeDriverConfig(
+            endpoint="grpc://localhost:2136",
+            database="/Root",
+        )
+
+    reader_metrics = TopicReaderMetrics(
+        FakeDriver(),
+        consumer_name="analytics",
+        reader_name="payments-worker",
+    )
+
+    reader_metrics.record_received_messages(
+        count=2,
+        topic="/Root/events",
+    )
+    reader_metrics.record_received_messages(
+        count=3,
+        topic="/Root/events",
+    )
+
+    point = _single_point(
+        metrics_setup,
+        TOPIC_READER_RECEIVED_MESSAGES,
+    )
+
+    assert point.value == 5
+    assert point.attributes == {
+        "endpoint": "localhost:2136",
+        "database": "/Root",
+        "topic": "/Root/events",
+        "consumer": "analytics",
+        "reader.name": "payments-worker",
+    }
+
+
+def test_topic_reader_received_messages_without_consumer(metrics_setup):
+    from ydb.observability.metrics import (
+        TOPIC_READER_RECEIVED_MESSAGES,
+        TopicReaderMetrics,
+    )
+
+    reader_metrics = TopicReaderMetrics(
+        object(),
+        consumer_name=None,
+        reader_name="reader-42",
+    )
+
+    reader_metrics.record_received_messages(
+        count=1,
+        topic="/Root/events",
+    )
+
+    point = _single_point(
+        metrics_setup,
+        TOPIC_READER_RECEIVED_MESSAGES,
+    )
+
+    assert point.attributes == {
+        "endpoint": "",
+        "database": "",
+        "topic": "/Root/events",
+        "consumer": "",
+        "reader.name": "reader-42",
+    }
+
+
+def test_topic_reader_received_messages_separates_topics(metrics_setup):
+    from ydb.observability.metrics import (
+        TOPIC_READER_RECEIVED_MESSAGES,
+        TopicReaderMetrics,
+    )
+
+    reader_metrics = TopicReaderMetrics(
+        object(),
+        consumer_name="analytics",
+        reader_name="worker",
+    )
+
+    reader_metrics.record_received_messages(2, "/Root/a")
+    reader_metrics.record_received_messages(3, "/Root/b")
+
+    values = {
+        point.attributes["topic"]: point.value
+        for point in _points(
+            metrics_setup,
+            TOPIC_READER_RECEIVED_MESSAGES,
+        )
+    }
+
+    assert values == {
+        "/Root/a": 2,
+        "/Root/b": 3,
+    }
+
+
+def test_topic_reader_received_messages_ignores_nonpositive_values(metrics_setup):
+    from ydb.observability.metrics import (
+        TOPIC_READER_RECEIVED_MESSAGES,
+        TopicReaderMetrics,
+    )
+
+    reader_metrics = TopicReaderMetrics(
+        object(),
+        consumer_name="analytics",
+        reader_name="worker",
+    )
+
+    reader_metrics.record_received_messages(0, "/Root/events")
+    reader_metrics.record_received_messages(-1, "/Root/events")
+
+    assert TOPIC_READER_RECEIVED_MESSAGES not in _metrics_by_name(metrics_setup)

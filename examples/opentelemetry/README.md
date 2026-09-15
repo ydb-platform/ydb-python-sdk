@@ -51,8 +51,11 @@ Grafana is provisioned with the **YDB Python SDK Metrics** dashboard. It uses
 Prometheus queries for SDK metrics such as `db_client_operation_duration`,
 `ydb_client_operation_failed`, `ydb_query_session_count`,
 `ydb_query_session_pending_requests`, `ydb_query_session_create_time`, and
-`ydb_client_retry_duration`. Use Grafana Explore for ad-hoc traces through Tempo
-and metrics through Prometheus.
+`ydb_client_retry_duration`. Topic readers also export the cumulative
+`ydb_topic_reader_received_messages_total` counter; use `rate(...)` and group by
+`topic`, `consumer`, or `reader_name` to inspect incoming progress (the OpenTelemetry
+attribute `reader.name` is normalized to `reader_name` by the Prometheus exporter). Use
+Grafana Explore for ad-hoc traces through Tempo and metrics through Prometheus.
 
 The SDK configures explicit OpenTelemetry histogram bucket boundaries for its
 own duration and retry-attempt metrics. Duration values are recorded in seconds,
