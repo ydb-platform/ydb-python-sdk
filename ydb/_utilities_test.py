@@ -1,5 +1,8 @@
+from pathlib import Path, PurePosixPath
 import subprocess
 import sys
+import tarfile
+import zipfile
 
 import pytest
 
@@ -46,3 +49,26 @@ def test_iam_is_loaded_lazily():
     output = subprocess.check_output([sys.executable, "-c", code], text=True)
 
     assert output.splitlines() == ["True", "False", "False", "True"]
+
+
+@pytest.fixture(scope="module")
+def built_distributions(tmp_path_factory):
+    dist_dir = tmp_path_factory.mktemp("dist")
+    subprocess.run(
+        [sys.executable, "-m", "build", "--outdir", str(dist_dir)],
+        cwd=Path(__file__).resolve().parent.parent,
+        check=True,
+    )
+    return dist_dir
+
+
+def test_py_typed_is_in_wheel(built_distributions):
+    wheel_path = next(built_distributions.glob("*.whl"))
+    with zipfile.ZipFile(wheel_path) as wheel:
+        assert "ydb/py.typed" in wheel.namelist()
+
+
+def test_py_typed_is_in_sdist(built_distributions):
+    sdist_path = next(built_distributions.glob("*.tar.gz"))
+    with tarfile.open(sdist_path) as sdist:
+        assert any(PurePosixPath(member.name).parts[-2:] == ("ydb", "py.typed") for member in sdist.getmembers())
