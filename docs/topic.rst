@@ -378,7 +378,13 @@ Reader Parameters
         consumer="my-consumer",
         buffer_size_bytes=50 * 1024 * 1024,  # client-side buffer (default: 50 MB)
         buffer_release_threshold=0.5,        # see below (default: 0.5)
+        reader_name="payments-worker",       # optional name used in reader metrics
     )
+
+``reader_name`` is an optional stable name for distinguishing topic readers in
+observability metrics. If it is omitted or empty, the SDK assigns a process-local name
+in the form ``reader-N``. Explicit names are not required to be unique: readers using
+the same name contribute to the same metric series when their other attributes match.
 
 ``buffer_size_bytes`` controls how many bytes the server is allowed to send before the client
 signals that it is ready for more. The server will not exceed this limit.

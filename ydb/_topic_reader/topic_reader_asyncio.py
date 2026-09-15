@@ -36,6 +36,8 @@ import logging
 
 from ..query.base import TxEvent
 
+from ..observability.metrics import TopicReaderMetrics
+
 if typing.TYPE_CHECKING:
     from ..query.transaction import BaseQueryTxContext
 
@@ -235,6 +237,8 @@ class ReaderReconnector:
     _settings: topic_reader.PublicReaderSettings
     _driver: Driver
     _background_tasks: Set[Task]
+    _reader_name: str
+    _metrics: TopicReaderMetrics
 
     _state_changed: asyncio.Event
     _stream_reader: Optional["ReaderStream"]
@@ -251,6 +255,12 @@ class ReaderReconnector:
         self._id = ReaderReconnector._static_reader_reconnector_counter.inc_and_get()
         self._settings = settings
         self._driver = driver
+        self._reader_name = settings.reader_name or "reader-%d" % self._id
+        self._metrics = TopicReaderMetrics(
+            driver,
+            consumer_name=settings.consumer,
+            reader_name=self._reader_name,
+        )
         self._loop = loop if loop is not None else asyncio.get_running_loop()
         self._background_tasks = set()
         logger.debug("init reader reconnector id=%s", self._id)
@@ -270,7 +280,12 @@ class ReaderReconnector:
                 return
             try:
                 logger.debug("reader %s connect attempt %s", self._id, attempt)
-                self._stream_reader = await ReaderStream.create(self._id, self._driver, self._settings)
+                self._stream_reader = await ReaderStream.create(
+                    self._id,
+                    self._driver,
+                    self._settings,
+                    metrics=self._metrics,
+                )
                 logger.debug("reader %s connected stream %s", self._id, self._stream_reader._id)
                 attempt = 0
                 self._state_changed.set()
@@ -516,6 +531,7 @@ class ReaderStream:
     _pending_buffer_release_bytes: int
     _decode_executor: Optional[concurrent.futures.Executor]
     _decoders: Dict[int, typing.Callable[[bytes], bytes]]  # dict[codec_code] func(encoded_bytes)->decoded_bytes
+    _metrics: Optional[TopicReaderMetrics]
 
     if typing.TYPE_CHECKING:
         _batches_to_decode: asyncio.Queue[datatypes.PublicBatch]
@@ -537,6 +553,7 @@ class ReaderStream:
         reader_reconnector_id: int,
         settings: topic_reader.PublicReaderSettings,
         get_token_function: Optional[Callable[[], str]] = None,
+        metrics: Optional[TopicReaderMetrics] = None,
     ):
         self._loop = asyncio.get_running_loop()
         self._id = ReaderStream._static_id_counter.inc_and_get()
@@ -572,6 +589,8 @@ class ReaderStream:
 
         self._settings = settings
 
+        self._metrics = metrics
+
         logger.debug("created ReaderStream id=%s reconnector=%s", self._id, self._reader_reconnector_id)
 
     @staticmethod
@@ -579,6 +598,8 @@ class ReaderStream:
         reader_reconnector_id: int,
         driver: SupportedDriverType,
         settings: topic_reader.PublicReaderSettings,
+        *,
+        metrics: TopicReaderMetrics,
     ) -> "ReaderStream":
         stream = GrpcWrapperAsyncIO(StreamReadMessage.FromServer.from_proto)
         reader = None
@@ -590,6 +611,7 @@ class ReaderStream:
                 reader_reconnector_id,
                 settings,
                 get_token_function=creds.get_auth_token if creds else None,
+                metrics=metrics,
             )
             await reader._start(stream, settings._init_message())
         except BaseException:
@@ -927,6 +949,11 @@ class ReaderStream:
         batches = self._read_response_to_batches(message)
         for batch in batches:
             self._batches_to_decode.put_nowait(batch)
+            if self._metrics is not None:
+                self._metrics.record_received_messages(
+                    count=len(batch.messages),
+                    topic=batch._partition_session.topic_path,
+                )
 
     def _on_commit_response(self, message: StreamReadMessage.CommitOffsetResponse):
         for partition_offset in message.partitions_committed_offsets:

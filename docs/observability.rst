@@ -352,6 +352,9 @@ adapter maps them to instruments on the ``"ydb.sdk"`` meter):
    * - ``ydb.client.retry.attempts``
      - Histogram
      - Number of attempts performed for one logical retried operation.
+   * - ``ydb.topic.reader.received.messages``
+     - Counter (``{message}``)
+     - Messages accepted into the local SDK topic reader buffer.
 
 Attributes
 ~~~~~~~~~~
@@ -401,6 +404,15 @@ Only an active session managed by a client pool publishes this metric. Failure o
 initial attach handshake does not count as closing an active session, and standalone
 ``QuerySession`` instances do not publish pool metrics. A session publishes at most one
 closure event; the first terminal reason wins.
+
+``ydb.topic.reader.received.messages`` carries ``endpoint``, ``database``, ``topic``,
+``consumer``, and ``reader.name``. For reads without a consumer, ``consumer`` is an
+empty string. The user can pass ``reader_name`` to
+``TopicClient.reader``; otherwise the SDK generates a process-local ``reader-N`` value
+once for the logical reader and preserves it across reconnects. Use a rate function on
+this cumulative counter to diagnose incoming progress. A gap between received and an
+application-level delivered-message metric can indicate that the application is not
+consuming data or that decoding is failing.
 
 Writing a Custom Metrics Backend
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

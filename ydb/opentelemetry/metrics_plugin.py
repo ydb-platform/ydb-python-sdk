@@ -34,6 +34,7 @@ from ydb.observability.metrics import (
     DURATION_BUCKETS_SECONDS,
     GaugeCallback,
     RETRY_DURATION_BUCKETS_SECONDS,
+    TOPIC_READER_RECEIVED_MESSAGES,
     _get_metrics_provider,
 )
 
@@ -113,6 +114,14 @@ class OtelMetricsProvider:
                 QUERY_SESSION_PENDING_REQUESTS,
                 unit="{request}",
                 description="Number of requests waiting for a YDB query session.",
+            ),
+            TOPIC_READER_RECEIVED_MESSAGES: meter.create_counter(
+                TOPIC_READER_RECEIVED_MESSAGES,
+                unit="{message}",
+                description=(
+                    "Number of messages accepted into the local SDK topic reader buffer "
+                    "for an active partition session."
+                ),
             ),
         }
 

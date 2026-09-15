@@ -60,7 +60,15 @@ class PublicReaderSettings:
     buffer_release_threshold: float = 0.5
     """Min fraction of buffer_size_bytes to accumulate before sending a new ReadRequest (0.0 = immediately after every batch)."""
 
+    reader_name: Optional[str] = None
+    """Optional stable reader name used to distinguish reader metric series."""
+
     def __post_init__(self):
+        if self.reader_name is not None and not isinstance(
+            self.reader_name,
+            str,
+        ):
+            raise TypeError("Unsupported type for reader_name field: '%s'" % type(self.reader_name))
         if not (0.0 <= self.buffer_release_threshold <= 1.0):
             raise ValueError("buffer_release_threshold must be in [0.0, 1.0], got %s" % self.buffer_release_threshold)
         # check possible create init message
@@ -87,6 +95,7 @@ class PublicReaderSettings:
             topics_read_settings=list(map(PublicTopicSelector._to_topic_read_settings, selectors)),  # type: ignore
             consumer=self.consumer,
             auto_partitioning_support=self.auto_partitioning_support,
+            reader_name=self.reader_name,
         )
 
     def _retry_settings(self) -> RetrySettings:
