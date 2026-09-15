@@ -23,7 +23,7 @@ import itertools
 import functools
 import inspect
 import weakref
-from typing import Any, Callable, Dict, Iterable, List, Optional, Protocol, Tuple
+from typing import Any, Callable, Dict, Iterable, List, Optional, Protocol, Tuple, TypeVar, cast
 
 from ydb.observability._endpoint import split_endpoint
 
@@ -67,6 +67,7 @@ RETRY_DURATION_BUCKETS_SECONDS = (
 )
 ATTEMPT_BUCKETS = (1, 2, 3, 4, 5, 7, 10, 20)
 _UNKNOWN_POOL = "unknown"
+CallableT = TypeVar("CallableT", bound=Callable[..., Any])
 _pool_name_counter = itertools.count(1)
 _pool_metrics_counter = itertools.count(1)
 _OPERATION_ATTR_KEYS = frozenset(
@@ -736,7 +737,7 @@ class _RetryMetrics:
         self._provider.record(RETRY_ATTEMPTS, self._attempts)
 
 
-def observe_retry_metrics(retry_func: Callable) -> Callable:
+def observe_retry_metrics(retry_func: CallableT) -> CallableT:
     """Decorator recording retry duration and attempt count around a retry helper.
 
     Wraps the retried callee to count attempts and times the whole operation — but only
@@ -756,7 +757,7 @@ def observe_retry_metrics(retry_func: Callable) -> Callable:
             finally:
                 metrics.finish()
 
-        return awrapper
+        return cast(CallableT, awrapper)
 
     @functools.wraps(retry_func)
     def wrapper(callee, retry_settings=None, *args, **kwargs):
@@ -769,4 +770,4 @@ def observe_retry_metrics(retry_func: Callable) -> Callable:
         finally:
             metrics.finish()
 
-    return wrapper
+    return cast(CallableT, wrapper)

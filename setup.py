@@ -23,6 +23,7 @@ setuptools.setup(
     long_description=long_description,
     long_description_content_type='text/markdown',
     packages=setuptools.find_packages("."),
+    package_data={"ydb": ["py.typed"]},
     classifiers=[
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.10",
@@ -31,6 +32,7 @@ setuptools.setup(
         "Programming Language :: Python :: 3.13",
         "Programming Language :: Python :: 3.14",
         "Programming Language :: Python :: 3 :: Only",
+        "Typing :: Typed",
     ],
     python_requires=">=3.10",
     install_requires=requirements,  # requirements.txt

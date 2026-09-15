@@ -503,9 +503,9 @@ class QuerySession(BaseQuerySession["SyncDriver"]):
     def execute(
         self,
         query: str,
-        parameters: dict = None,
-        syntax: base.QuerySyntax = None,
-        exec_mode: base.QueryExecMode = None,
+        parameters: Optional[dict] = None,
+        syntax: Optional[base.QuerySyntax] = None,
+        exec_mode: Optional[base.QueryExecMode] = None,
         concurrent_result_sets: bool = False,
         settings: Optional[BaseRequestSettings] = None,
         *,
@@ -578,7 +578,7 @@ class QuerySession(BaseQuerySession["SyncDriver"]):
     def explain(
         self,
         query: str,
-        parameters: dict = None,
+        parameters: Optional[dict] = None,
         *,
         result_format: QueryExplainResultFormat = QueryExplainResultFormat.STR,
     ) -> Union[str, Dict[str, Any]]:

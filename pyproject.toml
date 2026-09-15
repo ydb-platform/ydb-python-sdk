@@ -9,8 +9,8 @@ strict_equality = true
 show_error_codes = true
 
 # Roadmap: these can be enabled after fixing the errors
-no_implicit_optional = false  # 24 errors
-disallow_untyped_decorators = false  # 10 errors
+no_implicit_optional = true
+disallow_untyped_decorators = true
 check_untyped_defs = false  # 58 errors
 warn_return_any = false  # 62 errors
 
@@ -49,6 +49,16 @@ ignore_missing_imports = true
 [[tool.mypy.overrides]]
 module = ["ydb.types", "ydb.table"]
 disable_error_code = ["attr-defined"]
+
+# Generated protobuf stubs are checked when they are generated, not as SDK source.
+[[tool.mypy.overrides]]
+module = [
+    "ydb._grpc.v3.*",
+    "ydb._grpc.v4.*",
+    "ydb._grpc.v5.*",
+    "ydb._grpc.v6.*",
+]
+ignore_errors = true
 
 [tool.coverage.run]
 branch = true

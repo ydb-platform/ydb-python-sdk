@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import abc
+from concurrent import futures
 from dataclasses import dataclass
 import ydb
 from abc import abstractmethod
@@ -12,9 +13,11 @@ from typing import (
     Dict,
     Generic,
     List,
+    Mapping,
     Optional,
     Tuple,
     TYPE_CHECKING,
+    Union,
 )
 
 from ._typing import DriverT
@@ -1222,7 +1225,7 @@ class BaseTableClient(ITableClient, Generic[DriverT]):
         return Session(self._driver, self._table_client_settings)
 
     def scan_query(self, query, parameters=None, settings=None):
-        # type: (ydb.ScanQuery, tuple, ydb.BaseRequestSettings) -> _utilities.SyncResponseIterator
+        # type: (Union[str, ydb.ScanQuery], Optional[Mapping[str, Any]], Optional[ydb.BaseRequestSettings]) -> _utilities.SyncResponseIterator
         request = _scan_query_request_factory(query, parameters, settings)
         stream_it = self._driver(
             request,
@@ -1236,7 +1239,7 @@ class BaseTableClient(ITableClient, Generic[DriverT]):
         )
 
     def bulk_upsert(self, table_path, rows, column_types, settings=None):
-        # type: (str, list, typing.Union[ydb.AbstractTypeBuilder, ydb.PrimitiveType], ydb.BaseRequestSettings) -> Any
+        # type: (str, list, typing.Union[ydb.AbstractTypeBuilder, ydb.PrimitiveType], Optional[ydb.BaseRequestSettings]) -> Any
         """
         Bulk upsert data
 
@@ -1255,7 +1258,7 @@ class BaseTableClient(ITableClient, Generic[DriverT]):
         )
 
     def read_rows(self, table_path, keys, key_types, columns=None, settings=None):
-        # type: (str, list, ydb.AbstractTypeBuilder, typing.Optional[list], ydb.BaseRequestSettings) -> Any
+        # type: (str, list, ydb.AbstractTypeBuilder, typing.Optional[list], Optional[ydb.BaseRequestSettings]) -> Any
         """
         Read specified keys non-transactionally from a single table.
 
@@ -1277,7 +1280,7 @@ class BaseTableClient(ITableClient, Generic[DriverT]):
         )
 
     def describe_system_view(self, path, settings=None):
-        # type: (str, ydb.BaseRequestSettings) -> Any
+        # type: (str, Optional[ydb.BaseRequestSettings]) -> Any
         """
         Returns a full description of a system view by the provided path.
 
@@ -1305,7 +1308,7 @@ class TableClient(BaseTableClient["SyncDriver"]):
         self._stop_pool_if_needed()
 
     def async_scan_query(self, query, parameters=None, settings=None):
-        # type: (ydb.ScanQuery, tuple, ydb.BaseRequestSettings) -> _utilities.AsyncResponseIterator
+        # type: (Union[str, ydb.ScanQuery], Optional[Mapping[str, Any]], Optional[ydb.BaseRequestSettings]) -> _utilities.AsyncResponseIterator
         request = _scan_query_request_factory(query, parameters, settings)
         stream_it = self._driver(
             request,
@@ -1320,7 +1323,7 @@ class TableClient(BaseTableClient["SyncDriver"]):
 
     @_utilities.wrap_async_call_exceptions
     def async_bulk_upsert(self, table_path, rows, column_types, settings=None):
-        # type: (str, list, typing.Union[ydb.AbstractTypeBuilder, ydb.PrimitiveType], ydb.BaseRequestSettings) -> None
+        # type: (str, list, typing.Union[ydb.AbstractTypeBuilder, ydb.PrimitiveType], Optional[ydb.BaseRequestSettings]) -> futures.Future[ydb.Operation]
         return self._driver.future(
             _session_impl.bulk_upsert_request_factory(table_path, rows, column_types),
             _apis.TableService.Stub,
@@ -1332,7 +1335,7 @@ class TableClient(BaseTableClient["SyncDriver"]):
 
     @_utilities.wrap_async_call_exceptions
     def async_read_rows(self, table_path, keys, key_types, columns=None, settings=None):
-        # type: (str, list, ydb.AbstractTypeBuilder, typing.Optional[list], ydb.BaseRequestSettings) -> Any
+        # type: (str, list, ydb.AbstractTypeBuilder, typing.Optional[list], Optional[ydb.BaseRequestSettings]) -> Any
         return self._driver.future(
             _session_impl.read_rows_request_factory(table_path, keys, key_types, columns),
             _apis.TableService.Stub,

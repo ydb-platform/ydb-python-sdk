@@ -10,7 +10,9 @@ from typing import (
     Callable,
     List,
     DefaultDict,
+    TypeVar,
     Union,
+    cast,
 )
 
 from .._grpc.grpcwrapper import ydb_query
@@ -30,6 +32,8 @@ from ydb._grpc.grpcwrapper.common_utils import to_thread
 if typing.TYPE_CHECKING:
     from .transaction import BaseQueryTxContext
     from .session import BaseQuerySession
+
+CallableT = TypeVar("CallableT", bound=Callable[..., Any])
 
 
 class QuerySyntax(enum.IntEnum):
@@ -222,7 +226,7 @@ def create_execute_query_request(
         raise issues.ClientInternalError("Unable to prepare execute request") from e
 
 
-def bad_session_handler(func):
+def bad_session_handler(func: CallableT) -> CallableT:
     @functools.wraps(func)
     def decorator(rpc_state, response_pb, session: "BaseQuerySession", *args, **kwargs):
         try:
@@ -231,12 +235,12 @@ def bad_session_handler(func):
             session._close_session(invalidate=True, reason="bad_session")
             raise
 
-    return decorator
+    return cast(CallableT, decorator)
 
 
 @bad_session_handler
 def wrap_execute_query_response(
-    rpc_state: RpcState,
+    rpc_state: Optional[RpcState],
     response_pb: _apis.ydb_query.ExecuteQueryResponsePart,
     session: "BaseQuerySession",
     tx: Optional["BaseQueryTxContext"] = None,
