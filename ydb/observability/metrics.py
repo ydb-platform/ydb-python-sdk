@@ -27,7 +27,7 @@ from typing import Any, Callable, Dict, Iterable, List, Optional, Protocol, Tupl
 
 from ydb.observability._endpoint import split_endpoint
 
-CLIENT_OPERATION_DURATION = "db.client.operation.duration"
+CLIENT_OPERATION_DURATION = "ydb.client.operation.duration"
 CLIENT_OPERATION_FAILED = "ydb.client.operation.failed"
 QUERY_SESSION_COUNT = "ydb.query.session.count"
 QUERY_SESSION_CLOSED = "ydb.query.session.closed"
