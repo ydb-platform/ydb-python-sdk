@@ -313,6 +313,7 @@ async def test_oauth2_device_credentials():
                 },
             ),
             (400, {"error": "authorization_pending"}),
+            (400, {"error": "slow_down"}),
             (200, {"access_token": "access-token", "token_type": "Bearer", "expires_in": 300}),
         ]
     )
@@ -321,7 +322,7 @@ async def test_oauth2_device_credentials():
         assert await credentials.get_auth_token() == "Bearer access-token"
 
     assert callback_values[0].user_code == "user-code"
-    assert sleep.await_count == 2
+    assert sleep.await_count == 3
 
 
 @pytest.mark.asyncio
@@ -403,7 +404,8 @@ async def test_oauth2_async_device_refresh_and_error_paths():
             },
         )
     )
-    assert await credentials._try_refresh("https://issuer.example/token") == {
+    credentials._discovery_document = {"token_endpoint": "https://issuer.example/token"}
+    assert await credentials._make_token_request() == {
         "access_token": "Bearer refreshed-token",
         "expires_in": 300,
     }
@@ -423,6 +425,7 @@ async def test_oauth2_async_device_refresh_and_error_paths():
     "token_response, expected_message",
     [
         ({"error": "expired_token"}, "expired"),
+        ({"error": "access_denied"}, "access_denied"),
         (None, "timed out"),
     ],
 )

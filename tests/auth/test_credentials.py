@@ -371,6 +371,13 @@ def test_oauth2_sync_device_error_paths():
                 "refresh_token": "",
             }
         )
+    assert credentials._save_token_response(
+        {
+            "access_token": "token",
+            "token_type": "Bearer",
+            "expires_in": 300,
+        }
+    ) == {"access_token": "Bearer token", "expires_in": 300}
 
     credentials._refresh_token_value = "refresh-token"
     credentials._request_json = MagicMock(return_value=(400, {"error": "invalid_grant"}))
@@ -386,6 +393,7 @@ def test_oauth2_sync_device_error_paths():
     "token_response, expected_message",
     [
         ({"error": "expired_token"}, "expired"),
+        ({"error": "access_denied"}, "access_denied"),
         (None, "timed out"),
     ],
 )
