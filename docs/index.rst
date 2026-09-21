@@ -91,7 +91,7 @@ The :doc:`table` page covers ``driver.table_client`` — the lower-level API for
 operations that cannot be expressed in YQL: creating tables with custom partitioning,
 TTL, secondary indexes, and column families; bulk loading data with ``bulk_upsert``;
 point reads by primary key with ``read_rows``; and streaming full-table reads with
-``read_table`` or ``scan_query``. Use this
+``read_table``. Use this
 alongside the Query service when you need fine-grained schema or data-loading control.
 
 

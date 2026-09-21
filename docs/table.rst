@@ -543,6 +543,13 @@ Pass ``None`` to ``from_bound`` or ``to_bound`` of :class:`~ydb.KeyRange` to mea
 scan_query
 ^^^^^^^^^^
 
+The table-client ``scan_query`` methods are deprecated and emit a
+``DeprecationWarning``. Use :class:`~ydb.QuerySessionPool` (or
+:class:`~ydb.aio.QuerySessionPool`) and stream results with ``session.execute()``
+for new code; see :doc:`query`.
+
+The examples below show legacy usage for applications that have not migrated yet.
+
 ``scan_query`` executes a YQL query in streaming mode — the server sends result
 chunks as they are produced without buffering the entire result set:
 
