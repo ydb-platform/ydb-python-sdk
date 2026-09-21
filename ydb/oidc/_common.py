@@ -203,17 +203,17 @@ class OAuth2CredentialsBase:
             raise issues.Error("Device Authorization response contains an invalid verification_uri_complete")
         if verification_uri_complete is not None and not OAuth2CredentialsBase._is_https_url(verification_uri_complete):
             raise issues.Error("Device Authorization response contains an invalid verification_uri_complete URL")
-        if isinstance(expires_in, bool) or not isinstance(expires_in, (int, float)) or expires_in <= 0:
+        if isinstance(expires_in, bool) or not isinstance(expires_in, int) or expires_in <= 0:
             raise issues.Error("Device Authorization response contains an invalid expires_in: {!r}".format(expires_in))
-        if isinstance(interval, bool) or not isinstance(interval, (int, float)) or interval <= 0:
+        if isinstance(interval, bool) or not isinstance(interval, int) or interval <= 0:
             raise issues.Error("Device Authorization response contains an invalid interval: {!r}".format(interval))
 
         info = DeviceAuthorizationInfo(
             verification_uri=verification_uri,
             user_code=user_code,
             verification_uri_complete=verification_uri_complete,
-            expires_in=int(expires_in),
-            interval=int(interval),
+            expires_in=expires_in,
+            interval=interval,
         )
         return device_code, info
 
@@ -222,5 +222,9 @@ def bearer_token(token: str) -> str:
     if not isinstance(token, str) or not token:
         raise ValueError("OAuth 2.0 access token must not be empty")
     if token.lower().startswith("bearer "):
+        if not token[7:].strip():
+            raise ValueError("OAuth 2.0 access token must not be empty")
         return token
+    if not token.strip():
+        raise ValueError("OAuth 2.0 access token must not be empty")
     return "Bearer " + token

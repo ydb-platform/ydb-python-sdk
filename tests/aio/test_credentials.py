@@ -324,6 +324,7 @@ async def test_oauth2_device_credentials():
 
     assert callback_values[0].user_code == "user-code"
     assert sleep.await_count == 3
+    assert credentials._request_json.await_args_list[2].kwargs["request_timeout"] == 10
 
 
 @pytest.mark.asyncio
@@ -349,10 +350,12 @@ async def test_oauth2_async_http_requests_and_discovery_cache():
     with patch("ydb.aio.oidc.aiohttp.ClientSession", return_value=session_context) as client_session:
         first = await credentials._discovery()
         second = await credentials._discovery()
+        await credentials._request_json("https://issuer.example/token", request_timeout=0.5)
 
     assert first is second
-    assert client_session.call_count == 1
-    assert session.request.call_args.args[1] == "https://issuer.example/.well-known/openid-configuration"
+    assert client_session.call_count == 2
+    assert client_session.call_args.kwargs["timeout"].total == 0.5
+    assert session.request.call_args_list[0].args[1] == "https://issuer.example/.well-known/openid-configuration"
     assert session.request.call_args.kwargs["ssl"] is not None
 
     with patch(
@@ -424,19 +427,26 @@ async def test_oauth2_async_device_refresh_and_error_paths():
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize(
-    "token_response, expected_message",
+    "token_response, expected_message, monotonic_values",
     [
-        ({"error": "expired_token"}, "expired"),
-        ({"error": "access_denied"}, "access_denied"),
-        (None, "timed out"),
+        ({"error": "expired_token"}, "expired", [0, 0, 0]),
+        ({"error": "access_denied"}, "access_denied", [0, 0, 0]),
+        (None, "timed out", [0, 2]),
+        (None, "timed out", [0, 0, 2]),
     ],
 )
-async def test_oauth2_async_device_expiration(token_response, expected_message):
+async def test_oauth2_async_device_expiration(token_response, expected_message, monotonic_values):
     callback_values = []
+    loop = MagicMock()
+
+    def callback(info):
+        callback_values.append(info)
+        assert loop.time.call_count == 1
+
     credentials = ydb.aio.oidc.OAuth2DeviceCredentials(
         "https://issuer.example",
         "client-id",
-        callback_values.append,
+        callback,
         device_flow_timeout=1,
     )
     credentials._discovery_document = {
@@ -451,11 +461,9 @@ async def test_oauth2_async_device_expiration(token_response, expected_message):
         "interval": 1,
     }
     responses = [(200, device_response)]
-    loop = MagicMock()
-    loop.time.side_effect = [0, 2]
+    loop.time.side_effect = monotonic_values
     if token_response is not None:
         responses.append((400, token_response))
-        loop.time.side_effect = [0, 0]
     credentials._request_json = AsyncMock(side_effect=responses)
 
     with patch("ydb.aio.oidc.asyncio.get_running_loop", return_value=loop), patch(
@@ -465,3 +473,5 @@ async def test_oauth2_async_device_expiration(token_response, expected_message):
             await credentials._make_token_request()
 
     assert callback_values[0].user_code == "user-code"
+    if token_response is not None:
+        assert credentials._request_json.await_args_list[1].kwargs["request_timeout"] == 1

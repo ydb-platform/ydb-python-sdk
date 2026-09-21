@@ -41,6 +41,7 @@ class _OAuth2Credentials(credentials.AbstractExpiringTokenCredentials, OAuth2Cre
         url: str,
         data: typing.Optional[typing.Mapping[str, str]] = None,
         headers: typing.Optional[typing.Mapping[str, str]] = None,
+        request_timeout: typing.Optional[float] = None,
     ) -> typing.Tuple[int, typing.Dict[str, typing.Any]]:
         body = urllib.parse.urlencode(data).encode("utf-8") if data is not None else None
         request_headers = dict(headers or {})
@@ -52,7 +53,7 @@ class _OAuth2Credentials(credentials.AbstractExpiringTokenCredentials, OAuth2Cre
             with urllib.request.urlopen(
                 request,
                 context=self._ssl_context,
-                timeout=self._request_timeout,
+                timeout=self._request_timeout if request_timeout is None else request_timeout,
             ) as response:
                 return response.status, self._decode_json(response.read(), url)
         except urllib.error.HTTPError as error:
@@ -172,20 +173,28 @@ class OAuth2DeviceCredentials(_OAuth2Credentials):
         )
         self._raise_for_status(status, response)
         device_code, info = self._process_device_authorization_response(response)
-        self._device_authorization_callback(info)
-
         timeout = info.expires_in
         if self._device_flow_timeout is not None:
             timeout = min(timeout, self._device_flow_timeout)
         deadline = time.monotonic() + timeout
+
+        self._device_authorization_callback(info)
+
         interval = info.interval
 
-        while time.monotonic() < deadline:
-            time.sleep(interval)
+        while True:
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                break
+            time.sleep(min(interval, remaining))
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                break
             status, response = self._request_json(
                 token_endpoint,
                 self._device_token_data(device_code),
                 self._client_headers(),
+                request_timeout=min(self._request_timeout, remaining),
             )
             if 200 <= status < 300:
                 return self._save_token_response(response)

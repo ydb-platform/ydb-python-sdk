@@ -109,7 +109,7 @@ def test_oauth2_client_credentials():
         audience="ydb",
     )
 
-    def request_json(url, data=None, headers=None):
+    def request_json(url, data=None, headers=None, request_timeout=None):
         requests.append((url, data, headers))
         return next(responses)
 
@@ -179,8 +179,8 @@ def test_oauth2_device_credentials_poll_and_refresh():
         callback_values.append,
     )
 
-    def request_json(url, data=None, headers=None):
-        requests.append((url, data, headers))
+    def request_json(url, data=None, headers=None, request_timeout=None):
+        requests.append((url, data, headers, request_timeout))
         return next(responses)
 
     credentials._request_json = request_json
@@ -190,6 +190,7 @@ def test_oauth2_device_credentials_poll_and_refresh():
 
     assert callback_values[0].user_code == "user-code"
     assert [value.args[0] for value in sleep.call_args_list] == [1, 1, 6]
+    assert requests[2][3] == 10
     assert credentials._make_token_request() == {
         "access_token": "Bearer refreshed-access-token",
         "expires_in": 300,
@@ -222,7 +223,7 @@ def test_oauth2_client_credentials_validation(kwargs):
         ydb.oidc.OAuth2ClientCredentials(**arguments)
 
 
-@pytest.mark.parametrize("token", ["", None])
+@pytest.mark.parametrize("token", ["", " ", "Bearer ", "bearer   ", None])
 def test_oauth2_token_credentials_validation(token):
     with pytest.raises(ValueError):
         bearer_token(token)
@@ -326,7 +327,9 @@ def test_oauth2_common_response_processing():
         ({"verification_uri": ""}, "verification_uri"),
         ({"verification_uri_complete": 42}, "verification_uri_complete"),
         ({"expires_in": 0}, "expires_in"),
+        ({"expires_in": 0.5}, "expires_in"),
         ({"interval": 0}, "interval"),
+        ({"interval": 0.5}, "interval"),
     ],
 )
 def test_oauth2_device_authorization_response_validation(invalid_value, message):
@@ -358,9 +361,11 @@ def test_oauth2_sync_http_requests_and_discovery_cache():
     with patch("ydb.oidc.credentials.urllib.request.urlopen", return_value=response_context) as urlopen:
         first = credentials._discovery()
         second = credentials._discovery()
+        credentials._request_json("https://issuer.example/token", request_timeout=0.5)
 
     assert first is second
-    assert urlopen.call_count == 1
+    assert urlopen.call_count == 2
+    assert urlopen.call_args.kwargs["timeout"] == 0.5
 
     http_error = urllib.error.HTTPError(
         "https://issuer.example/token",
@@ -429,18 +434,25 @@ def test_oauth2_sync_device_error_paths():
 
 
 @pytest.mark.parametrize(
-    "token_response, expected_message",
+    "token_response, expected_message, monotonic_values",
     [
-        ({"error": "expired_token"}, "expired"),
-        ({"error": "access_denied"}, "access_denied"),
-        (None, "timed out"),
+        ({"error": "expired_token"}, "expired", [0, 0, 0]),
+        ({"error": "access_denied"}, "access_denied", [0, 0, 0]),
+        (None, "timed out", [0, 2]),
+        (None, "timed out", [0, 0, 2]),
     ],
 )
-def test_oauth2_sync_device_expiration(token_response, expected_message):
+def test_oauth2_sync_device_expiration(token_response, expected_message, monotonic_values):
+    callback_clock_calls = []
+    monotonic = MagicMock()
+
+    def callback(info):
+        callback_clock_calls.append(monotonic.call_count)
+
     credentials = ydb.oidc.OAuth2DeviceCredentials(
         "https://issuer.example",
         "client-id",
-        lambda info: None,
+        callback,
         device_flow_timeout=1,
     )
     credentials._discovery_document = {
@@ -455,14 +467,15 @@ def test_oauth2_sync_device_expiration(token_response, expected_message):
         "interval": 1,
     }
     responses = [(200, device_response)]
-    monotonic_values = [0, 2]
     if token_response is not None:
         responses.append((400, token_response))
-        monotonic_values = [0, 0]
     credentials._request_json = MagicMock(side_effect=responses)
 
-    with patch("ydb.oidc.credentials.time.monotonic", side_effect=monotonic_values), patch(
-        "ydb.oidc.credentials.time.sleep"
-    ):
+    monotonic.side_effect = monotonic_values
+    with patch("ydb.oidc.credentials.time.monotonic", monotonic), patch("ydb.oidc.credentials.time.sleep"):
         with pytest.raises(issues.Unauthenticated, match=expected_message):
             credentials._make_token_request()
+
+    assert callback_clock_calls == [1]
+    if token_response is not None:
+        assert credentials._request_json.call_args_list[1].kwargs["request_timeout"] == 1

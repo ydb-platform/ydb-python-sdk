@@ -29,8 +29,9 @@ class _OAuth2Credentials(AbstractExpiringTokenCredentials, OAuth2CredentialsBase
         url: str,
         data: typing.Optional[typing.Mapping[str, str]] = None,
         headers: typing.Optional[typing.Mapping[str, str]] = None,
+        request_timeout: typing.Optional[float] = None,
     ) -> typing.Tuple[int, typing.Dict[str, typing.Any]]:
-        timeout = aiohttp.ClientTimeout(total=self._request_timeout)
+        timeout = aiohttp.ClientTimeout(total=self._request_timeout if request_timeout is None else request_timeout)
         ssl_context = self._ssl_context if url.startswith("https://") else None
         try:
             async with aiohttp.ClientSession(timeout=timeout) as session:
@@ -151,22 +152,31 @@ class OAuth2DeviceCredentials(_OAuth2Credentials):
         )
         self._raise_for_status(status, response)
         device_code, info = self._process_device_authorization_response(response)
+        timeout = info.expires_in
+        if self._device_flow_timeout is not None:
+            timeout = min(timeout, self._device_flow_timeout)
+        loop = asyncio.get_running_loop()
+        deadline = loop.time() + timeout
+
         callback_result = self._device_authorization_callback(info)
         if inspect.isawaitable(callback_result):
             await callback_result
 
-        timeout = info.expires_in
-        if self._device_flow_timeout is not None:
-            timeout = min(timeout, self._device_flow_timeout)
-        deadline = asyncio.get_running_loop().time() + timeout
         interval = info.interval
 
-        while asyncio.get_running_loop().time() < deadline:
-            await asyncio.sleep(interval)
+        while True:
+            remaining = deadline - loop.time()
+            if remaining <= 0:
+                break
+            await asyncio.sleep(min(interval, remaining))
+            remaining = deadline - loop.time()
+            if remaining <= 0:
+                break
             status, response = await self._request_json(
                 token_endpoint,
                 self._device_token_data(device_code),
                 self._client_headers(),
+                request_timeout=min(self._request_timeout, remaining),
             )
             if 200 <= status < 300:
                 return self._save_token_response(response)
