@@ -32,7 +32,7 @@ except Exception:
     pass
 
 
-_LAZY_MODULES = {"iam"}
+_LAZY_MODULES = {"iam", "oidc"}
 
 
 def __getattr__(name):

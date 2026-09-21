@@ -1,9 +1,19 @@
 import jwt
 import concurrent.futures
 import grpc
+import io
+import pytest
 import time
+import urllib.error
+from unittest.mock import patch
+from unittest.mock import MagicMock
 
 import ydb.iam
+import ydb.oidc
+import ydb.oidc.credentials
+from ydb import issues
+from ydb.oidc._common import OAuth2CredentialsBase
+from ydb.oidc._common import bearer_token
 
 from yandex.cloud.iam.v1 import iam_token_service_pb2_grpc
 from yandex.cloud.iam.v1 import iam_token_service_pb2
@@ -74,3 +84,422 @@ def test_yandex_service_account_credentials():
     assert t == "test_token"
     assert credentials.get_expire_time() <= 42
     server.stop()
+
+
+def test_oauth2_token_credentials():
+    credentials = ydb.oidc.OAuth2TokenCredentials("access-token")
+
+    assert credentials.auth_metadata() == [("x-ydb-auth-ticket", "Bearer access-token")]
+    assert ydb.oidc.OAuth2TokenCredentials("Bearer access-token").get_auth_token() == "Bearer access-token"
+
+
+def test_oauth2_client_credentials():
+    issuer = "https://issuer.example"
+    requests = []
+    responses = iter(
+        [
+            (200, {"issuer": issuer, "token_endpoint": issuer + "/token"}),
+            (200, {"access_token": "access-token", "token_type": "Bearer", "expires_in": 300}),
+        ]
+    )
+    credentials = ydb.oidc.OAuth2ClientCredentials(
+        issuer,
+        "client-id",
+        "client-secret",
+        scope=["profile"],
+        audience="ydb",
+    )
+
+    def request_json(url, data=None, headers=None, request_timeout=None):
+        requests.append((url, data, headers))
+        return next(responses)
+
+    credentials._request_json = request_json
+
+    assert credentials.get_auth_token() == "Bearer access-token"
+    assert requests[0] == (issuer + "/.well-known/openid-configuration", None, None)
+    assert requests[1][0] == issuer + "/token"
+    assert requests[1][1] == {
+        "grant_type": "client_credentials",
+        "scope": "profile openid",
+        "audience": "ydb",
+    }
+    assert requests[1][2]["Authorization"].startswith("Basic ")
+
+
+def test_oauth2_token_lifetime_starts_after_request_and_preserves_short_lived_token():
+    credentials = ydb.oidc.OAuth2ClientCredentials(
+        "https://issuer.example",
+        "client-id",
+        "client-secret",
+    )
+    now = [1000]
+
+    def make_token_request():
+        now[0] = 1120
+        return {"access_token": "Bearer access-token", "expires_in": 10}
+
+    credentials._make_token_request = make_token_request
+
+    with patch("ydb.credentials.time.time", side_effect=lambda: now[0]):
+        assert credentials.get_auth_token() == "Bearer access-token"
+
+    assert credentials._expires_in == 1129
+
+
+def test_oauth2_device_credentials_poll_and_refresh():
+    issuer = "https://issuer.example"
+    callback_values = []
+    responses = iter(
+        [
+            (
+                200,
+                {
+                    "issuer": issuer,
+                    "token_endpoint": issuer + "/token",
+                    "device_authorization_endpoint": issuer + "/device",
+                },
+            ),
+            (
+                200,
+                {
+                    "device_code": "device-code",
+                    "user_code": "user-code",
+                    "verification_uri": issuer + "/verify",
+                    "verification_uri_complete": issuer + "/verify?user_code=user-code",
+                    "expires_in": 600,
+                    "interval": 1,
+                },
+            ),
+            (400, {"error": "authorization_pending"}),
+            (400, {"error": "slow_down"}),
+            (
+                200,
+                {
+                    "access_token": "device-access-token",
+                    "refresh_token": "refresh-token",
+                    "token_type": "Bearer",
+                    "expires_in": 300,
+                },
+            ),
+            (
+                200,
+                {
+                    "access_token": "refreshed-access-token",
+                    "refresh_token": "new-refresh-token",
+                    "token_type": "Bearer",
+                    "expires_in": 300,
+                },
+            ),
+        ]
+    )
+    requests = []
+    credentials = ydb.oidc.OAuth2DeviceCredentials(
+        issuer,
+        "device-client",
+        callback_values.append,
+    )
+
+    def request_json(url, data=None, headers=None, request_timeout=None):
+        requests.append((url, data, headers, request_timeout))
+        return next(responses)
+
+    credentials._request_json = request_json
+
+    with patch("ydb.oidc.credentials.time.sleep") as sleep:
+        assert credentials.get_auth_token() == "Bearer device-access-token"
+
+    assert callback_values[0].user_code == "user-code"
+    assert [value.args[0] for value in sleep.call_args_list] == [1, 1, 6]
+    assert requests[2][3] == 10
+    assert credentials._make_token_request() == {
+        "access_token": "Bearer refreshed-access-token",
+        "expires_in": 300,
+    }
+    assert requests[-1][1]["grant_type"] == "refresh_token"
+    assert requests[-1][1]["refresh_token"] == "refresh-token"
+
+
+@pytest.mark.parametrize(
+    "kwargs",
+    [
+        {"issuer": ""},
+        {"issuer": "http://issuer.example"},
+        {"issuer": "https://issuer.example?tenant=test"},
+        {"issuer": "https://issuer.example:invalid"},
+        {"client_id": ""},
+        {"request_timeout": 0},
+        {"client_secret": ""},
+    ],
+)
+def test_oauth2_client_credentials_validation(kwargs):
+    arguments = {
+        "issuer": "https://issuer.example",
+        "client_id": "client-id",
+        "client_secret": "client-secret",
+    }
+    arguments.update(kwargs)
+
+    with pytest.raises(ValueError):
+        ydb.oidc.OAuth2ClientCredentials(**arguments)
+
+
+@pytest.mark.parametrize("token", ["", " ", "Bearer ", "bearer   ", None])
+def test_oauth2_token_credentials_validation(token):
+    with pytest.raises(ValueError):
+        bearer_token(token)
+
+
+def test_oauth2_common_response_processing():
+    credentials = OAuth2CredentialsBase("https://issuer.example/", "client id", audience="ydb")
+
+    assert credentials._issuer == "https://issuer.example/"
+    assert credentials._scope == "openid"
+    assert OAuth2CredentialsBase._scope_parameter("profile") == "profile openid"
+    assert OAuth2CredentialsBase._scope_parameter(["openid", "profile"]) == "openid profile"
+    assert not OAuth2CredentialsBase._is_https_url("https://issuer.example/\n")
+
+    with pytest.raises(issues.Error, match="invalid JSON"):
+        credentials._decode_json(b"not-json", "https://issuer.example/token")
+    with pytest.raises(issues.Error, match="non-object"):
+        credentials._decode_json(b"[]", "https://issuer.example/token")
+
+    credentials._raise_for_status(204, {})
+    for status, response, error_type in (
+        (401, {}, issues.Unauthenticated),
+        (400, {"error": "invalid_client"}, issues.Unauthenticated),
+        (503, {}, issues.Unavailable),
+        (400, {"error": "bad_request", "error_description": "details"}, issues.BadRequest),
+        (300, {}, issues.Error),
+    ):
+        with pytest.raises(error_type):
+            credentials._raise_for_status(status, response)
+
+    with pytest.raises(issues.Error, match="issuer mismatch"):
+        credentials._process_discovery_response(
+            200,
+            {"issuer": "https://other.example", "token_endpoint": "https://issuer.example/token"},
+        )
+    with pytest.raises(issues.Error, match="token_endpoint"):
+        credentials._process_discovery_response(200, {"issuer": "https://issuer.example/"})
+    with pytest.raises(issues.Error, match="token_endpoint URL"):
+        credentials._process_discovery_response(
+            200,
+            {"issuer": "https://issuer.example/", "token_endpoint": "http://issuer.example/token"},
+        )
+    with pytest.raises(issues.Error, match="device_authorization_endpoint URL"):
+        credentials._process_discovery_response(
+            200,
+            {
+                "issuer": "https://issuer.example/",
+                "token_endpoint": "https://issuer.example/token",
+                "device_authorization_endpoint": "http://issuer.example/device",
+            },
+        )
+
+    for response, message in (
+        ({}, "access_token"),
+        ({"access_token": "token", "token_type": "Basic", "expires_in": 60}, "token_type"),
+        ({"access_token": "token", "token_type": "Bearer", "expires_in": True}, "expires_in"),
+    ):
+        with pytest.raises(issues.Error, match=message):
+            credentials._process_token_response(response)
+
+    assert credentials._client_credentials_data() == {
+        "grant_type": "client_credentials",
+        "scope": "openid",
+        "audience": "ydb",
+    }
+    assert credentials._device_authorization_data() == {
+        "client_id": "client id",
+        "scope": "openid",
+        "audience": "ydb",
+    }
+    assert credentials._refresh_token_data("refresh-token") == {
+        "grant_type": "refresh_token",
+        "client_id": "client id",
+        "refresh_token": "refresh-token",
+        "scope": "openid",
+    }
+    assert (
+        credentials._client_authorization_header("client id", "secret/value")
+        == "Basic Y2xpZW50K2lkOnNlY3JldCUyRnZhbHVl"
+    )
+
+    device_response = {
+        "device_code": "device-code",
+        "user_code": "user-code",
+        "verification_uri": "http://issuer.example/verify",
+        "expires_in": 60,
+    }
+    with pytest.raises(issues.Error, match="verification_uri URL"):
+        credentials._process_device_authorization_response(device_response)
+    device_response["verification_uri"] = "https://issuer.example/verify"
+    device_response["verification_uri_complete"] = "http://issuer.example/verify?code=user-code"
+    with pytest.raises(issues.Error, match="verification_uri_complete URL"):
+        credentials._process_device_authorization_response(device_response)
+
+
+@pytest.mark.parametrize(
+    "invalid_value, message",
+    [
+        ({"device_code": ""}, "device_code"),
+        ({"user_code": ""}, "user_code"),
+        ({"verification_uri": ""}, "verification_uri"),
+        ({"verification_uri_complete": 42}, "verification_uri_complete"),
+        ({"expires_in": 0}, "expires_in"),
+        ({"expires_in": 0.5}, "expires_in"),
+        ({"interval": 0}, "interval"),
+        ({"interval": 0.5}, "interval"),
+    ],
+)
+def test_oauth2_device_authorization_response_validation(invalid_value, message):
+    response = {
+        "device_code": "device-code",
+        "user_code": "user-code",
+        "verification_uri": "https://issuer.example/verify",
+        "verification_uri_complete": "https://issuer.example/verify?user_code=user-code",
+        "expires_in": 600,
+        "interval": 5,
+    }
+    response.update(invalid_value)
+
+    with pytest.raises(issues.Error, match=message):
+        OAuth2CredentialsBase._process_device_authorization_response(response)
+
+
+def test_oauth2_sync_http_requests_and_discovery_cache():
+    credentials = ydb.oidc.OAuth2ClientCredentials(
+        "https://issuer.example",
+        "client-id",
+        "client-secret",
+    )
+    response = MagicMock(status=200)
+    response.read.return_value = b'{"issuer":"https://issuer.example","token_endpoint":"https://issuer.example/token"}'
+    response_context = MagicMock()
+    response_context.__enter__.return_value = response
+
+    credentials._opener.open = MagicMock(return_value=response_context)
+    first = credentials._discovery()
+    second = credentials._discovery()
+    credentials._request_json("https://issuer.example/token", request_timeout=0.5)
+
+    redirect_handler = ydb.oidc.credentials._NoRedirectHandler()
+    assert (
+        redirect_handler.redirect_request(None, None, 307, "Temporary Redirect", {}, "http://other.example/token")
+        is None
+    )
+
+    assert first is second
+    assert credentials._opener.open.call_count == 2
+    assert credentials._opener.open.call_args.kwargs["timeout"] == 0.5
+
+    http_error = urllib.error.HTTPError(
+        "https://issuer.example/token",
+        400,
+        "Bad Request",
+        {},
+        io.BytesIO(b'{"error":"invalid_request"}'),
+    )
+    credentials._opener.open.side_effect = http_error
+    assert credentials._request_json("https://issuer.example/token", {"key": "value"}) == (
+        400,
+        {"error": "invalid_request"},
+    )
+
+    credentials._opener.open.side_effect = urllib.error.URLError("unavailable")
+    with pytest.raises(issues.Unavailable):
+        credentials._request_json("https://issuer.example/token")
+
+
+def test_oauth2_sync_device_error_paths():
+    with pytest.raises(ValueError):
+        ydb.oidc.OAuth2DeviceCredentials("https://issuer.example", "client-id", None)
+    with pytest.raises(ValueError):
+        ydb.oidc.OAuth2DeviceCredentials(
+            "https://issuer.example",
+            "client-id",
+            lambda info: None,
+            device_flow_timeout=0,
+        )
+
+    credentials = ydb.oidc.OAuth2DeviceCredentials(
+        "https://issuer.example",
+        "client-id",
+        lambda info: None,
+        client_secret="client-secret",
+    )
+    assert credentials._client_headers()["Authorization"].startswith("Basic ")
+    with pytest.raises(issues.Error, match="refresh_token"):
+        credentials._save_token_response(
+            {
+                "access_token": "token",
+                "token_type": "Bearer",
+                "expires_in": 300,
+                "refresh_token": "",
+            }
+        )
+    assert credentials._save_token_response(
+        {
+            "access_token": "token",
+            "token_type": "Bearer",
+            "expires_in": 300,
+        }
+    ) == {"access_token": "Bearer token", "expires_in": 300}
+
+    credentials._refresh_token_value = "refresh-token"
+    credentials._request_json = MagicMock(return_value=(400, {"error": "invalid_grant"}))
+    assert credentials._try_refresh("https://issuer.example/token") is None
+    assert credentials._refresh_token_value is None
+
+    credentials._discovery_document = {"token_endpoint": "https://issuer.example/token"}
+    with pytest.raises(issues.Error, match="device_authorization_endpoint"):
+        credentials._make_token_request()
+
+
+@pytest.mark.parametrize(
+    "token_response, expected_message, monotonic_values",
+    [
+        ({"error": "expired_token"}, "expired", [0, 0, 0]),
+        ({"error": "access_denied"}, "access_denied", [0, 0, 0]),
+        (None, "timed out", [0, 2]),
+        (None, "timed out", [0, 0, 2]),
+    ],
+)
+def test_oauth2_sync_device_expiration(token_response, expected_message, monotonic_values):
+    callback_clock_calls = []
+    monotonic = MagicMock()
+
+    def callback(info):
+        callback_clock_calls.append(monotonic.call_count)
+
+    credentials = ydb.oidc.OAuth2DeviceCredentials(
+        "https://issuer.example",
+        "client-id",
+        callback,
+        device_flow_timeout=1,
+    )
+    credentials._discovery_document = {
+        "token_endpoint": "https://issuer.example/token",
+        "device_authorization_endpoint": "https://issuer.example/device",
+    }
+    device_response = {
+        "device_code": "device-code",
+        "user_code": "user-code",
+        "verification_uri": "https://issuer.example/verify",
+        "expires_in": 600,
+        "interval": 1,
+    }
+    responses = [(200, device_response)]
+    if token_response is not None:
+        responses.append((400, token_response))
+    credentials._request_json = MagicMock(side_effect=responses)
+
+    monotonic.side_effect = monotonic_values
+    with patch("ydb.oidc.credentials.time.monotonic", monotonic), patch("ydb.oidc.credentials.time.sleep"):
+        with pytest.raises(issues.Unauthenticated, match=expected_message):
+            credentials._make_token_request()
+
+    assert callback_clock_calls == [1]
+    if token_response is not None:
+        assert credentials._request_json.call_args_list[1].kwargs["request_timeout"] == 1

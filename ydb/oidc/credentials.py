@@ -1,0 +1,220 @@
+# -*- coding: utf-8 -*-
+import socket
+import time
+import typing
+import urllib.error
+import urllib.parse
+import urllib.request
+
+from ydb import credentials, issues, tracing
+
+from ._common import DeviceAuthorizationInfo, OAuth2CredentialsBase, bearer_token
+
+
+class _NoRedirectHandler(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self, request, file_pointer, code, message, headers, new_url):
+        return None
+
+
+class OAuth2TokenCredentials(credentials.Credentials):
+    """Credentials for an OAuth 2.0 access token obtained outside the SDK."""
+
+    def __init__(self, access_token: str, tracer=None):
+        super(OAuth2TokenCredentials, self).__init__(tracer)
+        self._access_token = bearer_token(access_token)
+
+    def auth_metadata(self):
+        return [(credentials.YDB_AUTH_TICKET_HEADER, self._access_token)]
+
+
+class _OAuth2Credentials(credentials.AbstractExpiringTokenCredentials, OAuth2CredentialsBase):
+    def __init__(
+        self,
+        issuer: str,
+        client_id: str,
+        scope: typing.Union[str, typing.Sequence[str], None],
+        audience: typing.Optional[str],
+        ca_file: typing.Optional[str],
+        request_timeout: float,
+        tracer=None,
+    ):
+        credentials.AbstractExpiringTokenCredentials.__init__(self, tracer)
+        OAuth2CredentialsBase.__init__(self, issuer, client_id, scope, audience, ca_file, request_timeout)
+        self._opener = urllib.request.build_opener(
+            urllib.request.HTTPSHandler(context=self._ssl_context),
+            _NoRedirectHandler(),
+        )
+
+    def _request_json(
+        self,
+        url: str,
+        data: typing.Optional[typing.Mapping[str, str]] = None,
+        headers: typing.Optional[typing.Mapping[str, str]] = None,
+        request_timeout: typing.Optional[float] = None,
+    ) -> typing.Tuple[int, typing.Dict[str, typing.Any]]:
+        body = urllib.parse.urlencode(data).encode("utf-8") if data is not None else None
+        request_headers = dict(headers or {})
+        if body is not None:
+            request_headers.setdefault("Content-Type", "application/x-www-form-urlencoded")
+        request = urllib.request.Request(url, data=body, headers=request_headers)
+
+        try:
+            with self._opener.open(
+                request,
+                timeout=self._request_timeout if request_timeout is None else request_timeout,
+            ) as response:
+                return response.status, self._decode_json(response.read(), url)
+        except urllib.error.HTTPError as error:
+            return error.code, self._decode_json(error.read(), url)
+        except (urllib.error.URLError, TimeoutError, socket.timeout, OSError) as error:
+            raise issues.Unavailable("OAuth 2.0 endpoint is unavailable at {}: {}".format(url, error))
+
+    def _discovery(self) -> typing.Dict[str, typing.Any]:
+        if self._discovery_document is None:
+            url = self._issuer.rstrip("/") + "/.well-known/openid-configuration"
+            status, response = self._request_json(url)
+            self._discovery_document = self._process_discovery_response(status, response)
+        return self._discovery_document
+
+
+class OAuth2ClientCredentials(_OAuth2Credentials):
+    """OAuth 2.0 Client Credentials Grant discovered through an OIDC issuer."""
+
+    def __init__(
+        self,
+        issuer: str,
+        client_id: str,
+        client_secret: str,
+        scope: typing.Union[str, typing.Sequence[str], None] = None,
+        audience: typing.Optional[str] = None,
+        ca_file: typing.Optional[str] = None,
+        request_timeout: float = 10,
+        tracer=None,
+    ):
+        if not client_secret:
+            raise ValueError("OAuth 2.0 client secret must not be empty")
+        super(OAuth2ClientCredentials, self).__init__(
+            issuer, client_id, scope, audience, ca_file, request_timeout, tracer
+        )
+        self._client_secret = client_secret
+
+    @tracing.with_trace()
+    def _make_token_request(self):
+        token_endpoint = self._discovery()["token_endpoint"]
+        headers = {"Authorization": self._client_authorization_header(self._client_id, self._client_secret)}
+        status, response = self._request_json(token_endpoint, self._client_credentials_data(), headers)
+        self._raise_for_status(status, response)
+        return self._process_token_response(response)
+
+
+class OAuth2DeviceCredentials(_OAuth2Credentials):
+    """OAuth 2.0 Device Authorization Grant discovered through an OIDC issuer."""
+
+    def __init__(
+        self,
+        issuer: str,
+        client_id: str,
+        device_authorization_callback: typing.Callable[[DeviceAuthorizationInfo], None],
+        scope: typing.Union[str, typing.Sequence[str], None] = "openid",
+        audience: typing.Optional[str] = None,
+        client_secret: typing.Optional[str] = None,
+        ca_file: typing.Optional[str] = None,
+        request_timeout: float = 10,
+        device_flow_timeout: typing.Optional[float] = None,
+        tracer=None,
+    ):
+        if not callable(device_authorization_callback):
+            raise ValueError("Device Authorization callback must be callable")
+        if device_flow_timeout is not None and device_flow_timeout <= 0:
+            raise ValueError("Device Authorization timeout must be positive")
+        super(OAuth2DeviceCredentials, self).__init__(
+            issuer, client_id, scope, audience, ca_file, request_timeout, tracer
+        )
+        self._device_authorization_callback = device_authorization_callback
+        self._client_secret = client_secret
+        self._device_flow_timeout = device_flow_timeout
+        self._refresh_token_value: typing.Optional[str] = None
+
+    def _client_headers(self) -> typing.Dict[str, str]:
+        if self._client_secret is None:
+            return {}
+        return {"Authorization": self._client_authorization_header(self._client_id, self._client_secret)}
+
+    def _save_token_response(self, response: typing.Mapping[str, typing.Any]) -> typing.Dict[str, typing.Any]:
+        refresh_token = response.get("refresh_token")
+        if refresh_token is not None:
+            if not isinstance(refresh_token, str) or not refresh_token:
+                raise issues.Error("OAuth 2.0 token response contains an invalid refresh_token")
+            self._refresh_token_value = refresh_token
+        return self._process_token_response(response)
+
+    def _try_refresh(self, token_endpoint: str) -> typing.Optional[typing.Dict[str, typing.Any]]:
+        if self._refresh_token_value is None:
+            return None
+        status, response = self._request_json(
+            token_endpoint,
+            self._refresh_token_data(self._refresh_token_value),
+            self._client_headers(),
+        )
+        if status >= 400 and response.get("error") == "invalid_grant":
+            self._refresh_token_value = None
+            return None
+        self._raise_for_status(status, response)
+        return self._save_token_response(response)
+
+    @tracing.with_trace()
+    def _make_token_request(self):
+        discovery = self._discovery()
+        token_endpoint = discovery["token_endpoint"]
+        refreshed = self._try_refresh(token_endpoint)
+        if refreshed is not None:
+            return refreshed
+
+        device_endpoint = discovery.get("device_authorization_endpoint")
+        if not isinstance(device_endpoint, str) or not device_endpoint:
+            raise issues.Error("OIDC discovery response does not contain a device_authorization_endpoint")
+
+        status, response = self._request_json(
+            device_endpoint,
+            self._device_authorization_data(),
+            self._client_headers(),
+        )
+        self._raise_for_status(status, response)
+        device_code, info = self._process_device_authorization_response(response)
+        timeout = info.expires_in
+        if self._device_flow_timeout is not None:
+            timeout = min(timeout, self._device_flow_timeout)
+        deadline = time.monotonic() + timeout
+
+        self._device_authorization_callback(info)
+
+        interval = info.interval
+
+        while True:
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                break
+            time.sleep(min(interval, remaining))
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                break
+            status, response = self._request_json(
+                token_endpoint,
+                self._device_token_data(device_code),
+                self._client_headers(),
+                request_timeout=min(self._request_timeout, remaining),
+            )
+            if 200 <= status < 300:
+                return self._save_token_response(response)
+
+            error = response.get("error")
+            if error == "authorization_pending":
+                continue
+            if error == "slow_down":
+                interval += 5
+                continue
+            if error == "expired_token":
+                raise issues.Unauthenticated("OAuth 2.0 device code expired")
+            self._raise_for_status(status, response)
+
+        raise issues.Unauthenticated("OAuth 2.0 Device Authorization timed out")
