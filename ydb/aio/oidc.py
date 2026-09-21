@@ -41,6 +41,7 @@ class _OAuth2Credentials(AbstractExpiringTokenCredentials, OAuth2CredentialsBase
                     data=data,
                     headers=headers,
                     ssl=ssl_context,
+                    allow_redirects=False,
                 ) as response:
                     return response.status, self._decode_json(await response.read(), url)
         except (aiohttp.ClientError, asyncio.TimeoutError, OSError) as error:

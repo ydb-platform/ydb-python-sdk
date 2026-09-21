@@ -10,6 +10,7 @@ from unittest.mock import MagicMock
 
 import ydb.iam
 import ydb.oidc
+import ydb.oidc.credentials
 from ydb import issues
 from ydb.oidc._common import OAuth2CredentialsBase
 from ydb.oidc._common import bearer_token
@@ -378,14 +379,20 @@ def test_oauth2_sync_http_requests_and_discovery_cache():
     response_context = MagicMock()
     response_context.__enter__.return_value = response
 
-    with patch("ydb.oidc.credentials.urllib.request.urlopen", return_value=response_context) as urlopen:
-        first = credentials._discovery()
-        second = credentials._discovery()
-        credentials._request_json("https://issuer.example/token", request_timeout=0.5)
+    credentials._opener.open = MagicMock(return_value=response_context)
+    first = credentials._discovery()
+    second = credentials._discovery()
+    credentials._request_json("https://issuer.example/token", request_timeout=0.5)
+
+    redirect_handler = ydb.oidc.credentials._NoRedirectHandler()
+    assert (
+        redirect_handler.redirect_request(None, None, 307, "Temporary Redirect", {}, "http://other.example/token")
+        is None
+    )
 
     assert first is second
-    assert urlopen.call_count == 2
-    assert urlopen.call_args.kwargs["timeout"] == 0.5
+    assert credentials._opener.open.call_count == 2
+    assert credentials._opener.open.call_args.kwargs["timeout"] == 0.5
 
     http_error = urllib.error.HTTPError(
         "https://issuer.example/token",
@@ -394,18 +401,15 @@ def test_oauth2_sync_http_requests_and_discovery_cache():
         {},
         io.BytesIO(b'{"error":"invalid_request"}'),
     )
-    with patch("ydb.oidc.credentials.urllib.request.urlopen", side_effect=http_error):
-        assert credentials._request_json("https://issuer.example/token", {"key": "value"}) == (
-            400,
-            {"error": "invalid_request"},
-        )
+    credentials._opener.open.side_effect = http_error
+    assert credentials._request_json("https://issuer.example/token", {"key": "value"}) == (
+        400,
+        {"error": "invalid_request"},
+    )
 
-    with patch(
-        "ydb.oidc.credentials.urllib.request.urlopen",
-        side_effect=urllib.error.URLError("unavailable"),
-    ):
-        with pytest.raises(issues.Unavailable):
-            credentials._request_json("https://issuer.example/token")
+    credentials._opener.open.side_effect = urllib.error.URLError("unavailable")
+    with pytest.raises(issues.Unavailable):
+        credentials._request_json("https://issuer.example/token")
 
 
 def test_oauth2_sync_device_error_paths():

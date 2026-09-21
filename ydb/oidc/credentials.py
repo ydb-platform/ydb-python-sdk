@@ -11,6 +11,11 @@ from ydb import credentials, issues, tracing
 from ._common import DeviceAuthorizationInfo, OAuth2CredentialsBase, bearer_token
 
 
+class _NoRedirectHandler(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self, request, file_pointer, code, message, headers, new_url):
+        return None
+
+
 class OAuth2TokenCredentials(credentials.Credentials):
     """Credentials for an OAuth 2.0 access token obtained outside the SDK."""
 
@@ -35,6 +40,10 @@ class _OAuth2Credentials(credentials.AbstractExpiringTokenCredentials, OAuth2Cre
     ):
         credentials.AbstractExpiringTokenCredentials.__init__(self, tracer)
         OAuth2CredentialsBase.__init__(self, issuer, client_id, scope, audience, ca_file, request_timeout)
+        self._opener = urllib.request.build_opener(
+            urllib.request.HTTPSHandler(context=self._ssl_context),
+            _NoRedirectHandler(),
+        )
 
     def _request_json(
         self,
@@ -50,9 +59,8 @@ class _OAuth2Credentials(credentials.AbstractExpiringTokenCredentials, OAuth2Cre
         request = urllib.request.Request(url, data=body, headers=request_headers)
 
         try:
-            with urllib.request.urlopen(
+            with self._opener.open(
                 request,
-                context=self._ssl_context,
                 timeout=self._request_timeout if request_timeout is None else request_timeout,
             ) as response:
                 return response.status, self._decode_json(response.read(), url)

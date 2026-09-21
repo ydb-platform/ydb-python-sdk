@@ -379,6 +379,7 @@ async def test_oauth2_async_http_requests_and_discovery_cache():
     assert client_session.call_args_list[1].kwargs["timeout"].total == 0.5
     assert session.request.call_args_list[0].args[1] == "https://issuer.example/.well-known/openid-configuration"
     assert session.request.call_args.kwargs["ssl"] is not None
+    assert session.request.call_args.kwargs["allow_redirects"] is False
 
     with patch(
         "ydb.aio.oidc.aiohttp.ClientSession",
