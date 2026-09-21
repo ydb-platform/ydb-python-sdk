@@ -12,6 +12,7 @@ import tests.auth.test_credentials
 import tests.oauth2_token_exchange
 import tests.oauth2_token_exchange.test_token_exchange
 import ydb.aio.iam
+import ydb.aio.oidc
 import ydb.aio.oauth2_token_exchange
 import ydb.oauth2_token_exchange.token_source
 
@@ -263,3 +264,59 @@ async def test_hybrid_background_and_sync_refresh():
         token3 = await credentials.token()
         assert token3 == "token_v2"
         assert call_count == 2
+
+
+@pytest.mark.asyncio
+async def test_oauth2_client_credentials():
+    issuer = "https://issuer.example"
+    credentials = ydb.aio.oidc.OAuth2ClientCredentials(issuer, "client-id", "client-secret")
+    credentials._request_json = AsyncMock(
+        side_effect=[
+            (200, {"issuer": issuer, "token_endpoint": issuer + "/token"}),
+            (200, {"access_token": "access-token", "token_type": "Bearer", "expires_in": 300}),
+        ]
+    )
+
+    assert await credentials.get_auth_token() == "Bearer access-token"
+    assert credentials._request_json.await_count == 2
+
+
+@pytest.mark.asyncio
+async def test_oauth2_device_credentials():
+    issuer = "https://issuer.example"
+    callback_values = []
+
+    async def callback(info):
+        callback_values.append(info)
+
+    credentials = ydb.aio.oidc.OAuth2DeviceCredentials(issuer, "device-client", callback)
+    credentials._request_json = AsyncMock(
+        side_effect=[
+            (
+                200,
+                {
+                    "issuer": issuer,
+                    "token_endpoint": issuer + "/token",
+                    "device_authorization_endpoint": issuer + "/device",
+                },
+            ),
+            (
+                200,
+                {
+                    "device_code": "device-code",
+                    "user_code": "user-code",
+                    "verification_uri": issuer + "/verify",
+                    "expires_in": 600,
+                    "interval": 1,
+                },
+            ),
+            (400, {"error": "authorization_pending"}),
+            (200, {"access_token": "access-token", "token_type": "Bearer", "expires_in": 300}),
+        ]
+    )
+
+    with patch("ydb.aio.oidc.asyncio.sleep", new=AsyncMock()) as sleep:
+        assert await credentials.get_auth_token() == "Bearer access-token"
+
+    assert callback_values[0].user_code == "user-code"
+    assert sleep.await_count == 2

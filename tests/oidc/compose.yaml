@@ -1,0 +1,84 @@
+name: ydb-sdk-oidc
+
+services:
+  keycloak-cert-init:
+    image: quay.io/keycloak/keycloak:26.4.0
+    user: "0:0"
+    entrypoint: ["/bin/bash", "-ec"]
+    environment:
+      KEYCLOAK_KEYSTORE_PASSWORD: ${KEYCLOAK_KEYSTORE_PASSWORD:?run prepare.sh first}
+    command:
+      - |
+        if [[ ! -f /certs/keycloak.p12 ]]; then
+          keytool -genkeypair \
+            -alias keycloak \
+            -keyalg RSA \
+            -keysize 2048 \
+            -validity 3650 \
+            -dname "CN=localhost" \
+            -ext "SAN=dns:localhost,ip:127.0.0.1" \
+            -storetype PKCS12 \
+            -keystore /certs/keycloak.p12 \
+            -storepass "$${KEYCLOAK_KEYSTORE_PASSWORD}" \
+            -keypass "$${KEYCLOAK_KEYSTORE_PASSWORD}"
+          keytool -exportcert \
+            -rfc \
+            -alias keycloak \
+            -keystore /certs/keycloak.p12 \
+            -storepass "$${KEYCLOAK_KEYSTORE_PASSWORD}" \
+            -file /certs/keycloak-ca.pem
+          chmod 0644 /certs/keycloak.p12 /certs/keycloak-ca.pem
+        fi
+    volumes:
+      - ./.state/certs:/certs
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.4.0
+    hostname: localhost
+    depends_on:
+      keycloak-cert-init:
+        condition: service_completed_successfully
+    command:
+      - start-dev
+      - --import-realm
+      - --hostname=https://localhost:28443
+      - --https-port=28443
+      - --https-key-store-file=/certs/keycloak.p12
+      - --https-key-store-password=${KEYCLOAK_KEYSTORE_PASSWORD:?run prepare.sh first}
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_ADMIN_USERNAME:?run prepare.sh first}
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:?run prepare.sh first}
+      KC_FEATURES: device-flow
+    healthcheck:
+      test: ["CMD", "/bin/bash", "-c", "exec 3<>/dev/tcp/127.0.0.1/28443"]
+      interval: 5s
+      timeout: 2s
+      retries: 30
+      start_period: 20s
+    ports:
+      - "28443:28443"
+      - "22136:22136"
+      - "28765:8765"
+    volumes:
+      - ./.state/certs:/certs:ro
+      - ./.state/keycloak/ydb-realm.json:/opt/keycloak/data/import/ydb-realm.json:ro
+      - keycloak-data:/opt/keycloak/data
+
+  ydb:
+    image: ydbplatform/local-ydb:trunk
+    platform: linux/amd64
+    depends_on:
+      keycloak:
+        condition: service_healthy
+    network_mode: service:keycloak
+    command: ["--config-path", "/ydb-config/ydb.yaml"]
+    environment:
+      GRPC_PORT: "22136"
+      GRPC_TLS_PORT: "0"
+      YDB_GRPC_ENABLE_TLS: "false"
+      YDB_USE_IN_MEMORY_PDISKS: "true"
+    volumes:
+      - ./ydb.yaml:/ydb-config/ydb.yaml:ro
+
+volumes:
+  keycloak-data:

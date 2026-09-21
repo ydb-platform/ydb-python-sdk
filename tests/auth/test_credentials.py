@@ -2,8 +2,10 @@ import jwt
 import concurrent.futures
 import grpc
 import time
+from unittest.mock import patch
 
 import ydb.iam
+import ydb.oidc
 
 from yandex.cloud.iam.v1 import iam_token_service_pb2_grpc
 from yandex.cloud.iam.v1 import iam_token_service_pb2
@@ -74,3 +76,116 @@ def test_yandex_service_account_credentials():
     assert t == "test_token"
     assert credentials.get_expire_time() <= 42
     server.stop()
+
+
+def test_oauth2_token_credentials():
+    credentials = ydb.oidc.OAuth2TokenCredentials("access-token")
+
+    assert credentials.auth_metadata() == [("x-ydb-auth-ticket", "Bearer access-token")]
+    assert ydb.oidc.OAuth2TokenCredentials("Bearer access-token").get_auth_token() == "Bearer access-token"
+
+
+def test_oauth2_client_credentials():
+    issuer = "https://issuer.example"
+    requests = []
+    responses = iter(
+        [
+            (200, {"issuer": issuer, "token_endpoint": issuer + "/token"}),
+            (200, {"access_token": "access-token", "token_type": "Bearer", "expires_in": 300}),
+        ]
+    )
+    credentials = ydb.oidc.OAuth2ClientCredentials(
+        issuer,
+        "client-id",
+        "client-secret",
+        scope=["openid", "profile"],
+        audience="ydb",
+    )
+
+    def request_json(url, data=None, headers=None):
+        requests.append((url, data, headers))
+        return next(responses)
+
+    credentials._request_json = request_json
+
+    assert credentials.get_auth_token() == "Bearer access-token"
+    assert requests[0] == (issuer + "/.well-known/openid-configuration", None, None)
+    assert requests[1][0] == issuer + "/token"
+    assert requests[1][1] == {
+        "grant_type": "client_credentials",
+        "scope": "openid profile",
+        "audience": "ydb",
+    }
+    assert requests[1][2]["Authorization"].startswith("Basic ")
+
+
+def test_oauth2_device_credentials_poll_and_refresh():
+    issuer = "https://issuer.example"
+    callback_values = []
+    responses = iter(
+        [
+            (
+                200,
+                {
+                    "issuer": issuer,
+                    "token_endpoint": issuer + "/token",
+                    "device_authorization_endpoint": issuer + "/device",
+                },
+            ),
+            (
+                200,
+                {
+                    "device_code": "device-code",
+                    "user_code": "user-code",
+                    "verification_uri": issuer + "/verify",
+                    "verification_uri_complete": issuer + "/verify?user_code=user-code",
+                    "expires_in": 600,
+                    "interval": 1,
+                },
+            ),
+            (400, {"error": "authorization_pending"}),
+            (400, {"error": "slow_down"}),
+            (
+                200,
+                {
+                    "access_token": "device-access-token",
+                    "refresh_token": "refresh-token",
+                    "token_type": "Bearer",
+                    "expires_in": 300,
+                },
+            ),
+            (
+                200,
+                {
+                    "access_token": "refreshed-access-token",
+                    "refresh_token": "new-refresh-token",
+                    "token_type": "Bearer",
+                    "expires_in": 300,
+                },
+            ),
+        ]
+    )
+    requests = []
+    credentials = ydb.oidc.OAuth2DeviceCredentials(
+        issuer,
+        "device-client",
+        callback_values.append,
+    )
+
+    def request_json(url, data=None, headers=None):
+        requests.append((url, data, headers))
+        return next(responses)
+
+    credentials._request_json = request_json
+
+    with patch("ydb.oidc.credentials.time.sleep") as sleep:
+        assert credentials.get_auth_token() == "Bearer device-access-token"
+
+    assert callback_values[0].user_code == "user-code"
+    assert [value.args[0] for value in sleep.call_args_list] == [1, 1, 6]
+    assert credentials._make_token_request() == {
+        "access_token": "Bearer refreshed-access-token",
+        "expires_in": 300,
+    }
+    assert requests[-1][1]["grant_type"] == "refresh_token"
+    assert requests[-1][1]["refresh_token"] == "refresh-token"

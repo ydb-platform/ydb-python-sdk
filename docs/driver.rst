@@ -182,6 +182,60 @@ Pass a static IAM token or API key directly
 
     credentials = ydb.AccessTokenCredentials("your-token")
 
+OIDC and OAuth 2.0 Credentials
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+``ydb.oidc`` provides three OAuth 2.0 credential modes for an external identity
+provider advertised through OIDC discovery
+(`full example <https://github.com/ydb-platform/ydb-python-sdk/tree/main/examples/oidc-credentials>`__).
+
+Use an access token obtained outside the SDK:
+
+.. code-block:: python
+
+    import ydb.oidc
+
+    credentials = ydb.oidc.OAuth2TokenCredentials("your-access-token")
+
+Use the Client Credentials Grant for a service acting on its own behalf:
+
+.. code-block:: python
+
+    credentials = ydb.oidc.OAuth2ClientCredentials(
+        issuer="https://identity.example.com/realms/example",
+        client_id="service-client",
+        client_secret="service-client-secret",
+        audience="ydb",
+        ca_file="/path/to/idp-ca.pem",
+    )
+
+Use the Device Authorization Grant for a CLI or another input-constrained client. The
+callback is invoked before polling begins and must show the verification URI and user
+code to the user:
+
+.. code-block:: python
+
+    def show_device_authorization(info):
+        print(info.verification_uri_complete or info.verification_uri)
+        print(info.user_code)
+
+    credentials = ydb.oidc.OAuth2DeviceCredentials(
+        issuer="https://identity.example.com/realms/example",
+        client_id="public-device-client",
+        device_authorization_callback=show_device_authorization,
+        scope=["openid", "offline_access"],
+        ca_file="/path/to/idp-ca.pem",
+    )
+
+Client Credentials obtains a new access token when needed. Device Authorization uses a
+returned refresh token for subsequent refreshes and starts a new user interaction if
+the refresh token is no longer valid. Access tokens are sent to YDB using the
+``Bearer`` authentication scheme.
+
+Non-blocking counterparts are available as ``ydb.aio.oidc.OAuth2ClientCredentials``
+and ``ydb.aio.oidc.OAuth2DeviceCredentials``. The asynchronous Device Authorization
+callback may be either a regular callable or an async callable.
+
 StaticCredentials (username/password)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
