@@ -6,6 +6,7 @@ import tempfile
 import os
 import json
 import asyncio
+import aiohttp
 from unittest.mock import patch, AsyncMock, MagicMock
 
 import tests.auth.test_credentials
@@ -15,6 +16,7 @@ import ydb.aio.iam
 import ydb.aio.oidc
 import ydb.aio.oauth2_token_exchange
 import ydb.oauth2_token_exchange.token_source
+from ydb import issues
 
 
 class ServiceAccountCredentialsForTest(ydb.aio.iam.ServiceAccountCredentials):
@@ -320,3 +322,141 @@ async def test_oauth2_device_credentials():
 
     assert callback_values[0].user_code == "user-code"
     assert sleep.await_count == 2
+
+
+@pytest.mark.asyncio
+async def test_oauth2_async_http_requests_and_discovery_cache():
+    credentials = ydb.aio.oidc.OAuth2ClientCredentials(
+        "https://issuer.example",
+        "client-id",
+        "client-secret",
+    )
+    response = MagicMock(status=200)
+    response.read = AsyncMock(
+        return_value=b'{"issuer":"https://issuer.example","token_endpoint":"https://issuer.example/token"}'
+    )
+    request_context = MagicMock()
+    request_context.__aenter__ = AsyncMock(return_value=response)
+    request_context.__aexit__ = AsyncMock(return_value=None)
+    session = MagicMock()
+    session.request.return_value = request_context
+    session_context = MagicMock()
+    session_context.__aenter__ = AsyncMock(return_value=session)
+    session_context.__aexit__ = AsyncMock(return_value=None)
+
+    with patch("ydb.aio.oidc.aiohttp.ClientSession", return_value=session_context) as client_session:
+        first = await credentials._discovery()
+        second = await credentials._discovery()
+
+    assert first is second
+    assert client_session.call_count == 1
+    assert session.request.call_args.kwargs["ssl"] is not None
+
+    with patch(
+        "ydb.aio.oidc.aiohttp.ClientSession",
+        side_effect=aiohttp.ClientError("unavailable"),
+    ):
+        with pytest.raises(issues.Unavailable):
+            await credentials._request_json("http://issuer.example/token", {"key": "value"})
+
+
+@pytest.mark.asyncio
+async def test_oauth2_async_device_refresh_and_error_paths():
+    with pytest.raises(ValueError):
+        ydb.aio.oidc.OAuth2ClientCredentials("https://issuer.example", "client-id", "")
+    with pytest.raises(ValueError):
+        ydb.aio.oidc.OAuth2DeviceCredentials("https://issuer.example", "client-id", None)
+    with pytest.raises(ValueError):
+        ydb.aio.oidc.OAuth2DeviceCredentials(
+            "https://issuer.example",
+            "client-id",
+            lambda info: None,
+            device_flow_timeout=0,
+        )
+
+    credentials = ydb.aio.oidc.OAuth2DeviceCredentials(
+        "https://issuer.example",
+        "client-id",
+        lambda info: None,
+        client_secret="client-secret",
+    )
+    assert credentials._client_headers()["Authorization"].startswith("Basic ")
+    with pytest.raises(issues.Error, match="refresh_token"):
+        credentials._save_token_response(
+            {
+                "access_token": "token",
+                "token_type": "Bearer",
+                "expires_in": 300,
+                "refresh_token": "",
+            }
+        )
+
+    credentials._refresh_token_value = "refresh-token"
+    credentials._request_json = AsyncMock(
+        return_value=(
+            200,
+            {
+                "access_token": "refreshed-token",
+                "token_type": "Bearer",
+                "expires_in": 300,
+                "refresh_token": "new-refresh-token",
+            },
+        )
+    )
+    assert await credentials._try_refresh("https://issuer.example/token") == {
+        "access_token": "Bearer refreshed-token",
+        "expires_in": 300,
+    }
+    assert credentials._refresh_token_value == "new-refresh-token"
+
+    credentials._request_json = AsyncMock(return_value=(400, {"error": "invalid_grant"}))
+    assert await credentials._try_refresh("https://issuer.example/token") is None
+    assert credentials._refresh_token_value is None
+
+    credentials._discovery_document = {"token_endpoint": "https://issuer.example/token"}
+    with pytest.raises(issues.Error, match="device_authorization_endpoint"):
+        await credentials._make_token_request()
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "token_response, expected_message",
+    [
+        ({"error": "expired_token"}, "expired"),
+        (None, "timed out"),
+    ],
+)
+async def test_oauth2_async_device_expiration(token_response, expected_message):
+    callback_values = []
+    credentials = ydb.aio.oidc.OAuth2DeviceCredentials(
+        "https://issuer.example",
+        "client-id",
+        callback_values.append,
+        device_flow_timeout=1,
+    )
+    credentials._discovery_document = {
+        "token_endpoint": "https://issuer.example/token",
+        "device_authorization_endpoint": "https://issuer.example/device",
+    }
+    device_response = {
+        "device_code": "device-code",
+        "user_code": "user-code",
+        "verification_uri": "https://issuer.example/verify",
+        "expires_in": 600,
+        "interval": 1,
+    }
+    responses = [(200, device_response)]
+    loop = MagicMock()
+    loop.time.side_effect = [0, 2]
+    if token_response is not None:
+        responses.append((400, token_response))
+        loop.time.side_effect = [0, 0]
+    credentials._request_json = AsyncMock(side_effect=responses)
+
+    with patch("ydb.aio.oidc.asyncio.get_running_loop", return_value=loop), patch(
+        "ydb.aio.oidc.asyncio.sleep", new=AsyncMock()
+    ):
+        with pytest.raises(issues.Unauthenticated, match=expected_message):
+            await credentials._make_token_request()
+
+    assert callback_values[0].user_code == "user-code"
