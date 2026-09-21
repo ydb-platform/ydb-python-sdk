@@ -105,7 +105,7 @@ def test_oauth2_client_credentials():
         issuer,
         "client-id",
         "client-secret",
-        scope=["openid", "profile"],
+        scope=["profile"],
         audience="ydb",
     )
 
@@ -120,7 +120,7 @@ def test_oauth2_client_credentials():
     assert requests[1][0] == issuer + "/token"
     assert requests[1][1] == {
         "grant_type": "client_credentials",
-        "scope": "openid profile",
+        "scope": "profile openid",
         "audience": "ydb",
     }
     assert requests[1][2]["Authorization"].startswith("Basic ")
@@ -202,6 +202,9 @@ def test_oauth2_device_credentials_poll_and_refresh():
     "kwargs",
     [
         {"issuer": ""},
+        {"issuer": "http://issuer.example"},
+        {"issuer": "https://issuer.example?tenant=test"},
+        {"issuer": "https://issuer.example:invalid"},
         {"client_id": ""},
         {"request_timeout": 0},
         {"client_secret": ""},
@@ -228,6 +231,12 @@ def test_oauth2_token_credentials_validation(token):
 def test_oauth2_common_response_processing():
     credentials = OAuth2CredentialsBase("https://issuer.example/", "client id", audience="ydb")
 
+    assert credentials._issuer == "https://issuer.example/"
+    assert credentials._scope == "openid"
+    assert OAuth2CredentialsBase._scope_parameter("profile") == "profile openid"
+    assert OAuth2CredentialsBase._scope_parameter(["openid", "profile"]) == "openid profile"
+    assert not OAuth2CredentialsBase._is_https_url("https://issuer.example/\n")
+
     with pytest.raises(issues.Error, match="invalid JSON"):
         credentials._decode_json(b"not-json", "https://issuer.example/token")
     with pytest.raises(issues.Error, match="non-object"):
@@ -250,7 +259,21 @@ def test_oauth2_common_response_processing():
             {"issuer": "https://other.example", "token_endpoint": "https://issuer.example/token"},
         )
     with pytest.raises(issues.Error, match="token_endpoint"):
-        credentials._process_discovery_response(200, {"issuer": "https://issuer.example"})
+        credentials._process_discovery_response(200, {"issuer": "https://issuer.example/"})
+    with pytest.raises(issues.Error, match="token_endpoint URL"):
+        credentials._process_discovery_response(
+            200,
+            {"issuer": "https://issuer.example/", "token_endpoint": "http://issuer.example/token"},
+        )
+    with pytest.raises(issues.Error, match="device_authorization_endpoint URL"):
+        credentials._process_discovery_response(
+            200,
+            {
+                "issuer": "https://issuer.example/",
+                "token_endpoint": "https://issuer.example/token",
+                "device_authorization_endpoint": "http://issuer.example/device",
+            },
+        )
 
     for response, message in (
         ({}, "access_token"),
@@ -262,21 +285,37 @@ def test_oauth2_common_response_processing():
 
     assert credentials._client_credentials_data() == {
         "grant_type": "client_credentials",
+        "scope": "openid",
         "audience": "ydb",
     }
     assert credentials._device_authorization_data() == {
         "client_id": "client id",
+        "scope": "openid",
         "audience": "ydb",
     }
     assert credentials._refresh_token_data("refresh-token") == {
         "grant_type": "refresh_token",
         "client_id": "client id",
         "refresh_token": "refresh-token",
+        "scope": "openid",
     }
     assert (
         credentials._client_authorization_header("client id", "secret/value")
         == "Basic Y2xpZW50K2lkOnNlY3JldCUyRnZhbHVl"
     )
+
+    device_response = {
+        "device_code": "device-code",
+        "user_code": "user-code",
+        "verification_uri": "http://issuer.example/verify",
+        "expires_in": 60,
+    }
+    with pytest.raises(issues.Error, match="verification_uri URL"):
+        credentials._process_device_authorization_response(device_response)
+    device_response["verification_uri"] = "https://issuer.example/verify"
+    device_response["verification_uri_complete"] = "http://issuer.example/verify?code=user-code"
+    with pytest.raises(issues.Error, match="verification_uri_complete URL"):
+        credentials._process_device_authorization_response(device_response)
 
 
 @pytest.mark.parametrize(

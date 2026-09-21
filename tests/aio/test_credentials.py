@@ -281,6 +281,7 @@ async def test_oauth2_client_credentials():
 
     assert await credentials.get_auth_token() == "Bearer access-token"
     assert credentials._request_json.await_count == 2
+    assert credentials._request_json.await_args_list[1].args[1]["scope"] == "openid"
 
 
 @pytest.mark.asyncio
@@ -328,13 +329,13 @@ async def test_oauth2_device_credentials():
 @pytest.mark.asyncio
 async def test_oauth2_async_http_requests_and_discovery_cache():
     credentials = ydb.aio.oidc.OAuth2ClientCredentials(
-        "https://issuer.example",
+        "https://issuer.example/",
         "client-id",
         "client-secret",
     )
     response = MagicMock(status=200)
     response.read = AsyncMock(
-        return_value=b'{"issuer":"https://issuer.example","token_endpoint":"https://issuer.example/token"}'
+        return_value=b'{"issuer":"https://issuer.example/","token_endpoint":"https://issuer.example/token"}'
     )
     request_context = MagicMock()
     request_context.__aenter__ = AsyncMock(return_value=response)
@@ -351,6 +352,7 @@ async def test_oauth2_async_http_requests_and_discovery_cache():
 
     assert first is second
     assert client_session.call_count == 1
+    assert session.request.call_args.args[1] == "https://issuer.example/.well-known/openid-configuration"
     assert session.request.call_args.kwargs["ssl"] is not None
 
     with patch(

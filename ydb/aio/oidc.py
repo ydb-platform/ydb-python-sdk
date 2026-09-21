@@ -47,7 +47,7 @@ class _OAuth2Credentials(AbstractExpiringTokenCredentials, OAuth2CredentialsBase
 
     async def _discovery(self) -> typing.Dict[str, typing.Any]:
         if self._discovery_document is None:
-            url = self._issuer + "/.well-known/openid-configuration"
+            url = self._issuer.rstrip("/") + "/.well-known/openid-configuration"
             status, response = await self._request_json(url)
             self._discovery_document = self._process_discovery_response(status, response)
         return self._discovery_document

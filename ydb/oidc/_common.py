@@ -5,7 +5,7 @@ import os
 import ssl
 import typing
 from dataclasses import dataclass
-from urllib.parse import quote_plus
+from urllib.parse import quote_plus, urlsplit
 
 from ydb import issues
 
@@ -39,7 +39,10 @@ class OAuth2CredentialsBase:
         if request_timeout <= 0:
             raise ValueError("OAuth 2.0 request timeout must be positive")
 
-        self._issuer = issuer.rstrip("/")
+        if not self._is_https_url(issuer, issuer=True):
+            raise ValueError("OAuth 2.0 issuer must be an absolute HTTPS URL without userinfo, query, or fragment")
+
+        self._issuer = issuer
         self._client_id = client_id
         self._scope = self._scope_parameter(scope)
         self._audience = audience
@@ -48,10 +51,34 @@ class OAuth2CredentialsBase:
         self._ssl_context = ssl.create_default_context(cafile=os.path.expanduser(ca_file) if ca_file else None)
 
     @staticmethod
-    def _scope_parameter(scope: typing.Union[str, typing.Sequence[str], None]) -> typing.Optional[str]:
-        if scope is None or isinstance(scope, str):
-            return scope
-        return " ".join(scope)
+    def _scope_parameter(scope: typing.Union[str, typing.Sequence[str], None]) -> str:
+        if scope is None:
+            scopes = []
+        elif isinstance(scope, str):
+            scopes = scope.split()
+        else:
+            scopes = list(scope)
+        if "openid" not in scopes:
+            scopes.append("openid")
+        return " ".join(scopes)
+
+    @staticmethod
+    def _is_https_url(value: str, issuer: bool = False) -> bool:
+        if not isinstance(value, str) or any(ord(character) <= 0x20 or ord(character) == 0x7F for character in value):
+            return False
+        try:
+            parsed = urlsplit(value)
+            parsed.port
+        except ValueError:
+            return False
+        return (
+            parsed.scheme == "https"
+            and parsed.hostname is not None
+            and parsed.username is None
+            and parsed.password is None
+            and not parsed.fragment
+            and (not issuer or not parsed.query)
+        )
 
     @staticmethod
     def _decode_json(content: bytes, url: str) -> typing.Dict[str, typing.Any]:
@@ -94,6 +121,13 @@ class OAuth2CredentialsBase:
         token_endpoint = response.get("token_endpoint")
         if not isinstance(token_endpoint, str) or not token_endpoint:
             raise issues.Error("OIDC discovery response does not contain a token_endpoint")
+        if not self._is_https_url(token_endpoint):
+            raise issues.Error("OIDC discovery response contains an invalid token_endpoint URL")
+        device_endpoint = response.get("device_authorization_endpoint")
+        if device_endpoint is not None and (
+            not isinstance(device_endpoint, str) or not self._is_https_url(device_endpoint)
+        ):
+            raise issues.Error("OIDC discovery response contains an invalid device_authorization_endpoint URL")
         return response
 
     @staticmethod
@@ -119,17 +153,13 @@ class OAuth2CredentialsBase:
         return "Basic " + value
 
     def _client_credentials_data(self) -> typing.Dict[str, str]:
-        data = {"grant_type": "client_credentials"}
-        if self._scope:
-            data["scope"] = self._scope
+        data = {"grant_type": "client_credentials", "scope": self._scope}
         if self._audience:
             data["audience"] = self._audience
         return data
 
     def _device_authorization_data(self) -> typing.Dict[str, str]:
-        data = {"client_id": self._client_id}
-        if self._scope:
-            data["scope"] = self._scope
+        data = {"client_id": self._client_id, "scope": self._scope}
         if self._audience:
             data["audience"] = self._audience
         return data
@@ -146,9 +176,8 @@ class OAuth2CredentialsBase:
             "grant_type": "refresh_token",
             "client_id": self._client_id,
             "refresh_token": refresh_token,
+            "scope": self._scope,
         }
-        if self._scope:
-            data["scope"] = self._scope
         return data
 
     @staticmethod
@@ -168,8 +197,12 @@ class OAuth2CredentialsBase:
             raise issues.Error("Device Authorization response does not contain a user_code")
         if not isinstance(verification_uri, str) or not verification_uri:
             raise issues.Error("Device Authorization response does not contain a verification_uri")
+        if not OAuth2CredentialsBase._is_https_url(verification_uri):
+            raise issues.Error("Device Authorization response contains an invalid verification_uri URL")
         if verification_uri_complete is not None and not isinstance(verification_uri_complete, str):
             raise issues.Error("Device Authorization response contains an invalid verification_uri_complete")
+        if verification_uri_complete is not None and not OAuth2CredentialsBase._is_https_url(verification_uri_complete):
+            raise issues.Error("Device Authorization response contains an invalid verification_uri_complete URL")
         if isinstance(expires_in, bool) or not isinstance(expires_in, (int, float)) or expires_in <= 0:
             raise issues.Error("Device Authorization response contains an invalid expires_in: {!r}".format(expires_in))
         if isinstance(interval, bool) or not isinstance(interval, (int, float)) or interval <= 0:

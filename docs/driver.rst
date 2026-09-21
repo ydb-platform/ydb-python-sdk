@@ -223,14 +223,16 @@ code to the user:
         issuer="https://identity.example.com/realms/example",
         client_id="public-device-client",
         device_authorization_callback=show_device_authorization,
-        scope=["openid", "offline_access"],
+        scope=["offline_access"],
         ca_file="/path/to/idp-ca.pem",
     )
 
 Client Credentials obtains a new access token when needed. Device Authorization uses a
 returned refresh token for subsequent refreshes and starts a new user interaction if
 the refresh token is no longer valid. Access tokens are sent to YDB using the
-``Bearer`` authentication scheme.
+``Bearer`` authentication scheme. The providers require HTTPS issuer and endpoint URLs,
+require the discovered issuer to match the configured value exactly, and add the
+``openid`` scope when it is absent.
 
 Non-blocking counterparts are available as ``ydb.aio.oidc.OAuth2ClientCredentials``
 and ``ydb.aio.oidc.OAuth2DeviceCredentials``. The asynchronous Device Authorization
