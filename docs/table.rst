@@ -548,6 +548,8 @@ The table-client ``scan_query`` methods are deprecated and emit a
 :class:`~ydb.aio.QuerySessionPool`) and stream results with ``session.execute()``
 for new code; see :doc:`query`.
 
+The examples below show legacy usage for applications that have not migrated yet.
+
 ``scan_query`` executes a YQL query in streaming mode — the server sends result
 chunks as they are produced without buffering the entire result set:
 

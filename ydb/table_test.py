@@ -390,6 +390,7 @@ def test_async_scan_query_warns_and_still_returns_iterator():
     assert isinstance(stream, _utilities.AsyncResponseIterator)
 
 
+@pytest.mark.asyncio
 async def test_aio_scan_query_warns_and_points_to_async_pool():
     driver = _FakeAsyncScanQueryDriver()
 
