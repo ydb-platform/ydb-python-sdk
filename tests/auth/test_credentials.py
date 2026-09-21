@@ -126,6 +126,26 @@ def test_oauth2_client_credentials():
     assert requests[1][2]["Authorization"].startswith("Basic ")
 
 
+def test_oauth2_token_lifetime_starts_after_request_and_preserves_short_lived_token():
+    credentials = ydb.oidc.OAuth2ClientCredentials(
+        "https://issuer.example",
+        "client-id",
+        "client-secret",
+    )
+    now = [1000]
+
+    def make_token_request():
+        now[0] = 1120
+        return {"access_token": "Bearer access-token", "expires_in": 10}
+
+    credentials._make_token_request = make_token_request
+
+    with patch("ydb.credentials.time.time", side_effect=lambda: now[0]):
+        assert credentials.get_auth_token() == "Bearer access-token"
+
+    assert credentials._expires_in == 1129
+
+
 def test_oauth2_device_credentials_poll_and_refresh():
     issuer = "https://issuer.example"
     callback_values = []

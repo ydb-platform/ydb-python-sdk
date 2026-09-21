@@ -100,18 +100,18 @@ class AbstractExpiringTokenCredentials(Credentials):
         return time.time() >= self._refresh_in
 
     def _update_token_info(self, token_response, current_time):
-        self._refresh_in = current_time + min(self._hour / 2, token_response["expires_in"] / 10)
-        self._expires_in = current_time + token_response["expires_in"] - self._time_shift_protection_seconds
+        expires_in = token_response["expires_in"]
+        self._refresh_in = current_time + min(self._hour / 2, expires_in / 10)
+        safety_margin = min(self._time_shift_protection_seconds, expires_in / 10)
+        self._expires_in = current_time + expires_in - safety_margin
         self._cached_token = token_response["access_token"]
 
     def _refresh_token(self, should_raise=False):
-        current_time = time.time()
-
         try:
-            self.logger.debug("Refreshing token, current_time: %s, expires_in: %s", current_time, self._expires_in)
+            self.logger.debug("Refreshing token, expires_in: %s", self._expires_in)
 
             token_response = self._make_token_request()
-            self._update_token_info(token_response, current_time)
+            self._update_token_info(token_response, time.time())
 
             self.logger.info("Token refreshed successfully, expires_in: %s", self._expires_in)
             self.last_error = None

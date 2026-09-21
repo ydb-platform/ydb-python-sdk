@@ -47,15 +47,11 @@ class AbstractExpiringTokenCredentials(credentials.AbstractExpiringTokenCredenti
         return ""
 
     async def _refresh_token(self, should_raise=False):
-        current_time = time.time()
-
         try:
-            self.logger.debug(
-                "Refreshing token async, current_time: %s, expires_in: %s", current_time, self._expires_in
-            )
+            self.logger.debug("Refreshing token async, expires_in: %s", self._expires_in)
 
             token_response = await self._make_token_request()
-            self._update_token_info(token_response, current_time)
+            self._update_token_info(token_response, time.time())
 
             self.logger.info("Token refreshed successfully async, expires_in: %s", self._expires_in)
             self.last_error = None

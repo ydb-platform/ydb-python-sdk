@@ -285,6 +285,27 @@ async def test_oauth2_client_credentials():
 
 
 @pytest.mark.asyncio
+async def test_oauth2_async_token_lifetime_starts_after_request_and_preserves_short_lived_token():
+    credentials = ydb.aio.oidc.OAuth2ClientCredentials(
+        "https://issuer.example",
+        "client-id",
+        "client-secret",
+    )
+    now = [1000]
+
+    async def make_token_request():
+        now[0] = 1120
+        return {"access_token": "Bearer access-token", "expires_in": 10}
+
+    credentials._make_token_request = make_token_request
+
+    with patch("ydb.aio.credentials.time.time", side_effect=lambda: now[0]):
+        assert await credentials.get_auth_token() == "Bearer access-token"
+
+    assert credentials._expires_in == 1129
+
+
+@pytest.mark.asyncio
 async def test_oauth2_device_credentials():
     issuer = "https://issuer.example"
     callback_values = []
@@ -351,10 +372,11 @@ async def test_oauth2_async_http_requests_and_discovery_cache():
         first = await credentials._discovery()
         second = await credentials._discovery()
         await credentials._request_json("https://issuer.example/token", request_timeout=0.5)
+        await credentials._request_json("HTTPS://issuer.example/token")
 
     assert first is second
-    assert client_session.call_count == 2
-    assert client_session.call_args.kwargs["timeout"].total == 0.5
+    assert client_session.call_count == 3
+    assert client_session.call_args_list[1].kwargs["timeout"].total == 0.5
     assert session.request.call_args_list[0].args[1] == "https://issuer.example/.well-known/openid-configuration"
     assert session.request.call_args.kwargs["ssl"] is not None
 

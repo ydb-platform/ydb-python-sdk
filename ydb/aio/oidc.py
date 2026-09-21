@@ -32,7 +32,7 @@ class _OAuth2Credentials(AbstractExpiringTokenCredentials, OAuth2CredentialsBase
         request_timeout: typing.Optional[float] = None,
     ) -> typing.Tuple[int, typing.Dict[str, typing.Any]]:
         timeout = aiohttp.ClientTimeout(total=self._request_timeout if request_timeout is None else request_timeout)
-        ssl_context = self._ssl_context if url.startswith("https://") else None
+        ssl_context = self._ssl_context if self._is_https_url(url) else None
         try:
             async with aiohttp.ClientSession(timeout=timeout) as session:
                 async with session.request(
