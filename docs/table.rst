@@ -3,8 +3,8 @@ Table Service
 
 The Table service is the legacy API for schema management and bulk data operations.
 Use it when you need operations that are not available through YQL — creating tables
-with fine-grained partitioning, bulk loading data, streaming full table scans, or
-managing secondary indexes programmatically.
+with fine-grained partitioning, bulk loading data, point reads by primary key,
+streaming full table scans, or managing secondary indexes programmatically.
 
 For running queries use :doc:`query` instead. The Table service does not replace
 the Query service; the two are complementary.
@@ -430,6 +430,43 @@ attributes match the column names in ``BulkUpsertColumns``.
    via the Query service when transactional semantics matter.
 
 
+Point Reads
+-----------
+
+``read_rows`` reads specific rows by primary key without a transaction or a
+session. It is faster than a ``SELECT`` for exact key lookups and returns a
+single :class:`~ydb.convert._ResultSet`.
+
+Describe the primary key columns with :class:`~ydb.BulkUpsertColumns` (or
+:class:`~ydb.StructType`) and pass a list of key structures. Missing keys are
+omitted from the result rather than raising an error:
+
+.. code-block:: python
+
+    key_types = (
+        ydb.BulkUpsertColumns()
+        .add_column("id", ydb.PrimitiveType.Uint64)
+    )
+
+    result_set = driver.table_client.read_rows(
+        "/local/users",
+        [{"id": 1}, {"id": 2}, {"id": 999}],
+        key_types,
+        columns=("id", "name"),
+    )
+
+    for row in result_set.rows:
+        print(row.id, row.name)
+
+Pass ``columns`` to return a subset of fields. Omit it (or pass an empty
+iterable) to return every column.
+
+.. note::
+
+   ``read_rows`` is not transactional. Prefer a ``SELECT`` via the Query
+   service when the read must participate in a transaction.
+
+
 Streaming Reads
 ---------------
 
@@ -506,6 +543,11 @@ Pass ``None`` to ``from_bound`` or ``to_bound`` of :class:`~ydb.KeyRange` to mea
 scan_query
 ^^^^^^^^^^
 
+The table-client ``scan_query`` methods are deprecated and emit a
+``DeprecationWarning``. Use :class:`~ydb.QuerySessionPool` (or
+:class:`~ydb.aio.QuerySessionPool`) and stream results with ``session.execute()``
+for new code; see :doc:`query`.
+
 ``scan_query`` executes a YQL query in streaming mode — the server sends result
 chunks as they are produced without buffering the entire result set:
 
@@ -568,6 +610,14 @@ on an async driver. All I/O methods become coroutines:
             )
             rows = [...]
             await driver.table_client.bulk_upsert("/local/users", rows, column_types)
+
+            # Point read by primary key
+            key_types = ydb.BulkUpsertColumns().add_column("id", ydb.PrimitiveType.Uint64)
+            result_set = await driver.table_client.read_rows(
+                "/local/users", [{"id": 1}], key_types, columns=("id", "name")
+            )
+            for row in result_set.rows:
+                print(row.id, row.name)
 
             # Describe
             entry = await driver.table_client.describe_table("/local/users")

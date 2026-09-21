@@ -46,6 +46,7 @@ class Session(BaseSession):
         row_limit=None,
         settings=None,
         use_snapshot=None,
+        return_not_null_data_as_optional=None,
     ):  # pylint: disable=W0236
         request = _session_impl.read_table_request_factory(
             self._state,
@@ -55,6 +56,7 @@ class Session(BaseSession):
             ordered,
             row_limit,
             use_snapshot=use_snapshot,
+            return_not_null_data_as_optional=return_not_null_data_as_optional,
         )
         stream_it = await self._driver(
             request,
@@ -173,6 +175,9 @@ class TableClient(BaseTableClient["AsyncDriver"]):
 
     async def bulk_upsert(self, *args, **kwargs):  # pylint: disable=W0236
         return await super().bulk_upsert(*args, **kwargs)
+
+    async def read_rows(self, *args, **kwargs):  # pylint: disable=W0236
+        return await super().read_rows(*args, **kwargs)
 
     async def describe_system_view(self, path, settings=None):  # pylint: disable=W0236
         return await super().describe_system_view(path, settings)
@@ -533,7 +538,7 @@ class SessionPool:
             self._min_pool_tasks.append(asyncio.ensure_future(self._init_and_put(self._init_session_timeout)))
 
     async def retry_operation(
-        self, callee: typing.Callable, *args, retry_settings: table.RetrySettings = None, **kwargs
+        self, callee: typing.Callable, *args, retry_settings: typing.Optional[table.RetrySettings] = None, **kwargs
     ):
 
         if retry_settings is None:
@@ -566,7 +571,9 @@ class SessionPool:
 
         return None
 
-    async def _init_session(self, session: ydb.ISession, retry_num: int = None) -> typing.Optional[ydb.ISession]:
+    async def _init_session(
+        self, session: ydb.ISession, retry_num: typing.Optional[int] = None
+    ) -> typing.Optional[ydb.ISession]:
         """
         :param retry_num: Number of retries. If None - retries until success.
         :return:
@@ -777,5 +784,5 @@ class SessionPool:
     async def wait_until_min_size(self):
         await asyncio.gather(*self._min_pool_tasks)
 
-    def checkout(self, timeout: float = None, retry_timeout: float = None):
+    def checkout(self, timeout: typing.Optional[float] = None, retry_timeout: typing.Optional[float] = None):
         return SessionCheckout(self, timeout, retry_timeout=retry_timeout)

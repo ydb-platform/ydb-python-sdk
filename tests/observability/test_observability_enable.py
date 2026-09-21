@@ -21,6 +21,7 @@ from ydb.observability import (
     Span,
     SpanName,
     TracingProvider,
+    disable_metrics,
     disable_tracing,
     enable_tracing,
     get_active_provider,
@@ -108,8 +109,10 @@ class RecordingProvider:
 @pytest.fixture(autouse=True)
 def _reset_registry():
     """Guarantee a clean Noop state around every test in this module."""
+    disable_metrics()
     disable_tracing()
     yield
+    disable_metrics()
     disable_tracing()
 
 
@@ -121,6 +124,9 @@ class TestDefaultsAreNoop:
     def test_create_ydb_span_is_noop_when_disabled(self):
         span = create_ydb_span(SpanName.EXECUTE_QUERY, FakeDriverConfig())
         assert isinstance(span, NoopSpan)
+        assert span is NoopTracingProvider._SPAN
+        assert span.attach_context() is span.attach_context()
+        assert span_finish_callback(span) is span_finish_callback(span)
         # NoopSpan methods must be safely callable
         span.set_attribute("x", 1)
         span.set_error(RuntimeError("boom"))
@@ -143,6 +149,7 @@ class TestEnableTracingWithCustomProvider:
 
         assert len(provider.spans) == 1
         recorded = provider.spans[0]
+        assert span is recorded
         assert recorded.name == SpanName.EXECUTE_QUERY
         assert recorded.attributes["db.system.name"] == "ydb"
         assert recorded.attributes["custom.attr"] == "hello"

@@ -1,6 +1,7 @@
 attrs==21.2.0
 bcrypt==3.2.0
 black==25.11.0
+build
 cached-property==1.5.2
 certifi==2024.7.4
 cffi>=1.17.0
@@ -36,7 +37,6 @@ urllib3==2.7.0
 websocket-client==0.59.0
 zipp==3.19.1
 aiohttp>=3.9.0
-pytest-pep8
 pytest-flake8
 flake8==6.1.0
 sqlalchemy==1.4.26

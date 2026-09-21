@@ -1,4 +1,14 @@
 * Deprecated the table client scan query methods — `TableClient.scan_query`, `TableClient.async_scan_query` and the async `ydb.aio.TableClient.scan_query`: they now emit a `DeprecationWarning` and keep working as before, use QueryService (`ydb.QuerySessionPool` / `ydb.aio.QuerySessionPool`) instead
+* Mark the package as typed so type checkers use the SDK's inline annotations
+
+## 3.32.0 ##
+* Add `TableClient.read_rows` (sync and async) to read rows by primary key without a transaction
+* Add the `ydb.query.session.closed` counter for query session pool closures, labeled by pool name and a standardized closure reason; metrics-enabled clients now advertise `ydb-sdk-metrics/0.2.0` in `x-ydb-sdk-build-info`
+* Fix query-session gauges after session invalidation and metrics reconfiguration: closed sessions no longer appear as negative `used` or phantom `idle` sessions, provider replacement preserves instrumented pool state without leaking observations to old providers, and pools created with metrics disabled use zero-cost shared no-op lifecycle instrumentation
+
+## 3.31.5 ##
+* Fixed `OSError: [Errno 22] Invalid argument` when reading native `Datetime64` value before 1970 (negative Unix timestamps) on Windows: conversion now uses epoch arithmetic instead of `datetime.utcfromtimestamp`
+* Add `return_not_null_data_as_optional` parameter to `read_table` (sync and async) — allows reading `NOT NULL` columns as non-optional types, matching the existing gRPC field and the C++ SDK's `ReturnNotNullAsOptional`. By default `read_table` still wraps `NOT NULL` columns in `Optional` for backward compatibility
 
 ## 3.31.4 ##
 * Fixed async `QuerySessionPool` permanently losing a pool slot when `acquire()` was cancelled while a new session was being created: `asyncio.CancelledError` no longer leaks the pool size counter, so a pool under deadline-driven cancellations can no longer end up exhausted and blocking forever. A cancelled or interrupted session attach now also closes the session instead of orphaning it server-side

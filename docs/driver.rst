@@ -166,7 +166,7 @@ AnonymousCredentials
 ^^^^^^^^^^^^^^^^^^^^
 
 No authentication. Use for local or unauthenticated deployments
-(`full example <https://github.com/ydb-platform/ydb-python-sdk/tree/main/examples/anonymous-credentials>`_):
+(`full example <https://github.com/ydb-platform/ydb-python-sdk/tree/main/examples/anonymous-credentials>`__):
 
 .. code-block:: python
 
@@ -176,7 +176,7 @@ AccessTokenCredentials
 ^^^^^^^^^^^^^^^^^^^^^^
 
 Pass a static IAM token or API key directly
-(`full example <https://github.com/ydb-platform/ydb-python-sdk/tree/main/examples/access-token-credentials>`_):
+(`full example <https://github.com/ydb-platform/ydb-python-sdk/tree/main/examples/access-token-credentials>`__):
 
 .. code-block:: python
 
@@ -185,7 +185,7 @@ Pass a static IAM token or API key directly
 StaticCredentials (username/password)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-(`full example <https://github.com/ydb-platform/ydb-python-sdk/tree/main/examples/static-credentials>`_)
+(`full example <https://github.com/ydb-platform/ydb-python-sdk/tree/main/examples/static-credentials>`__)
 
 .. code-block:: python
 
@@ -196,7 +196,7 @@ Service Account Credentials
 
 Authenticate as a Yandex Cloud service account using a key file. Requires the ``ydb[yc]``
 extra (``pip install ydb[yc]``)
-(`full example <https://github.com/ydb-platform/ydb-python-sdk/tree/main/examples/service-account-credentials>`_):
+(`full example <https://github.com/ydb-platform/ydb-python-sdk/tree/main/examples/service-account-credentials>`__):
 
 .. code-block:: python
 
@@ -212,7 +212,7 @@ Metadata Credentials
 
 Picks up credentials from the instance metadata service when running inside Yandex Cloud
 (Compute VM, Cloud Functions, etc.). Requires ``ydb[yc]``
-(`full example <https://github.com/ydb-platform/ydb-python-sdk/tree/main/examples/metadata-credentials>`_):
+(`full example <https://github.com/ydb-platform/ydb-python-sdk/tree/main/examples/metadata-credentials>`__):
 
 .. code-block:: python
 
@@ -225,7 +225,7 @@ OAuth 2.0 Token Exchange
 
 For federated identity scenarios. Exchanges a subject token (e.g. a signed JWT) for a
 YDB access token via an OAuth 2.0 token exchange endpoint
-(`full example <https://github.com/ydb-platform/ydb-python-sdk/tree/main/examples/oauth2-token-exchange-credentials>`_):
+(`full example <https://github.com/ydb-platform/ydb-python-sdk/tree/main/examples/oauth2-token-exchange-credentials>`__):
 
 .. code-block:: python
 

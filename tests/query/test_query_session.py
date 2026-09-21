@@ -71,6 +71,7 @@ class TestQuerySession:
 
         session.delete()
 
+        assert not session._invalidated
         with pytest.raises(RuntimeError):
             session.transaction()
 
