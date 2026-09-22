@@ -2,7 +2,7 @@ import datetime
 
 from google.protobuf.json_format import MessageToDict
 
-from ydb._grpc.grpcwrapper.ydb_topic import OffsetsRange
+from ydb._grpc.grpcwrapper.ydb_topic import OffsetsRange, StreamReadMessage
 from .ydb_topic import AlterTopicRequest
 from .ydb_topic_public_types import (
     AlterTopicRequestParams,
@@ -96,3 +96,25 @@ def test_alter_topic_request_from_public_to_proto():
     }
 
     assert msg_dict == expected_dict
+
+
+def test_stream_read_init_request_serializes_reader_name():
+    request = StreamReadMessage.InitRequest(
+        topics_read_settings=[],
+        consumer="analytics",
+        auto_partitioning_support=True,
+        reader_name="payments-worker",
+    )
+
+    assert request.to_proto().reader_name == "payments-worker"
+
+
+def test_stream_read_init_request_omits_reader_name_by_default():
+    request = StreamReadMessage.InitRequest(
+        topics_read_settings=[],
+        consumer="analytics",
+        auto_partitioning_support=True,
+    )
+
+    assert request.reader_name is None
+    assert request.to_proto().reader_name == ""
