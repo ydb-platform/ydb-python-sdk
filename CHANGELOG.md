@@ -1,3 +1,5 @@
+* Add optional topic reader names for identifying logical readers in server diagnostics and SDK logs
+
 ## 3.37.0 ##
 * Add `topic_client.multiwriter()` for synchronous and asynchronous writes by key across partition splits and merges.
 * Wait for session status tasks to finish when closing an async `QuerySessionPool`.

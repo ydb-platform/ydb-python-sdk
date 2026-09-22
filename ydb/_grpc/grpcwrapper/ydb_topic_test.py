@@ -5,7 +5,7 @@ from google.protobuf.json_format import MessageToDict
 # Same version dispatch the module under test uses: the CI matrix runs protobuf v3..v6.
 from ydb._grpc.common.protos import ydb_topic_pb2
 
-from ydb._grpc.grpcwrapper.ydb_topic import OffsetsRange
+from ydb._grpc.grpcwrapper.ydb_topic import OffsetsRange, StreamReadMessage
 from .ydb_topic import AlterTopicRequest, DescribeTopicResult
 from .ydb_topic_public_types import (
     AlterTopicRequestParams,
@@ -140,3 +140,25 @@ def test_partition_without_key_range_stays_none():
     assert internal.to_public().key_range is None
 
     assert DescribeTopicResult.PartitionKeyRange.from_proto(None) is None
+
+
+def test_stream_read_init_request_serializes_reader_name():
+    request = StreamReadMessage.InitRequest(
+        topics_read_settings=[],
+        consumer="analytics",
+        auto_partitioning_support=True,
+        reader_name="payments-worker",
+    )
+
+    assert request.to_proto().reader_name == "payments-worker"
+
+
+def test_stream_read_init_request_omits_reader_name_by_default():
+    request = StreamReadMessage.InitRequest(
+        topics_read_settings=[],
+        consumer="analytics",
+        auto_partitioning_support=True,
+    )
+
+    assert request.reader_name is None
+    assert request.to_proto().reader_name == ""
