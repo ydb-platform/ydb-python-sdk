@@ -88,6 +88,20 @@ def stub_message(id: int):
     )
 
 
+def test_partially_initialized_public_reader_does_not_schedule_close():
+    reader = object.__new__(topic_reader_asyncio.PublicAsyncIOReader)
+    reader._closed = False
+    reader._log_prefix = "topic reader"
+    reader._loop = mock.Mock()
+    reader._loop.is_closed.return_value = False
+    reader._loop.is_running.return_value = True
+
+    reader.__del__()
+
+    reader._loop.create_task.assert_not_called()
+    reader._closed = True
+
+
 @pytest.fixture()
 def default_reader_settings(default_executor):
     return PublicReaderSettings(
@@ -155,6 +169,7 @@ class TestReaderStream:
         return stream_reader_started._partition_sessions[partition_session.id]
 
     async def get_started_reader(self, stream, *args, **kwargs) -> ReaderStream:
+        kwargs.setdefault("reader_name", "reader-%d" % self.default_reader_reconnector_id)
         reader = ReaderStream(self.default_reader_reconnector_id, *args, **kwargs)
         init_message = object()
 
@@ -181,6 +196,20 @@ class TestReaderStream:
             stream.from_client.get_nowait()
 
         return reader
+
+    async def test_log_prefix_identifies_reader_stream_and_session(self, stream, default_reader_settings):
+        reader = await self.get_started_reader(
+            stream,
+            default_reader_settings,
+            reader_name="payments worker\nprimary",
+        )
+
+        assert reader._log_prefix == (
+            "topic reader reader_name='payments worker\\nprimary' "
+            "reader_id=%s stream_id=%s session_id=test-session" % (self.default_reader_reconnector_id, reader._id)
+        )
+
+        await reader.close(False)
 
     @pytest.fixture()
     async def stream_reader_started(self, stream, default_reader_settings) -> ReaderStream:
@@ -601,7 +630,11 @@ class TestReaderStream:
             stream_reader_finish_with_error.receive_batch_nowait()
 
     async def test_init_reader(self, stream, default_reader_settings):
-        reader = ReaderStream(self.default_reader_reconnector_id, default_reader_settings)
+        reader = ReaderStream(
+            self.default_reader_reconnector_id,
+            default_reader_settings,
+            reader_name="reader-%d" % self.default_reader_reconnector_id,
+        )
         init_message = StreamReadMessage.InitRequest(
             consumer="test-consumer",
             topics_read_settings=[
@@ -1549,7 +1582,11 @@ class TestReaderStream:
 
     async def test_init_timeout_parameter(self, stream, default_reader_settings):
         """Test that ReaderStream._start calls stream.receive with timeout=10"""
-        reader = ReaderStream(self.default_reader_reconnector_id, default_reader_settings)
+        reader = ReaderStream(
+            self.default_reader_reconnector_id,
+            default_reader_settings,
+            reader_name="reader-%d" % self.default_reader_reconnector_id,
+        )
         init_message = default_reader_settings._init_message()
 
         # Mock stream.receive to check if timeout is passed
@@ -1568,7 +1605,11 @@ class TestReaderStream:
 
     async def test_init_timeout_behavior(self, stream, default_reader_settings):
         """Test that ReaderStream._start raises TopicReaderError when receive times out"""
-        reader = ReaderStream(self.default_reader_reconnector_id, default_reader_settings)
+        reader = ReaderStream(
+            self.default_reader_reconnector_id,
+            default_reader_settings,
+            reader_name="reader-%d" % self.default_reader_reconnector_id,
+        )
         init_message = default_reader_settings._init_message()
 
         # Mock stream.receive to directly raise TimeoutError when called with timeout
@@ -1590,7 +1631,8 @@ class TestReaderStream:
 
 @pytest.mark.asyncio
 class TestReaderReconnector:
-    async def test_reconnect_on_repeatable_error(self, monkeypatch):
+    @pytest.mark.parametrize("configured_reader_name", [None, ""])
+    async def test_reconnect_on_repeatable_error(self, monkeypatch, configured_reader_name):
         test_error = issues.Overloaded("test error")
 
         async def wait_error():
@@ -1620,8 +1662,11 @@ class TestReaderReconnector:
             reader_reconnector_id: int,
             driver: SupportedDriverType,
             settings: PublicReaderSettings,
+            *,
+            reader_name: str,
         ):
             nonlocal stream_index
+            reader_names.append(reader_name)
             stream_index += 1
             if stream_index == 1:
                 return reader_stream_mock_with_error
@@ -1630,12 +1675,19 @@ class TestReaderReconnector:
             else:
                 raise Exception("unexpected create stream")
 
+        reader_names = []
         with mock.patch.object(ReaderStream, "create", stream_create):
-            reconnector = ReaderReconnector(mock.Mock(), PublicReaderSettings("", ""))
+            reconnector = ReaderReconnector(
+                mock.Mock(),
+                PublicReaderSettings("", "", reader_name=configured_reader_name),
+            )
             await wait_for_fast(reconnector.wait_message())
 
+        assert reader_names == [reconnector._reader_name, reconnector._reader_name]
+        assert reconnector._reader_name == "reader-%d" % reconnector._id
         reader_stream_mock_with_error.wait_error.assert_any_await()
         reader_stream_mock_with_error.wait_messages.assert_any_await()
+        await reconnector.close(flush=False)
 
     async def test_close_during_reconnect_does_not_hang(self):
         # The connection loop must stop on reader.close() even while it is closing the old
@@ -1668,7 +1720,7 @@ class TestReaderReconnector:
 
         create_calls = 0
 
-        async def stream_create(reader_reconnector_id, driver, settings):
+        async def stream_create(reader_reconnector_id, driver, settings, *, reader_name):
             nonlocal create_calls
             create_calls += 1
             return stream1 if create_calls == 1 else stream2
@@ -1702,7 +1754,14 @@ class TestReaderReconnector:
         with mock.patch.object(topic_reader_asyncio, "GrpcWrapperAsyncIO", FakeStream):
             # Real create(); no InitResponse is sent, so it parks inside _start() on
             # `await stream.receive()` (the only reachable cancellation point in create()).
-            create_task = asyncio.create_task(ReaderStream.create(7, driver, default_reader_settings))
+            create_task = asyncio.create_task(
+                ReaderStream.create(
+                    7,
+                    driver,
+                    default_reader_settings,
+                    reader_name="reader-7",
+                )
+            )
             await wait_condition(lambda: bool(built) and not built[0].from_client.empty())
             assert not create_task.done()
 
@@ -1732,7 +1791,7 @@ class TestReaderReconnector:
         stream.write = mock.Mock()
         stream.close = mock.Mock()
 
-        reader = ReaderStream(4, default_reader_settings)
+        reader = ReaderStream(4, default_reader_settings, reader_name="reader-4")
         await reader._start(stream, default_reader_settings._init_message())
 
         # Bug: wait_error() hangs forever because _first_error is never set.
@@ -1766,7 +1825,11 @@ class TestReaderStreamBufferReleaseThreshold:
             buffer_release_threshold=threshold,
             decoder_executor=default_executor,
         )
-        reader = ReaderStream(self.default_reader_reconnector_id, settings)
+        reader = ReaderStream(
+            self.default_reader_reconnector_id,
+            settings,
+            reader_name="reader-%d" % self.default_reader_reconnector_id,
+        )
         init_message = object()
         start = asyncio.create_task(reader._start(stream, init_message))
 
@@ -1930,3 +1993,78 @@ class TestReaderStreamBufferReleaseThreshold:
         assert msg.client_message.bytes_size == 1000
 
         await reader.close(False)
+
+
+def test_reader_settings_forward_reader_name():
+    settings = PublicReaderSettings(
+        consumer="analytics",
+        topic="/Root/events",
+        reader_name="payments-worker",
+    )
+
+    assert settings._init_message().reader_name == "payments-worker"
+    assert settings._init_message(reader_name="reader-42").to_proto().reader_name == "reader-42"
+
+
+def test_reader_settings_reject_non_string_reader_name():
+    with pytest.raises(TypeError, match="reader_name"):
+        PublicReaderSettings(
+            consumer="analytics",
+            topic="/Root/events",
+            reader_name=42,
+        )
+
+
+@pytest.mark.asyncio
+async def test_reader_reconnector_uses_configured_or_process_local_reader_name():
+    async def wait_forever(self):
+        await asyncio.Future()
+
+    with mock.patch.object(ReaderReconnector, "_connection_loop", wait_forever):
+        generated_from_none = ReaderReconnector(
+            mock.Mock(),
+            PublicReaderSettings("analytics", "/Root/events"),
+        )
+        generated_from_empty = ReaderReconnector(
+            mock.Mock(),
+            PublicReaderSettings("analytics", "/Root/events", reader_name=""),
+        )
+        configured = ReaderReconnector(
+            mock.Mock(),
+            PublicReaderSettings("analytics", "/Root/events", reader_name="payments-worker"),
+        )
+
+        assert generated_from_none._reader_name == "reader-%d" % generated_from_none._id
+        assert generated_from_empty._reader_name == "reader-%d" % generated_from_empty._id
+        assert generated_from_none._reader_name != generated_from_empty._reader_name
+        assert configured._reader_name == "payments-worker"
+        assert configured._log_prefix == "topic reader reader_name='payments-worker' reader_id=%s" % configured._id
+
+        await asyncio.gather(
+            generated_from_none.close(flush=False),
+            generated_from_empty.close(flush=False),
+            configured.close(flush=False),
+        )
+
+
+@pytest.mark.parametrize(
+    "client_class, reader_class_name", [("TopicClient", "TopicReader"), ("TopicClientAsyncIO", "TopicReaderAsyncIO")]
+)
+def test_topic_clients_forward_reader_name(client_class, reader_class_name):
+    from .. import topic as topic_module
+
+    client = object.__new__(getattr(topic_module, client_class))
+    client._closed = False
+    client._driver = mock.Mock()
+    client._executor = mock.Mock()
+
+    with mock.patch.object(topic_module, reader_class_name, return_value=mock.sentinel.reader) as reader_class:
+        result = client.reader(
+            "/Root/events",
+            consumer="analytics",
+            reader_name="payments-worker",
+        )
+
+    assert result is mock.sentinel.reader
+    assert reader_class.call_args.args[1].reader_name == "payments-worker"
+    client._closed = True
