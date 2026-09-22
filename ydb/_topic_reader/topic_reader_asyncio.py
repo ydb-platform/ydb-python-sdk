@@ -87,6 +87,7 @@ class TopicReaderClosedError(TopicReaderError):
 class PublicAsyncIOReader:
     _loop: asyncio.AbstractEventLoop
     _closed: bool
+    _log_prefix: str
     _settings: topic_reader.PublicReaderSettings
     _reconnector: ReaderReconnector
     _parent: typing.Any  # need for prevent close parent client by GC
@@ -100,8 +101,10 @@ class PublicAsyncIOReader:
     ):
         self._loop = asyncio.get_running_loop()
         self._closed = False
+        self._log_prefix = "topic reader"
         self._settings = settings
         self._reconnector = ReaderReconnector(driver, settings, self._loop)
+        self._log_prefix = self._reconnector._log_prefix
         self._parent = _parent
 
     async def __aenter__(self):
@@ -111,13 +114,19 @@ class PublicAsyncIOReader:
         await self.close()
 
     def __del__(self):
-        if not self._closed:
-            try:
-                logger.debug("Topic reader was not closed properly. Consider using method close().")
-                task = self._loop.create_task(self.close(flush=False))
-                task.set_name("close reader")
-            except BaseException:
-                logger.warning("Something went wrong during reader close in __del__")
+        if getattr(self, "_closed", True):
+            return
+
+        loop = getattr(self, "_loop", None)
+        if getattr(self, "_reconnector", None) is None or loop is None or loop.is_closed() or not loop.is_running():
+            return
+
+        try:
+            logger.debug("%s was not closed properly. Consider using method close().", self._log_prefix)
+            task = loop.create_task(self.close(flush=False))
+            task.set_name("close reader")
+        except BaseException:
+            logger.warning("%s failed to close in __del__", self._log_prefix)
 
     async def wait_message(self):
         """
@@ -140,7 +149,7 @@ class PublicAsyncIOReader:
 
         use asyncio.wait_for for wait with timeout.
         """
-        logger.debug("receive_batch max_messages=%s max_bytes=%s", max_messages, max_bytes)
+        logger.debug("%s receive_batch max_messages=%s max_bytes=%s", self._log_prefix, max_messages, max_bytes)
         await self._reconnector.wait_message()
         return self._reconnector.receive_batch_nowait(
             max_messages=max_messages,
@@ -163,7 +172,13 @@ class PublicAsyncIOReader:
 
         use asyncio.wait_for for wait with timeout.
         """
-        logger.debug("receive_batch_with_tx tx=%s max_messages=%s max_bytes=%s", tx, max_messages, max_bytes)
+        logger.debug(
+            "%s receive_batch_with_tx tx=%s max_messages=%s max_bytes=%s",
+            self._log_prefix,
+            tx,
+            max_messages,
+            max_bytes,
+        )
         await self._reconnector.wait_message()
         return self._reconnector.receive_batch_with_tx_nowait(
             tx=tx,
@@ -177,7 +192,7 @@ class PublicAsyncIOReader:
 
         use asyncio.wait_for for wait with timeout.
         """
-        logger.debug("receive_message")
+        logger.debug("%s receive_message", self._log_prefix)
         await self._reconnector.wait_message()
         return self._reconnector.receive_message_nowait()
 
@@ -188,7 +203,7 @@ class PublicAsyncIOReader:
         For the method no way check the commit result
         (for example if lost connection - commits will not re-send and committed messages will receive again).
         """
-        logger.debug("commit message or batch")
+        logger.debug("%s commit message or batch", self._log_prefix)
         if self._settings.consumer is None:
             raise issues.Error("Commit operations are not supported for topic reader without consumer.")
 
@@ -207,7 +222,7 @@ class PublicAsyncIOReader:
         before receive commit ack. Message may be acked or not (if not - it will send in other read session,
         to this or other reader).
         """
-        logger.debug("commit_with_ack message or batch")
+        logger.debug("%s commit_with_ack message or batch", self._log_prefix)
         if self._settings.consumer is None:
             raise issues.Error("Commit operations are not supported for topic reader without consumer.")
 
@@ -218,10 +233,10 @@ class PublicAsyncIOReader:
         if self._closed:
             raise TopicReaderClosedError()
 
-        logger.debug("Close topic reader")
+        logger.debug("%s close", self._log_prefix)
         self._closed = True
         await self._reconnector.close(flush)
-        logger.debug("Topic reader was closed")
+        logger.debug("%s was closed", self._log_prefix)
 
     @property
     def read_session_id(self) -> Optional[str]:
@@ -235,6 +250,8 @@ class ReaderReconnector:
     _settings: topic_reader.PublicReaderSettings
     _driver: Driver
     _background_tasks: Set[Task]
+    _reader_name: str
+    _log_prefix: str
 
     _state_changed: asyncio.Event
     _stream_reader: Optional["ReaderStream"]
@@ -251,9 +268,11 @@ class ReaderReconnector:
         self._id = ReaderReconnector._static_reader_reconnector_counter.inc_and_get()
         self._settings = settings
         self._driver = driver
+        self._reader_name = settings.reader_name or "reader-%d" % self._id
+        self._log_prefix = "topic reader reader_name=%r reader_id=%s" % (self._reader_name, self._id)
         self._loop = loop if loop is not None else asyncio.get_running_loop()
         self._background_tasks = set()
-        logger.debug("init reader reconnector id=%s", self._id)
+        logger.debug("%s initialize reconnector", self._log_prefix)
 
         self._state_changed = asyncio.Event()
         self._stream_reader = None
@@ -269,21 +288,30 @@ class ReaderReconnector:
             if self._closed:
                 return
             try:
-                logger.debug("reader %s connect attempt %s", self._id, attempt)
-                self._stream_reader = await ReaderStream.create(self._id, self._driver, self._settings)
-                logger.debug("reader %s connected stream %s", self._id, self._stream_reader._id)
+                logger.debug("%s connect attempt=%s", self._log_prefix, attempt)
+                self._stream_reader = await ReaderStream.create(
+                    self._id,
+                    self._driver,
+                    self._settings,
+                    reader_name=self._reader_name,
+                )
+                logger.debug("%s connected stream_id=%s", self._log_prefix, self._stream_reader._id)
                 attempt = 0
                 self._state_changed.set()
                 await self._stream_reader.wait_error()
             except BaseException as err:
-                logger.debug("reader %s, attempt %s connection loop error %s", self._id, attempt, err)
+                logger.debug("%s connection attempt=%s failed: %s", self._log_prefix, attempt, err)
                 retry_info = check_retriable_error(err, self._settings._retry_settings(), attempt)
                 if not retry_info.is_retriable:
-                    logger.debug("reader %s stop connection loop due to %s", self._id, err)
+                    logger.debug("%s stop connection loop: %s", self._log_prefix, err)
                     self._set_first_error(err)
                     return
 
-                logger.debug("sleep before retry for %s seconds", retry_info.sleep_timeout_seconds)
+                logger.debug(
+                    "%s sleep before retry for %s seconds",
+                    self._log_prefix,
+                    retry_info.sleep_timeout_seconds,
+                )
 
                 await asyncio.sleep(retry_info.sleep_timeout_seconds)
 
@@ -465,7 +493,7 @@ class ReaderReconnector:
         return self._stream_reader.commit(batch)
 
     async def close(self, flush: bool):
-        logger.debug("reader reconnector %s close", self._id)
+        logger.debug("%s close reconnector", self._log_prefix)
         # Mark closed so the connection loop won't start a new stream, then close the
         # current stream with the requested flush before cancelling the loop. On a normal
         # close this flushes pending commits; cancelling the loop first would let it close
@@ -506,6 +534,7 @@ class ReaderStream:
     _loop: asyncio.AbstractEventLoop
     _id: int
     _reader_reconnector_id: int
+    _reader_name: str
     _session_id: str
     _stream: Optional[IGrpcWrapperAsyncIO]
     _started: bool
@@ -537,12 +566,16 @@ class ReaderStream:
         reader_reconnector_id: int,
         settings: topic_reader.PublicReaderSettings,
         get_token_function: Optional[Callable[[], str]] = None,
+        *,
+        reader_name: str,
     ):
         self._loop = asyncio.get_running_loop()
         self._id = ReaderStream._static_id_counter.inc_and_get()
         self._reader_reconnector_id = reader_reconnector_id
+        self._reader_name = reader_name
         self._session_id = "not initialized"
-        self._log_prefix = "reader %s stream %s session=%s" % (
+        self._log_prefix = "topic reader reader_name=%r reader_id=%s stream_id=%s session_id=%s" % (
+            self._reader_name,
             self._reader_reconnector_id,
             self._id,
             self._session_id,
@@ -572,13 +605,15 @@ class ReaderStream:
 
         self._settings = settings
 
-        logger.debug("created ReaderStream id=%s reconnector=%s", self._id, self._reader_reconnector_id)
+        logger.debug("%s created", self._log_prefix)
 
     @staticmethod
     async def create(
         reader_reconnector_id: int,
         driver: SupportedDriverType,
         settings: topic_reader.PublicReaderSettings,
+        *,
+        reader_name: str,
     ) -> "ReaderStream":
         stream = GrpcWrapperAsyncIO(StreamReadMessage.FromServer.from_proto)
         reader = None
@@ -590,8 +625,9 @@ class ReaderStream:
                 reader_reconnector_id,
                 settings,
                 get_token_function=creds.get_auth_token if creds else None,
+                reader_name=reader_name,
             )
-            await reader._start(stream, settings._init_message())
+            await reader._start(stream, settings._init_message(reader_name=reader_name))
         except BaseException:
             # If create() is interrupted (e.g. reader.close() cancels the connection loop
             # mid-reconnect) the in-flight stream is not yet assigned to the reconnector, so
@@ -623,7 +659,8 @@ class ReaderStream:
 
         if isinstance(init_response.server_message, StreamReadMessage.InitResponse):
             self._session_id = init_response.server_message.session_id
-            self._log_prefix = "reader %s stream %s session=%s" % (
+            self._log_prefix = "topic reader reader_name=%r reader_id=%s stream_id=%s session_id=%s" % (
+                self._reader_name,
                 self._reader_reconnector_id,
                 self._id,
                 self._session_id,
@@ -820,7 +857,7 @@ class ReaderStream:
                             "Unexpected message in _read_messages_loop: %s" % type(message.server_message)
                         )
                 except issues.UnexpectedGrpcMessage as e:
-                    logger.exception("unexpected message in stream reader: %s" % e)
+                    logger.exception("%s unexpected message in stream reader: %s", self._log_prefix, e)
 
                 self._state_changed.set()
         except asyncio.CancelledError as e:
