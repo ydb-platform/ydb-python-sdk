@@ -11,6 +11,7 @@ from unittest import mock
 import pytest
 
 from ydb import issues
+from ydb.retries import BackoffSettings, RetrySettings
 from . import datatypes, topic_reader_asyncio
 from .datatypes import PublicBatch, PublicMessage
 from .topic_reader import PublicReaderSettings
@@ -1592,8 +1593,10 @@ class TestReaderStream:
 class TestReaderReconnector:
     async def test_reconnect_on_repeatable_error(self, monkeypatch):
         test_error = issues.Overloaded("test error")
+        message_waited = asyncio.Event()
 
         async def wait_error():
+            await message_waited.wait()
             raise test_error
 
         reader_stream_mock_with_error = mock.Mock(ReaderStream)
@@ -1601,6 +1604,7 @@ class TestReaderReconnector:
         reader_stream_mock_with_error.wait_error = mock.AsyncMock(side_effect=wait_error)
 
         async def wait_messages_with_error():
+            message_waited.set()
             raise test_error
 
         reader_stream_mock_with_error.wait_messages = mock.AsyncMock(side_effect=wait_messages_with_error)
@@ -1630,9 +1634,19 @@ class TestReaderReconnector:
             else:
                 raise Exception("unexpected create stream")
 
+        settings = PublicReaderSettings("", "")
+        monkeypatch.setattr(
+            settings,
+            "_retry_settings",
+            lambda: RetrySettings(slow_backoff_settings=BackoffSettings(slot_duration=0)),
+        )
+
         with mock.patch.object(ReaderStream, "create", stream_create):
-            reconnector = ReaderReconnector(mock.Mock(), PublicReaderSettings("", ""))
-            await wait_for_fast(reconnector.wait_message())
+            reconnector = ReaderReconnector(mock.Mock(), settings)
+            try:
+                await wait_for_fast(reconnector.wait_message())
+            finally:
+                await reconnector.close(False)
 
         reader_stream_mock_with_error.wait_error.assert_any_await()
         reader_stream_mock_with_error.wait_messages.assert_any_await()
