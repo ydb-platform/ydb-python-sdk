@@ -127,7 +127,9 @@ def retry_operation_impl(
             yield result
 
             if result.exc is not None:
-                raise result.exc
+                exc = result.exc
+                result.exc = None
+                raise exc
 
         except issues.Error as e:
             status = e
