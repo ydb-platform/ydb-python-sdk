@@ -183,8 +183,7 @@ class ResetOffsetRequest(IToProto):
             consumer=self.consumer,
         )
         if isinstance(self.to, datetime.datetime):
-            written_at = proto_timestamp_from_datetime(self.to)
-            res.from_written_at.written_at.CopyFrom(written_at)
+            res.from_written_at.written_at.FromDatetime(self.to)
         elif self.to == ydb_topic_public_types.PublicResetOffset.EARLIEST:
             res.earliest.SetInParent()
         elif self.to == ydb_topic_public_types.PublicResetOffset.LATEST:
