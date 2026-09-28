@@ -32,6 +32,7 @@ class TopicReaderSync:
     _caller: CallFromSyncToAsync
     _async_reader: PublicAsyncIOReader
     _closed: bool
+    _log_prefix: str
     _settings: PublicReaderSettings
     _parent: typing.Any  # need for prevent stop the client by GC
 
@@ -44,6 +45,7 @@ class TopicReaderSync:
         _parent=None,  # need for prevent stop the client by GC
     ):
         self._closed = False
+        self._log_prefix = "topic reader"
 
         if eventloop:
             loop = eventloop
@@ -56,6 +58,7 @@ class TopicReaderSync:
             return PublicAsyncIOReader(driver, settings)
 
         self._async_reader = asyncio.run_coroutine_threadsafe(create_reader(), loop).result()
+        self._log_prefix = self._async_reader._log_prefix
 
         self._settings = settings
 
@@ -64,10 +67,10 @@ class TopicReaderSync:
     def __del__(self):
         if not self._closed:
             try:
-                logger.debug("Topic reader was not closed properly. Consider using method close().")
+                logger.debug("%s was not closed properly. Consider using method close().", self._log_prefix)
                 self.close(flush=False)
             except BaseException:
-                logger.warning("Something went wrong during reader close in __del__")
+                logger.warning("%s failed to close in __del__", self._log_prefix)
 
     def __enter__(self):
         return self

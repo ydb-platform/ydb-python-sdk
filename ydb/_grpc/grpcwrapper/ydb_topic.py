@@ -486,11 +486,14 @@ class StreamReadMessage:
         topics_read_settings: List["StreamReadMessage.InitRequest.TopicReadSettings"]
         consumer: Optional[str]
         auto_partitioning_support: bool
+        reader_name: Optional[str] = None
 
         def to_proto(self) -> ydb_topic_pb2.StreamReadMessage.InitRequest:
             res = ydb_topic_pb2.StreamReadMessage.InitRequest()
             if self.consumer is not None:
                 res.consumer = self.consumer
+            if self.reader_name is not None:
+                res.reader_name = self.reader_name
             for settings in self.topics_read_settings:
                 res.topics_read_settings.append(settings.to_proto())
             res.auto_partitioning_support = self.auto_partitioning_support

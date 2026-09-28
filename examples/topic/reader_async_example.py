@@ -9,7 +9,11 @@ async def connect():
         connection_string="grpc://localhost:2135?database=/local",
         credentials=ydb.credentials.AnonymousCredentials(),
     )
-    reader = db.topic_client.reader("/local/topic", consumer="consumer")
+    reader = db.topic_client.reader(
+        "/local/topic",
+        consumer="consumer",
+        reader_name="payments-worker",
+    )
     return reader
 
 
