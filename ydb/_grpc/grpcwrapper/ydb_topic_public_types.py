@@ -1,7 +1,7 @@
 import datetime
 import typing
 from dataclasses import dataclass, field
-from enum import IntEnum
+from enum import Enum, IntEnum
 from typing import Optional, List, Union, Dict
 
 # Workaround for good IDE and universal for runtime
@@ -64,6 +64,18 @@ class PublicCodec(int):
     GZIP = 2
     LZOP = 3  # Has not supported codec in standard library
     ZSTD = 4  # Has not supported codec in standard library
+
+
+class PublicResetOffset(Enum):
+    """
+    Where to rewind a consumer's committed offsets.
+
+    Pass a ``datetime`` to :meth:`TopicClient.reset_offset` instead of this enum
+    to rewind to the first message with write timestamp greater than or equal to that time.
+    """
+
+    EARLIEST = "earliest"
+    LATEST = "latest"
 
 
 class PublicMeteringMode(IntEnum):

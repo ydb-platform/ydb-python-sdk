@@ -98,6 +98,11 @@ def handle_partition_stop_batch(reader: ydb.TopicReader):
         process_batch(batch)
 
 
+def reset_consumer_offset(db: ydb.Driver):
+    db.topic_client.reset_offset("/local/topic", "consumer", to=ydb.TopicResetOffset.EARLIEST)
+    db.topic_client.reset_offset("/local/topic", "consumer", to=ydb.TopicResetOffset.LATEST)
+
+
 def handle_partition_graceful_stop_batch(reader: ydb.TopicReader):
     # no special handle, but batch will contain less than prefer count messages
     while True:

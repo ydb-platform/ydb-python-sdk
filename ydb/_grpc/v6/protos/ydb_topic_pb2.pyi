@@ -636,6 +636,43 @@ class CommitOffsetResult(_message.Message):
     __slots__ = ()
     def __init__(self) -> None: ...
 
+class ResetOffsetRequest(_message.Message):
+    __slots__ = ("operation_params", "path", "consumer", "earliest", "latest", "from_written_at")
+    class Earliest(_message.Message):
+        __slots__ = ()
+        def __init__(self) -> None: ...
+    class Latest(_message.Message):
+        __slots__ = ()
+        def __init__(self) -> None: ...
+    class FromWrittenAt(_message.Message):
+        __slots__ = ("written_at",)
+        WRITTEN_AT_FIELD_NUMBER: _ClassVar[int]
+        written_at: _timestamp_pb2.Timestamp
+        def __init__(self, written_at: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ...) -> None: ...
+    OPERATION_PARAMS_FIELD_NUMBER: _ClassVar[int]
+    PATH_FIELD_NUMBER: _ClassVar[int]
+    CONSUMER_FIELD_NUMBER: _ClassVar[int]
+    EARLIEST_FIELD_NUMBER: _ClassVar[int]
+    LATEST_FIELD_NUMBER: _ClassVar[int]
+    FROM_WRITTEN_AT_FIELD_NUMBER: _ClassVar[int]
+    operation_params: _ydb_operation_pb2.OperationParams
+    path: str
+    consumer: str
+    earliest: ResetOffsetRequest.Earliest
+    latest: ResetOffsetRequest.Latest
+    from_written_at: ResetOffsetRequest.FromWrittenAt
+    def __init__(self, operation_params: _Optional[_Union[_ydb_operation_pb2.OperationParams, _Mapping]] = ..., path: _Optional[str] = ..., consumer: _Optional[str] = ..., earliest: _Optional[_Union[ResetOffsetRequest.Earliest, _Mapping]] = ..., latest: _Optional[_Union[ResetOffsetRequest.Latest, _Mapping]] = ..., from_written_at: _Optional[_Union[ResetOffsetRequest.FromWrittenAt, _Mapping]] = ...) -> None: ...
+
+class ResetOffsetResponse(_message.Message):
+    __slots__ = ("operation",)
+    OPERATION_FIELD_NUMBER: _ClassVar[int]
+    operation: _ydb_operation_pb2.Operation
+    def __init__(self, operation: _Optional[_Union[_ydb_operation_pb2.Operation, _Mapping]] = ...) -> None: ...
+
+class ResetOffsetResult(_message.Message):
+    __slots__ = ()
+    def __init__(self) -> None: ...
+
 class MultipleWindowsStat(_message.Message):
     __slots__ = ("per_minute", "per_hour", "per_day")
     PER_MINUTE_FIELD_NUMBER: _ClassVar[int]

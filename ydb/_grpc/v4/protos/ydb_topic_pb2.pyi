@@ -549,6 +549,43 @@ class PartitioningSettings(_message.Message):
     partition_count_limit: int
     def __init__(self, min_active_partitions: _Optional[int] = ..., max_active_partitions: _Optional[int] = ..., partition_count_limit: _Optional[int] = ..., auto_partitioning_settings: _Optional[_Union[AutoPartitioningSettings, _Mapping]] = ...) -> None: ...
 
+class ResetOffsetRequest(_message.Message):
+    __slots__ = ["consumer", "earliest", "from_written_at", "latest", "operation_params", "path"]
+    class Earliest(_message.Message):
+        __slots__ = []
+        def __init__(self) -> None: ...
+    class FromWrittenAt(_message.Message):
+        __slots__ = ["written_at"]
+        WRITTEN_AT_FIELD_NUMBER: _ClassVar[int]
+        written_at: _timestamp_pb2.Timestamp
+        def __init__(self, written_at: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ...) -> None: ...
+    class Latest(_message.Message):
+        __slots__ = []
+        def __init__(self) -> None: ...
+    CONSUMER_FIELD_NUMBER: _ClassVar[int]
+    EARLIEST_FIELD_NUMBER: _ClassVar[int]
+    FROM_WRITTEN_AT_FIELD_NUMBER: _ClassVar[int]
+    LATEST_FIELD_NUMBER: _ClassVar[int]
+    OPERATION_PARAMS_FIELD_NUMBER: _ClassVar[int]
+    PATH_FIELD_NUMBER: _ClassVar[int]
+    consumer: str
+    earliest: ResetOffsetRequest.Earliest
+    from_written_at: ResetOffsetRequest.FromWrittenAt
+    latest: ResetOffsetRequest.Latest
+    operation_params: _ydb_operation_pb2.OperationParams
+    path: str
+    def __init__(self, operation_params: _Optional[_Union[_ydb_operation_pb2.OperationParams, _Mapping]] = ..., path: _Optional[str] = ..., consumer: _Optional[str] = ..., earliest: _Optional[_Union[ResetOffsetRequest.Earliest, _Mapping]] = ..., latest: _Optional[_Union[ResetOffsetRequest.Latest, _Mapping]] = ..., from_written_at: _Optional[_Union[ResetOffsetRequest.FromWrittenAt, _Mapping]] = ...) -> None: ...
+
+class ResetOffsetResponse(_message.Message):
+    __slots__ = ["operation"]
+    OPERATION_FIELD_NUMBER: _ClassVar[int]
+    operation: _ydb_operation_pb2.Operation
+    def __init__(self, operation: _Optional[_Union[_ydb_operation_pb2.Operation, _Mapping]] = ...) -> None: ...
+
+class ResetOffsetResult(_message.Message):
+    __slots__ = []
+    def __init__(self) -> None: ...
+
 class StreamDirectReadMessage(_message.Message):
     __slots__ = []
     class DirectReadResponse(_message.Message):

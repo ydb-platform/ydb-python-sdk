@@ -484,6 +484,13 @@ TopicCodec
    :members:
    :undoc-members:
 
+TopicResetOffset
+^^^^^^^^^^^^^^^^
+
+.. autoclass:: ydb.TopicResetOffset
+   :members:
+   :undoc-members:
+
 TopicWriterMessage
 ^^^^^^^^^^^^^^^^^^
 
