@@ -2,9 +2,10 @@ import datetime
 
 from google.protobuf.json_format import MessageToDict
 
-from ydb._grpc.grpcwrapper.ydb_topic import OffsetsRange
+from ydb._grpc.grpcwrapper.ydb_topic import OffsetsRange, ResetOffsetRequest
 from .ydb_topic import AlterTopicRequest
 from .ydb_topic_public_types import (
+    PublicResetOffset,
     AlterTopicRequestParams,
     PublicAlterConsumer,
     PublicAlterAutoPartitioningSettings,
@@ -96,3 +97,25 @@ def test_alter_topic_request_from_public_to_proto():
     }
 
     assert msg_dict == expected_dict
+
+
+def test_reset_offset_request_to_proto():
+    earliest = ResetOffsetRequest(path="topic", consumer="consumer", to=PublicResetOffset.EARLIEST).to_proto()
+    assert earliest.path == "topic"
+    assert earliest.consumer == "consumer"
+    assert earliest.WhichOneof("position") == "earliest"
+
+    latest = ResetOffsetRequest(path="topic", consumer="consumer", to=PublicResetOffset.LATEST).to_proto()
+    assert latest.WhichOneof("position") == "latest"
+
+    written_at = datetime.datetime(2026, 1, 2, 3, 4, 5, tzinfo=datetime.timezone.utc)
+    stamped = ResetOffsetRequest(path="topic", consumer="consumer", to=written_at).to_proto()
+    assert stamped.WhichOneof("position") == "from_written_at"
+    assert stamped.from_written_at.written_at.ToSeconds() == int(written_at.timestamp())
+
+    try:
+        ResetOffsetRequest(path="topic", consumer="consumer", to="earliest")
+    except TypeError:
+        pass
+    else:
+        raise AssertionError("expected TypeError")

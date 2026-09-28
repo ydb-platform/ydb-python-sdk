@@ -507,6 +507,34 @@ from the last committed offset when the reader reconnects.
    automatically when the reader is closed (``flush=True`` by default).
 
 
+Resetting Offsets
+^^^^^^^^^^^^^^^^^
+
+``reset_offset`` rewinds a consumer's committed offsets on every topic partition, including
+inactive partitions left after a split or merge. Partitions are updated independently: the
+call is not atomic, and a failure may still leave some partitions already rewritten. Any
+active read session of this consumer is dropped.
+
+.. code-block:: python
+
+    import datetime
+
+    # Rewind to the beginning or to the end of every partition.
+    driver.topic_client.reset_offset(topic_path, consumer, to=ydb.TopicResetOffset.EARLIEST)
+    driver.topic_client.reset_offset(topic_path, consumer, to=ydb.TopicResetOffset.LATEST)
+
+    # Rewind to the first message written at or after the given time.
+    # If there is no such message, the partition end offset is used.
+    driver.topic_client.reset_offset(
+        topic_path,
+        consumer,
+        to=datetime.datetime(2026, 1, 1, tzinfo=datetime.timezone.utc),
+    )
+
+    # Asynchronous client has the same method.
+    await driver.topic_client.reset_offset(topic_path, consumer, to=ydb.TopicResetOffset.EARLIEST)
+
+
 Handling Partition Rebalancing
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 

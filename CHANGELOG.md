@@ -1,3 +1,4 @@
+* Add `TopicClient.reset_offset` (sync and async) to rewind a consumer's committed offsets on all topic partitions, including inactive ones, to earliest, latest, or the first message written at or after a given time
 * Deprecated the table client scan query methods — `TableClient.scan_query`, `TableClient.async_scan_query` and the async `ydb.aio.TableClient.scan_query`: they now emit a `DeprecationWarning` and keep working as before, use QueryService (`ydb.QuerySessionPool` / `ydb.aio.QuerySessionPool`) instead
 * Mark the package as typed so type checkers use the SDK's inline annotations
 

@@ -162,6 +162,36 @@ class CommitOffsetRequest(IToProto):
         )
 
 
+@dataclass
+class ResetOffsetRequest(IToProto):
+    path: str
+    consumer: str
+    to: Union[ydb_topic_public_types.PublicResetOffset, datetime.datetime]
+
+    def __post_init__(self):
+        if isinstance(self.to, datetime.datetime):
+            return
+        if isinstance(self.to, ydb_topic_public_types.PublicResetOffset):
+            return
+        raise TypeError(
+            "reset offset target must be TopicResetOffset.EARLIEST, TopicResetOffset.LATEST, or datetime.datetime"
+        )
+
+    def to_proto(self) -> ydb_topic_pb2.ResetOffsetRequest:
+        res = ydb_topic_pb2.ResetOffsetRequest(
+            path=self.path,
+            consumer=self.consumer,
+        )
+        if isinstance(self.to, datetime.datetime):
+            written_at = proto_timestamp_from_datetime(self.to)
+            res.from_written_at.written_at.CopyFrom(written_at)
+        elif self.to == ydb_topic_public_types.PublicResetOffset.EARLIEST:
+            res.earliest.SetInParent()
+        elif self.to == ydb_topic_public_types.PublicResetOffset.LATEST:
+            res.latest.SetInParent()
+        return res
+
+
 ########################################################################################################################
 #  StreamWrite
 ########################################################################################################################

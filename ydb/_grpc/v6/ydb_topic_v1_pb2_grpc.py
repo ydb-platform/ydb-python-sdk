@@ -49,6 +49,11 @@ class TopicServiceStub(object):
                 request_serializer=protos_dot_ydb__topic__pb2.CommitOffsetRequest.SerializeToString,
                 response_deserializer=protos_dot_ydb__topic__pb2.CommitOffsetResponse.FromString,
                 _registered_method=True)
+        self.ResetOffset = channel.unary_unary(
+                '/Ydb.Topic.V1.TopicService/ResetOffset',
+                request_serializer=protos_dot_ydb__topic__pb2.ResetOffsetRequest.SerializeToString,
+                response_deserializer=protos_dot_ydb__topic__pb2.ResetOffsetResponse.FromString,
+                _registered_method=True)
         self.UpdateOffsetsInTransaction = channel.unary_unary(
                 '/Ydb.Topic.V1.TopicService/UpdateOffsetsInTransaction',
                 request_serializer=protos_dot_ydb__topic__pb2.UpdateOffsetsInTransactionRequest.SerializeToString,
@@ -126,7 +131,7 @@ class TopicServiceServicer(object):
         StartPartitionSessionRequest(Topic2, Partition2, PartitionSessionID2, ...)
         <----------------
         StartPartitionSessionResponse(PartitionSessionID1, ...)
-        client must respond with this message to actually start receiving data messages from this partition
+        client must respond with this message to actually start recieving data messages from this partition
         ---------------->
         StopPartitionSessionRequest(PartitionSessionID1, ...)
         <----------------
@@ -150,6 +155,15 @@ class TopicServiceServicer(object):
 
     def CommitOffset(self, request, context):
         """Single commit offset request.
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def ResetOffset(self, request, context):
+        """Reset committed offsets for a consumer on all topic partitions (including inactive).
+        Each partition is updated independently (not atomic across partitions).
+        Drops any active read session for this consumer.
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -214,6 +228,11 @@ def add_TopicServiceServicer_to_server(servicer, server):
                     servicer.CommitOffset,
                     request_deserializer=protos_dot_ydb__topic__pb2.CommitOffsetRequest.FromString,
                     response_serializer=protos_dot_ydb__topic__pb2.CommitOffsetResponse.SerializeToString,
+            ),
+            'ResetOffset': grpc.unary_unary_rpc_method_handler(
+                    servicer.ResetOffset,
+                    request_deserializer=protos_dot_ydb__topic__pb2.ResetOffsetRequest.FromString,
+                    response_serializer=protos_dot_ydb__topic__pb2.ResetOffsetResponse.SerializeToString,
             ),
             'UpdateOffsetsInTransaction': grpc.unary_unary_rpc_method_handler(
                     servicer.UpdateOffsetsInTransaction,
@@ -327,6 +346,33 @@ class TopicService(object):
             '/Ydb.Topic.V1.TopicService/CommitOffset',
             protos_dot_ydb__topic__pb2.CommitOffsetRequest.SerializeToString,
             protos_dot_ydb__topic__pb2.CommitOffsetResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def ResetOffset(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/Ydb.Topic.V1.TopicService/ResetOffset',
+            protos_dot_ydb__topic__pb2.ResetOffsetRequest.SerializeToString,
+            protos_dot_ydb__topic__pb2.ResetOffsetResponse.FromString,
             options,
             channel_credentials,
             insecure,

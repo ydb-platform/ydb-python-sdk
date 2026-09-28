@@ -23,6 +23,7 @@ __all__ = [
     "TopicReaderSettings",
     "TopicReaderUnexpectedCodecError",
     "TopicReaderPartitionExpiredError",
+    "TopicResetOffset",
     "TopicStatWindow",
     "TopicWriteResult",
     "TopicWriter",
@@ -94,6 +95,7 @@ from ._grpc.grpcwrapper.ydb_topic_public_types import (  # noqa: F401
     PublicMultipleWindowsStat as TopicStatWindow,
     PublicPartitionStats as TopicPartitionStats,
     PublicCodec as TopicCodec,
+    PublicResetOffset as TopicResetOffset,
     PublicConsumer as TopicConsumer,
     PublicAlterConsumer as TopicAlterConsumer,
     PublicMeteringMode as TopicMeteringMode,
@@ -413,6 +415,43 @@ class TopicClientAsyncIO:
             req.to_proto(),
             _apis.TopicService.Stub,
             _apis.TopicService.CommitOffset,
+            _wrap_operation,
+        )
+
+    @ydb_retry(retry_cancelled=True, idempotent=True)
+    async def reset_offset(
+        self,
+        path: str,
+        consumer: str,
+        *,
+        to: Union[TopicResetOffset, datetime.datetime],
+    ) -> None:
+        """
+        Rewind committed offsets of a consumer on every topic partition, including
+        inactive partitions left after a split or merge.
+
+        Partitions are updated independently: the call is not atomic across the topic,
+        and a failure may still leave some partitions already rewritten. Any active
+        read session of this consumer is dropped.
+
+        :param path: full path to the topic
+        :param consumer: consumer name
+        :param to: :attr:`TopicResetOffset.EARLIEST`, :attr:`TopicResetOffset.LATEST`,
+            or a ``datetime``. A datetime rewinds to the first message with write
+            timestamp greater than or equal to that time; if there is no such message,
+            the partition end offset is used.
+        """
+        logger.debug("Reset offset: path=%s consumer=%s to=%s", path, consumer, to)
+        req = _ydb_topic.ResetOffsetRequest(
+            path=path,
+            consumer=consumer,
+            to=to,
+        )
+
+        await self._driver(
+            req.to_proto(),
+            _apis.TopicService.Stub,
+            _apis.TopicService.ResetOffset,
             _wrap_operation,
         )
 
@@ -749,6 +788,43 @@ class TopicClient:
             req.to_proto(),
             _apis.TopicService.Stub,
             _apis.TopicService.CommitOffset,
+            _wrap_operation,
+        )
+
+    @ydb_retry(retry_cancelled=True, idempotent=True)
+    def reset_offset(
+        self,
+        path: str,
+        consumer: str,
+        *,
+        to: Union[TopicResetOffset, datetime.datetime],
+    ) -> None:
+        """
+        Rewind committed offsets of a consumer on every topic partition, including
+        inactive partitions left after a split or merge.
+
+        Partitions are updated independently: the call is not atomic across the topic,
+        and a failure may still leave some partitions already rewritten. Any active
+        read session of this consumer is dropped.
+
+        :param path: full path to the topic
+        :param consumer: consumer name
+        :param to: :attr:`TopicResetOffset.EARLIEST`, :attr:`TopicResetOffset.LATEST`,
+            or a ``datetime``. A datetime rewinds to the first message with write
+            timestamp greater than or equal to that time; if there is no such message,
+            the partition end offset is used.
+        """
+        logger.debug("Reset offset: path=%s consumer=%s to=%s", path, consumer, to)
+        req = _ydb_topic.ResetOffsetRequest(
+            path=path,
+            consumer=consumer,
+            to=to,
+        )
+
+        self._driver(
+            req.to_proto(),
+            _apis.TopicService.Stub,
+            _apis.TopicService.ResetOffset,
             _wrap_operation,
         )
 

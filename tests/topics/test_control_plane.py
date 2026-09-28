@@ -1,9 +1,18 @@
+import datetime
 import os.path
 
 import pytest
 
 import ydb
 from ydb import issues
+
+
+def _committed_offset(description, partition_id=0):
+    for partition in description.partitions:
+        if partition.partition_id == partition_id:
+            assert partition.partition_consumer_stats is not None
+            return partition.partition_consumer_stats.committed_offset
+    raise AssertionError("partition %s not found" % partition_id)
 
 
 @pytest.mark.asyncio
@@ -148,6 +157,78 @@ class TestTopicClientControlPlaneAsyncIO:
 
         assert topic_after.auto_partitioning_settings == expected
 
+    async def test_reset_offset(self, driver, topic_with_messages, topic_consumer):
+        client = driver.topic_client
+        path = topic_with_messages
+
+        await client.reset_offset(path, topic_consumer, to=ydb.TopicResetOffset.LATEST)
+        description = await client.describe_consumer(path, topic_consumer, include_stats=True)
+        assert _committed_offset(description) == 4
+
+        await client.reset_offset(path, topic_consumer, to=ydb.TopicResetOffset.LATEST)
+        description = await client.describe_consumer(path, topic_consumer, include_stats=True)
+        assert _committed_offset(description) == 4
+
+        await client.reset_offset(path, topic_consumer, to=ydb.TopicResetOffset.EARLIEST)
+        description = await client.describe_consumer(path, topic_consumer, include_stats=True)
+        assert _committed_offset(description) == 0
+
+        async with client.reader(path, topic_consumer) as reader:
+            message = await reader.receive_message()
+            assert message.data.decode() == "123"
+
+        written_at = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(hours=1)
+        await client.reset_offset(path, topic_consumer, to=written_at)
+        description = await client.describe_consumer(path, topic_consumer, include_stats=True)
+        assert _committed_offset(description) == 4
+
+    async def test_reset_offset_missing_topic_and_consumer(self, driver, topic_path, topic_consumer):
+        client = driver.topic_client
+
+        with pytest.raises(issues.SchemeError):
+            await client.reset_offset(topic_path + "-missing", topic_consumer, to=ydb.TopicResetOffset.EARLIEST)
+
+        with pytest.raises(issues.SchemeError):
+            await client.reset_offset(topic_path, "no-such-consumer", to=ydb.TopicResetOffset.EARLIEST)
+
+    async def test_reset_offset_leaves_other_consumer(self, driver, database):
+        client = driver.topic_client
+        path = database + "/reset-offset-two-consumers"
+        try:
+            await client.drop_topic(path)
+        except issues.SchemeError:
+            pass
+
+        await client.create_topic(path, consumers=["consumer-a", "consumer-b"])
+        async with client.writer(path) as writer:
+            await writer.write_with_ack(
+                [
+                    ydb.TopicWriterMessage(data=b"m1"),
+                    ydb.TopicWriterMessage(data=b"m2"),
+                ]
+            )
+
+        await client.reset_offset(path, "consumer-a", to=ydb.TopicResetOffset.LATEST)
+
+        consumer_a = await client.describe_consumer(path, "consumer-a", include_stats=True)
+        consumer_b = await client.describe_consumer(path, "consumer-b", include_stats=True)
+        assert _committed_offset(consumer_a) == 2
+        assert _committed_offset(consumer_b) == 0
+
+    async def test_reset_offset_all_partitions(self, driver, topic_with_two_partitions_path, topic_consumer):
+        client = driver.topic_client
+        path = topic_with_two_partitions_path
+
+        for partition_id in (0, 1):
+            async with client.writer(path, partition_id=partition_id) as writer:
+                await writer.write_with_ack(ydb.TopicWriterMessage(data=b"m"))
+
+        await client.reset_offset(path, topic_consumer, to=ydb.TopicResetOffset.LATEST)
+
+        description = await client.describe_consumer(path, topic_consumer, include_stats=True)
+        assert _committed_offset(description, 0) == 1
+        assert _committed_offset(description, 1) == 1
+
 
 class TestTopicClientControlPlane:
     def test_create_topic(self, driver_sync, database):
@@ -253,3 +334,75 @@ class TestTopicClientControlPlane:
 
         topic_after = client.describe_topic(topic_path)
         assert topic_after.min_active_partitions == target_min_active_partitions
+
+    def test_reset_offset(self, driver_sync, topic_with_messages, topic_consumer):
+        client = driver_sync.topic_client
+        path = topic_with_messages
+
+        client.reset_offset(path, topic_consumer, to=ydb.TopicResetOffset.LATEST)
+        description = client.describe_consumer(path, topic_consumer, include_stats=True)
+        assert _committed_offset(description) == 4
+
+        client.reset_offset(path, topic_consumer, to=ydb.TopicResetOffset.LATEST)
+        description = client.describe_consumer(path, topic_consumer, include_stats=True)
+        assert _committed_offset(description) == 4
+
+        client.reset_offset(path, topic_consumer, to=ydb.TopicResetOffset.EARLIEST)
+        description = client.describe_consumer(path, topic_consumer, include_stats=True)
+        assert _committed_offset(description) == 0
+
+        with client.reader(path, topic_consumer) as reader:
+            message = reader.receive_message()
+            assert message.data.decode() == "123"
+
+        written_at = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(hours=1)
+        client.reset_offset(path, topic_consumer, to=written_at)
+        description = client.describe_consumer(path, topic_consumer, include_stats=True)
+        assert _committed_offset(description) == 4
+
+    def test_reset_offset_missing_topic_and_consumer(self, driver_sync, topic_path, topic_consumer):
+        client = driver_sync.topic_client
+
+        with pytest.raises(issues.SchemeError):
+            client.reset_offset(topic_path + "-missing", topic_consumer, to=ydb.TopicResetOffset.EARLIEST)
+
+        with pytest.raises(issues.SchemeError):
+            client.reset_offset(topic_path, "no-such-consumer", to=ydb.TopicResetOffset.EARLIEST)
+
+    def test_reset_offset_leaves_other_consumer(self, driver_sync, database):
+        client = driver_sync.topic_client
+        path = database + "/reset-offset-two-consumers-sync"
+        try:
+            client.drop_topic(path)
+        except issues.SchemeError:
+            pass
+
+        client.create_topic(path, consumers=["consumer-a", "consumer-b"])
+        with client.writer(path) as writer:
+            writer.write_with_ack(
+                [
+                    ydb.TopicWriterMessage(data=b"m1"),
+                    ydb.TopicWriterMessage(data=b"m2"),
+                ]
+            )
+
+        client.reset_offset(path, "consumer-a", to=ydb.TopicResetOffset.LATEST)
+
+        consumer_a = client.describe_consumer(path, "consumer-a", include_stats=True)
+        consumer_b = client.describe_consumer(path, "consumer-b", include_stats=True)
+        assert _committed_offset(consumer_a) == 2
+        assert _committed_offset(consumer_b) == 0
+
+    def test_reset_offset_all_partitions(self, driver_sync, topic_with_two_partitions_path, topic_consumer):
+        client = driver_sync.topic_client
+        path = topic_with_two_partitions_path
+
+        for partition_id in (0, 1):
+            with client.writer(path, partition_id=partition_id) as writer:
+                writer.write_with_ack(ydb.TopicWriterMessage(data=b"m"))
+
+        client.reset_offset(path, topic_consumer, to=ydb.TopicResetOffset.LATEST)
+
+        description = client.describe_consumer(path, topic_consumer, include_stats=True)
+        assert _committed_offset(description, 0) == 1
+        assert _committed_offset(description, 1) == 1
