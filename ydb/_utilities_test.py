@@ -33,6 +33,23 @@ def test_x_ydb_sdk_build_info_header():
     )
 
 
+def test_embedding_encodes_float32_values():
+    assert ydb.embedding([1, -2, 0.5]) == bytes.fromhex("0000803f000000c00000003f01")
+
+
+def test_embedding_converts_integers_to_float32():
+    assert ydb.embedding([16777217, -2]) == bytes.fromhex("0000804b000000c001")
+
+
+def test_embedding_converts_float64_to_float32():
+    assert ydb.embedding([1.00000001]) == bytes.fromhex("0000803f01")
+
+
+def test_embedding_rejects_empty_values():
+    with pytest.raises(ValueError, match="embedding must not be empty"):
+        ydb.embedding([])
+
+
 def test_iam_is_available_from_ydb_package():
     assert ydb.iam.ServiceAccountCredentials is not None
 
