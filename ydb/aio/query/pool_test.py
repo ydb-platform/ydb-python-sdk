@@ -411,3 +411,23 @@ class TestStrictSerializableReadWriteAsync(unittest.IsolatedAsyncioTestCase):
                 pass
 
         self.assertEqual((tx.commit_timestamp.plan_step, tx.commit_timestamp.tx_id), (2, 3))
+
+    async def test_execute_without_commit_does_not_publish_timestamp(self):
+        driver = MagicMock()
+        session = MagicMock()
+        session._settings = None
+        tx = QueryTxContext(driver, session, QueryStrictSerializableReadWrite())
+        part = _apis.ydb_query.ExecuteQueryResponsePart(status=_apis.StatusIds.SUCCESS)
+        part.commit_timestamp.plan_step = 4
+
+        async def responses():
+            yield part
+
+        async def execute_call(**kwargs):
+            return responses()
+
+        with patch.object(type(tx), "_execute_call", side_effect=execute_call):
+            stream = await tx.execute("SELECT 1")
+            async for _ in stream:
+                pass
+        self.assertIsNone(tx.commit_timestamp)

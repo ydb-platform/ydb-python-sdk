@@ -471,6 +471,14 @@ class TestStrictSerializableReadWrite(unittest.TestCase):
                 list(tx.execute("UPSERT INTO t (id) VALUES (1)", commit_tx=True))
         self.assertIsNone(tx.commit_timestamp)
 
+    def test_execute_without_commit_does_not_publish_timestamp(self):
+        tx, _ = self._make_tx()
+        part = _apis.ydb_query.ExecuteQueryResponsePart(status=_apis.StatusIds.SUCCESS)
+        part.commit_timestamp.plan_step = 4
+        with patch.object(type(tx), "_execute_call", return_value=iter((part,))):
+            list(tx.execute("SELECT 1"))
+        self.assertIsNone(tx.commit_timestamp)
+
     def test_unsigned_order_and_database_scope(self):
         def ts(step, tx_id, database="/Root/test", endpoint="localhost:2135"):
             return VirtualTimestamp(step, tx_id, database, endpoint)
@@ -478,6 +486,9 @@ class TestStrictSerializableReadWrite(unittest.TestCase):
         self.assertLess(ts(1, 2**64 - 1), ts(2, 0))
         self.assertLess(ts(2, 1), ts(2, 2**63))
         self.assertEqual(ts(2, 1), ts(2, 1))
+        self.assertNotEqual(ts(2, 1), object())
+        with self.assertRaises(TypeError):
+            _ = ts(2, 1) < object()
         for other in (ts(2, 1, database="/Root/other"), ts(2, 1, endpoint="other:2135"), ts(2, 1, endpoint=None)):
             with self.assertRaises(ValueError):
                 _ = ts(2, 1) < other

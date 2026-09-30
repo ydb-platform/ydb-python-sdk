@@ -1,5 +1,6 @@
 import logging
 from typing import (
+    Callable,
     Optional,
     TYPE_CHECKING,
 )
@@ -248,15 +249,20 @@ class QueryTxContext(BaseQueryTxContext["AsyncDriver"]):
                 timestamp_tracker.observe(resp)
             return result
 
-        def finish_commit_timestamp():
-            if timestamp_tracker is not None:
-                self._commit_timestamp = timestamp_tracker.commit_timestamp
+        on_complete: Optional[Callable[[], None]] = None
+        if timestamp_tracker is not None:
+            tracker = timestamp_tracker
+
+            def finish_commit_timestamp():
+                self._commit_timestamp = tracker.commit_timestamp
+
+            on_complete = finish_commit_timestamp
 
         self._prev_stream = AsyncResponseContextIterator(
             it=stream_it,
             wrapper=wrap_response,
             on_error=self.session._on_execute_stream_error,
             on_finish=span_finish_callback(span),
-            on_complete=finish_commit_timestamp if timestamp_tracker is not None else None,
+            on_complete=on_complete,
         )
         return self._prev_stream
