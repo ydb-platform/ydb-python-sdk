@@ -1,3 +1,4 @@
+## 3.33.1 ##
 * Add `ydb.convert_floats_to_embedding_bytes` to encode numeric vectors for YDB KNN queries
 
 ## 3.33.0 ##
