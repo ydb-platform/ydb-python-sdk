@@ -54,7 +54,7 @@ def test_select_implicit_bytes(pool: ydb.QuerySessionPool):
         ("Double", ydb.PrimitiveType.Double, [-2.5, 1.00000001]),
     ],
 )
-def test_embedding_matches_knn(pool: ydb.QuerySessionPool, yql_type, value_type, values):
+def test_convert_floats_to_embedding_bytes_matches_knn(pool: ydb.QuerySessionPool, yql_type, value_type, values):
     query = f"""
 DECLARE $values AS List<{yql_type}>;
 DECLARE $embedded AS Bytes;
@@ -67,7 +67,7 @@ SELECT $embedded = Untag(
         query,
         parameters={
             "$values": ydb.TypedValue(values, ydb.ListType(value_type)),
-            "$embedded": ydb.embedding(values),
+            "$embedded": ydb.convert_floats_to_embedding_bytes(values),
         },
     )
     assert res[0].rows[0]["is_equal"] is True

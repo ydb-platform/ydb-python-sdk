@@ -1,4 +1,4 @@
-* Add `ydb.embedding` to encode numeric vectors for YDB KNN queries
+* Add `ydb.convert_floats_to_embedding_bytes` to encode numeric vectors for YDB KNN queries
 
 ## 3.33.0 ##
 * Fix memory leak in ydb.aio.retry_operation

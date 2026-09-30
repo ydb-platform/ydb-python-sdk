@@ -641,7 +641,7 @@ class TypedValue:
     value_type: typing.Optional[typing.Union[PrimitiveType, AbstractTypeBuilder]] = None
 
 
-def embedding(values: typing.Sequence[typing.Union[int, float]]) -> bytes:
+def convert_floats_to_embedding_bytes(values: typing.Sequence[typing.Union[int, float]]) -> bytes:
     """Encode numeric values as a YDB FloatVector for a Bytes query parameter."""
     if len(values) == 0:
         raise ValueError("embedding must not be empty")

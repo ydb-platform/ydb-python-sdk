@@ -56,7 +56,7 @@ For most common cases, pass a plain Python value and the SDK will pick the right
 Vector Embeddings
 -----------------
 
-Use ``ydb.embedding`` to encode a non-empty sequence of numbers as a FloatVector.
+Use ``ydb.convert_floats_to_embedding_bytes`` to encode a non-empty sequence of numbers as a FloatVector.
 The helper converts each value to Float32 and returns ``bytes`` that can be passed
 directly to a query parameter declared as ``Bytes``:
 
@@ -69,7 +69,7 @@ directly to a query parameter declared as ``Bytes``:
     ORDER BY Knn::CosineDistance(t.embedding, $embedding)
     LIMIT 10;
     """
-    pool.execute_with_retries(query, parameters={"$embedding": ydb.embedding([0.1, 0.2])})
+    pool.execute_with_retries(query, parameters={"$embedding": ydb.convert_floats_to_embedding_bytes([0.1, 0.2])})
 
 An empty embedding raises ``ValueError``.
 
