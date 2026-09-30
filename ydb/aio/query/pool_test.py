@@ -4,7 +4,7 @@ import asyncio
 import unittest
 from unittest.mock import AsyncMock, MagicMock, patch
 
-from ydb import issues
+from ydb import _apis, issues, QueryStrictSerializableReadWrite
 from ydb.aio import _utilities as aio_utilities
 from ydb.aio.query.pool import QuerySessionPool
 from ydb.aio.query.session import QuerySession
@@ -376,3 +376,38 @@ class TestQueryTxContextExecutePoolId(unittest.IsolatedAsyncioTestCase):
             await tx.execute("SELECT 1")
 
         self.assertIsNone(captured.get("pool_id"))
+
+
+class TestStrictSerializableReadWriteAsync(unittest.IsolatedAsyncioTestCase):
+    async def test_execute_commit_timestamp_from_trailing_part(self):
+        driver = MagicMock()
+        driver._driver_config.endpoint = "localhost:2135"
+        driver._driver_config.database = "/Root/test"
+        session = MagicMock()
+        session._driver_config = driver._driver_config
+        session.session_id = "session"
+        session.node_id = None
+        session._endpoint_key = None
+        session._settings = None
+        tx = QueryTxContext(driver, session, QueryStrictSerializableReadWrite())
+
+        early = _apis.ydb_query.ExecuteQueryResponsePart(status=_apis.StatusIds.SUCCESS)
+        early.commit_timestamp.plan_step = 1
+        trailing = _apis.ydb_query.ExecuteQueryResponsePart(status=_apis.StatusIds.SUCCESS)
+        trailing.commit_timestamp.plan_step = 2
+        trailing.commit_timestamp.tx_id = 3
+
+        async def responses():
+            yield early
+            yield trailing
+
+        async def execute_call(**kwargs):
+            return responses()
+
+        with patch.object(type(tx), "_execute_call", side_effect=execute_call):
+            stream = await tx.execute("UPSERT INTO t (id) VALUES (1)", commit_tx=True)
+            self.assertIsNone(tx.commit_timestamp)
+            async for _ in stream:
+                pass
+
+        self.assertEqual((tx.commit_timestamp.plan_step, tx.commit_timestamp.tx_id), (2, 3))

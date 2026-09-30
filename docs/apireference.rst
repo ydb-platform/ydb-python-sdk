@@ -247,6 +247,15 @@ Transaction Modes
     :undoc-members:
     :exclude-members: name, to_proto
 
+.. autoclass:: ydb.QueryStrictSerializableReadWrite
+    :members:
+    :inherited-members:
+    :undoc-members:
+    :exclude-members: name, to_proto
+
+.. autoclass:: ydb.VirtualTimestamp
+    :members:
+
 .. autoclass:: ydb.QuerySnapshotReadOnly
     :members:
     :inherited-members:

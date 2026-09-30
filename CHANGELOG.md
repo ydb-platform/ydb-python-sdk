@@ -1,3 +1,5 @@
+* Add StrictSerializableRW Query transactions and optional commit timestamps for successful writes
+
 ## 3.33.1 ##
 * Add `ydb.convert_floats_to_embedding_bytes` to encode numeric vectors for YDB KNN queries
 

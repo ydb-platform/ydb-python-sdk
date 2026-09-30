@@ -8,12 +8,13 @@ from unittest.mock import MagicMock
 
 from unittest.mock import patch
 
-from ydb import _utilities, issues
+from ydb import _apis, _utilities, issues, QueryStrictSerializableReadWrite, VirtualTimestamp
 from ydb.convert import _ResultSet, aggregate_result_sets_by_index, aggregate_result_sets_by_index_async
 from ydb.query.base import create_execute_query_request
 from ydb.query.pool import QuerySessionPool
 from ydb.query.session import QuerySession
 from ydb.query.transaction import QueryTxContext
+from ydb.query.transaction import QueryTxStateEnum, wrap_tx_commit_response
 from ydb._grpc.grpcwrapper import ydb_query_public_types as _ydb_query_public
 
 
@@ -373,3 +374,115 @@ class TestQueryTxContextExecutePoolId(unittest.TestCase):
             tx.execute("SELECT 1")
 
         self.assertIsNone(captured.get("pool_id"))
+
+
+class TestStrictSerializableReadWrite(unittest.TestCase):
+    def _make_tx(self):
+        driver = MagicMock()
+        driver._driver_config.endpoint = "localhost:2135"
+        driver._driver_config.database = "/Root/test"
+        session = MagicMock()
+        session._driver_config = driver._driver_config
+        session.session_id = "session"
+        session.node_id = None
+        session._endpoint_key = None
+        session._settings = None
+        tx = QueryTxContext(driver, session, QueryStrictSerializableReadWrite())
+        return tx, session
+
+    def test_mode_uses_field_seven(self):
+        tx, _ = self._make_tx()
+        request = create_execute_query_request(
+            query="UPSERT INTO t (id) VALUES (1)",
+            session_id="session",
+            tx_id=None,
+            commit_tx=True,
+            tx_mode=tx._tx_state.tx_mode,
+            syntax=None,
+            exec_mode=None,
+            stats_mode=None,
+            schema_inclusion_mode=None,
+            result_set_format=None,
+            arrow_format_settings=None,
+            parameters=None,
+            concurrent_result_sets=None,
+            pool_id=None,
+        ).to_proto()
+        settings = request.tx_control.begin_tx
+        self.assertEqual(settings.WhichOneof("tx_mode"), "strict_serializable_read_write")
+        self.assertEqual(settings.DESCRIPTOR.fields_by_name["strict_serializable_read_write"].number, 7)
+
+    def test_explicit_commit_timestamp_and_absence(self):
+        for timestamp in (_apis.ydb_common_pb2.VirtualTimestamp(plan_step=2**64 - 1, tx_id=2**63), None):
+            with self.subTest(timestamp=timestamp):
+                tx, session = self._make_tx()
+                tx._tx_state._change_state(QueryTxStateEnum.BEGINED)
+                response = _apis.ydb_query.CommitTransactionResponse(status=_apis.StatusIds.SUCCESS)
+                if timestamp is not None:
+                    response.commit_timestamp.CopyFrom(timestamp)
+                wrap_tx_commit_response(None, response, session, tx._tx_state, tx)
+                if timestamp is None:
+                    self.assertIsNone(tx.commit_timestamp)
+                else:
+                    self.assertEqual(tx.commit_timestamp.plan_step, 2**64 - 1)
+                    self.assertEqual(tx.commit_timestamp.tx_id, 2**63)
+                    self.assertEqual(tx.commit_timestamp.database, "/Root/test")
+
+    def test_failed_explicit_commit_does_not_publish_timestamp(self):
+        tx, session = self._make_tx()
+        tx._tx_state._change_state(QueryTxStateEnum.BEGINED)
+        response = _apis.ydb_query.CommitTransactionResponse(status=_apis.StatusIds.BAD_REQUEST)
+        response.commit_timestamp.plan_step = 5
+        with self.assertRaises(issues.Error):
+            wrap_tx_commit_response(None, response, session, tx._tx_state, tx)
+        self.assertIsNone(tx.commit_timestamp)
+
+    def test_execute_timestamp_only_from_trailing_part(self):
+        tx, _ = self._make_tx()
+        early = _apis.ydb_query.ExecuteQueryResponsePart(status=_apis.StatusIds.SUCCESS)
+        early.commit_timestamp.plan_step = 9
+        trailing = _apis.ydb_query.ExecuteQueryResponsePart(status=_apis.StatusIds.SUCCESS)
+        trailing.commit_timestamp.plan_step = 10
+        trailing.commit_timestamp.tx_id = 11
+        with patch.object(type(tx), "_execute_call", return_value=iter((early, trailing))):
+            stream = tx.execute("UPSERT INTO t (id) VALUES (1)", commit_tx=True)
+            self.assertIsNone(tx.commit_timestamp)
+            list(stream)
+        self.assertEqual((tx.commit_timestamp.plan_step, tx.commit_timestamp.tx_id), (10, 11))
+
+        tx, _ = self._make_tx()
+        with patch.object(
+            type(tx), "_execute_call", return_value=iter((early, trailing.__class__(status=_apis.StatusIds.SUCCESS)))
+        ):
+            list(tx.execute("UPSERT INTO t (id) VALUES (1)", commit_tx=True))
+        self.assertIsNone(tx.commit_timestamp)
+
+    def test_interrupted_stream_does_not_publish_timestamp(self):
+        tx, _ = self._make_tx()
+        part = _apis.ydb_query.ExecuteQueryResponsePart(status=_apis.StatusIds.SUCCESS)
+        part.commit_timestamp.plan_step = 4
+
+        def responses():
+            yield part
+            raise RuntimeError("stream interrupted")
+
+        with patch.object(type(tx), "_execute_call", return_value=responses()):
+            with self.assertRaises(RuntimeError):
+                list(tx.execute("UPSERT INTO t (id) VALUES (1)", commit_tx=True))
+        self.assertIsNone(tx.commit_timestamp)
+
+    def test_unsigned_order_and_database_scope(self):
+        def ts(step, tx_id, database="/Root/test", endpoint="localhost:2135"):
+            return VirtualTimestamp(step, tx_id, database, endpoint)
+
+        self.assertLess(ts(1, 2**64 - 1), ts(2, 0))
+        self.assertLess(ts(2, 1), ts(2, 2**63))
+        self.assertEqual(ts(2, 1), ts(2, 1))
+        for other in (ts(2, 1, database="/Root/other"), ts(2, 1, endpoint="other:2135"), ts(2, 1, endpoint=None)):
+            with self.assertRaises(ValueError):
+                _ = ts(2, 1) < other
+            with self.assertRaises(ValueError):
+                _ = ts(2, 1) == other
+        for coordinates in ((-1, 0), (2**64, 0), (0, -1), (0, 2**64)):
+            with self.assertRaises(ValueError):
+                ts(*coordinates)
