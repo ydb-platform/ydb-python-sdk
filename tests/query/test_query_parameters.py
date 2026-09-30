@@ -47,6 +47,32 @@ def test_select_implicit_bytes(pool: ydb.QuerySessionPool):
     assert expected_value == actual_value
 
 
+@pytest.mark.parametrize(
+    "yql_type, value_type, values",
+    [
+        ("Int64", ydb.PrimitiveType.Int64, [-2, 16777217]),
+        ("Double", ydb.PrimitiveType.Double, [-2.5, 1.00000001]),
+    ],
+)
+def test_convert_floats_to_embedding_bytes_matches_knn(pool: ydb.QuerySessionPool, yql_type, value_type, values):
+    query = f"""
+DECLARE $values AS List<{yql_type}>;
+DECLARE $embedded AS Bytes;
+SELECT $embedded = Untag(
+    Knn::ToBinaryStringFloat(ListMap($values, ($value) -> (CAST($value AS Float)))),
+    "FloatVector"
+) AS is_equal;
+"""
+    res = pool.execute_with_retries(
+        query,
+        parameters={
+            "$values": ydb.TypedValue(values, ydb.ListType(value_type)),
+            "$embedded": ydb.convert_floats_to_embedding_bytes(values),
+        },
+    )
+    assert res[0].rows[0]["is_equal"] is True
+
+
 def test_select_implicit_list(pool: ydb.QuerySessionPool):
     query = query_template % "List<Int64>"
     expected_value = [1, 2, 3]

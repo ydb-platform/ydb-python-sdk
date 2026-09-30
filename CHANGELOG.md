@@ -1,3 +1,5 @@
+* Add `ydb.convert_floats_to_embedding_bytes` to encode numeric vectors for YDB KNN queries
+
 ## 3.33.0 ##
 * Fix memory leak in ydb.aio.retry_operation
 * Deprecated the table client scan query methods — `TableClient.scan_query`, `TableClient.async_scan_query` and the async `ydb.aio.TableClient.scan_query`: they now emit a `DeprecationWarning` and keep working as before, use QueryService (`ydb.QuerySessionPool` / `ydb.aio.QuerySessionPool`) instead
