@@ -264,6 +264,8 @@ Transaction Modes
      - Description
    * - :class:`~ydb.QuerySerializableReadWrite`
      - Full ACID serializable isolation. Default. Supports reads and writes.
+   * - :class:`~ydb.QueryStrictSerializableReadWrite`
+     - Strict serializable read-write mode. A successful write commit may report a virtual timestamp.
    * - :class:`~ydb.QuerySnapshotReadOnly`
      - Consistent read-only snapshot taken at transaction start.
    * - :class:`~ydb.QuerySnapshotReadWrite`
@@ -277,6 +279,28 @@ Transaction Modes
 
 Manual Transaction Control
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Commit timestamps
+~~~~~~~~~~~~~~~~~
+
+Choose ``ydb.QueryStrictSerializableReadWrite()`` to receive a commit timestamp
+for a successful transaction with write effects. ``tx.commit_timestamp`` is a
+``ydb.VirtualTimestamp`` with unsigned 64-bit ``plan_step`` and ``tx_id`` fields,
+or ``None`` when the server did not send one. It is available after ``tx.commit()``
+or after fully consuming a ``tx.execute(..., commit_tx=True)`` result stream.
+The same property is available on async query transactions.
+
+.. code-block:: python
+
+    with session.transaction(ydb.QueryStrictSerializableReadWrite()) as tx:
+        with tx.execute("UPSERT INTO users (id, name) VALUES (1, 'Alice')", commit_tx=True):
+            pass
+        timestamp = tx.commit_timestamp
+
+Virtual timestamps are ordered lexicographically by ``plan_step`` and then
+``tx_id``. Comparison requires the same configured driver endpoint and database
+path; it raises ``ValueError`` when either is missing or differs. This check
+cannot determine whether different endpoint aliases refer to the same database.
 
 Use ``session.transaction()`` when you need fine-grained control:
 

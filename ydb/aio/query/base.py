@@ -5,10 +5,11 @@ from ... import issues
 class AsyncResponseContextIterator(_utilities.AsyncResponseIterator):
     """Async ExecuteQuery result stream."""
 
-    def __init__(self, it, wrapper, on_error=None, on_finish=None):
+    def __init__(self, it, wrapper, on_error=None, on_finish=None, on_complete=None):
         super().__init__(it, wrapper)
         self._on_error = on_error
         self._on_finish = on_finish
+        self._on_complete = on_complete
 
     async def __aenter__(self) -> "AsyncResponseContextIterator":
         return self
@@ -26,6 +27,9 @@ class AsyncResponseContextIterator(_utilities.AsyncResponseIterator):
         except StopAsyncIteration:
             # Normal stream termination is not an error and must not invalidate
             # the session.
+            if self._on_complete is not None:
+                self._on_complete()
+                self._on_complete = None
             self._call_on_finish()
             raise
         except BaseException as e:
@@ -45,6 +49,7 @@ class AsyncResponseContextIterator(_utilities.AsyncResponseIterator):
             self._on_finish(exception)
             self._on_finish = None
         self._on_error = None
+        self._on_complete = None
 
     def __del__(self):
         self._call_on_finish()

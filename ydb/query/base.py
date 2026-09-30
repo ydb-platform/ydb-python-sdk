@@ -19,6 +19,7 @@ from .._grpc.grpcwrapper import ydb_query
 from .._grpc.grpcwrapper.ydb_query_public_types import (
     BaseQueryTxMode,
     ArrowFormatSettings,
+    VirtualTimestamp,
 )
 from ..connection import _RpcState as RpcState
 from .. import convert
@@ -78,10 +79,11 @@ class QueryResultSetFormat(enum.IntEnum):
 class SyncResponseContextIterator(_utilities.SyncResponseIterator):
     """Streams ExecuteQuery results."""
 
-    def __init__(self, it, wrapper, on_error=None, on_finish=None):
+    def __init__(self, it, wrapper, on_error=None, on_finish=None, on_complete=None):
         super().__init__(it, wrapper)
         self._on_error = on_error
         self._on_finish = on_finish
+        self._on_complete = on_complete
 
     def __enter__(self) -> "SyncResponseContextIterator":
         return self
@@ -99,6 +101,9 @@ class SyncResponseContextIterator(_utilities.SyncResponseIterator):
         except StopIteration:
             # Normal stream termination is not an error and must not invalidate
             # the session.
+            if self._on_complete is not None:
+                self._on_complete()
+                self._on_complete = None
             self._call_on_finish()
             raise
         except BaseException as e:
@@ -117,6 +122,7 @@ class SyncResponseContextIterator(_utilities.SyncResponseIterator):
             self._on_finish(exception)
             self._on_finish = None
         self._on_error = None
+        self._on_complete = None
 
     def __del__(self):
         self._call_on_finish()
@@ -267,6 +273,29 @@ def wrap_execute_query_response(
         )
 
     return None
+
+
+class CommitTimestampTracker:
+    """Publish only a timestamp carried by the final, successfully drained part."""
+
+    def __init__(self, session: "BaseQuerySession"):
+        self._session = session
+        self._last_timestamp: Optional[VirtualTimestamp] = None
+
+    def observe(self, response_pb: _apis.ydb_query.ExecuteQueryResponsePart) -> None:
+        self._last_timestamp = None
+        if response_pb.HasField("commit_timestamp"):
+            config = self._session._driver_config
+            self._last_timestamp = VirtualTimestamp(
+                response_pb.commit_timestamp.plan_step,
+                response_pb.commit_timestamp.tx_id,
+                getattr(config, "database", None),
+                getattr(config, "endpoint", None),
+            )
+
+    @property
+    def commit_timestamp(self) -> Optional[VirtualTimestamp]:
+        return self._last_timestamp
 
 
 class TxEvent(enum.Enum):

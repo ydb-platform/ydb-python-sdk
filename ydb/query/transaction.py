@@ -23,6 +23,7 @@ from .. import (
 from ..observability.tracing import SpanName, create_ydb_span, span_finish_callback
 from .._grpc.grpcwrapper import ydb_topic as _ydb_topic
 from .._grpc.grpcwrapper import ydb_query as _ydb_query
+from .._grpc.grpcwrapper.ydb_query_public_types import VirtualTimestamp
 from ..connection import _RpcState as RpcState
 from .._typing import DriverT
 
@@ -192,10 +193,16 @@ def wrap_tx_commit_response(
     tx_state: QueryTxState,
     tx: "BaseQueryTxContext",
 ) -> "BaseQueryTxContext":
-    message = _ydb_query.CommitTransactionResponse.from_proto(response_pb)
+    config = session._driver_config
+    message = _ydb_query.CommitTransactionResponse.from_proto(
+        response_pb,
+        database=getattr(config, "database", None),
+        endpoint=getattr(config, "endpoint", None),
+    )
     if message.status is not None:
         issues._process_response(message.status)
     tx_state._change_state(QueryTxStateEnum.COMMITTED)
+    tx._commit_timestamp = message.commit_timestamp
     return tx
 
 
@@ -248,6 +255,7 @@ class BaseQueryTxContext(base.CallbackHandler, Generic[DriverT]):
         self._prev_stream = None
         self._external_error = None
         self._last_query_stats = None
+        self._commit_timestamp: Optional[VirtualTimestamp] = None
 
     @property
     def _driver_config(self):
@@ -274,6 +282,11 @@ class BaseQueryTxContext(base.CallbackHandler, Generic[DriverT]):
     @property
     def last_query_stats(self):
         return self._last_query_stats
+
+    @property
+    def commit_timestamp(self) -> Optional[VirtualTimestamp]:
+        """Commit timestamp, if a StrictSerializableRW write committed successfully."""
+        return self._commit_timestamp
 
     def _tx_identity(self) -> _ydb_topic.TransactionIdentity:
         if not self.tx_id:
@@ -681,17 +694,30 @@ class QueryTxContext(BaseQueryTxContext["SyncDriver"]):
                 settings=settings,
                 pool_id=pool_id,
             )
-        self._prev_stream = base.SyncResponseContextIterator(
-            stream_it,
-            lambda resp: base.wrap_execute_query_response(
+        timestamp_tracker = base.CommitTimestampTracker(self.session) if commit_tx else None
+
+        def wrap_response(resp):
+            result = base.wrap_execute_query_response(
                 rpc_state=None,
                 response_pb=resp,
                 session=self.session,
                 tx=self,
                 commit_tx=commit_tx,
                 settings=self.session._settings,
-            ),
+            )
+            if timestamp_tracker is not None:
+                timestamp_tracker.observe(resp)
+            return result
+
+        def finish_commit_timestamp():
+            if timestamp_tracker is not None:
+                self._commit_timestamp = timestamp_tracker.commit_timestamp
+
+        self._prev_stream = base.SyncResponseContextIterator(
+            stream_it,
+            wrap_response,
             on_error=self.session._on_execute_stream_error,
             on_finish=span_finish_callback(span),
+            on_complete=finish_commit_timestamp if timestamp_tracker is not None else None,
         )
         return self._prev_stream

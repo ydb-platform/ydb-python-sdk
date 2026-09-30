@@ -1,3 +1,4 @@
+* Add StrictSerializableRW Query transactions and optional commit timestamps for successful writes
 * Wait for session status tasks to finish when closing an async `QuerySessionPool`.
 
 ## 3.36.0 ##
