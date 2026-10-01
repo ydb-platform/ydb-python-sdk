@@ -102,11 +102,23 @@ class BeginTransactionResponse(IFromProto["ydb_query_pb2.BeginTransactionRespons
 @dataclass
 class CommitTransactionResponse(IFromProto["ydb_query_pb2.CommitTransactionResponse", "CommitTransactionResponse"]):
     status: Optional[ServerStatus]
+    commit_timestamp: Optional[public_types.VirtualTimestamp] = None
 
     @staticmethod
-    def from_proto(msg: ydb_query_pb2.CommitTransactionResponse) -> "CommitTransactionResponse":
+    def from_proto(
+        msg: ydb_query_pb2.CommitTransactionResponse,
+        database: Optional[str] = None,
+        endpoint: Optional[str] = None,
+    ) -> "CommitTransactionResponse":
         return CommitTransactionResponse(
             status=ServerStatus(msg.status, msg.issues),
+            commit_timestamp=(
+                public_types.VirtualTimestamp(
+                    msg.commit_timestamp.plan_step, msg.commit_timestamp.tx_id, database, endpoint
+                )
+                if msg.HasField("commit_timestamp")
+                else None
+            ),
         )
 
 

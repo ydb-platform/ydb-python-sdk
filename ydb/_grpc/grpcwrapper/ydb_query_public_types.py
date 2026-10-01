@@ -1,6 +1,8 @@
 import abc
 import enum
 import typing
+from dataclasses import dataclass, field
+from functools import total_ordering
 
 from .common_utils import IFromProto, IToProto
 
@@ -63,6 +65,65 @@ class QuerySerializableReadWrite(BaseQueryTxMode):
 
     def to_proto(self) -> ydb_query_pb2.SerializableModeSettings:
         return ydb_query_pb2.SerializableModeSettings()
+
+
+class QueryStrictSerializableReadWrite(BaseQueryTxMode):
+    """Serializable read-write mode that can report a write commit timestamp."""
+
+    @property
+    def name(self) -> str:
+        return "strict_serializable_read_write"
+
+    def to_proto(self) -> ydb_query_pb2.StrictSerializableRWModeSettings:
+        return ydb_query_pb2.StrictSerializableRWModeSettings()
+
+
+@total_ordering
+@dataclass(frozen=True, eq=False)
+class VirtualTimestamp:
+    """A database-local commit timestamp in unsigned protobuf uint64 coordinates.
+
+    Comparisons require matching configured endpoint and database. Different
+    endpoints may still address the same database; the SDK cannot verify that.
+    """
+
+    plan_step: int
+    tx_id: int
+    database: typing.Optional[str] = field(default=None, repr=False)
+    endpoint: typing.Optional[str] = field(default=None, repr=False)
+
+    def __post_init__(self) -> None:
+        for value in (self.plan_step, self.tx_id):
+            if isinstance(value, bool) or not isinstance(value, int) or not 0 <= value < 1 << 64:
+                raise ValueError("VirtualTimestamp coordinates must be uint64 values")
+
+    def _check_identity(self, other: "VirtualTimestamp") -> None:
+        if (
+            not isinstance(self.database, str)
+            or not self.database
+            or not isinstance(self.endpoint, str)
+            or not self.endpoint
+            or not isinstance(other.database, str)
+            or not other.database
+            or not isinstance(other.endpoint, str)
+            or not other.endpoint
+            or (self.endpoint, self.database) != (other.endpoint, other.database)
+        ):
+            raise ValueError("Cannot compare timestamps without the same configured database")
+
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, VirtualTimestamp):
+            return NotImplemented
+        self._check_identity(other)
+        return (self.plan_step, self.tx_id) == (other.plan_step, other.tx_id)
+
+    def __lt__(self, other: object) -> bool:
+        if not isinstance(other, VirtualTimestamp):
+            return NotImplemented
+        self._check_identity(other)
+        return (self.plan_step, self.tx_id) < (other.plan_step, other.tx_id)
+
+    __hash__ = None  # type: ignore[assignment]
 
 
 class QueryOnlineReadOnly(BaseQueryTxMode):
