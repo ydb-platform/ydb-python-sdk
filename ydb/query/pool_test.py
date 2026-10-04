@@ -98,6 +98,19 @@ class TestSessionAttachInterrupted(unittest.TestCase):
         self.assertFalse(session.is_active)
         self.assertTrue(session._invalidated)
 
+    def test_attach_raises_stream_error_from_first_response(self):
+        session = self._make_session()
+        stream = MagicMock()
+        stream.__next__.side_effect = issues.Unavailable("Socket closed")
+
+        with patch.object(type(session), "_attach_call", return_value=stream):
+            with self.assertRaises(issues.Unavailable):
+                session._attach(first_resp_timeout=5)
+
+        self.assertFalse(session.is_active)
+        self.assertTrue(session._invalidated)
+        stream.cancel.assert_called_once()
+
 
 def _rs(index, rows, columns=None, truncated=False, data=None):
     return _ResultSet(

@@ -9,6 +9,7 @@ import pytest
 import ydb
 
 from ydb._utilities import check_module_exists
+from ydb._utilities import get_first_message_with_timeout
 from ydb._utilities import x_ydb_sdk_build_info_header
 from .ydb_version import VERSION
 
@@ -31,6 +32,22 @@ def test_x_ydb_sdk_build_info_header():
         "x-ydb-sdk-build-info",
         "ydb-python-sdk/" + VERSION + ";lib1/0.1.0;lib2/0.2.0",
     )
+
+
+def test_get_first_message_with_timeout_returns_first_message():
+    assert get_first_message_with_timeout(iter(["first", "second"]), timeout=5) == "first"
+
+
+def test_get_first_message_with_timeout_reraises_stream_error():
+    error = ydb.issues.Unavailable("Socket closed")
+
+    def stream():
+        raise error
+        yield
+
+    with pytest.raises(ydb.issues.Unavailable) as exc_info:
+        get_first_message_with_timeout(stream(), timeout=5)
+    assert exc_info.value is error
 
 
 def test_convert_floats_to_embedding_bytes_encodes_float32_values():
