@@ -6,4 +6,4 @@ The SDK scan includes sync/async clients, examples, release scripts and package 
 
 Results are published to **Security and quality → Code scanning**, with a separate category for each language. Review initial findings and record a reason for every dismissed alert.
 
-After merging, configure a branch ruleset with **Require code scanning results → CodeQL → Security alerts: High or higher** for supported branches. Successful workflow execution alone does not enforce this threshold. Track the latest analysis commit/date, extraction errors and open findings by security severity.
+After merging, require both **CodeQL (python)** and **CodeQL (actions)** job checks for supported branches. Also enable **Require code scanning results → CodeQL → Security alerts: High or higher** in the branch ruleset. Successful workflow execution alone does not enforce this threshold. Track the latest analysis commit/date, extraction errors and open findings by security severity.
