@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import concurrent.futures
 import threading
 import time
 import unittest
@@ -110,6 +111,35 @@ class TestSessionAttachInterrupted(unittest.TestCase):
         self.assertFalse(session.is_active)
         self.assertTrue(session._invalidated)
         stream.cancel.assert_called_once()
+
+    def test_attach_first_response_timeout_cancels_stream_and_helper_exits(self):
+        # #911: after the timeout cancels the stream, the helper thread must exit quietly.
+        session = self._make_session()
+        cancelled = threading.Event()
+        stream = MagicMock()
+        stream.cancel.side_effect = cancelled.set
+
+        def blocking_next():
+            cancelled.wait()
+            raise issues.Cancelled("Stream cancelled")
+
+        stream.__next__.side_effect = blocking_next
+
+        unhandled = []
+        with patch.object(type(session), "_attach_call", return_value=stream), patch.object(
+            threading, "excepthook", lambda args: unhandled.append(args.exc_value)
+        ):
+            with self.assertRaises(concurrent.futures.TimeoutError):
+                session._attach(first_resp_timeout=0.1)
+            for thread in threading.enumerate():
+                if thread.name == "first response attach stream thread":
+                    thread.join(timeout=5)
+                    self.assertFalse(thread.is_alive())
+
+        self.assertFalse(session.is_active)
+        self.assertTrue(session._invalidated)
+        stream.cancel.assert_called_once()
+        self.assertEqual(unhandled, [])
 
 
 def _rs(index, rows, columns=None, truncated=False, data=None):
