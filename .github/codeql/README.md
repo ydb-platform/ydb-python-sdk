@@ -2,7 +2,7 @@
 
 The CodeQL workflow runs the `security-extended` query suite for the SDK language and GitHub Actions on pull requests, pushes, merge queues and a weekly schedule. It can also be started manually.
 
-The SDK scan includes sync/async clients, examples, release scripts and package setup. Generated protobuf stubs and unit-test files are excluded.
+The SDK scan includes sync/async clients, examples, release scripts and package setup. Generated protobuf stubs and test fixtures are excluded.
 
 Results are published to **Security and quality → Code scanning**, with a separate category for each language. Review initial findings and record a reason for every dismissed alert.
 
