@@ -231,6 +231,31 @@ class TestSessionAttachCancellation(unittest.IsolatedAsyncioTestCase):
         self.assertFalse(session.is_active)
         self.assertTrue(session._invalidated)
 
+    async def test_attach_raises_stream_error_from_first_response(self):
+        session = self._make_session()
+
+        class FailingStream:
+            cancel = MagicMock()
+
+            def __aiter__(self):
+                return self
+
+            async def __anext__(self):
+                raise issues.Unavailable("Socket closed")
+
+        stream = FailingStream()
+
+        async def fake_attach_call(*args, **kwargs):
+            return stream
+
+        with patch.object(type(session), "_attach_call", side_effect=fake_attach_call):
+            with self.assertRaises(issues.Unavailable):
+                await asyncio.wait_for(session._attach(), timeout=5)
+
+        self.assertFalse(session.is_active)
+        self.assertTrue(session._invalidated)
+        stream.cancel.assert_called_once()
+
 
 class TestQuerySessionDelete(unittest.IsolatedAsyncioTestCase):
     async def test_closes_before_delete_call(self):
