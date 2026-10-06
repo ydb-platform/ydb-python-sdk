@@ -7,8 +7,8 @@ From the repository root, with a local YDB instance:
 
 ```sh
 python -m pip install -e .
-python ydb_tech/topic/sync_example.py
-python ydb_tech/topic/async_example.py
+python examples/ydb_tech/topic/sync_example.py
+python examples/ydb_tech/topic/async_example.py
 ```
 
 `YDB_ENDPOINT` defaults to `grpc://localhost:2136` and `YDB_DATABASE` to `/local`.
