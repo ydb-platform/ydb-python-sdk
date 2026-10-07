@@ -1,11 +1,12 @@
+import asyncio
 import copy
 
 import pytest
 
-from unittest import mock
+from unittest import IsolatedAsyncioTestCase, mock
 from . import issues, convert, types, _apis, scheme, _session_impl, _utilities
 from .aio import _utilities as _aio_utilities
-from .aio.table import TableClient as AioTableClient
+from .aio.table import SessionPool as AioSessionPool, TableClient as AioTableClient
 from .table import SystemViewSchemeEntry, TableClient, TableClientSettings
 
 from .retries import (
@@ -531,3 +532,193 @@ def test_read_table_request_not_null_as_optional_raw_status():
         return_not_null_data_as_optional=_apis.FeatureFlag.DISABLED,
     )
     assert request.return_not_null_data_as_optional == _apis.FeatureFlag.DISABLED
+
+
+class _SessionPoolTestSession:
+    def __init__(self, session_id):
+        self.session_id = session_id
+        self.deleted = False
+        self.is_initialized = False
+
+    def initialized(self):
+        return self.is_initialized
+
+    def closing(self):
+        return False
+
+    def pending_query(self):
+        return False
+
+    async def delete(self, settings):
+        self.deleted = True
+
+
+class _SessionPoolTestQueue(asyncio.PriorityQueue):
+    def __init__(self):
+        super().__init__()
+        self.started = asyncio.Event()
+        self.on_get = None
+
+    async def get(self):
+        self.started.set()
+        result = await super().get()
+        if self.on_get is not None:
+            self.on_get()
+        return result
+
+
+class _SessionPoolStopEvent(asyncio.Event):
+    def __init__(self):
+        super().__init__()
+        self.on_cancel = None
+
+    async def wait(self):
+        try:
+            return await super().wait()
+        except asyncio.CancelledError:
+            if self.on_cancel is not None:
+                self.on_cancel()
+            raise
+
+
+class TestAioSessionPool(IsolatedAsyncioTestCase):
+    async def asyncSetUp(self):
+        self.sessions = []
+
+        def create_session():
+            session = _SessionPoolTestSession(str(len(self.sessions)))
+            self.sessions.append(session)
+            return session
+
+        self.driver = mock.Mock()
+        self.driver.table_client.session.side_effect = create_session
+        self.pool = AioSessionPool(self.driver, size=1)
+        self.queue = _SessionPoolTestQueue()
+        self.pool._active_queue = self.queue
+        self.pool._should_stop = _SessionPoolStopEvent()
+        self.session = self.pool._create()
+        self.session.is_initialized = True
+        # Let the pool's keep-alive waiter start before taking a task baseline.
+        await asyncio.sleep(0)
+        await asyncio.sleep(0)
+        self.baseline_tasks = asyncio.all_tasks() - {asyncio.current_task()}
+
+    async def asyncTearDown(self):
+        self.queue.on_get = None
+        self.pool._should_stop.on_cancel = None
+        await self.pool.stop()
+        # The initial session can still be checked out, as after a timed-out acquire.
+        if not self.session.deleted:
+            deletion = self.pool._destroy(self.session, wait_for_del=True)
+            if deletion is not None:
+                await deletion
+        await asyncio.sleep(0)
+
+    async def start_acquire(self):
+        self.queue.started.clear()
+        acquire = asyncio.create_task(self.pool.acquire(timeout=1))
+        await asyncio.wait_for(self.queue.started.wait(), timeout=5)
+        return acquire
+
+    def assert_no_acquire_tasks(self):
+        self.assertEqual(self.pool._waiters, 0)
+        self.assertEqual(asyncio.all_tasks() - {asyncio.current_task()} - self.baseline_tasks, set())
+        self.driver.wait.assert_not_called()
+
+    async def test_repeated_queued_acquire_does_not_leak_tasks(self):
+        for _ in range(20):
+            acquire = await self.start_acquire()
+            self.queue.put_nowait((123, self.session))
+            self.assertIs(await acquire, self.session)
+            self.assertTrue(self.queue.empty())
+            self.assert_no_acquire_tasks()
+
+    async def test_timeout_cleans_up_waiters(self):
+        with self.assertRaises(issues.SessionPoolEmpty):
+            await self.pool.acquire(timeout=0.001)
+        self.assertTrue(self.queue.empty())
+        self.assert_no_acquire_tasks()
+
+    async def test_nonpositive_timeout_does_not_start_queue_wait(self):
+        for timeout in (0, -1):
+            with self.subTest(timeout=timeout), self.assertRaises(issues.SessionPoolEmpty):
+                await self.pool.acquire(timeout=timeout)
+            self.assertFalse(self.queue.started.is_set())
+            self.assert_no_acquire_tasks()
+
+    async def test_cancellation_cleans_up_waiters(self):
+        acquire = await self.start_acquire()
+        acquire.cancel()
+        with self.assertRaises(asyncio.CancelledError):
+            await acquire
+        self.assertTrue(self.queue.empty())
+        self.assert_no_acquire_tasks()
+
+    async def test_cancellation_after_dequeue_returns_session(self):
+        acquire = await self.start_acquire()
+        self.queue.on_get = acquire.cancel
+        self.queue.put_nowait((123, self.session))
+        with self.assertRaises(asyncio.CancelledError):
+            await acquire
+        self.assertEqual(self.queue.get_nowait(), (123, self.session))
+        self.assertEqual(self.pool._active_count, 1)
+        self.assert_no_acquire_tasks()
+
+    async def test_cancellation_during_cleanup_returns_session(self):
+        acquire = await self.start_acquire()
+        self.pool._should_stop.on_cancel = acquire.cancel
+        self.queue.put_nowait((123, self.session))
+        with self.assertRaises(asyncio.CancelledError):
+            await acquire
+        self.assertEqual(self.queue.get_nowait(), (123, self.session))
+        self.assertEqual(self.pool._active_count, 1)
+        self.assert_no_acquire_tasks()
+
+    async def test_pool_stop_wakes_waiter_and_cleans_up_tasks(self):
+        acquire = await self.start_acquire()
+        await self.pool.stop()
+        session = await acquire
+        self.assertIsNot(session, self.session)
+        self.assertFalse(session.initialized())
+        self.assertTrue(self.queue.empty())
+        self.assertEqual(len(self.sessions), 2)
+        self.assert_no_acquire_tasks()
+        await self.pool.release(session)
+
+    async def test_pool_stop_after_dequeue_destroys_session_without_replacement(self):
+        acquire = await self.start_acquire()
+
+        def stop_pool():
+            self.pool._should_stop.set()
+            self.pool._terminating = True
+
+        self.queue.on_get = stop_pool
+        self.queue.put_nowait((123, self.session))
+        session = await acquire
+        self.assertIsNot(session, self.session)
+        self.assertFalse(session.initialized())
+        self.assertTrue(self.queue.empty())
+        self.assertTrue(self.session.deleted)
+        self.assertEqual(len(self.sessions), 2)
+        self.assertEqual(self.pool._active_count, 1)
+        self.assert_no_acquire_tasks()
+        await self.pool.release(session)
+
+    async def test_pool_stop_during_cleanup_destroys_session_without_replacement(self):
+        acquire = await self.start_acquire()
+
+        def stop_pool():
+            self.pool._should_stop.set()
+            self.pool._terminating = True
+
+        self.pool._should_stop.on_cancel = stop_pool
+        self.queue.put_nowait((123, self.session))
+        session = await acquire
+        self.assertIsNot(session, self.session)
+        self.assertFalse(session.initialized())
+        self.assertTrue(self.queue.empty())
+        self.assertTrue(self.session.deleted)
+        self.assertEqual(len(self.sessions), 2)
+        self.assertEqual(self.pool._active_count, 1)
+        self.assert_no_acquire_tasks()
+        await self.pool.release(session)

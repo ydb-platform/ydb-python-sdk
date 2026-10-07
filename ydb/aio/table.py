@@ -601,22 +601,37 @@ class SessionPool:
             raise e
 
     async def _get_session_from_queue(self, timeout: typing.Optional[float]) -> Session:
-        task_wait = asyncio.ensure_future(asyncio.wait_for(self._active_queue.get(), timeout=timeout))
+        if timeout is not None and timeout <= 0:
+            raise asyncio.TimeoutError
+        task_wait = asyncio.ensure_future(self._active_queue.get())
         task_should_stop = asyncio.ensure_future(self._should_stop.wait())
+        session_taken = False
         try:
-            done, _ = await asyncio.wait((task_wait, task_should_stop), return_when=asyncio.FIRST_COMPLETED)
-        except asyncio.CancelledError:
-            task_should_stop.cancel()
-            cancelled = task_wait.cancel()
-            if not cancelled and not task_wait.exception():
+            try:
+                done, _ = await asyncio.wait(
+                    (task_wait, task_should_stop), timeout=timeout, return_when=asyncio.FIRST_COMPLETED
+                )
+            finally:
+                for task in (task_wait, task_should_stop):
+                    if not task.done():
+                        task.cancel()
+                await asyncio.gather(task_wait, task_should_stop, return_exceptions=True)
+
+            if self._should_stop.is_set():
+                return self._create()
+            if task_wait not in done:
+                raise asyncio.TimeoutError
+            _, session = task_wait.result()
+            session_taken = True
+            return session
+        finally:
+            # Queue retrieval can finish just before cancellation or pool stop.
+            if not session_taken and task_wait.done() and not task_wait.cancelled() and task_wait.exception() is None:
                 priority, session = task_wait.result()
-                self._active_queue.put_nowait((priority, session))
-            raise
-        if task_should_stop in done:
-            task_wait.cancel()
-            return self._create()
-        _, session = task_wait.result()
-        return session
+                if self._should_stop.is_set():
+                    self._release_nowait(session)
+                else:
+                    self._active_queue.put_nowait((priority, session))
 
     async def acquire(
         self,
@@ -680,7 +695,7 @@ class SessionPool:
             self._active_count,
         )
 
-        if self._waiters > 0 or not self._is_min_pool_size_satisfied():
+        if not self._should_stop.is_set() and (self._waiters > 0 or not self._is_min_pool_size_satisfied()):
             asyncio.ensure_future(self._init_and_put(self._init_session_timeout))
 
         if session.initialized():

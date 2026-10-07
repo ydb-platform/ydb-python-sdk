@@ -1,3 +1,5 @@
+* Fix leaked asyncio tasks in `ydb.aio.SessionPool` when waiting for a session; cancelled acquisitions no longer lose a dequeued session, and stopped pools no longer initialize replacements
+
 ## 3.33.2 ##
 * Fix sync `QuerySessionPool` and `QuerySession.create()` hanging for 600 seconds and then failing with a non-retriable `TimeoutError` when a new session's attach stream fails before its first message (e.g. during a node restart); the attach error is now raised immediately, so retriable errors such as `Unavailable` are retried
 
