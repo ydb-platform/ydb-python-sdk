@@ -73,8 +73,11 @@ def initialize(topic_path, consumer_name):
     writer = driver.topic_client.writer(topic_path)
     reader = driver.topic_client.reader(topic=topic_path, consumer=consumer_name)
     # [END topic_init]
+    writer.write_with_ack("initialization")
+    message = reader.receive_message(timeout=30)
+    assert message.data == b"initialization"
     writer.close()
-    reader.close()
+    reader.close(flush=False)
     driver.stop()
 
 
@@ -95,7 +98,12 @@ def run():
         # [END topic_create]
         try:
             driver.topic_client.alter_topic(topic_path, add_consumers=consumers)
-            initialize(topic_path, "init")
+            initialization_topic = topic_path + "_init"
+            driver.topic_client.create_topic(initialization_topic, consumers=["init"])
+            try:
+                initialize(initialization_topic, "init")
+            finally:
+                driver.topic_client.drop_topic(initialization_topic)
             # [BEGIN topic_alter]
             driver.topic_client.alter_topic(
                 topic_path,

@@ -72,8 +72,11 @@ async def initialize(topic_path, consumer_name):
         writer = driver.topic_client.writer(topic_path)
         reader = driver.topic_client.reader(topic=topic_path, consumer=consumer_name)
         # [END topic_init]
+        await writer.write_with_ack("initialization")
+        message = await asyncio.wait_for(reader.receive_message(), 30)
+        assert message.data == b"initialization"
         await writer.close()
-        await reader.close()
+        await reader.close(flush=False)
 
 
 async def run():
@@ -93,7 +96,12 @@ async def run():
         # [END topic_create]
         try:
             await driver.topic_client.alter_topic(topic_path, add_consumers=consumers)
-            await initialize(topic_path, "init")
+            initialization_topic = topic_path + "_init"
+            await driver.topic_client.create_topic(initialization_topic, consumers=["init"])
+            try:
+                await initialize(initialization_topic, "init")
+            finally:
+                await driver.topic_client.drop_topic(initialization_topic)
             # [BEGIN topic_alter]
             await driver.topic_client.alter_topic(
                 topic_path,
