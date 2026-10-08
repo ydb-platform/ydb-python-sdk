@@ -68,6 +68,13 @@ class BaseMetrics(ABC):
         finally:
             self.stop(labels, start_ts, error=error)
 
+    def cancel(self, labels, start_time: float) -> None:
+        """Undo a ``start()`` for an operation that turned out to be a no-op
+        (e.g. a transactional reader that had no batch to process): balances the
+        pending counter without recording a success or a failure, so idle waits
+        do not count against availability."""
+        return None
+
     # --- Topic workload extensions (no-ops unless overridden) ---
     def record_e2e(self, seconds: float) -> None:
         """Record an end-to-end (write -> read) message latency, in seconds."""
@@ -251,6 +258,10 @@ class OtlpMetrics(BaseMetrics):
 
         with self._lock:
             self._get_hdr(op_type, op_status).record_value(duration_us)
+
+    def cancel(self, labels, start_time: float) -> None:
+        labels_t = _normalize_labels(labels)
+        self._pending.add(-1, attributes={"ref": REF, "operation_type": labels_t[0]})
 
     def push(self) -> None:
         with self._lock:

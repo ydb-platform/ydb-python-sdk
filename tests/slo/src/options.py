@@ -97,6 +97,16 @@ def make_table_cleanup_parser(subparsers):
     add_common_options(table_cleanup_parser)
 
 
+def add_topic_tx_options(parser):
+    """Options for the transactional topic <-> table workloads (``*-topic-tx``)."""
+    parser.add_argument(
+        "--sink-table",
+        default="slo_topic_tx_sink",
+        type=str,
+        help="Sink table for the transactional consumer (exactly-once target)",
+    )
+
+
 def make_topic_create_parser(subparsers):
     topic_create_parser = subparsers.add_parser("topic-create", help="Create topic with consumer")
     add_common_options(topic_create_parser)
@@ -104,6 +114,7 @@ def make_topic_create_parser(subparsers):
     topic_create_parser.add_argument("--path", default="/local/slo_topic", type=str, help="Topic path")
     topic_create_parser.add_argument("--consumer", default="slo_consumer", type=str, help="Topic consumer name")
     topic_create_parser.add_argument("--partitions-count", default=8, type=int, help="Partition count")
+    add_topic_tx_options(topic_create_parser)
 
 
 def make_topic_run_parser(subparsers):
@@ -131,6 +142,14 @@ def make_topic_run_parser(subparsers):
     )
     topic_parser.add_argument("--message-size", default=100, type=int, help="Topic message size in bytes")
 
+    add_topic_tx_options(topic_parser)
+    topic_parser.add_argument(
+        "--messages-per-tx",
+        default=10,
+        type=int,
+        help="Messages written/read per transaction (amortizes tx overhead) in the *-topic-tx workloads",
+    )
+
     topic_parser.add_argument("--time", default=10, type=int, help="Time to run in seconds")
     topic_parser.add_argument(
         "--shutdown-time",
@@ -152,6 +171,7 @@ def make_topic_cleanup_parser(subparsers):
     add_common_options(topic_cleanup_parser)
 
     topic_cleanup_parser.add_argument("--path", default="/local/slo_topic", type=str, help="Topic path")
+    add_topic_tx_options(topic_cleanup_parser)
 
 
 def get_root_parser():
