@@ -2,6 +2,7 @@
 
 import asyncio
 import collections
+import faulthandler
 import datetime
 import os
 import uuid
@@ -339,6 +340,7 @@ async def transactions(driver, topic):
 
 async def autoscaling(driver, topic):
     consumer = "auto"
+    print("Creating autoscaling topic", flush=True)
     # [BEGIN topic_autoscale_create]
     await driver.topic_client.create_topic(
         topic,
@@ -353,6 +355,7 @@ async def autoscaling(driver, topic):
         ),
     )
     # [END topic_autoscale_create]
+    print("Autoscaling topic created", flush=True)
     topic_path = topic
     try:
         await driver.topic_client.alter_topic(
@@ -387,4 +390,5 @@ async def autoscaling(driver, topic):
 
 
 if __name__ == "__main__":
+    faulthandler.dump_traceback_later(45, repeat=True)
     asyncio.run(run())

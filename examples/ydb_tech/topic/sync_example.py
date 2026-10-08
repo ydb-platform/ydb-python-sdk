@@ -1,6 +1,7 @@
 """Executable source of the synchronous topic snippets on ydb.tech."""
 
 import collections
+import faulthandler
 import datetime
 import os
 import uuid
@@ -371,6 +372,7 @@ def transactions(driver, topic):
 
 def autoscaling(driver, topic):
     consumer = "auto"
+    print("Creating autoscaling topic", flush=True)
     # [BEGIN topic_autoscale_create]
     driver.topic_client.create_topic(
         topic,
@@ -385,6 +387,7 @@ def autoscaling(driver, topic):
         ),
     )
     # [END topic_autoscale_create]
+    print("Autoscaling topic created", flush=True)
     topic_path = topic
     try:
         # [BEGIN topic_autoscale_alter]
@@ -425,4 +428,5 @@ def autoscaling(driver, topic):
 
 
 if __name__ == "__main__":
+    faulthandler.dump_traceback_later(45, repeat=True)
     run()
