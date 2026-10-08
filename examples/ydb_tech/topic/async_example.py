@@ -2,7 +2,6 @@
 
 import asyncio
 import collections
-import faulthandler
 import datetime
 import os
 import uuid
@@ -398,5 +397,4 @@ async def autoscaling(driver, topic):
 
 
 if __name__ == "__main__":
-    faulthandler.dump_traceback_later(45, repeat=True)
     asyncio.run(run())

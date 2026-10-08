@@ -1,7 +1,6 @@
 """Executable source of the synchronous topic snippets on ydb.tech."""
 
 import collections
-import faulthandler
 import datetime
 import os
 import uuid
@@ -436,5 +435,4 @@ def autoscaling(driver, topic):
 
 
 if __name__ == "__main__":
-    faulthandler.dump_traceback_later(45, repeat=True)
     run()
