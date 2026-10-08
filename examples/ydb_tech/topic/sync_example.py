@@ -22,6 +22,8 @@ EXPECTED = [
     b"asd",
     bytes([1, 2, 3]),
     b"compressed",
+    b"asd",
+    bytes([1, 2, 3]),
 ]
 
 
@@ -177,8 +179,8 @@ def seed(driver, topic_path):
     # overhead on internal SDK calls.
     writer.write(
         [
-            ydb.TopicWriterMessage("asd", seqno=123, created_at=datetime.datetime.now()),
-            ydb.TopicWriterMessage(bytes([1, 2, 3]), seqno=124, created_at=datetime.datetime.now()),
+            ydb.TopicWriterMessage("asd", seqno=125, created_at=datetime.datetime.now()),
+            ydb.TopicWriterMessage(bytes([1, 2, 3]), seqno=126, created_at=datetime.datetime.now()),
         ]
     )
     # [END topic_write_manual]
