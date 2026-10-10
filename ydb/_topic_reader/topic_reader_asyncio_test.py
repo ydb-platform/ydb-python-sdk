@@ -423,6 +423,33 @@ class TestReaderStream:
 
         await wait_for_fast(stream_reader_started.close(False))
 
+    async def test_flush_stops_on_stream_error(self, stream_reader_started: ReaderStream, partition_session):
+        waiter = partition_session.add_waiter(self.partition_session_committed_offset + 1)
+
+        with pytest.raises(WaitConditionError):
+            await wait_for_fast(stream_reader_started.flush(), timeout=0.1)
+
+        stream_reader_started._set_first_error(issues.Unavailable("connection lost"))
+
+        await wait_for_fast(stream_reader_started.flush())
+        assert not waiter.future.done()
+
+        await wait_for_fast(stream_reader_started.close(False))
+
+        with pytest.raises(topic_reader_asyncio.PublicTopicReaderPartitionExpiredError):
+            waiter.future.result()
+
+    async def test_close_with_flush_on_broken_stream_does_not_hang(
+        self, stream_reader_started: ReaderStream, partition_session
+    ):
+        waiter = partition_session.add_waiter(self.partition_session_committed_offset + 1)
+        stream_reader_started._set_first_error(issues.Unavailable("connection lost"))
+
+        await wait_for_fast(stream_reader_started.close(True))
+
+        with pytest.raises(topic_reader_asyncio.PublicTopicReaderPartitionExpiredError):
+            waiter.future.result()
+
     async def test_commit_ranges_for_received_messages(
         self, stream, stream_reader_started: ReaderStream, partition_session
     ):
