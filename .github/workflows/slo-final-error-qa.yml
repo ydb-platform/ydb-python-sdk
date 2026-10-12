@@ -81,4 +81,4 @@ jobs:
           workload_current_image: ydb-app-current
           workload_current_command: ${{ matrix.sdk.command }}
           fail_on_workload_error: 'true'
-          disable_compose_profiles: workload-baseline,chaos
+          disable_compose_profiles: workload-baseline,chaos,extra-nodes
