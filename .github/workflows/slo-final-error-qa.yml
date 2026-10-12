@@ -26,9 +26,9 @@ jobs:
           - name: async-query
             command: --read-rps 100 --write-rps 25
           - name: sync-topic
-            command: --write-rps 200 --write-threads 8 --read-threads 8
+            command: --write-rps 200 --write-threads 8 --read-threads 8 --debug
           - name: async-topic
-            command: --write-rps 200 --write-threads 8 --read-threads 8
+            command: --write-rps 200 --write-threads 8 --read-threads 8 --debug
     concurrency:
       group: final-error-${{ github.ref }}-${{ matrix.sdk.name }}
       cancel-in-progress: false
