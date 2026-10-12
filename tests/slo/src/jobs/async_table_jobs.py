@@ -38,7 +38,7 @@ class AsyncTableJobManager(AsyncBaseJobManager):
             *self._run_query_write_jobs(),
             *self._run_metric_job(),
         ]
-        await asyncio.gather(*tasks)
+        await self._wait_jobs(tasks)
 
     def _run_query_read_jobs(self):
         logger.info("Start async query read jobs")
@@ -134,11 +134,17 @@ class AsyncTableJobManager(AsyncBaseJobManager):
 
         try:
             await pool.retry_operation_async(callee, retry_setting)
+        except asyncio.CancelledError:
+            raise
         except ydb.Error as err:
             error = err
+            self.record_failure(err)
             logger.exception("[labels: %s] Cannot retry error:", labels)
+            raise
         except BaseException as err:
             error = err
+            self.record_failure(err)
             logger.exception("[labels: %s] Unexpected error:", labels)
-
-        self.metrics.stop(labels, ts, attempts=attempt, error=error)
+            raise
+        finally:
+            self.metrics.stop(labels, ts, attempts=attempt, error=error)

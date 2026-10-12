@@ -42,6 +42,7 @@ class RequestParams:
         request_settings,
         retry_settings,
         check_result_cb=None,
+        on_error=None,
     ):
         self.pool = pool
         self.query = query
@@ -51,6 +52,7 @@ class RequestParams:
         self.request_settings = request_settings
         self.retry_settings = retry_settings
         self.check_result_cb = check_result_cb
+        self.on_error = on_error
 
 
 def execute_query(params: RequestParams):
@@ -78,12 +80,18 @@ def execute_query(params: RequestParams):
         params.pool.retry_operation_sync(transaction, retry_settings=params.retry_settings)
     except ydb.Error as err:
         error = err
+        if params.on_error is not None:
+            params.on_error(err)
         logger.exception("[labels: %s] Cannot retry error:", params.labels)
+        raise
     except BaseException as err:
         error = err
+        if params.on_error is not None:
+            params.on_error(err)
         logger.exception("[labels: %s] Unexpected error:", params.labels)
-
-    params.metrics.stop(params.labels, ts, attempts=attempt, error=error)
+        raise
+    finally:
+        params.metrics.stop(params.labels, ts, attempts=attempt, error=error)
 
 
 class TableJobManager(BaseJobManager):
@@ -114,6 +122,7 @@ class TableJobManager(BaseJobManager):
 
         for future in futures:
             future.join()
+        self.raise_if_failed()
 
     def _run_table_read_jobs(self):
         logger.info("Start table read jobs")
@@ -128,8 +137,8 @@ class TableJobManager(BaseJobManager):
         for i in range(self.args.read_threads):
             future = threading.Thread(
                 name=f"slo_table_read_{i}",
-                target=self._run_table_reads,
-                args=(read_query, read_limiter),
+                target=self._run_worker,
+                args=(self._run_table_reads, read_query, read_limiter),
             )
             future.start()
             futures.append(future)
@@ -149,8 +158,8 @@ class TableJobManager(BaseJobManager):
         for i in range(self.args.write_threads):
             future = threading.Thread(
                 name=f"slo_table_write_{i}",
-                target=self._run_table_writes,
-                args=(write_query, write_limiter),
+                target=self._run_worker,
+                args=(self._run_table_writes, write_query, write_limiter),
             )
             future.start()
             futures.append(future)
@@ -168,8 +177,8 @@ class TableJobManager(BaseJobManager):
         for i in range(self.args.read_threads):
             future = threading.Thread(
                 name=f"slo_query_read_{i}",
-                target=self._run_query_reads,
-                args=(read_query, read_limiter),
+                target=self._run_worker,
+                args=(self._run_query_reads, read_query, read_limiter),
             )
             future.start()
             futures.append(future)
@@ -187,8 +196,8 @@ class TableJobManager(BaseJobManager):
         for i in range(self.args.write_threads):
             future = threading.Thread(
                 name=f"slo_query_write_{i}",
-                target=self._run_query_writes,
-                args=(write_query, write_limiter),
+                target=self._run_worker,
+                args=(self._run_query_writes, write_query, write_limiter),
             )
             future.start()
             futures.append(future)
@@ -206,7 +215,7 @@ class TableJobManager(BaseJobManager):
         )
 
         with ydb.SessionPool(self.driver) as pool:
-            while time.time() - start_time < self.args.time:
+            while not self._stop.is_set() and time.time() - start_time < self.args.time:
                 params = {"$object_id": randint(1, self.max_id)}
 
                 with limiter:
@@ -223,6 +232,7 @@ class TableJobManager(BaseJobManager):
                         request_settings=request_settings,
                         retry_settings=retry_setting,
                         check_result_cb=check_result,
+                        on_error=self.record_failure,
                     )
                     execute_query(request_params)
 
@@ -241,7 +251,7 @@ class TableJobManager(BaseJobManager):
         row_generator = RowGenerator(self.max_id)
 
         with ydb.SessionPool(self.driver) as pool:
-            while time.time() - start_time < self.args.time:
+            while not self._stop.is_set() and time.time() - start_time < self.args.time:
                 row = row_generator.get()
                 params = {
                     "$object_id": row.object_id,
@@ -259,6 +269,7 @@ class TableJobManager(BaseJobManager):
                         labels=(OP_TYPE_WRITE,),
                         request_settings=request_settings,
                         retry_settings=retry_setting,
+                        on_error=self.record_failure,
                     )
                     execute_query(request_params)
 
@@ -275,7 +286,7 @@ class TableJobManager(BaseJobManager):
         )
 
         with ydb.QuerySessionPool(self.driver) as pool:
-            while time.time() - start_time < self.args.time:
+            while not self._stop.is_set() and time.time() - start_time < self.args.time:
                 params = {"$object_id": (randint(1, self.max_id), ydb.PrimitiveType.Uint64)}
 
                 with limiter:
@@ -293,6 +304,7 @@ class TableJobManager(BaseJobManager):
                         request_settings=request_settings,
                         retry_settings=retry_setting,
                         check_result_cb=check_result,
+                        on_error=self.record_failure,
                     )
                     execute_query(request_params)
 
@@ -311,7 +323,7 @@ class TableJobManager(BaseJobManager):
         row_generator = RowGenerator(self.max_id)
 
         with ydb.QuerySessionPool(self.driver) as pool:
-            while time.time() - start_time < self.args.time:
+            while not self._stop.is_set() and time.time() - start_time < self.args.time:
                 row = row_generator.get()
                 params = {
                     "$object_id": (row.object_id, ydb.PrimitiveType.Uint64),
@@ -337,6 +349,7 @@ class TableJobManager(BaseJobManager):
                         request_settings=request_settings,
                         retry_settings=retry_setting,
                         check_result_cb=check_result,
+                        on_error=self.record_failure,
                     )
                     execute_query(request_params)
 

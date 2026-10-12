@@ -40,7 +40,7 @@ class AsyncTopicJobManager(AsyncBaseJobManager):
             *self._run_topic_read_jobs(),
             *self._run_metric_job(),
         ]
-        await asyncio.gather(*tasks)
+        await self._wait_jobs(tasks)
 
     def _run_topic_write_jobs(self):
         logger.info("Start async topic write jobs")
@@ -71,9 +71,7 @@ class AsyncTopicJobManager(AsyncBaseJobManager):
         write_timeout = self.args.write_timeout / 1000
         logger.info("Start async topic writer %s (partition %s, producer %s)", writer_id, partition_id, producer_id)
 
-        # `seqno` lives across writer recreations so the sequence the reader sees
-        # never resets. The outer loop recreates the writer if it breaks/stalls
-        # (an SDK write can hang under chaos) so the workload never silently hangs.
+        # The SDK owns reconnect retries; an error escaping write_with_ack is final.
         seqno = 1
         while time.time() - start_time < self.args.time:
             try:
@@ -98,11 +96,11 @@ class AsyncTopicJobManager(AsyncBaseJobManager):
                                 seqno += 1
                             except Exception as e:
                                 self.metrics.stop((OP_TYPE_WRITE,), ts, error=e)
-                                logger.error("Write error (recreating writer): %s", e)
-                                break  # drop the (possibly wedged) writer and remake it
+                                self.record_failure(e)
+                                raise
             except Exception as e:
-                logger.error("Topic writer %s recreate: %s", writer_id, e)
-                await asyncio.sleep(0.2)
+                self.record_failure(e)
+                raise
 
         logger.info("Stop async topic writer %s", writer_id)
 
@@ -115,19 +113,24 @@ class AsyncTopicJobManager(AsyncBaseJobManager):
             try:
                 async with self.aio_driver.topic_client.reader(self.args.path, self.args.consumer) as reader:
                     while time.time() - start_time < self.args.time:
+                        remaining = self.args.time - (time.time() - start_time)
+                        if remaining <= 0:
+                            break
+                        receive_timeout = min(read_timeout, remaining)
                         ts = self.metrics.start((OP_TYPE_READ,))
                         try:
-                            msg = await asyncio.wait_for(reader.receive_message(), read_timeout)
+                            msg = await asyncio.wait_for(reader.receive_message(), receive_timeout)
                         except asyncio.TimeoutError as e:
-                            # No message within read_timeout: at steady rate this
-                            # means the reader is starved (outage/stall), so it is
-                            # a read failure (visible), not a silent wait.
+                            if receive_timeout < read_timeout and time.time() - start_time >= self.args.time:
+                                self.metrics.stop((OP_TYPE_READ,), ts)
+                                break
                             self.metrics.stop((OP_TYPE_READ,), ts, error=e)
-                            continue
+                            self.record_failure(e)
+                            raise
                         except Exception as e:
                             self.metrics.stop((OP_TYPE_READ,), ts, error=e)
-                            logger.error("Read error (recreating reader): %s", e)
-                            break
+                            self.record_failure(e)
+                            raise
 
                         if msg is None:
                             self.metrics.stop((OP_TYPE_READ,), ts)
@@ -140,12 +143,16 @@ class AsyncTopicJobManager(AsyncBaseJobManager):
                         try:
                             await asyncio.wait_for(reader.commit_with_ack(msg), read_timeout)
                             self.metrics.stop((OP_TYPE_READ,), ts)
+                        except ydb.TopicReaderPartitionExpiredError as e:
+                            self.metrics.stop((OP_TYPE_READ,), ts, error=e)
+                            logger.info("Partition expired before commit; waiting for redelivery")
                         except Exception as e:
                             self.metrics.stop((OP_TYPE_READ,), ts, error=e)
-                            logger.error("Commit error: %s", e)
+                            self.record_failure(e)
+                            raise
             except Exception as e:
-                logger.error("Topic reader %s recreate: %s", reader_id, e)
-                await asyncio.sleep(0.2)
+                self.record_failure(e)
+                raise
 
         logger.info("Stop async topic reader %s", reader_id)
 

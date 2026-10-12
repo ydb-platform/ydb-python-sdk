@@ -36,6 +36,7 @@ class TopicJobManager(BaseJobManager):
         ]
         for future in futures:
             future.join()
+        self.raise_if_failed()
 
     def _run_topic_write_jobs(self):
         logger.info("Start topic write jobs")
@@ -49,8 +50,8 @@ class TopicJobManager(BaseJobManager):
         for i in range(self.args.write_threads):
             future = threading.Thread(
                 name=f"slo_topic_write_{i}",
-                target=self._run_topic_writes,
-                args=(i, write_limiter),
+                target=self._run_worker,
+                args=(self._run_topic_writes, i, write_limiter),
             )
             future.start()
             futures.append(future)
@@ -63,8 +64,8 @@ class TopicJobManager(BaseJobManager):
         for i in range(self.args.read_threads):
             future = threading.Thread(
                 name=f"slo_topic_read_{i}",
-                target=self._run_topic_reads,
-                args=(i,),
+                target=self._run_worker,
+                args=(self._run_topic_reads, i),
             )
             future.start()
             futures.append(future)
@@ -77,11 +78,9 @@ class TopicJobManager(BaseJobManager):
         write_timeout = self.args.write_timeout / 1000
         logger.info("Start topic writer %s (partition %s, producer %s)", writer_id, partition_id, producer_id)
 
-        # `seqno` lives across writer recreations so the sequence the reader sees
-        # never resets. The outer loop recreates the writer if it breaks/stalls so
-        # the workload never silently hangs.
+        # The SDK owns reconnect retries; an error escaping write_with_ack is final.
         seqno = 1
-        while time.time() - start_time < self.args.time:
+        while not self._stop.is_set() and time.time() - start_time < self.args.time:
             try:
                 with self.driver.topic_client.writer(
                     self.args.path,
@@ -89,7 +88,7 @@ class TopicJobManager(BaseJobManager):
                     partition_id=partition_id,
                     codec=ydb.TopicCodec.RAW,
                 ) as writer:
-                    while time.time() - start_time < self.args.time:
+                    while not self._stop.is_set() and time.time() - start_time < self.args.time:
                         with limiter:
                             payload = encode_payload(writer_id, seqno, time.monotonic_ns(), self.args.message_size)
                             message = ydb.TopicWriterMessage(data=payload)
@@ -104,11 +103,11 @@ class TopicJobManager(BaseJobManager):
                                 seqno += 1
                             except Exception as e:
                                 self.metrics.stop((OP_TYPE_WRITE,), ts, error=e)
-                                logger.error("Write error (recreating writer): %s", e)
-                                break  # drop the (possibly wedged) writer and remake it
+                                self.record_failure(e)
+                                raise
             except Exception as e:
-                logger.error("Topic writer %s recreate: %s", writer_id, e)
-                time.sleep(0.2)
+                self.record_failure(e)
+                raise
 
         logger.info("Stop topic writer %s", writer_id)
 
@@ -117,23 +116,28 @@ class TopicJobManager(BaseJobManager):
         read_timeout = self.args.read_timeout / 1000
         logger.info("Start topic reader %s", reader_id)
 
-        while time.time() - start_time < self.args.time:
+        while not self._stop.is_set() and time.time() - start_time < self.args.time:
             try:
                 with self.driver.topic_client.reader(self.args.path, self.args.consumer) as reader:
-                    while time.time() - start_time < self.args.time:
+                    while not self._stop.is_set() and time.time() - start_time < self.args.time:
+                        remaining = self.args.time - (time.time() - start_time)
+                        if remaining <= 0:
+                            break
+                        receive_timeout = min(read_timeout, remaining)
                         ts = self.metrics.start((OP_TYPE_READ,))
                         try:
-                            msg = reader.receive_message(timeout=read_timeout)
+                            msg = reader.receive_message(timeout=receive_timeout)
                         except TimeoutError as e:
-                            # No message within read_timeout: at steady rate this
-                            # means the reader is starved (outage/stall), so it is
-                            # a read failure (visible), not a silent wait.
+                            if receive_timeout < read_timeout and time.time() - start_time >= self.args.time:
+                                self.metrics.stop((OP_TYPE_READ,), ts)
+                                break
                             self.metrics.stop((OP_TYPE_READ,), ts, error=e)
-                            continue
+                            self.record_failure(e)
+                            raise
                         except Exception as e:
                             self.metrics.stop((OP_TYPE_READ,), ts, error=e)
-                            logger.error("Read error (recreating reader): %s", e)
-                            break
+                            self.record_failure(e)
+                            raise
 
                         if msg is None:
                             self.metrics.stop((OP_TYPE_READ,), ts)
@@ -146,12 +150,16 @@ class TopicJobManager(BaseJobManager):
                         try:
                             reader.commit_with_ack(msg, timeout=read_timeout)
                             self.metrics.stop((OP_TYPE_READ,), ts)
+                        except ydb.TopicReaderPartitionExpiredError as e:
+                            self.metrics.stop((OP_TYPE_READ,), ts, error=e)
+                            logger.info("Partition expired before commit; waiting for redelivery")
                         except Exception as e:
                             self.metrics.stop((OP_TYPE_READ,), ts, error=e)
-                            logger.error("Commit error: %s", e)
+                            self.record_failure(e)
+                            raise
             except Exception as e:
-                logger.error("Topic reader %s recreate: %s", reader_id, e)
-                time.sleep(0.2)
+                self.record_failure(e)
+                raise
 
         logger.info("Stop topic reader %s", reader_id)
 
