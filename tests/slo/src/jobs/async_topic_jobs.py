@@ -1,7 +1,6 @@
 import asyncio
 import logging
 import time
-from os import environ
 
 # `aiolimiter` is a runtime dependency (see `tests/slo/requirements.txt`).
 from aiolimiter import AsyncLimiter  # pyright: ignore[reportMissingImports]
@@ -90,8 +89,6 @@ class AsyncTopicJobManager(AsyncBaseJobManager):
                             ts = self.metrics.start((OP_TYPE_WRITE,))
                             try:
                                 await asyncio.wait_for(writer.write_with_ack(message), write_timeout)
-                                if environ.get("SLO_QA_FINAL_ERROR") == "1":
-                                    raise ydb.BadRequest("SLO_QA_PYTHON_FINAL_OPERATION")
                                 self.metrics.stop((OP_TYPE_WRITE,), ts)
                                 # Advance only on success -> a failed write leaves
                                 # no gap (a timeout retries the seqno: at worst a

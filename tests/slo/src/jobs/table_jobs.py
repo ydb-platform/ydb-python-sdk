@@ -1,7 +1,6 @@
 import logging
 import threading
 import time
-from os import environ
 from random import randint
 
 from core.generator import RowGenerator
@@ -79,8 +78,6 @@ def execute_query(params: RequestParams):
 
     try:
         params.pool.retry_operation_sync(transaction, retry_settings=params.retry_settings)
-        if environ.get("SLO_QA_FINAL_ERROR") == "1":
-            raise ydb.BadRequest("SLO_QA_PYTHON_FINAL_OPERATION")
     except ydb.Error as err:
         error = err
         if params.on_error is not None:
