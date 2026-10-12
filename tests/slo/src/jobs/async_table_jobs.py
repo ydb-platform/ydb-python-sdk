@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import time
+from os import environ
 from random import randint
 
 # `aiolimiter` is a runtime dependency (see `tests/slo/requirements.txt`).
@@ -134,6 +135,8 @@ class AsyncTableJobManager(AsyncBaseJobManager):
 
         try:
             await pool.retry_operation_async(callee, retry_setting)
+            if environ.get("SLO_QA_FINAL_ERROR") == "1":
+                raise ydb.BadRequest("SLO_QA_PYTHON_FINAL_OPERATION")
         except asyncio.CancelledError:
             raise
         except ydb.Error as err:

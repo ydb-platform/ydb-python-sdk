@@ -1,6 +1,7 @@
 import logging
 import threading
 import time
+from os import environ
 
 from core.metrics import OP_TYPE_READ, OP_TYPE_WRITE, REF
 
@@ -96,6 +97,8 @@ class TopicJobManager(BaseJobManager):
                             ts = self.metrics.start((OP_TYPE_WRITE,))
                             try:
                                 writer.write_with_ack(message, timeout=write_timeout)
+                                if environ.get("SLO_QA_FINAL_ERROR") == "1":
+                                    raise ydb.BadRequest("SLO_QA_PYTHON_FINAL_OPERATION")
                                 self.metrics.stop((OP_TYPE_WRITE,), ts)
                                 # Advance only on success -> a failed write leaves
                                 # no gap (a timeout retries the seqno: at worst a
