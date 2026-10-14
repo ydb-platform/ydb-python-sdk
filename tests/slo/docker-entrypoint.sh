@@ -44,8 +44,35 @@ if [ "$PREFIX" = "topic" ]; then
     EXTRA_ARGS="--path ${DATABASE%/}/slo_topic_${SAFE_REF}"
 fi
 
-# Schema prep is idempotent at the SDK level for topics; for tables, a parallel
-# baseline container may race and fail with "already exists" — tolerate it.
+if [ "$PREFIX" = "table" ]; then
+    TABLE_NAME="key_value_$(python -c 'import uuid; print(uuid.uuid4().hex)')"
+    python ./tests/slo/src table-create "$ENDPOINT" "$DATABASE" --table-name "$TABLE_NAME"
+    exec python -c '
+import signal
+import subprocess
+import sys
+
+table, endpoint, database, duration = sys.argv[1:5]
+common = [sys.executable, "./tests/slo/src"]
+workload = subprocess.Popen([
+    *common, "table-run", endpoint, database, "--time", duration,
+    *sys.argv[5:], "--table-name", table,
+])
+for signum in (signal.SIGTERM, signal.SIGINT, signal.SIGQUIT):
+    signal.signal(signum, lambda received, _frame: workload.send_signal(received))
+try:
+    status = workload.wait()
+finally:
+    cleanup = subprocess.run([
+        *common, "table-cleanup", endpoint, database, "--table-name", table,
+    ], check=False)
+    if cleanup.returncode:
+        print("WARN: table cleanup failed", file=sys.stderr)
+sys.exit(status if status >= 0 else 128 - status)
+' "$TABLE_NAME" "$ENDPOINT" "$DATABASE" "$DURATION" "$@"
+fi
+
+# Topic schema preparation retains its existing behavior.
 python ./tests/slo/src "${PREFIX}-create" "$ENDPOINT" "$DATABASE" $EXTRA_ARGS \
     || echo "WARN: ${PREFIX}-create exited non-zero (treated as already-prepared)" >&2
 
