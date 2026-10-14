@@ -2,6 +2,7 @@ import asyncio
 import logging
 import time
 from random import randint
+from uuid import uuid4
 
 # `aiolimiter` is a runtime dependency (see `tests/slo/requirements.txt`).
 from aiolimiter import AsyncLimiter  # pyright: ignore[reportMissingImports]
@@ -12,7 +13,8 @@ import ydb
 import ydb.aio
 
 from .base import AsyncBaseJobManager
-from .table_jobs import READ_QUERY_TEMPLATE, WRITE_QUERY_TEMPLATE
+from .table_jobs import CONTROL_READ_QUERY, CONTROL_SCHEMA, READ_QUERY_TEMPLATE, WRITE_QUERY_TEMPLATE
+from .table_jobs import check_control_result, control_row
 
 logger = logging.getLogger(__name__)
 
@@ -33,12 +35,60 @@ class AsyncTableJobManager(AsyncBaseJobManager):
         if self.workload_type != "async-query":
             raise ValueError(f"Unsupported async workload type: {self.workload_type}")
 
+        await self._run_control_checks()
         tasks = [
             *self._run_query_read_jobs(),
             *self._run_query_write_jobs(),
             *self._run_metric_job(),
         ]
-        await asyncio.gather(*tasks)
+        await self._wait_jobs(tasks)
+
+    async def _run_control_checks(self):
+        table = f"{self.table_name}_control_{uuid4().hex}"
+        write = WRITE_QUERY_TEMPLATE.format(table).replace("Digest::NumericHash($object_id)", "0")
+        types = (
+            ydb.PrimitiveType.Uint64,
+            ydb.PrimitiveType.Utf8,
+            ydb.PrimitiveType.Double,
+            ydb.PrimitiveType.Timestamp,
+        )
+        failure = None
+        async with ydb.aio.QuerySessionPool(self.aio_driver) as pool:
+            await pool.execute_with_retries(CONTROL_SCHEMA.format(table))
+            try:
+                for generation in (1, 2):
+                    expected = control_row(generation)
+                    values = {f"${key}": value for key, value in expected.items() if key != "object_hash"}
+                    values = {key: (value, kind) for (key, value), kind in zip(values.items(), types)}
+                    for query, params, operation, timeout, checker in (
+                        (write, values, OP_TYPE_WRITE, self.args.write_timeout, None),
+                        (
+                            CONTROL_READ_QUERY.format(table),
+                            {},
+                            OP_TYPE_READ,
+                            self.args.read_timeout,
+                            lambda rows: check_control_result(rows, expected),
+                        ),
+                    ):
+                        await self._execute_query(
+                            pool,
+                            query,
+                            params,
+                            ydb.BaseRequestSettings().with_timeout(timeout / 1000),
+                            ydb.RetrySettings(idempotent=True, max_session_acquire_timeout=timeout / 1000),
+                            (operation,),
+                            check_result_cb=checker,
+                        )
+            except BaseException as error:
+                failure = error
+                raise
+            finally:
+                try:
+                    await pool.execute_with_retries(f"DROP TABLE `{table}`;")
+                except BaseException:
+                    if failure is None:
+                        raise
+                    logger.exception("Cannot clean up control table %s", table)
 
     def _run_query_read_jobs(self):
         logger.info("Start async query read jobs")
@@ -118,7 +168,7 @@ class AsyncTableJobManager(AsyncBaseJobManager):
 
         logger.info("Stop async query write workload")
 
-    async def _execute_query(self, pool, query, params, request_settings, retry_setting, labels):
+    async def _execute_query(self, pool, query, params, request_settings, retry_setting, labels, check_result_cb=None):
         attempt = 0
         error = None
 
@@ -127,18 +177,29 @@ class AsyncTableJobManager(AsyncBaseJobManager):
             attempt += 1
 
             result_stream = await session.execute(query, parameters=params, settings=request_settings)
-            async for _ in result_stream:
-                pass
+            rows = []
+            async for part in result_stream:
+                rows.extend(part.rows)
+            return rows
 
         ts = self.metrics.start(labels)
 
         try:
-            await pool.retry_operation_async(callee, retry_setting)
+            rows = await pool.retry_operation_async(callee, retry_setting)
+            if check_result_cb:
+                check_result_cb(rows)
+            return rows
+        except asyncio.CancelledError:
+            raise
         except ydb.Error as err:
             error = err
+            self.record_failure(err)
             logger.exception("[labels: %s] Cannot retry error:", labels)
+            raise
         except BaseException as err:
             error = err
+            self.record_failure(err)
             logger.exception("[labels: %s] Unexpected error:", labels)
-
-        self.metrics.stop(labels, ts, attempts=attempt, error=error)
+            raise
+        finally:
+            self.metrics.stop(labels, ts, attempts=attempt, error=error)
