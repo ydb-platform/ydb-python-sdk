@@ -5,7 +5,7 @@
 # in parallel; both must be able to schema-prepare and then run.
 #
 # Inputs come from the env vars injected by the action:
-#   WORKLOAD_NAME       sync-table | sync-query | async-query | sync-topic | async-topic
+#   WORKLOAD_NAME       sync-table | sync-query | async-query | async-query-rmw | sync-topic | async-topic
 #   WORKLOAD_DURATION   run duration in seconds
 #   YDB_ENDPOINT        grpc://ydb:2136
 #   YDB_DATABASE        /Root/testdb
@@ -21,6 +21,7 @@ set -e
 
 case "${WORKLOAD_NAME:-sync-query}" in
     sync-table|sync-query|async-query) PREFIX=table ;;
+    async-query-rmw) PREFIX=rmw ;;
     topic|sync-topic|async-topic) PREFIX=topic ;;
     *)
         echo "Unknown WORKLOAD_NAME: ${WORKLOAD_NAME}" >&2
@@ -44,10 +45,13 @@ if [ "$PREFIX" = "topic" ]; then
     EXTRA_ARGS="--path ${DATABASE%/}/slo_topic_${SAFE_REF}"
 fi
 
+# RMW owns its process-unique schema inside run, including cleanup.
 # Schema prep is idempotent at the SDK level for topics; for tables, a parallel
 # baseline container may race and fail with "already exists" — tolerate it.
-python ./tests/slo/src "${PREFIX}-create" "$ENDPOINT" "$DATABASE" $EXTRA_ARGS \
-    || echo "WARN: ${PREFIX}-create exited non-zero (treated as already-prepared)" >&2
+if [ "$PREFIX" != "rmw" ]; then
+    python ./tests/slo/src "${PREFIX}-create" "$ENDPOINT" "$DATABASE" $EXTRA_ARGS \
+        || echo "WARN: ${PREFIX}-create exited non-zero (treated as already-prepared)" >&2
+fi
 
 exec python ./tests/slo/src \
     "${PREFIX}-run" "$ENDPOINT" "$DATABASE" \

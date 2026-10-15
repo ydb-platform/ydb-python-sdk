@@ -7,6 +7,7 @@ from typing import Dict
 from core.metrics import WORKLOAD
 from runners.topic_runner import TopicRunner
 from runners.table_runner import TableRunner
+from runners.rmw_runner import RmwRunner
 from runners.base import BaseRunner
 
 logger = logging.getLogger(__name__)
@@ -14,8 +15,8 @@ logger = logging.getLogger(__name__)
 
 def _is_async_workload(args) -> bool:
     """Async mode is driven by the workload label (``async-*``); the ``--async``
-    CLI flag is kept as a manual override."""
-    return getattr(args, "async", False) or str(WORKLOAD).startswith("async-")
+    CLI flag is kept as a manual override. RMW has only an async Query adapter."""
+    return args.subcommand == "rmw-run" or getattr(args, "async", False) or str(WORKLOAD).startswith("async-")
 
 
 class SLORunner:
@@ -108,6 +109,7 @@ def create_runner() -> SLORunner:
     runner = SLORunner()
     runner.register_runner("table", TableRunner)
     runner.register_runner("topic", TopicRunner)
+    runner.register_runner("rmw", RmwRunner)
     return runner
 
 
