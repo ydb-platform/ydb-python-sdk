@@ -97,6 +97,33 @@ def make_table_cleanup_parser(subparsers):
     add_common_options(table_cleanup_parser)
 
 
+def make_rmw_run_parser(subparsers):
+    parser = subparsers.add_parser("rmw-run", help="Run concurrent transactional RMW using async Query service")
+    parser.add_argument("endpoint", help="YDB endpoint")
+    parser.add_argument("db", help="YDB database name")
+    parser.add_argument("--debug", action="store_true", help="Enable debug logging")
+
+    def positive(value):
+        result = int(value)
+        if result < 1:
+            raise argparse.ArgumentTypeError("must be positive")
+        return result
+
+    parser.add_argument(
+        "--time", default=10, type=positive, help="Admission duration [s]; admitted calls settle afterwards"
+    )
+    parser.add_argument("--write-threads", default=4, type=positive, help="Concurrent writers sharing counters")
+    parser.add_argument("--counter-count", default=2, type=positive, help="Contended counters")
+    parser.add_argument("--write-timeout", default=20000, type=positive, help="Write request timeout [ms]")
+    parser.add_argument("--read-timeout", default=10000, type=positive, help="Validation request timeout [ms]")
+    parser.add_argument("--report-period", default=1000, type=positive, help="Metrics push period [ms]")
+    parser.add_argument(
+        "--otlp-endpoint",
+        default="http://localhost:9090/api/v1/otlp/v1/metrics",
+        help="OTLP metrics endpoint; empty to disable",
+    )
+
+
 def make_topic_create_parser(subparsers):
     topic_create_parser = subparsers.add_parser("topic-create", help="Create topic with consumer")
     add_common_options(topic_create_parser)
@@ -169,6 +196,7 @@ def get_root_parser():
     make_table_create_parser(subparsers)
     make_table_run_parser(subparsers)
     make_table_cleanup_parser(subparsers)
+    make_rmw_run_parser(subparsers)
 
     make_topic_create_parser(subparsers)
     make_topic_run_parser(subparsers)

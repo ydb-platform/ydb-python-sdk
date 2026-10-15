@@ -1,4 +1,11 @@
+import asyncio
+from copy import deepcopy
+from pathlib import Path
+from types import SimpleNamespace
+from unittest.mock import Mock
+
 import pytest
+import ydb.aio
 from contextlib import suppress
 
 import ydb.iam
@@ -379,3 +386,385 @@ class TestSloControlData:
                 future.result(timeout=10)
         assert len(tables) == len(set(tables)) == 2
         assert sorted(call.args[0] for call in session.drop_table.call_args_list) == sorted(tables)
+
+
+def _rmw_manager(rmw, store):
+    args = SimpleNamespace(
+        write_timeout=20000, read_timeout=10000, counter_count=2, time=3600, write_threads=4, report_period=1000
+    )
+    return rmw.AsyncRmwJobManager(store, args, Mock(), "/local/owned_counters", "/local/owned_ledger")
+
+
+class RmwStore:
+    # A serializable transaction seam, not evidence of real SDK/server recovery.
+    def __init__(self):
+        self.counters = {key: dict(counter_id=key, value=0, version=0) for key in range(2)}
+        self.ledger = {}
+        self.revision = 0
+        self.commits = 0
+        self.before_commit = None
+        self.after_commit = None
+        self.on_counter_read = None
+        self.extra_ledger = []
+        self.extra_counters = []
+        self.read_failure = None
+        self.sessions = []
+
+    def checkout(self, timeout=None):
+        store = self
+
+        class Session:
+            async def __aenter__(self):
+                store.sessions.append(self)
+                return self
+
+            async def __aexit__(self, *args):
+                pass
+
+            def transaction(self, mode):
+                assert isinstance(mode, ydb.QuerySerializableReadWrite)
+                return RmwTransaction(store)
+
+        return Session()
+
+
+class RmwTransaction:
+    def __init__(self, store):
+        self.store = store
+        self.counters = deepcopy(store.counters)
+        self.ledger = deepcopy(store.ledger)
+        self.revision = store.revision
+        self.wrote = False
+        self.operation = None
+        self.finished = False
+
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, *args):
+        pass
+
+    async def execute(self, query, parameters=None, settings=None):
+        assert not self.finished
+        assert settings.timeout in (10, 20)
+        parameters = {key[1:]: value[0] for key, value in (parameters or {}).items()}
+        if query.startswith("UPSERT"):
+            self.wrote = True
+            self.operation = parameters["op_id"]
+            self.counters[parameters["counter_id"]] = {
+                key: parameters[key] for key in ("counter_id", "value", "version")
+            }
+            assert parameters["op_id"] not in self.ledger
+            self.ledger[parameters["op_id"]] = {
+                key: parameters[key] for key in ("op_id", "counter_id", "delta", "payload")
+            }
+            rows = []
+        elif "WHERE op_id" in query:
+            row = self.ledger.get(parameters["op_id"])
+            rows = [row] if row is not None else []
+        elif "WHERE counter_id" in query:
+            row = self.counters.get(parameters["counter_id"])
+            rows = [row] if row is not None else []
+            if self.store.on_counter_read:
+                await self.store.on_counter_read()
+        else:
+            if self.store.read_failure:
+                raise self.store.read_failure
+            if "counter_id, value, version" in query:
+                rows = list(self.counters.values()) + self.store.extra_counters
+            else:
+                rows = list(self.ledger.values()) + self.store.extra_ledger
+
+        class Stream:
+            async def __aenter__(self):
+                return self
+
+            async def __aexit__(self, *args):
+                pass
+
+            def __aiter__(self):
+                async def parts():
+                    yield SimpleNamespace(rows=deepcopy(rows))
+
+                return parts()
+
+        return Stream()
+
+    async def commit(self, settings=None):
+        if self.wrote:
+            if self.store.before_commit:
+                await self.store.before_commit(self)
+            if self.revision != self.store.revision:
+                raise ydb.Aborted("serializable conflict")
+            self.store.counters, self.store.ledger = self.counters, self.ledger
+            self.store.revision += 1
+            self.store.commits += 1
+        self.finished = True
+        if self.wrote and self.store.after_commit:
+            await self.store.after_commit(self)
+
+
+class TestSloRmwData:
+    @pytest.fixture
+    def rmw(self, monkeypatch):
+        monkeypatch.syspath_prepend(str(Path(__file__).resolve().parents[2] / "tests/slo/src"))
+        from jobs import rmw_jobs
+
+        return rmw_jobs
+
+    @pytest.fixture
+    def store(self):
+        return RmwStore()
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("ambiguous", [False, True])
+    async def test_apply_uses_same_id_after_sdk_retry_and_deduplicates(self, rmw, store, ambiguous):
+        workload = _rmw_manager(rmw, store)
+        operation = rmw.Operation("writer:1", 0, 3)
+        workload.expected[operation.op_id] = operation
+        injected = False
+
+        async def failure(tx):
+            nonlocal injected
+            if not injected:
+                injected = True
+                raise ydb.BadSession("synthetic lost commit acknowledgement") if ambiguous else ydb.Aborted("conflict")
+
+        if ambiguous:
+            store.after_commit = failure
+        else:
+            store.before_commit = failure
+        await workload.apply(operation)
+        await workload.apply(operation)
+        await workload.validate()
+        assert store.commits == 1
+        assert store.counters[0] == dict(counter_id=0, value=3, version=1)
+        assert store.ledger == {operation.op_id: operation.row()}
+        assert workload.attempts == 3
+        assert workload.replays == (2 if ambiguous else 1)
+        assert len({id(session) for session in store.sessions}) == len(store.sessions)
+        assert workload.retry_settings.max_retries == ydb.RetrySettings().max_retries
+        assert workload.retry_settings.idempotent
+        assert workload.retry_settings.max_session_acquire_timeout == 20
+        assert workload.metrics.stop.call_args.kwargs["attempts"] == 1
+
+    @pytest.mark.asyncio
+    async def test_run_stops_admission_and_settles_contending_calls_before_validate(self, rmw, store):
+        workload = _rmw_manager(rmw, store)
+        admitted = 0
+        barrier = asyncio.Event()
+
+        async def first_reads():
+            nonlocal admitted
+            if admitted < workload.args.write_threads:
+                admitted += 1
+                if admitted == workload.args.write_threads:
+                    workload.stop.set()
+                    barrier.set()
+                await asyncio.wait_for(barrier.wait(), 5)
+
+        store.on_counter_read = first_reads
+        await asyncio.wait_for(workload.run_tests(), 5)
+        assert len(workload.expected) == len(store.ledger) == store.commits == 4
+        assert workload.attempts > store.commits
+        assert store.counters[0] == dict(counter_id=0, value=7, version=4)
+        assert store.counters[1] == dict(counter_id=1, value=0, version=0)
+        assert workload.metrics.stop.call_args.args[0] == ("read",)
+
+    @pytest.mark.asyncio
+    async def test_original_final_error_wins_and_other_admitted_call_settles(self, rmw, store):
+        workload = _rmw_manager(rmw, store)
+        workload.args.write_threads = 2
+        both = asyncio.Event()
+        terminal = ydb.BadRequest("original final SDK error")
+        started = 0
+
+        async def first_reads():
+            nonlocal started
+            started += 1
+            if started == 2:
+                both.set()
+            await asyncio.wait_for(both.wait(), 5)
+
+        async def fail_one(tx):
+            if tx.operation.startswith("0:"):
+                store.read_failure = ydb.BadRequest("diagnostic failure")
+                raise terminal
+            await asyncio.wait_for(workload.stop.wait(), 5)
+
+        def metric_stop(*args, **kwargs):
+            if kwargs["error"] is terminal:
+                raise RuntimeError("metric diagnostic failure")
+
+        workload.metrics.stop.side_effect = metric_stop
+        store.on_counter_read = first_reads
+        store.before_commit = fail_one
+        with pytest.raises(ydb.BadRequest) as failure:
+            await asyncio.wait_for(workload.run_tests(), 5)
+        assert failure.value is terminal
+        assert store.commits == 1
+        assert set(store.ledger) == {"1:1"}
+        assert set(workload.expected) == {"0:1", "1:1"}
+
+    @pytest.mark.asyncio
+    async def test_sdk_failure_wins_over_an_earlier_success_metric_failure(self, rmw, store):
+        workload = _rmw_manager(rmw, store)
+        workload.args.write_threads = 2
+        both = asyncio.Event()
+        terminal = ydb.BadRequest("original final SDK error")
+        started = 0
+
+        async def first_reads():
+            nonlocal started
+            started += 1
+            if started == 2:
+                both.set()
+            await asyncio.wait_for(both.wait(), 5)
+
+        async def fail_second(tx):
+            if tx.operation.startswith("1:"):
+                await asyncio.wait_for(workload.stop.wait(), 5)
+                raise terminal
+
+        def metric_stop(labels, *args, **kwargs):
+            if labels == ("write",) and kwargs["error"] is None:
+                raise RuntimeError("earlier metrics failure")
+
+        workload.metrics.stop.side_effect = metric_stop
+        store.on_counter_read = first_reads
+        store.before_commit = fail_second
+        with pytest.raises(ydb.BadRequest) as failure:
+            await asyncio.wait_for(workload.run_tests(), 5)
+        assert failure.value is terminal
+        assert store.commits == 1
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize(
+        "corruption",
+        [
+            "sum_preserving",
+            "coherent_missing",
+            "duplicate",
+            "payload",
+            "version",
+            "counter_id",
+            "delta",
+            "extra",
+            "missing_counter",
+            "duplicate_counter",
+        ],
+    )
+    async def test_independent_validation_rejects_exact_data_corruption(self, rmw, store, corruption):
+        workload = _rmw_manager(rmw, store)
+        for key in range(2):
+            operation = rmw.Operation(f"writer:{key}", key, 2)
+            workload.expected[operation.op_id] = operation
+            await workload.apply(operation)
+        if corruption == "sum_preserving":
+            store.counters[0]["value"] -= 1
+            store.counters[1]["value"] += 1
+        elif corruption == "coherent_missing":
+            del store.ledger["writer:0"]
+            store.counters[0].update(value=0, version=0)
+        elif corruption == "duplicate":
+            store.extra_ledger = [store.ledger["writer:0"]]
+        elif corruption in ("payload", "counter_id", "delta"):
+            store.ledger["writer:0"][corruption] = "bad" if corruption == "payload" else 17
+        elif corruption == "version":
+            store.counters[0]["version"] += 1
+        elif corruption == "extra":
+            store.ledger["extra"] = rmw.Operation("extra", 0, 0).row()
+        elif corruption == "missing_counter":
+            del store.counters[0]
+        elif corruption == "duplicate_counter":
+            store.extra_counters = [store.counters[0]]
+        with pytest.raises(RuntimeError):
+            await workload.validate()
+
+    @pytest.mark.asyncio
+    async def test_apply_rejects_nonidentical_replay_without_an_increment(self, rmw, store):
+        workload = _rmw_manager(rmw, store)
+        operation = rmw.Operation("same-id", 0, 1)
+        await workload.apply(operation)
+        with pytest.raises(RuntimeError):
+            await workload.apply(rmw.Operation("same-id", 1, 2))
+        assert store.commits == 1
+        assert store.counters[1]["value"] == 0
+
+    def test_rmw_cli_uses_existing_async_lifecycle_and_rejects_invalid_inputs(self, rmw):
+        from options import get_root_parser
+        from root_runner import _is_async_workload, create_runner
+        from runners.rmw_runner import RmwRunner
+
+        parser = get_root_parser()
+        args = parser.parse_args(["rmw-run", "grpc://localhost:13936", "/local"])
+        assert _is_async_workload(args)
+        assert create_runner().runners["rmw"] is RmwRunner
+        for option in (
+            "--time",
+            "--write-threads",
+            "--counter-count",
+            "--write-timeout",
+            "--read-timeout",
+            "--report-period",
+        ):
+            with pytest.raises(SystemExit) as failure:
+                parser.parse_args(["rmw-run", "grpc://localhost:13936", "/local", option, "0"])
+            assert failure.value.code == 2
+
+    @pytest.mark.asyncio
+    async def test_counts_sdk_checkout_retry_before_transaction_body(self, rmw, store, monkeypatch):
+        workload = _rmw_manager(rmw, store)
+        operation = rmw.Operation("checkout:1", 0, 1)
+        workload.expected[operation.op_id] = operation
+        original = store.checkout
+        acquisitions = 0
+
+        class FailedCheckout:
+            async def __aenter__(self):
+                raise ydb.Aborted("checkout failed before the transaction callback")
+
+            async def __aexit__(self, *args):
+                raise AssertionError("failed checkout was never entered")
+
+        def checkout(timeout=None):
+            nonlocal acquisitions
+            acquisitions += 1
+            return FailedCheckout() if acquisitions == 1 else original(timeout)
+
+        monkeypatch.setattr(store, "checkout", checkout)
+        await workload.apply(operation)
+        assert acquisitions == 2
+        assert workload.attempts == 2
+        assert workload.metrics.stop.call_args.kwargs["attempts"] == 2
+        assert store.counters[0] == dict(counter_id=0, value=1, version=1)
+        assert store.ledger == {operation.op_id: operation.row()}
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("failed_create", [1, 2])
+    async def test_setup_failure_drops_only_successfully_created_tables(self, rmw, monkeypatch, failed_create):
+        from runners import rmw_runner
+
+        failure = ydb.BadRequest("CREATE failed without ownership")
+        statements = []
+
+        class Pool:
+            async def __aenter__(self):
+                return self
+
+            async def __aexit__(self, *args):
+                pass
+
+            async def execute_with_retries(self, query):
+                statements.append(query)
+                if query.startswith("CREATE") and len(statements) == failed_create:
+                    raise failure
+
+        monkeypatch.setattr(rmw_runner, "create_metrics", lambda _: Mock())
+        monkeypatch.setattr(rmw_runner.ydb.aio, "QuerySessionPool", lambda _: Pool())
+        with pytest.raises(ydb.BadRequest) as caught:
+            await rmw_runner.RmwRunner().run_async(SimpleNamespace(otlp_endpoint="", db="/local"))
+        assert caught.value is failure
+        drops = [query for query in statements if query.startswith("DROP")]
+        owned = statements[0].split("`")[1]
+        assert drops == ([f"DROP TABLE `{owned}`;"] if failed_create == 2 else [])

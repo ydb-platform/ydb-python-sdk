@@ -33,6 +33,8 @@ jobs:
             command: "--read-rps 1000 --write-rps 100"
           - name: async-query
             command: "--read-rps 1000 --write-rps 100"
+          - name: async-query-rmw
+            command: "--write-threads 4 --counter-count 2"
           - name: sync-topic
             command: "--write-rps 200 --write-threads 8 --read-threads 8"
             metrics_yaml_path: sdk-current/tests/slo/metrics-topic.yaml
