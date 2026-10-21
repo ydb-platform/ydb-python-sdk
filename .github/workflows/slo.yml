@@ -29,16 +29,21 @@ jobs:
         sdk:
           - name: sync-table
             command: "--read-rps 1000 --write-rps 100"
+            metrics_schema: legacy_table
           - name: sync-query
             command: "--read-rps 1000 --write-rps 100"
+            metrics_schema: legacy_table
           - name: async-query
             command: "--read-rps 1000 --write-rps 100"
+            metrics_schema: legacy_table
           - name: sync-topic
             command: "--write-rps 200 --write-threads 8 --read-threads 8"
+            metrics_schema: legacy_topic
             metrics_yaml_path: sdk-current/tests/slo/metrics-topic.yaml
             thresholds_yaml_path: sdk-current/tests/slo/thresholds-topic.yaml
           - name: async-topic
             command: "--write-rps 200 --write-threads 8 --read-threads 8"
+            metrics_schema: legacy_topic
             metrics_yaml_path: sdk-current/tests/slo/metrics-topic.yaml
             thresholds_yaml_path: sdk-current/tests/slo/thresholds-topic.yaml
 
@@ -117,7 +122,7 @@ jobs:
             -t "ydb-app-current" \
             "$GITHUB_WORKSPACE/sdk-current"
 
-          # Build baseline: baseline SDK with the current workload runner
+          # Build baseline: baseline SDK with the current shared checker.
           # Keep its Dockerfile while copying runner-side contract changes.
           cp "$GITHUB_WORKSPACE/sdk-baseline/tests/slo/Dockerfile" \
              "$RUNNER_TEMP/slo-baseline.Dockerfile"
@@ -132,7 +137,7 @@ jobs:
             "$GITHUB_WORKSPACE/sdk-baseline"
 
       - name: Run SLO Tests
-        uses: ydb-platform/ydb-slo-action/init@v2
+        uses: ydb-platform/ydb-slo-action/init@bb5f9d47bb0852269e2500a36799a829dcd18437 # v3 legacy Topic contracts, Action PR81
         timeout-minutes: 30
         with:
           github_issue: ${{ github.event.pull_request.number }}
@@ -146,10 +151,9 @@ jobs:
           workload_baseline_ref: ${{ steps.baseline.outputs.ref }}
           workload_baseline_image: ydb-app-baseline
           workload_baseline_command: ${{ matrix.sdk.command }}
+          metrics_schema: ${{ matrix.sdk.metrics_schema }}
           # Custom metrics (e.g. topic e2e latency / loss) merged on top of the
           # action defaults; empty for workloads that don't set it.
           metrics_yaml_path: ${{ matrix.sdk.metrics_yaml_path }}
           # Per-scenario threshold overrides (topics make read_latency neutral).
-          # Ignored by action versions without ydb-slo-action#57; self-activates
-          # once per-scenario thresholds land in the consumed tag.
           thresholds_yaml_path: ${{ matrix.sdk.thresholds_yaml_path }}
