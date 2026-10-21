@@ -137,7 +137,7 @@ jobs:
             "$GITHUB_WORKSPACE/sdk-baseline"
 
       - name: Run SLO Tests
-        uses: ydb-platform/ydb-slo-action/init@bb5f9d47bb0852269e2500a36799a829dcd18437 # v3 legacy Topic contracts, Action PR81
+        uses: ydb-platform/ydb-slo-action/init@e136720bca3783a0bd2d14e78ac591275573c0b3 # v3 legacy telemetry fixes, Action PR81
         timeout-minutes: 30
         with:
           github_issue: ${{ github.event.pull_request.number }}
