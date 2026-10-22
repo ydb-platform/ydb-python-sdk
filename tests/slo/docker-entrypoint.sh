@@ -1,5 +1,5 @@
 #!/bin/sh
-# Workload entrypoint used by ydb-slo-action v2.
+# Workload entrypoint used by ydb-slo-action v3.
 #
 # The action launches the same image for both `current` and `baseline` workloads
 # in parallel; both must be able to schema-prepare and then run.

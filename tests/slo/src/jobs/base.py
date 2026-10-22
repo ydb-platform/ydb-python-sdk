@@ -17,8 +17,9 @@ class SyncRateLimiter:
     threads sharing the same instance.
     """
 
-    def __init__(self, min_interval_s: float) -> None:
+    def __init__(self, min_interval_s: float, stop_event: threading.Event | None = None) -> None:
         self._min_interval_s = max(0.0, float(min_interval_s))
+        self._stop_event = stop_event
         self._lock = threading.Lock()
         self._next_allowed_ts = 0.0  # monotonic timestamp
 
@@ -37,7 +38,10 @@ class SyncRateLimiter:
 
             # Sleep outside the lock so other threads can observe the schedule.
             if sleep_for > 0:
-                time.sleep(sleep_for)
+                if self._stop_event is None:
+                    time.sleep(sleep_for)
+                elif self._stop_event.wait(sleep_for):
+                    return self
 
     def __exit__(self, exc_type, exc, tb) -> bool:
         # Do not suppress exceptions.
@@ -49,6 +53,26 @@ class BaseJobManager(ABC):
         self.driver: ydb.Driver = driver
         self.args = args
         self.metrics = metrics
+        self._failure = None
+        self._failure_lock = threading.Lock()
+        self._stop = threading.Event()
+
+    def record_failure(self, error):
+        with self._failure_lock:
+            if self._failure is None:
+                self._failure = error
+        self._stop.set()
+
+    def raise_if_failed(self):
+        if self._failure is not None:
+            raise self._failure
+
+    def _run_worker(self, worker, *args):
+        try:
+            worker(*args)
+        except BaseException as error:
+            self.record_failure(error)
+            logger.exception("Workload worker failed")
 
     @abstractmethod
     def run_tests(self):
@@ -59,12 +83,12 @@ class BaseJobManager(ABC):
             return []
 
         report_period_ms = max(1, int(self.args.report_period))
-        limiter = SyncRateLimiter(min_interval_s=report_period_ms / 1000.0)
+        limiter = SyncRateLimiter(min_interval_s=report_period_ms / 1000.0, stop_event=self._stop)
 
         future = threading.Thread(
             name="slo_metrics_sender",
-            target=self._metric_sender,
-            args=(limiter, self.args.time),
+            target=self._run_worker,
+            args=(self._metric_sender, limiter, self.args.time),
         )
         future.start()
         return [future]
@@ -73,8 +97,10 @@ class BaseJobManager(ABC):
         start_time = time.time()
         logger.info("Start push metrics")
 
-        while time.time() - start_time < runtime:
+        while not self._stop.is_set() and time.time() - start_time < runtime:
             with limiter:
+                if self._stop.is_set():
+                    break
                 self.metrics.push()
 
         logger.info("Stop push metrics")
@@ -90,6 +116,16 @@ class AsyncBaseJobManager(BaseJobManager):
     @abstractmethod
     async def run_tests(self):
         pass
+
+    async def _wait_jobs(self, tasks):
+        try:
+            await asyncio.gather(*tasks)
+        except BaseException as error:
+            self.record_failure(error)
+            for task in tasks:
+                task.cancel()
+            await asyncio.gather(*tasks, return_exceptions=True)
+            self.raise_if_failed()
 
     def _run_metric_job(self):
         if not getattr(self.args, "otlp_endpoint", None):
