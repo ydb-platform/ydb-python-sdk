@@ -29,21 +29,21 @@ jobs:
         sdk:
           - name: sync-table
             command: "--read-rps 1000 --write-rps 100"
-            metrics_schema: legacy_table
+            workload_type: table
           - name: sync-query
             command: "--read-rps 1000 --write-rps 100"
-            metrics_schema: legacy_table
+            workload_type: table
           - name: async-query
             command: "--read-rps 1000 --write-rps 100"
-            metrics_schema: legacy_table
+            workload_type: table
           - name: sync-topic
             command: "--write-rps 200 --write-threads 8 --read-threads 8"
-            metrics_schema: legacy_topic
+            workload_type: topic
             metrics_yaml_path: sdk-current/tests/slo/metrics-topic.yaml
             thresholds_yaml_path: sdk-current/tests/slo/thresholds-topic.yaml
           - name: async-topic
             command: "--write-rps 200 --write-threads 8 --read-threads 8"
-            metrics_schema: legacy_topic
+            workload_type: topic
             metrics_yaml_path: sdk-current/tests/slo/metrics-topic.yaml
             thresholds_yaml_path: sdk-current/tests/slo/thresholds-topic.yaml
 
@@ -137,7 +137,7 @@ jobs:
             "$GITHUB_WORKSPACE/sdk-baseline"
 
       - name: Run SLO Tests
-        uses: ydb-platform/ydb-slo-action/init@e136720bca3783a0bd2d14e78ac591275573c0b3 # v3 legacy telemetry fixes, Action PR81
+        uses: ydb-platform/ydb-slo-action/init@d66bd1e10f893e5f70d542c4430a3cffb6d6f9f8 # v3 workload metrics, Action PR81
         timeout-minutes: 30
         with:
           github_issue: ${{ github.event.pull_request.number }}
@@ -151,7 +151,7 @@ jobs:
           workload_baseline_ref: ${{ steps.baseline.outputs.ref }}
           workload_baseline_image: ydb-app-baseline
           workload_baseline_command: ${{ matrix.sdk.command }}
-          metrics_schema: ${{ matrix.sdk.metrics_schema }}
+          workload_type: ${{ matrix.sdk.workload_type }}
           # Custom metrics (e.g. topic e2e latency / loss) merged on top of the
           # action defaults; empty for workloads that don't set it.
           metrics_yaml_path: ${{ matrix.sdk.metrics_yaml_path }}
