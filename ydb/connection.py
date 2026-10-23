@@ -374,13 +374,16 @@ class EndpointKey(object):
 
 
 class _SafeSyncIterator:
-    def __init__(self, resp, rpc_state, on_disconnected_callback):
+    def __init__(self, resp, rpc_state, on_disconnected_callback, connection):
         self.resp = resp
         self.it = resp.__iter__()
         self.rpc_state = rpc_state
         self.on_disconnected_callback = on_disconnected_callback
+        self.connection = connection
+        self._cancelled = False
 
     def cancel(self):
+        self._cancelled = True
         self.resp.cancel()
         return self
 
@@ -392,7 +395,9 @@ class _SafeSyncIterator:
             return self.it.__next__()
         except grpc.RpcError as rpc_error:
             ydb_error = _rpc_error_handler(self.rpc_state, rpc_error, use_unavailable=True)
-            if _is_disconnect_needed(ydb_error):
+            if self.connection.closing and not self._cancelled and isinstance(ydb_error, issues.Cancelled):
+                ydb_error = issues.ConnectionLost(rpc_error.details())
+            if _is_disconnect_needed(ydb_error) and self.on_disconnected_callback is not None:
                 self.on_disconnected_callback()
             raise ydb_error
 
@@ -554,7 +559,7 @@ class Connection(object):
 
             if hasattr(response, "__iter__"):
                 # NOTE(vgvoleg): for stream results we should also be able to handle disconnects
-                response = _SafeSyncIterator(response, rpc_state, on_disconnected)
+                response = _SafeSyncIterator(response, rpc_state, on_disconnected, self)
 
             return response if wrap_result is None else wrap_result(rpc_state, response, *wrap_args)
         except grpc.RpcError as rpc_error:
