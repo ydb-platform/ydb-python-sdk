@@ -1,12 +1,19 @@
 from pathlib import Path, PurePosixPath
+import asyncio
+from concurrent.futures import ThreadPoolExecutor
 import subprocess
 import sys
 import tarfile
+import threading
 import zipfile
 
+import grpc
 import pytest
 
 import ydb
+from ydb.aio.connection import _SafeAsyncIterator
+from ydb.aio.connection import Connection as AsyncConnection
+from ydb.connection import Connection as SyncConnection
 
 from ydb._utilities import check_module_exists
 from ydb._utilities import get_first_message_with_timeout
@@ -48,6 +55,190 @@ def test_get_first_message_with_timeout_reraises_stream_error():
     with pytest.raises(ydb.issues.Unavailable) as exc_info:
         get_first_message_with_timeout(stream(), timeout=5)
     assert exc_info.value is error
+
+
+@pytest.fixture
+async def grpc_stream_endpoint():
+    def responses(request, context):
+        finished = threading.Event()
+        context.add_callback(finished.set)
+        yield request
+        if request == b"cancel":
+            context.abort(grpc.StatusCode.CANCELLED, "server cancelled")
+        assert finished.wait(timeout=5)
+
+    def bidirectional(requests, context):
+        yield from responses(next(requests), context)
+
+    with ThreadPoolExecutor(max_workers=4) as executor:
+        server = grpc.server(executor)
+        server.add_generic_rpc_handlers(
+            (
+                grpc.method_handlers_generic_handler(
+                    "test.Transport",
+                    {
+                        "Query": grpc.unary_stream_rpc_method_handler(responses),
+                        "Topic": grpc.stream_stream_rpc_method_handler(bidirectional),
+                    },
+                ),
+            )
+        )
+        port = server.add_insecure_port("127.0.0.1:0")
+        server.start()
+        try:
+            yield f"127.0.0.1:{port}"
+        finally:
+            assert await asyncio.to_thread(server.stop(0).wait, timeout=5)
+
+
+class _StreamTestStub:
+    def __init__(self, channel):
+        self.Query = channel.unary_stream("/test.Transport/Query")
+        self.Topic = channel.stream_stream("/test.Transport/Topic")
+
+
+@pytest.mark.parametrize("notify", [False, True])
+@pytest.mark.parametrize("cancellation", ["channel", "call", "call-and-channel", "server"])
+def test_sync_stream_distinguishes_channel_close_from_cancellation(grpc_stream_endpoint, cancellation, notify):
+    disconnected = []
+    with SyncConnection(grpc_stream_endpoint, ydb.DriverConfig(grpc_stream_endpoint)) as connection:
+        stream = connection(
+            b"cancel" if cancellation == "server" else b"first",
+            _StreamTestStub,
+            "Query",
+            on_disconnected=(lambda: disconnected.append(True)) if notify else None,
+        )
+        assert next(stream) in (b"first", b"cancel")
+
+        if cancellation in ("call", "call-and-channel"):
+            stream.cancel()
+        if cancellation in ("channel", "call-and-channel"):
+            connection.close()
+
+        error = ydb.ConnectionLost if cancellation == "channel" else ydb.Cancelled
+        with pytest.raises(error):
+            next(stream)
+    assert disconnected == ([True] if cancellation == "channel" and notify else [])
+
+
+def test_sync_retry_recovers_after_channel_closes_during_stream(grpc_stream_endpoint):
+    attempts = []
+
+    def operation():
+        with SyncConnection(grpc_stream_endpoint, ydb.DriverConfig(grpc_stream_endpoint)) as connection:
+            stream = connection(b"first", _StreamTestStub, "Query", on_disconnected=lambda: None)
+            attempts.append(next(stream))
+            if len(attempts) == 1:
+                connection.close()
+                next(stream)
+            stream.cancel()
+            return attempts[-1]
+
+    result = ydb.retry_operation_sync(
+        operation,
+        retry_settings=ydb.RetrySettings(
+            idempotent=True, max_retries=1, slow_backoff_settings=ydb.BackoffSettings(slot_duration=0)
+        ),
+    )
+    assert result == b"first"
+    assert attempts == [b"first", b"first"]
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("method", ["Query", "Topic"])
+@pytest.mark.parametrize("notify", [False, True])
+@pytest.mark.parametrize("cancellation", ["channel", "call", "call-and-channel", "server"])
+async def test_async_stream_distinguishes_channel_close_from_cancellation(
+    grpc_stream_endpoint, method, cancellation, notify
+):
+    disconnected = []
+
+    async def on_disconnected():
+        disconnected.append(True)
+
+    async with AsyncConnection(grpc_stream_endpoint, ydb.DriverConfig(grpc_stream_endpoint)) as connection:
+        request = b"cancel" if cancellation == "server" else b"first"
+        stream = await connection(
+            request if method == "Query" else iter([request]),
+            _StreamTestStub,
+            method,
+            on_disconnected=on_disconnected if notify else None,
+        )
+        assert await asyncio.wait_for(stream.__anext__(), timeout=5) == request
+
+        if cancellation in ("call", "call-and-channel"):
+            stream.cancel()
+        if cancellation in ("channel", "call-and-channel"):
+            await connection.close()
+
+        error = {
+            "channel": ydb.ConnectionLost,
+            "call": asyncio.CancelledError,
+            "call-and-channel": asyncio.CancelledError,
+            "server": ydb.Cancelled,
+        }[cancellation]
+        with pytest.raises(error):
+            await asyncio.wait_for(stream.__anext__(), timeout=5)
+    assert disconnected == ([True] if cancellation == "channel" and notify else [])
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("close_channel", [False, True])
+async def test_async_stream_preserves_caller_task_cancellation(grpc_stream_endpoint, close_channel):
+    entered = asyncio.Event()
+    disconnected = []
+
+    async def on_disconnected():
+        disconnected.append(True)
+
+    async with grpc.aio.insecure_channel(grpc_stream_endpoint) as channel:
+        response = channel.unary_stream("/test.Transport/Query")(b"first")
+        assert await asyncio.wait_for(response.__aiter__().__anext__(), timeout=5) == b"first"
+
+        async def observed():
+            entered.set()
+            async for message in response:
+                yield message
+
+        stream = _SafeAsyncIterator(observed(), "test", on_disconnected)
+        task = asyncio.create_task(stream.__anext__())
+        try:
+            await asyncio.wait_for(entered.wait(), timeout=5)
+            task.cancel()
+            if close_channel:
+                await channel.close()
+            with pytest.raises(asyncio.CancelledError):
+                await asyncio.wait_for(task, timeout=5)
+        finally:
+            task.cancel()
+            await asyncio.gather(task, return_exceptions=True)
+    assert disconnected == []
+
+
+@pytest.mark.asyncio
+async def test_async_retry_recovers_after_channel_closes_during_stream(grpc_stream_endpoint):
+    from ydb.retries import retry_operation_async
+
+    attempts = []
+
+    async def operation():
+        async with AsyncConnection(grpc_stream_endpoint, ydb.DriverConfig(grpc_stream_endpoint)) as connection:
+            stream = await connection(b"first", _StreamTestStub, "Query")
+            attempts.append(await asyncio.wait_for(stream.__anext__(), timeout=5))
+            if len(attempts) == 1:
+                await connection.close()
+                await asyncio.wait_for(stream.__anext__(), timeout=5)
+            stream.cancel()
+            return attempts[-1]
+
+    result = await retry_operation_async(
+        operation,
+        retry_settings=ydb.RetrySettings(
+            idempotent=True, max_retries=1, slow_backoff_settings=ydb.BackoffSettings(slot_duration=0)
+        ),
+    )
+    assert result == b"first"
+    assert attempts == [b"first", b"first"]
 
 
 def test_convert_floats_to_embedding_bytes_encodes_float32_values():
