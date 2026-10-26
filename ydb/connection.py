@@ -101,7 +101,10 @@ def _rpc_error_handler(
         elif rpc_error.code() == grpc.StatusCode.CANCELLED:
             return issues.Cancelled(rpc_error.details())
         elif rpc_error.code() == grpc.StatusCode.RESOURCE_EXHAUSTED:
-            if "Sent message larger than max" in rpc_error.details():
+            if any(
+                text in rpc_error.details().lower()
+                for text in ("sent message larger than max", "received message larger than max")
+            ):
                 return issues.BadRequest(rpc_error.details())
         elif use_unavailable and rpc_error.code() == grpc.StatusCode.UNAVAILABLE:
             return issues.Unavailable(rpc_error.details())

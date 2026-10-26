@@ -213,6 +213,10 @@ Sending Messages
         metadata_items={"key": "value"},
     ))
 
+The writer splits buffered messages into gRPC requests using their serialized size,
+including message metadata. A message that cannot fit in a request on its own fails
+with ``ydb.BadRequest``. gRPC message size errors are reported without retrying.
+
 **Write and wait for server acknowledgment:**
 
 .. code-block:: python

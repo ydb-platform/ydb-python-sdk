@@ -1,17 +1,18 @@
 import asyncio
+import datetime
 import threading
-from typing import List
 from unittest import mock
 
 import pytest
 
+from .. import connection, issues
+from .._grpc.grpcwrapper.ydb_topic import StreamWriteMessage, TransactionIdentity
 from .._grpc.grpcwrapper.ydb_topic_public_types import PublicCodec
 from .topic_writer import (
     InternalMessage,
     PublicMessage,
     PublicWriterSettings,
     TopicWriterBufferFullError,
-    _split_messages_by_size,
     _split_messages_for_send,
     messages_to_proto_requests,
 )
@@ -19,55 +20,24 @@ from .topic_writer_asyncio import WriterAsyncIOReconnector
 from .topic_writer_sync import WriterSync
 
 
-@pytest.mark.parametrize(
-    "messages,split_size,expected",
-    [
-        (
-            [1, 2, 3],
-            0,
-            [[1], [2], [3]],
-        ),
-        (
-            [1, 2, 3],
-            1,
-            [[1], [2], [3]],
-        ),
-        (
-            [1, 2, 3],
-            3,
-            [[1, 2], [3]],
-        ),
-        (
-            [1, 2, 3],
-            100,
-            [[1, 2, 3]],
-        ),
-        (
-            [100, 2, 3],
-            100,
-            [[100], [2, 3]],
-        ),
-        (
-            [],
-            100,
-            [],
-        ),
-        (
-            [],
-            100,
-            [],
-        ),
-    ],
-)
-def test_split_messages_by_size(messages: List[int], split_size: int, expected: List[List[int]]):
-    res = _split_messages_by_size(messages, split_size, lambda x: x)  # noqa
-    assert res == expected
-
-
 def _make_msg(data: bytes, codec: PublicCodec = PublicCodec.RAW, seqno: int = 1) -> InternalMessage:
-    msg = InternalMessage(PublicMessage(data=data, seqno=seqno))
+    msg = InternalMessage(PublicMessage(data=data, seqno=seqno, created_at=datetime.datetime(2026, 1, 1)))
     msg.codec = codec
     return msg
+
+
+def _request_size(messages, tx_identity=None):
+    return (
+        StreamWriteMessage.FromClient(
+            StreamWriteMessage.WriteRequest(
+                messages=[msg.to_message_data() for msg in messages],
+                codec=messages[0].codec,
+                tx_identity=tx_identity,
+            )
+        )
+        .to_proto()
+        .ByteSize()
+    )
 
 
 class TestSplitMessagesForSend:
@@ -97,13 +67,9 @@ class TestSplitMessagesForSend:
         assert result == [[r1], [g1], [r2]]
 
     def test_size_limit_splits_same_codec_group(self, monkeypatch):
-        from .topic_writer import _message_data_overhead
-        from .. import connection
-
-        # patch limit so that one 5-byte message fits but two do not
-        monkeypatch.setattr(connection, "_DEFAULT_MAX_GRPC_MESSAGE_SIZE", _message_data_overhead + 5)
         m1 = _make_msg(b"hello", PublicCodec.RAW, seqno=1)
         m2 = _make_msg(b"x", PublicCodec.RAW, seqno=2)
+        monkeypatch.setattr(connection, "_DEFAULT_MAX_GRPC_MESSAGE_SIZE", _request_size([m1]))
         result = _split_messages_for_send([m1, m2])
         assert result == [[m1], [m2]]
 
@@ -124,6 +90,34 @@ class TestSplitMessagesForSend:
 
 
 class TestMessagesToProtoRequests:
+    @pytest.mark.parametrize("body_size", [0, 100, 127, 128, 16383, 16384])
+    @pytest.mark.parametrize("limit_delta", [-1, 0, 1])
+    @pytest.mark.parametrize("with_tx", [False, True])
+    def test_serialized_size_controls_splitting(self, monkeypatch, body_size, limit_delta, with_tx):
+        tx_identity = TransactionIdentity(tx_id="tx" * 100, session_id="session" * 100) if with_tx else None
+        messages = [_make_msg(b"x" * body_size, seqno=i) for i in range(1, 4)]
+        for message in messages:
+            message.metadata_items = {"key-\N{SNOWMAN}": b"m" * 200, "empty": b""}
+        limit = _request_size(messages, tx_identity) + limit_delta
+        monkeypatch.setattr(connection, "_DEFAULT_MAX_GRPC_MESSAGE_SIZE", limit)
+
+        requests = messages_to_proto_requests(messages, tx_identity)
+
+        assert [len(request.value.messages) for request in requests] == ([2, 1] if limit_delta < 0 else [3])
+        assert all(request.to_proto().ByteSize() <= limit for request in requests)
+        assert [message.seq_no for request in requests for message in request.value.messages] == [1, 2, 3]
+        assert all(request.value.tx_identity == tx_identity for request in requests)
+
+    @pytest.mark.parametrize("with_metadata", [False, True])
+    def test_oversized_single_message_is_rejected(self, monkeypatch, with_metadata):
+        message = _make_msg(b"x" * 200)
+        if with_metadata:
+            message.metadata_items = {"key": b"m" * 300}
+        monkeypatch.setattr(connection, "_DEFAULT_MAX_GRPC_MESSAGE_SIZE", _request_size([message]) - 1)
+
+        with pytest.raises(issues.BadRequest, match="size limit"):
+            messages_to_proto_requests([message], None)
+
     def test_empty(self):
         assert messages_to_proto_requests([], tx_identity=None) == []
 
@@ -156,12 +150,9 @@ class TestMessagesToProtoRequests:
         assert requests[1].value.codec == PublicCodec.GZIP
 
     def test_size_exceeded_produces_multiple_requests(self, monkeypatch):
-        from .topic_writer import _message_data_overhead
-        from .. import connection
-
-        monkeypatch.setattr(connection, "_DEFAULT_MAX_GRPC_MESSAGE_SIZE", _message_data_overhead + 5)
         m1 = _make_msg(b"hello", PublicCodec.RAW, seqno=1)
         m2 = _make_msg(b"x", PublicCodec.RAW, seqno=2)
+        monkeypatch.setattr(connection, "_DEFAULT_MAX_GRPC_MESSAGE_SIZE", _request_size([m1]))
         requests = messages_to_proto_requests([m1, m2], tx_identity=None)
         assert len(requests) == 2
         assert requests[0].value.messages[0].seq_no == 1

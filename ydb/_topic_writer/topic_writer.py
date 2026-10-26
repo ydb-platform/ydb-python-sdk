@@ -14,7 +14,7 @@ from .._grpc.grpcwrapper.ydb_topic import StreamWriteMessage
 from .._grpc.grpcwrapper.ydb_topic import TransactionIdentity
 from .._grpc.grpcwrapper.common_utils import IToProto
 from .._grpc.grpcwrapper.ydb_topic_public_types import PublicCodec
-from .. import connection
+from .. import connection, issues
 
 Message = typing.Union["PublicMessage", "PublicMessage.SimpleSourceType"]
 
@@ -257,7 +257,7 @@ def messages_to_proto_requests(
     tx_identity: Optional[TransactionIdentity],
 ) -> List[StreamWriteMessage.FromClient]:
 
-    groups = _split_messages_for_send(messages)
+    groups = _split_messages_for_send(messages, tx_identity)
 
     res = []  # type: List[StreamWriteMessage.FromClient]
     for group in groups:
@@ -272,53 +272,41 @@ def messages_to_proto_requests(
     return res
 
 
-_max_int = 2**63 - 1
-
-_message_data_overhead = (
-    StreamWriteMessage.FromClient(
-        StreamWriteMessage.WriteRequest(
-            messages=[
-                StreamWriteMessage.WriteRequest.MessageData(
-                    seq_no=_max_int,
-                    created_at=datetime.datetime(3000, 1, 1, 1, 1, 1, 1),
-                    data=bytes(1),
-                    metadata_items={},
-                    uncompressed_size=_max_int,
-                    partitioning=StreamWriteMessage.PartitioningMessageGroupID(
-                        message_group_id="a" * 100,
-                    ),
-                ),
-            ],
-            codec=20000,
-            tx_identity=None,
-        )
-    )
-    .to_proto()
-    .ByteSize()
-)
+def _protobuf_field_size(size: int) -> int:
+    """Size of a length-delimited protobuf field with a one-byte tag."""
+    return 1 + max(1, (size.bit_length() + 6) // 7) + size
 
 
 def _split_messages_for_send(
     messages: List[InternalMessage],
+    tx_identity: Optional[TransactionIdentity] = None,
 ) -> List[List[InternalMessage]]:
-    codec_groups: List[List[InternalMessage]] = []
-    for _, group_iter in itertools.groupby(messages, lambda x: x.codec):
-        codec_groups.append(list(group_iter))
-
+    limit = connection._DEFAULT_MAX_GRPC_MESSAGE_SIZE
     res: List[List[InternalMessage]] = []
-    for codec_group in codec_groups:
-        group_by_size = _split_messages_by_size_with_default_overhead(codec_group)
-        res.extend(group_by_size)
+    for codec, codec_messages in itertools.groupby(messages, lambda msg: msg.codec):
+        base_size = (
+            StreamWriteMessage.WriteRequest(messages=[], codec=codec, tx_identity=tx_identity).to_proto().ByteSize()
+        )
+        group: List[InternalMessage] = []
+        group_size = base_size
+        for msg in codec_messages:
+            message_size = _protobuf_field_size(msg.to_message_data().to_proto().ByteSize())
+            request_size = _protobuf_field_size(group_size + message_size)
+            if group and request_size > limit:
+                res.append(group)
+                group = []
+                group_size = base_size
+                request_size = _protobuf_field_size(group_size + message_size)
+            if request_size > limit:
+                raise issues.BadRequest(
+                    "Topic message with seqno %s exceeds gRPC request size limit (%d vs. %d bytes)"
+                    % (msg.seq_no, request_size, limit)
+                )
+            group.append(msg)
+            group_size += message_size
+        if group:
+            res.append(group)
     return res
-
-
-def _split_messages_by_size_with_default_overhead(
-    messages: List[InternalMessage],
-) -> List[List[InternalMessage]]:
-    def get_message_size(msg: InternalMessage):
-        return len(msg.data) + _message_data_overhead
-
-    return _split_messages_by_size(messages, connection._DEFAULT_MAX_GRPC_MESSAGE_SIZE, get_message_size)
 
 
 def internal_message_size_bytes(msg: InternalMessage) -> int:
@@ -328,32 +316,3 @@ def internal_message_size_bytes(msg: InternalMessage) -> int:
     """
     meta_len = sum(len(k) + len(v) for k, v in msg.metadata_items.items()) if msg.metadata_items else 0
     return msg.uncompressed_size + meta_len + 64  # 64 bytes overhead per message (seq_no, timestamps, etc.)
-
-
-def _split_messages_by_size(
-    messages: List[InternalMessage],
-    split_size: int,
-    get_msg_size: typing.Callable[[InternalMessage], int],
-) -> List[List[InternalMessage]]:
-    res: List[List[InternalMessage]] = []
-    group: List[InternalMessage] = []
-    group_size = 0
-
-    for msg in messages:
-        msg_size = get_msg_size(msg)
-
-        if len(group) == 0:
-            group.append(msg)
-            group_size += msg_size
-        elif group_size + msg_size <= split_size:
-            group.append(msg)
-            group_size += msg_size
-        else:
-            res.append(group)
-            group = [msg]
-            group_size = msg_size
-
-    if len(group) > 0:
-        res.append(group)
-
-    return res
