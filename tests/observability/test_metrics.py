@@ -1,7 +1,9 @@
 import asyncio
 import inspect
+import time
 from contextlib import contextmanager
-from unittest.mock import AsyncMock, MagicMock
+from types import SimpleNamespace
+from unittest.mock import AsyncMock, MagicMock, call
 
 import pytest
 from opentelemetry.metrics import Meter
@@ -79,6 +81,62 @@ def _assert_closed_metric(reader, pool_name, reason):
     )
 
 
+def _topic_reader_batch(message_count, topic, partition_session_id=1, reader_stream_id=1):
+    return SimpleNamespace(
+        messages=[object()] * message_count,
+        _partition_session=SimpleNamespace(
+            topic_path=topic,
+            id=partition_session_id,
+            reader_stream_id=reader_stream_id,
+        ),
+    )
+
+
+def _topic_read_response(partition_messages, bytes_size=30):
+    import datetime
+
+    from ydb._grpc.grpcwrapper.ydb_topic import Codec, StreamReadMessage
+
+    now = datetime.datetime(2023, 2, 3, 14, 15)
+    return StreamReadMessage.ReadResponse(
+        partition_data=[
+            StreamReadMessage.ReadResponse.PartitionData(
+                partition_session_id=partition_session_id,
+                batches=[
+                    StreamReadMessage.ReadResponse.Batch(
+                        message_data=[
+                            StreamReadMessage.ReadResponse.MessageData(
+                                offset=offset,
+                                seq_no=offset + 1,
+                                created_at=now,
+                                data=("message-%d" % offset).encode(),
+                                metadata_items={},
+                                uncompresed_size=10,
+                                message_group_id="group",
+                            )
+                            for offset in range(message_count)
+                        ],
+                        producer_id="producer",
+                        write_session_meta={},
+                        codec=Codec.CODEC_RAW,
+                        written_at=now,
+                    )
+                ],
+            )
+            for partition_session_id, message_count in partition_messages
+        ],
+        bytes_size=bytes_size,
+    )
+
+
+async def _decode_pending_topic_batches(stream):
+    while not stream._batches_to_decode.empty():
+        batch = stream._batches_to_decode.get_nowait()
+        await stream._decode_batch_inplace(batch)
+        stream._add_batch_to_queue(batch)
+    stream._state_changed.set()
+
+
 def _histogram_boundaries_advisory_supported():
     return "explicit_bucket_boundaries_advisory" in inspect.signature(Meter.create_histogram).parameters
 
@@ -86,7 +144,7 @@ def _histogram_boundaries_advisory_supported():
 def test_metrics_build_info_version(metrics_setup):
     from ydb.observability.metrics import _metrics_build_info_tokens
 
-    assert _metrics_build_info_tokens() == ["ydb-sdk-metrics/0.2.0"]
+    assert _metrics_build_info_tokens() == ["ydb-sdk-metrics/0.7.0"]
 
 
 def test_metrics_registry_records_all_instruments(metrics_setup, monkeypatch):
@@ -103,10 +161,17 @@ def test_metrics_registry_records_all_instruments(metrics_setup, monkeypatch):
         QUERY_SESSION_TIMEOUTS,
         RETRY_ATTEMPTS,
         RETRY_DURATION,
+        TOPIC_READER_DELIVERED_MESSAGES,
+        TOPIC_READER_LOCAL_BUFFER_MESSAGE_AGE_MAX,
+        TOPIC_READER_LOCAL_BUFFER_MESSAGES,
+        TOPIC_READER_PARTITION_SESSION_COUNT,
+        TOPIC_READER_RECEIVED_BYTES,
+        TOPIC_READER_RECEIVED_MESSAGES,
         ATTEMPT_BUCKETS,
         DURATION_BUCKETS_SECONDS,
         RETRY_DURATION_BUCKETS_SECONDS,
         SessionMetrics,
+        TopicReaderMetrics,
         create_metrics_operation,
         record_query_session_count,
         record_query_session_create_time,
@@ -116,7 +181,10 @@ def test_metrics_registry_records_all_instruments(metrics_setup, monkeypatch):
         record_retry_metrics,
     )
 
-    monkeypatch.setattr("ydb.observability.metrics.time.monotonic", MagicMock(side_effect=[1.0, 1.25]))
+    monkeypatch.setattr(
+        "ydb.observability.metrics.time.monotonic",
+        MagicMock(side_effect=[1.0, 1.25, 2.0, 2.5]),
+    )
 
     with pytest.raises(issues.Unavailable):
         with create_metrics_operation("ExecuteQuery"):
@@ -133,6 +201,15 @@ def test_metrics_registry_records_all_instruments(metrics_setup, monkeypatch):
     record_query_session_pending_requests(1, "main")
     record_query_session_timeout("main")
     record_retry_metrics(0.75, 3)
+    reader_metrics = TopicReaderMetrics(
+        object(),
+        consumer_name="analytics",
+        reader_name="reader-test",
+    )
+    reader_metrics.record_received_messages([_topic_reader_batch(2, "/Root/events")])
+    reader_metrics.record_received_bytes(128)
+    reader_metrics.record_delivered_messages(2, "/Root/events")
+    reader_metrics.add_partition_session("/Root/events")
 
     metrics = _metrics_by_name(metrics_setup)
 
@@ -148,6 +225,12 @@ def test_metrics_registry_records_all_instruments(metrics_setup, monkeypatch):
         QUERY_SESSION_TIMEOUTS,
         RETRY_ATTEMPTS,
         RETRY_DURATION,
+        TOPIC_READER_DELIVERED_MESSAGES,
+        TOPIC_READER_LOCAL_BUFFER_MESSAGE_AGE_MAX,
+        TOPIC_READER_LOCAL_BUFFER_MESSAGES,
+        TOPIC_READER_PARTITION_SESSION_COUNT,
+        TOPIC_READER_RECEIVED_BYTES,
+        TOPIC_READER_RECEIVED_MESSAGES,
     }
     assert metrics[CLIENT_OPERATION_DURATION].unit == "s"
     assert metrics[CLIENT_OPERATION_FAILED].unit == "{command}"
@@ -160,6 +243,14 @@ def test_metrics_registry_records_all_instruments(metrics_setup, monkeypatch):
     assert metrics[QUERY_SESSION_TIMEOUTS].unit == "{connection}"
     assert metrics[RETRY_DURATION].unit == "s"
     assert metrics[RETRY_ATTEMPTS].unit == "{attempt}"
+    assert metrics[TOPIC_READER_DELIVERED_MESSAGES].unit == "{message}"
+    assert metrics[TOPIC_READER_LOCAL_BUFFER_MESSAGE_AGE_MAX].unit == "s"
+    assert metrics[TOPIC_READER_LOCAL_BUFFER_MESSAGES].unit == "{message}"
+    assert metrics[TOPIC_READER_PARTITION_SESSION_COUNT].unit == "{session}"
+    assert metrics[TOPIC_READER_RECEIVED_MESSAGES].unit == "{message}"
+    assert metrics[TOPIC_READER_RECEIVED_BYTES].unit == "By"
+    assert metrics[TOPIC_READER_LOCAL_BUFFER_MESSAGE_AGE_MAX].data.__class__.__name__ == "Gauge"
+    assert metrics[TOPIC_READER_PARTITION_SESSION_COUNT].data.__class__.__name__ == "Sum"
     if _histogram_boundaries_advisory_supported():
         assert (
             _single_point_from_metrics(metrics, CLIENT_OPERATION_DURATION).explicit_bounds == DURATION_BUCKETS_SECONDS
@@ -198,6 +289,9 @@ def test_metrics_registry_supports_old_histogram_api():
         def create_observable_up_down_counter(self, name, callbacks=None, unit="", description=""):
             return FakeInstrument()
 
+        def create_observable_gauge(self, name, callbacks=None, unit="", description=""):
+            return FakeInstrument()
+
     OtelMetricsProvider(FakeMeter())
 
 
@@ -224,11 +318,13 @@ def test_metrics_registry_is_noop_without_meter(monkeypatch):
         _NOOP_PROVIDER,
         _NOOP_QUERY_SESSION_POOL_METRICS,
         _NOOP_SESSION_METRICS,
+        _NOOP_TOPIC_READER_METRICS,
         QuerySessionPoolMetrics,
         SessionMetrics,
         create_query_session_pool_metrics,
         create_session_metrics,
         create_metrics_operation,
+        create_topic_reader_metrics,
         record_query_session_create_time,
         record_query_session_max,
         record_query_session_pending_requests,
@@ -287,6 +383,29 @@ def test_metrics_registry_is_noop_without_meter(monkeypatch):
     noop_pool_metrics.on_acquired(noop_session)
     noop_pool_metrics.on_released(noop_session)
     noop_pool_metrics.close()
+
+    def fail_on_iteration():
+        raise AssertionError("noop topic reader metrics iterated over batches")
+        yield
+
+    noop_reader_metrics = create_topic_reader_metrics(
+        object(),
+        consumer_name="analytics",
+        reader_name="reader-test",
+        topics=fail_on_iteration(),
+    )
+    assert noop_reader_metrics is _NOOP_TOPIC_READER_METRICS
+
+    noop_reader_metrics.record_received_messages(fail_on_iteration())
+    assert noop_reader_metrics.capture_received_at() is None
+    noop_reader_metrics.record_received_bytes(10)
+    noop_reader_metrics.record_delivered_messages(1, "/Root/events")
+    noop_reader_metrics.remove_local_buffer_messages(1, object())
+    noop_reader_metrics.reset_local_buffer_messages()
+    noop_reader_metrics.add_partition_session("/Root/events")
+    noop_reader_metrics.remove_partition_session("/Root/events")
+    noop_reader_metrics.reset_partition_sessions()
+    noop_reader_metrics.close()
 
     assert not monotonic.called
     assert not noop_add.called
@@ -883,6 +1002,55 @@ class TestOpenTelemetryPublicApi:
             first_provider.shutdown()
             second_provider.shutdown()
 
+    def test_topic_reader_gauges_keep_state_while_metrics_are_reconfigured(self, monkeypatch):
+        from ydb.observability.metrics import (
+            TOPIC_READER_LOCAL_BUFFER_MESSAGE_AGE_MAX,
+            TOPIC_READER_LOCAL_BUFFER_MESSAGES,
+            TOPIC_READER_PARTITION_SESSION_COUNT,
+            create_topic_reader_metrics,
+        )
+        from ydb.opentelemetry import disable_metrics, enable_metrics
+
+        first_reader = InMemoryMetricReader()
+        first_provider = MeterProvider(metric_readers=[first_reader])
+        second_reader = InMemoryMetricReader()
+        second_provider = MeterProvider(metric_readers=[second_reader])
+
+        disable_metrics()
+        enable_metrics(first_provider)
+        reader_metrics = create_topic_reader_metrics(object(), consumer_name=None, reader_name="reconfigured")
+        first_batch = _topic_reader_batch(2, "/Root/events")
+        reader_metrics.record_received_messages(
+            [first_batch],
+            received_at=10.0,
+        )
+        reader_metrics.add_partition_session("/Root/events")
+        monkeypatch.setattr("ydb.observability.metrics.time.monotonic", MagicMock(return_value=30.0))
+        try:
+            assert _single_point(first_reader, TOPIC_READER_LOCAL_BUFFER_MESSAGES).value == 2
+            assert _single_point(first_reader, TOPIC_READER_LOCAL_BUFFER_MESSAGE_AGE_MAX).value == 20.0
+            assert _single_point(first_reader, TOPIC_READER_PARTITION_SESSION_COUNT).value == 1
+
+            disable_metrics()
+            second_batch = _topic_reader_batch(3, "/Root/events")
+            reader_metrics.record_received_messages(
+                [second_batch],
+                received_at=20.0,
+            )
+            reader_metrics.remove_local_buffer_messages(1, first_batch._partition_session)
+            reader_metrics.add_partition_session("/Root/events")
+            enable_metrics(second_provider)
+
+            assert _points(first_reader, TOPIC_READER_LOCAL_BUFFER_MESSAGES) == []
+            assert _single_point(second_reader, TOPIC_READER_LOCAL_BUFFER_MESSAGES).value == 4
+            assert _single_point(second_reader, TOPIC_READER_LOCAL_BUFFER_MESSAGE_AGE_MAX).value == 20.0
+            assert _single_point(second_reader, TOPIC_READER_PARTITION_SESSION_COUNT).value == 2
+        finally:
+            reader_metrics.close()
+            disable_metrics()
+            first_provider.shutdown()
+            second_provider.shutdown()
+
     def test_gauge_callback_drops_snapshot_if_provider_changes_during_collection(self):
         from ydb.observability import disable_metrics, enable_metrics
         from ydb.observability import metrics
@@ -1036,6 +1204,650 @@ class TestOpenTelemetryPublicApi:
 
         monkeypatch.setattr("builtins.__import__", fake_import)
         otel.disable_metrics()
+
+
+def test_topic_reader_received_metrics_attributes(metrics_setup):
+    from tests.observability.conftest import FakeDriverConfig
+    from ydb.observability.metrics import (
+        TOPIC_READER_RECEIVED_BYTES,
+        TOPIC_READER_RECEIVED_MESSAGES,
+        create_topic_reader_metrics,
+    )
+
+    class FakeDriver:
+        _driver_config = FakeDriverConfig(
+            endpoint="grpc://localhost:2136",
+            database="/Root",
+        )
+
+    reader_metrics = create_topic_reader_metrics(
+        FakeDriver(),
+        consumer_name="analytics",
+        reader_name="payments-worker",
+    )
+    reader_metrics.record_received_messages([_topic_reader_batch(2, "/Root/events")])
+    reader_metrics.record_received_bytes(128)
+    reader_metrics.record_received_messages([_topic_reader_batch(3, "/Root/events")])
+    reader_metrics.record_received_bytes(256)
+
+    expected_reader_attributes = {
+        "endpoint": "localhost:2136",
+        "database": "/Root",
+        "consumer": "analytics",
+        "reader.name": "payments-worker",
+    }
+    expected_message_attributes = dict(expected_reader_attributes, topic="/Root/events")
+    messages = _single_point(metrics_setup, TOPIC_READER_RECEIVED_MESSAGES)
+    received_bytes = _single_point(metrics_setup, TOPIC_READER_RECEIVED_BYTES)
+    assert (messages.value, messages.attributes) == (5, expected_message_attributes)
+    assert (received_bytes.value, received_bytes.attributes) == (384, expected_reader_attributes)
+
+
+def test_topic_reader_received_messages_are_split_by_topic(metrics_setup):
+    from tests.observability.conftest import FakeDriverConfig
+    from ydb.observability.metrics import (
+        TOPIC_READER_RECEIVED_BYTES,
+        TOPIC_READER_RECEIVED_MESSAGES,
+        create_topic_reader_metrics,
+    )
+
+    class FakeDriver:
+        _driver_config = FakeDriverConfig(
+            endpoint="grpc://localhost:2136",
+            database="/Root",
+        )
+
+    reader_metrics = create_topic_reader_metrics(
+        FakeDriver(),
+        consumer_name="analytics",
+        reader_name="payments-worker",
+    )
+    reader_metrics.record_received_messages(
+        [
+            _topic_reader_batch(2, "/Root/orders"),
+            _topic_reader_batch(3, "/Root/refunds"),
+            _topic_reader_batch(1, "/Root/orders"),
+        ]
+    )
+    reader_metrics.record_received_bytes(128)
+
+    message_points = _points(metrics_setup, TOPIC_READER_RECEIVED_MESSAGES)
+    assert sorted((point.attributes["topic"], point.value) for point in message_points) == [
+        ("/Root/orders", 3),
+        ("/Root/refunds", 3),
+    ]
+
+    received_bytes = _single_point(metrics_setup, TOPIC_READER_RECEIVED_BYTES)
+    assert received_bytes.value == 128
+    assert "topic" not in received_bytes.attributes
+
+
+def test_topic_reader_received_messages_are_aggregated_before_provider_calls(monkeypatch):
+    from ydb.observability import metrics
+
+    provider = MagicMock()
+    monkeypatch.setattr(metrics, "_provider", provider)
+    reader_metrics = metrics.TopicReaderMetrics(
+        object(),
+        consumer_name="analytics",
+        reader_name="payments-worker",
+    )
+    try:
+        reader_metrics.record_received_messages(
+            [
+                _topic_reader_batch(2, "/Root/orders"),
+                _topic_reader_batch(3, "/Root/refunds"),
+                _topic_reader_batch(1, "/Root/orders"),
+            ]
+        )
+    finally:
+        reader_metrics.close()
+
+    base_attributes = {
+        "endpoint": "",
+        "database": "",
+        "consumer": "analytics",
+        "reader.name": "payments-worker",
+    }
+    assert provider.add.call_args_list == [
+        call(
+            metrics.TOPIC_READER_RECEIVED_MESSAGES,
+            3,
+            dict(base_attributes, topic="/Root/orders"),
+        ),
+        call(
+            metrics.TOPIC_READER_RECEIVED_MESSAGES,
+            3,
+            dict(base_attributes, topic="/Root/refunds"),
+        ),
+    ]
+
+
+def test_topic_reader_delivered_messages_are_split_by_topic(metrics_setup):
+    from tests.observability.conftest import FakeDriverConfig
+    from ydb.observability.metrics import (
+        TOPIC_READER_DELIVERED_MESSAGES,
+        create_topic_reader_metrics,
+    )
+
+    class FakeDriver:
+        _driver_config = FakeDriverConfig(
+            endpoint="grpc://localhost:2136",
+            database="/Root",
+        )
+
+    reader_metrics = create_topic_reader_metrics(
+        FakeDriver(),
+        consumer_name="analytics",
+        reader_name="payments-worker",
+    )
+    reader_metrics.record_delivered_messages(2, "/Root/orders")
+    reader_metrics.record_delivered_messages(3, "/Root/refunds")
+    reader_metrics.record_delivered_messages(1, "/Root/orders")
+    reader_metrics.record_delivered_messages(0, "/Root/ignored")
+
+    points = _points(metrics_setup, TOPIC_READER_DELIVERED_MESSAGES)
+    values = {point.attributes["topic"]: (point.value, point.attributes) for point in points}
+    assert values == {
+        "/Root/orders": (
+            3,
+            {
+                "endpoint": "localhost:2136",
+                "database": "/Root",
+                "consumer": "analytics",
+                "reader.name": "payments-worker",
+                "topic": "/Root/orders",
+            },
+        ),
+        "/Root/refunds": (
+            3,
+            {
+                "endpoint": "localhost:2136",
+                "database": "/Root",
+                "consumer": "analytics",
+                "reader.name": "payments-worker",
+                "topic": "/Root/refunds",
+            },
+        ),
+    }
+
+
+def test_topic_reader_local_buffer_messages_tracks_current_reader_buffer(metrics_setup):
+    from tests.observability.conftest import FakeDriverConfig
+    from ydb.observability.metrics import (
+        TOPIC_READER_LOCAL_BUFFER_MESSAGES,
+        create_topic_reader_metrics,
+    )
+
+    class FakeDriver:
+        _driver_config = FakeDriverConfig(
+            endpoint="grpc://localhost:2136",
+            database="/Root",
+        )
+
+    reader_metrics = create_topic_reader_metrics(
+        FakeDriver(),
+        consumer_name="analytics",
+        reader_name="payments-worker",
+    )
+    try:
+        orders_batch = _topic_reader_batch(2, "/Root/orders", partition_session_id=1)
+        refunds_batch = _topic_reader_batch(3, "/Root/refunds", partition_session_id=2)
+        reader_metrics.record_received_messages([orders_batch, refunds_batch])
+
+        point = _single_point(metrics_setup, TOPIC_READER_LOCAL_BUFFER_MESSAGES)
+        assert (point.value, point.attributes) == (
+            5,
+            {
+                "endpoint": "localhost:2136",
+                "database": "/Root",
+                "consumer": "analytics",
+                "reader.name": "payments-worker",
+            },
+        )
+        assert "topic" not in point.attributes
+
+        reader_metrics.remove_local_buffer_messages(2, orders_batch._partition_session)
+        assert _single_point(metrics_setup, TOPIC_READER_LOCAL_BUFFER_MESSAGES).value == 3
+
+        reader_metrics.reset_local_buffer_messages()
+        assert _single_point(metrics_setup, TOPIC_READER_LOCAL_BUFFER_MESSAGES).value == 0
+    finally:
+        reader_metrics.close()
+
+    assert _points(metrics_setup, TOPIC_READER_LOCAL_BUFFER_MESSAGES) == []
+
+
+def test_topic_reader_local_buffer_age_tracks_oldest_message_per_partition(metrics_setup, monkeypatch):
+    from ydb.observability import metrics
+
+    reader_metrics = metrics.create_topic_reader_metrics(
+        object(),
+        consumer_name="analytics",
+        reader_name="payments-worker",
+    )
+    first_partition_early = _topic_reader_batch(
+        1,
+        "/Root/events",
+        partition_session_id=1,
+    )
+    second_partition = _topic_reader_batch(
+        1,
+        "/Root/events",
+        partition_session_id=2,
+    )
+    first_partition_late = _topic_reader_batch(
+        1,
+        "/Root/events",
+        partition_session_id=1,
+    )
+
+    try:
+        assert _single_point(metrics_setup, metrics.TOPIC_READER_LOCAL_BUFFER_MESSAGE_AGE_MAX).value == 0
+
+        reader_metrics.record_received_messages([first_partition_early], received_at=10.0)
+        reader_metrics.record_received_messages([second_partition], received_at=20.0)
+        reader_metrics.record_received_messages([first_partition_late], received_at=30.0)
+        monkeypatch.setattr(metrics.time, "monotonic", MagicMock(return_value=40.0))
+
+        age = _single_point(metrics_setup, metrics.TOPIC_READER_LOCAL_BUFFER_MESSAGE_AGE_MAX)
+        assert (age.value, age.attributes) == (
+            30.0,
+            {
+                "endpoint": "",
+                "database": "",
+                "consumer": "analytics",
+                "reader.name": "payments-worker",
+            },
+        )
+
+        reader_metrics.remove_local_buffer_messages(1, second_partition._partition_session)
+        assert _single_point(metrics_setup, metrics.TOPIC_READER_LOCAL_BUFFER_MESSAGE_AGE_MAX).value == 30.0
+
+        reader_metrics.remove_local_buffer_messages(1, first_partition_early._partition_session)
+        assert _single_point(metrics_setup, metrics.TOPIC_READER_LOCAL_BUFFER_MESSAGE_AGE_MAX).value == 10.0
+
+        reader_metrics.remove_local_buffer_messages(1, first_partition_late._partition_session)
+        assert _single_point(metrics_setup, metrics.TOPIC_READER_LOCAL_BUFFER_MESSAGE_AGE_MAX).value == 0
+        assert _single_point(metrics_setup, metrics.TOPIC_READER_LOCAL_BUFFER_MESSAGES).value == 0
+    finally:
+        reader_metrics.close()
+
+    assert _points(metrics_setup, metrics.TOPIC_READER_LOCAL_BUFFER_MESSAGE_AGE_MAX) == []
+
+
+def test_topic_reader_partition_session_count_is_split_by_topic(metrics_setup):
+    from ydb.observability.metrics import (
+        TOPIC_READER_PARTITION_SESSION_COUNT,
+        create_topic_reader_metrics,
+    )
+
+    reader_metrics = create_topic_reader_metrics(
+        object(),
+        consumer_name="analytics",
+        reader_name="payments-worker",
+        topics=("/Root/orders", "/Root/refunds"),
+    )
+    try:
+        assert {
+            point.attributes["topic"]: point.value
+            for point in _points(metrics_setup, TOPIC_READER_PARTITION_SESSION_COUNT)
+        } == {
+            "/Root/orders": 0,
+            "/Root/refunds": 0,
+        }
+
+        reader_metrics.add_partition_session("/Root/orders")
+        reader_metrics.add_partition_session("/Root/orders")
+        reader_metrics.add_partition_session("/Root/refunds")
+
+        points = _points(metrics_setup, TOPIC_READER_PARTITION_SESSION_COUNT)
+        assert {point.attributes["topic"]: (point.value, point.attributes) for point in points} == {
+            "/Root/orders": (
+                2,
+                {
+                    "endpoint": "",
+                    "database": "",
+                    "consumer": "analytics",
+                    "reader.name": "payments-worker",
+                    "topic": "/Root/orders",
+                },
+            ),
+            "/Root/refunds": (
+                1,
+                {
+                    "endpoint": "",
+                    "database": "",
+                    "consumer": "analytics",
+                    "reader.name": "payments-worker",
+                    "topic": "/Root/refunds",
+                },
+            ),
+        }
+
+        reader_metrics.remove_partition_session("/Root/orders")
+        reader_metrics.remove_partition_session("/Root/refunds")
+        points = _points(metrics_setup, TOPIC_READER_PARTITION_SESSION_COUNT)
+        assert {point.attributes["topic"]: point.value for point in points} == {
+            "/Root/orders": 1,
+            "/Root/refunds": 0,
+        }
+
+        reader_metrics.reset_partition_sessions()
+        assert {
+            point.attributes["topic"]: point.value
+            for point in _points(metrics_setup, TOPIC_READER_PARTITION_SESSION_COUNT)
+        } == {
+            "/Root/orders": 0,
+            "/Root/refunds": 0,
+        }
+    finally:
+        reader_metrics.close()
+
+    assert _points(metrics_setup, TOPIC_READER_PARTITION_SESSION_COUNT) == []
+
+
+@pytest.mark.asyncio
+async def test_topic_reader_metrics_follow_reader_lifecycle_across_topics(metrics_setup):
+    from unittest import mock
+
+    from tests.observability.conftest import FakeDriverConfig
+    from ydb._topic_reader.datatypes import PartitionSession
+    from ydb._topic_reader.topic_reader import PublicReaderSettings
+    from ydb._topic_reader.topic_reader_asyncio import PublicAsyncIOReader, ReaderStream
+    from ydb.observability.metrics import (
+        TOPIC_READER_DELIVERED_MESSAGES,
+        TOPIC_READER_LOCAL_BUFFER_MESSAGES,
+        TOPIC_READER_RECEIVED_BYTES,
+        TOPIC_READER_RECEIVED_MESSAGES,
+    )
+
+    class FakeDriver:
+        _driver_config = FakeDriverConfig(
+            endpoint="grpc://localhost:2136",
+            database="/Root",
+        )
+
+    settings = PublicReaderSettings(
+        consumer="analytics",
+        topic="/Root/orders",
+        reader_name="payments-worker",
+    )
+    stream_ready = asyncio.Event()
+    stream_holder = []
+
+    async def create_stream(reader_reconnector_id, driver, stream_settings, *, reader_name, metrics):
+        stream = ReaderStream(
+            reader_reconnector_id,
+            stream_settings,
+            reader_name=reader_name,
+            metrics=metrics,
+        )
+        for session_id, topic in [(1, "/Root/orders"), (2, "/Root/refunds")]:
+            stream._partition_sessions[session_id] = PartitionSession(
+                id=session_id,
+                state=PartitionSession.State.Active,
+                topic_path=topic,
+                partition_id=session_id,
+                committed_offset=0,
+                reader_reconnector_id=reader_reconnector_id,
+                reader_stream_id=stream._id,
+            )
+        stream_holder.append(stream)
+        stream_ready.set()
+        return stream
+
+    reader_attributes = {
+        "endpoint": "localhost:2136",
+        "database": "/Root",
+        "consumer": "analytics",
+        "reader.name": "payments-worker",
+    }
+    with mock.patch.object(ReaderStream, "create", create_stream):
+        reader = PublicAsyncIOReader(FakeDriver(), settings)
+        try:
+            await asyncio.wait_for(stream_ready.wait(), timeout=1)
+            stream = stream_holder[0]
+            assert (
+                _single_point(metrics_setup, TOPIC_READER_LOCAL_BUFFER_MESSAGES).value,
+                _single_point(metrics_setup, TOPIC_READER_LOCAL_BUFFER_MESSAGES).attributes,
+            ) == (0, reader_attributes)
+
+            stream._on_read_response(_topic_read_response([(1, 2), (2, 1)]))
+            await _decode_pending_topic_batches(stream)
+
+            assert _single_point(metrics_setup, TOPIC_READER_LOCAL_BUFFER_MESSAGES).value == 3
+            assert len(_points(metrics_setup, TOPIC_READER_LOCAL_BUFFER_MESSAGES)) == 1
+            assert _single_point(metrics_setup, TOPIC_READER_RECEIVED_BYTES).value == 30
+
+            assert await reader.receive_message() is not None
+            assert _single_point(metrics_setup, TOPIC_READER_LOCAL_BUFFER_MESSAGES).value == 2
+            assert len((await reader.receive_batch(max_messages=1)).messages) == 1
+            assert _single_point(metrics_setup, TOPIC_READER_LOCAL_BUFFER_MESSAGES).value == 1
+            assert len((await reader.receive_batch()).messages) == 1
+            assert _single_point(metrics_setup, TOPIC_READER_LOCAL_BUFFER_MESSAGES).value == 0
+
+            received = {
+                point.attributes["topic"]: point.value
+                for point in _points(metrics_setup, TOPIC_READER_RECEIVED_MESSAGES)
+            }
+            delivered = {
+                point.attributes["topic"]: point.value
+                for point in _points(metrics_setup, TOPIC_READER_DELIVERED_MESSAGES)
+            }
+            assert received == {"/Root/orders": 2, "/Root/refunds": 1}
+            assert delivered == received
+        finally:
+            await reader.close(flush=False)
+
+    assert _points(metrics_setup, TOPIC_READER_LOCAL_BUFFER_MESSAGES) == []
+
+
+@pytest.mark.asyncio
+async def test_topic_reader_gauges_reset_across_stream_reconnect(metrics_setup, monkeypatch):
+    from unittest import mock
+
+    from tests.observability.conftest import FakeDriverConfig
+    from ydb._topic_reader.datatypes import PartitionSession
+    from ydb._topic_reader.topic_reader import PublicReaderSettings
+    from ydb._topic_reader.topic_reader_asyncio import PublicAsyncIOReader, ReaderStream
+    from ydb.observability.metrics import (
+        TOPIC_READER_LOCAL_BUFFER_MESSAGE_AGE_MAX,
+        TOPIC_READER_LOCAL_BUFFER_MESSAGES,
+        TOPIC_READER_PARTITION_SESSION_COUNT,
+        TopicReaderMetrics,
+    )
+
+    class FakeDriver:
+        _driver_config = FakeDriverConfig()
+
+    settings = PublicReaderSettings(
+        consumer="analytics",
+        topic="/Root/orders",
+        reader_name="reconnecting-reader",
+    )
+    first_stream_ready = asyncio.Event()
+    second_stream_create_started = asyncio.Event()
+    allow_second_stream = asyncio.Event()
+    second_stream_ready = asyncio.Event()
+    streams = []
+    monkeypatch.setattr(
+        TopicReaderMetrics,
+        "capture_received_at",
+        lambda self: time.monotonic() - 5.0,
+    )
+
+    async def create_stream(reader_reconnector_id, driver, stream_settings, *, reader_name, metrics):
+        stream = ReaderStream(
+            reader_reconnector_id,
+            stream_settings,
+            reader_name=reader_name,
+            metrics=metrics,
+        )
+        stream._partition_sessions[1] = PartitionSession(
+            id=1,
+            state=PartitionSession.State.Active,
+            topic_path="/Root/orders",
+            partition_id=1,
+            committed_offset=0,
+            reader_reconnector_id=reader_reconnector_id,
+            reader_stream_id=stream._id,
+        )
+        streams.append(stream)
+        if len(streams) == 1:
+            metrics.add_partition_session("/Root/orders")
+            stream._on_read_response(_topic_read_response([(1, 2)], bytes_size=20))
+            await _decode_pending_topic_batches(stream)
+            first_stream_ready.set()
+        else:
+            second_stream_create_started.set()
+            await allow_second_stream.wait()
+            metrics.add_partition_session("/Root/orders")
+            stream._on_read_response(_topic_read_response([(1, 1)], bytes_size=10))
+            await _decode_pending_topic_batches(stream)
+            second_stream_ready.set()
+        return stream
+
+    with mock.patch.object(ReaderStream, "create", create_stream):
+        reader = PublicAsyncIOReader(FakeDriver(), settings)
+        try:
+            await asyncio.wait_for(first_stream_ready.wait(), timeout=1)
+            assert _single_point(metrics_setup, TOPIC_READER_LOCAL_BUFFER_MESSAGES).value == 2
+            first_age = _single_point(metrics_setup, TOPIC_READER_LOCAL_BUFFER_MESSAGE_AGE_MAX).value
+            assert 5.0 <= first_age < 10.0
+            assert _single_point(metrics_setup, TOPIC_READER_PARTITION_SESSION_COUNT).value == 1
+
+            streams[0]._set_first_error(issues.Unavailable("reconnect"))
+            await asyncio.wait_for(second_stream_create_started.wait(), timeout=2)
+            assert _single_point(metrics_setup, TOPIC_READER_LOCAL_BUFFER_MESSAGES).value == 0
+            assert _single_point(metrics_setup, TOPIC_READER_LOCAL_BUFFER_MESSAGE_AGE_MAX).value == 0
+            assert _single_point(metrics_setup, TOPIC_READER_PARTITION_SESSION_COUNT).value == 0
+
+            allow_second_stream.set()
+            await asyncio.wait_for(second_stream_ready.wait(), timeout=1)
+
+            async def wait_until_second_stream_is_installed():
+                while reader._reconnector._stream_reader is not streams[1]:
+                    await asyncio.sleep(0)
+
+            await asyncio.wait_for(wait_until_second_stream_is_installed(), timeout=1)
+            assert _single_point(metrics_setup, TOPIC_READER_LOCAL_BUFFER_MESSAGES).value == 1
+            second_age = _single_point(metrics_setup, TOPIC_READER_LOCAL_BUFFER_MESSAGE_AGE_MAX).value
+            assert 5.0 <= second_age < 10.0
+            assert _single_point(metrics_setup, TOPIC_READER_PARTITION_SESSION_COUNT).value == 1
+        finally:
+            allow_second_stream.set()
+            await reader.close(flush=False)
+
+    assert _points(metrics_setup, TOPIC_READER_LOCAL_BUFFER_MESSAGES) == []
+    assert _points(metrics_setup, TOPIC_READER_LOCAL_BUFFER_MESSAGE_AGE_MAX) == []
+    assert _points(metrics_setup, TOPIC_READER_PARTITION_SESSION_COUNT) == []
+
+
+def test_topic_reader_gauges_aggregate_duplicate_reader_attributes(metrics_setup, monkeypatch):
+    from ydb.observability.metrics import (
+        TOPIC_READER_LOCAL_BUFFER_MESSAGE_AGE_MAX,
+        TOPIC_READER_LOCAL_BUFFER_MESSAGES,
+        TOPIC_READER_PARTITION_SESSION_COUNT,
+        create_topic_reader_metrics,
+    )
+
+    first = create_topic_reader_metrics(object(), consumer_name=None, reader_name="shared")
+    second = create_topic_reader_metrics(object(), consumer_name=None, reader_name="shared")
+    try:
+        first.record_received_messages([_topic_reader_batch(2, "/Root/events")], received_at=10.0)
+        second.record_received_messages([_topic_reader_batch(3, "/Root/events")], received_at=20.0)
+        first.add_partition_session("/Root/events")
+        first.add_partition_session("/Root/events")
+        second.add_partition_session("/Root/events")
+        monkeypatch.setattr("ydb.observability.metrics.time.monotonic", MagicMock(return_value=30.0))
+
+        assert _single_point(metrics_setup, TOPIC_READER_LOCAL_BUFFER_MESSAGES).value == 5
+        assert _single_point(metrics_setup, TOPIC_READER_LOCAL_BUFFER_MESSAGE_AGE_MAX).value == 20.0
+        assert _single_point(metrics_setup, TOPIC_READER_PARTITION_SESSION_COUNT).value == 3
+    finally:
+        first.close()
+        second.close()
+
+
+def test_topic_reader_received_metrics_omit_consumer(metrics_setup):
+    from ydb.observability.metrics import (
+        TOPIC_READER_DELIVERED_MESSAGES,
+        TOPIC_READER_LOCAL_BUFFER_MESSAGE_AGE_MAX,
+        TOPIC_READER_LOCAL_BUFFER_MESSAGES,
+        TOPIC_READER_PARTITION_SESSION_COUNT,
+        TOPIC_READER_RECEIVED_BYTES,
+        TOPIC_READER_RECEIVED_MESSAGES,
+        create_topic_reader_metrics,
+    )
+
+    reader_metrics = create_topic_reader_metrics(
+        object(),
+        consumer_name=None,
+        reader_name="reader-42",
+    )
+    try:
+        reader_metrics.record_received_messages([_topic_reader_batch(1, "/Root/events")])
+        reader_metrics.record_received_bytes(10)
+        reader_metrics.record_delivered_messages(1, "/Root/events")
+        reader_metrics.add_partition_session("/Root/events")
+
+        reader_attributes = {
+            "endpoint": "",
+            "database": "",
+            "reader.name": "reader-42",
+        }
+        message_attributes = _single_point(metrics_setup, TOPIC_READER_RECEIVED_MESSAGES).attributes
+        bytes_attributes = _single_point(metrics_setup, TOPIC_READER_RECEIVED_BYTES).attributes
+        delivered_attributes = _single_point(metrics_setup, TOPIC_READER_DELIVERED_MESSAGES).attributes
+        buffer_attributes = _single_point(metrics_setup, TOPIC_READER_LOCAL_BUFFER_MESSAGES).attributes
+        buffer_age_attributes = _single_point(
+            metrics_setup,
+            TOPIC_READER_LOCAL_BUFFER_MESSAGE_AGE_MAX,
+        ).attributes
+        partition_session_attributes = _single_point(
+            metrics_setup,
+            TOPIC_READER_PARTITION_SESSION_COUNT,
+        ).attributes
+        assert message_attributes == dict(reader_attributes, topic="/Root/events")
+        assert bytes_attributes == reader_attributes
+        assert delivered_attributes == dict(reader_attributes, topic="/Root/events")
+        assert buffer_attributes == reader_attributes
+        assert buffer_age_attributes == reader_attributes
+        assert partition_session_attributes == dict(reader_attributes, topic="/Root/events")
+    finally:
+        reader_metrics.close()
+
+
+@pytest.mark.parametrize("reader_name", [None, ""])
+def test_topic_reader_received_metrics_require_explicit_reader_name(metrics_setup, reader_name):
+    from ydb.observability.metrics import (
+        TOPIC_READER_DELIVERED_MESSAGES,
+        TOPIC_READER_LOCAL_BUFFER_MESSAGE_AGE_MAX,
+        TOPIC_READER_LOCAL_BUFFER_MESSAGES,
+        TOPIC_READER_PARTITION_SESSION_COUNT,
+        TOPIC_READER_RECEIVED_BYTES,
+        TOPIC_READER_RECEIVED_MESSAGES,
+        create_topic_reader_metrics,
+    )
+
+    reader_metrics = create_topic_reader_metrics(
+        object(),
+        consumer_name="analytics",
+        reader_name=reader_name,
+    )
+    reader_metrics.record_received_messages([_topic_reader_batch(1, "/Root/events")])
+    reader_metrics.record_received_bytes(10)
+    reader_metrics.record_delivered_messages(1, "/Root/events")
+    reader_metrics.add_partition_session("/Root/events")
+
+    metrics = _metrics_by_name(metrics_setup)
+    assert TOPIC_READER_RECEIVED_MESSAGES not in metrics
+    assert TOPIC_READER_RECEIVED_BYTES not in metrics
+    assert TOPIC_READER_DELIVERED_MESSAGES not in metrics
+    assert TOPIC_READER_LOCAL_BUFFER_MESSAGES not in metrics
+    assert TOPIC_READER_LOCAL_BUFFER_MESSAGE_AGE_MAX not in metrics
+    assert TOPIC_READER_PARTITION_SESSION_COUNT not in metrics
 
 
 class TestEndpointHelpers:

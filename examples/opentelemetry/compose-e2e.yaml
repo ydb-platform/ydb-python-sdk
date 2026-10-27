@@ -84,6 +84,7 @@ services:
       YDB_DATABASE: /local
       OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4317
       OTEL_SERVICE_NAME: ydb-otel-example
+      OTEL_TOPIC_BUFFER_OBSERVATION_SECONDS: "7"
     depends_on:
       ydb:
         condition: service_healthy

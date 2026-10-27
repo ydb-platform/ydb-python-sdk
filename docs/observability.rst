@@ -268,17 +268,18 @@ Client-side metrics are enabled independently of tracing:
     disable_metrics()          # turn metrics off — back to the no-op default
 
 Operation and retry metrics follow the currently active provider immediately. Call
-``enable_metrics`` before creating query sessions or a ``QuerySessionPool`` whose
-lifecycle should be instrumented. Session and pool lifecycle trackers created while
-metrics are disabled keep shared no-op instrumentation and are not retrofitted later.
+``enable_metrics`` before creating query sessions, a ``QuerySessionPool``, or a topic
+Reader whose lifecycle should be instrumented. Session, pool, and Reader lifecycle
+trackers created while metrics are disabled keep shared no-op instrumentation and are
+not retrofitted later.
 
 Calling ``enable_metrics`` again replaces the active backend. New events go to the new
 backend, while operations and wait timers already in flight finish on the backend on
 which they started. Observable callbacks registered by an old backend become inactive.
-Pools that were created while metrics were active retain their lightweight lifecycle
-state across ``disable_metrics`` / re-enable, so a replacement backend observes their
-current values. Pools created while metrics were disabled retain no-op lifecycle
-instrumentation.
+Pools and topic Readers that were created while metrics were active retain their
+lightweight lifecycle state across ``disable_metrics`` / re-enable, so a replacement
+backend observes their current values. Pools and Readers created while metrics were
+disabled retain no-op lifecycle instrumentation.
 
 For OpenTelemetry the built-in convenience is ``ydb.opentelemetry.enable_metrics``,
 which builds an OTel-backed provider from a meter provider and installs it here — see
@@ -352,6 +353,24 @@ adapter maps them to instruments on the ``"ydb.sdk"`` meter):
    * - ``ydb.client.retry.attempts``
      - Histogram
      - Number of attempts performed for one logical retried operation.
+   * - ``ydb.topic.reader.received.messages``
+     - Counter (``{message}``)
+     - Messages received by the SDK topic Reader before decoding.
+   * - ``ydb.topic.reader.received.bytes``
+     - Counter (``By``)
+     - Total ``ReadResponse`` bytes received by the SDK topic Reader.
+   * - ``ydb.topic.reader.delivered.messages``
+     - Counter (``{message}``)
+     - Messages returned by the topic Reader to the application.
+   * - ``ydb.topic.reader.local_buffer.messages``
+     - ObservableUpDownCounter (``{message}``)
+     - Current number of messages owned by the topic Reader and not yet returned to the application.
+   * - ``ydb.topic.reader.local_buffer.message_age.max``
+     - ObservableGauge (``s``)
+     - Age of the oldest message owned by the topic Reader and not yet returned to the application.
+   * - ``ydb.topic.reader.partition_session.count``
+     - ObservableUpDownCounter (``{session}``)
+     - Current number of active partition sessions owned by the topic Reader.
 
 Attributes
 ~~~~~~~~~~
@@ -402,6 +421,54 @@ initial attach handshake does not count as closing an active session, and standa
 ``QuerySession`` instances do not publish pool metrics. A session publishes at most one
 closure event; the first terminal reason wins.
 
+.. _topic-reader-receive-metrics:
+
+Topic Reader Metrics
+~~~~~~~~~~~~~~~~~~~~
+
+Topic Reader metrics carry ``endpoint``, ``database``, and
+``reader.name``. The ``consumer`` attribute is present only for consumer-based reads;
+the SDK omits it when reading without a consumer. ``ydb.topic.reader.received.messages``,
+``ydb.topic.reader.delivered.messages``, and
+``ydb.topic.reader.partition_session.count`` additionally carry ``topic`` because each
+message and partition session has an unambiguous topic. The reader-level
+``ydb.topic.reader.received.bytes``, ``ydb.topic.reader.local_buffer.messages``, and
+``ydb.topic.reader.local_buffer.message_age.max`` metrics omit ``topic``: one
+``ReadResponse`` can contain data from several topics, and the buffer gauges follow the
+total retained by the logical Reader. Each response increments the byte counter once by
+``ReadResponse.bytes_size``.
+Metrics are published only when the application passes a non-empty ``reader_name`` to
+``TopicClient.reader``. The name and metric context belong to the logical Reader and
+remain stable across stream reconnects. The byte counter is updated as soon as the
+transport delivers a ``ReadResponse`` to the SDK, before the response is converted to
+batches; it is therefore counted even if conversion later fails. The message counter is
+updated after the batches are created and queued, but before their payloads are decoded.
+For a multi-topic Reader, message increments are
+separated by ``topic`` while the response byte increment remains a single Reader-level
+value. The delivery counter is updated only after a message or batch has been removed
+from the SDK buffer and is ready to be returned by ``receive_message``, ``receive_batch``,
+or ``receive_batch_with_tx``. A batch increments it by the number of messages actually
+returned after applying ``max_messages`` and ``max_bytes``. Empty reads, timeouts, and
+failures before the return point do not increment it. The local-buffer gauge increases
+when accepted batches enter the decoding queue and decreases when messages leave the
+internal buffer, including partial batch reads. It therefore includes both messages
+waiting for decoding and decoded messages waiting for the application.
+``local_buffer.message_age.max`` is computed with a monotonic clock from the receive
+time of the oldest retained message; it is ``0`` when the buffer is empty. Receipt
+cohorts are tracked internally per partition session so delivery from another partition
+does not advance the oldest timestamp incorrectly. ``partition_session.count`` changes
+when the server starts or stops a partition session, is split by ``topic``, and does not
+carry a ``partition`` attribute. Each configured topic is observable with value ``0``
+even before its first partition session starts. Remaining messages and partition
+sessions are reset when a stream closes or reconnects, and closing the logical Reader
+removes its observations. Use rates of the cumulative counters to compare incoming and
+application-visible traffic; read the observable instruments as current values. For
+matching Reader attributes, buffer counts and partition-session counts are summed while
+the maximum buffer age is published.
+
+See :ref:`opentelemetry-topic-reader-metrics` for an OpenTelemetry setup example. A
+complete runnable version is available in ``examples/opentelemetry/otel_example.py``.
+
 Writing a Custom Metrics Backend
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -443,12 +510,14 @@ subclass; just match the signatures:
 
 The instrument kind for each metric is implied by which method the SDK calls: names in
 the *Histogram* rows above arrive through ``record``, *Counter* / *UpDownCounter* names
-through ``add``, and the three *ObservableUpDownCounter* gauges
-(``ydb.query.session.count`` / ``max`` / ``min``) through ``observe_gauge``. A backend
+through ``add``, and the six observable instruments (the three query-session gauges,
+``ydb.topic.reader.local_buffer.messages``,
+``ydb.topic.reader.local_buffer.message_age.max``, and
+``ydb.topic.reader.partition_session.count``) through ``observe_gauge``. A backend
 that has no notion of asynchronous gauges can simply store the callbacks (or ignore
 them); the SDK never pushes those values, so nothing is lost elsewhere.
 
 ``disable_metrics()`` reverts event recording to the no-op default and deactivates the
-current backend's gauge callbacks. Trackers belonging to already instrumented pools
-remain available so a replacement backend starts with an accurate snapshot; pool and
-session lifecycle trackers that started on the no-op path remain no-ops.
+current backend's gauge callbacks. Trackers belonging to already instrumented pools and
+topic Readers remain available so a replacement backend starts with an accurate
+snapshot; lifecycle trackers that started on the no-op path remain no-ops.

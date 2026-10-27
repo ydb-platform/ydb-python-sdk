@@ -30,6 +30,12 @@ from ydb.observability.metrics import (
     QUERY_SESSION_TIMEOUTS,
     RETRY_ATTEMPTS,
     RETRY_DURATION,
+    TOPIC_READER_DELIVERED_MESSAGES,
+    TOPIC_READER_LOCAL_BUFFER_MESSAGE_AGE_MAX,
+    TOPIC_READER_LOCAL_BUFFER_MESSAGES,
+    TOPIC_READER_PARTITION_SESSION_COUNT,
+    TOPIC_READER_RECEIVED_BYTES,
+    TOPIC_READER_RECEIVED_MESSAGES,
     ATTEMPT_BUCKETS,
     DURATION_BUCKETS_SECONDS,
     GaugeCallback,
@@ -45,7 +51,20 @@ _GAUGE_META = {
     QUERY_SESSION_COUNT: ("{connection}", "Number of open YDB query sessions."),
     QUERY_SESSION_MAX: ("{connection}", "Maximum configured number of YDB query sessions."),
     QUERY_SESSION_MIN: ("{connection}", "Minimum configured number of YDB query sessions."),
+    TOPIC_READER_LOCAL_BUFFER_MESSAGES: (
+        "{message}",
+        "The number of messages currently buffered by the reader.",
+    ),
+    TOPIC_READER_LOCAL_BUFFER_MESSAGE_AGE_MAX: (
+        "s",
+        "Age of the oldest message currently buffered by the reader.",
+    ),
+    TOPIC_READER_PARTITION_SESSION_COUNT: (
+        "{session}",
+        "The number of active partition sessions owned by the reader.",
+    ),
 }
+_OBSERVABLE_GAUGE_INSTRUMENTS = frozenset({TOPIC_READER_LOCAL_BUFFER_MESSAGE_AGE_MAX})
 
 
 class OtelMetricsProvider:
@@ -114,6 +133,21 @@ class OtelMetricsProvider:
                 unit="{request}",
                 description="Number of requests waiting for a YDB query session.",
             ),
+            TOPIC_READER_DELIVERED_MESSAGES: meter.create_counter(
+                TOPIC_READER_DELIVERED_MESSAGES,
+                unit="{message}",
+                description="Number of messages delivered by the YDB topic reader to the application.",
+            ),
+            TOPIC_READER_RECEIVED_MESSAGES: meter.create_counter(
+                TOPIC_READER_RECEIVED_MESSAGES,
+                unit="{message}",
+                description="The number of messages accepted by the SDK for an active partition session.",
+            ),
+            TOPIC_READER_RECEIVED_BYTES: meter.create_counter(
+                TOPIC_READER_RECEIVED_BYTES,
+                unit="By",
+                description="The protocol bytes_size received in read responses.",
+            ),
         }
 
     def record(self, name: str, value: float, attributes: Optional[Dict[str, Any]] = None) -> None:
@@ -132,7 +166,12 @@ class OtelMetricsProvider:
         def _otel_callback(_: CallbackOptions):
             return [Observation(value, attributes=attrs) for value, attrs in callback()]
 
-        self._meter.create_observable_up_down_counter(
+        create_instrument = (
+            self._meter.create_observable_gauge
+            if name in _OBSERVABLE_GAUGE_INSTRUMENTS
+            else self._meter.create_observable_up_down_counter
+        )
+        create_instrument(
             name,
             callbacks=[_otel_callback],
             unit=unit,
