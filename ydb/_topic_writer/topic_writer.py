@@ -16,6 +16,11 @@ from .._grpc.grpcwrapper.common_utils import IToProto
 from .._grpc.grpcwrapper.ydb_topic_public_types import PublicCodec
 from .. import connection
 
+if typing.TYPE_CHECKING:
+    from .._grpc.v4.protos import ydb_topic_pb2
+else:
+    from .._grpc.common.protos import ydb_topic_pb2
+
 Message = typing.Union["PublicMessage", "PublicMessage.SimpleSourceType"]
 
 
@@ -255,51 +260,38 @@ def default_serializer_message_content(data: Any) -> bytes:
 def messages_to_proto_requests(
     messages: List[InternalMessage],
     tx_identity: Optional[TransactionIdentity],
-) -> List[StreamWriteMessage.FromClient]:
+) -> List[ydb_topic_pb2.StreamWriteMessage.FromClient]:
+    tx_proto = tx_identity.to_proto() if tx_identity is not None else None
 
-    groups = _split_messages_for_send(messages, tx_identity)
+    def new_request(codec: int) -> ydb_topic_pb2.StreamWriteMessage.FromClient:
+        request = ydb_topic_pb2.StreamWriteMessage.FromClient()
+        request.write_request.codec = codec
+        if tx_proto is not None:
+            request.write_request.tx.CopyFrom(tx_proto)
+        return request
 
-    res = []  # type: List[StreamWriteMessage.FromClient]
-    for group in groups:
-        req = StreamWriteMessage.FromClient(
-            StreamWriteMessage.WriteRequest(
-                messages=list(map(InternalMessage.to_message_data, group)),
-                codec=group[0].codec,
-                tx_identity=tx_identity,
-            )
-        )
-        res.append(req)
+    limit = connection._DEFAULT_MAX_GRPC_MESSAGE_SIZE
+    res: List[ydb_topic_pb2.StreamWriteMessage.FromClient] = []
+    for codec, codec_messages in itertools.groupby(messages, lambda msg: msg.codec):
+        request = new_request(codec)
+        base_size = request.write_request.ByteSize()
+        group_size = base_size
+        for msg in codec_messages:
+            message_proto = msg.to_message_data().to_proto()
+            message_size = _protobuf_field_size(message_proto.ByteSize())
+            if request.write_request.messages and _protobuf_field_size(group_size + message_size) > limit:
+                res.append(request)
+                request = new_request(codec)
+                group_size = base_size
+            request.write_request.messages.append(message_proto)
+            group_size += message_size
+        res.append(request)
     return res
 
 
 def _protobuf_field_size(size: int) -> int:
     """Size of a length-delimited protobuf field with a one-byte tag."""
     return 1 + max(1, (size.bit_length() + 6) // 7) + size
-
-
-def _split_messages_for_send(
-    messages: List[InternalMessage],
-    tx_identity: Optional[TransactionIdentity] = None,
-) -> List[List[InternalMessage]]:
-    limit = connection._DEFAULT_MAX_GRPC_MESSAGE_SIZE
-    res: List[List[InternalMessage]] = []
-    for codec, codec_messages in itertools.groupby(messages, lambda msg: msg.codec):
-        base_size = (
-            StreamWriteMessage.WriteRequest(messages=[], codec=codec, tx_identity=tx_identity).to_proto().ByteSize()
-        )
-        group: List[InternalMessage] = []
-        group_size = base_size
-        for msg in codec_messages:
-            message_size = _protobuf_field_size(msg.to_message_data().to_proto().ByteSize())
-            if group and _protobuf_field_size(group_size + message_size) > limit:
-                res.append(group)
-                group = []
-                group_size = base_size
-            group.append(msg)
-            group_size += message_size
-        if group:
-            res.append(group)
-    return res
 
 
 def internal_message_size_bytes(msg: InternalMessage) -> int:
