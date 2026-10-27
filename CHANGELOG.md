@@ -1,3 +1,4 @@
+* Add `ydb.topic.reader.received.messages`, reader-level `ydb.topic.reader.received.bytes`, and `ydb.topic.reader.delivered.messages` counters plus `ydb.topic.reader.local_buffer.messages`, `ydb.topic.reader.local_buffer.message_age.max`, and `ydb.topic.reader.partition_session.count` observable metrics for explicitly named topic readers; metrics-enabled clients now advertise `ydb-sdk-metrics/0.7.0` in `x-ydb-sdk-build-info`
 * Add optional topic reader names for identifying logical readers in server diagnostics and SDK logs
 
 ## 3.33.2 ##

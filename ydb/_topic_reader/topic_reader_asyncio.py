@@ -35,6 +35,11 @@ from .._errors import check_retriable_error
 import logging
 
 from ..query.base import TxEvent
+from ..observability.metrics import (
+    TopicReaderMetrics,
+    _NOOP_TOPIC_READER_METRICS,
+    create_topic_reader_metrics,
+)
 
 if typing.TYPE_CHECKING:
     from ..query.transaction import BaseQueryTxContext
@@ -251,6 +256,7 @@ class ReaderReconnector:
     _driver: Driver
     _background_tasks: Set[Task]
     _reader_name: str
+    _metrics: TopicReaderMetrics
     _log_prefix: str
 
     _state_changed: asyncio.Event
@@ -269,6 +275,12 @@ class ReaderReconnector:
         self._settings = settings
         self._driver = driver
         self._reader_name = settings.reader_name or "reader-%d" % self._id
+        self._metrics = create_topic_reader_metrics(
+            driver,
+            consumer_name=settings.consumer,
+            reader_name=settings.reader_name,
+            topics=settings.topic,
+        )
         self._log_prefix = "topic reader reader_name=%r reader_id=%s" % (self._reader_name, self._id)
         self._loop = loop if loop is not None else asyncio.get_running_loop()
         self._background_tasks = set()
@@ -294,6 +306,7 @@ class ReaderReconnector:
                     self._driver,
                     self._settings,
                     reader_name=self._reader_name,
+                    metrics=self._metrics,
                 )
                 logger.debug("%s connected stream_id=%s", self._log_prefix, self._stream_reader._id)
                 attempt = 0
@@ -347,10 +360,16 @@ class ReaderReconnector:
     def receive_batch_nowait(self, max_messages: Optional[int] = None, max_bytes: Optional[int] = None):
         if self._stream_reader is None:
             return None
-        return self._stream_reader.receive_batch_nowait(
+        batch = self._stream_reader.receive_batch_nowait(
             max_messages=max_messages,
             max_bytes=max_bytes,
         )
+        if batch is not None:
+            self._metrics.record_delivered_messages(
+                len(batch.messages),
+                batch._partition_session.topic_path,
+            )
+        return batch
 
     def receive_batch_with_tx_nowait(
         self, tx: "BaseQueryTxContext", max_messages: Optional[int] = None, max_bytes: Optional[int] = None
@@ -371,10 +390,21 @@ class ReaderReconnector:
 
         tx._add_callback(TxEvent.AFTER_COMMIT, batch._update_partition_offsets, self._loop)
 
+        self._metrics.record_delivered_messages(
+            len(batch.messages),
+            batch._partition_session.topic_path,
+        )
+
         return batch
 
     def receive_message_nowait(self):
-        return self._stream_reader.receive_message_nowait()
+        message = self._stream_reader.receive_message_nowait()
+        if message is not None:
+            self._metrics.record_delivered_messages(
+                1,
+                message._partition_session.topic_path,
+            )
+        return message
 
     def _init_tx(self, tx: "BaseQueryTxContext"):
         tx_id = tx.tx_id
@@ -499,15 +529,21 @@ class ReaderReconnector:
         # close this flushes pending commits; cancelling the loop first would let it close
         # the stream with flush=False instead and skip the flush.
         self._closed = True
-        if self._stream_reader:
-            await self._stream_reader.close(flush)
-        # Wake any pending wait_message() waiter (e.g. a concurrent receive) so it doesn't
-        # hang if the loop was reconnecting when close() cancelled it.
-        self._set_first_error(TopicReaderStreamClosedError())
-        for task in self._background_tasks:
-            task.cancel()
+        try:
+            if self._stream_reader:
+                await self._stream_reader.close(flush)
+        finally:
+            try:
+                # Wake any pending wait_message() waiter (e.g. a concurrent receive) so it doesn't
+                # hang if the loop was reconnecting when close() cancelled it.
+                self._set_first_error(TopicReaderStreamClosedError())
+                for task in self._background_tasks:
+                    task.cancel()
 
-        await asyncio.wait(self._background_tasks)
+                if self._background_tasks:
+                    await asyncio.wait(self._background_tasks)
+            finally:
+                self._metrics.close()
 
     async def flush(self):
         if self._stream_reader:
@@ -535,6 +571,7 @@ class ReaderStream:
     _id: int
     _reader_reconnector_id: int
     _reader_name: str
+    _metrics: TopicReaderMetrics
     _session_id: str
     _stream: Optional[IGrpcWrapperAsyncIO]
     _started: bool
@@ -568,11 +605,13 @@ class ReaderStream:
         get_token_function: Optional[Callable[[], str]] = None,
         *,
         reader_name: str,
+        metrics: TopicReaderMetrics = _NOOP_TOPIC_READER_METRICS,
     ):
         self._loop = asyncio.get_running_loop()
         self._id = ReaderStream._static_id_counter.inc_and_get()
         self._reader_reconnector_id = reader_reconnector_id
         self._reader_name = reader_name
+        self._metrics = metrics
         self._session_id = "not initialized"
         self._log_prefix = "topic reader reader_name=%r reader_id=%s stream_id=%s session_id=%s" % (
             self._reader_name,
@@ -614,6 +653,7 @@ class ReaderStream:
         settings: topic_reader.PublicReaderSettings,
         *,
         reader_name: str,
+        metrics: TopicReaderMetrics = _NOOP_TOPIC_READER_METRICS,
     ) -> "ReaderStream":
         stream = GrpcWrapperAsyncIO(StreamReadMessage.FromServer.from_proto)
         reader = None
@@ -626,6 +666,7 @@ class ReaderStream:
                 settings,
                 get_token_function=creds.get_auth_token if creds else None,
                 reader_name=reader_name,
+                metrics=metrics,
             )
             await reader._start(stream, settings._init_message(reader_name=reader_name))
         except BaseException:
@@ -726,6 +767,10 @@ class ReaderStream:
         part_sess_id, batch = self._get_first_batch()
 
         cutted_batch = batch._pop_batch(max_messages=max_messages, max_bytes=max_bytes)
+        self._metrics.remove_local_buffer_messages(
+            len(cutted_batch.messages),
+            cutted_batch._partition_session,
+        )
 
         if not batch.empty():
             self._return_batch_to_queue(part_sess_id, batch)
@@ -745,6 +790,7 @@ class ReaderStream:
         part_sess_id, batch = self._get_first_batch()
 
         message, msgs_left = batch._pop()
+        self._metrics.remove_local_buffer_messages(1, message._partition_session)
 
         if not msgs_left:
             self._buffer_release_bytes(batch._bytes_size)
@@ -896,7 +942,7 @@ class ReaderStream:
                     "Double start partition session: %s" % message.partition_session.partition_session_id
                 )
 
-            self._partition_sessions[message.partition_session.partition_session_id] = datatypes.PartitionSession(
+            partition_session = datatypes.PartitionSession(
                 id=message.partition_session.partition_session_id,
                 state=datatypes.PartitionSession.State.Active,
                 topic_path=message.partition_session.path,
@@ -905,6 +951,8 @@ class ReaderStream:
                 reader_reconnector_id=self._reader_reconnector_id,
                 reader_stream_id=self._id,
             )
+            self._partition_sessions[partition_session.id] = partition_session
+            self._metrics.add_partition_session(partition_session.topic_path)
 
             read_offset = None
 
@@ -938,6 +986,7 @@ class ReaderStream:
 
         partition = self._partition_sessions.pop(message.partition_session_id)
         partition.close()
+        self._metrics.remove_partition_session(partition.topic_path)
 
         if message.graceful and self._stream is not None:
             self._stream.write(
@@ -959,11 +1008,15 @@ class ReaderStream:
             self._partition_sessions[message.partition_session_id].end()
 
     def _on_read_response(self, message: StreamReadMessage.ReadResponse):
+        received_at = self._metrics.capture_received_at()
         self._buffer_consume_bytes(message.bytes_size)
+        self._metrics.record_received_bytes(message.bytes_size)
 
         batches = self._read_response_to_batches(message)
         for batch in batches:
             self._batches_to_decode.put_nowait(batch)
+
+        self._metrics.record_received_messages(batches, received_at=received_at)
 
     def _on_commit_response(self, message: StreamReadMessage.CommitOffsetResponse):
         for partition_offset in message.partitions_committed_offsets:
@@ -1109,22 +1162,28 @@ class ReaderStream:
         self._closed = True
         logger.debug("%s close", self._log_prefix)
 
-        if flush:
-            await self.flush()
+        try:
+            if flush:
+                await self.flush()
+        finally:
+            try:
+                self._set_first_error(TopicReaderStreamClosedError())
+                self._state_changed.set()
+                if self._stream is not None:
+                    self._stream.close()
 
-        self._set_first_error(TopicReaderStreamClosedError())
-        self._state_changed.set()
-        if self._stream is not None:
-            self._stream.close()
+                for session in self._partition_sessions.values():
+                    session.close()
+                self._partition_sessions.clear()
 
-        for session in self._partition_sessions.values():
-            session.close()
-        self._partition_sessions.clear()
+                for task in self._background_tasks:
+                    task.cancel()
 
-        for task in self._background_tasks:
-            task.cancel()
-
-        if self._background_tasks:
-            await asyncio.wait(self._background_tasks)
-
+                if self._background_tasks:
+                    await asyncio.wait(self._background_tasks)
+            finally:
+                try:
+                    self._metrics.reset_local_buffer_messages()
+                finally:
+                    self._metrics.reset_partition_sessions()
         logger.debug("%s was closed", self._log_prefix)

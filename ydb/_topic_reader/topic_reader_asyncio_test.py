@@ -37,6 +37,7 @@ else:
     from .._grpc.common.protos import ydb_status_codes_pb2
 
 from .._constants import DEFAULT_INITIAL_RESPONSE_TIMEOUT
+from ..observability.metrics import TopicReaderMetrics
 
 
 @pytest.fixture(autouse=True)
@@ -311,6 +312,147 @@ class TestReaderStream:
         else:
             await wait_condition(lambda: batch_size() > initial_batch_size)
 
+    async def test_received_metrics_are_recorded_before_decoding(self, stream, default_reader_settings):
+        metrics = mock.Mock(spec=TopicReaderMetrics)
+        metrics.capture_received_at.return_value = 12.5
+        reader = await self.get_started_reader(
+            stream,
+            default_reader_settings,
+            reader_name="payments-worker",
+            metrics=metrics,
+        )
+        partition_session = datatypes.PartitionSession(
+            id=self.partition_session_id,
+            topic_path=default_reader_settings.topic,
+            partition_id=4,
+            state=datatypes.PartitionSession.State.Active,
+            committed_offset=self.partition_session_committed_offset,
+            reader_reconnector_id=self.default_reader_reconnector_id,
+            reader_stream_id=reader._id,
+        )
+        reader._partition_sessions[partition_session.id] = partition_session
+
+        def assert_bytes_recorded_on_receipt(bytes_size):
+            assert reader._batches_to_decode.qsize() == 0
+            assert partition_session.id not in reader._message_batches
+            assert bytes_size == 1
+
+        def assert_accepted_for_decoding(batches, *, received_at):
+            assert reader._batches_to_decode.qsize() == 1
+            assert partition_session.id not in reader._message_batches
+            assert len(batches) == 1
+            assert len(batches[0].messages) == 2
+            assert batches[0]._partition_session.topic_path == default_reader_settings.topic
+            assert received_at == 12.5
+
+        metrics.record_received_bytes.side_effect = assert_bytes_recorded_on_receipt
+        metrics.record_received_messages.side_effect = assert_accepted_for_decoding
+
+        try:
+            await self.send_batch(
+                reader,
+                [
+                    self.create_message(partition_session, 1, 1),
+                    self.create_message(partition_session, 2, 1),
+                ],
+            )
+            metrics.record_received_messages.assert_called_once()
+            metrics.record_received_bytes.assert_called_once_with(1)
+
+            first = reader.receive_batch_nowait(max_messages=1)
+            second = reader.receive_batch_nowait(max_messages=1)
+            assert len(first.messages) == 1
+            assert len(second.messages) == 1
+            assert metrics.remove_local_buffer_messages.call_args_list == [
+                mock.call(1, partition_session),
+                mock.call(1, partition_session),
+            ]
+        finally:
+            await reader.close(False)
+
+        metrics.reset_local_buffer_messages.assert_called_once_with()
+        metrics.reset_partition_sessions.assert_called_once_with()
+
+    async def test_received_bytes_are_recorded_before_response_conversion(self, default_reader_settings):
+        metrics = mock.Mock(spec=TopicReaderMetrics)
+        reader = ReaderStream(
+            self.default_reader_reconnector_id,
+            default_reader_settings,
+            reader_name="payments-worker",
+            metrics=metrics,
+        )
+        response = StreamReadMessage.ReadResponse(bytes_size=5, partition_data=[])
+
+        with mock.patch.object(
+            reader,
+            "_read_response_to_batches",
+            side_effect=RuntimeError("invalid response"),
+        ):
+            with pytest.raises(RuntimeError, match="invalid response"):
+                reader._on_read_response(response)
+
+        metrics.record_received_bytes.assert_called_once_with(5)
+        metrics.record_received_messages.assert_not_called()
+
+    async def test_received_bytes_are_recorded_once_for_multitopic_response(self, default_reader_settings):
+        metrics = mock.Mock(spec=TopicReaderMetrics)
+        reader = ReaderStream(
+            self.default_reader_reconnector_id,
+            default_reader_settings,
+            reader_name="payments-worker",
+            metrics=metrics,
+        )
+        topics = ("/Root/a", "/Root/b")
+        for partition_session_id, topic in enumerate(topics, start=1):
+            reader._partition_sessions[partition_session_id] = datatypes.PartitionSession(
+                id=partition_session_id,
+                topic_path=topic,
+                partition_id=partition_session_id,
+                state=datatypes.PartitionSession.State.Active,
+                committed_offset=0,
+                reader_reconnector_id=self.default_reader_reconnector_id,
+                reader_stream_id=reader._id,
+            )
+
+        reader._on_read_response(
+            StreamReadMessage.ReadResponse(
+                bytes_size=5,
+                partition_data=[
+                    StreamReadMessage.ReadResponse.PartitionData(
+                        partition_session_id=partition_session_id,
+                        batches=[
+                            StreamReadMessage.ReadResponse.Batch(
+                                message_data=[
+                                    StreamReadMessage.ReadResponse.MessageData(
+                                        offset=0,
+                                        seq_no=0,
+                                        created_at=datetime.datetime(2023, 2, 3, 14, 15),
+                                        data=b"",
+                                        uncompresed_size=0,
+                                        message_group_id="",
+                                        metadata_items={},
+                                    )
+                                ],
+                                producer_id="",
+                                write_session_meta={},
+                                codec=Codec.CODEC_RAW,
+                                written_at=datetime.datetime(2023, 2, 3, 14, 15),
+                            )
+                        ],
+                    )
+                    for partition_session_id in reader._partition_sessions
+                ],
+            )
+        )
+
+        metrics.record_received_messages.assert_called_once()
+        batches = metrics.record_received_messages.call_args.args[0]
+        assert [(len(batch.messages), batch._partition_session.topic_path) for batch in batches] == [
+            (1, "/Root/a"),
+            (1, "/Root/b"),
+        ]
+        metrics.record_received_bytes.assert_called_once_with(5)
+
     async def test_unknown_error(self, stream, stream_reader_finish_with_error):
         class TestError(Exception):
             pass
@@ -424,6 +566,29 @@ class TestReaderStream:
 
         with pytest.raises(topic_reader_asyncio.PublicTopicReaderPartitionExpiredError):
             waiter.future.result()
+
+    @pytest.mark.parametrize(
+        "close_error",
+        [RuntimeError("flush failed"), asyncio.CancelledError()],
+        ids=["error", "cancelled"],
+    )
+    async def test_close_resets_local_buffer_after_flush_failure(self, default_reader_settings, close_error):
+        metrics = mock.Mock(spec=TopicReaderMetrics)
+        reader = ReaderStream(
+            self.default_reader_reconnector_id,
+            default_reader_settings,
+            reader_name="payments-worker",
+            metrics=metrics,
+        )
+        reader.flush = mock.AsyncMock(side_effect=close_error)
+
+        with pytest.raises(type(close_error)):
+            await reader.close(flush=True)
+
+        assert reader._closed
+        assert all(task.done() for task in reader._background_tasks)
+        metrics.reset_local_buffer_messages.assert_called_once_with()
+        metrics.reset_partition_sessions.assert_called_once_with()
 
     async def test_flush(self, stream, stream_reader_started: ReaderStream, partition_session):
         offset = self.partition_session_committed_offset + 1
@@ -677,6 +842,9 @@ class TestReaderStream:
         default_reader_settings,
         partition_session,
     ):
+        metrics = mock.Mock(spec=TopicReaderMetrics)
+        stream_reader._metrics = metrics
+
         def session_count():
             return len(stream_reader._partition_sessions)
 
@@ -723,8 +891,12 @@ class TestReaderStream:
             reader_reconnector_id=self.default_reader_reconnector_id,
             reader_stream_id=stream_reader._id,
         )
+        metrics.add_partition_session.assert_called_once_with(test_topic_path)
 
     async def test_partition_stop_force(self, stream, stream_reader, partition_session):
+        metrics = mock.Mock(spec=TopicReaderMetrics)
+        stream_reader._metrics = metrics
+
         def session_count():
             return len(stream_reader._partition_sessions)
 
@@ -747,8 +919,12 @@ class TestReaderStream:
 
         assert session_count() == initial_session_count - 1
         assert partition_session.id not in stream_reader._partition_sessions
+        metrics.remove_partition_session.assert_called_once_with(partition_session.topic_path)
 
     async def test_partition_stop_graceful(self, stream, stream_reader, partition_session):
+        metrics = mock.Mock(spec=TopicReaderMetrics)
+        stream_reader._metrics = metrics
+
         def session_count():
             return len(stream_reader._partition_sessions)
 
@@ -771,6 +947,7 @@ class TestReaderStream:
         assert resp.client_message == StreamReadMessage.StopPartitionSessionResponse(
             partition_session_id=partition_session.id
         )
+        metrics.remove_partition_session.assert_called_once_with(partition_session.topic_path)
 
         stream.from_server.put_nowait(
             StreamReadMessage.FromServer(
@@ -788,6 +965,9 @@ class TestReaderStream:
             stream.from_client.get_nowait()
 
     async def test_end_partition_session(self, stream, stream_reader, partition_session):
+        metrics = mock.Mock(spec=TopicReaderMetrics)
+        stream_reader._metrics = metrics
+
         def session_count():
             return len(stream_reader._partition_sessions)
 
@@ -811,6 +991,7 @@ class TestReaderStream:
         assert session_count() == initial_session_count
         assert partition_session.id in stream_reader._partition_sessions
         assert partition_session.ended
+        metrics.remove_partition_session.assert_not_called()
 
     @pytest.mark.parametrize(
         "graceful",
@@ -1474,6 +1655,31 @@ class TestReaderStream:
         assert len(remainder.messages) == 2
         assert remainder._bytes_size == 60  # remainder stays buffered
 
+    async def test_local_buffer_is_updated_before_credit_release_failure(self, stream_reader, monkeypatch):
+        metrics = mock.Mock(spec=TopicReaderMetrics)
+        stream_reader._metrics = metrics
+        partition_session = stub_partition_session()
+        stream_reader._message_batches = OrderedDict(
+            {
+                0: PublicBatch(
+                    messages=[stub_message(1), stub_message(2)],
+                    _partition_session=partition_session,
+                    _bytes_size=20,
+                    _codec=Codec.CODEC_RAW,
+                )
+            }
+        )
+        monkeypatch.setattr(
+            stream_reader,
+            "_buffer_release_bytes",
+            mock.Mock(side_effect=RuntimeError("credit release failed")),
+        )
+
+        with pytest.raises(RuntimeError, match="credit release failed"):
+            stream_reader.receive_batch_nowait(max_messages=1)
+
+        metrics.remove_local_buffer_messages.assert_called_once_with(1, partition_session)
+
     async def test_receive_batch_nowait(self, stream, stream_reader, partition_session):
         assert stream_reader.receive_batch_nowait() is None
 
@@ -1502,6 +1708,8 @@ class TestReaderStream:
 
     async def test_receive_message_nowait(self, stream, stream_reader, partition_session):
         assert stream_reader.receive_batch_nowait() is None
+        metrics = mock.Mock(spec=TopicReaderMetrics)
+        stream_reader._metrics = metrics
 
         initial_buffer_size = stream_reader._buffer_size_bytes
 
@@ -1526,6 +1734,7 @@ class TestReaderStream:
             mess = stream_reader.receive_message_nowait()
             assert mess.seqno == expected_seqno
 
+        assert metrics.remove_local_buffer_messages.call_args_list == [mock.call(1, partition_session)] * 3
         assert stream_reader._buffer_size_bytes == initial_buffer_size - 2 * self.default_batch_size
 
     async def test_update_token(self, stream):
@@ -1631,9 +1840,12 @@ class TestReaderStream:
 
 @pytest.mark.asyncio
 class TestReaderReconnector:
-    @pytest.mark.parametrize("configured_reader_name", [None, ""])
+    @pytest.mark.parametrize("configured_reader_name", [None, "", "payments-worker"])
     async def test_reconnect_on_repeatable_error(self, monkeypatch, configured_reader_name):
         test_error = issues.Overloaded("test error")
+        metrics = mock.Mock(spec=TopicReaderMetrics)
+        create_metrics = mock.Mock(return_value=metrics)
+        monkeypatch.setattr(topic_reader_asyncio, "create_topic_reader_metrics", create_metrics)
 
         async def wait_error():
             raise test_error
@@ -1664,9 +1876,11 @@ class TestReaderReconnector:
             settings: PublicReaderSettings,
             *,
             reader_name: str,
+            metrics: TopicReaderMetrics,
         ):
             nonlocal stream_index
             reader_names.append(reader_name)
+            reader_metrics.append(metrics)
             stream_index += 1
             if stream_index == 1:
                 return reader_stream_mock_with_error
@@ -1676,6 +1890,7 @@ class TestReaderReconnector:
                 raise Exception("unexpected create stream")
 
         reader_names = []
+        reader_metrics = []
         with mock.patch.object(ReaderStream, "create", stream_create):
             reconnector = ReaderReconnector(
                 mock.Mock(),
@@ -1684,10 +1899,131 @@ class TestReaderReconnector:
             await wait_for_fast(reconnector.wait_message())
 
         assert reader_names == [reconnector._reader_name, reconnector._reader_name]
-        assert reconnector._reader_name == "reader-%d" % reconnector._id
+        assert reader_metrics == [metrics, metrics]
+        assert reconnector._metrics is metrics
+        expected_reader_name = configured_reader_name or "reader-%d" % reconnector._id
+        assert reconnector._reader_name == expected_reader_name
+        create_metrics.assert_called_once_with(
+            reconnector._driver,
+            consumer_name="",
+            reader_name=configured_reader_name,
+            topics=reconnector._settings.topic,
+        )
         reader_stream_mock_with_error.wait_error.assert_any_await()
         reader_stream_mock_with_error.wait_messages.assert_any_await()
         await reconnector.close(flush=False)
+        metrics.close.assert_called_once_with()
+
+    @pytest.mark.parametrize(
+        "close_error",
+        [RuntimeError("stream close failed"), asyncio.CancelledError()],
+        ids=["error", "cancelled"],
+    )
+    async def test_close_unregisters_metrics_after_stream_close_failure(self, close_error):
+        stream = mock.Mock(spec=ReaderStream)
+        stream.close = mock.AsyncMock(side_effect=close_error)
+        metrics = mock.Mock(spec=TopicReaderMetrics)
+        reconnector = object.__new__(ReaderReconnector)
+        reconnector._log_prefix = "test-reader"
+        reconnector._closed = False
+        reconnector._stream_reader = stream
+        reconnector._first_error = asyncio.get_running_loop().create_future()
+        reconnector._state_changed = asyncio.Event()
+        reconnector._background_tasks = set()
+        reconnector._metrics = metrics
+
+        with pytest.raises(type(close_error)):
+            await reconnector.close(flush=False)
+
+        assert reconnector._closed
+        metrics.close.assert_called_once_with()
+
+    async def test_receive_batch_records_only_returned_messages(self):
+        partition_session = stub_partition_session()
+        partition_session.topic_path = "/Root/orders"
+        batch = PublicBatch(
+            messages=[stub_message(1), stub_message(2)],
+            _partition_session=partition_session,
+            _bytes_size=20,
+            _codec=Codec.CODEC_RAW,
+        )
+        stream = mock.Mock(spec=ReaderStream)
+        stream.receive_batch_nowait.side_effect = [batch, None]
+        metrics = mock.Mock(spec=TopicReaderMetrics)
+        reconnector = object.__new__(ReaderReconnector)
+        reconnector._stream_reader = stream
+        reconnector._metrics = metrics
+
+        assert reconnector.receive_batch_nowait(max_messages=2, max_bytes=100) is batch
+        assert reconnector.receive_batch_nowait() is None
+
+        metrics.record_delivered_messages.assert_called_once_with(2, "/Root/orders")
+
+    async def test_receive_message_records_only_returned_message(self):
+        message = stub_message(1)
+        message._partition_session.topic_path = "/Root/orders"
+        stream = mock.Mock(spec=ReaderStream)
+        stream.receive_message_nowait.side_effect = [message, None]
+        metrics = mock.Mock(spec=TopicReaderMetrics)
+        reconnector = object.__new__(ReaderReconnector)
+        reconnector._stream_reader = stream
+        reconnector._metrics = metrics
+
+        assert reconnector.receive_message_nowait() is message
+        assert reconnector.receive_message_nowait() is None
+
+        metrics.record_delivered_messages.assert_called_once_with(1, "/Root/orders")
+
+    async def test_receive_batch_with_tx_records_after_successful_delivery(self):
+        partition_session = stub_partition_session()
+        partition_session.topic_path = "/Root/orders"
+        batch = PublicBatch(
+            messages=[stub_message(1), stub_message(2), stub_message(3)],
+            _partition_session=partition_session,
+            _bytes_size=30,
+            _codec=Codec.CODEC_RAW,
+        )
+        stream = mock.Mock(spec=ReaderStream)
+        stream.receive_batch_nowait.return_value = batch
+        metrics = mock.Mock(spec=TopicReaderMetrics)
+        tx = mock.Mock()
+        tx.tx_id = "tx-1"
+        reconnector = object.__new__(ReaderReconnector)
+        reconnector._stream_reader = stream
+        reconnector._metrics = metrics
+        reconnector._tx_to_batches_map = {}
+        reconnector._loop = asyncio.get_running_loop()
+
+        result = reconnector.receive_batch_with_tx_nowait(tx, max_messages=3)
+
+        assert result is batch
+        assert reconnector._tx_to_batches_map["tx-1"] == [batch]
+        metrics.record_delivered_messages.assert_called_once_with(3, "/Root/orders")
+
+    async def test_receive_batch_with_tx_does_not_record_failed_delivery(self):
+        partition_session = stub_partition_session()
+        batch = PublicBatch(
+            messages=[stub_message(1)],
+            _partition_session=partition_session,
+            _bytes_size=10,
+            _codec=Codec.CODEC_RAW,
+        )
+        stream = mock.Mock(spec=ReaderStream)
+        stream.receive_batch_nowait.return_value = batch
+        metrics = mock.Mock(spec=TopicReaderMetrics)
+        tx = mock.Mock()
+        tx.tx_id = "tx-1"
+        tx._add_callback.side_effect = [None, None, None, RuntimeError("callback failed")]
+        reconnector = object.__new__(ReaderReconnector)
+        reconnector._stream_reader = stream
+        reconnector._metrics = metrics
+        reconnector._tx_to_batches_map = {}
+        reconnector._loop = asyncio.get_running_loop()
+
+        with pytest.raises(RuntimeError, match="callback failed"):
+            reconnector.receive_batch_with_tx_nowait(tx)
+
+        metrics.record_delivered_messages.assert_not_called()
 
     async def test_close_during_reconnect_does_not_hang(self):
         # The connection loop must stop on reader.close() even while it is closing the old
@@ -1720,7 +2056,7 @@ class TestReaderReconnector:
 
         create_calls = 0
 
-        async def stream_create(reader_reconnector_id, driver, settings, *, reader_name):
+        async def stream_create(reader_reconnector_id, driver, settings, *, reader_name, metrics):
             nonlocal create_calls
             create_calls += 1
             return stream1 if create_calls == 1 else stream2

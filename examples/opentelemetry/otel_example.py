@@ -1,4 +1,4 @@
-"""OpenTelemetry + YDB demo: bank table and concurrent transactions (TLI-style workload).
+"""OpenTelemetry + YDB demo: table operations, retries, and topic Reader metrics.
 
 Uses ``disable_discovery=True`` so a single ``grpc://…`` to local YDB (e.g. ``local-ydb`` in Docker
 from the host) is not replaced by internal discovery addresses.
@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import asyncio
 import os
+import uuid
 
 from opentelemetry.exporter.otlp.proto.grpc.metric_exporter import OTLPMetricExporter
 from opentelemetry.sdk.metrics import MeterProvider
@@ -44,10 +45,38 @@ async def _bank_read_update(tx) -> None:
         pass
 
 
+async def _topic_reader_metrics_demo(
+    driver: ydb.aio.Driver,
+    database: str,
+    observation_seconds: float,
+) -> None:
+    topic_path = f"{database.rstrip('/')}/otel-reader-metrics-{uuid.uuid4().hex}"
+    consumer = "otel-example-consumer"
+
+    await driver.topic_client.create_topic(topic_path, consumers=[consumer])
+    try:
+        async with driver.topic_client.writer(topic_path) as writer:
+            await writer.write("OpenTelemetry topic Reader metrics")
+
+        async with driver.topic_client.reader(
+            topic_path,
+            consumer,
+            reader_name="otel-example-reader",
+        ) as reader:
+            await asyncio.wait_for(reader.wait_message(), timeout=10)
+            await asyncio.sleep(observation_seconds)
+            message = await asyncio.wait_for(reader.receive_message(), timeout=10)
+            await reader.commit_with_ack(message)
+            await asyncio.sleep(observation_seconds)
+    finally:
+        await driver.topic_client.drop_topic(topic_path)
+
+
 async def main() -> None:
     endpoint = _env("YDB_ENDPOINT", "grpc://localhost:2136")
     database = _env("YDB_DATABASE", "/local")
     otlp_endpoint = _env("OTEL_EXPORTER_OTLP_ENDPOINT", "http://localhost:4317")
+    topic_buffer_observation_seconds = float(_env("OTEL_TOPIC_BUFFER_OBSERVATION_SECONDS", "7"))
 
     resource = Resource(attributes={"service.name": _env("OTEL_SERVICE_NAME", "ydb-otel-example")})
     tracer_provider = TracerProvider(resource=resource)
@@ -96,6 +125,9 @@ async def main() -> None:
             final_rows = await pool.execute_with_retries("SELECT amount FROM bank WHERE id = 1")
             amount = int(list(final_rows[0].rows)[0]["amount"])
             print(f"Final amount (after serializable retries): {amount}")
+
+        print("Emitting topic Reader metrics...")
+        await _topic_reader_metrics_demo(driver, database, topic_buffer_observation_seconds)
     print("Application will shut down in 15 seconds...")
     await asyncio.sleep(15)
     tracer_provider.shutdown()

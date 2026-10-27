@@ -2,7 +2,44 @@
 
 Async demo in [`otel_example.py`](otel_example.py): OTLP export, `enable_tracing()`,
 `enable_metrics()`, `app_startup` and `example_tli` application spans, SDK client
-metrics, bank table, Serializable transactions (TLI-style load).
+metrics, bank table, Serializable transactions (TLI-style load), and an explicitly
+named topic Reader that emits `ydb.topic.reader.received.messages`,
+`ydb.topic.reader.received.bytes`, `ydb.topic.reader.delivered.messages`,
+`ydb.topic.reader.local_buffer.messages`,
+`ydb.topic.reader.local_buffer.message_age.max`, and
+`ydb.topic.reader.partition_session.count`.
+
+## Topic Reader metrics in the example
+
+The demo enables metrics before creating the Reader and supplies
+`reader_name="otel-example-reader"`. It creates a unique topic for the run, deletes only
+that topic during cleanup, then writes and reads one message, producing:
+
+- `ydb.topic.reader.received.messages`: the number of messages received before
+  decoding, split by `topic`;
+- `ydb.topic.reader.received.bytes`: the total `ReadResponse.bytes_size` received by
+  that logical Reader, without a `topic` label because one response can contain data
+  from several topics;
+- `ydb.topic.reader.delivered.messages`: the number of messages returned by
+  `receive_message`, `receive_batch`, or `receive_batch_with_tx`, split by `topic`;
+- `ydb.topic.reader.local_buffer.messages`: the current number of messages retained by
+  the logical Reader, including decoding and ready-to-deliver queues, without `topic`;
+- `ydb.topic.reader.local_buffer.message_age.max`: the age in seconds of the oldest
+  retained message, or `0` when the buffer is empty, without `topic`;
+- `ydb.topic.reader.partition_session.count`: the current number of active partition
+  sessions, split by `topic` and without a `partition` label; configured topics report
+  `0` before their first session starts.
+
+All six metrics also carry `endpoint`, `database`, and `reader.name`; `consumer` is
+included for consumer-based reads. They remain attached to the same logical Reader
+across stream reconnects. Use the rate of the cumulative counters to compare incoming
+traffic with messages visible to the application, and read the observable instruments
+as current values.
+
+The example keeps the message buffered, then keeps the empty Reader open, for
+`OTEL_TOPIC_BUFFER_OBSERVATION_SECONDS` seconds in each state. Its default is 7 seconds,
+which is longer than this stack's 5-second Prometheus scrape interval, so both the
+positive and zero gauge samples are observable.
 
 [`load_tank.py`](load_tank.py) runs a small step-like load profile for the
 metrics dashboard:
@@ -51,8 +88,35 @@ Grafana is provisioned with the **YDB Python SDK Metrics** dashboard. It uses
 Prometheus queries for SDK metrics such as `db_client_operation_duration`,
 `ydb_client_operation_failed`, `ydb_query_session_count`,
 `ydb_query_session_pending_requests`, `ydb_query_session_create_time`, and
-`ydb_client_retry_duration`. Use Grafana Explore for ad-hoc traces through Tempo
+`ydb_client_retry_duration`. The example also publishes the topic Reader received and
+delivered message counters by topic, the reader-level received-byte counter, and the
+reader-level local-buffer count and oldest-age gauges. It also publishes the active
+partition-session count by topic. Use Grafana Explore for ad-hoc traces through Tempo
 and metrics through Prometheus.
+
+In Grafana Explore, select the Prometheus data source and query:
+
+```promql
+ydb_topic_reader_local_buffer_messages{reader_name="otel-example-reader"}
+```
+
+The oldest buffered-message age is available as:
+
+```promql
+ydb_topic_reader_local_buffer_message_age_max{reader_name="otel-example-reader"}
+```
+
+Active partition sessions are available as:
+
+```promql
+ydb_topic_reader_partition_session_count{reader_name="otel-example-reader"}
+```
+
+The three counters use Prometheus' conventional `_total` suffix, for example:
+
+```promql
+ydb_topic_reader_received_messages_total{reader_name="otel-example-reader"}
+```
 
 The SDK configures explicit OpenTelemetry histogram bucket boundaries for its
 own duration and retry-attempt metrics. Duration values are recorded in seconds,
@@ -110,6 +174,7 @@ python examples/opentelemetry/load_tank.py
 | `YDB_DATABASE` | default `/local`                                         |
 | `OTEL_EXPORTER_OTLP_ENDPOINT` | e.g. `http://otel-collector:4317`                        |
 | `OTEL_SERVICE_NAME` | service name attached to exported telemetry              |
+| `OTEL_TOPIC_BUFFER_OBSERVATION_SECONDS` | seconds to expose each buffer-gauge state, default `7` |
 | `LOAD_TANK_TOTAL_TIME` | total load duration in seconds, default `6000`           |
 | `LOAD_TANK_WORKERS` | number of concurrent workers, default `40`               |
 | `LOAD_TANK_POOL_SIZE` | query session pool size, default `20`                    |
