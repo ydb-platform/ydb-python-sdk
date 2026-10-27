@@ -145,7 +145,7 @@ class _SafeAsyncIterator:
         except asyncio.CancelledError:
             if self._cancelled:
                 raise
-            ydb_error = issues.ConnectionLost("gRPC stream cancelled")
+            ydb_error = issues.ClientCancelled("gRPC stream cancelled")
         except grpc.RpcError as rpc_error:
             ydb_error = _rpc_error_handler(self.rpc_state, rpc_error, use_unavailable=True)
         if _is_disconnect_needed(ydb_error) and self.on_disconnected_callback is not None:

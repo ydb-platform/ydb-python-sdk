@@ -60,6 +60,7 @@ class StatusCode(enum.IntEnum):
     DEADLINE_EXCEEDED = _TRANSPORT_STATUSES_FIRST + 30
     CLIENT_INTERNAL_ERROR = _TRANSPORT_STATUSES_FIRST + 40
     UNIMPLEMENTED = _TRANSPORT_STATUSES_FIRST + 50
+    CLIENT_CANCELLED = _TRANSPORT_STATUSES_FIRST + 60
 
     UNAUTHENTICATED = _CLIENT_STATUSES_FIRST + 30
     SESSION_POOL_EMPTY = _CLIENT_STATUSES_FIRST + 40
@@ -170,6 +171,10 @@ class SessionExpired(Error):
 
 class Cancelled(Error):
     status: ClassVar[Optional[StatusCode]] = StatusCode.CANCELLED
+
+
+class ClientCancelled(Cancelled):
+    status: ClassVar[Optional[StatusCode]] = StatusCode.CLIENT_CANCELLED
 
 
 class Undetermined(Error):

@@ -99,7 +99,7 @@ def _rpc_error_handler(
         elif rpc_error.code() == grpc.StatusCode.UNIMPLEMENTED:
             return issues.Unimplemented("Method or feature is not implemented on server!")
         elif rpc_error.code() == grpc.StatusCode.CANCELLED:
-            return issues.Cancelled(rpc_error.details())
+            return issues.ClientCancelled(rpc_error.details())
         elif rpc_error.code() == grpc.StatusCode.RESOURCE_EXHAUSTED:
             if "Sent message larger than max" in rpc_error.details():
                 return issues.BadRequest(rpc_error.details())
@@ -119,6 +119,7 @@ def _is_disconnect_needed(error):
         (
             issues.ConnectionLost,
             issues.Unavailable,
+            issues.ClientCancelled,
         ),
     )
 
@@ -374,12 +375,11 @@ class EndpointKey(object):
 
 
 class _SafeSyncIterator:
-    def __init__(self, resp, rpc_state, on_disconnected_callback, connection):
+    def __init__(self, resp, rpc_state, on_disconnected_callback):
         self.resp = resp
         self.it = resp.__iter__()
         self.rpc_state = rpc_state
         self.on_disconnected_callback = on_disconnected_callback
-        self.connection = connection
         self._cancelled = False
 
     def cancel(self):
@@ -395,8 +395,8 @@ class _SafeSyncIterator:
             return self.it.__next__()
         except grpc.RpcError as rpc_error:
             ydb_error = _rpc_error_handler(self.rpc_state, rpc_error, use_unavailable=True)
-            if self.connection.closing and not self._cancelled and isinstance(ydb_error, issues.Cancelled):
-                ydb_error = issues.ConnectionLost(rpc_error.details())
+            if self._cancelled and isinstance(ydb_error, issues.ClientCancelled):
+                ydb_error = issues.Cancelled(rpc_error.details())
             if _is_disconnect_needed(ydb_error) and self.on_disconnected_callback is not None:
                 self.on_disconnected_callback()
             raise ydb_error
@@ -559,7 +559,7 @@ class Connection(object):
 
             if hasattr(response, "__iter__"):
                 # NOTE(vgvoleg): for stream results we should also be able to handle disconnects
-                response = _SafeSyncIterator(response, rpc_state, on_disconnected, self)
+                response = _SafeSyncIterator(response, rpc_state, on_disconnected)
 
             return response if wrap_result is None else wrap_result(rpc_state, response, *wrap_args)
         except grpc.RpcError as rpc_error:

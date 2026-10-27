@@ -5,6 +5,8 @@ import subprocess
 import sys
 import tarfile
 import threading
+from types import SimpleNamespace
+from unittest.mock import Mock
 import zipfile
 
 import grpc
@@ -14,7 +16,9 @@ import ydb
 from ydb.aio.connection import _SafeAsyncIterator
 from ydb.aio.connection import Connection as AsyncConnection
 from ydb.connection import Connection as SyncConnection
+from ydb.connection import _rpc_error_handler
 
+from ydb._errors import check_retriable_error
 from ydb._utilities import check_module_exists
 from ydb._utilities import get_first_message_with_timeout
 from ydb._utilities import x_ydb_sdk_build_info_header
@@ -57,6 +61,51 @@ def test_get_first_message_with_timeout_reraises_stream_error():
     assert exc_info.value is error
 
 
+@pytest.mark.parametrize(
+    "code,error,status",
+    [
+        (grpc.StatusCode.CANCELLED, ydb.ClientCancelled, ydb.StatusCode.CLIENT_CANCELLED),
+        (grpc.StatusCode.DEADLINE_EXCEEDED, ydb.DeadlineExceed, ydb.StatusCode.DEADLINE_EXCEEDED),
+    ],
+)
+def test_grpc_cancellation_and_deadline_have_distinct_statuses(code, error, status):
+    rpc_error = Mock(spec=grpc.Call)
+    rpc_error.code.return_value = code
+    rpc_error.details.return_value = "transport error"
+
+    result = _rpc_error_handler("test", rpc_error)
+
+    assert type(result) is error
+    assert result.status == status
+    if error is ydb.ClientCancelled:
+        assert isinstance(result, ydb.Cancelled)
+
+
+def test_server_cancellation_preserves_server_status():
+    response = SimpleNamespace(status=ydb.StatusCode.CANCELLED, issues=[])
+    with pytest.raises(ydb.Cancelled) as exc_info:
+        ydb.issues._process_response(response)
+    assert type(exc_info.value) is ydb.Cancelled
+    assert exc_info.value.status == ydb.StatusCode.CANCELLED
+
+
+@pytest.mark.parametrize("idempotent", [False, True])
+@pytest.mark.parametrize("retry_cancelled", [False, True])
+@pytest.mark.parametrize("error", [ydb.ClientCancelled, ydb.Cancelled, ydb.DeadlineExceed, asyncio.CancelledError])
+def test_cancellation_and_deadline_retry_policy(error, idempotent, retry_cancelled):
+    retry_settings = ydb.RetrySettings(
+        idempotent=idempotent,
+        retry_cancelled=retry_cancelled,
+        fast_backoff_settings=ydb.BackoffSettings(slot_duration=0),
+    )
+
+    result = check_retriable_error(error("cancelled"), retry_settings, 0)
+
+    expected = (error is ydb.ClientCancelled and idempotent) or (error is ydb.Cancelled and retry_cancelled)
+    assert result.is_retriable is expected
+    assert result.sleep_timeout_seconds == (0 if expected else None)
+
+
 @pytest.fixture
 async def grpc_stream_endpoint():
     def responses(request, context):
@@ -65,6 +114,8 @@ async def grpc_stream_endpoint():
         yield request
         if request == b"cancel":
             context.abort(grpc.StatusCode.CANCELLED, "server cancelled")
+        if request == b"deadline":
+            context.abort(grpc.StatusCode.DEADLINE_EXCEEDED, "deadline exceeded")
         assert finished.wait(timeout=5)
 
     def bidirectional(requests, context):
@@ -98,56 +149,71 @@ class _StreamTestStub:
 
 
 @pytest.mark.parametrize("notify", [False, True])
-@pytest.mark.parametrize("cancellation", ["channel", "call", "call-and-channel", "server"])
+@pytest.mark.parametrize("cancellation", ["channel", "call", "call-and-channel", "server", "deadline"])
 def test_sync_stream_distinguishes_channel_close_from_cancellation(grpc_stream_endpoint, cancellation, notify):
     disconnected = []
     with SyncConnection(grpc_stream_endpoint, ydb.DriverConfig(grpc_stream_endpoint)) as connection:
+        request = {"server": b"cancel", "deadline": b"deadline"}.get(cancellation, b"first")
         stream = connection(
-            b"cancel" if cancellation == "server" else b"first",
+            request,
             _StreamTestStub,
             "Query",
             on_disconnected=(lambda: disconnected.append(True)) if notify else None,
         )
-        assert next(stream) in (b"first", b"cancel")
+        assert next(stream) == request
 
         if cancellation in ("call", "call-and-channel"):
             stream.cancel()
         if cancellation in ("channel", "call-and-channel"):
             connection.close()
 
-        error = ydb.ConnectionLost if cancellation == "channel" else ydb.Cancelled
-        with pytest.raises(error):
+        error = {
+            "channel": ydb.ClientCancelled,
+            "call": ydb.Cancelled,
+            "call-and-channel": ydb.Cancelled,
+            "server": ydb.ClientCancelled,
+            "deadline": ydb.DeadlineExceed,
+        }[cancellation]
+        with pytest.raises(error) as exc_info:
             next(stream)
-    assert disconnected == ([True] if cancellation == "channel" and notify else [])
+        assert type(exc_info.value) is error
+    assert disconnected == ([True] if cancellation in ("channel", "server") and notify else [])
 
 
-def test_sync_retry_recovers_after_channel_closes_during_stream(grpc_stream_endpoint):
+@pytest.mark.parametrize("idempotent", [False, True])
+@pytest.mark.parametrize("failure", ["channel", "server", "deadline"])
+def test_sync_retry_handles_transport_cancellation_and_deadline(grpc_stream_endpoint, failure, idempotent):
     attempts = []
+    first_request = {"server": b"cancel", "deadline": b"deadline"}.get(failure, b"first")
 
     def operation():
         with SyncConnection(grpc_stream_endpoint, ydb.DriverConfig(grpc_stream_endpoint)) as connection:
-            stream = connection(b"first", _StreamTestStub, "Query", on_disconnected=lambda: None)
+            stream = connection(first_request if not attempts else b"first", _StreamTestStub, "Query")
             attempts.append(next(stream))
             if len(attempts) == 1:
-                connection.close()
+                if failure == "channel":
+                    connection.close()
                 next(stream)
             stream.cancel()
             return attempts[-1]
 
-    result = ydb.retry_operation_sync(
-        operation,
-        retry_settings=ydb.RetrySettings(
-            idempotent=True, max_retries=1, slow_backoff_settings=ydb.BackoffSettings(slot_duration=0)
-        ),
+    retry_settings = ydb.RetrySettings(
+        idempotent=idempotent, max_retries=1, fast_backoff_settings=ydb.BackoffSettings(slot_duration=0)
     )
-    assert result == b"first"
-    assert attempts == [b"first", b"first"]
+    if idempotent and failure != "deadline":
+        assert ydb.retry_operation_sync(operation, retry_settings=retry_settings) == b"first"
+        assert attempts == [first_request, b"first"]
+    else:
+        error = ydb.DeadlineExceed if failure == "deadline" else ydb.ClientCancelled
+        with pytest.raises(error):
+            ydb.retry_operation_sync(operation, retry_settings=retry_settings)
+        assert attempts == [first_request]
 
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize("method", ["Query", "Topic"])
 @pytest.mark.parametrize("notify", [False, True])
-@pytest.mark.parametrize("cancellation", ["channel", "call", "call-and-channel", "server"])
+@pytest.mark.parametrize("cancellation", ["channel", "call", "call-and-channel", "server", "deadline"])
 async def test_async_stream_distinguishes_channel_close_from_cancellation(
     grpc_stream_endpoint, method, cancellation, notify
 ):
@@ -157,7 +223,7 @@ async def test_async_stream_distinguishes_channel_close_from_cancellation(
         disconnected.append(True)
 
     async with AsyncConnection(grpc_stream_endpoint, ydb.DriverConfig(grpc_stream_endpoint)) as connection:
-        request = b"cancel" if cancellation == "server" else b"first"
+        request = {"server": b"cancel", "deadline": b"deadline"}.get(cancellation, b"first")
         stream = await connection(
             request if method == "Query" else iter([request]),
             _StreamTestStub,
@@ -172,14 +238,16 @@ async def test_async_stream_distinguishes_channel_close_from_cancellation(
             await connection.close()
 
         error = {
-            "channel": ydb.ConnectionLost,
+            "channel": ydb.ClientCancelled,
             "call": asyncio.CancelledError,
             "call-and-channel": asyncio.CancelledError,
-            "server": ydb.Cancelled,
+            "server": ydb.ClientCancelled,
+            "deadline": ydb.DeadlineExceed,
         }[cancellation]
-        with pytest.raises(error):
+        with pytest.raises(error) as exc_info:
             await asyncio.wait_for(stream.__anext__(), timeout=5)
-    assert disconnected == ([True] if cancellation == "channel" and notify else [])
+        assert type(exc_info.value) is error
+    assert disconnected == ([True] if cancellation in ("channel", "server") and notify else [])
 
 
 @pytest.mark.asyncio
@@ -216,29 +284,40 @@ async def test_async_stream_preserves_caller_task_cancellation(grpc_stream_endpo
 
 
 @pytest.mark.asyncio
-async def test_async_retry_recovers_after_channel_closes_during_stream(grpc_stream_endpoint):
+@pytest.mark.parametrize("method", ["Query", "Topic"])
+@pytest.mark.parametrize("idempotent", [False, True])
+@pytest.mark.parametrize("failure", ["channel", "server", "deadline"])
+async def test_async_retry_handles_transport_cancellation_and_deadline(
+    grpc_stream_endpoint, method, failure, idempotent
+):
     from ydb.retries import retry_operation_async
 
     attempts = []
+    first_request = {"server": b"cancel", "deadline": b"deadline"}.get(failure, b"first")
 
     async def operation():
         async with AsyncConnection(grpc_stream_endpoint, ydb.DriverConfig(grpc_stream_endpoint)) as connection:
-            stream = await connection(b"first", _StreamTestStub, "Query")
+            request = first_request if not attempts else b"first"
+            stream = await connection(request if method == "Query" else iter([request]), _StreamTestStub, method)
             attempts.append(await asyncio.wait_for(stream.__anext__(), timeout=5))
             if len(attempts) == 1:
-                await connection.close()
+                if failure == "channel":
+                    await connection.close()
                 await asyncio.wait_for(stream.__anext__(), timeout=5)
             stream.cancel()
             return attempts[-1]
 
-    result = await retry_operation_async(
-        operation,
-        retry_settings=ydb.RetrySettings(
-            idempotent=True, max_retries=1, slow_backoff_settings=ydb.BackoffSettings(slot_duration=0)
-        ),
+    retry_settings = ydb.RetrySettings(
+        idempotent=idempotent, max_retries=1, fast_backoff_settings=ydb.BackoffSettings(slot_duration=0)
     )
-    assert result == b"first"
-    assert attempts == [b"first", b"first"]
+    if idempotent and failure != "deadline":
+        assert await retry_operation_async(operation, retry_settings=retry_settings) == b"first"
+        assert attempts == [first_request, b"first"]
+    else:
+        error = ydb.DeadlineExceed if failure == "deadline" else ydb.ClientCancelled
+        with pytest.raises(error):
+            await retry_operation_async(operation, retry_settings=retry_settings)
+        assert attempts == [first_request]
 
 
 def test_convert_floats_to_embedding_bytes_encodes_float32_values():

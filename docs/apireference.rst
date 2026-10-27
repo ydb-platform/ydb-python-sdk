@@ -613,6 +613,9 @@ Errors
 .. autoclass:: ydb.Undetermined
    :undoc-members:
 
+.. autoclass:: ydb.ClientCancelled
+   :undoc-members:
+
 .. autoclass:: ydb.ConnectionError
    :undoc-members:
 

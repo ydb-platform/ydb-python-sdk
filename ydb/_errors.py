@@ -22,6 +22,11 @@ _errors_retriable_slow_backoff_idempotent_types = [
 
 
 def check_retriable_error(err, retry_settings, attempt):
+    if isinstance(err, issues.ClientCancelled):
+        if retry_settings.idempotent:
+            return ErrorRetryInfo(True, retry_settings.fast_backoff.calc_timeout(attempt))
+        return ErrorRetryInfo(False, None)
+
     if isinstance(err, issues.Cancelled):
         if retry_settings.retry_cancelled:
             return ErrorRetryInfo(True, retry_settings.fast_backoff.calc_timeout(attempt))

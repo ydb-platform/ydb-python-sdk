@@ -1,4 +1,4 @@
-* Fix Query and async Topic recovery when discovery closes a gRPC channel with an active stream, preserving explicit caller cancellation
+* Distinguish gRPC cancellation as `ClientCancelled` and retry it only for idempotent operations, preserving explicit caller cancellation and non-retriable deadlines
 
 ## 3.33.2 ##
 * Fix sync `QuerySessionPool` and `QuerySession.create()` hanging for 600 seconds and then failing with a non-retriable `TimeoutError` when a new session's attach stream fails before its first message (e.g. during a node restart); the attach error is now raised immediately, so retriable errors such as `Unavailable` are retried
