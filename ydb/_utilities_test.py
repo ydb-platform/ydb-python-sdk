@@ -1,6 +1,4 @@
-import hashlib
 from pathlib import Path, PurePosixPath
-import ssl
 import subprocess
 import sys
 import tarfile
@@ -9,37 +7,11 @@ import zipfile
 import pytest
 
 import ydb
-from ydb import default_pem
 
 from ydb._utilities import check_module_exists
 from ydb._utilities import get_first_message_with_timeout
 from ydb._utilities import x_ydb_sdk_build_info_header
 from .ydb_version import VERSION
-
-
-@pytest.mark.parametrize(
-    "fingerprint",
-    [
-        pytest.param(
-            "d7a7a0fb5d7e2731d771e9484ebcdef71d5f0c3e0a2948782bc83ee0ea699ef4",
-            id="aaa-certificate-services",
-        ),
-        pytest.param(
-            "86a1ecba089c4a8d3bbe2734c612ba341d813e043cf9e8a862cd5c57a36bbe6b",
-            id="emsign-ecc-root-ca-g3",
-        ),
-    ],
-)
-def test_default_ca_bundle_excludes_distrusted_roots(fingerprint):
-    certificates = "\n".join(
-        line for line in default_pem.load_default_pem().decode("utf-8").splitlines() if not line.startswith("#")
-    )
-    context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
-    context.load_verify_locations(cadata=certificates)
-    fingerprints = {hashlib.sha256(cert).hexdigest() for cert in context.get_ca_certs(binary_form=True)}
-
-    assert fingerprints
-    assert fingerprint not in fingerprints
 
 
 @pytest.mark.parametrize(

@@ -281,7 +281,7 @@ provider based on which environment variable is set:
 TLS / Secure Connections
 -------------------------
 
-For TLS endpoints (``grpcs://``), the SDK uses its bundled CA certificates by default.
+For TLS endpoints (``grpcs://``), the SDK uses the system CA bundle by default.
 To supply a custom CA certificate:
 
 .. code-block:: python
