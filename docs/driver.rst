@@ -281,8 +281,14 @@ provider based on which environment variable is set:
 TLS / Secure Connections
 -------------------------
 
-For TLS endpoints (``grpcs://``), the SDK uses the system CA bundle by default.
-To supply a custom CA certificate:
+For TLS endpoints (``grpcs://``), the SDK uses its bundled CA certificates by
+default. The bundle excludes ``AAA Certificate Services`` and
+``emSign ECC Root CA - G3`` to reject certificate chains affected by the
+`eMudhra CA compromise <https://bugzilla.mozilla.org/show_bug.cgi?id=2083449>`_.
+Both synchronous and asynchronous drivers use this bundle.
+
+To supply a custom CA certificate, pass ``root_certificates``. This replaces the
+bundled certificates:
 
 .. code-block:: python
 
