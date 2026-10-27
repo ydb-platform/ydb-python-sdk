@@ -120,8 +120,10 @@ class _SafeAsyncIterator:
         self.it = resp.__aiter__()
         self.rpc_state = rpc_state
         self.on_disconnected_callback = on_disconnected_callback
+        self._cancelled = False
 
     def cancel(self):
+        self._cancelled = True
         self.resp.cancel()
         return self
 
@@ -129,13 +131,26 @@ class _SafeAsyncIterator:
         return self
 
     async def __anext__(self):
+        next_response = asyncio.ensure_future(self.it.__anext__())
         try:
-            return await self.it.__anext__()
+            # wait() keeps caller cancellation separate from gRPC cancelling its
+            # own read when discovery retires the underlying channel.
+            await asyncio.wait([next_response])
+        except asyncio.CancelledError:
+            next_response.cancel()
+            await asyncio.gather(next_response, return_exceptions=True)
+            raise
+        try:
+            return next_response.result()
+        except asyncio.CancelledError:
+            if self._cancelled:
+                raise
+            ydb_error = issues.ClientCancelled("gRPC stream cancelled")
         except grpc.RpcError as rpc_error:
             ydb_error = _rpc_error_handler(self.rpc_state, rpc_error, use_unavailable=True)
-            if _is_disconnect_needed(ydb_error):
-                await self.on_disconnected_callback()
-            raise ydb_error
+        if _is_disconnect_needed(ydb_error) and self.on_disconnected_callback is not None:
+            await self.on_disconnected_callback()
+        raise ydb_error
 
     def __getattr__(self, item):
         return getattr(self.resp, item)

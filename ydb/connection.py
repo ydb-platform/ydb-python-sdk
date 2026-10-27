@@ -99,7 +99,7 @@ def _rpc_error_handler(
         elif rpc_error.code() == grpc.StatusCode.UNIMPLEMENTED:
             return issues.Unimplemented("Method or feature is not implemented on server!")
         elif rpc_error.code() == grpc.StatusCode.CANCELLED:
-            return issues.Cancelled(rpc_error.details())
+            return issues.ClientCancelled(rpc_error.details())
         elif rpc_error.code() == grpc.StatusCode.RESOURCE_EXHAUSTED:
             if "Sent message larger than max" in rpc_error.details():
                 return issues.BadRequest(rpc_error.details())
@@ -119,6 +119,7 @@ def _is_disconnect_needed(error):
         (
             issues.ConnectionLost,
             issues.Unavailable,
+            issues.ClientCancelled,
         ),
     )
 
@@ -379,8 +380,10 @@ class _SafeSyncIterator:
         self.it = resp.__iter__()
         self.rpc_state = rpc_state
         self.on_disconnected_callback = on_disconnected_callback
+        self._cancelled = False
 
     def cancel(self):
+        self._cancelled = True
         self.resp.cancel()
         return self
 
@@ -392,7 +395,9 @@ class _SafeSyncIterator:
             return self.it.__next__()
         except grpc.RpcError as rpc_error:
             ydb_error = _rpc_error_handler(self.rpc_state, rpc_error, use_unavailable=True)
-            if _is_disconnect_needed(ydb_error):
+            if self._cancelled and isinstance(ydb_error, issues.ClientCancelled):
+                ydb_error = issues.Cancelled(rpc_error.details())
+            if _is_disconnect_needed(ydb_error) and self.on_disconnected_callback is not None:
                 self.on_disconnected_callback()
             raise ydb_error
 

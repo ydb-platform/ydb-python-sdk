@@ -27,7 +27,8 @@ Exception Hierarchy
     ├── ydb.AlreadyExists       — object already exists (DDL)
     ├── ydb.NotFound            — object not found
     ├── ydb.SessionExpired      — session TTL expired
-    ├── ydb.Cancelled           — operation was cancelled
+    ├── ydb.Cancelled           — server status or explicit sync stream cancellation
+    │   └── ydb.ClientCancelled — gRPC call was cancelled
     ├── ydb.Undetermined        — outcome is unknown (e.g. network lost before ack)
     ├── ydb.Unsupported         — operation not supported by this server version
     ├── ydb.SessionBusy         — session is executing another request
@@ -40,6 +41,13 @@ Exception Hierarchy
     │   ├── ydb.ConnectionLost     — connection dropped mid-request
     │   └── ydb.Unimplemented      — server does not support this RPC
     └── ydb.DeadlineExceed      — client-side deadline exceeded
+
+``ClientCancelled`` has the distinct status ``StatusCode.CLIENT_CANCELLED``. It
+inherits from ``Cancelled`` so existing cancellation handlers continue to catch
+it, but its retries are controlled by ``idempotent``, not ``retry_cancelled``.
+The server's YDB ``CANCELLED`` status remains ``Cancelled`` with
+``StatusCode.CANCELLED``. Explicit async stream or caller-task cancellation
+continues to raise ``asyncio.CancelledError``.
 
 
 Catching Errors
@@ -100,6 +108,12 @@ Not every error is worth retrying. The SDK classifies errors into three groups:
 * :class:`~ydb.SessionPoolEmpty` — all pool sessions busy; wait and retry.
 * :class:`~ydb.ConnectionError` / :class:`~ydb.ConnectionLost` — network issues; reconnect and retry.
 
+**Retriable only for idempotent operations (fast backoff):**
+
+* :class:`~ydb.ClientCancelled` — gRPC ``CANCELLED``, including cancellation caused
+  by a closing channel. Set ``idempotent=True`` in :class:`~ydb.RetrySettings`
+  to enable retries. ``retry_cancelled=True`` does not override this requirement.
+
 **Retriable only for idempotent operations (slow backoff):**
 
 * :class:`~ydb.Undetermined` — outcome unknown; only safe to retry if the operation is idempotent
@@ -108,6 +122,7 @@ Not every error is worth retrying. The SDK classifies errors into three groups:
 
 **Never retried:**
 
+* :class:`~ydb.DeadlineExceed` — gRPC ``DEADLINE_EXCEEDED``.
 * :class:`~ydb.BadRequest`, :class:`~ydb.Unauthorized`, ``Unauthenticated``,
   :class:`~ydb.SchemeError`, :class:`~ydb.AlreadyExists`, ``Unsupported``,
   :class:`~ydb.Timeout`, ``PreconditionFailed``, ``ExternalError`` — these indicate
@@ -126,7 +141,7 @@ All pool methods that perform retries (``execute_with_retries``, ``retry_operati
 
     retry = ydb.RetrySettings(
         max_retries=5,               # max retry attempts (default: 10)
-        idempotent=False,            # set True to also retry Undetermined errors
+        idempotent=False,            # set True to retry ClientCancelled and Undetermined
         retry_cancelled=False,       # set True to retry Cancelled errors
     )
 
