@@ -214,8 +214,7 @@ Sending Messages
     ))
 
 The writer splits buffered messages into gRPC requests using their serialized size,
-including message metadata. A message that cannot fit in a request on its own fails
-with ``ydb.BadRequest``. gRPC message size errors are reported without retrying.
+including message metadata.
 
 **Write and wait for server acknowledgment:**
 

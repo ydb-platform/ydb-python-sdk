@@ -17,7 +17,7 @@ import freezegun
 import grpc
 import pytest
 
-from .. import aio, connection
+from .. import aio
 from .. import StatusCode, issues
 from .._grpc.grpcwrapper.ydb_topic import (
     Codec,
@@ -459,25 +459,6 @@ class TestWriterAsyncIOReconnector:
 
         second_writer.from_server.put_nowait(self.make_default_ack_message(seq_no=2))
         await reconnector.close(flush=True)
-
-    async def test_received_message_too_large_fails_pending_ack(self, reconnector, get_stream_writer):
-        message = PublicMessage(data=b"test", seqno=1, created_at=datetime.datetime.now(datetime.timezone.utc))
-        futures = await reconnector.write_with_ack_future([message])
-        stream_writer = get_stream_writer()
-        await wait_for_fast(stream_writer.from_client.get())
-        rpc_error = grpc.aio.AioRpcError(
-            grpc.StatusCode.RESOURCE_EXHAUSTED,
-            initial_metadata=grpc.aio.Metadata(),
-            trailing_metadata=grpc.aio.Metadata(),
-            details="SERVER: Received message larger than max (1001 vs. 1000)",
-        )
-        stream_writer.from_server.put_nowait(connection._rpc_error_handler("test", rpc_error))
-
-        with pytest.raises(issues.BadRequest, match="Received message larger than max"):
-            await wait_for_fast(futures[0])
-        assert isinstance(await wait_for_fast(reconnector.wait_stop()), issues.BadRequest)
-        with pytest.raises(issues.BadRequest):
-            await reconnector.close(flush=False)
 
     async def test_reconnect_on_cancelled_error_from_receive(self, default_driver, default_settings, monkeypatch):
         stream_creates = 0

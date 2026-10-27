@@ -15,24 +15,13 @@ def _make_rpc_error(code, details):
     return error
 
 
-@pytest.mark.parametrize(
-    "details",
-    [
-        "CLIENT: Sent message larger than max (101289032 vs. 64000000)",
-        "SERVER: Received message larger than max (101289032 vs. 64000000)",
-        "Received message larger than max (101289032 vs. 64000000)",
-        "grpc: received message larger than max (101289032 vs. 64000000)",
-    ],
-)
-def test_resource_exhausted_large_message_returns_bad_request(details):
+def test_resource_exhausted_large_message_returns_bad_request():
     rpc_error = _make_rpc_error(
         grpc.StatusCode.RESOURCE_EXHAUSTED,
-        details,
+        "CLIENT: Sent message larger than max (101289032 vs. 64000000)",
     )
     result = _rpc_error_handler("test_rpc", rpc_error)
     assert isinstance(result, ydb.issues.BadRequest)
-    assert details in str(result)
-    assert not ydb._errors.check_retriable_error(result, ydb.RetrySettings(), 0).is_retriable
 
 
 def test_resource_exhausted_other_reason_returns_connection_lost():

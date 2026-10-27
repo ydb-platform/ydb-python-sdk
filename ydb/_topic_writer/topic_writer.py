@@ -14,7 +14,7 @@ from .._grpc.grpcwrapper.ydb_topic import StreamWriteMessage
 from .._grpc.grpcwrapper.ydb_topic import TransactionIdentity
 from .._grpc.grpcwrapper.common_utils import IToProto
 from .._grpc.grpcwrapper.ydb_topic_public_types import PublicCodec
-from .. import connection, issues
+from .. import connection
 
 Message = typing.Union["PublicMessage", "PublicMessage.SimpleSourceType"]
 
@@ -291,17 +291,10 @@ def _split_messages_for_send(
         group_size = base_size
         for msg in codec_messages:
             message_size = _protobuf_field_size(msg.to_message_data().to_proto().ByteSize())
-            request_size = _protobuf_field_size(group_size + message_size)
-            if group and request_size > limit:
+            if group and _protobuf_field_size(group_size + message_size) > limit:
                 res.append(group)
                 group = []
                 group_size = base_size
-                request_size = _protobuf_field_size(group_size + message_size)
-            if request_size > limit:
-                raise issues.BadRequest(
-                    "Topic message with seqno %s exceeds gRPC request size limit (%d vs. %d bytes)"
-                    % (msg.seq_no, request_size, limit)
-                )
             group.append(msg)
             group_size += message_size
         if group:

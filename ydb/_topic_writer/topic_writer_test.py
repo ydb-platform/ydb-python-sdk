@@ -5,7 +5,7 @@ from unittest import mock
 
 import pytest
 
-from .. import connection, issues
+from .. import connection
 from .._grpc.grpcwrapper.ydb_topic import StreamWriteMessage, TransactionIdentity
 from .._grpc.grpcwrapper.ydb_topic_public_types import PublicCodec
 from .topic_writer import (
@@ -109,14 +109,16 @@ class TestMessagesToProtoRequests:
         assert all(request.value.tx_identity == tx_identity for request in requests)
 
     @pytest.mark.parametrize("with_metadata", [False, True])
-    def test_oversized_single_message_is_rejected(self, monkeypatch, with_metadata):
-        message = _make_msg(b"x" * 200)
+    def test_oversized_message_is_sent_on_its_own(self, monkeypatch, with_metadata):
+        message = _make_msg(b"x" * 200, seqno=2)
         if with_metadata:
             message.metadata_items = {"key": b"m" * 300}
         monkeypatch.setattr(connection, "_DEFAULT_MAX_GRPC_MESSAGE_SIZE", _request_size([message]) - 1)
 
-        with pytest.raises(issues.BadRequest, match="size limit"):
-            messages_to_proto_requests([message], None)
+        requests = messages_to_proto_requests([_make_msg(b"before"), message, _make_msg(b"after", seqno=3)], None)
+
+        assert [[msg.seq_no for msg in request.value.messages] for request in requests] == [[1], [2], [3]]
+        assert requests[1].to_proto().ByteSize() > connection._DEFAULT_MAX_GRPC_MESSAGE_SIZE
 
     def test_empty(self):
         assert messages_to_proto_requests([], tx_identity=None) == []
