@@ -1,3 +1,4 @@
+## 3.34.0 ##
 * Remove `AAA Certificate Services` and `emSign ECC Root CA - G3` from the bundled TLS trust store to reject certificate chains affected by the eMudhra CA compromise
 * Fix topic writer batching to include message metadata and protobuf overhead in request size calculations
 
