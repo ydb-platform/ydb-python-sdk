@@ -365,6 +365,13 @@ TableIndex
    :members:
    :undoc-members:
 
+RenameItem
+^^^^^^^^^^
+
+.. autoclass:: ydb.RenameItem
+   :members:
+   :undoc-members:
+
 TableSchemeEntry
 ^^^^^^^^^^^^^^^^
 

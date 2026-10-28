@@ -26,7 +26,7 @@ from .._grpc.grpcwrapper.ydb_topic import (
     UpdateTokenRequest,
     UpdateTokenResponse,
 )
-from .._grpc.grpcwrapper.common_utils import AsyncQueueToSyncIteratorAsyncIO, ServerStatus
+from .._grpc.grpcwrapper.common_utils import AsyncQueueToSyncIteratorAsyncIO, GrpcWrapperAsyncIO, ServerStatus
 from .topic_writer import (
     InternalMessage,
     PublicMessage,
@@ -177,7 +177,7 @@ class TestWriterAsyncIOStream:
         )
 
         sent_message = await writer_and_stream.stream.from_client.get()
-        assert expected_message == sent_message
+        assert expected_message.to_proto() == sent_message
 
     async def test_write_a_message_with_tx(self, writer_and_stream: WriterWithMockedStream):
         writer_and_stream.writer._tx_identity = FAKE_TRANSACTION_IDENTITY
@@ -214,7 +214,7 @@ class TestWriterAsyncIOStream:
         )
 
         sent_message = await writer_and_stream.stream.from_client.get()
-        assert expected_message == sent_message
+        assert expected_message.to_proto() == sent_message
 
     async def test_update_token(self, stream: StreamMock):
         writer = await self.get_started_writer(stream, update_token_interval=0.1, get_token_function=lambda: "foo-bar")
@@ -237,6 +237,37 @@ class TestWriterAsyncIOStream:
         await asyncio.wait([receive_task])
 
         await writer.close()
+
+    async def test_messages_are_converted_once_before_grpc(self):
+        stream = GrpcWrapperAsyncIO(lambda message: message)
+        writer = WriterAsyncIOStream()
+        writer._stream = stream
+        messages = [
+            InternalMessage(
+                PublicMessage(
+                    data=b"payload",
+                    metadata_items={"key": b"value"},
+                    seqno=seqno,
+                    created_at=datetime.datetime(2026, 1, 1),
+                )
+            )
+            for seqno in (1, 2)
+        ]
+
+        message_type = StreamWriteMessage.WriteRequest.MessageData
+        try:
+            with mock.patch.object(
+                message_type, "to_proto", autospec=True, side_effect=message_type.to_proto
+            ) as convert:
+                writer.write(messages)
+                assert convert.call_count == len(messages)
+
+            request = stream.from_client_grpc.get_nowait()
+            assert [message.seq_no for message in request.write_request.messages] == [1, 2]
+            assert request.write_request.messages[0].metadata_items[0].value == b"value"
+            assert stream.from_client_grpc.empty()
+        finally:
+            await writer.close()
 
     async def test_init_timeout_parameter(self, stream):
         """Test that WriterAsyncIOStream._start calls stream.receive with timeout=10"""
