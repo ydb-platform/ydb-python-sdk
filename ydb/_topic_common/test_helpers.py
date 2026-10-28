@@ -2,6 +2,8 @@ import asyncio
 import time
 import typing
 
+from google.protobuf.message import Message
+
 from .._grpc.grpcwrapper.common_utils import IToProto, IGrpcWrapperAsyncIO
 
 
@@ -26,7 +28,7 @@ class StreamMock(IGrpcWrapperAsyncIO):
             raise item
         return item
 
-    def write(self, wrap_message: IToProto):
+    def write(self, wrap_message: typing.Union[IToProto, Message]):
         if self._closed:
             raise Exception("write to closed StreamMock")
         self.from_client.put_nowait(wrap_message)
