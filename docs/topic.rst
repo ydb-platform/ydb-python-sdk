@@ -213,6 +213,9 @@ Sending Messages
         metadata_items={"key": "value"},
     ))
 
+The writer splits buffered messages into gRPC requests using their serialized size,
+including message metadata.
+
 **Write and wait for server acknowledgment:**
 
 .. code-block:: python
