@@ -41,9 +41,21 @@ Build a :class:`~ydb.TableDescription` and pass it to ``create_table``:
         .with_primary_keys("id"),
     )
 
-Primary key columns must not be wrapped in :class:`~ydb.OptionalType` — they cannot be
-``NULL``. All other columns should use :class:`~ydb.OptionalType` so rows with missing
-values are accepted.
+Nullability belongs to each column, including a primary-key column.
+:class:`~ydb.OptionalType` allows ``NULL``. A primitive type is ``NOT NULL``.
+In YQL the same split is ``Uint64`` (nullable) and ``Uint64 NOT NULL``.
+
+On a row-oriented table both forms are valid for every column. In the example
+above ``id`` is ``NOT NULL``, while ``name`` and ``age`` are nullable. A
+primary-key column may be nullable too. YDB accepts ``NULL`` in a key and
+recommends a non-null key: ``NULL`` equals no value, including another
+``NULL``, so comparisons and point lookups skip those rows. See `NULL in a
+key column <https://ydb.tech/docs/en/dev/primary-key/row-oriented#key-null>`_.
+
+A column-oriented table accepts only ``NOT NULL`` primary-key columns. See
+`column-oriented tables
+<https://ydb.tech/docs/en/concepts/datamodel/table#column-oriented-tables>`_.
+The examples on this page create row-oriented tables.
 
 Dropping a Table
 ^^^^^^^^^^^^^^^^
@@ -173,17 +185,28 @@ Copying and Renaming Tables
         ("/local/orders", "/local/backup/orders"),
     ])
 
-``rename_tables`` renames (or moves) tables atomically:
+``rename_tables`` renames (or moves) tables atomically. Each entry is a
+:class:`~ydb.RenameItem`. The client reads ``source_path``,
+``destination_path``, and ``replace_destination`` from each item:
 
 .. code-block:: python
 
     driver.table_client.rename_tables([
-        ("/local/users_new", "/local/users"),
+        ydb.RenameItem("/local/users_new", "/local/users"),
     ])
 
-If the destination already exists the call fails unless you add
-``replace_destination=True`` to a ``RenameIndexItem`` — for table renames,
-this replaces the destination atomically.
+Pass ``replace_destination=True`` when the destination path already exists.
+The server replaces that table in the same operation:
+
+.. code-block:: python
+
+    driver.table_client.rename_tables([
+        ydb.RenameItem(
+            "/local/users_new",
+            "/local/users",
+            replace_destination=True,
+        ),
+    ])
 
 
 Secondary Indexes
@@ -191,14 +214,18 @@ Secondary Indexes
 
 Indexes are defined via :class:`~ydb.TableIndex` when creating or altering a table.
 
-**Global index** — built synchronously; the table is unavailable during index
-construction when adding to an existing table:
+**Global index** — a synchronous secondary index. The server updates it in the
+same transaction as the table. Adding it to an existing table builds the
+index in the background: the table stays available, and queries can use the
+index once the build has finished:
 
 .. code-block:: python
 
     ydb.TableIndex("name_idx").with_index_columns("name")
 
-**Global async index** — built in the background; the table stays available:
+**Global async index** — updated in the background, so a write does not wait
+for the index. Reads through the index are eventually consistent and run in
+stale read-only mode. The initial build also leaves the table available:
 
 .. code-block:: python
 
@@ -309,9 +336,11 @@ that split evolves over time:
    * - Method
      - Effect
    * - ``with_min_partitions_count(n)``
-     - Table always has at least *n* shards.
+     - Auto-merge stops at *n* shards. A new table still starts as one shard;
+       pre-split it with ``with_uniform_partitions`` or ``with_partition_at_keys``.
    * - ``with_max_partitions_count(n)``
-     - Table never exceeds *n* shards.
+     - Auto-split stops at *n* shards. A shard past the server force-split size
+       (2 GiB by default) can still split above this cap.
    * - ``with_partition_size_mb(mb)``
      - Target shard size; triggers a split when exceeded (requires by-size enabled).
    * - ``with_partitioning_by_size(flag)``
@@ -392,9 +421,9 @@ Useful when a table has both hot (frequently read) and cold (rarely read) column
 Bulk Upsert
 -----------
 
-``bulk_upsert`` loads rows without going through a transaction. It is faster than
-individual ``INSERT``/``UPSERT`` statements for large batches and is idempotent
-(safe to retry on failure).
+``bulk_upsert`` loads rows without a transaction. It is faster than individual
+``INSERT``/``UPSERT`` statements for large batches. Sending the same rows again
+is safe: each row is an upsert.
 
 Build a :class:`~ydb.BulkUpsertColumns` descriptor that lists the columns and their types,
 then pass it together with the rows:
@@ -425,9 +454,11 @@ attributes match the column names in ``BulkUpsertColumns``.
 
 .. note::
 
-   ``bulk_upsert`` bypasses transaction guarantees. All rows in a single call
-   are applied atomically, but there is no cross-call ordering. Prefer ``UPSERT``
-   via the Query service when transactional semantics matter.
+   One ``bulk_upsert`` call is split into independent per-partition transactions.
+   A successful response means every row from that call is committed. A failure
+   can leave a subset of the rows committed; resending the same rows overwrites
+   them. There is no ordering across calls. Prefer ``UPSERT`` via the Query
+   service when the rows must commit as one transaction.
 
 
 Point Reads
