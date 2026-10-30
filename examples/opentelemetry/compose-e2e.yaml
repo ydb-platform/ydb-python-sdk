@@ -12,6 +12,7 @@ services:
     image: ydbplatform/local-ydb:trunk
     restart: always
     platform: linux/amd64
+    hostname: localhost
     environment:
       YDB_DEFAULT_LOG_LEVEL: NOTICE
       GRPC_TLS_PORT: "2135"
@@ -96,12 +97,19 @@ services:
     build:
       context: ../..
       dockerfile: examples/opentelemetry/Dockerfile
-    command: ["python", "examples/opentelemetry/load_tank.py"]
+    command:
+      [
+        "sh",
+        "-c",
+        "rm -f /tmp/ydb-load-tank-ready && exec python examples/opentelemetry/load_tank.py",
+      ]
     environment:
       YDB_ENDPOINT: grpc://ydb:2136
       YDB_DATABASE: /local
       OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4317
       OTEL_SERVICE_NAME: ydb-python-load-tank
+      LOAD_TANK_RUN_ID_FILE: /run/ydb-metrics/run-id
+      LOAD_TANK_READY_FILE: /tmp/ydb-load-tank-ready
       LOAD_TANK_TOTAL_TIME: "6000"
       LOAD_TANK_WORKERS: "40"
       LOAD_TANK_POOL_SIZE: "20"
@@ -115,9 +123,51 @@ services:
       LOAD_TANK_PRESSURE_ACQUIRE_TIMEOUT: "1.0"
       LOAD_TANK_PRESSURE_INTERVAL: "0.2"
       LOAD_TANK_SESSION_CHURN_INTERVAL: "2.0"
+      LOAD_TANK_RETRY_PROBE_INTERVAL: "5.0"
+      LOAD_TANK_RETRY_PROBE_FAILURES: "2"
+      LOAD_TANK_TOPIC_WRITE_RPS: "20"
+      LOAD_TANK_TOPIC_READ_DELAY: "0.1"
+      LOAD_TANK_TOPIC_MESSAGE_SIZE: "1024"
+      LOAD_TANK_TOPIC_PARTITIONS: "2"
+      LOAD_TANK_TOPIC_ERROR_PROBE_ENDPOINT: grpc://ydb:2136
+      LOAD_TANK_TOPIC_ERROR_PROBE_SECONDS: "5"
+    volumes:
+      - metrics-run:/run/ydb-metrics
     depends_on:
       ydb:
         condition: service_healthy
       otel-collector:
         condition: service_started
+    healthcheck:
+      test: ["CMD-SHELL", "test -f /tmp/ydb-load-tank-ready"]
+      interval: 1s
+      timeout: 1s
+      retries: 90
     restart: "no"
+
+  metrics-verifier:
+    profiles: ["verify"]
+    build:
+      context: ../..
+      dockerfile: examples/opentelemetry/Dockerfile
+    command:
+      [
+        "python",
+        "examples/opentelemetry/verify_metrics.py",
+        "--prometheus-url",
+        "http://prometheus:9090",
+        "--require-error-probe",
+      ]
+    environment:
+      METRICS_RUN_ID_FILE: /run/ydb-metrics/run-id
+    volumes:
+      - metrics-run:/run/ydb-metrics:ro
+    depends_on:
+      prometheus:
+        condition: service_started
+      load-generator:
+        condition: service_healthy
+    restart: "no"
+
+volumes:
+  metrics-run:
