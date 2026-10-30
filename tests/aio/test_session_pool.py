@@ -1,7 +1,9 @@
 import asyncio
+from unittest.mock import AsyncMock, Mock
 
 import pytest
 import ydb
+from ydb.aio.table import Session
 
 
 @pytest.mark.asyncio
@@ -144,3 +146,57 @@ async def test_no_session_leak(driver, docker_project):
 
     docker_project.start()
     await pool.stop()
+
+
+@pytest.fixture
+async def mock_session_pool():
+    driver = Mock()
+    driver.wait = AsyncMock()
+
+    def create_session():
+        session = Mock(spec=Session)
+        session.create.return_value = session
+        session.initialized.return_value = True
+        session.closing.return_value = False
+        session.pending_query.return_value = False
+        return session
+
+    driver.table_client.session.side_effect = create_session
+    pool = ydb.aio.SessionPool(driver, 1)
+    try:
+        yield pool
+    finally:
+        await pool.stop()
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("error", [ydb.BadSession, ydb.ConnectionLost, asyncio.CancelledError])
+async def test_keep_alive_failure_frees_pool_slot(mock_session_pool, error):
+    pool = mock_session_pool
+    session = await pool.acquire(timeout=1)
+    session.keep_alive.side_effect = error("KeepAlive failed")
+
+    await asyncio.gather(pool._send_keep_alive(session), return_exceptions=True)
+
+    session.delete.assert_awaited_once_with(pool._req_settings)
+    assert pool._active_count == 0
+    assert pool._active_queue.empty()
+
+    replacement = await pool.acquire(timeout=1)
+    assert replacement is not session
+    await pool.release(replacement)
+
+
+@pytest.mark.asyncio
+async def test_keep_alive_success_reuses_session(mock_session_pool):
+    pool = mock_session_pool
+    session = await pool.acquire(timeout=1)
+
+    await pool._send_keep_alive(session)
+
+    session.keep_alive.assert_awaited_once_with(pool._req_settings)
+    session.delete.assert_not_called()
+    assert pool._active_count == 1
+    reused = await pool.acquire(timeout=1)
+    assert reused is session
+    await pool.release(reused)
