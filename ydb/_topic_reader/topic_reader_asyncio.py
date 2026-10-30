@@ -4,6 +4,7 @@ import asyncio
 import concurrent.futures
 import gzip
 import math
+from time import monotonic
 import typing
 from asyncio import Task
 from collections import defaultdict, OrderedDict
@@ -47,6 +48,18 @@ if typing.TYPE_CHECKING:
 from .._constants import DEFAULT_INITIAL_RESPONSE_TIMEOUT
 
 logger = logging.getLogger(__name__)
+
+_CODEC_NAMES = {
+    Codec.CODEC_UNSPECIFIED: "unspecified",
+    Codec.CODEC_RAW: "raw",
+    Codec.CODEC_GZIP: "gzip",
+    Codec.CODEC_LZOP: "lzop",
+    Codec.CODEC_ZSTD: "zstd",
+}
+
+
+def _codec_name(codec: int) -> str:
+    return _CODEC_NAMES.get(codec, str(codec))
 
 
 class TopicReaderError(YdbError):
@@ -314,7 +327,10 @@ class ReaderReconnector:
                 await self._stream_reader.wait_error()
             except BaseException as err:
                 logger.debug("%s connection attempt=%s failed: %s", self._log_prefix, attempt, err)
+                if self._closed:
+                    return
                 retry_info = check_retriable_error(err, self._settings._retry_settings(), attempt)
+                self._metrics.record_session_error(err, retry_info.is_retriable)
                 if not retry_info.is_retriable:
                     logger.debug("%s stop connection loop: %s", self._log_prefix, err)
                     self._set_first_error(err)
@@ -464,25 +480,31 @@ class ReaderReconnector:
         for topic_path in grouped_batches:
             topic_offsets = UpdateOffsetsInTransactionRequest.TopicOffsets(path=topic_path, partitions=[])
             for partition_id in grouped_batches[topic_path]:
+                ranges = [batch._commit_get_offsets_range() for batch in grouped_batches[topic_path][partition_id]]
                 partition_offsets = UpdateOffsetsInTransactionRequest.TopicOffsets.PartitionOffsets(
                     partition_id=partition_id,
-                    partition_offsets=[
-                        batch._commit_get_offsets_range() for batch in grouped_batches[topic_path][partition_id]
-                    ],
+                    partition_offsets=ranges,
                 )
                 topic_offsets.partitions.append(partition_offsets)
             request.topics.append(topic_offsets)
 
+        for topic_offsets in request.topics:
+            for partition_offsets in topic_offsets.partitions:
+                for offsets in partition_offsets.partition_offsets:
+                    self._metrics.record_commit_queued(offsets.end - offsets.start, topic_offsets.path)
+
         try:
-            return await self._do_commit_batches_with_tx_call(request)
+            result = await self._do_commit_batches_with_tx_call(request)
         except BaseException:
             err = issues.ClientInternalError("Failed to update offsets in tx.")
             tx._set_external_error(err)
             if self._stream_reader is not None:
                 self._stream_reader._set_first_error(err)
-        finally:
             if tx_id in self._tx_to_batches_map:
                 del self._tx_to_batches_map[tx_id]
+            return None
+
+        return result
 
     async def _do_commit_batches_with_tx_call(self, request: UpdateOffsetsInTransactionRequest):
         args = [
@@ -509,8 +531,15 @@ class ReaderReconnector:
 
     async def _handle_after_tx_commit(self, tx: "BaseQueryTxContext", exc: Optional[BaseException]) -> None:
         tx_id = tx.tx_id
-        if tx_id is not None and tx_id in self._tx_to_batches_map:
-            del self._tx_to_batches_map[tx_id]
+        batches = self._tx_to_batches_map.pop(tx_id, []) if tx_id is not None else []
+
+        if exc is None:
+            for batch in batches:
+                offsets = batch._commit_get_offsets_range()
+                self._metrics.record_commit_acknowledged(
+                    offsets.end - offsets.start,
+                    batch._partition_session.topic_path,
+                )
 
         if exc is not None and self._stream_reader is not None:
             self._stream_reader._set_first_error(
@@ -826,6 +855,11 @@ class ReaderStream:
             )
             if self._stream is not None:
                 self._stream.write(StreamReadMessage.FromClient(client_message=client_message))
+                self._metrics.record_commit_offset_queued(partition_session, commit_range.end)
+                self._metrics.record_commit_queued(
+                    commit_range.end - commit_range.start,
+                    partition_session.topic_path,
+                )
 
         return waiter
 
@@ -843,13 +877,15 @@ class ReaderStream:
     async def _read_messages_loop(self):
         try:
             logger.debug("%s start read loop", self._log_prefix)
+            initial_credit_bytes = self._buffer_size_bytes
             self._stream.write(
                 StreamReadMessage.FromClient(
                     client_message=StreamReadMessage.ReadRequest(
-                        bytes_size=self._buffer_size_bytes,
+                        bytes_size=initial_credit_bytes,
                     ),
                 )
             )
+            self._metrics.reset_credit_balance_bytes(initial_credit_bytes)
             while True:
                 try:
                     message = await self._stream.receive()  # type: StreamReadMessage.FromServer
@@ -952,7 +988,7 @@ class ReaderStream:
                 reader_stream_id=self._id,
             )
             self._partition_sessions[partition_session.id] = partition_session
-            self._metrics.add_partition_session(partition_session.topic_path)
+            self._metrics.add_partition_session(partition_session.topic_path, partition_session)
 
             read_offset = None
 
@@ -986,7 +1022,7 @@ class ReaderStream:
 
         partition = self._partition_sessions.pop(message.partition_session_id)
         partition.close()
-        self._metrics.remove_partition_session(partition.topic_path)
+        self._metrics.remove_partition_session(partition.topic_path, partition)
 
         if message.graceful and self._stream is not None:
             self._stream.write(
@@ -1014,6 +1050,7 @@ class ReaderStream:
 
         batches = self._read_response_to_batches(message)
         for batch in batches:
+            batch._received_at = received_at
             self._batches_to_decode.put_nowait(batch)
 
         self._metrics.record_received_messages(batches, received_at=received_at)
@@ -1024,23 +1061,34 @@ class ReaderStream:
                 continue
 
             session = self._partition_sessions[partition_offset.partition_session_id]
-            session.ack_notify(partition_offset.committed_offset)
+            acknowledged_messages = session.ack_notify(partition_offset.committed_offset)
+            self._metrics.record_commit_offset_acknowledged(
+                session,
+                partition_offset.committed_offset,
+            )
+            self._metrics.record_commit_acknowledged(
+                acknowledged_messages,
+                session.topic_path,
+            )
 
     def _buffer_consume_bytes(self, bytes_size):
         self._buffer_size_bytes -= bytes_size
+        self._metrics.add_credit_balance_bytes(-bytes_size)
 
     def _buffer_release_bytes(self, bytes_size):
         self._pending_buffer_release_bytes += bytes_size
         if self._pending_buffer_release_bytes >= self._min_buffer_release_bytes:
-            self._buffer_size_bytes += self._pending_buffer_release_bytes
+            released_bytes = self._pending_buffer_release_bytes
             self._stream.write(
                 StreamReadMessage.FromClient(
                     client_message=StreamReadMessage.ReadRequest(
-                        bytes_size=self._pending_buffer_release_bytes,
+                        bytes_size=released_bytes,
                     )
                 )
             )
+            self._buffer_size_bytes += released_bytes
             self._pending_buffer_release_bytes = 0
+            self._metrics.add_credit_balance_bytes(released_bytes)
 
     def _read_response_to_batches(self, message: StreamReadMessage.ReadResponse) -> typing.List[datatypes.PublicBatch]:
         batches: typing.List[datatypes.PublicBatch] = []
@@ -1121,18 +1169,65 @@ class ReaderStream:
         try:
             decode_func = self._decoders[batch._codec]
         except KeyError:
-            raise PublicTopicReaderUnexpectedCodecError("Receive message with unexpected codec: %s" % batch._codec)
+            error = PublicTopicReaderUnexpectedCodecError("Receive message with unexpected codec: %s" % batch._codec)
+            if batch._received_at is not None:
+                processing_duration = monotonic() - batch._received_at
+                codec = _codec_name(batch._codec)
+                for _ in batch.messages:
+                    self._metrics.record_compression_duration(0.0, codec, batch._partition_session.topic_path, error)
+                    self._metrics.record_message_processing_duration(
+                        processing_duration,
+                        codec,
+                        batch._partition_session.topic_path,
+                        error,
+                    )
+            raise error
 
         decode_data_futures = []
+        if batch._received_at is None:
+            for message in batch.messages:
+                future = self._loop.run_in_executor(self._decode_executor, decode_func, message.data)
+                decode_data_futures.append(future)
+
+            decoded_data = await asyncio.gather(*decode_data_futures)
+            for index, message in enumerate(batch.messages):
+                message.data = decoded_data[index]
+
+            batch._codec = Codec.CODEC_RAW
+            return
+
         for message in batch.messages:
-            future = self._loop.run_in_executor(self._decode_executor, decode_func, message.data)
+            future = self._loop.run_in_executor(
+                self._decode_executor, self._decode_with_timing, decode_func, message.data
+            )
             decode_data_futures.append(future)
 
         decoded_data = await asyncio.gather(*decode_data_futures)
+        processing_duration = monotonic() - batch._received_at
+        processing_error = next((error for _, _, error in decoded_data if error is not None), None)
+        codec = _codec_name(batch._codec)
+        topic = batch._partition_session.topic_path
+
+        for _, compression_duration, error in decoded_data:
+            self._metrics.record_compression_duration(compression_duration, codec, topic, error)
+            self._metrics.record_message_processing_duration(processing_duration, codec, topic, processing_error)
+
+        if processing_error is not None:
+            raise processing_error
+
         for index, message in enumerate(batch.messages):
-            message.data = decoded_data[index]
+            message.data = decoded_data[index][0]
 
         batch._codec = Codec.CODEC_RAW
+
+    @staticmethod
+    def _decode_with_timing(decode_func, data):
+        started_at = monotonic()
+        try:
+            decoded = decode_func(data)
+            return decoded, monotonic() - started_at, None
+        except Exception as error:
+            return None, monotonic() - started_at, error
 
     def _set_first_error(self, err: YdbError):
         try:
@@ -1183,7 +1278,10 @@ class ReaderStream:
                     await asyncio.wait(self._background_tasks)
             finally:
                 try:
-                    self._metrics.reset_local_buffer_messages()
+                    self._metrics.reset_credit_balance_bytes()
                 finally:
-                    self._metrics.reset_partition_sessions()
+                    try:
+                        self._metrics.reset_local_buffer_messages()
+                    finally:
+                        self._metrics.reset_partition_sessions()
         logger.debug("%s was closed", self._log_prefix)

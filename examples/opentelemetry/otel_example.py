@@ -55,7 +55,7 @@ async def _topic_reader_metrics_demo(
 
     await driver.topic_client.create_topic(topic_path, consumers=[consumer])
     try:
-        async with driver.topic_client.writer(topic_path) as writer:
+        async with driver.topic_client.writer(topic_path, codec=ydb.TopicCodec.GZIP) as writer:
             await writer.write("OpenTelemetry topic Reader metrics")
 
         async with driver.topic_client.reader(

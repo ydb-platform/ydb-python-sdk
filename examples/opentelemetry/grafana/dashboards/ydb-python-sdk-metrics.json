@@ -14,7 +14,7 @@
       "options": { "legend": { "displayMode": "table", "placement": "right" } },
       "targets": [
         {
-          "expr": "sum by (ydb_operation_name) (rate(db_client_operation_duration_seconds_count[$__rate_interval]))",
+          "expr": "sum by (ydb_operation_name) (rate(ydb_client_operation_duration_seconds_count[$__rate_interval]))",
           "legendFormat": "{{ydb_operation_name}}",
           "datasource": { "type": "prometheus", "uid": "prometheus" }
         }
@@ -99,17 +99,17 @@
       "options": { "legend": { "displayMode": "table", "placement": "right" } },
       "targets": [
         {
-          "expr": "histogram_quantile(0.50, sum by (le, ydb_operation_name) (rate(db_client_operation_duration_seconds_bucket[$__rate_interval])))",
+          "expr": "histogram_quantile(0.50, sum by (le, ydb_operation_name) (rate(ydb_client_operation_duration_seconds_bucket[$__rate_interval])))",
           "legendFormat": "p50 - {{ydb_operation_name}}",
           "datasource": { "type": "prometheus", "uid": "prometheus" }
         },
         {
-          "expr": "histogram_quantile(0.95, sum by (le, ydb_operation_name) (rate(db_client_operation_duration_seconds_bucket[$__rate_interval])))",
+          "expr": "histogram_quantile(0.95, sum by (le, ydb_operation_name) (rate(ydb_client_operation_duration_seconds_bucket[$__rate_interval])))",
           "legendFormat": "p95 - {{ydb_operation_name}}",
           "datasource": { "type": "prometheus", "uid": "prometheus" }
         },
         {
-          "expr": "histogram_quantile(0.99, sum by (le, ydb_operation_name) (rate(db_client_operation_duration_seconds_bucket[$__rate_interval])))",
+          "expr": "histogram_quantile(0.99, sum by (le, ydb_operation_name) (rate(ydb_client_operation_duration_seconds_bucket[$__rate_interval])))",
           "legendFormat": "p99 - {{ydb_operation_name}}",
           "datasource": { "type": "prometheus", "uid": "prometheus" }
         }
@@ -183,6 +183,175 @@
         {
           "expr": "(sum(rate(ydb_client_retry_attempts_count[$__rate_interval])) - sum(rate(ydb_client_retry_attempts_bucket{le=\"1\"}[$__rate_interval]))) / sum(rate(ydb_client_retry_attempts_count[$__rate_interval]))",
           "legendFormat": "retried operations ratio",
+          "datasource": { "type": "prometheus", "uid": "prometheus" }
+        }
+      ]
+    },
+    {
+      "title": "Closed Query Sessions",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 32 },
+      "fieldConfig": { "defaults": { "unit": "short" } },
+      "options": { "legend": { "displayMode": "table", "placement": "right" } },
+      "targets": [
+        {
+          "expr": "sum by (ydb_query_session_pool_name, reason) (increase(ydb_query_session_closed_total[$__rate_interval]))",
+          "legendFormat": "{{ydb_query_session_pool_name}} - {{reason}}",
+          "datasource": { "type": "prometheus", "uid": "prometheus" }
+        }
+      ]
+    },
+    {
+      "title": "Topic Reader Session Errors",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 32 },
+      "fieldConfig": { "defaults": { "unit": "short" } },
+      "options": { "legend": { "displayMode": "table", "placement": "right" } },
+      "targets": [
+        {
+          "expr": "sum by (service_instance_id, endpoint, database, consumer, reader_name, retry_decision) (increase(ydb_topic_reader_session_errors_total[$__rate_interval]))",
+          "legendFormat": "{{service_instance_id}} - {{endpoint}} - {{database}} - {{consumer}} - {{reader_name}} - {{retry_decision}}",
+          "datasource": { "type": "prometheus", "uid": "prometheus" }
+        }
+      ]
+    },
+    {
+      "title": "Topic Message Rate",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 40 },
+      "fieldConfig": { "defaults": { "unit": "msgps" } },
+      "options": { "legend": { "displayMode": "table", "placement": "right" } },
+      "targets": [
+        {
+          "expr": "sum by (service_instance_id, endpoint, database, consumer, reader_name, topic) (rate(ydb_topic_reader_received_messages_total[$__rate_interval]))",
+          "legendFormat": "received - {{service_instance_id}} - {{endpoint}} - {{database}} - {{consumer}} - {{reader_name}} - {{topic}}",
+          "datasource": { "type": "prometheus", "uid": "prometheus" }
+        },
+        {
+          "expr": "sum by (service_instance_id, endpoint, database, consumer, reader_name, topic) (rate(ydb_topic_reader_delivered_messages_total[$__rate_interval]))",
+          "legendFormat": "delivered - {{service_instance_id}} - {{endpoint}} - {{database}} - {{consumer}} - {{reader_name}} - {{topic}}",
+          "datasource": { "type": "prometheus", "uid": "prometheus" }
+        },
+        {
+          "expr": "sum by (service_instance_id, endpoint, database, consumer, reader_name, topic) (rate(ydb_topic_reader_commit_queued_total[$__rate_interval]))",
+          "legendFormat": "commit queued - {{service_instance_id}} - {{endpoint}} - {{database}} - {{consumer}} - {{reader_name}} - {{topic}}",
+          "datasource": { "type": "prometheus", "uid": "prometheus" }
+        },
+        {
+          "expr": "sum by (service_instance_id, endpoint, database, consumer, reader_name, topic) (rate(ydb_topic_reader_commit_acknowledged_total[$__rate_interval]))",
+          "legendFormat": "commit acknowledged - {{service_instance_id}} - {{endpoint}} - {{database}} - {{consumer}} - {{reader_name}} - {{topic}}",
+          "datasource": { "type": "prometheus", "uid": "prometheus" }
+        }
+      ]
+    },
+    {
+      "title": "Topic Received Throughput",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 40 },
+      "fieldConfig": { "defaults": { "unit": "Bps" } },
+      "options": { "legend": { "displayMode": "table", "placement": "right" } },
+      "targets": [
+        {
+          "expr": "sum by (service_instance_id, endpoint, database, consumer, reader_name) (rate(ydb_topic_reader_received_bytes_total[$__rate_interval]))",
+          "legendFormat": "{{service_instance_id}} - {{endpoint}} - {{database}} - {{consumer}} - {{reader_name}}",
+          "datasource": { "type": "prometheus", "uid": "prometheus" }
+        }
+      ]
+    },
+    {
+      "title": "Topic Reader Local Buffer",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 48 },
+      "fieldConfig": { "defaults": { "unit": "short" } },
+      "options": { "legend": { "displayMode": "table", "placement": "right" } },
+      "targets": [
+        {
+          "expr": "sum by (service_instance_id, endpoint, database, consumer, reader_name) (ydb_topic_reader_local_buffer_messages)",
+          "legendFormat": "{{service_instance_id}} - {{endpoint}} - {{database}} - {{consumer}} - {{reader_name}}",
+          "datasource": { "type": "prometheus", "uid": "prometheus" }
+        }
+      ]
+    },
+    {
+      "title": "Oldest Buffered Topic Message",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 48 },
+      "fieldConfig": { "defaults": { "unit": "s" } },
+      "options": { "legend": { "displayMode": "table", "placement": "right" } },
+      "targets": [
+        {
+          "expr": "max by (service_instance_id, endpoint, database, consumer, reader_name) (ydb_topic_reader_local_buffer_message_age_max_seconds)",
+          "legendFormat": "{{service_instance_id}} - {{endpoint}} - {{database}} - {{consumer}} - {{reader_name}}",
+          "datasource": { "type": "prometheus", "uid": "prometheus" }
+        }
+      ]
+    },
+    {
+      "title": "Topic Partition Sessions",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 48 },
+      "fieldConfig": { "defaults": { "unit": "short" } },
+      "options": { "legend": { "displayMode": "table", "placement": "right" } },
+      "targets": [
+        {
+          "expr": "sum by (service_instance_id, endpoint, database, consumer, reader_name, topic) (ydb_topic_reader_partition_session_count)",
+          "legendFormat": "{{service_instance_id}} - {{endpoint}} - {{database}} - {{consumer}} - {{reader_name}} - {{topic}}",
+          "datasource": { "type": "prometheus", "uid": "prometheus" }
+        }
+      ]
+    },
+    {
+      "title": "Topic Commit Offset Lag",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 56 },
+      "fieldConfig": { "defaults": { "unit": "short" } },
+      "options": { "legend": { "displayMode": "table", "placement": "right" } },
+      "targets": [
+        {
+          "expr": "max by (service_instance_id, endpoint, database, consumer, reader_name, topic) (ydb_topic_reader_commit_offset_lag_max)",
+          "legendFormat": "{{service_instance_id}} - {{endpoint}} - {{database}} - {{consumer}} - {{reader_name}} - {{topic}}",
+          "datasource": { "type": "prometheus", "uid": "prometheus" }
+        }
+      ]
+    },
+    {
+      "title": "Topic Reader Credit Balance",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 56 },
+      "fieldConfig": { "defaults": { "unit": "bytes" } },
+      "options": { "legend": { "displayMode": "table", "placement": "right" } },
+      "targets": [
+        {
+          "expr": "sum by (service_instance_id, endpoint, database, consumer, reader_name) (ydb_topic_reader_credit_balance_bytes)",
+          "legendFormat": "{{service_instance_id}} - {{endpoint}} - {{database}} - {{consumer}} - {{reader_name}}",
+          "datasource": { "type": "prometheus", "uid": "prometheus" }
+        }
+      ]
+    },
+    {
+      "title": "Topic Message Processing p95",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 64 },
+      "fieldConfig": { "defaults": { "unit": "s" } },
+      "options": { "legend": { "displayMode": "table", "placement": "right" } },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum by (le, service_instance_id, endpoint, database, consumer, reader_name, topic, codec, outcome) (rate(ydb_topic_reader_message_processing_duration_seconds_bucket[$__rate_interval])))",
+          "legendFormat": "{{service_instance_id}} - {{endpoint}} - {{database}} - {{consumer}} - {{reader_name}} - {{topic}} - {{codec}} - {{outcome}}",
+          "datasource": { "type": "prometheus", "uid": "prometheus" }
+        }
+      ]
+    },
+    {
+      "title": "Topic Decompression p95",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 64 },
+      "fieldConfig": { "defaults": { "unit": "s" } },
+      "options": { "legend": { "displayMode": "table", "placement": "right" } },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum by (le, service_instance_id, endpoint, database, consumer, reader_name, topic, codec, outcome) (rate(ydb_topic_reader_compression_duration_seconds_bucket[$__rate_interval])))",
+          "legendFormat": "{{service_instance_id}} - {{endpoint}} - {{database}} - {{consumer}} - {{reader_name}} - {{topic}} - {{codec}} - {{outcome}}",
           "datasource": { "type": "prometheus", "uid": "prometheus" }
         }
       ]

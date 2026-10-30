@@ -362,6 +362,27 @@ adapter maps them to instruments on the ``"ydb.sdk"`` meter):
    * - ``ydb.topic.reader.delivered.messages``
      - Counter (``{message}``)
      - Messages returned by the topic Reader to the application.
+   * - ``ydb.topic.reader.compression.duration``
+     - Histogram (``s``)
+     - Time spent decompressing a message, excluding decoder-executor queueing.
+   * - ``ydb.topic.reader.message.processing.duration``
+     - Histogram (``s``)
+     - Time from receipt until a message is ready for delivery.
+   * - ``ydb.topic.reader.commit.queued``
+     - Counter (``{message}``)
+     - Messages in commit ranges accepted by the SDK.
+   * - ``ydb.topic.reader.commit.acknowledged``
+     - Counter (``{message}``)
+     - Messages acknowledged by regular committed-offset advances or successful transactions.
+   * - ``ydb.topic.reader.commit_offset.lag.max``
+     - ObservableGauge (``{message}``)
+     - Maximum gap between requested and acknowledged commit offsets across active partitions.
+   * - ``ydb.topic.reader.session.errors``
+     - Counter (``{error}``)
+     - Reader session errors by retry decision, status code, and error type.
+   * - ``ydb.topic.reader.credit_balance_bytes``
+     - ObservableGauge (``By``)
+     - Protocol credit granted to the server and not yet consumed by read responses.
    * - ``ydb.topic.reader.local_buffer.messages``
      - ObservableUpDownCounter (``{message}``)
      - Current number of messages owned by the topic Reader and not yet returned to the application.
@@ -429,14 +450,18 @@ Topic Reader Metrics
 Topic Reader metrics carry ``endpoint``, ``database``, and
 ``reader.name``. The ``consumer`` attribute is present only for consumer-based reads;
 the SDK omits it when reading without a consumer. ``ydb.topic.reader.received.messages``,
-``ydb.topic.reader.delivered.messages``, and
-``ydb.topic.reader.partition_session.count`` additionally carry ``topic`` because each
-message and partition session has an unambiguous topic. The reader-level
-``ydb.topic.reader.received.bytes``, ``ydb.topic.reader.local_buffer.messages``, and
+``ydb.topic.reader.delivered.messages``, ``ydb.topic.reader.compression.duration``,
+``ydb.topic.reader.message.processing.duration``, ``ydb.topic.reader.commit.queued``,
+``ydb.topic.reader.commit.acknowledged``, ``ydb.topic.reader.commit_offset.lag.max``,
+and ``ydb.topic.reader.partition_session.count`` additionally carry ``topic`` because
+each message, commit offset, and partition session has an unambiguous topic. The reader-level
+``ydb.topic.reader.received.bytes``, ``ydb.topic.reader.session.errors``,
+``ydb.topic.reader.credit_balance_bytes``,
+``ydb.topic.reader.local_buffer.messages``, and
 ``ydb.topic.reader.local_buffer.message_age.max`` metrics omit ``topic``: one
 ``ReadResponse`` can contain data from several topics, and the buffer gauges follow the
-total retained by the logical Reader. Each response increments the byte counter once by
-``ReadResponse.bytes_size``.
+total retained by the logical Reader, while a session error belongs to the whole Reader.
+Each response increments the byte counter once by ``ReadResponse.bytes_size``.
 Metrics are published only when the application passes a non-empty ``reader_name`` to
 ``TopicClient.reader``. The name and metric context belong to the logical Reader and
 remain stable across stream reconnects. The byte counter is updated as soon as the
@@ -453,6 +478,48 @@ failures before the return point do not increment it. The local-buffer gauge inc
 when accepted batches enter the decoding queue and decreases when messages leave the
 internal buffer, including partial batch reads. It therefore includes both messages
 waiting for decoding and decoded messages waiting for the application.
+For every non-RAW message, ``ydb.topic.reader.compression.duration`` records only time
+inside the decoder callable; time waiting in the decoder executor is excluded.
+``ydb.topic.reader.message.processing.duration`` starts when the ``ReadResponse`` is
+received and ends when the decoded batch becomes ready for delivery, so it includes
+response conversion and decoder queueing. Both histograms carry ``topic``, ``codec``,
+and ``outcome=ok|error``; failed measurements also carry ``error.type``. A batch is the
+delivery unit in the Python SDK, so every message in one batch receives the same
+processing duration. If any decoder fails, the batch's processing measurements use
+``outcome=error``. RAW messages require no decoding and do not create either histogram
+measurement. Only completed measurements are recorded.
+Each commit range accepted by the SDK increments ``ydb.topic.reader.commit.queued`` by
+``range.end - range.start``. A regular commit is counted after its
+``CommitOffsetRequest`` is queued on the active stream. A transactional commit is counted
+after its ranges pass SDK validation and are submitted to the transaction update path.
+Already acknowledged ranges, expired partition sessions, and regular commit requests
+that cannot be queued are not counted. A later transport or transaction failure does not
+undo this cumulative counter.
+For a regular ``CommitOffsetResponse``, ``ydb.topic.reader.commit.acknowledged`` increments
+by ``max(0, committed_offset - previous_committed_offset)``. This counts the monotonic
+committed-offset advance once even when queued ranges overlap. Repeated and stale
+responses add nothing. Transactional ranges are acknowledged by their sizes only after
+the whole transaction commits successfully; a failed commit or rollback does not
+increment the counter.
+``ydb.topic.reader.commit_offset.lag.max`` reports the maximum, across active partition
+sessions of each topic, of ``max(0, highest_requested_end_offset - acknowledged_offset)``.
+It increases after a regular ``CommitOffsetRequest`` is queued and decreases after a
+``CommitOffsetResponse`` advances the acknowledged offset. Transactional commit ranges
+remain visible in the commit counters but do not contribute to this stream-ACK gauge.
+A stale acknowledgement cannot increase it. Stopping a partition session removes that
+partition's contribution; reconnecting replaces the old stream's state, and a topic
+with no active partition sessions has no observation.
+Each failed session or connection attempt increments ``ydb.topic.reader.session.errors``
+once after the retry policy classifies it. The ``retry_decision`` attribute is ``retry``
+when the Reader will reconnect and ``stop`` when the error terminates the Reader.
+``status_code`` contains the YDB status name when available and otherwise the exception
+class name. ``error.type`` is ``transport_error`` for transport failures, ``ydb_error``
+for other YDB errors, and the exception class name for other failures. Closing a Reader
+normally does not increment the counter.
+``credit_balance_bytes`` is set to the configured buffer size after the initial
+``ReadRequest`` is sent, decreases by ``ReadResponse.bytes_size``, and increases only
+when the Reader sends another ``ReadRequest`` after its release threshold is reached.
+It is ``0`` while the logical Reader has no active stream, including reconnect gaps.
 ``local_buffer.message_age.max`` is computed with a monotonic clock from the receive
 time of the oldest retained message; it is ``0`` when the buffer is empty. Receipt
 cohorts are tracked internally per partition session so delivery from another partition
@@ -463,8 +530,8 @@ even before its first partition session starts. Remaining messages and partition
 sessions are reset when a stream closes or reconnects, and closing the logical Reader
 removes its observations. Use rates of the cumulative counters to compare incoming and
 application-visible traffic; read the observable instruments as current values. For
-matching Reader attributes, buffer counts and partition-session counts are summed while
-the maximum buffer age is published.
+matching Reader attributes, credit balances, buffer counts, and partition-session counts
+are summed while the maximum buffer age is published.
 
 See :ref:`opentelemetry-topic-reader-metrics` for an OpenTelemetry setup example. A
 complete runnable version is available in ``examples/opentelemetry/otel_example.py``.
@@ -510,8 +577,9 @@ subclass; just match the signatures:
 
 The instrument kind for each metric is implied by which method the SDK calls: names in
 the *Histogram* rows above arrive through ``record``, *Counter* / *UpDownCounter* names
-through ``add``, and the six observable instruments (the three query-session gauges,
-``ydb.topic.reader.local_buffer.messages``,
+through ``add``, and the eight observable instruments (the three query-session gauges,
+``ydb.topic.reader.commit_offset.lag.max``,
+``ydb.topic.reader.credit_balance_bytes``, ``ydb.topic.reader.local_buffer.messages``,
 ``ydb.topic.reader.local_buffer.message_age.max``, and
 ``ydb.topic.reader.partition_session.count``) through ``observe_gauge``. A backend
 that has no notion of asynchronous gauges can simply store the callbacks (or ignore

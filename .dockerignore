@@ -8,3 +8,4 @@
 !examples/opentelemetry/requirements.txt
 !examples/opentelemetry/otel_example.py
 !examples/opentelemetry/load_tank.py
+!examples/opentelemetry/verify_metrics.py

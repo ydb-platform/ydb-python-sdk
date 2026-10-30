@@ -183,7 +183,7 @@ underlying stream reconnects:
 
             await driver.topic_client.create_topic(topic_path, consumers=[consumer])
             try:
-                async with driver.topic_client.writer(topic_path) as writer:
+                async with driver.topic_client.writer(topic_path, codec=ydb.TopicCodec.GZIP) as writer:
                     await writer.write("OpenTelemetry topic Reader metrics")
 
                 async with driver.topic_client.reader(
@@ -205,7 +205,7 @@ underlying stream reconnects:
     finally:
         meter_provider.shutdown()
 
-This produces three cumulative counters and three observable instruments:
+This registers six cumulative counters, two histograms, and five observable instruments:
 
 * ``ydb.topic.reader.received.messages`` counts received messages before decoding. It
   includes ``endpoint``, ``database``, ``reader.name``, optional ``consumer``, and
@@ -216,6 +216,31 @@ This produces three cumulative counters and three observable instruments:
 * ``ydb.topic.reader.delivered.messages`` counts messages returned to the application
   by ``receive_message``, ``receive_batch``, or ``receive_batch_with_tx``. It carries
   the Reader attributes and ``topic``.
+* ``ydb.topic.reader.compression.duration`` records time spent inside the decoder for
+  each non-RAW message, excluding decoder-executor queueing. It uses seconds and carries
+  ``topic``, ``codec``, ``outcome``, and ``error.type`` on failures.
+* ``ydb.topic.reader.message.processing.duration`` records time from receipt until each
+  non-RAW message's batch is ready for delivery. It includes decoder queueing and uses
+  the same attributes as the compression histogram.
+* ``ydb.topic.reader.commit.queued`` counts messages in commit ranges accepted by the
+  SDK, using ``range.end - range.start``. It carries the Reader attributes and ``topic``.
+* ``ydb.topic.reader.commit.acknowledged`` counts monotonic committed-offset advances
+  reported by regular acknowledgements. Successful transaction commits count their
+  submitted ranges; duplicate or stale regular acknowledgements and failed transactions
+  add nothing. It carries the Reader attributes and ``topic``.
+* ``ydb.topic.reader.commit_offset.lag.max`` reports the maximum gap between the highest
+  requested commit end offset and the acknowledged offset across active partitions of
+  each ``topic``. It tracks regular stream commits; transactional ranges remain visible
+  in the commit counters but do not contribute to this gauge. Stale acknowledgements
+  cannot increase it.
+* ``ydb.topic.reader.session.errors`` counts failed sessions or connection attempts.
+  The ``retry_decision`` attribute is ``retry`` when the Reader will reconnect and
+  ``stop`` when it terminates. ``status_code`` identifies the YDB status or exception
+  class, while ``error.type`` classifies transport, YDB, and other failures. Normal
+  Reader shutdown is not counted. This Reader-level metric has no ``topic`` attribute.
+* ``ydb.topic.reader.credit_balance_bytes`` reports the protocol byte credit granted to
+  the server and not yet consumed by read responses. It is ``0`` between stream
+  sessions, uses unit ``By``, and has the Reader attributes but no ``topic``.
 * ``ydb.topic.reader.local_buffer.messages`` reports the current number of messages
   retained by the logical Reader, including messages waiting for decoding and decoded
   messages waiting for the application. It has the Reader attributes but no ``topic``.
@@ -228,9 +253,9 @@ This produces three cumulative counters and three observable instruments:
   attribute.
 
 If ``reader_name`` is omitted or empty, the Reader still works and receives its normal
-process-local diagnostic name, but these six metrics are not published. The runnable
+process-local diagnostic name, but these thirteen metrics are not published. The runnable
 ``examples/opentelemetry/otel_example.py`` creates a topic, writes one message, reads it
-with an explicitly named Reader, and exports all six metrics through OTLP.
+with an explicitly named Reader, and exports its Reader metrics through OTLP.
 
 
 Instrumented Spans and Attributes
