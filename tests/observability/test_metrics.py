@@ -3158,10 +3158,7 @@ def test_opentelemetry_dashboard_keeps_topic_reader_instances_separate():
 
     assert topic_reader_targets
     for target in topic_reader_targets:
-        assert all(
-            label in target["expr"]
-            for label in ("service_instance_id", "endpoint", "database", "consumer")
-        )
+        assert all(label in target["expr"] for label in ("service_instance_id", "endpoint", "database", "consumer"))
 
 
 def test_opentelemetry_load_tank_publishes_current_run_id():
