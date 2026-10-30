@@ -8,12 +8,13 @@ driver initialization, and retries — into OpenTelemetry spans, and propagates 
 context to the YDB server through gRPC metadata using the
 `W3C Trace Context <https://www.w3.org/TR/trace-context/>`_ standard. Enabling metrics
 records client-side OpenTelemetry instruments for the same operations, retries, and
-query session pools.
+query session pools, as well as receive, delivery, and buffer metrics for explicitly
+named topic Readers.
 
 Like every backend, it has a **zero-cost no-op path when disabled**: operations, query
-sessions, and pools share no-op instrumentation without metric allocations, timers,
-locks, or state tracking. The SDK does not import ``opentelemetry`` until you call
-``enable_tracing()`` or ``enable_metrics()``.
+sessions, pools, and topic Readers share no-op instrumentation without metric
+allocations, timers, locks, or state tracking. The SDK does not import
+``opentelemetry`` until you call ``enable_tracing()`` or ``enable_metrics()``.
 
 
 Installation
@@ -139,6 +140,124 @@ The full list of instruments and their attributes is catalogued on the
 :doc:`observability` page.
 
 
+.. _opentelemetry-topic-reader-metrics:
+
+Topic Reader Metrics
+--------------------
+
+Enable metrics before creating the Reader and pass an explicit, non-empty
+``reader_name``. The name identifies one logical Reader and remains the same when its
+underlying stream reconnects:
+
+.. code-block:: python
+
+    import asyncio
+    import uuid
+
+    from opentelemetry.sdk.metrics import MeterProvider
+    from opentelemetry.sdk.metrics.export import (
+        ConsoleMetricExporter,
+        PeriodicExportingMetricReader,
+    )
+
+    import ydb
+    from ydb.opentelemetry import enable_metrics
+
+    metric_reader = PeriodicExportingMetricReader(
+        ConsoleMetricExporter(),
+        export_interval_millis=1000,
+    )
+    meter_provider = MeterProvider(metric_readers=[metric_reader])
+    enable_metrics(meter_provider)
+
+
+    async def read_one_message():
+        topic_path = f"/local/otel-reader-metrics-example-{uuid.uuid4().hex}"
+        consumer = "orders-consumer"
+
+        async with ydb.aio.Driver(
+            endpoint="grpc://localhost:2136",
+            database="/local",
+        ) as driver:
+            await driver.wait(timeout=5)
+
+            await driver.topic_client.create_topic(topic_path, consumers=[consumer])
+            try:
+                async with driver.topic_client.writer(topic_path, codec=ydb.TopicCodec.GZIP) as writer:
+                    await writer.write("OpenTelemetry topic Reader metrics")
+
+                async with driver.topic_client.reader(
+                    topic_path,
+                    consumer=consumer,
+                    reader_name="payments-worker",
+                ) as reader:
+                    await asyncio.wait_for(reader.wait_message(), timeout=10)
+                    await asyncio.sleep(2)
+                    message = await asyncio.wait_for(reader.receive_message(), timeout=10)
+                    await reader.commit_with_ack(message)
+                    await asyncio.sleep(2)
+            finally:
+                await driver.topic_client.drop_topic(topic_path)
+
+
+    try:
+        asyncio.run(read_one_message())
+    finally:
+        meter_provider.shutdown()
+
+This registers six cumulative counters, two histograms, and five observable instruments:
+
+* ``ydb.topic.reader.received.messages`` counts received messages before decoding. It
+  includes ``endpoint``, ``database``, ``reader.name``, optional ``consumer``, and
+  ``topic`` attributes.
+* ``ydb.topic.reader.received.bytes`` adds ``ReadResponse.bytes_size`` once for every
+  response received by the logical Reader. It has the same Reader attributes but no
+  ``topic``, because one response may contain batches from several topics.
+* ``ydb.topic.reader.delivered.messages`` counts messages returned to the application
+  by ``receive_message``, ``receive_batch``, or ``receive_batch_with_tx``. It carries
+  the Reader attributes and ``topic``.
+* ``ydb.topic.reader.compression.duration`` records time spent inside the decoder for
+  each non-RAW message, excluding decoder-executor queueing. It uses seconds and carries
+  ``topic``, ``codec``, ``outcome``, and ``error.type`` on failures.
+* ``ydb.topic.reader.message.processing.duration`` records time from receipt until each
+  non-RAW message's batch is ready for delivery. It includes decoder queueing and uses
+  the same attributes as the compression histogram.
+* ``ydb.topic.reader.commit.queued`` counts messages in commit ranges accepted by the
+  SDK, using ``range.end - range.start``. It carries the Reader attributes and ``topic``.
+* ``ydb.topic.reader.commit.acknowledged`` counts monotonic committed-offset advances
+  reported by regular acknowledgements. Successful transaction commits count their
+  submitted ranges; duplicate or stale regular acknowledgements and failed transactions
+  add nothing. It carries the Reader attributes and ``topic``.
+* ``ydb.topic.reader.commit_offset.lag.max`` reports the maximum gap between the highest
+  requested commit end offset and the acknowledged offset across active partitions of
+  each ``topic``. It tracks regular stream commits; transactional ranges remain visible
+  in the commit counters but do not contribute to this gauge. Stale acknowledgements
+  cannot increase it.
+* ``ydb.topic.reader.session.errors`` counts failed sessions or connection attempts.
+  The ``retry_decision`` attribute is ``retry`` when the Reader will reconnect and
+  ``stop`` when it terminates. ``status_code`` identifies the YDB status or exception
+  class, while ``error.type`` classifies transport, YDB, and other failures. Normal
+  Reader shutdown is not counted. This Reader-level metric has no ``topic`` attribute.
+* ``ydb.topic.reader.credit_balance_bytes`` reports the protocol byte credit granted to
+  the server and not yet consumed by read responses. It is ``0`` between stream
+  sessions, uses unit ``By``, and has the Reader attributes but no ``topic``.
+* ``ydb.topic.reader.local_buffer.messages`` reports the current number of messages
+  retained by the logical Reader, including messages waiting for decoding and decoded
+  messages waiting for the application. It has the Reader attributes but no ``topic``.
+* ``ydb.topic.reader.local_buffer.message_age.max`` reports, in seconds, the age of the
+  oldest retained message. It uses a monotonic clock, becomes ``0`` when the buffer is
+  empty, and has the Reader attributes but no ``topic``.
+* ``ydb.topic.reader.partition_session.count`` reports active partition sessions per
+  ``topic``. Configured topics report ``0`` before the first session starts. The metric
+  has the Reader attributes and ``topic``, but deliberately has no ``partition``
+  attribute.
+
+If ``reader_name`` is omitted or empty, the Reader still works and receives its normal
+process-local diagnostic name, but these thirteen metrics are not published. The runnable
+``examples/opentelemetry/otel_example.py`` creates a topic, writes one message, reads it
+with an explicitly named Reader, and exports its Reader metrics through OTLP.
+
+
 Instrumented Spans and Attributes
 ---------------------------------
 
@@ -226,9 +345,11 @@ Running the Examples
 --------------------
 
 The runnable script is ``examples/opentelemetry/otel_example.py`` (bank table + concurrent
-Serializable transactions and ``app_startup`` / ``example_tli`` application spans). **Start
-Docker (YDB or the full stack) first**, then install and run on the host — see
-``examples/opentelemetry/README.md`` for the full order of commands and environment variables.
+Serializable transactions, ``app_startup`` / ``example_tli`` application spans, and an
+explicitly named topic Reader that emits receive, delivery, and buffer metrics). **Start Docker
+(YDB or the full stack) first**, then install and run on the host — see
+``examples/opentelemetry/README.md`` for the full order of commands and environment
+variables.
 
 **Full stack in one command** (YDB + OTLP + Tempo + Grafana; the ``otel-example`` service is built from ``examples/opentelemetry/Dockerfile`` and runs the script once):
 

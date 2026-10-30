@@ -2,11 +2,11 @@
 
 The SDK records metrics only after :func:`ydb.observability.enable_metrics` installs a
 concrete :class:`MetricsProvider` (OpenTelemetry in :mod:`ydb.opentelemetry`, or any
-custom one). Until then operations, query sessions and pools share no-op
-instrumentation without metric allocations, timers, locks or state tracking. Metrics
-stay independent from tracing, and the SDK never depends on ``opentelemetry`` being
-importable. Enable metrics before creating query sessions or pools whose lifecycle
-should be instrumented.
+custom one). Until then operations, query sessions, pools and topic Readers share
+no-op instrumentation without metric allocations, timers, locks or state tracking.
+Metrics stay independent from tracing, and the SDK never depends on ``opentelemetry``
+being importable. Enable metrics before creating query sessions, pools or topic Readers
+whose lifecycle should be instrumented.
 
 A provider handles three instrument kinds:
 
@@ -23,8 +23,10 @@ import itertools
 import functools
 import inspect
 import weakref
-from typing import Any, Callable, Dict, Iterable, List, Optional, Protocol, Tuple, TypeVar, cast
+from collections import deque
+from typing import Any, Callable, Deque, Dict, Iterable, List, Optional, Protocol, Tuple, TypeVar, cast
 
+from ydb import issues
 from ydb.observability._endpoint import split_endpoint
 
 CLIENT_OPERATION_DURATION = "ydb.client.operation.duration"
@@ -38,8 +40,21 @@ QUERY_SESSION_MAX = "ydb.query.session.max"
 QUERY_SESSION_MIN = "ydb.query.session.min"
 RETRY_ATTEMPTS = "ydb.client.retry.attempts"
 RETRY_DURATION = "ydb.client.retry.duration"
+TOPIC_READER_RECEIVED_MESSAGES = "ydb.topic.reader.received.messages"
+TOPIC_READER_RECEIVED_BYTES = "ydb.topic.reader.received.bytes"
+TOPIC_READER_DELIVERED_MESSAGES = "ydb.topic.reader.delivered.messages"
+TOPIC_READER_COMMIT_QUEUED = "ydb.topic.reader.commit.queued"
+TOPIC_READER_COMMIT_ACKNOWLEDGED = "ydb.topic.reader.commit.acknowledged"
+TOPIC_READER_COMMIT_OFFSET_LAG_MAX = "ydb.topic.reader.commit_offset.lag.max"
+TOPIC_READER_SESSION_ERRORS = "ydb.topic.reader.session.errors"
+TOPIC_READER_COMPRESSION_DURATION = "ydb.topic.reader.compression.duration"
+TOPIC_READER_MESSAGE_PROCESSING_DURATION = "ydb.topic.reader.message.processing.duration"
+TOPIC_READER_CREDIT_BALANCE_BYTES = "ydb.topic.reader.credit_balance_bytes"
+TOPIC_READER_LOCAL_BUFFER_MESSAGES = "ydb.topic.reader.local_buffer.messages"
+TOPIC_READER_LOCAL_BUFFER_MESSAGE_AGE_MAX = "ydb.topic.reader.local_buffer.message_age.max"
+TOPIC_READER_PARTITION_SESSION_COUNT = "ydb.topic.reader.partition_session.count"
 
-METRICS_SDK_BUILD_INFO = "ydb-sdk-metrics/0.2.0"
+METRICS_SDK_BUILD_INFO = "ydb-sdk-metrics/0.14.0"
 
 DURATION_BUCKETS_SECONDS = (
     0.001,
@@ -146,6 +161,7 @@ _session_count_state: Dict[Tuple, int] = {}
 _session_max_state: Dict[Tuple, int] = {}
 _live_session_metrics: "weakref.WeakSet[SessionMetrics]" = weakref.WeakSet()
 _live_pool_metrics: "weakref.WeakSet[QuerySessionPoolMetrics]" = weakref.WeakSet()
+_live_topic_reader_metrics: "weakref.WeakSet[TopicReaderMetrics]" = weakref.WeakSet()
 
 
 def is_metrics_enabled() -> bool:
@@ -182,10 +198,83 @@ def _observe_session_min() -> List[Tuple[float, Dict[str, Any]]]:
     return [(0, attrs) for _, attrs in _observe_session_max()]
 
 
+def _observe_topic_reader_local_buffer_messages() -> List[Tuple[float, Dict[str, Any]]]:
+    with _gauge_lock:
+        values: Dict[Tuple, int] = {}
+        for reader_metrics in _live_topic_reader_metrics:
+            key = tuple(sorted(reader_metrics._base_attributes.items()))
+            values[key] = values.get(key, 0) + reader_metrics._local_buffer_messages
+        return [(value, dict(attrs)) for attrs, value in values.items()]
+
+
+def _observe_topic_reader_credit_balance_bytes() -> List[Tuple[float, Dict[str, Any]]]:
+    with _gauge_lock:
+        values: Dict[Tuple, int] = {}
+        for reader_metrics in _live_topic_reader_metrics:
+            key = tuple(sorted(reader_metrics._base_attributes.items()))
+            values[key] = values.get(key, 0) + reader_metrics._credit_balance_bytes
+        return [(value, dict(attrs)) for attrs, value in values.items()]
+
+
+def _observe_topic_reader_local_buffer_message_age_max() -> List[Tuple[float, Dict[str, Any]]]:
+    now = time.monotonic()
+    with _gauge_lock:
+        values: Dict[Tuple, float] = {}
+        for reader_metrics in _live_topic_reader_metrics:
+            key = tuple(sorted(reader_metrics._base_attributes.items()))
+            oldest_received_at = min(
+                (cohorts[0][0] for cohorts in reader_metrics._local_buffer_received_at.values() if cohorts),
+                default=None,
+            )
+            age = 0.0 if oldest_received_at is None else max(0.0, now - oldest_received_at)
+            values[key] = max(values.get(key, 0.0), age)
+        return [(value, dict(attrs)) for attrs, value in values.items()]
+
+
+def _observe_topic_reader_partition_session_count() -> List[Tuple[float, Dict[str, Any]]]:
+    with _gauge_lock:
+        values: Dict[Tuple, int] = {}
+        for reader_metrics in _live_topic_reader_metrics:
+            for topic, count in reader_metrics._partition_session_counts.items():
+                attributes = dict(reader_metrics._base_attributes)
+                attributes["topic"] = topic
+                key = tuple(sorted(attributes.items()))
+                values[key] = values.get(key, 0) + count
+        return [(value, dict(attrs)) for attrs, value in values.items()]
+
+
+def _observe_topic_reader_commit_offset_lag_max() -> List[Tuple[float, Dict[str, Any]]]:
+    with _gauge_lock:
+        values: Dict[Tuple, int] = {}
+        for reader_metrics in _live_topic_reader_metrics:
+            for topic, requested_offset, acknowledged_offset in reader_metrics._commit_offsets.values():
+                attributes = dict(reader_metrics._base_attributes)
+                attributes["topic"] = topic
+                key = tuple(sorted(attributes.items()))
+                lag = max(0, requested_offset - acknowledged_offset)
+                values[key] = max(values.get(key, 0), lag)
+        return [(value, dict(attrs)) for attrs, value in values.items()]
+
+
 _OBSERVABLE_GAUGES = (
     (QUERY_SESSION_COUNT, _observe_session_count),
     (QUERY_SESSION_MAX, _observe_session_max),
     (QUERY_SESSION_MIN, _observe_session_min),
+    (TOPIC_READER_CREDIT_BALANCE_BYTES, _observe_topic_reader_credit_balance_bytes),
+    (TOPIC_READER_COMMIT_OFFSET_LAG_MAX, _observe_topic_reader_commit_offset_lag_max),
+    (TOPIC_READER_LOCAL_BUFFER_MESSAGES, _observe_topic_reader_local_buffer_messages),
+    (TOPIC_READER_LOCAL_BUFFER_MESSAGE_AGE_MAX, _observe_topic_reader_local_buffer_message_age_max),
+    (TOPIC_READER_PARTITION_SESSION_COUNT, _observe_topic_reader_partition_session_count),
+)
+
+_TRANSPORT_STATUS_CODES = frozenset(
+    {
+        issues.StatusCode.CONNECTION_LOST,
+        issues.StatusCode.CONNECTION_FAILURE,
+        issues.StatusCode.DEADLINE_EXCEEDED,
+        issues.StatusCode.CLIENT_INTERNAL_ERROR,
+        issues.StatusCode.UNIMPLEMENTED,
+    }
 )
 
 
@@ -266,7 +355,7 @@ def query_session_pool_name(
 def _metrics_build_info_tokens() -> List[str]:
     """Metrics' contribution to the ``x-ydb-sdk-build-info`` header.
 
-    Returns ``["ydb-sdk-metrics/0.2.0"]`` once a metrics backend is installed,
+    Returns ``["ydb-sdk-metrics/0.14.0"]`` once a metrics backend is installed,
     otherwise an empty list. Aggregated with other features by
     :func:`ydb.observability.sdk_build_info_tokens`.
     """
@@ -303,6 +392,15 @@ def _response_status_code(exception: BaseException) -> str:
     status = getattr(exception, "status", None)
     if status is not None:
         return getattr(status, "name", str(status))
+    return type(exception).__qualname__
+
+
+def _error_type(exception: BaseException) -> str:
+    status = getattr(exception, "status", None)
+    if status in _TRANSPORT_STATUS_CODES or isinstance(exception, issues.ConnectionError):
+        return "transport_error"
+    if isinstance(exception, issues.Error):
+        return "ydb_error"
     return type(exception).__qualname__
 
 
@@ -495,6 +593,375 @@ class _NoopContext:
 
 
 _NOOP_CM = _NoopContext()
+
+
+class TopicReaderMetrics:
+    """Metric context shared by every stream of one logical topic reader."""
+
+    __slots__ = (
+        "_base_attributes",
+        "_commit_offsets",
+        "_credit_balance_bytes",
+        "_local_buffer_messages",
+        "_local_buffer_received_at",
+        "_partition_session_counts",
+        "_closed",
+        "__weakref__",
+    )
+
+    def __init__(
+        self,
+        driver,
+        consumer_name: Optional[str],
+        reader_name: str,
+        topics: Iterable[str] = (),
+    ) -> None:
+        driver_config = getattr(driver, "_driver_config", None)
+        self._base_attributes = _build_ydb_metrics_attrs(driver_config)
+        self._base_attributes["reader.name"] = reader_name
+        if consumer_name is not None:
+            self._base_attributes["consumer"] = consumer_name
+        self._commit_offsets: Dict[Tuple[int, int], Tuple[str, int, int]] = {}
+        self._credit_balance_bytes = 0
+        self._local_buffer_messages = 0
+        self._local_buffer_received_at: Dict[Tuple[int, int], Deque[Tuple[float, int]]] = {}
+        self._partition_session_counts: Dict[str, int] = dict.fromkeys(topics, 0)
+        self._closed = False
+        with _gauge_lock:
+            _live_topic_reader_metrics.add(self)
+
+    @staticmethod
+    def _partition_session_key(partition_session: Any) -> Tuple[int, int]:
+        return partition_session.reader_stream_id, partition_session.id
+
+    def capture_received_at(self) -> Optional[float]:
+        return time.monotonic()
+
+    def record_received_messages(self, batches: Iterable[Any], received_at: Optional[float] = None) -> None:
+        messages_by_topic: Dict[str, int] = {}
+        messages_by_partition: Dict[Tuple[int, int], int] = {}
+        for batch in batches:
+            messages = len(batch.messages)
+            if messages > 0:
+                partition_session = batch._partition_session
+                topic = partition_session.topic_path
+                messages_by_topic[topic] = messages_by_topic.get(topic, 0) + messages
+                key = self._partition_session_key(partition_session)
+                messages_by_partition[key] = messages_by_partition.get(key, 0) + messages
+
+        received_messages = sum(messages_by_partition.values())
+        if received_messages > 0:
+            if received_at is None:
+                received_at = time.monotonic()
+            with _gauge_lock:
+                if not self._closed:
+                    self._local_buffer_messages += received_messages
+                    for key, messages in messages_by_partition.items():
+                        cohorts = self._local_buffer_received_at.setdefault(key, deque())
+                        if cohorts and cohorts[-1][0] == received_at:
+                            _, previous_messages = cohorts.pop()
+                            cohorts.append((received_at, previous_messages + messages))
+                        else:
+                            cohorts.append((received_at, messages))
+
+        provider = _provider
+        if provider is _NOOP_PROVIDER:
+            return
+
+        for topic, messages in messages_by_topic.items():
+            attributes = dict(self._base_attributes)
+            attributes["topic"] = topic
+            provider.add(TOPIC_READER_RECEIVED_MESSAGES, messages, attributes)
+
+    def record_received_bytes(self, bytes_size: int) -> None:
+        provider = _provider
+        if provider is _NOOP_PROVIDER:
+            return
+
+        if bytes_size > 0:
+            provider.add(TOPIC_READER_RECEIVED_BYTES, bytes_size, dict(self._base_attributes))
+
+    def record_delivered_messages(self, message_count: int, topic: str) -> None:
+        provider = _provider
+        if provider is _NOOP_PROVIDER:
+            return
+
+        if message_count > 0:
+            attributes = dict(self._base_attributes)
+            attributes["topic"] = topic
+            provider.add(TOPIC_READER_DELIVERED_MESSAGES, message_count, attributes)
+
+    def record_compression_duration(
+        self,
+        duration: float,
+        codec: str,
+        topic: str,
+        error: Optional[BaseException] = None,
+    ) -> None:
+        self._record_message_duration(TOPIC_READER_COMPRESSION_DURATION, duration, codec, topic, error)
+
+    def record_message_processing_duration(
+        self,
+        duration: float,
+        codec: str,
+        topic: str,
+        error: Optional[BaseException] = None,
+    ) -> None:
+        self._record_message_duration(TOPIC_READER_MESSAGE_PROCESSING_DURATION, duration, codec, topic, error)
+
+    def _record_message_duration(
+        self,
+        name: str,
+        duration: float,
+        codec: str,
+        topic: str,
+        error: Optional[BaseException],
+    ) -> None:
+        provider = _provider
+        if provider is _NOOP_PROVIDER:
+            return
+
+        attributes = dict(self._base_attributes)
+        attributes.update(
+            {
+                "topic": topic,
+                "codec": codec,
+                "outcome": "error" if error is not None else "ok",
+            }
+        )
+        if error is not None:
+            attributes["error.type"] = type(error).__qualname__
+        provider.record(name, max(0.0, duration), attributes)
+
+    def record_commit_queued(self, message_count: int, topic: str) -> None:
+        provider = _provider
+        if provider is _NOOP_PROVIDER:
+            return
+
+        if message_count > 0:
+            attributes = dict(self._base_attributes)
+            attributes["topic"] = topic
+            provider.add(TOPIC_READER_COMMIT_QUEUED, message_count, attributes)
+
+    def record_commit_acknowledged(self, message_count: int, topic: str) -> None:
+        provider = _provider
+        if provider is _NOOP_PROVIDER:
+            return
+
+        if message_count > 0:
+            attributes = dict(self._base_attributes)
+            attributes["topic"] = topic
+            provider.add(TOPIC_READER_COMMIT_ACKNOWLEDGED, message_count, attributes)
+
+    def record_commit_offset_queued(self, partition_session: Any, end_offset: int) -> None:
+        key = self._partition_session_key(partition_session)
+        with _gauge_lock:
+            if self._closed or key not in self._commit_offsets:
+                return
+            topic, requested_offset, acknowledged_offset = self._commit_offsets[key]
+            self._commit_offsets[key] = (
+                topic,
+                max(requested_offset, end_offset),
+                acknowledged_offset,
+            )
+
+    def record_commit_offset_acknowledged(self, partition_session: Any, committed_offset: int) -> None:
+        key = self._partition_session_key(partition_session)
+        with _gauge_lock:
+            if self._closed or key not in self._commit_offsets:
+                return
+            topic, requested_offset, acknowledged_offset = self._commit_offsets[key]
+            self._commit_offsets[key] = (
+                topic,
+                requested_offset,
+                max(acknowledged_offset, committed_offset),
+            )
+
+    def record_session_error(self, error: BaseException, is_retriable: bool) -> None:
+        provider = _provider
+        if provider is _NOOP_PROVIDER:
+            return
+
+        attributes = dict(self._base_attributes)
+        attributes.update(
+            {
+                "retry_decision": "retry" if is_retriable else "stop",
+                "status_code": _response_status_code(error),
+                "error.type": _error_type(error),
+            }
+        )
+        provider.add(TOPIC_READER_SESSION_ERRORS, 1, attributes)
+
+    def add_credit_balance_bytes(self, bytes_size: int) -> None:
+        with _gauge_lock:
+            if not self._closed:
+                self._credit_balance_bytes += bytes_size
+
+    def reset_credit_balance_bytes(self, bytes_size: int = 0) -> None:
+        with _gauge_lock:
+            self._credit_balance_bytes = bytes_size
+
+    def remove_local_buffer_messages(self, message_count: int, partition_session: Any) -> None:
+        if message_count <= 0:
+            return
+
+        key = self._partition_session_key(partition_session)
+        with _gauge_lock:
+            if self._closed:
+                return
+
+            self._local_buffer_messages = max(0, self._local_buffer_messages - message_count)
+            cohorts = self._local_buffer_received_at.get(key)
+            messages_to_remove = message_count
+            while cohorts and messages_to_remove > 0:
+                received_at, messages = cohorts[0]
+                if messages <= messages_to_remove:
+                    cohorts.popleft()
+                    messages_to_remove -= messages
+                else:
+                    cohorts[0] = (received_at, messages - messages_to_remove)
+                    messages_to_remove = 0
+
+            if cohorts is not None and not cohorts:
+                self._local_buffer_received_at.pop(key, None)
+            if self._local_buffer_messages == 0:
+                self._local_buffer_received_at.clear()
+
+    def reset_local_buffer_messages(self) -> None:
+        with _gauge_lock:
+            self._local_buffer_messages = 0
+            self._local_buffer_received_at.clear()
+
+    def add_partition_session(self, topic: str, partition_session: Any = None) -> None:
+        with _gauge_lock:
+            if self._closed:
+                return
+            self._partition_session_counts[topic] = self._partition_session_counts.get(topic, 0) + 1
+            if partition_session is not None:
+                key = self._partition_session_key(partition_session)
+                committed_offset = partition_session.committed_offset
+                self._commit_offsets[key] = (topic, committed_offset, committed_offset)
+
+    def remove_partition_session(self, topic: str, partition_session: Any = None) -> None:
+        with _gauge_lock:
+            if self._closed or topic not in self._partition_session_counts:
+                return
+            self._partition_session_counts[topic] = max(0, self._partition_session_counts[topic] - 1)
+            if partition_session is not None:
+                self._commit_offsets.pop(self._partition_session_key(partition_session), None)
+
+    def reset_partition_sessions(self) -> None:
+        with _gauge_lock:
+            for topic in self._partition_session_counts:
+                self._partition_session_counts[topic] = 0
+            self._commit_offsets.clear()
+
+    def close(self) -> None:
+        with _gauge_lock:
+            if self._closed:
+                return
+            self._closed = True
+            self._commit_offsets.clear()
+            self._credit_balance_bytes = 0
+            self._local_buffer_messages = 0
+            self._local_buffer_received_at.clear()
+            self._partition_session_counts.clear()
+            _live_topic_reader_metrics.discard(self)
+
+
+class _NoopTopicReaderMetrics(TopicReaderMetrics):
+    __slots__ = ()
+
+    def __init__(self) -> None:
+        pass
+
+    def record_received_messages(self, batches: Iterable[Any], received_at: Optional[float] = None) -> None:
+        pass
+
+    def capture_received_at(self) -> Optional[float]:
+        return None
+
+    def record_received_bytes(self, bytes_size: int) -> None:
+        pass
+
+    def record_delivered_messages(self, message_count: int, topic: str) -> None:
+        pass
+
+    def record_compression_duration(
+        self,
+        duration: float,
+        codec: str,
+        topic: str,
+        error: Optional[BaseException] = None,
+    ) -> None:
+        pass
+
+    def record_message_processing_duration(
+        self,
+        duration: float,
+        codec: str,
+        topic: str,
+        error: Optional[BaseException] = None,
+    ) -> None:
+        pass
+
+    def record_commit_queued(self, message_count: int, topic: str) -> None:
+        pass
+
+    def record_commit_acknowledged(self, message_count: int, topic: str) -> None:
+        pass
+
+    def record_commit_offset_queued(self, partition_session: Any, end_offset: int) -> None:
+        pass
+
+    def record_commit_offset_acknowledged(self, partition_session: Any, committed_offset: int) -> None:
+        pass
+
+    def record_session_error(self, error: BaseException, is_retriable: bool) -> None:
+        pass
+
+    def add_credit_balance_bytes(self, bytes_size: int) -> None:
+        pass
+
+    def reset_credit_balance_bytes(self, bytes_size: int = 0) -> None:
+        pass
+
+    def remove_local_buffer_messages(self, message_count: int, partition_session: Any) -> None:
+        pass
+
+    def reset_local_buffer_messages(self) -> None:
+        pass
+
+    def add_partition_session(self, topic: str, partition_session: Any = None) -> None:
+        pass
+
+    def remove_partition_session(self, topic: str, partition_session: Any = None) -> None:
+        pass
+
+    def reset_partition_sessions(self) -> None:
+        pass
+
+    def close(self) -> None:
+        pass
+
+
+_NOOP_TOPIC_READER_METRICS = _NoopTopicReaderMetrics()
+
+
+def create_topic_reader_metrics(
+    driver,
+    consumer_name: Optional[str],
+    reader_name: Optional[str],
+    topics: Any = (),
+) -> TopicReaderMetrics:
+    """Create instrumentation only for explicitly named readers while metrics are active."""
+    if not reader_name or not is_metrics_enabled():
+        return _NOOP_TOPIC_READER_METRICS
+
+    if isinstance(topics, str) or hasattr(topics, "path"):
+        topics = (topics,)
+    topic_paths = (topic if isinstance(topic, str) else topic.path for topic in topics)
+    return TopicReaderMetrics(driver, consumer_name, reader_name, topic_paths)
 
 
 class SessionMetrics:

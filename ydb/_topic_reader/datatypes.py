@@ -94,21 +94,25 @@ class PartitionSession:
 
         return waiter
 
-    def ack_notify(self, offset: int):
+    def ack_notify(self, offset: int) -> int:
         self._ensure_not_closed()
 
-        self.committed_offset = offset
+        previous_committed_offset = self.committed_offset
+        self.committed_offset = max(previous_committed_offset, offset)
+        acknowledged_messages = self.committed_offset - previous_committed_offset
 
         if not self._ack_waiters:
             # todo log warning
             # must be never receive ack for not sended request
-            return
+            return acknowledged_messages
 
         while self._ack_waiters:
-            if self._ack_waiters[0].end_offset > offset:
+            if self._ack_waiters[0].end_offset > self.committed_offset:
                 break
             waiter = self._ack_waiters.popleft()
             waiter._finish_ok()
+
+        return acknowledged_messages
 
     def _update_last_commited_offset_if_needed(self, offset: int):
         self.committed_offset = max(self.committed_offset, offset)
@@ -168,6 +172,7 @@ class PublicBatch(ICommittable, ISessionAlive):
     _partition_session: PartitionSession
     _bytes_size: int
     _codec: Codec
+    _received_at: Optional[float] = field(default=None, compare=False, repr=False)
 
     def _commit_get_partition_session(self) -> PartitionSession:
         return self.messages[0]._commit_get_partition_session()

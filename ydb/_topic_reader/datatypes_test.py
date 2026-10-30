@@ -34,7 +34,7 @@ class TestPartitionSession:
             ([1], 10, [1], []),
             ([1, 2, 3], 10, [1, 2, 3], []),
             ([1, 2, 10, 20], 10, [1, 2, 10], [20]),
-            ([10, 20], 1, [], [10, 20]),
+            ([10, 20], 1, [10], [20]),
         ],
     )
     async def test_ack_notify(
@@ -66,7 +66,34 @@ class TestPartitionSession:
 
         notified.sort()
         assert notified == offsets_notified
-        assert session.committed_offset == notify_offset
+        assert session.committed_offset == max(self.session_comitted_offset, notify_offset)
+
+    async def test_ack_notify_returns_monotonic_committed_offset_advance(self, session):
+        first = session.add_waiter(session.committed_offset + 2)
+        second = session.add_waiter(session.committed_offset + 5)
+
+        assert session.ack_notify(session.committed_offset + 3) == 3
+        assert first.future.done()
+        assert not second.future.done()
+
+        assert session.ack_notify(session.committed_offset + 2) == 2
+        assert second.future.done()
+        assert session.ack_notify(session.committed_offset) == 0
+
+        stale_offset = session.committed_offset - 1
+        assert session.ack_notify(stale_offset) == 0
+        assert session.committed_offset == stale_offset + 1
+
+    async def test_ack_notify_does_not_double_count_overlapping_ranges(self, session):
+        first = session.add_waiter(session.committed_offset + 5)
+        second = session.add_waiter(session.committed_offset + 7)
+
+        assert session.ack_notify(session.committed_offset + 7) == 7
+        assert first.future.done()
+        assert second.future.done()
+
+    async def test_ack_notify_counts_offset_advance_without_waiters(self, session):
+        assert session.ack_notify(session.committed_offset + 2) == 2
 
     # noinspection PyTypeChecker
     @pytest.mark.parametrize(
