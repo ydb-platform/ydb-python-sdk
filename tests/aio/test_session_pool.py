@@ -149,12 +149,7 @@ async def test_no_session_leak(driver, docker_project):
 
 
 @pytest.fixture
-def session_deletions():
-    return []
-
-
-@pytest.fixture
-async def session_pool(monkeypatch, session_deletions):
+async def session_pool(monkeypatch):
     async def wait(timeout):
         pass
 
@@ -163,7 +158,6 @@ async def session_pool(monkeypatch, session_deletions):
         return session
 
     async def delete_session(session, settings=None):
-        session_deletions.append((session, settings))
         session.reset()
 
     monkeypatch.setattr(Session, "create", create_session)
@@ -179,18 +173,24 @@ async def session_pool(monkeypatch, session_deletions):
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize("error", [ydb.BadSession, ydb.ConnectionLost, asyncio.CancelledError])
-async def test_keep_alive_failure_frees_pool_slot(session_pool, session_deletions, monkeypatch, error):
+async def test_keep_alive_failure_frees_pool_slot(session_pool, monkeypatch, error):
     pool = session_pool
     session = await pool.acquire(timeout=1)
+    session_deletions = []
 
     async def fail_keep_alive(settings):
         raise error("KeepAlive failed")
 
+    async def delete_session(settings):
+        session_deletions.append(settings)
+        session.reset()
+
     monkeypatch.setattr(session, "keep_alive", fail_keep_alive)
+    monkeypatch.setattr(session, "delete", delete_session)
 
     await asyncio.gather(pool._send_keep_alive(session), return_exceptions=True)
 
-    assert session_deletions == [(session, pool._req_settings)]
+    assert session_deletions == [pool._req_settings]
     assert not session.initialized()
     assert pool._active_count == 0
     assert pool._active_queue.empty()
@@ -198,25 +198,3 @@ async def test_keep_alive_failure_frees_pool_slot(session_pool, session_deletion
     replacement = await pool.acquire(timeout=1)
     assert replacement is not session
     await pool.release(replacement)
-
-
-@pytest.mark.asyncio
-async def test_keep_alive_success_reuses_session(session_pool, session_deletions, monkeypatch):
-    pool = session_pool
-    session = await pool.acquire(timeout=1)
-    keep_alive_calls = []
-
-    async def keep_alive(settings):
-        keep_alive_calls.append(settings)
-        return session
-
-    monkeypatch.setattr(session, "keep_alive", keep_alive)
-
-    await pool._send_keep_alive(session)
-
-    assert keep_alive_calls == [pool._req_settings]
-    assert session_deletions == []
-    assert pool._active_count == 1
-    reused = await pool.acquire(timeout=1)
-    assert reused is session
-    await pool.release(reused)

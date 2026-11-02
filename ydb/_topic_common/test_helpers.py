@@ -74,10 +74,5 @@ async def wait_for_fast(
     timeout: typing.Optional[typing.Union[float, int]] = None,
 ):
     fut = asyncio.ensure_future(awaitable)
-    try:
-        await wait_condition(lambda: fut.done(), timeout)
-        return fut.result()
-    finally:
-        if not fut.done():
-            fut.cancel()
-            await asyncio.gather(fut, return_exceptions=True)
+    await wait_condition(lambda: fut.done(), timeout)
+    return fut.result()
