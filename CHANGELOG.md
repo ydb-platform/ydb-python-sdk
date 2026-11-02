@@ -1,4 +1,5 @@
 * Fix topic reader `close()` hanging forever when the stream is broken with uncommitted offsets pending: the commit flush now stops as soon as the stream reports an error instead of waiting for acks that can never arrive
+* Fix async table session pool capacity leaking when keeping an idle session alive fails or is cancelled
 
 ## 3.34.0 ##
 * Remove `AAA Certificate Services` and `emSign ECC Root CA - G3` from the bundled TLS trust store to reject certificate chains affected by the eMudhra CA compromise
