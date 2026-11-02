@@ -1,9 +1,9 @@
 import asyncio
-from unittest.mock import AsyncMock, Mock
+from types import SimpleNamespace
 
 import pytest
 import ydb
-from ydb.aio.table import Session
+from ydb.aio.table import Session, TableClient
 
 
 @pytest.mark.asyncio
@@ -149,19 +149,27 @@ async def test_no_session_leak(driver, docker_project):
 
 
 @pytest.fixture
-async def mock_session_pool():
-    driver = Mock()
-    driver.wait = AsyncMock()
+def session_deletions():
+    return []
 
-    def create_session():
-        session = Mock(spec=Session)
-        session.create.return_value = session
-        session.initialized.return_value = True
-        session.closing.return_value = False
-        session.pending_query.return_value = False
+
+@pytest.fixture
+async def session_pool(monkeypatch, session_deletions):
+    async def wait(timeout):
+        pass
+
+    async def create_session(session, settings=None):
+        session._state.set_id(f"test-session-{id(session)}")
         return session
 
-    driver.table_client.session.side_effect = create_session
+    async def delete_session(session, settings=None):
+        session_deletions.append((session, settings))
+        session.reset()
+
+    monkeypatch.setattr(Session, "create", create_session)
+    monkeypatch.setattr(Session, "delete", delete_session)
+    driver = SimpleNamespace(wait=wait)
+    driver.table_client = TableClient(driver)
     pool = ydb.aio.SessionPool(driver, 1)
     try:
         yield pool
@@ -171,14 +179,19 @@ async def mock_session_pool():
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize("error", [ydb.BadSession, ydb.ConnectionLost, asyncio.CancelledError])
-async def test_keep_alive_failure_frees_pool_slot(mock_session_pool, error):
-    pool = mock_session_pool
+async def test_keep_alive_failure_frees_pool_slot(session_pool, session_deletions, monkeypatch, error):
+    pool = session_pool
     session = await pool.acquire(timeout=1)
-    session.keep_alive.side_effect = error("KeepAlive failed")
+
+    async def fail_keep_alive(settings):
+        raise error("KeepAlive failed")
+
+    monkeypatch.setattr(session, "keep_alive", fail_keep_alive)
 
     await asyncio.gather(pool._send_keep_alive(session), return_exceptions=True)
 
-    session.delete.assert_awaited_once_with(pool._req_settings)
+    assert session_deletions == [(session, pool._req_settings)]
+    assert not session.initialized()
     assert pool._active_count == 0
     assert pool._active_queue.empty()
 
@@ -188,14 +201,21 @@ async def test_keep_alive_failure_frees_pool_slot(mock_session_pool, error):
 
 
 @pytest.mark.asyncio
-async def test_keep_alive_success_reuses_session(mock_session_pool):
-    pool = mock_session_pool
+async def test_keep_alive_success_reuses_session(session_pool, session_deletions, monkeypatch):
+    pool = session_pool
     session = await pool.acquire(timeout=1)
+    keep_alive_calls = []
+
+    async def keep_alive(settings):
+        keep_alive_calls.append(settings)
+        return session
+
+    monkeypatch.setattr(session, "keep_alive", keep_alive)
 
     await pool._send_keep_alive(session)
 
-    session.keep_alive.assert_awaited_once_with(pool._req_settings)
-    session.delete.assert_not_called()
+    assert keep_alive_calls == [pool._req_settings]
+    assert session_deletions == []
     assert pool._active_count == 1
     reused = await pool.acquire(timeout=1)
     assert reused is session
