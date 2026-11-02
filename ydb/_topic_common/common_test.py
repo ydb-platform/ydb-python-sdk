@@ -7,6 +7,7 @@ import grpc
 import pytest
 
 from .common import CallFromSyncToAsync
+from .test_helpers import WaitConditionError, wait_for_fast
 from .._grpc.grpcwrapper.common_utils import (
     GrpcWrapperAsyncIO,
     ServerStatus,
@@ -133,7 +134,6 @@ class TestServerStatus:
             issues._process_response(status)
 
 
-@pytest.mark.asyncio
 class TestCallFromSyncToAsync:
     @pytest.fixture()
     def caller(self, separate_loop):
@@ -288,3 +288,60 @@ class TestCallFromSyncToAsync:
         with pytest.raises(TestError):
             caller.call_sync(callback)
         assert callback_eventloop is separate_loop
+
+
+@pytest.mark.asyncio
+class TestWaitForFast:
+    async def test_timeout_cancels_and_waits_for_pending_task(self):
+        queue = asyncio.Queue()
+        task = asyncio.create_task(queue.get())
+        try:
+            with pytest.raises(WaitConditionError):
+                await wait_for_fast(task, timeout=0)
+
+            assert task.cancelled()
+            queue.put_nowait("message")
+            assert queue.get_nowait() == "message"
+        finally:
+            task.cancel()
+            await asyncio.gather(task, return_exceptions=True)
+
+    async def test_cancellation_waits_for_pending_task_cleanup(self):
+        started = asyncio.Event()
+        cleaned_up = asyncio.Event()
+
+        async def wait_for_message():
+            started.set()
+            try:
+                await asyncio.Queue().get()
+            finally:
+                await asyncio.sleep(0)
+                cleaned_up.set()
+
+        task = asyncio.create_task(wait_for_message())
+        waiter = asyncio.create_task(wait_for_fast(task, timeout=5))
+        try:
+            await asyncio.wait_for(started.wait(), timeout=1)
+            waiter.cancel()
+            with pytest.raises(asyncio.CancelledError):
+                await waiter
+
+            assert task.cancelled()
+            assert cleaned_up.is_set()
+        finally:
+            waiter.cancel()
+            task.cancel()
+            await asyncio.gather(waiter, task, return_exceptions=True)
+
+    async def test_returns_completed_result(self):
+        future = asyncio.get_running_loop().create_future()
+        future.set_result("message")
+
+        assert await wait_for_fast(future) == "message"
+
+    async def test_preserves_task_error(self):
+        async def fail():
+            raise ValueError("test error")
+
+        with pytest.raises(ValueError, match="test error"):
+            await wait_for_fast(fail())
