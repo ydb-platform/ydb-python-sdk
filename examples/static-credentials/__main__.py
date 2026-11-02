@@ -2,7 +2,6 @@
 import argparse
 from example import run
 
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         formatter_class=argparse.RawDescriptionHelpFormatter,

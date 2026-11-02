@@ -3,7 +3,6 @@ import uuid
 import pytest
 import ydb
 
-
 query_template = "DECLARE $a as %s; SELECT $a AS value"
 
 
