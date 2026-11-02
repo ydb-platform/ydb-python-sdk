@@ -2,7 +2,6 @@ import pytest
 import ydb
 from unittest.mock import patch, MagicMock
 
-
 USERNAME = "root"
 PASSWORD = "1234"
 

@@ -14,7 +14,6 @@ except ImportError:
 from ydb import credentials, tracing, issues  # noqa: E402
 from .token_source import TokenSource, FixedTokenSource, JwtTokenSource  # noqa: E402
 
-
 # method -> is HMAC
 _supported_uppercase_jwt_algs = {
     "HS256": True,

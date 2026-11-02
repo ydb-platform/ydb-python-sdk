@@ -96,7 +96,7 @@ async def send_messages_and_wait_all_commit_with_results(
 
 
 async def switch_messages_with_many_producers(writers: Dict[str, ydb.TopicWriterAsyncIO], messages: List[str]):
-    futures = []  # type:  List[asyncio.Future]
+    futures = []  # type: List[asyncio.Future]
 
     for msg in messages:
         # select writer for the msg

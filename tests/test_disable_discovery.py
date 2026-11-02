@@ -4,7 +4,6 @@ import ydb
 import asyncio
 from ydb import _apis
 
-
 TEST_ERROR = "Test error"
 TEST_QUERY = "SELECT 1 + 2 AS sum"
 

@@ -3,7 +3,6 @@ import argparse
 import basic_example
 import logging
 
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         formatter_class=argparse.RawDescriptionHelpFormatter,

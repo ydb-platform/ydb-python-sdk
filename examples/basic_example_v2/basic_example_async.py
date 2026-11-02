@@ -2,7 +2,6 @@
 import ydb
 import basic_example_data
 
-
 DropTablesQuery = """
 DROP TABLE IF EXISTS series;
 DROP TABLE IF EXISTS seasons;
@@ -99,11 +98,9 @@ async def select_simple(pool: ydb.aio.QuerySessionPool):
 async def upsert_simple(pool: ydb.aio.QuerySessionPool):
     print("\nPerforming UPSERT into episodes...")
 
-    await pool.execute_with_retries(
-        """
+    await pool.execute_with_retries("""
         UPSERT INTO episodes (series_id, season_id, episode_id, title) VALUES (2, 6, 1, "TBD");
-        """
-    )
+        """)
 
 
 async def select_with_parameters(pool: ydb.aio.QuerySessionPool, series_id, season_id, episode_id):
@@ -196,8 +193,7 @@ async def drop_tables(pool: ydb.aio.QuerySessionPool):
 
 async def create_tables(pool: ydb.aio.QuerySessionPool):
     print("\nCreating table series...")
-    await pool.execute_with_retries(
-        """
+    await pool.execute_with_retries("""
         CREATE table `series` (
             `series_id` Int64,
             `title` Utf8,
@@ -205,12 +201,10 @@ async def create_tables(pool: ydb.aio.QuerySessionPool):
             `release_date` Date,
             PRIMARY KEY (`series_id`)
         )
-        """
-    )
+        """)
 
     print("\nCreating table seasons...")
-    await pool.execute_with_retries(
-        """
+    await pool.execute_with_retries("""
         CREATE table `seasons` (
             `series_id` Int64,
             `season_id` Int64,
@@ -219,12 +213,10 @@ async def create_tables(pool: ydb.aio.QuerySessionPool):
             `last_aired` Date,
             PRIMARY KEY (`series_id`, `season_id`)
         )
-        """
-    )
+        """)
 
     print("\nCreating table episodes...")
-    await pool.execute_with_retries(
-        """
+    await pool.execute_with_retries("""
         CREATE table `episodes` (
             `series_id` Int64,
             `season_id` Int64,
@@ -233,8 +225,7 @@ async def create_tables(pool: ydb.aio.QuerySessionPool):
             `air_date` Date,
             PRIMARY KEY (`series_id`, `season_id`, `episode_id`)
         )
-        """
-    )
+        """)
 
 
 async def run(endpoint, database):

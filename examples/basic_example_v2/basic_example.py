@@ -2,7 +2,6 @@
 import ydb
 import basic_example_data
 
-
 DropTablesQuery = """
 DROP TABLE IF EXISTS series;
 DROP TABLE IF EXISTS seasons;
@@ -100,11 +99,9 @@ def select_simple(pool: ydb.QuerySessionPool):
 def upsert_simple(pool: ydb.QuerySessionPool):
     print("\nPerforming UPSERT into episodes...")
 
-    pool.execute_with_retries(
-        """
+    pool.execute_with_retries("""
         UPSERT INTO episodes (series_id, season_id, episode_id, title) VALUES (2, 6, 1, "TBD");
-        """
-    )
+        """)
 
 
 def select_with_parameters(pool: ydb.QuerySessionPool, series_id, season_id, episode_id):
@@ -197,8 +194,7 @@ def drop_tables(pool: ydb.QuerySessionPool):
 
 def create_tables(pool: ydb.QuerySessionPool):
     print("\nCreating table series...")
-    pool.execute_with_retries(
-        """
+    pool.execute_with_retries("""
         CREATE table `series` (
             `series_id` Int64,
             `title` Utf8,
@@ -206,12 +202,10 @@ def create_tables(pool: ydb.QuerySessionPool):
             `release_date` Date,
             PRIMARY KEY (`series_id`)
         )
-        """
-    )
+        """)
 
     print("\nCreating table seasons...")
-    pool.execute_with_retries(
-        """
+    pool.execute_with_retries("""
         CREATE table `seasons` (
             `series_id` Int64,
             `season_id` Int64,
@@ -220,12 +214,10 @@ def create_tables(pool: ydb.QuerySessionPool):
             `last_aired` Date,
             PRIMARY KEY (`series_id`, `season_id`)
         )
-        """
-    )
+        """)
 
     print("\nCreating table episodes...")
-    pool.execute_with_retries(
-        """
+    pool.execute_with_retries("""
         CREATE table `episodes` (
             `series_id` Int64,
             `season_id` Int64,
@@ -234,8 +226,7 @@ def create_tables(pool: ydb.QuerySessionPool):
             `air_date` Date,
             PRIMARY KEY (`series_id`, `season_id`, `episode_id`)
         )
-        """
-    )
+        """)
 
 
 def run(endpoint, database):
