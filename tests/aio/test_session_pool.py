@@ -3,7 +3,6 @@ from types import SimpleNamespace
 
 import pytest
 import ydb
-from ydb.aio.table import Session, TableClient
 
 
 @pytest.mark.asyncio
@@ -160,10 +159,10 @@ async def session_pool(monkeypatch):
     async def delete_session(session, settings=None):
         session.reset()
 
-    monkeypatch.setattr(Session, "create", create_session)
-    monkeypatch.setattr(Session, "delete", delete_session)
+    monkeypatch.setattr(ydb.aio.table.Session, "create", create_session)
+    monkeypatch.setattr(ydb.aio.table.Session, "delete", delete_session)
     driver = SimpleNamespace(wait=wait)
-    driver.table_client = TableClient(driver)
+    driver.table_client = ydb.aio.table.TableClient(driver)
     pool = ydb.aio.SessionPool(driver, 1)
     try:
         yield pool
