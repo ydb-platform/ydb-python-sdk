@@ -1643,9 +1643,15 @@ class TestReaderReconnector:
 
         with mock.patch.object(ReaderStream, "create", stream_create):
             reconnector = ReaderReconnector(mock.Mock(), settings)
+            wait_message_task = asyncio.create_task(reconnector.wait_message())
             try:
-                await wait_for_fast(reconnector.wait_message())
+                await wait_for_fast(wait_message_task)
             finally:
+                wait_message_task.cancel()
+                try:
+                    await wait_message_task
+                except asyncio.CancelledError:
+                    pass
                 await reconnector.close(False)
 
         reader_stream_mock_with_error.wait_error.assert_any_await()
