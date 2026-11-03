@@ -335,7 +335,7 @@ class Oauth2TokenExchangeCredentials(credentials.AbstractExpiringTokenCredential
 
         params = self._make_token_request_params()
         headers = {"Content-Type": "application/x-www-form-urlencoded"}
-        response = requests.post(self._token_endpoint, data=params, headers=headers)
+        response = requests.post(self._token_endpoint, data=params, headers=headers, timeout=30)
         self._process_response_status_code(response.content, response.status_code)
         response_json = json.loads(response.content)
         return self._process_response_json(response_json)
