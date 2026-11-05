@@ -40,12 +40,20 @@ def main():
                     payload = f"{table}_{seq}"
                     started = time.monotonic()
                     try:
-                        rows = pool.execute_with_retries(
-                            f"UPSERT INTO `{table}` (id, payload) VALUES "
-                            f'(CAST({seq} AS Uint64), CAST("{payload}" AS Utf8)); '
-                            f"SELECT payload FROM `{table}` WHERE id = CAST({seq} AS Uint64);",
+
+                        def write_read(tx):
+                            return list(
+                                tx.execute(
+                                    f"UPSERT INTO `{table}` (id, payload) VALUES "
+                                    f'(CAST({seq} AS Uint64), CAST("{payload}" AS Utf8)); '
+                                    f"SELECT payload FROM `{table}` WHERE id = CAST({seq} AS Uint64);",
+                                    settings=ydb.BaseRequestSettings().with_timeout(10),
+                                )
+                            )
+
+                        rows = pool.retry_tx_sync(
+                            write_read,
                             tx_mode=ydb.QuerySerializableReadWrite(),
-                            settings=ydb.BaseRequestSettings().with_timeout(10),
                             retry_settings=retry,
                         )
                         if len(rows[0].rows) != 1 or rows[0].rows[0].payload != payload:
@@ -55,7 +63,7 @@ def main():
                         print(json.dumps({"seq": seq, "ok": True, "seconds": time.monotonic() - started}), flush=True)
                     except AssertionError:
                         raise
-                    except Exception as error:
+                    except ydb.Error as error:
                         result["errors"].append({"seq": seq, "error": repr(error)})
                         print(json.dumps({"seq": seq, "ok": False, "error": repr(error)}), flush=True)
                     time.sleep(0.5)
