@@ -158,14 +158,11 @@ class ConnectionsCache:
 
     def remove(self, connection: Connection) -> None:
         with self.lock:
-            for cache, key in (
-                (self.connections_by_node_id, connection.node_id),
-                (self.preferred, connection.endpoint),
-                (self.connections, connection.endpoint),
-                (self.outdated, connection.endpoint),
-            ):
-                if cache.get(key) is connection:
-                    cache.pop(key)
+            if self.connections_by_node_id.get(connection.node_id) is connection:
+                self.connections_by_node_id.pop(connection.node_id)
+            for cache in (self.preferred, self.connections, self.outdated):
+                if cache.get(connection.endpoint) is connection:
+                    cache.pop(connection.endpoint)
 
     def get_connection_by_node_id(self, node_id: Optional[int]) -> Optional[Connection]:
         with self.lock:
