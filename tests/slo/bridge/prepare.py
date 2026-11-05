@@ -28,6 +28,8 @@ def prepare(action, image):
         if "build" in service and service["build"]["context"].endswith("/ydb"):
             service["build"].setdefault("args", {})["YDB_IMAGE"] = image
             service["mem_limit"] = "2g"
+    for name in ("workload-current", "workload-baseline"):
+        config["services"][name]["deploy"]["resources"]["reservations"]["memory"] = "256m"
     for filename in ("config.yaml", "config.bridge.yaml"):
         path = deploy / "ydb/rootfs/opt/ydb.tech/ydbd/cfg" / filename
         text = path.read_text()
