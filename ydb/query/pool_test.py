@@ -5,11 +5,12 @@ import concurrent.futures
 import threading
 import time
 import unittest
-from unittest.mock import MagicMock
+from types import SimpleNamespace
+from unittest.mock import MagicMock, Mock
 
 from unittest.mock import patch
 
-from ydb import _utilities, issues
+from ydb import _utilities, connection, issues, pool
 from ydb.convert import _ResultSet, aggregate_result_sets_by_index, aggregate_result_sets_by_index_async
 from ydb.query.base import create_execute_query_request
 from ydb.query.pool import QuerySessionPool
@@ -416,3 +417,307 @@ class TestQueryTxContextExecutePoolId(unittest.TestCase):
             tx.execute("SELECT 1")
 
         self.assertIsNone(captured.get("pool_id"))
+
+
+class _StreamCall:
+    def __init__(self, completed=False, complete_on_subscribe=False):
+        self.messages = iter((1, 2))
+        self.completed = completed
+        self.complete_on_subscribe = complete_on_subscribe
+        self.callbacks = []
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        try:
+            return next(self.messages)
+        except StopIteration:
+            self.complete()
+            raise
+
+    def add_callback(self, callback):
+        if self.completed:
+            return False
+        self.callbacks.append(callback)
+        if self.complete_on_subscribe:
+            self.complete()
+        return True
+
+    def complete(self):
+        self.completed = True
+        callbacks, self.callbacks = self.callbacks, []
+        for callback in callbacks:
+            callback()
+
+    def cancel(self):
+        self.complete()
+
+
+class TestStreamConnectionCleanup(unittest.TestCase):
+    def setUp(self):
+        self.channel = Mock()
+        self.closed = threading.Event()
+        self.channel.close.side_effect = self.closed.set
+        for name, value in (("channel_factory", lambda *args, **kwargs: self.channel), ("_stubs_list", ())):
+            patched = patch.object(connection, name, value)
+            patched.start()
+            self.addCleanup(patched.stop)
+        metadata = patch.object(connection, "_construct_metadata", return_value=[])
+        metadata.start()
+        self.addCleanup(metadata.stop)
+        self.connection = connection.Connection("localhost:1")
+        self.cache = pool.ConnectionsCache()
+        self.cache.add(self.connection)
+
+    def call(self, response, wrap_result=None):
+        stub = type("Stub", (), {})
+        self.connection._stub_instances[stub] = SimpleNamespace(ReadTable=lambda *args, **kwargs: response)
+        return self.connection(SimpleNamespace(), stub, "ReadTable", wrap_result=wrap_result)
+
+    def cleanup_outdated(self):
+        self.cache.make_outdated(self.connection)
+        self.cache.cleanup_outdated()
+        self.assertFalse(self.cache.connections)
+        self.assertFalse(self.cache.outdated)
+
+    def assert_closed(self):
+        self.assertTrue(self.closed.wait(5), "channel was not closed")
+        self.channel.close.assert_called_once_with()
+
+    def assert_finished(self):
+        self.assertEqual(self.connection.calls, 0)
+        self.assertFalse(self.connection._call_states)
+
+    def test_cleanup_preserves_active_stream(self):
+        stream = self.call(_StreamCall())
+        self.assertEqual(next(stream), 1)
+        self.cleanup_outdated()
+        self.channel.close.assert_not_called()
+        self.assertEqual(list(stream), [2])
+        self.assert_finished()
+        self.assert_closed()
+
+    def test_cancellation_releases_connection(self):
+        stream = self.call(_StreamCall())
+        self.cleanup_outdated()
+        self.channel.close.assert_not_called()
+        stream.cancel()
+        self.assert_finished()
+        self.assert_closed()
+
+    def test_rpc_completion_releases_unconsumed_stream(self):
+        response = _StreamCall()
+        stream = self.call(response)
+        self.cleanup_outdated()
+        self.channel.close.assert_not_called()
+        response.complete()
+        self.assert_finished()
+        self.assert_closed()
+        self.assertEqual(list(stream), [1, 2])
+
+    def test_cleanup_waits_for_all_streams(self):
+        first, second = self.call(_StreamCall()), self.call(_StreamCall())
+        self.cleanup_outdated()
+        first.cancel()
+        self.assertEqual(self.connection.calls, 1)
+        self.channel.close.assert_not_called()
+        second.cancel()
+        self.assert_finished()
+        self.assert_closed()
+
+    def test_terminal_cleanup_cancels_active_stream(self):
+        response = _StreamCall()
+        self.call(response)
+        self.assertEqual(self.connection.calls, 1)
+
+        def close_channel():
+            response.cancel()
+            self.closed.set()
+
+        self.channel.close.side_effect = close_channel
+        self.cache.cleanup()
+        self.assert_closed()
+        self.assertTrue(response.completed)
+        self.assert_finished()
+        self.assertFalse(self.cache.connections)
+
+    def test_terminal_cleanup_cancels_retired_stream(self):
+        response = _StreamCall()
+        self.call(response)
+        self.cleanup_outdated()
+        self.channel.close.assert_not_called()
+
+        def close_channel():
+            response.cancel()
+            self.closed.set()
+
+        self.channel.close.side_effect = close_channel
+        self.cache.cleanup()
+        self.assert_closed()
+        self.assertTrue(response.completed)
+        self.assert_finished()
+
+    def test_stale_remove_preserves_replacement(self):
+        response = _StreamCall()
+        self.call(response)
+        self.cleanup_outdated()
+        with patch.object(connection, "channel_factory", return_value=Mock()):
+            replacement = connection.Connection(self.connection.endpoint)
+        self.cache.add(replacement, preferred=True)
+        self.cache.make_outdated(replacement)
+        self.connection.close()
+        for mapping, key in (
+            (self.cache.connections, replacement.endpoint),
+            (self.cache.connections_by_node_id, replacement.node_id),
+            (self.cache.preferred, replacement.endpoint),
+            (self.cache.outdated, replacement.endpoint),
+        ):
+            self.assertIs(mapping.get(key), replacement)
+        response.cancel()
+        self.assert_closed()
+
+    def test_already_completed_rpc_releases_once(self):
+        self.call(_StreamCall(completed=True))
+        self.assert_finished()
+        self.cleanup_outdated()
+        self.assert_closed()
+
+    def test_rpc_completing_during_subscription_releases_once(self):
+        self.call(_StreamCall(complete_on_subscribe=True))
+        self.assert_finished()
+        self.cleanup_outdated()
+        self.assert_closed()
+
+    def test_unary_call_releases_connection(self):
+        self.assertEqual(self.call(42), 42)
+        self.assert_finished()
+        self.cleanup_outdated()
+        self.assert_closed()
+
+    def test_wrapper_failure_releases_connection(self):
+        def fail(*args):
+            raise ValueError("invalid response")
+
+        with self.assertRaisesRegex(ValueError, "invalid response"):
+            self.call(_StreamCall(), wrap_result=fail)
+        self.assert_finished()
+        self.cleanup_outdated()
+        self.assert_closed()
+
+    def test_completion_callback_does_not_wait_for_channel_drain(self):
+        response = _StreamCall()
+        self.call(response)
+        self.cleanup_outdated()
+        self.channel.close.assert_not_called()
+        callback_returned = threading.Event()
+        errors = []
+
+        def close_channel():
+            if not callback_returned.wait(5):
+                errors.append("channel.close blocked its completion callback")
+            self.closed.set()
+
+        self.channel.close.side_effect = close_channel
+
+        def complete():
+            try:
+                response.complete()
+            finally:
+                callback_returned.set()
+
+        completion = threading.Thread(target=complete, daemon=True)
+        completion.start()
+        self.assertTrue(callback_returned.wait(5), "completion callback blocked on channel.close")
+        completion.join(5)
+        self.assertFalse(completion.is_alive())
+        self.assert_closed()
+        self.assertFalse(errors, errors)
+        self.assert_finished()
+
+    def test_terminal_cleanup_callback_does_not_wait_for_channel_drain(self):
+        response, active = _StreamCall(), _StreamCall()
+        self.call(response)
+        self.call(active)
+        response.add_callback(self.cache.cleanup)
+        callback_returned = threading.Event()
+        errors = []
+
+        def close_channel():
+            if not callback_returned.wait(5):
+                errors.append("channel.close blocked its completion callback")
+            active.cancel()
+            self.closed.set()
+
+        self.channel.close.side_effect = close_channel
+
+        def complete():
+            try:
+                response.complete()
+            finally:
+                callback_returned.set()
+
+        completion = threading.Thread(target=complete, daemon=True)
+        completion.start()
+        self.assertTrue(callback_returned.wait(5), "completion callback blocked on channel.close")
+        completion.join(5)
+        self.assertFalse(completion.is_alive())
+        self.assert_closed()
+        self.assertFalse(errors, errors)
+        self.assert_finished()
+
+
+def test_connection_cache_cleanup_during_disconnect(monkeypatch):
+    channel = Mock()
+    channel_closed = threading.Event()
+    channel.close.side_effect = channel_closed.set
+    monkeypatch.setattr(connection, "channel_factory", lambda *args, **kwargs: channel)
+    monkeypatch.setattr(connection, "_stubs_list", [])
+    cached_connection = connection.Connection("localhost:1")
+    cache = pool.ConnectionsCache()
+    disconnect_entered = threading.Event()
+    stop_entered = threading.Event()
+    errors = []
+
+    def before_remove(_):
+        if threading.current_thread() is disconnect_thread:
+            disconnect_entered.set()
+            assert stop_entered.wait(5), "driver cleanup did not reach connection.close"
+
+    cached_connection.add_cleanup_callback(before_remove)
+    cache.add(cached_connection)
+    cache.make_outdated(cached_connection)
+    original_close = connection.Connection.close
+
+    def close(self, *args, **kwargs):
+        if threading.current_thread() is stop_thread:
+            stop_entered.set()
+        return original_close(self, *args, **kwargs)
+
+    monkeypatch.setattr(connection.Connection, "close", close)
+
+    def run(action):
+        try:
+            action()
+        except BaseException as error:
+            errors.append(error)
+
+    disconnect_thread = threading.Thread(target=run, args=(cached_connection.close,), daemon=True)
+    stop_thread = threading.Thread(
+        target=run,
+        args=(cache.cleanup,),
+        daemon=True,
+    )
+    disconnect_thread.start()
+    assert disconnect_entered.wait(5), "disconnect did not reach its cleanup callback"
+    stop_thread.start()
+    disconnect_thread.join(5)
+    stop_thread.join(5)
+    assert not disconnect_thread.is_alive(), "disconnect deadlocked with driver shutdown"
+    assert not stop_thread.is_alive(), "driver shutdown deadlocked with disconnect"
+    assert not errors, errors
+    assert not cache.connections
+    assert not cache.connections_by_node_id
+    assert not cache.outdated
+    assert channel_closed.wait(5), "driver shutdown did not close the channel"
+    channel.close.assert_called_once()

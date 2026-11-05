@@ -6,6 +6,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 from ydb import issues
 from ydb.aio import _utilities as aio_utilities
+from ydb.aio.pool import ConnectionsCache
 from ydb.aio.query.pool import QuerySessionPool
 from ydb.aio.query.session import QuerySession
 from ydb.aio.query.transaction import QueryTxContext
@@ -401,3 +402,26 @@ class TestQueryTxContextExecutePoolId(unittest.IsolatedAsyncioTestCase):
             await tx.execute("SELECT 1")
 
         self.assertIsNone(captured.get("pool_id"))
+
+
+class TestConnectionCacheCleanup(unittest.IsolatedAsyncioTestCase):
+    async def test_stale_remove_preserves_replacement(self):
+        cache = ConnectionsCache()
+        old = MagicMock(endpoint="localhost:1", node_id=1)
+        replacement = MagicMock(endpoint=old.endpoint, node_id=old.node_id)
+        cache.add(old)
+        cache.remove(old)
+        cache.add(replacement, preferred=True)
+        cache.make_outdated(replacement)
+
+        cache.remove(old)
+
+        for mapping, key in (
+            (cache.connections, replacement.endpoint),
+            (cache.connections_by_node_id, replacement.node_id),
+            (cache.preferred, replacement.endpoint),
+            (cache.outdated, replacement.endpoint),
+        ):
+            self.assertIs(mapping.get(key), replacement)
+        self.assertTrue(cache._event.is_set())
+        self.assertTrue(cache._fast_fail_event.is_set())

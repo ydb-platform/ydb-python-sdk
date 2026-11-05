@@ -478,7 +478,7 @@ class Connection(object):
             # Call successfully finished
             if self.closing and self.calls == 0:
                 # Channel is closing and we have to destroy channel
-                self.destroy()
+                threading.Thread(target=self.destroy, daemon=True).start()
 
     def future(
         self,
@@ -543,6 +543,7 @@ class Connection(object):
         :return: A result of computation
         """
         rpc_state, timeout, metadata = self._prepare_call(stub, rpc_name, request, settings)
+        finish_call = True
         try:
             response = rpc_state(
                 request,
@@ -556,11 +557,15 @@ class Connection(object):
                 # NOTE(vgvoleg): for stream results we should also be able to handle disconnects
                 response = _SafeSyncIterator(response, rpc_state, on_disconnected)
 
-            return response if wrap_result is None else wrap_result(rpc_state, response, *wrap_args)
+            result = response if wrap_result is None else wrap_result(rpc_state, response, *wrap_args)
+            if isinstance(response, _SafeSyncIterator):
+                finish_call = not response.add_callback(lambda: self._finish_call(rpc_state))
+            return result
         except grpc.RpcError as rpc_error:
             raise _rpc_error_handler(rpc_state, rpc_error, on_disconnected)
         finally:
-            self._finish_call(rpc_state)
+            if finish_call:
+                self._finish_call(rpc_state)
 
     @classmethod
     def ready_factory(cls, endpoint, driver_config, ready_timeout=10, endpoint_options=None):
@@ -584,7 +589,7 @@ class Connection(object):
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.close()
 
-    def close(self):
+    def close(self, force=False):
         """
         Closes the underlying gRPC channel
         :return: None
@@ -596,20 +601,18 @@ class Connection(object):
             for callback in self._cleanup_callbacks:
                 callback(self)
 
-            # potentially we should cancel in-flight calls here but currently
-            # it is not required since gRPC can successfully cancel these calls manually.
-
-            if self.calls == 0:
+            if force:
+                threading.Thread(target=self.destroy, daemon=True).start()
+            elif self.calls == 0:
                 # everything is cancelled/completed and channel can be destroyed
                 self.destroy()
 
     def destroy(self):
-        channel = getattr(self, "_channel", None)
+        with self.lock:
+            channel, self._channel = self._channel, None
+            self._stub_instances.clear()
         if channel is not None and hasattr(channel, "close"):
             channel.close()
-
-        self._stub_instances.clear()
-        self._channel = None
 
     def ready_future(self):
         """

@@ -81,10 +81,7 @@ class ConnectionsCache(_ConnectionsCache):
         self._fast_fail_event.set()
 
     def remove(self, connection: Connection) -> None:  # type: ignore[override]  # async Connection type
-        self.connections_by_node_id.pop(connection.node_id, None)
-        self.preferred.pop(connection.endpoint, None)
-        self.connections.pop(connection.endpoint, None)
-        self.outdated.pop(connection.endpoint, None)
+        super().remove(connection)  # type: ignore[arg-type]  # async Connection type
         if len(self.connections) == 0:
             self._event.clear()
             if not self._fast_fail_error:
