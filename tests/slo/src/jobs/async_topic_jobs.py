@@ -150,7 +150,9 @@ class AsyncTopicJobManager(AsyncBaseJobManager):
         logger.info("Stop async topic reader %s", reader_id)
 
     def _validate(self, msg) -> None:
-        decoded = decode_payload(msg.data)
+        self._record(decode_payload(msg.data))
+
+    def _record(self, decoded) -> None:
         if decoded is None:
             self.metrics.inc_delivered()
             return

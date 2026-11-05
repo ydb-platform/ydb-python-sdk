@@ -6,6 +6,7 @@
 #
 # Inputs come from the env vars injected by the action:
 #   WORKLOAD_NAME       sync-table | sync-query | async-query | sync-topic | async-topic
+#                       | sync-topic-tx | async-topic-tx
 #   WORKLOAD_DURATION   run duration in seconds
 #   YDB_ENDPOINT        grpc://ydb:2136
 #   YDB_DATABASE        /Root/testdb
@@ -21,7 +22,7 @@ set -e
 
 case "${WORKLOAD_NAME:-sync-query}" in
     sync-table|sync-query|async-query) PREFIX=table ;;
-    topic|sync-topic|async-topic) PREFIX=topic ;;
+    topic|sync-topic|async-topic|sync-topic-tx|async-topic-tx) PREFIX=topic ;;
     *)
         echo "Unknown WORKLOAD_NAME: ${WORKLOAD_NAME}" >&2
         exit 1
@@ -41,7 +42,17 @@ EXTRA_ARGS=""
 if [ "$PREFIX" = "topic" ]; then
     REF_RAW="${WORKLOAD_REF:-${REF:-main}}"
     SAFE_REF=$(printf '%s' "$REF_RAW" | tr -c 'a-zA-Z0-9_' '_')
-    EXTRA_ARGS="--path ${DATABASE%/}/slo_topic_${SAFE_REF}"
+    case "${WORKLOAD_NAME:-}" in
+        *topic-tx)
+            # The transactional pipeline gets its own topic plus a ref-scoped
+            # sink table, so current/baseline don't collide.
+            EXTRA_ARGS="--path ${DATABASE%/}/slo_topic_tx_${SAFE_REF}"
+            EXTRA_ARGS="${EXTRA_ARGS} --sink-table slo_topic_tx_sink_${SAFE_REF}"
+            ;;
+        *)
+            EXTRA_ARGS="--path ${DATABASE%/}/slo_topic_${SAFE_REF}"
+            ;;
+    esac
 fi
 
 # Schema prep is idempotent at the SDK level for topics; for tables, a parallel
