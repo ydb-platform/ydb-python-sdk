@@ -1,6 +1,7 @@
 """Check actual chaos completion, native observations and acknowledged data."""
 
 import json
+import math
 import os
 import subprocess
 import urllib.parse
@@ -37,6 +38,9 @@ def main():
         for scenario in SCENARIOS:
             if f"Running scenario: {scenario}" not in log:
                 result["errors"].append(f"Scenario not executed: {scenario}")
+        probe_state = json.loads(command("docker", "inspect", "ydb-bridge-probe"))[0]["State"]
+        if probe_state["Running"]:
+            command("docker", "exec", "ydb-bridge-probe", "touch", "/tmp/bridge-probe-stop")
         command("docker", "wait", "ydb-bridge-probe")
         command("docker", "cp", "ydb-bridge-probe:/tmp/bridge-probe.json", str(artifacts / "probe.json"))
         result["probe"] = json.loads((artifacts / "probe.json").read_text())
@@ -62,7 +66,7 @@ def main():
         for operation in ("read", "write"):
             count = metric(f'sum(sdk_operations_success_total{{ref="current",operation_type="{operation}"}})')
             observations[operation] = count
-            if count <= 0:
+            if not math.isfinite(count) or count <= 0:
                 result["errors"].append(f"No successful native {operation} observations")
         observations["errors"] = metric('sum(sdk_operations_failure_total{ref="current"})')
         if observations["errors"]:
@@ -79,8 +83,9 @@ def main():
             )
         )
         result["node_states"] = {node["Name"]: node["State"] for node in nodes}
-        if any(node["State"]["OOMKilled"] for node in nodes):
-            result["errors"].append("YDB node was OOM killed")
+        result["node_restarts"] = {node["Name"]: node["RestartCount"] for node in nodes}
+        if any(node["State"]["OOMKilled"] or node["RestartCount"] for node in nodes):
+            result["errors"].append("YDB node was OOM killed or unexpectedly restarted")
     except Exception as error:
         result["errors"].append(repr(error))
     result["passed"] = not result["errors"]

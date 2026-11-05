@@ -26,7 +26,7 @@ def main():
                 version = pool.execute_with_retries("SELECT CAST(version() AS Utf8) AS version;")
                 result["server_version"] = version[0].rows[0].version
                 pool.execute_with_retries(f"CREATE TABLE `{table}` (id Uint64, payload Utf8, PRIMARY KEY(id));")
-                deadline = time.monotonic() + int(os.environ.get("WORKLOAD_DURATION", "900"))
+                deadline = time.monotonic() + int(os.environ.get("WORKLOAD_DURATION", "900")) + 180
                 retry = ydb.RetrySettings(
                     max_retries=10,
                     max_session_acquire_timeout=2,
@@ -35,7 +35,7 @@ def main():
                     idempotent=True,
                 )
                 seq = 0
-                while time.monotonic() < deadline:
+                while time.monotonic() < deadline and not Path("/tmp/bridge-probe-stop").exists():
                     seq += 1
                     payload = f"{table}_{seq}"
                     started = time.monotonic()
