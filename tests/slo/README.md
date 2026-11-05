@@ -11,7 +11,9 @@ The workflow pins `ydb-slo-action` v2 by commit. The PR configuration pins a
 resolved server digest; manual dispatch accepts a server image and records its
 resolved digest. The selected server is passed as the upstream Dockerfile's
 `YDB_IMAGE` build argument. No server binaries or action lifecycle code are
-modified. The hosted profile uses two storage nodes, two database nodes, one
+modified. Compose 2.40.3 is installed explicitly because the action requires
+`up --quiet-build`, which is absent from some hosted runner images.
+The hosted profile uses two storage nodes, two database nodes, one
 CPU per YDB actor system and bounded node/workload memory.
 
 This is a 15-minute functional qualification at 50 reads/s and 10 writes/s,
