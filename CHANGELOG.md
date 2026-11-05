@@ -1,3 +1,4 @@
+* Add timeout to the token exchange request so a stalled token endpoint cannot hang credential refresh
 * Fix async table session pool capacity leaking when keeping an idle session alive fails or is cancelled
 
 ## 3.34.0 ##

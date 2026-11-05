@@ -8,6 +8,8 @@ import tempfile
 import os
 import jwt
 import base64
+from unittest import mock
+
 from ydb.oauth2_token_exchange import Oauth2TokenExchangeCredentials, FixedTokenSource
 from ydb.driver import credentials_from_env_variables
 
@@ -344,6 +346,28 @@ def test_oauth2_token_exchange_credentials():
         raise
 
     serve_thread.join()
+
+
+def test_oauth2_token_exchange_request_timeout():
+    credentials = Oauth2TokenExchangeCredentials(
+        "http://localhost:9/token/exchange",
+        subject_token_source=FixedTokenSource("test_src_token", "test_token_type"),
+        audience=["a1", "a2"],
+        scope=["s1", "s2"],
+    )
+    _, response_json = TOKEN_EXCHANGE_RESPONSES["test_src_token"]
+    fake_response = mock.Mock(
+        content=json.dumps(response_json).encode("utf8"),
+        status_code=200,
+    )
+    with mock.patch(
+        "ydb.oauth2_token_exchange.token_exchange.requests.post",
+        return_value=fake_response,
+    ) as post:
+        token = credentials.get_auth_token()
+    assert token == "Bearer " + response_json["access_token"]
+    post.assert_called_once()
+    assert post.call_args.kwargs["timeout"] == 30
 
 
 class DataForConfigTest:
