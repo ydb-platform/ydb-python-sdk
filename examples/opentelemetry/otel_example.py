@@ -1,4 +1,4 @@
-"""OpenTelemetry + YDB demo: table operations, retries, and topic Reader metrics.
+"""OpenTelemetry + YDB demo: table operations, retries, and topic metrics.
 
 Uses ``disable_discovery=True`` so a single ``grpc://…`` to local YDB (e.g. ``local-ydb`` in Docker
 from the host) is not replaced by internal discovery addresses.
@@ -55,7 +55,11 @@ async def _topic_reader_metrics_demo(
 
     await driver.topic_client.create_topic(topic_path, consumers=[consumer])
     try:
-        async with driver.topic_client.writer(topic_path, codec=ydb.TopicCodec.GZIP) as writer:
+        async with driver.topic_client.writer(
+            topic_path,
+            codec=ydb.TopicCodec.GZIP,
+            writer_name="otel-example-writer",
+        ) as writer:
             await writer.write("OpenTelemetry topic Reader metrics")
 
         async with driver.topic_client.reader(
@@ -126,7 +130,7 @@ async def main() -> None:
             amount = int(list(final_rows[0].rows)[0]["amount"])
             print(f"Final amount (after serializable retries): {amount}")
 
-        print("Emitting topic Reader metrics...")
+        print("Emitting topic metrics...")
         await _topic_reader_metrics_demo(driver, database, topic_buffer_observation_seconds)
     print("Application will shut down in 15 seconds...")
     await asyncio.sleep(15)

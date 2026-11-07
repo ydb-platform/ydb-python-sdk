@@ -363,6 +363,7 @@ class TopicClientAsyncIO:
         max_buffer_size_bytes: Optional[int] = None,
         max_buffer_messages: Optional[int] = None,
         buffer_wait_timeout_sec: Optional[float] = None,
+        writer_name: Optional[str] = None,
     ) -> TopicWriterAsyncIO:
         logger.debug("Create writer for topic=%s producer_id=%s", topic, producer_id)
         args = locals().copy()
@@ -395,6 +396,7 @@ class TopicClientAsyncIO:
         max_buffer_size_bytes: Optional[int] = None,
         max_buffer_messages: Optional[int] = None,
         buffer_wait_timeout_sec: Optional[float] = None,
+        writer_name: Optional[str] = None,
     ) -> TopicTxWriterAsyncIO:
         logger.debug("Create tx writer for topic=%s tx=%s", topic, tx)
         args = locals().copy()
@@ -728,6 +730,7 @@ class TopicClient:
         max_buffer_size_bytes: Optional[int] = None,
         max_buffer_messages: Optional[int] = None,
         buffer_wait_timeout_sec: Optional[float] = None,
+        writer_name: Optional[str] = None,
     ) -> TopicWriter:
         logger.debug("Create writer for topic=%s producer_id=%s", topic, producer_id)
         args = locals().copy()
@@ -761,6 +764,7 @@ class TopicClient:
         max_buffer_size_bytes: Optional[int] = None,
         max_buffer_messages: Optional[int] = None,
         buffer_wait_timeout_sec: Optional[float] = None,
+        writer_name: Optional[str] = None,
     ) -> TopicWriter:
         logger.debug("Create tx writer for topic=%s tx=%s", topic, tx)
         args = locals().copy()

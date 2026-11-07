@@ -10,9 +10,9 @@ Users pick tracing and/or metrics backends and register them here:
     enable_tracing(OtelTracingProvider())  # or any custom TracingProvider
 
 The SDK itself never imports ``opentelemetry``. Until a backend is enabled,
-operations, query sessions and pools use shared no-op instrumentation without metric
-allocations, timers, locks or state tracking. Enable metrics before creating query
-sessions or pools whose lifecycle should be instrumented.
+operations, query sessions, pools, topic Readers and topic Writers use shared no-op
+instrumentation without metric allocations, timers, locks or state tracking. Enable
+metrics before creating objects whose lifecycle should be instrumented.
 """
 
 from typing import List, Optional
@@ -62,9 +62,9 @@ def enable_metrics(provider: MetricsProvider) -> None:
 
     Calling this a second time replaces the previous backend. To turn metrics off
     again call :func:`disable_metrics`. Operation and retry metrics follow the active
-    provider immediately. Enable metrics before creating query sessions or pools whose
-    lifecycle should be instrumented; their no-op lifecycle trackers are not
-    retrofitted later.
+    provider immediately. Enable metrics before creating query sessions, pools, topic
+    Readers or topic Writers whose lifecycle should be instrumented; their no-op
+    lifecycle trackers are not retrofitted later.
     """
     _set_metrics_provider(provider)
 

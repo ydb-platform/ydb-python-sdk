@@ -153,7 +153,7 @@ def _histogram_boundaries_advisory_supported():
 def test_metrics_build_info_version(metrics_setup):
     from ydb.observability.metrics import _metrics_build_info_tokens
 
-    assert _metrics_build_info_tokens() == ["ydb-sdk-metrics/0.14.0"]
+    assert _metrics_build_info_tokens() == ["ydb-sdk-metrics/0.25.0"]
 
 
 def test_metrics_registry_records_all_instruments(metrics_setup, monkeypatch):
@@ -183,11 +183,23 @@ def test_metrics_registry_records_all_instruments(metrics_setup, monkeypatch):
         TOPIC_READER_RECEIVED_BYTES,
         TOPIC_READER_RECEIVED_MESSAGES,
         TOPIC_READER_SESSION_ERRORS,
+        TOPIC_WRITER_BUFFER_LIMIT_BYTES,
+        TOPIC_WRITER_BUFFER_USED_BYTES,
+        TOPIC_WRITER_BUFFER_WAIT_DURATION,
+        TOPIC_WRITER_COMPRESSION_DURATION,
+        TOPIC_WRITER_MESSAGE_ACK_DURATION,
+        TOPIC_WRITER_MESSAGE_PROCESSING_DURATION,
+        TOPIC_WRITER_SENDING_BYTES,
+        TOPIC_WRITER_SENDING_MESSAGES,
+        TOPIC_WRITER_SENDING_OLDEST_AGE,
+        TOPIC_WRITER_SESSION_ERRORS,
+        TOPIC_WRITER_WRITTEN_MESSAGES,
         ATTEMPT_BUCKETS,
         DURATION_BUCKETS_SECONDS,
         RETRY_DURATION_BUCKETS_SECONDS,
         SessionMetrics,
         TopicReaderMetrics,
+        TopicWriterMetrics,
         create_metrics_operation,
         record_query_session_count,
         record_query_session_create_time,
@@ -199,7 +211,7 @@ def test_metrics_registry_records_all_instruments(metrics_setup, monkeypatch):
 
     monkeypatch.setattr(
         "ydb.observability.metrics.time.monotonic",
-        MagicMock(side_effect=[1.0, 1.25, 2.0, 2.5]),
+        MagicMock(return_value=10.0),
     )
 
     with pytest.raises(issues.Unavailable):
@@ -234,6 +246,23 @@ def test_metrics_registry_records_all_instruments(metrics_setup, monkeypatch):
     partition_session = _topic_reader_partition_session("/Root/events", 1, 1)
     reader_metrics.add_partition_session("/Root/events", partition_session)
     reader_metrics.record_commit_offset_queued(partition_session, 2)
+    writer_metrics = TopicWriterMetrics(
+        object(),
+        topic="/Root/events",
+        writer_name="writer-test",
+        buffer_limit_bytes=1024,
+    )
+    writer_metrics.record_sending_messages(2)
+    writer_metrics.record_sending_bytes(128)
+    writer_metrics.record_written_messages(2)
+    writer_metrics.record_session_error(issues.Unavailable("retry"), True)
+    writer_metrics.set_buffer_used_bytes(128)
+    writer_metrics.record_buffer_wait_duration(writer_metrics.capture_buffer_wait_started_at())
+    writer_metrics.record_compression_duration(writer_metrics.capture_compression_started_at(), "gzip")
+    accepted_at = writer_metrics.capture_message_accepted_at()
+    writer_metrics.record_message_processing_duration(accepted_at, "gzip")
+    writer_metrics.record_message_ack_duration(writer_metrics.capture_message_first_sent_at())
+    writer_metrics.add_pending_messages(accepted_at, 2)
 
     metrics = _metrics_by_name(metrics_setup)
 
@@ -262,6 +291,17 @@ def test_metrics_registry_records_all_instruments(metrics_setup, monkeypatch):
         TOPIC_READER_RECEIVED_BYTES,
         TOPIC_READER_RECEIVED_MESSAGES,
         TOPIC_READER_SESSION_ERRORS,
+        TOPIC_WRITER_BUFFER_LIMIT_BYTES,
+        TOPIC_WRITER_BUFFER_USED_BYTES,
+        TOPIC_WRITER_BUFFER_WAIT_DURATION,
+        TOPIC_WRITER_COMPRESSION_DURATION,
+        TOPIC_WRITER_MESSAGE_ACK_DURATION,
+        TOPIC_WRITER_MESSAGE_PROCESSING_DURATION,
+        TOPIC_WRITER_SENDING_BYTES,
+        TOPIC_WRITER_SENDING_MESSAGES,
+        TOPIC_WRITER_SENDING_OLDEST_AGE,
+        TOPIC_WRITER_SESSION_ERRORS,
+        TOPIC_WRITER_WRITTEN_MESSAGES,
     }
     assert metrics[CLIENT_OPERATION_DURATION].unit == "s"
     assert metrics[CLIENT_OPERATION_FAILED].unit == "{command}"
@@ -287,10 +327,28 @@ def test_metrics_registry_records_all_instruments(metrics_setup, monkeypatch):
     assert metrics[TOPIC_READER_RECEIVED_MESSAGES].unit == "{message}"
     assert metrics[TOPIC_READER_RECEIVED_BYTES].unit == "By"
     assert metrics[TOPIC_READER_SESSION_ERRORS].unit == "{error}"
+    assert metrics[TOPIC_WRITER_BUFFER_LIMIT_BYTES].unit == "By"
+    assert metrics[TOPIC_WRITER_BUFFER_USED_BYTES].unit == "By"
+    assert metrics[TOPIC_WRITER_BUFFER_WAIT_DURATION].unit == "s"
+    assert metrics[TOPIC_WRITER_COMPRESSION_DURATION].unit == "s"
+    assert metrics[TOPIC_WRITER_MESSAGE_ACK_DURATION].unit == "s"
+    assert metrics[TOPIC_WRITER_MESSAGE_PROCESSING_DURATION].unit == "s"
+    assert metrics[TOPIC_WRITER_SENDING_BYTES].unit == "By"
+    assert metrics[TOPIC_WRITER_SENDING_MESSAGES].unit == "{message}"
+    assert metrics[TOPIC_WRITER_SENDING_OLDEST_AGE].unit == "s"
+    assert metrics[TOPIC_WRITER_SESSION_ERRORS].unit == "{error}"
+    assert metrics[TOPIC_WRITER_WRITTEN_MESSAGES].unit == "{message}"
     assert metrics[TOPIC_READER_CREDIT_BALANCE_BYTES].data.__class__.__name__ == "Gauge"
     assert metrics[TOPIC_READER_COMMIT_OFFSET_LAG_MAX].data.__class__.__name__ == "Gauge"
     assert metrics[TOPIC_READER_LOCAL_BUFFER_MESSAGE_AGE_MAX].data.__class__.__name__ == "Gauge"
     assert metrics[TOPIC_READER_PARTITION_SESSION_COUNT].data.__class__.__name__ == "Sum"
+    assert metrics[TOPIC_WRITER_BUFFER_LIMIT_BYTES].data.__class__.__name__ == "Gauge"
+    assert metrics[TOPIC_WRITER_BUFFER_USED_BYTES].data.__class__.__name__ == "Gauge"
+    assert metrics[TOPIC_WRITER_BUFFER_WAIT_DURATION].data.__class__.__name__ == "Histogram"
+    assert metrics[TOPIC_WRITER_COMPRESSION_DURATION].data.__class__.__name__ == "Histogram"
+    assert metrics[TOPIC_WRITER_MESSAGE_ACK_DURATION].data.__class__.__name__ == "Histogram"
+    assert metrics[TOPIC_WRITER_MESSAGE_PROCESSING_DURATION].data.__class__.__name__ == "Histogram"
+    assert metrics[TOPIC_WRITER_SENDING_OLDEST_AGE].data.__class__.__name__ == "Gauge"
     if _histogram_boundaries_advisory_supported():
         assert (
             _single_point_from_metrics(metrics, CLIENT_OPERATION_DURATION).explicit_bounds == DURATION_BUCKETS_SECONDS
@@ -306,6 +364,22 @@ def test_metrics_registry_records_all_instruments(metrics_setup, monkeypatch):
         )
         assert (
             _single_point_from_metrics(metrics, TOPIC_READER_MESSAGE_PROCESSING_DURATION).explicit_bounds
+            == DURATION_BUCKETS_SECONDS
+        )
+        assert (
+            _single_point_from_metrics(metrics, TOPIC_WRITER_BUFFER_WAIT_DURATION).explicit_bounds
+            == DURATION_BUCKETS_SECONDS
+        )
+        assert (
+            _single_point_from_metrics(metrics, TOPIC_WRITER_COMPRESSION_DURATION).explicit_bounds
+            == DURATION_BUCKETS_SECONDS
+        )
+        assert (
+            _single_point_from_metrics(metrics, TOPIC_WRITER_MESSAGE_ACK_DURATION).explicit_bounds
+            == DURATION_BUCKETS_SECONDS
+        )
+        assert (
+            _single_point_from_metrics(metrics, TOPIC_WRITER_MESSAGE_PROCESSING_DURATION).explicit_bounds
             == DURATION_BUCKETS_SECONDS
         )
 
@@ -367,12 +441,14 @@ def test_metrics_registry_is_noop_without_meter(monkeypatch):
         _NOOP_QUERY_SESSION_POOL_METRICS,
         _NOOP_SESSION_METRICS,
         _NOOP_TOPIC_READER_METRICS,
+        _NOOP_TOPIC_WRITER_METRICS,
         QuerySessionPoolMetrics,
         SessionMetrics,
         create_query_session_pool_metrics,
         create_session_metrics,
         create_metrics_operation,
         create_topic_reader_metrics,
+        create_topic_writer_metrics,
         record_query_session_create_time,
         record_query_session_max,
         record_query_session_pending_requests,
@@ -463,6 +539,31 @@ def test_metrics_registry_is_noop_without_meter(monkeypatch):
     noop_reader_metrics.remove_partition_session("/Root/events")
     noop_reader_metrics.reset_partition_sessions()
     noop_reader_metrics.close()
+
+    noop_writer_metrics = create_topic_writer_metrics(
+        object(),
+        topic="/Root/events",
+        writer_name="writer-test",
+        buffer_limit_bytes=1024,
+    )
+    assert noop_writer_metrics is _NOOP_TOPIC_WRITER_METRICS
+    noop_writer_metrics.record_sending_messages(1)
+    noop_writer_metrics.record_sending_bytes(10)
+    noop_writer_metrics.record_written_messages(1)
+    noop_writer_metrics.record_session_error(RuntimeError("ignored"), True)
+    assert noop_writer_metrics.capture_buffer_wait_started_at() is None
+    noop_writer_metrics.record_buffer_wait_duration(None)
+    assert noop_writer_metrics.capture_message_first_sent_at() is None
+    noop_writer_metrics.record_message_ack_duration(None)
+    assert noop_writer_metrics.capture_compression_started_at() is None
+    noop_writer_metrics.record_compression_duration(None, "gzip")
+    assert noop_writer_metrics.capture_message_accepted_at() is None
+    noop_writer_metrics.record_message_processing_duration(None, "gzip")
+    noop_writer_metrics.add_pending_messages(None, 1)
+    noop_writer_metrics.complete_pending_message()
+    noop_writer_metrics.clear_pending_messages()
+    noop_writer_metrics.set_buffer_used_bytes(10)
+    noop_writer_metrics.close()
 
     assert not monotonic.called
     assert not noop_add.called
@@ -1120,6 +1221,106 @@ class TestOpenTelemetryPublicApi:
             first_provider.shutdown()
             second_provider.shutdown()
 
+    def test_topic_writer_histograms_finish_on_their_original_provider(self, monkeypatch):
+        from ydb.observability import disable_metrics, enable_metrics
+        from ydb.observability.metrics import (
+            TOPIC_WRITER_BUFFER_WAIT_DURATION,
+            TOPIC_WRITER_COMPRESSION_DURATION,
+            TOPIC_WRITER_MESSAGE_ACK_DURATION,
+            TOPIC_WRITER_MESSAGE_PROCESSING_DURATION,
+            create_topic_writer_metrics,
+        )
+
+        class RecordingProvider:
+            def __init__(self):
+                self.records = []
+
+            def record(self, name, value, attributes=None):
+                self.records.append((name, value, attributes))
+
+            def add(self, name, value, attributes=None):
+                pass
+
+            def observe_gauge(self, name, callback):
+                pass
+
+        first_provider = RecordingProvider()
+        second_provider = RecordingProvider()
+        clock = MagicMock(side_effect=[10.0, 20.0, 30.0, 40.0, 10.25, 20.5, 30.75, 41.0])
+        monkeypatch.setattr("ydb.observability.metrics.time.monotonic", clock)
+
+        disable_metrics()
+        enable_metrics(first_provider)
+        writer_metrics = create_topic_writer_metrics(object(), topic="/Root/events", writer_name="reconfigured")
+        try:
+            wait_started_at = writer_metrics.capture_buffer_wait_started_at()
+            accepted_at = writer_metrics.capture_message_accepted_at()
+            compression_started_at = writer_metrics.capture_compression_started_at()
+            first_sent_at = writer_metrics.capture_message_first_sent_at()
+
+            enable_metrics(second_provider)
+            writer_metrics.record_buffer_wait_duration(wait_started_at)
+            writer_metrics.record_message_processing_duration(accepted_at, "gzip")
+            writer_metrics.record_compression_duration(compression_started_at, "gzip")
+            writer_metrics.record_message_ack_duration(first_sent_at)
+
+            assert [(name, value) for name, value, _ in first_provider.records] == [
+                (TOPIC_WRITER_BUFFER_WAIT_DURATION, 0.25),
+                (TOPIC_WRITER_MESSAGE_PROCESSING_DURATION, 0.5),
+                (TOPIC_WRITER_COMPRESSION_DURATION, 0.75),
+                (TOPIC_WRITER_MESSAGE_ACK_DURATION, 1.0),
+            ]
+            assert second_provider.records == []
+        finally:
+            writer_metrics.close()
+            disable_metrics()
+
+    def test_topic_writer_oldest_age_keeps_state_while_metrics_are_reconfigured(self, monkeypatch):
+        from ydb.observability import disable_metrics, enable_metrics
+        from ydb.observability.metrics import (
+            TOPIC_WRITER_SENDING_OLDEST_AGE,
+            create_topic_writer_metrics,
+        )
+
+        class RecordingProvider:
+            def __init__(self):
+                self.gauges = {}
+
+            def record(self, name, value, attributes=None):
+                pass
+
+            def add(self, name, value, attributes=None):
+                pass
+
+            def observe_gauge(self, name, callback):
+                self.gauges[name] = callback
+
+        first_provider = RecordingProvider()
+        second_provider = RecordingProvider()
+
+        disable_metrics()
+        enable_metrics(first_provider)
+        writer_metrics = create_topic_writer_metrics(object(), topic="/Root/events", writer_name="reconfigured")
+        try:
+            disable_metrics()
+            monkeypatch.setattr("ydb.observability.metrics.time.monotonic", MagicMock(return_value=10.0))
+            accepted_at = writer_metrics.capture_message_accepted_at()
+            writer_metrics.add_pending_messages(accepted_at, 1)
+
+            enable_metrics(second_provider)
+            monkeypatch.setattr("ydb.observability.metrics.time.monotonic", MagicMock(return_value=15.0))
+
+            assert first_provider.gauges[TOPIC_WRITER_SENDING_OLDEST_AGE]() == ()
+            observations = list(second_provider.gauges[TOPIC_WRITER_SENDING_OLDEST_AGE]())
+            assert [(value, attrs["writer.name"]) for value, attrs in observations] == [(5.0, "reconfigured")]
+
+            writer_metrics.complete_pending_message()
+            observations = list(second_provider.gauges[TOPIC_WRITER_SENDING_OLDEST_AGE]())
+            assert [(value, attrs["writer.name"]) for value, attrs in observations] == [(0.0, "reconfigured")]
+        finally:
+            writer_metrics.close()
+            disable_metrics()
+
     def test_gauge_callback_drops_snapshot_if_provider_changes_during_collection(self):
         from ydb.observability import disable_metrics, enable_metrics
         from ydb.observability import metrics
@@ -1273,6 +1474,444 @@ class TestOpenTelemetryPublicApi:
 
         monkeypatch.setattr("builtins.__import__", fake_import)
         otel.disable_metrics()
+
+
+def test_topic_writer_message_metrics_attributes(metrics_setup):
+    from tests.observability.conftest import FakeDriverConfig
+    from ydb.observability.metrics import (
+        TOPIC_WRITER_BUFFER_LIMIT_BYTES,
+        TOPIC_WRITER_BUFFER_USED_BYTES,
+        TOPIC_WRITER_SENDING_BYTES,
+        TOPIC_WRITER_SENDING_MESSAGES,
+        TOPIC_WRITER_WRITTEN_MESSAGES,
+        create_topic_writer_metrics,
+    )
+
+    class FakeDriver:
+        _driver_config = FakeDriverConfig(
+            endpoint="grpc://localhost:2136",
+            database="/Root",
+        )
+
+    writer_metrics = create_topic_writer_metrics(
+        FakeDriver(),
+        topic="/Root/events",
+        writer_name="payments-writer",
+        buffer_limit_bytes=1024,
+    )
+    writer_metrics.record_sending_messages(2)
+    writer_metrics.record_sending_bytes(128)
+    writer_metrics.record_sending_messages(3)
+    writer_metrics.record_sending_bytes(256)
+    writer_metrics.record_written_messages(2)
+    writer_metrics.record_written_messages(1)
+    writer_metrics.set_buffer_used_bytes(128)
+
+    buffer_limit = _single_point(metrics_setup, TOPIC_WRITER_BUFFER_LIMIT_BYTES)
+    buffer_used = _single_point(metrics_setup, TOPIC_WRITER_BUFFER_USED_BYTES)
+    messages = _single_point(metrics_setup, TOPIC_WRITER_SENDING_MESSAGES)
+    sending_bytes = _single_point(metrics_setup, TOPIC_WRITER_SENDING_BYTES)
+    written = _single_point(metrics_setup, TOPIC_WRITER_WRITTEN_MESSAGES)
+    expected_attributes = {
+        "endpoint": "localhost:2136",
+        "database": "/Root",
+        "topic": "/Root/events",
+        "writer.name": "payments-writer",
+    }
+    assert (messages.value, messages.attributes) == (
+        5,
+        expected_attributes,
+    )
+    assert (sending_bytes.value, sending_bytes.attributes) == (384, expected_attributes)
+    assert (written.value, written.attributes) == (3, expected_attributes)
+    assert (buffer_limit.value, buffer_limit.attributes) == (1024, expected_attributes)
+    assert (buffer_used.value, buffer_used.attributes) == (128, expected_attributes)
+    writer_metrics.close()
+
+
+def test_topic_writer_buffer_wait_duration_records_only_completed_wait(metrics_setup, monkeypatch):
+    from tests.observability.conftest import FakeDriverConfig
+    from ydb.observability.metrics import (
+        TOPIC_WRITER_BUFFER_WAIT_DURATION,
+        create_topic_writer_metrics,
+    )
+
+    class FakeDriver:
+        _driver_config = FakeDriverConfig(
+            endpoint="grpc://localhost:2136",
+            database="/Root",
+        )
+
+    values = iter([10.0, 10.25])
+    monotonic = MagicMock(side_effect=lambda: next(values, 10.25))
+    monkeypatch.setattr("ydb.observability.metrics.time.monotonic", monotonic)
+    writer_metrics = create_topic_writer_metrics(
+        FakeDriver(),
+        topic="/Root/events",
+        writer_name="payments-writer",
+    )
+    try:
+        started_at = writer_metrics.capture_buffer_wait_started_at()
+        assert started_at[1] == 10.0
+        writer_metrics.record_buffer_wait_duration(None)
+        assert monotonic.call_count == 1
+
+        writer_metrics.record_buffer_wait_duration(started_at)
+        assert monotonic.call_count == 2
+        point = _single_point(metrics_setup, TOPIC_WRITER_BUFFER_WAIT_DURATION)
+        assert (point.count, point.sum, point.attributes) == (
+            1,
+            0.25,
+            {
+                "endpoint": "localhost:2136",
+                "database": "/Root",
+                "topic": "/Root/events",
+                "writer.name": "payments-writer",
+            },
+        )
+        writer_metrics.record_buffer_wait_duration(None)
+    finally:
+        writer_metrics.close()
+
+
+def test_topic_writer_message_processing_duration_records_outcomes(metrics_setup, monkeypatch):
+    from tests.observability.conftest import FakeDriverConfig
+    from ydb.observability.metrics import (
+        TOPIC_WRITER_MESSAGE_PROCESSING_DURATION,
+        create_topic_writer_metrics,
+    )
+
+    class FakeDriver:
+        _driver_config = FakeDriverConfig(
+            endpoint="grpc://localhost:2136",
+            database="/Root",
+        )
+
+    values = iter([10.0, 10.25, 11.0, 11.5])
+    monotonic = MagicMock(side_effect=lambda: next(values, 11.5))
+    monkeypatch.setattr("ydb.observability.metrics.time.monotonic", monotonic)
+    writer_metrics = create_topic_writer_metrics(
+        FakeDriver(),
+        topic="/Root/events",
+        writer_name="payments-writer",
+    )
+    try:
+        accepted_at = writer_metrics.capture_message_accepted_at()
+        writer_metrics.record_message_processing_duration(accepted_at, "gzip")
+        failed_at = writer_metrics.capture_message_accepted_at()
+        writer_metrics.record_message_processing_duration(failed_at, "gzip", ValueError("encode failed"))
+        assert monotonic.call_count == 4
+
+        points = _points(metrics_setup, TOPIC_WRITER_MESSAGE_PROCESSING_DURATION)
+        assert len(points) == 2
+        by_outcome = {point.attributes["outcome"]: point for point in points}
+        common_attributes = {
+            "endpoint": "localhost:2136",
+            "database": "/Root",
+            "topic": "/Root/events",
+            "writer.name": "payments-writer",
+            "codec": "gzip",
+        }
+        assert (by_outcome["ok"].count, by_outcome["ok"].sum, by_outcome["ok"].attributes) == (
+            1,
+            0.25,
+            {**common_attributes, "outcome": "ok"},
+        )
+        assert (
+            by_outcome["error"].count,
+            by_outcome["error"].sum,
+            by_outcome["error"].attributes,
+        ) == (
+            1,
+            0.5,
+            {**common_attributes, "outcome": "error", "error.type": "ValueError"},
+        )
+    finally:
+        writer_metrics.close()
+
+
+def test_topic_writer_message_ack_duration_records_server_ack(metrics_setup, monkeypatch):
+    from tests.observability.conftest import FakeDriverConfig
+    from ydb.observability.metrics import (
+        TOPIC_WRITER_MESSAGE_ACK_DURATION,
+        create_topic_writer_metrics,
+    )
+
+    class FakeDriver:
+        _driver_config = FakeDriverConfig(
+            endpoint="grpc://localhost:2136",
+            database="/Root",
+        )
+
+    values = iter([10.0, 10.5])
+    monotonic = MagicMock(side_effect=lambda: next(values, 10.5))
+    monkeypatch.setattr("ydb.observability.metrics.time.monotonic", monotonic)
+    writer_metrics = create_topic_writer_metrics(
+        FakeDriver(),
+        topic="/Root/events",
+        writer_name="payments-writer",
+    )
+    try:
+        first_sent_at = writer_metrics.capture_message_first_sent_at()
+        writer_metrics.record_message_ack_duration(first_sent_at)
+        writer_metrics.record_message_ack_duration(None)
+        assert monotonic.call_count == 2
+
+        point = _single_point(metrics_setup, TOPIC_WRITER_MESSAGE_ACK_DURATION)
+        assert (point.count, point.sum, point.attributes) == (
+            1,
+            0.5,
+            {
+                "endpoint": "localhost:2136",
+                "database": "/Root",
+                "topic": "/Root/events",
+                "writer.name": "payments-writer",
+            },
+        )
+    finally:
+        writer_metrics.close()
+
+
+def test_topic_writer_compression_duration_records_outcomes(metrics_setup, monkeypatch):
+    from tests.observability.conftest import FakeDriverConfig
+    from ydb.observability.metrics import (
+        TOPIC_WRITER_COMPRESSION_DURATION,
+        create_topic_writer_metrics,
+    )
+
+    class FakeDriver:
+        _driver_config = FakeDriverConfig(
+            endpoint="grpc://localhost:2136",
+            database="/Root",
+        )
+
+    values = iter([20.0, 20.125, 21.0, 21.25])
+    monotonic = MagicMock(side_effect=lambda: next(values, 21.25))
+    monkeypatch.setattr("ydb.observability.metrics.time.monotonic", monotonic)
+    writer_metrics = create_topic_writer_metrics(
+        FakeDriver(),
+        topic="/Root/events",
+        writer_name="payments-writer",
+    )
+    try:
+        started_at = writer_metrics.capture_compression_started_at()
+        writer_metrics.record_compression_duration(started_at, "gzip")
+        failed_at = writer_metrics.capture_compression_started_at()
+        writer_metrics.record_compression_duration(failed_at, "gzip", ValueError("encode failed"))
+        assert monotonic.call_count == 4
+
+        points = _points(metrics_setup, TOPIC_WRITER_COMPRESSION_DURATION)
+        assert len(points) == 2
+        by_outcome = {point.attributes["outcome"]: point for point in points}
+        common_attributes = {
+            "endpoint": "localhost:2136",
+            "database": "/Root",
+            "topic": "/Root/events",
+            "writer.name": "payments-writer",
+            "codec": "gzip",
+        }
+        assert (by_outcome["ok"].count, by_outcome["ok"].sum, by_outcome["ok"].attributes) == (
+            1,
+            0.125,
+            {**common_attributes, "outcome": "ok"},
+        )
+        assert (
+            by_outcome["error"].count,
+            by_outcome["error"].sum,
+            by_outcome["error"].attributes,
+        ) == (
+            1,
+            0.25,
+            {**common_attributes, "outcome": "error", "error.type": "ValueError"},
+        )
+    finally:
+        writer_metrics.close()
+
+
+def test_topic_writer_buffer_gauges_aggregate_and_unregister(metrics_setup):
+    from ydb.observability.metrics import (
+        TOPIC_WRITER_BUFFER_LIMIT_BYTES,
+        TOPIC_WRITER_BUFFER_USED_BYTES,
+        create_topic_writer_metrics,
+    )
+
+    first = create_topic_writer_metrics(object(), topic="/Root/events", writer_name="shared", buffer_limit_bytes=100)
+    second = create_topic_writer_metrics(object(), topic="/Root/events", writer_name="shared", buffer_limit_bytes=200)
+    try:
+        assert _single_point(metrics_setup, TOPIC_WRITER_BUFFER_LIMIT_BYTES).value == 300
+        assert _single_point(metrics_setup, TOPIC_WRITER_BUFFER_USED_BYTES).value == 0
+
+        first.set_buffer_used_bytes(74)
+        second.set_buffer_used_bytes(94)
+        assert _single_point(metrics_setup, TOPIC_WRITER_BUFFER_USED_BYTES).value == 168
+
+        first.close()
+        assert _single_point(metrics_setup, TOPIC_WRITER_BUFFER_LIMIT_BYTES).value == 200
+        assert _single_point(metrics_setup, TOPIC_WRITER_BUFFER_USED_BYTES).value == 94
+    finally:
+        first.close()
+        second.close()
+
+    assert _points(metrics_setup, TOPIC_WRITER_BUFFER_LIMIT_BYTES) == []
+    assert _points(metrics_setup, TOPIC_WRITER_BUFFER_USED_BYTES) == []
+
+
+def test_topic_writer_oldest_age_uses_oldest_pending_message_and_unregisters(metrics_setup, monkeypatch):
+    from ydb.observability.metrics import (
+        TOPIC_WRITER_SENDING_OLDEST_AGE,
+        create_topic_writer_metrics,
+    )
+
+    monkeypatch.setattr("ydb.observability.metrics.time.monotonic", MagicMock(return_value=20.0))
+    first = create_topic_writer_metrics(object(), topic="/Root/events", writer_name="shared")
+    second = create_topic_writer_metrics(object(), topic="/Root/events", writer_name="shared")
+    try:
+        clock = MagicMock(side_effect=[10.0, 15.0])
+        monkeypatch.setattr("ydb.observability.metrics.time.monotonic", clock)
+        first.add_pending_messages(first.capture_message_accepted_at(), 2)
+        second.add_pending_messages(second.capture_message_accepted_at(), 1)
+        clock.side_effect = None
+        clock.return_value = 20.0
+        assert _single_point(metrics_setup, TOPIC_WRITER_SENDING_OLDEST_AGE).value == 10.0
+
+        first.complete_pending_message()
+        assert _single_point(metrics_setup, TOPIC_WRITER_SENDING_OLDEST_AGE).value == 10.0
+
+        first.complete_pending_message()
+        assert _single_point(metrics_setup, TOPIC_WRITER_SENDING_OLDEST_AGE).value == 5.0
+
+        second.clear_pending_messages()
+        assert _single_point(metrics_setup, TOPIC_WRITER_SENDING_OLDEST_AGE).value == 0.0
+    finally:
+        first.close()
+        second.close()
+
+    assert _points(metrics_setup, TOPIC_WRITER_SENDING_OLDEST_AGE) == []
+
+
+def test_topic_writer_buffer_limit_omits_unbounded_aggregate(metrics_setup):
+    from ydb.observability.metrics import (
+        TOPIC_WRITER_BUFFER_LIMIT_BYTES,
+        create_topic_writer_metrics,
+    )
+
+    bounded = create_topic_writer_metrics(object(), topic="/Root/events", writer_name="shared", buffer_limit_bytes=100)
+    unbounded = create_topic_writer_metrics(object(), topic="/Root/events", writer_name="shared")
+    try:
+        assert _points(metrics_setup, TOPIC_WRITER_BUFFER_LIMIT_BYTES) == []
+
+        unbounded.close()
+        assert _single_point(metrics_setup, TOPIC_WRITER_BUFFER_LIMIT_BYTES).value == 100
+    finally:
+        bounded.close()
+        unbounded.close()
+
+    assert _points(metrics_setup, TOPIC_WRITER_BUFFER_LIMIT_BYTES) == []
+
+
+@pytest.mark.parametrize("writer_name", [None, ""])
+def test_topic_writer_metrics_require_explicit_writer_name(metrics_setup, writer_name):
+    from ydb.observability.metrics import (
+        TOPIC_WRITER_BUFFER_LIMIT_BYTES,
+        TOPIC_WRITER_BUFFER_USED_BYTES,
+        TOPIC_WRITER_BUFFER_WAIT_DURATION,
+        TOPIC_WRITER_COMPRESSION_DURATION,
+        TOPIC_WRITER_MESSAGE_ACK_DURATION,
+        TOPIC_WRITER_MESSAGE_PROCESSING_DURATION,
+        TOPIC_WRITER_SENDING_BYTES,
+        TOPIC_WRITER_SENDING_MESSAGES,
+        TOPIC_WRITER_SENDING_OLDEST_AGE,
+        TOPIC_WRITER_SESSION_ERRORS,
+        TOPIC_WRITER_WRITTEN_MESSAGES,
+        create_topic_writer_metrics,
+    )
+
+    writer_metrics = create_topic_writer_metrics(
+        object(),
+        topic="/Root/events",
+        writer_name=writer_name,
+        buffer_limit_bytes=1024,
+    )
+    writer_metrics.record_sending_messages(1)
+    writer_metrics.record_sending_bytes(10)
+    writer_metrics.record_written_messages(1)
+    writer_metrics.record_session_error(issues.BadRequest("stop"), False)
+    assert writer_metrics.capture_buffer_wait_started_at() is None
+    writer_metrics.record_buffer_wait_duration(None)
+    assert writer_metrics.capture_message_first_sent_at() is None
+    writer_metrics.record_message_ack_duration(None)
+    assert writer_metrics.capture_compression_started_at() is None
+    writer_metrics.record_compression_duration(None, "gzip")
+    assert writer_metrics.capture_message_accepted_at() is None
+    writer_metrics.record_message_processing_duration(None, "gzip")
+    writer_metrics.add_pending_messages(None, 1)
+    writer_metrics.complete_pending_message()
+    writer_metrics.clear_pending_messages()
+    writer_metrics.set_buffer_used_bytes(10)
+    writer_metrics.close()
+
+    assert TOPIC_WRITER_BUFFER_LIMIT_BYTES not in _metrics_by_name(metrics_setup)
+    assert TOPIC_WRITER_BUFFER_USED_BYTES not in _metrics_by_name(metrics_setup)
+    assert TOPIC_WRITER_BUFFER_WAIT_DURATION not in _metrics_by_name(metrics_setup)
+    assert TOPIC_WRITER_COMPRESSION_DURATION not in _metrics_by_name(metrics_setup)
+    assert TOPIC_WRITER_MESSAGE_ACK_DURATION not in _metrics_by_name(metrics_setup)
+    assert TOPIC_WRITER_MESSAGE_PROCESSING_DURATION not in _metrics_by_name(metrics_setup)
+    assert TOPIC_WRITER_SENDING_MESSAGES not in _metrics_by_name(metrics_setup)
+    assert TOPIC_WRITER_SENDING_OLDEST_AGE not in _metrics_by_name(metrics_setup)
+    assert TOPIC_WRITER_SENDING_BYTES not in _metrics_by_name(metrics_setup)
+    assert TOPIC_WRITER_SESSION_ERRORS not in _metrics_by_name(metrics_setup)
+    assert TOPIC_WRITER_WRITTEN_MESSAGES not in _metrics_by_name(metrics_setup)
+
+
+def test_topic_writer_session_errors_follow_retry_decision(metrics_setup):
+    from tests.observability.conftest import FakeDriverConfig
+    from ydb.observability.metrics import (
+        TOPIC_WRITER_SESSION_ERRORS,
+        create_topic_writer_metrics,
+    )
+
+    class FakeDriver:
+        _driver_config = FakeDriverConfig(
+            endpoint="grpc://localhost:2136",
+            database="/Root",
+        )
+
+    writer_metrics = create_topic_writer_metrics(
+        FakeDriver(),
+        topic="/Root/events",
+        writer_name="payments-writer",
+    )
+    writer_metrics.record_session_error(issues.ConnectionLost("retry"), True)
+    writer_metrics.record_session_error(issues.ConnectionLost("retry"), True)
+    writer_metrics.record_session_error(issues.BadRequest("stop"), False)
+
+    points = _points(metrics_setup, TOPIC_WRITER_SESSION_ERRORS)
+    common_attributes = {
+        "endpoint": "localhost:2136",
+        "database": "/Root",
+        "topic": "/Root/events",
+        "writer.name": "payments-writer",
+    }
+    assert {point.attributes["retry_decision"]: (point.value, point.attributes) for point in points} == {
+        "retry": (
+            2,
+            dict(
+                common_attributes,
+                retry_decision="retry",
+                status_code="CONNECTION_LOST",
+                **{"error.type": "transport_error"},
+            ),
+        ),
+        "stop": (
+            1,
+            dict(
+                common_attributes,
+                retry_decision="stop",
+                status_code="BAD_REQUEST",
+                **{"error.type": "ydb_error"},
+            ),
+        ),
+    }
 
 
 def test_topic_reader_received_metrics_attributes(metrics_setup):
