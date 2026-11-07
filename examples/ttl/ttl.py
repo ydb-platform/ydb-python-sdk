@@ -6,7 +6,6 @@ from concurrent.futures import TimeoutError
 import ydb
 import random
 
-
 EXPIRATION_QUEUE_COUNT = 4
 DOC_TABLE_PARTITION_COUNT = 4
 

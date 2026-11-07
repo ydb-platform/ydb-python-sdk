@@ -5,7 +5,6 @@ from basic_example import run as run_sync
 from basic_example_async import run as run_async
 import logging
 
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         formatter_class=argparse.RawDescriptionHelpFormatter,

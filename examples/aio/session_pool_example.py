@@ -4,7 +4,6 @@ import ydb
 import ydb.aio
 import os
 
-
 queries = [  # Tables description to create
     """
     CREATE table `series` (

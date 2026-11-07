@@ -38,9 +38,7 @@ class SchoolsPaginated(object):
 
         $Union = (SELECT * FROM $Part1 UNION ALL SELECT * FROM $Part2);
         SELECT * FROM $Union ORDER BY `city`, `number` LIMIT $limit;
-        """.format(
-            path=self.path
-        )
+        """.format(path=self.path)
 
         self.prepared_next_page_query = self.session.prepare(next_page_query)
 
@@ -53,9 +51,7 @@ class SchoolsPaginated(object):
         SELECT * FROM schools
         ORDER BY `city`, `number`
         LIMIT $limit;
-        """.format(
-            path=self.path
-        )
+        """.format(path=self.path)
         prepared_query = self.session.prepare(query)
         result_sets = self.session.transaction(ydb.SerializableReadWrite()).execute(
             prepared_query, {"$limit": self.limit}, commit_tx=True

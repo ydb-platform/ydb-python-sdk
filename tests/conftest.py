@@ -309,16 +309,13 @@ def table_name(driver_sync, database):
             except ydb.SchemeError:
                 pass
 
-            s.execute_scheme(
-                """
+            s.execute_scheme("""
 CREATE TABLE %s (
 id Int64 NOT NULL,
 i64Val Int64,
 PRIMARY KEY(id)
 )
-"""
-                % table_name
-            )
+""" % table_name)
 
         pool.retry_operation_sync(create_table)
     return table_name
@@ -341,8 +338,7 @@ def column_table_name(driver_sync, database):
             except ydb.SchemeError:
                 pass
 
-            s.execute_scheme(
-                """
+            s.execute_scheme("""
 CREATE TABLE %s (
 id Int64 NOT NULL,
 i64Val Int64,
@@ -352,9 +348,7 @@ PARTITION BY HASH(id)
 WITH (
     STORE = COLUMN
 )
-"""
-                % table_name
-            )
+""" % table_name)
 
         pool.retry_operation_sync(create_table)
     return table_name

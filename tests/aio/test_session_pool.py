@@ -1,4 +1,5 @@
 import asyncio
+from types import SimpleNamespace
 
 import pytest
 import ydb
@@ -144,3 +145,55 @@ async def test_no_session_leak(driver, docker_project):
 
     docker_project.start()
     await pool.stop()
+
+
+@pytest.fixture
+async def session_pool(monkeypatch):
+    async def wait(timeout):
+        pass
+
+    async def create_session(session, settings=None):
+        session._state.set_id(f"test-session-{id(session)}")
+        return session
+
+    async def delete_session(session, settings=None):
+        session.reset()
+
+    monkeypatch.setattr(ydb.aio.table.Session, "create", create_session)
+    monkeypatch.setattr(ydb.aio.table.Session, "delete", delete_session)
+    driver = SimpleNamespace(wait=wait)
+    driver.table_client = ydb.aio.table.TableClient(driver)
+    pool = ydb.aio.SessionPool(driver, 1)
+    try:
+        yield pool
+    finally:
+        await pool.stop()
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("error", [ydb.BadSession, ydb.ConnectionLost, asyncio.CancelledError])
+async def test_keep_alive_failure_frees_pool_slot(session_pool, monkeypatch, error):
+    pool = session_pool
+    session = await pool.acquire(timeout=1)
+    session_deletions = []
+
+    async def fail_keep_alive(settings):
+        raise error("KeepAlive failed")
+
+    async def delete_session(settings):
+        session_deletions.append(settings)
+        session.reset()
+
+    monkeypatch.setattr(session, "keep_alive", fail_keep_alive)
+    monkeypatch.setattr(session, "delete", delete_session)
+
+    await asyncio.gather(pool._send_keep_alive(session), return_exceptions=True)
+
+    assert session_deletions == [pool._req_settings]
+    assert not session.initialized()
+    assert pool._active_count == 0
+    assert pool._active_queue.empty()
+
+    replacement = await pool.acquire(timeout=1)
+    assert replacement is not session
+    await pool.release(replacement)

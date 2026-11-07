@@ -51,7 +51,6 @@ from ..credentials import AnonymousCredentials
 
 from .._constants import DEFAULT_INITIAL_RESPONSE_TIMEOUT
 
-
 FAKE_TRANSACTION_IDENTITY = TransactionIdentity(
     tx_id="transaction_id",
     session_id="session_id",
