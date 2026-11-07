@@ -135,7 +135,7 @@ def send_messages_and_wait_all_commit_with_results(writer: ydb.TopicWriter):
 
 
 def switch_messages_with_many_producers(writers: Dict[str, ydb.TopicWriter], messages: List[str]):
-    futures = []  # type:  List[Future]
+    futures = []  # type: List[Future]
 
     for msg in messages:
         # select writer for the msg

@@ -3,7 +3,6 @@ import os
 import ydb
 from concurrent.futures import TimeoutError
 
-
 FILL_DATA_QUERY = """
 --!syntax_v1
 PRAGMA TablePathPrefix("{}");

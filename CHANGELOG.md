@@ -1,12 +1,15 @@
 * Add `ydb.topic.reader.received.messages`, reader-level `ydb.topic.reader.received.bytes`, `ydb.topic.reader.delivered.messages`, `ydb.topic.reader.commit.queued`, `ydb.topic.reader.commit.acknowledged`, and `ydb.topic.reader.session.errors` counters, `ydb.topic.reader.compression.duration` and `ydb.topic.reader.message.processing.duration` histograms, plus `ydb.topic.reader.commit_offset.lag.max`, `ydb.topic.reader.credit_balance_bytes`, `ydb.topic.reader.local_buffer.messages`, `ydb.topic.reader.local_buffer.message_age.max`, and `ydb.topic.reader.partition_session.count` observable metrics for explicitly named topic readers; metrics-enabled clients now advertise `ydb-sdk-metrics/0.14.0` in `x-ydb-sdk-build-info`
 * Add optional topic reader names for identifying logical readers in server diagnostics and SDK logs
+* Add timeout to the token exchange request so a stalled token endpoint cannot hang credential refresh
+* Fix topic reader `close()` hanging forever when the stream is broken with uncommitted offsets pending: the commit flush now stops as soon as the stream reports an error instead of waiting for acks that can never arrive
+* Fix async table session pool capacity leaking when keeping an idle session alive fails or is cancelled
+
 ## 3.34.0 ##
 * Remove `AAA Certificate Services` and `emSign ECC Root CA - G3` from the bundled TLS trust store to reject certificate chains affected by the eMudhra CA compromise
 * Fix topic writer batching to include message metadata and protobuf overhead in request size calculations
 
 ## 3.33.2 ##
 * Fix sync `QuerySessionPool` and `QuerySession.create()` hanging for 600 seconds and then failing with a non-retriable `TimeoutError` when a new session's attach stream fails before its first message (e.g. during a node restart); the attach error is now raised immediately, so retriable errors such as `Unavailable` are retried
-
 ## 3.33.1 ##
 * Add `ydb.convert_floats_to_embedding_bytes` to encode numeric vectors for YDB KNN queries
 

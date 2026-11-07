@@ -1,7 +1,6 @@
 import os
 import ydb
 
-
 driver_config = ydb.DriverConfig(
     endpoint=os.getenv("YDB_ENDPOINT"),
     database=os.getenv("YDB_DATABASE"),

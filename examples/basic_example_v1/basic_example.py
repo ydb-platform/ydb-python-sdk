@@ -96,9 +96,7 @@ def select_simple(pool, path):
                 $format(DateTime::FromSeconds(CAST(DateTime::ToSeconds(DateTime::IntervalFromDays(CAST(release_date AS Int16))) AS Uint32))) AS release_date
             FROM series
             WHERE series_id = 1;
-            """.format(
-                path
-            ),
+            """.format(path),
             commit_tx=True,
         )
         print("\n> select_simple_transaction:")
@@ -124,9 +122,7 @@ def upsert_simple(pool, path):
             PRAGMA TablePathPrefix("{}");
             UPSERT INTO episodes (series_id, season_id, episode_id, title) VALUES
                 (2, 6, 1, "TBD");
-            """.format(
-                path
-            ),
+            """.format(path),
             commit_tx=True,
         )
 
@@ -148,9 +144,7 @@ def select_parametrized(pool, path, series_id, season_id, episode_id):
             $format(DateTime::FromSeconds(CAST(DateTime::ToSeconds(DateTime::IntervalFromDays(CAST(air_date AS Int16))) AS Uint32))) AS air_date
         FROM episodes
         WHERE series_id = $seriesId AND season_id = $seasonId AND episode_id = $episodeId;
-        """.format(
-            path
-        )
+        """.format(path)
 
         data_query = ydb.types.DataQuery(
             query,
@@ -196,9 +190,7 @@ def select_prepared(pool, path, series_id, season_id, episode_id):
             $format(DateTime::FromSeconds(CAST(DateTime::ToSeconds(DateTime::IntervalFromDays(CAST(air_date AS Int16))) AS Uint32))) AS air_date
         FROM episodes
         WHERE series_id = $seriesId AND season_id = $seasonId AND episode_id = $episodeId;
-        """.format(
-            path
-        )
+        """.format(path)
 
         prepared_query = session.prepare(query)
         result_sets = session.transaction(ydb.SerializableReadWrite()).execute(
@@ -235,9 +227,7 @@ def explicit_tcl(pool, path, series_id, season_id, episode_id):
         UPDATE episodes
         SET air_date = CAST(CurrentUtcDate() AS Uint64)
         WHERE series_id = $seriesId AND season_id = $seasonId AND episode_id = $episodeId;
-        """.format(
-            path
-        )
+        """.format(path)
         prepared_query = session.prepare(query)
 
         # Get newly created transaction id
@@ -261,8 +251,7 @@ def explicit_tcl(pool, path, series_id, season_id, episode_id):
 def create_tables(pool, path):
     def callee(session):
         # Creating Series table
-        session.execute_scheme(
-            """
+        session.execute_scheme("""
                 PRAGMA TablePathPrefix("{}");
                 CREATE table `series` (
                     `series_id` Uint64,
@@ -271,14 +260,10 @@ def create_tables(pool, path):
                     `release_date` Uint64,
                     PRIMARY KEY (`series_id`)
                 )
-                """.format(
-                path
-            )
-        )
+                """.format(path))
 
         # Creating Seasons table
-        session.execute_scheme(
-            """
+        session.execute_scheme("""
                PRAGMA TablePathPrefix("{}");
                CREATE table `seasons` (
                    `series_id` Uint64,
@@ -288,14 +273,10 @@ def create_tables(pool, path):
                    `last_aired` Uint64,
                    PRIMARY KEY (`series_id`, `season_id`)
                )
-               """.format(
-                path
-            )
-        )
+               """.format(path))
 
         # Creating Episodes table
-        session.execute_scheme(
-            """
+        session.execute_scheme("""
             PRAGMA TablePathPrefix("{}");
             CREATE table `episodes` (
                 `series_id` Uint64,
@@ -305,10 +286,7 @@ def create_tables(pool, path):
                 `air_date` Uint64,
                 PRIMARY KEY (`series_id`, `season_id`, `episode_id`)
             )
-            """.format(
-                path
-            )
-        )
+            """.format(path))
 
     return pool.retry_operation_sync(callee)
 

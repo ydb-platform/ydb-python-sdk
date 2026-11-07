@@ -4,6 +4,6 @@ hdrhistogram==0.10.3
 
 # OpenTelemetry (OTLP/HTTP exporter)
 # NOTE: OpenTelemetry 1.39.1 requires Python >= 3.9.
-opentelemetry-api==1.39.1
+opentelemetry-api==1.45.1
 opentelemetry-sdk==1.39.1
 opentelemetry-exporter-otlp-proto-http==1.39.1
