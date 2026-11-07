@@ -51,23 +51,30 @@ class SLORunner:
             grpc_keep_alive_timeout=5000,
         )
 
-        with ydb.Driver(driver_config) as driver:
-            driver.wait(timeout=300)
-            try:
-                runner_instance.set_driver(driver)
-                if command == "create":
-                    runner_instance.create(args)
-                elif command == "run":
-                    runner_instance.run(args)
-                elif command == "cleanup":
-                    runner_instance.cleanup(args)
-                else:
-                    raise RuntimeError(f"Unknown command {command} for prefix {runner_instance.prefix}")
-            except BaseException:
-                logger.exception("Something went wrong")
-                raise
-            finally:
-                driver.stop(timeout=getattr(args, "shutdown_time", 10))
+        failure = None
+        try:
+            with ydb.Driver(driver_config) as driver:
+                try:
+                    driver.wait(timeout=300)
+                    runner_instance.set_driver(driver)
+                    if command == "create":
+                        runner_instance.create(args)
+                    elif command == "run":
+                        runner_instance.run(args)
+                    elif command == "cleanup":
+                        runner_instance.cleanup(args)
+                    else:
+                        raise RuntimeError(f"Unknown command {command} for prefix {runner_instance.prefix}")
+                except BaseException as error:
+                    failure = error
+                    logger.exception("Something went wrong")
+                    raise
+                finally:
+                    driver.stop(timeout=getattr(args, "shutdown_time", 10))
+        except BaseException as error:
+            if failure is not None and error is not failure:
+                raise failure from error
+            raise
 
     async def _run_async_command(self, args, runner_instance, command):
         """Run command in asynchronous mode"""
@@ -77,17 +84,24 @@ class SLORunner:
             grpc_keep_alive_timeout=5000,
         )
 
-        async with ydb.aio.Driver(driver_config) as driver:
-            await driver.wait(timeout=300)
-            try:
-                runner_instance.set_driver(driver)
-                if command == "run":
-                    await runner_instance.run_async(args)
-                else:
-                    raise RuntimeError(f"Async mode only supports 'run' command, got '{command}'")
-            except BaseException:
-                logger.exception("Something went wrong in async mode")
-                raise
+        failure = None
+        try:
+            async with ydb.aio.Driver(driver_config) as driver:
+                try:
+                    await driver.wait(timeout=300)
+                    runner_instance.set_driver(driver)
+                    if command == "run":
+                        await runner_instance.run_async(args)
+                    else:
+                        raise RuntimeError(f"Async mode only supports 'run' command, got '{command}'")
+                except BaseException as error:
+                    failure = error
+                    logger.exception("Something went wrong in async mode")
+                    raise
+        except BaseException as error:
+            if failure is not None and error is not failure:
+                raise failure from error
+            raise
 
 
 def create_runner() -> SLORunner:

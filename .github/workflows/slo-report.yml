@@ -1,57 +1,25 @@
 name: slo-report
 
-# Runs in the base-repo context (not the fork's), so it has the
-# pull-requests: write permission needed to publish reports and edit
-# labels — which fork-triggered SLO runs do not.
-
+# Report from the base repository without checking out pull request code.
 on:
   workflow_run:
     workflows: ["SLO"]
-    types:
-      - completed
+    types: [completed]
 
 jobs:
   publish-slo-report:
-    # Only act on runs that actually executed to completion. A "skipped"
-    # conclusion means the matrix was gated out (no "SLO" label) — nothing to
-    # publish. A "cancelled" conclusion means the run was superseded mid-flight
-    # (e.g. by `cancel-in-progress` when a new run started) — there is no real
-    # report and the label must NOT be stripped, otherwise it gets removed long
-    # before the actual workload finishes. Success/failure are genuine endings.
-    if: >-
-      github.event.workflow_run.conclusion == 'success' ||
-      github.event.workflow_run.conclusion == 'failure'
+    if: github.event.workflow_run.event == 'pull_request'
     name: Publish YDB SLO Report
     runs-on: ubuntu-latest
     permissions:
+      actions: read
       checks: write
       contents: read
       pull-requests: write
     steps:
       - name: Publish YDB SLO Report
-        uses: ydb-platform/ydb-slo-action/report@v2
+        uses: ydb-platform/ydb-slo-action/report@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          github_run_id: ${{ github.event.workflow_run.id }}
-
-  remove-slo-label:
-    # Same gating as the report job: only consume the "SLO" label once a run has
-    # genuinely finished (success/failure). Removing it on a "cancelled" run
-    # would strip the label mid-flight when a run is superseded.
-    if: >-
-      github.event.workflow_run.conclusion == 'success' ||
-      github.event.workflow_run.conclusion == 'failure'
-    name: Remove SLO Label
-    runs-on: ubuntu-latest
-    permissions:
-      pull-requests: write
-    steps:
-      - name: Remove SLO label from PR
-        env:
-          PRS: ${{ toJSON(github.event.workflow_run.pull_requests) }}
-          REPO: ${{ github.event.workflow_run.repository.full_name }}
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          set -euo pipefail
-          PR=$(jq -r '.[0].number' <<<"$PRS")
-          gh pr edit "$PR" --repo "$REPO" --remove-label SLO
+          github_workflows: SLO
+          remove_label: SLO

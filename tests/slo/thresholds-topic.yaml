@@ -1,8 +1,6 @@
 # Per-scenario SLO thresholds for the topic workloads, merged OVER the action's
 # global deploy/thresholds.yaml for topic runs only (via the init action's
-# `thresholds_yaml_path` input — see ydb-slo-action PR #57 "per-scenario
-# threshold overrides"). On an action version without that feature this file is
-# simply ignored, so wiring it is harmless and self-activates once it lands.
+# `thresholds_yaml_path` input).
 #
 # What's made `direction: neutral` (visible in the report, but never warns/fails):
 #

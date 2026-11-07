@@ -1,7 +1,9 @@
 import logging
 import threading
 import time
+from contextlib import nullcontext
 from random import randint
+from uuid import uuid4
 
 from core.generator import RowGenerator
 from core.metrics import OP_TYPE_READ, OP_TYPE_WRITE
@@ -42,6 +44,7 @@ class RequestParams:
         request_settings,
         retry_settings,
         check_result_cb=None,
+        on_error=None,
     ):
         self.pool = pool
         self.query = query
@@ -51,6 +54,36 @@ class RequestParams:
         self.request_settings = request_settings
         self.retry_settings = retry_settings
         self.check_result_cb = check_result_cb
+        self.on_error = on_error
+
+
+CONTROL_SCHEMA = """
+CREATE TABLE `{}` (
+    object_hash Uint64, object_id Uint64, payload_str Utf8,
+    payload_double Double, payload_timestamp Timestamp,
+    PRIMARY KEY (object_hash, object_id)
+);
+"""
+CONTROL_READ_QUERY = """
+SELECT object_hash, object_id, payload_str, payload_double,
+    CAST(payload_timestamp AS Uint64) AS payload_timestamp
+FROM `{}` WHERE object_hash = 0 AND object_id = 0;
+"""
+
+
+def control_row(generation):
+    return dict(
+        object_hash=0,
+        object_id=0,
+        payload_str=f"generation:{generation}",
+        payload_double=generation + 0.25,
+        payload_timestamp=946684800000000 + generation,
+    )
+
+
+def check_control_result(rows, expected):
+    if [dict(row) for row in rows] != [expected]:
+        raise RuntimeError(f"KV control data mismatch: expected {expected!r}, got {rows!r}")
 
 
 def execute_query(params: RequestParams):
@@ -67,23 +100,30 @@ def execute_query(params: RequestParams):
             commit_tx=True,
             settings=params.request_settings,
         )
-        if params.check_result_cb:
-            params.check_result_cb(result)
-
-        return result
+        with result if hasattr(result, "__enter__") else nullcontext(result):
+            return [row for part in result for row in part.rows]
 
     ts = params.metrics.start(params.labels)
 
     try:
-        params.pool.retry_operation_sync(transaction, retry_settings=params.retry_settings)
+        result = params.pool.retry_operation_sync(transaction, retry_settings=params.retry_settings)
+        if params.check_result_cb:
+            params.check_result_cb(result)
+        return result
     except ydb.Error as err:
         error = err
+        if params.on_error is not None:
+            params.on_error(err)
         logger.exception("[labels: %s] Cannot retry error:", params.labels)
+        raise
     except BaseException as err:
         error = err
+        if params.on_error is not None:
+            params.on_error(err)
         logger.exception("[labels: %s] Unexpected error:", params.labels)
-
-    params.metrics.stop(params.labels, ts, attempts=attempt, error=error)
+        raise
+    finally:
+        params.metrics.stop(params.labels, ts, attempts=attempt, error=error)
 
 
 class TableJobManager(BaseJobManager):
@@ -97,6 +137,7 @@ class TableJobManager(BaseJobManager):
         self.workload_type = WORKLOAD
 
     def run_tests(self):
+        self._run_control_checks()
         if self.workload_type == "sync-table":
             futures = [
                 *self._run_table_read_jobs(),
@@ -114,6 +155,66 @@ class TableJobManager(BaseJobManager):
 
         for future in futures:
             future.join()
+        self.raise_if_failed()
+
+    def _run_control_checks(self):
+        table = f"{self.table_name}_control_{uuid4().hex}"
+        is_table = self.workload_type == "sync-table"
+        pool_type = ydb.SessionPool if is_table else ydb.QuerySessionPool
+        write = WRITE_QUERY_TEMPLATE.format(table).replace("Digest::NumericHash($object_id)", "0")
+        read = CONTROL_READ_QUERY.format(table)
+        failure = None
+        with ydb.SessionPool(self.driver) as schema_pool:
+            schema_pool.retry_operation_sync(lambda session: session.execute_scheme(CONTROL_SCHEMA.format(table)))
+            try:
+                if is_table:
+                    write = schema_pool.retry_operation_sync(lambda session: session.prepare(write))
+                    read = schema_pool.retry_operation_sync(lambda session: session.prepare(read))
+                with pool_type(self.driver) as pool:
+                    for generation in (1, 2):
+                        expected = control_row(generation)
+                        values = {f"${key}": value for key, value in expected.items() if key != "object_hash"}
+                        if not is_table:
+                            types = (
+                                ydb.PrimitiveType.Uint64,
+                                ydb.PrimitiveType.Utf8,
+                                ydb.PrimitiveType.Double,
+                                ydb.PrimitiveType.Timestamp,
+                            )
+                            values = {key: (value, kind) for (key, value), kind in zip(values.items(), types)}
+                        for query, params, operation, timeout, checker in (
+                            (write, values, OP_TYPE_WRITE, self.args.write_timeout, None),
+                            (
+                                read,
+                                {},
+                                OP_TYPE_READ,
+                                self.args.read_timeout,
+                                lambda rows: check_control_result(rows, expected),
+                            ),
+                        ):
+                            execute_query(
+                                RequestParams(
+                                    pool,
+                                    query,
+                                    params,
+                                    self.metrics,
+                                    (operation,),
+                                    ydb.BaseRequestSettings().with_timeout(timeout / 1000),
+                                    ydb.RetrySettings(idempotent=True, max_session_acquire_timeout=timeout / 1000),
+                                    check_result_cb=checker,
+                                    on_error=self.record_failure,
+                                )
+                            )
+            except BaseException as error:
+                failure = error
+                raise
+            finally:
+                try:
+                    schema_pool.retry_operation_sync(lambda session: session.drop_table(table))
+                except BaseException:
+                    if failure is None:
+                        raise
+                    logger.exception("Cannot clean up control table %s", table)
 
     def _run_table_read_jobs(self):
         logger.info("Start table read jobs")
@@ -128,8 +229,8 @@ class TableJobManager(BaseJobManager):
         for i in range(self.args.read_threads):
             future = threading.Thread(
                 name=f"slo_table_read_{i}",
-                target=self._run_table_reads,
-                args=(read_query, read_limiter),
+                target=self._run_worker,
+                args=(self._run_table_reads, read_query, read_limiter),
             )
             future.start()
             futures.append(future)
@@ -149,8 +250,8 @@ class TableJobManager(BaseJobManager):
         for i in range(self.args.write_threads):
             future = threading.Thread(
                 name=f"slo_table_write_{i}",
-                target=self._run_table_writes,
-                args=(write_query, write_limiter),
+                target=self._run_worker,
+                args=(self._run_table_writes, write_query, write_limiter),
             )
             future.start()
             futures.append(future)
@@ -168,8 +269,8 @@ class TableJobManager(BaseJobManager):
         for i in range(self.args.read_threads):
             future = threading.Thread(
                 name=f"slo_query_read_{i}",
-                target=self._run_query_reads,
-                args=(read_query, read_limiter),
+                target=self._run_worker,
+                args=(self._run_query_reads, read_query, read_limiter),
             )
             future.start()
             futures.append(future)
@@ -187,8 +288,8 @@ class TableJobManager(BaseJobManager):
         for i in range(self.args.write_threads):
             future = threading.Thread(
                 name=f"slo_query_write_{i}",
-                target=self._run_query_writes,
-                args=(write_query, write_limiter),
+                target=self._run_worker,
+                args=(self._run_query_writes, write_query, write_limiter),
             )
             future.start()
             futures.append(future)
@@ -206,14 +307,10 @@ class TableJobManager(BaseJobManager):
         )
 
         with ydb.SessionPool(self.driver) as pool:
-            while time.time() - start_time < self.args.time:
+            while not self._stop.is_set() and time.time() - start_time < self.args.time:
                 params = {"$object_id": randint(1, self.max_id)}
 
                 with limiter:
-
-                    def check_result(result):
-                        assert result[0].rows[0]
-
                     request_params = RequestParams(
                         pool=pool,
                         query=query,
@@ -222,7 +319,7 @@ class TableJobManager(BaseJobManager):
                         labels=(OP_TYPE_READ,),
                         request_settings=request_settings,
                         retry_settings=retry_setting,
-                        check_result_cb=check_result,
+                        on_error=self.record_failure,
                     )
                     execute_query(request_params)
 
@@ -241,7 +338,7 @@ class TableJobManager(BaseJobManager):
         row_generator = RowGenerator(self.max_id)
 
         with ydb.SessionPool(self.driver) as pool:
-            while time.time() - start_time < self.args.time:
+            while not self._stop.is_set() and time.time() - start_time < self.args.time:
                 row = row_generator.get()
                 params = {
                     "$object_id": row.object_id,
@@ -259,6 +356,7 @@ class TableJobManager(BaseJobManager):
                         labels=(OP_TYPE_WRITE,),
                         request_settings=request_settings,
                         retry_settings=retry_setting,
+                        on_error=self.record_failure,
                     )
                     execute_query(request_params)
 
@@ -275,15 +373,10 @@ class TableJobManager(BaseJobManager):
         )
 
         with ydb.QuerySessionPool(self.driver) as pool:
-            while time.time() - start_time < self.args.time:
+            while not self._stop.is_set() and time.time() - start_time < self.args.time:
                 params = {"$object_id": (randint(1, self.max_id), ydb.PrimitiveType.Uint64)}
 
                 with limiter:
-
-                    def check_result(result):
-                        with result:
-                            pass
-
                     request_params = RequestParams(
                         pool=pool,
                         query=query,
@@ -292,7 +385,7 @@ class TableJobManager(BaseJobManager):
                         labels=(OP_TYPE_READ,),
                         request_settings=request_settings,
                         retry_settings=retry_setting,
-                        check_result_cb=check_result,
+                        on_error=self.record_failure,
                     )
                     execute_query(request_params)
 
@@ -311,7 +404,7 @@ class TableJobManager(BaseJobManager):
         row_generator = RowGenerator(self.max_id)
 
         with ydb.QuerySessionPool(self.driver) as pool:
-            while time.time() - start_time < self.args.time:
+            while not self._stop.is_set() and time.time() - start_time < self.args.time:
                 row = row_generator.get()
                 params = {
                     "$object_id": (row.object_id, ydb.PrimitiveType.Uint64),
@@ -323,10 +416,6 @@ class TableJobManager(BaseJobManager):
                     ),
                 }
 
-                def check_result(result):
-                    with result:
-                        pass
-
                 with limiter:
                     request_params = RequestParams(
                         pool=pool,
@@ -336,7 +425,7 @@ class TableJobManager(BaseJobManager):
                         labels=(OP_TYPE_WRITE,),
                         request_settings=request_settings,
                         retry_settings=retry_setting,
-                        check_result_cb=check_result,
+                        on_error=self.record_failure,
                     )
                     execute_query(request_params)
 

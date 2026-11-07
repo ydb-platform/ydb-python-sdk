@@ -1,12 +1,11 @@
 # syntax=docker/dockerfile:1
 
-# This image packages the Python SLO workload runner for ydb-slo-action v2.
-#
+# This image packages the Python SLO workload runner for ydb-slo-action v3.
 # The action launches the same image for `current` and `baseline` workloads
 # in parallel and injects these env vars (see tests/slo/docker-entrypoint.sh):
 #
-#   WORKLOAD_NAME             sync-table | sync-query | topic
-#   WORKLOAD_REF              "current" / "main" — used as the `ref` metric label
+#   WORKLOAD_NAME             sync-table | sync-query | async-query | sync-topic | async-topic
+#   WORKLOAD_REF              current ref / baseline ref — used as the `ref` metric label
 #   WORKLOAD_DURATION         seconds
 #   YDB_ENDPOINT              grpc://ydb:2136
 #   YDB_DATABASE              /Root/testdb
