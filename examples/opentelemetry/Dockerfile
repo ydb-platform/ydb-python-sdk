@@ -20,3 +20,4 @@ RUN pip install --no-cache-dir -e '.[opentelemetry]' -r examples/opentelemetry/r
 # Demo scripts.
 COPY examples/opentelemetry/otel_example.py ./examples/opentelemetry/otel_example.py
 COPY examples/opentelemetry/load_tank.py ./examples/opentelemetry/load_tank.py
+COPY examples/opentelemetry/verify_metrics.py ./examples/opentelemetry/verify_metrics.py
