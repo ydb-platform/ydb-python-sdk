@@ -2,10 +2,10 @@
 
 The SDK records metrics only after :func:`ydb.observability.enable_metrics` installs a
 concrete :class:`MetricsProvider` (OpenTelemetry in :mod:`ydb.opentelemetry`, or any
-custom one). Until then operations, query sessions, pools and topic Readers share
+custom one). Until then operations, query sessions, pools, topic Readers and topic Writers share
 no-op instrumentation without metric allocations, timers, locks or state tracking.
 Metrics stay independent from tracing, and the SDK never depends on ``opentelemetry``
-being importable. Enable metrics before creating query sessions, pools or topic Readers
+being importable. Enable metrics before creating query sessions, pools, topic Readers or topic Writers
 whose lifecycle should be instrumented.
 
 A provider handles three instrument kinds:
@@ -53,8 +53,19 @@ TOPIC_READER_CREDIT_BALANCE_BYTES = "ydb.topic.reader.credit_balance_bytes"
 TOPIC_READER_LOCAL_BUFFER_MESSAGES = "ydb.topic.reader.local_buffer.messages"
 TOPIC_READER_LOCAL_BUFFER_MESSAGE_AGE_MAX = "ydb.topic.reader.local_buffer.message_age.max"
 TOPIC_READER_PARTITION_SESSION_COUNT = "ydb.topic.reader.partition_session.count"
+TOPIC_WRITER_SENDING_MESSAGES = "ydb.topic.writer.sending.messages"
+TOPIC_WRITER_SENDING_BYTES = "ydb.topic.writer.sending.bytes"
+TOPIC_WRITER_WRITTEN_MESSAGES = "ydb.topic.writer.written.messages"
+TOPIC_WRITER_SESSION_ERRORS = "ydb.topic.writer.session.errors"
+TOPIC_WRITER_BUFFER_USED_BYTES = "ydb.topic.writer.buffer.used.bytes"
+TOPIC_WRITER_BUFFER_LIMIT_BYTES = "ydb.topic.writer.buffer.limit.bytes"
+TOPIC_WRITER_BUFFER_WAIT_DURATION = "ydb.topic.writer.buffer.wait.duration"
+TOPIC_WRITER_MESSAGE_PROCESSING_DURATION = "ydb.topic.writer.message.processing.duration"
+TOPIC_WRITER_COMPRESSION_DURATION = "ydb.topic.writer.compression.duration"
+TOPIC_WRITER_MESSAGE_ACK_DURATION = "ydb.topic.writer.message.ack.duration"
+TOPIC_WRITER_SENDING_OLDEST_AGE = "ydb.topic.writer.sending.oldest_age"
 
-METRICS_SDK_BUILD_INFO = "ydb-sdk-metrics/0.14.0"
+METRICS_SDK_BUILD_INFO = "ydb-sdk-metrics/0.25.0"
 
 DURATION_BUCKETS_SECONDS = (
     0.001,
@@ -151,6 +162,7 @@ _NOOP_PROVIDER = NoopMetricsProvider()
 _provider: MetricsProvider = _NOOP_PROVIDER
 _provider_generation = 0
 _provider_lock = threading.Lock()
+_TimedMetricStart = Tuple[MetricsProvider, float]
 
 # Trackers created while metrics are active live independently from the current
 # provider. This lets a replacement provider observe their current state and prevents
@@ -162,6 +174,7 @@ _session_max_state: Dict[Tuple, int] = {}
 _live_session_metrics: "weakref.WeakSet[SessionMetrics]" = weakref.WeakSet()
 _live_pool_metrics: "weakref.WeakSet[QuerySessionPoolMetrics]" = weakref.WeakSet()
 _live_topic_reader_metrics: "weakref.WeakSet[TopicReaderMetrics]" = weakref.WeakSet()
+_live_topic_writer_metrics: "weakref.WeakSet[TopicWriterMetrics]" = weakref.WeakSet()
 
 
 def is_metrics_enabled() -> bool:
@@ -256,6 +269,45 @@ def _observe_topic_reader_commit_offset_lag_max() -> List[Tuple[float, Dict[str,
         return [(value, dict(attrs)) for attrs, value in values.items()]
 
 
+def _observe_topic_writer_buffer_used_bytes() -> List[Tuple[float, Dict[str, Any]]]:
+    with _gauge_lock:
+        values: Dict[Tuple, int] = {}
+        for writer_metrics in _live_topic_writer_metrics:
+            key = tuple(sorted(writer_metrics._base_attributes.items()))
+            values[key] = values.get(key, 0) + writer_metrics._buffer_used_bytes
+        return [(value, dict(attrs)) for attrs, value in values.items()]
+
+
+def _observe_topic_writer_buffer_limit_bytes() -> List[Tuple[float, Dict[str, Any]]]:
+    with _gauge_lock:
+        values: Dict[Tuple, int] = {}
+        unbounded: set = set()
+        for writer_metrics in _live_topic_writer_metrics:
+            key = tuple(sorted(writer_metrics._base_attributes.items()))
+            if writer_metrics._buffer_limit_bytes is None:
+                unbounded.add(key)
+                values.pop(key, None)
+            elif key not in unbounded:
+                values[key] = values.get(key, 0) + writer_metrics._buffer_limit_bytes
+        return [(value, dict(attrs)) for attrs, value in values.items()]
+
+
+def _observe_topic_writer_sending_oldest_age() -> List[Tuple[float, Dict[str, Any]]]:
+    with _gauge_lock:
+        values: Dict[Tuple, float] = {}
+        now: Optional[float] = None
+        for writer_metrics in _live_topic_writer_metrics:
+            key = tuple(sorted(writer_metrics._base_attributes.items()))
+            if writer_metrics._pending_messages_accepted_at:
+                if now is None:
+                    now = time.monotonic()
+                age = max(0.0, now - writer_metrics._pending_messages_accepted_at[0][0])
+            else:
+                age = 0.0
+            values[key] = max(values.get(key, 0.0), age)
+        return [(value, dict(attrs)) for attrs, value in values.items()]
+
+
 _OBSERVABLE_GAUGES = (
     (QUERY_SESSION_COUNT, _observe_session_count),
     (QUERY_SESSION_MAX, _observe_session_max),
@@ -265,6 +317,9 @@ _OBSERVABLE_GAUGES = (
     (TOPIC_READER_LOCAL_BUFFER_MESSAGES, _observe_topic_reader_local_buffer_messages),
     (TOPIC_READER_LOCAL_BUFFER_MESSAGE_AGE_MAX, _observe_topic_reader_local_buffer_message_age_max),
     (TOPIC_READER_PARTITION_SESSION_COUNT, _observe_topic_reader_partition_session_count),
+    (TOPIC_WRITER_BUFFER_USED_BYTES, _observe_topic_writer_buffer_used_bytes),
+    (TOPIC_WRITER_BUFFER_LIMIT_BYTES, _observe_topic_writer_buffer_limit_bytes),
+    (TOPIC_WRITER_SENDING_OLDEST_AGE, _observe_topic_writer_sending_oldest_age),
 )
 
 _TRANSPORT_STATUS_CODES = frozenset(
@@ -355,7 +410,7 @@ def query_session_pool_name(
 def _metrics_build_info_tokens() -> List[str]:
     """Metrics' contribution to the ``x-ydb-sdk-build-info`` header.
 
-    Returns ``["ydb-sdk-metrics/0.14.0"]`` once a metrics backend is installed,
+    Returns ``["ydb-sdk-metrics/0.25.0"]`` once a metrics backend is installed,
     otherwise an empty list. Aggregated with other features by
     :func:`ydb.observability.sdk_build_info_tokens`.
     """
@@ -402,6 +457,20 @@ def _error_type(exception: BaseException) -> str:
     if isinstance(exception, issues.Error):
         return "ydb_error"
     return type(exception).__qualname__
+
+
+def _session_error_attributes(
+    base_attributes: Dict[str, Any], error: BaseException, is_retriable: bool
+) -> Dict[str, Any]:
+    attributes = dict(base_attributes)
+    attributes.update(
+        {
+            "retry_decision": "retry" if is_retriable else "stop",
+            "status_code": _response_status_code(error),
+            "error.type": _error_type(error),
+        }
+    )
+    return attributes
 
 
 class MetricsOperation:
@@ -595,6 +664,260 @@ class _NoopContext:
 _NOOP_CM = _NoopContext()
 
 
+class TopicWriterMetrics:
+    """Metric context shared by every stream of one logical topic writer."""
+
+    __slots__ = (
+        "_base_attributes",
+        "_buffer_limit_bytes",
+        "_buffer_used_bytes",
+        "_closed",
+        "_pending_messages_accepted_at",
+        "__weakref__",
+    )
+
+    def __init__(
+        self,
+        driver,
+        topic: str,
+        writer_name: str,
+        buffer_limit_bytes: Optional[int] = None,
+    ) -> None:
+        driver_config = getattr(driver, "_driver_config", None)
+        self._base_attributes = _build_ydb_metrics_attrs(driver_config)
+        self._base_attributes.update(
+            {
+                "topic": topic,
+                "writer.name": writer_name,
+            }
+        )
+        self._buffer_limit_bytes = buffer_limit_bytes
+        self._buffer_used_bytes = 0
+        self._pending_messages_accepted_at: Deque[Tuple[float, int]] = deque()
+        self._closed = False
+        with _gauge_lock:
+            _live_topic_writer_metrics.add(self)
+
+    def record_sending_messages(self, message_count: int) -> None:
+        provider = _provider
+        if provider is not _NOOP_PROVIDER and message_count > 0:
+            provider.add(TOPIC_WRITER_SENDING_MESSAGES, message_count, dict(self._base_attributes))
+
+    def record_sending_bytes(self, bytes_size: int) -> None:
+        provider = _provider
+        if provider is not _NOOP_PROVIDER and bytes_size > 0:
+            provider.add(TOPIC_WRITER_SENDING_BYTES, bytes_size, dict(self._base_attributes))
+
+    def record_written_messages(self, message_count: int) -> None:
+        provider = _provider
+        if provider is not _NOOP_PROVIDER and message_count > 0:
+            provider.add(TOPIC_WRITER_WRITTEN_MESSAGES, message_count, dict(self._base_attributes))
+
+    def record_session_error(self, error: BaseException, is_retriable: bool) -> None:
+        provider = _provider
+        if provider is not _NOOP_PROVIDER:
+            provider.add(
+                TOPIC_WRITER_SESSION_ERRORS,
+                1,
+                _session_error_attributes(self._base_attributes, error, is_retriable),
+            )
+
+    def capture_buffer_wait_started_at(self) -> Optional[_TimedMetricStart]:
+        return _provider, time.monotonic()
+
+    def record_buffer_wait_duration(self, started_at: Optional[_TimedMetricStart]) -> None:
+        if started_at is not None:
+            provider, timestamp = started_at
+            provider.record(
+                TOPIC_WRITER_BUFFER_WAIT_DURATION,
+                max(0.0, time.monotonic() - timestamp),
+                dict(self._base_attributes),
+            )
+
+    def capture_message_accepted_at(self) -> Optional[_TimedMetricStart]:
+        return _provider, time.monotonic()
+
+    def add_pending_messages(self, accepted_at: Optional[_TimedMetricStart], message_count: int) -> None:
+        if accepted_at is None or message_count <= 0:
+            return
+        _, timestamp = accepted_at
+        with _gauge_lock:
+            if self._closed:
+                return
+            if self._pending_messages_accepted_at and self._pending_messages_accepted_at[-1][0] == timestamp:
+                cohort_accepted_at, cohort_count = self._pending_messages_accepted_at.pop()
+                self._pending_messages_accepted_at.append((cohort_accepted_at, cohort_count + message_count))
+            else:
+                self._pending_messages_accepted_at.append((timestamp, message_count))
+
+    def complete_pending_message(self) -> None:
+        with _gauge_lock:
+            if not self._pending_messages_accepted_at:
+                return
+            accepted_at, message_count = self._pending_messages_accepted_at.popleft()
+            if message_count > 1:
+                self._pending_messages_accepted_at.appendleft((accepted_at, message_count - 1))
+
+    def clear_pending_messages(self) -> None:
+        with _gauge_lock:
+            self._pending_messages_accepted_at.clear()
+
+    def capture_message_first_sent_at(self) -> Optional[_TimedMetricStart]:
+        return _provider, time.monotonic()
+
+    def record_message_ack_duration(self, first_sent_at: Optional[_TimedMetricStart]) -> None:
+        if first_sent_at is not None:
+            provider, timestamp = first_sent_at
+            provider.record(
+                TOPIC_WRITER_MESSAGE_ACK_DURATION,
+                max(0.0, time.monotonic() - timestamp),
+                dict(self._base_attributes),
+            )
+
+    def capture_compression_started_at(self) -> Optional[_TimedMetricStart]:
+        return _provider, time.monotonic()
+
+    def record_compression_duration(
+        self,
+        started_at: Optional[_TimedMetricStart],
+        codec: str,
+        error: Optional[BaseException] = None,
+    ) -> None:
+        self._record_message_duration(TOPIC_WRITER_COMPRESSION_DURATION, started_at, codec, error)
+
+    def record_message_processing_duration(
+        self,
+        accepted_at: Optional[_TimedMetricStart],
+        codec: str,
+        error: Optional[BaseException] = None,
+    ) -> None:
+        self._record_message_duration(TOPIC_WRITER_MESSAGE_PROCESSING_DURATION, accepted_at, codec, error)
+
+    def _record_message_duration(
+        self,
+        name: str,
+        started_at: Optional[_TimedMetricStart],
+        codec: str,
+        error: Optional[BaseException],
+    ) -> None:
+        if started_at is None:
+            return
+        provider, timestamp = started_at
+
+        attributes = dict(self._base_attributes)
+        attributes.update(
+            {
+                "codec": codec,
+                "outcome": "error" if error is not None else "ok",
+            }
+        )
+        if error is not None:
+            attributes["error.type"] = type(error).__qualname__
+        provider.record(
+            name,
+            max(0.0, time.monotonic() - timestamp),
+            attributes,
+        )
+
+    def set_buffer_used_bytes(self, bytes_size: int) -> None:
+        with _gauge_lock:
+            if not self._closed:
+                self._buffer_used_bytes = max(0, bytes_size)
+
+    def close(self) -> None:
+        with _gauge_lock:
+            if self._closed:
+                return
+            self._closed = True
+            self._buffer_used_bytes = 0
+            self._pending_messages_accepted_at.clear()
+            _live_topic_writer_metrics.discard(self)
+
+
+class _NoopTopicWriterMetrics(TopicWriterMetrics):
+    __slots__ = ()
+
+    def __init__(self) -> None:
+        pass
+
+    def record_sending_messages(self, message_count: int) -> None:
+        pass
+
+    def record_sending_bytes(self, bytes_size: int) -> None:
+        pass
+
+    def record_written_messages(self, message_count: int) -> None:
+        pass
+
+    def record_session_error(self, error: BaseException, is_retriable: bool) -> None:
+        pass
+
+    def capture_buffer_wait_started_at(self) -> Optional[_TimedMetricStart]:
+        return None
+
+    def record_buffer_wait_duration(self, started_at: Optional[_TimedMetricStart]) -> None:
+        pass
+
+    def capture_message_accepted_at(self) -> Optional[_TimedMetricStart]:
+        return None
+
+    def add_pending_messages(self, accepted_at: Optional[_TimedMetricStart], message_count: int) -> None:
+        pass
+
+    def complete_pending_message(self) -> None:
+        pass
+
+    def clear_pending_messages(self) -> None:
+        pass
+
+    def capture_message_first_sent_at(self) -> Optional[_TimedMetricStart]:
+        return None
+
+    def record_message_ack_duration(self, first_sent_at: Optional[_TimedMetricStart]) -> None:
+        pass
+
+    def capture_compression_started_at(self) -> Optional[_TimedMetricStart]:
+        return None
+
+    def record_compression_duration(
+        self,
+        started_at: Optional[_TimedMetricStart],
+        codec: str,
+        error: Optional[BaseException] = None,
+    ) -> None:
+        pass
+
+    def record_message_processing_duration(
+        self,
+        accepted_at: Optional[_TimedMetricStart],
+        codec: str,
+        error: Optional[BaseException] = None,
+    ) -> None:
+        pass
+
+    def set_buffer_used_bytes(self, bytes_size: int) -> None:
+        pass
+
+    def close(self) -> None:
+        pass
+
+
+_NOOP_TOPIC_WRITER_METRICS = _NoopTopicWriterMetrics()
+
+
+def create_topic_writer_metrics(
+    driver,
+    topic: str,
+    writer_name: Optional[str],
+    buffer_limit_bytes: Optional[int] = None,
+) -> TopicWriterMetrics:
+    """Create instrumentation only for explicitly named writers while metrics are active."""
+    if not writer_name or not is_metrics_enabled():
+        return _NOOP_TOPIC_WRITER_METRICS
+
+    return TopicWriterMetrics(driver, topic, writer_name, buffer_limit_bytes)
+
+
 class TopicReaderMetrics:
     """Metric context shared by every stream of one logical topic reader."""
 
@@ -781,16 +1104,11 @@ class TopicReaderMetrics:
         provider = _provider
         if provider is _NOOP_PROVIDER:
             return
-
-        attributes = dict(self._base_attributes)
-        attributes.update(
-            {
-                "retry_decision": "retry" if is_retriable else "stop",
-                "status_code": _response_status_code(error),
-                "error.type": _error_type(error),
-            }
+        provider.add(
+            TOPIC_READER_SESSION_ERRORS,
+            1,
+            _session_error_attributes(self._base_attributes, error, is_retriable),
         )
-        provider.add(TOPIC_READER_SESSION_ERRORS, 1, attributes)
 
     def add_credit_balance_bytes(self, bytes_size: int) -> None:
         with _gauge_lock:

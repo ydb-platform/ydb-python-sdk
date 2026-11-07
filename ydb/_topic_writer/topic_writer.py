@@ -47,8 +47,11 @@ class PublicWriterSettings:
     # Backpressure is enabled when at least one of the limits above is set.
     # None = wait indefinitely for buffer space; positive value = raise TopicWriterBufferFullError on timeout.
     buffer_wait_timeout_sec: Optional[float] = None
+    writer_name: Optional[str] = None
 
     def __post_init__(self):
+        if self.writer_name is not None and not isinstance(self.writer_name, str):
+            raise TypeError("Unsupported type for writer_name field: '%s'" % type(self.writer_name))
         if self.producer_id is None:
             self.producer_id = uuid.uuid4().hex
         if self.max_buffer_size_bytes is not None and self.max_buffer_size_bytes <= 0:
@@ -152,6 +155,8 @@ class PublicMessage:
 
 class InternalMessage(StreamWriteMessage.WriteRequest.MessageData, IToProto):
     codec: PublicCodec
+    _accepted_at: Optional[typing.Tuple[Any, float]]
+    _first_sent_at: Optional[typing.Tuple[Any, float]]
 
     def __init__(self, mess: PublicMessage):
         metadata_items: Dict[str, bytes] = {}
@@ -178,6 +183,8 @@ class InternalMessage(StreamWriteMessage.WriteRequest.MessageData, IToProto):
             partitioning=None,
         )
         self.codec = PublicCodec(PublicCodec.RAW)
+        self._accepted_at = None
+        self._first_sent_at = None
 
     def _get_bytes(self, obj: Optional[PublicMessage.SimpleSourceType]) -> bytes:
         if obj is None:

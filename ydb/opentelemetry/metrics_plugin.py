@@ -43,6 +43,17 @@ from ydb.observability.metrics import (
     TOPIC_READER_RECEIVED_BYTES,
     TOPIC_READER_RECEIVED_MESSAGES,
     TOPIC_READER_SESSION_ERRORS,
+    TOPIC_WRITER_BUFFER_LIMIT_BYTES,
+    TOPIC_WRITER_BUFFER_USED_BYTES,
+    TOPIC_WRITER_BUFFER_WAIT_DURATION,
+    TOPIC_WRITER_COMPRESSION_DURATION,
+    TOPIC_WRITER_MESSAGE_ACK_DURATION,
+    TOPIC_WRITER_MESSAGE_PROCESSING_DURATION,
+    TOPIC_WRITER_SENDING_BYTES,
+    TOPIC_WRITER_SENDING_MESSAGES,
+    TOPIC_WRITER_SENDING_OLDEST_AGE,
+    TOPIC_WRITER_SESSION_ERRORS,
+    TOPIC_WRITER_WRITTEN_MESSAGES,
     ATTEMPT_BUCKETS,
     DURATION_BUCKETS_SECONDS,
     GaugeCallback,
@@ -78,12 +89,27 @@ _GAUGE_META = {
         "{session}",
         "The number of active partition sessions owned by the reader.",
     ),
+    TOPIC_WRITER_BUFFER_USED_BYTES: (
+        "By",
+        "The occupied budget of the writer buffer limiter.",
+    ),
+    TOPIC_WRITER_BUFFER_LIMIT_BYTES: (
+        "By",
+        "The configured limit of the writer buffer limiter.",
+    ),
+    TOPIC_WRITER_SENDING_OLDEST_AGE: (
+        "s",
+        "The age of the oldest message in the writer's in-flight buffer.",
+    ),
 }
 _OBSERVABLE_GAUGE_INSTRUMENTS = frozenset(
     {
         TOPIC_READER_CREDIT_BALANCE_BYTES,
         TOPIC_READER_COMMIT_OFFSET_LAG_MAX,
         TOPIC_READER_LOCAL_BUFFER_MESSAGE_AGE_MAX,
+        TOPIC_WRITER_BUFFER_LIMIT_BYTES,
+        TOPIC_WRITER_BUFFER_USED_BYTES,
+        TOPIC_WRITER_SENDING_OLDEST_AGE,
     }
 )
 
@@ -146,6 +172,34 @@ class OtelMetricsProvider:
                 description="The time from receipt until a message is ready for delivery.",
                 bucket_boundaries=DURATION_BUCKETS_SECONDS,
             ),
+            TOPIC_WRITER_BUFFER_WAIT_DURATION: _create_histogram(
+                meter,
+                TOPIC_WRITER_BUFFER_WAIT_DURATION,
+                unit="s",
+                description="Time waiting for buffer capacity before a message is accepted.",
+                bucket_boundaries=DURATION_BUCKETS_SECONDS,
+            ),
+            TOPIC_WRITER_COMPRESSION_DURATION: _create_histogram(
+                meter,
+                TOPIC_WRITER_COMPRESSION_DURATION,
+                unit="s",
+                description="The time spent compressing a message, excluding queueing.",
+                bucket_boundaries=DURATION_BUCKETS_SECONDS,
+            ),
+            TOPIC_WRITER_MESSAGE_PROCESSING_DURATION: _create_histogram(
+                meter,
+                TOPIC_WRITER_MESSAGE_PROCESSING_DURATION,
+                unit="s",
+                description="The time from buffer acceptance until a message is ready for sending.",
+                bucket_boundaries=DURATION_BUCKETS_SECONDS,
+            ),
+            TOPIC_WRITER_MESSAGE_ACK_DURATION: _create_histogram(
+                meter,
+                TOPIC_WRITER_MESSAGE_ACK_DURATION,
+                unit="s",
+                description="Time from first sending a message to the server to its acknowledgement.",
+                bucket_boundaries=DURATION_BUCKETS_SECONDS,
+            ),
         }
         self._counters: Dict[str, Any] = {
             CLIENT_OPERATION_FAILED: meter.create_counter(
@@ -197,6 +251,26 @@ class OtelMetricsProvider:
                 TOPIC_READER_SESSION_ERRORS,
                 unit="{error}",
                 description="Number of YDB topic reader session errors.",
+            ),
+            TOPIC_WRITER_SENDING_MESSAGES: meter.create_counter(
+                TOPIC_WRITER_SENDING_MESSAGES,
+                unit="{message}",
+                description="Number of messages accepted by the SDK from the application for sending.",
+            ),
+            TOPIC_WRITER_SENDING_BYTES: meter.create_counter(
+                TOPIC_WRITER_SENDING_BYTES,
+                unit="By",
+                description="Uncompressed message body bytes accepted by the SDK from the application for sending.",
+            ),
+            TOPIC_WRITER_WRITTEN_MESSAGES: meter.create_counter(
+                TOPIC_WRITER_WRITTEN_MESSAGES,
+                unit="{message}",
+                description="Number of messages confirmed by the server, including already written messages.",
+            ),
+            TOPIC_WRITER_SESSION_ERRORS: meter.create_counter(
+                TOPIC_WRITER_SESSION_ERRORS,
+                unit="{error}",
+                description="Number of YDB topic writer session errors by retry decision.",
             ),
         }
 

@@ -9,11 +9,12 @@ context to the YDB server through gRPC metadata using the
 `W3C Trace Context <https://www.w3.org/TR/trace-context/>`_ standard. Enabling metrics
 records client-side OpenTelemetry instruments for the same operations, retries, and
 query session pools, as well as receive, delivery, and buffer metrics for explicitly
-named topic Readers.
+named topic Readers and Writers.
 
 Like every backend, it has a **zero-cost no-op path when disabled**: operations, query
 sessions, pools, and topic Readers share no-op instrumentation without metric
-allocations, timers, locks, or state tracking. The SDK does not import
+allocations, timers, locks, or state tracking; topic Writers use the same no-op path.
+The SDK does not import
 ``opentelemetry`` until you call ``enable_tracing()`` or ``enable_metrics()``.
 
 
@@ -140,6 +141,61 @@ The full list of instruments and their attributes is catalogued on the
 :doc:`observability` page.
 
 
+Topic Writer Metrics
+--------------------
+
+Enable metrics before creating the Writer and pass a stable, non-empty
+``writer_name``:
+
+.. code-block:: python
+
+    with driver.topic_client.writer(
+        "/local/orders",
+        writer_name="orders-writer",
+    ) as writer:
+        writer.write(["one", "two"])
+
+``ydb.topic.writer.sending.messages`` counts messages accepted from the application
+after validation and any buffer wait. It carries ``endpoint``, ``database``, ``topic``,
+and ``writer.name``. ``ydb.topic.writer.sending.bytes`` counts their uncompressed body
+bytes, excluding metadata and envelope overhead, and carries the same attributes.
+``ydb.topic.writer.written.messages`` counts server acknowledgements for written,
+already-written/skipped, and transactional messages. It carries the same attributes
+without a ``status`` attribute; a transactional acknowledgement does not imply commit.
+``ydb.topic.writer.session.errors`` counts session and connection failures once each.
+It adds ``retry_decision=retry|stop``, ``status_code``, and ``error.type``; transactional
+Writers report ``stop`` because they do not reconnect. Normal shutdown and validation
+or encoding failures are not counted. Retries and reconnects do not count a message or
+acknowledgement again. ``ydb.topic.writer.buffer.used.bytes`` is an observable gauge
+of the current buffer-limiter reservation. It follows the Writer's backpressure
+accounting, including metadata and envelope overhead, is released on acknowledgement,
+and is not reset by reconnects. ``ydb.topic.writer.buffer.limit.bytes`` reports the
+configured ``max_buffer_size_bytes`` from the same limiter. It is absent when that
+limit is ``None`` instead of reporting ``0`` for an unbounded Writer. Closing the
+Writer removes both gauge series. ``ydb.topic.writer.buffer.wait.duration`` is a
+histogram in seconds. It records one monotonic-clock measurement only when a Write
+batch that actually waited for byte or message capacity is accepted; immediate
+admission and waits ending in timeout, cancellation, or shutdown produce no sample.
+Repeated wakeups remain one measurement.
+``ydb.topic.writer.message.processing.duration`` records one histogram measurement per
+accepted message from buffer admission until transport-ready data is available. It
+includes queueing, codec selection, and compression, and uses ``codec`` plus
+``outcome=ok|error`` attributes; failures also include ``error.type``. Buffer wait,
+stream readiness, retries, and acknowledgement are excluded.
+``ydb.topic.writer.compression.duration`` records each non-RAW encoder invocation and
+excludes executor queueing. Adaptive codec-selection trials and repeated compression
+produce separate measurements with the same ``codec``, ``outcome``, and optional
+``error.type`` attributes. Resending already encoded data produces no new measurement.
+``ydb.topic.writer.message.ack.duration`` records one monotonic-clock measurement per
+server acknowledgement, from the first transport send; retries and reconnects do not
+reset the start time, and messages ending without an acknowledgement produce no sample.
+``ydb.topic.writer.sending.oldest_age`` is an observable gauge for the oldest accepted,
+unfinished message. It includes processing and reconnect waits, reports ``0`` when the
+Writer has no unfinished messages, and aggregates identical Writer attributes by
+maximum age. If ``writer_name`` is omitted or empty, the Writer works normally but does
+not publish these metrics.
+
+
 .. _opentelemetry-topic-reader-metrics:
 
 Topic Reader Metrics
@@ -183,7 +239,11 @@ underlying stream reconnects:
 
             await driver.topic_client.create_topic(topic_path, consumers=[consumer])
             try:
-                async with driver.topic_client.writer(topic_path, codec=ydb.TopicCodec.GZIP) as writer:
+                async with driver.topic_client.writer(
+                    topic_path,
+                    codec=ydb.TopicCodec.GZIP,
+                    writer_name="payments-writer",
+                ) as writer:
                     await writer.write("OpenTelemetry topic Reader metrics")
 
                 async with driver.topic_client.reader(

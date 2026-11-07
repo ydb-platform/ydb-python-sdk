@@ -36,6 +36,7 @@ from .topic_writer import (
     PublicWriteResult,
     TopicWriterError,
     TopicWriterBufferFullError,
+    internal_message_size_bytes,
 )
 from .._grpc.grpcwrapper.ydb_topic_public_types import PublicCodec
 from .._topic_common.test_helpers import StreamMock, wait_for_fast
@@ -533,8 +534,11 @@ class TestWriterAsyncIOReconnector:
         class TestException(Exception):
             pass
 
+        metrics = mock.Mock()
+        reconnector._metrics = metrics
+        test_error = TestException()
         stream_writer = get_stream_writer()
-        stream_writer.from_server.put_nowait(TestException())
+        stream_writer.from_server.put_nowait(test_error)
 
         message = PublicMessage(
             data="123",
@@ -552,6 +556,80 @@ class TestWriterAsyncIOReconnector:
 
         with pytest.raises(TestException):
             await reconnector.close(flush=False)
+        metrics.record_session_error.assert_called_once_with(test_error, False)
+        metrics.close.assert_called_once_with()
+
+    async def test_non_retriable_session_error_records_stop(
+        self, reconnector: WriterAsyncIOReconnector, get_stream_writer
+    ):
+        metrics = mock.Mock()
+        reconnector._metrics = metrics
+        test_error = issues.BadRequest("stop")
+        stream_writer = get_stream_writer()
+        stream_writer.from_server.put_nowait(test_error)
+
+        assert await asyncio.wait_for(reconnector.wait_stop(), 1) is test_error
+        metrics.record_session_error.assert_called_once_with(test_error, False)
+
+        with pytest.raises(issues.BadRequest):
+            await reconnector.close(flush=False)
+
+    async def test_retriable_session_error_records_stop_for_transaction_writer(
+        self, default_driver, default_settings, get_stream_writer
+    ):
+        tx = mock.Mock()
+        tx._tx_identity.return_value = FAKE_TRANSACTION_IDENTITY
+        reconnector = WriterAsyncIOReconnector(default_driver, default_settings, tx=tx)
+        metrics = mock.Mock()
+        reconnector._metrics = metrics
+        test_error = issues.Overloaded("transaction writer cannot retry")
+        stream_writer = get_stream_writer()
+        stream_writer.from_server.put_nowait(test_error)
+
+        assert await asyncio.wait_for(reconnector.wait_stop(), 1) is test_error
+        metrics.record_session_error.assert_called_once_with(test_error, False)
+
+        with pytest.raises(issues.Overloaded):
+            await reconnector.close(flush=False)
+
+    async def test_normal_close_does_not_record_session_error(self, reconnector: WriterAsyncIOReconnector):
+        metrics = mock.Mock()
+        reconnector._metrics = metrics
+        await reconnector.wait_init()
+
+        await reconnector.close(flush=False)
+
+        metrics.record_session_error.assert_not_called()
+
+    async def test_encoding_failure_does_not_record_session_error(self, default_driver, default_settings):
+        test_error = ValueError("encode failure")
+
+        def fail_encoding(data):
+            raise test_error
+
+        settings = copy.deepcopy(default_settings)
+        settings.codec = PublicCodec.GZIP
+        settings.encoders = {PublicCodec.GZIP: fail_encoding}
+        settings.max_buffer_messages = 1
+        reconnector = WriterAsyncIOReconnector(default_driver, settings)
+        metrics = mock.Mock()
+        metrics.capture_compression_started_at.return_value = 30.0
+        reconnector._metrics = metrics
+
+        future = (await reconnector.write_with_ack_future([PublicMessage(data=b"data", seqno=1)]))[0]
+        with pytest.raises(ValueError, match="encode failure"):
+            await future
+
+        metrics.record_session_error.assert_not_called()
+        metrics.record_message_ack_duration.assert_not_called()
+        metrics.clear_pending_messages.assert_called_once_with()
+        metrics.capture_compression_started_at.assert_called_once_with()
+        metrics.record_compression_duration.assert_called_once_with(30.0, "gzip", test_error)
+        assert metrics.set_buffer_used_bytes.call_count == 2
+        assert metrics.set_buffer_used_bytes.call_args_list[-1] == mock.call(0)
+        with pytest.raises(ValueError, match="encode failure"):
+            await reconnector.close(flush=False)
+        metrics.close.assert_called_once_with()
 
     async def test_wait_init(self, default_driver, default_settings, get_stream_writer):
         init_seqno = 100
@@ -587,10 +665,139 @@ class TestWriterAsyncIOReconnector:
 
         await reconnector.close(flush=False)
 
-    async def test_buffer_full_timeout_raises(self, default_driver, get_stream_writer):
+    async def test_message_metrics_count_acceptance_and_server_acks_once(
+        self,
+        default_driver,
+        get_stream_writer,
+        default_write_statistic,
+        monkeypatch,
+    ):
+        metrics = mock.Mock()
+        metrics.capture_compression_started_at.return_value = 30.0
+        metrics.capture_message_accepted_at.return_value = 20.0
+        metrics.capture_message_first_sent_at.return_value = 40.0
+        metrics_factory = mock.Mock(return_value=metrics)
+        monkeypatch.setattr(
+            "ydb._topic_writer.topic_writer_asyncio.create_topic_writer_metrics",
+            metrics_factory,
+        )
+        settings = WriterSettings(
+            PublicWriterSettings(
+                topic="/local/topic",
+                producer_id="test-producer",
+                auto_seqno=False,
+                auto_created_at=False,
+                codec=PublicCodec.GZIP,
+                max_buffer_messages=3,
+                buffer_wait_timeout_sec=0,
+                writer_name="payments-writer",
+            )
+        )
+        reconnector = WriterAsyncIOReconnector(default_driver, settings)
+        stream_writer = get_stream_writer()
+        retry_error = issues.Overloaded("retry")
+        try:
+            futures = await reconnector.write_with_ack_future(
+                [
+                    PublicMessage(data=b"one", seqno=1, metadata_items={"ignored": b"x" * 50}),
+                    PublicMessage(data="два", seqno=2),
+                    PublicMessage(data=b"tx", seqno=3),
+                ]
+            )
+
+            metrics_factory.assert_called_once_with(
+                default_driver,
+                "/local/topic",
+                "payments-writer",
+                buffer_limit_bytes=None,
+            )
+            metrics.record_sending_messages.assert_called_once_with(3)
+            metrics.record_sending_bytes.assert_called_once_with(11)
+            metrics.add_pending_messages.assert_called_once_with(20.0, 3)
+            metrics.record_written_messages.assert_not_called()
+
+            sent_messages = await stream_writer.from_client.get()
+            buffer_sizes = [internal_message_size_bytes(message) for message in sent_messages]
+            metrics.set_buffer_used_bytes.assert_called_once_with(sum(buffer_sizes))
+            assert metrics.record_compression_duration.call_args_list == [mock.call(30.0, "gzip", None)] * 3
+            metrics.capture_message_accepted_at.assert_called_once_with()
+            metrics.capture_message_first_sent_at.assert_called_once_with()
+            assert {message._first_sent_at for message in sent_messages} == {40.0}
+            assert metrics.record_message_processing_duration.call_args_list == [mock.call(20.0, "gzip", None)] * 3
+            stream_writer.from_server.put_nowait(retry_error)
+            reconnected_writer = get_stream_writer()
+            assert await reconnected_writer.from_client.get() == sent_messages
+            metrics.record_session_error.assert_called_once_with(retry_error, True)
+            metrics.record_sending_messages.assert_called_once_with(3)
+            metrics.record_sending_bytes.assert_called_once_with(11)
+            metrics.record_written_messages.assert_not_called()
+            metrics.set_buffer_used_bytes.assert_called_once_with(sum(buffer_sizes))
+            assert metrics.record_compression_duration.call_count == 3
+            metrics.capture_message_accepted_at.assert_called_once_with()
+            metrics.capture_message_first_sent_at.assert_called_once_with()
+            assert metrics.record_message_processing_duration.call_count == 3
+
+            with pytest.raises(TopicWriterError, match="Empty seqno"):
+                await reconnector.write_with_ack_future([PublicMessage(data=b"invalid")])
+
+            metrics.record_sending_messages.assert_called_once_with(3)
+            metrics.record_sending_bytes.assert_called_once_with(11)
+            metrics.capture_message_accepted_at.assert_called_once_with()
+
+            with pytest.raises(TopicWriterBufferFullError, match="buffer full"):
+                await reconnector.write_with_ack_future([PublicMessage(data=b"full", seqno=4)])
+
+            metrics.record_sending_messages.assert_called_once_with(3)
+            metrics.record_sending_bytes.assert_called_once_with(11)
+            metrics.capture_message_accepted_at.assert_called_once_with()
+            assert metrics.record_message_processing_duration.call_count == 3
+
+            write_ack = StreamWriteMessage.WriteResponse.WriteAck
+            reconnected_writer.from_server.put_nowait(
+                StreamWriteMessage.WriteResponse(
+                    partition_id=1,
+                    acks=[
+                        write_ack(seq_no=1, message_write_status=write_ack.StatusWritten(offset=1)),
+                        write_ack(
+                            seq_no=2,
+                            message_write_status=write_ack.StatusSkipped(
+                                reason=write_ack.StatusSkipped.Reason.ALREADY_WRITTEN
+                            ),
+                        ),
+                        write_ack(seq_no=3, message_write_status=write_ack.StatusWrittenInTx()),
+                    ],
+                    write_statistics=default_write_statistic,
+                )
+            )
+            await asyncio.gather(*futures)
+
+            assert metrics.record_written_messages.call_args_list == [mock.call(1)] * 3
+            assert metrics.record_message_ack_duration.call_args_list == [mock.call(40.0)] * 3
+            assert metrics.complete_pending_message.call_count == 3
+            remaining_bytes = sum(buffer_sizes)
+            expected_buffer_calls = [mock.call(remaining_bytes)]
+            for message_size in buffer_sizes:
+                remaining_bytes -= message_size
+                expected_buffer_calls.append(mock.call(remaining_bytes))
+            assert metrics.set_buffer_used_bytes.call_args_list == expected_buffer_calls
+        finally:
+            await reconnector.close(flush=False)
+        metrics.record_session_error.assert_called_once_with(retry_error, True)
+        metrics.clear_pending_messages.assert_called_once_with()
+        metrics.close.assert_called_once_with()
+
+    async def test_buffer_full_timeout_raises(self, default_driver, get_stream_writer, monkeypatch):
         # Soft limit: blocking starts when buffer >= limit.
         # First message is 10 bytes data + 64 overhead = 74 bytes; set limit=74 so the
         # second write finds buffer already at the limit and must wait.
+        metrics = mock.Mock()
+        metrics.capture_buffer_wait_started_at.return_value = 10.0
+        metrics.capture_message_accepted_at.return_value = 20.0
+        metrics_factory = mock.Mock(return_value=metrics)
+        monkeypatch.setattr(
+            "ydb._topic_writer.topic_writer_asyncio.create_topic_writer_metrics",
+            metrics_factory,
+        )
         settings = WriterSettings(
             PublicWriterSettings(
                 topic="/local/topic",
@@ -603,20 +810,43 @@ class TestWriterAsyncIOReconnector:
             )
         )
         reconnector = WriterAsyncIOReconnector(default_driver, settings)
+        metrics_factory.assert_called_once_with(
+            default_driver,
+            "/local/topic",
+            None,
+            buffer_limit_bytes=74,
+        )
         stream_writer = get_stream_writer()
 
         await reconnector.write_with_ack_future([PublicMessage(data=b"x" * 10, seqno=1)])
         await stream_writer.from_client.get()
+        metrics.set_buffer_used_bytes.assert_called_once_with(74)
+        metrics.capture_buffer_wait_started_at.assert_not_called()
+        metrics.capture_message_accepted_at.assert_called_once_with()
+        metrics.record_message_processing_duration.assert_called_once_with(20.0, "raw", None)
 
         # buffer == limit (74) → second write blocks and times out
         with pytest.raises(TopicWriterBufferFullError, match="buffer full"):
             await reconnector.write_with_ack_future([PublicMessage(data=b"y" * 10, seqno=2)])
+        metrics.set_buffer_used_bytes.assert_called_once_with(74)
+        metrics.capture_buffer_wait_started_at.assert_called_once_with()
+        metrics.record_buffer_wait_duration.assert_not_called()
+        metrics.capture_message_accepted_at.assert_called_once_with()
+        metrics.record_message_processing_duration.assert_called_once_with(20.0, "raw", None)
 
         await reconnector.close(flush=False)
+        metrics.close.assert_called_once_with()
 
-    async def test_buffer_freed_by_ack_allows_next_write(self, default_driver, get_stream_writer):
+    async def test_buffer_freed_by_ack_allows_next_write(self, default_driver, get_stream_writer, monkeypatch):
         # limit=74 matches one message (10 data + 64 overhead); second write blocks
         # until the first is acked and buffer drops to 0 < 74.
+        metrics = mock.Mock()
+        metrics.capture_buffer_wait_started_at.return_value = 10.0
+        metrics.capture_message_accepted_at.return_value = 20.0
+        monkeypatch.setattr(
+            "ydb._topic_writer.topic_writer_asyncio.create_topic_writer_metrics",
+            mock.Mock(return_value=metrics),
+        )
         settings = WriterSettings(
             PublicWriterSettings(
                 topic="/local/topic",
@@ -633,23 +863,59 @@ class TestWriterAsyncIOReconnector:
 
         await reconnector.write_with_ack_future([PublicMessage(data=b"x" * 10, seqno=1)])
         await stream_writer.from_client.get()
+        metrics.capture_buffer_wait_started_at.assert_not_called()
+        metrics.capture_message_accepted_at.assert_called_once_with()
+        metrics.record_message_processing_duration.assert_called_once_with(20.0, "raw", None)
 
-        # Ack the first message to free buffer space
+        second_write = asyncio.create_task(
+            reconnector.write_with_ack_future(
+                [
+                    PublicMessage(data=b"y" * 10, seqno=2),
+                    PublicMessage(data=b"z" * 10, seqno=3),
+                ]
+            )
+        )
+        await asyncio.sleep(0)
+        assert not second_write.done()
+        metrics.capture_buffer_wait_started_at.assert_called_once_with()
+        metrics.record_buffer_wait_duration.assert_not_called()
+        metrics.capture_message_accepted_at.assert_called_once_with()
+
+        # Ack the first message to free buffer space; the completed wait is reported once.
         stream_writer.from_server.put_nowait(self.make_default_ack_message(seq_no=1))
-
-        # Second write must succeed once buffer is freed
-        await reconnector.write_with_ack_future([PublicMessage(data=b"y" * 10, seqno=2)])
+        await asyncio.wait_for(second_write, 1)
+        metrics.record_buffer_wait_duration.assert_called_once_with(10.0)
+        sent_batch = await asyncio.wait_for(stream_writer.from_client.get(), 1)
+        assert [message.seq_no for message in sent_batch] == [2, 3]
+        assert metrics.capture_message_accepted_at.call_count == 2
+        assert metrics.record_message_processing_duration.call_args_list == [
+            mock.call(20.0, "raw", None),
+            mock.call(20.0, "raw", None),
+            mock.call(20.0, "raw", None),
+        ]
 
         stream_writer.from_server.put_nowait(self.make_default_ack_message(seq_no=2))
+        stream_writer.from_server.put_nowait(self.make_default_ack_message(seq_no=3))
         await reconnector.close(flush=True)
 
-    async def test_concurrent_writers_only_one_proceeds_after_ack(self, default_driver, get_stream_writer):
+    async def test_concurrent_writers_only_one_proceeds_after_ack(
+        self,
+        default_driver,
+        get_stream_writer,
+        monkeypatch,
+    ):
         # Soft-limit semantics: blocking starts when buffer >= limit.
         # limit=74 (one message: 10 data + 64 overhead).
         # msg1 fills buffer to 74 >= 74 → tasks 2 and 3 both block.
         # Ack msg1 → buffer=0 < 74 → event fires, both tasks wake up.
         # First task to run adds 94 bytes (30+64) → buffer=94 >= 74.
         # Second task checks again and finds buffer still at limit → stays blocked.
+        metrics = mock.Mock()
+        metrics.capture_buffer_wait_started_at.side_effect = [10.0, 20.0]
+        monkeypatch.setattr(
+            "ydb._topic_writer.topic_writer_asyncio.create_topic_writer_metrics",
+            mock.Mock(return_value=metrics),
+        )
         settings = WriterSettings(
             PublicWriterSettings(
                 topic="/local/topic",
@@ -675,6 +941,8 @@ class TestWriterAsyncIOReconnector:
         await asyncio.sleep(0)
         assert not task2.done()
         assert not task3.done()
+        assert metrics.capture_buffer_wait_started_at.call_count == 2
+        metrics.record_buffer_wait_duration.assert_not_called()
 
         # Ack msg1: buffer drops 74 → 0 < 74; one task proceeds and fills buffer again
         stream_writer.from_server.put_nowait(self.make_default_ack_message(seq_no=1))
@@ -683,11 +951,15 @@ class TestWriterAsyncIOReconnector:
         assert len(done) == 1, "exactly one write should proceed after ack"
         assert len(pending) == 1, "other write should still be waiting for buffer space"
         assert not next(iter(pending)).done()
+        assert metrics.capture_buffer_wait_started_at.call_count == 2
+        assert metrics.record_buffer_wait_duration.call_count == 1
+        assert metrics.record_buffer_wait_duration.call_args in (mock.call(10.0), mock.call(20.0))
 
         pending_task = next(iter(pending))
         pending_task.cancel()
         with pytest.raises(asyncio.CancelledError):
             await pending_task
+        assert metrics.record_buffer_wait_duration.call_count == 1
         await reconnector.close(flush=False)
 
     async def test_buffer_messages_limit_raises_on_timeout(self, default_driver, get_stream_writer):
@@ -843,19 +1115,21 @@ class TestWriterAsyncIOReconnector:
         await reconnector.close(flush=False)
 
     @pytest.mark.parametrize(
-        "codec,write_datas,expected_codecs,expected_datas",
+        "codec,write_datas,expected_codecs,expected_datas,expected_compression_calls",
         [
             (
                 PublicCodec.RAW,
                 [b"123"],
                 [PublicCodec.RAW],
                 [b"123"],
+                0,
             ),
             (
                 PublicCodec.GZIP,
                 [b"123"],
                 [PublicCodec.GZIP],
                 [gzip.compress(b"123", mtime=time_for_mocks)],
+                1,
             ),
             (
                 None,
@@ -867,6 +1141,7 @@ class TestWriterAsyncIOReconnector:
                     b"789",
                     b"0" * 1000,
                 ],
+                2,
             ),
             (
                 None,
@@ -878,6 +1153,7 @@ class TestWriterAsyncIOReconnector:
                     gzip.compress(b"789" * 1000, mtime=time_for_mocks),
                     gzip.compress(b"0", mtime=time_for_mocks),
                 ],
+                4,
             ),
         ],
     )
@@ -890,6 +1166,7 @@ class TestWriterAsyncIOReconnector:
         codec: typing.Optional[PublicCodec],
         expected_codecs: List[PublicCodec],
         expected_datas: List[bytes],
+        expected_compression_calls: int,
     ):
         assert len(write_datas) == len(expected_datas)
         assert len(expected_codecs) == len(expected_datas)
@@ -898,6 +1175,9 @@ class TestWriterAsyncIOReconnector:
         settings.codec = codec
         settings.auto_seqno = True
         reconnector = WriterAsyncIOReconnector(default_driver, settings)
+        metrics = mock.Mock()
+        metrics.capture_compression_started_at.return_value = 30.0
+        reconnector._metrics = metrics
 
         added_messages = asyncio.Queue()  # type: asyncio.Queue[List[InternalMessage]]
 
@@ -920,6 +1200,12 @@ class TestWriterAsyncIOReconnector:
                 assert gzip.decompress(mess.get_data_bytes()) == gzip.decompress(expected_datas[i])
             else:
                 assert mess.get_data_bytes() == expected_datas[i]
+
+        assert metrics.capture_compression_started_at.call_count == expected_compression_calls
+        assert (
+            metrics.record_compression_duration.call_args_list
+            == [mock.call(30.0, "gzip", None)] * expected_compression_calls
+        )
 
         await reconnector.close(flush=False)
 
@@ -953,6 +1239,41 @@ class TestWriterAsyncIOReconnector:
             assert mess.get_data_bytes() == expected_datas[index]
 
         await reconnector.close(flush=True)
+
+    async def test_message_processing_metrics_encode_failure(self, default_driver, default_settings, monkeypatch):
+        metrics = mock.Mock()
+        metrics.capture_message_accepted_at.return_value = 10.0
+        monkeypatch.setattr(
+            "ydb._topic_writer.topic_writer_asyncio.create_topic_writer_metrics",
+            mock.Mock(return_value=metrics),
+        )
+        settings = copy.copy(default_settings)
+        settings.codec = PublicCodec.GZIP
+        reconnector = WriterAsyncIOReconnector(default_driver, settings)
+        problem = ValueError("encode failed")
+        monkeypatch.setattr(reconnector, "_encode_data_inplace", mock.AsyncMock(side_effect=problem))
+
+        futures = await reconnector.write_with_ack_future(
+            [
+                PublicMessage(data=b"one", seqno=1),
+                PublicMessage(data=b"two", seqno=2),
+            ]
+        )
+        assert await asyncio.wait_for(reconnector.wait_stop(), 1) is problem
+        metrics.add_pending_messages.assert_called_once_with(10.0, 2)
+        metrics.record_message_ack_duration.assert_not_called()
+        metrics.clear_pending_messages.assert_called_once_with()
+        assert metrics.record_message_processing_duration.call_args_list == [
+            mock.call(10.0, "gzip", problem),
+            mock.call(10.0, "gzip", problem),
+        ]
+        for future in futures:
+            with pytest.raises(ValueError, match="encode failed"):
+                await future
+
+        with pytest.raises(ValueError, match="encode failed"):
+            await reconnector.close(flush=False)
+        metrics.close.assert_called_once_with()
 
     async def test_custom_encoder(self, default_driver, default_settings, get_stream_writer):
         codec = 10001
@@ -1177,3 +1498,51 @@ async def test_writer_create_failure_does_not_leak_grpc_thread():
     finally:
         channel.close()
         server.stop()
+
+
+def test_writer_settings_reject_non_string_writer_name():
+    with pytest.raises(TypeError, match="writer_name"):
+        PublicWriterSettings(topic="/Root/events", writer_name=42)
+
+
+@pytest.mark.parametrize(
+    "client_class,writer_class_name",
+    [("TopicClient", "TopicWriter"), ("TopicClientAsyncIO", "TopicWriterAsyncIO")],
+)
+def test_topic_clients_forward_writer_name(client_class, writer_class_name):
+    from .. import topic as topic_module
+
+    client = object.__new__(getattr(topic_module, client_class))
+    client._closed = False
+    client._driver = mock.Mock()
+    client._executor = mock.Mock()
+
+    with mock.patch.object(topic_module, writer_class_name, return_value=mock.sentinel.writer) as writer_class:
+        result = client.writer("/Root/events", writer_name="payments-writer")
+
+    assert result is mock.sentinel.writer
+    assert writer_class.call_args.args[1].writer_name == "payments-writer"
+    client._closed = True
+
+
+@pytest.mark.parametrize(
+    "client_class,writer_class_name",
+    [("TopicClient", "TopicTxWriter"), ("TopicClientAsyncIO", "TopicTxWriterAsyncIO")],
+)
+def test_topic_tx_clients_forward_writer_name(client_class, writer_class_name):
+    from .. import topic as topic_module
+
+    client = object.__new__(getattr(topic_module, client_class))
+    client._closed = False
+    client._driver = mock.Mock()
+    client._executor = mock.Mock()
+
+    with mock.patch.object(topic_module, writer_class_name, return_value=mock.sentinel.writer) as writer_class:
+        result = client.tx_writer(mock.sentinel.tx, "/Root/events", writer_name="payments-writer")
+
+    assert result is mock.sentinel.writer
+    settings = writer_class.call_args.kwargs.get("settings")
+    if settings is None:
+        settings = writer_class.call_args.args[2]
+    assert settings.writer_name == "payments-writer"
+    client._closed = True

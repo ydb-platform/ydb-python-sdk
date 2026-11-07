@@ -183,12 +183,15 @@ Writer Parameters
         codec=ydb.TopicCodec.GZIP,       # Compress messages. Default: RAW (no compression).
         auto_seqno=True,                 # Auto-increment sequence numbers (default: True).
         auto_created_at=True,            # Auto-set message timestamps (default: True).
+        writer_name="payments-writer",  # Stable name that enables Writer metrics.
     )
 
 * ``producer_id`` is used for deduplication: if the same ``(producer_id, seqno)`` pair is
   received again, YDB silently skips it.
 * When ``auto_seqno=True`` the SDK assigns monotonically increasing sequence numbers.
   Set ``auto_seqno=False`` and provide ``seqno`` manually when you need deterministic IDs.
+* Pass a stable, non-empty ``writer_name`` to publish Writer metrics. Omitting it does
+  not change Writer behavior, but disables its metrics.
 
 
 Sending Messages
