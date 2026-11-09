@@ -1,3 +1,4 @@
+* Include streaming queries in scheme directory listings and path descriptions
 * Add timeout to the token exchange request so a stalled token endpoint cannot hang credential refresh
 * Fix topic reader `close()` hanging forever when the stream is broken with uncommitted offsets pending: the commit flush now stops as soon as the stream reports an error instead of waiting for acks that can never arrive
 * Fix async table session pool capacity leaking when keeping an idle session alive fails or is cancelled
