@@ -140,6 +140,7 @@ Every scheme object is described by a :class:`~ydb.SchemeEntry`:
     entry.is_coordination_node()   # COORDINATION_NODE
     entry.is_external_table()      # EXTERNAL_TABLE
     entry.is_external_data_source() # EXTERNAL_DATA_SOURCE
+    entry.is_streaming_query()     # STREAMING_QUERY
     entry.is_view()                # VIEW
     entry.is_resource_pool()       # RESOURCE_POOL
     entry.is_sysview()             # SYS_VIEW
@@ -180,6 +181,8 @@ Every scheme object is described by a :class:`~ydb.SchemeEntry`:
      - Async replication object
    * - ``SchemeEntryType.TRANSFER``
      - Data transfer object
+   * - ``SchemeEntryType.STREAMING_QUERY``
+     - Streaming query
    * - ``SchemeEntryType.RESOURCE_POOL``
      - Resource pool (workload management)
    * - ``SchemeEntryType.SYS_VIEW``
