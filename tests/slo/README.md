@@ -1,5 +1,39 @@
 # SLO workload
 
+## GitHub-hosted Bridge qualification
+
+`.github/workflows/slo-2dc.yml` runs the existing sync Query workload on
+`ubuntu-24.04`, without the `SLO` label or a self-hosted runner. It also runs
+an independent Query driver that verifies read-after-write results and audits
+every acknowledged row after the faults.
+
+The workflow pins `ydb-slo-action` v2 by commit. The PR configuration pins a
+resolved server digest; manual dispatch accepts a server image and records its
+resolved digest. The selected server is passed as the upstream Dockerfile's
+`YDB_IMAGE` build argument. No server binaries or action lifecycle code are
+modified. Compose 2.40.3 is installed explicitly because the action requires
+`up --quiet-build`, which is absent from some hosted runner images.
+The hosted profile uses two storage nodes, two database nodes, one
+CPU per YDB actor system and bounded node/workload memory.
+
+This is a 15-minute functional qualification at 50 reads/s and 10 writes/s,
+not a performance baseline for the larger self-hosted runner. All five upstream
+Bridge scenarios must finish within the workload interval. Process exit zero
+alone is insufficient: the verification step requires successful native reads
+and writes, no final native operation errors, a successful independent data
+audit and no OOM-killed nodes. `bridge-artifacts/result.json` contains the
+combined verdict; logs and the resolved server image are uploaded on failure.
+
+To qualify another image after the workflow is available for dispatch:
+
+```bash
+gh workflow run slo-2dc.yml --ref <branch> -f server_image=<image-reference>
+```
+
+The files in `tests/slo/bridge/` adapt and verify a checked-out action on the
+ephemeral runner. They do not start a local Docker stack. The existing `SLO`
+workflow and its label-triggered self-hosted jobs remain unchanged.
+
 SLO is the type of test where app based on ydb-sdk is tested against falling YDB cluster nodes, tablets, network
 (that is possible situations for distributed DBs with hundreds of nodes)
 
