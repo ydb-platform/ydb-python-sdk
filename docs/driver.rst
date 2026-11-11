@@ -48,6 +48,9 @@ DriverConfig
    * - ``discovery_request_timeout``
      - ``10``
      - Timeout in seconds for each discovery request.
+   * - ``prefer_primary_pile``
+     - ``False``
+     - Prefer PRIMARY/PROMOTED Bridge endpoints with synchronized-pile fallback; no effect without Bridge metadata.
    * - ``table_client_settings``
      - ``None``
      - :class:`~ydb.TableClientSettings` instance to configure the Table service client.
@@ -60,6 +63,29 @@ DriverConfig
    * - ``compression``
      - ``None``
      - gRPC-level compression (e.g. ``grpc.Compression.Gzip``).
+
+
+Preferring the primary Bridge pile
+----------------------------------------
+
+Enable this policy explicitly for sync or async drivers:
+
+.. code-block:: python
+
+   config = ydb.DriverConfig(
+       endpoint="grpc://discovery.example:2135",
+       database="/Root/mydb",
+       prefer_primary_pile=True,
+   )
+   driver = ydb.Driver(config)
+
+PRIMARY and PROMOTED endpoints take priority over SYNCHRONIZED endpoints.
+Other or unknown pile states are last-resort candidates. The policy follows role
+changes from discovery without recreating the driver, and takes precedence over
+local-DC preferences while Bridge metadata is present, even with ``use_all_nodes=True``.
+Without Bridge metadata the existing balancing behavior is preserved.
+Requests bound to a session retain their node affinity; the option does not move
+an existing session or perform a server-side failover. It is disabled by default.
 
 
 Creating a Driver

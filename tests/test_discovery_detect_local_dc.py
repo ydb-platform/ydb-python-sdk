@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from unittest.mock import Mock, MagicMock, patch
 from ydb import driver, pool, _utilities, connection
+from ydb import _apis, resolver
 
 
 class MockEndpointInfo:
@@ -118,3 +119,164 @@ def test_detect_local_dc_skipped_when_use_all_nodes_true():
             discovery.execute_discovery()
 
         assert detect_mock.call_count == 0, "detect_local_dc should NOT be called when use_all_nodes=True"
+
+
+class PrimaryConnection:
+    def __init__(self, endpoint, node_id):
+        self.endpoint, self.node_id = endpoint, node_id
+        self.closed = False
+        self.callbacks = []
+
+    def add_cleanup_callback(self, callback):
+        self.callbacks.append(callback)
+
+    def close(self):
+        self.closed = True
+        for callback in self.callbacks:
+            callback(self)
+
+
+def primary_result(states, nodes=((1, "A"), (2, "B"))):
+    message = _apis.ydb_discovery.ListEndpointsResult(self_location="local")
+    for node_id, pile in nodes:
+        message.endpoints.add(
+            address=f"node{node_id}",
+            port=2135,
+            node_id=node_id,
+            location="local" if pile == "A" else "remote",
+            bridge_pile_name=pile,
+        )
+    for name, state in states.items():
+        message.pile_states.add(pile_name=name, state=state)
+    response = _apis.ydb_discovery.ListEndpointsResponse()
+    response.operation.ready = True
+    response.operation.status = 400000
+    response.operation.result.Pack(message)
+    return resolver.DiscoveryResult.from_response(None, response, use_all_nodes=True)
+
+
+def primary_discovery(monkeypatch, result, enabled=True, use_all_nodes=True, failed=()):
+    created = []
+
+    def ready(endpoint, config, timeout, endpoint_options):
+        if endpoint in failed:
+            return None
+        conn = PrimaryConnection(endpoint, endpoint_options.node_id)
+        created.append(conn)
+        return conn
+
+    monkeypatch.setattr(connection.Connection, "ready_factory", ready)
+    config = driver.DriverConfig("grpc://test:2135", "/local", use_all_nodes=use_all_nodes, prefer_primary_pile=enabled)
+    discovery = pool.Discovery(pool.ConnectionsCache(use_all_nodes), config)
+    discovery._resolver = MagicMock()
+    discovery._resolver.context_resolve.return_value.__enter__.return_value = result
+    return discovery, created
+
+
+def test_primary_role_change_updates_existing_connections_and_affinity(monkeypatch):
+    discovery, created = primary_discovery(monkeypatch, primary_result({"A": 1, "B": 3}))
+    assert discovery.execute_discovery()
+    assert {discovery._cache.get().node_id for _ in range(10)} == {1}
+    assert discovery._cache.get(connection.EndpointKey("node2:2135", 2)).node_id == 2
+    discovery._resolver.context_resolve.return_value.__enter__.return_value = primary_result({"A": 3, "B": 1})
+    assert discovery.execute_discovery()
+    assert {discovery._cache.get().node_id for _ in range(10)} == {2}
+    assert len(created) == 2 and not any(conn.closed for conn in created)
+    assert discovery._cache.get(connection.EndpointKey("node1:2135", 1)).node_id == 1
+    discovery._cache.get().close()
+    assert discovery._cache.get().node_id == 1
+
+
+def test_primary_option_is_off_by_default_and_ordinary_clusters_keep_locality(monkeypatch):
+    assert not driver.DriverConfig("grpc://test:2135").prefer_primary_pile
+    discovery, _ = primary_discovery(monkeypatch, primary_result({"A": 1, "B": 3}), enabled=False)
+    assert discovery.execute_discovery()
+    assert {discovery._cache.get().node_id for _ in range(10)} == {1, 2}
+    discovery, created = primary_discovery(monkeypatch, primary_result({}), use_all_nodes=False)
+    assert discovery.execute_discovery()
+    assert {discovery._cache.get().node_id for _ in range(10)} == {1}
+    discovery._resolver.context_resolve.return_value.__enter__.return_value = primary_result({"A": 3, "B": 1})
+    assert discovery.execute_discovery()
+    assert discovery._cache.get().node_id == 2
+    discovery._resolver.context_resolve.return_value.__enter__.return_value = primary_result({})
+    assert discovery.execute_discovery()
+    assert discovery._cache.get().node_id == 1
+    assert len(created) == 2
+
+
+def test_primary_promoted_synchronized_and_unknown_fallback(monkeypatch):
+    result = primary_result({"A": 1, "B": 2, "C": 3, "D": 99}, ((1, "A"), (2, "B"), (3, "C"), (4, "D"), (5, "missing")))
+    discovery, _ = primary_discovery(monkeypatch, result)
+    assert discovery.execute_discovery()
+    assert {discovery._cache.get().node_id for _ in range(10)} == {1, 2}
+    discovery._cache.get(connection.EndpointKey("node1:2135", 1)).close()
+    discovery._cache.get(connection.EndpointKey("node2:2135", 2)).close()
+    assert discovery._cache.get().node_id == 3
+    discovery._cache.get().close()
+    assert {discovery._cache.get().node_id for _ in range(10)} == {4, 5}
+
+
+def test_primary_new_endpoint_enters_full_cache(monkeypatch):
+    old = tuple((i, "A") for i in range(1, 10))
+    discovery, created = primary_discovery(monkeypatch, primary_result({"A": 1}, old))
+    assert discovery.execute_discovery() and discovery._cache.size == 9
+    discovery._resolver.context_resolve.return_value.__enter__.return_value = primary_result(
+        {"A": 3, "B": 1}, old + ((10, "B"),)
+    )
+    assert discovery.execute_discovery()
+    assert discovery._cache.get().node_id == 10
+    assert discovery._cache.size == 9 and sum(conn.closed for conn in created) == 1
+    assert discovery.execute_discovery()
+    assert discovery._cache.size == 9 and len(created) == 10
+
+
+def test_failed_primary_does_not_evict_full_fallback_cache(monkeypatch):
+    old = tuple((i, "A") for i in range(1, 10))
+    discovery, created = primary_discovery(
+        monkeypatch, primary_result({"A": 3, "B": 1}, old + ((10, "B"),)), failed={"node10:2135"}
+    )
+    assert discovery.execute_discovery()
+    assert discovery._cache.size == 9 and not any(conn.closed for conn in created)
+    assert discovery._cache.get().node_id in range(1, 10)
+
+
+def test_primary_cache_retains_synchronized_fallback(monkeypatch):
+    nodes = tuple((i, "A") for i in range(1, 11)) + ((11, "B"),)
+    discovery, _ = primary_discovery(monkeypatch, primary_result({"A": 1, "B": 3}, nodes))
+    assert discovery.execute_discovery()
+    assert discovery._cache.size == 9
+    assert discovery._cache.already_exists("node11:2135")
+    for conn in discovery._cache.values():
+        if conn.node_id != 11:
+            conn.close()
+    assert discovery._cache.get().node_id == 11
+
+
+def test_primary_connection_retirement_preserves_other_address_node_affinity():
+    cache = pool.ConnectionsCache()
+    old, new = PrimaryConnection("old:2135", 1), PrimaryConnection("new:2135", 1)
+    cache.add(old)
+    cache.add(new)
+    old.close()
+    assert cache.get(connection.EndpointKey(None, 1)) is new
+
+
+def test_primary_driver_keyword_and_config_override(monkeypatch):
+    from ydb import topic, table, scheme, coordination
+
+    seen = []
+    monkeypatch.setattr(pool.ConnectionPool, "__init__", lambda self, config: seen.append(config))
+    for module, name in (
+        (topic, "TopicClient"),
+        (table, "TableClient"),
+        (scheme, "SchemeClient"),
+        (coordination, "CoordinationClient"),
+    ):
+        monkeypatch.setattr(module, name, MagicMock())
+    driver.Driver(endpoint="grpc://test:2135", database="/local", prefer_primary_pile=True)
+    assert seen[-1].prefer_primary_pile
+    config = driver.DriverConfig("grpc://test:2135", "/local", prefer_primary_pile=True)
+    driver.Driver(config)
+    assert seen[-1].prefer_primary_pile
+    driver.Driver(config, prefer_primary_pile=False)
+    assert not seen[-1].prefer_primary_pile

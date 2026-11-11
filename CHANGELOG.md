@@ -1,3 +1,5 @@
+* Add opt-in PRIMARY/PROMOTED Bridge pile preference with synchronized-pile fallback for sync and async drivers
+
 ## 3.35.0 ##
 * Include streaming queries in scheme directory listings and path descriptions
 * Add timeout to the token exchange request so a stalled token endpoint cannot hang credential refresh
