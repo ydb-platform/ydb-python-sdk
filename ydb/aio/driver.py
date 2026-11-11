@@ -56,10 +56,15 @@ class Driver(pool.ConnectionPool):
         database: Optional[str] = None,
         root_certificates: Optional[bytes] = None,
         credentials: Optional["Credentials"] = None,
+        *,
+        prefer_primary_pile: Optional[bool] = None,
         **kwargs: Any,
     ) -> None:
         from .. import topic  # local import for prevent cycle import error
         from . import coordination  # local import for prevent cycle import error
+
+        if prefer_primary_pile is not None:
+            kwargs["prefer_primary_pile"] = prefer_primary_pile
 
         config = get_config(
             driver_config,

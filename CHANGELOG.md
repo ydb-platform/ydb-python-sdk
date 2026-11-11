@@ -1,3 +1,4 @@
+* Add opt-in PRIMARY/PROMOTED Bridge pile preference with synchronized-pile fallback for sync and async drivers
 * Fix automatic refresh of short-lived login tokens by using their JWT expiration time.
 
 ## 3.35.0 ##

@@ -7,7 +7,7 @@ import logging
 from concurrent import futures
 import collections
 import random
-from typing import Any, Callable, ContextManager, List, Optional, Set, Tuple, TYPE_CHECKING
+from typing import Any, Callable, ContextManager, Dict, List, Optional, Set, Tuple, TYPE_CHECKING
 
 from . import connection as connection_impl, issues, resolver, _utilities, tracing
 from .observability.tracing import SpanName, create_ydb_span
@@ -37,6 +37,48 @@ class ConnectionsCache:
         self.use_all_nodes = use_all_nodes
         self.conn_lst_order = (self.connections,) if self.use_all_nodes else (self.preferred, self.connections)
         self.fast_fail_subscriptions: Set["futures.Future[None]"] = set()
+        self._bridge_priorities: Optional[Dict[str, int]] = None
+
+    def set_bridge_priorities(self, priorities: Optional[Dict[str, int]]) -> None:
+        with self.lock:
+            self._bridge_priorities = priorities
+
+    def connection_slot(self, endpoint: str, max_size: int) -> Tuple[bool, Optional[Connection]]:
+        with self.lock:
+            active = [conn for key, conn in self.connections.items() if key not in self.outdated]
+            if len(active) < max_size:
+                return True, None
+            if self._bridge_priorities is None or not active:
+                return False, None
+            priorities = self._bridge_priorities
+            target = priorities.get(endpoint, 2)
+            worst = max(active, key=lambda conn: priorities.get(conn.endpoint, 2))
+            ranks = [priorities.get(conn.endpoint, 2) for conn in active]
+            if target < max(ranks):
+                # Keep one synchronized connection for fallback when the cache has room for both tiers.
+                if max_size > 1 and target == 0 and max(ranks) == 1 and ranks.count(1) == 1 and 0 in ranks:
+                    return False, None
+                return True, worst
+            if max_size > 1 and target == 1 and 1 not in ranks and ranks.count(0) > 1:
+                return True, next(conn for conn in active if priorities.get(conn.endpoint, 2) == 0)
+            return False, None
+
+    def _get_balanced_connection(self) -> Connection:
+        if self._bridge_priorities is not None and self.connections:
+            priorities = self._bridge_priorities
+            best = min(priorities.get(endpoint, 2) for endpoint in self.connections)
+            for endpoint, conn in self.connections.items():
+                if priorities.get(endpoint, 2) == best:
+                    self.connections.move_to_end(endpoint)
+                    return conn
+        for conn_lst in self.conn_lst_order:
+            try:
+                endpoint, conn = conn_lst.popitem(last=False)
+                conn_lst[endpoint] = conn
+                return conn
+            except KeyError:
+                continue
+        raise issues.ConnectionLost("Couldn't find valid connection")
 
     def add(self, connection: Optional[Connection], preferred: bool = False) -> bool:
         if connection is None:
@@ -142,20 +184,14 @@ class ConnectionsCache:
             if preferred_endpoint is not None and preferred_endpoint.endpoint in self.connections:
                 return self.connections[preferred_endpoint.endpoint]
 
-            for conn_lst in self.conn_lst_order:
-                try:
-                    endpoint, connection = conn_lst.popitem(last=False)
-                    conn_lst[endpoint] = connection
-                    tracing.trace(self.tracer, {"found_in_lists": True})
-                    return connection
-                except KeyError:
-                    continue
-
-            raise issues.ConnectionLost("Couldn't find valid connection")
+            connection = self._get_balanced_connection()
+            tracing.trace(self.tracer, {"found_in_lists": True})
+            return connection
 
     def remove(self, connection: Connection) -> None:
         with self.lock:
-            self.connections_by_node_id.pop(connection.node_id, None)
+            if self.connections_by_node_id.get(connection.node_id) is connection:
+                self.connections_by_node_id.pop(connection.node_id, None)
             self.preferred.pop(connection.endpoint, None)
             self.connections.pop(connection.endpoint, None)
             self.outdated.pop(connection.endpoint, None)
@@ -238,9 +274,11 @@ class Discovery(threading.Thread):
                     self._cache.make_outdated(cached_endpoint)
 
             local_dc = resolve_details.self_location
+            priorities = resolve_details.bridge_priorities(True) if self._driver_config.prefer_primary_pile else None
+            self._cache.set_bridge_priorities(priorities)
 
             # Detect local DC using TCP latency if enabled and preferred is meaningful
-            if self._driver_config.detect_local_dc and not self._driver_config.use_all_nodes:
+            if priorities is None and self._driver_config.detect_local_dc and not self._driver_config.use_all_nodes:
                 # Use only endpoints that match the SSL requirements for detection
                 ssl_filtered_endpoints = [
                     endpoint
@@ -291,7 +329,10 @@ class Discovery(threading.Thread):
                     endpoint,
                     endpoint_options,
                 ) in resolved_endpoint.endpoints_with_options():
-                    if self._cache.size >= self._max_size or self._cache.already_exists(endpoint):
+                    if (
+                        self._cache.already_exists(endpoint)
+                        or not self._cache.connection_slot(endpoint, self._max_size)[0]
+                    ):
                         continue
 
                     ready_connection = connection_impl.Connection.ready_factory(
@@ -300,7 +341,14 @@ class Discovery(threading.Thread):
                         self._ready_timeout,
                         endpoint_options=endpoint_options,
                     )
-                    self._cache.add(ready_connection, preferred)
+                    if ready_connection is not None:
+                        allowed, replacement = self._cache.connection_slot(endpoint, self._max_size)
+                        if allowed:
+                            if replacement is not None:
+                                self._cache.make_outdated(replacement)
+                            self._cache.add(ready_connection, preferred)
+                        else:
+                            ready_connection.close()
 
         self._cache.cleanup_outdated()
 

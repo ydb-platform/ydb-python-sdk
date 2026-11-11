@@ -113,6 +113,7 @@ class DriverConfig(object):
         "compression",
         "disable_discovery",
         "detect_local_dc",
+        "prefer_primary_pile",
         "_additional_sdk_headers",
     )
 
@@ -141,6 +142,7 @@ class DriverConfig(object):
         disable_discovery: bool = False,
         detect_local_dc: bool = False,
         *,
+        prefer_primary_pile: bool = False,
         _additional_sdk_headers: Tuple[str, ...] = (),
     ) -> None:
         """
@@ -167,6 +169,9 @@ class DriverConfig(object):
         server-provided self_location. **Note**: This option only affects endpoint selection when use_all_nodes=False.\
         When use_all_nodes=True (default), all endpoints are used regardless of detected location.
         :param _additional_sdk_headers: Reserved for SDK integrations (e.g. dbapi, sqlalchemy). Do not use in application code.
+        :param prefer_primary_pile: Prefer PRIMARY/PROMOTED Bridge endpoints, with synchronized-pile fallback.\
+        Disabled by default and has no effect without Bridge metadata. Overrides locality while in Bridge mode;\
+        existing sessions retain node affinity.
 
         """
         self.endpoint = endpoint
@@ -196,6 +201,7 @@ class DriverConfig(object):
         self.compression = compression
         self.disable_discovery = disable_discovery
         self.detect_local_dc = detect_local_dc
+        self.prefer_primary_pile = prefer_primary_pile
         self._additional_sdk_headers = _additional_sdk_headers
 
     def set_database(self, database: str) -> "DriverConfig":
@@ -301,6 +307,8 @@ class Driver(pool.ConnectionPool):
         database: Optional[str] = None,
         root_certificates: Optional[bytes] = None,
         credentials: Optional["Credentials"] = None,
+        *,
+        prefer_primary_pile: Optional[bool] = None,
         **kwargs: Any,
     ) -> None:
         """
@@ -313,6 +321,7 @@ class Driver(pool.ConnectionPool):
         :param endpoint: An endpoint specified in the following format: <protocol>://<hostame>:<port>
         :param database: A database path
         :param credentials: A credentials. If not specified credentials constructed by default.
+        :param prefer_primary_pile: Override the DriverConfig PRIMARY-pile preference when specified.
         """
         from . import topic  # local import for prevent cycle import error
         from . import coordination  # local import for prevent cycle import error
@@ -325,6 +334,8 @@ class Driver(pool.ConnectionPool):
             root_certificates,
             credentials,
         )
+        if prefer_primary_pile is not None:
+            driver_config.prefer_primary_pile = prefer_primary_pile
 
         super(Driver, self).__init__(driver_config)
 
