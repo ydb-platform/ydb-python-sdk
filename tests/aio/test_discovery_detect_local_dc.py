@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import asyncio
 import pytest
 from unittest.mock import MagicMock, patch, AsyncMock
 from ydb import driver, connection
@@ -157,7 +158,7 @@ class PrimaryConnection:
 
     async def connection_ready(self, ready_timeout):
         if self.endpoint in self.failed:
-            raise TimeoutError()
+            raise asyncio.TimeoutError()
 
     def add_cleanup_callback(self, callback):
         self.callbacks.append(callback)
@@ -311,8 +312,6 @@ async def test_primary_driver_keyword_and_config_override(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_primary_discovery_cancellation_closes_candidate(monkeypatch):
-    import asyncio
-
     discovery = primary_discovery(monkeypatch, primary_result({"A": 1, "B": 3}))
     monkeypatch.setattr(PrimaryConnection, "connection_ready", AsyncMock(side_effect=asyncio.CancelledError))
     with pytest.raises(asyncio.CancelledError):
