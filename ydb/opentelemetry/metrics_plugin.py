@@ -30,6 +30,30 @@ from ydb.observability.metrics import (
     QUERY_SESSION_TIMEOUTS,
     RETRY_ATTEMPTS,
     RETRY_DURATION,
+    TOPIC_READER_COMMIT_ACKNOWLEDGED,
+    TOPIC_READER_COMMIT_OFFSET_LAG_MAX,
+    TOPIC_READER_COMMIT_QUEUED,
+    TOPIC_READER_COMPRESSION_DURATION,
+    TOPIC_READER_CREDIT_BALANCE_BYTES,
+    TOPIC_READER_DELIVERED_MESSAGES,
+    TOPIC_READER_LOCAL_BUFFER_MESSAGE_AGE_MAX,
+    TOPIC_READER_LOCAL_BUFFER_MESSAGES,
+    TOPIC_READER_MESSAGE_PROCESSING_DURATION,
+    TOPIC_READER_PARTITION_SESSION_COUNT,
+    TOPIC_READER_RECEIVED_BYTES,
+    TOPIC_READER_RECEIVED_MESSAGES,
+    TOPIC_READER_SESSION_ERRORS,
+    TOPIC_WRITER_BUFFER_LIMIT_BYTES,
+    TOPIC_WRITER_BUFFER_USED_BYTES,
+    TOPIC_WRITER_BUFFER_WAIT_DURATION,
+    TOPIC_WRITER_COMPRESSION_DURATION,
+    TOPIC_WRITER_MESSAGE_ACK_DURATION,
+    TOPIC_WRITER_MESSAGE_PROCESSING_DURATION,
+    TOPIC_WRITER_SENDING_BYTES,
+    TOPIC_WRITER_SENDING_MESSAGES,
+    TOPIC_WRITER_SENDING_OLDEST_AGE,
+    TOPIC_WRITER_SESSION_ERRORS,
+    TOPIC_WRITER_WRITTEN_MESSAGES,
     ATTEMPT_BUCKETS,
     DURATION_BUCKETS_SECONDS,
     GaugeCallback,
@@ -45,7 +69,49 @@ _GAUGE_META = {
     QUERY_SESSION_COUNT: ("{connection}", "Number of open YDB query sessions."),
     QUERY_SESSION_MAX: ("{connection}", "Maximum configured number of YDB query sessions."),
     QUERY_SESSION_MIN: ("{connection}", "Minimum configured number of YDB query sessions."),
+    TOPIC_READER_CREDIT_BALANCE_BYTES: (
+        "By",
+        "The protocol credit granted to the server and not yet consumed by read responses.",
+    ),
+    TOPIC_READER_COMMIT_OFFSET_LAG_MAX: (
+        "{message}",
+        "The maximum gap between requested and acknowledged commit offsets.",
+    ),
+    TOPIC_READER_LOCAL_BUFFER_MESSAGES: (
+        "{message}",
+        "The number of messages currently buffered by the reader.",
+    ),
+    TOPIC_READER_LOCAL_BUFFER_MESSAGE_AGE_MAX: (
+        "s",
+        "Age of the oldest message currently buffered by the reader.",
+    ),
+    TOPIC_READER_PARTITION_SESSION_COUNT: (
+        "{session}",
+        "The number of active partition sessions owned by the reader.",
+    ),
+    TOPIC_WRITER_BUFFER_USED_BYTES: (
+        "By",
+        "The occupied budget of the writer buffer limiter.",
+    ),
+    TOPIC_WRITER_BUFFER_LIMIT_BYTES: (
+        "By",
+        "The configured limit of the writer buffer limiter.",
+    ),
+    TOPIC_WRITER_SENDING_OLDEST_AGE: (
+        "s",
+        "The age of the oldest message in the writer's in-flight buffer.",
+    ),
 }
+_OBSERVABLE_GAUGE_INSTRUMENTS = frozenset(
+    {
+        TOPIC_READER_CREDIT_BALANCE_BYTES,
+        TOPIC_READER_COMMIT_OFFSET_LAG_MAX,
+        TOPIC_READER_LOCAL_BUFFER_MESSAGE_AGE_MAX,
+        TOPIC_WRITER_BUFFER_LIMIT_BYTES,
+        TOPIC_WRITER_BUFFER_USED_BYTES,
+        TOPIC_WRITER_SENDING_OLDEST_AGE,
+    }
+)
 
 
 class OtelMetricsProvider:
@@ -92,6 +158,48 @@ class OtelMetricsProvider:
                 ),
                 bucket_boundaries=ATTEMPT_BUCKETS,
             ),
+            TOPIC_READER_COMPRESSION_DURATION: _create_histogram(
+                meter,
+                TOPIC_READER_COMPRESSION_DURATION,
+                unit="s",
+                description="The time spent decompressing a message, excluding queueing.",
+                bucket_boundaries=DURATION_BUCKETS_SECONDS,
+            ),
+            TOPIC_READER_MESSAGE_PROCESSING_DURATION: _create_histogram(
+                meter,
+                TOPIC_READER_MESSAGE_PROCESSING_DURATION,
+                unit="s",
+                description="The time from receipt until a message is ready for delivery.",
+                bucket_boundaries=DURATION_BUCKETS_SECONDS,
+            ),
+            TOPIC_WRITER_BUFFER_WAIT_DURATION: _create_histogram(
+                meter,
+                TOPIC_WRITER_BUFFER_WAIT_DURATION,
+                unit="s",
+                description="Time waiting for buffer capacity before a message is accepted.",
+                bucket_boundaries=DURATION_BUCKETS_SECONDS,
+            ),
+            TOPIC_WRITER_COMPRESSION_DURATION: _create_histogram(
+                meter,
+                TOPIC_WRITER_COMPRESSION_DURATION,
+                unit="s",
+                description="The time spent compressing a message, excluding queueing.",
+                bucket_boundaries=DURATION_BUCKETS_SECONDS,
+            ),
+            TOPIC_WRITER_MESSAGE_PROCESSING_DURATION: _create_histogram(
+                meter,
+                TOPIC_WRITER_MESSAGE_PROCESSING_DURATION,
+                unit="s",
+                description="The time from buffer acceptance until a message is ready for sending.",
+                bucket_boundaries=DURATION_BUCKETS_SECONDS,
+            ),
+            TOPIC_WRITER_MESSAGE_ACK_DURATION: _create_histogram(
+                meter,
+                TOPIC_WRITER_MESSAGE_ACK_DURATION,
+                unit="s",
+                description="Time from first sending a message to the server to its acknowledgement.",
+                bucket_boundaries=DURATION_BUCKETS_SECONDS,
+            ),
         }
         self._counters: Dict[str, Any] = {
             CLIENT_OPERATION_FAILED: meter.create_counter(
@@ -114,6 +222,56 @@ class OtelMetricsProvider:
                 unit="{request}",
                 description="Number of requests waiting for a YDB query session.",
             ),
+            TOPIC_READER_DELIVERED_MESSAGES: meter.create_counter(
+                TOPIC_READER_DELIVERED_MESSAGES,
+                unit="{message}",
+                description="Number of messages delivered by the YDB topic reader to the application.",
+            ),
+            TOPIC_READER_COMMIT_QUEUED: meter.create_counter(
+                TOPIC_READER_COMMIT_QUEUED,
+                unit="{message}",
+                description="The number of messages in commit ranges accepted by the SDK.",
+            ),
+            TOPIC_READER_COMMIT_ACKNOWLEDGED: meter.create_counter(
+                TOPIC_READER_COMMIT_ACKNOWLEDGED,
+                unit="{message}",
+                description="The number of messages acknowledged by regular or transactional commits.",
+            ),
+            TOPIC_READER_RECEIVED_MESSAGES: meter.create_counter(
+                TOPIC_READER_RECEIVED_MESSAGES,
+                unit="{message}",
+                description="The number of messages accepted by the SDK for an active partition session.",
+            ),
+            TOPIC_READER_RECEIVED_BYTES: meter.create_counter(
+                TOPIC_READER_RECEIVED_BYTES,
+                unit="By",
+                description="The protocol bytes_size received in read responses.",
+            ),
+            TOPIC_READER_SESSION_ERRORS: meter.create_counter(
+                TOPIC_READER_SESSION_ERRORS,
+                unit="{error}",
+                description="Number of YDB topic reader session errors.",
+            ),
+            TOPIC_WRITER_SENDING_MESSAGES: meter.create_counter(
+                TOPIC_WRITER_SENDING_MESSAGES,
+                unit="{message}",
+                description="Number of messages accepted by the SDK from the application for sending.",
+            ),
+            TOPIC_WRITER_SENDING_BYTES: meter.create_counter(
+                TOPIC_WRITER_SENDING_BYTES,
+                unit="By",
+                description="Uncompressed message body bytes accepted by the SDK from the application for sending.",
+            ),
+            TOPIC_WRITER_WRITTEN_MESSAGES: meter.create_counter(
+                TOPIC_WRITER_WRITTEN_MESSAGES,
+                unit="{message}",
+                description="Number of messages confirmed by the server, including already written messages.",
+            ),
+            TOPIC_WRITER_SESSION_ERRORS: meter.create_counter(
+                TOPIC_WRITER_SESSION_ERRORS,
+                unit="{error}",
+                description="Number of YDB topic writer session errors by retry decision.",
+            ),
         }
 
     def record(self, name: str, value: float, attributes: Optional[Dict[str, Any]] = None) -> None:
@@ -132,7 +290,12 @@ class OtelMetricsProvider:
         def _otel_callback(_: CallbackOptions):
             return [Observation(value, attributes=attrs) for value, attrs in callback()]
 
-        self._meter.create_observable_up_down_counter(
+        create_instrument = (
+            self._meter.create_observable_gauge
+            if name in _OBSERVABLE_GAUGE_INSTRUMENTS
+            else self._meter.create_observable_up_down_counter
+        )
+        create_instrument(
             name,
             callbacks=[_otel_callback],
             unit=unit,

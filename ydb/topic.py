@@ -295,6 +295,7 @@ class TopicClientAsyncIO:
         auto_partitioning_support: Optional[bool] = True,  # Auto partitioning feature flag. Default - True.
         event_handler: Optional[TopicReaderEvents.EventHandler] = None,
         buffer_release_threshold: float = 0.5,
+        reader_name: Optional[str] = None,
     ) -> TopicReaderAsyncIO:
 
         logger.debug("Create reader for topic=%s consumer=%s", topic, consumer)
@@ -345,6 +346,7 @@ class TopicClientAsyncIO:
         max_buffer_size_bytes: Optional[int] = None,
         max_buffer_messages: Optional[int] = None,
         buffer_wait_timeout_sec: Optional[float] = None,
+        writer_name: Optional[str] = None,
     ) -> TopicWriterAsyncIO:
         logger.debug("Create writer for topic=%s producer_id=%s", topic, producer_id)
         args = locals().copy()
@@ -377,6 +379,7 @@ class TopicClientAsyncIO:
         max_buffer_size_bytes: Optional[int] = None,
         max_buffer_messages: Optional[int] = None,
         buffer_wait_timeout_sec: Optional[float] = None,
+        writer_name: Optional[str] = None,
     ) -> TopicTxWriterAsyncIO:
         logger.debug("Create tx writer for topic=%s tx=%s", topic, tx)
         args = locals().copy()
@@ -631,6 +634,7 @@ class TopicClient:
         auto_partitioning_support: Optional[bool] = True,  # Auto partitioning feature flag. Default - True.
         event_handler: Optional[TopicReaderEvents.EventHandler] = None,
         buffer_release_threshold: float = 0.5,
+        reader_name: Optional[str] = None,
     ) -> TopicReader:
         logger.debug("Create reader for topic=%s consumer=%s", topic, consumer)
         if not decoder_executor:
@@ -679,6 +683,7 @@ class TopicClient:
         max_buffer_size_bytes: Optional[int] = None,
         max_buffer_messages: Optional[int] = None,
         buffer_wait_timeout_sec: Optional[float] = None,
+        writer_name: Optional[str] = None,
     ) -> TopicWriter:
         logger.debug("Create writer for topic=%s producer_id=%s", topic, producer_id)
         args = locals().copy()
@@ -712,6 +717,7 @@ class TopicClient:
         max_buffer_size_bytes: Optional[int] = None,
         max_buffer_messages: Optional[int] = None,
         buffer_wait_timeout_sec: Optional[float] = None,
+        writer_name: Optional[str] = None,
     ) -> TopicWriter:
         logger.debug("Create tx writer for topic=%s tx=%s", topic, tx)
         args = locals().copy()

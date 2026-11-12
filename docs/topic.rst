@@ -183,12 +183,15 @@ Writer Parameters
         codec=ydb.TopicCodec.GZIP,       # Compress messages. Default: RAW (no compression).
         auto_seqno=True,                 # Auto-increment sequence numbers (default: True).
         auto_created_at=True,            # Auto-set message timestamps (default: True).
+        writer_name="payments-writer",  # Stable name that enables Writer metrics.
     )
 
 * ``producer_id`` is used for deduplication: if the same ``(producer_id, seqno)`` pair is
   received again, YDB silently skips it.
 * When ``auto_seqno=True`` the SDK assigns monotonically increasing sequence numbers.
   Set ``auto_seqno=False`` and provide ``seqno`` manually when you need deterministic IDs.
+* Pass a stable, non-empty ``writer_name`` to publish Writer metrics. Omitting it does
+  not change Writer behavior, but disables its metrics.
 
 
 Sending Messages
@@ -381,7 +384,15 @@ Reader Parameters
         consumer="my-consumer",
         buffer_size_bytes=50 * 1024 * 1024,  # client-side buffer (default: 50 MB)
         buffer_release_threshold=0.5,        # see below (default: 0.5)
+        reader_name="payments-worker",       # optional diagnostic name
     )
+
+``reader_name`` identifies a logical reader in server-side diagnostics and SDK logs. If it is
+omitted or empty, the SDK generates a process-local name in the form ``reader-N``. The name
+remains unchanged when the reader reconnects. Explicit names do not have to be unique. Topic
+Reader metrics are published only when the application supplies a
+non-empty ``reader_name``. See :ref:`topic-reader-receive-metrics` for their semantics
+and attributes.
 
 ``buffer_size_bytes`` controls how many bytes the server is allowed to send before the client
 signals that it is ready for more. The server will not exceed this limit.

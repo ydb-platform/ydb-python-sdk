@@ -94,6 +94,98 @@ class TestTopicWriterAsyncIO:
         assert msg2.seqno == 2
         assert msg2.data == "456".encode()
 
+    async def test_writer_metrics_e2e(self, driver: ydb.aio.Driver, topic_path):
+        from opentelemetry.sdk.metrics import MeterProvider
+        from opentelemetry.sdk.metrics.export import InMemoryMetricReader
+
+        from ydb.observability.metrics import (
+            TOPIC_WRITER_COMPRESSION_DURATION,
+            TOPIC_WRITER_MESSAGE_ACK_DURATION,
+            TOPIC_WRITER_MESSAGE_PROCESSING_DURATION,
+            TOPIC_WRITER_SENDING_OLDEST_AGE,
+            TOPIC_WRITER_WRITTEN_MESSAGES,
+        )
+        from ydb.opentelemetry import disable_metrics, enable_metrics
+
+        reader = InMemoryMetricReader()
+        provider = MeterProvider(metric_readers=[reader])
+        disable_metrics()
+        enable_metrics(provider)
+        try:
+            async with driver.topic_client.writer(
+                topic_path,
+                codec=ydb.TopicCodec.GZIP,
+                writer_name="e2e-writer",
+            ) as writer:
+                await writer.write_with_ack(
+                    [
+                        ydb.TopicWriterMessage(data=b"first"),
+                        ydb.TopicWriterMessage(data=b"second"),
+                    ]
+                )
+                data = reader.get_metrics_data()
+
+            metrics = {
+                metric.name: metric
+                for resource_metrics in data.resource_metrics
+                for scope_metrics in resource_metrics.scope_metrics
+                for metric in scope_metrics.metrics
+            }
+            written_metric = metrics[TOPIC_WRITER_WRITTEN_MESSAGES]
+            written_points = list(written_metric.data.data_points)
+
+            assert written_metric.unit == "{message}"
+            assert len(written_points) == 1
+            assert written_points[0].value == 2
+            assert written_points[0].attributes["topic"] == topic_path
+            assert written_points[0].attributes["writer.name"] == "e2e-writer"
+            assert "status" not in written_points[0].attributes
+
+            processing_metric = metrics[TOPIC_WRITER_MESSAGE_PROCESSING_DURATION]
+            processing_points = list(processing_metric.data.data_points)
+            assert processing_metric.unit == "s"
+            assert len(processing_points) == 1
+            assert processing_points[0].count == 2
+            assert processing_points[0].sum >= 0
+            assert processing_points[0].attributes["topic"] == topic_path
+            assert processing_points[0].attributes["writer.name"] == "e2e-writer"
+            assert processing_points[0].attributes["codec"] == "gzip"
+            assert processing_points[0].attributes["outcome"] == "ok"
+            assert "error.type" not in processing_points[0].attributes
+
+            compression_metric = metrics[TOPIC_WRITER_COMPRESSION_DURATION]
+            compression_points = list(compression_metric.data.data_points)
+            assert compression_metric.unit == "s"
+            assert len(compression_points) == 1
+            assert compression_points[0].count == 2
+            assert compression_points[0].sum >= 0
+            assert compression_points[0].attributes["topic"] == topic_path
+            assert compression_points[0].attributes["writer.name"] == "e2e-writer"
+            assert compression_points[0].attributes["codec"] == "gzip"
+            assert compression_points[0].attributes["outcome"] == "ok"
+            assert "error.type" not in compression_points[0].attributes
+
+            ack_metric = metrics[TOPIC_WRITER_MESSAGE_ACK_DURATION]
+            ack_points = list(ack_metric.data.data_points)
+            assert ack_metric.unit == "s"
+            assert len(ack_points) == 1
+            assert ack_points[0].count == 2
+            assert ack_points[0].sum >= 0
+            assert ack_points[0].attributes["topic"] == topic_path
+            assert ack_points[0].attributes["writer.name"] == "e2e-writer"
+            assert "status" not in ack_points[0].attributes
+
+            oldest_age_metric = metrics[TOPIC_WRITER_SENDING_OLDEST_AGE]
+            oldest_age_points = list(oldest_age_metric.data.data_points)
+            assert oldest_age_metric.unit == "s"
+            assert len(oldest_age_points) == 1
+            assert oldest_age_points[0].value == 0
+            assert oldest_age_points[0].attributes["topic"] == topic_path
+            assert oldest_age_points[0].attributes["writer.name"] == "e2e-writer"
+        finally:
+            disable_metrics()
+            provider.shutdown()
+
     @pytest.mark.parametrize(
         "codec",
         [

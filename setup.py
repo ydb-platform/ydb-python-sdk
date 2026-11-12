@@ -38,6 +38,6 @@ setuptools.setup(
     install_requires=requirements,  # requirements.txt
     extras_require={
         "yc": ["yandexcloud", ],
-        "opentelemetry": ["opentelemetry-api>=1.0.0"],
+        "opentelemetry": ["opentelemetry-api>=1.12.0"],
     }
 )
