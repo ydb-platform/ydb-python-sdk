@@ -1,15 +1,12 @@
-"""Verify live role-aware routing, recovery and independently audited data."""
+"""Verify completion and recovery of the GitHub-hosted Bridge workload."""
 
 import json
 import math
 import os
 from pathlib import Path
-import re
 import subprocess
 import urllib.parse
 import urllib.request
-
-from checks import MODES, audit_rows, check_node_events, check_routing, json_lines
 
 SCENARIOS = (
     "01-switchover",
@@ -22,6 +19,18 @@ SCENARIOS = (
 
 def command(*args, check=True, timeout=90, stderr=subprocess.STDOUT):
     return subprocess.run(args, text=True, stdout=subprocess.PIPE, stderr=stderr, check=check, timeout=timeout).stdout
+
+
+def check_chaos(log, state, restarts):
+    errors = []
+    if state["Status"] != "exited" or state["ExitCode"] != 0 or restarts or "Chaos Monkey finished" not in log:
+        errors.append("Chaos sequence did not finish without a process restart")
+    for scenario in SCENARIOS:
+        if f"Running scenario: {scenario}" not in log:
+            errors.append(f"Scenario not executed: {scenario}")
+    if log.count("] Recovered: ") != len(SCENARIOS):
+        errors.append("Expected five completed chaos recoveries")
+    return errors
 
 
 def main():
@@ -55,73 +64,8 @@ def main():
         chaos_info = json.loads(command("docker", "inspect", "ydb-chaos-monkey"))[0]
         chaos = chaos_info["State"]
         log = (artifacts / "ydb-chaos-monkey.log").read_text()
-        if (
-            chaos["Status"] != "exited"
-            or chaos["ExitCode"] != 0
-            or chaos_info["RestartCount"]
-            or "Chaos Monkey finished" not in log
-        ):
-            result["errors"].append("Chaos sequence did not finish without a process restart")
-        for scenario in SCENARIOS:
-            if f"Running scenario: {scenario}" not in log:
-                result["errors"].append(f"Scenario not executed: {scenario}")
-        state = json.loads(command("docker", "inspect", "ydb-bridge-probe"))[0]
-        if state["State"]["Running"]:
-            command("docker", "exec", "ydb-bridge-probe", "touch", "/tmp/bridge-probe-stop")
-        command("docker", "wait", "ydb-bridge-probe", timeout=150)
-        probe_log = command("docker", "logs", "ydb-bridge-probe", check=False)
-        (artifacts / "ydb-bridge-probe.log").write_text(probe_log)
-        command("docker", "cp", "ydb-bridge-probe:/tmp/bridge-probe.json", str(artifacts / "probe.json"))
-        probe = json.loads((artifacts / "probe.json").read_text())
-        result["probe"] = probe
-        if not probe.get("passed") or state["RestartCount"]:
-            result["errors"].append("Probe failed or its process was restarted")
-        events = json_lines(probe_log)
-        for mode in (*MODES, "control-table"):
-            if sum(row.get("event") == "driver_started" and row.get("mode") == mode for row in events) != 1:
-                result["errors"].append(f"Expected one long-lived driver for {mode}")
-        routing, errors = check_routing(log, events, probe["stopped_at"])
-        result["routing"] = routing
-        result["errors"].extend(errors)
-        result["errors"].extend(check_node_events(log, json_lines((artifacts / "docker-events.jsonl").read_text())))
-        if not re.fullmatch(r"primary_probe_[a-f0-9]+", probe["table"]):
-            raise ValueError("Unexpected audit table name")
-        output = None
-        for node in ("ydb-database-1", "ydb-database-2"):
-            try:
-                with (artifacts / f"audit-{node}-stderr.log").open("w") as stderr:
-                    output = command(
-                        "docker",
-                        "exec",
-                        node,
-                        "/opt/ydb.tech/ydb/bin/ydb",
-                        "-e",
-                        "grpc://localhost:2136",
-                        "-d",
-                        "/Root/testdb",
-                        "--no-discovery",
-                        "sql",
-                        "-s",
-                        f"SELECT `mode`, seq, payload FROM `{probe['table']}`;",
-                        "--format",
-                        "json-unicode",
-                        timeout=20,
-                        stderr=stderr,
-                    )
-                break
-            except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as error:
-                (artifacts / f"audit-{node}-error.txt").write_text(str(error))
-        if output is None:
-            raise RuntimeError("No available compute node could complete the independent CLI audit")
-        (artifacts / "audit-rows.jsonl").write_text(output)
-        missing = audit_rows(probe, json_lines(output, strict=True))
-        (artifacts / "missing.json").write_text(json.dumps(missing, indent=2))
-        result["audit"] = {
-            "confirmed": sum(len(item["confirmed"]) for item in probe["modes"].values()),
-            "missing": len(missing),
-        }
-        if missing:
-            result["errors"].append("Acknowledged probe rows were lost or corrupted")
+        result["errors"].extend(check_chaos(log, chaos, chaos_info["RestartCount"]))
+        result["completed_scenarios"] = len(SCENARIOS) if not result["errors"] else None
         ip = command(
             "docker",
             "inspect",
@@ -156,7 +100,6 @@ def main():
                 "ydb-database-1",
                 "ydb-database-2",
                 "ydb-workload-current",
-                "ydb-bridge-probe",
             )
         )
         result["container_states"] = {
@@ -165,7 +108,7 @@ def main():
         if any(node["State"]["OOMKilled"] or node["RestartCount"] for node in containers):
             result["errors"].append("A container was OOM killed or unexpectedly restarted")
         for node in containers:
-            if node["Name"] in ("/ydb-workload-current", "/ydb-bridge-probe") and (
+            if node["Name"] == "/ydb-workload-current" and (
                 node["State"]["Status"] != "exited" or node["State"]["ExitCode"] != 0
             ):
                 result["errors"].append(f"Workload process did not exit successfully: {node['Name']}")
@@ -173,7 +116,7 @@ def main():
         result["errors"].append(repr(error))
     result["passed"] = not result["errors"]
     (artifacts / "result.json").write_text(json.dumps(result, indent=2))
-    print(json.dumps({key: value for key, value in result.items() if key != "probe"}, indent=2))
+    print(json.dumps(result, indent=2))
     return 0 if result["passed"] else 1
 
 

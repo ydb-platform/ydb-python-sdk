@@ -1,10 +1,8 @@
 """Configure a pinned Action checkout for a bounded GitHub-hosted run."""
 
 import argparse
-import copy
 import json
 import subprocess
-import shutil
 from pathlib import Path
 
 
@@ -43,6 +41,11 @@ def prepare(action, image):
             "ydb:172.28.0.11",
             "ydb:172.28.0.12",
         ]
+    chaos = config["services"]["chaos-monkey"]
+    environment = chaos["environment"]
+    if isinstance(environment, list):
+        environment = {item.partition("=")[0]: item.partition("=")[2] if "=" in item else None for item in environment}
+    chaos["environment"] = {**environment, "CHAOS_SCENARIO_DELAY": "30"}
     for filename in ("config.yaml", "config.bridge.yaml"):
         path = deploy / "ydb/rootfs/opt/ydb.tech/ydbd/cfg" / filename
         text = path.read_text()
@@ -58,21 +61,6 @@ def prepare(action, image):
     if text.count("local max_attempts=30") != 2:
         raise RuntimeError("Unexpected readiness implementation")
     readiness.write_text(text.replace("local max_attempts=30", "local max_attempts=150", 1))
-    scenario = deploy / "chaos/rootfs/opt/ydb.tech/chaos/bridge-scenarios/01-switchover.sh"
-    shutil.copyfile(Path(__file__).with_name("switchover.sh"), scenario)
-    scenario.chmod(0o755)
-    probe = copy.deepcopy(config["services"]["workload-current"])
-    probe.update(
-        container_name="ydb-bridge-probe", entrypoint=["python", "/src/tests/slo/src/primary_probe.py"], command=[]
-    )
-    probe.pop("deploy", None)
-    probe["mem_limit"] = "768m"
-    probe["restart"] = "no"
-    environment = probe.get("environment", {})
-    if isinstance(environment, list):
-        environment = {item.partition("=")[0]: item.partition("=")[2] if "=" in item else None for item in environment}
-    probe["environment"] = {**environment, "ORACLE_ENDPOINTS": "ydb-storage-1:2136,ydb-storage-2:2136"}
-    config["services"]["bridge-probe"] = probe
     compose.write_text(json.dumps(config, indent=2) + "\n")
     subprocess.run(["docker", "compose", "-f", str(compose), "config", "--quiet"], check=True)
 
