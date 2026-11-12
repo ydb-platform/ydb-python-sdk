@@ -1,5 +1,6 @@
 """Read the server's discovery RPC directly, independently of driver balancing."""
 
+import asyncio
 import grpc
 import ydb
 from ydb import _apis
@@ -36,6 +37,14 @@ class BridgeObserver:
     def close(self):
         for channel in self.channels:
             channel.close()
+
+
+def is_rpc_cancellation(task=None):
+    """A canceled RPC future is distinct from cancellation requested for its caller task."""
+    task = task if task is not None else asyncio.current_task()
+    cancelling = getattr(task, "cancelling", None)
+    # Older Python versions cannot distinguish these cases; preserve cancellation there.
+    return cancelling is not None and cancelling() == 0
 
 
 def route_observation(node_id, before, after):

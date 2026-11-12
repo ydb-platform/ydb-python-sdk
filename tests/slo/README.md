@@ -26,6 +26,11 @@ wrong-pile routing after stabilization, stalled modes, lost/corrupt data, OOM, p
 restarts or incomplete chaos fail the job. The oracle, workload, node events and audit
 are retained in the `python-hosted-2dc` artifact for 14 days.
 
+Async gRPC may surface a canceled RPC future as `asyncio.CancelledError`. The probe
+records it as an operation error only when no cancellation was requested for its
+caller task. Caller-task cancellation is preserved. The workload image uses Python 3.11;
+on runtimes without cancellation counters the probe conservatively propagates cancellation.
+
 The runner adapter bounds resources and cold-start readiness time, restricts bootstrap
 DNS aliases to the two active compute nodes, and extends
 the first scenario's observation windows; the action lifecycle remains at the pinned revision.

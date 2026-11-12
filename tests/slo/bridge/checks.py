@@ -98,6 +98,24 @@ def check_routing(log, events, stopped_at):
     }
     if any(count < 3 for count in details["final_writes"].values()):
         errors.append("Some probe modes stopped making progress at the end of the run")
+    details["final_routing"] = {}
+    if windows:
+        primary = windows[0]["pile"]
+        for mode in MODES:
+            samples = [
+                row
+                for row in events
+                if row.get("event") == "session_created"
+                and row.get("mode") == mode
+                and stopped_at - 30 <= row.get("ts", 0) <= stopped_at
+                and row.get("stable")
+                and row.get("both_piles_visible")
+                and row.get("primary") == primary
+            ]
+            wrong = sum(row.get("pile") != primary for row in samples)
+            details["final_routing"][mode] = {"sessions": len(samples), "wrong_pile": wrong}
+            if len(samples) < 3 or wrong:
+                errors.append(f"PRIMARY routing did not recover at the end for {mode}")
     return details, errors
 
 
