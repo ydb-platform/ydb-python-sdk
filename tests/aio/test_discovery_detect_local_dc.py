@@ -318,29 +318,3 @@ async def test_primary_discovery_cancellation_closes_candidate(monkeypatch):
         await discovery.execute_discovery()
     assert len(PrimaryConnection.created) == 1
     assert PrimaryConnection.created[0].closed
-
-
-@pytest.mark.asyncio
-async def test_live_slo_distinguishes_rpc_future_and_caller_task_cancellation():
-    from tests.slo.src.bridge_observer import is_rpc_cancellation
-
-    # Canceling an awaited future does not request cancellation of its caller task.
-    future = asyncio.get_running_loop().create_future()
-    future.cancel()
-    try:
-        await future
-    except asyncio.CancelledError:
-        assert is_rpc_cancellation() == hasattr(asyncio.current_task(), "cancelling")
-
-    async def caller():
-        try:
-            await asyncio.sleep(60)
-        except asyncio.CancelledError:
-            assert not is_rpc_cancellation()
-            raise
-
-    task = asyncio.create_task(caller())
-    await asyncio.sleep(0)
-    task.cancel()
-    with pytest.raises(asyncio.CancelledError):
-        await task

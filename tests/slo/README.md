@@ -1,39 +1,20 @@
 # SLO workload
 
-## GitHub-hosted PRIMARY pile qualification
+## GitHub-hosted Bridge SLO
 
-`.github/workflows/slo-2dc.yml` runs the pinned SLO Action v2 on `ubuntu-24.04`,
-using two storage and two database nodes in a real Bridge cluster. It is a ready-made
-Bridge topology with `erasure=none` and SectorMap disks, not the config-v1 migration procedure.
-The image is pinned by digest and its OCI metadata is retained with the results.
+`.github/workflows/slo-2dc.yml` runs the standard five Bridge scenarios from the
+pinned SLO Action v2 on `ubuntu-24.04`. The ordinary `sync-query` workload runs for
+10 minutes with `--prefer-primary-pile` enabled.
 
-The 25-minute native Query workload enables `--prefer-primary-pile`. A separate probe
-keeps one driver per sync/async Table/Query mode, creates fresh sessions, writes and reads
-unique transactional rows, and runs an additional disabled-option control driver.
-An independent raw discovery RPC maps server-reported session node IDs to pile roles;
-the SDK's cache or priority implementation is not used as the oracle.
+The runner uses two storage and two database nodes, `erasure=none` and SectorMap disks.
+The adapter bounds resources and cold-start readiness time, restricts bootstrap DNS
+to active compute nodes, and sets a 30-second gap between fault scenarios to fit the
+10-minute workload. The upstream scenario scripts and SDK discovery intervals are unchanged.
 
-The first scenario stops only PRIMARY compute for 45 seconds to exercise synchronized
-fallback. It then holds A, B and A as PRIMARY for 160 seconds each, without node restarts
-between these observation windows. Default discovery intervals are retained. In each
-window's last 30 seconds every enabled mode must create at least three sessions on PRIMARY
-and confirm at least three writes; the disabled control must use both piles.
-
-All five upstream switchover/takedown/failover scenarios run. Every enabled mode must
-resume data operations after every recovery and continue near the end. A separate CLI
-query audits every acknowledged row. Transient operation errors are recorded and allowed;
-wrong-pile routing after stabilization, stalled modes, lost/corrupt data, OOM, process
-restarts or incomplete chaos fail the job. The oracle, workload, node events and audit
-are retained in the `python-hosted-2dc` artifact for 14 days.
-
-Async gRPC may surface a canceled RPC future as `asyncio.CancelledError`. The probe
-records it as an operation error only when no cancellation was requested for its
-caller task. Caller-task cancellation is preserved. The workload image uses Python 3.11;
-on runtimes without cancellation counters the probe conservatively propagates cancellation.
-
-The runner adapter bounds resources and cold-start readiness time, restricts bootstrap
-DNS aliases to the two active compute nodes, and extends
-the first scenario's observation windows; the action lifecycle remains at the pinned revision.
+The job requires all five scenarios to complete, successful recent reads and writes,
+and no workload failure, OOM or unexpected container restart. Transient operation
+errors are recorded. Server image metadata, workload and chaos logs, final container
+states and counters are retained in the `python-hosted-2dc` artifact for 14 days.
 
 SLO is the type of test where app based on ydb-sdk is tested against falling YDB cluster nodes, tablets, network
 (that is possible situations for distributed DBs with hundreds of nodes)

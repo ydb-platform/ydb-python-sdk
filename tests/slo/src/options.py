@@ -1,4 +1,10 @@
 import argparse
+import ydb
+
+
+def get_driver_config(args):
+    options = {"prefer_primary_pile": True} if getattr(args, "prefer_primary_pile", False) else {}
+    return ydb.DriverConfig(args.endpoint, database=args.db, grpc_keep_alive_timeout=5000, **options)
 
 
 def add_common_options(parser):

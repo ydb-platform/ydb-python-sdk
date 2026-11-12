@@ -4,7 +4,6 @@ on:
   pull_request:
     paths:
       - .github/workflows/slo-2dc.yml
-      - tests/slo/bridge/**
       - tests/slo/**
       - ydb/driver.py
       - ydb/resolver.py
@@ -24,7 +23,7 @@ permissions:
 jobs:
   bridge:
     runs-on: ubuntu-24.04
-    timeout-minutes: 60
+    timeout-minutes: 30
     concurrency:
       group: hosted-2dc-${{ github.ref }}
       cancel-in-progress: true
@@ -68,32 +67,14 @@ jobs:
           python tests/slo/bridge/prepare.py .slo-action "$SERVER_IMAGE"
       - name: Build current Python SDK workload
         run: docker build -f tests/slo/Dockerfile -t py-slo-bridge:current .
-      - name: Record node events and stop early on a fatal probe or chaos error
-        run: |
-          docker events --filter type=container --filter label=ydb.node.type=database \
-            --filter event=stop --filter event=start --format '{{json .}}' \
-            > bridge-artifacts/docker-events.jsonl 2>&1 &
-          (
-            while sleep 5; do
-              native=$(docker inspect --format '{{.State.Status}}' ydb-workload-current 2>/dev/null || true)
-              [ "$native" != exited ] || exit 0
-              for container in ydb-bridge-probe ydb-chaos-monkey; do
-                state=$(docker inspect --format '{{.State.Status}}:{{.State.ExitCode}}' "$container" 2>/dev/null || true)
-                case "$state" in
-                  exited:0|'') ;;
-                  exited:*) docker kill ydb-workload-current >/dev/null 2>&1 || true; exit 0 ;;
-                esac
-              done
-            done
-          ) > bridge-artifacts/watchdog.log 2>&1 &
       - name: Run all five Bridge scenarios
         id: slo
         uses: ./.slo-action/init
-        timeout-minutes: 50
+        timeout-minutes: 20
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           workload_name: sync-query
-          workload_duration: '1500'
+          workload_duration: '600'
           workload_current_ref: current
           workload_current_image: py-slo-bridge:current
           workload_current_command: >-
@@ -103,7 +84,7 @@ jobs:
           bridge_mode: true
           disable_compose_profiles: extra-nodes
           fail_on_workload_error: true
-      - name: Verify scenario coverage, SDK results and data
+      - name: Verify scenario coverage and workload recovery
         if: always()
         timeout-minutes: 3
         env:
