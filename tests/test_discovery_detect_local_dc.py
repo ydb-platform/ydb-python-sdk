@@ -395,6 +395,20 @@ def test_live_primary_slo_independent_audit_and_docker_evidence():
     assert check_node_events(log, [stop, {"time": base + 250, "Action": "start"}])
 
 
+def test_live_primary_slo_audit_preserves_first_row_after_cli_terminal_controls():
+    import json
+    import pytest
+    from tests.slo.bridge.checks import audit_rows, json_lines
+
+    probe = {"table": "primary_probe_abc", "modes": {"async-query": {"confirmed": [1, 2]}}}
+    rows = [{"mode": "async-query", "seq": seq, "payload": f"primary_probe_abc:async-query:{seq}"} for seq in (1, 2)]
+    output = "\r\x1b[K" + "\n".join(json.dumps(row) for row in rows) + "\r\x1b[K"
+    assert not audit_rows(probe, json_lines(output, strict=True))
+    assert audit_rows(probe, json_lines(json.dumps(rows[1]), strict=True)) == [{"mode": "async-query", "seq": 1}]
+    with pytest.raises(ValueError):
+        json_lines(output + "\nunexpected CLI output", strict=True)
+
+
 def test_live_primary_slo_oracle_and_cli_flag():
     from tests.slo.src.bridge_observer import route_observation
     from tests.slo.src.options import get_root_parser
