@@ -5,6 +5,7 @@ import logging
 from typing import Dict
 
 from core.metrics import WORKLOAD
+from options import get_driver_config
 from runners.topic_runner import TopicRunner
 from runners.table_runner import TableRunner
 from runners.base import BaseRunner
@@ -45,11 +46,7 @@ class SLORunner:
 
     def _run_sync_command(self, args, runner_instance, command):
         """Run command in synchronous mode"""
-        driver_config = ydb.DriverConfig(
-            args.endpoint,
-            database=args.db,
-            grpc_keep_alive_timeout=5000,
-        )
+        driver_config = get_driver_config(args)
 
         with ydb.Driver(driver_config) as driver:
             driver.wait(timeout=300)
@@ -71,11 +68,7 @@ class SLORunner:
 
     async def _run_async_command(self, args, runner_instance, command):
         """Run command in asynchronous mode"""
-        driver_config = ydb.DriverConfig(
-            args.endpoint,
-            database=args.db,
-            grpc_keep_alive_timeout=5000,
-        )
+        driver_config = get_driver_config(args)
 
         async with ydb.aio.Driver(driver_config) as driver:
             await driver.wait(timeout=300)
