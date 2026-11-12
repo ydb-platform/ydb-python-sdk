@@ -1,5 +1,6 @@
 from .scheme import (
     SchemeEntryType,
+    _wrap_describe_path_response,
     _wrap_scheme_entry,
     _wrap_list_directory_response,
 )
@@ -49,3 +50,31 @@ def test_wrap_list_directory_response_interrupt_permission_inheritance():
     d = _wrap_list_directory_response(None, response)
     assert d.interrupt_permission_inheritance
     assert [child.interrupt_permission_inheritance for child in d.children] == [True, False]
+
+
+def test_streaming_query_directory_and_description():
+    result = ydb_scheme.ListDirectoryResult()
+    result.children.add(name="stream", type=26)
+    result.children.add(name="table", type=2)
+    result.children.add(name="unknown", type=1001)
+    response = ydb_scheme.ListDirectoryResponse()
+    response.operation.result.Pack(result)
+
+    directory = _wrap_list_directory_response(None, response)
+    assert [child.name for child in directory.children] == ["stream", "table"]
+    stream, table = directory.children
+    assert stream.type is SchemeEntryType.STREAMING_QUERY
+    assert stream.is_streaming_query()
+    assert SchemeEntryType.is_streaming_query(stream.type)
+    assert not table.is_streaming_query()
+
+    description = ydb_scheme.DescribePathResult()
+    description.self.name = "stream"
+    description.self.type = 26
+    describe_response = ydb_scheme.DescribePathResponse()
+    describe_response.operation.result.Pack(description)
+    assert _wrap_describe_path_response(None, describe_response).type is SchemeEntryType.STREAMING_QUERY
+
+    description.self.type = 1001
+    describe_response.operation.result.Pack(description)
+    assert _wrap_describe_path_response(None, describe_response).type is SchemeEntryType.TYPE_UNSPECIFIED
