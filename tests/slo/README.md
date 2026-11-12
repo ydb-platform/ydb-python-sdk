@@ -1,5 +1,35 @@
 # SLO workload
 
+## GitHub-hosted PRIMARY pile qualification
+
+`.github/workflows/slo-2dc.yml` runs the pinned SLO Action v2 on `ubuntu-24.04`,
+using two storage and two database nodes in a real Bridge cluster. It is a ready-made
+Bridge topology with `erasure=none` and SectorMap disks, not the config-v1 migration procedure.
+The image is pinned by digest and its OCI metadata is retained with the results.
+
+The 25-minute native Query workload enables `--prefer-primary-pile`. A separate probe
+keeps one driver per sync/async Table/Query mode, creates fresh sessions, writes and reads
+unique transactional rows, and runs an additional disabled-option control driver.
+An independent raw discovery RPC maps server-reported session node IDs to pile roles;
+the SDK's cache or priority implementation is not used as the oracle.
+
+The first scenario stops only PRIMARY compute for 45 seconds to exercise synchronized
+fallback. It then holds A, B and A as PRIMARY for 160 seconds each, without node restarts
+between these observation windows. Default discovery intervals are retained. In each
+window's last 30 seconds every enabled mode must create at least three sessions on PRIMARY
+and confirm at least three writes; the disabled control must use both piles.
+
+All five upstream switchover/takedown/failover scenarios run. Every enabled mode must
+resume data operations after every recovery and continue near the end. A separate CLI
+query audits every acknowledged row. Transient operation errors are recorded and allowed;
+wrong-pile routing after stabilization, stalled modes, lost/corrupt data, OOM, process
+restarts or incomplete chaos fail the job. The oracle, workload, node events and audit
+are retained in the `python-hosted-2dc` artifact for 14 days.
+
+The runner adapter bounds resources and cold-start readiness time, restricts bootstrap
+DNS aliases to the two active compute nodes, and extends
+the first scenario's observation windows; the action lifecycle remains at the pinned revision.
+
 SLO is the type of test where app based on ydb-sdk is tested against falling YDB cluster nodes, tablets, network
 (that is possible situations for distributed DBs with hundreds of nodes)
 
