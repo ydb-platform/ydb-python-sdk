@@ -344,6 +344,17 @@ def slo_observations():
     for mode in MODES:
         for second in (1090, 1091, 1092):
             events.append({"event": "operation", "mode": mode, "ts": base + second, "ok": True})
+            events.append(
+                {
+                    "event": "session_created",
+                    "mode": mode,
+                    "ts": base + second,
+                    "stable": True,
+                    "both_piles_visible": True,
+                    "primary": "pile-1",
+                    "pile": "pile-1",
+                }
+            )
     return "\n".join(log), events, base + 1100
 
 

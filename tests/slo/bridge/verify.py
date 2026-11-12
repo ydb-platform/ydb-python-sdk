@@ -100,22 +100,31 @@ def main():
         result["errors"].extend(check_node_events(log, json_lines((artifacts / "docker-events.jsonl").read_text())))
         if not re.fullmatch(r"primary_probe_[a-f0-9]+", probe["table"]):
             raise ValueError("Unexpected audit table name")
-        output = command(
-            "docker",
-            "exec",
-            "ydb-database-1",
-            "/opt/ydb.tech/ydb/bin/ydb",
-            "-e",
-            "grpc://localhost:2136",
-            "-d",
-            "/Root/testdb",
-            "--no-discovery",
-            "sql",
-            "-s",
-            f"SELECT `mode`, seq, payload FROM `{probe['table']}`;",
-            "--format",
-            "json-unicode",
-        )
+        output = None
+        for node in ("ydb-database-1", "ydb-database-2"):
+            try:
+                output = command(
+                    "docker",
+                    "exec",
+                    node,
+                    "/opt/ydb.tech/ydb/bin/ydb",
+                    "-e",
+                    "grpc://localhost:2136",
+                    "-d",
+                    "/Root/testdb",
+                    "--no-discovery",
+                    "sql",
+                    "-s",
+                    f"SELECT `mode`, seq, payload FROM `{probe['table']}`;",
+                    "--format",
+                    "json-unicode",
+                    timeout=20,
+                )
+                break
+            except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as error:
+                (artifacts / f"audit-{node}-error.txt").write_text(str(error))
+        if output is None:
+            raise RuntimeError("No available compute node could complete the independent CLI audit")
         (artifacts / "audit-rows.jsonl").write_text(output)
         missing = audit_rows(probe, json_lines(output))
         (artifacts / "missing.json").write_text(json.dumps(missing, indent=2))

@@ -13,7 +13,7 @@ import uuid
 import ydb
 import ydb.aio
 
-from bridge_observer import BridgeObserver, route_observation
+from bridge_observer import BridgeObserver, is_rpc_cancellation, route_observation
 
 MODES = ("sync-table", "sync-query", "async-table", "async-query", "control-table")
 
@@ -154,12 +154,21 @@ class Probe:
                         self.confirm(mode, seq)
                     except ydb.Error as error:
                         self.error(mode, error, "operation")
+                    except asyncio.CancelledError as error:
+                        if not is_rpc_cancellation():
+                            raise
+                        self.error(mode, error, "rpc_cancelled")
+                        self.emit("rpc_cancelled", mode, task_cancel_requests=0)
                     finally:
                         if session is not None and session.session_id:
                             try:
                                 await session.delete(settings=ydb.BaseRequestSettings().with_timeout(5))
                             except ydb.Error as error:
                                 self.error(mode, error, "cleanup")
+                            except asyncio.CancelledError as error:
+                                if not is_rpc_cancellation():
+                                    raise
+                                self.error(mode, error, "cleanup_rpc_cancelled")
                     await asyncio.sleep(1)
         except BaseException as error:
             self.fail(mode, error)
