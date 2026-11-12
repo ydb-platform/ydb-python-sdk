@@ -9,7 +9,7 @@ import subprocess
 import urllib.parse
 import urllib.request
 
-from checks import MODES, audit_rows, check_node_events, check_routing
+from checks import MODES, audit_rows, check_node_events, check_routing, json_lines
 
 SCENARIOS = (
     "01-switchover",
@@ -20,22 +20,8 @@ SCENARIOS = (
 )
 
 
-def command(*args, check=True, timeout=90):
-    return subprocess.run(
-        args, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, check=check, timeout=timeout
-    ).stdout
-
-
-def json_lines(text):
-    rows = []
-    for line in text.splitlines():
-        try:
-            row = json.loads(line)
-            if isinstance(row, dict):
-                rows.append(row)
-        except json.JSONDecodeError:
-            continue
-    return rows
+def command(*args, check=True, timeout=90, stderr=subprocess.STDOUT):
+    return subprocess.run(args, text=True, stdout=subprocess.PIPE, stderr=stderr, check=check, timeout=timeout).stdout
 
 
 def main():
@@ -103,30 +89,32 @@ def main():
         output = None
         for node in ("ydb-database-1", "ydb-database-2"):
             try:
-                output = command(
-                    "docker",
-                    "exec",
-                    node,
-                    "/opt/ydb.tech/ydb/bin/ydb",
-                    "-e",
-                    "grpc://localhost:2136",
-                    "-d",
-                    "/Root/testdb",
-                    "--no-discovery",
-                    "sql",
-                    "-s",
-                    f"SELECT `mode`, seq, payload FROM `{probe['table']}`;",
-                    "--format",
-                    "json-unicode",
-                    timeout=20,
-                )
+                with (artifacts / f"audit-{node}-stderr.log").open("w") as stderr:
+                    output = command(
+                        "docker",
+                        "exec",
+                        node,
+                        "/opt/ydb.tech/ydb/bin/ydb",
+                        "-e",
+                        "grpc://localhost:2136",
+                        "-d",
+                        "/Root/testdb",
+                        "--no-discovery",
+                        "sql",
+                        "-s",
+                        f"SELECT `mode`, seq, payload FROM `{probe['table']}`;",
+                        "--format",
+                        "json-unicode",
+                        timeout=20,
+                        stderr=stderr,
+                    )
                 break
             except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as error:
                 (artifacts / f"audit-{node}-error.txt").write_text(str(error))
         if output is None:
             raise RuntimeError("No available compute node could complete the independent CLI audit")
         (artifacts / "audit-rows.jsonl").write_text(output)
-        missing = audit_rows(probe, json_lines(output))
+        missing = audit_rows(probe, json_lines(output, strict=True))
         (artifacts / "missing.json").write_text(json.dumps(missing, indent=2))
         result["audit"] = {
             "confirmed": sum(len(item["confirmed"]) for item in probe["modes"].values()),
@@ -185,7 +173,7 @@ def main():
         result["errors"].append(repr(error))
     result["passed"] = not result["errors"]
     (artifacts / "result.json").write_text(json.dumps(result, indent=2))
-    print(json.dumps(result, indent=2))
+    print(json.dumps({key: value for key, value in result.items() if key != "probe"}, indent=2))
     return 0 if result["passed"] else 1
 
 

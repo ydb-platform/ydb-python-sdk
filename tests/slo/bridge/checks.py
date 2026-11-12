@@ -1,9 +1,26 @@
 """Acceptance checks for independently observed live Bridge routing and data."""
 
 from datetime import datetime
+import json
 import re
 
 MODES = ("sync-table", "sync-query", "async-table", "async-query")
+
+
+def json_lines(text, *, strict=False):
+    rows = []
+    for line in re.sub(r"\x1b\[[0-?]*[ -/]*[@-~]", "", text).splitlines():
+        if not line.strip():
+            continue
+        try:
+            row = json.loads(line)
+            if not isinstance(row, dict):
+                raise ValueError("Expected a JSON object")
+            rows.append(row)
+        except (json.JSONDecodeError, ValueError):
+            if strict:
+                raise
+    return rows
 
 
 def stamp(value):
