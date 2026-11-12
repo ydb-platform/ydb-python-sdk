@@ -49,6 +49,7 @@ class SLORunner:
             args.endpoint,
             database=args.db,
             grpc_keep_alive_timeout=5000,
+            prefer_primary_pile=getattr(args, "prefer_primary_pile", False),
         )
 
         with ydb.Driver(driver_config) as driver:
@@ -75,6 +76,7 @@ class SLORunner:
             args.endpoint,
             database=args.db,
             grpc_keep_alive_timeout=5000,
+            prefer_primary_pile=getattr(args, "prefer_primary_pile", False),
         )
 
         async with ydb.aio.Driver(driver_config) as driver:

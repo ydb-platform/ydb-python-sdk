@@ -1,0 +1,118 @@
+name: Hosted 2DC SLO
+
+on:
+  pull_request:
+    paths:
+      - .github/workflows/slo-2dc.yml
+      - tests/slo/bridge/**
+      - tests/slo/**
+      - ydb/driver.py
+      - ydb/resolver.py
+      - ydb/pool.py
+      - ydb/aio/driver.py
+      - ydb/aio/pool.py
+  workflow_dispatch:
+    inputs:
+      server_image:
+        description: YDB server image to qualify (resolved to a digest)
+        default: cr.yandex/crpb3d0up7s6a7iuofo9/ydb-appteam-ci/local-ydb:trunk
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  bridge:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    concurrency:
+      group: hosted-2dc-${{ github.ref }}
+      cancel-in-progress: true
+    env:
+      WORKLOAD_MEMORY_LIMIT: 1G
+      WORKLOAD_CPU_LIMIT: '1.00'
+      WORKLOAD_CURRENT_IMAGE: py-slo-bridge:current
+      REQUESTED_IMAGE: ${{ inputs.server_image || 'cr.yandex/crpb3d0up7s6a7iuofo9/ydb-appteam-ci/local-ydb@sha256:bce9caa6a1a6aac9b513510b46f61c4d4b58c1f88d937bcb54c20dc1bda6c8d4' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: ydb-platform/ydb-slo-action
+          ref: 54c3c03de1ce8c6a2d8b0828b328bd5db82ef2bb
+          path: .slo-action
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install the Compose version required by the action
+        run: |
+          set -euo pipefail
+          mkdir -p "$HOME/.docker/cli-plugins"
+          curl -fsSL --retry 3 \
+            https://github.com/docker/compose/releases/download/v2.40.3/docker-compose-linux-x86_64 \
+            -o "$HOME/.docker/cli-plugins/docker-compose"
+          chmod +x "$HOME/.docker/cli-plugins/docker-compose"
+          docker compose version
+          docker compose up --help | grep -F -- --quiet-build
+      - name: Record runner and resolve server image
+        run: |
+          set -euo pipefail
+          mkdir -p bridge-artifacts
+          free -h
+          df -h
+          docker version
+          docker compose version
+          docker pull --platform linux/amd64 "$REQUESTED_IMAGE"
+          docker image inspect "$REQUESTED_IMAGE" > bridge-artifacts/server-image.json
+          SERVER_IMAGE=$(docker image inspect --format '{{index .RepoDigests 0}}' "$REQUESTED_IMAGE")
+          printf '%s\n' "$SERVER_IMAGE" > bridge-artifacts/server-image.txt
+          python tests/slo/bridge/prepare.py .slo-action "$SERVER_IMAGE"
+      - name: Build current Python SDK workload
+        run: docker build -f tests/slo/Dockerfile -t py-slo-bridge:current .
+      - name: Record node events and stop early on a fatal probe or chaos error
+        run: |
+          docker events --filter type=container --filter label=ydb.node.type=database \
+            --filter event=stop --filter event=start --format '{{json .}}' \
+            > bridge-artifacts/docker-events.jsonl 2>&1 &
+          (
+            while sleep 5; do
+              native=$(docker inspect --format '{{.State.Status}}' ydb-workload-current 2>/dev/null || true)
+              [ "$native" != exited ] || exit 0
+              for container in ydb-bridge-probe ydb-chaos-monkey; do
+                state=$(docker inspect --format '{{.State.Status}}:{{.State.ExitCode}}' "$container" 2>/dev/null || true)
+                case "$state" in
+                  exited:0|'') ;;
+                  exited:*) docker kill ydb-workload-current >/dev/null 2>&1 || true; exit 0 ;;
+                esac
+              done
+            done
+          ) > bridge-artifacts/watchdog.log 2>&1 &
+      - name: Run all five Bridge scenarios
+        id: slo
+        uses: ./.slo-action/init
+        timeout-minutes: 50
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          workload_name: sync-query
+          workload_duration: '1500'
+          workload_current_ref: current
+          workload_current_image: py-slo-bridge:current
+          workload_current_command: >-
+            --read-rps 50 --write-rps 10 --read-threads 2 --write-threads 2
+            --read-timeout 30000 --write-timeout 30000
+            --prefer-primary-pile
+          bridge_mode: true
+          disable_compose_profiles: extra-nodes
+          fail_on_workload_error: true
+      - name: Verify scenario coverage, SDK results and data
+        if: always()
+        timeout-minutes: 3
+        env:
+          ACTION_OUTCOME: ${{ steps.slo.outcome }}
+        run: python tests/slo/bridge/verify.py
+      - name: Upload qualification evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: python-hosted-2dc
+          path: bridge-artifacts/
+          retention-days: 14
