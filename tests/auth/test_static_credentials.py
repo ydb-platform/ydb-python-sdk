@@ -1,9 +1,73 @@
+import base64
+import json
+
 import pytest
 import ydb
 from unittest.mock import patch, MagicMock
 
 USERNAME = "root"
 PASSWORD = "1234"
+
+
+def make_login_token(expires_at):
+    payload = base64.urlsafe_b64encode(json.dumps({"exp": expires_at}).encode()).decode().rstrip("=")
+    return "eyJhbGciOiJSUzI1NiJ9.{}.signature".format(payload)
+
+
+@pytest.mark.parametrize("lifetime", [15, 60, 12 * 60 * 60])
+def test_static_credentials_use_jwt_expiration(lifetime):
+    credentials = ydb.StaticCredentials(ydb.DriverConfig("localhost:2135", "/local"), USERNAME, PASSWORD)
+    token = make_login_token(1000 + lifetime)
+    conn = MagicMock(return_value=MagicMock(token=token))
+
+    with patch("ydb.credentials.connection.Connection.ready_factory", return_value=conn):
+        with patch("ydb.credentials.time.time", return_value=1000):
+            response = credentials._make_token_request()
+
+    assert response == {"access_token": token, "expires_in": lifetime}
+    conn.close.assert_called_once_with()
+
+
+def test_static_credentials_refresh_short_lived_jwt():
+    credentials = ydb.StaticCredentials(ydb.DriverConfig("localhost:2135", "/local"), USERNAME, PASSWORD)
+    token1 = make_login_token(1015)
+    token2 = make_login_token(1017)
+    conn = MagicMock(side_effect=[MagicMock(token=token1), MagicMock(token=token2)])
+    background_calls = []
+    credentials._tp.submit = background_calls.append
+
+    with patch("ydb.credentials.connection.Connection.ready_factory", return_value=conn):
+        with patch("ydb.credentials.time.time", return_value=1000) as clock:
+            assert credentials.get_auth_token() == token1
+            assert credentials.get_auth_token() == token1
+            assert conn.call_count == 1
+
+            clock.return_value = 1002
+            assert credentials.get_auth_token() == token1
+            assert len(background_calls) == 1
+            background_calls.pop()()
+            assert credentials.get_auth_token() == token2
+            assert conn.call_count == 2
+
+            clock.return_value = 1015
+            assert credentials.get_auth_token() == token2
+            assert conn.call_count == 2
+
+
+def test_static_credentials_refresh_expired_jwt_synchronously():
+    credentials = ydb.StaticCredentials(ydb.DriverConfig("localhost:2135", "/local"), USERNAME, PASSWORD)
+    token1 = make_login_token(1015)
+    token2 = make_login_token(1031)
+    conn = MagicMock(side_effect=[MagicMock(token=token1), MagicMock(token=token2)])
+    credentials._tp.submit = MagicMock()
+
+    with patch("ydb.credentials.connection.Connection.ready_factory", return_value=conn):
+        with patch("ydb.credentials.time.time", return_value=1000) as clock:
+            assert credentials.get_auth_token() == token1
+            clock.return_value = 1016
+            assert credentials.get_auth_token() == token2
+            assert conn.call_count == 2
+            credentials._tp.submit.assert_not_called()
 
 
 def check_driver_works(driver):
