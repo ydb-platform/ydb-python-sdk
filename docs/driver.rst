@@ -191,10 +191,6 @@ StaticCredentials (username/password)
 
     credentials = ydb.StaticCredentials.from_user_password("user", "password")
 
-Login tokens are cached and automatically refreshed on use before the expiration
-specified in the token's JWT ``exp`` claim, including when the server issues
-short-lived tokens.
-
 Service Account Credentials
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
