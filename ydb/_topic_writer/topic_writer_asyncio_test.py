@@ -582,6 +582,22 @@ class TestWriterAsyncIOReconnector:
             await asyncio.gather(*tasks, return_exceptions=True)
             reconnector._stop_reason.exception()
 
+    async def test_close_timeout_stops_the_writer(self, default_driver, default_settings, get_stream_writer):
+        writer = WriterAsyncIO(default_driver, default_settings)
+        stream = get_stream_writer()
+        abandoned, pending = await writer.write_with_ack_future(
+            [PublicMessage(b"abandoned", seqno=1), PublicMessage(b"pending", seqno=2)]
+        )
+        await asyncio.wait_for(stream.from_client.get(), timeout=1)
+        abandoned.cancel()
+
+        with pytest.raises(asyncio.TimeoutError):
+            await asyncio.wait_for(writer.close(), timeout=0.01)
+
+        assert stream._closed
+        assert all(task.done() for task in writer._reconnector._background_tasks)
+        assert isinstance(pending.exception(), TopicWriterStopped)
+
     async def test_stop_on_unexpected_exception(self, reconnector: WriterAsyncIOReconnector, get_stream_writer):
         class TestException(Exception):
             pass
@@ -3558,6 +3574,45 @@ class TestTopicWriterMultiAsyncIORegressions:
         with pytest.raises(TopicWriterError, match="write rejected"):
             await asyncio.wait_for(writer.close(), 1)
         assert isinstance(pending.exception(), TopicWriterStopped)
+
+    @pytest.mark.parametrize("child_fails", [False, True])
+    async def test_close_waits_for_child_ack_after_caller_times_out(self, monkeypatch, child_fails):
+        flushing_parent = asyncio.Event()
+        release_parent_flush = asyncio.Event()
+
+        class SplitWriter(_ControllableSubWriter):
+            async def flush(self):
+                flushing_parent.set()
+                await release_parent_flush.wait()
+
+        monkeypatch.setattr(topic_writer_multi_asyncio, "WriterAsyncIO", SplitWriter)
+        parent, left, right = self.partitions()
+        writer = TopicWriterMultiAsyncIO(_MultiFakeDescribeDriver([[parent], [left, right]]), self.settings())
+        ack = await writer.write_with_ack_future(PublicMessage(b"payload", key="a"))
+        with pytest.raises(asyncio.TimeoutError):
+            await asyncio.wait_for(ack, timeout=0)
+
+        closing = asyncio.create_task(writer.close())
+        try:
+            await asyncio.wait_for(flushing_parent.wait(), timeout=1)
+            await writer._on_partition_overloaded(0)
+            child = writer._writers[1]
+            assert [message.data for message in child.messages] == [b"payload"]
+            release_parent_flush.set()
+            with pytest.raises(asyncio.TimeoutError):
+                await asyncio.wait_for(asyncio.shield(closing), timeout=0.02)
+            if child_fails:
+                child.pending[0].set_exception(TopicWriterError("child write failed"))
+                with pytest.raises(TopicWriterError, match="child write failed"):
+                    await asyncio.wait_for(closing, timeout=1)
+            else:
+                child.resolve_all()
+                await asyncio.wait_for(closing, timeout=1)
+        finally:
+            release_parent_flush.set()
+            closing.cancel()
+            await asyncio.gather(closing, return_exceptions=True)
+            await writer.close(flush=False)
 
     async def test_cancelling_flush_does_not_cancel_accepted_messages(self, monkeypatch):
         monkeypatch.setattr(topic_writer_multi_asyncio, "WriterAsyncIO", _ControllableSubWriter)

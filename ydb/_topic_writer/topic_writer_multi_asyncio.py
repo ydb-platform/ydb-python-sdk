@@ -9,7 +9,7 @@ import uuid
 import logging
 import weakref
 from dataclasses import dataclass, field
-from typing import Callable, Dict, List, Mapping, Optional, Tuple, Union
+from typing import Callable, Dict, Iterator, List, Mapping, Optional, Tuple, Union
 
 from .topic_writer import (
     Message,
@@ -98,6 +98,23 @@ class _InflightMessage:
     seqno: int
     partition_id: int
     sub_future: Optional[asyncio.Future] = field(default=None)
+    _flush_waiter: Optional[asyncio.Future] = field(default=None, init=False)
+
+    def flush_waiter(self) -> asyncio.Future:
+        # The caller can cancel user_future while this message is still being delivered.
+        if self._flush_waiter is None:
+            self._flush_waiter = self.user_future.get_loop().create_future()
+        return self._flush_waiter
+
+    def finish(self, outcome: Union[PublicWriteResultTypes, BaseException]) -> None:
+        for future in (self.user_future, self._flush_waiter):
+            if future is None or future.done():
+                continue
+            if isinstance(outcome, BaseException):
+                future.set_exception(outcome)
+                future.exception()  # write() does not expose an acknowledgement to the caller.
+            else:
+                future.set_result(outcome)
 
 
 def _is_overloaded(err: BaseException) -> bool:
@@ -358,13 +375,9 @@ class TopicWriterMultiAsyncIO:
         sub_future.add_done_callback(lambda f: self._on_sub_result(entry.partition_id, entry.seqno, f))
 
     def _fail_message(self, entry: _InflightMessage, err: BaseException) -> None:
-        if entry.user_future.done() and not entry.user_future.cancelled():
-            return
         if not self._write_error.done():
             self._write_error.set_result(err)
-        if not entry.user_future.done():
-            entry.user_future.set_exception(err)
-            entry.user_future.exception()  # write() does not expose this future to the caller.
+        entry.finish(err)
 
     def _on_sub_result(self, partition_id: int, seqno: int, sub_future: asyncio.Future) -> None:
         entry = self._inflight.get(partition_id, {}).get(seqno)
@@ -389,8 +402,7 @@ class TopicWriterMultiAsyncIO:
         # cut too low and resend an already-written message to the child.
         self._inflight.get(partition_id, {}).pop(seqno, None)
         self._max_acked[partition_id] = max(self._max_acked.get(partition_id, 0), seqno)
-        if not entry.user_future.done():
-            entry.user_future.set_result(sub_future.result())
+        entry.finish(sub_future.result())
 
     async def _quiesce_writer(self, partition_id: int) -> None:
         """Close the partition's sub-writer and settle the acks it was still holding.
@@ -698,8 +710,7 @@ class TopicWriterMultiAsyncIO:
                 if seqno <= cut:
                     self._inflight.get(partition_id, {}).pop(seqno, None)
                     self._max_acked[partition_id] = max(self._max_acked.get(partition_id, 0), seqno)
-                    if not entry.user_future.done():
-                        entry.user_future.set_result(PublicWriteResult.Written(offset=-1))
+                    entry.finish(PublicWriteResult.Written(offset=-1))
                     continue
                 entry.message.seqno = seqno
                 sub_future = await writer.write_with_ack_future(entry.message)
@@ -732,8 +743,7 @@ class TopicWriterMultiAsyncIO:
             for seqno, entry in list(self._inflight.get(partition_id, {}).items()):
                 if seqno <= cut:
                     self._inflight.get(partition_id, {}).pop(seqno, None)
-                    if not entry.user_future.done():
-                        entry.user_future.set_result(PublicWriteResult.Written(offset=-1))
+                    entry.finish(PublicWriteResult.Written(offset=-1))
                 else:
                     entries.append((seqno, partition_id, entry))
 
@@ -888,8 +898,9 @@ class TopicWriterMultiAsyncIO:
                 logger.debug("multi-writer: evicting idle sub-writer for partition %d", partition_id)
                 await self._safe_close(writer)
 
-    def _pending_user_futures(self) -> List[asyncio.Future]:
-        return [entry.user_future for part in self._inflight.values() for entry in part.values()]
+    def _pending_entries(self) -> Iterator[_InflightMessage]:
+        for entries in self._inflight.values():
+            yield from entries.values()
 
     async def _flush_impl(self):
         await self.wait_init()
@@ -897,7 +908,7 @@ class TopicWriterMultiAsyncIO:
             raise self._write_error.result()
         async with self._lock:
             writers = list(self._writers.values())
-            pending = self._pending_user_futures()
+            pending = [entry.flush_waiter() for entry in self._pending_entries()]
 
         async def wait_for_acks():
             results = await asyncio.gather(*(w.flush() for w in writers), return_exceptions=True)
@@ -907,6 +918,8 @@ class TopicWriterMultiAsyncIO:
             if pending:
                 # Cancelling this waiter must not cancel accepted messages.
                 await asyncio.wait(pending)
+                for future in pending:
+                    future.result()
 
         waiter = self._loop.create_task(wait_for_acks())
         try:
@@ -958,13 +971,11 @@ class TopicWriterMultiAsyncIO:
         async with self._lock:
             writers = list(self._writers.values())
             self._writers.clear()
-            pending = self._pending_user_futures()
+            pending = list(self._pending_entries())
             self._inflight.clear()
         results = await asyncio.gather(*(w.close(flush=False) for w in writers), return_exceptions=True)
-        for future in pending:
-            if not future.done():
-                future.set_exception(TopicWriterStopped())
-                future.exception()
+        for entry in pending:
+            entry.finish(TopicWriterStopped())
         if flush:
             for result in results:
                 if isinstance(result, BaseException) and not isinstance(result, TopicWriterPartitionSplitError):

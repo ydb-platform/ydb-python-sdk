@@ -171,7 +171,9 @@ Use ``topic_client.writer()`` as a context manager (recommended) or create it ma
         writer.close()
 
 With ``close(flush=True)``, the writer keeps reconnecting as needed until pending writes
-finish. A transport disconnect during this wait does not stop recovery.
+finish. A transport disconnect during this wait does not stop recovery. If the close call
+itself times out or is cancelled while waiting, the writer stops its background tasks and
+closes the stream. A message whose acknowledgement was lost may already be on the server.
 
 
 Writer Parameters
@@ -338,6 +340,8 @@ If an accepted write fails permanently, its acknowledgement future, ``flush()`` 
 ``close(flush=True)`` report the error, including when it happened before the flush or close
 call. Closing still releases the underlying writers before raising the error. Use
 ``close(flush=False)`` to abandon pending writes without waiting for delivery.
+Cancelling an individual acknowledgement future only ends that wait. Both ``flush()``
+and ``close(flush=True)`` still wait for the message if it moves to a new partition.
 
 .. note::
 

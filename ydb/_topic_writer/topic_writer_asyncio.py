@@ -345,14 +345,14 @@ class WriterAsyncIOReconnector:
         self._closed = True
         logger.debug("Close writer reconnector id=%s", self._id)
 
-        if flush:
-            await self.flush()
-
-        self._stop(TopicWriterStopped())
-
-        for task in self._background_tasks:
-            task.cancel()
-        await asyncio.wait(self._background_tasks)
+        try:
+            if flush:
+                await self.flush()
+        finally:
+            self._stop(TopicWriterStopped())
+            for task in self._background_tasks:
+                task.cancel()
+            await asyncio.wait(self._background_tasks)
 
         # if work was stopped before close by error - raise the error
         try:
@@ -783,8 +783,11 @@ class WriterAsyncIOReconnector:
             return
 
         self._stop_reason.set_exception(reason)
+        self._stop_reason.exception()  # close() may itself have been cancelled.
 
         for f in self._messages_future:
+            if f.done():
+                continue
             f.set_exception(reason)
             f.exception()  # mark as retrieved so asyncio does not log "Future exception was never retrieved"
 
