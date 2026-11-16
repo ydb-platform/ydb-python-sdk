@@ -30,6 +30,41 @@ class Oauth2TokenExchangeCredentialsForTest(ydb.aio.oauth2_token_exchange.Oauth2
 
 
 @pytest.mark.asyncio
+async def test_short_lived_token_is_cached_and_refreshed():
+    credentials = ServiceAccountCredentialsForTest(
+        tests.auth.test_credentials.SERVICE_ACCOUNT_ID,
+        tests.auth.test_credentials.ACCESS_KEY_ID,
+        tests.auth.test_credentials.PRIVATE_KEY,
+        "localhost:0",
+    )
+    credentials._make_token_request = AsyncMock(
+        side_effect=[
+            {"access_token": "token_v1", "expires_in": 15},
+            {"access_token": "token_v2", "expires_in": 15},
+            {"access_token": "token_v3", "expires_in": 15},
+        ]
+    )
+    background_calls = []
+    credentials._tp.submit = background_calls.append
+
+    with patch("time.time", return_value=1000) as clock:
+        assert await credentials.get_auth_token() == "token_v1"
+        assert await credentials.get_auth_token() == "token_v1"
+        assert credentials._make_token_request.call_count == 1
+
+        clock.return_value = 1002
+        assert await credentials.get_auth_token() == "token_v1"
+        assert len(background_calls) == 1
+        await background_calls.pop()()
+        assert await credentials.get_auth_token() == "token_v2"
+        assert credentials._make_token_request.call_count == 2
+
+        clock.return_value = 1018
+        assert await credentials.get_auth_token() == "token_v3"
+        assert credentials._make_token_request.call_count == 3
+
+
+@pytest.mark.asyncio
 async def test_yandex_service_account_credentials():
     server = tests.auth.test_credentials.IamTokenServiceTestServer()
     credentials = ServiceAccountCredentialsForTest(
