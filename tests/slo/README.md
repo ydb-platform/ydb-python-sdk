@@ -29,27 +29,7 @@ async (`ydb.aio`) path:
 > The `--async` CLI flag is kept as a manual override for `*-run` commands.
 > The bare `topic` label is still accepted as an alias for `sync-topic`.
 
-### Which scenarios a CI run starts
-
-The `SLO` label on a PR starts the workflow, but not necessarily every scenario: a full run is
-long and occupies external runners, so `.github/workflows/slo.yml` first computes the matrix from
-the changed files.
-
-| Changed | Scenarios |
-|---|---|
-| `ydb/_topic_*/**`, `ydb/topic.py`, `ydb/aio/topic.py`, `ydb/_grpc/grpcwrapper/ydb_topic*.py` | the three topic ones |
-| `ydb/query/**`, `ydb/aio/query/**` | `sync-query`, `async-query` |
-| `ydb/table.py`, `ydb/aio/table.py`, `ydb/_session_impl.py` | `sync-table` |
-| anything else under `ydb/` — driver, pool, connection, retries, credentials, generated stubs, and shared helpers such as `convert.py` | all |
-| `tests/slo/**` or `.github/workflows/slo.yml` | all |
-| nothing SLO-relevant (docs, examples, packaging, other CI) | all |
-
-The last row is deliberate rather than a fallback for its own sake: putting the label on such a PR
-is an explicit request, so it is honoured — and it doubles as the way to force a full run. Touch
-any file outside the SDK, add the label, and every scenario starts.
-
-The job logs both the file list it saw and the scenarios it picked, so a surprising selection can
-be diagnosed without re-running anything.
+Each SLO workflow run executes all six scenarios listed above.
 
 ### Usage:
 
