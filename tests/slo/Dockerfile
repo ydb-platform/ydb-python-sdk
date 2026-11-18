@@ -15,9 +15,7 @@
 # `workload_current_command` from the action is appended to the `*-run` call
 # as tuning flags (--read-rps, --write-rps, ...).
 #
-# Notes:
-# - OpenTelemetry 1.39.x requires Python >= 3.9.
-# - gcc/libc6-dev are needed to build hdrhistogram from sdist.
+# gcc/libc6-dev are needed to build hdrhistogram from sdist.
 
 FROM python:3.11-slim
 
