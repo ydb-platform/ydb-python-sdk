@@ -68,7 +68,7 @@ DriverConfig
 Preferring the primary Bridge pile
 ----------------------------------------
 
-Enable this policy explicitly for sync or async drivers:
+Set ``prefer_primary_pile`` on the ``DriverConfig`` passed to the sync or async driver.
 
 .. code-block:: python
 
@@ -79,13 +79,21 @@ Enable this policy explicitly for sync or async drivers:
    )
    driver = ydb.Driver(config)
 
-PRIMARY and PROMOTED endpoints take priority over SYNCHRONIZED endpoints.
-Other or unknown pile states are last-resort candidates. The policy follows role
-changes from discovery without recreating the driver, and takes precedence over
-local-DC preferences while Bridge metadata is present, even with ``use_all_nodes=True``.
-Without Bridge metadata the existing balancing behavior is preserved.
-Requests bound to a session retain their node affinity; the option does not move
-an existing session or perform a server-side failover. It is disabled by default.
+While discovery reports Bridge pile states, the driver tries PRIMARY and PROMOTED
+endpoints first, followed by SYNCHRONIZED endpoints, then endpoints in other or
+unknown states. This order applies to connection attempts and to unbound requests
+for either value of ``use_all_nodes``. Endpoints within a tier have equal priority
+regardless of their datacenter. The driver updates priorities when discovery reports a role change.
+When a discovery response contains no pile states, the driver resumes its
+configured balancing policy for both existing and new connections.
+The option controls client-side routing and is disabled by default.
+
+If the connection cache is full and none of its connections lead to a PRIMARY
+or PROMOTED pile, discovery opens a connection to a preferred endpoint before
+closing one lower-priority connection. Sessions using that connection can be
+interrupted. Once the cache has a preferred connection, additional endpoints
+can join as slots become available. Existing sessions keep their node affinity
+while their connection is available.
 
 
 Creating a Driver

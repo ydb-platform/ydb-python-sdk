@@ -230,6 +230,25 @@ async def test_primary_off_and_ordinary_cluster_locality(monkeypatch):
 
 
 @pytest.mark.asyncio
+@pytest.mark.parametrize("use_all_nodes,detect_local_dc", [(True, True), (False, False), (False, True)])
+async def test_empty_pile_states_restore_configured_balancing(monkeypatch, use_all_nodes, detect_local_dc):
+    discovery = primary_discovery(monkeypatch, primary_result({"A": 1, "B": 3}), use_all_nodes=use_all_nodes)
+    discovery._driver_config.detect_local_dc = detect_local_dc
+    detector = AsyncMock(return_value="remote")
+    monkeypatch.setattr(_utilities, "detect_local_dc", detector)
+    assert await discovery.execute_discovery()
+    assert {(await discovery._cache.get()).node_id for _ in range(2)} == {1}
+    detector.assert_not_awaited()
+
+    ordinary = primary_result({})
+    ordinary.self_location = "local" if detect_local_dc else "remote"
+    discovery._resolver.resolve.return_value = ordinary
+    assert await discovery.execute_discovery()
+    assert {(await discovery._cache.get()).node_id for _ in range(2)} == ({1, 2} if use_all_nodes else {2})
+    assert len(PrimaryConnection.created) == 2 and not any(conn.closed for conn in PrimaryConnection.created)
+
+
+@pytest.mark.asyncio
 async def test_primary_promoted_and_unknown_states(monkeypatch):
     discovery = primary_discovery(
         monkeypatch,
@@ -264,15 +283,24 @@ async def test_primary_full_cache_admission_and_failed_connection(monkeypatch):
 
 
 @pytest.mark.asyncio
-async def test_primary_cache_preserves_synchronized_fallback(monkeypatch):
-    nodes = tuple((i, "A") for i in range(1, 11)) + ((11, "B"),)
-    discovery = primary_discovery(monkeypatch, primary_result({"A": 1, "B": 3}, nodes))
-    assert await discovery.execute_discovery() and discovery._cache.size == 9
-    assert discovery._cache.already_exists("node11:2135")
-    for conn in discovery._cache.values():
-        if conn.node_id != 11:
-            await conn.close()
-    assert (await discovery._cache.get()).node_id == 11
+async def test_full_cache_evicts_only_for_first_preferred_connection(monkeypatch):
+    old = tuple((i, "A") for i in range(1, 10))
+    nodes = old + ((10, "B"), (11, "B"))
+    discovery = primary_discovery(monkeypatch, primary_result({"A": 1}, old))
+    assert await discovery.execute_discovery()
+
+    discovery._resolver.resolve.return_value = primary_result({"A": 1, "B": 3}, nodes)
+    assert await discovery.execute_discovery()
+    assert len(PrimaryConnection.created) == 9 and not any(conn.closed for conn in PrimaryConnection.created)
+
+    discovery._resolver.resolve.return_value = primary_result({"A": 3, "B": 2}, nodes)
+    assert await discovery.execute_discovery()
+    preferred = await discovery._cache.get()
+    assert preferred.node_id in (10, 11)
+    assert await discovery.execute_discovery()
+    assert await discovery._cache.get() is preferred
+    assert len(PrimaryConnection.created) == 10
+    assert sum(conn.closed for conn in PrimaryConnection.created) == 1
 
 
 @pytest.mark.asyncio
@@ -288,7 +316,7 @@ async def test_primary_alias_retirement_keeps_node_affinity():
 
 
 @pytest.mark.asyncio
-async def test_primary_driver_keyword_and_config_override(monkeypatch):
+async def test_primary_pile_preference_is_config_only(monkeypatch):
     from ydb import topic
     from ydb.aio import driver as aio_driver, table, scheme, coordination
 
@@ -301,13 +329,14 @@ async def test_primary_driver_keyword_and_config_override(monkeypatch):
         (coordination, "CoordinationClient"),
     ):
         monkeypatch.setattr(module, name, MagicMock())
-    aio_driver.Driver(endpoint="grpc://test:2135", database="/local", prefer_primary_pile=True)
-    assert seen[-1].prefer_primary_pile
     config = aio_driver.DriverConfig("grpc://test:2135", "/local", prefer_primary_pile=True)
     aio_driver.Driver(config)
     assert seen[-1].prefer_primary_pile
-    aio_driver.Driver(config, prefer_primary_pile=False)
-    assert not seen[-1].prefer_primary_pile
+    with pytest.raises(TypeError, match="DriverConfig"):
+        aio_driver.Driver(config, prefer_primary_pile=False)
+    with pytest.raises(TypeError, match="DriverConfig"):
+        aio_driver.Driver(endpoint="grpc://test:2135", database="/local", prefer_primary_pile=True)
+    assert config.prefer_primary_pile
 
 
 @pytest.mark.asyncio

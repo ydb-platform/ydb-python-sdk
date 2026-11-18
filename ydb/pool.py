@@ -39,29 +39,37 @@ class ConnectionsCache:
         self.fast_fail_subscriptions: Set["futures.Future[None]"] = set()
         self._bridge_priorities: Optional[Dict[str, int]] = None
 
-    def set_bridge_priorities(self, priorities: Optional[Dict[str, int]]) -> None:
+    def set_bridge_priorities(
+        self, priorities: Optional[Dict[str, int]], endpoint_locations: Dict[str, str], local_dc: str
+    ) -> bool:
+        """Return whether cached connections switched back to local-DC routing."""
         with self.lock:
+            restoring_locality = self._bridge_priorities is not None and priorities is None and not self.use_all_nodes
             self._bridge_priorities = priorities
+            if restoring_locality:
+                self.set_local_dc(endpoint_locations, local_dc)
+            return restoring_locality
+
+    def set_local_dc(self, endpoint_locations: Dict[str, str], local_dc: str) -> None:
+        with self.lock:
+            self.preferred.clear()
+            self.preferred.update(
+                (endpoint, conn)
+                for endpoint, conn in self.connections.items()
+                if endpoint_locations.get(endpoint) == local_dc
+            )
 
     def connection_slot(self, endpoint: str, max_size: int) -> Tuple[bool, Optional[Connection]]:
         with self.lock:
             active = [conn for key, conn in self.connections.items() if key not in self.outdated]
             if len(active) < max_size:
                 return True, None
-            if self._bridge_priorities is None or not active:
-                return False, None
             priorities = self._bridge_priorities
-            target = priorities.get(endpoint, 2)
-            worst = max(active, key=lambda conn: priorities.get(conn.endpoint, 2))
-            ranks = [priorities.get(conn.endpoint, 2) for conn in active]
-            if target < max(ranks):
-                # Keep one synchronized connection for fallback when the cache has room for both tiers.
-                if max_size > 1 and target == 0 and max(ranks) == 1 and ranks.count(1) == 1 and 0 in ranks:
-                    return False, None
-                return True, worst
-            if max_size > 1 and target == 1 and 1 not in ranks and ranks.count(0) > 1:
-                return True, next(conn for conn in active if priorities.get(conn.endpoint, 2) == 0)
-            return False, None
+            if not active or priorities is None or priorities.get(endpoint) != 0:
+                return False, None
+            if any(priorities.get(conn.endpoint) == 0 for conn in active):
+                return False, None
+            return True, max(active, key=lambda conn: priorities.get(conn.endpoint, 2))
 
     def _get_balanced_connection(self) -> Connection:
         if self._bridge_priorities is not None and self.connections:
@@ -264,18 +272,18 @@ class Discovery(threading.Thread):
             if resolve_details is None:
                 return False
 
-            resolved_endpoints = set(
-                endpoint
+            endpoint_locations = {
+                endpoint: resolved_endpoint.location
                 for resolved_endpoint in resolve_details.endpoints
                 for endpoint, endpoint_options in resolved_endpoint.endpoints_with_options()
-            )
+            }
             for cached_endpoint in self._cache.values():
-                if cached_endpoint.endpoint not in resolved_endpoints:
+                if cached_endpoint.endpoint not in endpoint_locations:
                     self._cache.make_outdated(cached_endpoint)
 
             local_dc = resolve_details.self_location
             priorities = resolve_details.bridge_priorities(True) if self._driver_config.prefer_primary_pile else None
-            self._cache.set_bridge_priorities(priorities)
+            restoring_locality = self._cache.set_bridge_priorities(priorities, endpoint_locations, local_dc)
 
             # Detect local DC using TCP latency if enabled and preferred is meaningful
             if priorities is None and self._driver_config.detect_local_dc and not self._driver_config.use_all_nodes:
@@ -293,6 +301,8 @@ class Discovery(threading.Thread):
                         )
                         if detected_location:
                             local_dc = detected_location
+                            if restoring_locality and local_dc != resolve_details.self_location:
+                                self._cache.set_local_dc(endpoint_locations, local_dc)
                             self.logger.info(
                                 "Detected local DC via TCP latency: %s (server reported: %s)",
                                 local_dc,

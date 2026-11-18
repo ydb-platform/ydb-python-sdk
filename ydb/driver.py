@@ -171,7 +171,7 @@ class DriverConfig(object):
         :param _additional_sdk_headers: Reserved for SDK integrations (e.g. dbapi, sqlalchemy). Do not use in application code.
         :param prefer_primary_pile: Prefer PRIMARY/PROMOTED Bridge endpoints, with synchronized-pile fallback.\
         Disabled by default and has no effect without Bridge metadata. Overrides locality while in Bridge mode;\
-        existing sessions retain node affinity.
+        admitting the first preferred connection to a full cache can interrupt sessions on the evicted connection.
 
         """
         self.endpoint = endpoint
@@ -307,8 +307,6 @@ class Driver(pool.ConnectionPool):
         database: Optional[str] = None,
         root_certificates: Optional[bytes] = None,
         credentials: Optional["Credentials"] = None,
-        *,
-        prefer_primary_pile: Optional[bool] = None,
         **kwargs: Any,
     ) -> None:
         """
@@ -321,8 +319,10 @@ class Driver(pool.ConnectionPool):
         :param endpoint: An endpoint specified in the following format: <protocol>://<hostame>:<port>
         :param database: A database path
         :param credentials: A credentials. If not specified credentials constructed by default.
-        :param prefer_primary_pile: Override the DriverConfig PRIMARY-pile preference when specified.
         """
+        if "prefer_primary_pile" in kwargs:
+            raise TypeError("Set prefer_primary_pile on DriverConfig")
+
         from . import topic  # local import for prevent cycle import error
         from . import coordination  # local import for prevent cycle import error
 
@@ -334,8 +334,6 @@ class Driver(pool.ConnectionPool):
             root_certificates,
             credentials,
         )
-        if prefer_primary_pile is not None:
-            driver_config.prefer_primary_pile = prefer_primary_pile
 
         super(Driver, self).__init__(driver_config)
 

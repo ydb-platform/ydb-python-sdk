@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
-from unittest.mock import Mock, MagicMock, patch
+from unittest.mock import AsyncMock, Mock, MagicMock, patch
+
+import pytest
 from ydb import driver, pool, _utilities, connection
 from ydb import _apis, resolver
+from ydb.aio import resolver as aio_resolver
 
 
 class MockEndpointInfo:
@@ -136,7 +139,7 @@ class PrimaryConnection:
             callback(self)
 
 
-def primary_result(states, nodes=((1, "A"), (2, "B"))):
+def primary_response(states, nodes):
     message = _apis.ydb_discovery.ListEndpointsResult(self_location="local")
     for node_id, pile in nodes:
         message.endpoints.add(
@@ -152,7 +155,50 @@ def primary_result(states, nodes=((1, "A"), (2, "B"))):
     response.operation.ready = True
     response.operation.status = 400000
     response.operation.result.Pack(message)
+    return response
+
+
+def primary_result(states, nodes=((1, "A"), (2, "B"))):
+    response = primary_response(states, nodes)
     return resolver.DiscoveryResult.from_response(None, response, use_all_nodes=True)
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("use_all_nodes", [False, True])
+@pytest.mark.parametrize("is_async", [False, True])
+async def test_bridge_discovery_orders_connections_by_pile(monkeypatch, use_all_nodes, is_async):
+    response = primary_response(
+        {"A": 3, "B": 3, "C": 2, "D": 1}, ((1, "unknown"), (2, "B"), (3, "A"), (4, "C"), (5, "D"))
+    )
+    config = driver.DriverConfig("grpc://test:2135", "/local", use_all_nodes=use_all_nodes, prefer_primary_pile=True)
+    module = aio_resolver if is_async else resolver
+    discovery = module.DiscoveryEndpointsResolver(config)
+    monkeypatch.setattr(resolver.random, "shuffle", lambda endpoints: endpoints.sort(key=lambda info: info.node_id))
+
+    def list_endpoints(request, stub, method, wrap_result, *, settings, wrap_args=()):
+        return wrap_result(None, response, *wrap_args)
+
+    if is_async:
+        bootstrap = AsyncMock(side_effect=list_endpoints)
+        monkeypatch.setattr(aio_resolver.conn_impl, "Connection", Mock(return_value=bootstrap))
+        result = await discovery.resolve()
+    else:
+        bootstrap = Mock(side_effect=list_endpoints)
+        monkeypatch.setattr(connection.Connection, "ready_factory", Mock(return_value=bootstrap))
+        result = discovery.resolve()
+
+    assert [info.node_id for info in result.endpoints] == [4, 5, 2, 3, 1]
+
+
+@pytest.mark.parametrize("states,prefer_primary_pile", [({}, True), ({"A": 3, "B": 1}, False)])
+@pytest.mark.parametrize("use_all_nodes,expected", [(True, [1, 2]), (False, [2, 1])])
+def test_discovery_keeps_ordinary_order_without_bridge_policy(
+    monkeypatch, states, prefer_primary_pile, use_all_nodes, expected
+):
+    response = primary_response(states, ((1, "B"), (2, "A")))
+    monkeypatch.setattr(resolver.random, "shuffle", lambda endpoints: endpoints.sort(key=lambda info: info.node_id))
+    result = resolver.DiscoveryResult.from_response(None, response, use_all_nodes, prefer_primary_pile)
+    assert [info.node_id for info in result.endpoints] == expected
 
 
 def primary_discovery(monkeypatch, result, enabled=True, use_all_nodes=True, failed=()):
@@ -204,6 +250,24 @@ def test_primary_option_is_off_by_default_and_ordinary_clusters_keep_locality(mo
     assert len(created) == 2
 
 
+@pytest.mark.parametrize("use_all_nodes,detect_local_dc", [(True, True), (False, False), (False, True)])
+def test_empty_pile_states_restore_configured_balancing(monkeypatch, use_all_nodes, detect_local_dc):
+    discovery, created = primary_discovery(monkeypatch, primary_result({"A": 1, "B": 3}), use_all_nodes=use_all_nodes)
+    discovery._driver_config.detect_local_dc = detect_local_dc
+    detector = Mock(return_value="remote")
+    monkeypatch.setattr(_utilities, "detect_local_dc", detector)
+    assert discovery.execute_discovery()
+    assert {discovery._cache.get().node_id for _ in range(2)} == {1}
+    detector.assert_not_called()
+
+    ordinary = primary_result({})
+    ordinary.self_location = "local" if detect_local_dc else "remote"
+    discovery._resolver.context_resolve.return_value.__enter__.return_value = ordinary
+    assert discovery.execute_discovery()
+    assert {discovery._cache.get().node_id for _ in range(2)} == ({1, 2} if use_all_nodes else {2})
+    assert len(created) == 2 and not any(conn.closed for conn in created)
+
+
 def test_primary_promoted_synchronized_and_unknown_fallback(monkeypatch):
     result = primary_result({"A": 1, "B": 2, "C": 3, "D": 99}, ((1, "A"), (2, "B"), (3, "C"), (4, "D"), (5, "missing")))
     discovery, _ = primary_discovery(monkeypatch, result)
@@ -240,16 +304,25 @@ def test_failed_primary_does_not_evict_full_fallback_cache(monkeypatch):
     assert discovery._cache.get().node_id in range(1, 10)
 
 
-def test_primary_cache_retains_synchronized_fallback(monkeypatch):
-    nodes = tuple((i, "A") for i in range(1, 11)) + ((11, "B"),)
-    discovery, _ = primary_discovery(monkeypatch, primary_result({"A": 1, "B": 3}, nodes))
+def test_full_cache_evicts_only_for_first_preferred_connection(monkeypatch):
+    old = tuple((i, "A") for i in range(1, 10))
+    nodes = old + ((10, "B"), (11, "B"))
+    discovery, created = primary_discovery(monkeypatch, primary_result({"A": 1}, old))
     assert discovery.execute_discovery()
-    assert discovery._cache.size == 9
-    assert discovery._cache.already_exists("node11:2135")
-    for conn in discovery._cache.values():
-        if conn.node_id != 11:
-            conn.close()
-    assert discovery._cache.get().node_id == 11
+
+    resolve = discovery._resolver.context_resolve.return_value.__enter__
+    resolve.return_value = primary_result({"A": 1, "B": 3}, nodes)
+    assert discovery.execute_discovery()
+    assert len(created) == 9 and not any(conn.closed for conn in created)
+
+    resolve.return_value = primary_result({"A": 3, "B": 2}, nodes)
+    assert discovery.execute_discovery()
+    preferred = discovery._cache.get()
+    assert preferred.node_id in (10, 11)
+    assert discovery.execute_discovery()
+    assert discovery._cache.get() is preferred
+    assert len(created) == 10
+    assert sum(conn.closed for conn in created) == 1
 
 
 def test_primary_connection_retirement_preserves_other_address_node_affinity():
@@ -261,7 +334,7 @@ def test_primary_connection_retirement_preserves_other_address_node_affinity():
     assert cache.get(connection.EndpointKey(None, 1)) is new
 
 
-def test_primary_driver_keyword_and_config_override(monkeypatch):
+def test_primary_pile_preference_is_config_only(monkeypatch):
     from ydb import topic, table, scheme, coordination
 
     seen = []
@@ -273,13 +346,14 @@ def test_primary_driver_keyword_and_config_override(monkeypatch):
         (coordination, "CoordinationClient"),
     ):
         monkeypatch.setattr(module, name, MagicMock())
-    driver.Driver(endpoint="grpc://test:2135", database="/local", prefer_primary_pile=True)
-    assert seen[-1].prefer_primary_pile
     config = driver.DriverConfig("grpc://test:2135", "/local", prefer_primary_pile=True)
     driver.Driver(config)
     assert seen[-1].prefer_primary_pile
-    driver.Driver(config, prefer_primary_pile=False)
-    assert not seen[-1].prefer_primary_pile
+    with pytest.raises(TypeError, match="DriverConfig"):
+        driver.Driver(config, prefer_primary_pile=False)
+    with pytest.raises(TypeError, match="DriverConfig"):
+        driver.Driver(endpoint="grpc://test:2135", database="/local", prefer_primary_pile=True)
+    assert config.prefer_primary_pile
 
 
 def test_slo_primary_option_keeps_legacy_baseline_compatible(monkeypatch):

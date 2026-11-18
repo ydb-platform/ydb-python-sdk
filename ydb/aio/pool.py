@@ -131,18 +131,18 @@ class Discovery:
         if resolve_details is None:
             return False
 
-        resolved_endpoints = set(
-            endpoint
+        endpoint_locations = {
+            endpoint: resolved_endpoint.location
             for resolved_endpoint in resolve_details.endpoints
             for endpoint, endpoint_options in resolved_endpoint.endpoints_with_options()
-        )
+        }
         for cached_endpoint in self._cache.values():
-            if cached_endpoint.endpoint not in resolved_endpoints:
+            if cached_endpoint.endpoint not in endpoint_locations:
                 self._cache.make_outdated(cached_endpoint)
 
         local_dc = resolve_details.self_location
         priorities = resolve_details.bridge_priorities(True) if self._driver_config.prefer_primary_pile else None
-        self._cache.set_bridge_priorities(priorities)
+        restoring_locality = self._cache.set_bridge_priorities(priorities, endpoint_locations, local_dc)
 
         # Detect local DC using TCP latency if enabled and preferred is meaningful
         if priorities is None and self._driver_config.detect_local_dc and not self._driver_config.use_all_nodes:
@@ -160,6 +160,8 @@ class Discovery:
                     )
                     if detected_location:
                         local_dc = detected_location
+                        if restoring_locality and local_dc != resolve_details.self_location:
+                            self._cache.set_local_dc(endpoint_locations, local_dc)
                         self.logger.info(
                             "Detected local DC via TCP latency: %s (server reported: %s)",
                             local_dc,
