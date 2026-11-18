@@ -319,9 +319,16 @@ set one explicitly:
 
 The multi-writer accepts the same ``codec``, ``encoders``, ``auto_seqno``, ``auto_created_at``
 and buffer-limit parameters as :meth:`writer`, and exposes ``write``, ``write_with_ack``,
-``flush`` and ``close`` with the same semantics. ``wait_init()`` differs: it waits until the
-topic has been described and the partition set is known, and (unlike the single-partition writer)
-returns nothing, because the multi-writer manages a stream per partition rather than one stream.
+``flush`` and ``close``. Its ``wait_init()`` method returns ``None`` once the topic has been
+described and the partition set is known.
+
+When passed a list, the multi-writer accepts messages one at a time in input order.
+Each message's key selects its partition, and the buffer limits apply per partition.
+If admission fails for one message, the call raises and skips the rest of the list.
+For example, a timeout waiting for buffer space raises ``TopicWriterBufferFullError``.
+The writer continues delivering messages it has already accepted. The exception does not
+report how many were accepted. Retrying the whole list with automatic sequence numbers
+can duplicate those messages.
 
 With ``auto_seqno=False``, supply a positive ``seqno`` for every message. Numbers must strictly
 increase across the whole multi-writer, including messages routed to different partitions.
@@ -398,10 +405,9 @@ A message is counted as occupying the buffer from the moment it is passed to ``w
 until the server acknowledges it. Backpressure is active when **at least one** limit is set;
 setting both means either limit can trigger a wait (OR semantics).
 
-The limits are **soft**: ``write()`` blocks only if the buffer is *already* at or above the
-limit when the call starts. Once unblocked, the entire batch is admitted regardless of its
-size. This means callers that batch multiple messages in a single ``write()`` call will never
-deadlock even when the batch is larger than the limit.
+The single-partition writer uses **soft limits**. Its ``write()`` blocks only if the buffer is
+*already* at or above the limit when the call starts. Once unblocked, the writer admits the
+entire batch, even if the batch itself exceeds the limit.
 
 **Blocking behavior (default)**
 

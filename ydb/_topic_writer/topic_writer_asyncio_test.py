@@ -3135,6 +3135,29 @@ class TestTopicWriterMultiAsyncIORegressions:
             await asyncio.gather(waiting, return_exceptions=True)
             await writer.close(flush=False)
 
+    async def test_batch_stops_at_full_buffer_and_delivers_accepted_prefix(self, opened_streams):
+        _, left, right = self.partitions()
+        settings = self.settings(max_buffer_messages=1, buffer_wait_timeout_sec=0, codec=PublicCodec.RAW)
+        writer = TopicWriterMultiAsyncIO(_MultiFakeDescribeDriver([[left, right]]), settings)
+        try:
+            batch = [
+                PublicMessage(b"accepted", key="a"),
+                PublicMessage(b"buffer full", key="b"),
+                PublicMessage(b"another partition", key="z"),
+            ]
+            with pytest.raises(TopicWriterBufferFullError):
+                await asyncio.wait_for(writer.write(batch), 1)
+
+            stream = await asyncio.wait_for(opened_streams.get(), 1)
+            sent = await asyncio.wait_for(stream.from_client.get(), 1)
+            assert [message.data for message in sent] == [b"accepted"]
+            stream.from_server.put_nowait(TestWriterAsyncIOReconnector().make_default_ack_message(sent[0].seq_no))
+            await asyncio.wait_for(writer.flush(), 1)
+            assert stream.from_client.empty()
+            assert opened_streams.empty()
+        finally:
+            await writer.close(flush=False)
+
     async def test_retry_manual_seqno_after_full_buffer(self, opened_streams):
         parent, _, _ = self.partitions()
         settings = self.settings(
