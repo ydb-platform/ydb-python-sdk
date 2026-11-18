@@ -106,17 +106,20 @@ class DiscoveryResult(object):
         self.endpoints = endpoints
         self.pile_states = pile_states or {}
 
+    def _pile_priority(self, info: EndpointInfo) -> int:
+        state = self.pile_states.get(info.bridge_pile_name)
+        if state in (ydb_bridge_common_pb2.PileState.PRIMARY, ydb_bridge_common_pb2.PileState.PROMOTED):
+            return 0
+        if state == ydb_bridge_common_pb2.PileState.SYNCHRONIZED:
+            return 1
+        return 2
+
     def bridge_priorities(self, enabled: bool) -> Optional[Dict[str, int]]:
         if not enabled or not self.pile_states:
             return None
         priorities = {}
         for info in self.endpoints:
-            state = self.pile_states.get(info.bridge_pile_name, ydb_bridge_common_pb2.PileState.UNSPECIFIED)
-            priority = (
-                0
-                if state in (ydb_bridge_common_pb2.PileState.PRIMARY, ydb_bridge_common_pb2.PileState.PROMOTED)
-                else (1 if state == ydb_bridge_common_pb2.PileState.SYNCHRONIZED else 2)
-            )
+            priority = self._pile_priority(info)
             for endpoint, _ in info.endpoints_with_options():
                 priorities[endpoint] = priority
         return priorities
@@ -136,6 +139,7 @@ class DiscoveryResult(object):
         rpc_state: conn_impl._RpcState,
         response: ydb_discovery_pb2.ListEndpointsResponse,
         use_all_nodes: bool = False,
+        prefer_primary_pile: bool = False,
     ) -> DiscoveryResult:
         issues._process_response(response.operation)
         message = _apis.ydb_discovery.ListEndpointsResult()
@@ -148,20 +152,14 @@ class DiscoveryResult(object):
             else:
                 unique_different_set.add(EndpointInfo(info))
 
-        result: List[EndpointInfo] = []
-        local_endpoints = list(unique_local_set)
-        different_endpoints = list(unique_different_set)
-        if use_all_nodes:
-            result.extend(local_endpoints)
-            result.extend(different_endpoints)
-            random.shuffle(result)
-        else:
-            random.shuffle(local_endpoints)
-            random.shuffle(different_endpoints)
-            result.extend(local_endpoints)
-            result.extend(different_endpoints)
-
-        return cls(message.self_location, result, {pile.pile_name: pile.state for pile in message.pile_states})
+        endpoints = list(unique_local_set) + list(unique_different_set)
+        result = cls(message.self_location, endpoints, {pile.pile_name: pile.state for pile in message.pile_states})
+        random.shuffle(endpoints)
+        if prefer_primary_pile and result.pile_states:
+            endpoints.sort(key=result._pile_priority)
+        elif not use_all_nodes:
+            endpoints.sort(key=lambda info: info.location != message.self_location)
+        return result
 
 
 class DiscoveryEndpointsResolver(object):
@@ -219,7 +217,7 @@ class DiscoveryEndpointsResolver(object):
                 _apis.DiscoveryService.ListEndpoints,
                 DiscoveryResult.from_response,
                 settings=settings_impl.BaseRequestSettings().with_timeout(self._ready_timeout),
-                wrap_args=(self._driver_config.use_all_nodes,),
+                wrap_args=(self._driver_config.use_all_nodes, self._driver_config.prefer_primary_pile),
             )
 
             self._add_debug_details(
