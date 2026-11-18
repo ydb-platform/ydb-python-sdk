@@ -1131,10 +1131,9 @@ class TestWriterAsyncIO:
 
     @pytest.fixture(autouse=True)
     def mock_reconnector_init(self, monkeypatch, reconnector):
-        def t(cls, driver, settings):
-            return reconnector
-
-        monkeypatch.setattr(WriterAsyncIOReconnector, "__new__", t)
+        monkeypatch.setattr(
+            "ydb._topic_writer.topic_writer_asyncio.WriterAsyncIOReconnector", mock.Mock(return_value=reconnector)
+        )
 
     @pytest.fixture
     def reconnector(self, monkeypatch) -> TestWriterAsyncIO.ReconnectorMock:
@@ -1359,6 +1358,9 @@ class _FakeSubWriter:
     async def wait_init(self):
         last_seqno = _FAKE_LAST_SEQNO.get(self.producer_partition_id, 0)
         return PublicWriterInitInfo(last_seqno=last_seqno, supported_codecs=[])
+
+    def _buffer_is_full(self):
+        return False
 
     async def write_with_ack_future(self, message):
         self.messages.append(message)
@@ -3088,6 +3090,132 @@ class TestTopicWriterMultiAsyncIORegressions:
             _multi_partition(1, from_bound=b"m", to_bound=b""),
         ]
         return before, [_multi_partition(2, parents=[0, 1], from_bound=b"", to_bound=b"")]
+
+    @pytest.fixture
+    def opened_streams(self, monkeypatch):
+        opened = asyncio.Queue()
+        monkeypatch.setattr(topic_writer_multi_asyncio, "_WRITER_INIT_TIMEOUT", 5)
+
+        async def create(*args, **kwargs):
+            stream = TestWriterAsyncIOReconnector.StreamWriterMock()
+            opened.put_nowait(stream)
+            return stream
+
+        monkeypatch.setattr(WriterAsyncIOStream, "create", create)
+        return opened
+
+    @pytest.mark.parametrize("flush", [True, False])
+    async def test_close_rejects_new_and_waiting_writes(self, opened_streams, flush):
+        parent, _, _ = self.partitions()
+        writer = TopicWriterMultiAsyncIO(
+            _MultiFakeDescribeDriver([[parent]]), self.settings(max_buffer_messages=1, codec=PublicCodec.RAW)
+        )
+        accepted = await writer.write_with_ack_future(b"first")
+        stream = await opened_streams.get()
+        waiting = asyncio.create_task(writer.write(b"waiting"))
+        await asyncio.sleep(0)
+        assert not waiting.done()
+        closing = asyncio.create_task(writer.close(flush=flush))
+        try:
+            await asyncio.sleep(0)
+            with pytest.raises(TopicWriterClosedError):
+                await asyncio.wait_for(writer.write(b"late"), 1)
+            if flush:
+                assert not closing.done()
+                stream.from_server.put_nowait(TestWriterAsyncIOReconnector().make_default_ack_message(1))
+                await asyncio.wait_for(accepted, 1)
+            await asyncio.wait_for(closing, 1)
+            with pytest.raises(TopicWriterClosedError):
+                await asyncio.wait_for(waiting, 1)
+            if not flush:
+                assert isinstance(accepted.exception(), TopicWriterStopped)
+            assert stream._closed
+        finally:
+            waiting.cancel()
+            await asyncio.gather(waiting, return_exceptions=True)
+            await writer.close(flush=False)
+
+    async def test_retry_manual_seqno_after_full_buffer(self, opened_streams):
+        parent, _, _ = self.partitions()
+        settings = self.settings(
+            auto_seqno=False, max_buffer_messages=1, buffer_wait_timeout_sec=0, codec=PublicCodec.RAW
+        )
+        writer = TopicWriterMultiAsyncIO(_MultiFakeDescribeDriver([[parent]]), settings)
+        try:
+            first = await writer.write_with_ack_future(PublicMessage(b"a", seqno=1))
+            stream = await opened_streams.get()
+            with pytest.raises(TopicWriterError, match="must increase"):
+                await writer.write(PublicMessage(b"duplicate", seqno=1))
+            second = PublicMessage(b"b", seqno=2)
+            with pytest.raises(TopicWriterBufferFullError):
+                await writer.write(second)
+            stream.from_server.put_nowait(TestWriterAsyncIOReconnector().make_default_ack_message(1))
+            await asyncio.wait_for(first, 1)
+            retry = await writer.write_with_ack_future(second)
+            stream.from_server.put_nowait(TestWriterAsyncIOReconnector().make_default_ack_message(2))
+            await asyncio.wait_for(retry, 1)
+            with pytest.raises(TopicWriterError, match="must increase"):
+                await writer.write(second)
+        finally:
+            await writer.close(flush=False)
+
+    async def test_split_while_waiting_for_buffer_space(self, opened_streams):
+        parent, left, right = self.partitions()
+        driver = _MultiFakeDescribeDriver([[parent], [left, right]])
+        writer = TopicWriterMultiAsyncIO(driver, self.settings(max_buffer_messages=1, codec=PublicCodec.RAW))
+        try:
+            first = await writer.write_with_ack_future(PublicMessage(b"one", key="a"))
+            parent_stream = await opened_streams.get()
+            waiting = asyncio.create_task(writer.write_with_ack(PublicMessage(b"two", key="a")))
+            await asyncio.sleep(0)
+            assert not waiting.done()
+            parent_stream.from_server.put_nowait(issues.Overloaded("inactive partition"))
+            await asyncio.wait_for(opened_streams.get(), 1)  # retired producer's seqno probe
+            child = await asyncio.wait_for(opened_streams.get(), 1)
+            for seqno, data in [(1, b"one"), (2, b"two")]:
+                messages = await asyncio.wait_for(child.from_client.get(), 1)
+                assert [(m.seq_no, m.data) for m in messages] == [(seqno, data)]
+                child.from_server.put_nowait(TestWriterAsyncIOReconnector().make_default_ack_message(seqno))
+            await asyncio.wait_for(asyncio.gather(first, waiting), 1)
+        finally:
+            await writer.close(flush=False)
+
+    async def test_cancelled_write_leaves_merge_running(self, monkeypatch):
+        probe_started = asyncio.Event()
+        release_probe = asyncio.Event()
+
+        class MergingWriter(_FakeSubWriter):
+            async def wait_init(self):
+                if self.partition_id == 1:
+                    raise asyncio.TimeoutError()
+                if self.partition_id is None:
+                    probe_started.set()
+                    await release_probe.wait()
+                return await super().wait_init()
+
+            async def write_with_ack_future(self, message):
+                if self.partition_id == 0:
+                    return asyncio.get_running_loop().create_future()
+                return await super().write_with_ack_future(message)
+
+        monkeypatch.setattr(topic_writer_multi_asyncio, "WriterAsyncIO", MergingWriter)
+        monkeypatch.setattr(topic_writer_multi_asyncio, "_WRITER_INIT_TIMEOUT", 5)
+        before, after = self.merge_partitions()
+        writer = TopicWriterMultiAsyncIO(_MultiFakeDescribeDriver([before, after]), self.settings())
+        try:
+            accepted = await writer.write_with_ack_future(PublicMessage(b"accepted", key="a"))
+            discovering = asyncio.create_task(writer.write(PublicMessage(b"cancelled", key="z")))
+            await asyncio.wait_for(probe_started.wait(), 1)
+            discovering.cancel()
+            with pytest.raises(asyncio.CancelledError):
+                await discovering
+            release_probe.set()
+            await asyncio.wait_for(accepted, 1)
+            await asyncio.wait_for(writer.flush(), 1)
+            assert [m.data for m in writer._writers[2].messages] == [b"accepted"]
+        finally:
+            release_probe.set()
+            await writer.close(flush=False)
 
     @pytest.mark.parametrize("server_seqno,invalid_seqno", [(0, -1), (0, 9), (0, 10), (30, 29), (30, 30)])
     async def test_manual_seqnos_increase_across_partitions_and_known_history(

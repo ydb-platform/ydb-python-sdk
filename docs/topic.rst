@@ -326,6 +326,8 @@ returns nothing, because the multi-writer manages a stream per partition rather 
 With ``auto_seqno=False``, supply a positive ``seqno`` for every message. Numbers must strictly
 increase across the whole multi-writer, including messages routed to different partitions.
 Both automatic and manual sequence numbers are preserved on resend, including split and merge.
+A single write rejected with ``TopicWriterBufferFullError`` can be retried with the same number
+as long as it still exceeds the last accepted number.
 
 Cancelling or timing out a call that is waiting for initialization does not cancel the shared
 initialization. Other waiters and subsequent writes can still complete. Closing the writer
@@ -340,6 +342,9 @@ If an accepted write fails permanently, its acknowledgement future, ``flush()`` 
 ``close(flush=True)`` report the error, including when it happened before the flush or close
 call. Closing still releases the underlying writers before raising the error. Use
 ``close(flush=False)`` to abandon pending writes without waiting for delivery.
+Once closing begins, new writes raise ``TopicWriterClosedError``. Calling ``close(flush=False)``
+also wakes a write waiting for buffer space. If the partition splits during that wait, an
+open writer refreshes the route and retries the message.
 Cancelling an individual acknowledgement future only ends that wait. Both ``flush()``
 and ``close(flush=True)`` still wait for the message if it moves to a new partition.
 

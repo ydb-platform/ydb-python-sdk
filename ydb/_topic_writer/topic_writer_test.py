@@ -16,7 +16,6 @@ from .topic_writer import (
     TopicWriterClosedError,
     messages_to_proto_requests,
 )
-from .topic_writer_asyncio import WriterAsyncIOReconnector
 from .topic_writer_sync import WriterSync
 from .topic_writer_multi_asyncio import MultiWriterSettings
 from .topic_writer_multi_sync import TopicWriterMultiSync
@@ -190,7 +189,10 @@ def background_loop():
 @pytest.fixture
 def mock_reconnector(monkeypatch):
     def factory(reconnector_instance):
-        monkeypatch.setattr(WriterAsyncIOReconnector, "__new__", lambda cls, *a, **kw: reconnector_instance)
+        monkeypatch.setattr(
+            "ydb._topic_writer.topic_writer_asyncio.WriterAsyncIOReconnector",
+            mock.Mock(return_value=reconnector_instance),
+        )
         return reconnector_instance
 
     return factory

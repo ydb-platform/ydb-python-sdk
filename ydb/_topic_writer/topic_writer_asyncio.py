@@ -186,6 +186,12 @@ class WriterAsyncIO:
         logger.debug("flush writer")
         return await self._reconnector.flush()
 
+    def _buffer_is_full(self) -> bool:
+        return self._reconnector.buffer_is_full()
+
+    async def _wait_for_buffer_space(self) -> None:
+        await self._reconnector.wait_for_buffer_space()
+
     async def wait_init(self) -> PublicWriterInitInfo:
         """
         wait while real connection will be established to server.
@@ -392,7 +398,9 @@ class WriterAsyncIOReconnector:
         messages_future = [self._loop.create_future() for _ in internal_messages]
 
         if self._backpressure_enabled:
-            await self._acquire_buffer_space(internal_messages)
+            await self.wait_for_buffer_space()
+            self._buffer_bytes += sum(internal_message_size_bytes(m) for m in internal_messages)
+            self._buffer_messages += len(internal_messages)
 
         self._messages_future.extend(messages_future)
 
@@ -403,24 +411,20 @@ class WriterAsyncIOReconnector:
 
         return messages_future
 
-    async def _acquire_buffer_space(self, internal_messages: List[InternalMessage]) -> None:
-        """Wait until the buffer is below its limit, then admit the batch (soft-limit semantics).
-
-        Blocking starts only when the buffer is already at or above the limit at call time.
-        Once unblocked, the entire batch is admitted regardless of its size, so callers that
-        batch messages never get a permanent deadlock.
-        """
+    def buffer_is_full(self) -> bool:
         max_buf = self._settings.max_buffer_size_bytes
         max_msgs = self._settings.max_buffer_messages
+        return (max_buf is not None and self._buffer_bytes >= max_buf) or (
+            max_msgs is not None and self._buffer_messages >= max_msgs
+        )
+
+    async def wait_for_buffer_space(self) -> None:
+        """A batch can enter as soon as the buffer is below both soft limits."""
         timeout_sec = self._settings.buffer_wait_timeout_sec
         deadline = self._loop.time() + timeout_sec if timeout_sec is not None else None
 
-        while True:
+        while self.buffer_is_full():
             self._buffer_updated.clear()
-            if (max_buf is None or self._buffer_bytes < max_buf) and (
-                max_msgs is None or self._buffer_messages < max_msgs
-            ):
-                break
             self._check_stop()
             if deadline is not None:
                 assert timeout_sec is not None
@@ -429,7 +433,13 @@ class WriterAsyncIOReconnector:
                     raise TopicWriterBufferFullError(
                         "Topic writer buffer full: no free space within %.1f s"
                         " (buffer_bytes=%d, max_bytes=%s, buffer_msgs=%d, max_msgs=%s)"
-                        % (timeout_sec, self._buffer_bytes, max_buf, self._buffer_messages, max_msgs)
+                        % (
+                            timeout_sec,
+                            self._buffer_bytes,
+                            self._settings.max_buffer_size_bytes,
+                            self._buffer_messages,
+                            self._settings.max_buffer_messages,
+                        )
                     )
                 try:
                     await asyncio.wait_for(self._buffer_updated.wait(), timeout=min(0.5, remaining))
@@ -439,9 +449,6 @@ class WriterAsyncIOReconnector:
                 await self._buffer_updated.wait()
 
         self._check_stop()
-        new_bytes = sum(internal_message_size_bytes(m) for m in internal_messages)
-        self._buffer_bytes += new_bytes
-        self._buffer_messages += len(internal_messages)
 
     def _add_messages_to_send_queue(self, internal_messages: List[InternalMessage]):
         self._messages.extend(internal_messages)
@@ -791,7 +798,7 @@ class WriterAsyncIOReconnector:
             f.set_exception(reason)
             f.exception()  # mark as retrieved so asyncio does not log "Future exception was never retrieved"
 
-        self._buffer_updated.set()  # wake any tasks blocked in _acquire_buffer_space
+        self._buffer_updated.set()
         self._state_changed.set()
         logger.info("Stop topic writer %s: %s" % (self._id, reason))
 
