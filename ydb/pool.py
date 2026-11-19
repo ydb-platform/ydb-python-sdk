@@ -74,11 +74,9 @@ class ConnectionsCache:
     def _get_balanced_connection(self) -> Connection:
         if self._bridge_priorities is not None and self.connections:
             priorities = self._bridge_priorities
-            best = min(priorities.get(endpoint, 2) for endpoint in self.connections)
-            for endpoint, conn in self.connections.items():
-                if priorities.get(endpoint, 2) == best:
-                    self.connections.move_to_end(endpoint)
-                    return conn
+            endpoint = min(self.connections, key=lambda address: priorities.get(address, 2))
+            self.connections.move_to_end(endpoint)
+            return self.connections[endpoint]
         for conn_lst in self.conn_lst_order:
             try:
                 endpoint, conn = conn_lst.popitem(last=False)
