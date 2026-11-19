@@ -2,7 +2,7 @@
 from unittest.mock import AsyncMock, Mock, MagicMock, patch
 
 import pytest
-from ydb import driver, pool, _utilities, connection
+from ydb import driver, pool, _utilities, connection, issues
 from ydb import _apis, resolver
 from ydb.aio import resolver as aio_resolver
 
@@ -272,12 +272,50 @@ def test_primary_promoted_synchronized_and_unknown_fallback(monkeypatch):
     result = primary_result({"A": 1, "B": 2, "C": 3, "D": 99}, ((1, "A"), (2, "B"), (3, "C"), (4, "D"), (5, "missing")))
     discovery, _ = primary_discovery(monkeypatch, result)
     assert discovery.execute_discovery()
-    assert {discovery._cache.get().node_id for _ in range(10)} == {1, 2}
+    choices = [discovery._cache.get().node_id for _ in range(4)]
+    assert set(choices[:2]) == {1, 2}
+    assert choices[2:] == choices[:2]
     discovery._cache.get(connection.EndpointKey("node1:2135", 1)).close()
     discovery._cache.get(connection.EndpointKey("node2:2135", 2)).close()
     assert discovery._cache.get().node_id == 3
     discovery._cache.get().close()
     assert {discovery._cache.get().node_id for _ in range(10)} == {4, 5}
+
+
+def test_discovery_retires_withdrawn_endpoints(monkeypatch):
+    discovery, created = primary_discovery(monkeypatch, primary_result({"A": 1, "B": 3}), use_all_nodes=False)
+    assert discovery.execute_discovery()
+    primary = discovery._cache.get()
+    resolve = discovery._resolver.context_resolve.return_value.__enter__
+    resolve.return_value = primary_result({}, nodes=((2, "B"),))
+    assert discovery.execute_discovery()
+    assert primary.closed
+    assert discovery._cache.get().node_id == 2
+
+    resolve.return_value = primary_result({}, nodes=())
+    assert not discovery.execute_discovery()
+    assert all(conn.closed for conn in created)
+    with pytest.raises(issues.ConnectionLost):
+        discovery._cache.get()
+
+
+def test_discovery_closes_candidate_if_slot_was_taken(monkeypatch):
+    result = primary_result({"A": 1, "B": 2})
+    discovery, created = primary_discovery(monkeypatch, result)
+    discovery._max_size = 1
+    other = result.endpoints[1]
+    admitted = PrimaryConnection(other.endpoint, other.node_id)
+    ready = connection.Connection.ready_factory
+
+    def finish_connecting(endpoint, config, timeout, endpoint_options):
+        discovery._cache.add(admitted)
+        return ready(endpoint, config, timeout, endpoint_options)
+
+    monkeypatch.setattr(connection.Connection, "ready_factory", finish_connecting)
+    assert discovery.execute_discovery()
+    assert len(created) == 1 and created[0].closed
+    assert discovery._cache.values() == [admitted]
+    assert not admitted.closed
 
 
 def test_primary_new_endpoint_enters_full_cache(monkeypatch):

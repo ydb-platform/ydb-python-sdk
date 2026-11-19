@@ -255,12 +255,51 @@ async def test_primary_promoted_and_unknown_states(monkeypatch):
         primary_result({"A": 1, "B": 2, "C": 3, "D": 99}, ((1, "A"), (2, "B"), (3, "C"), (4, "D"), (5, "missing"))),
     )
     assert await discovery.execute_discovery()
-    assert {(await discovery._cache.get()).node_id for _ in range(10)} == {1, 2}
+    choices = [(await discovery._cache.get()).node_id for _ in range(4)]
+    assert set(choices[:2]) == {1, 2}
+    assert choices[2:] == choices[:2]
     await (await discovery._cache.get(connection.EndpointKey("node1:2135", 1))).close()
     await (await discovery._cache.get(connection.EndpointKey("node2:2135", 2))).close()
     assert (await discovery._cache.get()).node_id == 3
     await (await discovery._cache.get()).close()
     assert {(await discovery._cache.get()).node_id for _ in range(10)} == {4, 5}
+
+
+@pytest.mark.asyncio
+async def test_discovery_retires_withdrawn_endpoints(monkeypatch):
+    discovery = primary_discovery(monkeypatch, primary_result({"A": 1, "B": 3}), use_all_nodes=False)
+    assert await discovery.execute_discovery()
+    primary = await discovery._cache.get()
+    discovery._resolver.resolve.return_value = primary_result({}, nodes=((2, "B"),))
+    assert await discovery.execute_discovery()
+    assert primary.closed
+    assert (await discovery._cache.get()).node_id == 2
+
+    discovery._resolver.resolve.return_value = primary_result({}, nodes=())
+    assert not await discovery.execute_discovery()
+    assert all(conn.closed for conn in PrimaryConnection.created)
+    assert discovery._cache.size == 0
+
+
+@pytest.mark.asyncio
+async def test_discovery_closes_candidate_if_slot_was_taken(monkeypatch):
+    result = primary_result({"A": 1, "B": 2})
+    discovery = primary_discovery(monkeypatch, result)
+    discovery._max_size = 1
+    other = result.endpoints[1]
+    admitted = PrimaryConnection(
+        other.endpoint, discovery._driver_config, connection.EndpointOptions(node_id=other.node_id)
+    )
+
+    async def finish_connecting(self, ready_timeout):
+        discovery._cache.add(admitted)
+
+    monkeypatch.setattr(PrimaryConnection, "connection_ready", finish_connecting)
+    assert await discovery.execute_discovery()
+    assert len(PrimaryConnection.created) == 2
+    assert PrimaryConnection.created[1].closed
+    assert discovery._cache.values() == [admitted]
+    assert not admitted.closed
 
 
 @pytest.mark.asyncio
