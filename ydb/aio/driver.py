@@ -58,6 +58,9 @@ class Driver(pool.ConnectionPool):
         credentials: Optional["Credentials"] = None,
         **kwargs: Any,
     ) -> None:
+        if "prefer_primary_pile" in kwargs:
+            raise TypeError("Set prefer_primary_pile on DriverConfig")
+
         from .. import topic  # local import for prevent cycle import error
         from . import coordination  # local import for prevent cycle import error
 

@@ -1,3 +1,4 @@
+from functools import partial
 from typing import Any, Optional
 
 from . import connection as conn_impl
@@ -47,7 +48,7 @@ class DiscoveryEndpointsResolver(_DiscoveryEndpointsResolver):
                 _list_endpoints_request_factory(self._driver_config),
                 _apis.DiscoveryService.Stub,
                 _apis.DiscoveryService.ListEndpoints,
-                DiscoveryResult.from_response,
+                partial(DiscoveryResult.from_response, prefer_primary_pile=self._driver_config.prefer_primary_pile),
                 settings=settings_impl.BaseRequestSettings().with_timeout(self._ready_timeout),
             )
 

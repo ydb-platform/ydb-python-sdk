@@ -1,5 +1,21 @@
 # SLO workload
 
+## GitHub-hosted Bridge SLO
+
+`.github/workflows/slo-2dc.yml` runs the standard five Bridge scenarios from the
+pinned SLO Action v2 on `ubuntu-24.04`. The ordinary `sync-query` workload runs for
+10 minutes with `--prefer-primary-pile` enabled.
+
+The runner uses two storage and two database nodes, `erasure=none` and SectorMap disks.
+The adapter bounds resources and cold-start readiness time, restricts bootstrap DNS
+to active compute nodes, and sets a 30-second gap between fault scenarios to fit the
+10-minute workload. The upstream scenario scripts and SDK discovery intervals are unchanged.
+
+The job requires all five scenarios to complete, successful recent reads and writes,
+and no workload failure, OOM or unexpected container restart. Transient operation
+errors are recorded. Server image metadata, workload and chaos logs, final container
+states and counters are retained in the `python-hosted-2dc` artifact for 14 days.
+
 SLO is the type of test where app based on ydb-sdk is tested against falling YDB cluster nodes, tablets, network
 (that is possible situations for distributed DBs with hundreds of nodes)
 
