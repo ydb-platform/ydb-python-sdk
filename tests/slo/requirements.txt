@@ -2,8 +2,7 @@ requests==2.33.0
 aiolimiter==1.1.0
 hdrhistogram==0.10.3
 
-# OpenTelemetry (OTLP/HTTP exporter)
-# NOTE: OpenTelemetry 1.39.1 requires Python >= 3.9.
+# Keep the OpenTelemetry API, SDK, and exporter on the same release.
 opentelemetry-api==1.45.1
-opentelemetry-sdk==1.39.1
-opentelemetry-exporter-otlp-proto-http==1.39.1
+opentelemetry-sdk==1.45.1
+opentelemetry-exporter-otlp-proto-http==1.45.1
