@@ -6,8 +6,6 @@ on:
 
 permissions:
   contents: read
-  pull-requests: write
-  checks: write
 
 jobs:
   ydb-slo-action:
@@ -78,6 +76,7 @@ jobs:
         with:
           path: sdk-current
           fetch-depth: 0
+          persist-credentials: false
 
       - name: Determine baseline commit
         id: baseline
@@ -85,7 +84,7 @@ jobs:
         run: |
           set -euo pipefail
           BASELINE=$(git merge-base HEAD origin/main)
-          echo "sha=${BASELINE}" >> "$GITHUB_OUTPUT"
+          git worktree add --detach "$GITHUB_WORKSPACE/sdk-baseline" "$BASELINE"
 
           if git merge-base --is-ancestor "${BASELINE}" origin/main && \
              [ "$(git rev-parse origin/main)" = "${BASELINE}" ]; then
@@ -99,13 +98,6 @@ jobs:
             fi
           fi
           echo "ref=${BASELINE_REF}" >> "$GITHUB_OUTPUT"
-
-      - name: Checkout baseline SDK version
-        uses: actions/checkout@v5
-        with:
-          ref: ${{ steps.baseline.outputs.sha }}
-          path: sdk-baseline
-          fetch-depth: 1
 
       - name: Build workload images (current + baseline)
         run: |
@@ -129,11 +121,10 @@ jobs:
             "$GITHUB_WORKSPACE/sdk-baseline"
 
       - name: Run SLO Tests
-        uses: ydb-platform/ydb-slo-action/init@v2
+        uses: ydb-platform/ydb-slo-action/init@54c3c03de1ce8c6a2d8b0828b328bd5db82ef2bb # v2
         timeout-minutes: 30
         with:
           github_issue: ${{ github.event.pull_request.number }}
-          github_token: ${{ secrets.GITHUB_TOKEN }}
           workload_name: ${{ matrix.sdk.name }}
           workload_duration: "600"
           workload_current_ref: ${{ github.head_ref || github.ref_name }}
@@ -146,6 +137,4 @@ jobs:
           # action defaults; empty for workloads that don't set it.
           metrics_yaml_path: ${{ matrix.sdk.metrics_yaml_path }}
           # Per-scenario threshold overrides (topics make read_latency neutral).
-          # Ignored by action versions without ydb-slo-action#57; self-activates
-          # once per-scenario thresholds land in the consumed tag.
           thresholds_yaml_path: ${{ matrix.sdk.thresholds_yaml_path }}
