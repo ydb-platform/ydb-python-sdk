@@ -123,6 +123,29 @@ TypedValue
    :members:
    :undoc-members:
 
+ModelField
+^^^^^^^^^^
+
+.. autoclass:: ydb.ModelField
+   :members:
+   :undoc-members:
+
+ModelValue
+^^^^^^^^^^
+
+.. autoclass:: ydb.ModelValue
+   :members:
+   :undoc-members:
+
+Model Errors
+^^^^^^^^^^^^
+
+.. autoclass:: ydb.ModelDefinitionError
+   :members:
+
+.. autoclass:: ydb.ModelConversionError
+   :members:
+
 OptionalType
 ^^^^^^^^^^^^
 

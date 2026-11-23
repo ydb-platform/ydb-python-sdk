@@ -381,6 +381,7 @@ class BaseQuerySession(abc.ABC, Generic[DriverT]):
             arrow_format_settings=arrow_format_settings,
             concurrent_result_sets=concurrent_result_sets,
             pool_id=pool_id,
+            type_mapping=getattr(self._driver_config, "type_mapping", None),
         )
 
         return self._driver(

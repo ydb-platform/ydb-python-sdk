@@ -449,6 +449,7 @@ class BaseQueryTxContext(base.CallbackHandler, Generic[DriverT]):
             arrow_format_settings=arrow_format_settings,
             concurrent_result_sets=concurrent_result_sets,
             pool_id=pool_id,
+            type_mapping=getattr(self.session._driver_config, "type_mapping", None),
         )
 
         return self._driver(

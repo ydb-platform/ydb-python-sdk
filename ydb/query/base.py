@@ -178,6 +178,7 @@ def create_execute_query_request(
     parameters: Optional[dict],
     concurrent_result_sets: Optional[bool],
     pool_id: Optional[str],
+    type_mapping: Optional[typing.Mapping] = None,
 ) -> ydb_query.ExecuteQueryRequest:
     try:
         syntax = QuerySyntax.YQL_V1 if not syntax else syntax
@@ -221,6 +222,7 @@ def create_execute_query_request(
             result_set_format=result_set_format,
             arrow_format_settings=arrow_format_settings,
             pool_id=pool_id,
+            type_mapping=type_mapping,
         )
     except BaseException as e:
         raise issues.ClientInternalError("Unable to prepare execute request") from e
@@ -264,6 +266,7 @@ def wrap_execute_query_response(
             response_pb.result_set,
             settings,
             index=response_pb.result_set_index,
+            type_mapping=getattr(session._driver_config, "type_mapping", None),
         )
 
     return None

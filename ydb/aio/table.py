@@ -64,7 +64,14 @@ class Session(BaseSession):
             _apis.TableService.StreamReadTable,
             settings=settings,
         )
-        return _utilities.AsyncResponseIterator(stream_it, _session_impl.wrap_read_table_response)
+        return _utilities.AsyncResponseIterator(
+            stream_it,
+            lambda response: _session_impl.wrap_read_table_response(
+                response,
+                self._state.table_client_settings,
+                self._state.type_mapping,
+            ),
+        )
 
     async def keep_alive(self, settings=None):  # pylint: disable=W0236
         return await super().keep_alive(settings)
@@ -173,11 +180,15 @@ class TableClient(BaseTableClient["AsyncDriver"]):
     def session(self):
         return Session(self._driver, self._table_client_settings)
 
-    async def bulk_upsert(self, *args, **kwargs):  # pylint: disable=W0236
-        return await super().bulk_upsert(*args, **kwargs)
+    async def bulk_upsert(
+        self, table_path, rows, column_types=None, settings=None, *, model=None
+    ):  # pylint: disable=W0236
+        return await super().bulk_upsert(table_path, rows, column_types, settings, model=model)
 
-    async def read_rows(self, *args, **kwargs):  # pylint: disable=W0236
-        return await super().read_rows(*args, **kwargs)
+    async def read_rows(
+        self, table_path, keys, key_types=None, columns=None, settings=None, *, key_model=None
+    ):  # pylint: disable=W0236
+        return await super().read_rows(table_path, keys, key_types, columns, settings, key_model=key_model)
 
     async def describe_system_view(self, path, settings=None):  # pylint: disable=W0236
         return await super().describe_system_view(path, settings)

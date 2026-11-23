@@ -1,9 +1,13 @@
 import copy
+import datetime
+from dataclasses import dataclass
+from types import SimpleNamespace
+from typing import Annotated
 
 import pytest
 
 from unittest import mock
-from . import issues, convert, types, _apis, scheme, _session_impl, _utilities
+from . import issues, convert, models, types, _apis, scheme, _session_impl, _utilities
 from .aio import _utilities as _aio_utilities
 from .aio.table import TableClient as AioTableClient
 from .table import SystemViewSchemeEntry, TableClient, TableClientSettings
@@ -148,6 +152,159 @@ def test_result_set_detached_from_source_message():
     assert result.rows[0]["column_1"] == 1
     assert result.rows[1][0] == 1000
     assert result.rows[1][0:2] == (1000, 1001)
+
+
+@dataclass
+class _ResultOrder:
+    order_id: Annotated[
+        int,
+        models.ModelField(column_name="id", ydb_type=types.PrimitiveType.Uint64),
+    ]
+    customer: str
+    created_at: datetime.datetime
+    label: str = "default"
+
+
+def _build_model_result_set():
+    result_set = _apis.ydb_value.ResultSet()
+    for name, primitive_type in (
+        ("id", types.PrimitiveType.Uint64),
+        ("customer", types.PrimitiveType.Utf8),
+        ("created_at", types.PrimitiveType.Timestamp),
+    ):
+        column = result_set.columns.add()
+        column.name = name
+        column.type.MergeFrom(primitive_type.proto)
+    row = result_set.rows.add()
+    row.items.add().uint64_value = 42
+    row.items.add().text_value = "alice"
+    row.items.add().uint64_value = 1_500_000
+    return result_set
+
+
+def test_result_set_rows_as_dataclass():
+    result_set = convert.ResultSet.from_message(_build_model_result_set())
+
+    assert result_set.rows_as(_ResultOrder) == [
+        _ResultOrder(
+            order_id=42,
+            customer="alice",
+            created_at=datetime.datetime(1970, 1, 1, 0, 0, 1, 500000),
+        )
+    ]
+
+
+def test_result_set_iter_rows_as_validates_strict_columns():
+    result_set = convert.ResultSet.from_message(_build_model_result_set())
+
+    with pytest.raises(models.ModelConversionError, match="Unexpected columns"):
+        result_set.rows_as(
+            dataclass(type("OnlyId", (), {"__annotations__": {"order_id": int}})),
+            strict_columns=True,
+        )
+
+
+def test_model_type_mapping_priority_and_cache():
+    type_mapping = {
+        int: types.PrimitiveType.Int32,
+        datetime.datetime: types.PrimitiveType.Datetime64,
+    }
+
+    adapter = models.get_model_adapter(_ResultOrder, type_mapping)
+    members = {member.name: member.type for member in adapter.struct_type.proto.struct_type.members}
+
+    assert members["id"].type_id == types.PrimitiveType.Uint64._idn_
+    assert members["created_at"].type_id == types.PrimitiveType.Datetime64._idn_
+    assert models.get_model_adapter(_ResultOrder, type_mapping) is adapter
+
+
+@dataclass
+class _Address:
+    city: str
+
+
+@dataclass
+class _NestedOrder:
+    order_id: int
+    address: _Address
+
+
+def test_nested_dataclass_conversion():
+    adapter = models.get_model_adapter(_NestedOrder)
+
+    assert adapter.from_row(
+        {"order_id": 7, "address": {"city": "Moscow"}},
+        strict_columns=True,
+    ) == _NestedOrder(7, _Address("Moscow"))
+    assert adapter.struct_type.proto.struct_type.members[1].type.HasField("struct_type")
+
+
+def test_bulk_upsert_accepts_explicit_model_for_empty_rows():
+    class _FakeDriver:
+        _driver_config = SimpleNamespace(type_mapping={datetime.datetime: types.PrimitiveType.Datetime64})
+
+        def __call__(self, request, *args):
+            self.request = request
+            return request
+
+    driver = _FakeDriver()
+    TableClient(driver).bulk_upsert("/local/orders", [], model=_ResultOrder)
+    members = driver.request.rows.type.list_type.item.struct_type.members
+
+    assert [member.name for member in members] == ["id", "customer", "created_at", "label"]
+    assert members[2].type.type_id == types.PrimitiveType.Datetime64._idn_
+
+
+def test_bulk_upsert_rejects_model_with_explicit_column_types():
+    client = TableClient(mock.Mock())
+
+    with pytest.raises(ValueError, match="cannot be used together"):
+        client.bulk_upsert(
+            "/local/orders",
+            [],
+            types.StructType().add_member("id", types.PrimitiveType.Uint64),
+            model=_ResultOrder,
+        )
+
+
+def test_pydantic_v2_result_conversion():
+    pydantic = pytest.importorskip("pydantic")
+    if not hasattr(pydantic.BaseModel, "model_validate"):
+        pytest.skip("Pydantic v2 is not installed")
+
+    class OrderModel(pydantic.BaseModel):
+        order_id: Annotated[
+            int,
+            models.ModelField(column_name="id", ydb_type=types.PrimitiveType.Uint64),
+        ]
+        customer: str
+        created_at: datetime.datetime
+
+    result_set = convert.ResultSet.from_message(_build_model_result_set())
+    order = result_set.rows_as(OrderModel)[0]
+
+    assert order.order_id == 42
+    assert order.customer == "alice"
+    assert order.created_at == datetime.datetime(1970, 1, 1, 0, 0, 1, 500000)
+
+
+def test_pydantic_v1_result_conversion():
+    pytest.importorskip("pydantic")
+    pydantic_v1 = pytest.importorskip("pydantic.v1")
+
+    class OrderModel(pydantic_v1.BaseModel):
+        order_id: Annotated[
+            int,
+            models.ModelField(column_name="id", ydb_type=types.PrimitiveType.Uint64),
+        ]
+        customer: str
+        created_at: datetime.datetime
+
+    result_set = convert.ResultSet.from_message(_build_model_result_set())
+    order = result_set.rows_as(OrderModel)[0]
+
+    assert order.order_id == 42
+    assert order.customer == "alice"
 
 
 def test_retry_operation_impl(monkeypatch):

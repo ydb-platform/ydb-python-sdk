@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import concurrent.futures
+import datetime
 import threading
 import time
 import unittest
@@ -9,7 +10,7 @@ from unittest.mock import MagicMock
 
 from unittest.mock import patch
 
-from ydb import _utilities, issues
+from ydb import PrimitiveType, _utilities, issues
 from ydb.convert import _ResultSet, aggregate_result_sets_by_index, aggregate_result_sets_by_index_async
 from ydb.query.base import create_execute_query_request
 from ydb.query.pool import QuerySessionPool
@@ -292,6 +293,28 @@ class TestQuerySessionExecutePoolId(unittest.TestCase):
 
 
 class TestCreateExecuteQueryRequest(unittest.TestCase):
+    def test_type_mapping_is_used_for_query_parameters(self):
+        req = create_execute_query_request(
+            query="DECLARE $value AS Datetime64; SELECT $value",
+            session_id="sess-1",
+            tx_id=None,
+            commit_tx=None,
+            tx_mode=None,
+            syntax=None,
+            exec_mode=None,
+            stats_mode=None,
+            schema_inclusion_mode=None,
+            result_set_format=None,
+            arrow_format_settings=None,
+            parameters={"$value": datetime.datetime(1960, 1, 1)},
+            concurrent_result_sets=None,
+            pool_id=None,
+            type_mapping={datetime.datetime: PrimitiveType.Datetime64},
+        )
+
+        parameter = req.to_proto().parameters["$value"]
+        self.assertEqual(parameter.type.type_id, PrimitiveType.Datetime64._idn_)
+
     def test_pool_id_is_set_in_request(self):
         req = create_execute_query_request(
             query="SELECT 1",
