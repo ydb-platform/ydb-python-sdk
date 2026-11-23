@@ -1,5 +1,27 @@
+from dataclasses import dataclass
+from datetime import datetime
+from typing import Annotated
+
 import pytest
 import ydb
+
+
+@dataclass
+class _OrderKey:
+    order_id: Annotated[
+        int,
+        ydb.ModelField(column_name="id", ydb_type=ydb.PrimitiveType.Uint64),
+    ]
+
+
+@dataclass
+class _Order:
+    order_id: Annotated[
+        int,
+        ydb.ModelField(column_name="id", ydb_type=ydb.PrimitiveType.Uint64),
+    ]
+    customer: str
+    created_at: datetime
 
 
 class TestTableClient:
@@ -211,3 +233,33 @@ class TestTableClient:
 
         with pytest.raises(ydb.SchemeError):
             await client.read_rows("/local/does_not_exist", [{"key1": 1, "key2": 10}], key_types)
+
+    @pytest.mark.asyncio
+    async def test_bulk_upsert_and_read_rows_with_dataclasses(self, driver: ydb.aio.Driver):
+        client = driver.table_client
+        table_name = "/local/testtableclient_typed_models_async"
+        try:
+            await client.drop_table(table_name)
+        except ydb.SchemeError:
+            pass
+
+        description = (
+            ydb.TableDescription()
+            .with_primary_keys("id")
+            .with_columns(
+                ydb.Column("id", ydb.PrimitiveType.Uint64),
+                ydb.Column("customer", ydb.PrimitiveType.Utf8),
+                ydb.Column("created_at", ydb.PrimitiveType.Timestamp),
+            )
+        )
+        await client.create_table(table_name, description)
+
+        expected = [
+            _Order(1, "alice", datetime(2025, 1, 1, 9, 15)),
+            _Order(2, "bob", datetime(2025, 1, 2, 10, 30)),
+        ]
+        await client.bulk_upsert(table_name, expected)
+
+        result_set = await client.read_rows(table_name, [_OrderKey(1)])
+
+        assert result_set.rows_as(_Order) == [expected[0]]

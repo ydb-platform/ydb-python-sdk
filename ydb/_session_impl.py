@@ -395,35 +395,40 @@ def read_table_request_factory(
     return session_state.attach_request(request)
 
 
-def bulk_upsert_request_factory(table, rows, column_types):
+def bulk_upsert_request_factory(table, rows, column_types, type_mapping=None):
     request = _apis.ydb_table.BulkUpsertRequest()
     request.table = table
-    request.rows.MergeFrom(convert.to_typed_value_from_native(types.ListType(column_types).proto, rows))
+    request.rows.MergeFrom(convert.to_typed_value_from_native(types.ListType(column_types).proto, rows, type_mapping))
     return request
 
 
-def read_rows_request_factory(table_path, keys, key_types, columns=None):
+def read_rows_request_factory(table_path, keys, key_types, columns=None, type_mapping=None):
     request = _apis.ydb_table.ReadRowsRequest()
     request.path = table_path
-    request.keys.MergeFrom(convert.to_typed_value_from_native(types.ListType(key_types).proto, keys))
+    request.keys.MergeFrom(convert.to_typed_value_from_native(types.ListType(key_types).proto, keys, type_mapping))
     if columns:
         request.columns.extend(list(columns))
     return request
 
 
-def wrap_read_rows_response(rpc_state, response_pb, table_client_settings=None):
+def wrap_read_rows_response(rpc_state, response_pb, table_client_settings=None, type_mapping=None):
     issues._process_response(response_pb)
-    return convert.ResultSet.from_message(response_pb.result_set, table_client_settings)
+    return convert.ResultSet.from_message(response_pb.result_set, table_client_settings, type_mapping=type_mapping)
 
 
-def wrap_read_table_response(response):
+def wrap_read_table_response(response, table_client_settings=None, type_mapping=None):
     issues._process_response(response)
     snapshot = response.snapshot if response.HasField("snapshot") else None
-    return convert.ResultSet.from_message(response.result.result_set, snapshot=snapshot)
+    return convert.ResultSet.from_message(
+        response.result.result_set,
+        table_client_settings,
+        snapshot=snapshot,
+        type_mapping=type_mapping,
+    )
 
 
 class SessionState(object):
-    def __init__(self, table_client_settings):
+    def __init__(self, table_client_settings, type_mapping=None):
         self._session_id = None
         self._query_cache = _utilities.LRUCache(1000)
         self._default = (None, None)
@@ -432,6 +437,7 @@ class SessionState(object):
         self._closing = False
         self._client_cache_enabled = table_client_settings._client_query_cache_enabled
         self.table_client_settings = table_client_settings
+        self.type_mapping = type_mapping
 
     def __contains__(self, query):
         return self.lookup(query) != self._default

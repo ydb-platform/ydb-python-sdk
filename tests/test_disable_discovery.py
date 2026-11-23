@@ -2,6 +2,7 @@ import pytest
 import unittest.mock
 import ydb
 import asyncio
+import datetime
 from ydb import _apis
 
 TEST_ERROR = "Test error"
@@ -67,6 +68,21 @@ def test_driver_config_has_disable_discovery_option(endpoint, database):
     config = ydb.DriverConfig(endpoint=endpoint, database=database, disable_discovery=True)
     assert hasattr(config, "disable_discovery")
     assert config.disable_discovery is True
+
+
+def test_driver_config_copies_type_mapping():
+    type_mapping = {datetime.datetime: ydb.PrimitiveType.Datetime64}
+    config = ydb.DriverConfig(
+        endpoint="grpc://localhost:2136",
+        database="/local",
+        type_mapping=type_mapping,
+    )
+
+    type_mapping.clear()
+
+    assert config.type_mapping[datetime.datetime] == ydb.PrimitiveType.Datetime64
+    with pytest.raises(TypeError):
+        config.type_mapping[datetime.date] = ydb.PrimitiveType.Date
 
 
 # Driver config fixtures

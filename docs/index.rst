@@ -21,6 +21,7 @@ Python client for `YDB <https://ydb.tech/>`_ — a fault-tolerant distributed SQ
    :caption: Services
 
    query
+   models
    topic
    table
    coordination

@@ -1,11 +1,18 @@
 import copy
+import datetime
+import typing
+import uuid
+from dataclasses import dataclass, field
+from types import SimpleNamespace
+from typing import Annotated
 
 import pytest
 
 from unittest import mock
-from . import issues, convert, types, _apis, scheme, _session_impl, _utilities
+from . import issues, convert, models, types, _apis, scheme, _session_impl, _utilities
 from .aio import _utilities as _aio_utilities
 from .aio.table import TableClient as AioTableClient
+from .driver import DriverConfig
 from .table import SystemViewSchemeEntry, TableClient, TableClientSettings
 
 from .retries import (
@@ -148,6 +155,440 @@ def test_result_set_detached_from_source_message():
     assert result.rows[0]["column_1"] == 1
     assert result.rows[1][0] == 1000
     assert result.rows[1][0:2] == (1000, 1001)
+
+
+@dataclass
+class _ResultOrder:
+    order_id: Annotated[
+        int,
+        models.ModelField(column_name="id", ydb_type=types.PrimitiveType.Uint64),
+    ]
+    customer: str
+    created_at: datetime.datetime
+    label: str = "default"
+
+
+def _build_model_result_set():
+    result_set = _apis.ydb_value.ResultSet()
+    for name, primitive_type in (
+        ("id", types.PrimitiveType.Uint64),
+        ("customer", types.PrimitiveType.Utf8),
+        ("created_at", types.PrimitiveType.Timestamp),
+    ):
+        column = result_set.columns.add()
+        column.name = name
+        column.type.MergeFrom(primitive_type.proto)
+    row = result_set.rows.add()
+    row.items.add().uint64_value = 42
+    row.items.add().text_value = "alice"
+    row.items.add().uint64_value = 1_500_000
+    return result_set
+
+
+def test_result_set_rows_as_dataclass():
+    result_set = convert.ResultSet.from_message(_build_model_result_set())
+
+    assert result_set.rows_as(_ResultOrder) == [
+        _ResultOrder(
+            order_id=42,
+            customer="alice",
+            created_at=datetime.datetime(1970, 1, 1, 0, 0, 1, 500000),
+        )
+    ]
+
+
+def test_result_set_iter_rows_as_validates_strict_columns():
+    result_set = convert.ResultSet.from_message(_build_model_result_set())
+
+    with pytest.raises(models.ModelConversionError, match="Unexpected columns"):
+        result_set.rows_as(
+            dataclass(type("OnlyId", (), {"__annotations__": {"order_id": int}})),
+            strict_columns=True,
+        )
+
+
+def test_model_type_mapping_priority_and_cache():
+    type_mapping = {
+        int: types.PrimitiveType.Int32,
+        datetime.datetime: types.PrimitiveType.Datetime64,
+    }
+
+    adapter = models.get_model_adapter(_ResultOrder, type_mapping)
+    members = {member.name: member.type for member in adapter.struct_type.proto.struct_type.members}
+
+    assert members["id"].type_id == types.PrimitiveType.Uint64._idn_
+    assert members["created_at"].type_id == types.PrimitiveType.Datetime64._idn_
+    assert models.get_model_adapter(_ResultOrder, type_mapping) is adapter
+
+
+@dataclass
+class _Address:
+    city: str
+
+
+@dataclass
+class _NestedOrder:
+    order_id: int
+    address: _Address
+
+
+def test_nested_dataclass_conversion():
+    adapter = models.get_model_adapter(_NestedOrder)
+
+    assert adapter.from_row(
+        {"order_id": 7, "address": {"city": "Moscow"}},
+        strict_columns=True,
+    ) == _NestedOrder(7, _Address("Moscow"))
+    assert adapter.struct_type.proto.struct_type.members[1].type.HasField("struct_type")
+
+
+@dataclass
+class _ContainerModel:
+    maybe_count: typing.Optional[int]
+    moments: list[datetime.datetime]
+    durations: dict[str, datetime.timedelta]
+    birthday: datetime.date
+    request_id: uuid.UUID
+
+
+def test_model_container_and_primitive_conversion():
+    adapter = models.get_model_adapter(
+        _ContainerModel,
+        {datetime.datetime: types.PrimitiveType.Datetime64},
+    )
+    request_id = uuid.uuid4()
+
+    result = adapter.from_row(
+        {
+            "maybe_count": None,
+            "moments": [60],
+            "durations": {"timeout": 250},
+            "birthday": 1,
+            "request_id": str(request_id),
+        },
+        strict_columns=True,
+    )
+
+    assert result == _ContainerModel(
+        maybe_count=None,
+        moments=[datetime.datetime(1970, 1, 1, 0, 1)],
+        durations={"timeout": datetime.timedelta(microseconds=250)},
+        birthday=datetime.date(1970, 1, 2),
+        request_id=request_id,
+    )
+    assert adapter.fields[0].value_adapter.from_db(7, "maybe_count") == 7
+
+
+def test_model_conversion_errors_are_contextual():
+    adapter = models.get_model_adapter(_ResultOrder)
+    order = _ResultOrder(1, "alice", datetime.datetime(2025, 1, 1))
+
+    with pytest.raises(models.ModelConversionError, match="Expected _ResultOrder"):
+        adapter.get_field_value(object(), "id")
+    with pytest.raises(models.ModelConversionError, match="Column 'unknown'"):
+        adapter.get_field_value(order, "unknown")
+    with pytest.raises(models.ModelConversionError, match="Expected a mapping"):
+        adapter.from_row([], strict_columns=False)
+    with pytest.raises(models.ModelConversionError, match="Required column 'order.id'"):
+        adapter.from_row({}, strict_columns=False, path="order")
+    with pytest.raises(models.ModelConversionError, match="is NULL"):
+        adapter.from_row(
+            {
+                "id": 1,
+                "customer": None,
+                "created_at": datetime.datetime(2025, 1, 1),
+            },
+            strict_columns=False,
+        )
+
+    @dataclass
+    class UuidModel:
+        identifier: uuid.UUID
+
+    with pytest.raises(models.ModelConversionError, match="Failed to convert 'identifier'"):
+        models.get_model_adapter(UuidModel).from_row(
+            {"identifier": "not-a-uuid"},
+            strict_columns=True,
+        )
+
+    @dataclass
+    class RejectingModel:
+        value: int
+
+        def __post_init__(self):
+            raise RuntimeError("rejected")
+
+    with pytest.raises(models.ModelConversionError, match="Failed to construct RejectingModel"):
+        models.get_model_adapter(RejectingModel).from_row(
+            {"value": 1},
+            strict_columns=True,
+        )
+
+
+def test_model_definition_validation():
+    models.validate_type_mapping(None)
+    with pytest.raises(TypeError, match="must be a mapping"):
+        models.validate_type_mapping([])
+    with pytest.raises(TypeError, match="keys must be Python types"):
+        models.validate_type_mapping({"int": types.PrimitiveType.Int64})
+    with pytest.raises(models.ModelDefinitionError, match="must contain a YDB type"):
+        models.validate_type_mapping({int: "Int64"})
+    with pytest.raises(models.ModelDefinitionError, match="only one ModelField"):
+        models.get_value_adapter(Annotated[int, models.ModelField(), models.ModelField()])
+    with pytest.raises(models.ModelDefinitionError, match="neither a dataclass nor a Pydantic model"):
+        models.get_model_adapter(int)
+    with pytest.raises(models.ModelDefinitionError, match="Could not map Python annotation"):
+        models.get_value_adapter(complex)
+    with pytest.raises(models.ModelDefinitionError, match="exactly one item type"):
+        models.get_value_adapter(typing.List)
+    with pytest.raises(models.ModelDefinitionError, match="key and value types"):
+        models.get_value_adapter(typing.Dict)
+    with pytest.raises(models.ModelDefinitionError, match="ModelField.ydb_type"):
+        models.get_value_adapter(Annotated[int, models.ModelField(ydb_type="Int64")])
+
+    @dataclass
+    class DuplicateColumns:
+        first: Annotated[int, models.ModelField(column_name="value")]
+        second: Annotated[int, models.ModelField(column_name="value")]
+
+    with pytest.raises(models.ModelDefinitionError, match="Duplicate YDB column"):
+        models.get_model_adapter(DuplicateColumns)
+
+    @dataclass
+    class RecursiveModel:
+        child: "RecursiveModel"
+
+    RecursiveModel.__annotations__["child"] = RecursiveModel
+    with pytest.raises(models.ModelDefinitionError, match="Recursive model"):
+        models.get_model_adapter(RecursiveModel)
+
+    optional_type = types.OptionalType(types.PrimitiveType.Uint64)
+    optional_adapter = models.get_value_adapter(
+        Annotated[typing.Optional[int], models.ModelField(ydb_type=optional_type)]
+    )
+    assert optional_adapter.ydb_type == optional_type
+    assert models.try_get_model_adapter(int) is None
+
+
+def test_dataclass_provider_skips_non_init_fields_and_falls_back_to_raw_hints():
+    @dataclass
+    class WithComputedField:
+        value: int
+        computed: int = field(init=False, default=42)
+
+    adapter = models.get_model_adapter(WithComputedField)
+    assert [item.attribute_name for item in adapter.fields] == ["value"]
+
+    class UnresolvedHints:
+        __annotations__ = {"value": "MissingType"}
+
+    assert models._type_hints(UnresolvedHints) == UnresolvedHints.__annotations__
+
+
+def test_pydantic_providers_without_optional_dependency():
+    class V2Field:
+        annotation = int
+
+        @staticmethod
+        def is_required():
+            return True
+
+    class V2Model:
+        __annotations__ = {"value": int}
+        model_fields = {"value": V2Field()}
+
+        @classmethod
+        def model_validate(cls, values, by_name):
+            return values["value"], by_name
+
+    provider_v2 = models._PydanticV2Provider(V2Model)
+    assert provider_v2.fields() == [models._ProviderField("value", int, True)]
+    assert provider_v2.construct({"value": 3}) == (3, True)
+
+    class LegacyV2Model(V2Model):
+        @classmethod
+        def model_validate(cls, values):
+            return values["value"]
+
+    assert models._PydanticV2Provider(LegacyV2Model).construct({"value": 4}) == 4
+
+    class V1Field:
+        outer_type_ = int
+        required = True
+        alias = "identifier"
+
+    class V1Model:
+        __annotations__ = {"value": int}
+        __fields__ = {"value": V1Field()}
+
+        @classmethod
+        def parse_obj(cls, values):
+            return values
+
+    provider_v1 = models._PydanticV1Provider(V1Model)
+    assert provider_v1.fields() == [models._ProviderField("value", int, True)]
+    assert provider_v1.construct({"value": 5}) == {"identifier": 5}
+    assert provider_v1.construct({}) == {}
+
+
+def test_pydantic_provider_detection(monkeypatch):
+    class CurrentBase:
+        pass
+
+    class CurrentV2Model(CurrentBase):
+        model_fields = {}
+
+        @staticmethod
+        def model_validate(values):
+            return values
+
+    class CurrentV1Model(CurrentBase):
+        pass
+
+    current_module = SimpleNamespace(BaseModel=CurrentBase)
+    monkeypatch.setattr(models.importlib, "import_module", lambda name: current_module)
+    assert isinstance(models._pydantic_provider(CurrentV2Model), models._PydanticV2Provider)
+    assert isinstance(models._pydantic_provider(CurrentV1Model), models._PydanticV1Provider)
+
+    class CompatibilityBase:
+        pass
+
+    class CompatibilityModel(CompatibilityBase):
+        pass
+
+    compatibility_module = SimpleNamespace(BaseModel=CompatibilityBase)
+
+    def import_compatibility_module(name):
+        if name == "pydantic":
+            return SimpleNamespace(BaseModel=CurrentBase)
+        return compatibility_module
+
+    monkeypatch.setattr(models.importlib, "import_module", import_compatibility_module)
+    assert isinstance(models._pydantic_provider(CompatibilityModel), models._PydanticV1Provider)
+
+    def raise_import_error(name):
+        raise ImportError(name)
+
+    monkeypatch.setattr(models.importlib, "import_module", raise_import_error)
+    assert models._pydantic_provider(CurrentV2Model) is None
+
+
+def test_bulk_upsert_accepts_explicit_model_for_empty_rows():
+    class _FakeDriver:
+        _driver_config = SimpleNamespace(type_mapping={datetime.datetime: types.PrimitiveType.Datetime64})
+
+        def __call__(self, request, *args):
+            self.request = request
+            return request
+
+    driver = _FakeDriver()
+    TableClient(driver).bulk_upsert("/local/orders", [], model=_ResultOrder)
+    members = driver.request.rows.type.list_type.item.struct_type.members
+
+    assert [member.name for member in members] == ["id", "customer", "created_at", "label"]
+    assert members[2].type.type_id == types.PrimitiveType.Datetime64._idn_
+
+
+def test_bulk_upsert_rejects_model_with_explicit_column_types():
+    client = TableClient(mock.Mock())
+
+    with pytest.raises(ValueError, match="cannot be used together"):
+        client.bulk_upsert(
+            "/local/orders",
+            [],
+            types.StructType().add_member("id", types.PrimitiveType.Uint64),
+            model=_ResultOrder,
+        )
+
+
+def test_table_model_inference_requires_non_empty_values_or_explicit_model():
+    client = TableClient(mock.Mock())
+
+    with pytest.raises(ValueError, match="pass model=YourModel"):
+        client.bulk_upsert("/local/orders", [])
+    with pytest.raises(ValueError, match="pass key_model=YourModel"):
+        client.read_rows("/local/orders", [])
+
+
+def test_table_model_inference_uses_first_row_type():
+    class _FakeDriver:
+        _driver_config = SimpleNamespace(type_mapping={})
+
+        def __call__(self, request, *args):
+            self.request = request
+            return request
+
+    driver = _FakeDriver()
+    TableClient(driver).bulk_upsert(
+        "/local/orders",
+        [_ResultOrder(1, "alice", datetime.datetime(2025, 1, 1))],
+    )
+
+    assert driver.request.rows.type.list_type.item.struct_type.members[0].name == "id"
+
+
+def test_driver_config_validates_and_replaces_type_mapping():
+    original_mapping = {datetime.datetime: types.PrimitiveType.Timestamp}
+    config = DriverConfig(
+        endpoint="grpc://localhost:2136",
+        database="/local",
+        type_mapping=original_mapping,
+    )
+
+    replacement = {datetime.datetime: types.PrimitiveType.Datetime64}
+    config._update_attrs_by_kwargs(type_mapping=replacement)
+    replacement.clear()
+
+    assert config.type_mapping[datetime.datetime] == types.PrimitiveType.Datetime64
+    with pytest.raises(TypeError, match="must be a mapping"):
+        config._update_attrs_by_kwargs(type_mapping=[])
+
+
+def test_arrow_result_set_cannot_be_converted_to_models():
+    result_set = convert.ResultSet([], [], False, data=b"arrow")
+
+    with pytest.raises(models.ModelConversionError, match="Arrow result sets"):
+        result_set.rows_as(_ResultOrder)
+
+
+def test_pydantic_v2_result_conversion():
+    pydantic = pytest.importorskip("pydantic")
+    if not hasattr(pydantic.BaseModel, "model_validate"):
+        pytest.skip("Pydantic v2 is not installed")
+
+    class OrderModel(pydantic.BaseModel):
+        order_id: Annotated[
+            int,
+            models.ModelField(column_name="id", ydb_type=types.PrimitiveType.Uint64),
+        ]
+        customer: str
+        created_at: datetime.datetime
+
+    result_set = convert.ResultSet.from_message(_build_model_result_set())
+    order = result_set.rows_as(OrderModel)[0]
+
+    assert order.order_id == 42
+    assert order.customer == "alice"
+    assert order.created_at == datetime.datetime(1970, 1, 1, 0, 0, 1, 500000)
+
+
+def test_pydantic_v1_result_conversion():
+    pytest.importorskip("pydantic")
+    pydantic_v1 = pytest.importorskip("pydantic.v1")
+
+    class OrderModel(pydantic_v1.BaseModel):
+        order_id: Annotated[
+            int,
+            models.ModelField(column_name="id", ydb_type=types.PrimitiveType.Uint64),
+        ]
+        customer: str
+        created_at: datetime.datetime
+
+    result_set = convert.ResultSet.from_message(_build_model_result_set())
+    order = result_set.rows_as(OrderModel)[0]
+
+    assert order.order_id == 42
+    assert order.customer == "alice"
 
 
 def test_retry_operation_impl(monkeypatch):

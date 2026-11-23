@@ -1196,19 +1196,20 @@ class ITableClient(abc.ABC):
         pass
 
     @abstractmethod
-    def bulk_upsert(self, table_path, rows, column_types, settings=None):
+    def bulk_upsert(self, table_path, rows, column_types=None, settings=None, *, model=None):
         """
         Bulk upsert data
 
         :param table_path: A table path.
         :param rows: A list of structures.
         :param column_types: Bulk upsert column types.
+        :param model: Dataclass or Pydantic model used to infer column types, including for an empty rows list.
 
         """
         pass
 
     @abstractmethod
-    def read_rows(self, table_path, keys, key_types, columns=None, settings=None):
+    def read_rows(self, table_path, keys, key_types=None, columns=None, settings=None, *, key_model=None):
         """
         Read specified keys non-transactionally from a single table.
 
@@ -1217,6 +1218,7 @@ class ITableClient(abc.ABC):
         :param key_types: Primary key column types.
         :param columns: Optional iterable of column names to return.
         :param settings: Request settings.
+        :param key_model: Dataclass or Pydantic model used to infer key types, including for an empty keys list.
 
         """
         pass
@@ -1228,6 +1230,7 @@ class BaseTableClient(ITableClient, Generic[DriverT]):
     def __init__(self, driver: DriverT, table_client_settings: Optional[TableClientSettings] = None) -> None:
         self._driver = driver
         self._table_client_settings = TableClientSettings() if table_client_settings is None else table_client_settings
+        self._type_mapping = getattr(getattr(driver, "_driver_config", None), "type_mapping", None)
 
     def session(self):
         # type: () -> ydb.Session
@@ -1255,18 +1258,30 @@ class BaseTableClient(ITableClient, Generic[DriverT]):
             lambda resp: _wrap_scan_query_response(resp, self._table_client_settings),
         )
 
-    def bulk_upsert(self, table_path, rows, column_types, settings=None):
-        # type: (str, list, typing.Union[ydb.AbstractTypeBuilder, ydb.PrimitiveType], Optional[ydb.BaseRequestSettings]) -> Any
+    def _prepare_model_type(self, values, explicit_types, model, model_argument):
+        if explicit_types is not None and model is not None:
+            raise ValueError(f"{model_argument} cannot be used together with explicit YDB types")
+        if explicit_types is not None:
+            return explicit_types
+        if model is None:
+            if not values:
+                raise ValueError(f"Cannot infer model from an empty sequence; pass {model_argument}=YourModel")
+            model = type(values[0])
+        return ydb.models.get_model_adapter(model, self._type_mapping).struct_type
+
+    def bulk_upsert(self, table_path, rows, column_types=None, settings=None, *, model=None):
         """
         Bulk upsert data
 
         :param table_path: A table path.
         :param rows: A list of structures.
         :param column_types: Bulk upsert column types.
+        :param model: Dataclass or Pydantic model used to infer column types, including for an empty rows list.
 
         """
+        column_types = self._prepare_model_type(rows, column_types, model, "model")
         return self._driver(
-            _session_impl.bulk_upsert_request_factory(table_path, rows, column_types),
+            _session_impl.bulk_upsert_request_factory(table_path, rows, column_types, self._type_mapping),
             _apis.TableService.Stub,
             _apis.TableService.BulkUpsert,
             _session_impl.wrap_operation_bulk_upsert,
@@ -1274,8 +1289,7 @@ class BaseTableClient(ITableClient, Generic[DriverT]):
             (),
         )
 
-    def read_rows(self, table_path, keys, key_types, columns=None, settings=None):
-        # type: (str, list, ydb.AbstractTypeBuilder, typing.Optional[list], Optional[ydb.BaseRequestSettings]) -> Any
+    def read_rows(self, table_path, keys, key_types=None, columns=None, settings=None, *, key_model=None):
         """
         Read specified keys non-transactionally from a single table.
 
@@ -1284,16 +1298,18 @@ class BaseTableClient(ITableClient, Generic[DriverT]):
         :param key_types: Primary key column types.
         :param columns: Optional iterable of column names to return. Empty or omitted returns all columns.
         :param settings: Request settings.
+        :param key_model: Dataclass or Pydantic model used to infer key types, including for an empty keys list.
 
         :return: ResultSet with matching rows.
         """
+        key_types = self._prepare_model_type(keys, key_types, key_model, "key_model")
         return self._driver(
-            _session_impl.read_rows_request_factory(table_path, keys, key_types, columns),
+            _session_impl.read_rows_request_factory(table_path, keys, key_types, columns, self._type_mapping),
             _apis.TableService.Stub,
             _apis.TableService.ReadRows,
             _session_impl.wrap_read_rows_response,
             settings,
-            (self._table_client_settings,),
+            (self._table_client_settings, self._type_mapping),
         )
 
     def describe_system_view(self, path, settings=None):
@@ -1347,10 +1363,10 @@ class TableClient(BaseTableClient["SyncDriver"]):
         )
 
     @_utilities.wrap_async_call_exceptions
-    def async_bulk_upsert(self, table_path, rows, column_types, settings=None):
-        # type: (str, list, typing.Union[ydb.AbstractTypeBuilder, ydb.PrimitiveType], Optional[ydb.BaseRequestSettings]) -> futures.Future[ydb.Operation]
+    def async_bulk_upsert(self, table_path, rows, column_types=None, settings=None, *, model=None):
+        column_types = self._prepare_model_type(rows, column_types, model, "model")
         return self._driver.future(
-            _session_impl.bulk_upsert_request_factory(table_path, rows, column_types),
+            _session_impl.bulk_upsert_request_factory(table_path, rows, column_types, self._type_mapping),
             _apis.TableService.Stub,
             _apis.TableService.BulkUpsert,
             _session_impl.wrap_operation_bulk_upsert,
@@ -1359,15 +1375,15 @@ class TableClient(BaseTableClient["SyncDriver"]):
         )
 
     @_utilities.wrap_async_call_exceptions
-    def async_read_rows(self, table_path, keys, key_types, columns=None, settings=None):
-        # type: (str, list, ydb.AbstractTypeBuilder, typing.Optional[list], Optional[ydb.BaseRequestSettings]) -> Any
+    def async_read_rows(self, table_path, keys, key_types=None, columns=None, settings=None, *, key_model=None):
+        key_types = self._prepare_model_type(keys, key_types, key_model, "key_model")
         return self._driver.future(
-            _session_impl.read_rows_request_factory(table_path, keys, key_types, columns),
+            _session_impl.read_rows_request_factory(table_path, keys, key_types, columns, self._type_mapping),
             _apis.TableService.Stub,
             _apis.TableService.ReadRows,
             _session_impl.wrap_read_rows_response,
             settings,
-            (self._table_client_settings,),
+            (self._table_client_settings, self._type_mapping),
         )
 
     @_utilities.wrap_async_call_exceptions
@@ -1627,7 +1643,7 @@ class TableSchemeEntry(scheme.SchemeEntry):
         read_replicas_settings,
         storage_settings,
         *args,
-        **kwargs
+        **kwargs,
     ):
 
         super(TableSchemeEntry, self).__init__(
@@ -1772,7 +1788,7 @@ class SystemViewSchemeEntry(scheme.SchemeEntry):
         primary_key,
         attributes,
         *args,
-        **kwargs
+        **kwargs,
     ):
         super(SystemViewSchemeEntry, self).__init__(
             name, owner, type, effective_permissions, permissions, size_bytes, *args, **kwargs
@@ -1806,7 +1822,8 @@ class RenameItem:
 class BaseSession(ISession):
     def __init__(self, driver, table_client_settings):
         self._driver = driver
-        self._state = _session_impl.SessionState(table_client_settings)
+        type_mapping = getattr(getattr(driver, "_driver_config", None), "type_mapping", None)
+        self._state = _session_impl.SessionState(table_client_settings, type_mapping)
 
     def __lt__(self, other):
         return self.session_id < other.session_id
@@ -1880,7 +1897,14 @@ class BaseSession(ISession):
             _apis.TableService.StreamReadTable,
             settings=settings,
         )
-        return _utilities.SyncResponseIterator(stream_it, _session_impl.wrap_read_table_response)
+        return _utilities.SyncResponseIterator(
+            stream_it,
+            lambda response: _session_impl.wrap_read_table_response(
+                response,
+                self._state.table_client_settings,
+                self._state.type_mapping,
+            ),
+        )
 
     def keep_alive(self, settings=None):
         return self._driver(
@@ -2144,7 +2168,14 @@ class Session(BaseSession):
             _apis.TableService.StreamReadTable,
             settings=settings,
         )
-        return _utilities.AsyncResponseIterator(stream_it, _session_impl.wrap_read_table_response)
+        return _utilities.AsyncResponseIterator(
+            stream_it,
+            lambda response: _session_impl.wrap_read_table_response(
+                response,
+                self._state.table_client_settings,
+                self._state.type_mapping,
+            ),
+        )
 
     @_utilities.wrap_async_call_exceptions
     def async_keep_alive(self, settings=None):

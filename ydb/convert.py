@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 import decimal
+import typing
 from google.protobuf import struct_pb2
 
-from . import issues, types, _apis
+from . import issues, models, types, _apis
 
 _SHIFT_BIT_COUNT = 64
 _SHIFT = 2**64
@@ -165,7 +166,7 @@ def _decimal_to_int128(value_type, value):
     return int128_value
 
 
-def _decimal_to_pb(value_type, value):
+def _decimal_to_pb(value_type, value, type_mapping=None):
     value_pb = _apis.ydb_value.Value()
     int128_value = _decimal_to_int128(value_type, value)
     if int128_value < 0:
@@ -178,51 +179,57 @@ def _decimal_to_pb(value_type, value):
     return value_pb
 
 
-def _primitive_to_pb(type_pb, value):
+def _primitive_to_pb(type_pb, value, type_mapping=None):
     value_pb = _apis.ydb_value.Value()
     data_type = _primitive_type_by_id.get(type_pb.type_id)
     data_type.set_value(value_pb, value)
     return value_pb
 
 
-def _optional_to_pb(type_pb, value):
+def _optional_to_pb(type_pb, value, type_mapping=None):
     if value is None:
         return _apis.ydb_value.Value(null_flag_value=struct_pb2.NULL_VALUE)
-    return _from_native_value(type_pb.optional_type.item, value)
+    return _from_native_value(type_pb.optional_type.item, value, type_mapping)
 
 
-def _list_to_pb(type_pb, value):
+def _list_to_pb(type_pb, value, type_mapping=None):
     value_pb = _apis.ydb_value.Value()
     for element in value:
         value_item_proto = value_pb.items.add()
-        value_item_proto.MergeFrom(_from_native_value(type_pb.list_type.item, element))
+        value_item_proto.MergeFrom(_from_native_value(type_pb.list_type.item, element, type_mapping))
     return value_pb
 
 
-def _tuple_to_pb(type_pb, value):
+def _tuple_to_pb(type_pb, value, type_mapping=None):
     value_pb = _apis.ydb_value.Value()
     for element_type, element_value in zip(type_pb.tuple_type.elements, value):
         value_item_proto = value_pb.items.add()
-        value_item_proto.MergeFrom(_from_native_value(element_type, element_value))
+        value_item_proto.MergeFrom(_from_native_value(element_type, element_value, type_mapping))
     return value_pb
 
 
-def _dict_to_pb(type_pb, value):
+def _dict_to_pb(type_pb, value, type_mapping=None):
     value_pb = _apis.ydb_value.Value()
     for key, payload in value.items():
         kv_pair = value_pb.pairs.add()
-        kv_pair.key.MergeFrom(_from_native_value(type_pb.dict_type.key, key))
-        if payload:
-            kv_pair.payload.MergeFrom(_from_native_value(type_pb.dict_type.payload, payload))
+        kv_pair.key.MergeFrom(_from_native_value(type_pb.dict_type.key, key, type_mapping))
+        if type_pb.dict_type.payload.WhichOneof("type") != "void_type":
+            kv_pair.payload.MergeFrom(_from_native_value(type_pb.dict_type.payload, payload, type_mapping))
     return value_pb
 
 
-def _struct_to_pb(type_pb, value):
+def _struct_to_pb(type_pb, value, type_mapping=None):
     value_pb = _apis.ydb_value.Value()
+    model_adapter = None
+    if not isinstance(value, dict):
+        model_adapter = models.try_get_model_adapter(type(value), type_mapping)
     for member in type_pb.struct_type.members:
         value_item_proto = value_pb.items.add()
-        value_item = value[member.name] if isinstance(value, dict) else getattr(value, member.name)
-        value_item_proto.MergeFrom(_from_native_value(member.type, value_item))
+        if model_adapter is not None:
+            value_item = model_adapter.get_field_value(value, member.name)
+        else:
+            value_item = value[member.name] if isinstance(value, dict) else getattr(value, member.name)
+        value_item_proto.MergeFrom(_from_native_value(member.type, value_item, type_mapping))
     return value_pb
 
 
@@ -270,18 +277,18 @@ def type_to_native(type_pb):
     return _type_to_native_map.get(type_pb.WhichOneof("type"))(type_pb)
 
 
-def _from_native_value(type_pb, value):
-    return _from_native_map.get(type_pb.WhichOneof("type"))(type_pb, value)
+def _from_native_value(type_pb, value, type_mapping=None):
+    return _from_native_map.get(type_pb.WhichOneof("type"))(type_pb, value, type_mapping)
 
 
-def to_typed_value_from_native(type_pb, value):
+def to_typed_value_from_native(type_pb, value, type_mapping=None):
     typed_value = _apis.ydb_value.TypedValue()
     typed_value.type.MergeFrom(type_pb)
-    typed_value.value.MergeFrom(from_native_value(type_pb, value))
+    typed_value.value.MergeFrom(from_native_value(type_pb, value, type_mapping))
     return typed_value
 
 
-def parameters_to_pb(parameters_types, parameters_values):
+def parameters_to_pb(parameters_types, parameters_values, type_mapping=None):
     if parameters_values is None or not parameters_values:
         return {}
 
@@ -294,30 +301,32 @@ def parameters_to_pb(parameters_types, parameters_values):
         elif isinstance(type_pb, types.PrimitiveType):
             ttype = type_pb.proto
         result.type.MergeFrom(ttype)
-        result.value.MergeFrom(_from_native_value(ttype, parameters_values[name]))
+        result.value.MergeFrom(_from_native_value(ttype, parameters_values[name], type_mapping))
         param_values_pb[name] = result
     return param_values_pb
 
 
-def query_parameters_to_pb(parameters):
+def query_parameters_to_pb(parameters, type_mapping=None):
     if parameters is None or not parameters:
         return {}
 
     parameters_types = {}
     parameters_values = {}
     for name, value in parameters.items():
-        if isinstance(value, types.TypedValue):
+        if isinstance(value, models.ModelValue):
+            value = types.TypedValue(value.value, models.get_value_adapter(value.annotation, type_mapping).ydb_type)
+        elif isinstance(value, types.TypedValue):
             if value.value_type is None:
-                value.value_type = _type_from_python_native(value.value)
+                value = types.TypedValue(value.value, _type_from_python_native(value.value, type_mapping))
         elif isinstance(value, tuple):
             value = types.TypedValue(*value)
         else:
-            value = types.TypedValue(value, _type_from_python_native(value))
+            value = types.TypedValue(value, _type_from_python_native(value, type_mapping))
 
         parameters_values[name] = value.value
         parameters_types[name] = value.value_type
 
-    return parameters_to_pb(parameters_types, parameters_values)
+    return parameters_to_pb(parameters_types, parameters_values, type_mapping)
 
 
 _from_python_type_map = {
@@ -329,8 +338,11 @@ _from_python_type_map = {
 }
 
 
-def _type_from_python_native(value):
+def _type_from_python_native(value, type_mapping=None):
     t = type(value)
+
+    if type_mapping is not None and t in type_mapping:
+        return models.get_value_adapter(t, type_mapping).ydb_type
 
     if t in _from_python_type_map:
         return _from_python_type_map[t]
@@ -341,7 +353,7 @@ def _type_from_python_native(value):
                 "Could not map empty list to any type, please specify "
                 "it manually by tuple(value, type) or ydb.TypedValue"
             )
-        entry_type = _type_from_python_native(value[0])
+        entry_type = _type_from_python_native(value[0], type_mapping)
         return types.ListType(entry_type)
 
     if t == dict:
@@ -351,9 +363,18 @@ def _type_from_python_native(value):
                 "it manually by tuple(value, type) or ydb.TypedValue"
             )
         entry = list(value.items())[0]
-        key_type = _type_from_python_native(entry[0])
-        value_type = _type_from_python_native(entry[1])
+        key_type = _type_from_python_native(entry[0], type_mapping)
+        value_type = _type_from_python_native(entry[1], type_mapping)
         return types.DictType(key_type, value_type)
+
+    model_adapter = models.try_get_model_adapter(t, type_mapping)
+    if model_adapter is not None:
+        return model_adapter.struct_type
+
+    try:
+        return models.get_value_adapter(t, type_mapping).ydb_type
+    except models.ModelDefinitionError:
+        pass
 
     raise ValueError(
         "Could not map value to any type, please specify it manually by tuple(value, type) or ydb.TypedValue"
@@ -379,11 +400,33 @@ def _detach_columns(columns):
     return holder.columns
 
 
+_ModelT = typing.TypeVar("_ModelT")
+
+
 class _ResultSet(object):
-    __slots__ = ("columns", "rows", "truncated", "snapshot", "index", "format", "arrow_format_meta", "data")
+    __slots__ = (
+        "columns",
+        "rows",
+        "truncated",
+        "snapshot",
+        "index",
+        "format",
+        "arrow_format_meta",
+        "data",
+        "_model_type_mapping",
+    )
 
     def __init__(
-        self, columns, rows, truncated, snapshot=None, index=None, format=None, arrow_format_meta=None, data=None
+        self,
+        columns,
+        rows,
+        truncated,
+        snapshot=None,
+        index=None,
+        format=None,
+        arrow_format_meta=None,
+        data=None,
+        type_mapping=None,
     ):
         self.columns = columns
         self.rows = rows
@@ -393,6 +436,21 @@ class _ResultSet(object):
         self.format = format
         self.arrow_format_meta = arrow_format_meta
         self.data = data
+        self._model_type_mapping = type_mapping
+
+    def iter_rows_as(
+        self, model_type: typing.Type[_ModelT], *, strict_columns: bool = False
+    ) -> typing.Iterator[_ModelT]:
+        """Iterate over VALUE rows converted to dataclass or Pydantic instances."""
+        if self.data is not None:
+            raise models.ModelConversionError("Arrow result sets cannot be converted to Python models")
+        adapter = models.get_model_adapter(model_type, self._model_type_mapping)
+        for row in self.rows:
+            yield adapter.from_row(row, strict_columns=strict_columns)
+
+    def rows_as(self, model_type: typing.Type[_ModelT], *, strict_columns: bool = False) -> typing.List[_ModelT]:
+        """Return VALUE rows converted to dataclass or Pydantic instances."""
+        return list(self.iter_rows_as(model_type, strict_columns=strict_columns))
 
     def _extend(self, other):
         """Merge another stream part of the same result set into this one.
@@ -409,7 +467,7 @@ class _ResultSet(object):
             self.columns = other.columns
 
     @classmethod
-    def from_message(cls, message, table_client_settings=None, snapshot=None, index=None):
+    def from_message(cls, message, table_client_settings=None, snapshot=None, index=None, type_mapping=None):
         rows = []
         # prepare column parsers before actually parsing
         column_parsers = []
@@ -449,11 +507,19 @@ class _ResultSet(object):
         data = message.data if message.data else None
 
         return cls(
-            _detach_columns(message.columns), rows, message.truncated, snapshot, index, result_format, arrow_meta, data
+            _detach_columns(message.columns),
+            rows,
+            message.truncated,
+            snapshot,
+            index,
+            result_format,
+            arrow_meta,
+            data,
+            type_mapping,
         )
 
     @classmethod
-    def lazy_from_message(cls, message, table_client_settings=None, snapshot=None):
+    def lazy_from_message(cls, message, table_client_settings=None, snapshot=None, type_mapping=None):
         from ydb.query import QueryResultSetFormat, ArrowFormatMeta
 
         # No _detach_columns here on purpose: _LazyRows defers parsing and keeps
@@ -467,7 +533,9 @@ class _ResultSet(object):
             arrow_meta = ArrowFormatMeta.from_proto(message.arrow_format_meta)
 
         data = message.data if message.data else None
-        return cls(message.columns, rows, message.truncated, snapshot, None, result_format, arrow_meta, data)
+        return cls(
+            message.columns, rows, message.truncated, snapshot, None, result_format, arrow_meta, data, type_mapping
+        )
 
 
 ResultSet = _ResultSet
@@ -588,8 +656,8 @@ class _LazyRow(_DotDict):
         return self.__next__()
 
 
-def from_native_value(type_pb, value):
-    return _from_native_value(type_pb, value)
+def from_native_value(type_pb, value, type_mapping=None):
+    return _from_native_value(type_pb, value, type_mapping)
 
 
 def to_native_value(typed_value):
@@ -642,7 +710,7 @@ class _LazyParser:
 
 
 class ResultSets(list):
-    def __init__(self, result_sets_pb, table_client_settings=None):
+    def __init__(self, result_sets_pb, table_client_settings=None, type_mapping=None):
         make_lazy = False if table_client_settings is None else table_client_settings._make_result_sets_lazy
 
         allow_truncated_result = _default_allow_truncated_result
@@ -652,7 +720,7 @@ class ResultSets(list):
         result_sets = []
         initializer = _ResultSet.from_message if not make_lazy else _ResultSet.lazy_from_message
         for result_set in result_sets_pb:
-            result_set = initializer(result_set, table_client_settings)
+            result_set = initializer(result_set, table_client_settings, type_mapping=type_mapping)
             if result_set.truncated and not allow_truncated_result:
                 raise issues.TruncatedResponseError("Response for the request was truncated by server")
             result_sets.append(result_set)

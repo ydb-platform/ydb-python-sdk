@@ -1,3 +1,4 @@
+* Add dataclass and Pydantic model support to Query and Table service APIs
 * Fix automatic refresh of short-lived login tokens by using their JWT expiration time.
 
 ## 3.35.0 ##

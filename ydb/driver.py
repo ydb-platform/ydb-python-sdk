@@ -2,7 +2,8 @@
 import grpc
 import logging
 import os
-from typing import Any, List, Optional, Tuple, Type, TYPE_CHECKING
+from types import MappingProxyType
+from typing import Any, List, Mapping, Optional, Tuple, Type, TYPE_CHECKING
 
 from . import credentials as credentials_impl, table, scheme, pool
 from . import tracing
@@ -10,6 +11,7 @@ from . import _utilities
 
 if TYPE_CHECKING:
     from .credentials import Credentials
+    from .models import YdbType
     from .table import TableClientSettings
     from .query.base import QueryClientSettings
 
@@ -113,6 +115,7 @@ class DriverConfig(object):
         "compression",
         "disable_discovery",
         "detect_local_dc",
+        "type_mapping",
         "_additional_sdk_headers",
     )
 
@@ -141,6 +144,7 @@ class DriverConfig(object):
         disable_discovery: bool = False,
         detect_local_dc: bool = False,
         *,
+        type_mapping: Optional[Mapping[type, "YdbType"]] = None,
         _additional_sdk_headers: Tuple[str, ...] = (),
     ) -> None:
         """
@@ -166,6 +170,7 @@ class DriverConfig(object):
         :param detect_local_dc: If True, detect nearest datacenter using TCP latency measurement instead of using\
         server-provided self_location. **Note**: This option only affects endpoint selection when use_all_nodes=False.\
         When use_all_nodes=True (default), all endpoints are used regardless of detected location.
+        :param type_mapping: Overrides the default mapping from Python annotations to YDB types for typed models.
         :param _additional_sdk_headers: Reserved for SDK integrations (e.g. dbapi, sqlalchemy). Do not use in application code.
 
         """
@@ -196,6 +201,10 @@ class DriverConfig(object):
         self.compression = compression
         self.disable_discovery = disable_discovery
         self.detect_local_dc = detect_local_dc
+        from .models import validate_type_mapping
+
+        validate_type_mapping(type_mapping)
+        self.type_mapping = MappingProxyType(dict(type_mapping or {}))
         self._additional_sdk_headers = _additional_sdk_headers
 
     def set_database(self, database: str) -> "DriverConfig":
@@ -247,6 +256,11 @@ class DriverConfig(object):
                     logger.warning(
                         f"Arg {key} was used in both DriverConfig and Driver. Value from Driver will be used."
                     )
+                if key == "type_mapping":
+                    from .models import validate_type_mapping
+
+                    validate_type_mapping(value)
+                    value = MappingProxyType(dict(value))
                 setattr(self, key, value)
 
 
@@ -324,6 +338,7 @@ class Driver(pool.ConnectionPool):
             database,
             root_certificates,
             credentials,
+            **kwargs,
         )
 
         super(Driver, self).__init__(driver_config)

@@ -168,4 +168,8 @@ def wrap_result_and_tx_id(rpc_state, response_pb, session_state, tx_state, query
     if message.query_meta.id and isinstance(query, types.DataQuery):
         session_state.keep(query, message.query_meta.id)
     tx_state.tx_id = None if not message.tx_meta.id else message.tx_meta.id
-    return convert.ResultSets(message.result_sets, session_state.table_client_settings)
+    return convert.ResultSets(
+        message.result_sets,
+        session_state.table_client_settings,
+        session_state.type_mapping,
+    )

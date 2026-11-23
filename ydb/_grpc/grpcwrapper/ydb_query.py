@@ -169,6 +169,7 @@ class ExecuteQueryRequest(IToProto):
     result_set_format: int
     arrow_format_settings: Optional[public_types.ArrowFormatSettings]
     pool_id: Optional[str]
+    type_mapping: Optional[typing.Mapping] = None
 
     def to_proto(self) -> ydb_query_pb2.ExecuteQueryRequest:
         tx_control = self.tx_control.to_proto() if self.tx_control is not None else self.tx_control
@@ -185,7 +186,7 @@ class ExecuteQueryRequest(IToProto):
             result_set_format=self.result_set_format,
             arrow_format_settings=arrow_format_settings,
             concurrent_result_sets=self.concurrent_result_sets,
-            parameters=convert.query_parameters_to_pb(self.parameters),
+            parameters=convert.query_parameters_to_pb(self.parameters, self.type_mapping),
         )
         if self.pool_id is not None:
             req.pool_id = self.pool_id

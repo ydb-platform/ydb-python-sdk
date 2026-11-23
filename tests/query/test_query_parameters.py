@@ -1,9 +1,22 @@
 import uuid
+from dataclasses import dataclass
+from datetime import datetime
+from typing import Annotated
 
 import pytest
 import ydb
 
 query_template = "DECLARE $a as %s; SELECT $a AS value"
+
+
+@dataclass
+class _QueryOrder:
+    order_id: Annotated[
+        int,
+        ydb.ModelField(column_name="id", ydb_type=ydb.PrimitiveType.Uint64),
+    ]
+    customer: str
+    created_at: datetime
 
 
 def test_select_implicit_int(pool: ydb.QuerySessionPool):
@@ -102,6 +115,40 @@ def test_select_implicit_dict_nested(pool: ydb.QuerySessionPool):
     res = pool.execute_with_retries(query, parameters={"$a": expected_value})
     actual_value = res[0].rows[0]["value"]
     assert expected_value == actual_value
+
+
+def test_select_implicit_dataclass_list_and_convert_result(pool: ydb.QuerySessionPool):
+    expected = [
+        _QueryOrder(2, "bob", datetime(2025, 1, 2, 10, 30)),
+        _QueryOrder(1, "alice", datetime(2025, 1, 1, 9, 15)),
+    ]
+    query = """
+DECLARE $orders AS List<Struct<id: Uint64, customer: Utf8, created_at: Timestamp>>;
+
+SELECT id, customer, created_at
+FROM AS_TABLE($orders)
+ORDER BY id;
+"""
+
+    result = pool.execute_with_retries(query, parameters={"$orders": expected})
+
+    assert result[0].rows_as(_QueryOrder) == sorted(expected, key=lambda order: order.order_id)
+
+
+def test_select_empty_dataclass_list_with_model_value(pool: ydb.QuerySessionPool):
+    query = """
+DECLARE $orders AS List<Struct<id: Uint64, customer: Utf8, created_at: Timestamp>>;
+
+SELECT COUNT(*) AS count
+FROM AS_TABLE($orders);
+"""
+
+    result = pool.execute_with_retries(
+        query,
+        parameters={"$orders": ydb.ModelValue([], list[_QueryOrder])},
+    )
+
+    assert result[0].rows[0].count == 0
 
 
 def test_select_implicit_custom_type_raises(pool: ydb.QuerySessionPool):

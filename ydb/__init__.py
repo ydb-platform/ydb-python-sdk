@@ -12,6 +12,7 @@ from .global_settings import *  # noqa
 from .table import *  # noqa
 from .issues import *  # noqa
 from .types import *  # noqa
+from .models import *  # noqa
 from .scheme import *  # noqa
 from .settings import *  # noqa
 from .resolver import *  # noqa
