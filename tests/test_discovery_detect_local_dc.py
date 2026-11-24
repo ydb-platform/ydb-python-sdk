@@ -372,7 +372,7 @@ def test_primary_connection_retirement_preserves_other_address_node_affinity():
     assert cache.get(connection.EndpointKey(None, 1)) is new
 
 
-def test_primary_pile_preference_is_config_only(monkeypatch):
+def test_driver_uses_primary_pile_preference_from_config(monkeypatch):
     from ydb import topic, table, scheme, coordination
 
     seen = []
@@ -387,11 +387,6 @@ def test_primary_pile_preference_is_config_only(monkeypatch):
     config = driver.DriverConfig("grpc://test:2135", "/local", prefer_primary_pile=True)
     driver.Driver(config)
     assert seen[-1].prefer_primary_pile
-    with pytest.raises(TypeError, match="DriverConfig"):
-        driver.Driver(config, prefer_primary_pile=False)
-    with pytest.raises(TypeError, match="DriverConfig"):
-        driver.Driver(endpoint="grpc://test:2135", database="/local", prefer_primary_pile=True)
-    assert config.prefer_primary_pile
 
 
 def test_slo_primary_option_keeps_legacy_baseline_compatible(monkeypatch):

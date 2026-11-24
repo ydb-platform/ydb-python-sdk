@@ -320,9 +320,6 @@ class Driver(pool.ConnectionPool):
         :param database: A database path
         :param credentials: A credentials. If not specified credentials constructed by default.
         """
-        if "prefer_primary_pile" in kwargs:
-            raise TypeError("Set prefer_primary_pile on DriverConfig")
-
         from . import topic  # local import for prevent cycle import error
         from . import coordination  # local import for prevent cycle import error
 
