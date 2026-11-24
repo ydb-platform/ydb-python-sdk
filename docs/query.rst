@@ -41,9 +41,6 @@ explicitly if not using ``with``.
             async with ydb.aio.QuerySessionPool(driver) as pool:
                 # ... use pool
 
-Once all checkouts have been returned, leaving the async context or awaiting
-``pool.stop()`` waits for the sessions' status readers to finish.
-
 
 Session Acquire Timeout
 ^^^^^^^^^^^^^^^^^^^^^^^
