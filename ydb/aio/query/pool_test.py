@@ -261,6 +261,12 @@ class TestSessionAttachCancellation(unittest.IsolatedAsyncioTestCase):
 
 class TestQuerySessionDelete(unittest.IsolatedAsyncioTestCase):
     async def test_pool_exit_waits_for_session_status_reader(self):
+        await self._check_pool_waits_for_status_reader()
+
+    async def test_pool_exit_waits_for_session_status_reader_when_delete_rpc_fails(self):
+        await self._check_pool_waits_for_status_reader(issues.Unavailable("DeleteSession failed"))
+
+    async def _check_pool_waits_for_status_reader(self, delete_error=None):
         reading = asyncio.Event()
         finished = asyncio.Event()
 
@@ -282,7 +288,7 @@ class TestQuerySessionDelete(unittest.IsolatedAsyncioTestCase):
         with (
             patch.object(QuerySession, "_create_call", autospec=True, side_effect=create_call),
             patch.object(QuerySession, "_attach_call", new_callable=AsyncMock, return_value=stream),
-            patch.object(QuerySession, "_delete_call", new_callable=AsyncMock) as delete_call,
+            patch.object(QuerySession, "_delete_call", new_callable=AsyncMock, side_effect=delete_error) as delete_call,
         ):
             async with QuerySessionPool(MagicMock(), size=1) as pool:
                 async with pool.checkout():
@@ -291,6 +297,16 @@ class TestQuerySessionDelete(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(finished.is_set())
         stream.cancel.assert_called_once()
         delete_call.assert_awaited_once()
+
+    async def test_delete_without_creating_session(self):
+        session = QuerySession(MagicMock())
+        session._delete_call = AsyncMock()
+
+        await session.delete()
+        await session.delete()
+
+        self.assertTrue(session.is_closed)
+        session._delete_call.assert_not_called()
 
     async def test_closes_before_delete_call(self):
         session = QuerySession(MagicMock())
