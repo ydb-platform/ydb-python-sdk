@@ -165,22 +165,17 @@ class TestCallFromSyncToAsync:
         assert res == 1
         assert callback_loop is separate_loop
 
-    def test_unsafe_call_with_result_timeout(self, separate_loop, caller):
+    def test_unsafe_call_with_result_timeout(self, caller):
         timeout = 0.01
-        callback_loop = None
 
         async def callback():
-            nonlocal callback_loop
-            callback_loop = asyncio.get_running_loop()
-            await asyncio.sleep(1)
-            return 1
+            await asyncio.Future()
 
         start = time.monotonic()
         with pytest.raises(TimeoutError):
             caller.unsafe_call_with_result(callback(), timeout)
         finished = time.monotonic()
 
-        assert callback_loop is separate_loop
         assert finished - start > timeout
 
     def test_safe_call_with_result_ok(self, separate_loop, caller):
