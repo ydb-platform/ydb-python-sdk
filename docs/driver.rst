@@ -48,6 +48,9 @@ DriverConfig
    * - ``discovery_request_timeout``
      - ``10``
      - Timeout in seconds for each discovery request.
+   * - ``use_all_nodes``
+     - ``True``
+     - During ordinary discovery, shuffle endpoints across all datacenters. Set to ``False`` to try endpoints in the server-reported local datacenter first.
    * - ``prefer_primary_pile``
      - ``False``
      - Prefer PRIMARY/PROMOTED Bridge endpoints with synchronized-pile fallback; no effect without Bridge metadata.

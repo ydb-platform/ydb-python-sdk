@@ -163,14 +163,7 @@ def primary_result(states, nodes=((1, "A"), (2, "B"))):
     return resolver.DiscoveryResult.from_response(None, response, use_all_nodes=True)
 
 
-@pytest.mark.asyncio
-@pytest.mark.parametrize("use_all_nodes", [False, True])
-@pytest.mark.parametrize("is_async", [False, True])
-async def test_bridge_discovery_orders_connections_by_pile(monkeypatch, use_all_nodes, is_async):
-    response = primary_response(
-        {"A": 3, "B": 3, "C": 2, "D": 1}, ((1, "unknown"), (2, "B"), (3, "A"), (4, "C"), (5, "D"))
-    )
-    config = driver.DriverConfig("grpc://test:2135", "/local", use_all_nodes=use_all_nodes, prefer_primary_pile=True)
+async def resolve_node_order(monkeypatch, config, response, is_async):
     module = aio_resolver if is_async else resolver
     discovery = module.DiscoveryEndpointsResolver(config)
     monkeypatch.setattr(resolver.random, "shuffle", lambda endpoints: endpoints.sort(key=lambda info: info.node_id))
@@ -187,18 +180,32 @@ async def test_bridge_discovery_orders_connections_by_pile(monkeypatch, use_all_
         monkeypatch.setattr(connection.Connection, "ready_factory", Mock(return_value=bootstrap))
         result = discovery.resolve()
 
-    assert [info.node_id for info in result.endpoints] == [4, 5, 2, 3, 1]
+    return [info.node_id for info in result.endpoints]
 
 
+@pytest.mark.asyncio
+@pytest.mark.parametrize("use_all_nodes", [False, True])
+@pytest.mark.parametrize("is_async", [False, True])
+async def test_bridge_discovery_orders_connections_by_pile(monkeypatch, use_all_nodes, is_async):
+    response = primary_response(
+        {"A": 3, "B": 3, "C": 2, "D": 1}, ((1, "unknown"), (2, "B"), (3, "A"), (4, "C"), (5, "D"))
+    )
+    config = driver.DriverConfig("grpc://test:2135", "/local", use_all_nodes=use_all_nodes, prefer_primary_pile=True)
+    assert await resolve_node_order(monkeypatch, config, response, is_async) == [4, 5, 2, 3, 1]
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("is_async", [False, True])
 @pytest.mark.parametrize("states,prefer_primary_pile", [({}, True), ({"A": 3, "B": 1}, False)])
 @pytest.mark.parametrize("use_all_nodes,expected", [(True, [1, 2]), (False, [2, 1])])
-def test_discovery_keeps_ordinary_order_without_bridge_policy(
-    monkeypatch, states, prefer_primary_pile, use_all_nodes, expected
+async def test_discovery_keeps_ordinary_order_without_bridge_policy(
+    monkeypatch, states, prefer_primary_pile, use_all_nodes, expected, is_async
 ):
     response = primary_response(states, ((1, "B"), (2, "A")))
-    monkeypatch.setattr(resolver.random, "shuffle", lambda endpoints: endpoints.sort(key=lambda info: info.node_id))
-    result = resolver.DiscoveryResult.from_response(None, response, use_all_nodes, prefer_primary_pile)
-    assert [info.node_id for info in result.endpoints] == expected
+    config = driver.DriverConfig(
+        "grpc://test:2135", "/local", use_all_nodes=use_all_nodes, prefer_primary_pile=prefer_primary_pile
+    )
+    assert await resolve_node_order(monkeypatch, config, response, is_async) == expected
 
 
 def primary_discovery(monkeypatch, result, enabled=True, use_all_nodes=True, failed=()):
