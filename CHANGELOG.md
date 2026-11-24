@@ -1,4 +1,8 @@
 * Wait for session status tasks to finish when closing an async `QuerySessionPool`.
+
+## 3.36.0 ##
+* Honor `use_all_nodes=True` when ordering discovered endpoints in the async driver
+* Add opt-in PRIMARY/PROMOTED Bridge pile preference with synchronized-pile fallback for sync and async drivers
 * Fix automatic refresh of short-lived login tokens by using their JWT expiration time.
 
 ## 3.35.0 ##
