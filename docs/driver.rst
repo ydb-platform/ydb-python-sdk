@@ -48,6 +48,12 @@ DriverConfig
    * - ``discovery_request_timeout``
      - ``10``
      - Timeout in seconds for each discovery request.
+   * - ``use_all_nodes``
+     - ``True``
+     - During ordinary discovery, shuffle endpoints across all datacenters. Set to ``False`` to try endpoints in the server-reported local datacenter first.
+   * - ``prefer_primary_pile``
+     - ``False``
+     - Prefer PRIMARY/PROMOTED Bridge endpoints with synchronized-pile fallback; no effect without Bridge metadata.
    * - ``table_client_settings``
      - ``None``
      - :class:`~ydb.TableClientSettings` instance to configure the Table service client.
@@ -60,6 +66,37 @@ DriverConfig
    * - ``compression``
      - ``None``
      - gRPC-level compression (e.g. ``grpc.Compression.Gzip``).
+
+
+Preferring the primary Bridge pile
+----------------------------------------
+
+Set ``prefer_primary_pile`` on the ``DriverConfig`` passed to the sync or async driver.
+
+.. code-block:: python
+
+   config = ydb.DriverConfig(
+       endpoint="grpc://discovery.example:2135",
+       database="/Root/mydb",
+       prefer_primary_pile=True,
+   )
+   driver = ydb.Driver(config)
+
+While discovery reports Bridge pile states, the driver tries PRIMARY and PROMOTED
+endpoints first, followed by SYNCHRONIZED endpoints, then endpoints in other or
+unknown states. This order applies to connection attempts and to unbound requests
+for either value of ``use_all_nodes``. Endpoints within a tier have equal priority
+regardless of their datacenter. The driver updates priorities when discovery reports a role change.
+When a discovery response contains no pile states, the driver resumes its
+configured balancing policy for both existing and new connections.
+The option controls client-side routing and is disabled by default.
+
+If the connection cache is full and none of its connections lead to a PRIMARY
+or PROMOTED pile, discovery opens a connection to a preferred endpoint before
+closing one lower-priority connection. Sessions using that connection can be
+interrupted. Once the cache has a preferred connection, additional endpoints
+can join as slots become available. Existing sessions keep their node affinity
+while their connection is available.
 
 
 Creating a Driver
