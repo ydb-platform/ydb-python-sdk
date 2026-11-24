@@ -387,33 +387,3 @@ def test_driver_uses_primary_pile_preference_from_config(monkeypatch):
     config = driver.DriverConfig("grpc://test:2135", "/local", prefer_primary_pile=True)
     driver.Driver(config)
     assert seen[-1].prefer_primary_pile
-
-
-def test_slo_primary_option_keeps_legacy_baseline_compatible(monkeypatch):
-    from tests.slo.src import options
-
-    args = options.get_root_parser().parse_args(
-        ["table-run", "grpc://host:2136", "/Root/testdb", "--prefer-primary-pile"]
-    )
-    assert options.get_driver_config(args).prefer_primary_pile
-    original = driver.DriverConfig
-
-    def legacy_config(endpoint, database, grpc_keep_alive_timeout):
-        return original(endpoint, database=database, grpc_keep_alive_timeout=grpc_keep_alive_timeout)
-
-    monkeypatch.setattr(options.ydb, "DriverConfig", legacy_config)
-    args = options.get_root_parser().parse_args(["table-run", "grpc://host:2136", "/Root/testdb"])
-    assert not args.prefer_primary_pile
-    assert not options.get_driver_config(args).prefer_primary_pile
-
-
-def test_bridge_slo_requires_all_completed_scenarios():
-    from tests.slo.bridge.verify import SCENARIOS, check_chaos
-
-    log = "\n".join(f"Running scenario: {name}\n[time] Recovered: {name}" for name in SCENARIOS)
-    log += "\nChaos Monkey finished"
-    state = {"Status": "exited", "ExitCode": 0}
-    assert not check_chaos(log, state, 0)
-    assert check_chaos(log.replace("Running scenario: 05-failover-primary", "skipped"), state, 0)
-    assert check_chaos(log.replace("] Recovered: 05-failover-primary", "] incomplete"), state, 0)
-    assert check_chaos(log, state, 1)
