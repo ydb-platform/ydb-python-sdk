@@ -1,3 +1,4 @@
+* Wait for session status tasks to finish when closing an async `QuerySessionPool`.
 * Fix automatic refresh of short-lived login tokens by using their JWT expiration time.
 
 ## 3.35.0 ##
