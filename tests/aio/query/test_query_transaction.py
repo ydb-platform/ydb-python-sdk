@@ -10,6 +10,45 @@ from ydb.query.transaction import QueryTxStateEnum
 
 class TestAsyncQueryTransaction:
     @pytest.mark.asyncio
+    async def test_strict_serializable_commit_timestamp(self, session, table_path, endpoint, database, driver_sync):
+        await session.create()
+        mode = ydb.QueryStrictSerializableReadWrite()
+        table = f"`{table_path}`"
+
+        async with session.transaction(mode) as tx:
+            async with await tx.execute(f"UPSERT INTO {table} (id, i64Val) VALUES (1, 11);"):
+                pass
+            assert tx.commit_timestamp is None
+            await tx.commit()
+            explicit = tx.commit_timestamp
+
+        async with session.transaction(mode) as tx:
+            async with await tx.execute(
+                f"UPSERT INTO {table} (id, i64Val) VALUES (2, 22); SELECT 42 AS value;",
+                commit_tx=True,
+            ) as results:
+                assert tx.commit_timestamp is None
+                assert (await anext(results)).rows[0]["value"] == 42
+                assert tx.commit_timestamp is None
+            streamed = tx.commit_timestamp
+
+        for timestamp in (explicit, streamed):
+            assert isinstance(timestamp, ydb.VirtualTimestamp)
+            assert timestamp.plan_step > 0
+            assert timestamp.tx_id > 0
+            assert (timestamp.endpoint, timestamp.database) == (endpoint, database)
+        assert explicit < streamed
+
+        def commit_sync():
+            with ydb.QuerySessionPool(driver_sync) as pool, pool.checkout() as sync_session:
+                with sync_session.transaction(mode) as tx:
+                    with tx.execute(f"UPSERT INTO {table} (id, i64Val) VALUES (3, 33);", commit_tx=True):
+                        pass
+                    return tx.commit_timestamp
+
+        assert streamed < await asyncio.to_thread(commit_sync)
+
+    @pytest.mark.asyncio
     async def test_tx_begin(self, tx: QueryTxContext):
         assert tx.tx_id is None
 

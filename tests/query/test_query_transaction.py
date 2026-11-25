@@ -7,6 +7,40 @@ from ydb.query.transaction import QueryTxStateEnum
 
 
 class TestQueryTransaction:
+    def test_strict_serializable_commit_timestamp(self, session, table_path, endpoint, database):
+        session.create()
+        mode = ydb.QueryStrictSerializableReadWrite()
+        table = f"`{table_path}`"
+
+        with session.transaction(mode) as tx:
+            with tx.execute(f"UPSERT INTO {table} (id, i64Val) VALUES (1, 11);"):
+                pass
+            assert tx.commit_timestamp is None
+            tx.commit()
+            explicit = tx.commit_timestamp
+
+        with session.transaction(mode) as tx:
+            with tx.execute(
+                f"UPSERT INTO {table} (id, i64Val) VALUES (2, 22); SELECT 42 AS value;",
+                commit_tx=True,
+            ) as results:
+                assert tx.commit_timestamp is None
+                assert next(results).rows[0]["value"] == 42
+                assert tx.commit_timestamp is None
+            streamed = tx.commit_timestamp
+
+        for timestamp in (explicit, streamed):
+            assert isinstance(timestamp, ydb.VirtualTimestamp)
+            assert timestamp.plan_step > 0
+            assert timestamp.tx_id > 0
+            assert (timestamp.endpoint, timestamp.database) == (endpoint, database)
+        assert explicit < streamed
+
+        with session.transaction(mode) as tx:
+            with tx.execute(f"SELECT i64Val FROM {table} ORDER BY id", commit_tx=True) as results:
+                assert [row["i64Val"] for result in results for row in result.rows] == [11, 22]
+            assert tx.commit_timestamp is None
+
     def test_tx_begin(self, tx: QueryTxContext):
         assert tx.tx_id is None
 
