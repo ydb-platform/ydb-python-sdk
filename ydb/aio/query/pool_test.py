@@ -4,7 +4,7 @@ import asyncio
 import unittest
 from unittest.mock import AsyncMock, MagicMock, patch
 
-from ydb import issues
+from ydb import _apis, issues
 from ydb.aio import _utilities as aio_utilities
 from ydb.aio.query.pool import QuerySessionPool
 from ydb.aio.query.session import QuerySession
@@ -200,9 +200,11 @@ class TestSessionAttachCancellation(unittest.IsolatedAsyncioTestCase):
             entered.set()
             await asyncio.sleep(30)
 
-        with patch.object(type(session), "_attach_call", side_effect=fake_attach_call), patch.object(
-            aio_utilities, "AsyncResponseIterator", MagicMock()
-        ), patch.object(aio_utilities, "get_first_message_with_timeout", hanging_first_message):
+        with (
+            patch.object(type(session), "_attach_call", side_effect=fake_attach_call),
+            patch.object(aio_utilities, "AsyncResponseIterator", MagicMock()),
+            patch.object(aio_utilities, "get_first_message_with_timeout", hanging_first_message),
+        ):
             task = asyncio.create_task(session._attach())
             await _wait_signalled(entered)
             task.cancel()
@@ -258,6 +260,54 @@ class TestSessionAttachCancellation(unittest.IsolatedAsyncioTestCase):
 
 
 class TestQuerySessionDelete(unittest.IsolatedAsyncioTestCase):
+    async def test_pool_exit_waits_for_session_status_reader(self):
+        await self._check_pool_waits_for_status_reader()
+
+    async def test_pool_exit_waits_for_session_status_reader_when_delete_rpc_fails(self):
+        await self._check_pool_waits_for_status_reader(issues.Unavailable("DeleteSession failed"))
+
+    async def _check_pool_waits_for_status_reader(self, delete_error=None):
+        reading = asyncio.Event()
+        finished = asyncio.Event()
+
+        async def read_status():
+            yield _apis.ydb_query.SessionState(status=issues.StatusCode.SUCCESS)
+            reading.set()
+            try:
+                await asyncio.Future()
+            finally:
+                await asyncio.sleep(0)
+                finished.set()
+
+        stream = MagicMock()
+        stream.__aiter__.side_effect = read_status
+
+        async def create_call(session, settings=None):
+            session._session_id = "session-id"
+
+        with (
+            patch.object(QuerySession, "_create_call", autospec=True, side_effect=create_call),
+            patch.object(QuerySession, "_attach_call", new_callable=AsyncMock, return_value=stream),
+            patch.object(QuerySession, "_delete_call", new_callable=AsyncMock, side_effect=delete_error) as delete_call,
+        ):
+            async with QuerySessionPool(MagicMock(), size=1) as pool:
+                async with pool.checkout():
+                    await _wait_signalled(reading)
+
+        self.assertTrue(finished.is_set())
+        stream.cancel.assert_called_once()
+        delete_call.assert_awaited_once()
+
+    async def test_delete_without_creating_session(self):
+        session = QuerySession(MagicMock())
+        session._delete_call = AsyncMock()
+
+        await session.delete()
+        await session.delete()
+
+        self.assertTrue(session.is_closed)
+        session._delete_call.assert_not_called()
+
     async def test_closes_before_delete_call(self):
         session = QuerySession(MagicMock())
         session._session_id = "session-id"

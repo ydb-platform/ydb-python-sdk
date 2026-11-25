@@ -2,5 +2,7 @@ requests==2.33.0
 aiolimiter==1.1.0
 hdrhistogram==0.10.3
 
-# The OTLP/HTTP exporter pulls in a compatible SDK, which pins its API version.
+# Keep the OpenTelemetry API, SDK, and exporter on the same release.
+opentelemetry-api==1.45.1
+opentelemetry-sdk==1.45.1
 opentelemetry-exporter-otlp-proto-http==1.45.1
