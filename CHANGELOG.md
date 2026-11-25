@@ -1,3 +1,4 @@
+* Add `topic_client.multiwriter()` for synchronous and asynchronous writes by key across partition splits and merges.
 * Wait for session status tasks to finish when closing an async `QuerySessionPool`.
 
 ## 3.36.0 ##
