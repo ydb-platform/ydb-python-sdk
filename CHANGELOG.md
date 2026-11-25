@@ -1,4 +1,4 @@
-* Add `topic_client.multiwriter()` for sync and async writes by key across partition splits and merges. `describe_topic()` now exposes partition key ranges, and topic writers stop their background tasks when `close()` times out.
+* Add `topic_client.multiwriter()` for synchronous and asynchronous writes by key across partition splits and merges.
 * Wait for session status tasks to finish when closing an async `QuerySessionPool`.
 
 ## 3.36.0 ##
