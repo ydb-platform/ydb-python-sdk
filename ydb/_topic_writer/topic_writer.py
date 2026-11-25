@@ -55,17 +55,20 @@ class PublicWriterSettings:
     def __post_init__(self):
         if self.producer_id is None:
             self.producer_id = uuid.uuid4().hex
-        if self.max_buffer_size_bytes is not None and self.max_buffer_size_bytes <= 0:
-            raise ValueError("max_buffer_size_bytes must be a positive integer, got %d" % self.max_buffer_size_bytes)
-        if self.max_buffer_messages is not None and self.max_buffer_messages <= 0:
-            raise ValueError("max_buffer_messages must be a positive integer, got %d" % self.max_buffer_messages)
-        if self.buffer_wait_timeout_sec is not None and (
-            self.buffer_wait_timeout_sec < 0
-            or self.buffer_wait_timeout_sec != self.buffer_wait_timeout_sec  # NaN check
-        ):
-            raise ValueError(
-                "buffer_wait_timeout_sec must be a non-negative number, got %r" % self.buffer_wait_timeout_sec
-            )
+        validate_buffer_limits(self.max_buffer_size_bytes, self.max_buffer_messages, self.buffer_wait_timeout_sec)
+
+
+def validate_buffer_limits(
+    max_buffer_size_bytes: Optional[int], max_buffer_messages: Optional[int], buffer_wait_timeout_sec: Optional[float]
+) -> None:
+    if max_buffer_size_bytes is not None and max_buffer_size_bytes <= 0:
+        raise ValueError("max_buffer_size_bytes must be a positive integer, got %d" % max_buffer_size_bytes)
+    if max_buffer_messages is not None and max_buffer_messages <= 0:
+        raise ValueError("max_buffer_messages must be a positive integer, got %d" % max_buffer_messages)
+    if buffer_wait_timeout_sec is not None and (
+        buffer_wait_timeout_sec < 0 or buffer_wait_timeout_sec != buffer_wait_timeout_sec  # NaN check
+    ):
+        raise ValueError("buffer_wait_timeout_sec must be a non-negative number, got %r" % buffer_wait_timeout_sec)
 
 
 @dataclass
@@ -131,7 +134,7 @@ class PublicMessage:
     created_at: Optional[datetime.datetime]
     data: "PublicMessage.SimpleSourceType"
     metadata_items: Optional[Dict[str, "PublicMessage.SimpleSourceType"]]
-    key: Optional[str]
+    key: Optional[str] = None
 
     SimpleSourceType = Union[str, bytes]  # Will be extend
 
@@ -148,8 +151,6 @@ class PublicMessage:
         self.created_at = created_at
         self.data = data
         self.metadata_items = metadata_items
-        # Partitioning key: used only by the multi-partition writer to route the
-        # message to a partition. Ignored by the single-partition writer.
         self.key = key
 
     @staticmethod

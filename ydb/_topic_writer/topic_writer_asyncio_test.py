@@ -1151,6 +1151,15 @@ class TestWriterAsyncIO:
 
         assert reconnector.messages == [m]
 
+    @pytest.mark.parametrize("key", ["account-42", ""])
+    async def test_single_writer_rejects_key_before_enqueuing_batch(self, writer, reconnector, key):
+        with pytest.raises(TopicWriterError, match="partition key requires a multiwriter"):
+            await writer.write([b"first", PublicMessage(b"second", key=key)])
+        assert not reconnector.messages
+        await writer.write(b"unkeyed")
+        assert [message.data for message in reconnector.messages] == [b"unkeyed"]
+        await writer.close(flush=False)
+
     async def test_write_with_futures(self, writer: WriterAsyncIO, reconnector):
         m = PublicMessage(seqno=1, data="123")
         res = await writer.write_with_ack_future(m)
@@ -1359,10 +1368,7 @@ class _FakeSubWriter:
         last_seqno = _FAKE_LAST_SEQNO.get(self.producer_partition_id, 0)
         return PublicWriterInitInfo(last_seqno=last_seqno, supported_codecs=[])
 
-    def _buffer_is_full(self):
-        return False
-
-    async def write_with_ack_future(self, message):
+    async def _write_routed_message(self, message):
         self.messages.append(message)
         future = asyncio.get_running_loop().create_future()
         future.set_result(PublicWriteResult.Written(offset=len(self.messages)))
@@ -1382,7 +1388,7 @@ class _ControllableSubWriter(_FakeSubWriter):
         super().__init__(driver, settings)
         self.pending: List = []
 
-    async def write_with_ack_future(self, message):
+    async def _write_routed_message(self, message):
         self.messages.append(message)
         future = asyncio.get_running_loop().create_future()
         self.pending.append(future)
@@ -1419,7 +1425,7 @@ class _FlushControlledSubWriter(_FakeSubWriter):
         super().__init__(driver, settings)
         self.pending: List = []
 
-    async def write_with_ack_future(self, message):
+    async def _write_routed_message(self, message):
         self.messages.append(message)
         future = asyncio.get_running_loop().create_future()
         self.pending.append(future)
@@ -1434,7 +1440,7 @@ class _FlushControlledSubWriter(_FakeSubWriter):
 class _RaisingSubWriter(_FakeSubWriter):
     """Sub-writer whose admission always fails."""
 
-    async def write_with_ack_future(self, message):
+    async def _write_routed_message(self, message):
         raise RuntimeError("admission failed")
 
 
@@ -1465,13 +1471,13 @@ class _SeqnoGuardSubWriter(_ControllableSubWriter):
             self._last_known_seqno = info.last_seqno
         return info
 
-    async def write_with_ack_future(self, message):
+    async def _write_routed_message(self, message):
         if self._last_known_seqno is None:
             self._last_known_seqno = _FAKE_LAST_SEQNO.get(self.partition_id, 0)
         if message.seqno <= self._last_known_seqno:
             raise TopicWriterError("Message seqno is duplicated: %s" % message.seqno)
         self._last_known_seqno = message.seqno
-        return await super().write_with_ack_future(message)
+        return await super()._write_routed_message(message)
 
 
 # Partitions whose sub-writer never finishes init; models a writer opened against a partition
@@ -3091,6 +3097,76 @@ class TestTopicWriterMultiAsyncIORegressions:
         ]
         return before, [_multi_partition(2, parents=[0, 1], from_bound=b"", to_bound=b"")]
 
+    @pytest.mark.parametrize("bounded", [False, True])
+    async def test_builtin_routing_requires_key_and_accepts_explicit_empty_key(self, monkeypatch, bounded):
+        monkeypatch.setattr(topic_writer_multi_asyncio, "WriterAsyncIO", _FakeSubWriter)
+        partition = self.partitions()[0] if bounded else _multi_partition(0)
+        driver = _MultiFakeDescribeDriver([[partition]])
+        async with TopicWriterMultiAsyncIO(driver, MultiWriterSettings(topic="/local/topic")) as writer:
+            with pytest.raises(TopicWriterError, match="partition key is required"):
+                await writer.write(b"missing")
+            assert not writer._writers
+            await writer.write_with_ack(PublicMessage(b"empty", key=""))
+            assert [m.data for m in writer._writers[0].messages] == [b"empty"]
+
+    async def test_custom_chooser_can_route_unkeyed_messages(self, monkeypatch):
+        monkeypatch.setattr(topic_writer_multi_asyncio, "WriterAsyncIO", _FakeSubWriter)
+
+        class MetadataChooser(_KeyMapChooser):
+            def choose_partition(self, message):
+                return int(message.metadata_items["partition"])
+
+        driver = _MultiFakeDescribeDriver([[_multi_partition(0), _multi_partition(1)]])
+        settings = MultiWriterSettings(topic="/local/topic", partition_chooser=MetadataChooser({}))
+        async with TopicWriterMultiAsyncIO(driver, settings) as writer:
+            await writer.write_with_ack(PublicMessage(b"data", metadata_items={"partition": "1"}))
+            assert set(writer._writers) == {1}
+
+    @pytest.mark.parametrize("limit", [{"max_buffer_messages": 1}, {"max_buffer_size_bytes": 100}])
+    async def test_global_buffer_limits_across_partitions(self, monkeypatch, limit):
+        monkeypatch.setattr(topic_writer_multi_asyncio, "WriterAsyncIO", _ControllableSubWriter)
+        _, left, right = self.partitions()
+        writer = TopicWriterMultiAsyncIO(
+            _MultiFakeDescribeDriver([[left, right]]), self.settings(buffer_wait_timeout_sec=0, **limit)
+        )
+        try:
+            # Metadata alone is enough to cross the soft byte limit.
+            ack = await writer.write_with_ack_future(PublicMessage(b"a", key="a", metadata_items={"tag": "x" * 100}))
+            ack.cancel()
+            with pytest.raises(TopicWriterBufferFullError):
+                await writer.write(PublicMessage(b"other", key="z"))
+            assert set(writer._writers) == {1}
+            writer._writers[1].resolve_all()
+            await writer.flush()
+            other = await writer.write_with_ack_future(PublicMessage(b"other", key="z"))
+            writer._writers[2].resolve_all()
+            await other
+        finally:
+            await writer.close(flush=False)
+
+    async def test_global_buffer_wakes_competing_partitions_one_slot_at_a_time(self, monkeypatch):
+        monkeypatch.setattr(topic_writer_multi_asyncio, "WriterAsyncIO", _ControllableSubWriter)
+        _, left, right = self.partitions()
+        writer = TopicWriterMultiAsyncIO(
+            _MultiFakeDescribeDriver([[left, right]]), self.settings(max_buffer_messages=1)
+        )
+        waiting = []
+        try:
+            await writer.write(PublicMessage(b"first", key="a"))
+            waiting = [asyncio.create_task(writer.write(PublicMessage(key, key=key))) for key in ("b", "z")]
+            await asyncio.sleep(0)
+            assert not any(task.done() for task in waiting)
+            writer._writers[1].resolve_all()
+            done, pending = await asyncio.wait(waiting, timeout=1, return_when=asyncio.FIRST_COMPLETED)
+            assert len(done) == len(pending) == 1
+            for subwriter in writer._writers.values():
+                subwriter.resolve_all()
+            await asyncio.wait_for(asyncio.gather(*waiting), 1)
+            assert sum(len(subwriter.messages) for subwriter in writer._writers.values()) == 3
+        finally:
+            await writer.close(flush=False)
+            await asyncio.gather(*waiting, return_exceptions=True)
+
     @pytest.fixture
     def opened_streams(self, monkeypatch):
         opened = asyncio.Queue()
@@ -3110,9 +3186,9 @@ class TestTopicWriterMultiAsyncIORegressions:
         writer = TopicWriterMultiAsyncIO(
             _MultiFakeDescribeDriver([[parent]]), self.settings(max_buffer_messages=1, codec=PublicCodec.RAW)
         )
-        accepted = await writer.write_with_ack_future(b"first")
+        accepted = await writer.write_with_ack_future(PublicMessage(b"first", key="a"))
         stream = await opened_streams.get()
-        waiting = asyncio.create_task(writer.write(b"waiting"))
+        waiting = asyncio.create_task(writer.write(PublicMessage(b"waiting", key="b")))
         await asyncio.sleep(0)
         assert not waiting.done()
         closing = asyncio.create_task(writer.close(flush=flush))
@@ -3165,11 +3241,11 @@ class TestTopicWriterMultiAsyncIORegressions:
         )
         writer = TopicWriterMultiAsyncIO(_MultiFakeDescribeDriver([[parent]]), settings)
         try:
-            first = await writer.write_with_ack_future(PublicMessage(b"a", seqno=1))
+            first = await writer.write_with_ack_future(PublicMessage(b"a", seqno=1, key="a"))
             stream = await opened_streams.get()
             with pytest.raises(TopicWriterError, match="must increase"):
-                await writer.write(PublicMessage(b"duplicate", seqno=1))
-            second = PublicMessage(b"b", seqno=2)
+                await writer.write(PublicMessage(b"duplicate", seqno=1, key="a"))
+            second = PublicMessage(b"b", seqno=2, key="b")
             with pytest.raises(TopicWriterBufferFullError):
                 await writer.write(second)
             stream.from_server.put_nowait(TestWriterAsyncIOReconnector().make_default_ack_message(1))
@@ -3216,10 +3292,10 @@ class TestTopicWriterMultiAsyncIORegressions:
                     await release_probe.wait()
                 return await super().wait_init()
 
-            async def write_with_ack_future(self, message):
+            async def _write_routed_message(self, message):
                 if self.partition_id == 0:
                     return asyncio.get_running_loop().create_future()
-                return await super().write_with_ack_future(message)
+                return await super()._write_routed_message(message)
 
         monkeypatch.setattr(topic_writer_multi_asyncio, "WriterAsyncIO", MergingWriter)
         monkeypatch.setattr(topic_writer_multi_asyncio, "_WRITER_INIT_TIMEOUT", 5)
@@ -3308,15 +3384,15 @@ class TestTopicWriterMultiAsyncIORegressions:
                     probed.add(self.producer_partition_id)
                 return await super().wait_init()
 
-            async def write_with_ack_future(self, message):
+            async def _write_routed_message(self, message):
                 if self.partition_id == 2:
                     assert probed == {0, 1}
-                return await super().write_with_ack_future(message)
+                return await super()._write_routed_message(message)
 
         monkeypatch.setattr(topic_writer_multi_asyncio, "WriterAsyncIO", GuardedWriter)
         before, after = self.merge_partitions()
         writer = TopicWriterMultiAsyncIO(
-            _MultiFakeDescribeDriver([before, after]), self.settings(auto_seqno=auto_seqno)
+            _MultiFakeDescribeDriver([before, after]), self.settings(auto_seqno=auto_seqno, max_buffer_messages=4)
         )
         futures = []
         try:
@@ -3327,11 +3403,13 @@ class TestTopicWriterMultiAsyncIORegressions:
             await writer._on_partition_overloaded(trigger)
             assert set(writer._partitions) == {2}
             assert [message.seqno for message in writer._writers[2].messages] == expected
+            assert writer._buffer.messages == len(expected)
             for seqno, future in enumerate(futures, 1):
                 if seqno not in expected:
                     assert future.result().offset == -1
             writer._writers[2].resolve_all()
             assert all(isinstance(result, PublicWriteResult.Written) for result in await asyncio.gather(*futures))
+            assert writer._buffer.messages == 0
         finally:
             await writer.close(flush=False)
             _retrieve_exceptions(futures)
@@ -3378,10 +3456,10 @@ class TestTopicWriterMultiAsyncIORegressions:
     @pytest.mark.parametrize("fail_at", [1, 3])
     async def test_merge_admission_failure_settles_all_remaining_parent_tails(self, monkeypatch, fail_at):
         class RejectingChild(_SeqnoGuardSubWriter):
-            async def write_with_ack_future(self, message):
+            async def _write_routed_message(self, message):
                 if self.partition_id == 2 and message.seqno == fail_at:
                     raise TopicWriterError("child admission failed")
-                return await super().write_with_ack_future(message)
+                return await super()._write_routed_message(message)
 
         monkeypatch.setattr(topic_writer_multi_asyncio, "WriterAsyncIO", RejectingChild)
         before, after = self.merge_partitions()
@@ -3638,14 +3716,17 @@ class TestTopicWriterMultiAsyncIORegressions:
         error = error_type() if error_type is TopicWriterStopped else error_type("buffer full")
 
         class FailingChild(_ControllableSubWriter):
-            async def write_with_ack_future(self, message):
+            async def _write_routed_message(self, message):
                 if self.partition_id == 1 and len(self.messages) == failure_index:
                     raise error
-                return await super().write_with_ack_future(message)
+                return await super()._write_routed_message(message)
 
         monkeypatch.setattr(topic_writer_multi_asyncio, "WriterAsyncIO", FailingChild)
         parent, left, right = self.partitions()
-        writer = TopicWriterMultiAsyncIO(_MultiFakeDescribeDriver([[parent], [left, right]]), self.settings())
+        writer = TopicWriterMultiAsyncIO(
+            _MultiFakeDescribeDriver([[parent], [left, right]]),
+            self.settings(max_buffer_messages=3, max_buffer_size_bytes=4096),
+        )
         futures = [await writer.write_with_ack_future(PublicMessage(str(i), key="a")) for i in range(3)]
         await writer._on_partition_overloaded(0)
         writer._writers[1].resolve_all()
@@ -3654,6 +3735,7 @@ class TestTopicWriterMultiAsyncIORegressions:
         assert all(isinstance(result, PublicWriteResult.Written) for result in results[:failure_index])
         assert results[failure_index:] == [error] * (3 - failure_index)
         assert not any(writer._inflight.values())
+        assert writer._buffer.messages == writer._buffer.bytes == 0
         with pytest.raises(error_type):
             await asyncio.wait_for(writer.flush(), 1)
         with pytest.raises(error_type):

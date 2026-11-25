@@ -2,7 +2,7 @@ import abc
 import bisect
 from typing import Callable, List, Tuple
 
-from .topic_writer import PublicMessage
+from .topic_writer import PublicMessage, TopicWriterError
 from .._grpc.grpcwrapper.ydb_topic_public_types import PublicDescribeTopicResult
 
 _MASK32 = 0xFFFFFFFF
@@ -124,7 +124,9 @@ class PublicPartitionByKeyKafka(PublicPartitionChooser):
             raise ValueError("no partitions configured for partition chooser")
         # Apache Kafka's DefaultPartitioner applies toPositive() (mask the sign bit) to the
         # murmur2 hash before the modulo; match it so the same key lands on the same partition.
-        h = murmur2_32((message.key or "").encode("utf-8"), 0x9747B28C) & 0x7FFFFFFF
+        if message.key is None:
+            raise TopicWriterError("A partition key is required for write-by-key routing")
+        h = murmur2_32(message.key.encode("utf-8"), 0x9747B28C) & 0x7FFFFFFF
         return self._partitions[h % len(self._partitions)]
 
 
@@ -168,7 +170,9 @@ class PublicPartitionByKeyBound(PublicPartitionChooser):
     def choose_partition(self, message: PublicMessage) -> int:
         if not self._partitions:
             raise ValueError("no partitions configured for partition chooser")
-        hashed = self._key_hasher(message.key or "")
+        if message.key is None:
+            raise TopicWriterError("A partition key is required for write-by-key routing")
+        hashed = self._key_hasher(message.key)
 
         if message.metadata_items is None:
             message.metadata_items = {}

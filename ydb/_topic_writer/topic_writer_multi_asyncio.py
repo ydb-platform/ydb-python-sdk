@@ -12,6 +12,7 @@ from dataclasses import dataclass, field
 from typing import Callable, Dict, Iterator, List, Mapping, Optional, Tuple, Union
 
 from .topic_writer import (
+    InternalMessage,
     Message,
     PublicMessage,
     PublicWriterSettings,
@@ -21,8 +22,10 @@ from .topic_writer import (
     TopicWriterError,
     TopicWriterPartitionSplitError,
     TopicWriterStopped,
+    internal_message_size_bytes,
+    validate_buffer_limits,
 )
-from .topic_writer_asyncio import WriterAsyncIO
+from .topic_writer_asyncio import WriterAsyncIO, WriterBuffer
 from .topic_writer_partition_chooser import (
     PublicPartitionByKeyBound,
     PublicPartitionByKeyKafka,
@@ -85,6 +88,7 @@ class MultiWriterSettings:
     writer_idle_timeout_sec: Optional[float] = None
 
     def __post_init__(self):
+        validate_buffer_limits(self.max_buffer_size_bytes, self.max_buffer_messages, self.buffer_wait_timeout_sec)
         if self.producer_id_prefix is None:
             self.producer_id_prefix = uuid.uuid4().hex
         # partition_chooser is left as-is; when None the writer picks one adaptively
@@ -98,6 +102,7 @@ class _InflightMessage:
     seqno: int
     partition_id: int
     sub_future: Optional[asyncio.Future] = field(default=None)
+    size_bytes: int = 0
     _flush_waiter: Optional[asyncio.Future] = field(default=None, init=False)
 
     def flush_waiter(self) -> asyncio.Future:
@@ -149,7 +154,11 @@ class TopicWriterMultiAsyncIO:
         self._closing = False
         self._closed = False
         self._write_error: asyncio.Future[BaseException] = self._loop.create_future()
-        self._write_lock = asyncio.Lock()
+        self._buffer = None
+        if settings.max_buffer_size_bytes is not None or settings.max_buffer_messages is not None:
+            self._buffer = WriterBuffer(
+                settings.max_buffer_size_bytes, settings.max_buffer_messages, settings.buffer_wait_timeout_sec
+            )
         self._lock = asyncio.Lock()
         self._writers: Dict[int, WriterAsyncIO] = {}
         self._partitions: Dict[int, object] = {}
@@ -280,9 +289,6 @@ class TopicWriterMultiAsyncIO:
             codec=self._settings.codec,
             encoders=self._settings.encoders,
             encoder_executor=self._settings.encoder_executor,
-            max_buffer_size_bytes=self._settings.max_buffer_size_bytes,
-            max_buffer_messages=self._settings.max_buffer_messages,
-            buffer_wait_timeout_sec=self._settings.buffer_wait_timeout_sec,
             _on_check_retriable_error=self._make_overloaded_hook(partition_id) if with_split_hook else None,
         )
 
@@ -370,10 +376,15 @@ class TopicWriterMultiAsyncIO:
         assert sub_future is not None
         sub_future.add_done_callback(lambda f: self._on_sub_result(entry.partition_id, entry.seqno, f))
 
+    def _finish_message(self, entry: _InflightMessage, outcome: Union[PublicWriteResultTypes, BaseException]) -> None:
+        if self._buffer is not None:
+            self._buffer.release(entry.size_bytes)
+        entry.finish(outcome)
+
     def _fail_message(self, entry: _InflightMessage, err: BaseException) -> None:
         if not self._write_error.done():
             self._write_error.set_result(err)
-        entry.finish(err)
+        self._finish_message(entry, err)
 
     def _on_sub_result(self, partition_id: int, seqno: int, sub_future: asyncio.Future) -> None:
         entry = self._inflight.get(partition_id, {}).get(seqno)
@@ -398,7 +409,7 @@ class TopicWriterMultiAsyncIO:
         # cut too low and resend an already-written message to the child.
         self._inflight.get(partition_id, {}).pop(seqno, None)
         self._max_acked[partition_id] = max(self._max_acked.get(partition_id, 0), seqno)
-        entry.finish(sub_future.result())
+        self._finish_message(entry, sub_future.result())
 
     async def _quiesce_writer(self, partition_id: int) -> None:
         """Close the partition's sub-writer and settle the acks it was still holding.
@@ -706,11 +717,10 @@ class TopicWriterMultiAsyncIO:
                 if seqno <= cut:
                     self._inflight.get(partition_id, {}).pop(seqno, None)
                     self._max_acked[partition_id] = max(self._max_acked.get(partition_id, 0), seqno)
-                    entry.finish(PublicWriteResult.Written(offset=-1))
+                    self._finish_message(entry, PublicWriteResult.Written(offset=-1))
                     continue
                 entry.message.seqno = seqno
-                sub_future = await writer.write_with_ack_future(entry.message)
-                assert not isinstance(sub_future, list)  # single message -> single future
+                sub_future = await writer._write_routed_message(entry.message)
                 entry.sub_future = sub_future
                 self._attach_ack(entry)
         finally:
@@ -739,7 +749,7 @@ class TopicWriterMultiAsyncIO:
             for seqno, entry in list(self._inflight.get(partition_id, {}).items()):
                 if seqno <= cut:
                     self._inflight.get(partition_id, {}).pop(seqno, None)
-                    entry.finish(PublicWriteResult.Written(offset=-1))
+                    self._finish_message(entry, PublicWriteResult.Written(offset=-1))
                 else:
                     entries.append((seqno, partition_id, entry))
 
@@ -777,12 +787,11 @@ class TopicWriterMultiAsyncIO:
 
             entry.message.seqno = seqno
             try:
-                sub_future = await child_writer.write_with_ack_future(entry.message)
+                sub_future = await child_writer._write_routed_message(entry.message)
             except Exception as err:
                 for old in cuts:
                     self._fail_partition_inflight(old, err)
                 break
-            assert not isinstance(sub_future, list)
             self._inflight.get(partition_id, {}).pop(seqno, None)
             entry.partition_id = child_id
             target[seqno] = entry
@@ -820,68 +829,73 @@ class TopicWriterMultiAsyncIO:
 
         await self.wait_init()
         futures: List[asyncio.Future] = []
-        async with self._write_lock:
-            for message in converted:
-                futures.append(await self._admit_message(message))
+        for message in converted:
+            futures.append(await self._admit_message(message))
 
         return futures[0] if input_single_message else futures
 
     async def _admit_message(self, message: PublicMessage) -> asyncio.Future:
         assert self._chooser is not None
         attempts = 0
+        deadline = None
         while True:
             async with self._lock:
                 self._check_closed()
                 partition_id = self._chooser.choose_partition(message)
-                try:
-                    writer = await self._get_or_create_writer(partition_id)
-                    self._check_closed()
-                    seqno = self._seqno + 1 if self._settings.auto_seqno else message.seqno
-                    assert seqno is not None
-                    if seqno <= self._seqno:
-                        raise TopicWriterError(
-                            "Message seqno must increase across the whole multi-writer: %d <= %d" % (seqno, self._seqno)
-                        )
-                    if not writer._buffer_is_full():
-                        return await self._enqueue_message(writer, partition_id, message, seqno)
-                except (asyncio.TimeoutError, TopicWriterPartitionSplitError) as err:
-                    failure: Optional[BaseException] = err
+                if self._buffer is not None and self._buffer.is_full():
+                    self._next_seqno(message)  # Reject a stale manual number even when the buffer is full.
+                    if deadline is None:
+                        deadline = self._buffer.deadline()
+                    recovery = None
                 else:
-                    failure = None
+                    try:
+                        writer = await self._get_or_create_writer(partition_id)
+                        self._check_closed()
+                        return await self._enqueue_message(writer, partition_id, message, self._next_seqno(message))
+                    except (asyncio.TimeoutError, TopicWriterPartitionSplitError) as err:
+                        self._check_closed()
+                        attempts += 1
+                        if attempts >= _REPARTITION_DISCOVER_ATTEMPTS:
+                            raise
+                        init_timeout = err if isinstance(err, asyncio.TimeoutError) else None
+                        recovery = self._schedule_repartition(partition_id, refresh_only=init_timeout is not None)
+                        assert recovery is not None
 
-            if failure is None:
-                # Shutdown and repartition must be able to take the routing lock while the buffer is full.
-                try:
-                    await writer._wait_for_buffer_space()
-                except TopicWriterPartitionSplitError as err:
-                    failure = err
-                except TopicWriterStopped:
-                    self._check_closed()
-                    if self._writers.get(partition_id) is writer:
-                        raise
-                if failure is None or self._writers.get(partition_id) is not writer:
-                    continue
+            if recovery is None:
+                assert self._buffer is not None
+                await self._buffer.wait_for_space(self._check_closed, deadline)
+            else:
+                await asyncio.shield(recovery)
+                if init_timeout is not None and partition_id in self._partitions:
+                    raise init_timeout
 
-            self._check_closed()
-            attempts += 1
-            if attempts >= _REPARTITION_DISCOVER_ATTEMPTS:
-                raise failure
-            timed_out = isinstance(failure, asyncio.TimeoutError)
-            recovery = self._schedule_repartition(partition_id, refresh_only=timed_out)
-            assert recovery is not None
-            await asyncio.shield(recovery)
-            if timed_out and partition_id in self._partitions:
-                raise failure
+    def _next_seqno(self, message: PublicMessage) -> int:
+        if self._settings.auto_seqno:
+            return self._seqno + 1
+        assert message.seqno is not None
+        if message.seqno <= self._seqno:
+            raise TopicWriterError(
+                "Message seqno must increase across the whole multi-writer: %d <= %d" % (message.seqno, self._seqno)
+            )
+        return message.seqno
 
     async def _enqueue_message(
         self, writer: WriterAsyncIO, partition_id: int, message: PublicMessage, seqno: int
     ) -> asyncio.Future:
         message.seqno = seqno
-        sub_future = await writer.write_with_ack_future(message)
-        assert not isinstance(sub_future, list)
+        size_bytes = 0
+        if self._buffer is not None and self._buffer.max_bytes is not None:
+            size_bytes = internal_message_size_bytes(InternalMessage(message))
+            if message.key is not None:
+                size_bytes += len(message.key.encode("utf-8"))
+        sub_future = await writer._write_routed_message(message)
+        if self._buffer is not None:
+            self._buffer.add(size_bytes, 1)
         self._seqno = seqno
         self._last_write_at[partition_id] = self._loop.time()
-        entry = _InflightMessage(message, self._loop.create_future(), seqno, partition_id, sub_future)
+        entry = _InflightMessage(
+            message, self._loop.create_future(), seqno, partition_id, sub_future, size_bytes=size_bytes
+        )
         self._inflight.setdefault(partition_id, {})[seqno] = entry
         self._attach_ack(entry)
         return entry.user_future
@@ -977,6 +991,8 @@ class TopicWriterMultiAsyncIO:
         error: Optional[BaseException] = None
         # Stop new admissions before taking the flush snapshot. Recovery still serves accepted writes.
         self._closing = True
+        if self._buffer is not None:
+            self._buffer.updated.set()
         init_done = self._init_task.done() and not self._init_task.cancelled() and self._init_task.exception() is None
         if flush and init_done:
             try:
@@ -1009,7 +1025,7 @@ class TopicWriterMultiAsyncIO:
             self._inflight.clear()
         results = await asyncio.gather(*(w.close(flush=False) for w in writers), return_exceptions=True)
         for entry in pending:
-            entry.finish(TopicWriterStopped())
+            self._finish_message(entry, TopicWriterStopped())
         if flush:
             for result in results:
                 if isinstance(result, BaseException) and not isinstance(result, TopicWriterPartitionSplitError):

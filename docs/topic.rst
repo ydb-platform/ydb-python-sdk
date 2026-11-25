@@ -274,9 +274,10 @@ A regular writer targets a single partition for its whole lifetime. To spread lo
 all partitions of a topic from one logical writer — while keeping every message with the same
 key on the same partition (so per-key ordering is preserved) — use ``topic_client.multiwriter()``.
 
-Each message carries a ``key``; the writer hashes it and routes the message to the owning
-partition, maintaining a separate underlying writer per partition. This is the client-side
-companion to auto-partitioning.
+With either built-in partition chooser, each message must have a string ``key``.
+An explicit empty string is a valid key. Omitting the key raises ``ydb.Error``.
+A custom chooser can route a message using other fields. Passing a message with a key
+to a single-partition writer also raises ``ydb.Error``.
 
 **Synchronous:**
 
@@ -306,8 +307,7 @@ set one explicitly:
   and seed ``0x9747b28c``, then computes ``(hash & 0x7fffffff) % partitions_count``.
   The result is an index into partition IDs sorted in ascending order. Compatibility
   requires identical key bytes and partition IDs; changing the partition set can
-  route an existing key to a different partition. Missing and empty keys are hashed
-  as empty bytes; this differs from Kafka's handling of a missing key.
+  route an existing key to a different partition.
 
 .. code-block:: python
 
@@ -322,8 +322,14 @@ and buffer-limit parameters as :meth:`writer`, and exposes ``write``, ``write_wi
 ``flush`` and ``close``. Its ``wait_init()`` method returns ``None`` once the topic has been
 described and the partition set is known.
 
+The buffer limits apply to the whole multi-writer across all partitions. For example,
+with ``max_buffer_messages=1``, the next write waits for the outstanding message even
+if the two keys route to different partitions. An accepted message keeps its place in
+the buffer during a retry or partition change. The byte limit counts uncompressed data,
+keys, metadata and estimated message overhead. A single message can take the buffer above
+this soft limit. Later writes wait until usage drops below it.
+
 When passed a list, the multi-writer accepts messages one at a time in input order.
-Each message's key selects its partition, and the buffer limits apply per partition.
 If admission fails for one message, the call raises and skips the rest of the list.
 For example, a timeout waiting for buffer space raises ``TopicWriterBufferFullError``.
 The writer continues delivering messages it has already accepted. The exception does not

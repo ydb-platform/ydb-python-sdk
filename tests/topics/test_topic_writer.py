@@ -524,6 +524,16 @@ class TestTopicMultiWriterAsyncIO:
 
 
 class TestTopicMultiWriterSync:
+    def test_partition_key_validation(self, driver_sync, topic_path):
+        with driver_sync.topic_client.writer(topic_path) as writer:
+            with pytest.raises(ydb.Error, match="partition key requires a multiwriter"):
+                writer.write(ydb.TopicWriterMessage(b"keyed", key="a"), timeout=5)
+            writer.write_with_ack(b"unkeyed", timeout=10)
+        with driver_sync.topic_client.multiwriter(topic_path) as writer:
+            with pytest.raises(ydb.Error, match="partition key is required"):
+                writer.write(b"missing key", timeout=5)
+            writer.write_with_ack(ydb.TopicWriterMessage(b"explicit empty key", key=""), timeout=10)
+
     def test_flush_and_close_report_encoder_errors(self, driver_sync, database, topic_consumer):
         path = database + "/mw-sync-encoder-error"
         try:
