@@ -3,7 +3,7 @@
 The multi-writer routes each message to a partition by its ``key``, keeping every
 message with the same key on the same partition (per-key ordering). By default it
 picks a partition chooser automatically: the key-range chooser for
-auto-partitioned topics, the Kafka-hash chooser otherwise.
+auto-partitioned topics or topics with key ranges, the Kafka-hash chooser otherwise.
 """
 
 import asyncio
@@ -28,7 +28,7 @@ async def write_by_key_async(db: ydb.aio.Driver, topic_path: str):
 
 
 def write_by_key_with_explicit_chooser(db: ydb.Driver, topic_path: str):
-    # Force the Kafka-compatible hash chooser (murmur2(key) % partitions_count).
+    # Select Kafka-compatible routing for a fixed-partition topic without key ranges.
     with db.topic_client.multiwriter(
         topic_path,
         partition_chooser=ydb.TopicWriterPartitionByKeyKafka(),

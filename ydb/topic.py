@@ -412,7 +412,7 @@ class TopicClientAsyncIO:
         topic,
         *,
         producer_id_prefix: Optional[str] = None,  # default - random
-        partition_chooser: Optional[TopicWriterPartitionChooser] = None,  # default - route by key (Kafka hash)
+        partition_chooser: Optional[TopicWriterPartitionChooser] = None,  # selected from the topic description
         auto_seqno: bool = True,
         auto_created_at: bool = True,
         codec: Optional[TopicCodec] = None,  # default means auto-select
@@ -778,7 +778,7 @@ class TopicClient:
         topic,
         *,
         producer_id_prefix: Optional[str] = None,  # default - random
-        partition_chooser: Optional[TopicWriterPartitionChooser] = None,  # default - route by key (Kafka hash)
+        partition_chooser: Optional[TopicWriterPartitionChooser] = None,  # selected from the topic description
         auto_seqno: bool = True,
         auto_created_at: bool = True,
         codec: Optional[TopicCodec] = None,  # default means auto-select

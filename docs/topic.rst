@@ -266,19 +266,31 @@ Writing by Key (Multiple Partitions)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Use ``topic_client.multiwriter()`` to distribute messages by key. The writer preserves
-message order for each key as partitions split or merge.
+message order for each key as partitions split or merge. By default it chooses a routing
+strategy from the topic description. To select one explicitly, pass a ``partition_chooser``
+instance, as in this example for a topic with a fixed partition count.
 
 .. code-block:: python
 
-    with driver.topic_client.multiwriter("/local/my-topic") as writer:
+    with driver.topic_client.multiwriter(
+        "/local/my-topic", partition_chooser=ydb.TopicWriterPartitionByKeyKafka()
+    ) as writer:
         writer.write(ydb.TopicWriterMessage(data="order placed", key="customer-42"))
 
 With an asynchronous driver, use ``async with`` and ``await writer.write(...)``.
 
-By default the writer routes by key range on auto-partitioned topics and topics with
-key ranges, and uses Kafka-compatible hashing otherwise. Both built-in strategies
-require a string ``key``, which may be empty. A single-partition ``writer()`` rejects
-keyed messages. To supply your own routing strategy, pass ``partition_chooser``.
+* ``ydb.TopicWriterPartitionByKeyBound`` selects the partition whose key range contains the
+  hashed key. This is the default when auto-partitioning is enabled or the topic reports
+  key ranges. Its optional ``key_hasher`` takes a string and returns bytes.
+* ``ydb.TopicWriterPartitionByKeyKafka`` is the default for fixed-partition topics without
+  key ranges. It applies Kafka's Murmur2 partitioning rule to the UTF-8 key and indexes
+  partition IDs in ascending order.
+
+Both built-in choosers require a string ``key``, which may be empty. A single-partition
+``writer()`` rejects keyed messages. To route by another message field, implement
+``ydb.TopicWriterPartitionChooser``. The writer calls ``add_partitions(partitions)`` and
+``remove_partition(partition_id)`` to update the active set. Your ``choose_partition(message)``
+returns an active partition ID.
 
 * ``max_buffer_messages`` and ``max_buffer_size_bytes`` apply across all partitions.
 * ``wait_init()`` returns ``None`` once the writer knows the topic's partitions.
