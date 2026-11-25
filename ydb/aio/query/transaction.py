@@ -1,5 +1,6 @@
 import logging
 from typing import (
+    Callable,
     Optional,
     TYPE_CHECKING,
 )
@@ -233,17 +234,35 @@ class QueryTxContext(BaseQueryTxContext["AsyncDriver"]):
                 settings=settings,
                 pool_id=pool_id,
             )
-        self._prev_stream = AsyncResponseContextIterator(
-            it=stream_it,
-            wrapper=lambda resp: base.wrap_execute_query_response(
+        timestamp_tracker = base.CommitTimestampTracker(self.session) if commit_tx else None
+
+        def wrap_response(resp):
+            result = base.wrap_execute_query_response(
                 rpc_state=None,
                 response_pb=resp,
                 session=self.session,
                 tx=self,
                 commit_tx=commit_tx,
                 settings=self.session._settings,
-            ),
+            )
+            if timestamp_tracker is not None:
+                timestamp_tracker.observe(resp)
+            return result
+
+        on_complete: Optional[Callable[[], None]] = None
+        if timestamp_tracker is not None:
+            tracker = timestamp_tracker
+
+            def finish_commit_timestamp():
+                self._commit_timestamp = tracker.commit_timestamp
+
+            on_complete = finish_commit_timestamp
+
+        self._prev_stream = AsyncResponseContextIterator(
+            it=stream_it,
+            wrapper=wrap_response,
             on_error=self.session._on_execute_stream_error,
             on_finish=span_finish_callback(span),
+            on_complete=on_complete,
         )
         return self._prev_stream

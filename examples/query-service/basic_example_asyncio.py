@@ -52,6 +52,11 @@ async def main():
 
             await tx.commit()
 
+        async with session.transaction(ydb.QueryStrictSerializableReadWrite()) as tx:
+            async with await tx.execute("UPSERT INTO example (key, value) VALUES (3, 'strict')", commit_tx=True):
+                pass
+            print(f"StrictSerializableRW commit timestamp: {tx.commit_timestamp}")
+
         print("=" * 50)
         print("AFTER COMMIT TX")
 

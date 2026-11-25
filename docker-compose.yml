@@ -7,8 +7,10 @@ services:
       - 2136:2136
       - 2135:2135
     hostname: localhost
+    command: ["--ydb-binary-path", "/ydbd-test-config.sh"]
     volumes:
     - ./ydb_certs:/ydb_certs
+    - ./tests/ydbd-test-config.sh:/ydbd-test-config.sh:ro
     environment:
       - YDB_ENABLE_COLUMN_TABLES=true
       - YDB_USE_IN_MEMORY_PDISKS=true
