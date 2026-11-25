@@ -277,14 +277,23 @@ instance, as in this example for a topic with a fixed partition count.
     ) as writer:
         writer.write(ydb.TopicWriterMessage(data="order placed", key="customer-42"))
 
-With an asynchronous driver, use ``async with`` and ``await writer.write(...)``.
+The asynchronous client uses the same routing options. Both clients accept the usual
+``codec``, ``encoders`` and ``auto_created_at`` settings.
+
+.. code-block:: python
+
+    async with driver.topic_client.multiwriter("/local/my-topic") as writer:
+        await writer.write(ydb.TopicWriterMessage(data="order placed", key="customer-42"))
 
 * ``ydb.TopicWriterPartitionByKeyBound`` selects the partition whose key range contains the
   hashed key. This is the default when auto-partitioning is enabled or the topic reports
-  key ranges. Its optional ``key_hasher`` takes a string and returns bytes.
+  key ranges. Each partition's ``key_range`` is available through ``describe_topic()``.
+  The chooser uses MurmurHash64A by default. A custom ``key_hasher`` takes a string and returns
+  bytes to compare against the partition's ``[from_bound, to_bound)`` range.
 * ``ydb.TopicWriterPartitionByKeyKafka`` is the default for fixed-partition topics without
-  key ranges. It applies Kafka's Murmur2 partitioning rule to the UTF-8 key and indexes
-  partition IDs in ascending order.
+  key ranges. It hashes the UTF-8 key with Murmur2 (seed ``0x9747b28c``) and uses
+  ``(hash & 0x7fffffff) % partition_count`` as an index into the sorted partition IDs.
+  Changing the partition count can move a key.
 
 Both built-in choosers require a string ``key``, which may be empty. A single-partition
 ``writer()`` rejects keyed messages. To route by another message field, implement
@@ -293,12 +302,31 @@ Both built-in choosers require a string ``key``, which may be empty. A single-pa
 returns an active partition ID.
 
 * ``max_buffer_messages`` and ``max_buffer_size_bytes`` apply across all partitions.
+  The byte limit counts uncompressed data, keys, metadata and estimated overhead.
+  A single message can take the buffer above this soft limit. A caller can retry a single
+  write rejected with ``ydb.TopicWriterBufferFullError`` using the same sequence number
+  while it still exceeds the last accepted number.
 * ``wait_init()`` returns ``None`` once the writer knows the topic's partitions.
 * With ``auto_seqno=False``, sequence numbers must be positive and strictly increasing
-  across the whole writer. Set ``producer_id_prefix`` to reuse producer IDs across restarts.
+  across the whole writer. Each partition uses the producer ID ``<prefix>-<partition_id>``.
+  Set ``producer_id_prefix`` to reuse those IDs across restarts. The default prefix is random.
+* ``writer_idle_timeout_sec`` controls when an idle partition writer closes (default 60 seconds).
+  The next write reopens it. A value of zero or less disables idle closure.
 * A list passed to ``write()`` is accepted one message at a time, in order. If the call
   raises partway through, the writer continues delivering the messages already accepted.
-  Retrying the whole list with automatic sequence numbers can duplicate those messages.
+  The error omits the number accepted. Retrying the whole list with automatic sequence
+  numbers can duplicate those messages.
+
+After a split or merge, the writer checks which messages the server has stored and resends
+the rest with their original sequence numbers. Retries use the data and metadata captured
+when the writer accepted the message. If recovery confirms a write whose acknowledgement
+was lost, ``Written(offset=-1)`` means the message was stored and its offset is unknown.
+
+Once ``write()`` returns, the writer has accepted the message. Use ``write_with_ack()`` to
+confirm delivery, or ``flush()`` or ``close(flush=True)`` to wait for buffered writes.
+These calls raise on permanent delivery errors. An accepted write can still reach the
+server after its acknowledgement wait times out or is cancelled.
+``close(flush=False)`` abandons pending writes.
 
 
 Writer Backpressure
