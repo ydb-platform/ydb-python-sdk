@@ -1,7 +1,4 @@
-* Apply topic multiwriter buffer limits across all partitions, require explicit keys for built-in routing, and reject keyed messages in single-partition writers
-* Fix multiwriter admission during close and partition changes, and allow retrying a single write with its original sequence number after a buffer timeout
-* Fix topic writer shutdown after a close timeout and make multiwriter flush and close wait for delivery after an acknowledgement waiter is cancelled
-* Add a topic multi-partition writer (`topic_client.multiwriter(...)`) that routes messages across partitions by their `key`, with Kafka-hash and key-range partition choosers, and transparently resends in-flight messages to child partitions on an auto-partition split (no loss, no duplicates); expose partition `key_range` on `describe_topic` results
+* Add `topic_client.multiwriter()` for sync and async writes by key across partition splits and merges. `describe_topic()` now exposes partition key ranges, and topic writers stop their background tasks when `close()` times out.
 * Wait for session status tasks to finish when closing an async `QuerySessionPool`.
 
 ## 3.36.0 ##
