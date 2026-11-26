@@ -2,10 +2,12 @@
 
 The SDK records metrics only after :func:`ydb.observability.enable_metrics` installs a
 concrete :class:`MetricsProvider` (OpenTelemetry in :mod:`ydb.opentelemetry`, or any
-custom one). Until then operations, query sessions, pools, topic Readers and topic Writers share
+custom one). Until then operations, query sessions, pools and topic Readers share
 no-op instrumentation without metric allocations, timers, locks or state tracking.
-Metrics stay independent from tracing, and the SDK never depends on ``opentelemetry``
-being importable. Enable metrics before creating query sessions, pools, topic Readers or topic Writers
+Explicitly named topic Writers retain only their lightweight identity so they can
+follow later provider changes without instrumenting the disabled hot path. Metrics
+stay independent from tracing, and the SDK never depends on ``opentelemetry`` being
+importable. Enable metrics before creating query sessions, pools or topic Readers
 whose lifecycle should be instrumented.
 
 A provider handles three instrument kinds:
@@ -161,13 +163,17 @@ class NoopMetricsProvider:
 _NOOP_PROVIDER = NoopMetricsProvider()
 _provider: MetricsProvider = _NOOP_PROVIDER
 _provider_generation = 0
+_writer_metrics_generation = 0
 _provider_lock = threading.Lock()
-_TimedMetricStart = Tuple[MetricsProvider, float]
+_MetricProviderContext = Tuple[MetricsProvider, int]
+_TimedMetricStart = Tuple[MetricsProvider, int, float]
+_writer_metrics_state: _MetricProviderContext = (_NOOP_PROVIDER, _writer_metrics_generation)
 
 # Trackers created while metrics are active live independently from the current
 # provider. This lets a replacement provider observe their current state and prevents
-# a disable/re-enable cycle from manufacturing negative counts. Objects created while
-# metrics are disabled use shared no-op trackers and never enter these registries.
+# a disable/re-enable cycle from manufacturing negative counts. Explicitly named topic
+# writers are also registered while metrics are disabled so their hot path can follow
+# later provider changes; other disabled objects use shared no-op trackers.
 _gauge_lock = threading.Lock()
 _session_count_state: Dict[Tuple, int] = {}
 _session_max_state: Dict[Tuple, int] = {}
@@ -179,6 +185,13 @@ _live_topic_writer_metrics: "weakref.WeakSet[TopicWriterMetrics]" = weakref.Weak
 
 def is_metrics_enabled() -> bool:
     return _provider is not _NOOP_PROVIDER
+
+
+def _capture_timed_metric_start() -> Optional[_TimedMetricStart]:
+    provider, generation = _writer_metrics_state
+    if provider is _NOOP_PROVIDER:
+        return None
+    return provider, generation, time.monotonic()
 
 
 def _observe_session_count() -> List[Tuple[float, Dict[str, Any]]]:
@@ -346,7 +359,7 @@ def _guard_gauge_callback(provider: MetricsProvider, generation: int, callback: 
 
 
 def _set_metrics_provider(provider: Optional[MetricsProvider]) -> None:
-    global _provider, _provider_generation
+    global _provider, _provider_generation, _writer_metrics_state
 
     new_provider = provider if provider is not None else _NOOP_PROVIDER
     with _provider_lock:
@@ -356,16 +369,26 @@ def _set_metrics_provider(provider: Optional[MetricsProvider]) -> None:
                 new_provider.observe_gauge(name, _guard_gauge_callback(new_provider, generation, callback))
         _provider = new_provider
         _provider_generation = generation
+        _writer_metrics_state = (new_provider, _writer_metrics_generation)
 
 
 def _reset_metrics_provider() -> None:
-    _set_metrics_provider(None)
+    global _provider, _provider_generation, _writer_metrics_generation, _writer_metrics_state
 
-    # The dictionaries support the low-level record_* helpers. Live pool and session
-    # state is intentionally retained by the weak tracker registries.
-    with _gauge_lock:
-        _session_count_state.clear()
-        _session_max_state.clear()
+    with _provider_lock:
+        _provider = _NOOP_PROVIDER
+        _provider_generation += 1
+        _writer_metrics_generation += 1
+        _writer_metrics_state = (_NOOP_PROVIDER, _writer_metrics_generation)
+
+        # The dictionaries support the low-level record_* helpers. Live pool and session
+        # state is intentionally retained by the weak tracker registries.
+        with _gauge_lock:
+            _session_count_state.clear()
+            _session_max_state.clear()
+            for writer_metrics in _live_topic_writer_metrics:
+                writer_metrics._buffer_used_bytes = 0
+                writer_metrics._pending_messages_accepted_at.clear()
 
 
 def _get_metrics_provider() -> MetricsProvider:
@@ -450,6 +473,13 @@ def _response_status_code(exception: BaseException) -> str:
     return type(exception).__qualname__
 
 
+def _session_status_code(exception: BaseException) -> str:
+    status = getattr(exception, "status", None)
+    if status is not None:
+        return getattr(status, "name", str(status))
+    return "unknown"
+
+
 def _error_type(exception: BaseException) -> str:
     status = getattr(exception, "status", None)
     if status in _TRANSPORT_STATUS_CODES or isinstance(exception, issues.ConnectionError):
@@ -466,7 +496,7 @@ def _session_error_attributes(
     attributes.update(
         {
             "retry_decision": "retry" if is_retriable else "stop",
-            "status_code": _response_status_code(error),
+            "status_code": _session_status_code(error),
             "error.type": _error_type(error),
         }
     )
@@ -698,6 +728,10 @@ class TopicWriterMetrics:
         with _gauge_lock:
             _live_topic_writer_metrics.add(self)
 
+    @property
+    def is_instrumented(self) -> bool:
+        return _writer_metrics_state[0] is not _NOOP_PROVIDER
+
     def record_sending_messages(self, message_count: int) -> None:
         provider = _provider
         if provider is not _NOOP_PROVIDER and message_count > 0:
@@ -723,11 +757,13 @@ class TopicWriterMetrics:
             )
 
     def capture_buffer_wait_started_at(self) -> Optional[_TimedMetricStart]:
-        return _provider, time.monotonic()
+        return _capture_timed_metric_start()
 
     def record_buffer_wait_duration(self, started_at: Optional[_TimedMetricStart]) -> None:
         if started_at is not None:
-            provider, timestamp = started_at
+            provider, generation, timestamp = started_at
+            if generation != _writer_metrics_state[1]:
+                return
             provider.record(
                 TOPIC_WRITER_BUFFER_WAIT_DURATION,
                 max(0.0, time.monotonic() - timestamp),
@@ -735,14 +771,14 @@ class TopicWriterMetrics:
             )
 
     def capture_message_accepted_at(self) -> Optional[_TimedMetricStart]:
-        return _provider, time.monotonic()
+        return _capture_timed_metric_start()
 
     def add_pending_messages(self, accepted_at: Optional[_TimedMetricStart], message_count: int) -> None:
         if accepted_at is None or message_count <= 0:
             return
-        _, timestamp = accepted_at
+        _, generation, timestamp = accepted_at
         with _gauge_lock:
-            if self._closed:
+            if self._closed or generation != _writer_metrics_state[1]:
                 return
             if self._pending_messages_accepted_at and self._pending_messages_accepted_at[-1][0] == timestamp:
                 cohort_accepted_at, cohort_count = self._pending_messages_accepted_at.pop()
@@ -750,24 +786,29 @@ class TopicWriterMetrics:
             else:
                 self._pending_messages_accepted_at.append((timestamp, message_count))
 
-    def complete_pending_message(self) -> None:
+    def complete_pending_message(self, accepted_at: Optional[_TimedMetricStart]) -> None:
+        if accepted_at is None:
+            return
+        _, generation, _ = accepted_at
         with _gauge_lock:
-            if not self._pending_messages_accepted_at:
+            if generation != _writer_metrics_state[1] or not self._pending_messages_accepted_at:
                 return
-            accepted_at, message_count = self._pending_messages_accepted_at.popleft()
+            cohort_accepted_at, message_count = self._pending_messages_accepted_at.popleft()
             if message_count > 1:
-                self._pending_messages_accepted_at.appendleft((accepted_at, message_count - 1))
+                self._pending_messages_accepted_at.appendleft((cohort_accepted_at, message_count - 1))
 
     def clear_pending_messages(self) -> None:
         with _gauge_lock:
             self._pending_messages_accepted_at.clear()
 
     def capture_message_first_sent_at(self) -> Optional[_TimedMetricStart]:
-        return _provider, time.monotonic()
+        return _capture_timed_metric_start()
 
     def record_message_ack_duration(self, first_sent_at: Optional[_TimedMetricStart]) -> None:
         if first_sent_at is not None:
-            provider, timestamp = first_sent_at
+            provider, generation, timestamp = first_sent_at
+            if generation != _writer_metrics_state[1]:
+                return
             provider.record(
                 TOPIC_WRITER_MESSAGE_ACK_DURATION,
                 max(0.0, time.monotonic() - timestamp),
@@ -775,7 +816,11 @@ class TopicWriterMetrics:
             )
 
     def capture_compression_started_at(self) -> Optional[_TimedMetricStart]:
-        return _provider, time.monotonic()
+        return _capture_timed_metric_start()
+
+    def capture_compression_provider(self) -> Optional[_MetricProviderContext]:
+        provider, generation = _writer_metrics_state
+        return None if provider is _NOOP_PROVIDER else (provider, generation)
 
     def record_compression_duration(
         self,
@@ -784,6 +829,26 @@ class TopicWriterMetrics:
         error: Optional[BaseException] = None,
     ) -> None:
         self._record_message_duration(TOPIC_WRITER_COMPRESSION_DURATION, started_at, codec, error)
+
+    def record_compression_duration_value(
+        self,
+        provider_context: Optional[_MetricProviderContext],
+        duration: float,
+        codec: str,
+        error: Optional[BaseException] = None,
+    ) -> None:
+        if provider_context is None:
+            return
+        provider, generation = provider_context
+        if generation != _writer_metrics_state[1]:
+            return
+        self._record_message_duration_value(
+            TOPIC_WRITER_COMPRESSION_DURATION,
+            provider,
+            duration,
+            codec,
+            error,
+        )
 
     def record_message_processing_duration(
         self,
@@ -802,7 +867,26 @@ class TopicWriterMetrics:
     ) -> None:
         if started_at is None:
             return
-        provider, timestamp = started_at
+        provider, generation, timestamp = started_at
+        if generation != _writer_metrics_state[1]:
+            return
+
+        self._record_message_duration_value(
+            name,
+            provider,
+            max(0.0, time.monotonic() - timestamp),
+            codec,
+            error,
+        )
+
+    def _record_message_duration_value(
+        self,
+        name: str,
+        provider: MetricsProvider,
+        duration: float,
+        codec: str,
+        error: Optional[BaseException],
+    ) -> None:
 
         attributes = dict(self._base_attributes)
         attributes.update(
@@ -815,13 +899,13 @@ class TopicWriterMetrics:
             attributes["error.type"] = type(error).__qualname__
         provider.record(
             name,
-            max(0.0, time.monotonic() - timestamp),
+            max(0.0, duration),
             attributes,
         )
 
     def set_buffer_used_bytes(self, bytes_size: int) -> None:
         with _gauge_lock:
-            if not self._closed:
+            if not self._closed and is_metrics_enabled():
                 self._buffer_used_bytes = max(0, bytes_size)
 
     def close(self) -> None:
@@ -839,6 +923,10 @@ class _NoopTopicWriterMetrics(TopicWriterMetrics):
 
     def __init__(self) -> None:
         pass
+
+    @property
+    def is_instrumented(self) -> bool:
+        return False
 
     def record_sending_messages(self, message_count: int) -> None:
         pass
@@ -864,7 +952,7 @@ class _NoopTopicWriterMetrics(TopicWriterMetrics):
     def add_pending_messages(self, accepted_at: Optional[_TimedMetricStart], message_count: int) -> None:
         pass
 
-    def complete_pending_message(self) -> None:
+    def complete_pending_message(self, accepted_at: Optional[_TimedMetricStart]) -> None:
         pass
 
     def clear_pending_messages(self) -> None:
@@ -879,9 +967,21 @@ class _NoopTopicWriterMetrics(TopicWriterMetrics):
     def capture_compression_started_at(self) -> Optional[_TimedMetricStart]:
         return None
 
+    def capture_compression_provider(self) -> Optional[_MetricProviderContext]:
+        return None
+
     def record_compression_duration(
         self,
         started_at: Optional[_TimedMetricStart],
+        codec: str,
+        error: Optional[BaseException] = None,
+    ) -> None:
+        pass
+
+    def record_compression_duration_value(
+        self,
+        provider_context: Optional[_MetricProviderContext],
+        duration: float,
         codec: str,
         error: Optional[BaseException] = None,
     ) -> None:
@@ -911,8 +1011,8 @@ def create_topic_writer_metrics(
     writer_name: Optional[str],
     buffer_limit_bytes: Optional[int] = None,
 ) -> TopicWriterMetrics:
-    """Create instrumentation only for explicitly named writers while metrics are active."""
-    if not writer_name or not is_metrics_enabled():
+    """Create dynamic instrumentation only for explicitly named writers."""
+    if not writer_name:
         return _NOOP_TOPIC_WRITER_METRICS
 
     return TopicWriterMetrics(driver, topic, writer_name, buffer_limit_bytes)

@@ -165,8 +165,8 @@ class PublicMessage:
 
 class InternalMessage(StreamWriteMessage.WriteRequest.MessageData, IToProto):
     codec: PublicCodec
-    _accepted_at: Optional[typing.Tuple[Any, float]]
-    _first_sent_at: Optional[typing.Tuple[Any, float]]
+    _accepted_at: Optional[typing.Tuple[Any, int, float]]
+    _first_sent_at: Optional[typing.Tuple[Any, int, float]]
 
     def __init__(self, mess: PublicMessage):
         metadata_items: Dict[str, bytes] = {}

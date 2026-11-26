@@ -269,17 +269,21 @@ Client-side metrics are enabled independently of tracing:
 
 Operation and retry metrics follow the currently active provider immediately. Call
 ``enable_metrics`` before creating query sessions, a ``QuerySessionPool``, or a topic
-Reader or Writer whose lifecycle should be instrumented. Session, pool, Reader, and
-Writer lifecycle trackers created while metrics are disabled keep shared no-op
-instrumentation and are not retrofitted later.
+Reader whose lifecycle should be instrumented. Session, pool, and Reader lifecycle
+trackers created while metrics are disabled keep shared no-op instrumentation and are
+not retrofitted later. Explicitly named topic Writers follow the active provider
+dynamically, including Writers created while metrics are disabled.
 
 Calling ``enable_metrics`` again replaces the active backend. New events go to the new
 backend, while operations and wait timers already in flight finish on the backend on
 which they started. Observable callbacks registered by an old backend become inactive.
-Pools, topic Readers, and topic Writers that were created while metrics were active
-retain their lightweight lifecycle state across ``disable_metrics`` / re-enable, so a
-replacement backend observes their current values. Pools, Readers, and Writers created
-while metrics were disabled retain no-op lifecycle instrumentation.
+Pools and topic Readers that were created while metrics were active retain their
+lightweight lifecycle state across ``disable_metrics`` / re-enable, so a replacement
+backend observes their current values. Topic Writer gauge state is cleared by
+``disable_metrics`` and starts collecting again when metrics are re-enabled. Writers
+do not create new per-message timing state while metrics are disabled; tokens captured
+before disabling are invalidated and ignored if their messages complete after metrics
+are re-enabled.
 
 For OpenTelemetry the built-in convenience is ``ydb.opentelemetry.enable_metrics``,
 which builds an OTel-backed provider from a meter provider and installs it here — see

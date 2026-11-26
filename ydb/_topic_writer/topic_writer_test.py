@@ -658,3 +658,141 @@ class TestTopicWriterMultiSync:
 
         shared.assert_called_once()
         caller.assert_called_once_with(loop)
+
+
+class TestWriterSyncClose:
+    def _make_writer(self, background_loop, reconnector, mock_reconnector):
+        mock_reconnector(reconnector)
+        settings = PublicWriterSettings(topic="/local/topic", producer_id="test-producer")
+        return WriterSync(mock.Mock(), settings, eventloop=background_loop)
+
+    def test_repeated_close_reuses_completed_close_future(self, background_loop, mock_reconnector):
+        class RecordingReconnector:
+            def __init__(self):
+                self.close_calls = []
+
+            async def close(self, flush):
+                self.close_calls.append(flush)
+
+        reconnector = RecordingReconnector()
+        writer = self._make_writer(background_loop, reconnector, mock_reconnector)
+
+        writer.close(flush=True)
+        writer.close(flush=False)
+
+        assert reconnector.close_calls == [True]
+
+    def test_close_timeout_does_not_cancel_cleanup_and_repeated_close_waits(self, background_loop, mock_reconnector):
+        close_started = threading.Event()
+
+        class BlockingCloseReconnector:
+            def __init__(self):
+                self.close_task = None
+                self.release_event = None
+                self.close_calls = []
+
+            async def close(self, flush):
+                self.close_calls.append(flush)
+                if self.close_task is None:
+                    self.release_event = asyncio.Event()
+
+                    async def finish_close():
+                        close_started.set()
+                        await self.release_event.wait()
+
+                    self.close_task = asyncio.create_task(finish_close())
+
+                await asyncio.shield(self.close_task)
+
+            async def release(self):
+                self.release_event.set()
+
+        reconnector = BlockingCloseReconnector()
+        writer = self._make_writer(background_loop, reconnector, mock_reconnector)
+
+        with pytest.raises(TimeoutError):
+            writer.close(flush=True, timeout=0.01)
+        assert close_started.wait(timeout=1.0)
+        assert reconnector.close_task is not None
+        assert not reconnector.close_task.done()
+
+        asyncio.run_coroutine_threadsafe(reconnector.release(), background_loop).result(timeout=1.0)
+        writer.close(flush=False, timeout=1.0)
+
+        assert reconnector.close_task.done()
+        assert reconnector.close_calls == [True]
+
+    def test_repeated_close_succeeds_after_event_loop_is_stopped(self, mock_reconnector):
+        loop = asyncio.new_event_loop()
+        ready = threading.Event()
+
+        def run_loop():
+            asyncio.set_event_loop(loop)
+            loop.call_soon(ready.set)
+            loop.run_forever()
+
+        loop_thread = threading.Thread(target=run_loop, daemon=True)
+        loop_thread.start()
+        assert ready.wait(timeout=1.0)
+
+        class RecordingReconnector:
+            def __init__(self):
+                self.close_calls = []
+
+            async def close(self, flush):
+                self.close_calls.append(flush)
+
+        reconnector = RecordingReconnector()
+        writer = self._make_writer(loop, reconnector, mock_reconnector)
+        try:
+            writer.close(flush=True)
+            loop.call_soon_threadsafe(loop.stop)
+            loop_thread.join(timeout=1.0)
+            assert not loop_thread.is_alive()
+            loop.close()
+
+            writer.close(flush=False)
+            assert reconnector.close_calls == [True]
+        finally:
+            if loop.is_running():
+                loop.call_soon_threadsafe(loop.stop)
+            loop_thread.join(timeout=1.0)
+            if not loop.is_closed():
+                loop.close()
+
+    def test_close_scheduling_failure_is_replayed(self, mock_reconnector):
+        loop = asyncio.new_event_loop()
+        ready = threading.Event()
+
+        def run_loop():
+            asyncio.set_event_loop(loop)
+            loop.call_soon(ready.set)
+            loop.run_forever()
+
+        loop_thread = threading.Thread(target=run_loop, daemon=True)
+        loop_thread.start()
+        assert ready.wait(timeout=1.0)
+
+        class RecordingReconnector:
+            def __init__(self):
+                self.close_calls = []
+
+            async def close(self, flush):
+                self.close_calls.append(flush)
+
+        reconnector = RecordingReconnector()
+        writer = self._make_writer(loop, reconnector, mock_reconnector)
+        loop.call_soon_threadsafe(loop.stop)
+        loop_thread.join(timeout=1.0)
+        assert not loop_thread.is_alive()
+        loop.close()
+        writer._caller.unsafe_call_with_future = mock.Mock(wraps=writer._caller.unsafe_call_with_future)
+
+        with pytest.raises(RuntimeError, match="Event loop is closed") as first_error:
+            writer.close(flush=True)
+        with pytest.raises(RuntimeError, match="Event loop is closed") as repeated_error:
+            writer.close(flush=False)
+
+        assert repeated_error.value is first_error.value
+        assert writer._caller.unsafe_call_with_future.call_count == 1
+        assert reconnector.close_calls == []

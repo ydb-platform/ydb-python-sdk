@@ -1,5 +1,6 @@
 import asyncio
 import inspect
+import threading
 import time
 from contextlib import contextmanager
 from types import SimpleNamespace
@@ -540,30 +541,31 @@ def test_metrics_registry_is_noop_without_meter(monkeypatch):
     noop_reader_metrics.reset_partition_sessions()
     noop_reader_metrics.close()
 
-    noop_writer_metrics = create_topic_writer_metrics(
+    disabled_writer_metrics = create_topic_writer_metrics(
         object(),
         topic="/Root/events",
         writer_name="writer-test",
         buffer_limit_bytes=1024,
     )
-    assert noop_writer_metrics is _NOOP_TOPIC_WRITER_METRICS
-    noop_writer_metrics.record_sending_messages(1)
-    noop_writer_metrics.record_sending_bytes(10)
-    noop_writer_metrics.record_written_messages(1)
-    noop_writer_metrics.record_session_error(RuntimeError("ignored"), True)
-    assert noop_writer_metrics.capture_buffer_wait_started_at() is None
-    noop_writer_metrics.record_buffer_wait_duration(None)
-    assert noop_writer_metrics.capture_message_first_sent_at() is None
-    noop_writer_metrics.record_message_ack_duration(None)
-    assert noop_writer_metrics.capture_compression_started_at() is None
-    noop_writer_metrics.record_compression_duration(None, "gzip")
-    assert noop_writer_metrics.capture_message_accepted_at() is None
-    noop_writer_metrics.record_message_processing_duration(None, "gzip")
-    noop_writer_metrics.add_pending_messages(None, 1)
-    noop_writer_metrics.complete_pending_message()
-    noop_writer_metrics.clear_pending_messages()
-    noop_writer_metrics.set_buffer_used_bytes(10)
-    noop_writer_metrics.close()
+    assert disabled_writer_metrics is not _NOOP_TOPIC_WRITER_METRICS
+    assert not disabled_writer_metrics.is_instrumented
+    disabled_writer_metrics.record_sending_messages(1)
+    disabled_writer_metrics.record_sending_bytes(10)
+    disabled_writer_metrics.record_written_messages(1)
+    disabled_writer_metrics.record_session_error(RuntimeError("ignored"), True)
+    assert disabled_writer_metrics.capture_buffer_wait_started_at() is None
+    disabled_writer_metrics.record_buffer_wait_duration(None)
+    assert disabled_writer_metrics.capture_message_first_sent_at() is None
+    disabled_writer_metrics.record_message_ack_duration(None)
+    assert disabled_writer_metrics.capture_compression_started_at() is None
+    disabled_writer_metrics.record_compression_duration(None, "gzip")
+    assert disabled_writer_metrics.capture_message_accepted_at() is None
+    disabled_writer_metrics.record_message_processing_duration(None, "gzip")
+    disabled_writer_metrics.add_pending_messages(None, 1)
+    disabled_writer_metrics.complete_pending_message(None)
+    disabled_writer_metrics.clear_pending_messages()
+    disabled_writer_metrics.set_buffer_used_bytes(10)
+    disabled_writer_metrics.close()
 
     assert not monotonic.called
     assert not noop_add.called
@@ -1275,7 +1277,7 @@ class TestOpenTelemetryPublicApi:
             writer_metrics.close()
             disable_metrics()
 
-    def test_topic_writer_oldest_age_keeps_state_while_metrics_are_reconfigured(self, monkeypatch):
+    def test_topic_writer_follows_provider_lifecycle(self, monkeypatch):
         from ydb.observability import disable_metrics, enable_metrics
         from ydb.observability.metrics import (
             TOPIC_WRITER_SENDING_OLDEST_AGE,
@@ -1285,9 +1287,10 @@ class TestOpenTelemetryPublicApi:
         class RecordingProvider:
             def __init__(self):
                 self.gauges = {}
+                self.records = []
 
             def record(self, name, value, attributes=None):
-                pass
+                self.records.append((name, value, attributes))
 
             def add(self, name, value, attributes=None):
                 pass
@@ -1299,24 +1302,102 @@ class TestOpenTelemetryPublicApi:
         second_provider = RecordingProvider()
 
         disable_metrics()
-        enable_metrics(first_provider)
         writer_metrics = create_topic_writer_metrics(object(), topic="/Root/events", writer_name="reconfigured")
         try:
-            disable_metrics()
+            disabled_clock = MagicMock(return_value=5.0)
+            monkeypatch.setattr("ydb.observability.metrics.time.monotonic", disabled_clock)
+            assert not writer_metrics.is_instrumented
+            assert writer_metrics.capture_message_accepted_at() is None
+            assert not disabled_clock.called
+
+            enable_metrics(first_provider)
+            assert writer_metrics.is_instrumented
             monkeypatch.setattr("ydb.observability.metrics.time.monotonic", MagicMock(return_value=10.0))
-            accepted_at = writer_metrics.capture_message_accepted_at()
-            writer_metrics.add_pending_messages(accepted_at, 1)
+            writer_metrics.add_pending_messages(writer_metrics.capture_message_accepted_at(), 1)
+            monkeypatch.setattr("ydb.observability.metrics.time.monotonic", MagicMock(return_value=15.0))
+            observations = list(first_provider.gauges[TOPIC_WRITER_SENDING_OLDEST_AGE]())
+            assert [(value, attrs["writer.name"]) for value, attrs in observations] == [(5.0, "reconfigured")]
+            stale_accepted_at = writer_metrics.capture_message_accepted_at()
+            stale_first_sent_at = writer_metrics.capture_message_first_sent_at()
+
+            disable_metrics()
+            assert not writer_metrics.is_instrumented
+            assert first_provider.gauges[TOPIC_WRITER_SENDING_OLDEST_AGE]() == ()
+            assert writer_metrics.capture_message_accepted_at() is None
 
             enable_metrics(second_provider)
-            monkeypatch.setattr("ydb.observability.metrics.time.monotonic", MagicMock(return_value=15.0))
+            assert writer_metrics.is_instrumented
+            writer_metrics.add_pending_messages(stale_accepted_at, 1)
+            observations = list(second_provider.gauges[TOPIC_WRITER_SENDING_OLDEST_AGE]())
+            assert [(value, attrs["writer.name"]) for value, attrs in observations] == [(0.0, "reconfigured")]
+            writer_metrics.record_message_ack_duration(stale_first_sent_at)
+            assert first_provider.records == []
+            assert second_provider.records == []
 
-            assert first_provider.gauges[TOPIC_WRITER_SENDING_OLDEST_AGE]() == ()
+            monkeypatch.setattr("ydb.observability.metrics.time.monotonic", MagicMock(return_value=20.0))
+            current_accepted_at = writer_metrics.capture_message_accepted_at()
+            writer_metrics.add_pending_messages(current_accepted_at, 1)
+            monkeypatch.setattr("ydb.observability.metrics.time.monotonic", MagicMock(return_value=25.0))
             observations = list(second_provider.gauges[TOPIC_WRITER_SENDING_OLDEST_AGE]())
             assert [(value, attrs["writer.name"]) for value, attrs in observations] == [(5.0, "reconfigured")]
 
-            writer_metrics.complete_pending_message()
+            writer_metrics.complete_pending_message(stale_accepted_at)
+            observations = list(second_provider.gauges[TOPIC_WRITER_SENDING_OLDEST_AGE]())
+            assert [(value, attrs["writer.name"]) for value, attrs in observations] == [(5.0, "reconfigured")]
+
+            writer_metrics.complete_pending_message(current_accepted_at)
             observations = list(second_provider.gauges[TOPIC_WRITER_SENDING_OLDEST_AGE]())
             assert [(value, attrs["writer.name"]) for value, attrs in observations] == [(0.0, "reconfigured")]
+        finally:
+            writer_metrics.close()
+            disable_metrics()
+
+    def test_disable_metrics_serializes_state_reset_with_concurrent_enable(self):
+        from ydb.observability import disable_metrics, enable_metrics
+        from ydb.observability import metrics
+        from ydb.observability.metrics import create_topic_writer_metrics
+
+        first_provider = MagicMock()
+        second_provider = MagicMock()
+        disable_metrics()
+        enable_metrics(first_provider)
+        writer_metrics = create_topic_writer_metrics(object(), topic="/Root/events", writer_name="concurrent")
+        accepted_at = writer_metrics.capture_message_accepted_at()
+        writer_metrics.add_pending_messages(accepted_at, 1)
+
+        disable_thread = threading.Thread(target=disable_metrics)
+        enable_finished = threading.Event()
+
+        def enable_second_provider():
+            enable_metrics(second_provider)
+            enable_finished.set()
+
+        enable_thread = threading.Thread(target=enable_second_provider)
+        metrics._gauge_lock.acquire()
+        try:
+            disable_thread.start()
+            deadline = time.monotonic() + 1.0
+            while metrics.is_metrics_enabled() and time.monotonic() < deadline:
+                time.sleep(0.001)
+            assert not metrics.is_metrics_enabled()
+
+            enable_thread.start()
+            enable_finished_while_reset_blocked = enable_finished.wait(0.05)
+        finally:
+            metrics._gauge_lock.release()
+
+        disable_thread.join(timeout=1.0)
+        enable_thread.join(timeout=1.0)
+        try:
+            assert not disable_thread.is_alive()
+            assert not enable_thread.is_alive()
+            assert not enable_finished_while_reset_blocked
+            assert metrics._get_metrics_provider() is second_provider
+            assert list(writer_metrics._pending_messages_accepted_at) == []
+
+            current_accepted_at = writer_metrics.capture_message_accepted_at()
+            writer_metrics.add_pending_messages(current_accepted_at, 1)
+            assert len(writer_metrics._pending_messages_accepted_at) == 1
         finally:
             writer_metrics.close()
             disable_metrics()
@@ -1552,7 +1633,7 @@ def test_topic_writer_buffer_wait_duration_records_only_completed_wait(metrics_s
     )
     try:
         started_at = writer_metrics.capture_buffer_wait_started_at()
-        assert started_at[1] == 10.0
+        assert started_at[2] == 10.0
         writer_metrics.record_buffer_wait_duration(None)
         assert monotonic.call_count == 1
 
@@ -1768,16 +1849,18 @@ def test_topic_writer_oldest_age_uses_oldest_pending_message_and_unregisters(met
     try:
         clock = MagicMock(side_effect=[10.0, 15.0])
         monkeypatch.setattr("ydb.observability.metrics.time.monotonic", clock)
-        first.add_pending_messages(first.capture_message_accepted_at(), 2)
-        second.add_pending_messages(second.capture_message_accepted_at(), 1)
+        first_accepted_at = first.capture_message_accepted_at()
+        second_accepted_at = second.capture_message_accepted_at()
+        first.add_pending_messages(first_accepted_at, 2)
+        second.add_pending_messages(second_accepted_at, 1)
         clock.side_effect = None
         clock.return_value = 20.0
         assert _single_point(metrics_setup, TOPIC_WRITER_SENDING_OLDEST_AGE).value == 10.0
 
-        first.complete_pending_message()
+        first.complete_pending_message(first_accepted_at)
         assert _single_point(metrics_setup, TOPIC_WRITER_SENDING_OLDEST_AGE).value == 10.0
 
-        first.complete_pending_message()
+        first.complete_pending_message(first_accepted_at)
         assert _single_point(metrics_setup, TOPIC_WRITER_SENDING_OLDEST_AGE).value == 5.0
 
         second.clear_pending_messages()
@@ -1845,7 +1928,7 @@ def test_topic_writer_metrics_require_explicit_writer_name(metrics_setup, writer
     assert writer_metrics.capture_message_accepted_at() is None
     writer_metrics.record_message_processing_duration(None, "gzip")
     writer_metrics.add_pending_messages(None, 1)
-    writer_metrics.complete_pending_message()
+    writer_metrics.complete_pending_message(None)
     writer_metrics.clear_pending_messages()
     writer_metrics.set_buffer_used_bytes(10)
     writer_metrics.close()
@@ -2373,9 +2456,9 @@ def test_topic_reader_session_errors_are_split_by_retry_decision(metrics_setup):
     ("error", "status_code", "error_type"),
     [
         (issues.ConnectionLost("lost"), "CONNECTION_LOST", "transport_error"),
-        (issues.ConnectionError("connection"), "ConnectionError", "transport_error"),
+        (issues.ConnectionError("connection"), "unknown", "transport_error"),
         (issues.BadRequest("bad request"), "BAD_REQUEST", "ydb_error"),
-        (RuntimeError("unexpected"), "RuntimeError", "RuntimeError"),
+        (RuntimeError("unexpected"), "unknown", "RuntimeError"),
     ],
 )
 def test_topic_reader_session_errors_classify_failure(metrics_setup, error, status_code, error_type):
