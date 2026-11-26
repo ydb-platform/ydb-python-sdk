@@ -164,9 +164,16 @@ class PrimaryConnection:
         self.callbacks.append(callback)
 
     async def close(self, grace=30):
+        self._close()
+
+    def _close(self):
         self.closed = True
         for callback in self.callbacks:
             callback(self)
+
+    def begin_retirement(self):
+        self._close()
+        return False
 
 
 def primary_result(states, nodes=((1, "A"), (2, "B"))):

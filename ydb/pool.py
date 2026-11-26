@@ -7,6 +7,7 @@ import logging
 from concurrent import futures
 import collections
 import random
+import time
 from typing import Any, Callable, ContextManager, Dict, List, Optional, Set, Tuple, TYPE_CHECKING
 
 from . import connection as connection_impl, issues, resolver, _utilities, tracing
@@ -31,6 +32,7 @@ class ConnectionsCache:
         self.connections: collections.OrderedDict[str, Connection] = collections.OrderedDict()
         self.connections_by_node_id: collections.OrderedDict[Optional[int], Connection] = collections.OrderedDict()
         self.outdated: collections.OrderedDict[str, Connection] = collections.OrderedDict()
+        self._retiring: Set[Connection] = set()
         self.subscriptions: Set["futures.Future[None]"] = set()
         self.preferred: collections.OrderedDict[str, Connection] = collections.OrderedDict()
         self.logger = logging.getLogger(__name__)
@@ -141,15 +143,33 @@ class ConnectionsCache:
     def cleanup_outdated(self) -> "ConnectionsCache":
         with self.lock:
             outdated_connections = list(self.outdated.values())
-            for outdated_connection in outdated_connections:
-                outdated_connection.close()
+        for outdated_connection in outdated_connections:
+            outdated_connection.close()
         return self
+
+    def retire(self, connection: Connection, grace: float) -> None:
+        deadline = time.monotonic() + grace
+        if not connection.begin_retirement():
+            return
+        with self.lock:
+            self._retiring.add(connection)
+        threading.Thread(target=self._finish_retirement, args=(connection, deadline), daemon=True).start()
+
+    def _finish_retirement(self, connection: Connection, deadline: float) -> None:
+        try:
+            connection.finish_retirement(deadline)
+        finally:
+            with self.lock:
+                self._retiring.discard(connection)
 
     def cleanup(self) -> None:
         with self.lock:
             actual_connections = list(self.connections.values())
-            for connection in actual_connections:
-                connection.close()
+            retiring_connections = list(self._retiring)
+        for connection in retiring_connections:
+            connection.destroy()
+        for connection in actual_connections:
+            connection.close()
 
     def complete_discovery(self, error: Optional[Exception]) -> None:
         with self.lock:
@@ -198,9 +218,9 @@ class ConnectionsCache:
         with self.lock:
             if self.connections_by_node_id.get(connection.node_id) is connection:
                 self.connections_by_node_id.pop(connection.node_id, None)
-            self.preferred.pop(connection.endpoint, None)
-            self.connections.pop(connection.endpoint, None)
-            self.outdated.pop(connection.endpoint, None)
+            for connections in (self.preferred, self.connections, self.outdated):
+                if connections.get(connection.endpoint) is connection:
+                    connections.pop(connection.endpoint, None)
 
     def get_connection_by_node_id(self, node_id: Optional[int]) -> Optional[Connection]:
         with self.lock:
@@ -270,15 +290,17 @@ class Discovery(threading.Thread):
             if resolve_details is None:
                 return False
 
-            endpoint_locations = {
-                endpoint: resolved_endpoint.location
+            endpoints = {
+                endpoint: resolved_endpoint
                 for resolved_endpoint in resolve_details.endpoints
                 for endpoint, endpoint_options in resolved_endpoint.endpoints_with_options()
             }
             for cached_endpoint in self._cache.values():
-                if cached_endpoint.endpoint not in endpoint_locations:
-                    self._cache.make_outdated(cached_endpoint)
+                discovered = endpoints.get(cached_endpoint.endpoint)
+                if discovered is None or discovered.node_id != cached_endpoint.node_id:
+                    self._cache.retire(cached_endpoint, self._driver_config.grpc_channel_shutdown_timeout)
 
+            endpoint_locations = {endpoint: info.location for endpoint, info in endpoints.items()}
             local_dc = resolve_details.self_location
             priorities = resolve_details.bridge_priorities(True) if self._driver_config.prefer_primary_pile else None
             restoring_locality = self._cache.set_bridge_priorities(priorities, endpoint_locations, local_dc)
@@ -367,23 +389,21 @@ class Discovery(threading.Thread):
         self._send_wake_up()
 
     def run(self) -> None:
-        with self.condition:
-            while True:
-                if self._should_stop.is_set():
-                    break
+        try:
+            with self.condition:
+                while not self._should_stop.is_set():
+                    successful = self.execute_discovery()
+                    if successful:
+                        self._cache.complete_discovery(None)
+                    else:
+                        self._cache.complete_discovery(issues.ConnectionFailure(str(self.discovery_debug_details())))
 
-                successful = self.execute_discovery()
-                if successful:
-                    self._cache.complete_discovery(None)
-                else:
-                    self._cache.complete_discovery(issues.ConnectionFailure(str(self.discovery_debug_details())))
+                    if self._should_stop.is_set():
+                        break
 
-                if self._should_stop.is_set():
-                    break
-
-                interval = self._discovery_interval() if successful else self._emergency_retry_interval()
-                self.condition.wait(interval)
-
+                    interval = self._discovery_interval() if successful else self._emergency_retry_interval()
+                    self.condition.wait(interval)
+        finally:
             self._cache.cleanup()
         self.logger.info("Successfully terminated discovery process")
 

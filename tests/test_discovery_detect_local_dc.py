@@ -138,6 +138,10 @@ class PrimaryConnection:
         for callback in self.callbacks:
             callback(self)
 
+    def begin_retirement(self):
+        self.close()
+        return False
+
 
 def primary_response(states, nodes):
     message = _apis.ydb_discovery.ListEndpointsResult(self_location="local")

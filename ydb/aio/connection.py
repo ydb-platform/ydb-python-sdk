@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import logging
 import asyncio
+import weakref
 from typing import Any, Callable, Dict, List, Optional, Tuple, TYPE_CHECKING
 import collections
 import grpc
@@ -95,8 +96,7 @@ class _RpcState(RpcState):
     def __init__(self, stub_instance: Any, rpc_name: str, endpoint: str, endpoint_key):
         super().__init__(stub_instance, rpc_name, endpoint, endpoint_key)
 
-    async def __call__(self, *args, **kwargs):
-        resp = self.rpc(*args, **kwargs)
+    async def response(self, resp):
         if hasattr(resp, "__await__"):  # Check to support async iterators from streams
             response = await resp
             self._trailing_metadata = await resp.trailing_metadata()
@@ -131,9 +131,13 @@ class _SafeAsyncIterator:
     async def __anext__(self):
         try:
             return await self.it.__anext__()
+        except asyncio.CancelledError as error:
+            if self.rpc_state.channel_retired and self.resp.cancelled():
+                raise issues.ConnectionLost("Endpoint removed by discovery") from error
+            raise
         except grpc.RpcError as rpc_error:
             ydb_error = _rpc_error_handler(self.rpc_state, rpc_error, use_unavailable=True)
-            if _is_disconnect_needed(ydb_error):
+            if _is_disconnect_needed(ydb_error) and not self.rpc_state.channel_retired:
                 await self.on_disconnected_callback()
             raise ydb_error
 
@@ -146,6 +150,7 @@ class Connection:
         "endpoint",
         "_channel",
         "_call_states",
+        "_active_calls",
         "_stub_instances",
         "_driver_config",
         "_cleanup_callbacks",
@@ -153,6 +158,7 @@ class Connection:
         "lock",
         "calls",
         "closing",
+        "_retiring",
         "endpoint_key",
         "node_id",
         "peer_address",
@@ -181,7 +187,9 @@ class Connection:
             self._stub_instances[stub] = stub(self._channel)
 
         self.calls: Dict[Any, asyncio.Future[Any]] = {}
+        self._active_calls: Dict[_RpcState, Tuple[weakref.ReferenceType[grpc.aio.Call], asyncio.Future[None]]] = {}
         self.closing = False
+        self._retiring = False
 
     def _prepare_stub_instance(self, stub: Any) -> None:
         if stub not in self._stub_instances:
@@ -192,16 +200,25 @@ class Connection:
     ) -> Tuple[_RpcState, float, List[Tuple[str, str]]]:
         timeout, metadata = _get_request_timeout(settings), await _construct_metadata(self._driver_config, settings)  # type: ignore[arg-type]
         _set_server_timeouts(request, settings, timeout)
-        self._prepare_stub_instance(stub)
-        rpc_state = _RpcState(self._stub_instances[stub], rpc_name, self.endpoint, self.endpoint_key)
-        logger.debug("%s: creating call state", rpc_state)
-
         if self.closing:
             raise issues.ConnectionLost("Couldn't start call")
 
-        # Call successfully prepared and registered
+        self._prepare_stub_instance(stub)
+        rpc_state = _RpcState(self._stub_instances[stub], rpc_name, self.endpoint, self.endpoint_key)
+        logger.debug("%s: creating call state", rpc_state)
         _log_request(rpc_state, request)
         return rpc_state, timeout, metadata
+
+    def _track_call(self, rpc_state: _RpcState, call: grpc.aio.Call) -> None:
+        completion = asyncio.get_running_loop().create_future()
+
+        def done(_call: Any) -> None:
+            self._active_calls.pop(rpc_state, None)
+            if not completion.done():
+                completion.set_result(None)
+
+        self._active_calls[rpc_state] = (weakref.ref(call, done), completion)
+        call.add_done_callback(done)
 
     async def __call__(
         self,
@@ -226,8 +243,12 @@ class Connection:
         :return: A result of computation
         """
         rpc_state, timeout, metadata = await self._prepare_call(stub, rpc_name, request, settings)
+        call = None
         try:
-            feature = asyncio.ensure_future(rpc_state(request, timeout=timeout, metadata=metadata))
+            call = rpc_state.rpc(request, timeout=timeout, metadata=metadata)
+            if isinstance(call, grpc.aio.Call):
+                self._track_call(rpc_state, call)
+            feature = asyncio.ensure_future(rpc_state.response(call))
 
             # Add feature to dict to wait until it finished when close called
             self.calls[rpc_state.request_id] = feature
@@ -240,8 +261,12 @@ class Connection:
                 response = _SafeAsyncIterator(response, rpc_state, on_disconnected)
 
             return response if wrap_result is None else wrap_result(rpc_state, response, *wrap_args)
+        except asyncio.CancelledError as error:
+            if rpc_state.channel_retired and call is not None and call.cancelled():
+                raise issues.ConnectionLost("Endpoint removed by discovery") from error
+            raise
         except grpc.RpcError as rpc_error:
-            if on_disconnected:
+            if on_disconnected and not rpc_state.channel_retired:
                 coro = on_disconnected()
                 if asyncio.iscoroutine(coro):
                     await coro
@@ -260,12 +285,16 @@ class Connection:
         :param grace:
         :return: None
         """
-        channel = getattr(self, "_channel", None)
+        channel, self._channel = self._channel, None
+        self._stub_instances.clear()
+        if channel is not None and self._retiring:
+            for rpc_state, (call_ref, _) in list(self._active_calls.items()):
+                call = call_ref()
+                if call is not None and not call.done():
+                    rpc_state.channel_retired = True
+                    call.cancel()
         if channel is not None and hasattr(channel, "close"):
             await channel.close(grace)
-
-        self._stub_instances.clear()
-        self._channel = None
 
     def add_cleanup_callback(self, callback: Callable[["Connection"], None]) -> None:
         self._cleanup_callbacks.append(callback)
@@ -286,17 +315,33 @@ class Connection:
         been terminated are cancelled. If grace is None, this method will wait until all tasks are finished.
         :return: None
         """
+        if self._start_close():
+            try:
+                if self.calls:
+                    await asyncio.wait(self.calls.values(), timeout=grace)
+            finally:
+                await self.destroy()
+
+    def _start_close(self, *, retiring: bool = False) -> bool:
+        if self.closing:
+            return False
         logger.debug("Closing channel for endpoint %s", self.endpoint)
-
         self.closing = True
-
+        self._retiring = retiring
         for callback in self._cleanup_callbacks:
             callback(self)
+        return True
 
-        if self.calls:
-            await asyncio.wait(self.calls.values(), timeout=grace)
+    def begin_retirement(self) -> bool:
+        return self._start_close(retiring=True)
 
-        await self.destroy()
+    async def finish_retirement(self, deadline: float) -> None:
+        pending = [completion for _, completion in self._active_calls.values()]
+        try:
+            if pending:
+                await asyncio.wait(pending, timeout=max(0, deadline - asyncio.get_running_loop().time()))
+        finally:
+            await self.destroy()
 
     async def __aenter__(self):
         return self

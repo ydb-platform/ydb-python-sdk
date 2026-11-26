@@ -28,6 +28,7 @@ class ConnectionsCache(_ConnectionsCache):
         self._event: asyncio.Event = asyncio.Event()
         self._fast_fail_event: asyncio.Event = asyncio.Event()
         self._fast_fail_error: Optional[Exception] = None
+        self._retirement_tasks: dict[asyncio.Task[None], Connection] = {}
 
     async def get(  # async version with different Connection type
         self,
@@ -76,18 +77,38 @@ class ConnectionsCache(_ConnectionsCache):
     def remove(self, connection: Connection) -> None:  # type: ignore[override]  # async Connection type
         if cast(Any, self.connections_by_node_id.get(connection.node_id)) is connection:
             self.connections_by_node_id.pop(connection.node_id, None)
-        self.preferred.pop(connection.endpoint, None)
-        self.connections.pop(connection.endpoint, None)
-        self.outdated.pop(connection.endpoint, None)
+        for connections in (self.preferred, self.connections, self.outdated):
+            if cast(Any, connections.get(connection.endpoint)) is connection:
+                connections.pop(connection.endpoint, None)
         if len(self.connections) == 0:
             self._event.clear()
             if not self._fast_fail_error:
                 self._fast_fail_event.clear()
 
     async def cleanup(self) -> None:  # type: ignore[override]  # async override of sync method
+        retiring = self._retirement_tasks.copy()
+        for task in retiring:
+            task.cancel()
+        if retiring:
+            await asyncio.gather(*retiring, return_exceptions=True)
+            await asyncio.gather(*(connection.destroy() for connection in retiring.values()))
         actual_connections = list(self.connections.values())
         for connection in actual_connections:
             await connection.close()
+
+    def retire(self, connection: Connection, grace: float) -> None:  # type: ignore[override]  # async Connection type
+        loop = asyncio.get_running_loop()
+        deadline = loop.time() + grace
+        if not connection.begin_retirement():
+            return
+        task = loop.create_task(connection.finish_retirement(deadline))
+        self._retirement_tasks[task] = connection
+        task.add_done_callback(self._retirement_done)
+
+    def _retirement_done(self, task: asyncio.Task[None]) -> None:
+        connection = self._retirement_tasks.pop(task)
+        if not task.cancelled() and (error := task.exception()) is not None:
+            self.logger.error("Failed to close retired channel for endpoint %s", connection.endpoint, exc_info=error)
 
     async def cleanup_outdated(self) -> "ConnectionsCache":  # type: ignore[override]  # async override of sync method
         outdated_connections = list(self.outdated.values())
@@ -131,15 +152,17 @@ class Discovery:
         if resolve_details is None:
             return False
 
-        endpoint_locations = {
-            endpoint: resolved_endpoint.location
+        endpoints = {
+            endpoint: resolved_endpoint
             for resolved_endpoint in resolve_details.endpoints
             for endpoint, endpoint_options in resolved_endpoint.endpoints_with_options()
         }
         for cached_endpoint in self._cache.values():
-            if cached_endpoint.endpoint not in endpoint_locations:
-                self._cache.make_outdated(cached_endpoint)
+            discovered = endpoints.get(cached_endpoint.endpoint)
+            if discovered is None or discovered.node_id != cached_endpoint.node_id:
+                self._cache.retire(cast(Connection, cached_endpoint), self._driver_config.grpc_channel_shutdown_timeout)
 
+        endpoint_locations = {endpoint: info.location for endpoint, info in endpoints.items()}
         local_dc = resolve_details.self_location
         priorities = resolve_details.bridge_priorities(True) if self._driver_config.prefer_primary_pile else None
         restoring_locality = self._cache.set_bridge_priorities(priorities, endpoint_locations, local_dc)
@@ -225,29 +248,25 @@ class Discovery:
         self._wake_up_event.set()
 
     async def run(self) -> None:
-        while True:
-            try:
-                successful = await self.execute_discovery()
-            except Exception:
-                successful = False
-            if successful:
-                self._cache.complete_discovery(None)
-            else:
-                self._cache.complete_discovery(issues.ConnectionFailure(str(self.discovery_debug_details())))
-
-            interval = self._discovery_interval() if successful else self._emergency_retry_interval()
-
-            try:
-                await asyncio.wait_for(self._wake_up_event.wait(), timeout=interval)
-                if self._should_stop:
-                    break
+        try:
+            while not self._should_stop:
+                try:
+                    successful = await self.execute_discovery()
+                except Exception:
+                    successful = False
+                if successful:
+                    self._cache.complete_discovery(None)
                 else:
-                    self._wake_up_event.clear()
-                    continue
-            except asyncio.TimeoutError:
-                continue
+                    self._cache.complete_discovery(issues.ConnectionFailure(str(self.discovery_debug_details())))
 
-        await self._cache.cleanup()
+                interval = self._discovery_interval() if successful else self._emergency_retry_interval()
+                try:
+                    await asyncio.wait_for(self._wake_up_event.wait(), timeout=interval)
+                except asyncio.TimeoutError:
+                    pass
+                self._wake_up_event.clear()
+        finally:
+            await self._cache.cleanup()
         self.logger.info("Successfully terminated discovery process")
 
 

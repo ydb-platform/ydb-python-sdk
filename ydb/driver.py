@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import grpc
 import logging
+import math
 import os
 from typing import Any, List, Optional, Tuple, Type, TYPE_CHECKING
 
@@ -110,6 +111,7 @@ class DriverConfig(object):
         "tracer",
         "grpc_lb_policy_name",
         "discovery_request_timeout",
+        "grpc_channel_shutdown_timeout",
         "compression",
         "disable_discovery",
         "detect_local_dc",
@@ -143,6 +145,7 @@ class DriverConfig(object):
         detect_local_dc: bool = False,
         *,
         prefer_primary_pile: bool = False,
+        grpc_channel_shutdown_timeout: float = 60,
         _additional_sdk_headers: Tuple[str, ...] = (),
     ) -> None:
         """
@@ -164,6 +167,8 @@ class DriverConfig(object):
         If tracing aio ScopeManager must be ContextVarsScopeManager
         :param grpc_lb_policy_name: A load balancing policy to be used for discovery channel construction. Default value is `round_robin`
         :param discovery_request_timeout: A default timeout to complete the discovery. The default value is 10 seconds.
+        :param grpc_channel_shutdown_timeout: Seconds to let active RPCs finish after discovery removes
+            their endpoint. Defaults to 60. Set to 0 to close removed channels immediately.
         :param disable_discovery: If True, endpoint discovery is disabled and only the start endpoint is used for all requests.
         :param detect_local_dc: If True, detect nearest datacenter using TCP latency measurement instead of using\
         server-provided self_location. **Note**: This option only affects endpoint selection when use_all_nodes=False.\
@@ -198,6 +203,9 @@ class DriverConfig(object):
         self.tracer = tracer if tracer is not None else tracing.Tracer(None)
         self.grpc_lb_policy_name = grpc_lb_policy_name
         self.discovery_request_timeout = discovery_request_timeout
+        if not math.isfinite(grpc_channel_shutdown_timeout) or grpc_channel_shutdown_timeout < 0:
+            raise ValueError("grpc_channel_shutdown_timeout must be finite and non-negative")
+        self.grpc_channel_shutdown_timeout = grpc_channel_shutdown_timeout
         self.compression = compression
         self.disable_discovery = disable_discovery
         self.detect_local_dc = detect_local_dc
