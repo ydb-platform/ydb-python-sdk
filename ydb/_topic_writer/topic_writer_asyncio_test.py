@@ -589,6 +589,52 @@ class TestWriterAsyncIOReconnector:
             await asyncio.gather(*tasks, return_exceptions=True)
             reconnector._stop_reason.exception()
 
+    async def test_close_with_flush_waits_for_init_needed_by_codec_selection(
+        self, default_driver, default_settings, get_stream_writer, monkeypatch
+    ):
+        settings = copy.deepcopy(default_settings)
+        settings.codec = None
+        stream = get_stream_writer()
+        create_started = asyncio.Event()
+        allow_create = asyncio.Event()
+
+        async def delayed_create(driver, init_message, token_getter, tx_identity):
+            create_started.set()
+            await allow_create.wait()
+            return stream
+
+        monkeypatch.setattr(WriterAsyncIOStream, "create", delayed_create)
+        reconnector = WriterAsyncIOReconnector(default_driver, settings)
+        close_task = None
+        try:
+            futures = await reconnector.write_with_ack_future([PublicMessage(data=b"pending", seqno=1)])
+            await asyncio.wait_for(create_started.wait(), timeout=1)
+
+            close_task = asyncio.create_task(reconnector.close(flush=True))
+            await asyncio.sleep(0)
+            assert reconnector._closed and not close_task.done()
+
+            with pytest.raises(TopicWriterClosedError):
+                await reconnector.wait_init()
+
+            allow_create.set()
+            sent = await asyncio.wait_for(stream.from_client.get(), timeout=1)
+            assert [message.seq_no for message in sent] == [1]
+            stream.from_server.put_nowait(self.make_default_ack_message(seq_no=1))
+
+            await asyncio.wait_for(close_task, timeout=1)
+            assert isinstance(futures[0].result(), PublicWriteResult.Written)
+        finally:
+            allow_create.set()
+            reconnector._stop(TopicWriterStopped())
+            tasks = list(reconnector._background_tasks)
+            if close_task is not None:
+                tasks.append(close_task)
+            for task in tasks:
+                task.cancel()
+            await asyncio.gather(*tasks, return_exceptions=True)
+            reconnector._stop_reason.exception()
+
     async def test_close_timeout_stops_the_writer(self, default_driver, default_settings, get_stream_writer):
         writer = WriterAsyncIO(default_driver, default_settings)
         stream = get_stream_writer()

@@ -509,8 +509,12 @@ class WriterAsyncIOReconnector:
         logger.debug("Writer reconnector id=%s was closed", self._id)
 
     async def wait_init(self) -> PublicWriterInitInfo:
+        return await self._wait_init(allow_closed=False)
+
+    async def _wait_init(self, *, allow_closed: bool) -> PublicWriterInitInfo:
         while True:
-            self._check_closed()
+            if not allow_closed:
+                self._check_closed()
             if self._stop_reason.done():
                 exc = self._stop_reason.exception()
                 if exc is not None:
@@ -520,6 +524,7 @@ class WriterAsyncIOReconnector:
             if self._init_info:
                 return self._init_info
 
+            self._state_changed.clear()
             await self._state_changed.wait()
 
     async def wait_stop(self) -> BaseException:
@@ -879,7 +884,8 @@ class WriterAsyncIOReconnector:
         return codec
 
     async def _get_available_codecs(self) -> List[PublicCodec]:
-        info = await self.wait_init()
+        # Codec selection is part of draining already accepted messages during close(flush=True).
+        info = await self._wait_init(allow_closed=True)
         topic_supported_codecs = info.supported_codecs
         if not topic_supported_codecs:
             topic_supported_codecs = [PublicCodec(PublicCodec.RAW), PublicCodec(PublicCodec.GZIP)]
