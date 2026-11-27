@@ -5,6 +5,7 @@ from concurrent import futures
 import uuid
 import threading
 import collections
+import time
 from typing import (
     Any,
     Callable,
@@ -99,6 +100,8 @@ def _rpc_error_handler(
         elif rpc_error.code() == grpc.StatusCode.UNIMPLEMENTED:
             return issues.Unimplemented("Method or feature is not implemented on server!")
         elif rpc_error.code() == grpc.StatusCode.CANCELLED:
+            if isinstance(rpc_state, _RpcState) and rpc_state.channel_retired:
+                return issues.ConnectionLost("Endpoint removed by discovery")
             return issues.Cancelled(rpc_error.details())
         elif rpc_error.code() == grpc.StatusCode.RESOURCE_EXHAUSTED:
             if "Sent message larger than max" in rpc_error.details():
@@ -154,8 +157,8 @@ def _on_response_callback(rpc_state, call_state_unref, wrap_result=None, on_disc
     except Exception as e:
         logger.error("%s: received exception, %s", rpc_state, str(e))
         rpc_state.result_future.set_exception(issues.ConnectionLost(str(e)))
-
-    call_state_unref()
+    finally:
+        call_state_unref()
 
 
 def _construct_metadata(driver_config, settings):
@@ -239,6 +242,8 @@ def _construct_channel_options(driver_config, endpoint_options=None):
     )
 
     if endpoint_options is not None:
+        # A replacement channel must not reuse a retired channel's transport.
+        _default_connect_options.append(("grpc.use_local_subchannel_pool", 1))
         if endpoint_options.ssl_target_name_override:
             _default_connect_options.append(
                 (
@@ -265,6 +270,7 @@ class _RpcState:
         "rendezvous",
         "metadata_kv",
         "endpoint_key",
+        "channel_retired",
     )
 
     rpc: Any
@@ -285,6 +291,7 @@ class _RpcState:
         self.rendezvous = None
         self.metadata_kv = None
         self.endpoint_key = endpoint_key
+        self.channel_retired = False
 
     def __str__(self) -> str:
         return "RpcState(%s, %s, %s)" % (self.rpc_name, self.request_id, self.endpoint)
@@ -392,7 +399,7 @@ class _SafeSyncIterator:
             return self.it.__next__()
         except grpc.RpcError as rpc_error:
             ydb_error = _rpc_error_handler(self.rpc_state, rpc_error, use_unavailable=True)
-            if _is_disconnect_needed(ydb_error):
+            if _is_disconnect_needed(ydb_error) and not self.rpc_state.channel_retired:
                 self.on_disconnected_callback()
             raise ydb_error
 
@@ -405,6 +412,7 @@ class Connection(object):
         "endpoint",
         "_channel",
         "_call_states",
+        "_stream_calls",
         "_stub_instances",
         "_driver_config",
         "_cleanup_callbacks",
@@ -412,6 +420,7 @@ class Connection(object):
         "lock",
         "calls",
         "closing",
+        "_retiring",
         "endpoint_key",
         "node_id",
         "peer_address",
@@ -445,9 +454,11 @@ class Connection(object):
         # pre-initialize stubs
         for stub in _stubs_list:
             self._stub_instances[stub] = stub(self._channel)
-        self.lock = threading.RLock()
+        self.lock = threading.Condition()
         self.calls = 0
         self.closing = False
+        self._retiring = False
+        self._stream_calls: set[_RpcState] = set()
 
     def _prepare_stub_instance(self, stub):
         if stub not in self._stub_instances:
@@ -459,12 +470,12 @@ class Connection(object):
     def _prepare_call(self, stub, rpc_name, request, settings):
         timeout, metadata = _get_request_timeout(settings), _construct_metadata(self._driver_config, settings)
         _set_server_timeouts(request, settings, timeout)
-        self._prepare_stub_instance(stub)
-        rpc_state = _RpcState(self._stub_instances[stub], rpc_name, self.endpoint, self.endpoint_key)
-        logger.debug("%s: creating call state", rpc_state)
         with self.lock:
             if self.closing:
                 raise issues.ConnectionLost("Couldn't start call")
+            self._prepare_stub_instance(stub)
+            rpc_state = _RpcState(self._stub_instances[stub], rpc_name, self.endpoint, self.endpoint_key)
+            logger.debug("%s: creating call state", rpc_state)
             self.calls += 1
             self._call_states[rpc_state.request_id] = rpc_state
         # Call successfully prepared and registered
@@ -475,10 +486,21 @@ class Connection(object):
         with self.lock:
             self.calls -= 1
             self._call_states.pop(call_state.request_id, None)
-            # Call successfully finished
-            if self.closing and self.calls == 0:
-                # Channel is closing and we have to destroy channel
-                self.destroy()
+            self.lock.notify_all()
+            close_channel = self.closing and not self._retiring and self.calls == 0
+        if close_channel:
+            self.destroy()
+
+    def _track_stream(self, stream, rpc_state: _RpcState) -> None:
+        def done() -> None:
+            with self.lock:
+                self._stream_calls.discard(rpc_state)
+                self.lock.notify_all()
+
+        with self.lock:
+            self._stream_calls.add(rpc_state)
+        if not stream.add_callback(done):
+            done()
 
     def future(
         self,
@@ -503,12 +525,16 @@ class Connection(object):
         :return: A future of computation
         """
         rpc_state, timeout, metadata = self._prepare_call(stub, rpc_name, request, settings)
-        rendezvous, result_future = rpc_state.future(
-            request,
-            timeout,
-            metadata,
-            compression=getattr(settings, "compression", None),
-        )
+        try:
+            rendezvous, result_future = rpc_state.future(
+                request,
+                timeout,
+                metadata,
+                compression=getattr(settings, "compression", None),
+            )
+        except BaseException:
+            self._finish_call(rpc_state)
+            raise
         rendezvous.add_done_callback(
             lambda resp_future: _on_response_callback(
                 rpc_state,
@@ -554,6 +580,8 @@ class Connection(object):
 
             if hasattr(response, "__iter__"):
                 # NOTE(vgvoleg): for stream results we should also be able to handle disconnects
+                if isinstance(response, grpc.Call):
+                    self._track_stream(response, rpc_state)
                 response = _SafeSyncIterator(response, rpc_state, on_disconnected)
 
             return response if wrap_result is None else wrap_result(rpc_state, response, *wrap_args)
@@ -584,32 +612,48 @@ class Connection(object):
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.close()
 
-    def close(self):
-        """
-        Closes the underlying gRPC channel
-        :return: None
-        """
-        logger.debug("Closing channel for endpoint %s", self.endpoint)
+    def _start_close(self, *, retiring: bool = False) -> bool:
         with self.lock:
+            if self.closing:
+                return False
             self.closing = True
+            self._retiring = retiring
+            logger.debug("Closing channel for endpoint %s", self.endpoint)
 
-            for callback in self._cleanup_callbacks:
-                callback(self)
+        for callback in self._cleanup_callbacks:
+            callback(self)
+        return True
 
-            # potentially we should cancel in-flight calls here but currently
-            # it is not required since gRPC can successfully cancel these calls manually.
-
-            if self.calls == 0:
-                # everything is cancelled/completed and channel can be destroyed
+    def close(self):
+        if self._start_close():
+            with self.lock:
+                idle = self.calls == 0
+            if idle:
                 self.destroy()
 
+    def begin_retirement(self) -> bool:
+        return self._start_close(retiring=True)
+
+    def finish_retirement(self, deadline: float) -> None:
+        with self.lock:
+            self.lock.wait_for(
+                lambda: self._channel is None or (self.calls == 0 and not self._stream_calls),
+                timeout=max(0, deadline - time.monotonic()),
+            )
+        self.destroy()
+
     def destroy(self):
-        channel = getattr(self, "_channel", None)
+        with self.lock:
+            channel, self._channel = self._channel, None
+            if channel is not None and self._retiring:
+                for rpc_state in self._call_states.values():
+                    rpc_state.channel_retired = True
+                for rpc_state in self._stream_calls:
+                    rpc_state.channel_retired = True
+            self._stub_instances.clear()
+            self.lock.notify_all()
         if channel is not None and hasattr(channel, "close"):
             channel.close()
-
-        self._stub_instances.clear()
-        self._channel = None
 
     def ready_future(self):
         """

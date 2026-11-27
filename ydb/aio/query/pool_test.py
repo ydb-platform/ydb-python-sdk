@@ -4,8 +4,11 @@ import asyncio
 import unittest
 from unittest.mock import AsyncMock, MagicMock, patch
 
-from ydb import _apis, issues
+from ydb import _apis, issues, resolver
 from ydb.aio import _utilities as aio_utilities
+from ydb.aio import connection as aio_connection
+from ydb.aio import pool as aio_pool
+from ydb.aio.driver import DriverConfig
 from ydb.aio.query.pool import QuerySessionPool
 from ydb.aio.query.session import QuerySession
 from ydb.aio.query.transaction import QueryTxContext
@@ -36,6 +39,85 @@ def _make_active_session():
 async def _wait_signalled(event: asyncio.Event) -> None:
     """Wait for a test signal, bounded so a regression fails the test instead of hanging the suite."""
     await asyncio.wait_for(event.wait(), timeout=5)
+
+
+class TestDiscoveryChannelRetirement(unittest.IsolatedAsyncioTestCase):
+    def setUp(self):
+        self.config = DriverConfig("localhost:2135", "/local")
+        self.cache = aio_pool.ConnectionsCache()
+        self.channel = MagicMock()
+        self.channel.close = AsyncMock()
+        with patch.object(aio_connection, "channel_factory", return_value=self.channel):
+            self.connection = aio_connection.Connection(self.config.endpoint, self.config)
+        self.cache.add(self.connection)
+        self.addAsyncCleanup(self.cache.cleanup)
+
+    async def test_cleanup_closes_channel_before_retirement_task_starts(self):
+        self.cache.retire(self.connection, self.config.grpc_channel_shutdown_timeout)
+        self.cache.retire(self.connection, self.config.grpc_channel_shutdown_timeout)
+        self.assertEqual(len(self.cache._retirement_tasks), 1)
+        self.assertEqual(self.cache.size, 0)
+
+        await self.cache.cleanup()
+
+        self.channel.close.assert_awaited_once()
+        self.assertFalse(self.cache._retirement_tasks)
+
+    async def test_failed_channel_close_releases_retirement_task(self):
+        self.channel.close.side_effect = RuntimeError("close failed")
+        with self.assertLogs("ydb.pool", level="ERROR") as logs:
+            self.cache.retire(self.connection, 0)
+            await asyncio.gather(*self.cache._retirement_tasks, return_exceptions=True)
+
+        self.assertIn("Failed to close retired channel", logs.output[0])
+        self.assertFalse(self.cache._retirement_tasks)
+
+    async def test_discovery_cancellation_closes_retired_channel(self):
+        discovery = aio_pool.Discovery(self.cache, self.config)
+        discovery._base_emergency_retry_interval = 0
+        resolving_again = asyncio.Event()
+
+        async def resolve():
+            if discovery._resolver.resolve.await_count == 1:
+                return resolver.DiscoveryResult("local", [])
+            resolving_again.set()
+            await asyncio.Future()
+
+        discovery._resolver.resolve = AsyncMock(side_effect=resolve)
+        call = MagicMock()
+        call.done.return_value = False
+        self.connection._track_call(MagicMock(), call)
+
+        task = asyncio.create_task(discovery.run())
+        try:
+            await _wait_signalled(resolving_again)
+            self.assertEqual(self.cache.size, 0)
+            self.channel.close.assert_not_awaited()
+        finally:
+            task.cancel()
+            with self.assertRaises(asyncio.CancelledError):
+                await task
+
+        call.cancel.assert_called_once()
+        self.channel.close.assert_awaited_once()
+        self.assertFalse(self.cache._retirement_tasks)
+
+    async def test_discovery_can_stop_after_recovering_from_a_failed_round(self):
+        discovery = aio_pool.Discovery(self.cache, self.config)
+        discovery._base_emergency_retry_interval = 0
+
+        async def execute():
+            if discovery.execute_discovery.await_count == 1:
+                raise RuntimeError("discovery unavailable")
+            discovery.stop()
+            return True
+
+        discovery.execute_discovery = AsyncMock(side_effect=execute)
+        await asyncio.wait_for(discovery.run(), timeout=3)
+
+        self.assertEqual(discovery.execute_discovery.await_count, 2)
+        self.assertIsNone(self.cache._fast_fail_error)
+        self.channel.close.assert_awaited_once()
 
 
 class TestAcquireTimeout(unittest.IsolatedAsyncioTestCase):

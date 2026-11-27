@@ -34,6 +34,17 @@ export YDB_DATABASE=/local
 python3 __main__.py -e $YDB_ENDPOINT -d $YDB_DATABASE -p python-examples/$EXAMPLE
 ```
 
+To shorten the time spent draining channels after a discovery update, pass
+`grpc_channel_shutdown_timeout` to the driver. This example gives active RPCs
+on removed endpoints up to one second to finish.
+
+```python
+import ydb
+
+with ydb.Driver(endpoint="grpc://localhost:2136", database="/local", grpc_channel_shutdown_timeout=1) as driver:
+    driver.wait(timeout=5, fail_fast=True)
+```
+
 ## Running the examples on the self-hosted YDB cluster
 
 (1) Obtain the credentials for the self-hosted YDB cluster

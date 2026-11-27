@@ -48,6 +48,9 @@ DriverConfig
    * - ``discovery_request_timeout``
      - ``10``
      - Timeout in seconds for each discovery request.
+   * - ``grpc_channel_shutdown_timeout``
+     - ``60``
+     - Maximum time in seconds for active RPCs, including streams, to finish on an endpoint removed by discovery. Set to ``0`` to close the channel immediately.
    * - ``use_all_nodes``
      - ``True``
      - During ordinary discovery, shuffle endpoints across all datacenters. Set to ``False`` to try endpoints in the server-reported local datacenter first.
@@ -136,6 +139,11 @@ There are three equivalent ways to specify the connection target:
     )
 
 The connection string format is ``<protocol>://<host>:<port>/?database=<path>``.
+
+After a successful discovery update, the synchronous and asynchronous drivers stop
+routing new RPCs to removed endpoints. If a removed channel still has active RPCs
+when ``grpc_channel_shutdown_timeout`` elapses, the driver closes the channel and
+interrupts those RPCs. This setting applies to discovery updates.
 
 
 Waiting for the Driver to Connect
