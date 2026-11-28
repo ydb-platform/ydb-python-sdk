@@ -678,6 +678,8 @@ class WriterAsyncIOReconnector:
                     self._settings.update_token_interval,
                     tx_identity=tx_identity,
                 )
+                if self._stop_reason.done():
+                    return
                 logger.debug(
                     "writer reconnector %s connected stream %s",
                     self._id,

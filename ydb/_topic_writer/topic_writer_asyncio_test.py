@@ -635,6 +635,42 @@ class TestWriterAsyncIOReconnector:
             await asyncio.gather(*tasks, return_exceptions=True)
             reconnector._stop_reason.exception()
 
+    async def test_close_stops_stream_when_creation_consumes_cancellation(
+        self, default_driver, default_settings, get_stream_writer, monkeypatch
+    ):
+        stream = get_stream_writer()
+        create_started = asyncio.Event()
+        cancellation_consumed = asyncio.Event()
+
+        async def create_consuming_cancellation(driver, init_message, token_getter, tx_identity):
+            create_started.set()
+            try:
+                await asyncio.Future()
+            except asyncio.CancelledError:
+                cancellation_consumed.set()
+                return stream
+
+        monkeypatch.setattr(WriterAsyncIOStream, "create", create_consuming_cancellation)
+        reconnector = WriterAsyncIOReconnector(default_driver, default_settings)
+        close_task = None
+        try:
+            await asyncio.wait_for(create_started.wait(), timeout=1)
+            close_task = asyncio.create_task(reconnector.close(flush=True))
+            await asyncio.wait_for(cancellation_consumed.wait(), timeout=1)
+            await asyncio.wait_for(close_task, timeout=1)
+
+            assert stream._closed
+            assert all(task.done() for task in reconnector._background_tasks)
+        finally:
+            reconnector._stop(TopicWriterStopped())
+            tasks = list(reconnector._background_tasks)
+            if close_task is not None:
+                tasks.append(close_task)
+            for task in tasks:
+                task.cancel()
+            await asyncio.gather(*tasks, return_exceptions=True)
+            reconnector._stop_reason.exception()
+
     async def test_close_timeout_stops_the_writer(self, default_driver, default_settings, get_stream_writer):
         writer = WriterAsyncIO(default_driver, default_settings)
         stream = get_stream_writer()
