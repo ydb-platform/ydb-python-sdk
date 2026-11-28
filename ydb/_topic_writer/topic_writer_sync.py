@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import asyncio
+import concurrent.futures
 import logging
+import threading
 import typing
 from concurrent.futures import Future
 from typing import Union, List, Optional
@@ -37,6 +39,8 @@ class WriterSync:
     _caller: CallFromSyncToAsync
     _async_writer: WriterAsyncIO
     _closed: bool
+    _close_future: Optional[Future]
+    _close_lock: threading.Lock
     _parent: typing.Any  # need for prevent close parent client by GC
 
     def __init__(
@@ -49,6 +53,8 @@ class WriterSync:
     ):
 
         self._closed = False
+        self._close_future = None
+        self._close_lock = threading.Lock()
 
         if eventloop:
             loop = eventloop
@@ -82,13 +88,24 @@ class WriterSync:
                 logger.warning("Something went wrong during writer close in __del__")
 
     def close(self, *, flush: bool = True, timeout: TimeoutType = None):
-        if self._closed:
-            return
+        with self._close_lock:
+            close_future = self._close_future
+            if close_future is None:
+                logger.debug("Close topic writer")
+                self._closed = True
+                close_coro = self._async_writer.close(flush=flush)
+                try:
+                    close_future = self._caller.unsafe_call_with_future(close_coro)
+                except BaseException as error:
+                    close_coro.close()
+                    close_future = Future()
+                    close_future.set_exception(error)
+                self._close_future = close_future
 
-        logger.debug("Close topic writer")
-        self._closed = True
-
-        self._caller.safe_call_with_result(self._async_writer.close(flush=flush), timeout)
+        try:
+            return close_future.result(timeout)
+        except concurrent.futures.TimeoutError:
+            raise TimeoutError()
 
     def _check_closed(self):
         if self._closed:
@@ -169,6 +186,8 @@ class TxWriterSync(WriterSync):
     ):
 
         self._closed = False
+        self._close_future = None
+        self._close_lock = threading.Lock()
 
         if eventloop:
             loop = eventloop
